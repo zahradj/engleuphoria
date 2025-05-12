@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -53,10 +52,10 @@ const Index = () => {
           </div>
           
           <div className="hidden sm:flex items-center gap-4">
-            <Button variant="ghost">For Parents</Button>
-            <Button variant="ghost">For Teachers</Button>
-            <Button variant="outline">Log In</Button>
-            <Button>Sign Up</Button>
+            <Button variant="ghost" onClick={() => navigate('/for-parents')}>For Parents</Button>
+            <Button variant="ghost" onClick={() => navigate('/for-teachers')}>For Teachers</Button>
+            <Button variant="outline" onClick={() => navigate('/login')}>Log In</Button>
+            <Button onClick={() => navigate('/signup')}>Sign Up</Button>
           </div>
         </div>
       </header>
@@ -217,10 +216,24 @@ const Index = () => {
               <a href="#" className="text-muted-foreground hover:text-foreground">
                 About Us
               </a>
-              <a href="#" className="text-muted-foreground hover:text-foreground">
+              <a 
+                href="#" 
+                className="text-muted-foreground hover:text-foreground"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate('/for-parents');
+                }}
+              >
                 For Parents
               </a>
-              <a href="#" className="text-muted-foreground hover:text-foreground">
+              <a 
+                href="#" 
+                className="text-muted-foreground hover:text-foreground"
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate('/for-teachers');
+                }}
+              >
                 For Teachers
               </a>
               <a href="#" className="text-muted-foreground hover:text-foreground">
