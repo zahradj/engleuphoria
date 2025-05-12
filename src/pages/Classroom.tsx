@@ -1,6 +1,7 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { StudentHeader } from "@/components/StudentHeader";
 import { Mic, MicOff, Users, Video, VideoOff, Hand, MessageCircle, Share } from "lucide-react";
 
