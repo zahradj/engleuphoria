@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,12 +62,38 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+				// Engleuphoria theme colors
+				purple: {
+					light: '#E5DEFF',
+					DEFAULT: '#9B87F5',
+					dark: '#6E59A5',
+				},
+				teal: {
+					light: '#CCFBF1',
+					DEFAULT: '#14B8A6',
+					dark: '#0F766E',
+				},
+				orange: {
+					light: '#FDE1D3',
+					DEFAULT: '#F97316',
+					dark: '#C2410C',
+				},
+				yellow: {
+					light: '#FEF7CD',
+					DEFAULT: '#FACC15',
+					dark: '#A16207',
+				},
+			},
+			fontFamily: {
+				nunito: ['Nunito', 'sans-serif'],
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				sm: 'calc(var(--radius) - 4px)',
+				xl: '1rem',
+				'2xl': '1.5rem',
 			},
 			keyframes: {
 				'accordion-down': {
@@ -84,11 +111,26 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'float': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-10px)' },
+				},
+				'pulse-subtle': {
+					'0%, 100%': { opacity: '1' },
+					'50%': { opacity: '0.8' },
+				},
+				'bounce-light': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-5px)' },
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'float': 'float 6s ease-in-out infinite',
+				'pulse-subtle': 'pulse-subtle 4s ease-in-out infinite',
+				'bounce-light': 'bounce-light 2s ease-in-out infinite',
 			}
 		}
 	},
