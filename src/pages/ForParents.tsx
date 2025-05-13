@@ -2,13 +2,18 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { GraduationCap, BookOpen, Users } from "lucide-react";
+import { GraduationCap, BookOpen, Users, Cube, Sphere } from "lucide-react";
+import { ThreeDShapes } from "@/components/ThreeDShapes";
+import { FloatingShapes } from "@/components/FloatingShapes";
+import { WavingBackground } from "@/components/WavingBackground";
 
 const ForParents = () => {
   const navigate = useNavigate();
   
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col relative overflow-hidden">
+      <WavingBackground />
+      
       {/* Header */}
       <header className="w-full bg-white shadow-sm py-3 px-4">
         <div className="container max-w-7xl mx-auto flex items-center justify-between">
@@ -38,8 +43,10 @@ const ForParents = () => {
       </header>
       
       {/* Main Content */}
-      <main className="flex-1 container max-w-7xl mx-auto px-4 py-8">
-        <div className="max-w-3xl mx-auto">
+      <main className="flex-1 container max-w-7xl mx-auto px-4 py-8 relative">
+        <FloatingShapes className="absolute inset-0 z-0" />
+        
+        <div className="max-w-3xl mx-auto relative z-10">
           <h1 className="text-3xl sm:text-4xl font-bold mb-6">
             Watch Your Child's English Skills 
             <span className="bg-gradient-to-r from-purple to-teal bg-clip-text text-transparent">
@@ -47,13 +54,17 @@ const ForParents = () => {
             </span>
           </h1>
           
+          <div className="w-full mb-8">
+            <ThreeDShapes className="rounded-xl border shadow-md" />
+          </div>
+          
           <p className="text-lg mb-8 text-muted-foreground">
             Engleuphoria gives parents visibility into their child's learning journey with detailed progress tracking, 
             milestone celebrations, and easy communication with teachers.
           </p>
           
           <div className="grid gap-6 md:grid-cols-2 mb-8">
-            <Card>
+            <Card className="transition-all hover:shadow-lg hover:scale-[1.02] duration-300">
               <CardHeader>
                 <div className="bg-purple/20 w-12 h-12 flex items-center justify-center rounded-full mb-3">
                   <BookOpen className="text-purple h-6 w-6" />
@@ -70,7 +81,7 @@ const ForParents = () => {
               </CardContent>
             </Card>
             
-            <Card>
+            <Card className="transition-all hover:shadow-lg hover:scale-[1.02] duration-300">
               <CardHeader>
                 <div className="bg-teal/20 w-12 h-12 flex items-center justify-center rounded-full mb-3">
                   <Users className="text-teal h-6 w-6" />
@@ -87,7 +98,7 @@ const ForParents = () => {
               </CardContent>
             </Card>
             
-            <Card className="md:col-span-2">
+            <Card className="md:col-span-2 transition-all hover:shadow-lg hover:scale-[1.01] duration-300">
               <CardHeader>
                 <div className="bg-yellow/20 w-12 h-12 flex items-center justify-center rounded-full mb-3">
                   <GraduationCap className="text-yellow-dark h-6 w-6" />
