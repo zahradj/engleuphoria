@@ -118,7 +118,7 @@ const Index = () => {
                 <img 
                   src="/lovable-uploads/af8673d3-cab8-4146-877f-42241ec01b4b.png"
                   alt="3D learning illustration with books, headphones, and education elements"
-                  className="rounded-lg w-full max-w-md mx-auto object-contain h-80"
+                  className="rounded-lg w-full max-w-none mx-auto object-contain h-96"
                 />
               </div>
               <div className="absolute -top-4 -right-4 bg-yellow/90 text-yellow-dark font-bold px-4 py-2 rounded-full animate-pulse-subtle">
