@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -115,9 +116,9 @@ const Index = () => {
             <div className="flex-1 relative">
               <div className="animate-float bg-gradient-to-br from-purple-light to-teal-light p-6 rounded-2xl shadow-lg">
                 <img 
-                  src="/placeholder.svg"
+                  src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2009&q=80"
                   alt="Children learning English"
-                  className="rounded-lg w-full max-w-md mx-auto"
+                  className="rounded-lg w-full max-w-md mx-auto object-cover h-80"
                 />
               </div>
               <div className="absolute -top-4 -right-4 bg-yellow/90 text-yellow-dark font-bold px-4 py-2 rounded-full animate-pulse-subtle">
