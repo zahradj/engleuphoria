@@ -115,8 +115,10 @@ const Index = () => {
               </div>
               
               <div className="flex-1 md:flex-grow md:max-w-[60%] relative">
-                {/* Enhanced fading gradient background effect */}
-                <div className="absolute -z-10 -inset-4 bg-gradient-to-r from-purple/5 via-teal/5 to-purple/5 blur-3xl rounded-3xl animate-blur-fade opacity-80"></div>
+                {/* Circular shadow effects using radial gradients */}
+                <div className="absolute -z-10 top-1/4 left-1/4 w-3/4 h-3/4 bg-purple/10 rounded-full blur-3xl animate-pulse-subtle opacity-60"></div>
+                <div className="absolute -z-10 bottom-1/4 right-1/4 w-2/3 h-2/3 bg-teal/10 rounded-full blur-3xl animate-pulse-subtle opacity-60 animation-delay-300"></div>
+                <div className="absolute -z-10 top-1/3 right-1/3 w-1/2 h-1/2 bg-orange/10 rounded-full blur-3xl animate-pulse-subtle opacity-40 animation-delay-700"></div>
                 
                 <img 
                   src="/lovable-uploads/94b3a265-e3c7-4819-9be4-de2aa5cdc590.png"
