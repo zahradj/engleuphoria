@@ -115,9 +115,9 @@ const Index = () => {
               </div>
               
               <div className="flex-1 md:flex-grow md:max-w-[60%] relative">
-                {/* Background shadow effect */}
-                <div className="absolute inset-0 -translate-x-6 -translate-y-6 bg-purple/20 rounded-3xl transform -rotate-3"></div>
-                <div className="absolute inset-0 translate-x-6 translate-y-6 bg-teal/20 rounded-3xl transform rotate-3"></div>
+                {/* Background shadow effect with fade animation */}
+                <div className="absolute inset-0 -translate-x-6 -translate-y-6 bg-purple/20 rounded-3xl transform -rotate-3 animate-pulse-subtle transition-opacity duration-700"></div>
+                <div className="absolute inset-0 translate-x-6 translate-y-6 bg-teal/20 rounded-3xl transform rotate-3 animate-pulse-subtle transition-opacity duration-700 delay-300"></div>
                 
                 <div className="relative z-10">
                   <img 
