@@ -113,13 +113,11 @@ const Index = () => {
             </div>
             
             <div className="flex-1 relative">
-              <div className="animate-float bg-gradient-to-br from-purple-light to-teal-light p-6 rounded-2xl shadow-lg">
-                <img 
-                  src="/lovable-uploads/af8673d3-cab8-4146-877f-42241ec01b4b.png"
-                  alt="3D learning illustration with books, headphones, and education elements"
-                  className="rounded-lg w-full max-w-none mx-auto object-contain h-[500px]"
-                />
-              </div>
+              <img 
+                src="/lovable-uploads/af8673d3-cab8-4146-877f-42241ec01b4b.png"
+                alt="3D learning illustration with books, headphones, and education elements"
+                className="rounded-xl w-full h-[600px] object-contain mx-auto"
+              />
               <div className="absolute -top-4 -right-4 bg-yellow/90 text-yellow-dark font-bold px-4 py-2 rounded-full animate-pulse-subtle">
                 Join now!
               </div>
