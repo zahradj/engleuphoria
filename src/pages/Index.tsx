@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -116,10 +117,15 @@ const Index = () => {
               <div className="flex-1 md:flex-grow md:max-w-[60%] relative">
                 {/* Background gradient effect similar to ForParents page */}
                 <div className="absolute -z-10 -inset-1 bg-gradient-to-r from-purple/20 to-teal/20 blur-xl rounded-3xl animate-blur-fade"></div>
+                
+                {/* Fading frame effect */}
+                <div className="absolute inset-0 border-8 border-gradient-to-r from-purple/10 to-teal/10 rounded-3xl z-10 animate-pulse-subtle opacity-70"></div>
+                <div className="absolute inset-2 border-4 border-white/20 rounded-2xl z-10 animate-pulse-subtle opacity-50 animation-delay-300"></div>
+                
                 <img 
                   src="/lovable-uploads/94b3a265-e3c7-4819-9be4-de2aa5cdc590.png"
                   alt="3D learning illustration with educational elements"
-                  className="w-full h-auto object-contain mx-auto max-h-[800px] relative z-10"
+                  className="w-full h-auto object-contain mx-auto max-h-[800px] relative z-5"
                 />
                 <div className="absolute -top-4 -right-4 bg-yellow/90 text-yellow-dark font-bold px-4 py-2 rounded-full animate-pulse-subtle z-20">
                   Join now!

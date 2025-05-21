@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -137,8 +136,30 @@ export default {
 				'pulse-subtle': 'pulse-subtle 4s ease-in-out infinite',
 				'bounce-light': 'bounce-light 2s ease-in-out infinite',
 				'blur-fade': 'blur-fade 8s ease-in-out infinite',
-			}
+			},
+			animationDelay: {
+				'300': '300ms',
+				'500': '500ms',
+				'700': '700ms',
+			},
+			backgroundImage: {
+				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+				'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+			},
 		}
 	},
-	plugins: [require("tailwindcss-animate")],
+	plugins: [
+		require("tailwindcss-animate"),
+		function({ addUtilities, theme }) {
+			const animationDelays = theme('animationDelay', {});
+			
+			const utilities = Object.entries(animationDelays).map(([key, value]) => ({
+				[`.animation-delay-${key}`]: {
+					'animation-delay': value
+				}
+			}));
+			
+			addUtilities(utilities);
+		}
+	],
 } satisfies Config;
