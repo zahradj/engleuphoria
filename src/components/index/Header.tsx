@@ -12,13 +12,11 @@ export const Header = () => {
           onClick={() => navigate('/')}
           className="flex items-center gap-3 cursor-pointer"
         >
-          <div className="rounded-md p-1.5">
-            <img 
-              src="/lovable-uploads/3d4ffe1c-aaa5-4e34-8441-fe0b477cf8ba.png" 
-              alt="Engleuphoria Logo" 
-              className="h-8 w-auto" 
-            />
-          </div>
+          <img 
+            src="/lovable-uploads/3d4ffe1c-aaa5-4e34-8441-fe0b477cf8ba.png" 
+            alt="Engleuphoria Logo" 
+            className="h-8 w-auto" 
+          />
           <h1 className="text-xl font-bold text-foreground">
             Engleuphoria
           </h1>
