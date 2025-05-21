@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 type Language = 'english' | 'arabic' | 'french';
@@ -89,6 +88,11 @@ interface LanguageContextType {
     studentProgressTitle: string;
     studentProgressDesc: string;
     joinAsTeacher: string;
+    
+    // User interface
+    notifications: string;
+    profile: string;
+    language: string;
   };
 }
 
@@ -176,6 +180,11 @@ const translations = {
     studentProgressTitle: 'Student Progress Analytics',
     studentProgressDesc: 'Our comprehensive dashboard gives you insights into each student\'s progress, helping you tailor your teaching approach to individual needs.',
     joinAsTeacher: 'Join as a Teacher',
+    
+    // User interface
+    notifications: 'Notifications',
+    profile: 'Profile',
+    language: 'Language',
   },
   arabic: {
     // Navigation
@@ -260,6 +269,11 @@ const translations = {
     studentProgressTitle: 'تحليلات تقدم الطالب',
     studentProgressDesc: 'توفر لوحة المعلومات الشاملة لدينا رؤى حول تقدم كل طالب، مما يساعدك على تكييف نهج التدريس وفقًا للاحتياجات الفردية.',
     joinAsTeacher: 'انضم كمعلم',
+    
+    // User interface
+    notifications: 'الإشعارات',
+    profile: 'الملف الشخصي',
+    language: 'اللغة',
   },
   french: {
     // Navigation
@@ -344,6 +358,11 @@ const translations = {
     studentProgressTitle: 'Analyses de Progression des Élèves',
     studentProgressDesc: 'Notre tableau de bord complet vous donne un aperçu des progrès de chaque élève, vous aidant à adapter votre approche pédagogique aux besoins individuels.',
     joinAsTeacher: 'Rejoindre en tant qu\'Enseignant',
+    
+    // User interface
+    notifications: 'Notifications',
+    profile: 'Profil',
+    language: 'Langue',
   },
 };
 

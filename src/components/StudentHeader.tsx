@@ -92,16 +92,16 @@ export function StudentHeader({ studentName, points }: StudentHeaderProps) {
                 </div>
                 <Button variant="outline" size="lg" className="flex gap-2 items-center justify-start" onClick={() => setOpen(false)}>
                   <Bell size={18} />
-                  <span>{languageText.notifications || "Notifications"}</span>
+                  <span>{languageText.notifications}</span>
                 </Button>
                 <Button variant="outline" size="lg" className="flex gap-2 items-center justify-start" onClick={() => setOpen(false)}>
                   <User size={18} />
-                  <span>{languageText.profile || "Profile"}</span>
+                  <span>{languageText.profile}</span>
                 </Button>
                 
                 {/* Language Selection */}
                 <div className="mt-4 border-t pt-4">
-                  <p className="text-sm text-muted-foreground mb-2">{languageText.language || "Language"}:</p>
+                  <p className="text-sm text-muted-foreground mb-2">{languageText.language}:</p>
                   <div className="grid grid-cols-3 gap-2">
                     <Button 
                       size="sm" 
