@@ -15,7 +15,7 @@ export const Header = () => {
           <img 
             src="/lovable-uploads/4570be6a-7587-485e-b773-d00f9b02a024.png" 
             alt="Engleuphoria Logo" 
-            className="h-8 w-auto" 
+            className="h-12 w-auto" 
           />
         </div>
         
