@@ -22,7 +22,7 @@ interface StudentHeaderProps {
 export function StudentHeader({ studentName, points }: StudentHeaderProps) {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, languageText } = useLanguage();
 
   return (
     <header className="w-full bg-white shadow-sm py-3 px-4">
@@ -92,16 +92,16 @@ export function StudentHeader({ studentName, points }: StudentHeaderProps) {
                 </div>
                 <Button variant="outline" size="lg" className="flex gap-2 items-center justify-start" onClick={() => setOpen(false)}>
                   <Bell size={18} />
-                  <span>Notifications</span>
+                  <span>{languageText.notifications || "Notifications"}</span>
                 </Button>
                 <Button variant="outline" size="lg" className="flex gap-2 items-center justify-start" onClick={() => setOpen(false)}>
                   <User size={18} />
-                  <span>Profile</span>
+                  <span>{languageText.profile || "Profile"}</span>
                 </Button>
                 
                 {/* Language Selection */}
                 <div className="mt-4 border-t pt-4">
-                  <p className="text-sm text-muted-foreground mb-2">Language:</p>
+                  <p className="text-sm text-muted-foreground mb-2">{languageText.language || "Language"}:</p>
                   <div className="grid grid-cols-3 gap-2">
                     <Button 
                       size="sm" 

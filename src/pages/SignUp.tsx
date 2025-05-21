@@ -10,19 +10,21 @@ import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
-
-const formSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters" }),
-  email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
-  userType: z.enum(["parent", "teacher", "student"], { 
-    required_error: "Please select a user type" 
-  }),
-});
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const SignUp = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { languageText } = useLanguage();
+  
+  const formSchema = z.object({
+    name: z.string().min(2, { message: "Name must be at least 2 characters" }),
+    email: z.string().email({ message: "Please enter a valid email address" }),
+    password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+    userType: z.enum(["parent", "teacher", "student"], { 
+      required_error: "Please select a user type" 
+    }),
+  });
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -67,10 +69,10 @@ const SignUp = () => {
           </div>
           
           <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate('/for-parents')}>For Parents</Button>
-            <Button variant="ghost" onClick={() => navigate('/for-teachers')}>For Teachers</Button>
-            <Button variant="outline" onClick={() => navigate('/login')}>Log In</Button>
-            <Button className="font-semibold" onClick={() => navigate('/signup')}>Sign Up</Button>
+            <Button variant="ghost" onClick={() => navigate('/for-parents')}>{languageText.forParents}</Button>
+            <Button variant="ghost" onClick={() => navigate('/for-teachers')}>{languageText.forTeachers}</Button>
+            <Button variant="outline" onClick={() => navigate('/login')}>{languageText.logIn}</Button>
+            <Button className="font-semibold" onClick={() => navigate('/signup')}>{languageText.signUp}</Button>
           </div>
         </div>
       </header>
@@ -83,7 +85,7 @@ const SignUp = () => {
           <div className="absolute -z-10 bottom-0 right-0 w-[60%] h-[60%] bg-teal/5 rounded-full blur-2xl"></div>
           
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold">Create Your Account</h2>
+            <h2 className="text-2xl font-bold">{languageText.createAccount}</h2>
             <p className="text-muted-foreground">Join our English learning community</p>
           </div>
           
@@ -94,7 +96,7 @@ const SignUp = () => {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Full Name</FormLabel>
+                    <FormLabel>{languageText.fullName}</FormLabel>
                     <FormControl>
                       <Input placeholder="Your name" {...field} />
                     </FormControl>
@@ -108,7 +110,7 @@ const SignUp = () => {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{languageText.email}</FormLabel>
                     <FormControl>
                       <Input placeholder="your.email@example.com" {...field} />
                     </FormControl>
@@ -122,7 +124,7 @@ const SignUp = () => {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>{languageText.password}</FormLabel>
                     <FormControl>
                       <Input type="password" placeholder="••••••" {...field} />
                     </FormControl>
@@ -136,7 +138,7 @@ const SignUp = () => {
                 name="userType"
                 render={({ field }) => (
                   <FormItem className="space-y-3">
-                    <FormLabel>I am a:</FormLabel>
+                    <FormLabel>{languageText.iAmA}</FormLabel>
                     <FormControl>
                       <RadioGroup
                         onValueChange={field.onChange}
@@ -147,19 +149,19 @@ const SignUp = () => {
                           <FormControl>
                             <RadioGroupItem value="parent" />
                           </FormControl>
-                          <FormLabel className="font-normal">Parent</FormLabel>
+                          <FormLabel className="font-normal">{languageText.parent}</FormLabel>
                         </FormItem>
                         <FormItem className="flex items-center space-x-3 space-y-0">
                           <FormControl>
                             <RadioGroupItem value="teacher" />
                           </FormControl>
-                          <FormLabel className="font-normal">Teacher</FormLabel>
+                          <FormLabel className="font-normal">{languageText.teacher}</FormLabel>
                         </FormItem>
                         <FormItem className="flex items-center space-x-3 space-y-0">
                           <FormControl>
                             <RadioGroupItem value="student" />
                           </FormControl>
-                          <FormLabel className="font-normal">Student (13+ years)</FormLabel>
+                          <FormLabel className="font-normal">{languageText.student}</FormLabel>
                         </FormItem>
                       </RadioGroup>
                     </FormControl>
@@ -169,16 +171,16 @@ const SignUp = () => {
               />
               
               <Button type="submit" className="w-full">
-                Sign Up
+                {languageText.signUp}
               </Button>
             </form>
           </Form>
           
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
-              Already have an account?{" "}
+              {languageText.alreadyHaveAccount}{" "}
               <Button variant="link" className="p-0 h-auto font-normal" onClick={() => navigate('/login')}>
-                Log in
+                {languageText.logIn}
               </Button>
             </p>
           </div>

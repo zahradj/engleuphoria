@@ -7,11 +7,13 @@ import { StudentHeader } from "@/components/StudentHeader";
 import { ClassCard, ClassInfo } from "@/components/ClassCard";
 import { RewardItem } from "@/components/RewardItem";
 import { ArrowRight, BookOpen, Edit, Video } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Dashboard = () => {
   const [studentName, setStudentName] = useState<string>("");
   const [points, setPoints] = useState<number>(0);
   const navigate = useNavigate();
+  const { languageText } = useLanguage();
   
   // Demo classes
   const classes: ClassInfo[] = [
@@ -101,15 +103,15 @@ const Dashboard = () => {
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                   <div>
                     <h2 className="text-2xl font-bold mb-2">
-                      Welcome back, {studentName}! 👋
+                      {languageText.welcomeUser.replace('{}', studentName)}
                     </h2>
                     <p className="text-muted-foreground">
-                      Ready for another day of fun learning?
+                      {languageText.readyToLearn}
                     </p>
                   </div>
                   
                   <Button className="gap-2" onClick={() => navigate("/classroom/class-1")}>
-                    Join Next Class <ArrowRight className="h-4 w-4" />
+                    {languageText.joinNextClass} <ArrowRight className="h-4 w-4" />
                   </Button>
                 </div>
               </CardContent>
@@ -118,9 +120,9 @@ const Dashboard = () => {
             {/* Upcoming classes */}
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold">Upcoming Classes</h2>
+                <h2 className="text-xl font-bold">{languageText.upcomingClasses}</h2>
                 <Button variant="ghost" size="sm">
-                  View All
+                  {languageText.viewAll}
                 </Button>
               </div>
               
@@ -138,9 +140,9 @@ const Dashboard = () => {
             {/* Activities */}
             <div>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold">Fun Activities</h2>
+                <h2 className="text-xl font-bold">{languageText.funActivities}</h2>
                 <Button variant="ghost" size="sm">
-                  View All
+                  {languageText.viewAll}
                 </Button>
               </div>
               
@@ -165,7 +167,7 @@ const Dashboard = () => {
                         className="w-full" 
                         onClick={() => handleStartActivity(index)}
                       >
-                        Start
+                        {languageText.start}
                       </Button>
                     </div>
                   </Card>
@@ -179,14 +181,14 @@ const Dashboard = () => {
             {/* Progress summary */}
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle>Your Progress</CardTitle>
+                <CardTitle>{languageText.yourProgress}</CardTitle>
               </CardHeader>
               
               <CardContent>
                 <div className="space-y-4">
                   <div>
                     <div className="flex justify-between mb-1">
-                      <span className="text-sm font-medium">This Week's Activities</span>
+                      <span className="text-sm font-medium">{languageText.thisWeekActivities}</span>
                       <span className="text-sm font-medium">3/5</span>
                     </div>
                     <div className="h-2 bg-muted rounded-full">
@@ -196,7 +198,7 @@ const Dashboard = () => {
                   
                   <div>
                     <div className="flex justify-between mb-1">
-                      <span className="text-sm font-medium">Total Classes Attended</span>
+                      <span className="text-sm font-medium">{languageText.classesAttended}</span>
                       <span className="text-sm font-medium">8</span>
                     </div>
                     <div className="h-2 bg-muted rounded-full">
@@ -206,7 +208,7 @@ const Dashboard = () => {
                   
                   <div>
                     <div className="flex justify-between mb-1">
-                      <span className="text-sm font-medium">Points Earned</span>
+                      <span className="text-sm font-medium">{languageText.pointsEarned}</span>
                       <span className="text-sm font-medium">{points}</span>
                     </div>
                     <div className="h-2 bg-muted rounded-full">
@@ -220,7 +222,7 @@ const Dashboard = () => {
             {/* Rewards */}
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle>Your Rewards</CardTitle>
+                <CardTitle>{languageText.yourRewards}</CardTitle>
               </CardHeader>
               
               <CardContent className="space-y-3">
@@ -250,7 +252,7 @@ const Dashboard = () => {
             {/* Recent activity */}
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle>Recent Activity</CardTitle>
+                <CardTitle>{languageText.recentActivity}</CardTitle>
               </CardHeader>
               
               <CardContent className="space-y-2">
@@ -259,7 +261,7 @@ const Dashboard = () => {
                     <Video className="text-purple h-4 w-4" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium">Attended Class</p>
+                    <p className="text-sm font-medium">{languageText.attendedClass}</p>
                     <p className="text-xs text-muted-foreground">Fun with Phonics</p>
                   </div>
                   <div className="text-xs text-muted-foreground">2h ago</div>
@@ -270,7 +272,7 @@ const Dashboard = () => {
                     <BookOpen className="text-teal h-4 w-4" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium">Completed Activity</p>
+                    <p className="text-sm font-medium">{languageText.completedActivity}</p>
                     <p className="text-xs text-muted-foreground">Animal Vocabulary</p>
                   </div>
                   <div className="text-xs text-muted-foreground">1d ago</div>
@@ -281,7 +283,7 @@ const Dashboard = () => {
                     <ArrowRight className="text-yellow-dark h-4 w-4" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium">Earned Badge</p>
+                    <p className="text-sm font-medium">{languageText.earnedBadge}</p>
                     <p className="text-xs text-muted-foreground">Vocabulary Master</p>
                   </div>
                   <div className="text-xs text-muted-foreground">2d ago</div>

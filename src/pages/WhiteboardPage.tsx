@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button";
 import { StudentHeader } from "@/components/StudentHeader";
 import { Whiteboard } from "@/components/Whiteboard";
 import { ArrowLeft } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const WhiteboardPage = () => {
   const [studentName, setStudentName] = useState<string>("");
   const [points, setPoints] = useState<number>(0);
   const navigate = useNavigate();
+  const { languageText } = useLanguage();
   
   useEffect(() => {
     // In a real app, we'd fetch this from an API
@@ -35,12 +37,12 @@ const WhiteboardPage = () => {
             <Button variant="outline" size="icon" onClick={() => navigate(-1)}>
               <ArrowLeft size={20} />
             </Button>
-            <h1 className="text-2xl font-bold">Interactive Whiteboard</h1>
+            <h1 className="text-2xl font-bold">{languageText.interactiveWhiteboard}</h1>
           </div>
           
           <div>
             <Button onClick={() => navigate("/dashboard")}>
-              Back to Dashboard
+              {languageText.backToDashboard}
             </Button>
           </div>
         </div>
@@ -48,29 +50,29 @@ const WhiteboardPage = () => {
         <Whiteboard className="mb-6" />
         
         <div className="bg-white rounded-lg p-6 border">
-          <h2 className="font-bold mb-4">Activity: Draw and Learn</h2>
-          <p className="mb-2">Use the whiteboard to complete these activities:</p>
+          <h2 className="font-bold mb-4">{languageText.activityDrawAndLearn}</h2>
+          <p className="mb-2">{languageText.useWhiteboardComplete}</p>
           
           <div className="space-y-2 mb-4">
             <div className="flex items-center gap-2">
               <div className="h-6 w-6 rounded-full bg-purple/20 flex items-center justify-center">
                 <span className="font-bold text-purple">1</span>
               </div>
-              <p>Draw your favorite animal</p>
+              <p>{languageText.drawAnimal}</p>
             </div>
             
             <div className="flex items-center gap-2">
               <div className="h-6 w-6 rounded-full bg-teal/20 flex items-center justify-center">
                 <span className="font-bold text-teal">2</span>
               </div>
-              <p>Write the animal's name in English</p>
+              <p>{languageText.writeAnimalName}</p>
             </div>
             
             <div className="flex items-center gap-2">
               <div className="h-6 w-6 rounded-full bg-orange/20 flex items-center justify-center">
                 <span className="font-bold text-orange">3</span>
               </div>
-              <p>Draw what the animal eats</p>
+              <p>{languageText.drawWhatEats}</p>
             </div>
           </div>
           
@@ -84,7 +86,7 @@ const WhiteboardPage = () => {
               navigate("/dashboard");
             }}
           >
-            Submit Activity (+15 points)
+            {languageText.submitActivity}
           </Button>
         </div>
       </main>

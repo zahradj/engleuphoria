@@ -10,16 +10,19 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-
-const formSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
-  rememberMe: z.boolean().default(false),
-});
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { languageText } = useLanguage();
+  
+  // Dynamic form schema based on current language
+  const formSchema = z.object({
+    email: z.string().email({ message: "Please enter a valid email address" }),
+    password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+    rememberMe: z.boolean().default(false),
+  });
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -63,10 +66,10 @@ const Login = () => {
           </div>
           
           <div className="flex items-center gap-4 animate-fade-in animation-delay-300">
-            <Button variant="ghost" onClick={() => navigate('/for-parents')}>For Parents</Button>
-            <Button variant="ghost" onClick={() => navigate('/for-teachers')}>For Teachers</Button>
-            <Button variant="outline" className="font-semibold" onClick={() => navigate('/login')}>Log In</Button>
-            <Button onClick={() => navigate('/signup')}>Sign Up</Button>
+            <Button variant="ghost" onClick={() => navigate('/for-parents')}>{languageText.forParents}</Button>
+            <Button variant="ghost" onClick={() => navigate('/for-teachers')}>{languageText.forTeachers}</Button>
+            <Button variant="outline" className="font-semibold" onClick={() => navigate('/login')}>{languageText.logIn}</Button>
+            <Button onClick={() => navigate('/signup')}>{languageText.signUp}</Button>
           </div>
         </div>
       </header>
@@ -79,7 +82,7 @@ const Login = () => {
           <div className="absolute -z-10 bottom-0 right-0 w-[60%] h-[60%] bg-teal/5 rounded-full blur-2xl animate-blur-fade animation-delay-300"></div>
           
           <div className="text-center mb-6 animate-fade-in">
-            <h2 className="text-2xl font-bold">Welcome Back!</h2>
+            <h2 className="text-2xl font-bold">{languageText.welcomeBack}!</h2>
             <p className="text-muted-foreground">Log in to continue your English journey</p>
           </div>
           
@@ -90,7 +93,7 @@ const Login = () => {
                 name="email"
                 render={({ field }) => (
                   <FormItem className="animate-fade-in animation-delay-300">
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{languageText.email}</FormLabel>
                     <FormControl>
                       <Input placeholder="your.email@example.com" {...field} />
                     </FormControl>
@@ -104,7 +107,7 @@ const Login = () => {
                 name="password"
                 render={({ field }) => (
                   <FormItem className="animate-fade-in animation-delay-500">
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>{languageText.password}</FormLabel>
                     <FormControl>
                       <Input type="password" placeholder="••••••" {...field} />
                     </FormControl>
@@ -126,28 +129,28 @@ const Login = () => {
                         />
                       </FormControl>
                       <FormLabel className="text-sm font-medium cursor-pointer">
-                        Remember me
+                        {languageText.rememberMe}
                       </FormLabel>
                     </FormItem>
                   )}
                 />
                 
                 <Button variant="link" className="p-0 h-auto font-normal" type="button">
-                  Forgot password?
+                  {languageText.forgotPassword}
                 </Button>
               </div>
               
               <Button type="submit" className="w-full animate-bounce-light">
-                Log In
+                {languageText.logIn}
               </Button>
             </form>
           </Form>
           
           <div className="mt-6 text-center animate-fade-in animation-delay-700">
             <p className="text-sm text-muted-foreground">
-              Don't have an account?{" "}
+              {languageText.dontHaveAccount}{" "}
               <Button variant="link" className="p-0 h-auto font-normal" onClick={() => navigate('/signup')}>
-                Sign up
+                {languageText.signUp}
               </Button>
             </p>
           </div>

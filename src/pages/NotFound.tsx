@@ -1,9 +1,11 @@
 
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const NotFound = () => {
   const navigate = useNavigate();
+  const { languageText } = useLanguage();
 
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
@@ -18,10 +20,12 @@ const NotFound = () => {
             404
           </div>
           
-          <h1 className="text-3xl font-bold mb-4 animate-fade-in animation-delay-300">Page Not Found</h1>
+          <h1 className="text-3xl font-bold mb-4 animate-fade-in animation-delay-300">
+            {languageText.pageNotFound}
+          </h1>
           
           <p className="text-muted-foreground mb-8 animate-fade-in animation-delay-500">
-            Oops! It looks like you've wandered to a part of our universe that doesn't exist.
+            {languageText.pageNotFoundMessage}
           </p>
           
           <Button 
@@ -29,7 +33,7 @@ const NotFound = () => {
             onClick={() => navigate('/')}
             className="animate-bounce-light animation-delay-700"
           >
-            Return Home
+            {languageText.returnHome}
           </Button>
         </div>
       </div>

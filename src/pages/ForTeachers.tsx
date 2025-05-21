@@ -3,9 +3,11 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, Video, Users } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const ForTeachers = () => {
   const navigate = useNavigate();
+  const { languageText } = useLanguage();
   
   return (
     <div className="min-h-screen flex flex-col relative overflow-hidden">
@@ -26,13 +28,13 @@ const ForTeachers = () => {
           
           <div className="flex items-center gap-4">
             <Button variant="ghost" onClick={() => navigate('/for-parents')}>
-              For Parents
+              {languageText.forParents}
             </Button>
             <Button variant="ghost" className="font-semibold" onClick={() => navigate('/for-teachers')}>
-              For Teachers
+              {languageText.forTeachers}
             </Button>
-            <Button variant="outline" onClick={() => navigate('/login')}>Log In</Button>
-            <Button onClick={() => navigate('/signup')}>Sign Up</Button>
+            <Button variant="outline" onClick={() => navigate('/login')}>{languageText.logIn}</Button>
+            <Button onClick={() => navigate('/signup')}>{languageText.signUp}</Button>
           </div>
         </div>
       </header>
@@ -46,16 +48,13 @@ const ForTeachers = () => {
       <main className="flex-1 container max-w-7xl mx-auto px-4 py-8 relative z-10">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-3xl sm:text-4xl font-bold mb-6">
-            Powerful Tools to Make
             <span className="bg-gradient-to-r from-purple to-teal bg-clip-text text-transparent">
-              {" "}Teaching English{" "}
+              {languageText.teachingToolsTitle}
             </span>
-            Delightful
           </h1>
           
           <p className="text-lg mb-8 text-muted-foreground">
-            Engleuphoria empowers teachers with intuitive tools for engaging, interactive lessons.
-            Spend less time on lesson planning and more time inspiring your students.
+            {languageText.teachingToolsSubtitle}
           </p>
           
           <div className="grid gap-6 md:grid-cols-2 mb-8">
@@ -67,14 +66,14 @@ const ForTeachers = () => {
                 <div className="bg-purple/20 w-12 h-12 flex items-center justify-center rounded-full mb-3">
                   <Video className="text-purple h-6 w-6" />
                 </div>
-                <CardTitle>Interactive Video Classes</CardTitle>
+                <CardTitle>{languageText.interactiveVideosTitle}</CardTitle>
                 <CardDescription>
-                  Teach with engaging tools built for young learners
+                  {languageText.interactiveVideos}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  Our custom video platform offers whiteboard integration, breakout rooms, fun reactions, and child-friendly controls.
+                  {languageText.interactiveVideosDesc}
                 </p>
               </CardContent>
             </Card>
@@ -87,14 +86,14 @@ const ForTeachers = () => {
                 <div className="bg-teal/20 w-12 h-12 flex items-center justify-center rounded-full mb-3">
                   <BookOpen className="text-teal h-6 w-6" />
                 </div>
-                <CardTitle>Ready-Made Materials</CardTitle>
+                <CardTitle>{languageText.readyMadeMaterialsTitle}</CardTitle>
                 <CardDescription>
-                  Access our library of age-appropriate resources
+                  {languageText.readyMadeMaterials}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  Browse hundreds of activities, worksheets, games and lesson plans designed by experienced ESL teachers.
+                  {languageText.readyMadeMaterialsDesc}
                 </p>
               </CardContent>
             </Card>
@@ -107,14 +106,14 @@ const ForTeachers = () => {
                 <div className="bg-orange/20 w-12 h-12 flex items-center justify-center rounded-full mb-3">
                   <Users className="text-orange h-6 w-6" />
                 </div>
-                <CardTitle>Student Progress Analytics</CardTitle>
+                <CardTitle>{languageText.studentProgressTitle}</CardTitle>
                 <CardDescription>
-                  Track achievements and identify areas for improvement
+                  {languageText.studentProgress}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  Our comprehensive dashboard gives you insights into each student's progress, helping you tailor your teaching approach to individual needs.
+                  {languageText.studentProgressDesc}
                 </p>
               </CardContent>
             </Card>
@@ -122,7 +121,7 @@ const ForTeachers = () => {
           
           <div className="flex justify-center">
             <Button size="lg" onClick={() => navigate('/signup')} className="gap-2">
-              Join as a Teacher
+              {languageText.joinAsTeacher}
             </Button>
           </div>
         </div>
@@ -143,16 +142,16 @@ const ForTeachers = () => {
             
             <div className="flex gap-6">
               <a href="#" className="text-muted-foreground hover:text-foreground">
-                About Us
+                {languageText.aboutUs}
               </a>
               <a href="#" className="text-muted-foreground hover:text-foreground">
-                For Parents
+                {languageText.forParents}
               </a>
               <a href="#" className="text-muted-foreground hover:text-foreground">
-                For Teachers
+                {languageText.forTeachers}
               </a>
               <a href="#" className="text-muted-foreground hover:text-foreground">
-                Contact
+                {languageText.contact}
               </a>
             </div>
           </div>
