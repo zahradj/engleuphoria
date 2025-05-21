@@ -66,7 +66,11 @@ const ForParents = () => {
           </div>
           
           <div className="relative">
-            <div className="absolute -z-10 -inset-1 bg-gradient-to-r from-purple/20 to-teal/20 blur-xl rounded-3xl"></div>
+            {/* Circular shadow effects */}
+            <div className="absolute -z-10 top-1/4 left-1/4 w-[110%] h-[110%] bg-purple/30 rounded-full blur-3xl animate-pulse-subtle opacity-90"></div>
+            <div className="absolute -z-10 bottom-1/4 right-1/4 w-[90%] h-[90%] bg-teal/25 rounded-full blur-3xl animate-pulse-subtle opacity-85 animation-delay-300"></div>
+            <div className="absolute -z-10 top-1/3 right-1/3 w-[80%] h-[80%] bg-orange/20 rounded-full blur-3xl animate-pulse-subtle opacity-75 animation-delay-700"></div>
+            
             <img 
               src="/lovable-uploads/0629e331-727e-44d8-abdf-01f030c8a277.png" 
               alt="Book with speech bubbles showing language learning"
@@ -78,6 +82,10 @@ const ForParents = () => {
       
       {/* Features Section */}
       <section className="py-16 bg-muted/30 relative">
+        {/* Background circular effects */}
+        <div className="absolute -z-10 top-1/2 left-1/3 w-[80%] h-[80%] bg-purple/15 rounded-full blur-3xl animate-pulse-subtle opacity-70"></div>
+        <div className="absolute -z-10 bottom-1/4 right-1/4 w-[60%] h-[60%] bg-teal/10 rounded-full blur-3xl animate-pulse-subtle opacity-65 animation-delay-500"></div>
+        
         <div className="container max-w-7xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4">What We Offer Parents</h2>
@@ -142,7 +150,11 @@ const ForParents = () => {
       </section>
       
       {/* Stats Section */}
-      <section className="py-16 container max-w-7xl mx-auto px-4">
+      <section className="py-16 container max-w-7xl mx-auto px-4 relative">
+        {/* Background circular effects */}
+        <div className="absolute -z-10 top-1/2 right-1/4 w-[70%] h-[70%] bg-yellow/15 rounded-full blur-3xl animate-pulse-subtle opacity-75"></div>
+        <div className="absolute -z-10 bottom-1/3 left-1/3 w-[50%] h-[50%] bg-orange/10 rounded-full blur-3xl animate-pulse-subtle opacity-65 animation-delay-700"></div>
+        
         <div className="grid md:grid-cols-3 gap-8">
           <div className="text-center p-8 border rounded-xl bg-white shadow-sm">
             <div className="text-4xl font-bold text-purple mb-2">95%</div>
@@ -162,7 +174,10 @@ const ForParents = () => {
       </section>
       
       {/* Testimonial */}
-      <section className="py-16 bg-gradient-to-r from-purple/10 to-teal/10">
+      <section className="py-16 bg-gradient-to-r from-purple/10 to-teal/10 relative">
+        {/* Background circular effects */}
+        <div className="absolute -z-10 center top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[90%] h-[90%] bg-purple/15 rounded-full blur-3xl animate-pulse-subtle opacity-70"></div>
+        
         <div className="container max-w-7xl mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <svg className="w-12 h-12 mx-auto mb-6 text-muted-foreground/30" fill="currentColor" viewBox="0 0 24 24">
@@ -178,8 +193,16 @@ const ForParents = () => {
       </section>
       
       {/* CTA Section */}
-      <section className="py-16 container max-w-7xl mx-auto px-4">
-        <Card className="border-0 shadow-xl bg-gradient-to-r from-purple/80 to-teal/80 text-white">
+      <section className="py-16 container max-w-7xl mx-auto px-4 relative">
+        {/* Background circular effects */}
+        <div className="absolute -z-10 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-purple/20 rounded-full blur-3xl animate-pulse-subtle opacity-50"></div>
+        <div className="absolute -z-10 bottom-0 right-1/4 w-[70%] h-[70%] bg-teal/15 rounded-full blur-3xl animate-pulse-subtle opacity-60 animation-delay-300"></div>
+        
+        <Card className="border-0 shadow-xl bg-gradient-to-r from-purple/80 to-teal/80 text-white relative overflow-hidden">
+          {/* Card inner glow effects */}
+          <div className="absolute -z-5 top-0 left-0 w-[70%] h-[70%] bg-white/10 rounded-full blur-3xl"></div>
+          <div className="absolute -z-5 bottom-0 right-0 w-[60%] h-[60%] bg-white/5 rounded-full blur-3xl"></div>
+          
           <CardContent className="p-8 md:p-12">
             <div className="grid md:grid-cols-2 gap-8 items-center">
               <div>

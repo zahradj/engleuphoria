@@ -8,9 +8,9 @@ const ForTeachers = () => {
   const navigate = useNavigate();
   
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col relative overflow-hidden">
       {/* Header */}
-      <header className="w-full bg-white shadow-sm py-3 px-4">
+      <header className="w-full bg-white shadow-sm py-3 px-4 relative z-10">
         <div className="container max-w-7xl mx-auto flex items-center justify-between">
           <div 
             onClick={() => navigate('/')}
@@ -37,8 +37,13 @@ const ForTeachers = () => {
         </div>
       </header>
       
+      {/* Background circular effects for the entire page */}
+      <div className="absolute -z-10 top-1/4 left-1/4 w-[110%] h-[110%] bg-purple/20 rounded-full blur-3xl animate-pulse-subtle opacity-70"></div>
+      <div className="absolute -z-10 bottom-1/3 right-1/4 w-[90%] h-[90%] bg-teal/15 rounded-full blur-3xl animate-pulse-subtle opacity-65 animation-delay-300"></div>
+      <div className="absolute -z-10 top-1/2 left-1/2 w-[80%] h-[80%] bg-orange/10 rounded-full blur-3xl animate-pulse-subtle opacity-60 animation-delay-700"></div>
+      
       {/* Main Content */}
-      <main className="flex-1 container max-w-7xl mx-auto px-4 py-8">
+      <main className="flex-1 container max-w-7xl mx-auto px-4 py-8 relative z-10">
         <div className="max-w-3xl mx-auto">
           <h1 className="text-3xl sm:text-4xl font-bold mb-6">
             Powerful Tools to Make
@@ -54,7 +59,10 @@ const ForTeachers = () => {
           </p>
           
           <div className="grid gap-6 md:grid-cols-2 mb-8">
-            <Card>
+            <Card className="relative overflow-hidden">
+              {/* Card inner glow effects */}
+              <div className="absolute -z-10 top-0 left-0 w-[80%] h-[80%] bg-purple/10 rounded-full blur-2xl"></div>
+              
               <CardHeader>
                 <div className="bg-purple/20 w-12 h-12 flex items-center justify-center rounded-full mb-3">
                   <Video className="text-purple h-6 w-6" />
@@ -71,7 +79,10 @@ const ForTeachers = () => {
               </CardContent>
             </Card>
             
-            <Card>
+            <Card className="relative overflow-hidden">
+              {/* Card inner glow effects */}
+              <div className="absolute -z-10 bottom-0 right-0 w-[80%] h-[80%] bg-teal/10 rounded-full blur-2xl"></div>
+              
               <CardHeader>
                 <div className="bg-teal/20 w-12 h-12 flex items-center justify-center rounded-full mb-3">
                   <BookOpen className="text-teal h-6 w-6" />
@@ -88,7 +99,10 @@ const ForTeachers = () => {
               </CardContent>
             </Card>
             
-            <Card className="md:col-span-2">
+            <Card className="md:col-span-2 relative overflow-hidden">
+              {/* Card inner glow effects */}
+              <div className="absolute -z-10 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[90%] h-[90%] bg-orange/10 rounded-full blur-2xl"></div>
+              
               <CardHeader>
                 <div className="bg-orange/20 w-12 h-12 flex items-center justify-center rounded-full mb-3">
                   <Users className="text-orange h-6 w-6" />
@@ -115,7 +129,7 @@ const ForTeachers = () => {
       </main>
       
       {/* Footer */}
-      <footer className="bg-muted py-6">
+      <footer className="bg-muted py-6 relative z-10">
         <div className="container max-w-7xl mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <div className="text-center md:text-left">

@@ -3,67 +3,52 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { toast } from "@/hooks/use-toast";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useToast } from "@/hooks/use-toast";
+
+const formSchema = z.object({
+  email: z.string().email({ message: "Please enter a valid email address" }),
+  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  rememberMe: z.boolean().default(false),
+});
 
 const Login = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
   
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!email || !password) {
-      toast({
-        title: "Please fill in all fields",
-        description: "Email and password are required to log in",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsLoading(true);
-    
-    try {
-      // In a real app, this would connect to an authentication system
-      // For now, we'll simulate a successful login after a short delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      if (email.includes("teacher")) {
-        localStorage.setItem("userType", "teacher");
-      } else if (email.includes("parent")) {
-        localStorage.setItem("userType", "parent");
-      } else {
-        localStorage.setItem("userType", "student");
-        localStorage.setItem("studentName", "Demo Student");
-        localStorage.setItem("points", "100");
-      }
-      
-      toast({
-        title: "Login successful",
-        description: "Welcome back to Engleuphoria!",
-      });
-      
-      navigate("/dashboard");
-    } catch (error) {
-      toast({
-        title: "Login failed",
-        description: "Please check your credentials and try again",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      rememberMe: false,
+    },
+  });
+  
+  const onSubmit = (values: z.infer<typeof formSchema>) => {
+    // This would connect to authentication service in a real app
+    console.log(values);
+    toast({
+      title: "Login Successful",
+      description: "Redirecting to your dashboard...",
+    });
+    setTimeout(() => navigate("/dashboard"), 1500);
   };
   
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background relative overflow-hidden">
+      {/* Background circular effects */}
+      <div className="absolute -z-10 top-1/4 left-1/4 w-[110%] h-[110%] bg-purple/20 rounded-full blur-3xl animate-pulse-subtle opacity-70"></div>
+      <div className="absolute -z-10 bottom-1/3 right-1/4 w-[90%] h-[90%] bg-teal/15 rounded-full blur-3xl animate-pulse-subtle opacity-65 animation-delay-300"></div>
+      <div className="absolute -z-10 top-1/2 left-1/2 w-[80%] h-[80%] bg-orange/10 rounded-full blur-3xl animate-pulse-subtle opacity-60 animation-delay-700"></div>
+      
       {/* Header */}
-      <header className="w-full bg-white shadow-sm py-3 px-4">
+      <header className="w-full bg-white/80 backdrop-blur-sm shadow-sm py-3 px-4 relative z-10">
         <div className="container max-w-7xl mx-auto flex items-center justify-between">
           <div 
             onClick={() => navigate('/')}
@@ -77,135 +62,104 @@ const Login = () => {
             </h1>
           </div>
           
-          <div className="hidden sm:flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate('/for-parents')}>
-              For Parents
-            </Button>
-            <Button variant="ghost" onClick={() => navigate('/for-teachers')}>
-              For Teachers
-            </Button>
-            <Button variant="outline" className="font-semibold" onClick={() => navigate('/login')}>
-              Log In
-            </Button>
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" onClick={() => navigate('/for-parents')}>For Parents</Button>
+            <Button variant="ghost" onClick={() => navigate('/for-teachers')}>For Teachers</Button>
+            <Button variant="outline" className="font-semibold" onClick={() => navigate('/login')}>Log In</Button>
             <Button onClick={() => navigate('/signup')}>Sign Up</Button>
           </div>
         </div>
       </header>
       
       {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold">Welcome Back!</CardTitle>
-            <CardDescription>
-              Log in to continue your English learning journey
-            </CardDescription>
-          </CardHeader>
+      <main className="flex-1 flex items-center justify-center p-6 relative z-10">
+        <Card className="w-full max-w-md p-6 shadow-lg relative overflow-hidden">
+          {/* Card inner glow effects */}
+          <div className="absolute -z-10 top-0 left-0 w-[80%] h-[80%] bg-purple/10 rounded-full blur-2xl"></div>
+          <div className="absolute -z-10 bottom-0 right-0 w-[60%] h-[60%] bg-teal/5 rounded-full blur-2xl"></div>
           
-          <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="your.email@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold">Welcome Back!</h2>
+            <p className="text-muted-foreground">Log in to continue your English journey</p>
+          </div>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input placeholder="your.email@example.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="••••••" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="flex items-center justify-between">
+                <FormField
+                  control={form.control}
+                  name="rememberMe"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel className="text-sm font-medium cursor-pointer">
+                        Remember me
+                      </FormLabel>
+                    </FormItem>
+                  )}
                 />
+                
+                <Button variant="link" className="p-0 h-auto font-normal" type="button">
+                  Forgot password?
+                </Button>
               </div>
               
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <a 
-                    href="#" 
-                    className="text-sm text-purple hover:underline"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      toast({
-                        title: "Password Reset",
-                        description: "Password reset functionality will be added soon!",
-                      });
-                    }}
-                  >
-                    Forgot password?
-                  </a>
-                </div>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox id="remember" />
-                <Label htmlFor="remember" className="text-sm">
-                  Remember me for 30 days
-                </Label>
-              </div>
-              
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Logging in..." : "Log In"}
+              <Button type="submit" className="w-full">
+                Log In
               </Button>
-              
-              <div className="text-center text-sm">
-                <p className="text-muted-foreground">
-                  Don't have an account?{" "}
-                  <a
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      navigate("/signup");
-                    }}
-                    className="text-purple hover:underline"
-                  >
-                    Sign up
-                  </a>
-                </p>
-              </div>
             </form>
-          </CardContent>
+          </Form>
+          
+          <div className="mt-6 text-center">
+            <p className="text-sm text-muted-foreground">
+              Don't have an account?{" "}
+              <Button variant="link" className="p-0 h-auto font-normal" onClick={() => navigate('/signup')}>
+                Sign up
+              </Button>
+            </p>
+          </div>
         </Card>
       </main>
       
       {/* Footer */}
-      <footer className="bg-muted py-6">
-        <div className="container max-w-7xl mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="text-center md:text-left">
-              <div className="text-xl font-bold bg-gradient-to-r from-purple to-teal bg-clip-text text-transparent">
-                Engleuphoria
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Making English learning joyful and effective
-              </p>
-            </div>
-            
-            <div className="flex gap-6">
-              <a href="#" className="text-muted-foreground hover:text-foreground">
-                About Us
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-foreground">
-                For Parents
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-foreground">
-                For Teachers
-              </a>
-              <a href="#" className="text-muted-foreground hover:text-foreground">
-                Contact
-              </a>
-            </div>
-          </div>
-          
-          <div className="mt-6 pt-6 border-t border-border text-center text-sm text-muted-foreground">
+      <footer className="w-full bg-muted/50 py-4 px-4 text-center relative z-10">
+        <div className="container max-w-7xl mx-auto">
+          <p className="text-sm text-muted-foreground">
             &copy; {new Date().getFullYear()} Engleuphoria. All rights reserved.
-          </div>
+          </p>
         </div>
       </footer>
     </div>
