@@ -13,18 +13,22 @@ const NotFound = () => {
       <div className="absolute -z-10 top-1/2 left-1/2 w-[80%] h-[80%] bg-orange/10 rounded-full blur-3xl animate-pulse-subtle opacity-60 animation-delay-700"></div>
       
       <div className="flex-1 flex flex-col items-center justify-center p-6">
-        <div className="text-center max-w-md">
-          <div className="text-8xl font-bold mb-4 bg-gradient-to-r from-purple to-teal bg-clip-text text-transparent">
+        <div className="text-center max-w-md animate-fade-in">
+          <div className="text-8xl font-bold mb-4 bg-gradient-to-r from-purple to-teal bg-clip-text text-transparent animate-float">
             404
           </div>
           
-          <h1 className="text-3xl font-bold mb-4">Page Not Found</h1>
+          <h1 className="text-3xl font-bold mb-4 animate-fade-in animation-delay-300">Page Not Found</h1>
           
-          <p className="text-muted-foreground mb-8">
+          <p className="text-muted-foreground mb-8 animate-fade-in animation-delay-500">
             Oops! It looks like you've wandered to a part of our universe that doesn't exist.
           </p>
           
-          <Button size="lg" onClick={() => navigate('/')}>
+          <Button 
+            size="lg" 
+            onClick={() => navigate('/')}
+            className="animate-bounce-light animation-delay-700"
+          >
             Return Home
           </Button>
         </div>

@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -127,6 +128,34 @@ export default {
 					'0%': { filter: 'blur(0px)', opacity: '0.8' },
 					'50%': { filter: 'blur(1px)', opacity: '1' },
 					'100%': { filter: 'blur(0px)', opacity: '0.8' },
+				},
+				'fade-in': {
+					'0%': { opacity: '0', transform: 'translateY(10px)' },
+					'100%': { opacity: '1', transform: 'translateY(0)' }
+				},
+				'fade-out': {
+					'0%': { opacity: '1', transform: 'translateY(0)' },
+					'100%': { opacity: '0', transform: 'translateY(10px)' }
+				},
+				'scale-in': {
+					'0%': { transform: 'scale(0.95)', opacity: '0' },
+					'100%': { transform: 'scale(1)', opacity: '1' }
+				},
+				'scale-out': {
+					from: { transform: 'scale(1)', opacity: '1' },
+					to: { transform: 'scale(0.95)', opacity: '0' }
+				},
+				'slide-in-right': {
+					'0%': { transform: 'translateX(100%)' },
+					'100%': { transform: 'translateX(0)' }
+				},
+				'slide-out-right': {
+					'0%': { transform: 'translateX(0)' },
+					'100%': { transform: 'translateX(100%)' }
+				},
+				'rotate-slow': {
+					'0%': { transform: 'rotate(0deg)' },
+					'100%': { transform: 'rotate(360deg)' }
 				}
 			},
 			animation: {
@@ -136,11 +165,23 @@ export default {
 				'pulse-subtle': 'pulse-subtle 4s ease-in-out infinite',
 				'bounce-light': 'bounce-light 2s ease-in-out infinite',
 				'blur-fade': 'blur-fade 8s ease-in-out infinite',
+				'fade-in': 'fade-in 0.5s ease-out',
+				'fade-out': 'fade-out 0.5s ease-out',
+				'scale-in': 'scale-in 0.5s ease-out',
+				'scale-out': 'scale-out 0.5s ease-out',
+				'slide-in-right': 'slide-in-right 0.5s ease-out',
+				'slide-out-right': 'slide-out-right 0.5s ease-out',
+				'enter': 'fade-in 0.5s ease-out, scale-in 0.5s ease-out',
+				'exit': 'fade-out 0.5s ease-out, scale-out 0.5s ease-out',
+				'rotate-slow': 'rotate-slow 12s linear infinite',
 			},
 			animationDelay: {
 				'300': '300ms',
 				'500': '500ms',
 				'700': '700ms',
+				'900': '900ms',
+				'1100': '1100ms',
+				'1300': '1300ms',
 			},
 			backgroundImage: {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',

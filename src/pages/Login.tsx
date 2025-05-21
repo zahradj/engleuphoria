@@ -42,17 +42,17 @@ const Login = () => {
   
   return (
     <div className="min-h-screen flex flex-col bg-background relative overflow-hidden">
-      {/* Background circular effects */}
+      {/* Background circular effects with animations */}
       <div className="absolute -z-10 top-1/4 left-1/4 w-[110%] h-[110%] bg-purple/20 rounded-full blur-3xl animate-pulse-subtle opacity-70"></div>
       <div className="absolute -z-10 bottom-1/3 right-1/4 w-[90%] h-[90%] bg-teal/15 rounded-full blur-3xl animate-pulse-subtle opacity-65 animation-delay-300"></div>
       <div className="absolute -z-10 top-1/2 left-1/2 w-[80%] h-[80%] bg-orange/10 rounded-full blur-3xl animate-pulse-subtle opacity-60 animation-delay-700"></div>
       
-      {/* Header */}
-      <header className="w-full bg-white/80 backdrop-blur-sm shadow-sm py-3 px-4 relative z-10">
+      {/* Header with animation */}
+      <header className="w-full bg-white/80 backdrop-blur-sm shadow-sm py-3 px-4 relative z-10 animate-fade-in">
         <div className="container max-w-7xl mx-auto flex items-center justify-between">
           <div 
             onClick={() => navigate('/')}
-            className="flex items-center gap-3 cursor-pointer"
+            className="flex items-center gap-3 cursor-pointer animate-fade-in"
           >
             <div className="bg-purple/20 rounded-full p-2">
               <span className="text-xl font-bold text-purple">E!</span>
@@ -62,7 +62,7 @@ const Login = () => {
             </h1>
           </div>
           
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 animate-fade-in animation-delay-300">
             <Button variant="ghost" onClick={() => navigate('/for-parents')}>For Parents</Button>
             <Button variant="ghost" onClick={() => navigate('/for-teachers')}>For Teachers</Button>
             <Button variant="outline" className="font-semibold" onClick={() => navigate('/login')}>Log In</Button>
@@ -71,14 +71,14 @@ const Login = () => {
         </div>
       </header>
       
-      {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center p-6 relative z-10">
-        <Card className="w-full max-w-md p-6 shadow-lg relative overflow-hidden">
+      {/* Main Content with animation */}
+      <main className="flex-1 flex items-center justify-center p-6 relative z-10 animate-fade-in animation-delay-500">
+        <Card className="w-full max-w-md p-6 shadow-lg relative overflow-hidden animate-scale-in animation-delay-700">
           {/* Card inner glow effects */}
-          <div className="absolute -z-10 top-0 left-0 w-[80%] h-[80%] bg-purple/10 rounded-full blur-2xl"></div>
-          <div className="absolute -z-10 bottom-0 right-0 w-[60%] h-[60%] bg-teal/5 rounded-full blur-2xl"></div>
+          <div className="absolute -z-10 top-0 left-0 w-[80%] h-[80%] bg-purple/10 rounded-full blur-2xl animate-blur-fade"></div>
+          <div className="absolute -z-10 bottom-0 right-0 w-[60%] h-[60%] bg-teal/5 rounded-full blur-2xl animate-blur-fade animation-delay-300"></div>
           
-          <div className="text-center mb-6">
+          <div className="text-center mb-6 animate-fade-in">
             <h2 className="text-2xl font-bold">Welcome Back!</h2>
             <p className="text-muted-foreground">Log in to continue your English journey</p>
           </div>
@@ -89,7 +89,7 @@ const Login = () => {
                 control={form.control}
                 name="email"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="animate-fade-in animation-delay-300">
                     <FormLabel>Email</FormLabel>
                     <FormControl>
                       <Input placeholder="your.email@example.com" {...field} />
@@ -103,7 +103,7 @@ const Login = () => {
                 control={form.control}
                 name="password"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="animate-fade-in animation-delay-500">
                     <FormLabel>Password</FormLabel>
                     <FormControl>
                       <Input type="password" placeholder="••••••" {...field} />
@@ -113,7 +113,7 @@ const Login = () => {
                 )}
               />
               
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between animate-fade-in animation-delay-700">
                 <FormField
                   control={form.control}
                   name="rememberMe"
@@ -137,13 +137,13 @@ const Login = () => {
                 </Button>
               </div>
               
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full animate-bounce-light">
                 Log In
               </Button>
             </form>
           </Form>
           
-          <div className="mt-6 text-center">
+          <div className="mt-6 text-center animate-fade-in animation-delay-700">
             <p className="text-sm text-muted-foreground">
               Don't have an account?{" "}
               <Button variant="link" className="p-0 h-auto font-normal" onClick={() => navigate('/signup')}>
@@ -154,8 +154,8 @@ const Login = () => {
         </Card>
       </main>
       
-      {/* Footer */}
-      <footer className="w-full bg-muted/50 py-4 px-4 text-center relative z-10">
+      {/* Footer with animation */}
+      <footer className="w-full bg-muted/50 py-4 px-4 text-center relative z-10 animate-fade-in animation-delay-700">
         <div className="container max-w-7xl mx-auto">
           <p className="text-sm text-muted-foreground">
             &copy; {new Date().getFullYear()} Engleuphoria. All rights reserved.
