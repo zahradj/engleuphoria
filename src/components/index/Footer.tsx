@@ -13,7 +13,38 @@ export const Footer = () => {
             <Logo size="large" />
           </div>
           
-          <div className="flex gap-6">
+          {/* Mobile Footer Links */}
+          <div className="flex flex-col md:hidden gap-4 text-center">
+            <a href="#" className="text-muted-foreground hover:text-foreground">
+              About Us
+            </a>
+            <a 
+              href="#" 
+              className="text-muted-foreground hover:text-foreground"
+              onClick={(e) => {
+                e.preventDefault();
+                navigate('/for-parents');
+              }}
+            >
+              For Parents
+            </a>
+            <a 
+              href="#" 
+              className="text-muted-foreground hover:text-foreground"
+              onClick={(e) => {
+                e.preventDefault();
+                navigate('/for-teachers');
+              }}
+            >
+              For Teachers
+            </a>
+            <a href="#" className="text-muted-foreground hover:text-foreground">
+              Contact
+            </a>
+          </div>
+          
+          {/* Desktop Footer Links */}
+          <div className="hidden md:flex gap-6">
             <a href="#" className="text-muted-foreground hover:text-foreground">
               About Us
             </a>
