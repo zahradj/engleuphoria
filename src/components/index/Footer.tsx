@@ -1,9 +1,13 @@
 
 import { useNavigate } from "react-router-dom";
 import { Logo } from "@/components/Logo";
+import { Button } from "@/components/ui/button";
+import { Globe } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const Footer = () => {
   const navigate = useNavigate();
+  const { language, setLanguage, languageText } = useLanguage();
   
   return (
     <footer className="bg-muted py-6">
@@ -16,7 +20,7 @@ export const Footer = () => {
           {/* Mobile Footer Links */}
           <div className="flex flex-col md:hidden gap-4 text-center">
             <a href="#" className="text-muted-foreground hover:text-foreground">
-              About Us
+              {languageText.aboutUs}
             </a>
             <a 
               href="#" 
@@ -26,7 +30,7 @@ export const Footer = () => {
                 navigate('/for-parents');
               }}
             >
-              For Parents
+              {languageText.forParents}
             </a>
             <a 
               href="#" 
@@ -36,17 +40,45 @@ export const Footer = () => {
                 navigate('/for-teachers');
               }}
             >
-              For Teachers
+              {languageText.forTeachers}
             </a>
             <a href="#" className="text-muted-foreground hover:text-foreground">
-              Contact
+              {languageText.contact}
             </a>
+            
+            {/* Language Selector for Mobile */}
+            <div className="flex justify-center gap-2 mt-2">
+              <Button 
+                size="sm"
+                variant="ghost"
+                className={language === 'english' ? 'underline' : ''}
+                onClick={() => setLanguage('english')}
+              >
+                English
+              </Button>
+              <Button 
+                size="sm"
+                variant="ghost"
+                className={language === 'arabic' ? 'underline' : ''}
+                onClick={() => setLanguage('arabic')}
+              >
+                العربية
+              </Button>
+              <Button 
+                size="sm"
+                variant="ghost"
+                className={language === 'french' ? 'underline' : ''}
+                onClick={() => setLanguage('french')}
+              >
+                Français
+              </Button>
+            </div>
           </div>
           
           {/* Desktop Footer Links */}
-          <div className="hidden md:flex gap-6">
+          <div className="hidden md:flex gap-6 items-center">
             <a href="#" className="text-muted-foreground hover:text-foreground">
-              About Us
+              {languageText.aboutUs}
             </a>
             <a 
               href="#" 
@@ -56,7 +88,7 @@ export const Footer = () => {
                 navigate('/for-parents');
               }}
             >
-              For Parents
+              {languageText.forParents}
             </a>
             <a 
               href="#" 
@@ -66,11 +98,41 @@ export const Footer = () => {
                 navigate('/for-teachers');
               }}
             >
-              For Teachers
+              {languageText.forTeachers}
             </a>
             <a href="#" className="text-muted-foreground hover:text-foreground">
-              Contact
+              {languageText.contact}
             </a>
+            
+            {/* Language Selector for Desktop */}
+            <div className="ml-4 flex items-center gap-1">
+              <Globe className="h-4 w-4 text-muted-foreground" />
+              <span className="mx-1 text-muted-foreground">|</span>
+              <Button 
+                size="sm"
+                variant="ghost"
+                className={`px-2 py-1 h-auto ${language === 'english' ? 'text-foreground underline' : 'text-muted-foreground'}`}
+                onClick={() => setLanguage('english')}
+              >
+                EN
+              </Button>
+              <Button 
+                size="sm"
+                variant="ghost"
+                className={`px-2 py-1 h-auto ${language === 'arabic' ? 'text-foreground underline' : 'text-muted-foreground'}`}
+                onClick={() => setLanguage('arabic')}
+              >
+                AR
+              </Button>
+              <Button 
+                size="sm"
+                variant="ghost"
+                className={`px-2 py-1 h-auto ${language === 'french' ? 'text-foreground underline' : 'text-muted-foreground'}`}
+                onClick={() => setLanguage('french')}
+              >
+                FR
+              </Button>
+            </div>
           </div>
         </div>
         
