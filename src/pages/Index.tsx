@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -114,8 +115,8 @@ const Index = () => {
               </div>
               
               <div className="flex-1 md:flex-grow md:max-w-[60%] relative">
-                {/* Background gradient effect with softer colors */}
-                <div className="absolute -z-10 -inset-2 bg-gradient-to-r from-purple/10 via-teal/10 to-purple/10 blur-2xl rounded-3xl animate-blur-fade"></div>
+                {/* Enhanced fading gradient background effect */}
+                <div className="absolute -z-10 -inset-4 bg-gradient-to-r from-purple/5 via-teal/5 to-purple/5 blur-3xl rounded-3xl animate-blur-fade opacity-80"></div>
                 
                 <img 
                   src="/lovable-uploads/94b3a265-e3c7-4819-9be4-de2aa5cdc590.png"
