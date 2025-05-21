@@ -16,10 +16,10 @@ export const Logo: React.FC<LogoProps> = ({
   const navigate = useNavigate();
   
   const sizeClasses = {
-    small: 'h-8',
-    medium: 'h-12',
-    large: 'h-20',
-    xlarge: 'h-32'
+    small: 'text-xl',
+    medium: 'text-2xl',
+    large: 'text-3xl',
+    xlarge: 'text-4xl'
   };
   
   const handleClick = () => {
@@ -32,11 +32,9 @@ export const Logo: React.FC<LogoProps> = ({
 
   return (
     <div onClick={handleClick} className={`cursor-pointer ${className}`}>
-      <img 
-        src="/lovable-uploads/4570be6a-7587-485e-b773-d00f9b02a024.png" 
-        alt="Engleuphoria Logo" 
-        className={`${sizeClasses[size]} w-auto`} 
-      />
+      <h1 className={`${sizeClasses[size]} font-bold bg-gradient-to-r from-purple to-teal bg-clip-text text-transparent`}>
+        Engleuphoria
+      </h1>
     </div>
   );
 };
