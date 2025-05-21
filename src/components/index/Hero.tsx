@@ -54,10 +54,10 @@ export const Hero = ({ onStartClick }: HeroProps) => {
       </div>
       
       <div className="flex-1 md:flex-grow md:max-w-[60%] relative">
-        {/* Even bolder circular shadow effects using radial gradients */}
-        <div className="absolute -z-10 top-1/4 left-1/4 w-[110%] h-[110%] bg-purple/30 rounded-full blur-3xl animate-pulse-subtle opacity-90"></div>
-        <div className="absolute -z-10 bottom-1/4 right-1/4 w-[90%] h-[90%] bg-teal/25 rounded-full blur-3xl animate-pulse-subtle opacity-85 animation-delay-300"></div>
-        <div className="absolute -z-10 top-1/3 right-1/3 w-[80%] h-[80%] bg-orange/20 rounded-full blur-3xl animate-pulse-subtle opacity-75 animation-delay-700"></div>
+        {/* Faded circular shadow effects using radial gradients */}
+        <div className="absolute -z-10 top-1/4 left-1/4 w-[110%] h-[110%] bg-purple/15 rounded-full blur-3xl animate-pulse-subtle opacity-70"></div>
+        <div className="absolute -z-10 bottom-1/4 right-1/4 w-[90%] h-[90%] bg-teal/15 rounded-full blur-3xl animate-pulse-subtle opacity-65 animation-delay-300"></div>
+        <div className="absolute -z-10 top-1/3 right-1/3 w-[80%] h-[80%] bg-orange/10 rounded-full blur-3xl animate-pulse-subtle opacity-55 animation-delay-700"></div>
         
         <img 
           src="/lovable-uploads/94b3a265-e3c7-4819-9be4-de2aa5cdc590.png"

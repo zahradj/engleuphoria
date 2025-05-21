@@ -35,7 +35,7 @@ function WaveMesh() {
         color="#E5DEFF" 
         wireframe 
         transparent 
-        opacity={0.3}
+        opacity={0.2}
       />
     </mesh>
   );
@@ -43,7 +43,7 @@ function WaveMesh() {
 
 export function WavingBackground({ className = "" }: { className?: string }) {
   return (
-    <div className={`absolute w-full h-full top-0 left-0 -z-10 opacity-20 ${className}`}>
+    <div className={`absolute w-full h-full top-0 left-0 -z-10 opacity-15 ${className}`}>
       <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
         <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} />

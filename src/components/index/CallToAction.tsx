@@ -11,7 +11,7 @@ export const CallToAction = ({ onStartClick }: CallToActionProps) => {
   const navigate = useNavigate();
 
   return (
-    <section className="py-12 my-8 bg-gradient-to-r from-purple/20 to-teal/20 rounded-2xl">
+    <section className="py-12 my-8 bg-gradient-to-r from-purple/10 to-teal/10 rounded-2xl">
       <div className="text-center px-4 animate-fade-in">
         <h2 className="text-3xl font-bold mb-4">Ready to Begin Your Child's English Adventure?</h2>
         <p className="text-lg mb-6 max-w-2xl mx-auto">
