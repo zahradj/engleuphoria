@@ -8,13 +8,20 @@ export const Footer = () => {
     <footer className="bg-muted py-6">
       <div className="container max-w-7xl mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="text-center md:text-left">
-            <div className="text-xl font-bold bg-gradient-to-r from-purple to-teal bg-clip-text text-transparent">
-              Engleuphoria
+          <div className="text-center md:text-left flex items-center gap-3">
+            <img 
+              src="/lovable-uploads/3d4ffe1c-aaa5-4e34-8441-fe0b477cf8ba.png" 
+              alt="Engleuphoria Logo" 
+              className="h-6 w-auto" 
+            />
+            <div>
+              <div className="text-xl font-bold text-foreground">
+                Engleuphoria
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Making English learning joyful and effective
+              </p>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Making English learning joyful and effective
-            </p>
           </div>
           
           <div className="flex gap-6">

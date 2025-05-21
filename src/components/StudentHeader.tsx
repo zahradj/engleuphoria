@@ -19,10 +19,12 @@ export function StudentHeader({ studentName, points }: StudentHeaderProps) {
           onClick={() => navigate('/dashboard')}
           className="flex items-center gap-3 cursor-pointer"
         >
-          <div className="bg-purple/20 rounded-full p-2">
-            <span className="text-xl font-bold text-purple">E!</span>
-          </div>
-          <h1 className="text-xl font-bold bg-gradient-to-r from-purple to-teal bg-clip-text text-transparent">
+          <img 
+            src="/lovable-uploads/3d4ffe1c-aaa5-4e34-8441-fe0b477cf8ba.png" 
+            alt="Engleuphoria Logo" 
+            className="h-7 w-auto" 
+          />
+          <h1 className="text-xl font-bold text-foreground">
             Engleuphoria
           </h1>
         </div>
