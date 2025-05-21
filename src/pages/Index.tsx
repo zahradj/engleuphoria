@@ -64,8 +64,8 @@ const Index = () => {
       {/* Main Content */}
       <main className="flex-1 container max-w-7xl mx-auto px-4 py-8">
         {step === "welcome" && (
-          <div className="flex flex-col md:flex-row gap-8 items-center">
-            <div className="flex-1">
+          <div className="flex flex-col-reverse md:flex-row gap-8 items-center">
+            <div className="flex-1 md:max-w-[45%]">
               <h1 className="text-4xl sm:text-5xl font-bold mb-4">
                 <span className="bg-gradient-to-r from-purple to-teal bg-clip-text text-transparent">
                   Learn English
@@ -113,11 +113,11 @@ const Index = () => {
               </Button>
             </div>
             
-            <div className="flex-1 relative">
+            <div className="flex-1 md:flex-grow md:max-w-[55%] relative">
               <img 
-                src="/lovable-uploads/af8673d3-cab8-4146-877f-42241ec01b4b.png"
-                alt="3D learning illustration with books, headphones, and education elements"
-                className="rounded-xl w-full h-[800px] object-contain mx-auto"
+                src="/lovable-uploads/94b3a265-e3c7-4819-9be4-de2aa5cdc590.png"
+                alt="3D learning illustration with educational elements"
+                className="w-full h-auto max-h-[1000px] object-contain mx-auto"
               />
               <div className="absolute -top-4 -right-4 bg-yellow/90 text-yellow-dark font-bold px-4 py-2 rounded-full animate-pulse-subtle">
                 Join now!
