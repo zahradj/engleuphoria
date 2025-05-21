@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -116,7 +117,7 @@ const Index = () => {
               <img 
                 src="/lovable-uploads/af8673d3-cab8-4146-877f-42241ec01b4b.png"
                 alt="3D learning illustration with books, headphones, and education elements"
-                className="rounded-xl w-full h-[600px] object-contain mx-auto"
+                className="rounded-xl w-full h-[800px] object-contain mx-auto"
               />
               <div className="absolute -top-4 -right-4 bg-yellow/90 text-yellow-dark font-bold px-4 py-2 rounded-full animate-pulse-subtle">
                 Join now!
