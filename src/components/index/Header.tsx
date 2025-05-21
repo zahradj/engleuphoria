@@ -13,7 +13,7 @@ export const Header = () => {
           className="flex items-center gap-3 cursor-pointer"
         >
           <img 
-            src="/lovable-uploads/3d4ffe1c-aaa5-4e34-8441-fe0b477cf8ba.png" 
+            src="/lovable-uploads/4570be6a-7587-485e-b773-d00f9b02a024.png" 
             alt="Engleuphoria Logo" 
             className="h-8 w-auto" 
           />

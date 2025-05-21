@@ -1,4 +1,3 @@
-
 import { useNavigate } from "react-router-dom";
 
 export const Footer = () => {
@@ -10,7 +9,7 @@ export const Footer = () => {
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="text-center md:text-left flex items-center gap-3">
             <img 
-              src="/lovable-uploads/3d4ffe1c-aaa5-4e34-8441-fe0b477cf8ba.png" 
+              src="/lovable-uploads/4570be6a-7587-485e-b773-d00f9b02a024.png" 
               alt="Engleuphoria Logo" 
               className="h-6 w-auto" 
             />
