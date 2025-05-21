@@ -123,6 +123,11 @@ export default {
 				'bounce-light': {
 					'0%, 100%': { transform: 'translateY(0)' },
 					'50%': { transform: 'translateY(-5px)' },
+				},
+				'blur-fade': {
+					'0%': { filter: 'blur(0px)', opacity: '0.8' },
+					'50%': { filter: 'blur(1px)', opacity: '1' },
+					'100%': { filter: 'blur(0px)', opacity: '0.8' },
 				}
 			},
 			animation: {
@@ -131,6 +136,7 @@ export default {
 				'float': 'float 6s ease-in-out infinite',
 				'pulse-subtle': 'pulse-subtle 4s ease-in-out infinite',
 				'bounce-light': 'bounce-light 2s ease-in-out infinite',
+				'blur-fade': 'blur-fade 8s ease-in-out infinite',
 			}
 		}
 	},

@@ -115,6 +115,8 @@ const Index = () => {
               </div>
               
               <div className="flex-1 md:flex-grow md:max-w-[60%] relative">
+                {/* Background gradient effect with blur animation */}
+                <div className="absolute -z-10 -inset-1 bg-gradient-to-r from-purple/20 to-teal/20 blur-xl rounded-3xl animate-blur-fade"></div>
                 {/* Background shadow effect with fade animation */}
                 <div className="absolute inset-0 -translate-x-6 -translate-y-6 bg-purple/20 rounded-3xl transform -rotate-3 animate-pulse-subtle transition-opacity duration-700"></div>
                 <div className="absolute inset-0 translate-x-6 translate-y-6 bg-teal/20 rounded-3xl transform rotate-3 animate-pulse-subtle transition-opacity duration-700 delay-300"></div>
