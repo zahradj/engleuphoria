@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -114,12 +115,18 @@ const Index = () => {
               </div>
               
               <div className="flex-1 md:flex-grow md:max-w-[60%] relative">
-                <img 
-                  src="/lovable-uploads/94b3a265-e3c7-4819-9be4-de2aa5cdc590.png"
-                  alt="3D learning illustration with educational elements"
-                  className="w-full h-auto object-contain mx-auto max-h-[800px]"
-                />
-                <div className="absolute -top-4 -right-4 bg-yellow/90 text-yellow-dark font-bold px-4 py-2 rounded-full animate-pulse-subtle">
+                {/* Background shadow effect */}
+                <div className="absolute inset-0 -translate-x-6 -translate-y-6 bg-purple/20 rounded-3xl transform -rotate-3"></div>
+                <div className="absolute inset-0 translate-x-6 translate-y-6 bg-teal/20 rounded-3xl transform rotate-3"></div>
+                
+                <div className="relative z-10">
+                  <img 
+                    src="/lovable-uploads/94b3a265-e3c7-4819-9be4-de2aa5cdc590.png"
+                    alt="3D learning illustration with educational elements"
+                    className="w-full h-auto object-contain mx-auto max-h-[800px]"
+                  />
+                </div>
+                <div className="absolute -top-4 -right-4 bg-yellow/90 text-yellow-dark font-bold px-4 py-2 rounded-full animate-pulse-subtle z-20">
                   Join now!
                 </div>
               </div>
