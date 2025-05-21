@@ -2,16 +2,12 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { GraduationCap, BookOpen, Users, BarChart, Award } from "lucide-react";
-import { FloatingShapes } from "@/components/FloatingShapes";
-import { WavingBackground } from "@/components/WavingBackground";
 
 const ForParents = () => {
   const navigate = useNavigate();
   
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden bg-gradient-to-b from-background to-muted/30">
-      <WavingBackground />
-      
+    <div className="min-h-screen flex flex-col relative overflow-hidden bg-background">
       {/* Header */}
       <header className="w-full bg-white/80 backdrop-blur-sm shadow-sm py-4 px-4 sticky top-0 z-50">
         <div className="container max-w-7xl mx-auto flex items-center justify-between">
@@ -42,8 +38,6 @@ const ForParents = () => {
       
       {/* Hero Section */}
       <section className="py-16 md:py-24 container max-w-7xl mx-auto px-4 relative">
-        <FloatingShapes className="absolute inset-0 z-0" />
-        
         <div className="grid md:grid-cols-2 gap-12 items-center relative z-10">
           <div className="space-y-6">
             <div className="inline-block px-4 py-2 bg-purple/10 rounded-full text-purple font-medium text-sm mb-2">
