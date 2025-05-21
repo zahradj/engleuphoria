@@ -10,16 +10,13 @@ export const Header = () => {
       <div className="container max-w-7xl mx-auto flex items-center justify-between">
         <div 
           onClick={() => navigate('/')}
-          className="flex items-center gap-3 cursor-pointer"
+          className="cursor-pointer"
         >
           <img 
             src="/lovable-uploads/4570be6a-7587-485e-b773-d00f9b02a024.png" 
             alt="Engleuphoria Logo" 
             className="h-8 w-auto" 
           />
-          <h1 className="text-xl font-bold text-foreground">
-            Engleuphoria
-          </h1>
         </div>
         
         <div className="hidden sm:flex items-center gap-4">
