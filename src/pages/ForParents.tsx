@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { GraduationCap, BookOpen, Users, BarChart, Award } from "lucide-react";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
 
 const ForParents = () => {
   const navigate = useNavigate();
@@ -74,7 +75,7 @@ const ForParents = () => {
             <img 
               src="/lovable-uploads/0629e331-727e-44d8-abdf-01f030c8a277.png" 
               alt="Book with speech bubbles showing language learning"
-              className="w-full h-auto max-h-[500px] object-contain"
+              className="w-full h-auto max-h-[500px] object-contain animate-float"
             />
           </div>
         </div>
@@ -95,7 +96,7 @@ const ForParents = () => {
           </div>
           
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            <Card className="transition-all hover:shadow-lg hover:scale-[1.02] duration-300 border-t-4 border-t-purple">
+            <Card className="transition-all hover:shadow-lg hover:scale-[1.02] duration-300 border-t-4 border-t-purple animate-fade-in">
               <CardHeader>
                 <div className="bg-purple/20 w-12 h-12 flex items-center justify-center rounded-full mb-3">
                   <BookOpen className="text-purple h-6 w-6" />
@@ -112,7 +113,7 @@ const ForParents = () => {
               </CardContent>
             </Card>
             
-            <Card className="transition-all hover:shadow-lg hover:scale-[1.02] duration-300 border-t-4 border-t-teal">
+            <Card className="transition-all hover:shadow-lg hover:scale-[1.02] duration-300 border-t-4 border-t-teal animate-fade-in animation-delay-300">
               <CardHeader>
                 <div className="bg-teal/20 w-12 h-12 flex items-center justify-center rounded-full mb-3">
                   <Users className="text-teal h-6 w-6" />
@@ -129,7 +130,7 @@ const ForParents = () => {
               </CardContent>
             </Card>
             
-            <Card className="transition-all hover:shadow-lg hover:scale-[1.02] duration-300 border-t-4 border-t-yellow">
+            <Card className="transition-all hover:shadow-lg hover:scale-[1.02] duration-300 border-t-4 border-t-yellow animate-fade-in animation-delay-500">
               <CardHeader>
                 <div className="bg-yellow/20 w-12 h-12 flex items-center justify-center rounded-full mb-3">
                   <Award className="text-yellow-dark h-6 w-6" />
@@ -156,17 +157,17 @@ const ForParents = () => {
         <div className="absolute -z-10 bottom-1/3 left-1/3 w-[50%] h-[50%] bg-orange/10 rounded-full blur-3xl animate-pulse-subtle opacity-65 animation-delay-700"></div>
         
         <div className="grid md:grid-cols-3 gap-8">
-          <div className="text-center p-8 border rounded-xl bg-white shadow-sm">
+          <div className="text-center p-8 border rounded-xl bg-white shadow-sm animate-scale-in">
             <div className="text-4xl font-bold text-purple mb-2">95%</div>
             <p className="text-muted-foreground">Parents report improved English skills</p>
           </div>
           
-          <div className="text-center p-8 border rounded-xl bg-white shadow-sm">
+          <div className="text-center p-8 border rounded-xl bg-white shadow-sm animate-scale-in animation-delay-300">
             <div className="text-4xl font-bold text-teal mb-2">87%</div>
             <p className="text-muted-foreground">Increase in confidence with language</p>
           </div>
           
-          <div className="text-center p-8 border rounded-xl bg-white shadow-sm">
+          <div className="text-center p-8 border rounded-xl bg-white shadow-sm animate-scale-in animation-delay-500">
             <div className="text-4xl font-bold text-yellow-dark mb-2">12+</div>
             <p className="text-muted-foreground">Engaging activities per week</p>
           </div>
@@ -198,7 +199,7 @@ const ForParents = () => {
         <div className="absolute -z-10 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-purple/20 rounded-full blur-3xl animate-pulse-subtle opacity-50"></div>
         <div className="absolute -z-10 bottom-0 right-1/4 w-[70%] h-[70%] bg-teal/15 rounded-full blur-3xl animate-pulse-subtle opacity-60 animation-delay-300"></div>
         
-        <Card className="border-0 shadow-xl bg-gradient-to-r from-purple/80 to-teal/80 text-white relative overflow-hidden">
+        <Card className="border-0 shadow-xl bg-gradient-to-r from-purple/80 to-teal/80 text-white relative overflow-hidden animate-scale-in">
           {/* Card inner glow effects */}
           <div className="absolute -z-5 top-0 left-0 w-[70%] h-[70%] bg-white/10 rounded-full blur-3xl"></div>
           <div className="absolute -z-5 bottom-0 right-0 w-[60%] h-[60%] bg-white/5 rounded-full blur-3xl"></div>
@@ -215,7 +216,7 @@ const ForParents = () => {
                 </Button>
               </div>
               <div className="hidden md:block">
-                <BarChart className="h-48 w-48 mx-auto opacity-20" />
+                <BarChart className="h-48 w-48 mx-auto opacity-20 animate-pulse-subtle" />
               </div>
             </div>
           </CardContent>
