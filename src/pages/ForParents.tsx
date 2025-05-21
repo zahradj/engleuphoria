@@ -3,9 +3,9 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { GraduationCap, BookOpen, Users, BarChart, Award } from "lucide-react";
-import { ThreeDShapes } from "@/components/ThreeDShapes";
 import { FloatingShapes } from "@/components/FloatingShapes";
 import { WavingBackground } from "@/components/WavingBackground";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 const ForParents = () => {
   const navigate = useNavigate();
@@ -76,7 +76,13 @@ const ForParents = () => {
           <div className="relative">
             <div className="absolute -z-10 -inset-1 bg-gradient-to-r from-purple/20 to-teal/20 blur-xl rounded-3xl"></div>
             <div className="bg-white rounded-xl border shadow-lg p-4">
-              <ThreeDShapes className="rounded-lg h-80" />
+              <AspectRatio ratio={4/3} className="bg-white">
+                <img 
+                  src="/lovable-uploads/0629e331-727e-44d8-abdf-01f030c8a277.png" 
+                  alt="Book with speech bubbles showing language learning"
+                  className="w-full h-full object-contain"
+                />
+              </AspectRatio>
             </div>
           </div>
         </div>
