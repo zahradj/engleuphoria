@@ -23,10 +23,10 @@ export function ClassroomLayout({
     <div className="min-h-screen flex flex-col bg-muted/30">
       <StudentHeader studentName={studentName} points={points} />
       
-      <main className="flex-1 container max-w-[1440px] mx-auto px-2 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          {/* Main content area - expanded to take more space */}
-          <div className="lg:col-span-10 space-y-6">
+      <main className="flex-1 container max-w-[1440px] mx-auto px-4 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 justify-items-center">
+          {/* Main content area - expanded to take more space and centered */}
+          <div className="lg:col-span-10 space-y-6 w-full flex flex-col items-center">
             {mainContent}
           </div>
           

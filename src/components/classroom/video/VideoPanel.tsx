@@ -34,25 +34,29 @@ export function VideoPanel({
   // For 1-on-1 mode, use the OneOnOneVideoPanel component
   if (oneOnOneMode) {
     return (
-      <OneOnOneVideoPanel
-        feeds={videoFeeds}
-        currentUserId={currentUserId}
-        onToggleMute={onToggleMute}
-        onToggleCamera={onToggleVideo}
-        onRaiseHand={onToggleHand}
-        currentPage={currentPage}
-      />
+      <div className="w-full flex justify-center">
+        <OneOnOneVideoPanel
+          feeds={videoFeeds}
+          currentUserId={currentUserId}
+          onToggleMute={onToggleMute}
+          onToggleCamera={onToggleVideo}
+          onRaiseHand={onToggleHand}
+          currentPage={currentPage}
+        />
+      </div>
     );
   }
 
   // Otherwise use the standard VideoConferencePanel
   return (
-    <VideoConferencePanel
-      feeds={videoFeeds}
-      currentUserId={currentUserId}
-      onToggleMute={onToggleMute}
-      onToggleCamera={onToggleVideo}
-      onRaiseHand={onToggleHand}
-    />
+    <div className="w-full flex justify-center">
+      <VideoConferencePanel
+        feeds={videoFeeds}
+        currentUserId={currentUserId}
+        onToggleMute={onToggleMute}
+        onToggleCamera={onToggleVideo}
+        onRaiseHand={onToggleHand}
+      />
+    </div>
   );
 }
