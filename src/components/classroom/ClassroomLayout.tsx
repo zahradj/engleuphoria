@@ -19,14 +19,14 @@ export function ClassroomLayout({
     <div className="min-h-screen flex flex-col bg-muted/30">
       <StudentHeader studentName={studentName} points={points} />
       
-      <main className="flex-1 container max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Main content area */}
-          <div className="lg:col-span-3 space-y-6">
+      <main className="flex-1 container max-w-8xl mx-auto px-4 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          {/* Main content area - expanded to take more space */}
+          <div className="lg:col-span-4 space-y-6">
             {mainContent}
           </div>
           
-          {/* Sidebar */}
+          {/* Sidebar - reduced to take less space */}
           <div className="lg:col-span-1">
             {sidebarContent}
           </div>

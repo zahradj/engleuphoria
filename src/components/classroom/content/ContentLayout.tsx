@@ -63,8 +63,8 @@ export function ContentLayout({
   // Content for video tab
   if (activeTab === "video") {
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <div className="lg:col-span-3">
           <TeachingMaterial
             materialType="pdf"
             source="ESL_Animals_Lesson.pdf"
@@ -88,24 +88,50 @@ export function ContentLayout({
   
   // Content for whiteboard tab
   if (activeTab === "whiteboard") {
-    return <ESLWhiteboard isCollaborative={true} />;
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        <div className="lg:col-span-9">
+          <ESLWhiteboard isCollaborative={true} />
+        </div>
+        <div className="lg:col-span-3">
+          <VideoPanel
+            videoFeeds={videoFeeds.slice(0, 3)}
+            currentUserId={currentUserId}
+            onToggleMute={onToggleMute}
+            onToggleVideo={onToggleVideo}
+            onToggleHand={onToggleHand}
+          />
+        </div>
+      </div>
+    );
   }
   
   // Content for students/lessons tab
   return (
-    <>
-      {isTeacherView ? (
-        <StudentsTab
-          students={students}
-          onMessageStudent={onMessageStudent}
-          onToggleSpotlight={onToggleSpotlight}
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <div className="lg:col-span-9">
+        {isTeacherView ? (
+          <StudentsTab
+            students={students}
+            onMessageStudent={onMessageStudent}
+            onToggleSpotlight={onToggleSpotlight}
+          />
+        ) : (
+          <LessonTab
+            quizQuestions={quizQuestions}
+            onQuizComplete={onQuizComplete}
+          />
+        )}
+      </div>
+      <div className="lg:col-span-3">
+        <VideoPanel
+          videoFeeds={videoFeeds.slice(0, 2)}
+          currentUserId={currentUserId}
+          onToggleMute={onToggleMute}
+          onToggleVideo={onToggleVideo}
+          onToggleHand={onToggleHand}
         />
-      ) : (
-        <LessonTab
-          quizQuestions={quizQuestions}
-          onQuizComplete={onQuizComplete}
-        />
-      )}
-    </>
+      </div>
+    </div>
   );
 }

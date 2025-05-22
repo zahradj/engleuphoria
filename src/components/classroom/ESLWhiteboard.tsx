@@ -25,11 +25,11 @@ export function ESLWhiteboard({ className = "", isCollaborative = true }: ESLWhi
     clearCanvas,
     downloadCanvas,
     addNewPage
-  } = useWhiteboard();
+  } = useWhiteboard(4); // Start with more pages by default
 
   return (
-    <div className={`flex flex-col gap-3 ${className}`}>
-      <div className="bg-white rounded-lg shadow-sm p-2">
+    <div className={`flex flex-col gap-3 h-[calc(100vh-12rem)] ${className}`}>
+      <div className="bg-white rounded-lg shadow-sm p-2 h-full flex flex-col">
         <WhiteboardToolbar
           activeTool={activeTool}
           setActiveTool={setActiveTool}
