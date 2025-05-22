@@ -65,7 +65,7 @@ export function ContentLayout({
   // Content for video tab
   if (activeTab === "video") {
     return (
-      <div className="space-y-4 flex flex-col items-center w-full max-w-5xl mx-auto">
+      <div className="w-full flex flex-col items-center space-y-4">
         <div className="w-full flex justify-center">
           <VideoPanel
             videoFeeds={videoFeeds}
@@ -94,11 +94,11 @@ export function ContentLayout({
   // Content for whiteboard tab
   if (activeTab === "whiteboard") {
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-5xl mx-auto">
-        <div className="lg:col-span-9 flex justify-center">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 w-full">
+        <div className="md:col-span-3 flex justify-center">
           <ESLWhiteboard isCollaborative={true} />
         </div>
-        <div className="lg:col-span-3 flex justify-center">
+        <div className="md:col-span-1 flex justify-center">
           <VideoPanel
             videoFeeds={videoFeeds}
             currentUserId={currentUserId}
@@ -115,8 +115,8 @@ export function ContentLayout({
   
   // Content for students/lessons tab
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-5xl mx-auto">
-      <div className="lg:col-span-9 flex justify-center w-full">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 w-full">
+      <div className="md:col-span-3 flex justify-center w-full">
         {isTeacherView ? (
           <StudentsTab
             students={students}
@@ -130,7 +130,7 @@ export function ContentLayout({
           />
         )}
       </div>
-      <div className="lg:col-span-3 flex justify-center">
+      <div className="md:col-span-1 flex justify-center">
         <VideoPanel
           videoFeeds={videoFeeds}
           currentUserId={currentUserId}
