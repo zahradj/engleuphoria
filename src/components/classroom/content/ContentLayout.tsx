@@ -62,23 +62,11 @@ export function ContentLayout({
   // Add state to track current page
   const [currentPage, setCurrentPage] = useState(1);
   
-  const renderVideoComponent = () => (
-    <VideoPanel
-      videoFeeds={videoFeeds}
-      currentUserId={currentUserId}
-      onToggleMute={onToggleMute}
-      onToggleVideo={onToggleVideo}
-      onToggleHand={onToggleHand}
-      oneOnOneMode={true}
-      currentPage={currentPage}
-    />
-  );
-  
   // Content for video tab
   if (activeTab === "video") {
     return (
-      <div className="grid grid-cols-12 gap-6 w-full">
-        <div className="col-span-12 lg:col-span-8">
+      <div className="w-full flex items-start justify-between gap-4">
+        <div className="flex-1">
           <TeachingMaterial
             materialType="pdf"
             source={isTeacherView ? "Teacher_ESL_Lesson.pdf" : "ESL_Animals_Lesson.pdf"}
@@ -88,8 +76,16 @@ export function ContentLayout({
             onPageChange={setCurrentPage}
           />
         </div>
-        <div className="col-span-12 lg:col-span-4">
-          {renderVideoComponent()}
+        <div className="w-[400px] shrink-0">
+          <VideoPanel
+            videoFeeds={videoFeeds}
+            currentUserId={currentUserId}
+            onToggleMute={onToggleMute}
+            onToggleVideo={onToggleVideo}
+            onToggleHand={onToggleHand}
+            oneOnOneMode={true}
+            currentPage={currentPage}
+          />
         </div>
       </div>
     );
@@ -98,14 +94,20 @@ export function ContentLayout({
   // Content for whiteboard tab
   if (activeTab === "whiteboard") {
     return (
-      <div className="grid grid-cols-12 gap-6 w-full">
-        <div className="col-span-12 lg:col-span-8">
-          <div className="bg-white rounded-lg border shadow-sm p-0 h-full min-h-[500px]">
-            <ESLWhiteboard isCollaborative={true} />
-          </div>
+      <div className="w-full flex items-start justify-between gap-4">
+        <div className="flex-1">
+          <ESLWhiteboard isCollaborative={true} />
         </div>
-        <div className="col-span-12 lg:col-span-4">
-          {renderVideoComponent()}
+        <div className="w-[400px] shrink-0">
+          <VideoPanel
+            videoFeeds={videoFeeds}
+            currentUserId={currentUserId}
+            onToggleMute={onToggleMute}
+            onToggleVideo={onToggleVideo}
+            onToggleHand={onToggleHand}
+            oneOnOneMode={true}
+            currentPage={currentPage}
+          />
         </div>
       </div>
     );
@@ -113,25 +115,31 @@ export function ContentLayout({
   
   // Content for students/lessons tab
   return (
-    <div className="grid grid-cols-12 gap-6 w-full">
-      <div className="col-span-12 lg:col-span-8">
-        <div className="bg-white rounded-lg border shadow-sm p-4 h-full">
-          {isTeacherView ? (
-            <StudentsTab
-              students={students}
-              onMessageStudent={onMessageStudent}
-              onToggleSpotlight={onToggleSpotlight}
-            />
-          ) : (
-            <LessonTab
-              quizQuestions={quizQuestions}
-              onQuizComplete={onQuizComplete}
-            />
-          )}
-        </div>
+    <div className="w-full flex items-start justify-between gap-4">
+      <div className="flex-1">
+        {isTeacherView ? (
+          <StudentsTab
+            students={students}
+            onMessageStudent={onMessageStudent}
+            onToggleSpotlight={onToggleSpotlight}
+          />
+        ) : (
+          <LessonTab
+            quizQuestions={quizQuestions}
+            onQuizComplete={onQuizComplete}
+          />
+        )}
       </div>
-      <div className="col-span-12 lg:col-span-4">
-        {renderVideoComponent()}
+      <div className="w-[400px] shrink-0">
+        <VideoPanel
+          videoFeeds={videoFeeds}
+          currentUserId={currentUserId}
+          onToggleMute={onToggleMute}
+          onToggleVideo={onToggleVideo}
+          onToggleHand={onToggleHand}
+          oneOnOneMode={true}
+          currentPage={currentPage}
+        />
       </div>
     </div>
   );

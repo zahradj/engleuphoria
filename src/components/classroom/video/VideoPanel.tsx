@@ -1,3 +1,4 @@
+
 import React from "react";
 import { VideoConferencePanel } from "@/components/classroom/VideoConferencePanel";
 import { OneOnOneVideoPanel } from "@/components/classroom/video/OneOnOneVideoPanel";
@@ -33,7 +34,7 @@ export function VideoPanel({
   // For 1-on-1 mode, use the OneOnOneVideoPanel component
   if (oneOnOneMode) {
     return (
-      <div className="w-full h-full flex items-center justify-center">
+      <div className="w-full max-w-[400px]">
         <OneOnOneVideoPanel
           feeds={videoFeeds}
           currentUserId={currentUserId}
@@ -48,7 +49,7 @@ export function VideoPanel({
 
   // Otherwise use the standard VideoConferencePanel
   return (
-    <div className="w-full h-full">
+    <div className="w-full">
       <VideoConferencePanel
         feeds={videoFeeds}
         currentUserId={currentUserId}
