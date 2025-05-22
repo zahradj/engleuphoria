@@ -1,11 +1,14 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { StudentHeader } from "@/components/StudentHeader";
-import { Mic, MicOff, Users, Video, VideoOff, Hand, MessageCircle } from "lucide-react";
-import { ClassroomContent } from "./ClassroomContent";
 import { useToast } from "@/components/ui/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { ClassroomContent } from "./ClassroomContent";
+import { ClassroomLayout } from "@/components/classroom/ClassroomLayout";
+import { ClassroomHeader } from "@/components/classroom/ClassroomHeader";
+import { ClassroomVideo } from "@/components/classroom/ClassroomVideo";
+import { ClassroomControls } from "@/components/classroom/ClassroomControls";
+import { ParticipantsList } from "@/components/classroom/ParticipantsList";
 
 const Classroom = () => {
   const { classId } = useParams();
@@ -77,171 +80,66 @@ const Classroom = () => {
   const toggleChat = () => {
     setIsChatOpen(!isChatOpen);
   };
+
+  // Create participants list for the sidebar
+  const participants = [
+    {
+      name: classDetails.teacher,
+      isTeacher: true,
+    },
+    {
+      name: studentName,
+      isCurrentUser: true,
+      isMuted,
+      isVideoOff,
+      isHandRaised,
+    },
+    ...["Emma", "Liam", "Olivia", "Noah", "Sophia", "Jackson"].map((name, index) => ({
+      name,
+      isMuted: index % 3 === 0,
+      isVideoOff: index % 2 === 0,
+      isHandRaised: index === 1,
+    })),
+  ];
   
-  const openWhiteboard = () => {
-    navigate("/whiteboard");
-  };
+  // Prepare the main content for the classroom layout
+  const mainContent = (
+    <>
+      <ClassroomHeader 
+        title={classDetails.title} 
+        teacher={classDetails.teacher} 
+        time={classDetails.time} 
+      />
+      
+      <ClassroomVideo teacher={classDetails.teacher} />
+      
+      <ClassroomControls
+        isMuted={isMuted}
+        isVideoOff={isVideoOff}
+        isHandRaised={isHandRaised}
+        isChatOpen={isChatOpen}
+        toggleMute={toggleMute}
+        toggleVideo={toggleVideo}
+        toggleHand={toggleHand}
+        toggleChat={toggleChat}
+      />
+      
+      <div className="bg-white rounded-lg p-6 border">
+        <ClassroomContent />
+      </div>
+    </>
+  );
+  
+  // Sidebar content with participants list
+  const sidebarContent = <ParticipantsList participants={participants} />;
   
   return (
-    <div className="min-h-screen flex flex-col bg-muted/30">
-      <StudentHeader studentName={studentName} points={points} />
-      
-      <main className="flex-1 container max-w-7xl mx-auto px-4 py-6">
-        <div className="mb-4">
-          <h1 className="text-2xl font-bold">{classDetails.title}</h1>
-          <p className="text-muted-foreground">
-            {classDetails.teacher} • {classDetails.time}
-          </p>
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Main video area */}
-          <div className="lg:col-span-3 space-y-6">
-            {/* Teacher video */}
-            <div className="relative bg-muted rounded-lg aspect-video overflow-hidden">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="h-20 w-20 bg-purple/20 rounded-full flex items-center justify-center mx-auto mb-2">
-                    <span className="text-2xl font-bold text-purple">T</span>
-                  </div>
-                  <p className="font-medium">{classDetails.teacher}</p>
-                </div>
-              </div>
-              
-              <div className="absolute top-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
-                Teacher
-              </div>
-              
-              <div className="absolute bottom-4 left-4">
-                <div className="bg-black/50 text-white px-2 py-1 rounded-full flex items-center gap-2 text-sm">
-                  <Mic size={14} />
-                  {languageText.speaking}...
-                </div>
-              </div>
-            </div>
-            
-            {/* Control bar */}
-            <div className="bg-white rounded-lg p-3 flex flex-wrap justify-center gap-2 shadow-sm">
-              <button
-                onClick={toggleMute}
-                className={`p-3 rounded-full transition-colors ${
-                  isMuted ? "bg-destructive text-white" : "bg-muted hover:bg-muted/70"
-                }`}
-              >
-                {isMuted ? <MicOff size={24} /> : <Mic size={24} />}
-              </button>
-              
-              <button
-                onClick={toggleVideo}
-                className={`p-3 rounded-full transition-colors ${
-                  isVideoOff ? "bg-destructive text-white" : "bg-muted hover:bg-muted/70"
-                }`}
-              >
-                {isVideoOff ? <VideoOff size={24} /> : <Video size={24} />}
-              </button>
-              
-              <button
-                onClick={toggleHand}
-                className={`p-3 rounded-full transition-colors ${
-                  isHandRaised ? "bg-yellow text-yellow-dark" : "bg-muted hover:bg-muted/70"
-                }`}
-              >
-                <Hand size={24} />
-              </button>
-              
-              <button
-                onClick={toggleChat}
-                className={`p-3 rounded-full transition-colors ${
-                  isChatOpen ? "bg-purple text-white" : "bg-muted hover:bg-muted/70"
-                }`}
-              >
-                <MessageCircle size={24} />
-              </button>
-              
-              <button
-                className="px-4 py-2 bg-destructive text-white rounded-full ml-2 hover:bg-destructive/90 transition-colors"
-                onClick={() => navigate("/dashboard")}
-              >
-                {languageText.leaveClass}
-              </button>
-            </div>
-            
-            {/* Classroom Content - New component */}
-            <div className="bg-white rounded-lg p-6 border">
-              <ClassroomContent />
-            </div>
-          </div>
-          
-          {/* Participants sidebar */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg border h-full">
-              <div className="p-4 border-b">
-                <div className="flex items-center justify-between">
-                  <h2 className="font-bold">{languageText.participants}</h2>
-                  <div className="flex items-center gap-1">
-                    <Users size={16} />
-                    <span>8</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="p-2">
-                {/* Teacher */}
-                <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg mb-2">
-                  <div className="h-8 w-8 bg-purple/20 rounded-full flex items-center justify-center">
-                    <span className="font-bold text-purple">T</span>
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium">{classDetails.teacher}</p>
-                    <p className="text-xs text-muted-foreground">{languageText.teacher}</p>
-                  </div>
-                  <div className="text-xs bg-purple/20 text-purple px-2 py-0.5 rounded-full">
-                    {languageText.host}
-                  </div>
-                </div>
-                
-                {/* Current student */}
-                <div className="flex items-center gap-2 p-2 bg-yellow-light/50 rounded-lg mb-2">
-                  <div className="h-8 w-8 bg-yellow/20 rounded-full flex items-center justify-center">
-                    <span className="font-bold text-yellow-dark">
-                      {studentName.charAt(0)}
-                    </span>
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium">{studentName} ({languageText.you})</p>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      {isMuted ? <MicOff size={10} /> : <Mic size={10} />}
-                      {isVideoOff ? <VideoOff size={10} /> : <Video size={10} />}
-                      {isHandRaised && <Hand size={10} className="text-yellow-dark" />}
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Other students (placeholders) */}
-                {["Emma", "Liam", "Olivia", "Noah", "Sophia", "Jackson"].map((name, index) => (
-                  <div key={index} className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/30">
-                    <div 
-                      className="h-8 w-8 rounded-full flex items-center justify-center"
-                      style={{ backgroundColor: `hsl(${(index * 40) % 360}, 70%, 90%)` }}
-                    >
-                      <span className="font-bold">{name.charAt(0)}</span>
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium">{name}</p>
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        {index % 3 === 0 ? <MicOff size={10} /> : <Mic size={10} />}
-                        {index % 2 === 0 ? <VideoOff size={10} /> : <Video size={10} />}
-                        {index === 1 && <Hand size={10} className="text-yellow-dark" />}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-    </div>
+    <ClassroomLayout
+      studentName={studentName}
+      points={points}
+      mainContent={mainContent}
+      sidebarContent={sidebarContent}
+    />
   );
 };
 
