@@ -65,7 +65,7 @@ export function VideoConferencePanel({
 
       {/* Side Video Feeds */}
       {sideFeeds.length > 0 && (
-        <div className="flex overflow-x-auto gap-2 pb-1">
+        <div className="flex overflow-x-auto gap-2 pb-2">
           {sideFeeds.map(feed => (
             <SideVideoFeed
               key={feed.id}

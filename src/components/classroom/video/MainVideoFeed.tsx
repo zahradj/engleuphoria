@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Maximize2 } from "lucide-react";
+import { Maximize2, Expand } from "lucide-react";
 import { VideoFeed, VideoFeedProps } from "./VideoFeed";
 
 interface MainVideoFeedProps extends Omit<VideoFeedProps, 'isSmall'> {
@@ -33,7 +33,7 @@ export function MainVideoFeed({
           className="bg-black/30 hover:bg-black/50 text-white border-white/20"
           onClick={() => onMaximize?.(feed.id)}
         >
-          <Maximize2 size={16} />
+          <Expand size={16} />
         </Button>
       </div>
     </div>

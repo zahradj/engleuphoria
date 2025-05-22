@@ -63,8 +63,8 @@ export function ContentLayout({
   // Content for video tab
   if (activeTab === "video") {
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-        <div className="lg:col-span-3">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
           <TeachingMaterial
             materialType="pdf"
             source="ESL_Animals_Lesson.pdf"
@@ -89,13 +89,13 @@ export function ContentLayout({
   // Content for whiteboard tab
   if (activeTab === "whiteboard") {
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        <div className="lg:col-span-9">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-8">
           <ESLWhiteboard isCollaborative={true} />
         </div>
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-4">
           <VideoPanel
-            videoFeeds={videoFeeds.slice(0, 3)}
+            videoFeeds={videoFeeds}
             currentUserId={currentUserId}
             onToggleMute={onToggleMute}
             onToggleVideo={onToggleVideo}
@@ -108,8 +108,8 @@ export function ContentLayout({
   
   // Content for students/lessons tab
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-      <div className="lg:col-span-9">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="lg:col-span-8">
         {isTeacherView ? (
           <StudentsTab
             students={students}
@@ -123,9 +123,9 @@ export function ContentLayout({
           />
         )}
       </div>
-      <div className="lg:col-span-3">
+      <div className="lg:col-span-4">
         <VideoPanel
-          videoFeeds={videoFeeds.slice(0, 2)}
+          videoFeeds={videoFeeds}
           currentUserId={currentUserId}
           onToggleMute={onToggleMute}
           onToggleVideo={onToggleVideo}

@@ -36,8 +36,8 @@ export function VideoFeed({
       {/* Video Placeholder */}
       {isCameraOff ? (
         <div className="h-full w-full flex flex-col items-center justify-center bg-muted-foreground/10">
-          <UserCircle2 className="h-12 w-12 text-muted-foreground/80" />
-          <span className="text-sm text-white font-medium mt-1">{name}</span>
+          <UserCircle2 className={`${isSmall ? 'h-12 w-12' : 'h-20 w-20'} text-muted-foreground/80`} />
+          <span className={`${isSmall ? 'text-sm' : 'text-lg'} text-white font-medium mt-1`}>{name}</span>
         </div>
       ) : (
         <div className="h-full w-full bg-muted-foreground/20">
@@ -51,7 +51,7 @@ export function VideoFeed({
           ) : (
             // Placeholder for real video
             <div className="h-full w-full flex items-center justify-center">
-              <span className="text-white/80 text-sm">{name}'s video</span>
+              <span className={`text-white/80 ${isSmall ? 'text-sm' : 'text-base'}`}>{name}'s video</span>
             </div>
           )}
         </div>
