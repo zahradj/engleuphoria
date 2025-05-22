@@ -1,10 +1,10 @@
 
 import { ReactNode } from 'react';
-import { LanguageOption, TranslationKey } from '../translations';
+import { LanguageOption } from '../translations';
 
-export type TranslationValues = {
-  [key in TranslationKey]: string;
-};
+// We're not using TranslationKey anymore as it's causing typing issues
+// with the dynamic nature of our translations
+export type TranslationValues = Record<string, string>;
 
 export type LanguageContextType = {
   language: LanguageOption;
