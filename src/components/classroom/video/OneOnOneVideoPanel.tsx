@@ -68,16 +68,16 @@ export function OneOnOneVideoPanel({
     <div 
       className={`bg-black rounded-lg overflow-hidden shadow-md w-full ${
         position === "fixed" 
-          ? "fixed top-2 right-2 z-50 w-[200px]" 
+          ? "fixed top-2 right-2 z-50 w-[400px]" 
           : "relative"
       }`}
       style={{ transform: position === "static" ? `translateY(${topOffset}px)` : "none" }}
     >
       <div 
-        className={`grid grid-cols-2 gap-1 p-1 transition-all duration-500 ease-in-out ${animating ? 'animate-fade-in' : ''}`}
+        className={`flex flex-row gap-2 p-2 transition-all duration-500 ease-in-out ${animating ? 'animate-fade-in' : ''}`}
       >
         {/* Teacher video */}
-        <div className="aspect-video relative bg-muted-foreground/20 rounded overflow-hidden">
+        <div className="w-1/2 aspect-video relative bg-muted-foreground/20 rounded overflow-hidden">
           <VideoFeed
             feed={teacherFeed}
             isSmall={false}
@@ -94,7 +94,7 @@ export function OneOnOneVideoPanel({
         </div>
 
         {/* Student video */}
-        <div className="aspect-video relative bg-muted-foreground/20 rounded overflow-hidden">
+        <div className="w-1/2 aspect-video relative bg-muted-foreground/20 rounded overflow-hidden">
           <VideoFeed
             feed={studentFeed}
             isSmall={false}

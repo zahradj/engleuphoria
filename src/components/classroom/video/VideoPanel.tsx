@@ -34,7 +34,7 @@ export function VideoPanel({
   // For 1-on-1 mode, use the OneOnOneVideoPanel component
   if (oneOnOneMode) {
     return (
-      <div className="w-full">
+      <div className="w-full max-w-[400px]">
         <OneOnOneVideoPanel
           feeds={videoFeeds}
           currentUserId={currentUserId}
