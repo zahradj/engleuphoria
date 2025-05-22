@@ -63,23 +63,24 @@ export function ContentLayout({
   // Content for video tab
   if (activeTab === "video") {
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-        <div className="lg:col-span-3">
-          <TeachingMaterial
-            materialType="pdf"
-            source="ESL_Animals_Lesson.pdf"
-            currentPage={1}
-            totalPages={5}
-            allowAnnotation
-          />
-        </div>
-        <div>
+      <div className="space-y-4">
+        <div className="w-full">
           <VideoPanel
             videoFeeds={videoFeeds}
             currentUserId={currentUserId}
             onToggleMute={onToggleMute}
             onToggleVideo={onToggleVideo}
             onToggleHand={onToggleHand}
+            oneOnOneMode={true}
+          />
+        </div>
+        <div>
+          <TeachingMaterial
+            materialType="pdf"
+            source="ESL_Animals_Lesson.pdf"
+            currentPage={1}
+            totalPages={5}
+            allowAnnotation
           />
         </div>
       </div>
@@ -100,6 +101,7 @@ export function ContentLayout({
             onToggleMute={onToggleMute}
             onToggleVideo={onToggleVideo}
             onToggleHand={onToggleHand}
+            oneOnOneMode={true}
           />
         </div>
       </div>
@@ -130,6 +132,7 @@ export function ContentLayout({
           onToggleMute={onToggleMute}
           onToggleVideo={onToggleVideo}
           onToggleHand={onToggleHand}
+          oneOnOneMode={true}
         />
       </div>
     </div>
