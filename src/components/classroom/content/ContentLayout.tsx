@@ -80,10 +80,10 @@ export function ContentLayout({
         <div>
           <TeachingMaterial
             materialType="pdf"
-            source="ESL_Animals_Lesson.pdf"
+            source={isTeacherView ? "Teacher_ESL_Lesson.pdf" : "ESL_Animals_Lesson.pdf"}
             currentPage={currentPage}
             totalPages={5}
-            allowAnnotation
+            allowAnnotation={isTeacherView}
             onPageChange={setCurrentPage}
           />
         </div>

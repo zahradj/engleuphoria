@@ -31,7 +31,7 @@ export function VideoPanel({
   oneOnOneMode = false,
   currentPage = 1
 }: VideoPanelProps) {
-  // For 1-on-1 mode, use the new OneOnOneVideoPanel component
+  // For 1-on-1 mode, use the OneOnOneVideoPanel component
   if (oneOnOneMode) {
     return (
       <OneOnOneVideoPanel
