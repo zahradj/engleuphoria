@@ -1,18 +1,23 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { StudentHeader } from "@/components/StudentHeader";
-import { Mic, MicOff, Users, Video, VideoOff, Hand, MessageCircle, Share } from "lucide-react";
+import { Mic, MicOff, Users, Video, VideoOff, Hand, MessageCircle } from "lucide-react";
+import { ClassroomContent } from "./ClassroomContent";
+import { useToast } from "@/components/ui/use-toast";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Classroom = () => {
   const { classId } = useParams();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const { languageText } = useLanguage();
   const [studentName, setStudentName] = useState<string>("");
   const [points, setPoints] = useState<number>(0);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [isVideoOff, setIsVideoOff] = useState<boolean>(false);
   const [isHandRaised, setIsHandRaised] = useState<boolean>(false);
+  const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
   
   // In a real app, we'd fetch class details using classId
   const classDetails = {
@@ -35,9 +40,43 @@ const Classroom = () => {
     setPoints(storedPoints ? parseInt(storedPoints) : 0);
   }, [navigate]);
   
-  const toggleMute = () => setIsMuted(!isMuted);
-  const toggleVideo = () => setIsVideoOff(!isVideoOff);
-  const toggleHand = () => setIsHandRaised(!isHandRaised);
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+    
+    toast({
+      title: isMuted ? languageText.microphoneEnabled : languageText.microphoneDisabled,
+      description: isMuted ? languageText.youCanNowSpeak : languageText.youAreMuted,
+    });
+  };
+  
+  const toggleVideo = () => {
+    setIsVideoOff(!isVideoOff);
+    
+    toast({
+      title: isVideoOff ? languageText.cameraEnabled : languageText.cameraDisabled,
+      description: isVideoOff ? languageText.youAreNowVisible : languageText.youAreNowHidden,
+    });
+  };
+  
+  const toggleHand = () => {
+    setIsHandRaised(!isHandRaised);
+    
+    if (!isHandRaised) {
+      toast({
+        title: languageText.handRaised,
+        description: languageText.teacherNotified,
+      });
+    } else {
+      toast({
+        title: languageText.handLowered,
+        description: languageText.handLoweredDesc,
+      });
+    }
+  };
+  
+  const toggleChat = () => {
+    setIsChatOpen(!isChatOpen);
+  };
   
   const openWhiteboard = () => {
     navigate("/whiteboard");
@@ -76,7 +115,7 @@ const Classroom = () => {
               <div className="absolute bottom-4 left-4">
                 <div className="bg-black/50 text-white px-2 py-1 rounded-full flex items-center gap-2 text-sm">
                   <Mic size={14} />
-                  Speaking...
+                  {languageText.speaking}...
                 </div>
               </div>
             </div>
@@ -111,14 +150,10 @@ const Classroom = () => {
               </button>
               
               <button
-                onClick={openWhiteboard}
-                className="p-3 rounded-full bg-muted hover:bg-muted/70 transition-colors"
-              >
-                <Share size={24} />
-              </button>
-              
-              <button
-                className="p-3 rounded-full bg-muted hover:bg-muted/70 transition-colors"
+                onClick={toggleChat}
+                className={`p-3 rounded-full transition-colors ${
+                  isChatOpen ? "bg-purple text-white" : "bg-muted hover:bg-muted/70"
+                }`}
               >
                 <MessageCircle size={24} />
               </button>
@@ -127,24 +162,13 @@ const Classroom = () => {
                 className="px-4 py-2 bg-destructive text-white rounded-full ml-2 hover:bg-destructive/90 transition-colors"
                 onClick={() => navigate("/dashboard")}
               >
-                Leave Class
+                {languageText.leaveClass}
               </button>
             </div>
             
-            {/* Shared content area - placeholder */}
+            {/* Classroom Content - New component */}
             <div className="bg-white rounded-lg p-6 border">
-              <h2 className="font-bold mb-4">Today's Lesson: Animal Sounds</h2>
-              <div className="aspect-[4/3] bg-muted rounded-lg flex items-center justify-center">
-                <p className="text-muted-foreground">Shared content will appear here</p>
-              </div>
-              <div className="mt-4 text-center">
-                <button
-                  className="px-4 py-2 bg-purple text-white rounded-full hover:bg-purple/90 transition-colors"
-                  onClick={openWhiteboard}
-                >
-                  Open Whiteboard
-                </button>
-              </div>
+              <ClassroomContent />
             </div>
           </div>
           
@@ -153,7 +177,7 @@ const Classroom = () => {
             <div className="bg-white rounded-lg border h-full">
               <div className="p-4 border-b">
                 <div className="flex items-center justify-between">
-                  <h2 className="font-bold">Participants</h2>
+                  <h2 className="font-bold">{languageText.participants}</h2>
                   <div className="flex items-center gap-1">
                     <Users size={16} />
                     <span>8</span>
@@ -169,10 +193,10 @@ const Classroom = () => {
                   </div>
                   <div className="flex-1">
                     <p className="font-medium">{classDetails.teacher}</p>
-                    <p className="text-xs text-muted-foreground">Teacher</p>
+                    <p className="text-xs text-muted-foreground">{languageText.teacher}</p>
                   </div>
                   <div className="text-xs bg-purple/20 text-purple px-2 py-0.5 rounded-full">
-                    Host
+                    {languageText.host}
                   </div>
                 </div>
                 
@@ -184,7 +208,7 @@ const Classroom = () => {
                     </span>
                   </div>
                   <div className="flex-1">
-                    <p className="font-medium">{studentName} (You)</p>
+                    <p className="font-medium">{studentName} ({languageText.you})</p>
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
                       {isMuted ? <MicOff size={10} /> : <Mic size={10} />}
                       {isVideoOff ? <VideoOff size={10} /> : <Video size={10} />}
@@ -207,6 +231,7 @@ const Classroom = () => {
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
                         {index % 3 === 0 ? <MicOff size={10} /> : <Mic size={10} />}
                         {index % 2 === 0 ? <VideoOff size={10} /> : <Video size={10} />}
+                        {index === 1 && <Hand size={10} className="text-yellow-dark" />}
                       </div>
                     </div>
                   </div>
