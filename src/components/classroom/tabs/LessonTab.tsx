@@ -39,7 +39,7 @@ export function LessonTab({ quizQuestions, onQuizComplete }: LessonTabProps) {
         </div>
         
         <div className="space-y-4">
-          <h2 className="text-lg font-bold">Animal Sounds Quiz</h2>
+          <h2 className="text-lg font-bold">{languageText.animalSoundsQuiz}</h2>
           <QuizContainer 
             title={languageText.animalSoundsQuiz} 
             description={languageText.matchAnimalsWithSounds}

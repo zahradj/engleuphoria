@@ -34,23 +34,103 @@ import {
   Plus,
   Presentation,
 } from "lucide-react";
+import { VideoConferencePanel } from "@/components/classroom/VideoConferencePanel";
+import { ToolsPanel } from "@/components/classroom/ToolsPanel";
+import { ClassroomChat } from "@/components/classroom/ClassroomChat";
+import { TeachingMaterial } from "@/components/classroom/TeachingMaterial";
+import { StudentsTab } from "@/components/classroom/tabs/StudentsTab";
+import { LessonTab } from "@/components/classroom/tabs/LessonTab";
 
 // Define types for layout options
-type LayoutType = "gallery" | "spotlight" | "sidebar";
+type LayoutType = "gallery" | "spotlight" | "sidebar" | "default" | "material" | "video";
+
+// Mock data for participants
+const mockVideoFeeds = [
+  {
+    id: "teacher1",
+    name: "Ms. Johnson",
+    isTeacher: true,
+    isMuted: false,
+    isCameraOff: false,
+  },
+  {
+    id: "student1",
+    name: "Current Student",
+    isTeacher: false,
+    isMuted: true,
+    isCameraOff: false,
+    isHandRaised: false,
+  },
+  {
+    id: "student2",
+    name: "Emma",
+    isTeacher: false,
+    isMuted: true,
+    isCameraOff: true,
+  },
+];
+
+// Mock quiz questions
+const mockQuizQuestions = [
+  {
+    id: "q1",
+    question: "What sound does a dog make?",
+    options: ["Meow", "Woof", "Moo", "Tweet"],
+    correctAnswer: "Woof",
+  },
+  {
+    id: "q2",
+    question: "What sound does a cat make?",
+    options: ["Meow", "Woof", "Moo", "Tweet"],
+    correctAnswer: "Meow",
+  },
+];
+
+// Mock student data
+const mockStudents = [
+  {
+    id: "student1",
+    name: "Current Student",
+    avatar: "https://github.com/shadcn.png",
+    status: "speaking",
+    isCurrentUser: true,
+  },
+  {
+    id: "student2",
+    name: "Emma",
+    avatar: "https://github.com/sadmann7.png",
+    status: "online",
+    isCurrentUser: false,
+  },
+  {
+    id: "student3",
+    name: "Noah",
+    avatar: "https://github.com/emilkowalski.png",
+    status: "offline",
+    isCurrentUser: false,
+  },
+];
 
 const ESLClassroom = () => {
   const [studentName, setStudentName] = useState<string>("");
   const [points, setPoints] = useState<number>(0);
-  const [layout, setLayout] = useState<LayoutType>("gallery");
-  const [layoutChangeMessage, setLayoutChangeMessage] = useState<string>("");
-  const [showLayoutToast, setShowLayoutToast] = useState<boolean>(false);
+  const [layout, setLayout] = useState<LayoutType>("default");
+  const [activeTab, setActiveTab] = useState("video");
+  const [isMuted, setIsMuted] = useState(true);
+  const [isVideoOff, setIsVideoOff] = useState(false);
+  const [isHandRaised, setIsHandRaised] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isTeacherView, setIsTeacherView] = useState(false);
+  
   const navigate = useNavigate();
+  const { toast } = useToast();
   const { languageText } = useLanguage();
 
   useEffect(() => {
     // In a real app, we'd fetch this from an API
     const storedName = localStorage.getItem("studentName");
     const storedPoints = localStorage.getItem("points");
+    const storedIsTeacher = localStorage.getItem("isTeacher");
 
     if (!storedName) {
       navigate("/");
@@ -59,146 +139,243 @@ const ESLClassroom = () => {
 
     setStudentName(storedName);
     setPoints(storedPoints ? parseInt(storedPoints) : 0);
+    setIsTeacherView(storedIsTeacher === "true");
   }, [navigate]);
 
   const handleLayoutChange = (newLayout: LayoutType) => {
     setLayout(newLayout);
-    setLayoutChangeMessage(`${languageText.switchedTo} ${newLayout} ${languageText.view}`);
-    setShowLayoutToast(true);
     
-    setTimeout(() => {
-      setShowLayoutToast(false);
-    }, 3000);
+    toast({
+      title: languageText.layoutChanged,
+      description: `${languageText.switchedTo} ${newLayout} ${languageText.view}`,
+    });
+  };
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+    
+    toast({
+      title: isMuted ? languageText.microphoneEnabled : languageText.microphoneDisabled,
+      description: isMuted ? languageText.youCanNowSpeak : languageText.youAreMuted,
+    });
+  };
+
+  const toggleVideo = () => {
+    setIsVideoOff(!isVideoOff);
+    
+    toast({
+      title: isVideoOff ? languageText.cameraEnabled : languageText.cameraDisabled,
+      description: isVideoOff ? languageText.youAreNowVisible : languageText.youAreNowHidden,
+    });
+  };
+
+  const toggleHand = () => {
+    setIsHandRaised(!isHandRaised);
+    
+    toast({
+      title: isHandRaised ? languageText.handLowered : languageText.handRaised,
+      description: isHandRaised ? languageText.handLoweredDesc : languageText.teacherNotified,
+    });
+  };
+
+  const toggleChat = () => {
+    setIsChatOpen(!isChatOpen);
+  };
+
+  const handleQuizComplete = (score: number, total: number) => {
+    const newPoints = points + score;
+    setPoints(newPoints);
+    localStorage.setItem("points", newPoints.toString());
+    
+    toast({
+      title: "Quiz Completed!",
+      description: `You scored ${score} out of ${total} and earned ${score} points!`,
+    });
+  };
+
+  const handleMessageStudent = (studentId: string) => {
+    const student = mockStudents.find(s => s.id === studentId);
+    setIsChatOpen(true);
+    toast({
+      title: `Messaging ${student?.name}`,
+      description: "Private chat opened",
+    });
+  };
+
+  const handleToggleSpotlight = (studentId: string) => {
+    const student = mockStudents.find(s => s.id === studentId);
+    setLayout("spotlight");
+    toast({
+      title: `Spotlighting ${student?.name}`,
+      description: "Student is now in spotlight view",
+    });
   };
 
   const mainContent = (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>{languageText.lessonContent}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <AspectRatio ratio={16 / 9}>
-            <iframe
-              src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-              title="Lesson Video"
-              allowFullScreen
-            />
-          </AspectRatio>
-          <p className="mt-4">{languageText.clickToPlayVideo}</p>
-        </CardContent>
-      </Card>
+    <div className="space-y-4">
+      <ToolsPanel
+        isMuted={isMuted}
+        isVideoOff={isVideoOff}
+        isHandRaised={isHandRaised}
+        onToggleMute={toggleMute}
+        onToggleVideo={toggleVideo}
+        onToggleHand={toggleHand}
+        onShowGames={() => toast({ title: "Games", description: "Opening games panel" })}
+        onLayoutChange={handleLayoutChange}
+        onShowRewards={() => toast({ title: "Rewards", description: "Opening rewards panel" })}
+        onStartTimer={() => toast({ title: "Timer", description: "Starting timer" })}
+        onUploadMaterial={() => toast({ title: "Upload", description: "Opening upload dialog" })}
+      />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{languageText.lessonMaterial}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <p>Worksheet - Animals and their Habitats.pdf</p>
-            <Button variant="outline" size="sm">
-              <Download className="mr-2 h-4 w-4" />
-              {languageText.download}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="video" value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="video">Video & Slides</TabsTrigger>
+          <TabsTrigger value="whiteboard">Whiteboard</TabsTrigger>
+          <TabsTrigger value="students">{isTeacherView ? "Students" : "Lesson"}</TabsTrigger>
+        </TabsList>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{languageText.chat}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-start gap-2">
-              <Avatar>
-                <AvatarImage src="https://github.com/shadcn.png" />
-                <AvatarFallback>SC</AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="text-sm font-medium">shadcn</p>
-                <p className="text-sm text-muted-foreground">
-                  {languageText.typeMessage}
-                </p>
-              </div>
+        <TabsContent value="video" className="space-y-4 pt-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-2">
+              <TeachingMaterial
+                materialType="pdf"
+                source="ESL_Animals_Lesson.pdf"
+                currentPage={1}
+                totalPages={5}
+                allowAnnotation
+              />
             </div>
-            <Input type="text" placeholder={languageText.message} />
+            <div>
+              <VideoConferencePanel
+                feeds={mockVideoFeeds.map(feed => ({
+                  ...feed,
+                  isHandRaised: feed.id === "student1" ? isHandRaised : false
+                }))}
+                currentUserId="student1"
+                onToggleMute={(id) => id === "student1" && toggleMute()}
+                onToggleCamera={(id) => id === "student1" && toggleVideo()}
+                onRaiseHand={(id) => id === "student1" && toggleHand()}
+              />
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        </TabsContent>
+
+        <TabsContent value="whiteboard" className="pt-4">
+          <ESLWhiteboard isCollaborative={true} />
+        </TabsContent>
+
+        <TabsContent value="students" className="pt-4">
+          {isTeacherView ? (
+            <StudentsTab
+              students={mockStudents}
+              onMessageStudent={handleMessageStudent}
+              onToggleSpotlight={handleToggleSpotlight}
+            />
+          ) : (
+            <LessonTab
+              quizQuestions={mockQuizQuestions}
+              onQuizComplete={handleQuizComplete}
+            />
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 
   const sidebarContent = (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>{languageText.students}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Input type="text" placeholder={languageText.searchStudents} />
-          <ul className="mt-4 space-y-2">
-            <li>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Avatar>
-                    <AvatarImage src="https://github.com/shadcn.png" />
-                    <AvatarFallback>SC</AvatarFallback>
-                  </Avatar>
-                  <p className="text-sm font-medium">shadcn</p>
-                </div>
-                <Badge variant="secondary">{languageText.online}</Badge>
-              </div>
-            </li>
-            <li>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Avatar>
-                    <AvatarImage src="https://github.com/sadmann7.png" />
-                    <AvatarFallback>M</AvatarFallback>
-                  </Avatar>
-                  <p className="text-sm font-medium">M</p>
-                </div>
-                <Badge variant="secondary">{languageText.speakingNow}</Badge>
-              </div>
-            </li>
-            <li>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Avatar>
-                    <AvatarImage src="https://github.com/emilkowalski.png" />
-                    <AvatarFallback>EK</AvatarFallback>
-                  </Avatar>
-                  <p className="text-sm font-medium">Emil Kowalski</p>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {languageText.lastActive} 2m
-                </p>
-              </div>
-            </li>
-          </ul>
-        </CardContent>
-      </Card>
+    <div className="space-y-4">
+      {isChatOpen ? (
+        <ClassroomChat
+          teacherName="Ms. Johnson"
+          studentName={studentName}
+        />
+      ) : (
+        <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>{languageText.students}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Input type="text" placeholder={languageText.searchStudents} className="mb-3" />
+              <ul className="space-y-3">
+                {mockStudents.map((student) => (
+                  <li key={student.id}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Avatar>
+                          <AvatarImage src={student.avatar} />
+                          <AvatarFallback>{student.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="text-sm font-medium">
+                            {student.name}
+                            {student.isCurrentUser && (
+                              <span className="ml-1 text-xs text-muted-foreground">
+                                ({languageText.you})
+                              </span>
+                            )}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {student.status === "speaking" && languageText.speaking}
+                            {student.status === "online" && languageText.online}
+                            {student.status === "offline" && languageText.lastActive} 5m
+                          </p>
+                        </div>
+                      </div>
+                      {student.status !== "offline" && (
+                        <Badge variant={student.status === "speaking" ? "default" : "secondary"}>
+                          {student.status === "speaking" ? languageText.speakingNow : languageText.online}
+                        </Badge>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{languageText.resources}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2">
-            <li>
-              <a href="#" className="text-sm hover:underline">
-                Lesson Plan - Animals.pdf
-              </a>
-            </li>
-            <li>
-              <a href="#" className="text-sm hover:underline">
-                Vocabulary List - Unit 3.docx
-              </a>
-            </li>
-          </ul>
-        </CardContent>
-      </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>{languageText.resources}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2">
+                <li>
+                  <a href="#" className="text-sm hover:underline flex items-center">
+                    <Download className="mr-2 h-4 w-4" />
+                    Animal Vocabulary.pdf
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="text-sm hover:underline flex items-center">
+                    <Download className="mr-2 h-4 w-4" />
+                    Animal Sounds.mp3
+                  </a>
+                </li>
+                <li>
+                  <a href="#" className="text-sm hover:underline flex items-center">
+                    <Download className="mr-2 h-4 w-4" />
+                    Homework Assignment.docx
+                  </a>
+                </li>
+              </ul>
+              
+              {isTeacherView && (
+                <Button variant="outline" size="sm" className="mt-3 w-full">
+                  <Plus className="mr-1 h-4 w-4" />
+                  Add Resource
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+      
+      {isChatOpen && (
+        <Button variant="outline" onClick={toggleChat} className="w-full">
+          Close Chat
+        </Button>
+      )}
     </div>
   );
 
