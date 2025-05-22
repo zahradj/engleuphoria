@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { VideoFeed } from "./VideoFeed";
 import { type VideoFeedType } from "./types";
@@ -66,7 +65,7 @@ export function OneOnOneVideoPanel({
 
   return (
     <div 
-      className={`bg-black rounded-lg overflow-hidden shadow-md ${position === "fixed" ? "fixed top-4 right-4 z-50 w-[300px]" : "relative"}`}
+      className={`bg-black rounded-lg overflow-hidden shadow-md ${position === "fixed" ? "fixed top-4 right-4 z-50 w-[400px]" : "relative"}`}
       style={{ transform: position === "static" ? `translateY(${topOffset}px)` : "none" }}
     >
       <div 
