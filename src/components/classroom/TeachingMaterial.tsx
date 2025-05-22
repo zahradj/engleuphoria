@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { 
@@ -9,7 +9,9 @@ import {
   ZoomOut, 
   Upload, 
   Download, 
-  RotateCcw 
+  PenLine,
+  Eraser,
+  Trash2
 } from "lucide-react";
 
 interface TeachingMaterialProps {
@@ -33,10 +35,32 @@ export function TeachingMaterial({
   const [zoom, setZoom] = useState(100);
   const [isAnnotationMode, setIsAnnotationMode] = useState(false);
   const [localCurrentPage, setLocalCurrentPage] = useState(currentPage);
+  const [annotationTool, setAnnotationTool] = useState<"pen" | "eraser">("pen");
+  const [color, setColor] = useState("#9B87F5"); // Default purple color
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [lastPosition, setLastPosition] = useState({ x: 0, y: 0 });
   
   useEffect(() => {
     setLocalCurrentPage(currentPage);
   }, [currentPage]);
+
+  useEffect(() => {
+    if (isAnnotationMode && canvasRef.current && canvasContainerRef.current) {
+      const container = canvasContainerRef.current;
+      const canvas = canvasRef.current;
+      canvas.width = container.offsetWidth;
+      canvas.height = container.offsetHeight;
+      
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        ctx.lineWidth = annotationTool === "pen" ? 3 : 20;
+      }
+    }
+  }, [isAnnotationMode, annotationTool]);
 
   const handleZoomIn = () => {
     if (zoom < 200) setZoom(zoom + 25);
@@ -63,6 +87,74 @@ export function TeachingMaterial({
       if (onPageChange) {
         onPageChange(newPage);
       }
+    }
+  };
+
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isAnnotationMode || !canvasRef.current) return;
+    
+    setIsDrawing(true);
+    
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    
+    let posX, posY;
+    if ('touches' in e) {
+      posX = e.touches[0].clientX - rect.left;
+      posY = e.touches[0].clientY - rect.top;
+    } else {
+      posX = e.nativeEvent.offsetX;
+      posY = e.nativeEvent.offsetY;
+    }
+    
+    setLastPosition({ x: posX, y: posY });
+  };
+
+  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isDrawing || !isAnnotationMode || !canvasRef.current) return;
+    
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    
+    let currentX, currentY;
+    if ('touches' in e) {
+      currentX = e.touches[0].clientX - rect.left;
+      currentY = e.touches[0].clientY - rect.top;
+    } else {
+      currentX = e.nativeEvent.offsetX;
+      currentY = e.nativeEvent.offsetY;
+    }
+    
+    ctx.beginPath();
+    ctx.moveTo(lastPosition.x, lastPosition.y);
+    ctx.lineTo(currentX, currentY);
+    
+    if (annotationTool === "pen") {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 3;
+    } else { // eraser
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 20;
+    }
+    
+    ctx.stroke();
+    setLastPosition({ x: currentX, y: currentY });
+  };
+
+  const stopDrawing = () => {
+    setIsDrawing(false);
+  };
+
+  const clearAnnotations = () => {
+    if (!canvasRef.current) return;
+    
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
   };
 
@@ -115,10 +207,58 @@ export function TeachingMaterial({
         </div>
       </div>
 
+      {isAnnotationMode && (
+        <div className="flex items-center gap-2 p-2 bg-muted/20 border-b">
+          <Button 
+            variant={annotationTool === "pen" ? "secondary" : "ghost"} 
+            size="sm" 
+            onClick={() => setAnnotationTool("pen")}
+            className="h-8 px-2"
+          >
+            <PenLine size={14} className="mr-1" />
+            {languageText.draw}
+          </Button>
+          <Button 
+            variant={annotationTool === "eraser" ? "secondary" : "ghost"} 
+            size="sm" 
+            onClick={() => setAnnotationTool("eraser")}
+            className="h-8 px-2"
+          >
+            <Eraser size={14} className="mr-1" />
+            {languageText.erase}
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={clearAnnotations}
+            className="h-8 px-2"
+          >
+            <Trash2 size={14} className="mr-1" />
+            {languageText.clear}
+          </Button>
+          
+          {annotationTool === "pen" && (
+            <div className="flex items-center gap-1 ml-auto">
+              {["#9B87F5", "#14B8A6", "#F97316", "#FACC15", "#000000"].map((c) => (
+                <div
+                  key={c}
+                  className={`w-5 h-5 rounded-full cursor-pointer ${
+                    color === c ? "ring-2 ring-offset-1 ring-gray-400" : ""
+                  }`}
+                  style={{ backgroundColor: c }}
+                  onClick={() => setColor(c)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="flex-1 relative overflow-auto bg-muted/20">
         <div 
-          className="min-h-full flex items-center justify-center p-2"
+          className="min-h-full flex items-center justify-center p-2 relative"
           style={{ transform: `scale(${zoom / 100})` }}
+          ref={canvasContainerRef}
         >
           {materialType === "pdf" && (
             <div className="bg-white aspect-[3/4] w-full max-w-3xl shadow-md">
@@ -153,6 +293,21 @@ export function TeachingMaterial({
                 title="Interactive content"
               />
             </div>
+          )}
+          
+          {isAnnotationMode && (
+            <canvas
+              ref={canvasRef}
+              className="absolute top-0 left-0 w-full h-full z-10 touch-none"
+              style={{ pointerEvents: 'all' }}
+              onMouseDown={startDrawing}
+              onMouseMove={draw}
+              onMouseUp={stopDrawing}
+              onMouseLeave={stopDrawing}
+              onTouchStart={startDrawing}
+              onTouchMove={draw}
+              onTouchEnd={stopDrawing}
+            />
           )}
         </div>
       </div>
