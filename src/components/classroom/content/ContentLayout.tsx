@@ -65,8 +65,8 @@ export function ContentLayout({
   // Content for video tab
   if (activeTab === "video") {
     return (
-      <div className="w-full flex items-start justify-between gap-4">
-        <div className="flex-1">
+      <div className="grid grid-cols-12 gap-4 w-full">
+        <div className="col-span-8">
           <TeachingMaterial
             materialType="pdf"
             source={isTeacherView ? "Teacher_ESL_Lesson.pdf" : "ESL_Animals_Lesson.pdf"}
@@ -76,7 +76,7 @@ export function ContentLayout({
             onPageChange={setCurrentPage}
           />
         </div>
-        <div className="w-[400px] shrink-0">
+        <div className="col-span-4">
           <VideoPanel
             videoFeeds={videoFeeds}
             currentUserId={currentUserId}
@@ -94,11 +94,11 @@ export function ContentLayout({
   // Content for whiteboard tab
   if (activeTab === "whiteboard") {
     return (
-      <div className="w-full flex items-start justify-between gap-4">
-        <div className="flex-1">
+      <div className="grid grid-cols-12 gap-4 w-full">
+        <div className="col-span-8">
           <ESLWhiteboard isCollaborative={true} />
         </div>
-        <div className="w-[400px] shrink-0">
+        <div className="col-span-4">
           <VideoPanel
             videoFeeds={videoFeeds}
             currentUserId={currentUserId}
@@ -115,8 +115,8 @@ export function ContentLayout({
   
   // Content for students/lessons tab
   return (
-    <div className="w-full flex items-start justify-between gap-4">
-      <div className="flex-1">
+    <div className="grid grid-cols-12 gap-4 w-full">
+      <div className="col-span-8">
         {isTeacherView ? (
           <StudentsTab
             students={students}
@@ -130,7 +130,7 @@ export function ContentLayout({
           />
         )}
       </div>
-      <div className="w-[400px] shrink-0">
+      <div className="col-span-4">
         <VideoPanel
           videoFeeds={videoFeeds}
           currentUserId={currentUserId}
