@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -22,7 +23,7 @@ import { Toast } from "@/components/ui/toast";
 import { useToast } from "@/components/ui/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { ClassroomLayout } from "@/components/classroom/ClassroomLayout";
-import { Whiteboard } from "@/components/classroom/Whiteboard";
+import { ESLWhiteboard } from "@/components/classroom/ESLWhiteboard";
 import {
   ArrowLeft,
   ArrowRight,
@@ -31,7 +32,7 @@ import {
   MessageSquare,
   Pencil,
   Plus,
-   presentation,
+  Presentation,
 } from "lucide-react";
 
 // Define types for layout options
