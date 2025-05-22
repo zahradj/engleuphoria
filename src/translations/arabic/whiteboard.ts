@@ -9,4 +9,16 @@ export const whiteboardTranslations = {
   writeAnimalName: "اكتب اسم الحيوان بالإنجليزية",
   drawWhatEats: "ارسم ما يأكله هذا الحيوان",
   submitActivity: "تقديم النشاط",
+  
+  // ESL Classroom Whiteboard
+  draw: "رسم",
+  highlight: "تظليل",
+  text: "نص",
+  shapes: "أشكال",
+  erase: "مسح",
+  clear: "مسح الكل",
+  save: "حفظ",
+  addImage: "إضافة صورة",
+  addPage: "إضافة صفحة",
+  collaborative: "تعاوني",
 };
