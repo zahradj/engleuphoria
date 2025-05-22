@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { VideoFeed } from "./VideoFeed";
 import { type VideoFeedType } from "./types";
 
@@ -23,8 +23,7 @@ export function OneOnOneVideoPanel({
   const isCurrentUser = (id: string) => id === currentUserId;
   const [animating, setAnimating] = useState(false);
   const [prevPage, setPrevPage] = useState(currentPage);
-  const [scrollOffset, setScrollOffset] = useState(0);
-  const maxScrollOffset = 200; // Maximum amount the panel will move down
+  const [position, setPosition] = useState("static");
 
   // Determine if current user is teacher or student
   const isCurrentUserTeacher = feeds.find(feed => feed.id === currentUserId)?.isTeacher || false;
@@ -35,8 +34,8 @@ export function OneOnOneVideoPanel({
     ? feeds.find(feed => !feed.isTeacher) 
     : feeds.find(feed => feed.id === currentUserId) || feeds.find(feed => !feed.isTeacher);
 
-  // Calculate position based on current page (each page moves 50px down) and scroll position
-  const topOffset = (currentPage - 1) * 50 + scrollOffset;
+  // Calculate position based on current page (each page moves 50px down)
+  const topOffset = (currentPage - 1) * 50;
 
   useEffect(() => {
     if (prevPage !== currentPage) {
@@ -50,10 +49,12 @@ export function OneOnOneVideoPanel({
   // Add scroll event listener
   useEffect(() => {
     const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-      // Calculate scroll offset with a limit
-      const newOffset = Math.min(scrollPosition * 0.3, maxScrollOffset);
-      setScrollOffset(newOffset);
+      // When scroll position exceeds threshold, make the panel fixed
+      if (window.scrollY > 100) {
+        setPosition("fixed");
+      } else {
+        setPosition("static");
+      }
     };
 
     window.addEventListener("scroll", handleScroll);
@@ -64,10 +65,12 @@ export function OneOnOneVideoPanel({
   if (!teacherFeed || !studentFeed) return null;
 
   return (
-    <div className="bg-black rounded-lg overflow-hidden shadow-md relative">
+    <div 
+      className={`bg-black rounded-lg overflow-hidden shadow-md ${position === "fixed" ? "fixed top-4 right-4 z-50 w-[300px]" : "relative"}`}
+      style={{ transform: position === "static" ? `translateY(${topOffset}px)` : "none" }}
+    >
       <div 
         className={`grid grid-cols-2 gap-2 p-2 transition-all duration-500 ease-in-out ${animating ? 'animate-fade-in' : ''}`}
-        style={{ transform: `translateY(${topOffset}px)` }}
       >
         {/* Teacher video */}
         <div className="aspect-video relative bg-muted-foreground/20 rounded overflow-hidden">
