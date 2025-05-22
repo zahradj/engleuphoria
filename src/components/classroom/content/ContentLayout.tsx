@@ -1,10 +1,8 @@
 
-import React, { ReactNode, useState } from "react";
-import { TeachingMaterial } from "@/components/classroom/TeachingMaterial";
-import { VideoPanel } from "@/components/classroom/video/VideoPanel";
-import { ESLWhiteboard } from "@/components/classroom/ESLWhiteboard";
-import { StudentsTab } from "@/components/classroom/tabs/StudentsTab";
-import { LessonTab } from "@/components/classroom/tabs/LessonTab";
+import React, { useState } from "react";
+import { VideoTabContent } from "./VideoTabContent";
+import { WhiteboardTabContent } from "./WhiteboardTabContent";
+import { StudentsLessonsTabContent } from "./StudentsLessonsTabContent";
 
 interface VideoFeedType {
   id: string;
@@ -65,85 +63,48 @@ export function ContentLayout({
   // Content for video tab
   if (activeTab === "video") {
     return (
-      <div className="w-full flex flex-col space-y-4">
-        {/* Video panel now placed above the teaching material */}
-        <div className="w-full">
-          <VideoPanel
-            videoFeeds={videoFeeds}
-            currentUserId={currentUserId}
-            onToggleMute={onToggleMute}
-            onToggleVideo={onToggleVideo}
-            onToggleHand={onToggleHand}
-            oneOnOneMode={true}
-            currentPage={currentPage}
-          />
-        </div>
-        <div className="w-full">
-          <TeachingMaterial
-            materialType="pdf"
-            source={isTeacherView ? "Teacher_ESL_Lesson.pdf" : "ESL_Animals_Lesson.pdf"}
-            currentPage={currentPage}
-            totalPages={5}
-            allowAnnotation={isTeacherView}
-            onPageChange={setCurrentPage}
-          />
-        </div>
-      </div>
+      <VideoTabContent
+        videoFeeds={videoFeeds}
+        currentUserId={currentUserId}
+        isTeacherView={isTeacherView}
+        currentPage={currentPage}
+        onToggleMute={onToggleMute}
+        onToggleVideo={onToggleVideo}
+        onToggleHand={onToggleHand}
+        onPageChange={setCurrentPage}
+      />
     );
   }
   
   // Content for whiteboard tab
   if (activeTab === "whiteboard") {
     return (
-      <div className="w-full flex flex-col space-y-4">
-        {/* Video panel now placed above the whiteboard */}
-        <div className="w-full">
-          <VideoPanel
-            videoFeeds={videoFeeds}
-            currentUserId={currentUserId}
-            onToggleMute={onToggleMute}
-            onToggleVideo={onToggleVideo}
-            onToggleHand={onToggleHand}
-            oneOnOneMode={true}
-            currentPage={currentPage}
-          />
-        </div>
-        <div className="w-full">
-          <ESLWhiteboard isCollaborative={true} />
-        </div>
-      </div>
+      <WhiteboardTabContent
+        videoFeeds={videoFeeds}
+        currentUserId={currentUserId}
+        currentPage={currentPage}
+        onToggleMute={onToggleMute}
+        onToggleVideo={onToggleVideo}
+        onToggleHand={onToggleHand}
+      />
     );
   }
   
   // Content for students/lessons tab
   return (
-    <div className="w-full flex flex-col space-y-4">
-      {/* Video panel now placed above students/lessons content */}
-      <div className="w-full">
-        <VideoPanel
-          videoFeeds={videoFeeds}
-          currentUserId={currentUserId}
-          onToggleMute={onToggleMute}
-          onToggleVideo={onToggleVideo}
-          onToggleHand={onToggleHand}
-          oneOnOneMode={true}
-          currentPage={currentPage}
-        />
-      </div>
-      <div className="w-full">
-        {isTeacherView ? (
-          <StudentsTab
-            students={students}
-            onMessageStudent={onMessageStudent}
-            onToggleSpotlight={onToggleSpotlight}
-          />
-        ) : (
-          <LessonTab
-            quizQuestions={quizQuestions}
-            onQuizComplete={onQuizComplete}
-          />
-        )}
-      </div>
-    </div>
+    <StudentsLessonsTabContent
+      videoFeeds={videoFeeds}
+      students={students}
+      quizQuestions={quizQuestions}
+      currentUserId={currentUserId}
+      isTeacherView={isTeacherView}
+      currentPage={currentPage}
+      onToggleMute={onToggleMute}
+      onToggleVideo={onToggleVideo}
+      onToggleHand={onToggleHand}
+      onQuizComplete={onQuizComplete}
+      onMessageStudent={onMessageStudent}
+      onToggleSpotlight={onToggleSpotlight}
+    />
   );
 }
