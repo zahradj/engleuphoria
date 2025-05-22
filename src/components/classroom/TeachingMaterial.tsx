@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -66,7 +67,7 @@ export function TeachingMaterial({
   };
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-lg shadow-sm border">
+    <div className="flex flex-col h-full w-full bg-white rounded-lg shadow-sm border">
       <div className="p-3 bg-muted/30 border-b flex items-center justify-between">
         <h3 className="font-medium">{languageText.lessonMaterial}</h3>
         
@@ -113,11 +114,11 @@ export function TeachingMaterial({
 
       <div className="flex-1 relative overflow-auto bg-muted/20">
         <div 
-          className="min-h-full flex items-center justify-center p-4 max-w-full"
+          className="min-h-full flex items-center justify-center p-4"
           style={{ transform: `scale(${zoom / 100})` }}
         >
           {materialType === "pdf" && (
-            <div className="bg-white aspect-[3/4] w-full max-w-5xl shadow-md">
+            <div className="bg-white aspect-[3/4] w-full max-w-2xl shadow-md">
               {/* In a real app, this would be a PDF viewer component */}
               <div className="h-full flex items-center justify-center">
                 <p className="text-muted-foreground">{languageText.pdfPreview} - {source} (Page {localCurrentPage})</p>

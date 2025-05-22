@@ -68,7 +68,7 @@ export function OneOnOneVideoPanel({
     <div 
       className={`bg-black rounded-lg overflow-hidden shadow-md w-full ${
         position === "fixed" 
-          ? "fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-[350px]" 
+          ? "fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-[280px]" 
           : "relative"
       }`}
       style={{ transform: position === "static" ? `translateY(${topOffset}px)` : "translateX(-50%)" }}

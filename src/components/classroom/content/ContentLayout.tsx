@@ -77,7 +77,7 @@ export function ContentLayout({
             currentPage={currentPage}
           />
         </div>
-        <div className="w-full flex justify-center">
+        <div className="w-full max-w-4xl">
           <TeachingMaterial
             materialType="pdf"
             source={isTeacherView ? "Teacher_ESL_Lesson.pdf" : "ESL_Animals_Lesson.pdf"}
