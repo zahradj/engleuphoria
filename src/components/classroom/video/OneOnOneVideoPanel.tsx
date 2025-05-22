@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { VideoFeed } from "./VideoFeed";
 import { type VideoFeedType } from "./types";
 
@@ -23,6 +23,8 @@ export function OneOnOneVideoPanel({
   const isCurrentUser = (id: string) => id === currentUserId;
   const [animating, setAnimating] = useState(false);
   const [prevPage, setPrevPage] = useState(currentPage);
+  const [scrollOffset, setScrollOffset] = useState(0);
+  const maxScrollOffset = 200; // Maximum amount the panel will move down
 
   // Determine if current user is teacher or student
   const isCurrentUserTeacher = feeds.find(feed => feed.id === currentUserId)?.isTeacher || false;
@@ -33,8 +35,8 @@ export function OneOnOneVideoPanel({
     ? feeds.find(feed => !feed.isTeacher) 
     : feeds.find(feed => feed.id === currentUserId) || feeds.find(feed => !feed.isTeacher);
 
-  // Calculate position based on current page (each page moves 50px down)
-  const topOffset = (currentPage - 1) * 50;
+  // Calculate position based on current page (each page moves 50px down) and scroll position
+  const topOffset = (currentPage - 1) * 50 + scrollOffset;
 
   useEffect(() => {
     if (prevPage !== currentPage) {
@@ -44,6 +46,19 @@ export function OneOnOneVideoPanel({
       return () => clearTimeout(timer);
     }
   }, [currentPage, prevPage]);
+
+  // Add scroll event listener
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY;
+      // Calculate scroll offset with a limit
+      const newOffset = Math.min(scrollPosition * 0.3, maxScrollOffset);
+      setScrollOffset(newOffset);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // If there's no teacher or student, show nothing
   if (!teacherFeed || !studentFeed) return null;
