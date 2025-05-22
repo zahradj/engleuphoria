@@ -3,11 +3,12 @@ import { useState, useRef, useEffect } from "react";
 
 export function useSimpleWhiteboard() {
   const [isDrawing, setIsDrawing] = useState(false);
-  const [tool, setTool] = useState<"pencil" | "eraser" | "text">("pencil");
+  const [tool, setTool] = useState<"pencil" | "eraser" | "text" | "rectangle" | "circle">("pencil");
   const [color, setColor] = useState("#9B87F5"); // Default purple color
   const [textContent, setTextContent] = useState("");
   const [textPosition, setTextPosition] = useState({ x: 0, y: 0 });
   const [isAddingText, setIsAddingText] = useState(false);
+  const [startPosition, setStartPosition] = useState({ x: 0, y: 0 });
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const textInputRef = useRef<HTMLTextAreaElement>(null);
@@ -51,6 +52,8 @@ export function useSimpleWhiteboard() {
     
     if (tool === "text") {
       canvas.style.cursor = "text";
+    } else if (tool === "rectangle" || tool === "circle") {
+      canvas.style.cursor = "crosshair";
     } else {
       canvas.style.cursor = "default";
     }
@@ -119,6 +122,64 @@ export function useSimpleWhiteboard() {
     setIsAddingText(false);
     setTextContent("");
   };
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    if (tool === "rectangle" || tool === "circle") {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      setStartPosition({ x, y });
+      setIsDrawing(true);
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDrawing || !(tool === "rectangle" || tool === "circle")) return;
+    
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const currentX = e.clientX - rect.left;
+    const currentY = e.clientY - rect.top;
+    
+    // Clear the canvas and redraw
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.putImageData(imageData, 0, 0);
+    
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    
+    if (tool === "rectangle") {
+      ctx.beginPath();
+      ctx.rect(
+        startPosition.x,
+        startPosition.y,
+        currentX - startPosition.x,
+        currentY - startPosition.y
+      );
+      ctx.stroke();
+    } else if (tool === "circle") {
+      const radius = Math.sqrt(
+        Math.pow(currentX - startPosition.x, 2) + Math.pow(currentY - startPosition.y, 2)
+      );
+      ctx.beginPath();
+      ctx.arc(startPosition.x, startPosition.y, radius, 0, 2 * Math.PI);
+      ctx.stroke();
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDrawing(false);
+  };
   
   return {
     isDrawing,
@@ -137,6 +198,9 @@ export function useSimpleWhiteboard() {
     setTextContent,
     textPosition,
     textInputRef,
-    addTextToCanvas
+    addTextToCanvas,
+    handleMouseDown,
+    handleMouseMove,
+    handleMouseUp
   };
 }

@@ -6,7 +6,7 @@ interface SimpleWhiteboardCanvasProps {
   canvasRef: React.RefObject<HTMLCanvasElement>;
   isDrawing: boolean;
   setIsDrawing: (isDrawing: boolean) => void;
-  tool: "pencil" | "eraser" | "text";
+  tool: "pencil" | "eraser" | "text" | "rectangle" | "circle";
   color: string;
   handleCanvasClick?: (e: React.MouseEvent<HTMLCanvasElement>) => void;
   isAddingText?: boolean;
@@ -15,6 +15,9 @@ interface SimpleWhiteboardCanvasProps {
   setTextContent?: (text: string) => void;
   textInputRef?: React.RefObject<HTMLTextAreaElement>;
   addTextToCanvas?: () => void;
+  handleMouseDown?: (e: React.MouseEvent<HTMLCanvasElement>) => void;
+  handleMouseMove?: (e: React.MouseEvent<HTMLCanvasElement>) => void;
+  handleMouseUp?: () => void;
 }
 
 export function SimpleWhiteboardCanvas({
@@ -29,10 +32,13 @@ export function SimpleWhiteboardCanvas({
   textContent = "",
   setTextContent = () => {},
   textInputRef,
-  addTextToCanvas = () => {}
+  addTextToCanvas = () => {},
+  handleMouseDown,
+  handleMouseMove,
+  handleMouseUp
 }: SimpleWhiteboardCanvasProps) {
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (tool === "text") return; // Don't start drawing if text tool is selected
+    if (tool === "text" || tool === "rectangle" || tool === "circle") return; // Don't start drawing if text or shape tool is selected
     
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -66,7 +72,7 @@ export function SimpleWhiteboardCanvas({
   };
   
   const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || tool === "text") return;
+    if (!isDrawing || tool === "text" || tool === "rectangle" || tool === "circle") return;
     
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -93,6 +99,9 @@ export function SimpleWhiteboardCanvas({
   
   const stopDrawing = () => {
     setIsDrawing(false);
+    if (handleMouseUp) {
+      handleMouseUp();
+    }
   };
   
   return (
@@ -100,8 +109,22 @@ export function SimpleWhiteboardCanvas({
       <canvas
         ref={canvasRef}
         className="w-full h-[400px] touch-none"
-        onMouseDown={tool === "text" ? handleCanvasClick : startDrawing}
-        onMouseMove={draw}
+        onMouseDown={(e) => {
+          if (tool === "text") {
+            handleCanvasClick?.(e);
+          } else if (tool === "rectangle" || tool === "circle") {
+            handleMouseDown?.(e);
+          } else {
+            startDrawing(e);
+          }
+        }}
+        onMouseMove={(e) => {
+          if (tool === "rectangle" || tool === "circle") {
+            handleMouseMove?.(e);
+          } else {
+            draw(e);
+          }
+        }}
         onMouseUp={stopDrawing}
         onMouseLeave={stopDrawing}
         onTouchStart={startDrawing}

@@ -1,10 +1,10 @@
 
 import { Button } from "@/components/ui/button";
-import { Pencil, Eraser, Trash2, Download, Image, TextCursor } from "lucide-react";
+import { Pencil, Eraser, Trash2, Download, Image, TextCursor, Square, Circle } from "lucide-react";
 
 interface SimpleWhiteboardToolbarProps {
-  tool: "pencil" | "eraser" | "text";
-  setTool: (tool: "pencil" | "eraser" | "text") => void;
+  tool: "pencil" | "eraser" | "text" | "rectangle" | "circle";
+  setTool: (tool: "pencil" | "eraser" | "text" | "rectangle" | "circle") => void;
   color: string;
   setColor: (color: string) => void;
   clearCanvas: () => void;
@@ -40,6 +40,24 @@ export function SimpleWhiteboardToolbar({
         >
           <TextCursor size={16} className="mr-1" />
           Text
+        </Button>
+
+        <Button
+          variant={tool === "rectangle" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setTool("rectangle")}
+        >
+          <Square size={16} className="mr-1" />
+          Rectangle
+        </Button>
+        
+        <Button
+          variant={tool === "circle" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setTool("circle")}
+        >
+          <Circle size={16} className="mr-1" />
+          Circle
         </Button>
         
         <Button

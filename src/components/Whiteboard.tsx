@@ -25,7 +25,10 @@ export function Whiteboard({ className = "" }: WhiteboardProps) {
     setTextContent,
     textPosition,
     textInputRef,
-    addTextToCanvas
+    addTextToCanvas,
+    handleMouseDown,
+    handleMouseMove,
+    handleMouseUp
   } = useSimpleWhiteboard();
   
   return (
@@ -52,6 +55,9 @@ export function Whiteboard({ className = "" }: WhiteboardProps) {
         setTextContent={setTextContent}
         textInputRef={textInputRef}
         addTextToCanvas={addTextToCanvas}
+        handleMouseDown={handleMouseDown}
+        handleMouseMove={handleMouseMove}
+        handleMouseUp={handleMouseUp}
       />
     </div>
   );
