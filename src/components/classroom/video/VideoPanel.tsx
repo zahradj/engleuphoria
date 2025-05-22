@@ -1,3 +1,4 @@
+
 import React from "react";
 import { VideoConferencePanel } from "@/components/classroom/VideoConferencePanel";
 import { OneOnOneVideoPanel } from "@/components/classroom/video/OneOnOneVideoPanel";
@@ -18,6 +19,7 @@ interface VideoPanelProps {
   onToggleVideo: (id: string) => void;
   onToggleHand: (id: string) => void;
   oneOnOneMode?: boolean;
+  currentPage?: number;
 }
 
 export function VideoPanel({
@@ -26,7 +28,8 @@ export function VideoPanel({
   onToggleMute,
   onToggleVideo,
   onToggleHand,
-  oneOnOneMode = false
+  oneOnOneMode = false,
+  currentPage = 1
 }: VideoPanelProps) {
   // For 1-on-1 mode, use the new OneOnOneVideoPanel component
   if (oneOnOneMode) {
@@ -37,6 +40,7 @@ export function VideoPanel({
         onToggleMute={onToggleMute}
         onToggleCamera={onToggleVideo}
         onRaiseHand={onToggleHand}
+        currentPage={currentPage}
       />
     );
   }

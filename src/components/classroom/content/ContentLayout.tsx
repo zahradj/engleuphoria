@@ -1,5 +1,5 @@
 
-import React, { ReactNode } from "react";
+import React, { ReactNode, useState } from "react";
 import { TeachingMaterial } from "@/components/classroom/TeachingMaterial";
 import { VideoPanel } from "@/components/classroom/video/VideoPanel";
 import { ESLWhiteboard } from "@/components/classroom/ESLWhiteboard";
@@ -59,6 +59,8 @@ export function ContentLayout({
   onMessageStudent,
   onToggleSpotlight
 }: ContentLayoutProps) {
+  // Add state to track current page
+  const [currentPage, setCurrentPage] = useState(1);
   
   // Content for video tab
   if (activeTab === "video") {
@@ -72,15 +74,17 @@ export function ContentLayout({
             onToggleVideo={onToggleVideo}
             onToggleHand={onToggleHand}
             oneOnOneMode={true}
+            currentPage={currentPage}
           />
         </div>
         <div>
           <TeachingMaterial
             materialType="pdf"
             source="ESL_Animals_Lesson.pdf"
-            currentPage={1}
+            currentPage={currentPage}
             totalPages={5}
             allowAnnotation
+            onPageChange={setCurrentPage}
           />
         </div>
       </div>
@@ -102,6 +106,7 @@ export function ContentLayout({
             onToggleVideo={onToggleVideo}
             onToggleHand={onToggleHand}
             oneOnOneMode={true}
+            currentPage={currentPage}
           />
         </div>
       </div>
@@ -133,6 +138,7 @@ export function ContentLayout({
           onToggleVideo={onToggleVideo}
           onToggleHand={onToggleHand}
           oneOnOneMode={true}
+          currentPage={currentPage}
         />
       </div>
     </div>

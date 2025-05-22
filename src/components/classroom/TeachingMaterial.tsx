@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { 
@@ -32,6 +31,11 @@ export function TeachingMaterial({
   const { languageText } = useLanguage();
   const [zoom, setZoom] = useState(100);
   const [isAnnotationMode, setIsAnnotationMode] = useState(false);
+  const [localCurrentPage, setLocalCurrentPage] = useState(currentPage);
+  
+  useEffect(() => {
+    setLocalCurrentPage(currentPage);
+  }, [currentPage]);
 
   const handleZoomIn = () => {
     if (zoom < 200) setZoom(zoom + 25);
@@ -42,14 +46,22 @@ export function TeachingMaterial({
   };
 
   const handlePrevPage = () => {
-    if (currentPage > 1 && onPageChange) {
-      onPageChange(currentPage - 1);
+    if (localCurrentPage > 1) {
+      const newPage = localCurrentPage - 1;
+      setLocalCurrentPage(newPage);
+      if (onPageChange) {
+        onPageChange(newPage);
+      }
     }
   };
 
   const handleNextPage = () => {
-    if (currentPage < totalPages && onPageChange) {
-      onPageChange(currentPage + 1);
+    if (localCurrentPage < totalPages) {
+      const newPage = localCurrentPage + 1;
+      setLocalCurrentPage(newPage);
+      if (onPageChange) {
+        onPageChange(newPage);
+      }
     }
   };
 
@@ -108,7 +120,7 @@ export function TeachingMaterial({
             <div className="bg-white aspect-[3/4] w-full max-w-5xl shadow-md">
               {/* In a real app, this would be a PDF viewer component */}
               <div className="h-full flex items-center justify-center">
-                <p className="text-muted-foreground">{languageText.pdfPreview} - {source}</p>
+                <p className="text-muted-foreground">{languageText.pdfPreview} - {source} (Page {localCurrentPage})</p>
               </div>
             </div>
           )}
@@ -147,21 +159,21 @@ export function TeachingMaterial({
             variant="outline"
             size="sm"
             onClick={handlePrevPage}
-            disabled={currentPage <= 1}
+            disabled={localCurrentPage <= 1}
           >
             <ChevronLeft size={16} className="mr-1" />
             {languageText.previous}
           </Button>
           
           <span className="text-sm">
-            {currentPage} / {totalPages}
+            {localCurrentPage} / {totalPages}
           </span>
           
           <Button
             variant="outline"
             size="sm"
             onClick={handleNextPage}
-            disabled={currentPage >= totalPages}
+            disabled={localCurrentPage >= totalPages}
           >
             {languageText.next}
             <ChevronRight size={16} className="ml-1" />
