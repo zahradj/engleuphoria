@@ -2,6 +2,7 @@
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AnimatedButton } from "@/components/AnimatedButton";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface HeroProps {
   onStartClick: () => void;
@@ -9,47 +10,48 @@ interface HeroProps {
 
 export const Hero = ({ onStartClick }: HeroProps) => {
   const navigate = useNavigate();
+  const { languageText } = useLanguage();
 
   return (
     <div className="flex flex-col-reverse md:flex-row gap-8 items-center">
       <div className="flex-1 md:max-w-[40%]">
         <h1 className="text-4xl sm:text-5xl font-bold mb-4 animate-fade-in">
           <span className="bg-gradient-to-r from-purple to-teal bg-clip-text text-transparent">
-            Learn English
-          </span> in a Fun & Creative Way!
+            {languageText.learnEnglish}
+          </span> {languageText.funWay}
         </h1>
         
         <p className="text-lg mb-6 text-muted-foreground animate-fade-in animation-delay-300">
-          Engleuphoria is a vibrant and engaging online learning platform designed for children aged 5–12 to learn English through play and creative activities.
+          {languageText.heroDescription}
         </p>
         
         <div className="flex flex-wrap gap-4 mb-8">
           <FeatureCard 
             icon="video" 
-            title="Interactive Classes" 
-            description="Live video lessons with teachers" 
+            title={languageText.interactiveClasses} 
+            description={languageText.liveVideoLessons} 
             color="purple"
           />
           
           <FeatureCard 
             icon="book" 
-            title="Fun Activities" 
-            description="Games, quizzes, and stories" 
+            title={languageText.funActivities} 
+            description={languageText.gamesAndQuizzes} 
             color="teal"
             delay="300"
           />
           
           <FeatureCard 
             icon="users" 
-            title="Community" 
-            description="Learn with friends" 
+            title={languageText.community} 
+            description={languageText.learnWithFriends} 
             color="orange"
             delay="500"
           />
         </div>
         
         <AnimatedButton size="lg" onClick={onStartClick} className="gap-2" animationType="bounce">
-          Get Started <ArrowRight className="h-4 w-4" />
+          {languageText.getStarted} <ArrowRight className="h-4 w-4" />
         </AnimatedButton>
       </div>
       
@@ -65,7 +67,7 @@ export const Hero = ({ onStartClick }: HeroProps) => {
           className="w-full h-auto object-contain mx-auto max-h-[800px] relative z-5 animate-float"
         />
         <div className="absolute -top-4 -right-4 bg-yellow/90 text-yellow-dark font-bold px-4 py-2 rounded-full animate-bounce-light z-20">
-          Join now!
+          {languageText.joinNow}
         </div>
       </div>
     </div>
