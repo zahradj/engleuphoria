@@ -78,7 +78,7 @@ export const arabicTranslations = {
   // Learning path
   learningPath: "مسار التعلم",
   complete: "مكتمل",
-  activities: "أنشطة",
+  activitiesCount: "أنشطة",
   min: "دقيقة",
   
   // Teacher tools
@@ -278,5 +278,13 @@ export const arabicTranslations = {
   drawAnimal: "ارسم حيوانًا تعلمت عنه اليوم",
   writeAnimalName: "اكتب اسم الحيوان بالإنجليزية",
   drawWhatEats: "ارسم ما يأكله هذا الحيوان",
-  submitActivity: "تقديم النشاط"
+  submitActivity: "تقديم النشاط",
+  
+  // SignUp page
+  createAccount: "إنشاء حساب",
+  fullName: "الاسم الكامل",
+  iAmA: "أنا",
+  parent: "والد",
+  student: "طالب",
+  alreadyHaveAccount: "هل لديك حساب بالفعل؟"
 };

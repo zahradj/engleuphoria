@@ -78,7 +78,7 @@ export const spanishTranslations = {
   // Learning path
   learningPath: "Ruta de Aprendizaje",
   complete: "completo",
-  activities: "actividades",
+  activitiesCount: "actividades",
   min: "min",
   
   // Teacher tools
@@ -279,5 +279,13 @@ export const spanishTranslations = {
   drawAnimal: "Dibuja un animal del que aprendiste hoy",
   writeAnimalName: "Escribe el nombre del animal en inglés",
   drawWhatEats: "Dibuja lo que come este animal",
-  submitActivity: "Enviar Actividad"
+  submitActivity: "Enviar Actividad",
+  
+  // SignUp page
+  createAccount: "Crear Cuenta",
+  fullName: "Nombre Completo",
+  iAmA: "Soy un",
+  parent: "Padre",
+  student: "Estudiante",
+  alreadyHaveAccount: "¿Ya tienes una cuenta?"
 };

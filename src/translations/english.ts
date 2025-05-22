@@ -78,7 +78,7 @@ export const englishTranslations = {
   // Learning path
   learningPath: "Learning Path",
   complete: "complete",
-  activities: "activities",
+  activitiesCount: "activities",
   min: "min",
   
   // Teacher tools
@@ -279,5 +279,13 @@ export const englishTranslations = {
   drawAnimal: "Draw an animal you learned about today",
   writeAnimalName: "Write the animal's name in English",
   drawWhatEats: "Draw what this animal eats",
-  submitActivity: "Submit Activity"
+  submitActivity: "Submit Activity",
+  
+  // SignUp page
+  createAccount: "Create Account",
+  fullName: "Full Name",
+  iAmA: "I am a",
+  parent: "Parent",
+  student: "Student",
+  alreadyHaveAccount: "Already have an account?"
 };
