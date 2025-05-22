@@ -31,11 +31,11 @@ export function ClassroomLayout({
           </div>
           
           {/* Side content - split into chat and rewards line */}
-          <div className="lg:col-span-2 grid grid-rows-2 gap-4 h-[calc(100vh-140px)]">
-            <div className="row-span-1">
+          <div className="lg:col-span-2 grid grid-cols-12 gap-4 h-[calc(100vh-140px)]">
+            <div className="col-span-9">
               {sidebarContent}
             </div>
-            <div className="row-span-1 bg-white rounded-lg shadow-sm border">
+            <div className="col-span-3 bg-white rounded-lg shadow-sm border">
               <StarRewardsLine 
                 points={points} 
                 milestones={rewardMilestones} 
