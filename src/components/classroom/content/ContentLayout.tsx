@@ -62,11 +62,23 @@ export function ContentLayout({
   // Add state to track current page
   const [currentPage, setCurrentPage] = useState(1);
   
+  const renderVideoComponent = () => (
+    <VideoPanel
+      videoFeeds={videoFeeds}
+      currentUserId={currentUserId}
+      onToggleMute={onToggleMute}
+      onToggleVideo={onToggleVideo}
+      onToggleHand={onToggleHand}
+      oneOnOneMode={true}
+      currentPage={currentPage}
+    />
+  );
+  
   // Content for video tab
   if (activeTab === "video") {
     return (
-      <div className="grid grid-cols-12 gap-4 w-full">
-        <div className="col-span-8">
+      <div className="grid grid-cols-12 gap-6 w-full">
+        <div className="col-span-12 lg:col-span-8">
           <TeachingMaterial
             materialType="pdf"
             source={isTeacherView ? "Teacher_ESL_Lesson.pdf" : "ESL_Animals_Lesson.pdf"}
@@ -76,16 +88,8 @@ export function ContentLayout({
             onPageChange={setCurrentPage}
           />
         </div>
-        <div className="col-span-4">
-          <VideoPanel
-            videoFeeds={videoFeeds}
-            currentUserId={currentUserId}
-            onToggleMute={onToggleMute}
-            onToggleVideo={onToggleVideo}
-            onToggleHand={onToggleHand}
-            oneOnOneMode={true}
-            currentPage={currentPage}
-          />
+        <div className="col-span-12 lg:col-span-4">
+          {renderVideoComponent()}
         </div>
       </div>
     );
@@ -94,20 +98,14 @@ export function ContentLayout({
   // Content for whiteboard tab
   if (activeTab === "whiteboard") {
     return (
-      <div className="grid grid-cols-12 gap-4 w-full">
-        <div className="col-span-8">
-          <ESLWhiteboard isCollaborative={true} />
+      <div className="grid grid-cols-12 gap-6 w-full">
+        <div className="col-span-12 lg:col-span-8">
+          <div className="bg-white rounded-lg border shadow-sm p-0 h-full min-h-[500px]">
+            <ESLWhiteboard isCollaborative={true} />
+          </div>
         </div>
-        <div className="col-span-4">
-          <VideoPanel
-            videoFeeds={videoFeeds}
-            currentUserId={currentUserId}
-            onToggleMute={onToggleMute}
-            onToggleVideo={onToggleVideo}
-            onToggleHand={onToggleHand}
-            oneOnOneMode={true}
-            currentPage={currentPage}
-          />
+        <div className="col-span-12 lg:col-span-4">
+          {renderVideoComponent()}
         </div>
       </div>
     );
@@ -115,31 +113,25 @@ export function ContentLayout({
   
   // Content for students/lessons tab
   return (
-    <div className="grid grid-cols-12 gap-4 w-full">
-      <div className="col-span-8">
-        {isTeacherView ? (
-          <StudentsTab
-            students={students}
-            onMessageStudent={onMessageStudent}
-            onToggleSpotlight={onToggleSpotlight}
-          />
-        ) : (
-          <LessonTab
-            quizQuestions={quizQuestions}
-            onQuizComplete={onQuizComplete}
-          />
-        )}
+    <div className="grid grid-cols-12 gap-6 w-full">
+      <div className="col-span-12 lg:col-span-8">
+        <div className="bg-white rounded-lg border shadow-sm p-4 h-full">
+          {isTeacherView ? (
+            <StudentsTab
+              students={students}
+              onMessageStudent={onMessageStudent}
+              onToggleSpotlight={onToggleSpotlight}
+            />
+          ) : (
+            <LessonTab
+              quizQuestions={quizQuestions}
+              onQuizComplete={onQuizComplete}
+            />
+          )}
+        </div>
       </div>
-      <div className="col-span-4">
-        <VideoPanel
-          videoFeeds={videoFeeds}
-          currentUserId={currentUserId}
-          onToggleMute={onToggleMute}
-          onToggleVideo={onToggleVideo}
-          onToggleHand={onToggleHand}
-          oneOnOneMode={true}
-          currentPage={currentPage}
-        />
+      <div className="col-span-12 lg:col-span-4">
+        {renderVideoComponent()}
       </div>
     </div>
   );

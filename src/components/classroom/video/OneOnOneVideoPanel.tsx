@@ -34,9 +34,6 @@ export function OneOnOneVideoPanel({
     ? feeds.find(feed => !feed.isTeacher) 
     : feeds.find(feed => feed.id === currentUserId) || feeds.find(feed => !feed.isTeacher);
 
-  // Calculate position based on current page (each page moves 50px down)
-  const topOffset = (currentPage - 1) * 50;
-
   useEffect(() => {
     if (prevPage !== currentPage) {
       setAnimating(true);
@@ -49,7 +46,6 @@ export function OneOnOneVideoPanel({
   // Add scroll event listener
   useEffect(() => {
     const handleScroll = () => {
-      // When scroll position exceeds threshold, make the panel fixed
       if (window.scrollY > 100) {
         setPosition("fixed");
       } else {
@@ -66,23 +62,25 @@ export function OneOnOneVideoPanel({
 
   return (
     <div 
-      className={`bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl overflow-hidden shadow-lg w-full ${
+      className={`bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl overflow-hidden shadow-lg ${
         position === "fixed" 
           ? "fixed top-4 right-4 z-50 max-w-md" 
-          : "relative"
+          : "w-full max-w-3xl"
       }`}
-      style={{ transform: position === "static" ? `translateY(${topOffset}px)` : "none" }}
     >
       {/* Header with subtle gradient */}
-      <div className="bg-gradient-to-r from-purple-500/20 to-blue-500/20 px-4 py-2">
+      <div className="bg-gradient-to-r from-purple-500/20 to-blue-500/20 px-4 py-2 flex justify-between items-center">
         <h3 className="text-white text-sm font-medium">Live Session</h3>
+        <div className="text-white/70 text-xs">
+          {isCurrentUserTeacher ? "Teaching Mode" : "Student Mode"}
+        </div>
       </div>
 
       <div 
-        className={`flex flex-col gap-3 p-3 transition-all duration-500 ease-in-out ${animating ? 'animate-fade-in' : ''}`}
+        className={`flex flex-row gap-3 p-3 transition-all duration-500 ease-in-out ${animating ? 'animate-fade-in' : ''}`}
       >
-        {/* Teacher video - slightly larger */}
-        <div className="w-full aspect-video relative bg-muted-foreground/20 rounded-lg overflow-hidden border border-white/10">
+        {/* Teacher video */}
+        <div className="w-1/2 aspect-video relative bg-muted-foreground/20 rounded-lg overflow-hidden border border-white/10">
           <VideoFeed
             feed={teacherFeed}
             isSmall={false}
@@ -97,7 +95,7 @@ export function OneOnOneVideoPanel({
         </div>
 
         {/* Student video */}
-        <div className="w-full aspect-video relative bg-muted-foreground/20 rounded-lg overflow-hidden border border-white/10">
+        <div className="w-1/2 aspect-video relative bg-muted-foreground/20 rounded-lg overflow-hidden border border-white/10">
           <VideoFeed
             feed={studentFeed}
             isSmall={false}
@@ -110,6 +108,28 @@ export function OneOnOneVideoPanel({
             {studentFeed.name} {!isCurrentUserTeacher && isCurrentUser(studentFeed.id) ? "(You)" : ""}
           </div>
         </div>
+      </div>
+
+      {/* Quick controls */}
+      <div className="bg-slate-800/50 border-t border-white/5 p-2 flex justify-center space-x-2">
+        <button 
+          className="text-xs px-3 py-1 rounded bg-blue-500/20 text-white/80 hover:bg-blue-500/30 transition"
+          onClick={() => onRaiseHand && onRaiseHand(currentUserId)}
+        >
+          Raise Hand
+        </button>
+        <button 
+          className="text-xs px-3 py-1 rounded bg-green-500/20 text-white/80 hover:bg-green-500/30 transition"
+          onClick={() => onToggleMute(currentUserId)}
+        >
+          Toggle Mute
+        </button>
+        <button 
+          className="text-xs px-3 py-1 rounded bg-purple-500/20 text-white/80 hover:bg-purple-500/30 transition"
+          onClick={() => onToggleCamera(currentUserId)}
+        >
+          Toggle Camera
+        </button>
       </div>
     </div>
   );

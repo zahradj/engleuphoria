@@ -23,23 +23,24 @@ export function ClassroomLayout({
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-muted/10 to-muted/30">
       <StudentHeader studentName={studentName} points={points} />
       
-      <main className="flex-1 container mx-auto py-6 px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <main className="flex-1 container mx-auto py-4 px-4 lg:py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
           {/* Main content area - optimized for better fit */}
           <div className="lg:col-span-9 w-full">
             {mainContent}
           </div>
           
-          {/* Side content - split into chat and rewards line */}
-          <div className="lg:col-span-3 grid grid-cols-12 gap-4 lg:h-[calc(100vh-140px)]">
-            <div className="col-span-10 lg:col-span-9">
+          {/* Sidebar with rewards line integrated */}
+          <div className="lg:col-span-3 space-y-4">
+            <div className="bg-white rounded-xl shadow-sm border p-3">
+              <div className="mb-3">
+                <h3 className="text-sm font-medium text-gray-700">Rewards Progress</h3>
+                <StarRewardsLine 
+                  points={points} 
+                  milestones={rewardMilestones} 
+                />
+              </div>
               {sidebarContent}
-            </div>
-            <div className="col-span-2 lg:col-span-3 bg-white rounded-xl shadow-sm border">
-              <StarRewardsLine 
-                points={points} 
-                milestones={rewardMilestones} 
-              />
             </div>
           </div>
         </div>
