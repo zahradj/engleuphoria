@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, ReactNode } from "react";
 
 // Add your language translations here
@@ -164,6 +163,22 @@ const languages = {
     streak: "Streak",
     mastery: "Mastery",
     noAchievementsFound: "No achievements found in this category",
+
+    // Add missing translations for StudyCalendar
+    studyCalendar: "Study Calendar",
+    class: "Class",
+    homework: "Homework",
+    test: "Test",
+    practice: "Practice",
+    selectDate: "Select date",
+    noEventsForDay: "No events scheduled for this day",
+    
+    // Add missing translations for Progress
+    yourProgress: "Your Progress",
+    thisWeekActivities: "This week's activities",
+    classesAttended: "Classes attended",
+    pointsEarned: "Points earned",
+    speaking: "Speaking",
   },
 
   spanish: {
@@ -328,6 +343,22 @@ const languages = {
     streak: "Racha",
     mastery: "Maestría",
     noAchievementsFound: "No se encontraron logros en esta categoría",
+
+    // Add missing translations for StudyCalendar
+    studyCalendar: "Calendario de Estudio",
+    class: "Clase",
+    homework: "Tarea",
+    test: "Examen",
+    practice: "Práctica",
+    selectDate: "Seleccionar fecha",
+    noEventsForDay: "No hay eventos programados para este día",
+    
+    // Add missing translations for Progress
+    yourProgress: "Tu Progreso",
+    thisWeekActivities: "Actividades de esta semana",
+    classesAttended: "Clases asistidas",
+    pointsEarned: "Puntos ganados",
+    speaking: "Hablar",
   },
   
   // Add Arabic language support
@@ -488,6 +519,22 @@ const languages = {
     streak: "تتابع",
     mastery: "إتقان",
     noAchievementsFound: "لم يتم العثور على إنجازات في هذه الفئة",
+
+    // Add missing translations for StudyCalendar
+    studyCalendar: "تقويم الدراسة",
+    class: "فصل",
+    homework: "واجب منزلي",
+    test: "اختبار",
+    practice: "تمرين",
+    selectDate: "اختر التاريخ",
+    noEventsForDay: "لا توجد أحداث مجدولة لهذا اليوم",
+    
+    // Add missing translations for Progress
+    yourProgress: "تقدمك",
+    thisWeekActivities: "أنشطة هذا الأسبوع",
+    classesAttended: "الصفوف التي حضرتها",
+    pointsEarned: "النقاط المكتسبة",
+    speaking: "التحدث",
   },
   
   // Add French language support
@@ -648,6 +695,22 @@ const languages = {
     streak: "Série",
     mastery: "Maîtrise",
     noAchievementsFound: "Aucune réalisation trouvée dans cette catégorie",
+
+    // Add missing translations for StudyCalendar
+    studyCalendar: "Calendrier d'études",
+    class: "Cours",
+    homework: "Devoir",
+    test: "Test",
+    practice: "Pratique",
+    selectDate: "Sélectionner une date",
+    noEventsForDay: "Aucun événement prévu pour ce jour",
+    
+    // Add missing translations for Progress
+    yourProgress: "Votre progression",
+    thisWeekActivities: "Activités de cette semaine",
+    classesAttended: "Cours suivis",
+    pointsEarned: "Points gagnés",
+    speaking: "Expression orale",
   }
 };
 
