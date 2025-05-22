@@ -1,7 +1,9 @@
 
-import React from "react";
+import React, { useState } from "react";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { ToolsPanel } from "@/components/classroom/ToolsPanel";
-import { MainContentTabs } from "@/components/classroom/MainContentTabs";
+import { TabsNavigation } from "@/components/classroom/content/TabsNavigation";
+import { ContentLayout } from "@/components/classroom/content/ContentLayout";
 import { useToast } from "@/components/ui/use-toast";
 import { type LayoutType } from "@/hooks/useClassroomState";
 
@@ -65,6 +67,7 @@ export function ClassroomContent({
   onLayoutChange
 }: ClassroomContentProps) {
   const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("video");
 
   const videoWithHandRaised = videoFeeds.map(feed => ({
     ...feed,
@@ -87,22 +90,65 @@ export function ClassroomContent({
         onUploadMaterial={() => toast({ title: "Upload", description: "Opening upload dialog" })}
       />
 
-      <MainContentTabs
-        videoFeeds={videoWithHandRaised}
-        students={students}
-        quizQuestions={quizQuestions}
-        currentUserId={currentUserId}
-        isTeacherView={isTeacherView}
-        isMuted={isMuted}
-        isVideoOff={isVideoOff}
-        isHandRaised={isHandRaised}
-        onToggleMute={onToggleMute}
-        onToggleVideo={onToggleVideo}
-        onToggleHand={onToggleHand}
-        onQuizComplete={onQuizComplete}
-        onMessageStudent={onMessageStudent}
-        onToggleSpotlight={onToggleSpotlight}
-      />
+      <Tabs 
+        defaultValue="video" 
+        value={activeTab} 
+        onValueChange={setActiveTab} 
+        className="w-full"
+      >
+        <TabsNavigation isTeacherView={isTeacherView} />
+
+        <TabsContent value="video" className="space-y-4 pt-4">
+          <ContentLayout
+            activeTab="video"
+            videoFeeds={videoWithHandRaised}
+            students={students}
+            quizQuestions={quizQuestions}
+            currentUserId={currentUserId}
+            isTeacherView={isTeacherView}
+            onToggleMute={onToggleMute}
+            onToggleVideo={onToggleVideo}
+            onToggleHand={onToggleHand}
+            onQuizComplete={onQuizComplete}
+            onMessageStudent={onMessageStudent}
+            onToggleSpotlight={onToggleSpotlight}
+          />
+        </TabsContent>
+
+        <TabsContent value="whiteboard" className="pt-4">
+          <ContentLayout
+            activeTab="whiteboard"
+            videoFeeds={videoWithHandRaised}
+            students={students}
+            quizQuestions={quizQuestions}
+            currentUserId={currentUserId}
+            isTeacherView={isTeacherView}
+            onToggleMute={onToggleMute}
+            onToggleVideo={onToggleVideo}
+            onToggleHand={onToggleHand}
+            onQuizComplete={onQuizComplete}
+            onMessageStudent={onMessageStudent}
+            onToggleSpotlight={onToggleSpotlight}
+          />
+        </TabsContent>
+
+        <TabsContent value="students" className="pt-4">
+          <ContentLayout
+            activeTab="students"
+            videoFeeds={videoWithHandRaised}
+            students={students}
+            quizQuestions={quizQuestions}
+            currentUserId={currentUserId}
+            isTeacherView={isTeacherView}
+            onToggleMute={onToggleMute}
+            onToggleVideo={onToggleVideo}
+            onToggleHand={onToggleHand}
+            onQuizComplete={onQuizComplete}
+            onMessageStudent={onMessageStudent}
+            onToggleSpotlight={onToggleSpotlight}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
