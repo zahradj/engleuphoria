@@ -8,6 +8,7 @@ import { LanguageProvider } from "./contexts/LanguageContext";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Classroom from "./pages/Classroom";
+import ESLClassroom from "./pages/ESLClassroom";
 import WhiteboardPage from "./pages/WhiteboardPage";
 import NotFound from "./pages/NotFound";
 import ForParents from "./pages/ForParents";
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/classroom/:classId" element={<Classroom />} />
+            <Route path="/esl-classroom" element={<ESLClassroom />} />
             <Route path="/whiteboard" element={<WhiteboardPage />} />
             <Route path="/for-parents" element={<ForParents />} />
             <Route path="/for-teachers" element={<ForTeachers />} />
