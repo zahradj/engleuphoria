@@ -49,7 +49,7 @@ export function VideoPanel({
 
   // Otherwise use the standard VideoConferencePanel
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full bg-gradient-to-b from-slate-50 to-slate-100 rounded-xl shadow-sm border p-3">
       <VideoConferencePanel
         feeds={videoFeeds}
         currentUserId={currentUserId}
