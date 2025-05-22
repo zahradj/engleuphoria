@@ -15,7 +15,7 @@ import ForParents from "./pages/ForParents";
 import ForTeachers from "./pages/ForTeachers";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
-import ParentDashboard from "./pages/ParentDashboard";
+import TeacherDashboard from "./pages/TeacherDashboard";
 
 const queryClient = new QueryClient();
 
@@ -36,7 +36,7 @@ const App = () => (
             <Route path="/for-teachers" element={<ForTeachers />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
-            <Route path="/parent-dashboard" element={<ParentDashboard />} />
+            <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
