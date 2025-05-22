@@ -1,4 +1,3 @@
-
 import React from "react";
 import { VideoConferencePanel } from "@/components/classroom/VideoConferencePanel";
 import { OneOnOneVideoPanel } from "@/components/classroom/video/OneOnOneVideoPanel";
@@ -49,7 +48,7 @@ export function VideoPanel({
 
   // Otherwise use the standard VideoConferencePanel
   return (
-    <div className="w-full h-full bg-gradient-to-b from-slate-50 to-slate-100 rounded-xl shadow-sm border p-3">
+    <div className="w-full h-full">
       <VideoConferencePanel
         feeds={videoFeeds}
         currentUserId={currentUserId}
