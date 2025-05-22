@@ -63,8 +63,8 @@ export function ContentLayout({
   // Content for video tab
   if (activeTab === "video") {
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <div className="lg:col-span-3">
           <TeachingMaterial
             materialType="pdf"
             source="ESL_Animals_Lesson.pdf"
@@ -90,10 +90,10 @@ export function ContentLayout({
   if (activeTab === "whiteboard") {
     return (
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <div className="lg:col-span-8">
+        <div className="lg:col-span-9">
           <ESLWhiteboard isCollaborative={true} />
         </div>
-        <div className="lg:col-span-4">
+        <div className="lg:col-span-3">
           <VideoPanel
             videoFeeds={videoFeeds}
             currentUserId={currentUserId}
@@ -109,7 +109,7 @@ export function ContentLayout({
   // Content for students/lessons tab
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-      <div className="lg:col-span-8">
+      <div className="lg:col-span-9">
         {isTeacherView ? (
           <StudentsTab
             students={students}
@@ -123,7 +123,7 @@ export function ContentLayout({
           />
         )}
       </div>
-      <div className="lg:col-span-4">
+      <div className="lg:col-span-3">
         <VideoPanel
           videoFeeds={videoFeeds}
           currentUserId={currentUserId}

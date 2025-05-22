@@ -101,11 +101,11 @@ export function TeachingMaterial({
 
       <div className="flex-1 relative overflow-auto bg-muted/20">
         <div 
-          className="min-h-full flex items-center justify-center p-4"
+          className="min-h-full flex items-center justify-center p-4 max-w-full"
           style={{ transform: `scale(${zoom / 100})` }}
         >
           {materialType === "pdf" && (
-            <div className="bg-white aspect-[3/4] w-full max-w-xl shadow-md">
+            <div className="bg-white aspect-[3/4] w-full max-w-5xl shadow-md">
               {/* In a real app, this would be a PDF viewer component */}
               <div className="h-full flex items-center justify-center">
                 <p className="text-muted-foreground">{languageText.pdfPreview} - {source}</p>
@@ -130,7 +130,7 @@ export function TeachingMaterial({
           )}
           
           {materialType === "interactive" && (
-            <div className="bg-white aspect-video w-full max-w-4xl shadow-md">
+            <div className="bg-white aspect-video w-full max-w-6xl shadow-md">
               <iframe 
                 src={source}
                 className="w-full h-full border-0"
