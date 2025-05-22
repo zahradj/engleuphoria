@@ -65,8 +65,20 @@ export function ContentLayout({
   // Content for video tab
   if (activeTab === "video") {
     return (
-      <div className="w-full flex items-start justify-between gap-4">
-        <div className="flex-1">
+      <div className="w-full flex flex-col space-y-4">
+        {/* Video panel now placed above the teaching material */}
+        <div className="w-full">
+          <VideoPanel
+            videoFeeds={videoFeeds}
+            currentUserId={currentUserId}
+            onToggleMute={onToggleMute}
+            onToggleVideo={onToggleVideo}
+            onToggleHand={onToggleHand}
+            oneOnOneMode={true}
+            currentPage={currentPage}
+          />
+        </div>
+        <div className="w-full">
           <TeachingMaterial
             materialType="pdf"
             source={isTeacherView ? "Teacher_ESL_Lesson.pdf" : "ESL_Animals_Lesson.pdf"}
@@ -76,17 +88,6 @@ export function ContentLayout({
             onPageChange={setCurrentPage}
           />
         </div>
-        <div className="w-[400px] shrink-0">
-          <VideoPanel
-            videoFeeds={videoFeeds}
-            currentUserId={currentUserId}
-            onToggleMute={onToggleMute}
-            onToggleVideo={onToggleVideo}
-            onToggleHand={onToggleHand}
-            oneOnOneMode={true}
-            currentPage={currentPage}
-          />
-        </div>
       </div>
     );
   }
@@ -94,11 +95,9 @@ export function ContentLayout({
   // Content for whiteboard tab
   if (activeTab === "whiteboard") {
     return (
-      <div className="w-full flex items-start justify-between gap-4">
-        <div className="flex-1">
-          <ESLWhiteboard isCollaborative={true} />
-        </div>
-        <div className="w-[400px] shrink-0">
+      <div className="w-full flex flex-col space-y-4">
+        {/* Video panel now placed above the whiteboard */}
+        <div className="w-full">
           <VideoPanel
             videoFeeds={videoFeeds}
             currentUserId={currentUserId}
@@ -109,14 +108,29 @@ export function ContentLayout({
             currentPage={currentPage}
           />
         </div>
+        <div className="w-full">
+          <ESLWhiteboard isCollaborative={true} />
+        </div>
       </div>
     );
   }
   
   // Content for students/lessons tab
   return (
-    <div className="w-full flex items-start justify-between gap-4">
-      <div className="flex-1">
+    <div className="w-full flex flex-col space-y-4">
+      {/* Video panel now placed above students/lessons content */}
+      <div className="w-full">
+        <VideoPanel
+          videoFeeds={videoFeeds}
+          currentUserId={currentUserId}
+          onToggleMute={onToggleMute}
+          onToggleVideo={onToggleVideo}
+          onToggleHand={onToggleHand}
+          oneOnOneMode={true}
+          currentPage={currentPage}
+        />
+      </div>
+      <div className="w-full">
         {isTeacherView ? (
           <StudentsTab
             students={students}
@@ -129,17 +143,6 @@ export function ContentLayout({
             onQuizComplete={onQuizComplete}
           />
         )}
-      </div>
-      <div className="w-[400px] shrink-0">
-        <VideoPanel
-          videoFeeds={videoFeeds}
-          currentUserId={currentUserId}
-          onToggleMute={onToggleMute}
-          onToggleVideo={onToggleVideo}
-          onToggleHand={onToggleHand}
-          oneOnOneMode={true}
-          currentPage={currentPage}
-        />
       </div>
     </div>
   );
