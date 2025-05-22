@@ -14,15 +14,26 @@ export function StarRewardsLine({ points, milestones }: StarRewardsLineProps) {
   // Sort milestones in descending order
   const sortedMilestones = [...milestones].sort((a, b) => b - a);
   
+  // Define colors for each level
+  const levelColors = [
+    "bg-purple-light text-purple-dark fill-purple",
+    "bg-teal-light text-teal-dark fill-teal",
+    "bg-orange-light text-orange-dark fill-orange",
+    "bg-yellow-light text-yellow-dark fill-yellow",
+    "bg-primary/20 text-primary fill-primary/80"
+  ];
+  
   return (
     <div className="h-full flex flex-col items-center py-3 px-1">
       <div className="text-xs font-medium mb-2 text-center">
         {languageText.rewards}
       </div>
       
-      <div className="flex-1 w-[2px] bg-gray-200 relative">
+      <div className="flex-1 w-[2px] bg-gradient-to-b from-purple-light via-teal-light to-yellow-light relative">
         {sortedMilestones.map((milestone, index) => {
           const isEarned = points >= milestone;
+          const colorIndex = Math.min(index, levelColors.length - 1);
+          const colorClass = isEarned ? levelColors[colorIndex] : "bg-gray-100 text-gray-400";
           
           return (
             <div 
@@ -33,15 +44,19 @@ export function StarRewardsLine({ points, milestones }: StarRewardsLineProps) {
                 top: `${(index + 1) * 100 / (sortedMilestones.length + 1)}%` 
               }}
             >
-              <div className={`flex items-center justify-center w-6 h-6 rounded-full ${
-                isEarned ? "bg-yellow-100" : "bg-gray-100"
-              }`}>
+              <div 
+                className={`flex items-center justify-center w-6 h-6 rounded-full transition-all duration-500 ${colorClass} ${
+                  isEarned ? "animate-pulse-subtle scale-110" : ""
+                }`}
+              >
                 <Star 
                   size={14} 
-                  className={isEarned ? "fill-yellow text-yellow-dark" : "text-gray-400"} 
+                  className={`transition-all duration-500 ${isEarned ? "" : "text-gray-400"}`} 
                 />
               </div>
-              <div className="text-[10px] mt-1 whitespace-nowrap text-center">
+              <div className={`text-[10px] mt-1 whitespace-nowrap text-center transition-colors duration-500 ${
+                isEarned ? "font-medium" : "text-gray-500"
+              }`}>
                 {milestone}
               </div>
             </div>
@@ -50,7 +65,7 @@ export function StarRewardsLine({ points, milestones }: StarRewardsLineProps) {
         
         {/* Current position indicator */}
         <div 
-          className="absolute w-2 h-2 bg-primary rounded-full transform -translate-x-1/2"
+          className="absolute w-2 h-2 bg-primary rounded-full transform -translate-x-1/2 shadow-md animate-pulse"
           style={{ 
             left: "50%", 
             top: `${100 - (points / Math.max(...milestones)) * 100}%`,
@@ -60,7 +75,7 @@ export function StarRewardsLine({ points, milestones }: StarRewardsLineProps) {
       </div>
       
       <div className="mt-2 text-center">
-        <div className="text-xs font-medium">{points}</div>
+        <div className="text-xs font-medium animate-bounce-light">{points}</div>
         <div className="text-[10px] text-muted-foreground">{languageText.points}</div>
       </div>
     </div>
