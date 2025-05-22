@@ -50,20 +50,26 @@ export function StudentHeader({ studentName, points }: StudentHeaderProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem 
-                onClick={() => setLanguage('english')}
-                className={language === 'english' ? 'bg-muted' : ''}
+                onClick={() => setLanguage("english")}
+                className={language === "english" ? 'bg-muted' : ''}
               >
                 English
               </DropdownMenuItem>
               <DropdownMenuItem 
-                onClick={() => setLanguage('arabic')}
-                className={language === 'arabic' ? 'bg-muted' : ''}
+                onClick={() => setLanguage("spanish")}
+                className={language === "spanish" ? 'bg-muted' : ''}
+              >
+                Español
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => setLanguage("arabic")}
+                className={language === "arabic" ? 'bg-muted' : ''}
               >
                 العربية
               </DropdownMenuItem>
               <DropdownMenuItem 
-                onClick={() => setLanguage('french')}
-                className={language === 'french' ? 'bg-muted' : ''}
+                onClick={() => setLanguage("french")}
+                className={language === "french" ? 'bg-muted' : ''}
               >
                 Français
               </DropdownMenuItem>
@@ -102,25 +108,32 @@ export function StudentHeader({ studentName, points }: StudentHeaderProps) {
                 {/* Language Selection */}
                 <div className="mt-4 border-t pt-4">
                   <p className="text-sm text-muted-foreground mb-2">{languageText.language}:</p>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     <Button 
                       size="sm" 
-                      variant={language === 'english' ? 'default' : 'outline'}
-                      onClick={() => setLanguage('english')}
+                      variant={language === "english" ? "default" : "outline"}
+                      onClick={() => setLanguage("english")}
                     >
                       English
                     </Button>
                     <Button 
                       size="sm" 
-                      variant={language === 'arabic' ? 'default' : 'outline'}
-                      onClick={() => setLanguage('arabic')}
+                      variant={language === "spanish" ? "default" : "outline"}
+                      onClick={() => setLanguage("spanish")}
+                    >
+                      Español
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant={language === "arabic" ? "default" : "outline"}
+                      onClick={() => setLanguage("arabic")}
                     >
                       العربية
                     </Button>
                     <Button 
                       size="sm" 
-                      variant={language === 'french' ? 'default' : 'outline'}
-                      onClick={() => setLanguage('french')}
+                      variant={language === "french" ? "default" : "outline"}
+                      onClick={() => setLanguage("french")}
                     >
                       Français
                     </Button>
