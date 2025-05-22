@@ -1,10 +1,10 @@
 
 import { Button } from "@/components/ui/button";
-import { Pencil, Eraser, Trash2, Download, Image } from "lucide-react";
+import { Pencil, Eraser, Trash2, Download, Image, TextCursor } from "lucide-react";
 
 interface SimpleWhiteboardToolbarProps {
-  tool: "pencil" | "eraser";
-  setTool: (tool: "pencil" | "eraser") => void;
+  tool: "pencil" | "eraser" | "text";
+  setTool: (tool: "pencil" | "eraser" | "text") => void;
   color: string;
   setColor: (color: string) => void;
   clearCanvas: () => void;
@@ -34,6 +34,15 @@ export function SimpleWhiteboardToolbar({
         </Button>
         
         <Button
+          variant={tool === "text" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setTool("text")}
+        >
+          <TextCursor size={16} className="mr-1" />
+          Text
+        </Button>
+        
+        <Button
           variant={tool === "eraser" ? "default" : "outline"}
           size="sm"
           onClick={() => setTool("eraser")}
@@ -47,12 +56,12 @@ export function SimpleWhiteboardToolbar({
             <div
               key={c}
               className={`w-6 h-6 rounded-full cursor-pointer ${
-                color === c && tool === "pencil" ? "ring-2 ring-offset-2 ring-gray-400" : ""
+                color === c && tool !== "eraser" ? "ring-2 ring-offset-2 ring-gray-400" : ""
               }`}
               style={{ backgroundColor: c }}
               onClick={() => {
                 setColor(c);
-                setTool("pencil");
+                if (tool === "eraser") setTool("pencil");
               }}
             />
           ))}

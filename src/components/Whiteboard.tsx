@@ -17,7 +17,15 @@ export function Whiteboard({ className = "" }: WhiteboardProps) {
     setColor,
     canvasRef,
     clearCanvas,
-    downloadCanvas
+    downloadCanvas,
+    handleCanvasClick,
+    isAddingText,
+    setIsAddingText,
+    textContent,
+    setTextContent,
+    textPosition,
+    textInputRef,
+    addTextToCanvas
   } = useSimpleWhiteboard();
   
   return (
@@ -37,6 +45,13 @@ export function Whiteboard({ className = "" }: WhiteboardProps) {
         setIsDrawing={setIsDrawing}
         tool={tool}
         color={color}
+        handleCanvasClick={handleCanvasClick}
+        isAddingText={isAddingText}
+        textPosition={textPosition}
+        textContent={textContent}
+        setTextContent={setTextContent}
+        textInputRef={textInputRef}
+        addTextToCanvas={addTextToCanvas}
       />
     </div>
   );

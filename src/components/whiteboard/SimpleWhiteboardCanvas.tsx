@@ -1,12 +1,20 @@
 
 import React from "react";
+import { Textarea } from "@/components/ui/textarea";
 
 interface SimpleWhiteboardCanvasProps {
   canvasRef: React.RefObject<HTMLCanvasElement>;
   isDrawing: boolean;
   setIsDrawing: (isDrawing: boolean) => void;
-  tool: "pencil" | "eraser";
+  tool: "pencil" | "eraser" | "text";
   color: string;
+  handleCanvasClick?: (e: React.MouseEvent<HTMLCanvasElement>) => void;
+  isAddingText?: boolean;
+  textPosition?: { x: number; y: number };
+  textContent?: string;
+  setTextContent?: (text: string) => void;
+  textInputRef?: React.RefObject<HTMLTextAreaElement>;
+  addTextToCanvas?: () => void;
 }
 
 export function SimpleWhiteboardCanvas({
@@ -14,9 +22,18 @@ export function SimpleWhiteboardCanvas({
   isDrawing,
   setIsDrawing,
   tool,
-  color
+  color,
+  handleCanvasClick,
+  isAddingText = false,
+  textPosition = { x: 0, y: 0 },
+  textContent = "",
+  setTextContent = () => {},
+  textInputRef,
+  addTextToCanvas = () => {}
 }: SimpleWhiteboardCanvasProps) {
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (tool === "text") return; // Don't start drawing if text tool is selected
+    
     const canvas = canvasRef.current;
     if (!canvas) return;
     
@@ -49,7 +66,7 @@ export function SimpleWhiteboardCanvas({
   };
   
   const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (!isDrawing) return;
+    if (!isDrawing || tool === "text") return;
     
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -83,7 +100,7 @@ export function SimpleWhiteboardCanvas({
       <canvas
         ref={canvasRef}
         className="w-full h-[400px] touch-none"
-        onMouseDown={startDrawing}
+        onMouseDown={tool === "text" ? handleCanvasClick : startDrawing}
         onMouseMove={draw}
         onMouseUp={stopDrawing}
         onMouseLeave={stopDrawing}
@@ -91,6 +108,31 @@ export function SimpleWhiteboardCanvas({
         onTouchMove={draw}
         onTouchEnd={stopDrawing}
       />
+      
+      {isAddingText && (
+        <div
+          className="absolute"
+          style={{
+            left: `${textPosition.x}px`,
+            top: `${textPosition.y - 20}px`,
+          }}
+        >
+          <Textarea
+            ref={textInputRef}
+            value={textContent}
+            onChange={(e) => setTextContent(e.target.value)}
+            className="bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 min-h-[20px] resize-none"
+            placeholder="Type here..."
+            onBlur={addTextToCanvas}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                addTextToCanvas();
+              }
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
