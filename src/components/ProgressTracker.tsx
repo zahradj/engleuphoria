@@ -44,7 +44,7 @@ export function ProgressTracker({
           color="bg-orange" 
         />
         <ProgressItem 
-          label={languageText.speaking} 
+          label={languageText.speakingSkill} 
           value={speakingProgress} 
           color="bg-yellow" 
         />
