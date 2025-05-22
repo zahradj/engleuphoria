@@ -84,7 +84,7 @@ interface LanguageContextType {
     participants: string;
     host: string;
     you: string;
-    speaking: string;
+    speakingNow: string; // Changed from 'speaking' to 'speakingNow'
     sharedContentWillAppear: string;
     openWhiteboard: string;
     todaysLesson: string;
@@ -108,7 +108,7 @@ interface LanguageContextType {
     vocabulary: string;
     grammar: string;
     listening: string;
-    speaking: string;
+    speakingSkill: string; // Changed from 'speaking' to 'speakingSkill'
     reading: string;
     
     // Homework
@@ -281,7 +281,7 @@ const translations = {
     participants: 'Participants',
     host: 'Host',
     you: 'You',
-    speaking: 'Speaking...',
+    speakingNow: 'Speaking...', // Changed from 'speaking' to 'speakingNow'
     sharedContentWillAppear: 'Shared content will appear here',
     openWhiteboard: 'Open Whiteboard',
     todaysLesson: 'Today\'s Lesson: Animal Sounds',
@@ -305,7 +305,7 @@ const translations = {
     vocabulary: 'Vocabulary',
     grammar: 'Grammar',
     listening: 'Listening',
-    speaking: 'Speaking',
+    speakingSkill: 'Speaking', // Changed from 'speaking' to 'speakingSkill'
     reading: 'Reading',
     
     // Homework
@@ -475,7 +475,7 @@ const translations = {
     participants: 'المشاركون',
     host: 'المضيف',
     you: 'أنت',
-    speaking: 'يتحدث...',
+    speakingNow: 'يتحدث...', // Changed from 'speaking' to 'speakingNow'
     sharedContentWillAppear: 'سيظهر المحتوى المشترك هنا',
     openWhiteboard: 'فتح السبورة',
     todaysLesson: 'درس اليوم: أصوات الحيوانات',
@@ -499,7 +499,7 @@ const translations = {
     vocabulary: 'المفردات',
     grammar: 'القواعد',
     listening: 'الاستماع',
-    speaking: 'التحدث',
+    speakingSkill: 'التحدث', // Changed from 'speaking' to 'speakingSkill'
     reading: 'القراءة',
     
     // Homework
@@ -669,7 +669,7 @@ const translations = {
     participants: 'Participants',
     host: 'Hôte',
     you: 'Vous',
-    speaking: 'En train de parler...',
+    speakingNow: 'En train de parler...', // Changed from 'speaking' to 'speakingNow'
     sharedContentWillAppear: 'Le contenu partagé apparaîtra ici',
     openWhiteboard: 'Ouvrir le Tableau Blanc',
     todaysLesson: 'Leçon du Jour : Les Sons des Animaux',
@@ -693,7 +693,7 @@ const translations = {
     vocabulary: 'Vocabulaire',
     grammar: 'Grammaire',
     listening: 'Écoute',
-    speaking: 'Expression Orale',
+    speakingSkill: 'Expression Orale', // Changed from 'speaking' to 'speakingSkill'
     reading: 'Lecture',
     
     // Homework

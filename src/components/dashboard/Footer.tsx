@@ -2,6 +2,8 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export function Footer() {
+  const { languageText } = useLanguage();
+  
   return (
     <footer className="bg-white py-4 border-t">
       <div className="container max-w-7xl mx-auto px-4">
