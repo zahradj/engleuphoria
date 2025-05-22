@@ -65,8 +65,18 @@ export function ContentLayout({
   // Content for video tab
   if (activeTab === "video") {
     return (
-      <div className="w-full flex flex-col items-center space-y-3">
-        <div className="w-full flex justify-center">
+      <div className="w-full flex items-start justify-between gap-3">
+        <div className="flex-1">
+          <TeachingMaterial
+            materialType="pdf"
+            source={isTeacherView ? "Teacher_ESL_Lesson.pdf" : "ESL_Animals_Lesson.pdf"}
+            currentPage={currentPage}
+            totalPages={5}
+            allowAnnotation={isTeacherView}
+            onPageChange={setCurrentPage}
+          />
+        </div>
+        <div className="w-[220px] shrink-0">
           <VideoPanel
             videoFeeds={videoFeeds}
             currentUserId={currentUserId}
@@ -77,18 +87,6 @@ export function ContentLayout({
             currentPage={currentPage}
           />
         </div>
-        <div className="w-full flex justify-center">
-          <div className="w-full max-w-3xl">
-            <TeachingMaterial
-              materialType="pdf"
-              source={isTeacherView ? "Teacher_ESL_Lesson.pdf" : "ESL_Animals_Lesson.pdf"}
-              currentPage={currentPage}
-              totalPages={5}
-              allowAnnotation={isTeacherView}
-              onPageChange={setCurrentPage}
-            />
-          </div>
-        </div>
       </div>
     );
   }
@@ -96,11 +94,11 @@ export function ContentLayout({
   // Content for whiteboard tab
   if (activeTab === "whiteboard") {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 w-full">
-        <div className="md:col-span-3 flex justify-center">
+      <div className="w-full flex items-start justify-between gap-3">
+        <div className="flex-1">
           <ESLWhiteboard isCollaborative={true} />
         </div>
-        <div className="md:col-span-1 flex justify-center">
+        <div className="w-[220px] shrink-0">
           <VideoPanel
             videoFeeds={videoFeeds}
             currentUserId={currentUserId}
@@ -117,8 +115,8 @@ export function ContentLayout({
   
   // Content for students/lessons tab
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 w-full">
-      <div className="md:col-span-3 flex justify-center w-full">
+    <div className="w-full flex items-start justify-between gap-3">
+      <div className="flex-1">
         {isTeacherView ? (
           <StudentsTab
             students={students}
@@ -132,7 +130,7 @@ export function ContentLayout({
           />
         )}
       </div>
-      <div className="md:col-span-1 flex justify-center">
+      <div className="w-[220px] shrink-0">
         <VideoPanel
           videoFeeds={videoFeeds}
           currentUserId={currentUserId}
