@@ -68,7 +68,7 @@ export function OneOnOneVideoPanel({
     <div 
       className={`bg-black rounded-lg overflow-hidden shadow-md w-full ${
         position === "fixed" 
-          ? "fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-[280px]" 
+          ? "fixed top-2 left-1/2 transform -translate-x-1/2 z-50 w-[220px]" 
           : "relative"
       }`}
       style={{ transform: position === "static" ? `translateY(${topOffset}px)` : "translateX(-50%)" }}
@@ -87,8 +87,8 @@ export function OneOnOneVideoPanel({
             onRaiseHand={onRaiseHand}
           />
           {isCurrentUserTeacher && (
-            <div className="absolute bottom-0 left-0 bg-green-500/80 text-white text-xs px-2 py-1 rounded-tr">
-              You (Teacher)
+            <div className="absolute bottom-0 left-0 bg-green-500/80 text-white text-[10px] px-1 py-0.5 rounded-tr">
+              You (T)
             </div>
           )}
         </div>
@@ -104,8 +104,8 @@ export function OneOnOneVideoPanel({
             onRaiseHand={onRaiseHand}
           />
           {!isCurrentUserTeacher && isCurrentUser(studentFeed.id) && (
-            <div className="absolute bottom-0 left-0 bg-blue-500/80 text-white text-xs px-2 py-1 rounded-tr">
-              You (Student)
+            <div className="absolute bottom-0 left-0 bg-blue-500/80 text-white text-[10px] px-1 py-0.5 rounded-tr">
+              You (S)
             </div>
           )}
         </div>
