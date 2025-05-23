@@ -1,7 +1,7 @@
 
 import React from "react";
 import { VideoPanel } from "@/components/classroom/video/VideoPanel";
-import { ESLWhiteboard } from "@/components/classroom/ESLWhiteboard";
+import { UnifiedContentViewer } from "./UnifiedContentViewer";
 
 interface WhiteboardTabContentProps {
   videoFeeds: Array<{
@@ -27,9 +27,19 @@ export function WhiteboardTabContent({
   onToggleVideo,
   onToggleHand
 }: WhiteboardTabContentProps) {
+  const currentUser = videoFeeds.find(feed => feed.id === currentUserId);
+  const isTeacher = currentUser?.isTeacher || false;
+  const studentName = currentUser?.name || "Student";
+
   return (
-    <div className="w-full flex flex-col space-y-4">
-      <div className="w-full">
+    <div className="w-full grid grid-cols-1 lg:grid-cols-4 gap-4 h-full">
+      <div className="lg:col-span-3">
+        <UnifiedContentViewer 
+          isTeacher={isTeacher}
+          studentName={studentName}
+        />
+      </div>
+      <div className="lg:col-span-1">
         <VideoPanel
           videoFeeds={videoFeeds}
           currentUserId={currentUserId}
@@ -39,9 +49,6 @@ export function WhiteboardTabContent({
           oneOnOneMode={true}
           currentPage={currentPage}
         />
-      </div>
-      <div className="w-full">
-        <ESLWhiteboard isCollaborative={true} />
       </div>
     </div>
   );

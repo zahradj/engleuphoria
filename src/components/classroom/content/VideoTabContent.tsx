@@ -1,7 +1,7 @@
 
 import React from "react";
 import { VideoPanel } from "@/components/classroom/video/VideoPanel";
-import { TeachingMaterial } from "@/components/classroom/TeachingMaterial";
+import { UnifiedContentViewer } from "./UnifiedContentViewer";
 
 interface VideoTabContentProps {
   videoFeeds: Array<{
@@ -31,27 +31,27 @@ export function VideoTabContent({
   onToggleHand,
   onPageChange
 }: VideoTabContentProps) {
+  const currentUser = videoFeeds.find(feed => feed.id === currentUserId);
+  const isTeacher = currentUser?.isTeacher || false;
+  const studentName = currentUser?.name || "Student";
+
   return (
-    <div className="w-full flex flex-col space-y-4">
-      <div className="w-full">
+    <div className="w-full grid grid-cols-1 lg:grid-cols-4 gap-4 h-full">
+      <div className="lg:col-span-3">
+        <UnifiedContentViewer 
+          isTeacher={isTeacher}
+          studentName={studentName}
+        />
+      </div>
+      <div className="lg:col-span-1">
         <VideoPanel
           videoFeeds={videoFeeds}
           currentUserId={currentUserId}
           onToggleMute={onToggleMute}
           onToggleVideo={onToggleVideo}
           onToggleHand={onToggleHand}
-          oneOnOneMode={true}
+          oneOnOneMode={false}
           currentPage={currentPage}
-        />
-      </div>
-      <div className="w-full">
-        <TeachingMaterial
-          materialType="pdf"
-          source={isTeacherView ? "Teacher_ESL_Lesson.pdf" : "ESL_Animals_Lesson.pdf"}
-          currentPage={currentPage}
-          totalPages={5}
-          allowAnnotation={isTeacherView}
-          onPageChange={onPageChange}
         />
       </div>
     </div>
