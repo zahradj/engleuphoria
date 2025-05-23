@@ -11,7 +11,7 @@ import { MaterialContent } from "@/components/classroom/teaching-material/Materi
 
 interface ContentItem {
   id: string;
-  type: "pdf" | "image" | "video" | "game" | "text";
+  type: "pdf" | "image" | "video" | "game" | "interactive";
   title: string;
   source: string;
   uploadedBy: string;
@@ -40,7 +40,7 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
   const [color, setColor] = useState("#9B87F5");
   const [selectedContent, setSelectedContent] = useState<ContentItem | null>(contentItems[0]);
 
-  const handleUpload = (type: ContentItem['type']) => {
+  const handleUpload = (type: "pdf" | "image" | "video" | "interactive") => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = type === 'image' ? 'image/*' : type === 'video' ? 'video/*' : '*/*';
@@ -87,7 +87,7 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
     if (gameUrl) {
       const newItem: ContentItem = {
         id: Date.now().toString(),
-        type: "game",
+        type: "interactive",
         title: "Interactive Game",
         source: gameUrl,
         uploadedBy: isTeacher ? "Teacher" : studentName,
@@ -131,7 +131,7 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
             Add Game
           </Button>
           {isTeacher && (
-            <Button size="sm" variant="outline" onClick={() => handleUpload('text')}>
+            <Button size="sm" variant="outline" onClick={() => handleUpload('interactive')}>
               <Upload size={16} className="mr-1" />
               Upload File
             </Button>
@@ -175,19 +175,11 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
                 {selectedContent.title} - uploaded by {selectedContent.uploadedBy}
               </div>
               <div className="h-[calc(100%-2rem)] border rounded-lg overflow-hidden">
-                {selectedContent.type === "game" ? (
-                  <iframe 
-                    src={selectedContent.source}
-                    className="w-full h-full border-0"
-                    title={selectedContent.title}
-                  />
-                ) : (
-                  <MaterialContent
-                    materialType={selectedContent.type === "game" ? "interactive" : selectedContent.type}
-                    source={selectedContent.source}
-                    currentPage={1}
-                  />
-                )}
+                <MaterialContent
+                  materialType={selectedContent.type === "game" ? "interactive" : selectedContent.type}
+                  source={selectedContent.source}
+                  currentPage={1}
+                />
               </div>
             </div>
           ) : (
@@ -211,7 +203,7 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
                   {item.type === 'pdf' && <FileText size={16} />}
                   {item.type === 'image' && <Image size={16} />}
                   {item.type === 'video' && <Video size={16} />}
-                  {item.type === 'game' && <Gamepad2 size={16} />}
+                  {(item.type === 'game' || item.type === 'interactive') && <Gamepad2 size={16} />}
                   <span className="font-medium truncate">{item.title}</span>
                 </div>
                 <div className="text-xs text-muted-foreground">
