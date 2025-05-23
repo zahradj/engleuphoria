@@ -80,5 +80,13 @@ export const classroomTranslations = {
   highlight: "Highlight",
   text: "Text",
   shapes: "Shapes",
+  circle: "Circle",
   addPage: "Add Page",
+  
+  // New Annotation Features
+  annotationsSaved: "Annotations saved successfully!",
+  annotationsLoaded: "Annotations loaded successfully!",
+  noSavedAnnotations: "No saved annotations found",
+  errorSavingAnnotations: "Error saving annotations",
+  errorLoadingAnnotations: "Error loading annotations"
 };
