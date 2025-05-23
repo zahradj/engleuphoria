@@ -1,11 +1,11 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { MaterialToolbar } from "./teaching-material/MaterialToolbar";
-import { AnnotationToolbar } from "./teaching-material/AnnotationToolbar";
-import { AnnotationCanvas } from "./teaching-material/AnnotationCanvas";
-import { PaginationControls } from "./teaching-material/PaginationControls";
-import { MaterialContent } from "./teaching-material/MaterialContent";
+import { MaterialToolbar } from "@/components/classroom/teaching-material/MaterialToolbar";
+import { AnnotationToolbar } from "@/components/classroom/teaching-material/AnnotationToolbar";
+import { AnnotationCanvas } from "@/components/classroom/teaching-material/AnnotationCanvas";
+import { PaginationControls } from "@/components/classroom/teaching-material/PaginationControls";
+import { MaterialContent } from "@/components/classroom/teaching-material/MaterialContent";
 
 interface TeachingMaterialProps {
   materialType: "pdf" | "image" | "video" | "interactive";
