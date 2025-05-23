@@ -1,4 +1,3 @@
-
 import React from "react";
 import { ClassroomLayout } from "@/components/classroom/ClassroomLayout";
 import { SidebarContent } from "@/components/classroom/SidebarContent";

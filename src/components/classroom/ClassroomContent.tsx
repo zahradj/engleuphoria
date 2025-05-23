@@ -1,11 +1,8 @@
 
 import React, { useState } from "react";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
-import { ToolsPanel } from "@/components/classroom/ToolsPanel";
 import { TabsNavigation } from "@/components/classroom/content/TabsNavigation";
 import { ContentLayout } from "@/components/classroom/content/ContentLayout";
-import { useToast } from "@/components/ui/use-toast";
-import { type LayoutType } from "@/hooks/useClassroomState";
 
 interface VideoFeedType {
   id: string;
@@ -46,7 +43,7 @@ interface ClassroomContentProps {
   onQuizComplete: (score: number, total: number) => void;
   onMessageStudent: (studentId: string) => void;
   onToggleSpotlight: (studentId: string) => void;
-  onLayoutChange: (layout: LayoutType) => void;
+  onLayoutChange: (layout: string) => void;
 }
 
 export function ClassroomContent({
@@ -66,89 +63,44 @@ export function ClassroomContent({
   onToggleSpotlight,
   onLayoutChange
 }: ClassroomContentProps) {
-  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("video");
-
-  const videoWithHandRaised = videoFeeds.map(feed => ({
-    ...feed,
-    isHandRaised: feed.id === currentUserId ? isHandRaised : feed.isHandRaised
-  }));
-
+  
+  // Handle tab change
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    if (value === "video") {
+      onLayoutChange("video");
+    } else if (value === "whiteboard") {
+      onLayoutChange("material");
+    } else if (value === "students") {
+      onLayoutChange(isTeacherView ? "gallery" : "default");
+    }
+  };
+  
   return (
-    <div className="space-y-4">
-      <ToolsPanel
-        isMuted={isMuted}
-        isVideoOff={isVideoOff}
-        isHandRaised={isHandRaised}
-        onToggleMute={() => onToggleMute(currentUserId)}
-        onToggleVideo={() => onToggleVideo(currentUserId)}
-        onToggleHand={() => onToggleHand(currentUserId)}
-        onShowGames={() => toast({ title: "Games", description: "Opening games panel" })}
-        onLayoutChange={onLayoutChange}
-        onShowRewards={() => toast({ title: "Rewards", description: "Opening rewards panel" })}
-        onStartTimer={() => toast({ title: "Timer", description: "Starting timer" })}
-        onUploadMaterial={() => toast({ title: "Upload", description: "Opening upload dialog" })}
-      />
-
-      <Tabs 
-        defaultValue="video" 
-        value={activeTab} 
-        onValueChange={setActiveTab} 
-        className="w-full"
-      >
-        <TabsNavigation isTeacherView={isTeacherView} />
-
-        <TabsContent value="video" className="space-y-4 pt-4">
-          <ContentLayout
-            activeTab="video"
-            videoFeeds={videoWithHandRaised}
-            students={students}
-            quizQuestions={quizQuestions}
-            currentUserId={currentUserId}
-            isTeacherView={isTeacherView}
-            onToggleMute={onToggleMute}
-            onToggleVideo={onToggleVideo}
-            onToggleHand={onToggleHand}
-            onQuizComplete={onQuizComplete}
-            onMessageStudent={onMessageStudent}
-            onToggleSpotlight={onToggleSpotlight}
-          />
-        </TabsContent>
-
-        <TabsContent value="whiteboard" className="pt-4">
-          <ContentLayout
-            activeTab="whiteboard"
-            videoFeeds={videoWithHandRaised}
-            students={students}
-            quizQuestions={quizQuestions}
-            currentUserId={currentUserId}
-            isTeacherView={isTeacherView}
-            onToggleMute={onToggleMute}
-            onToggleVideo={onToggleVideo}
-            onToggleHand={onToggleHand}
-            onQuizComplete={onQuizComplete}
-            onMessageStudent={onMessageStudent}
-            onToggleSpotlight={onToggleSpotlight}
-          />
-        </TabsContent>
-
-        <TabsContent value="students" className="pt-4">
-          <ContentLayout
-            activeTab="students"
-            videoFeeds={videoWithHandRaised}
-            students={students}
-            quizQuestions={quizQuestions}
-            currentUserId={currentUserId}
-            isTeacherView={isTeacherView}
-            onToggleMute={onToggleMute}
-            onToggleVideo={onToggleVideo}
-            onToggleHand={onToggleHand}
-            onQuizComplete={onQuizComplete}
-            onMessageStudent={onMessageStudent}
-            onToggleSpotlight={onToggleSpotlight}
-          />
-        </TabsContent>
-      </Tabs>
-    </div>
+    <Tabs 
+      value={activeTab} 
+      onValueChange={handleTabChange}
+      className="w-full flex flex-col gap-4 h-full"
+    >
+      <TabsNavigation isTeacherView={isTeacherView} />
+      
+      <TabsContent value={activeTab} className="flex-1 mt-0">
+        <ContentLayout
+          activeTab={activeTab}
+          videoFeeds={videoFeeds}
+          students={students}
+          quizQuestions={quizQuestions}
+          currentUserId={currentUserId}
+          isTeacherView={isTeacherView}
+          onToggleMute={onToggleMute}
+          onToggleVideo={onToggleVideo}
+          onToggleHand={onToggleHand}
+          onQuizComplete={onQuizComplete}
+          onMessageStudent={onMessageStudent}
+          onToggleSpotlight={onToggleSpotlight}
+        />
+      </TabsContent>
+    </Tabs>
   );
 }
