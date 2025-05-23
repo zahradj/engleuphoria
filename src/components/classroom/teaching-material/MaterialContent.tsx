@@ -22,15 +22,42 @@ export function MaterialContent({
   
   const handleImageError = () => {
     setImageError(true);
+    console.log("Image error loading source:", source);
   };
 
   const handleVideoError = () => {
     setVideoError(true);
+    console.log("Video error loading source:", source);
   };
 
   const handleIframeError = () => {
     setIframeError(true);
+    console.log("iFrame error loading source:", source);
   };
+
+  // Process source URL to ensure it's valid
+  const processedSource = () => {
+    if (!source) return "";
+    
+    // For local files that were uploaded via File API
+    if (source.startsWith("blob:")) {
+      return source;
+    }
+    
+    // Check if URL is already properly formed
+    try {
+      new URL(source);
+      return source;
+    } catch (e) {
+      // If not a valid URL and doesn't have http/https, assume it's a relative path
+      if (!source.startsWith('http://') && !source.startsWith('https://')) {
+        return source.startsWith('/') ? source : `/${source}`;
+      }
+      return source;
+    }
+  };
+
+  const finalSource = processedSource();
 
   return (
     <div className="w-full h-full flex items-center justify-center">
@@ -59,7 +86,7 @@ export function MaterialContent({
             </Alert>
           ) : (
             <img 
-              src={source} 
+              src={finalSource} 
               alt="Teaching material" 
               className="max-w-full max-h-full object-contain rounded-lg shadow-sm"
               onError={handleImageError}
@@ -79,9 +106,9 @@ export function MaterialContent({
             </Alert>
           ) : (
             <div className="relative w-full max-w-4xl aspect-video bg-black rounded-lg overflow-hidden shadow-lg">
-              {source.includes('youtube.com') || source.includes('youtu.be') ? (
+              {finalSource.includes('youtube.com') || finalSource.includes('youtu.be') ? (
                 <iframe
-                  src={source.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
+                  src={finalSource.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
                   className="w-full h-full border-0"
                   title="YouTube video"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -90,7 +117,7 @@ export function MaterialContent({
                 />
               ) : (
                 <video 
-                  src={source}
+                  src={finalSource}
                   controls
                   className="w-full h-full"
                   onError={handleVideoError}
@@ -115,7 +142,7 @@ export function MaterialContent({
           ) : (
             <div className="w-full max-w-6xl aspect-video bg-white shadow-lg rounded-lg overflow-hidden border">
               <iframe 
-                src={source}
+                src={finalSource}
                 className="w-full h-full border-0"
                 title="Interactive content"
                 sandbox="allow-scripts allow-same-origin allow-forms allow-popups"

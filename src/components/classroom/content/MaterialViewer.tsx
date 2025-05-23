@@ -10,10 +10,12 @@ interface MaterialViewerProps {
 
 export function MaterialViewer({ selectedContent }: MaterialViewerProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     if (selectedContent) {
       setIsLoading(true);
+      setLoadError(false);
       // Simulate loading time - in real app this would be when content is actually loading
       const timer = setTimeout(() => {
         setIsLoading(false);
@@ -51,6 +53,30 @@ export function MaterialViewer({ selectedContent }: MaterialViewerProps) {
     );
   }
 
+  // Check if the source is a valid URL or path
+  const validateSource = (source: string): string => {
+    if (!source) return "";
+    
+    // If it's already a blob URL from File API
+    if (source.startsWith("blob:")) {
+      return source;
+    }
+    
+    // Check if it's already a valid URL
+    try {
+      new URL(source);
+      return source;
+    } catch (e) {
+      // For embedded content that might be just domain paths
+      if (source.includes('youtube.com') || source.includes('youtu.be')) {
+        return source.startsWith('http') ? source : `https://${source}`;
+      }
+      
+      // For local files, make sure the path is correct
+      return source.startsWith('/') ? source : `/${source}`;
+    }
+  };
+
   return (
     <div className="h-full">
       <div className="mb-2 text-sm text-muted-foreground">
@@ -59,7 +85,7 @@ export function MaterialViewer({ selectedContent }: MaterialViewerProps) {
       <div className="h-[calc(100%-2rem)] border rounded-lg overflow-hidden">
         <MaterialContent
           materialType={selectedContent.type === "game" ? "interactive" : selectedContent.type}
-          source={selectedContent.source}
+          source={validateSource(selectedContent.source)}
           currentPage={1}
         />
       </div>
