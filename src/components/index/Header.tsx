@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { Menu, X, Globe } from "lucide-react";
@@ -25,17 +25,17 @@ export const Header = () => {
         
         {/* Desktop Navigation */}
         <div className="hidden sm:flex items-center gap-4">
-          <Button variant="ghost" onClick={() => navigate('/for-parents')}>
-            {languageText.forParents}
+          <Button variant="ghost" asChild>
+            <Link to="/for-parents">{languageText.forParents}</Link>
           </Button>
-          <Button variant="ghost" onClick={() => navigate('/for-teachers')}>
-            {languageText.forTeachers}
+          <Button variant="ghost" asChild>
+            <Link to="/for-teachers">{languageText.forTeachers}</Link>
           </Button>
-          <Button variant="outline" onClick={() => navigate('/login')}>
-            {languageText.logIn}
+          <Button variant="outline" asChild>
+            <Link to="/login">{languageText.logIn}</Link>
           </Button>
-          <Button onClick={() => navigate('/signup')}>
-            {languageText.signUp}
+          <Button asChild>
+            <Link to="/signup">{languageText.signUp}</Link>
           </Button>
           
           {/* Language Selector */}
@@ -81,29 +81,17 @@ export const Header = () => {
                 navigate('/');
                 setOpen(false);
               }} />
-              <Button variant="ghost" onClick={() => {
-                navigate('/for-parents');
-                setOpen(false);
-              }}>
-                {languageText.forParents}
+              <Button variant="ghost" asChild onClick={() => setOpen(false)}>
+                <Link to="/for-parents">{languageText.forParents}</Link>
               </Button>
-              <Button variant="ghost" onClick={() => {
-                navigate('/for-teachers');
-                setOpen(false);
-              }}>
-                {languageText.forTeachers}
+              <Button variant="ghost" asChild onClick={() => setOpen(false)}>
+                <Link to="/for-teachers">{languageText.forTeachers}</Link>
               </Button>
-              <Button variant="outline" onClick={() => {
-                navigate('/login');
-                setOpen(false);
-              }}>
-                {languageText.logIn}
+              <Button variant="outline" asChild onClick={() => setOpen(false)}>
+                <Link to="/login">{languageText.logIn}</Link>
               </Button>
-              <Button onClick={() => {
-                navigate('/signup');
-                setOpen(false);
-              }} className="mt-2">
-                {languageText.signUp}
+              <Button asChild onClick={() => setOpen(false)} className="mt-2">
+                <Link to="/signup">{languageText.signUp}</Link>
               </Button>
               
               {/* Mobile Language Selector */}

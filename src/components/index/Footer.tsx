@@ -1,5 +1,5 @@
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { Globe } from "lucide-react";
@@ -19,32 +19,18 @@ export const Footer = () => {
           
           {/* Mobile Footer Links */}
           <div className="flex flex-col md:hidden gap-4 text-center">
-            <a href="#" className="text-muted-foreground hover:text-foreground">
+            <Link to="#" className="text-muted-foreground hover:text-foreground">
               {languageText.aboutUs}
-            </a>
-            <a 
-              href="#" 
-              className="text-muted-foreground hover:text-foreground"
-              onClick={(e) => {
-                e.preventDefault();
-                navigate('/for-parents');
-              }}
-            >
+            </Link>
+            <Link to="/for-parents" className="text-muted-foreground hover:text-foreground">
               {languageText.forParents}
-            </a>
-            <a 
-              href="#" 
-              className="text-muted-foreground hover:text-foreground"
-              onClick={(e) => {
-                e.preventDefault();
-                navigate('/for-teachers');
-              }}
-            >
+            </Link>
+            <Link to="/for-teachers" className="text-muted-foreground hover:text-foreground">
               {languageText.forTeachers}
-            </a>
-            <a href="#" className="text-muted-foreground hover:text-foreground">
+            </Link>
+            <Link to="#" className="text-muted-foreground hover:text-foreground">
               {languageText.contact}
-            </a>
+            </Link>
             
             {/* Language Selector for Mobile */}
             <div className="flex justify-center gap-2 mt-2">
@@ -77,32 +63,18 @@ export const Footer = () => {
           
           {/* Desktop Footer Links */}
           <div className="hidden md:flex gap-6 items-center">
-            <a href="#" className="text-muted-foreground hover:text-foreground">
+            <Link to="#" className="text-muted-foreground hover:text-foreground">
               {languageText.aboutUs}
-            </a>
-            <a 
-              href="#" 
-              className="text-muted-foreground hover:text-foreground"
-              onClick={(e) => {
-                e.preventDefault();
-                navigate('/for-parents');
-              }}
-            >
+            </Link>
+            <Link to="/for-parents" className="text-muted-foreground hover:text-foreground">
               {languageText.forParents}
-            </a>
-            <a 
-              href="#" 
-              className="text-muted-foreground hover:text-foreground"
-              onClick={(e) => {
-                e.preventDefault();
-                navigate('/for-teachers');
-              }}
-            >
+            </Link>
+            <Link to="/for-teachers" className="text-muted-foreground hover:text-foreground">
               {languageText.forTeachers}
-            </a>
-            <a href="#" className="text-muted-foreground hover:text-foreground">
+            </Link>
+            <Link to="#" className="text-muted-foreground hover:text-foreground">
               {languageText.contact}
-            </a>
+            </Link>
             
             {/* Language Selector for Desktop */}
             <div className="ml-4 flex items-center gap-1">
