@@ -55,7 +55,7 @@ export function OneOnOneContent({
 
   return (
     <div className="w-full h-full flex flex-col space-y-4">
-      {/* Video Meeting Area - Now positioned at the top */}
+      {/* Video Meeting Area - Positioned at the top */}
       <div className="bg-white rounded-lg shadow-sm border p-4">
         <div className="mb-4">
           <h2 className="text-xl font-semibold text-gray-800">
@@ -79,7 +79,7 @@ export function OneOnOneContent({
         </div>
       </div>
 
-      {/* Lesson Content Area - Now positioned below the video */}
+      {/* Lesson Content Area - Positioned below the video */}
       <div className="bg-white rounded-lg shadow-sm border p-4 flex-1">
         <div className="mb-4">
           <h3 className="text-lg font-medium text-gray-800">

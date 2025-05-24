@@ -52,15 +52,21 @@ const OneOnOneClassroom = () => {
 
   // Handler for toggling student controls
   const handleToggleMute = (id: string) => {
-    if (id === "student1") toggleMute();
+    if (id === "student1") {
+      toggleMute();
+    }
   };
 
   const handleToggleVideo = (id: string) => {
-    if (id === "student1") toggleVideo();
+    if (id === "student1") {
+      toggleVideo();
+    }
   };
 
   const handleToggleHand = (id: string) => {
-    if (id === "student1") toggleHand();
+    if (id === "student1") {
+      toggleHand();
+    }
   };
 
   const mainContent = (
