@@ -1,5 +1,4 @@
-
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { ClassroomLayout } from "@/components/classroom/ClassroomLayout";
 import { SidebarContent } from "@/components/classroom/SidebarContent";
 import { VideoPanel } from "@/components/classroom/video/VideoPanel";
@@ -60,6 +59,8 @@ const mockStudents = [
 ];
 
 const ESLClassroom = () => {
+  const [scrollPosition, setScrollPosition] = useState(0);
+  
   const {
     studentName,
     points,
@@ -74,6 +75,16 @@ const ESLClassroom = () => {
     toggleHand,
     toggleChat,
   } = useClassroomState();
+
+  // Track scroll position
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollPosition(window.scrollY);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // Handler for toggling student controls
   const handleToggleMute = (id: string) => {
@@ -109,17 +120,44 @@ const ESLClassroom = () => {
 
   const mainContent = (
     <div className="w-full flex flex-col gap-4 h-full">
-      {/* Video Panel - Horizontal at top */}
-      <div className="w-full">
-        <VideoPanel
-          videoFeeds={mockVideoFeeds}
-          currentUserId="student1"
-          onToggleMute={handleToggleMute}
-          onToggleVideo={handleToggleVideo}
-          onToggleHand={handleToggleHand}
-          oneOnOneMode={false}
-          currentPage={1}
-        />
+      {/* Compact Video Panel - Moves down with scroll */}
+      <div 
+        className="w-full transition-transform duration-300 ease-out"
+        style={{ 
+          transform: `translateY(${Math.min(scrollPosition * 0.3, 50)}px)` 
+        }}
+      >
+        <div className="bg-black rounded-lg p-2 shadow-lg">
+          <div className="flex gap-2 overflow-x-auto">
+            {mockVideoFeeds.map((feed) => (
+              <div 
+                key={feed.id} 
+                className="flex-shrink-0 w-32 h-20 bg-muted-foreground/20 rounded overflow-hidden relative"
+              >
+                <div className="h-full w-full flex items-center justify-center">
+                  <span className="text-white text-xs font-medium">{feed.name}</span>
+                </div>
+                
+                {/* Status indicators */}
+                <div className="absolute top-1 left-1">
+                  {feed.isTeacher && (
+                    <span className="bg-teal-500 text-white text-[8px] px-1 py-0.5 rounded">T</span>
+                  )}
+                  {feed.id === "student1" && (
+                    <span className="bg-purple-500 text-white text-[8px] px-1 py-0.5 rounded ml-1">You</span>
+                  )}
+                </div>
+
+                {/* Mute indicator */}
+                {feed.isMuted && (
+                  <div className="absolute bottom-1 right-1 bg-red-500 rounded-full p-0.5">
+                    <div className="w-2 h-2"></div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
       
       {/* Material Content - Below videos */}
