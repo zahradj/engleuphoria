@@ -3,6 +3,7 @@ import React from "react";
 import { ClassroomLayout } from "@/components/classroom/ClassroomLayout";
 import { SidebarContent } from "@/components/classroom/SidebarContent";
 import { OneOnOneContent } from "@/components/classroom/OneOnOneContent";
+import { StudentInteractions } from "@/components/classroom/StudentInteractions";
 import { useClassroomState } from "@/hooks/useClassroomState";
 
 // Mock data for one-on-one session
@@ -44,6 +45,7 @@ const OneOnOneClassroom = () => {
     isHandRaised,
     isChatOpen,
     isTeacherView,
+    handleLayoutChange,
     toggleMute,
     toggleVideo,
     toggleHand,
@@ -69,6 +71,15 @@ const OneOnOneClassroom = () => {
     }
   };
 
+  // Handle student interactions
+  const handleMessageStudent = (studentId: string) => {
+    toggleChat();
+  };
+
+  const handleToggleSpotlight = (studentId: string) => {
+    handleLayoutChange("spotlight");
+  };
+
   const mainContent = (
     <OneOnOneContent
       videoFeeds={mockOneOnOneFeeds}
@@ -81,6 +92,9 @@ const OneOnOneClassroom = () => {
       onToggleMute={handleToggleMute}
       onToggleVideo={handleToggleVideo}
       onToggleHand={handleToggleHand}
+      onMessageStudent={handleMessageStudent}
+      onToggleSpotlight={handleToggleSpotlight}
+      onLayoutChange={handleLayoutChange}
     />
   );
 
@@ -94,13 +108,25 @@ const OneOnOneClassroom = () => {
     />
   );
 
-  return (
-    <ClassroomLayout
-      studentName={studentName}
-      points={points}
-      mainContent={mainContent}
-      sidebarContent={sidebarContent}
+  // Behind the scenes component for student interactions
+  const studentInteractions = (
+    <StudentInteractions
+      students={mockOneOnOneStudents}
+      onMessageStudent={handleMessageStudent}
+      onToggleSpotlight={handleToggleSpotlight}
     />
+  );
+
+  return (
+    <>
+      {studentInteractions}
+      <ClassroomLayout
+        studentName={studentName}
+        points={points}
+        mainContent={mainContent}
+        sidebarContent={sidebarContent}
+      />
+    </>
   );
 };
 
