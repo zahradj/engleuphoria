@@ -76,13 +76,15 @@ const ESLClassroom = () => {
     toggleChat,
   } = useClassroomState();
 
-  // Track scroll position
+  // Track scroll position with more responsive handling
   useEffect(() => {
     const handleScroll = () => {
-      setScrollPosition(window.scrollY);
+      const scrollY = window.scrollY;
+      console.log('Scroll position:', scrollY); // Debug log
+      setScrollPosition(scrollY);
     };
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -118,13 +120,17 @@ const ESLClassroom = () => {
   const isTeacher = currentUser?.isTeacher || false;
   const studentDisplayName = currentUser?.name || "Student";
 
+  // Calculate movement - more pronounced effect
+  const videoTransform = `translateY(${scrollPosition * 0.5}px)`;
+  console.log('Video transform:', videoTransform); // Debug log
+
   const mainContent = (
     <div className="w-full flex flex-col gap-4 h-full">
       {/* Compact Video Panel - Moves down with scroll */}
       <div 
-        className="w-full transition-transform duration-300 ease-out"
+        className="w-full transition-transform duration-200 ease-out"
         style={{ 
-          transform: `translateY(${Math.min(scrollPosition * 0.3, 50)}px)` 
+          transform: videoTransform
         }}
       >
         <div className="bg-black rounded-lg p-2 shadow-lg">
@@ -160,8 +166,8 @@ const ESLClassroom = () => {
         </div>
       </div>
       
-      {/* Material Content - Below videos */}
-      <div className="flex-1">
+      {/* Material Content - Below videos with enough height to enable scrolling */}
+      <div className="flex-1 min-h-[150vh]">
         <UnifiedContentViewer 
           isTeacher={isTeacher}
           studentName={studentDisplayName}
