@@ -2,7 +2,8 @@
 import React from "react";
 import { ClassroomLayout } from "@/components/classroom/ClassroomLayout";
 import { SidebarContent } from "@/components/classroom/SidebarContent";
-import { OneOnOneContent } from "@/components/classroom/OneOnOneContent";
+import { VideoPanel } from "@/components/classroom/video/VideoPanel";
+import { UnifiedContentViewer } from "@/components/classroom/content/UnifiedContentViewer";
 import { StudentInteractions } from "@/components/classroom/StudentInteractions";
 import { useClassroomState } from "@/hooks/useClassroomState";
 
@@ -26,6 +27,7 @@ const mockVideoFeeds = [
   {
     id: "student2",
     name: "Emma",
+    avatar: "https://github.com/sadmann7.png",
     isTeacher: false,
     isMuted: true,
     isCameraOff: true,
@@ -101,22 +103,33 @@ const ESLClassroom = () => {
     handleLayoutChange("spotlight");
   };
 
+  const currentUser = mockVideoFeeds.find(feed => feed.id === "student1");
+  const isTeacher = currentUser?.isTeacher || false;
+  const studentDisplayName = currentUser?.name || "Student";
+
   const mainContent = (
-    <OneOnOneContent
-      videoFeeds={mockVideoFeeds}
-      students={mockStudents}
-      currentUserId="student1"
-      isTeacherView={isTeacherView}
-      isMuted={isMuted}
-      isVideoOff={isVideoOff}
-      isHandRaised={isHandRaised}
-      onToggleMute={handleToggleMute}
-      onToggleVideo={handleToggleVideo}
-      onToggleHand={handleToggleHand}
-      onMessageStudent={handleMessageStudent}
-      onToggleSpotlight={handleToggleSpotlight}
-      onLayoutChange={handleLayoutChange}
-    />
+    <div className="w-full flex flex-col gap-4 h-full">
+      {/* Video Panel - Horizontal at top */}
+      <div className="w-full">
+        <VideoPanel
+          videoFeeds={mockVideoFeeds}
+          currentUserId="student1"
+          onToggleMute={handleToggleMute}
+          onToggleVideo={handleToggleVideo}
+          onToggleHand={handleToggleHand}
+          oneOnOneMode={false}
+          currentPage={1}
+        />
+      </div>
+      
+      {/* Material Content - Below videos */}
+      <div className="flex-1">
+        <UnifiedContentViewer 
+          isTeacher={isTeacher}
+          studentName={studentDisplayName}
+        />
+      </div>
+    </div>
   );
 
   const sidebarContent = (
