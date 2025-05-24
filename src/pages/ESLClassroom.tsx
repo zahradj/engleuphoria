@@ -1,7 +1,8 @@
+
 import React from "react";
 import { ClassroomLayout } from "@/components/classroom/ClassroomLayout";
 import { SidebarContent } from "@/components/classroom/SidebarContent";
-import { ClassroomContent } from "@/components/classroom/ClassroomContent";
+import { OneOnOneContent } from "@/components/classroom/OneOnOneContent";
 import { StudentInteractions } from "@/components/classroom/StudentInteractions";
 import { useClassroomState } from "@/hooks/useClassroomState";
 
@@ -28,22 +29,6 @@ const mockVideoFeeds = [
     isTeacher: false,
     isMuted: true,
     isCameraOff: true,
-  },
-];
-
-// Mock quiz questions
-const mockQuizQuestions = [
-  {
-    id: "q1",
-    question: "What sound does a dog make?",
-    options: ["Meow", "Woof", "Moo", "Tweet"],
-    correctAnswer: "Woof",
-  },
-  {
-    id: "q2",
-    question: "What sound does a cat make?",
-    options: ["Meow", "Woof", "Moo", "Tweet"],
-    correctAnswer: "Meow",
   },
 ];
 
@@ -86,20 +71,25 @@ const ESLClassroom = () => {
     toggleVideo,
     toggleHand,
     toggleChat,
-    handleQuizComplete
   } = useClassroomState();
 
   // Handler for toggling student controls
   const handleToggleMute = (id: string) => {
-    if (id === "student1") toggleMute();
+    if (id === "student1") {
+      toggleMute();
+    }
   };
 
   const handleToggleVideo = (id: string) => {
-    if (id === "student1") toggleVideo();
+    if (id === "student1") {
+      toggleVideo();
+    }
   };
 
   const handleToggleHand = (id: string) => {
-    if (id === "student1") toggleHand();
+    if (id === "student1") {
+      toggleHand();
+    }
   };
 
   // Handle student interactions
@@ -112,10 +102,9 @@ const ESLClassroom = () => {
   };
 
   const mainContent = (
-    <ClassroomContent
+    <OneOnOneContent
       videoFeeds={mockVideoFeeds}
       students={mockStudents}
-      quizQuestions={mockQuizQuestions}
       currentUserId="student1"
       isTeacherView={isTeacherView}
       isMuted={isMuted}
@@ -124,7 +113,6 @@ const ESLClassroom = () => {
       onToggleMute={handleToggleMute}
       onToggleVideo={handleToggleVideo}
       onToggleHand={handleToggleHand}
-      onQuizComplete={handleQuizComplete}
       onMessageStudent={handleMessageStudent}
       onToggleSpotlight={handleToggleSpotlight}
       onLayoutChange={handleLayoutChange}
