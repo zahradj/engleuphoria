@@ -14,6 +14,7 @@ import ClassroomPage from "./pages/ClassroomPage";
 import SimpleClassroomSelector from "./pages/SimpleClassroomSelector";
 import Classroom from "./pages/Classroom";
 import WhiteboardPage from "./pages/WhiteboardPage";
+import PaymentPage from "./pages/PaymentPage";
 import ForParents from "./pages/ForParents";
 import ForTeachers from "./pages/ForTeachers";
 import NotFound from "./pages/NotFound";
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/classroom" element={<ClassroomPage />} />
             <Route path="/classroom-old" element={<Classroom />} />
             <Route path="/whiteboard" element={<WhiteboardPage />} />
+            <Route path="/payment" element={<PaymentPage />} />
             <Route path="/for-parents" element={<ForParents />} />
             <Route path="/for-teachers" element={<ForTeachers />} />
             <Route path="*" element={<NotFound />} />
