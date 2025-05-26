@@ -10,8 +10,8 @@ import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import Dashboard from "./pages/Dashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
-import ESLClassroom from "./pages/ESLClassroom";
-import OneOnOneClassroom from "./pages/OneOnOneClassroom";
+import ClassroomPage from "./pages/ClassroomPage";
+import SimpleClassroomSelector from "./pages/SimpleClassroomSelector";
 import Classroom from "./pages/Classroom";
 import WhiteboardPage from "./pages/WhiteboardPage";
 import ForParents from "./pages/ForParents";
@@ -33,9 +33,9 @@ const App = () => (
             <Route path="/signup" element={<SignUp />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
-            <Route path="/esl-classroom" element={<ESLClassroom />} />
-            <Route path="/one-on-one-classroom" element={<OneOnOneClassroom />} />
-            <Route path="/classroom" element={<Classroom />} />
+            <Route path="/classroom-selector" element={<SimpleClassroomSelector />} />
+            <Route path="/classroom" element={<ClassroomPage />} />
+            <Route path="/classroom-old" element={<Classroom />} />
             <Route path="/whiteboard" element={<WhiteboardPage />} />
             <Route path="/for-parents" element={<ForParents />} />
             <Route path="/for-teachers" element={<ForTeachers />} />
