@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -37,13 +36,25 @@ const SignUp = () => {
   });
   
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    // This would connect to authentication service in a real app
+    // Store user data in localStorage for payment page
+    localStorage.setItem('pendingUser', JSON.stringify({
+      name: values.name,
+      email: values.email,
+      userType: values.userType
+    }));
+    
     console.log(values);
     toast({
       title: "Account created!",
-      description: "Welcome to Engleuphoria!",
+      description: "Welcome to Engleuphoria! Please complete your payment to activate your account.",
     });
-    setTimeout(() => navigate("/dashboard"), 1500);
+    
+    // Redirect based on user type
+    if (values.userType === "student") {
+      setTimeout(() => navigate("/payment"), 1500);
+    } else {
+      setTimeout(() => navigate("/dashboard"), 1500);
+    }
   };
   
   return (

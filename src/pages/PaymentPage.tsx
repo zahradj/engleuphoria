@@ -1,20 +1,35 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { CreditCard, Smartphone, Building2, Globe, CheckCircle, XCircle } from "lucide-react";
+import { CreditCard, Smartphone, Building2, Globe, CheckCircle, ArrowLeft } from "lucide-react";
 
 const PaymentPage = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    amount: ""
+    amount: "2500" // Default amount for student subscription
   });
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Load pending user data from localStorage
+    const pendingUser = localStorage.getItem('pendingUser');
+    if (pendingUser) {
+      const userData = JSON.parse(pendingUser);
+      setFormData(prev => ({
+        ...prev,
+        name: userData.name || "",
+        email: userData.email || ""
+      }));
+    }
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -61,28 +76,27 @@ const PaymentPage = () => {
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // TODO: Replace with actual payment processing logic
       console.log(`Processing payment with ${method}:`, {
         ...formData,
         method,
         redirectUrl
       });
 
-      // For demonstration - show success message
       toast({
         title: "Redirecting to Payment",
         description: `Redirecting to ${method} payment gateway...`,
       });
 
-      // TODO: Replace placeholder URLs with actual payment gateway URLs
-      // Example: window.location.href = redirectUrl;
-      
       // For now, just show a success simulation
       setTimeout(() => {
         toast({
           title: "Payment Initiated",
           description: `Payment of ${formData.amount} DA has been initiated via ${method}`,
         });
+        
+        // After successful payment, clear pending user data and redirect to dashboard
+        localStorage.removeItem('pendingUser');
+        setTimeout(() => navigate("/dashboard"), 2000);
       }, 2000);
 
     } catch (error) {
@@ -99,16 +113,28 @@ const PaymentPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
       <div className="max-w-2xl mx-auto">
+        <div className="flex items-center gap-4 mb-6">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Button>
+        </div>
+        
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Secure Payment</h1>
-          <p className="text-gray-600">Choose your preferred payment method</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Complete Your Registration</h1>
+          <p className="text-gray-600">Choose your preferred payment method to activate your student account</p>
         </div>
 
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <CreditCard className="w-5 h-5" />
-              Payment Information
+              Student Subscription Payment
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -137,22 +163,24 @@ const PaymentPage = () => {
               />
             </div>
             <div>
-              <Label htmlFor="amount">Amount (DA)</Label>
+              <Label htmlFor="amount">Monthly Subscription (DA)</Label>
               <Input
                 id="amount"
                 name="amount"
                 type="number"
-                placeholder="0.00"
+                placeholder="2500"
                 min="1"
                 step="0.01"
                 value={formData.amount}
                 onChange={handleInputChange}
                 required
               />
+              <p className="text-sm text-gray-500 mt-1">Monthly subscription for full access to English learning courses</p>
             </div>
           </CardContent>
         </Card>
 
+        {/* Payment Methods */}
         <div className="grid gap-6 md:grid-cols-1">
           {/* CIB Card (SATIM) Payment */}
           <Card className="hover:shadow-lg transition-shadow border-2 border-green-200">
@@ -265,29 +293,6 @@ const PaymentPage = () => {
             </div>
           </CardContent>
         </Card>
-
-        {/* TODO: Success/Error Messages */}
-        {/* 
-        Success Message Example:
-        <Card className="mt-4 bg-green-50 border-green-200">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 text-green-800">
-              <CheckCircle className="w-5 h-5" />
-              <span>Payment completed successfully!</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        Error Message Example:
-        <Card className="mt-4 bg-red-50 border-red-200">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 text-red-800">
-              <XCircle className="w-5 h-5" />
-              <span>Payment failed. Please try again.</span>
-            </div>
-          </CardContent>
-        </Card>
-        */}
       </div>
     </div>
   );
