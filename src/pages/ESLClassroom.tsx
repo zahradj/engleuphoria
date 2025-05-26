@@ -76,12 +76,10 @@ const ESLClassroom = () => {
     toggleChat,
   } = useClassroomState();
 
-  // Track scroll position with more responsive handling
+  // Track scroll position with optimized handling
   useEffect(() => {
     const handleScroll = () => {
-      const scrollY = window.scrollY;
-      console.log('Scroll position:', scrollY); // Debug log
-      setScrollPosition(scrollY);
+      setScrollPosition(window.scrollY);
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -120,9 +118,8 @@ const ESLClassroom = () => {
   const isTeacher = currentUser?.isTeacher || false;
   const studentDisplayName = currentUser?.name || "Student";
 
-  // Calculate movement - more pronounced effect
+  // Calculate movement with optimized transform
   const videoTransform = `translateY(${scrollPosition * 0.5}px)`;
-  console.log('Video transform:', videoTransform); // Debug log
 
   const mainContent = (
     <div className="w-full flex flex-col gap-4 h-full">
