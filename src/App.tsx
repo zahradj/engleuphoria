@@ -12,8 +12,6 @@ import Dashboard from "./pages/Dashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import ClassroomPage from "./pages/ClassroomPage";
 import SimpleClassroomSelector from "./pages/SimpleClassroomSelector";
-import Classroom from "./pages/Classroom";
-import WhiteboardPage from "./pages/WhiteboardPage";
 import PaymentPage from "./pages/PaymentPage";
 import ForParents from "./pages/ForParents";
 import ForTeachers from "./pages/ForTeachers";
@@ -29,18 +27,25 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Public Routes */}
             <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
-            <Route path="/classroom-selector" element={<SimpleClassroomSelector />} />
-            <Route path="/classroom" element={<ClassroomPage />} />
-            <Route path="/classroom-old" element={<Classroom />} />
-            <Route path="/whiteboard" element={<WhiteboardPage />} />
-            <Route path="/payment" element={<PaymentPage />} />
             <Route path="/for-parents" element={<ForParents />} />
             <Route path="/for-teachers" element={<ForTeachers />} />
+            
+            {/* Authentication Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/payment" element={<PaymentPage />} />
+            
+            {/* User Dashboards */}
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
+            
+            {/* Classroom Routes */}
+            <Route path="/classroom-selector" element={<SimpleClassroomSelector />} />
+            <Route path="/classroom" element={<ClassroomPage />} />
+            
+            {/* Fallback */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

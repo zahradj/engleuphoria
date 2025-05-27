@@ -19,7 +19,8 @@ const Index = () => {
   const navigate = useNavigate();
   
   const handleStart = () => {
-    setStep("login");
+    // Direct users to sign up for systematic flow
+    navigate("/signup");
   };
   
   const handleNameSubmit = () => {

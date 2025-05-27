@@ -10,6 +10,9 @@ import { RewardsSection } from "@/components/dashboard/RewardsSection";
 import { RecentActivitySection } from "@/components/dashboard/RecentActivitySection";
 import { Footer } from "@/components/dashboard/Footer";
 import { ProgressTracker } from "@/components/ProgressTracker";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Users, BookOpen } from "lucide-react";
 
 const Dashboard = () => {
   const [studentName, setStudentName] = useState<string>("");
@@ -39,6 +42,29 @@ const Dashboard = () => {
           {/* Main content - 2 columns */}
           <div className="lg:col-span-2 space-y-6">
             <WelcomeSection studentName={studentName} />
+            
+            {/* Quick Access to Classroom */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Join a Classroom
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  Ready to start learning? Choose your classroom type and begin your English journey.
+                </p>
+                <Button 
+                  onClick={() => navigate("/classroom-selector")}
+                  className="w-full"
+                >
+                  <BookOpen className="mr-2 h-4 w-4" />
+                  Enter Classroom
+                </Button>
+              </CardContent>
+            </Card>
+            
             <ClassesSection />
             <ActivitiesSection />
           </div>
