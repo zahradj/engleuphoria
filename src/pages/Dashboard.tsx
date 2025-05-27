@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { StudentHeader } from "@/components/StudentHeader";
@@ -34,8 +33,23 @@ const Dashboard = () => {
   }, [navigate]);
   
   return (
-    <div className="min-h-screen flex flex-col bg-muted/30">
-      <StudentHeader studentName={studentName} points={points} />
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-teal-50 to-green-50">
+      <header className="bg-gradient-to-r from-teal-500 to-green-500 text-white border-b py-4 shadow-lg">
+        <div className="container max-w-7xl mx-auto px-4 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <BookOpen className="h-6 w-6" />
+            <h1 className="text-xl font-bold">Student Dashboard</h1>
+            <span className="bg-teal-500 text-xs px-2 py-1 rounded-full ml-2">Student</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="font-medium">🎓 {studentName}</span>
+            <span className="bg-white/20 px-2 py-1 rounded-full text-sm">⭐ {points} points</span>
+            <Button variant="secondary" size="sm" onClick={() => navigate("/")} className="bg-white/20 hover:bg-white/30 text-white border-white/30">
+              Log Out
+            </Button>
+          </div>
+        </div>
+      </header>
       
       <main className="flex-1 container max-w-7xl mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

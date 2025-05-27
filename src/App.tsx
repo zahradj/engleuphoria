@@ -16,6 +16,7 @@ import PaymentPage from "./pages/PaymentPage";
 import ForParents from "./pages/ForParents";
 import ForTeachers from "./pages/ForTeachers";
 import LessonPlanCreatorPage from "./pages/LessonPlanCreator";
+import LessonScheduler from "./pages/LessonScheduler";
 import StudentManagement from "./pages/StudentManagement";
 import NotFound from "./pages/NotFound";
 
@@ -45,6 +46,7 @@ const App = () => (
             
             {/* Teacher Features */}
             <Route path="/lesson-plan-creator" element={<LessonPlanCreatorPage />} />
+            <Route path="/lesson-scheduler" element={<LessonScheduler />} />
             <Route path="/student-management" element={<StudentManagement />} />
             
             {/* Classroom Routes */}

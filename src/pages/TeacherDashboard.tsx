@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -59,10 +58,7 @@ const TeacherDashboard = () => {
   };
 
   const handleScheduleClass = () => {
-    toast({
-      title: "Schedule Class",
-      description: "Scheduling functionality will be available soon!",
-    });
+    navigate("/lesson-scheduler");
   };
 
   const handleViewProgress = () => {
@@ -127,16 +123,17 @@ const TeacherDashboard = () => {
   };
   
   return (
-    <div className="min-h-screen flex flex-col bg-muted/30">
-      <header className="bg-white border-b py-4">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-purple-50 to-blue-50">
+      <header className="bg-gradient-to-r from-purple-600 to-blue-600 text-white border-b py-4 shadow-lg">
         <div className="container max-w-7xl mx-auto px-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <BookOpen className="h-6 w-6 text-primary" />
+            <BookOpen className="h-6 w-6" />
             <h1 className="text-xl font-bold">{languageText.teacherDashboard}</h1>
+            <span className="bg-purple-500 text-xs px-2 py-1 rounded-full ml-2">Teacher</span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="font-medium">{teacherName}</span>
-            <Button variant="outline" size="sm" onClick={() => navigate("/")}>
+            <span className="font-medium">👨‍🏫 {teacherName}</span>
+            <Button variant="secondary" size="sm" onClick={() => navigate("/")} className="bg-white/20 hover:bg-white/30 text-white border-white/30">
               {languageText.logOut}
             </Button>
           </div>
