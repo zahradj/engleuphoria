@@ -15,6 +15,8 @@ import SimpleClassroomSelector from "./pages/SimpleClassroomSelector";
 import PaymentPage from "./pages/PaymentPage";
 import ForParents from "./pages/ForParents";
 import ForTeachers from "./pages/ForTeachers";
+import LessonPlanCreatorPage from "./pages/LessonPlanCreator";
+import StudentManagement from "./pages/StudentManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +42,10 @@ const App = () => (
             {/* User Dashboards */}
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
+            
+            {/* Teacher Features */}
+            <Route path="/lesson-plan-creator" element={<LessonPlanCreatorPage />} />
+            <Route path="/student-management" element={<StudentManagement />} />
             
             {/* Classroom Routes */}
             <Route path="/classroom-selector" element={<SimpleClassroomSelector />} />

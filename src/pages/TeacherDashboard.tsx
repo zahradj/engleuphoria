@@ -19,6 +19,7 @@ import {
 
 const TeacherDashboard = () => {
   const [teacherName, setTeacherName] = useState<string>("");
+  const [lessonPlans, setLessonPlans] = useState<any[]>([]);
   const navigate = useNavigate();
   const { languageText } = useLanguage();
   
@@ -32,7 +33,25 @@ const TeacherDashboard = () => {
     }
     
     setTeacherName(storedName);
+    
+    // Load lesson plans
+    const savedPlans = localStorage.getItem("lessonPlans");
+    if (savedPlans) {
+      setLessonPlans(JSON.parse(savedPlans));
+    }
   }, [navigate]);
+
+  const handleCreateLessonPlan = () => {
+    navigate("/lesson-plan-creator");
+  };
+
+  const handleManageStudents = () => {
+    navigate("/student-management");
+  };
+
+  const handleStartClass = () => {
+    navigate("/classroom-selector");
+  };
   
   return (
     <div className="min-h-screen flex flex-col bg-muted/30">
@@ -109,7 +128,7 @@ const TeacherDashboard = () => {
                   <CardTitle>{languageText.quickActions}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button variant="outline" className="w-full justify-start" onClick={handleCreateLessonPlan}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     {languageText.createLessonPlan}
                   </Button>
@@ -117,7 +136,7 @@ const TeacherDashboard = () => {
                     <Calendar className="mr-2 h-4 w-4" />
                     {languageText.scheduleClass}
                   </Button>
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button variant="outline" className="w-full justify-start" onClick={handleManageStudents}>
                     <LineChart className="mr-2 h-4 w-4" />
                     {languageText.viewProgress}
                   </Button>
@@ -136,7 +155,7 @@ const TeacherDashboard = () => {
                       time="Today, 10:00 AM"
                       students={5}
                       buttonText={languageText.startClass}
-                      onButtonClick={() => navigate("/esl-classroom")}
+                      onButtonClick={handleStartClass}
                     />
                     
                     <ClassCard 
@@ -144,7 +163,7 @@ const TeacherDashboard = () => {
                       time="Today, 2:00 PM"
                       students={3}
                       buttonText={languageText.startClass}
-                      onButtonClick={() => navigate("/esl-classroom")}
+                      onButtonClick={handleStartClass}
                     />
                     
                     <ClassCard 
@@ -165,37 +184,51 @@ const TeacherDashboard = () => {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>{languageText.lessonPlans}</CardTitle>
-                  <Button size="sm">
+                  <Button size="sm" onClick={handleCreateLessonPlan}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     {languageText.createLessonPlan}
                   </Button>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <LessonPlanItem
-                      title="Animal Vocabulary"
-                      subject={languageText.vocabulary}
-                      grade={languageText.beginner}
-                      lastModified="2025-05-20"
-                    />
-                    <LessonPlanItem
-                      title="Daily Routines"
-                      subject={languageText.conversation}
-                      grade={languageText.intermediate}
-                      lastModified="2025-05-18"
-                    />
-                    <LessonPlanItem
-                      title="Past Tense Practice"
-                      subject={languageText.grammar}
-                      grade={languageText.intermediate}
-                      lastModified="2025-05-15"
-                    />
-                    <LessonPlanItem
-                      title="Reading Comprehension"
-                      subject={languageText.reading}
-                      grade={languageText.advanced}
-                      lastModified="2025-05-10"
-                    />
+                    {lessonPlans.length > 0 ? (
+                      lessonPlans.map((plan, index) => (
+                        <LessonPlanItem
+                          key={plan.id || index}
+                          title={plan.title}
+                          subject={plan.subject || languageText.vocabulary}
+                          grade={plan.grade || languageText.beginner}
+                          lastModified={new Date().toISOString().split('T')[0]}
+                        />
+                      ))
+                    ) : (
+                      <>
+                        <LessonPlanItem
+                          title="Animal Vocabulary"
+                          subject={languageText.vocabulary}
+                          grade={languageText.beginner}
+                          lastModified="2025-05-20"
+                        />
+                        <LessonPlanItem
+                          title="Daily Routines"
+                          subject={languageText.conversation}
+                          grade={languageText.intermediate}
+                          lastModified="2025-05-18"
+                        />
+                        <LessonPlanItem
+                          title="Past Tense Practice"
+                          subject={languageText.grammar}
+                          grade={languageText.intermediate}
+                          lastModified="2025-05-15"
+                        />
+                        <LessonPlanItem
+                          title="Reading Comprehension"
+                          subject={languageText.reading}
+                          grade={languageText.advanced}
+                          lastModified="2025-05-10"
+                        />
+                      </>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -244,7 +277,7 @@ const TeacherDashboard = () => {
                   <Button variant="outline" size="sm">
                     {languageText.filter}
                   </Button>
-                  <Button size="sm">
+                  <Button size="sm" onClick={handleManageStudents}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     {languageText.addStudent}
                   </Button>
