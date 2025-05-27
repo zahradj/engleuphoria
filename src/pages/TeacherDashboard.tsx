@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StudentHeader } from "@/components/StudentHeader";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useToast } from "@/components/ui/use-toast";
 import { 
   BookOpen, 
   FileText, 
@@ -14,7 +15,10 @@ import {
   PlusCircle,
   CheckCircle,
   Clock,
-  LineChart
+  LineChart,
+  Upload,
+  Filter,
+  Eye
 } from "lucide-react";
 
 const TeacherDashboard = () => {
@@ -22,6 +26,7 @@ const TeacherDashboard = () => {
   const [lessonPlans, setLessonPlans] = useState<any[]>([]);
   const navigate = useNavigate();
   const { languageText } = useLanguage();
+  const { toast } = useToast();
   
   useEffect(() => {
     // In a real app, we'd fetch this from an API
@@ -51,6 +56,74 @@ const TeacherDashboard = () => {
 
   const handleStartClass = () => {
     navigate("/classroom-selector");
+  };
+
+  const handleScheduleClass = () => {
+    toast({
+      title: "Schedule Class",
+      description: "Scheduling functionality will be available soon!",
+    });
+  };
+
+  const handleViewProgress = () => {
+    navigate("/student-management");
+  };
+
+  const handleUploadMaterial = () => {
+    toast({
+      title: "Upload Material",
+      description: "File upload functionality will be available soon!",
+    });
+  };
+
+  const handleFilter = () => {
+    toast({
+      title: "Filter Students",
+      description: "Filter functionality will be available soon!",
+    });
+  };
+
+  const handleAddStudent = () => {
+    toast({
+      title: "Add Student",
+      description: "Add student functionality will be available soon!",
+    });
+  };
+
+  const handleViewLessonPlan = (planId: string) => {
+    toast({
+      title: "View Lesson Plan",
+      description: `Viewing lesson plan: ${planId}`,
+    });
+  };
+
+  const handleUseMaterial = (materialName: string) => {
+    toast({
+      title: "Use Material",
+      description: `Using material: ${materialName}`,
+    });
+  };
+
+  const handleViewStudentDetails = (studentName: string) => {
+    toast({
+      title: "View Student Details",
+      description: `Viewing details for: ${studentName}`,
+    });
+  };
+
+  const handleStartScheduledClass = (className: string) => {
+    toast({
+      title: "Starting Class",
+      description: `Starting ${className}...`,
+    });
+    navigate("/classroom-selector");
+  };
+
+  const handleViewClassDetails = (className: string) => {
+    toast({
+      title: "Class Details",
+      description: `Viewing details for: ${className}`,
+    });
   };
   
   return (
@@ -132,11 +205,11 @@ const TeacherDashboard = () => {
                     <PlusCircle className="mr-2 h-4 w-4" />
                     {languageText.createLessonPlan}
                   </Button>
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button variant="outline" className="w-full justify-start" onClick={handleScheduleClass}>
                     <Calendar className="mr-2 h-4 w-4" />
                     {languageText.scheduleClass}
                   </Button>
-                  <Button variant="outline" className="w-full justify-start" onClick={handleManageStudents}>
+                  <Button variant="outline" className="w-full justify-start" onClick={handleViewProgress}>
                     <LineChart className="mr-2 h-4 w-4" />
                     {languageText.viewProgress}
                   </Button>
@@ -155,7 +228,7 @@ const TeacherDashboard = () => {
                       time="Today, 10:00 AM"
                       students={5}
                       buttonText={languageText.startClass}
-                      onButtonClick={handleStartClass}
+                      onButtonClick={() => handleStartScheduledClass("Beginner English")}
                     />
                     
                     <ClassCard 
@@ -163,7 +236,7 @@ const TeacherDashboard = () => {
                       time="Today, 2:00 PM"
                       students={3}
                       buttonText={languageText.startClass}
-                      onButtonClick={handleStartClass}
+                      onButtonClick={() => handleStartScheduledClass("Intermediate Conversation")}
                     />
                     
                     <ClassCard 
@@ -171,7 +244,7 @@ const TeacherDashboard = () => {
                       time="Tomorrow, 11:00 AM"
                       students={4}
                       buttonText={languageText.viewDetails}
-                      onButtonClick={() => {}}
+                      onButtonClick={() => handleViewClassDetails("Vocabulary Practice")}
                     />
                   </div>
                 </CardContent>
@@ -199,6 +272,8 @@ const TeacherDashboard = () => {
                           subject={plan.subject || languageText.vocabulary}
                           grade={plan.grade || languageText.beginner}
                           lastModified={new Date().toISOString().split('T')[0]}
+                          onView={() => handleViewLessonPlan(plan.id || plan.title)}
+                          onUse={() => handleUseMaterial(plan.title)}
                         />
                       ))
                     ) : (
@@ -208,24 +283,32 @@ const TeacherDashboard = () => {
                           subject={languageText.vocabulary}
                           grade={languageText.beginner}
                           lastModified="2025-05-20"
+                          onView={() => handleViewLessonPlan("animal-vocabulary")}
+                          onUse={() => handleUseMaterial("Animal Vocabulary")}
                         />
                         <LessonPlanItem
                           title="Daily Routines"
                           subject={languageText.conversation}
                           grade={languageText.intermediate}
                           lastModified="2025-05-18"
+                          onView={() => handleViewLessonPlan("daily-routines")}
+                          onUse={() => handleUseMaterial("Daily Routines")}
                         />
                         <LessonPlanItem
                           title="Past Tense Practice"
                           subject={languageText.grammar}
                           grade={languageText.intermediate}
                           lastModified="2025-05-15"
+                          onView={() => handleViewLessonPlan("past-tense")}
+                          onUse={() => handleUseMaterial("Past Tense Practice")}
                         />
                         <LessonPlanItem
                           title="Reading Comprehension"
                           subject={languageText.reading}
                           grade={languageText.advanced}
                           lastModified="2025-05-10"
+                          onView={() => handleViewLessonPlan("reading-comprehension")}
+                          onUse={() => handleUseMaterial("Reading Comprehension")}
                         />
                       </>
                     )}
@@ -236,8 +319,8 @@ const TeacherDashboard = () => {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle>{languageText.teachingMaterials}</CardTitle>
-                  <Button size="sm">
-                    <PlusCircle className="mr-2 h-4 w-4" />
+                  <Button size="sm" onClick={handleUploadMaterial}>
+                    <Upload className="mr-2 h-4 w-4" />
                     {languageText.uploadMaterial}
                   </Button>
                 </CardHeader>
@@ -247,21 +330,29 @@ const TeacherDashboard = () => {
                       title="Animal Flashcards.pdf"
                       type="PDF"
                       size="2.4 MB"
+                      onView={() => handleUseMaterial("Animal Flashcards.pdf")}
+                      onUse={() => handleUseMaterial("Animal Flashcards.pdf")}
                     />
                     <MaterialItem
                       title="Daily Routines Worksheet.pdf"
                       type="PDF"
                       size="1.8 MB"
+                      onView={() => handleUseMaterial("Daily Routines Worksheet.pdf")}
+                      onUse={() => handleUseMaterial("Daily Routines Worksheet.pdf")}
                     />
                     <MaterialItem
                       title="Past Tense Exercise.docx"
                       type="DOCX"
                       size="1.2 MB"
+                      onView={() => handleUseMaterial("Past Tense Exercise.docx")}
+                      onUse={() => handleUseMaterial("Past Tense Exercise.docx")}
                     />
                     <MaterialItem
                       title="Reading Story - The Lost Dog.pdf"
                       type="PDF"
                       size="3.1 MB"
+                      onView={() => handleUseMaterial("Reading Story - The Lost Dog.pdf")}
+                      onUse={() => handleUseMaterial("Reading Story - The Lost Dog.pdf")}
                     />
                   </div>
                 </CardContent>
@@ -274,10 +365,11 @@ const TeacherDashboard = () => {
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>{languageText.students}</CardTitle>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={handleFilter}>
+                    <Filter className="mr-2 h-4 w-4" />
                     {languageText.filter}
                   </Button>
-                  <Button size="sm" onClick={handleManageStudents}>
+                  <Button size="sm" onClick={handleAddStudent}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     {languageText.addStudent}
                   </Button>
@@ -290,24 +382,28 @@ const TeacherDashboard = () => {
                     level={languageText.intermediate}
                     lastClass="2025-05-20"
                     progress={78}
+                    onViewDetails={() => handleViewStudentDetails("Alex Johnson")}
                   />
                   <StudentItem
                     name="Maria Garcia"
                     level={languageText.beginner}
                     lastClass="2025-05-21"
                     progress={45}
+                    onViewDetails={() => handleViewStudentDetails("Maria Garcia")}
                   />
                   <StudentItem
                     name="Li Wei"
                     level={languageText.advanced}
                     lastClass="2025-05-19"
                     progress={92}
+                    onViewDetails={() => handleViewStudentDetails("Li Wei")}
                   />
                   <StudentItem
                     name="Sophia Ahmed"
                     level={languageText.intermediate}
                     lastClass="2025-05-21"
                     progress={65}
+                    onViewDetails={() => handleViewStudentDetails("Sophia Ahmed")}
                   />
                 </div>
               </CardContent>
@@ -318,7 +414,7 @@ const TeacherDashboard = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>{languageText.schedule}</CardTitle>
-                <Button size="sm">
+                <Button size="sm" onClick={handleScheduleClass}>
                   <PlusCircle className="mr-2 h-4 w-4" />
                   {languageText.scheduleClass}
                 </Button>
@@ -350,18 +446,21 @@ const TeacherDashboard = () => {
                         day="Monday"
                         time="10:00 - 11:00 AM"
                         students={5}
+                        onStart={() => handleStartScheduledClass("Beginner English")}
                       />
                       <ClassScheduleItem 
                         title="Intermediate Conversation"
                         day="Monday"
                         time="2:00 - 3:00 PM"
                         students={3}
+                        onStart={() => handleStartScheduledClass("Intermediate Conversation")}
                       />
                       <ClassScheduleItem 
                         title="Vocabulary Practice"
                         day="Tuesday"
                         time="11:00 AM - 12:00 PM"
                         students={4}
+                        onStart={() => handleStartScheduledClass("Vocabulary Practice")}
                       />
                     </div>
                   </div>
@@ -460,9 +559,11 @@ interface LessonPlanItemProps {
   subject: string;
   grade: string;
   lastModified: string;
+  onView: () => void;
+  onUse: () => void;
 }
 
-const LessonPlanItem = ({ title, subject, grade, lastModified }: LessonPlanItemProps) => (
+const LessonPlanItem = ({ title, subject, grade, lastModified, onView, onUse }: LessonPlanItemProps) => (
   <div className="flex items-center justify-between py-3 border-b">
     <div>
       <h3 className="font-medium">{title}</h3>
@@ -474,10 +575,10 @@ const LessonPlanItem = ({ title, subject, grade, lastModified }: LessonPlanItemP
     <div className="flex items-center gap-4">
       <p className="text-sm text-muted-foreground">Modified: {lastModified}</p>
       <div className="flex gap-1">
-        <Button variant="ghost" size="icon">
-          <FileText className="h-4 w-4" />
+        <Button variant="ghost" size="icon" onClick={onView}>
+          <Eye className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" onClick={onUse}>
           <PlusCircle className="h-4 w-4" />
         </Button>
       </div>
@@ -489,9 +590,11 @@ interface MaterialItemProps {
   title: string;
   type: string;
   size: string;
+  onView: () => void;
+  onUse: () => void;
 }
 
-const MaterialItem = ({ title, type, size }: MaterialItemProps) => (
+const MaterialItem = ({ title, type, size, onView, onUse }: MaterialItemProps) => (
   <div className="flex items-center justify-between py-3 border-b">
     <div className="flex items-center gap-3">
       <div className="bg-blue-100 p-2 rounded">
@@ -503,10 +606,10 @@ const MaterialItem = ({ title, type, size }: MaterialItemProps) => (
       </div>
     </div>
     <div className="flex gap-1">
-      <Button variant="ghost" size="icon">
-        <BookOpen className="h-4 w-4" />
+      <Button variant="ghost" size="icon" onClick={onView}>
+        <Eye className="h-4 w-4" />
       </Button>
-      <Button variant="ghost" size="icon">
+      <Button variant="ghost" size="icon" onClick={onUse}>
         <PlusCircle className="h-4 w-4" />
       </Button>
     </div>
@@ -518,9 +621,10 @@ interface StudentItemProps {
   level: string;
   lastClass: string;
   progress: number;
+  onViewDetails: () => void;
 }
 
-const StudentItem = ({ name, level, lastClass, progress }: StudentItemProps) => (
+const StudentItem = ({ name, level, lastClass, progress, onViewDetails }: StudentItemProps) => (
   <div className="flex items-center justify-between py-3 border-b">
     <div>
       <h3 className="font-medium">{name}</h3>
@@ -536,7 +640,7 @@ const StudentItem = ({ name, level, lastClass, progress }: StudentItemProps) => 
           <div className="h-full bg-primary rounded" style={{ width: `${progress}%` }} />
         </div>
       </div>
-      <Button variant="outline" size="sm">View Details</Button>
+      <Button variant="outline" size="sm" onClick={onViewDetails}>View Details</Button>
     </div>
   </div>
 );
@@ -558,9 +662,10 @@ interface ClassScheduleItemProps {
   day: string;
   time: string;
   students: number;
+  onStart: () => void;
 }
 
-const ClassScheduleItem = ({ title, day, time, students }: ClassScheduleItemProps) => (
+const ClassScheduleItem = ({ title, day, time, students, onStart }: ClassScheduleItemProps) => (
   <div className="flex items-center justify-between p-3 border rounded-lg">
     <div>
       <h3 className="font-medium">{title}</h3>
@@ -571,7 +676,7 @@ const ClassScheduleItem = ({ title, day, time, students }: ClassScheduleItemProp
         <Users className="h-4 w-4" />
         <span>{students}</span>
       </div>
-      <Button size="sm">Start</Button>
+      <Button size="sm" onClick={onStart}>Start</Button>
     </div>
   </div>
 );
