@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,8 +18,19 @@ const TeacherDashboard = () => {
   const { toast } = useToast();
   
   useEffect(() => {
+    // Check if user is actually a student and redirect if so
+    const studentName = localStorage.getItem("studentName");
+    const teacherName = localStorage.getItem("teacherName");
+    const userType = localStorage.getItem("userType");
+    
+    // If we have a student name but no teacher name, and user type isn't explicitly teacher, redirect to student dashboard
+    if (studentName && !teacherName && userType !== "teacher") {
+      navigate("/dashboard");
+      return;
+    }
+    
     // In a real app, we'd fetch this from an API
-    const storedName = localStorage.getItem("teacherName") || localStorage.getItem("studentName");
+    const storedName = teacherName || studentName;
     
     if (!storedName) {
       navigate("/");

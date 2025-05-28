@@ -19,6 +19,15 @@ const Dashboard = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
+    // Check if user is actually a teacher and redirect if so
+    const teacherName = localStorage.getItem("teacherName");
+    const userType = localStorage.getItem("userType");
+    
+    if (teacherName || userType === "teacher") {
+      navigate("/teacher-dashboard");
+      return;
+    }
+    
     // In a real app, we'd fetch this from an API
     const storedName = localStorage.getItem("studentName");
     const storedPoints = localStorage.getItem("points");

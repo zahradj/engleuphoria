@@ -8,6 +8,10 @@ import { Users, User, ArrowLeft, Home } from "lucide-react";
 const SimpleClassroomSelector = () => {
   const navigate = useNavigate();
 
+  // Check if user is a teacher based on stored data
+  const isTeacher = localStorage.getItem("teacherName") || localStorage.getItem("userType") === "teacher";
+  const dashboardPath = isTeacher ? "/teacher-dashboard" : "/dashboard";
+
   const handleSelectClassroom = (mode: string) => {
     navigate(`/classroom?mode=${mode}`);
   };
@@ -21,7 +25,7 @@ const SimpleClassroomSelector = () => {
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate(dashboardPath)}
               className="flex items-center gap-2"
             >
               <ArrowLeft className="w-4 h-4" />
@@ -31,7 +35,7 @@ const SimpleClassroomSelector = () => {
           <Button 
             variant="ghost" 
             size="sm" 
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate(dashboardPath)}
             className="flex items-center gap-2"
           >
             <Home className="w-4 h-4" />

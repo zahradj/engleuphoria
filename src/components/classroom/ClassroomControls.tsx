@@ -29,6 +29,10 @@ export function ClassroomControls({
   const navigate = useNavigate();
   const { languageText } = useLanguage();
   
+  // Check if user is a teacher to determine correct dashboard path
+  const isTeacher = localStorage.getItem("teacherName") || localStorage.getItem("userType") === "teacher";
+  const dashboardPath = isTeacher ? "/teacher-dashboard" : "/dashboard";
+  
   return (
     <div className="bg-white rounded-lg p-3 flex flex-wrap justify-center gap-2 shadow-sm">
       <button
@@ -69,7 +73,7 @@ export function ClassroomControls({
       
       <button
         className="px-4 py-2 bg-destructive text-white rounded-full ml-2 hover:bg-destructive/90 transition-colors"
-        onClick={() => navigate("/dashboard")}
+        onClick={() => navigate(dashboardPath)}
       >
         {languageText.leaveClass}
       </button>
