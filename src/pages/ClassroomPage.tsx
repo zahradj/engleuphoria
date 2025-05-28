@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { ClassroomLayout } from "@/components/classroom/ClassroomLayout";
 import { SidebarContent } from "@/components/classroom/SidebarContent";
 import { SimpleVideoPanel } from "@/components/classroom/video/SimpleVideoPanel";
@@ -9,7 +9,8 @@ import { useClassroomState } from "@/hooks/useClassroomState";
 
 const ClassroomPage = () => {
   const [searchParams] = useSearchParams();
-  const mode = searchParams.get("mode") || "group"; // 'group' or 'oneOnOne'
+  const navigate = useNavigate();
+  const mode = searchParams.get("mode") || "group"; // Default to 'group' if no mode specified
   const [scrollPosition, setScrollPosition] = useState(0);
   
   const {
@@ -25,6 +26,19 @@ const ClassroomPage = () => {
     toggleHand,
     toggleChat,
   } = useClassroomState();
+
+  // Check authentication on component mount
+  useEffect(() => {
+    const studentName = localStorage.getItem("studentName");
+    const teacherName = localStorage.getItem("teacherName");
+    const userType = localStorage.getItem("userType");
+    
+    // If no user data, redirect to login
+    if (!studentName && !teacherName && !userType) {
+      navigate("/login");
+      return;
+    }
+  }, [navigate]);
 
   // Mock data based on mode
   const mockVideoFeeds = mode === "oneOnOne" ? [
