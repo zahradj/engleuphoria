@@ -1,9 +1,10 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { BookOpen } from "lucide-react";
 import { OverviewTab } from "@/components/teacher/dashboard/OverviewTab";
 import { LessonsTab } from "@/components/teacher/dashboard/LessonsTab";
@@ -18,33 +19,52 @@ const TeacherDashboard = () => {
   const { toast } = useToast();
   
   useEffect(() => {
-    // Check if user is actually a student and redirect if so
-    const studentName = localStorage.getItem("studentName");
-    const teacherName = localStorage.getItem("teacherName");
+    // Check authentication and user type
+    const storedTeacherName = localStorage.getItem("teacherName");
     const userType = localStorage.getItem("userType");
+    const studentName = localStorage.getItem("studentName");
     
-    // If we have a student name but no teacher name, and user type isn't explicitly teacher, redirect to student dashboard
-    if (studentName && !teacherName && userType !== "teacher") {
+    // If no teacher data but has student data, redirect to student dashboard
+    if (!storedTeacherName && studentName && userType !== "teacher") {
       navigate("/dashboard");
       return;
     }
     
-    // In a real app, we'd fetch this from an API
-    const storedName = teacherName || studentName;
-    
-    if (!storedName) {
-      navigate("/");
+    // If no user data at all, redirect to login
+    if (!storedTeacherName && !studentName) {
+      navigate("/login");
       return;
     }
     
-    setTeacherName(storedName);
+    // If we have teacher data or userType is teacher, allow access
+    if (storedTeacherName || userType === "teacher") {
+      setTeacherName(storedTeacherName || "Teacher");
+    } else {
+      // Fallback redirect to login if no valid teacher access
+      navigate("/login");
+      return;
+    }
     
-    // Load lesson plans
+    // Load lesson plans from localStorage
     const savedPlans = localStorage.getItem("lessonPlans");
     if (savedPlans) {
-      setLessonPlans(JSON.parse(savedPlans));
+      try {
+        setLessonPlans(JSON.parse(savedPlans));
+      } catch (error) {
+        console.error("Error parsing lesson plans:", error);
+        setLessonPlans([]);
+      }
     }
   }, [navigate]);
+
+  const handleLogout = () => {
+    // Clear all user data
+    localStorage.removeItem("teacherName");
+    localStorage.removeItem("studentName");
+    localStorage.removeItem("userType");
+    localStorage.removeItem("points");
+    navigate("/");
+  };
 
   const handleCreateLessonPlan = () => {
     navigate("/lesson-plan-creator");
@@ -134,7 +154,12 @@ const TeacherDashboard = () => {
           </div>
           <div className="flex items-center gap-4">
             <span className="font-medium">👨‍🏫 {teacherName}</span>
-            <Button variant="secondary" size="sm" onClick={() => navigate("/")} className="bg-white/20 hover:bg-white/30 text-white border-white/30">
+            <Button 
+              variant="secondary" 
+              size="sm" 
+              onClick={handleLogout} 
+              className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+            >
               {languageText.logOut}
             </Button>
           </div>

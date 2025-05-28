@@ -20,27 +20,37 @@ const Dashboard = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
-    // Check if user is actually a teacher and redirect if so
+    // Check authentication and user type
+    const storedStudentName = localStorage.getItem("studentName");
     const teacherName = localStorage.getItem("teacherName");
     const userType = localStorage.getItem("userType");
     
+    // If user is a teacher, redirect to teacher dashboard
     if (teacherName || userType === "teacher") {
       navigate("/teacher-dashboard");
       return;
     }
     
-    // In a real app, we'd fetch this from an API
-    const storedName = localStorage.getItem("studentName");
-    const storedPoints = localStorage.getItem("points");
-    
-    if (!storedName) {
-      navigate("/");
+    // If no student data, redirect to login
+    if (!storedStudentName && userType !== "parent") {
+      navigate("/login");
       return;
     }
     
-    setStudentName(storedName);
+    // Set student data
+    setStudentName(storedStudentName || "Student");
+    const storedPoints = localStorage.getItem("points");
     setPoints(storedPoints ? parseInt(storedPoints) : 0);
   }, [navigate]);
+
+  const handleLogout = () => {
+    // Clear all user data
+    localStorage.removeItem("studentName");
+    localStorage.removeItem("teacherName");
+    localStorage.removeItem("userType");
+    localStorage.removeItem("points");
+    navigate("/");
+  };
   
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-teal-50 to-green-50">
@@ -54,7 +64,12 @@ const Dashboard = () => {
           <div className="flex items-center gap-4">
             <span className="font-medium">🎓 {studentName}</span>
             <span className="bg-white/20 px-2 py-1 rounded-full text-sm">⭐ {points} points</span>
-            <Button variant="secondary" size="sm" onClick={() => navigate("/")} className="bg-white/20 hover:bg-white/30 text-white border-white/30">
+            <Button 
+              variant="secondary" 
+              size="sm" 
+              onClick={handleLogout} 
+              className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+            >
               Log Out
             </Button>
           </div>
