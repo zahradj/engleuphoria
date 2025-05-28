@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -36,25 +37,38 @@ const SignUp = () => {
   });
   
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    // Store user data in localStorage for payment page
-    localStorage.setItem('pendingUser', JSON.stringify({
-      name: values.name,
-      email: values.email,
-      userType: values.userType
-    }));
+    // Store user data based on type
+    if (values.userType === "teacher") {
+      localStorage.setItem('teacherName', values.name);
+      localStorage.setItem('userType', 'teacher');
+      localStorage.removeItem('studentName'); // Clear any student data
+    } else if (values.userType === "student") {
+      localStorage.setItem('studentName', values.name);
+      localStorage.setItem('userType', 'student');
+      localStorage.setItem('points', '50'); // Starting points
+      localStorage.removeItem('teacherName'); // Clear any teacher data
+    } else {
+      // Parent - for now redirect to student dashboard (could be a parent portal later)
+      localStorage.setItem('studentName', values.name);
+      localStorage.setItem('userType', 'parent');
+      localStorage.setItem('points', '50');
+      localStorage.removeItem('teacherName');
+    }
     
     console.log(values);
     toast({
       title: "Account created!",
-      description: "Welcome to Engleuphoria! Please complete your payment to activate your account.",
+      description: "Welcome to Engleuphoria! Redirecting to your dashboard.",
     });
     
     // Redirect based on user type
-    if (values.userType === "student") {
-      setTimeout(() => navigate("/payment"), 1500);
-    } else {
-      setTimeout(() => navigate("/dashboard"), 1500);
-    }
+    setTimeout(() => {
+      if (values.userType === "teacher") {
+        navigate("/teacher-dashboard");
+      } else {
+        navigate("/dashboard");
+      }
+    }, 1500);
   };
   
   return (

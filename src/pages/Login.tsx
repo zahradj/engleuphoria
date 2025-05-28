@@ -34,13 +34,34 @@ const Login = () => {
   });
   
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    // This would connect to authentication service in a real app
+    // Mock authentication - determine user type based on email
+    const isTeacher = values.email.includes("teacher") || values.email.includes("@school");
+    
+    if (isTeacher) {
+      localStorage.setItem("teacherName", "John Teacher");
+      localStorage.setItem("userType", "teacher");
+      localStorage.removeItem("studentName"); // Clear any student data
+    } else {
+      localStorage.setItem("studentName", "Student User");
+      localStorage.setItem("userType", "student");
+      localStorage.setItem("points", "50");
+      localStorage.removeItem("teacherName"); // Clear any teacher data
+    }
+    
     console.log(values);
     toast({
       title: "Login Successful",
       description: "Redirecting to your dashboard...",
     });
-    setTimeout(() => navigate("/dashboard"), 1500);
+    
+    // Navigate to appropriate dashboard
+    setTimeout(() => {
+      if (isTeacher) {
+        navigate("/teacher-dashboard");
+      } else {
+        navigate("/dashboard");
+      }
+    }, 1500);
   };
   
   return (
@@ -84,6 +105,7 @@ const Login = () => {
           <div className="text-center mb-6 animate-fade-in">
             <h2 className="text-2xl font-bold">{languageText.welcomeBack}!</h2>
             <p className="text-muted-foreground">Log in to continue your English journey</p>
+            <p className="text-sm text-muted-foreground mt-2">Use "teacher@school.com" for teacher login or any other email for student</p>
           </div>
           
           <Form {...form}>
