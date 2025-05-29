@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -24,26 +23,24 @@ const TeacherDashboard = () => {
     const userType = localStorage.getItem("userType");
     const studentName = localStorage.getItem("studentName");
     
-    // If no teacher data but has student data, redirect to student dashboard
-    if (!storedTeacherName && studentName && userType !== "teacher") {
+    console.log("Teacher Dashboard - Auth check:", { storedTeacherName, userType, studentName });
+    
+    // If user type is explicitly student, redirect to student dashboard
+    if (userType === "student" && !storedTeacherName) {
+      console.log("Redirecting to student dashboard - user type is student");
       navigate("/dashboard");
       return;
     }
     
-    // If no user data at all, redirect to login
-    if (!storedTeacherName && !studentName) {
+    // If no teacher credentials and no teacher user type, redirect to login
+    if (!storedTeacherName && userType !== "teacher") {
+      console.log("No teacher credentials found, redirecting to login");
       navigate("/login");
       return;
     }
     
-    // If we have teacher data or userType is teacher, allow access
-    if (storedTeacherName || userType === "teacher") {
-      setTeacherName(storedTeacherName || "Teacher");
-    } else {
-      // Fallback redirect to login if no valid teacher access
-      navigate("/login");
-      return;
-    }
+    // Set teacher data
+    setTeacherName(storedTeacherName || "Teacher");
     
     // Load lesson plans from localStorage
     const savedPlans = localStorage.getItem("lessonPlans");

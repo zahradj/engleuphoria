@@ -37,18 +37,26 @@ const Login = () => {
     // Mock authentication - determine user type based on email
     const isTeacher = values.email.includes("teacher") || values.email.includes("@school");
     
+    // Clear any existing user data first
+    localStorage.removeItem("teacherName");
+    localStorage.removeItem("studentName");
+    localStorage.removeItem("userType");
+    localStorage.removeItem("points");
+    
     if (isTeacher) {
+      console.log("Setting teacher login data");
       localStorage.setItem("teacherName", "John Teacher");
       localStorage.setItem("userType", "teacher");
-      localStorage.removeItem("studentName"); // Clear any student data
     } else {
+      console.log("Setting student login data");
       localStorage.setItem("studentName", "Student User");
       localStorage.setItem("userType", "student");
       localStorage.setItem("points", "50");
-      localStorage.removeItem("teacherName"); // Clear any teacher data
     }
     
-    console.log(values);
+    console.log("Login form values:", values);
+    console.log("User type set to:", isTeacher ? "teacher" : "student");
+    
     toast({
       title: "Login Successful",
       description: "Redirecting to your dashboard...",
@@ -57,8 +65,10 @@ const Login = () => {
     // Navigate to appropriate dashboard
     setTimeout(() => {
       if (isTeacher) {
+        console.log("Navigating to teacher dashboard");
         navigate("/teacher-dashboard");
       } else {
+        console.log("Navigating to student dashboard");
         navigate("/dashboard");
       }
     }, 1500);
