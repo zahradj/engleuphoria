@@ -24,17 +24,49 @@ export const OverviewTab = ({
 }: OverviewTabProps) => {
   const { languageText } = useLanguage();
 
+  // Mock classes that teachers can start
+  const upcomingClasses = [
+    {
+      id: "class-1",
+      title: "Beginner English",
+      time: "Today, 10:00 AM",
+      students: 5,
+      status: "ready" as const
+    },
+    {
+      id: "class-2", 
+      title: "Intermediate Conversation",
+      time: "Today, 2:00 PM",
+      students: 3,
+      status: "ready" as const
+    },
+    {
+      id: "class-3",
+      title: "Vocabulary Practice", 
+      time: "Tomorrow, 11:00 AM",
+      students: 4,
+      status: "scheduled" as const
+    },
+    {
+      id: "class-4",
+      title: "Grammar Workshop",
+      time: "Today, 4:00 PM", 
+      students: 7,
+      status: "ready" as const
+    }
+  ];
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {/* Stats Overview */}
       <StatsCard 
         title={languageText.upcomingClasses}
-        value="4"
+        value={upcomingClasses.filter(c => c.status === "ready").length.toString()}
         icon={<Calendar className="h-5 w-5 text-primary" />}
       />
       <StatsCard 
         title={languageText.activeStudents}
-        value="12"
+        value={upcomingClasses.reduce((total, c) => total + c.students, 0).toString()}
         icon={<Users className="h-5 w-5 text-blue-500" />}
       />
       <StatsCard 
@@ -88,37 +120,44 @@ export const OverviewTab = ({
         </CardContent>
       </Card>
       
-      {/* Upcoming Classes */}
+      {/* Upcoming Classes - Full Width */}
       <Card className="md:col-span-3">
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>{languageText.upcomingClasses}</CardTitle>
+          <Button size="sm" onClick={onScheduleClass}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Schedule New Class
+          </Button>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <ClassCard 
-              title="Beginner English"
-              time="Today, 10:00 AM"
-              students={5}
-              buttonText={languageText.startClass}
-              onButtonClick={() => onStartScheduledClass("Beginner English")}
-            />
-            
-            <ClassCard 
-              title="Intermediate Conversation"
-              time="Today, 2:00 PM"
-              students={3}
-              buttonText={languageText.startClass}
-              onButtonClick={() => onStartScheduledClass("Intermediate Conversation")}
-            />
-            
-            <ClassCard 
-              title="Vocabulary Practice"
-              time="Tomorrow, 11:00 AM"
-              students={4}
-              buttonText={languageText.viewDetails}
-              onButtonClick={() => onViewClassDetails("Vocabulary Practice")}
-            />
-          </div>
+          {upcomingClasses.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {upcomingClasses.map((classInfo) => (
+                <ClassCard 
+                  key={classInfo.id}
+                  title={classInfo.title}
+                  time={classInfo.time}
+                  students={classInfo.students}
+                  buttonText={classInfo.status === "ready" ? languageText.startClass : languageText.viewDetails}
+                  onButtonClick={() => {
+                    if (classInfo.status === "ready") {
+                      onStartScheduledClass(classInfo.title);
+                    } else {
+                      onViewClassDetails(classInfo.title);
+                    }
+                  }}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No upcoming classes scheduled</p>
+              <Button className="mt-4" onClick={onScheduleClass}>
+                Schedule Your First Class
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
