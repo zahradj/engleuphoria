@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -34,8 +33,10 @@ const Login = () => {
   });
   
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    // Mock authentication - determine user type based on email
-    const isTeacher = values.email.includes("teacher") || values.email.includes("@school");
+    // Check if user already has an account by looking at stored data
+    const existingTeacherName = localStorage.getItem("teacherName");
+    const existingStudentName = localStorage.getItem("studentName");
+    const existingUserType = localStorage.getItem("userType");
     
     // Clear any existing user data first
     localStorage.removeItem("teacherName");
@@ -43,13 +44,25 @@ const Login = () => {
     localStorage.removeItem("userType");
     localStorage.removeItem("points");
     
+    // For demo purposes, we'll determine user type based on existing data or email pattern
+    // In a real app, this would be validated against a backend
+    let isTeacher = false;
+    
+    // If user previously signed up as teacher, allow them to login as teacher
+    if (existingUserType === "teacher" || existingTeacherName) {
+      isTeacher = true;
+    } else if (values.email.includes("teacher") || values.email.includes("@school")) {
+      // Fallback: check email pattern for new users
+      isTeacher = true;
+    }
+    
     if (isTeacher) {
       console.log("Setting teacher login data");
-      localStorage.setItem("teacherName", "John Teacher");
+      localStorage.setItem("teacherName", existingTeacherName || "Teacher User");
       localStorage.setItem("userType", "teacher");
     } else {
       console.log("Setting student login data");
-      localStorage.setItem("studentName", "Student User");
+      localStorage.setItem("studentName", existingStudentName || "Student User");
       localStorage.setItem("userType", "student");
       localStorage.setItem("points", "50");
     }
@@ -115,7 +128,7 @@ const Login = () => {
           <div className="text-center mb-6 animate-fade-in">
             <h2 className="text-2xl font-bold">{languageText.welcomeBack}!</h2>
             <p className="text-muted-foreground">Log in to continue your English journey</p>
-            <p className="text-sm text-muted-foreground mt-2">Use "teacher@school.com" for teacher login or any other email for student</p>
+            <p className="text-sm text-muted-foreground mt-2">Teacher accounts will access the teacher dashboard automatically</p>
           </div>
           
           <Form {...form}>
