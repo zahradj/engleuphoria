@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Clock, BookOpen } from "lucide-react";
+import { Users, Clock, BookOpen, User } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const SimpleClassroomSelector = () => {
@@ -35,40 +35,24 @@ const SimpleClassroomSelector = () => {
 
   const classrooms = [
     {
-      id: "beginner-english",
-      title: "Beginner English",
-      description: "Basic vocabulary and grammar for beginners",
+      id: "one-on-one",
+      title: "One-on-One Class",
+      description: "Personal tutoring session with dedicated teacher attention",
+      mode: "oneOnOne",
+      students: 1,
+      duration: "30 min",
+      color: "#F97316",
+      icon: User
+    },
+    {
+      id: "group-class",
+      title: "Group Class",
+      description: "Interactive group learning with multiple students",
       mode: "group",
       students: 8,
       duration: "45 min",
-      color: "#9B87F5"
-    },
-    {
-      id: "conversation-practice",
-      title: "Conversation Practice",
-      description: "Practice speaking with interactive dialogues",
-      mode: "group",
-      students: 5,
-      duration: "30 min",
-      color: "#14B8A6"
-    },
-    {
-      id: "one-on-one-tutoring",
-      title: "One-on-One Tutoring",
-      description: "Personal tutoring session",
-      mode: "oneOnOne",
-      students: 1,
-      duration: "25 min",
-      color: "#F97316"
-    },
-    {
-      id: "vocabulary-games",
-      title: "Vocabulary Games",
-      description: "Learn new words through fun activities",
-      mode: "group",
-      students: 12,
-      duration: "35 min",
-      color: "#EC4899"
+      color: "#9B87F5",
+      icon: Users
     }
   ];
 
@@ -95,12 +79,12 @@ const SimpleClassroomSelector = () => {
         <div className="container mx-auto flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              {userType === "teacher" ? "Select Classroom to Start" : "Choose Your Classroom"}
+              {userType === "teacher" ? "Select Class Type" : "Choose Your Class"}
             </h1>
             <p className="text-gray-600">
               {userType === "teacher" 
-                ? "Start a classroom session for your students" 
-                : "Join a classroom to continue learning"
+                ? "Choose the type of class you want to start" 
+                : "Select how you want to learn today"
               }
             </p>
           </div>
@@ -110,44 +94,52 @@ const SimpleClassroomSelector = () => {
         </div>
       </header>
 
-      {/* Classroom Grid */}
-      <main className="container mx-auto py-8 px-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {classrooms.map((classroom) => (
-            <Card key={classroom.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-              <div 
-                className="h-2"
-                style={{ backgroundColor: classroom.color }}
-              />
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BookOpen className="h-5 w-5" />
-                  {classroom.title}
-                </CardTitle>
-                <p className="text-sm text-gray-600">{classroom.description}</p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-gray-500" />
-                    <span>{classroom.students} students</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-gray-500" />
-                    <span>{classroom.duration}</span>
-                  </div>
-                </div>
-                
-                <Button 
-                  className="w-full" 
-                  onClick={() => handleJoinClassroom(classroom.id, classroom.mode)}
+      {/* Classroom Options */}
+      <main className="container mx-auto py-12 px-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          {classrooms.map((classroom) => {
+            const IconComponent = classroom.icon;
+            return (
+              <Card key={classroom.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer group">
+                <div 
+                  className="h-3"
                   style={{ backgroundColor: classroom.color }}
-                >
-                  {userType === "teacher" ? "Start Classroom" : "Join Classroom"}
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+                />
+                <CardHeader className="text-center pb-4">
+                  <div className="mx-auto mb-4 p-4 rounded-full bg-gray-50 group-hover:bg-gray-100 transition-colors">
+                    <IconComponent 
+                      className="h-12 w-12 mx-auto" 
+                      style={{ color: classroom.color }}
+                    />
+                  </div>
+                  <CardTitle className="text-xl mb-2">{classroom.title}</CardTitle>
+                  <p className="text-sm text-gray-600">{classroom.description}</p>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex items-center justify-center gap-6 text-sm text-gray-500">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      <span>
+                        {classroom.mode === "oneOnOne" ? "1-on-1" : `${classroom.students} students`}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      <span>{classroom.duration}</span>
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    className="w-full py-3 text-lg font-medium" 
+                    onClick={() => handleJoinClassroom(classroom.id, classroom.mode)}
+                    style={{ backgroundColor: classroom.color }}
+                  >
+                    {userType === "teacher" ? "Start Class" : "Join Class"}
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </main>
     </div>
