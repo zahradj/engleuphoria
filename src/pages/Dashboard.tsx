@@ -1,134 +1,214 @@
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { StudentHeader } from "@/components/StudentHeader";
-import { WelcomeSection } from "@/components/dashboard/WelcomeSection";
-import { ClassesSection } from "@/components/dashboard/ClassesSection";
-import { ActivitiesSection } from "@/components/dashboard/ActivitiesSection";
-import { ProgressSummary } from "@/components/dashboard/ProgressSummary";
-import { RewardsSection } from "@/components/dashboard/RewardsSection";
-import { RecentActivitySection } from "@/components/dashboard/RecentActivitySection";
-import { Footer } from "@/components/dashboard/Footer";
-import { ProgressTracker } from "@/components/ProgressTracker";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, BookOpen } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Progress } from "@/components/ui/progress";
+import { Calendar, Trophy, BookOpen, Clock, Star, Users, CalendarPlus } from "lucide-react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useStudentHandlers } from "@/hooks/useStudentHandlers";
 
 const Dashboard = () => {
   const [studentName, setStudentName] = useState<string>("");
   const [points, setPoints] = useState<number>(0);
+  const { languageText } = useLanguage();
   const navigate = useNavigate();
-  
+  const handlers = useStudentHandlers();
+
   useEffect(() => {
-    // Check authentication and user type
+    // Check authentication
     const storedStudentName = localStorage.getItem("studentName");
-    const teacherName = localStorage.getItem("teacherName");
+    const storedPoints = localStorage.getItem("points");
     const userType = localStorage.getItem("userType");
-    
-    // If user is a teacher, redirect to teacher dashboard
-    if (teacherName || userType === "teacher") {
-      navigate("/teacher-dashboard");
-      return;
-    }
-    
-    // If no student data, redirect to login
-    if (!storedStudentName && userType !== "parent") {
+
+    if (!storedStudentName && userType !== "student") {
       navigate("/login");
       return;
     }
-    
-    // Set student data
+
     setStudentName(storedStudentName || "Student");
-    const storedPoints = localStorage.getItem("points");
     setPoints(storedPoints ? parseInt(storedPoints) : 0);
   }, [navigate]);
 
-  const handleLogout = () => {
-    // Clear all user data
-    localStorage.removeItem("studentName");
-    localStorage.removeItem("teacherName");
-    localStorage.removeItem("userType");
-    localStorage.removeItem("points");
-    navigate("/");
-  };
-  
+  const quickActions = [
+    {
+      title: "Join Class",
+      description: "Enter your virtual classroom",
+      icon: Users,
+      color: "bg-blue-500",
+      onClick: handlers.handleJoinClass
+    },
+    {
+      title: "Schedule Lesson",
+      description: "Request a lesson with your teacher",
+      icon: CalendarPlus,
+      color: "bg-purple-500",
+      onClick: handlers.handleScheduleLesson
+    },
+    {
+      title: "Practice Vocabulary",
+      description: "Learn new words and phrases",
+      icon: BookOpen,
+      color: "bg-green-500",
+      onClick: handlers.handlePracticeVocabulary
+    },
+    {
+      title: "View Progress",
+      description: "Check your learning progress",
+      icon: Trophy,
+      color: "bg-orange-500",
+      onClick: handlers.handleViewProgress
+    }
+  ];
+
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-teal-50 to-green-50">
-      <header className="bg-gradient-to-r from-teal-500 to-green-500 text-white border-b py-4 shadow-lg">
-        <div className="container max-w-7xl mx-auto px-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <BookOpen className="h-6 w-6" />
-            <h1 className="text-xl font-bold">Student Dashboard</h1>
-            <span className="bg-teal-500 text-xs px-2 py-1 rounded-full ml-2">Student</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="font-medium">🎓 {studentName}</span>
-            <span className="bg-white/20 px-2 py-1 rounded-full text-sm">⭐ {points} points</span>
-            <Button 
-              variant="secondary" 
-              size="sm" 
-              onClick={handleLogout} 
-              className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-            >
-              Log Out
-            </Button>
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
+      {/* Header */}
+      <header className="bg-gradient-to-r from-purple-600 to-blue-600 text-white border-b py-6 shadow-lg">
+        <div className="container max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Avatar className="h-12 w-12 border-2 border-white/20">
+                <AvatarImage src="https://github.com/shadcn.png" />
+                <AvatarFallback>{studentName.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div>
+                <h1 className="text-2xl font-bold">Welcome back, {studentName}!</h1>
+                <p className="text-purple-100">Ready to continue your learning journey?</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <div className="flex items-center gap-2 text-yellow-300">
+                  <Star className="h-5 w-5 fill-current" />
+                  <span className="text-xl font-bold">{points}</span>
+                </div>
+                <p className="text-xs text-purple-100">Learning Points</p>
+              </div>
+              <Button variant="outline" className="text-purple-600 border-white bg-white hover:bg-purple-50">
+                View Profile
+              </Button>
+            </div>
           </div>
         </div>
       </header>
-      
-      <main className="flex-1 container max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main content - 2 columns */}
-          <div className="lg:col-span-2 space-y-6">
-            <WelcomeSection studentName={studentName} />
-            
-            {/* Quick Access to Classroom */}
+
+      {/* Main Content */}
+      <main className="container max-w-7xl mx-auto px-4 py-8">
+        {/* Quick Actions */}
+        <section className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Quick Actions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {quickActions.map((action) => {
+              const IconComponent = action.icon;
+              return (
+                <Card key={action.title} className="hover:shadow-lg transition-shadow cursor-pointer group" onClick={action.onClick}>
+                  <CardHeader className="pb-3">
+                    <div className={`w-12 h-12 rounded-lg ${action.color} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
+                      <IconComponent className="h-6 w-6 text-white" />
+                    </div>
+                    <CardTitle className="text-lg">{action.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground text-sm">{action.description}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Progress Overview */}
+        <section className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Your Progress</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Join a Classroom
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <BookOpen className="h-5 w-5 text-blue-500" />
+                  Lessons Completed
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground mb-4">
-                  Ready to start learning? Choose your classroom type and begin your English journey.
-                </p>
-                <Button 
-                  onClick={() => navigate("/classroom-selector")}
-                  className="w-full"
-                >
-                  <BookOpen className="mr-2 h-4 w-4" />
-                  Enter Classroom
-                </Button>
+                <div className="text-3xl font-bold text-blue-600 mb-2">12</div>
+                <Progress value={75} className="mb-2" />
+                <p className="text-sm text-muted-foreground">75% of monthly goal</p>
               </CardContent>
             </Card>
-            
-            <ClassesSection />
-            <ActivitiesSection />
+
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-green-500" />
+                  Study Time
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-green-600 mb-2">8.5h</div>
+                <Progress value={85} className="mb-2" />
+                <p className="text-sm text-muted-foreground">This week</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Trophy className="h-5 w-5 text-orange-500" />
+                  Achievements
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-orange-600 mb-2">5</div>
+                <div className="flex gap-1 mb-2">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <Star key={i} className="h-4 w-4 fill-orange-400 text-orange-400" />
+                  ))}
+                </div>
+                <p className="text-sm text-muted-foreground">Badges earned</p>
+              </CardContent>
+            </Card>
           </div>
-          
-          {/* Sidebar */}
-          <div className="space-y-6">
-            <ProgressTracker
-              vocabProgress={65}
-              grammarProgress={40}
-              listeningProgress={80}
-              speakingProgress={30}
-              readingProgress={55}
-            />
-            <ProgressSummary 
-              weeklyActivities={{completed: 3, total: 5}}
-              classesAttended={8}
-              points={points}
-            />
-            <RewardsSection />
-            <RecentActivitySection />
-          </div>
-        </div>
+        </section>
+
+        {/* Recent Activity */}
+        <section>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Recent Activity</h2>
+          <Card>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <div className="flex items-center gap-4 p-3 bg-green-50 rounded-lg">
+                  <div className="h-2 w-2 bg-green-500 rounded-full"></div>
+                  <div className="flex-1">
+                    <p className="font-medium">Completed "Basic Conversation" lesson</p>
+                    <p className="text-sm text-muted-foreground">2 hours ago</p>
+                  </div>
+                  <Badge variant="secondary">+50 points</Badge>
+                </div>
+                
+                <div className="flex items-center gap-4 p-3 bg-blue-50 rounded-lg">
+                  <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
+                  <div className="flex-1">
+                    <p className="font-medium">Joined group study session</p>
+                    <p className="text-sm text-muted-foreground">Yesterday</p>
+                  </div>
+                  <Badge variant="secondary">+30 points</Badge>
+                </div>
+                
+                <div className="flex items-center gap-4 p-3 bg-purple-50 rounded-lg">
+                  <div className="h-2 w-2 bg-purple-500 rounded-full"></div>
+                  <div className="flex-1">
+                    <p className="font-medium">Earned "Vocabulary Master" badge</p>
+                    <p className="text-sm text-muted-foreground">3 days ago</p>
+                  </div>
+                  <Badge variant="secondary">Achievement</Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
       </main>
-      
-      <Footer />
     </div>
   );
 };
