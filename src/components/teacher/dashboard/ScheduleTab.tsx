@@ -1,75 +1,151 @@
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ScheduleItem } from "./ScheduleItem";
-import { ClassScheduleItem } from "./ClassScheduleItem";
+import { Calendar } from "@/components/ui/calendar";
 import { PlusCircle } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { ClassScheduleItem } from "./ClassScheduleItem";
 
 interface ScheduleTabProps {
   onScheduleClass: () => void;
   onStartScheduledClass: (className: string) => void;
 }
 
+interface ScheduledLesson {
+  id: string;
+  title: string;
+  date: Date;
+  startTime: string;
+  endTime: string;
+  students: string[];
+  description: string;
+  type: string;
+}
+
 export const ScheduleTab = ({ onScheduleClass, onStartScheduledClass }: ScheduleTabProps) => {
   const { languageText } = useLanguage();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+
+  // Mock scheduled lessons - in real app this would come from localStorage or API
+  const scheduledLessons: ScheduledLesson[] = [
+    {
+      id: "1",
+      title: "Beginner English",
+      date: new Date(),
+      startTime: "10:00",
+      endTime: "11:00",
+      students: ["Alex", "Maria", "Li", "Sophia", "Emma"],
+      description: "Basic English conversation",
+      type: "conversation"
+    },
+    {
+      id: "2", 
+      title: "Intermediate Conversation",
+      date: new Date(),
+      startTime: "14:00",
+      endTime: "15:00",
+      students: ["Carlos", "Emma", "Noah"],
+      description: "Intermediate level conversation practice",
+      type: "conversation"
+    },
+    {
+      id: "3",
+      title: "Vocabulary Practice",
+      date: new Date(Date.now() + 86400000), // Tomorrow
+      startTime: "11:00",
+      endTime: "12:00",
+      students: ["Alex", "Maria", "Li", "Carlos"],
+      description: "Daily vocabulary building",
+      type: "vocabulary"
+    }
+  ];
+
+  // Filter lessons for selected date
+  const selectedDateStr = selectedDate?.toDateString();
+  const lessonsForSelectedDate = scheduledLessons.filter(
+    lesson => lesson.date.toDateString() === selectedDateStr
+  );
+
+  // Get dates that have lessons for calendar highlighting
+  const lessonDates = scheduledLessons.map(lesson => lesson.date);
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>{languageText.schedule}</CardTitle>
-        <Button size="sm" onClick={onScheduleClass}>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          {languageText.scheduleClass}
-        </Button>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-6">
-          {/* Weekly Schedule */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">{languageText.thisWeek}</h3>
-            <div className="grid grid-cols-5 gap-4">
-              {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map(day => (
-                <div key={day} className="border rounded-lg p-3">
-                  <h4 className="font-medium mb-2">{day}</h4>
-                  <div className="space-y-2">
-                    <ScheduleItem time="10:00 AM" title="Beginner English" />
-                    <ScheduleItem time="2:00 PM" title="Intermediate Conversation" />
-                  </div>
-                </div>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Calendar */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>{languageText.schedule}</CardTitle>
+          <Button size="sm" onClick={onScheduleClass}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            {languageText.scheduleClass}
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={setSelectedDate}
+            className="border rounded-lg p-3 pointer-events-auto"
+            modifiers={{
+              hasLesson: lessonDates
+            }}
+            modifiersStyles={{
+              hasLesson: {
+                backgroundColor: '#e0e7ff',
+                color: '#3730a3',
+                fontWeight: 'bold'
+              }
+            }}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Selected Date Lessons */}
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            {selectedDate ? (
+              selectedDate.toLocaleDateString(undefined, { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })
+            ) : (
+              "Select a date"
+            )}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {lessonsForSelectedDate.length > 0 ? (
+            <div className="space-y-3">
+              {lessonsForSelectedDate.map((lesson) => (
+                <ClassScheduleItem
+                  key={lesson.id}
+                  title={lesson.title}
+                  day=""
+                  time={`${lesson.startTime} - ${lesson.endTime}`}
+                  students={lesson.students.length}
+                  onStart={() => onStartScheduledClass(lesson.title)}
+                />
               ))}
             </div>
-          </div>
-          
-          {/* Upcoming Schedule */}
-          <div>
-            <h3 className="text-lg font-semibold mb-2">{languageText.upcomingClasses}</h3>
-            <div className="space-y-3">
-              <ClassScheduleItem 
-                title="Beginner English"
-                day="Monday"
-                time="10:00 - 11:00 AM"
-                students={5}
-                onStart={() => onStartScheduledClass("Beginner English")}
-              />
-              <ClassScheduleItem 
-                title="Intermediate Conversation"
-                day="Monday"
-                time="2:00 - 3:00 PM"
-                students={3}
-                onStart={() => onStartScheduledClass("Intermediate Conversation")}
-              />
-              <ClassScheduleItem 
-                title="Vocabulary Practice"
-                day="Tuesday"
-                time="11:00 AM - 12:00 PM"
-                students={4}
-                onStart={() => onStartScheduledClass("Vocabulary Practice")}
-              />
+          ) : (
+            <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+              <PlusCircle className="h-12 w-12 mb-4 opacity-50" />
+              <p className="text-center">No lessons scheduled for this day</p>
+              <Button 
+                variant="outline" 
+                className="mt-4" 
+                onClick={onScheduleClass}
+              >
+                Schedule a Lesson
+              </Button>
             </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 };
