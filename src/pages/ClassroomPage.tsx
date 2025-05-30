@@ -12,6 +12,7 @@ const ClassroomPage = () => {
   const navigate = useNavigate();
   const mode = searchParams.get("mode") || "group"; // Default to 'group' if no mode specified
   const [scrollPosition, setScrollPosition] = useState(0);
+  const [userInfo, setUserInfo] = useState({ name: "", points: 0, isTeacher: false });
   
   const {
     studentName,
@@ -29,14 +30,33 @@ const ClassroomPage = () => {
 
   // Check authentication on component mount
   useEffect(() => {
-    const studentName = localStorage.getItem("studentName");
     const teacherName = localStorage.getItem("teacherName");
+    const studentName = localStorage.getItem("studentName");
     const userType = localStorage.getItem("userType");
+    const storedPoints = localStorage.getItem("points");
+    
+    console.log("ClassroomPage - Auth check:", { teacherName, studentName, userType });
     
     // If no user data, redirect to login
-    if (!studentName && !teacherName && !userType) {
+    if (!teacherName && !studentName && !userType) {
+      console.log("No authentication found, redirecting to login");
       navigate("/login");
       return;
+    }
+    
+    // Set user info based on authentication
+    if (teacherName || userType === "teacher") {
+      setUserInfo({
+        name: teacherName || "Teacher",
+        points: 0, // Teachers don't have points
+        isTeacher: true
+      });
+    } else {
+      setUserInfo({
+        name: studentName || "Student",
+        points: parseInt(storedPoints || "0"),
+        isTeacher: false
+      });
     }
   }, [navigate]);
 
@@ -50,12 +70,12 @@ const ClassroomPage = () => {
       isCameraOff: false,
     },
     {
-      id: "student1",
-      name: "Current Student",
-      isTeacher: false,
-      isMuted: true,
-      isCameraOff: false,
-      isHandRaised: false,
+      id: "current-user",
+      name: userInfo.name,
+      isTeacher: userInfo.isTeacher,
+      isMuted: isMuted,
+      isCameraOff: isVideoOff,
+      isHandRaised: isHandRaised,
     },
   ] : [
     {
@@ -66,12 +86,12 @@ const ClassroomPage = () => {
       isCameraOff: false,
     },
     {
-      id: "student1",
-      name: "Current Student",
-      isTeacher: false,
-      isMuted: true,
-      isCameraOff: false,
-      isHandRaised: false,
+      id: "current-user",
+      name: userInfo.name,
+      isTeacher: userInfo.isTeacher,
+      isMuted: isMuted,
+      isCameraOff: isVideoOff,
+      isHandRaised: isHandRaised,
     },
     {
       id: "student2",
@@ -91,8 +111,8 @@ const ClassroomPage = () => {
 
   const mockStudents = [
     {
-      id: "student1",
-      name: "Current Student",
+      id: "current-user",
+      name: userInfo.name,
       avatar: "https://github.com/shadcn.png",
       status: "speaking",
       isCurrentUser: true,
@@ -125,19 +145,19 @@ const ClassroomPage = () => {
 
   // Handler for video controls
   const handleToggleMute = (id: string) => {
-    if (id === "student1") {
+    if (id === "current-user") {
       toggleMute();
     }
   };
 
   const handleToggleVideo = (id: string) => {
-    if (id === "student1") {
+    if (id === "current-user") {
       toggleVideo();
     }
   };
 
   const handleToggleHand = (id: string) => {
-    if (id === "student1") {
+    if (id === "current-user") {
       toggleHand();
     }
   };
@@ -158,7 +178,7 @@ const ClassroomPage = () => {
       >
         <SimpleVideoPanel
           feeds={mockVideoFeeds}
-          currentUserId="student1"
+          currentUserId="current-user"
           isOneOnOne={mode === "oneOnOne"}
           onToggleMute={handleToggleMute}
           onToggleVideo={handleToggleVideo}
@@ -170,8 +190,8 @@ const ClassroomPage = () => {
       <div className="flex-1 min-h-[120vh]">
         <SimpleContentViewer 
           mode={mode}
-          isTeacher={isTeacherView}
-          studentName={studentName}
+          isTeacher={userInfo.isTeacher}
+          studentName={userInfo.name}
         />
       </div>
     </div>
@@ -179,18 +199,18 @@ const ClassroomPage = () => {
 
   const sidebarContent = (
     <SidebarContent 
-      studentName={studentName}
+      studentName={userInfo.name}
       isChatOpen={isChatOpen}
       students={mockStudents}
-      isTeacherView={isTeacherView}
+      isTeacherView={userInfo.isTeacher}
       toggleChat={toggleChat}
     />
   );
 
   return (
     <ClassroomLayout
-      studentName={studentName}
-      points={points}
+      studentName={userInfo.name}
+      points={userInfo.points}
       mainContent={mainContent}
       sidebarContent={sidebarContent}
     />

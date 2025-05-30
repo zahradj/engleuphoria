@@ -22,19 +22,33 @@ export function useClassroomState() {
   const { languageText } = useLanguage();
 
   useEffect(() => {
-    // In a real app, we'd fetch this from an API
-    const storedName = localStorage.getItem("studentName");
+    // Check for both teacher and student authentication
+    const teacherName = localStorage.getItem("teacherName");
+    const storedStudentName = localStorage.getItem("studentName");
     const storedPoints = localStorage.getItem("points");
-    const storedIsTeacher = localStorage.getItem("isTeacher");
+    const userType = localStorage.getItem("userType");
 
-    if (!storedName) {
-      navigate("/");
+    console.log("useClassroomState - Auth check:", { teacherName, storedStudentName, userType });
+
+    // If no authentication found, redirect to login
+    if (!teacherName && !storedStudentName && !userType) {
+      console.log("No authentication found, redirecting to login");
+      navigate("/login");
       return;
     }
 
-    setStudentName(storedName);
-    setPoints(storedPoints ? parseInt(storedPoints) : 0);
-    setIsTeacherView(storedIsTeacher === "true");
+    // Set state based on user type
+    if (teacherName || userType === "teacher") {
+      console.log("Setting teacher view");
+      setStudentName(teacherName || "Teacher");
+      setPoints(0); // Teachers don't have points
+      setIsTeacherView(true);
+    } else {
+      console.log("Setting student view");
+      setStudentName(storedStudentName || "Student");
+      setPoints(storedPoints ? parseInt(storedPoints) : 0);
+      setIsTeacherView(false);
+    }
   }, [navigate]);
 
   const handleLayoutChange = (newLayout: LayoutType) => {
