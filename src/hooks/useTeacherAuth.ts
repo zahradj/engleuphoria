@@ -14,6 +14,13 @@ export const useTeacherAuth = () => {
     
     console.log("Teacher Dashboard - Auth check:", { storedTeacherName, userType, studentName });
     
+    // If user is explicitly a student and no teacher credentials, redirect to student dashboard
+    if (userType === "student" && !storedTeacherName) {
+      console.log("Redirecting to student dashboard - user type is student");
+      navigate("/dashboard");
+      return;
+    }
+    
     // If we have teacher credentials, use them regardless of userType
     if (storedTeacherName) {
       console.log("Found teacher credentials, allowing access");
@@ -28,21 +35,14 @@ export const useTeacherAuth = () => {
       return;
     }
     
-    // If user type is student and no teacher credentials, redirect to student dashboard
-    if (userType === "student" && !storedTeacherName) {
-      console.log("Redirecting to student dashboard - user type is student");
-      navigate("/dashboard");
-      return;
-    }
-    
     // If no credentials at all, redirect to login
-    if (!storedTeacherName && !userType) {
+    if (!storedTeacherName && !userType && !studentName) {
       console.log("No credentials found, redirecting to login");
       navigate("/login");
       return;
     }
     
-    // Default fallback
+    // Default fallback for teacher access
     setTeacherName("Teacher");
   }, [navigate]);
 

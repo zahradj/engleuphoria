@@ -18,11 +18,19 @@ const Dashboard = () => {
   const handlers = useStudentHandlers();
 
   useEffect(() => {
-    // Check authentication
+    // Check authentication and redirect teachers to their dashboard
     const storedStudentName = localStorage.getItem("studentName");
     const storedPoints = localStorage.getItem("points");
     const userType = localStorage.getItem("userType");
+    const teacherName = localStorage.getItem("teacherName");
 
+    // If user is a teacher, redirect to teacher dashboard
+    if (userType === "teacher" || teacherName) {
+      navigate("/teacher-dashboard");
+      return;
+    }
+
+    // If no student credentials, redirect to login
     if (!storedStudentName && userType !== "student") {
       navigate("/login");
       return;
@@ -65,7 +73,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50">
-      {/* Header */}
+      {/* Student-specific Header */}
       <header className="bg-gradient-to-r from-purple-600 to-blue-600 text-white border-b py-6 shadow-lg">
         <div className="container max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between">
@@ -77,6 +85,9 @@ const Dashboard = () => {
               <div>
                 <h1 className="text-2xl font-bold">Welcome back, {studentName}!</h1>
                 <p className="text-purple-100">Ready to continue your learning journey?</p>
+                <Badge variant="secondary" className="mt-1 bg-white/20 text-white">
+                  Student Dashboard
+                </Badge>
               </div>
             </div>
             <div className="flex items-center gap-4">
@@ -97,9 +108,9 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <main className="container max-w-7xl mx-auto px-4 py-8">
-        {/* Quick Actions */}
+        {/* Student Quick Actions */}
         <section className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Quick Actions</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">What would you like to do?</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {quickActions.map((action) => {
               const IconComponent = action.icon;
@@ -120,9 +131,9 @@ const Dashboard = () => {
           </div>
         </section>
 
-        {/* Progress Overview */}
+        {/* Student Progress Overview */}
         <section className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Your Progress</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Your Learning Progress</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card>
               <CardHeader className="pb-3">
@@ -172,7 +183,7 @@ const Dashboard = () => {
           </div>
         </section>
 
-        {/* Recent Activity */}
+        {/* Student Recent Activity */}
         <section>
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Recent Activity</h2>
           <Card>
@@ -199,10 +210,10 @@ const Dashboard = () => {
                 <div className="flex items-center gap-4 p-3 bg-purple-50 rounded-lg">
                   <div className="h-2 w-2 bg-purple-500 rounded-full"></div>
                   <div className="flex-1">
-                    <p className="font-medium">Earned "Vocabulary Master" badge</p>
+                    <p className="font-medium">Requested lesson with teacher</p>
                     <p className="text-sm text-muted-foreground">3 days ago</p>
                   </div>
-                  <Badge variant="secondary">Achievement</Badge>
+                  <Badge variant="outline">Pending</Badge>
                 </div>
               </div>
             </CardContent>
