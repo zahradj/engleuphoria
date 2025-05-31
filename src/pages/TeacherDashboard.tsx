@@ -1,12 +1,13 @@
 
 import { useState, useEffect } from "react";
 import { TeacherDashboardHeader } from "@/components/teacher/dashboard/TeacherDashboardHeader";
-import { TeacherDashboardContent } from "@/components/teacher/dashboard/TeacherDashboardContent";
-import { TeacherDashboardFooter } from "@/components/teacher/dashboard/TeacherDashboardFooter";
+import { TeacherDashboardSidebar } from "@/components/teacher/dashboard/TeacherDashboardSidebar";
+import { TeacherMainContent } from "@/components/teacher/dashboard/TeacherMainContent";
 import { useTeacherAuth } from "@/hooks/useTeacherAuth";
 import { useTeacherHandlers } from "@/hooks/useTeacherHandlers";
 
 const TeacherDashboard = () => {
+  const [activeSection, setActiveSection] = useState("overview");
   const [lessonPlans, setLessonPlans] = useState<any[]>([]);
   const { teacherName } = useTeacherAuth();
   const handlers = useTeacherHandlers();
@@ -25,18 +26,24 @@ const TeacherDashboard = () => {
   }, []);
   
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-purple-50 to-blue-50">
+    <div className="min-h-screen bg-gray-50">
       <TeacherDashboardHeader 
         teacherName={teacherName}
         onLogout={handlers.handleLogout}
       />
       
-      <TeacherDashboardContent 
-        lessonPlans={lessonPlans}
-        handlers={handlers}
-      />
-      
-      <TeacherDashboardFooter />
+      <div className="flex">
+        <TeacherDashboardSidebar 
+          activeSection={activeSection}
+          onSectionChange={setActiveSection}
+        />
+        
+        <TeacherMainContent 
+          activeSection={activeSection}
+          lessonPlans={lessonPlans}
+          handlers={handlers}
+        />
+      </div>
     </div>
   );
 };
