@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -82,7 +83,7 @@ const Login = () => {
         navigate("/teacher-dashboard");
       } else {
         console.log("Navigating to student dashboard");
-        navigate("/dashboard");
+        navigate("/student-dashboard");
       }
     }, 1500);
   };

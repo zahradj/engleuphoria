@@ -66,7 +66,7 @@ const SignUp = () => {
       if (values.userType === "teacher") {
         navigate("/teacher-dashboard");
       } else {
-        navigate("/dashboard");
+        navigate("/student-dashboard");
       }
     }, 1500);
   };

@@ -9,6 +9,7 @@ import Index from "@/pages/Index";
 import Login from "@/pages/Login";
 import SignUp from "@/pages/SignUp";
 import Dashboard from "@/pages/Dashboard";
+import StudentDashboard from "@/pages/StudentDashboard";
 import ClassroomPage from "@/pages/ClassroomPage";
 import SimpleClassroomSelector from "@/pages/SimpleClassroomSelector";
 import TeacherDashboard from "@/pages/TeacherDashboard";
@@ -35,6 +36,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/student-dashboard" element={<StudentDashboard />} />
             <Route path="/classroom" element={<ClassroomPage />} />
             <Route path="/classroom-selector" element={<SimpleClassroomSelector />} />
             <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
