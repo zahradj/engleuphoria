@@ -1,13 +1,11 @@
 
 import { useState, useEffect } from "react";
 import { TeacherDashboardHeader } from "@/components/teacher/dashboard/TeacherDashboardHeader";
-import { TeacherDashboardSidebar } from "@/components/teacher/dashboard/TeacherDashboardSidebar";
-import { TeacherMainContent } from "@/components/teacher/dashboard/TeacherMainContent";
+import { TeacherDashboardContent } from "@/components/teacher/dashboard/TeacherDashboardContent";
 import { useTeacherAuth } from "@/hooks/useTeacherAuth";
 import { useTeacherHandlers } from "@/hooks/useTeacherHandlers";
 
 const TeacherDashboard = () => {
-  const [activeSection, setActiveSection] = useState("overview");
   const [lessonPlans, setLessonPlans] = useState<any[]>([]);
   const { teacherName } = useTeacherAuth();
   const handlers = useTeacherHandlers();
@@ -32,18 +30,10 @@ const TeacherDashboard = () => {
         onLogout={handlers.handleLogout}
       />
       
-      <div className="flex">
-        <TeacherDashboardSidebar 
-          activeSection={activeSection}
-          onSectionChange={setActiveSection}
-        />
-        
-        <TeacherMainContent 
-          activeSection={activeSection}
-          lessonPlans={lessonPlans}
-          handlers={handlers}
-        />
-      </div>
+      <TeacherDashboardContent 
+        lessonPlans={lessonPlans}
+        handlers={handlers}
+      />
     </div>
   );
 };
