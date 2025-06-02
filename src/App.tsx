@@ -8,6 +8,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import Index from "@/pages/Index";
 import Login from "@/pages/Login";
 import SignUp from "@/pages/SignUp";
+import StudentDashboard from "@/pages/StudentDashboard";
 import ClassroomPage from "@/pages/ClassroomPage";
 import SimpleClassroomSelector from "@/pages/SimpleClassroomSelector";
 import LessonPlanCreator from "@/pages/LessonPlanCreator";
@@ -32,6 +33,7 @@ function App() {
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/student-dashboard" element={<StudentDashboard />} />
             <Route path="/classroom" element={<ClassroomPage />} />
             <Route path="/classroom-selector" element={<SimpleClassroomSelector />} />
             <Route path="/lesson-plan-creator" element={<LessonPlanCreator />} />

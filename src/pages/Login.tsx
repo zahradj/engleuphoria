@@ -42,12 +42,12 @@ const Login = () => {
       const studentName = email.split("@")[0];
       localStorage.setItem("studentName", studentName);
       localStorage.setItem("userType", "student");
-      localStorage.setItem("points", "0");
+      localStorage.setItem("points", "50");
       toast({
         title: languageText.loginSuccessful,
         description: `${languageText.welcomeBack} ${studentName}!`,
       });
-      navigate("/");
+      navigate("/student-dashboard");
     }
   };
 
