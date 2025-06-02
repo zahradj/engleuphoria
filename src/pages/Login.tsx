@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,37 +16,41 @@ const Login = () => {
   const { toast } = useToast();
   const { languageText } = useLanguage();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password) {
+    if (email && password) {
+      // Store user data in localStorage
+      if (userType === "student") {
+        localStorage.setItem("studentName", email.split("@")[0]);
+        localStorage.setItem("points", "50");
+        localStorage.setItem("userType", "student");
+        
+        toast({
+          title: "Login successful!",
+          description: "Welcome to your student dashboard",
+        });
+        
+        navigate("/student-dashboard");
+      } else if (userType === "teacher") {
+        localStorage.setItem("teacherName", email.split("@")[0]);
+        localStorage.setItem("userType", "teacher");
+        
+        toast({
+          title: "Login successful!",
+          description: "Welcome to your teacher dashboard",
+        });
+        
+        navigate("/teacher-dashboard");
+      } else {
+        navigate("/");
+      }
+    } else {
       toast({
-        title: languageText.error,
-        description: languageText.pleaseEnterEmailAndPassword,
+        title: "Please fill in all fields",
+        description: "Email and password are required",
         variant: "destructive",
       });
-      return;
-    }
-
-    if (userType === "teacher") {
-      const teacherName = email.split("@")[0];
-      localStorage.setItem("teacherName", teacherName);
-      localStorage.setItem("userType", "teacher");
-      toast({
-        title: languageText.loginSuccessful,
-        description: `${languageText.welcomeBack} ${teacherName}!`,
-      });
-      navigate("/");
-    } else {
-      const studentName = email.split("@")[0];
-      localStorage.setItem("studentName", studentName);
-      localStorage.setItem("userType", "student");
-      localStorage.setItem("points", "50");
-      toast({
-        title: languageText.loginSuccessful,
-        description: `${languageText.welcomeBack} ${studentName}!`,
-      });
-      navigate("/student-dashboard");
     }
   };
 
@@ -64,7 +67,7 @@ const Login = () => {
             <p className="text-gray-600 mt-2">{languageText.signInToContinue}</p>
           </CardHeader>
           <CardContent className="space-y-6">
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">{languageText.email}</Label>
                 <Input

@@ -1,18 +1,37 @@
 
 import React from "react";
-import { ClassroomHeader } from "./ClassroomHeader";
 
 interface ClassroomLayoutProps {
-  children: React.ReactNode;
-  studentName: string;
-  points: number;
-  isTeacherView: boolean;
+  children?: React.ReactNode;
+  studentName?: string;
+  points?: number;
+  isTeacherView?: boolean;
+  mainContent?: React.ReactElement;
+  sidebarContent?: React.ReactElement;
 }
 
-export const ClassroomLayout = ({ children, studentName, points, isTeacherView }: ClassroomLayoutProps) => {
+export const ClassroomLayout = ({ 
+  children, 
+  studentName, 
+  points, 
+  isTeacherView, 
+  mainContent, 
+  sidebarContent 
+}: ClassroomLayoutProps) => {
   return (
     <div className="min-h-screen bg-gray-50">
-      {children}
+      {mainContent && sidebarContent ? (
+        <div className="flex h-screen">
+          <div className="w-1/4 bg-white border-r border-gray-200">
+            {sidebarContent}
+          </div>
+          <div className="flex-1">
+            {mainContent}
+          </div>
+        </div>
+      ) : (
+        children
+      )}
     </div>
   );
 };
