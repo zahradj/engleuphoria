@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -50,6 +49,10 @@ const StudentDashboard = () => {
     navigate("/");
   };
 
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab as TabType);
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'dashboard':
@@ -84,7 +87,7 @@ const StudentDashboard = () => {
       <div className="flex h-screen">
         <StudentSidebar 
           activeTab={activeTab} 
-          setActiveTab={setActiveTab}
+          setActiveTab={handleTabChange}
           onLogout={handleLogout}
         />
         

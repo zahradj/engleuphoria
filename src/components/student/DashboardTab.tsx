@@ -11,7 +11,9 @@ import {
   Clock,
   Star,
   Award,
-  BookOpen
+  BookOpen,
+  MessageCircle,
+  FolderOpen
 } from "lucide-react";
 
 interface DashboardTabProps {
