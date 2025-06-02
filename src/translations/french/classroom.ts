@@ -1,4 +1,3 @@
-
 export const classroomTranslations = {
   // Classroom
   lessonContent: "Leçon",
@@ -66,5 +65,22 @@ export const classroomTranslations = {
   annotationsLoaded: "Annotations chargées avec succès!",
   noSavedAnnotations: "Aucune annotation sauvegardée trouvée",
   errorSavingAnnotations: "Erreur lors de la sauvegarde des annotations",
-  errorLoadingAnnotations: "Erreur lors du chargement des annotations"
+  errorLoadingAnnotations: "Erreur lors du chargement des annotations",
+  
+  // AI Assistant Features  
+  aiAssistant: "Assistant IA",
+  quickContent: "Contenu Rapide",
+  generateContent: "Générer du Contenu",
+  generateWorksheet: "Générer une Fiche",
+  generateActivity: "Générer une Activité",
+  contentGenerated: "Contenu Généré!",
+  worksheetGenerated: "Fiche Générée!",
+  activityGenerated: "Activité Générée!",
+  aiContentReady: "Votre contenu généré par IA est prêt à utiliser.",
+  worksheetReady: "Votre fiche de pratique est prête pour les étudiants.",
+  activityReady: "Votre activité de classe est prête à utiliser.",
+  missingInformation: "Informations Manquantes",
+  provideTopic: "Veuillez fournir un sujet",
+  selectLevel: "Veuillez sélectionner un niveau",
+  selectType: "Veuillez sélectionner un type"
 };

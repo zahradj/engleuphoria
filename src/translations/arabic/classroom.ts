@@ -1,4 +1,3 @@
-
 export const classroomTranslations = {
   // Classroom
   lessonContent: "الدرس",
@@ -32,4 +31,21 @@ export const classroomTranslations = {
   message: "رسالة",
   spotlight: "تسليط الضوء",
   leaveClass: "مغادرة الصف",
+  
+  // AI Assistant Features
+  aiAssistant: "المساعد الذكي",
+  quickContent: "محتوى سريع",
+  generateContent: "إنشاء المحتوى",
+  generateWorksheet: "إنشاء ورقة عمل",
+  generateActivity: "إنشاء نشاط",
+  contentGenerated: "تم إنشاء المحتوى!",
+  worksheetGenerated: "تم إنشاء ورقة العمل!",
+  activityGenerated: "تم إنشاء النشاط!",
+  aiContentReady: "محتواك المُنشأ بالذكاء الاصطناعي جاهز للاستخدام.",
+  worksheetReady: "ورقة العمل التدريبية جاهزة للطلاب.",
+  activityReady: "نشاط الفصل الدراسي جاهز للاستخدام.",
+  missingInformation: "معلومات ناقصة",
+  provideTopic: "يرجى تقديم موضوع",
+  selectLevel: "يرجى اختيار المستوى",
+  selectType: "يرجى اختيار النوع"
 };

@@ -88,5 +88,22 @@ export const classroomTranslations = {
   annotationsLoaded: "Annotations loaded successfully!",
   noSavedAnnotations: "No saved annotations found",
   errorSavingAnnotations: "Error saving annotations",
-  errorLoadingAnnotations: "Error loading annotations"
+  errorLoadingAnnotations: "Error loading annotations",
+  
+  // AI Assistant Features
+  aiAssistant: "AI Assistant",
+  quickContent: "Quick Content",
+  generateContent: "Generate Content",
+  generateWorksheet: "Generate Worksheet",
+  generateActivity: "Generate Activity",
+  contentGenerated: "Content Generated!",
+  worksheetGenerated: "Worksheet Generated!",
+  activityGenerated: "Activity Generated!",
+  aiContentReady: "Your AI-generated content is ready to use.",
+  worksheetReady: "Your practice worksheet is ready for students.",
+  activityReady: "Your classroom activity is ready to use.",
+  missingInformation: "Missing Information",
+  provideTopic: "Please provide a topic",
+  selectLevel: "Please select a level",
+  selectType: "Please select a type"
 };
