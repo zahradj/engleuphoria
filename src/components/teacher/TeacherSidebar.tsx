@@ -5,14 +5,15 @@ import {
   Home, 
   Calendar, 
   Users, 
-  BookOpen, 
+  History, 
   FileText, 
   FolderOpen, 
   MessageCircle, 
   DollarSign, 
-  BarChart3, 
+  BarChart, 
   Settings, 
-  LogOut 
+  LogOut,
+  Sparkles
 } from "lucide-react";
 
 interface TeacherSidebarProps {
@@ -24,57 +25,55 @@ interface TeacherSidebarProps {
 export const TeacherSidebar = ({ activeTab, setActiveTab, onLogout }: TeacherSidebarProps) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
+    { id: 'ai-assistant', label: 'AI Assistant', icon: Sparkles },
     { id: 'calendar', label: 'Calendar', icon: Calendar },
     { id: 'students', label: 'My Students', icon: Users },
-    { id: 'history', label: 'Lesson History', icon: BookOpen },
+    { id: 'history', label: 'Lesson History', icon: History },
     { id: 'assignments', label: 'Assignments', icon: FileText },
     { id: 'resources', label: 'Resource Library', icon: FolderOpen },
     { id: 'messages', label: 'Messages', icon: MessageCircle },
     { id: 'earnings', label: 'Earnings', icon: DollarSign },
-    { id: 'reports', label: 'Reports', icon: BarChart3 },
+    { id: 'reports', label: 'Reports', icon: BarChart },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   return (
-    <div className="w-64 bg-white shadow-lg border-r border-gray-200 flex flex-col">
-      {/* Logo/Brand */}
+    <div className="w-64 bg-white border-r border-gray-200 h-full flex flex-col">
       <div className="p-6 border-b border-gray-200">
-        <h1 className="text-xl font-bold text-teal-600">Teacher Portal</h1>
-        <p className="text-sm text-gray-600">English Learning Platform</p>
+        <h2 className="text-xl font-bold text-teal-600">Teacher Portal</h2>
       </div>
-
-      {/* Navigation Menu */}
+      
       <nav className="flex-1 p-4 space-y-2">
         {menuItems.map((item) => {
           const Icon = item.icon;
-          const isActive = activeTab === item.id;
-          
           return (
             <Button
               key={item.id}
-              variant={isActive ? "default" : "ghost"}
-              className={`w-full justify-start gap-3 text-left ${
-                isActive 
-                  ? "bg-teal-500 text-white hover:bg-teal-600" 
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
+              variant={activeTab === item.id ? "default" : "ghost"}
+              className={`w-full justify-start ${
+                activeTab === item.id 
+                  ? "bg-teal-500 hover:bg-teal-600 text-white" 
+                  : "hover:bg-gray-100"
+              } ${item.id === 'ai-assistant' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600' : ''}`}
               onClick={() => setActiveTab(item.id)}
             >
-              <Icon className="h-5 w-5" />
+              <Icon className="h-5 w-5 mr-3" />
               {item.label}
+              {item.id === 'ai-assistant' && (
+                <Sparkles className="h-4 w-4 ml-auto" />
+              )}
             </Button>
           );
         })}
       </nav>
-
-      {/* Logout Button */}
+      
       <div className="p-4 border-t border-gray-200">
         <Button
           variant="ghost"
-          className="w-full justify-start gap-3 text-red-600 hover:bg-red-50 hover:text-red-700"
+          className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
           onClick={onLogout}
         >
-          <LogOut className="h-5 w-5" />
+          <LogOut className="h-5 w-5 mr-3" />
           Logout
         </Button>
       </div>

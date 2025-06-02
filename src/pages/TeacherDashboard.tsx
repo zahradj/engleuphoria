@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { TeacherSidebar } from "@/components/teacher/TeacherSidebar";
 import { TeacherHeader } from "@/components/teacher/TeacherHeader";
 import { DashboardTab } from "@/components/teacher/DashboardTab";
+import { AIAssistantTab } from "@/components/teacher/AIAssistantTab";
 import { CalendarTab } from "@/components/teacher/CalendarTab";
 import { StudentsTab } from "@/components/teacher/StudentsTab";
 import { LessonHistoryTab } from "@/components/teacher/LessonHistoryTab";
@@ -15,7 +16,7 @@ import { EarningsTab } from "@/components/teacher/EarningsTab";
 import { ReportsTab } from "@/components/teacher/ReportsTab";
 import { SettingsTab } from "@/components/teacher/SettingsTab";
 
-type TabType = 'dashboard' | 'calendar' | 'students' | 'history' | 'assignments' | 'resources' | 'messages' | 'earnings' | 'reports' | 'settings';
+type TabType = 'dashboard' | 'ai-assistant' | 'calendar' | 'students' | 'history' | 'assignments' | 'resources' | 'messages' | 'earnings' | 'reports' | 'settings';
 
 const TeacherDashboard = () => {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
@@ -53,6 +54,8 @@ const TeacherDashboard = () => {
     switch (activeTab) {
       case 'dashboard':
         return <DashboardTab teacherName={teacherName} />;
+      case 'ai-assistant':
+        return <AIAssistantTab />;
       case 'calendar':
         return <CalendarTab />;
       case 'students':
