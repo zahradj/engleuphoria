@@ -8,12 +8,14 @@ import {
   Play,
   CheckCircle,
   Star,
-  Gamepad2
+  Gamepad2,
+  Plus
 } from "lucide-react";
 import { FlashcardsGame } from "./games/FlashcardsGame";
 import { SentenceBuilderGame } from "./games/SentenceBuilderGame";
 import { WordMatchGame } from "./games/WordMatchGame";
 import { QuizSpinnerGame } from "./games/QuizSpinnerGame";
+import { CreateActivityGame } from "./games/CreateActivityGame";
 import { GameTimer } from "./games/GameTimer";
 
 export function OneOnOneGames() {
@@ -48,6 +50,13 @@ export function OneOnOneGames() {
       description: "Spin the wheel for random questions",
       icon: Play,
       color: "bg-orange-100 text-orange-700"
+    },
+    {
+      id: "create-activity",
+      title: "Create Activity",
+      description: "Design your own custom activities",
+      icon: Plus,
+      color: "bg-pink-100 text-pink-700"
     }
   ];
 
@@ -61,10 +70,12 @@ export function OneOnOneGames() {
           >
             ← Back to Games
           </button>
-          <div className="flex items-center gap-3">
-            <GameTimer />
-            <Badge variant="secondary">Score: {score}</Badge>
-          </div>
+          {activeGame !== "create-activity" && (
+            <div className="flex items-center gap-3">
+              <GameTimer />
+              <Badge variant="secondary">Score: {score}</Badge>
+            </div>
+          )}
         </div>
         
         <Card className="flex-1 p-4">
@@ -72,6 +83,7 @@ export function OneOnOneGames() {
           {activeGame === "sentence-builder" && <SentenceBuilderGame />}
           {activeGame === "word-match" && <WordMatchGame />}
           {activeGame === "quiz-spinner" && <QuizSpinnerGame />}
+          {activeGame === "create-activity" && <CreateActivityGame />}
         </Card>
       </div>
     );
