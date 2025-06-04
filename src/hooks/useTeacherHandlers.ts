@@ -24,7 +24,7 @@ export const useTeacherHandlers = () => {
   };
 
   const handleStartClass = () => {
-    navigate("/classroom-selector");
+    navigate("/classroom");
   };
 
   const handleScheduleClass = () => {
@@ -83,14 +83,32 @@ export const useTeacherHandlers = () => {
       title: "Starting Class",
       description: `Starting ${className}...`,
     });
-    // Navigate directly to classroom with teacher mode
-    navigate("/classroom-selector");
+    // Navigate directly to classroom
+    navigate("/classroom");
   };
 
   const handleViewClassDetails = (className: string) => {
     toast({
       title: "Class Details",
       description: `Viewing details for: ${className}`,
+    });
+  };
+
+  const handleJoinClass = () => {
+    navigate("/classroom");
+  };
+
+  const handleCreateAssignment = () => {
+    toast({
+      title: "Create Assignment",
+      description: "Assignment creation will be available soon!",
+    });
+  };
+
+  const handleSendMessage = () => {
+    toast({
+      title: "Send Message",
+      description: "Message functionality will be available soon!",
     });
   };
 
@@ -109,5 +127,8 @@ export const useTeacherHandlers = () => {
     handleViewStudentDetails,
     handleStartScheduledClass,
     handleViewClassDetails,
+    handleJoinClass,
+    handleCreateAssignment,
+    handleSendMessage,
   };
 };

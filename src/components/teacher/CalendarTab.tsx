@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Clock, Users } from "lucide-react";
+import { useTeacherHandlers } from "@/hooks/useTeacherHandlers";
 
 export const CalendarTab = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const { handleScheduleClass, handleJoinClass } = useTeacherHandlers();
 
   const scheduledClasses = [
     {
@@ -32,7 +34,7 @@ export const CalendarTab = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-800">Calendar & Schedule</h1>
-        <Button className="bg-teal-500 hover:bg-teal-600">
+        <Button className="bg-teal-500 hover:bg-teal-600" onClick={handleScheduleClass}>
           <Plus className="h-4 w-4 mr-2" />
           Schedule Class
         </Button>
@@ -80,8 +82,8 @@ export const CalendarTab = () => {
                     </div>
                   </div>
                   <div className="mt-2">
-                    <Button size="sm" className="mr-2">Join Class</Button>
-                    <Button size="sm" variant="outline">Reschedule</Button>
+                    <Button size="sm" className="mr-2" onClick={handleJoinClass}>Join Class</Button>
+                    <Button size="sm" variant="outline" onClick={handleScheduleClass}>Reschedule</Button>
                   </div>
                 </div>
               ))}

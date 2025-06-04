@@ -1,11 +1,13 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Eye, Download, MessageCircle, Clock } from "lucide-react";
+import { useTeacherHandlers } from "@/hooks/useTeacherHandlers";
 
 export const AssignmentsTab = () => {
+  const { handleCreateAssignment, handleSendMessage } = useTeacherHandlers();
+
   const assignments = [
     {
       id: 1,
@@ -63,7 +65,7 @@ export const AssignmentsTab = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-800">Assignments & Homework</h1>
-        <Button className="bg-teal-500 hover:bg-teal-600">
+        <Button className="bg-teal-500 hover:bg-teal-600" onClick={handleCreateAssignment}>
           <Plus className="h-4 w-4 mr-2" />
           Create Assignment
         </Button>

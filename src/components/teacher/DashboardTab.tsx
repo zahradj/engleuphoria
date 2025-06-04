@@ -15,12 +15,21 @@ import {
   AlertCircle,
   Star
 } from "lucide-react";
+import { useTeacherHandlers } from "@/hooks/useTeacherHandlers";
 
 interface DashboardTabProps {
   teacherName: string;
 }
 
 export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
+  const { 
+    handleJoinClass, 
+    handleScheduleClass, 
+    handleCreateAssignment, 
+    handleSendMessage, 
+    handleManageStudents 
+  } = useTeacherHandlers();
+
   const todaysClasses = [
     {
       id: 1,
@@ -126,7 +135,7 @@ export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
                   </div>
                   <div className="flex gap-2">
                     {cls.status === "ready" ? (
-                      <Button size="sm" className="bg-teal-500 hover:bg-teal-600">
+                      <Button size="sm" className="bg-teal-500 hover:bg-teal-600" onClick={handleJoinClass}>
                         <Play className="h-4 w-4 mr-1" />
                         Start
                       </Button>
@@ -216,19 +225,19 @@ export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
             <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button variant="outline" className="w-full justify-start">
+            <Button variant="outline" className="w-full justify-start" onClick={handleScheduleClass}>
               <Calendar className="mr-2 h-4 w-4" />
               Schedule Class
             </Button>
-            <Button variant="outline" className="w-full justify-start">
+            <Button variant="outline" className="w-full justify-start" onClick={handleCreateAssignment}>
               <FileText className="mr-2 h-4 w-4" />
               Create Assignment
             </Button>
-            <Button variant="outline" className="w-full justify-start">
+            <Button variant="outline" className="w-full justify-start" onClick={handleSendMessage}>
               <MessageCircle className="mr-2 h-4 w-4" />
               Send Message
             </Button>
-            <Button variant="outline" className="w-full justify-start">
+            <Button variant="outline" className="w-full justify-start" onClick={handleManageStudents}>
               <Users className="mr-2 h-4 w-4" />
               View Students
             </Button>
