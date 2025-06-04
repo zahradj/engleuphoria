@@ -117,36 +117,36 @@ export const CalendarTab = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <h1 className="text-2xl font-bold text-gray-800">Weekly Schedule</h1>
+          <h1 className="text-2xl font-bold text-foreground">Weekly Schedule</h1>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => navigateWeek('prev')}>
+            <Button variant="outline" size="sm" onClick={() => navigateWeek('prev')} className="border-purple/30 hover:bg-purple-light/50">
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <span className="text-sm font-medium min-w-[120px] text-center">
+            <span className="text-sm font-medium min-w-[120px] text-center text-muted-foreground">
               {weekDates[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {weekDates[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
             </span>
-            <Button variant="outline" size="sm" onClick={() => navigateWeek('next')}>
+            <Button variant="outline" size="sm" onClick={() => navigateWeek('next')} className="border-purple/30 hover:bg-purple-light/50">
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         </div>
-        <Button className="bg-teal-500 hover:bg-teal-600" onClick={handleScheduleClass}>
+        <Button className="bg-gradient-to-r from-purple to-teal hover:from-purple-dark hover:to-teal-dark text-white" onClick={handleScheduleClass}>
           <Plus className="h-4 w-4 mr-2" />
           Schedule Class
         </Button>
       </div>
 
-      <Card>
+      <Card className="border-purple/20 shadow-lg">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <div className="min-w-[800px]">
               {/* Header with days */}
-              <div className="grid grid-cols-8 border-b bg-gray-50">
-                <div className="p-3 border-r font-medium text-sm">Time</div>
+              <div className="grid grid-cols-8 border-b bg-gradient-to-r from-purple-light/30 to-teal-light/30">
+                <div className="p-3 border-r border-purple/20 font-medium text-sm text-foreground">Time</div>
                 {weekDays.map((day, index) => (
-                  <div key={day} className="p-3 border-r text-center">
-                    <div className="font-medium text-sm">{day}</div>
-                    <div className="text-xs text-gray-500">
+                  <div key={day} className="p-3 border-r border-purple/20 text-center">
+                    <div className="font-medium text-sm text-foreground">{day}</div>
+                    <div className="text-xs text-muted-foreground">
                       {weekDates[index].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </div>
                   </div>
@@ -156,23 +156,27 @@ export const CalendarTab = () => {
               {/* Time slots grid */}
               <div className="max-h-[600px] overflow-y-auto">
                 {timeSlots.map((timeSlot) => (
-                  <div key={timeSlot} className="grid grid-cols-8 border-b min-h-[60px]">
-                    <div className="p-3 border-r text-sm font-medium bg-gray-50 flex items-center">
+                  <div key={timeSlot} className="grid grid-cols-8 border-b border-purple/10 min-h-[60px]">
+                    <div className="p-3 border-r border-purple/20 text-sm font-medium bg-gradient-to-r from-purple-light/20 to-teal-light/20 flex items-center text-foreground">
                       {timeSlot}
                     </div>
                     {weekDays.map((_, dayIndex) => (
-                      <div key={dayIndex} className="border-r p-1 relative">
+                      <div key={dayIndex} className="border-r border-purple/10 p-1 relative hover:bg-purple-light/10 transition-colors">
                         {getClassesForTimeSlot(timeSlot, dayIndex).map((cls) => (
                           <div
                             key={cls.id}
-                            className="bg-teal-100 border border-teal-300 rounded p-2 mb-1 text-xs cursor-pointer hover:bg-teal-200 transition-colors"
+                            className="bg-gradient-to-r from-teal-light to-purple-light border border-teal/40 rounded-lg p-2 mb-1 text-xs cursor-pointer hover:from-teal hover:to-purple hover:text-white transition-all duration-200 shadow-sm"
                             onClick={handleJoinClass}
                           >
-                            <div className="font-semibold text-teal-800">{cls.title}</div>
-                            <div className="text-teal-600">{cls.studentName}</div>
+                            <div className="font-semibold text-teal-dark">{cls.title}</div>
+                            <div className="text-purple-dark">{cls.studentName}</div>
                             <Badge 
                               variant={cls.type === "group" ? "default" : "secondary"}
-                              className="text-xs mt-1"
+                              className={`text-xs mt-1 ${
+                                cls.type === "group" 
+                                  ? "bg-orange text-white" 
+                                  : "bg-yellow text-yellow-dark"
+                              }`}
                             >
                               {cls.type}
                             </Badge>
