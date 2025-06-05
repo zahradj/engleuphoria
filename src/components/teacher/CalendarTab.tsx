@@ -174,8 +174,8 @@ export const CalendarTab = () => {
                               variant={cls.type === "group" ? "default" : "secondary"}
                               className={`text-xs mt-1 ${
                                 cls.type === "group" 
-                                  ? "bg-orange text-white" 
-                                  : "bg-orange-light text-orange-dark"
+                                  ? "bg-purple text-white" 
+                                  : "bg-purple-light text-purple-dark"
                               }`}
                             >
                               {cls.type}
