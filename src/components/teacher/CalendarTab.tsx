@@ -175,7 +175,7 @@ export const CalendarTab = () => {
                               className={`text-xs mt-1 ${
                                 cls.type === "group" 
                                   ? "bg-orange text-white" 
-                                  : "bg-yellow text-yellow-dark"
+                                  : "bg-orange-light text-orange-dark"
                               }`}
                             >
                               {cls.type}
