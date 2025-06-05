@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Sparkles, 
   FileText, 
-  PuzzlePiece, 
+  Puzzle, 
   BookOpen, 
   Brain, 
   Loader2,
@@ -162,7 +161,7 @@ export const EnhancedAIAssistant = () => {
                   {isGenerating ? (
                     <Loader2 className="h-6 w-6 animate-spin" />
                   ) : (
-                    <PuzzlePiece className="h-6 w-6" />
+                    <Puzzle className="h-6 w-6" />
                   )}
                   Generate Activity
                 </Button>
