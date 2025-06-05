@@ -112,6 +112,35 @@ export const useTeacherHandlers = () => {
     });
   };
 
+  // New handlers for backend and AI integration
+  const handleBackendSetup = () => {
+    toast({
+      title: "Backend Setup",
+      description: "Opening backend integration panel...",
+    });
+  };
+
+  const handleAIAssistant = () => {
+    toast({
+      title: "AI Assistant",
+      description: "Opening enhanced AI assistant...",
+    });
+  };
+
+  const handleDatabaseConfig = () => {
+    toast({
+      title: "Database Configuration",
+      description: "Configure your database connection and schema.",
+    });
+  };
+
+  const handleAPIIntegration = () => {
+    toast({
+      title: "API Integration",
+      description: "Manage your third-party API connections.",
+    });
+  };
+
   return {
     handleLogout,
     handleCreateLessonPlan,
@@ -130,5 +159,10 @@ export const useTeacherHandlers = () => {
     handleJoinClass,
     handleCreateAssignment,
     handleSendMessage,
+    // New handlers
+    handleBackendSetup,
+    handleAIAssistant,
+    handleDatabaseConfig,
+    handleAPIIntegration,
   };
 };
