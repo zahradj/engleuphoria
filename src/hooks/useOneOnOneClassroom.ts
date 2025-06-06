@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 export function useOneOnOneClassroom() {
+  console.log("useOneOnOneClassroom hook initializing");
+  
   const [isRecording, setIsRecording] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
@@ -14,16 +16,23 @@ export function useOneOnOneClassroom() {
   const [showRewardPopup, setShowRewardPopup] = useState(false);
   const { toast } = useToast();
 
+  console.log("Hook state initialized");
+
   // Class timer
   useEffect(() => {
+    console.log("Setting up class timer");
     const timer = setInterval(() => {
       setClassTime(prev => prev + 1);
     }, 1000);
 
-    return () => clearInterval(timer);
+    return () => {
+      console.log("Cleaning up class timer");
+      clearInterval(timer);
+    };
   }, []);
 
   const toggleRecording = () => {
+    console.log("Toggling recording:", !isRecording);
     setIsRecording(!isRecording);
     toast({
       title: isRecording ? "Recording Stopped" : "Recording Started",
@@ -32,6 +41,7 @@ export function useOneOnOneClassroom() {
   };
 
   const awardPoints = () => {
+    console.log("Awarding points");
     setStudentXP(prev => prev + 50);
     setShowRewardPopup(true);
     setTimeout(() => setShowRewardPopup(false), 3000);
@@ -41,6 +51,8 @@ export function useOneOnOneClassroom() {
     });
   };
 
+  console.log("Hook returning values");
+  
   return {
     isRecording,
     isMuted,

@@ -16,20 +16,31 @@ export function OneOnOneVideoSection({
   currentUserName,
   isTeacher
 }: OneOnOneVideoSectionProps) {
-  return (
-    <Card className="h-full p-4 shadow-lg">
-      <div className="mb-3 flex items-center justify-between">
-        <h3 className="font-semibold text-gray-700">Video Conference</h3>
-      </div>
-      
-      <div className="h-[calc(100%-40px)]">
-        <FunctionalVideoPanel
-          roomId={roomId}
-          currentUserId={currentUserId}
-          currentUserName={currentUserName}
-          isTeacher={isTeacher}
-        />
-      </div>
-    </Card>
-  );
+  console.log("OneOnOneVideoSection rendering with props:", { roomId, currentUserId, currentUserName, isTeacher });
+  
+  try {
+    return (
+      <Card className="h-full p-4 shadow-lg">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="font-semibold text-gray-700">Video Conference</h3>
+        </div>
+        
+        <div className="h-[calc(100%-40px)]">
+          <FunctionalVideoPanel
+            roomId={roomId}
+            currentUserId={currentUserId}
+            currentUserName={currentUserName}
+            isTeacher={isTeacher}
+          />
+        </div>
+      </Card>
+    );
+  } catch (error) {
+    console.error("Error in OneOnOneVideoSection:", error);
+    return (
+      <Card className="h-full p-4 shadow-lg">
+        <div className="text-red-600">Video section failed to load</div>
+      </Card>
+    );
+  }
 }
