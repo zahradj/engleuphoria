@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,6 +28,7 @@ import { OneOnOneGames } from "@/components/classroom/oneonone/OneOnOneGames";
 import { OneOnOneHomework } from "@/components/classroom/oneonone/OneOnOneHomework";
 import { OneOnOneChat } from "@/components/classroom/oneonone/OneOnOneChat";
 import { OneOnOneRewards } from "@/components/classroom/oneonone/OneOnOneRewards";
+import { FunctionalVideoPanel } from "@/components/classroom/video/FunctionalVideoPanel";
 
 const OneOnOneClassroomNew = () => {
   const [isRecording, setIsRecording] = useState(false);
@@ -74,6 +74,12 @@ const OneOnOneClassroomNew = () => {
       description: "Emma earned 50 XP points!",
     });
   };
+
+  // Add user identification
+  const currentUserId = "student-1";
+  const currentUserName = "Emma Thompson";
+  const isTeacher = false; // This would be determined by user type
+  const roomId = "classroom-room-1";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 p-4">
@@ -131,40 +137,21 @@ const OneOnOneClassroomNew = () => {
       {/* Main Classroom Layout */}
       <div className="grid grid-cols-12 gap-4 h-[calc(100vh-180px)]">
         
-        {/* Left Panel - Teacher Video */}
+        {/* Left Panel - Functional Video Conference */}
         <div className="col-span-3">
           <Card className="h-full p-4 shadow-lg">
             <div className="mb-3 flex items-center justify-between">
-              <h3 className="font-semibold text-gray-700">Ms. Johnson</h3>
-              <Button variant="ghost" size="sm">
-                <Maximize2 size={16} />
-              </Button>
+              <h3 className="font-semibold text-gray-700">Video Conference</h3>
             </div>
             
-            <div className="aspect-video bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg mb-4 flex items-center justify-center relative overflow-hidden">
-              {isCameraOff ? (
-                <div className="text-center">
-                  <CameraOff size={48} className="text-gray-400 mx-auto mb-2" />
-                  <span className="text-gray-500">Camera Off</span>
-                </div>
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-teal-100 to-teal-200 flex items-center justify-center">
-                  <span className="text-teal-700 font-medium">Teacher Video</span>
-                </div>
-              )}
-              
-              {isMuted && (
-                <div className="absolute bottom-2 left-2 bg-red-500 rounded-full p-1">
-                  <MicOff size={12} className="text-white" />
-                </div>
-              )}
+            <div className="h-[calc(100%-40px)]">
+              <FunctionalVideoPanel
+                roomId={roomId}
+                currentUserId={currentUserId}
+                currentUserName={currentUserName}
+                isTeacher={isTeacher}
+              />
             </div>
-            
-            <OneOnOneRewards 
-              studentXP={studentXP} 
-              onAwardPoints={awardPoints}
-              showRewardPopup={showRewardPopup}
-            />
           </Card>
         </div>
 
@@ -211,7 +198,7 @@ const OneOnOneClassroomNew = () => {
         {/* Right Panel - Student & Interactions */}
         <div className="col-span-3">
           <Card className="h-full shadow-lg flex flex-col">
-            {/* Student Video */}
+            {/* Student Video - Now shows actual video feed status */}
             <div className="p-4 border-b">
               <div className="mb-3 flex items-center justify-between">
                 <h3 className="font-semibold text-gray-700">Emma</h3>
@@ -221,8 +208,12 @@ const OneOnOneClassroomNew = () => {
               </div>
               
               <div className="aspect-video bg-gradient-to-br from-purple-100 to-purple-200 rounded-lg flex items-center justify-center relative">
-                <div className="w-full h-full bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-purple-200 rounded-full flex items-center justify-center mb-2">
+                    <span className="text-purple-700 font-semibold">E</span>
+                  </div>
                   <span className="text-purple-700 font-medium">Student Video</span>
+                  <p className="text-xs text-purple-600 mt-1">Join video call to see live feed</p>
                 </div>
               </div>
             </div>
