@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useWebRTC } from '@/hooks/useWebRTC';
 import { FunctionalVideoFeed } from './FunctionalVideoFeed';
@@ -81,7 +82,7 @@ export function FunctionalVideoPanel({
   const otherStreams = streams.filter(s => s.id !== currentUserId);
 
   return (
-    <div className="w-full h-full bg-gray-900 rounded-lg p-4">
+    <div className="w-full h-full bg-gray-900 rounded-lg p-4 flex flex-col">
       {/* Connection Status */}
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -106,12 +107,12 @@ export function FunctionalVideoPanel({
 
       {/* Video Grid */}
       {isConnected && (
-        <>
+        <div className="flex-1 flex flex-col">
           {/* Main video area */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+          <div className="flex-1 grid grid-cols-1 gap-4 mb-4 min-h-0">
             {/* Current user */}
             {currentUserStream && (
-              <div className="aspect-video">
+              <div className="h-full min-h-[200px]">
                 <FunctionalVideoFeed
                   stream={currentUserStream.stream}
                   name={currentUserName}
@@ -129,7 +130,7 @@ export function FunctionalVideoPanel({
 
             {/* Other participants */}
             {otherStreams.map(stream => (
-              <div key={stream.id} className="aspect-video">
+              <div key={stream.id} className="h-full min-h-[200px]">
                 <FunctionalVideoFeed
                   stream={stream.stream}
                   name={stream.id === 'teacher-1' ? 'Ms. Johnson' : 'Student'}
@@ -143,7 +144,7 @@ export function FunctionalVideoPanel({
           </div>
 
           {/* Control buttons */}
-          <div className="flex justify-center gap-4">
+          <div className="flex justify-center gap-4 mt-auto">
             <Button
               variant={isMuted ? "destructive" : "outline"}
               size="lg"
@@ -162,12 +163,12 @@ export function FunctionalVideoPanel({
               {isCameraOff ? <VideoOff size={20} /> : <Video size={20} />}
             </Button>
           </div>
-        </>
+        </div>
       )}
 
       {/* Placeholder when not connected */}
       {!isConnected && (
-        <div className="flex flex-col items-center justify-center h-64 text-gray-400">
+        <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
           <Video size={48} className="mb-4" />
           <p className="text-lg">Click "Join Call" to start video conference</p>
           <p className="text-sm">Make sure to allow camera and microphone access</p>

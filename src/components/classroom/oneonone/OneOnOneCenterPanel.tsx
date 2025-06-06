@@ -2,10 +2,11 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, Star, Gamepad2 } from "lucide-react";
+import { FileText, Star, Gamepad2, Link } from "lucide-react";
 import { OneOnOneWhiteboard } from "./OneOnOneWhiteboard";
 import { OneOnOneAIAssistant } from "./OneOnOneAIAssistant";
 import { OneOnOneGames } from "./OneOnOneGames";
+import { EmbeddedLinksPanel } from "../content/EmbeddedLinksPanel";
 
 interface OneOnOneCenterPanelProps {
   activeCenterTab: string;
@@ -44,6 +45,14 @@ export function OneOnOneCenterPanel({
             <Gamepad2 size={16} className="mr-1" />
             Activities
           </Button>
+          <Button
+            variant={activeCenterTab === "links" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => onTabChange("links")}
+          >
+            <Link size={16} className="mr-1" />
+            Links
+          </Button>
         </div>
       </div>
       
@@ -51,6 +60,7 @@ export function OneOnOneCenterPanel({
         {activeCenterTab === "whiteboard" && <OneOnOneWhiteboard />}
         {activeCenterTab === "ai" && <OneOnOneAIAssistant />}
         {activeCenterTab === "games" && <OneOnOneGames />}
+        {activeCenterTab === "links" && <EmbeddedLinksPanel isTeacher={false} />}
       </div>
     </Card>
   );
