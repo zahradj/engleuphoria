@@ -1,9 +1,9 @@
-
 import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Pencil, 
   Eraser, 
@@ -15,7 +15,8 @@ import {
   Upload,
   Highlighter,
   Gamepad2,
-  X
+  X,
+  AlertTriangle
 } from "lucide-react";
 
 interface EmbeddedGame {
@@ -26,6 +27,7 @@ interface EmbeddedGame {
   y: number;
   width: number;
   height: number;
+  isBlocked?: boolean;
 }
 
 export function OneOnOneWhiteboard() {
@@ -38,6 +40,7 @@ export function OneOnOneWhiteboard() {
   const [gameTitle, setGameTitle] = useState("");
   const [isGameDialogOpen, setIsGameDialogOpen] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { toast } = useToast();
 
   const colors = ["#2563eb", "#16a34a", "#dc2626", "#ca8a04", "#7c3aed", "#000000"];
 
@@ -52,17 +55,62 @@ export function OneOnOneWhiteboard() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   };
 
+  const isValidGameUrl = (url: string): boolean => {
+    try {
+      const urlObj = new URL(url);
+      // Allow common educational game domains
+      const allowedDomains = [
+        'scratch.mit.edu',
+        'kahoot.it',
+        'kahoot.com',
+        'wordwall.net',
+        'nearpod.com',
+        'padlet.com',
+        'jamboard.google.com',
+        'youtube.com',
+        'vimeo.com',
+        'education.com',
+        'abcya.com',
+        'coolmathgames.com',
+        'funbrain.com'
+      ];
+      
+      return allowedDomains.some(domain => 
+        urlObj.hostname === domain || urlObj.hostname.endsWith('.' + domain)
+      ) || urlObj.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  };
+
   const addGame = () => {
-    if (!gameUrl || !gameTitle) return;
+    if (!gameUrl || !gameTitle) {
+      toast({
+        title: "Missing Information",
+        description: "Please provide both game title and URL",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!isValidGameUrl(gameUrl)) {
+      toast({
+        title: "Invalid URL",
+        description: "Please use a valid HTTPS URL from a supported domain",
+        variant: "destructive"
+      });
+      return;
+    }
     
     const newGame: EmbeddedGame = {
       id: Date.now().toString(),
       title: gameTitle,
-      url: gameUrl,
+      url: gameUrl.startsWith('http') ? gameUrl : `https://${gameUrl}`,
       x: 50,
       y: 50,
       width: 400,
-      height: 300
+      height: 300,
+      isBlocked: false
     };
 
     setEmbeddedGames(prev => ({
@@ -73,6 +121,20 @@ export function OneOnOneWhiteboard() {
     setGameUrl("");
     setGameTitle("");
     setIsGameDialogOpen(false);
+    
+    toast({
+      title: "Game Added",
+      description: `${gameTitle} has been embedded in the whiteboard`,
+    });
+  };
+
+  const handleIframeError = (gameId: string) => {
+    setEmbeddedGames(prev => ({
+      ...prev,
+      [activeTab]: (prev[activeTab] || []).map(game => 
+        game.id === gameId ? { ...game, isBlocked: true } : game
+      )
+    }));
   };
 
   const removeGame = (gameId: string) => {
@@ -196,27 +258,30 @@ export function OneOnOneWhiteboard() {
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Embed Game</DialogTitle>
+                  <DialogTitle>Embed Educational Content</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-sm font-medium">Game Title</label>
+                    <label className="text-sm font-medium">Content Title</label>
                     <Input
                       value={gameTitle}
                       onChange={(e) => setGameTitle(e.target.value)}
-                      placeholder="Enter game title"
+                      placeholder="Enter content title"
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium">Game URL</label>
+                    <label className="text-sm font-medium">Content URL</label>
                     <Input
                       value={gameUrl}
                       onChange={(e) => setGameUrl(e.target.value)}
-                      placeholder="https://example.com/game"
+                      placeholder="https://scratch.mit.edu/projects/..."
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Supported: Scratch, Kahoot, Wordwall, YouTube, and other educational platforms
+                    </p>
                   </div>
                   <Button onClick={addGame} className="w-full">
-                    Add Game
+                    Add Content
                   </Button>
                 </div>
               </DialogContent>
@@ -282,12 +347,14 @@ export function OneOnOneWhiteboard() {
             {currentPageGames.map((game) => (
               <div
                 key={game.id}
-                className="absolute border-2 border-blue-500 rounded bg-white shadow-lg"
+                className="absolute border-2 border-blue-500 rounded bg-white shadow-lg resize overflow-hidden"
                 style={{
                   left: `${game.x}px`,
                   top: `${game.y}px`,
                   width: `${game.width}px`,
                   height: `${game.height}px`,
+                  minWidth: '200px',
+                  minHeight: '150px'
                 }}
               >
                 <div className="flex items-center justify-between p-2 bg-blue-500 text-white text-sm">
@@ -301,11 +368,34 @@ export function OneOnOneWhiteboard() {
                     <X size={12} />
                   </Button>
                 </div>
-                <iframe
-                  src={game.url}
-                  className="w-full h-[calc(100%-2.5rem)] border-0"
-                  title={game.title}
-                />
+                
+                {game.isBlocked ? (
+                  <div className="w-full h-[calc(100%-2.5rem)] flex flex-col items-center justify-center bg-gray-100 text-gray-600">
+                    <AlertTriangle size={32} className="mb-2" />
+                    <p className="text-sm text-center px-4">
+                      Content blocked by security policy.<br/>
+                      Try using a different URL or platform.
+                    </p>
+                  </div>
+                ) : (
+                  <iframe
+                    src={game.url}
+                    className="w-full h-[calc(100%-2.5rem)] border-0"
+                    title={game.title}
+                    sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                    onError={() => handleIframeError(game.id)}
+                    onLoad={(e) => {
+                      // Check if iframe loaded successfully
+                      const iframe = e.target as HTMLIFrameElement;
+                      try {
+                        // This will throw an error if blocked by CORS
+                        iframe.contentWindow?.document;
+                      } catch {
+                        handleIframeError(game.id);
+                      }
+                    }}
+                  />
+                )}
               </div>
             ))}
             
