@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useWebRTC } from '@/hooks/useWebRTC';
 import { FunctionalVideoFeed } from './FunctionalVideoFeed';
@@ -82,98 +81,108 @@ export function FunctionalVideoPanel({
   const otherStreams = streams.filter(s => s.id !== currentUserId);
 
   return (
-    <div className="w-full h-full bg-gray-900 rounded-lg p-4 flex flex-col">
-      {/* Connection Status */}
-      <div className="mb-4 flex items-center justify-between">
+    <div className="w-full h-full bg-gray-900 rounded-lg flex flex-col overflow-hidden">
+      {/* Connection Status Header */}
+      <div className="p-3 border-b border-gray-700 flex items-center justify-between bg-gray-800">
         <div className="flex items-center gap-2">
-          <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
-          <span className="text-white text-sm">
+          <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+          <span className="text-white text-sm font-medium">
             {isConnected ? 'Connected' : 'Disconnected'}
           </span>
         </div>
         
         {!isConnected ? (
-          <Button onClick={handleJoinCall} className="bg-green-600 hover:bg-green-700">
-            <PhoneCall size={16} className="mr-2" />
+          <Button 
+            onClick={handleJoinCall} 
+            size="sm"
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
+            <PhoneCall size={14} className="mr-1" />
             Join Call
           </Button>
         ) : (
-          <Button onClick={handleLeaveCall} variant="destructive">
-            <PhoneOff size={16} className="mr-2" />
-            Leave Call
+          <Button 
+            onClick={handleLeaveCall} 
+            size="sm"
+            variant="destructive"
+          >
+            <PhoneOff size={14} className="mr-1" />
+            Leave
           </Button>
         )}
       </div>
 
-      {/* Video Grid */}
-      {isConnected && (
-        <div className="flex-1 flex flex-col">
-          {/* Main video area */}
-          <div className="flex-1 grid grid-cols-1 gap-4 mb-4 min-h-0">
-            {/* Current user */}
-            {currentUserStream && (
-              <div className="h-full min-h-[200px]">
-                <FunctionalVideoFeed
-                  stream={currentUserStream.stream}
-                  name={currentUserName}
-                  isTeacher={isTeacher}
-                  isMuted={isMuted}
-                  isCameraOff={isCameraOff}
-                  isHandRaised={isHandRaised}
-                  isCurrentUser={true}
-                  onToggleMute={handleToggleMute}
-                  onToggleCamera={handleToggleCamera}
-                  onRaiseHand={handleToggleHand}
-                />
-              </div>
-            )}
+      {/* Video Content */}
+      <div className="flex-1 p-3 min-h-0">
+        {isConnected ? (
+          <div className="h-full flex flex-col gap-3">
+            {/* Main video feeds */}
+            <div className="flex-1 flex flex-col gap-2 min-h-0">
+              {/* Current user feed */}
+              {currentUserStream && (
+                <div className="h-1/2 min-h-[120px]">
+                  <FunctionalVideoFeed
+                    stream={currentUserStream.stream}
+                    name={currentUserName}
+                    isTeacher={isTeacher}
+                    isMuted={isMuted}
+                    isCameraOff={isCameraOff}
+                    isHandRaised={isHandRaised}
+                    isCurrentUser={true}
+                    isSmall={false}
+                    onToggleMute={handleToggleMute}
+                    onToggleCamera={handleToggleCamera}
+                    onRaiseHand={handleToggleHand}
+                  />
+                </div>
+              )}
 
-            {/* Other participants */}
-            {otherStreams.map(stream => (
-              <div key={stream.id} className="h-full min-h-[200px]">
-                <FunctionalVideoFeed
-                  stream={stream.stream}
-                  name={stream.id === 'teacher-1' ? 'Ms. Johnson' : 'Student'}
-                  isTeacher={stream.id === 'teacher-1'}
-                  isMuted={false}
-                  isCameraOff={false}
-                  isCurrentUser={false}
-                />
-              </div>
-            ))}
+              {/* Other participants */}
+              {otherStreams.map(stream => (
+                <div key={stream.id} className="h-1/2 min-h-[120px]">
+                  <FunctionalVideoFeed
+                    stream={stream.stream}
+                    name={stream.id === 'teacher-1' ? 'Ms. Johnson' : stream.id === 'student-1' ? 'Emma Thompson' : 'Participant'}
+                    isTeacher={stream.id === 'teacher-1'}
+                    isMuted={false}
+                    isCameraOff={false}
+                    isCurrentUser={false}
+                    isSmall={false}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Control buttons */}
+            <div className="flex justify-center gap-2 pt-2 border-t border-gray-700">
+              <Button
+                variant={isMuted ? "destructive" : "outline"}
+                size="sm"
+                onClick={handleToggleMute}
+                className="rounded-full w-10 h-10 p-0"
+              >
+                {isMuted ? <MicOff size={16} /> : <Mic size={16} />}
+              </Button>
+              
+              <Button
+                variant={isCameraOff ? "destructive" : "outline"}
+                size="sm"
+                onClick={handleToggleCamera}
+                className="rounded-full w-10 h-10 p-0"
+              >
+                {isCameraOff ? <VideoOff size={16} /> : <Video size={16} />}
+              </Button>
+            </div>
           </div>
-
-          {/* Control buttons */}
-          <div className="flex justify-center gap-4 mt-auto">
-            <Button
-              variant={isMuted ? "destructive" : "outline"}
-              size="lg"
-              onClick={handleToggleMute}
-              className="rounded-full"
-            >
-              {isMuted ? <MicOff size={20} /> : <Mic size={20} />}
-            </Button>
-            
-            <Button
-              variant={isCameraOff ? "destructive" : "outline"}
-              size="lg"
-              onClick={handleToggleCamera}
-              className="rounded-full"
-            >
-              {isCameraOff ? <VideoOff size={20} /> : <Video size={20} />}
-            </Button>
+        ) : (
+          /* Placeholder when not connected */
+          <div className="h-full flex flex-col items-center justify-center text-gray-400">
+            <Video size={32} className="mb-3" />
+            <p className="text-sm text-center mb-2">Click "Join Call" to start video conference</p>
+            <p className="text-xs text-center text-gray-500">Allow camera and microphone access when prompted</p>
           </div>
-        </div>
-      )}
-
-      {/* Placeholder when not connected */}
-      {!isConnected && (
-        <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
-          <Video size={48} className="mb-4" />
-          <p className="text-lg">Click "Join Call" to start video conference</p>
-          <p className="text-sm">Make sure to allow camera and microphone access</p>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

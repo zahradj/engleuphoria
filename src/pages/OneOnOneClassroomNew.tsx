@@ -40,49 +40,53 @@ const OneOnOneClassroomNew = () => {
 
   try {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 p-4">
-        {/* Top Bar */}
-        <OneOnOneTopBar
-          classTime={classTime}
-          studentName="Emma Thompson"
-          studentLevel={studentLevel}
-          isMuted={isMuted}
-          isCameraOff={isCameraOff}
-          isRecording={isRecording}
-          onToggleMute={() => setIsMuted(!isMuted)}
-          onToggleCamera={() => setIsCameraOff(!isCameraOff)}
-          onToggleRecording={toggleRecording}
-        />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 overflow-hidden">
+        {/* Top Bar - Fixed height */}
+        <div className="h-20 flex-shrink-0 p-4">
+          <OneOnOneTopBar
+            classTime={classTime}
+            studentName="Emma Thompson"
+            studentLevel={studentLevel}
+            isMuted={isMuted}
+            isCameraOff={isCameraOff}
+            isRecording={isRecording}
+            onToggleMute={() => setIsMuted(!isMuted)}
+            onToggleCamera={() => setIsCameraOff(!isCameraOff)}
+            onToggleRecording={toggleRecording}
+          />
+        </div>
 
-        {/* Main Classroom Layout */}
-        <div className="grid grid-cols-12 gap-4 h-[calc(100vh-180px)]">
-          
-          {/* Left Panel - Functional Video Conference */}
-          <div className="col-span-3">
-            <OneOnOneVideoSection
-              roomId={roomId}
-              currentUserId={currentUserId}
-              currentUserName={currentUserName}
-              isTeacher={isTeacher}
-            />
-          </div>
+        {/* Main Classroom Layout - Calculated height */}
+        <div className="h-[calc(100vh-5rem)] px-4 pb-4">
+          <div className="grid grid-cols-12 gap-4 h-full">
+            
+            {/* Left Panel - Video Conference */}
+            <div className="col-span-3 h-full">
+              <OneOnOneVideoSection
+                roomId={roomId}
+                currentUserId={currentUserId}
+                currentUserName={currentUserName}
+                isTeacher={isTeacher}
+              />
+            </div>
 
-          {/* Center Panel - Interactive Content */}
-          <div className="col-span-6">
-            <OneOnOneCenterPanel
-              activeCenterTab={activeCenterTab}
-              onTabChange={setActiveCenterTab}
-            />
-          </div>
+            {/* Center Panel - Interactive Content */}
+            <div className="col-span-6 h-full">
+              <OneOnOneCenterPanel
+                activeCenterTab={activeCenterTab}
+                onTabChange={setActiveCenterTab}
+              />
+            </div>
 
-          {/* Right Panel - Student & Interactions */}
-          <div className="col-span-3">
-            <OneOnOneRightPanel
-              studentName="Emma"
-              studentXP={studentXP}
-              activeRightTab={activeRightTab}
-              onTabChange={setActiveRightTab}
-            />
+            {/* Right Panel - Student & Interactions */}
+            <div className="col-span-3 h-full">
+              <OneOnOneRightPanel
+                studentName="Emma"
+                studentXP={studentXP}
+                activeRightTab={activeRightTab}
+                onTabChange={setActiveRightTab}
+              />
+            </div>
           </div>
         </div>
 

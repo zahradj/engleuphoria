@@ -20,12 +20,15 @@ export function OneOnOneVideoSection({
   
   try {
     return (
-      <Card className="h-full p-4 shadow-lg">
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="font-semibold text-gray-700">Video Conference</h3>
+      <Card className="h-full shadow-lg overflow-hidden">
+        <div className="p-3 border-b bg-gradient-to-r from-blue-50 to-green-50">
+          <h3 className="font-semibold text-gray-700 text-sm">Video Conference</h3>
+          <p className="text-xs text-gray-500 mt-1">
+            {isTeacher ? "Teacher View" : "Student View"}
+          </p>
         </div>
         
-        <div className="h-[calc(100%-40px)]">
+        <div className="h-[calc(100%-60px)]">
           <FunctionalVideoPanel
             roomId={roomId}
             currentUserId={currentUserId}
@@ -38,8 +41,11 @@ export function OneOnOneVideoSection({
   } catch (error) {
     console.error("Error in OneOnOneVideoSection:", error);
     return (
-      <Card className="h-full p-4 shadow-lg">
-        <div className="text-red-600">Video section failed to load</div>
+      <Card className="h-full shadow-lg flex items-center justify-center">
+        <div className="text-center text-red-600">
+          <p className="font-medium">Video section failed to load</p>
+          <p className="text-sm mt-1">Please refresh the page</p>
+        </div>
       </Card>
     );
   }
