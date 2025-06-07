@@ -2,6 +2,8 @@
 import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { 
   Pencil, 
   Eraser, 
@@ -11,14 +13,30 @@ import {
   Trash2, 
   Download,
   Upload,
-  Highlighter
+  Highlighter,
+  Gamepad2,
+  X
 } from "lucide-react";
 
+interface EmbeddedGame {
+  id: string;
+  title: string;
+  url: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export function OneOnOneWhiteboard() {
-  const [activeTool, setActiveTool] = useState<"pencil" | "eraser" | "text" | "highlighter" | "shape">("pencil");
+  const [activeTool, setActiveTool] = useState<"pencil" | "eraser" | "text" | "highlighter" | "shape" | "game">("pencil");
   const [color, setColor] = useState("#2563eb");
   const [activeShape, setActiveShape] = useState<"rectangle" | "circle">("rectangle");
   const [activeTab, setActiveTab] = useState("page1");
+  const [embeddedGames, setEmbeddedGames] = useState<Record<string, EmbeddedGame[]>>({});
+  const [gameUrl, setGameUrl] = useState("");
+  const [gameTitle, setGameTitle] = useState("");
+  const [isGameDialogOpen, setIsGameDialogOpen] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const colors = ["#2563eb", "#16a34a", "#dc2626", "#ca8a04", "#7c3aed", "#000000"];
@@ -34,7 +52,45 @@ export function OneOnOneWhiteboard() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   };
 
+  const addGame = () => {
+    if (!gameUrl || !gameTitle) return;
+    
+    const newGame: EmbeddedGame = {
+      id: Date.now().toString(),
+      title: gameTitle,
+      url: gameUrl,
+      x: 50,
+      y: 50,
+      width: 400,
+      height: 300
+    };
+
+    setEmbeddedGames(prev => ({
+      ...prev,
+      [activeTab]: [...(prev[activeTab] || []), newGame]
+    }));
+    
+    setGameUrl("");
+    setGameTitle("");
+    setIsGameDialogOpen(false);
+  };
+
+  const removeGame = (gameId: string) => {
+    setEmbeddedGames(prev => ({
+      ...prev,
+      [activeTab]: (prev[activeTab] || []).filter(game => game.id !== gameId)
+    }));
+  };
+
+  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (activeTool === "game") {
+      setIsGameDialogOpen(true);
+    }
+  };
+
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (activeTool === "game") return;
+    
     const canvas = e.currentTarget;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
@@ -88,6 +144,8 @@ export function OneOnOneWhiteboard() {
     canvas.removeEventListener('mouseup', stopDrawing);
   };
 
+  const currentPageGames = embeddedGames[activeTab] || [];
+
   return (
     <div className="h-full flex flex-col">
       {/* Toolbar */}
@@ -125,6 +183,44 @@ export function OneOnOneWhiteboard() {
             >
               {activeShape === "rectangle" ? <Square size={16} /> : <Circle size={16} />}
             </Button>
+            
+            <Dialog open={isGameDialogOpen} onOpenChange={setIsGameDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant={activeTool === "game" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setActiveTool("game")}
+                >
+                  <Gamepad2 size={16} />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Embed Game</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium">Game Title</label>
+                    <Input
+                      value={gameTitle}
+                      onChange={(e) => setGameTitle(e.target.value)}
+                      placeholder="Enter game title"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Game URL</label>
+                    <Input
+                      value={gameUrl}
+                      onChange={(e) => setGameUrl(e.target.value)}
+                      placeholder="https://example.com/game"
+                    />
+                  </div>
+                  <Button onClick={addGame} className="w-full">
+                    Add Game
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
             
             <Button
               variant={activeTool === "eraser" ? "default" : "outline"}
@@ -179,7 +275,39 @@ export function OneOnOneWhiteboard() {
               width={800}
               height={600}
               onMouseDown={startDrawing}
+              onClick={handleCanvasClick}
             />
+            
+            {/* Embedded Games */}
+            {currentPageGames.map((game) => (
+              <div
+                key={game.id}
+                className="absolute border-2 border-blue-500 rounded bg-white shadow-lg"
+                style={{
+                  left: `${game.x}px`,
+                  top: `${game.y}px`,
+                  width: `${game.width}px`,
+                  height: `${game.height}px`,
+                }}
+              >
+                <div className="flex items-center justify-between p-2 bg-blue-500 text-white text-sm">
+                  <span className="font-medium truncate">{game.title}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-white hover:bg-blue-600"
+                    onClick={() => removeGame(game.id)}
+                  >
+                    <X size={12} />
+                  </Button>
+                </div>
+                <iframe
+                  src={game.url}
+                  className="w-full h-[calc(100%-2.5rem)] border-0"
+                  title={game.title}
+                />
+              </div>
+            ))}
             
             <div className="absolute bottom-2 right-2 bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">
               Collaborative Mode
