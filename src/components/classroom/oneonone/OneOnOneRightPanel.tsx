@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { MessageCircle, BookOpen } from "lucide-react";
 import { OneOnOneChat } from "./OneOnOneChat";
 import { OneOnOneHomework } from "./OneOnOneHomework";
-import { TeacherVideoFeed } from "../video/TeacherVideoFeed";
+import { CompactVideoFeed } from "../video/CompactVideoFeed";
 import { useWebRTC } from "@/hooks/useWebRTC";
 
 interface OneOnOneRightPanelProps {
@@ -14,16 +14,23 @@ interface OneOnOneRightPanelProps {
   studentXP: number;
   activeRightTab: string;
   onTabChange: (tab: string) => void;
+  currentUserId: string;
+  currentUserName: string;
+  isTeacher: boolean;
 }
 
 export function OneOnOneRightPanel({
   studentName,
   studentXP,
   activeRightTab,
-  onTabChange
+  onTabChange,
+  currentUserId,
+  currentUserName,
+  isTeacher
 }: OneOnOneRightPanelProps) {
   const {
     streams,
+    localStream,
     isConnected,
     isMuted,
     isCameraOff,
@@ -31,32 +38,42 @@ export function OneOnOneRightPanel({
     disconnect,
     toggleVideo,
     toggleAudio
-  } = useWebRTC("classroom-room-1", "student-1");
+  } = useWebRTC("classroom-room-1", isTeacher ? "teacher-1" : "student-1");
 
-  // Find student stream (remote stream for teacher view, local stream for student view)
-  const studentStream = streams.find(s => s.id === "student-1")?.stream || null;
+  // For teacher view: show student video (remote stream)
+  // For student view: show own video (local stream)
+  const videoStream = isTeacher ? 
+    streams.find(s => s.id === "student-1")?.stream || null : 
+    localStream;
+
+  const displayName = isTeacher ? studentName : currentUserName;
+  const userRole = isTeacher ? 'student' : 'student';
+  const isOwnVideo = !isTeacher; // Only students see their own video here
 
   return (
     <Card className="h-full shadow-lg flex flex-col overflow-hidden">
       {/* Student Info Header - Fixed height */}
       <div className="p-3 border-b bg-gradient-to-r from-purple-50 to-purple-100 flex-shrink-0">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold text-gray-700 text-sm">{studentName}</h3>
+          <h3 className="font-semibold text-gray-700 text-sm">{displayName}</h3>
           <Badge className="bg-yellow-100 text-yellow-700 text-xs px-2 py-1">
             Level {Math.floor(studentXP / 100)}
           </Badge>
         </div>
         
         {/* Student video */}
-        <TeacherVideoFeed
-          stream={studentStream}
+        <CompactVideoFeed
+          stream={videoStream}
           isConnected={isConnected}
           isMuted={isMuted}
           isCameraOff={isCameraOff}
-          onToggleMute={toggleAudio}
-          onToggleCamera={toggleVideo}
-          onJoinCall={connectToRoom}
-          onLeaveCall={disconnect}
+          userName={displayName}
+          userRole={userRole}
+          isOwnVideo={isOwnVideo}
+          onToggleMute={isOwnVideo ? toggleAudio : undefined}
+          onToggleCamera={isOwnVideo ? toggleVideo : undefined}
+          onJoinCall={isOwnVideo ? connectToRoom : undefined}
+          onLeaveCall={isOwnVideo ? disconnect : undefined}
         />
         
         {/* XP Progress */}
