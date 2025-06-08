@@ -46,7 +46,19 @@ export function VideoConferencePanel({
   if (compact) {
     if (!mainFeed) return null;
     
-    return <CompactVideoFeed feed={mainFeed} isCurrentUser={isCurrentUser(mainFeed.id)} />;
+    return (
+      <CompactVideoFeed
+        stream={null} // Would need to be connected to actual WebRTC stream
+        isConnected={false} // Would need to be connected to actual WebRTC state
+        isMuted={mainFeed.isMuted}
+        isCameraOff={mainFeed.isCameraOff}
+        userName={mainFeed.name}
+        userRole={mainFeed.isTeacher ? 'teacher' : 'student'}
+        isOwnVideo={isCurrentUser(mainFeed.id)}
+        onToggleMute={() => onToggleMute(mainFeed.id)}
+        onToggleCamera={() => onToggleCamera(mainFeed.id)}
+      />
+    );
   }
 
   return (
