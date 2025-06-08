@@ -36,12 +36,6 @@ export function OneOnOneVideoSection({
 
   return (
     <Card className="h-full shadow-lg flex flex-col overflow-hidden">
-      {/* Header */}
-      <div className="p-3 border-b bg-gradient-to-r from-blue-50 to-green-50 flex-shrink-0">
-        <h3 className="font-semibold text-gray-700 text-sm">Teacher</h3>
-        <p className="text-xs text-gray-500 mt-1">Ms. Johnson - Math Teacher</p>
-      </div>
-      
       {/* Teacher Video */}
       <div className="p-3 flex-shrink-0">
         <TeacherVideoFeed

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { MessageCircle, BookOpen } from "lucide-react";
 import { OneOnOneChat } from "./OneOnOneChat";
 import { OneOnOneHomework } from "./OneOnOneHomework";
-import { StudentVideoFeed } from "../video/StudentVideoFeed";
+import { TeacherVideoFeed } from "../video/TeacherVideoFeed";
 import { useWebRTC } from "@/hooks/useWebRTC";
 
 interface OneOnOneRightPanelProps {
@@ -24,7 +24,13 @@ export function OneOnOneRightPanel({
 }: OneOnOneRightPanelProps) {
   const {
     streams,
-    isConnected
+    isConnected,
+    isMuted,
+    isCameraOff,
+    connectToRoom,
+    disconnect,
+    toggleVideo,
+    toggleAudio
   } = useWebRTC("classroom-room-1", "student-1");
 
   // Find student stream (remote stream for teacher view, local stream for student view)
@@ -42,12 +48,15 @@ export function OneOnOneRightPanel({
         </div>
         
         {/* Student video */}
-        <StudentVideoFeed
+        <TeacherVideoFeed
           stream={studentStream}
           isConnected={isConnected}
-          isMuted={false}
-          isCameraOff={false}
-          studentName={studentName}
+          isMuted={isMuted}
+          isCameraOff={isCameraOff}
+          onToggleMute={toggleAudio}
+          onToggleCamera={toggleVideo}
+          onJoinCall={connectToRoom}
+          onLeaveCall={disconnect}
         />
         
         {/* XP Progress */}
