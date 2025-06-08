@@ -31,9 +31,9 @@ const OneOnOneClassroomNew = () => {
   console.log("Hook data loaded:", { isRecording, isMuted, isCameraOff, classTime });
 
   // Add user identification
-  const currentUserId = "student-1";
-  const currentUserName = "Emma Thompson";
-  const isTeacher = false; // This would be determined by user type
+  const currentUserId = "teacher-1"; // Changed to teacher for demo
+  const currentUserName = "Ms. Johnson";
+  const isTeacher = true;
   const roomId = "classroom-room-1";
 
   console.log("User data:", { currentUserId, currentUserName, isTeacher, roomId });
@@ -60,7 +60,7 @@ const OneOnOneClassroomNew = () => {
         <div className="h-[calc(100vh-5rem)] px-4 pb-4">
           <div className="grid grid-cols-12 gap-4 h-full">
             
-            {/* Left Panel - Video Conference */}
+            {/* Left Panel - Teacher Video & Info */}
             <div className="col-span-3 h-full">
               <OneOnOneVideoSection
                 roomId={roomId}
@@ -78,7 +78,7 @@ const OneOnOneClassroomNew = () => {
               />
             </div>
 
-            {/* Right Panel - Student & Interactions */}
+            {/* Right Panel - Student Video & Interactions */}
             <div className="col-span-3 h-full">
               <OneOnOneRightPanel
                 studentName="Emma"

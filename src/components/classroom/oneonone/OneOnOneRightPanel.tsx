@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { MessageCircle, BookOpen } from "lucide-react";
 import { OneOnOneChat } from "./OneOnOneChat";
 import { OneOnOneHomework } from "./OneOnOneHomework";
+import { StudentVideoFeed } from "../video/StudentVideoFeed";
+import { useWebRTC } from "@/hooks/useWebRTC";
 
 interface OneOnOneRightPanelProps {
   studentName: string;
@@ -20,6 +22,14 @@ export function OneOnOneRightPanel({
   activeRightTab,
   onTabChange
 }: OneOnOneRightPanelProps) {
+  const {
+    streams,
+    isConnected
+  } = useWebRTC("classroom-room-1", "student-1");
+
+  // Find student stream (remote stream for teacher view, local stream for student view)
+  const studentStream = streams.find(s => s.id === "student-1")?.stream || null;
+
   return (
     <Card className="h-full shadow-lg flex flex-col overflow-hidden">
       {/* Student Info Header - Fixed height */}
@@ -31,20 +41,14 @@ export function OneOnOneRightPanel({
           </Badge>
         </div>
         
-        {/* Compact student video placeholder */}
-        <div className="aspect-video bg-gradient-to-br from-purple-100 to-purple-200 rounded-md flex items-center justify-center relative max-h-24">
-          <div className="text-center">
-            <div className="w-8 h-8 bg-purple-200 rounded-full flex items-center justify-center mb-1">
-              <span className="text-purple-700 font-semibold text-xs">E</span>
-            </div>
-            <span className="text-purple-700 font-medium text-xs">Student</span>
-          </div>
-          
-          {/* Connection status indicator */}
-          <div className="absolute top-1 right-1">
-            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-          </div>
-        </div>
+        {/* Student video */}
+        <StudentVideoFeed
+          stream={studentStream}
+          isConnected={isConnected}
+          isMuted={false}
+          isCameraOff={false}
+          studentName={studentName}
+        />
         
         {/* XP Progress */}
         <div className="mt-2">

@@ -14,6 +14,8 @@ export function useWebRTC(roomId: string, userId: string) {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isCameraOff, setIsCameraOff] = useState(false);
   const socketRef = useRef<WebSocket | null>(null);
   const peersRef = useRef<Map<string, Peer.Instance>>(new Map());
 
@@ -39,75 +41,38 @@ export function useWebRTC(roomId: string, userId: string) {
     }
   }, [userId]);
 
-  // Create peer connection
-  const createPeer = useCallback((targetUserId: string, initiator: boolean, stream: MediaStream) => {
-    const peer = new Peer({
-      initiator,
-      trickle: false,
-      stream
-    });
-
-    peer.on('signal', (signal) => {
-      if (socketRef.current?.readyState === WebSocket.OPEN) {
-        socketRef.current.send(JSON.stringify({
-          type: 'signal',
-          signal,
-          targetUserId,
-          userId
-        }));
-      }
-    });
-
-    peer.on('stream', (remoteStream) => {
-      setStreams(prev => {
-        const filtered = prev.filter(s => s.id !== targetUserId);
-        return [...filtered, { id: targetUserId, stream: remoteStream, peer, isLocal: false }];
-      });
-    });
-
-    peer.on('error', (err) => {
-      console.error('Peer error:', err);
-      setError('Connection error with peer');
-    });
-
-    peer.on('close', () => {
-      setStreams(prev => prev.filter(s => s.id !== targetUserId));
-      peersRef.current.delete(targetUserId);
-    });
-
-    peersRef.current.set(targetUserId, peer);
-    return peer;
-  }, [userId]);
-
-  // Connect to signaling server (mock WebSocket for demo)
+  // Connect to room and get media
   const connectToRoom = useCallback(async () => {
     try {
       const stream = await initializeMedia();
       if (!stream) return;
 
-      // Mock WebSocket connection for demo
-      const mockSocket = {
-        readyState: WebSocket.OPEN,
-        send: (data: string) => {
-          console.log('Mock WebSocket send:', data);
-          // In a real implementation, this would send to a signaling server
-        },
-        close: () => console.log('Mock WebSocket closed')
-      } as WebSocket;
-
-      socketRef.current = mockSocket;
       setIsConnected(true);
+      setError(null);
 
-      // Mock receiving other users in the room
+      // For demo purposes, simulate a remote peer joining
       setTimeout(() => {
-        // Simulate another user joining for demo
-        if (userId !== 'teacher-1') {
-          const mockRemoteStream = new MediaStream();
-          setStreams(prev => [
-            ...prev,
-            { id: 'teacher-1', stream: mockRemoteStream, peer: null, isLocal: false }
-          ]);
+        // Create a mock remote stream for demonstration
+        const canvas = document.createElement('canvas');
+        canvas.width = 640;
+        canvas.height = 480;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.fillStyle = '#2563eb';
+          ctx.fillRect(0, 0, 640, 480);
+          ctx.fillStyle = 'white';
+          ctx.font = '24px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('Remote Participant', 320, 240);
         }
+        
+        const mockRemoteStream = canvas.captureStream(30);
+        const remoteUserId = userId === 'teacher-1' ? 'student-1' : 'teacher-1';
+        
+        setStreams(prev => [
+          ...prev,
+          { id: remoteUserId, stream: mockRemoteStream, peer: null, isLocal: false }
+        ]);
       }, 1000);
 
     } catch (err) {
@@ -122,11 +87,13 @@ export function useWebRTC(roomId: string, userId: string) {
       const videoTrack = localStream.getVideoTracks()[0];
       if (videoTrack) {
         videoTrack.enabled = !videoTrack.enabled;
+        setIsCameraOff(!videoTrack.enabled);
         return !videoTrack.enabled;
       }
     }
-    return false;
-  }, [localStream]);
+    setIsCameraOff(!isCameraOff);
+    return !isCameraOff;
+  }, [localStream, isCameraOff]);
 
   // Toggle audio
   const toggleAudio = useCallback(() => {
@@ -134,11 +101,13 @@ export function useWebRTC(roomId: string, userId: string) {
       const audioTrack = localStream.getAudioTracks()[0];
       if (audioTrack) {
         audioTrack.enabled = !audioTrack.enabled;
+        setIsMuted(!audioTrack.enabled);
         return !audioTrack.enabled;
       }
     }
-    return false;
-  }, [localStream]);
+    setIsMuted(!isMuted);
+    return !isMuted;
+  }, [localStream, isMuted]);
 
   // Cleanup
   const disconnect = useCallback(() => {
@@ -149,6 +118,8 @@ export function useWebRTC(roomId: string, userId: string) {
     setStreams([]);
     setLocalStream(null);
     setIsConnected(false);
+    setIsMuted(false);
+    setIsCameraOff(false);
   }, [localStream]);
 
   useEffect(() => {
@@ -162,6 +133,8 @@ export function useWebRTC(roomId: string, userId: string) {
     localStream,
     isConnected,
     error,
+    isMuted,
+    isCameraOff,
     connectToRoom,
     disconnect,
     toggleVideo,
