@@ -1,12 +1,14 @@
-
-import React from "react";
+import React, { useState } from "react";
 import { useTeacherHandlers } from "@/hooks/useTeacherHandlers";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 import { WelcomeSection } from "./dashboard/WelcomeSection";
+import { BalanceOverview } from "./dashboard/BalanceOverview";
 import { UpcomingClassesCard } from "./dashboard/UpcomingClassesCard";
 import { PendingHomeworkCard } from "./dashboard/PendingHomeworkCard";
 import { NotificationsCard } from "./dashboard/NotificationsCard";
 import { QuickActionsCard } from "./dashboard/QuickActionsCard";
+import { AddStudentModal } from "./dashboard/AddStudentModal";
 
 interface DashboardTabProps {
   teacherName: string;
@@ -14,6 +16,8 @@ interface DashboardTabProps {
 
 export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
   const { 
     handleJoinClass, 
     handleScheduleClass, 
@@ -26,6 +30,31 @@ export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
     navigate("/oneonone-classroom-new");
   };
 
+  const handleStartClass = (classId: number) => {
+    toast({
+      title: "Starting Class",
+      description: `Starting class with ID: ${classId}`,
+    });
+    navigate("/oneonone-classroom-new");
+  };
+
+  const handleAddStudent = () => {
+    setIsAddStudentModalOpen(true);
+  };
+
+  const handleStudentAdded = (student: any) => {
+    // In a real app, this would save to database
+    console.log("New student added:", student);
+  };
+
+  const handleViewEarnings = () => {
+    toast({
+      title: "View Earnings",
+      description: "Opening earnings overview...",
+    });
+  };
+
+  // Enhanced class data with earnings and better status management
   const todaysClasses = [
     {
       id: 1,
@@ -33,7 +62,8 @@ export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
       time: "9:00 AM",
       student: "Alex, Maria, Li",
       studentCount: 3,
-      status: "upcoming" as const
+      status: "ready" as const,
+      earnings: 75
     },
     {
       id: 2,
@@ -41,7 +71,8 @@ export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
       time: "2:00 PM", 
       student: "Emma Johnson",
       studentCount: 1,
-      status: "ready" as const
+      status: "ready" as const,
+      earnings: 25
     },
     {
       id: 3,
@@ -49,7 +80,17 @@ export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
       time: "4:00 PM",
       student: "Carlos, Sophia",
       studentCount: 2,
-      status: "upcoming" as const
+      status: "upcoming" as const,
+      earnings: 50
+    },
+    {
+      id: 4,
+      title: "Advanced Writing Workshop",
+      time: "6:00 PM",
+      student: "David Kim",
+      studentCount: 1,
+      status: "live" as const,
+      earnings: 30
     }
   ];
 
@@ -86,17 +127,32 @@ export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
     }
   ];
 
+  // Sample earnings data
+  const earningsData = {
+    weeklyEarnings: 450,
+    pendingPayment: 180,
+    totalBalance: 2650
+  };
+
   return (
     <div className="space-y-6">
       <WelcomeSection 
         teacherName={teacherName}
         onJoinClassroom={handleJoinClassroom}
+        weeklyEarnings={earningsData.weeklyEarnings}
+      />
+
+      <BalanceOverview
+        weeklyEarnings={earningsData.weeklyEarnings}
+        pendingPayment={earningsData.pendingPayment}
+        totalBalance={earningsData.totalBalance}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <UpcomingClassesCard 
           classes={todaysClasses}
           onJoinClass={handleJoinClass}
+          onStartClass={handleStartClass}
         />
         <PendingHomeworkCard homework={pendingHomework} />
       </div>
@@ -108,8 +164,16 @@ export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
           onCreateAssignment={handleCreateAssignment}
           onSendMessage={handleSendMessage}
           onManageStudents={handleManageStudents}
+          onAddStudent={handleAddStudent}
+          onViewEarnings={handleViewEarnings}
         />
       </div>
+
+      <AddStudentModal
+        isOpen={isAddStudentModalOpen}
+        onClose={() => setIsAddStudentModalOpen(false)}
+        onStudentAdded={handleStudentAdded}
+      />
     </div>
   );
 };
