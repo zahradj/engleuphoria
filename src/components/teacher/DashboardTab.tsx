@@ -54,7 +54,7 @@ export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
     });
   };
 
-  // Enhanced class data with earnings and better status management
+  // Enhanced class data with 10 euro lesson cost
   const todaysClasses = [
     {
       id: 1,
@@ -63,7 +63,7 @@ export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
       student: "Alex, Maria, Li",
       studentCount: 3,
       status: "ready" as const,
-      earnings: 75
+      earnings: 30 // 3 students × €10
     },
     {
       id: 2,
@@ -72,7 +72,7 @@ export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
       student: "Emma Johnson",
       studentCount: 1,
       status: "ready" as const,
-      earnings: 25
+      earnings: 10 // 1 student × €10
     },
     {
       id: 3,
@@ -81,7 +81,7 @@ export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
       student: "Carlos, Sophia",
       studentCount: 2,
       status: "upcoming" as const,
-      earnings: 50
+      earnings: 20 // 2 students × €10
     },
     {
       id: 4,
@@ -90,7 +90,7 @@ export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
       student: "David Kim",
       studentCount: 1,
       status: "live" as const,
-      earnings: 30
+      earnings: 10 // 1 student × €10
     }
   ];
 
@@ -127,11 +127,11 @@ export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
     }
   ];
 
-  // Sample earnings data
+  // Updated earnings data based on €10 per lesson
   const earningsData = {
-    weeklyEarnings: 450,
-    pendingPayment: 180,
-    totalBalance: 2650
+    weeklyEarnings: 350, // 35 lessons this week × €10
+    pendingPayment: 70,  // 7 completed lessons awaiting payment × €10
+    totalBalance: 2100   // Total accumulated earnings
   };
 
   return (

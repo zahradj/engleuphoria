@@ -69,7 +69,10 @@ export const UpcomingClassesCard = ({ classes, onJoinClass, onStartClass }: Upco
                   </span>
                   <span className="flex items-center gap-1">
                     <DollarSign className="h-3 w-3" />
-                    ${cls.earnings}
+                    €10/lesson
+                  </span>
+                  <span className="flex items-center gap-1 text-green-600 font-medium">
+                    Total: €{cls.studentCount * 10}
                   </span>
                 </div>
               </div>
