@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Star, Award } from "lucide-react";
 import { CompactVideoFeed } from "../video/CompactVideoFeed";
+import { OneOnOneRewards } from "./OneOnOneRewards";
 import { useWebRTC } from "@/hooks/useWebRTC";
 
 interface OneOnOneVideoSectionProps {
@@ -11,13 +12,19 @@ interface OneOnOneVideoSectionProps {
   currentUserId: string;
   currentUserName: string;
   isTeacher: boolean;
+  studentXP?: number;
+  onAwardPoints?: () => void;
+  showRewardPopup?: boolean;
 }
 
 export function OneOnOneVideoSection({
   roomId,
   currentUserId,
   currentUserName,
-  isTeacher
+  isTeacher,
+  studentXP = 1250,
+  onAwardPoints,
+  showRewardPopup = false
 }: OneOnOneVideoSectionProps) {
   const {
     streams,
@@ -36,7 +43,7 @@ export function OneOnOneVideoSection({
 
   return (
     <Card className="h-full shadow-lg flex flex-col overflow-hidden">
-      {/* Teacher Video */}
+      {/* Video Feed */}
       <div className="p-3 flex-shrink-0">
         <CompactVideoFeed
           stream={localStream}
@@ -53,61 +60,56 @@ export function OneOnOneVideoSection({
         />
       </div>
 
-      {/* Teacher Info & Achievements - Only show if current user is teacher */}
-      {isTeacher && (
-        <div className="flex-1 p-3 overflow-y-auto">
-          {/* Teacher Stats */}
-          <div className="mb-4">
-            <h4 className="font-semibold text-sm mb-2">Teacher Stats</h4>
-            <div className="grid grid-cols-2 gap-2">
-              <div className="bg-blue-50 p-2 rounded-lg text-center">
-                <div className="text-lg font-bold text-blue-600">156</div>
-                <div className="text-xs text-blue-600">Classes</div>
-              </div>
-              <div className="bg-green-50 p-2 rounded-lg text-center">
-                <div className="text-lg font-bold text-green-600">4.9</div>
-                <div className="text-xs text-green-600">Rating</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Achievements */}
-          <div className="mb-4">
-            <h4 className="font-semibold text-sm mb-2">Achievements</h4>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 p-2 bg-yellow-50 rounded-lg">
-                <Trophy className="w-4 h-4 text-yellow-600" />
-                <div>
-                  <div className="text-xs font-medium">Expert Teacher</div>
-                  <div className="text-xs text-gray-500">100+ successful classes</div>
+      {/* Content based on user role */}
+      <div className="flex-1 p-3 overflow-y-auto">
+        {isTeacher ? (
+          /* Teacher Rewards System */
+          <OneOnOneRewards
+            studentXP={studentXP}
+            onAwardPoints={onAwardPoints || (() => {})}
+            showRewardPopup={showRewardPopup}
+          />
+        ) : (
+          /* Student Stats and Achievements */
+          <>
+            {/* Student Stats */}
+            <div className="mb-4">
+              <h4 className="font-semibold text-sm mb-2">Your Progress</h4>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-blue-50 p-2 rounded-lg text-center">
+                  <div className="text-lg font-bold text-blue-600">{Math.floor(studentXP / 100)}</div>
+                  <div className="text-xs text-blue-600">Level</div>
                 </div>
-              </div>
-              <div className="flex items-center gap-2 p-2 bg-purple-50 rounded-lg">
-                <Star className="w-4 h-4 text-purple-600" />
-                <div>
-                  <div className="text-xs font-medium">Student Favorite</div>
-                  <div className="text-xs text-gray-500">Top rated by students</div>
+                <div className="bg-green-50 p-2 rounded-lg text-center">
+                  <div className="text-lg font-bold text-green-600">{studentXP}</div>
+                  <div className="text-xs text-green-600">Total XP</div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Teaching Tools */}
-          <div>
-            <h4 className="font-semibold text-sm mb-2">Quick Tools</h4>
-            <div className="grid grid-cols-2 gap-2">
-              <button className="p-2 bg-gray-50 rounded-lg text-center hover:bg-gray-100 transition-colors">
-                <Award className="w-4 h-4 mx-auto mb-1 text-gray-600" />
-                <div className="text-xs">Award Points</div>
-              </button>
-              <button className="p-2 bg-gray-50 rounded-lg text-center hover:bg-gray-100 transition-colors">
-                <Star className="w-4 h-4 mx-auto mb-1 text-gray-600" />
-                <div className="text-xs">Give Star</div>
-              </button>
+            {/* Student Achievements */}
+            <div className="mb-4">
+              <h4 className="font-semibold text-sm mb-2">Achievements</h4>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 p-2 bg-yellow-50 rounded-lg">
+                  <Trophy className="w-4 h-4 text-yellow-600" />
+                  <div>
+                    <div className="text-xs font-medium">Great Student</div>
+                    <div className="text-xs text-gray-500">Attend 10 classes</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 p-2 bg-purple-50 rounded-lg">
+                  <Star className="w-4 h-4 text-purple-600" />
+                  <div>
+                    <div className="text-xs font-medium">Quick Learner</div>
+                    <div className="text-xs text-gray-500">Complete tasks fast</div>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </div>
 
       {error && (
         <div className="p-3 bg-red-50 border-t">

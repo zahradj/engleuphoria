@@ -52,16 +52,8 @@ export function OneOnOneRightPanel({
 
   return (
     <Card className="h-full shadow-lg flex flex-col overflow-hidden">
-      {/* Student Info Header - Fixed height */}
-      <div className="p-3 border-b bg-gradient-to-r from-purple-50 to-purple-100 flex-shrink-0">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="font-semibold text-gray-700 text-sm">{displayName}</h3>
-          <Badge className="bg-yellow-100 text-yellow-700 text-xs px-2 py-1">
-            Level {Math.floor(studentXP / 100)}
-          </Badge>
-        </div>
-        
-        {/* Student video */}
+      {/* Student Video - No header, direct video placement */}
+      <div className="p-3 flex-shrink-0">
         <CompactVideoFeed
           stream={videoStream}
           isConnected={isConnected}
@@ -75,20 +67,6 @@ export function OneOnOneRightPanel({
           onJoinCall={isOwnVideo ? connectToRoom : undefined}
           onLeaveCall={isOwnVideo ? disconnect : undefined}
         />
-        
-        {/* XP Progress */}
-        <div className="mt-2">
-          <div className="flex justify-between items-center text-xs text-gray-600 mb-1">
-            <span>XP Progress</span>
-            <span>{studentXP % 100}/100</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-1.5">
-            <div 
-              className="bg-yellow-400 h-1.5 rounded-full transition-all duration-300" 
-              style={{ width: `${(studentXP % 100)}%` }}
-            ></div>
-          </div>
-        </div>
       </div>
 
       {/* Tabs Navigation - Fixed height */}
@@ -120,6 +98,29 @@ export function OneOnOneRightPanel({
         <div className="h-full p-3">
           {activeRightTab === "chat" && <OneOnOneChat />}
           {activeRightTab === "homework" && <OneOnOneHomework />}
+        </div>
+      </div>
+
+      {/* XP Progress Bar - Only show for students or when teacher is viewing student progress */}
+      <div className="p-3 border-t bg-gradient-to-r from-purple-50 to-purple-100 flex-shrink-0">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-medium text-gray-700">{displayName}</span>
+          <Badge className="bg-yellow-100 text-yellow-700 text-xs px-2 py-1">
+            Level {Math.floor(studentXP / 100)}
+          </Badge>
+        </div>
+        
+        <div>
+          <div className="flex justify-between items-center text-xs text-gray-600 mb-1">
+            <span>XP Progress</span>
+            <span>{studentXP % 100}/100</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-1.5">
+            <div 
+              className="bg-yellow-400 h-1.5 rounded-full transition-all duration-300" 
+              style={{ width: `${(studentXP % 100)}%` }}
+            ></div>
+          </div>
         </div>
       </div>
     </Card>

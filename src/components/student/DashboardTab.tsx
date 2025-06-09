@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,8 +12,10 @@ import {
   Award,
   BookOpen,
   MessageCircle,
-  FolderOpen
+  FolderOpen,
+  Video
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface DashboardTabProps {
   studentName: string;
@@ -22,6 +23,12 @@ interface DashboardTabProps {
 }
 
 export const DashboardTab = ({ studentName, points }: DashboardTabProps) => {
+  const navigate = useNavigate();
+
+  const handleJoinClassroom = () => {
+    navigate("/oneonone-classroom-new");
+  };
+
   const upcomingClasses = [
     {
       title: "Conversation Practice",
@@ -76,6 +83,14 @@ export const DashboardTab = ({ studentName, points }: DashboardTabProps) => {
               <span className="font-semibold">Level A2</span>
             </div>
           </div>
+          <Button 
+            onClick={handleJoinClassroom}
+            className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+            size="sm"
+          >
+            <Video className="h-4 w-4 mr-2" />
+            Join Classroom
+          </Button>
         </div>
       </div>
 

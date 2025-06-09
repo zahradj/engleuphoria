@@ -13,15 +13,18 @@ import {
   Eye,
   CheckCircle,
   AlertCircle,
-  Star
+  Star,
+  Video
 } from "lucide-react";
 import { useTeacherHandlers } from "@/hooks/useTeacherHandlers";
+import { useNavigate } from "react-router-dom";
 
 interface DashboardTabProps {
   teacherName: string;
 }
 
 export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
+  const navigate = useNavigate();
   const { 
     handleJoinClass, 
     handleScheduleClass, 
@@ -29,6 +32,10 @@ export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
     handleSendMessage, 
     handleManageStudents 
   } = useTeacherHandlers();
+
+  const handleJoinClassroom = () => {
+    navigate("/oneonone-classroom-new");
+  };
 
   const todaysClasses = [
     {
@@ -109,6 +116,14 @@ export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
               <span className="font-semibold">4.9 Rating</span>
             </div>
           </div>
+          <Button 
+            onClick={handleJoinClassroom}
+            className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+            size="sm"
+          >
+            <Video className="h-4 w-4 mr-2" />
+            Enter Classroom
+          </Button>
         </div>
       </div>
 

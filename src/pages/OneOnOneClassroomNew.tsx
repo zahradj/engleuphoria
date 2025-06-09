@@ -60,13 +60,16 @@ const OneOnOneClassroomNew = () => {
         <div className="h-[calc(100vh-5rem)] px-4 pb-4">
           <div className="grid grid-cols-12 gap-4 h-full">
             
-            {/* Left Panel - Video Section */}
+            {/* Left Panel - Video Section with Rewards for Teacher */}
             <div className="col-span-3 h-full">
               <OneOnOneVideoSection
                 roomId={roomId}
                 currentUserId={currentUserId}
                 currentUserName={currentUserName}
                 isTeacher={isTeacher}
+                studentXP={studentXP}
+                onAwardPoints={awardPoints}
+                showRewardPopup={showRewardPopup}
               />
             </div>
 
