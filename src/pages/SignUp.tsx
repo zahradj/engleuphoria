@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -11,11 +10,70 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { SupabaseSetup } from "@/components/setup/SupabaseSetup";
+import { useAuth } from "@/hooks/useAuth";
 
 const SignUp = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { languageText } = useLanguage();
+  const { isConfigured } = useAuth();
+  
+  // Show Supabase setup if not configured
+  if (!isConfigured) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background relative overflow-hidden">
+        {/* Background circular effects */}
+        <div className="absolute -z-10 top-1/4 left-1/4 w-[110%] h-[110%] bg-purple/20 rounded-full blur-3xl animate-pulse-subtle opacity-70"></div>
+        <div className="absolute -z-10 bottom-1/3 right-1/4 w-[90%] h-[90%] bg-teal/15 rounded-full blur-3xl animate-pulse-subtle opacity-65 animation-delay-300"></div>
+        <div className="absolute -z-10 top-1/2 left-1/2 w-[80%] h-[80%] bg-orange/10 rounded-full blur-3xl animate-pulse-subtle opacity-60 animation-delay-700"></div>
+        
+        {/* Header */}
+        <header className="w-full bg-white/80 backdrop-blur-sm shadow-sm py-3 px-4 relative z-10">
+          <div className="container max-w-7xl mx-auto flex items-center justify-between">
+            <div 
+              onClick={() => navigate('/')}
+              className="flex items-center gap-3 cursor-pointer"
+            >
+              <div className="bg-purple/20 rounded-full p-2">
+                <span className="text-xl font-bold text-purple">E!</span>
+              </div>
+              <h1 className="text-xl font-bold bg-gradient-to-r from-purple to-teal bg-clip-text text-transparent">
+                Engleuphoria
+              </h1>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <Button variant="ghost" onClick={() => navigate('/for-parents')}>{languageText.forParents}</Button>
+              <Button variant="ghost" onClick={() => navigate('/for-teachers')}>{languageText.forTeachers}</Button>
+              <Button variant="outline" onClick={() => navigate('/login')}>{languageText.logIn}</Button>
+              <Button className="font-semibold" onClick={() => navigate('/signup')}>{languageText.signUp}</Button>
+            </div>
+          </div>
+        </header>
+        
+        {/* Main Content - Supabase Setup */}
+        <main className="flex-1 flex items-center justify-center p-6 relative z-10">
+          <div className="w-full max-w-4xl">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold mb-4">Database Setup Required</h2>
+              <p className="text-gray-600">Before you can sign up, we need to configure your database connection.</p>
+            </div>
+            <SupabaseSetup />
+          </div>
+        </main>
+        
+        {/* Footer */}
+        <footer className="w-full bg-muted/50 py-4 px-4 text-center relative z-10">
+          <div className="container max-w-7xl mx-auto">
+            <p className="text-sm text-muted-foreground">
+              &copy; {new Date().getFullYear()} Engleuphoria. All rights reserved.
+            </p>
+          </div>
+        </footer>
+      </div>
+    );
+  }
   
   const formSchema = z.object({
     name: z.string().min(2, { message: "Name must be at least 2 characters" }),
