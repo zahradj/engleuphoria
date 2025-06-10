@@ -1,55 +1,60 @@
 
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { AuthProvider } from "@/hooks/useAuth";
+import Index from "./pages/Index";
 
-// Import pages
-import Index from "@/pages/Index";
-import Login from "@/pages/Login";
-import SignUp from "@/pages/SignUp";
-import StudentDashboard from "@/pages/StudentDashboard";
-import TeacherDashboard from "@/pages/TeacherDashboard";
-import OneOnOneClassroomNew from "@/pages/OneOnOneClassroomNew";
-import SimpleClassroomSelector from "@/pages/SimpleClassroomSelector";
-import LessonPlanCreator from "@/pages/LessonPlanCreator";
-import LessonScheduler from "@/pages/LessonScheduler";
-import StudentLessonScheduler from "@/pages/StudentLessonScheduler";
-import StudentManagement from "@/pages/StudentManagement";
-import ForParents from "@/pages/ForParents";
-import ForTeachers from "@/pages/ForTeachers";
-import PaymentPage from "@/pages/PaymentPage";
-import NotFound from "@/pages/NotFound";
-
-import "./App.css";
+// Lazy load pages for better performance
+const EnhancedIndex = lazy(() => import("./pages/EnhancedIndex"));
+const Login = lazy(() => import("./pages/Login"));
+const SignUp = lazy(() => import("./pages/SignUp"));
+const ForParents = lazy(() => import("./pages/ForParents"));
+const ForTeachers = lazy(() => import("./pages/ForTeachers"));
+const StudentDashboard = lazy(() => import("./pages/StudentDashboard"));
+const TeacherDashboard = lazy(() => import("./pages/TeacherDashboard"));
+const OneOnOneClassroomNew = lazy(() => import("./pages/OneOnOneClassroomNew"));
+const SimpleClassroomSelector = lazy(() => import("./pages/SimpleClassroomSelector"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <Router>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/student-dashboard" element={<StudentDashboard />} />
-            <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
-            <Route path="/classroom" element={<OneOnOneClassroomNew />} />
-            <Route path="/classroom-selector" element={<SimpleClassroomSelector />} />
-            <Route path="/lesson-plan-creator" element={<LessonPlanCreator />} />
-            <Route path="/lesson-scheduler" element={<LessonScheduler />} />
-            <Route path="/student-lesson-scheduler" element={<StudentLessonScheduler />} />
-            <Route path="/student-management" element={<StudentManagement />} />
-            <Route path="/for-parents" element={<ForParents />} />
-            <Route path="/for-teachers" element={<ForTeachers />} />
-            <Route path="/payment" element={<PaymentPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <Toaster />
-        </Router>
-      </LanguageProvider>
+      <AuthProvider>
+        <LanguageProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Suspense fallback={
+                <div className="min-h-screen flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+                </div>
+              }>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/enhanced" element={<EnhancedIndex />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<SignUp />} />
+                  <Route path="/for-parents" element={<ForParents />} />
+                  <Route path="/for-teachers" element={<ForTeachers />} />
+                  <Route path="/student-dashboard" element={<StudentDashboard />} />
+                  <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
+                  <Route path="/oneonone-classroom-new" element={<OneOnOneClassroomNew />} />
+                  <Route path="/classroom-selector" element={<SimpleClassroomSelector />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </BrowserRouter>
+          </TooltipProvider>
+        </LanguageProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
