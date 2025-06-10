@@ -1,10 +1,37 @@
 
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = 'YOUR_SUPABASE_URL'
-const supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY'
+// Get Supabase credentials from localStorage or use defaults
+const getSupabaseConfig = () => {
+  if (typeof window !== 'undefined') {
+    const storedUrl = localStorage.getItem('supabase_url')
+    const storedKey = localStorage.getItem('supabase_key')
+    
+    if (storedUrl && storedKey) {
+      return { url: storedUrl, key: storedKey }
+    }
+  }
+  
+  // Return dummy but valid URL format to prevent constructor errors
+  return {
+    url: 'https://placeholder.supabase.co',
+    key: 'placeholder_key'
+  }
+}
+
+const { url: supabaseUrl, key: supabaseAnonKey } = getSupabaseConfig()
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+// Helper function to check if Supabase is properly configured
+export const isSupabaseConfigured = () => {
+  if (typeof window !== 'undefined') {
+    const storedUrl = localStorage.getItem('supabase_url')
+    const storedKey = localStorage.getItem('supabase_key')
+    return !!(storedUrl && storedKey && storedUrl !== 'https://placeholder.supabase.co')
+  }
+  return false
+}
 
 // Database Types
 export interface User {

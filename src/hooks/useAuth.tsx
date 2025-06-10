@@ -1,12 +1,13 @@
 
 import { useState, useEffect, createContext, useContext } from 'react'
-import { supabase, User } from '@/lib/supabase'
+import { supabase, User, isSupabaseConfigured } from '@/lib/supabase'
 import { Session } from '@supabase/supabase-js'
 
 interface AuthContextType {
   user: User | null
   session: Session | null
   loading: boolean
+  isConfigured: boolean
   signUp: (email: string, password: string, userData: Partial<User>) => Promise<any>
   signIn: (email: string, password: string) => Promise<any>
   signOut: () => Promise<any>
@@ -18,9 +19,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isConfigured, setIsConfigured] = useState(false)
 
   useEffect(() => {
-    // Get initial session
+    // Check if Supabase is configured
+    const configured = isSupabaseConfigured()
+    setIsConfigured(configured)
+
+    if (!configured) {
+      setLoading(false)
+      return
+    }
+
+    // Get initial session only if configured
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       if (session?.user) {
@@ -29,7 +40,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(false)
     })
 
-    // Listen for auth changes
+    // Listen for auth changes only if configured
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setSession(session)
@@ -46,6 +57,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [])
 
   const fetchUserProfile = async (userId: string) => {
+    if (!isSupabaseConfigured()) return
+
     try {
       const { data, error } = await supabase
         .from('users')
@@ -61,6 +74,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   const signUp = async (email: string, password: string, userData: Partial<User>) => {
+    if (!isSupabaseConfigured()) {
+      return { data: null, error: new Error('Supabase not configured') }
+    }
+
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -89,6 +106,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   const signIn = async (email: string, password: string) => {
+    if (!isSupabaseConfigured()) {
+      return { data: null, error: new Error('Supabase not configured') }
+    }
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -101,6 +122,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   const signOut = async () => {
+    if (!isSupabaseConfigured()) {
+      return { error: new Error('Supabase not configured') }
+    }
+
     const { error } = await supabase.auth.signOut()
     if (!error) {
       setUser(null)
@@ -114,6 +139,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       user,
       session,
       loading,
+      isConfigured,
       signUp,
       signIn,
       signOut
