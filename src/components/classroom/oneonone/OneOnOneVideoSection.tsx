@@ -2,10 +2,11 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Star, Award } from "lucide-react";
-import { CompactVideoFeed } from "../video/CompactVideoFeed";
+import { Trophy, Star } from "lucide-react";
 import { OneOnOneRewards } from "./OneOnOneRewards";
-import { useWebRTC } from "@/hooks/useWebRTC";
+import { useVideoRoom } from "@/hooks/useVideoRoom";
+import { Button } from "@/components/ui/button";
+import { Video, VideoOff, Mic, MicOff, PhoneCall, PhoneOff } from "lucide-react";
 
 interface OneOnOneVideoSectionProps {
   roomId: string;
@@ -27,37 +28,99 @@ export function OneOnOneVideoSection({
   showRewardPopup = false
 }: OneOnOneVideoSectionProps) {
   const {
-    streams,
-    localStream,
     isConnected,
+    participants,
     error,
     isMuted,
     isCameraOff,
-    connectToRoom,
-    disconnect,
-    toggleVideo,
-    toggleAudio
-  } = useWebRTC(roomId, currentUserId);
+    isLoading,
+    joinRoom,
+    leaveRoom,
+    toggleMicrophone,
+    toggleCamera
+  } = useVideoRoom({
+    roomId,
+    userId: currentUserId,
+    displayName: currentUserName
+  });
 
-  console.log("OneOnOneVideoSection rendering:", { isConnected, streams: streams.length });
+  console.log("OneOnOneVideoSection:", { isConnected, participants: participants.size });
 
   return (
     <Card className="h-full shadow-lg flex flex-col overflow-hidden">
-      {/* Video Feed */}
+      {/* Video Connection Status */}
+      <div className="p-3 border-b flex items-center justify-between bg-gray-50">
+        <div className="flex items-center gap-2">
+          <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : isLoading ? 'bg-yellow-500' : 'bg-gray-400'}`}></div>
+          <span className="text-sm font-medium">
+            {isConnected ? 'Video Connected' : isLoading ? 'Connecting...' : 'Video Ready'}
+          </span>
+        </div>
+        
+        {!isConnected ? (
+          <Button 
+            onClick={joinRoom} 
+            size="sm"
+            disabled={isLoading}
+            className="bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1"
+          >
+            <PhoneCall size={12} className="mr-1" />
+            {isLoading ? 'Joining...' : 'Join'}
+          </Button>
+        ) : (
+          <Button 
+            onClick={leaveRoom} 
+            size="sm"
+            variant="destructive"
+            className="text-xs px-2 py-1"
+          >
+            <PhoneOff size={12} className="mr-1" />
+            Leave
+          </Button>
+        )}
+      </div>
+
+      {/* Video Area */}
       <div className="p-3 flex-shrink-0">
-        <CompactVideoFeed
-          stream={localStream}
-          isConnected={isConnected}
-          isMuted={isMuted}
-          isCameraOff={isCameraOff}
-          userName={currentUserName}
-          userRole={isTeacher ? 'teacher' : 'student'}
-          isOwnVideo={true}
-          onToggleMute={toggleAudio}
-          onToggleCamera={toggleVideo}
-          onJoinCall={connectToRoom}
-          onLeaveCall={disconnect}
-        />
+        <div className="aspect-video bg-gray-900 rounded-lg flex items-center justify-center relative overflow-hidden">
+          {isConnected ? (
+            <div className="text-center text-white">
+              <Video size={24} className="mx-auto mb-2 text-gray-400" />
+              <p className="text-xs mb-1">Video Active</p>
+              <p className="text-xs text-gray-400">
+                {participants.size > 0 ? `With ${participants.size} other(s)` : 'Waiting for others...'}
+              </p>
+            </div>
+          ) : (
+            <div className="text-center text-gray-400">
+              <Video size={24} className="mx-auto mb-2" />
+              <p className="text-xs">Click Join to start video</p>
+            </div>
+          )}
+
+          {/* Video Controls Overlay */}
+          {isConnected && (
+            <div className="absolute bottom-2 left-2 right-2 flex justify-center gap-1">
+              <Button
+                variant={isMuted ? "destructive" : "outline"}
+                size="sm"
+                onClick={toggleMicrophone}
+                className="rounded-full w-8 h-8 p-0 bg-black/50 border-white/20"
+              >
+                {isMuted ? <MicOff size={12} /> : <Mic size={12} />}
+              </Button>
+              
+              <Button
+                variant={isCameraOff ? "destructive" : "outline"}
+                size="sm"
+                onClick={toggleCamera}
+                className="rounded-full w-8 h-8 p-0 bg-black/50 border-white/20"
+              >
+                {isCameraOff ? <VideoOff size={12} /> : <Video size={12} />}
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Content based on user role */}

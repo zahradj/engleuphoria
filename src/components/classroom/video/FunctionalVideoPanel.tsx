@@ -1,8 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
-import { useWebRTC } from '@/hooks/useWebRTC';
-import { FunctionalVideoFeed } from './FunctionalVideoFeed';
+import { useVideoRoom } from '@/hooks/useVideoRoom';
 import { Button } from '@/components/ui/button';
-import { Video, VideoOff, Mic, MicOff, PhoneCall, PhoneOff } from 'lucide-react';
+import { Video, VideoOff, Mic, MicOff, PhoneCall, PhoneOff, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface FunctionalVideoPanelProps {
@@ -18,87 +18,93 @@ export function FunctionalVideoPanel({
   currentUserName,
   isTeacher
 }: FunctionalVideoPanelProps) {
-  const [isMuted, setIsMuted] = useState(false);
-  const [isCameraOff, setIsCameraOff] = useState(false);
-  const [isHandRaised, setIsHandRaised] = useState(false);
   const { toast } = useToast();
 
   const {
-    streams,
     isConnected,
+    participants,
     error,
-    connectToRoom,
-    disconnect,
-    toggleVideo,
-    toggleAudio
-  } = useWebRTC(roomId, currentUserId);
+    isMuted,
+    isCameraOff,
+    isLoading,
+    joinRoom,
+    leaveRoom,
+    toggleMicrophone,
+    toggleCamera
+  } = useVideoRoom({
+    roomId,
+    userId: currentUserId,
+    displayName: currentUserName
+  });
 
   useEffect(() => {
     if (error) {
       toast({
-        title: "Connection Error",
+        title: "Video Conference Error",
         description: error,
         variant: "destructive"
       });
     }
   }, [error, toast]);
 
-  const handleToggleMute = () => {
-    const newMutedState = toggleAudio();
-    setIsMuted(newMutedState);
+  const handleToggleMute = async () => {
+    const newMutedState = await toggleMicrophone();
     toast({
       title: newMutedState ? "Microphone Disabled" : "Microphone Enabled",
       description: newMutedState ? "You are now muted" : "You can now speak"
     });
   };
 
-  const handleToggleCamera = () => {
-    const newCameraOffState = toggleVideo();
-    setIsCameraOff(newCameraOffState);
+  const handleToggleCamera = async () => {
+    const newCameraOffState = await toggleCamera();
     toast({
       title: newCameraOffState ? "Camera Disabled" : "Camera Enabled",
       description: newCameraOffState ? "Your camera is off" : "You are now visible"
     });
   };
 
-  const handleToggleHand = () => {
-    setIsHandRaised(!isHandRaised);
+  const handleJoinCall = async () => {
     toast({
-      title: !isHandRaised ? "Hand Raised" : "Hand Lowered",
-      description: !isHandRaised ? "Teacher has been notified" : "Your hand has been lowered"
+      title: "Joining Video Conference",
+      description: "Please wait while we connect you..."
+    });
+    await joinRoom();
+  };
+
+  const handleLeaveCall = async () => {
+    await leaveRoom();
+    toast({
+      title: "Left Video Conference",
+      description: "You have left the video call"
     });
   };
-
-  const handleJoinCall = () => {
-    connectToRoom();
-  };
-
-  const handleLeaveCall = () => {
-    disconnect();
-  };
-
-  const currentUserStream = streams.find(s => s.id === currentUserId);
-  const otherStreams = streams.filter(s => s.id !== currentUserId);
 
   return (
     <div className="w-full h-full bg-gray-900 rounded-lg flex flex-col overflow-hidden">
       {/* Connection Status Header */}
       <div className="p-3 border-b border-gray-700 flex items-center justify-between bg-gray-800">
         <div className="flex items-center gap-2">
-          <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+          <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : isLoading ? 'bg-yellow-500' : 'bg-red-500'}`}></div>
           <span className="text-white text-sm font-medium">
-            {isConnected ? 'Connected' : 'Disconnected'}
+            {isConnected ? 'Connected' : isLoading ? 'Connecting...' : 'Disconnected'}
           </span>
+          {participants.size > 0 && (
+            <div className="flex items-center gap-1 ml-2">
+              <Users size={14} className="text-gray-400" />
+              <span className="text-gray-400 text-xs">{participants.size + 1}</span>
+            </div>
+          )}
         </div>
         
         {!isConnected ? (
           <Button 
             onClick={handleJoinCall} 
             size="sm"
+            disabled={isLoading}
             className="bg-green-600 hover:bg-green-700 text-white"
           >
             <PhoneCall size={14} className="mr-1" />
-            Join Call
+            {isLoading ? 'Joining...' : 'Join Call'}
           </Button>
         ) : (
           <Button 
@@ -116,41 +122,23 @@ export function FunctionalVideoPanel({
       <div className="flex-1 p-3 min-h-0">
         {isConnected ? (
           <div className="h-full flex flex-col gap-3">
-            {/* Main video feeds */}
-            <div className="flex-1 flex flex-col gap-2 min-h-0">
-              {/* Current user feed */}
-              {currentUserStream && (
-                <div className="h-1/2 min-h-[120px]">
-                  <FunctionalVideoFeed
-                    stream={currentUserStream.stream}
-                    name={currentUserName}
-                    isTeacher={isTeacher}
-                    isMuted={isMuted}
-                    isCameraOff={isCameraOff}
-                    isHandRaised={isHandRaised}
-                    isCurrentUser={true}
-                    isSmall={false}
-                    onToggleMute={handleToggleMute}
-                    onToggleCamera={handleToggleCamera}
-                    onRaiseHand={handleToggleHand}
-                  />
-                </div>
-              )}
-
-              {/* Other participants */}
-              {otherStreams.map(stream => (
-                <div key={stream.id} className="h-1/2 min-h-[120px]">
-                  <FunctionalVideoFeed
-                    stream={stream.stream}
-                    name={stream.id === 'teacher-1' ? 'Ms. Johnson' : stream.id === 'student-1' ? 'Emma Thompson' : 'Participant'}
-                    isTeacher={stream.id === 'teacher-1'}
-                    isMuted={false}
-                    isCameraOff={false}
-                    isCurrentUser={false}
-                    isSmall={false}
-                  />
-                </div>
-              ))}
+            {/* Video Conference Area */}
+            <div className="flex-1 bg-black rounded-lg flex items-center justify-center min-h-0">
+              <div className="text-center text-white">
+                <Video size={48} className="mx-auto mb-3 text-gray-400" />
+                <p className="text-sm mb-2">Video conference is active</p>
+                <p className="text-xs text-gray-400">
+                  {participants.size > 0 
+                    ? `${participants.size} other participant(s) in the call`
+                    : 'Waiting for other participants...'
+                  }
+                </p>
+                {participants.size > 0 && (
+                  <div className="mt-2 text-xs text-gray-300">
+                    Participants: {Array.from(participants.values()).join(', ')}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Control buttons */}
@@ -179,7 +167,10 @@ export function FunctionalVideoPanel({
           <div className="h-full flex flex-col items-center justify-center text-gray-400">
             <Video size={32} className="mb-3" />
             <p className="text-sm text-center mb-2">Click "Join Call" to start video conference</p>
-            <p className="text-xs text-center text-gray-500">Allow camera and microphone access when prompted</p>
+            <p className="text-xs text-center text-gray-500">Real-time video powered by Jitsi Meet</p>
+            {error && (
+              <p className="text-xs text-red-400 mt-2 text-center">{error}</p>
+            )}
           </div>
         )}
       </div>
