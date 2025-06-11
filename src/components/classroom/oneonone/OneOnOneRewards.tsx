@@ -3,8 +3,10 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
-import { Star, Trophy, Award, Gift } from "lucide-react";
+import { Star, Trophy, History } from "lucide-react";
+import { RewardSystem } from "./rewards/RewardSystem";
+import { RewardHistory } from "./rewards/RewardHistory";
+import { useEnhancedRewards } from "@/hooks/useEnhancedRewards";
 
 interface OneOnOneRewardsProps {
   studentXP: number;
@@ -13,61 +15,94 @@ interface OneOnOneRewardsProps {
 }
 
 export function OneOnOneRewards({ studentXP, onAwardPoints, showRewardPopup }: OneOnOneRewardsProps) {
-  const currentLevel = Math.floor(studentXP / 100);
-  const xpInCurrentLevel = studentXP % 100;
-  const xpToNextLevel = 100 - xpInCurrentLevel;
+  const {
+    currentXP,
+    badges,
+    rewardHistory,
+    showRewardHistory,
+    setShowRewardHistory,
+    awardStar,
+    awardTask,
+    currentLevel,
+    xpInCurrentLevel,
+    xpToNextLevel
+  } = useEnhancedRewards(studentXP);
 
-  const badges = [
-    { name: "First Steps", icon: Star, earned: true, color: "text-yellow-500" },
-    { name: "Word Master", icon: Trophy, earned: true, color: "text-blue-500" },
-    { name: "Speaker", icon: Award, earned: false, color: "text-gray-300" },
-    { name: "Grammar Pro", icon: Gift, earned: false, color: "text-gray-300" }
-  ];
+  const handleAwardStar = () => {
+    awardStar();
+    onAwardPoints(); // Keep existing functionality
+  };
+
+  const handleQuickAward = (type: 'WORKSHEET' | 'VOCABULARY' | 'SPEAKING_PRACTICE') => {
+    awardTask(type);
+  };
 
   return (
     <div className="space-y-4">
-      {/* XP Progress */}
+      {/* Enhanced Reward System */}
+      <RewardSystem
+        currentXP={currentXP}
+        badges={badges}
+        showProgress={true}
+      />
+
+      {/* Quick Award Buttons */}
       <Card className="p-3">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium">Level {currentLevel}</span>
-          <Badge variant="secondary">{studentXP} XP</Badge>
-        </div>
-        <Progress value={xpInCurrentLevel} className="mb-1" />
-        <div className="text-xs text-gray-500">
-          {xpToNextLevel} XP to next level
+        <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+          <Star className="text-yellow-600" size={14} />
+          Quick Awards
+        </h4>
+        
+        <div className="space-y-2">
+          <Button 
+            size="sm" 
+            className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white text-xs"
+            onClick={handleAwardStar}
+          >
+            <Star size={12} className="mr-1" />
+            Award Star (+50 XP)
+          </Button>
+          
+          <div className="grid grid-cols-2 gap-1">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleQuickAward('WORKSHEET')}
+              className="text-xs"
+            >
+              Worksheet (+20)
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleQuickAward('VOCABULARY')}
+              className="text-xs"
+            >
+              Vocab (+10)
+            </Button>
+          </div>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleQuickAward('SPEAKING_PRACTICE')}
+            className="w-full text-xs"
+          >
+            Speaking (+15)
+          </Button>
         </div>
       </Card>
 
-      {/* Quick Award Button */}
-      <Button 
-        size="sm" 
-        className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white"
-        onClick={onAwardPoints}
+      {/* Reward History Button */}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setShowRewardHistory(true)}
+        className="w-full text-xs"
       >
-        <Star size={16} className="mr-1" />
-        Award Star (+50 XP)
+        <History size={12} className="mr-1" />
+        View Reward History ({rewardHistory.length})
       </Button>
-
-      {/* Badges */}
-      <Card className="p-3">
-        <h4 className="text-sm font-medium mb-3">Achievements</h4>
-        <div className="grid grid-cols-2 gap-2">
-          {badges.map((badge, index) => {
-            const IconComponent = badge.icon;
-            return (
-              <div 
-                key={index}
-                className={`text-center p-2 rounded-lg ${
-                  badge.earned ? 'bg-yellow-50' : 'bg-gray-50'
-                }`}
-              >
-                <IconComponent size={20} className={`mx-auto mb-1 ${badge.color}`} />
-                <div className="text-xs font-medium">{badge.name}</div>
-              </div>
-            );
-          })}
-        </div>
-      </Card>
 
       {/* Today's Goals */}
       <Card className="p-3">
@@ -87,6 +122,13 @@ export function OneOnOneRewards({ studentXP, onAwardPoints, showRewardPopup }: O
           </div>
         </div>
       </Card>
+
+      {/* Reward History Modal */}
+      <RewardHistory
+        history={rewardHistory}
+        isVisible={showRewardHistory}
+        onClose={() => setShowRewardHistory(false)}
+      />
     </div>
   );
 }
