@@ -3,9 +3,14 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/index/Header";
 import { Hero } from "@/components/index/Hero";
+import { LearningPathway } from "@/components/index/LearningPathway";
 import { Features } from "@/components/index/Features";
+import { XPShowcase } from "@/components/index/XPShowcase";
+import { DashboardDemo } from "@/components/index/DashboardDemo";
+import { TeacherShowcase } from "@/components/index/TeacherShowcase";
 import { HowItWorks } from "@/components/index/HowItWorks";
 import { Testimonials } from "@/components/index/Testimonials";
+import { FAQ } from "@/components/index/FAQ";
 import { CallToAction } from "@/components/index/CallToAction";
 import { LoginForm } from "@/components/index/LoginForm";
 import { AvatarForm } from "@/components/index/AvatarForm";
@@ -46,9 +51,14 @@ const Index = () => {
         {step === "welcome" && (
           <>
             <Hero onStartClick={handleStart} />
+            <LearningPathway />
+            <XPShowcase />
             <Features />
+            <DashboardDemo />
+            <TeacherShowcase />
             <HowItWorks onStartClick={handleStart} />
             <Testimonials />
+            <FAQ />
             <CallToAction onStartClick={handleStart} />
           </>
         )}

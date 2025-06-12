@@ -13,6 +13,7 @@ export const landingTranslations = {
   interactiveClasses: "Clases Interactivas",
   liveVideoLessons: "Lecciones en video en vivo con profesores",
   gamesAndQuizzes: "Juegos y cuestionarios para reforzar el aprendizaje",
+  funActivities: "Actividades Divertidas",
   community: "Comunidad",
   learnWithFriends: "Aprende con amigos y compañeros",
   getStarted: "Comenzar",

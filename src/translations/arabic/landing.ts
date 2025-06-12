@@ -13,6 +13,7 @@ export const landingTranslations = {
   interactiveClasses: "دروس تفاعلية",
   liveVideoLessons: "دروس فيديو مباشرة مع المعلمين",
   gamesAndQuizzes: "ألعاب واختبارات لتعزيز التعلم",
+  funActivities: "أنشطة ممتعة",
   community: "المجتمع",
   learnWithFriends: "تعلم مع الأصدقاء وزملاء الدراسة",
   getStarted: "ابدأ الآن",

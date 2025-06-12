@@ -13,6 +13,7 @@ export const landingTranslations = {
   interactiveClasses: "Interactive Classes",
   liveVideoLessons: "Live video lessons with teachers",
   gamesAndQuizzes: "Games and quizzes to reinforce learning",
+  funActivities: "Fun Activities",
   community: "Community",
   learnWithFriends: "Learn with friends and classmates",
   getStarted: "Get Started",
