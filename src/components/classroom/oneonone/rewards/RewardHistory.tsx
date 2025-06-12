@@ -3,7 +3,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Star, BookOpen, Target, Award, Clock } from "lucide-react";
-import { RewardHistory, XP_VALUES } from "./RewardSystem";
+import type { RewardHistory, XP_VALUES } from "./RewardSystem";
 
 interface RewardHistoryProps {
   history: RewardHistory[];

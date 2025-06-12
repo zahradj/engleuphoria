@@ -3,12 +3,13 @@ import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Star, Trophy, Award, Crown, BookOpen, Target } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 export interface BadgeType {
   id: string;
   name: string;
   description: string;
-  icon: React.ComponentType<{ size?: number; className?: string }>;
+  icon: LucideIcon;
   xpRequired: number;
   color: string;
   unlocked: boolean;
