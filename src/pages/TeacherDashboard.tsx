@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { TeacherSidebar } from "@/components/teacher/TeacherSidebar";
 import { TeacherHeader } from "@/components/teacher/TeacherHeader";
 import { DashboardTab } from "@/components/teacher/DashboardTab";
-import { AIAssistantTab } from "@/components/teacher/AIAssistantTab";
+import { AIIntegrationTab } from "@/components/teacher/AIIntegrationTab";
 import { CalendarTab } from "@/components/teacher/CalendarTab";
 import { StudentsTab } from "@/components/teacher/StudentsTab";
 import { LessonHistoryTab } from "@/components/teacher/LessonHistoryTab";
@@ -55,7 +54,7 @@ const TeacherDashboard = () => {
       case 'dashboard':
         return <DashboardTab teacherName={teacherName} />;
       case 'ai-assistant':
-        return <AIAssistantTab />;
+        return <AIIntegrationTab />;
       case 'calendar':
         return <CalendarTab />;
       case 'students':

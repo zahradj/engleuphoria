@@ -1,19 +1,19 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { 
-  Home, 
+  BarChart3, 
+  Brain,
   Calendar, 
   Users, 
-  History, 
+  Clock, 
   FileText, 
-  FolderOpen, 
-  MessageCircle, 
+  BookOpen, 
+  MessageSquare, 
   DollarSign, 
-  BarChart, 
+  TrendingUp, 
   Settings, 
   LogOut,
-  Sparkles
+  GraduationCap 
 } from "lucide-react";
 
 interface TeacherSidebarProps {
@@ -24,56 +24,43 @@ interface TeacherSidebarProps {
 
 export const TeacherSidebar = ({ activeTab, setActiveTab, onLogout }: TeacherSidebarProps) => {
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home },
-    { id: 'ai-assistant', label: 'AI Assistant', icon: Sparkles },
+    { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+    { id: 'ai-assistant', label: 'AI Curriculum', icon: Brain },
     { id: 'calendar', label: 'Calendar', icon: Calendar },
-    { id: 'students', label: 'My Students', icon: Users },
-    { id: 'history', label: 'Lesson History', icon: History },
+    { id: 'students', label: 'Students', icon: Users },
+    { id: 'history', label: 'Lesson History', icon: Clock },
     { id: 'assignments', label: 'Assignments', icon: FileText },
-    { id: 'resources', label: 'Resource Library', icon: FolderOpen },
-    { id: 'messages', label: 'Messages', icon: MessageCircle },
+    { id: 'resources', label: 'Resources', icon: BookOpen },
+    { id: 'messages', label: 'Messages', icon: MessageSquare },
     { id: 'earnings', label: 'Earnings', icon: DollarSign },
-    { id: 'reports', label: 'Reports', icon: BarChart },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'reports', label: 'Reports', icon: TrendingUp },
+    { id: 'settings', label: 'Settings', icon: Settings }
   ];
 
   return (
-    <div className="w-64 bg-white border-r border-gray-200 h-full flex flex-col">
-      <div className="p-6 border-b border-gray-200">
-        <h2 className="text-xl font-bold text-teal-600">Teacher Portal</h2>
+    <div className="w-64 flex-shrink-0 border-r bg-gray-50 dark:bg-gray-900 dark:border-gray-700 flex flex-col">
+      <div className="h-16 flex items-center justify-center border-b dark:border-gray-700">
+        <GraduationCap className="h-8 w-8 text-blue-500" />
+        <span className="ml-2 text-lg font-semibold">Teacher Panel</span>
       </div>
       
-      <nav className="flex-1 p-4 space-y-2">
-        {menuItems.map((item) => {
-          const Icon = item.icon;
-          return (
-            <Button
-              key={item.id}
-              variant={activeTab === item.id ? "default" : "ghost"}
-              className={`w-full justify-start ${
-                activeTab === item.id 
-                  ? "bg-teal-500 hover:bg-teal-600 text-white" 
-                  : "hover:bg-gray-100"
-              } ${item.id === 'ai-assistant' ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600' : ''}`}
-              onClick={() => setActiveTab(item.id)}
-            >
-              <Icon className="h-5 w-5 mr-3" />
-              {item.label}
-              {item.id === 'ai-assistant' && (
-                <Sparkles className="h-4 w-4 ml-auto" />
-              )}
-            </Button>
-          );
-        })}
-      </nav>
+      <div className="flex-1 p-4 space-y-1">
+        {menuItems.map((item) => (
+          <Button
+            key={item.id}
+            variant={activeTab === item.id ? "secondary" : "ghost"}
+            className="justify-start w-full"
+            onClick={() => setActiveTab(item.id)}
+          >
+            <item.icon className="mr-2 h-4 w-4" />
+            {item.label}
+          </Button>
+        ))}
+      </div>
       
-      <div className="p-4 border-t border-gray-200">
-        <Button
-          variant="ghost"
-          className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-          onClick={onLogout}
-        >
-          <LogOut className="h-5 w-5 mr-3" />
+      <div className="p-4 border-t dark:border-gray-700">
+        <Button variant="outline" className="w-full" onClick={onLogout}>
+          <LogOut className="mr-2 h-4 w-4" />
           Logout
         </Button>
       </div>
