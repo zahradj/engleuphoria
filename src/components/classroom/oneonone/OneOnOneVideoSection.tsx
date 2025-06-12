@@ -2,11 +2,10 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Star } from "lucide-react";
+import { Trophy, Star, Video, VideoOff, Mic, MicOff } from "lucide-react";
 import { OneOnOneRewards } from "./OneOnOneRewards";
 import { useVideoRoom } from "@/hooks/useVideoRoom";
 import { Button } from "@/components/ui/button";
-import { Video, VideoOff, Mic, MicOff, PhoneCall, PhoneOff } from "lucide-react";
 
 interface OneOnOneVideoSectionProps {
   roomId: string;
@@ -33,9 +32,6 @@ export function OneOnOneVideoSection({
     error,
     isMuted,
     isCameraOff,
-    isLoading,
-    joinRoom,
-    leaveRoom,
     toggleMicrophone,
     toggleCamera
   } = useVideoRoom({
@@ -48,39 +44,7 @@ export function OneOnOneVideoSection({
 
   return (
     <Card className="h-full shadow-lg flex flex-col overflow-hidden">
-      {/* Video Connection Status */}
-      <div className="p-3 border-b flex items-center justify-between bg-gray-50">
-        <div className="flex items-center gap-2">
-          <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : isLoading ? 'bg-yellow-500' : 'bg-gray-400'}`}></div>
-          <span className="text-sm font-medium">
-            {isConnected ? 'Video Connected' : isLoading ? 'Connecting...' : 'Video Ready'}
-          </span>
-        </div>
-        
-        {!isConnected ? (
-          <Button 
-            onClick={joinRoom} 
-            size="sm"
-            disabled={isLoading}
-            className="bg-green-600 hover:bg-green-700 text-white text-xs px-2 py-1"
-          >
-            <PhoneCall size={12} className="mr-1" />
-            {isLoading ? 'Joining...' : 'Join'}
-          </Button>
-        ) : (
-          <Button 
-            onClick={leaveRoom} 
-            size="sm"
-            variant="destructive"
-            className="text-xs px-2 py-1"
-          >
-            <PhoneOff size={12} className="mr-1" />
-            Leave
-          </Button>
-        )}
-      </div>
-
-      {/* Video Area */}
+      {/* Video Area - No header, direct video */}
       <div className="p-3 flex-shrink-0">
         <div className="aspect-video bg-gray-900 rounded-lg flex items-center justify-center relative overflow-hidden">
           {isConnected ? (
@@ -94,7 +58,7 @@ export function OneOnOneVideoSection({
           ) : (
             <div className="text-center text-gray-400">
               <Video size={24} className="mx-auto mb-2" />
-              <p className="text-xs">Click Join to start video</p>
+              <p className="text-xs">Teacher Video</p>
             </div>
           )}
 

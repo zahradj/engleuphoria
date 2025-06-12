@@ -3,6 +3,59 @@ import { useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { BadgeType, RewardHistory, XP_VALUES, BADGE_MILESTONES } from '@/components/classroom/oneonone/rewards/RewardSystem';
 
+// Sound effect utility
+const playSound = (type: 'xp' | 'star' | 'badge' | 'achievement') => {
+  try {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    
+    const createBeep = (frequency: number, duration: number, volume: number = 0.3) => {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = frequency;
+      oscillator.type = 'sine';
+      
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+      gainNode.gain.linearRampToValueAtTime(volume, audioContext.currentTime + 0.01);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + duration);
+    };
+
+    switch (type) {
+      case 'xp':
+        // Simple ding for XP gain
+        createBeep(800, 0.2);
+        break;
+      case 'star':
+        // Magical star sound - ascending notes
+        createBeep(523, 0.15); // C
+        setTimeout(() => createBeep(659, 0.15), 100); // E
+        setTimeout(() => createBeep(784, 0.2), 200); // G
+        break;
+      case 'badge':
+        // Achievement fanfare
+        createBeep(523, 0.2); // C
+        setTimeout(() => createBeep(659, 0.2), 150); // E
+        setTimeout(() => createBeep(784, 0.2), 300); // G
+        setTimeout(() => createBeep(1047, 0.3), 450); // High C
+        break;
+      case 'achievement':
+        // Celebration sound
+        createBeep(698, 0.15); // F#
+        setTimeout(() => createBeep(831, 0.15), 100); // G#
+        setTimeout(() => createBeep(988, 0.2), 200); // B
+        break;
+    }
+  } catch (error) {
+    console.log('Audio not supported or blocked:', error);
+  }
+};
+
 export function useEnhancedRewards(initialXP: number = 1250) {
   const [currentXP, setCurrentXP] = useState(initialXP);
   const [badges, setBadges] = useState<BadgeType[]>(BADGE_MILESTONES);
@@ -19,6 +72,15 @@ export function useEnhancedRewards(initialXP: number = 1250) {
   ) => {
     const newXP = currentXP + amount;
     setCurrentXP(newXP);
+
+    // Play sound based on reward type
+    if (type === 'star') {
+      playSound('star');
+    } else if (amount >= 25) {
+      playSound('achievement');
+    } else {
+      playSound('xp');
+    }
 
     // Add to history
     const newReward: RewardHistory = {
@@ -42,6 +104,9 @@ export function useEnhancedRewards(initialXP: number = 1250) {
           ? { ...badge, unlocked: true, unlockedAt: new Date() }
           : badge
       ));
+
+      // Play badge unlock sound
+      playSound('badge');
 
       // Show badge unlock celebration
       newlyUnlockedBadges.forEach(badge => {

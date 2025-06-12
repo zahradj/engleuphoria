@@ -3,16 +3,18 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { 
-  Camera, 
-  CameraOff, 
   Mic, 
   MicOff, 
-  Settings, 
-  Circle,
-  Timer
+  Video, 
+  VideoOff, 
+  Circle, 
+  Square,
+  PhoneCall,
+  PhoneOff,
+  Users
 } from "lucide-react";
+import { useVideoRoom } from "@/hooks/useVideoRoom";
 
 interface OneOnOneTopBarProps {
   classTime: number;
@@ -26,6 +28,12 @@ interface OneOnOneTopBarProps {
   onToggleRecording: () => void;
 }
 
+const formatTime = (seconds: number) => {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+};
+
 export function OneOnOneTopBar({
   classTime,
   studentName,
@@ -37,34 +45,92 @@ export function OneOnOneTopBar({
   onToggleCamera,
   onToggleRecording
 }: OneOnOneTopBarProps) {
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
+  const {
+    isConnected,
+    participants,
+    isLoading,
+    joinRoom,
+    leaveRoom
+  } = useVideoRoom({
+    roomId: "classroom-room-1",
+    userId: "teacher-1",
+    displayName: "Ms. Johnson"
+  });
 
   return (
-    <Card className="mb-4 p-4 shadow-lg">
-      <div className="flex items-center justify-between">
+    <Card className="w-full shadow-sm">
+      <div className="p-4 flex items-center justify-between">
+        {/* Left: Student Info */}
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Timer size={20} className="text-blue-600" />
-            <span className="font-mono text-lg font-semibold">{formatTime(classTime)}</span>
-          </div>
-          <Separator orientation="vertical" className="h-6" />
-          <div className="flex items-center gap-2">
-            <span className="font-semibold">{studentName}</span>
-            <Badge variant="secondary" className="bg-green-100 text-green-700">
-              {studentLevel}
-            </Badge>
+          <div>
+            <h2 className="text-lg font-semibold">{studentName}</h2>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="text-xs">
+                {studentLevel}
+              </Badge>
+              <div className="text-xs text-gray-500">
+                One-on-One Lesson
+              </div>
+            </div>
           </div>
         </div>
-        
+
+        {/* Center: Class Timer */}
+        <div className="text-center">
+          <div className="text-2xl font-mono font-bold text-primary">
+            {formatTime(classTime)}
+          </div>
+          <div className="text-xs text-gray-500">Class Duration</div>
+        </div>
+
+        {/* Right: Controls */}
         <div className="flex items-center gap-2">
+          {/* Video Connection Controls */}
+          <div className="flex items-center gap-2 mr-4">
+            <div className="flex items-center gap-1">
+              <div className={`w-2 h-2 rounded-full ${
+                isConnected ? 'bg-green-500' : isLoading ? 'bg-yellow-500' : 'bg-gray-400'
+              }`}></div>
+              <span className="text-xs text-gray-600">
+                {isConnected ? 'Connected' : isLoading ? 'Connecting...' : 'Ready'}
+              </span>
+              {participants.size > 0 && (
+                <div className="flex items-center gap-1 ml-1">
+                  <Users size={12} className="text-gray-400" />
+                  <span className="text-xs text-gray-400">{participants.size}</span>
+                </div>
+              )}
+            </div>
+            
+            {!isConnected ? (
+              <Button 
+                onClick={joinRoom} 
+                size="sm"
+                disabled={isLoading}
+                className="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1"
+              >
+                <PhoneCall size={12} className="mr-1" />
+                {isLoading ? 'Joining...' : 'Join'}
+              </Button>
+            ) : (
+              <Button 
+                onClick={leaveRoom} 
+                size="sm"
+                variant="destructive"
+                className="text-xs px-3 py-1"
+              >
+                <PhoneOff size={12} className="mr-1" />
+                Leave
+              </Button>
+            )}
+          </div>
+
+          {/* Audio/Video Controls */}
           <Button
             variant={isMuted ? "destructive" : "outline"}
             size="sm"
             onClick={onToggleMute}
+            className="rounded-full w-10 h-10 p-0"
           >
             {isMuted ? <MicOff size={16} /> : <Mic size={16} />}
           </Button>
@@ -73,22 +139,19 @@ export function OneOnOneTopBar({
             variant={isCameraOff ? "destructive" : "outline"}
             size="sm"
             onClick={onToggleCamera}
+            className="rounded-full w-10 h-10 p-0"
           >
-            {isCameraOff ? <CameraOff size={16} /> : <Camera size={16} />}
+            {isCameraOff ? <VideoOff size={16} /> : <Video size={16} />}
           </Button>
-          
+
+          {/* Recording Control */}
           <Button
             variant={isRecording ? "destructive" : "outline"}
             size="sm"
             onClick={onToggleRecording}
-            className={isRecording ? "animate-pulse" : ""}
+            className="rounded-full w-10 h-10 p-0"
           >
-            <Circle size={16} className={isRecording ? "fill-current" : ""} />
-            {isRecording ? "Stop" : "Record"}
-          </Button>
-          
-          <Button variant="outline" size="sm">
-            <Settings size={16} />
+            {isRecording ? <Square size={16} /> : <Circle size={16} />}
           </Button>
         </div>
       </div>
