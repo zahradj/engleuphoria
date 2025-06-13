@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,10 +20,10 @@ export function StudentProfileForm({ students }: StudentProfileFormProps) {
   const [formData, setFormData] = useState({
     name: "",
     age: 8,
-    cefrLevel: "A1" as const,
+    cefrLevel: "A1" as StudentProfile['cefrLevel'],
     strengths: "",
     gaps: "",
-    learningStyle: "Visual" as const,
+    learningStyle: "Visual" as StudentProfile['learningStyle'],
     interests: "",
     weeklyMinutes: 100,
     longTermGoal: "",
@@ -158,7 +157,7 @@ export function StudentProfileForm({ students }: StudentProfileFormProps) {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="level">CEFR Level</Label>
-                <Select value={formData.cefrLevel} onValueChange={(value: any) => setFormData({...formData, cefrLevel: value})}>
+                <Select value={formData.cefrLevel} onValueChange={(value: StudentProfile['cefrLevel']) => setFormData({...formData, cefrLevel: value})}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -174,7 +173,7 @@ export function StudentProfileForm({ students }: StudentProfileFormProps) {
               </div>
               <div>
                 <Label htmlFor="style">Learning Style</Label>
-                <Select value={formData.learningStyle} onValueChange={(value: any) => setFormData({...formData, learningStyle: value})}>
+                <Select value={formData.learningStyle} onValueChange={(value: StudentProfile['learningStyle']) => setFormData({...formData, learningStyle: value})}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
