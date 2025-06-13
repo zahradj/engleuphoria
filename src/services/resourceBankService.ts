@@ -1,15 +1,23 @@
-
 import { Resource } from '@/types/curriculum';
+import { nlefpCurriculumService, NLEFP_MODULES } from './nlefpCurriculumService';
 
 class ResourceBankService {
   private resources: Resource[] = [];
 
   constructor() {
-    this.initializeMockResources();
+    this.initializeNLEFPResources();
   }
 
-  private initializeMockResources() {
-    this.resources = [
+  private initializeNLEFPResources() {
+    // Add all NLEFP module resources
+    const nlefpResources: Resource[] = [];
+    
+    NLEFP_MODULES.forEach(module => {
+      nlefpResources.push(...nlefpCurriculumService.getNLEFPResources(module.id));
+    });
+
+    // Add traditional resources
+    const traditionalResources: Resource[] = [
       {
         id: "routine_worksheet_01",
         title: "Daily Routine Fill-in-the-Blanks",
@@ -36,51 +44,61 @@ class ResourceBankService {
         skillFocus: ["vocabulary", "speaking"],
         theme: "family",
         duration: 20,
-        description: "Match family members with descriptions",
-        tags: ["family", "possessives", "vocabulary"],
+        description: "Match family members with descriptions using NLP emotional anchors",
+        tags: ["family", "possessives", "vocabulary", "nlp"],
         content: {
           gameType: "matching",
+          nlpElement: "Emotional anchoring - connect family members to positive feelings",
           pairs: [
-            { term: "mother", definition: "your female parent" },
-            { term: "brother", definition: "your male sibling" },
-            { term: "grandmother", definition: "your mother's mother" }
+            { term: "mother", definition: "your female parent who loves you" },
+            { term: "brother", definition: "your male sibling who plays with you" },
+            { term: "grandmother", definition: "your mother's mother who tells stories" }
           ]
         }
       },
       {
-        id: "food_video_01",
-        title: "Healthy Foods Around the World",
-        type: "video",
-        cefrLevel: "A2",
-        skillFocus: ["listening", "vocabulary"],
-        theme: "food",
-        duration: 10,
-        description: "Learn food vocabulary through cultural exploration",
-        tags: ["food", "culture", "listening"],
-        url: "https://example.com/food-video"
-      },
-      {
-        id: "animals_interactive_01",
-        title: "Animal Sounds Quiz",
+        id: "weather_visualization_01",
+        title: "Weather Visualization Activity",
         type: "interactive",
         cefrLevel: "A1",
-        skillFocus: ["listening", "vocabulary"],
-        theme: "animals",
-        duration: 12,
-        description: "Match animals with their sounds",
-        tags: ["animals", "sounds", "quiz"],
+        skillFocus: ["vocabulary", "speaking", "critical thinking"],
+        theme: "weather",
+        duration: 25,
+        description: "Use visualization and inferring skills to predict weather",
+        tags: ["weather", "visualization", "nlp", "inferring"],
         content: {
-          questions: [
-            { animal: "cow", sound: "moo", options: ["moo", "bark", "meow"] },
-            { animal: "cat", sound: "meow", options: ["moo", "bark", "meow"] }
-          ]
+          nlpAnchor: "Close your eyes and feel different weather types",
+          criticalThinking: "Infer what people wear based on weather clues",
+          vakElements: {
+            visual: "Weather pictures and clothing images",
+            auditory: "Weather sounds (rain, wind, thunder)",
+            kinesthetic: "Acting out weather-appropriate activities"
+          }
         }
       }
     ];
+
+    this.resources = [...nlefpResources, ...traditionalResources];
   }
 
   getAllResources(): Resource[] {
     return this.resources;
+  }
+
+  getResourcesByModule(moduleTheme: string): Resource[] {
+    return this.resources.filter(r => 
+      r.theme.toLowerCase().includes(moduleTheme.toLowerCase()) ||
+      r.tags.some(tag => tag.toLowerCase().includes(moduleTheme.toLowerCase()))
+    );
+  }
+
+  getNLEFPResources(): Resource[] {
+    return this.resources.filter(r => 
+      r.id.startsWith('nlefp_') || 
+      r.tags.includes('nlp') ||
+      r.content?.nlpAnchor ||
+      r.content?.criticalThinking
+    );
   }
 
   getResourcesByLevel(cefrLevel: string): Resource[] {
@@ -120,7 +138,6 @@ class ResourceBankService {
     return false;
   }
 
-  // Search resources by similarity (simplified version)
   searchResources(query: string, limit: number = 10): Resource[] {
     const lowerQuery = query.toLowerCase();
     return this.resources
