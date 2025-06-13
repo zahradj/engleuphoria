@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -10,12 +11,13 @@ import { StudentsTab } from "@/components/teacher/StudentsTab";
 import { LessonHistoryTab } from "@/components/teacher/LessonHistoryTab";
 import { AssignmentsTab } from "@/components/teacher/AssignmentsTab";
 import { ResourceLibraryTab } from "@/components/teacher/ResourceLibraryTab";
+import { ReadingLibraryTab } from "@/components/teacher/ReadingLibraryTab";
 import { MessagesTab } from "@/components/teacher/MessagesTab";
 import { EarningsTab } from "@/components/teacher/EarningsTab";
 import { ReportsTab } from "@/components/teacher/ReportsTab";
 import { SettingsTab } from "@/components/teacher/SettingsTab";
 
-type TabType = 'dashboard' | 'ai-assistant' | 'calendar' | 'students' | 'history' | 'assignments' | 'resources' | 'messages' | 'earnings' | 'reports' | 'settings';
+type TabType = 'dashboard' | 'ai-assistant' | 'calendar' | 'students' | 'reading-library' | 'history' | 'assignments' | 'resources' | 'messages' | 'earnings' | 'reports' | 'settings';
 
 const TeacherDashboard = () => {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
@@ -59,6 +61,8 @@ const TeacherDashboard = () => {
         return <CalendarTab />;
       case 'students':
         return <StudentsTab />;
+      case 'reading-library':
+        return <ReadingLibraryTab />;
       case 'history':
         return <LessonHistoryTab />;
       case 'assignments':

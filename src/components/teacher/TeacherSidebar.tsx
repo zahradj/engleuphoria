@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -13,7 +14,8 @@ import {
   TrendingUp, 
   Settings, 
   LogOut,
-  GraduationCap 
+  GraduationCap,
+  Book
 } from "lucide-react";
 
 interface TeacherSidebarProps {
@@ -28,6 +30,7 @@ export const TeacherSidebar = ({ activeTab, setActiveTab, onLogout }: TeacherSid
     { id: 'ai-assistant', label: 'AI Curriculum', icon: Brain },
     { id: 'calendar', label: 'Calendar', icon: Calendar },
     { id: 'students', label: 'Students', icon: Users },
+    { id: 'reading-library', label: 'Reading Library', icon: Book },
     { id: 'history', label: 'Lesson History', icon: Clock },
     { id: 'assignments', label: 'Assignments', icon: FileText },
     { id: 'resources', label: 'Resources', icon: BookOpen },
