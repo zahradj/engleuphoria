@@ -27,7 +27,35 @@ export function EmbeddedGame({ game, onRemove, onError }: EmbeddedGameProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [position, setPosition] = useState({ x: game.x, y: game.y });
+  const [size, setSize] = useState({ width: game.width, height: game.height });
   const [retryCount, setRetryCount] = useState(0);
+
+  // Ensure content fits within whiteboard bounds
+  const adjustToWhiteboardBounds = () => {
+    const whiteboardElement = document.querySelector('.whiteboard-container');
+    if (!whiteboardElement) return;
+
+    const whiteboardRect = whiteboardElement.getBoundingClientRect();
+    const maxWidth = whiteboardRect.width - 40; // Leave some padding
+    const maxHeight = whiteboardRect.height - 100; // Account for toolbar
+
+    // Adjust size to fit within whiteboard
+    const adjustedWidth = Math.min(size.width, maxWidth);
+    const adjustedHeight = Math.min(size.height, maxHeight);
+
+    // Adjust position to stay within bounds
+    const adjustedX = Math.max(20, Math.min(position.x, maxWidth - adjustedWidth));
+    const adjustedY = Math.max(20, Math.min(position.y, maxHeight - adjustedHeight));
+
+    setSize({ width: adjustedWidth, height: adjustedHeight });
+    setPosition({ x: adjustedX, y: adjustedY });
+  };
+
+  useEffect(() => {
+    adjustToWhiteboardBounds();
+    window.addEventListener('resize', adjustToWhiteboardBounds);
+    return () => window.removeEventListener('resize', adjustToWhiteboardBounds);
+  }, []);
 
   const handleIframeError = () => {
     console.log("Iframe failed to load:", game.url);
@@ -55,7 +83,7 @@ export function EmbeddedGame({ game, onRemove, onError }: EmbeddedGameProps) {
         console.log("Iframe load timeout for:", game.url);
         setLoadTimeout(true);
       }
-    }, 15000); // 15 second timeout for educational games
+    }, 15000);
 
     return () => clearTimeout(timer);
   }, [game.url, loadError, retryCount]);
@@ -77,10 +105,23 @@ export function EmbeddedGame({ game, onRemove, onError }: EmbeddedGameProps) {
 
   const handleMouseMove = (e: MouseEvent) => {
     if (isDragging) {
-      setPosition({
-        x: e.clientX - dragStart.x,
-        y: e.clientY - dragStart.y
-      });
+      const newX = e.clientX - dragStart.x;
+      const newY = e.clientY - dragStart.y;
+      
+      // Constrain to whiteboard bounds
+      const whiteboardElement = document.querySelector('.whiteboard-container');
+      if (whiteboardElement) {
+        const whiteboardRect = whiteboardElement.getBoundingClientRect();
+        const maxX = whiteboardRect.width - size.width - 20;
+        const maxY = whiteboardRect.height - size.height - 80;
+        
+        setPosition({
+          x: Math.max(20, Math.min(newX, maxX)),
+          y: Math.max(20, Math.min(newY, maxY))
+        });
+      } else {
+        setPosition({ x: newX, y: newY });
+      }
     }
   };
 
@@ -98,20 +139,22 @@ export function EmbeddedGame({ game, onRemove, onError }: EmbeddedGameProps) {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging]);
+  }, [isDragging, dragStart, size]);
 
   const showError = game.isBlocked || loadError || loadTimeout;
 
   return (
     <div
-      className="absolute border-2 border-blue-500 rounded bg-white shadow-lg resize overflow-hidden cursor-move"
+      className="absolute border-2 border-blue-500 rounded bg-white shadow-lg overflow-hidden cursor-move"
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
-        width: `${game.width}px`,
-        height: `${game.height}px`,
-        minWidth: '200px',
-        minHeight: '150px',
+        width: `${size.width}px`,
+        height: `${size.height}px`,
+        minWidth: '300px',
+        minHeight: '200px',
+        maxWidth: '100%',
+        maxHeight: '100%',
         zIndex: 10
       }}
       onMouseDown={handleMouseDown}
@@ -193,6 +236,10 @@ export function EmbeddedGame({ game, onRemove, onError }: EmbeddedGameProps) {
           referrerPolicy="strict-origin-when-cross-origin"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
           loading="lazy"
+          style={{ 
+            transform: 'scale(1)',
+            transformOrigin: 'top left'
+          }}
         />
       )}
     </div>

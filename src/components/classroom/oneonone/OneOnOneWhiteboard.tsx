@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog } from "@/components/ui/dialog";
@@ -72,14 +71,25 @@ export function OneOnOneWhiteboard() {
       });
     }
     
+    // Calculate better default size based on whiteboard container
+    const whiteboardElement = document.querySelector('.whiteboard-container');
+    let defaultWidth = 500;
+    let defaultHeight = 400;
+    
+    if (whiteboardElement) {
+      const rect = whiteboardElement.getBoundingClientRect();
+      defaultWidth = Math.min(500, rect.width * 0.6);
+      defaultHeight = Math.min(400, rect.height * 0.5);
+    }
+    
     const newGame: EmbeddedGameData = {
       id: Date.now().toString(),
       title: gameTitle,
       url: validation.processedUrl,
-      x: Math.random() * 200 + 50,
-      y: Math.random() * 200 + 50,
-      width: 400,
-      height: 300,
+      x: 50,
+      y: 50,
+      width: defaultWidth,
+      height: defaultHeight,
       isBlocked: false
     };
 
@@ -94,7 +104,7 @@ export function OneOnOneWhiteboard() {
     
     toast({
       title: "Content Added",
-      description: `${gameTitle} has been embedded. If it doesn't load, try opening it in a new tab.`,
+      description: `${gameTitle} has been embedded and sized to fit the whiteboard.`,
     });
   };
 

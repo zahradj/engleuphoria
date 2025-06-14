@@ -19,7 +19,7 @@ export function WhiteboardCanvas({
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   return (
-    <div className="bg-white rounded-lg border h-full relative">
+    <div className="bg-white rounded-lg border h-full relative whiteboard-container">
       <canvas
         ref={canvasRef}
         className="w-full h-full cursor-crosshair"
