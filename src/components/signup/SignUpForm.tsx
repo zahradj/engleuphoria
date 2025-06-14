@@ -15,7 +15,7 @@ const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
-  userType: z.enum(["parent", "teacher", "student"], { 
+  userType: z.enum(["parent", "teacher", "student", "admin"], { 
     required_error: "Please select a user type" 
   }),
 });
@@ -41,17 +41,25 @@ export const SignUpForm = () => {
       localStorage.setItem('teacherName', values.name);
       localStorage.setItem('userType', 'teacher');
       localStorage.removeItem('studentName'); // Clear any student data
+      localStorage.removeItem('adminName'); // Clear any admin data
     } else if (values.userType === "student") {
       localStorage.setItem('studentName', values.name);
       localStorage.setItem('userType', 'student');
       localStorage.setItem('points', '50'); // Starting points
       localStorage.removeItem('teacherName'); // Clear any teacher data
+      localStorage.removeItem('adminName'); // Clear any admin data
+    } else if (values.userType === "admin") {
+      localStorage.setItem('adminName', values.name);
+      localStorage.setItem('userType', 'admin');
+      localStorage.removeItem('teacherName'); // Clear any teacher data
+      localStorage.removeItem('studentName'); // Clear any student data
     } else {
       // Parent - for now redirect to student dashboard (could be a parent portal later)
       localStorage.setItem('studentName', values.name);
       localStorage.setItem('userType', 'parent');
       localStorage.setItem('points', '50');
       localStorage.removeItem('teacherName');
+      localStorage.removeItem('adminName');
     }
     
     console.log(values);
@@ -64,6 +72,8 @@ export const SignUpForm = () => {
     setTimeout(() => {
       if (values.userType === "teacher") {
         navigate("/teacher-dashboard");
+      } else if (values.userType === "admin") {
+        navigate("/admin-dashboard");
       } else {
         navigate("/student-dashboard");
       }
@@ -154,6 +164,12 @@ export const SignUpForm = () => {
                         <RadioGroupItem value="student" />
                       </FormControl>
                       <FormLabel className="font-normal">{languageText.student}</FormLabel>
+                    </FormItem>
+                    <FormItem className="flex items-center space-x-3 space-y-0">
+                      <FormControl>
+                        <RadioGroupItem value="admin" />
+                      </FormControl>
+                      <FormLabel className="font-normal">Admin</FormLabel>
                     </FormItem>
                   </RadioGroup>
                 </FormControl>
