@@ -17,12 +17,18 @@ export function validateAndProcessUrl(url: string): UrlValidationResult {
   }
 
   try {
-    // Ensure URL has protocol
-    const processedUrl = url.startsWith('http') ? url : `https://${url}`;
-    const urlObj = new URL(processedUrl);
+    // Clean up the URL
+    let cleanUrl = url.trim();
+    
+    // Handle common URL formats
+    if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+      cleanUrl = `https://${cleanUrl}`;
+    }
 
-    // Only allow HTTPS for security
-    if (urlObj.protocol !== 'https:') {
+    const urlObj = new URL(cleanUrl);
+
+    // Only allow HTTPS for security (except for localhost development)
+    if (urlObj.protocol !== 'https:' && !urlObj.hostname.includes('localhost')) {
       return {
         isValid: false,
         isTrusted: false,
@@ -51,19 +57,46 @@ export function validateAndProcessUrl(url: string): UrlValidationResult {
       'pbskids.org',
       'khanacademy.org',
       'code.org',
-      'scratch.mit.edu',
       'tinkercad.com',
-      'flipgrid.com'
+      'flipgrid.com',
+      'edpuzzle.com',
+      'quizizz.com',
+      'blooket.com',
+      'gimkit.com',
+      'classcraft.com',
+      'seesaw.me',
+      'flipboard.com',
+      'prezi.com',
+      'canva.com',
+      'slides.com',
+      'genially.com',
+      'mentimeter.com',
+      'polleverywhere.com'
     ];
 
     const isTrusted = trustedDomains.some(domain => 
       urlObj.hostname === domain || urlObj.hostname.endsWith('.' + domain)
     );
 
+    // Process YouTube URLs to embed format
+    if (urlObj.hostname.includes('youtube.com') || urlObj.hostname.includes('youtu.be')) {
+      let videoId = '';
+      
+      if (urlObj.hostname.includes('youtu.be')) {
+        videoId = urlObj.pathname.slice(1);
+      } else if (urlObj.searchParams.has('v')) {
+        videoId = urlObj.searchParams.get('v') || '';
+      }
+      
+      if (videoId) {
+        cleanUrl = `https://www.youtube.com/embed/${videoId}`;
+      }
+    }
+
     return {
       isValid: true,
       isTrusted,
-      processedUrl,
+      processedUrl: cleanUrl,
       warning: !isTrusted ? 'This domain is not on our trusted list. Content may be blocked by security policies.' : undefined
     };
 

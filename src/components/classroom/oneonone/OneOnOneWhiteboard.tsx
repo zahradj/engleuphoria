@@ -1,5 +1,7 @@
+
 import React, { useState, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { WhiteboardToolbar } from "./whiteboard/WhiteboardToolbar";
 import { EmbeddedGameDialog } from "./whiteboard/EmbeddedGameDialog";
@@ -67,7 +69,6 @@ export function OneOnOneWhiteboard() {
       toast({
         title: "Security Warning",
         description: validation.warning,
-        variant: "destructive"
       });
     }
     
@@ -75,8 +76,8 @@ export function OneOnOneWhiteboard() {
       id: Date.now().toString(),
       title: gameTitle,
       url: validation.processedUrl,
-      x: 50,
-      y: 50,
+      x: Math.random() * 200 + 50,
+      y: Math.random() * 200 + 50,
       width: 400,
       height: 300,
       isBlocked: false
@@ -118,6 +119,11 @@ export function OneOnOneWhiteboard() {
       ...prev,
       [activeTab]: (prev[activeTab] || []).filter(game => game.id !== gameId)
     }));
+    
+    toast({
+      title: "Content Removed",
+      description: "The embedded content has been removed from the whiteboard.",
+    });
   };
 
   const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -148,7 +154,7 @@ export function OneOnOneWhiteboard() {
   const currentPageGames = embeddedGames[activeTab] || [];
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col relative">
       <WhiteboardToolbar
         activeTool={activeTool}
         setActiveTool={setActiveTool}
@@ -159,13 +165,15 @@ export function OneOnOneWhiteboard() {
         isGameDialogOpen={isGameDialogOpen}
         setIsGameDialogOpen={setIsGameDialogOpen}
       >
-        <EmbeddedGameDialog
-          gameTitle={gameTitle}
-          setGameTitle={setGameTitle}
-          gameUrl={gameUrl}
-          setGameUrl={setGameUrl}
-          onAddGame={addGame}
-        />
+        <Dialog open={isGameDialogOpen} onOpenChange={setIsGameDialogOpen}>
+          <EmbeddedGameDialog
+            gameTitle={gameTitle}
+            setGameTitle={setGameTitle}
+            gameUrl={gameUrl}
+            setGameUrl={setGameUrl}
+            onAddGame={addGame}
+          />
+        </Dialog>
       </WhiteboardToolbar>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
@@ -175,7 +183,7 @@ export function OneOnOneWhiteboard() {
           <TabsTrigger value="page3">Page 3</TabsTrigger>
         </TabsList>
         
-        <TabsContent value={activeTab} className="flex-1 m-0">
+        <TabsContent value={activeTab} className="flex-1 m-0 relative">
           <WhiteboardCanvas
             activeTool={activeTool}
             color={color}
