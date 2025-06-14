@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -10,12 +11,11 @@ import { LessonHistoryTab } from "@/components/student/LessonHistoryTab";
 import { HomeworkTab } from "@/components/student/HomeworkTab";
 import { ProgressTrackerTab } from "@/components/student/ProgressTrackerTab";
 import { ChatTab } from "@/components/student/ChatTab";
-import { MaterialsLibraryTab } from "@/components/student/MaterialsLibraryTab";
 import { BillingTab } from "@/components/student/BillingTab";
 import { CertificatesTab } from "@/components/student/CertificatesTab";
 import { SettingsTab } from "@/components/student/SettingsTab";
 
-type TabType = 'dashboard' | 'profile' | 'classes' | 'history' | 'homework' | 'progress' | 'chat' | 'materials' | 'billing' | 'certificates' | 'settings';
+type TabType = 'dashboard' | 'profile' | 'classes' | 'history' | 'homework' | 'progress' | 'chat' | 'billing' | 'certificates' | 'settings';
 
 const StudentDashboard = () => {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
@@ -69,8 +69,6 @@ const StudentDashboard = () => {
         return <ProgressTrackerTab />;
       case 'chat':
         return <ChatTab />;
-      case 'materials':
-        return <MaterialsLibraryTab />;
       case 'billing':
         return <BillingTab />;
       case 'certificates':

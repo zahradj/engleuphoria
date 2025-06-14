@@ -1,5 +1,6 @@
 
 import React from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
   Home, 
@@ -24,17 +25,17 @@ interface StudentSidebarProps {
 
 export const StudentSidebar = ({ activeTab, setActiveTab, onLogout }: StudentSidebarProps) => {
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: Home },
-    { id: 'profile', label: 'Profile', icon: User },
-    { id: 'classes', label: 'Upcoming Classes', icon: Calendar },
-    { id: 'history', label: 'Lesson History', icon: BookOpen },
-    { id: 'homework', label: 'Homework', icon: FileText },
-    { id: 'progress', label: 'Progress Tracker', icon: TrendingUp },
-    { id: 'chat', label: 'Chat with Teacher', icon: MessageCircle },
-    { id: 'materials', label: 'Materials Library', icon: FolderOpen },
-    { id: 'billing', label: 'Payment & Billing', icon: CreditCard },
-    { id: 'certificates', label: 'Certificates', icon: Award },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'dashboard', label: 'Dashboard', icon: Home, type: 'tab' },
+    { id: 'profile', label: 'Profile', icon: User, type: 'tab' },
+    { id: 'classes', label: 'Upcoming Classes', icon: Calendar, type: 'tab' },
+    { id: 'history', label: 'Lesson History', icon: BookOpen, type: 'tab' },
+    { id: 'homework', label: 'Homework', icon: FileText, type: 'tab' },
+    { id: 'progress', label: 'Progress Tracker', icon: TrendingUp, type: 'tab' },
+    { id: 'chat', label: 'Chat with Teacher', icon: MessageCircle, type: 'tab' },
+    { id: 'materials', label: 'Materials Library', icon: FolderOpen, type: 'page', path: '/material-library' },
+    { id: 'billing', label: 'Payment & Billing', icon: CreditCard, type: 'tab' },
+    { id: 'certificates', label: 'Certificates', icon: Award, type: 'tab' },
+    { id: 'settings', label: 'Settings', icon: Settings, type: 'tab' },
   ];
 
   return (
@@ -57,6 +58,20 @@ export const StudentSidebar = ({ activeTab, setActiveTab, onLogout }: StudentSid
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
+          
+          if (item.type === 'page') {
+            return (
+              <Link key={item.id} to={item.path}>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start gap-3 h-12 text-gray-600 hover:bg-blue-50 hover:text-blue-600"
+                >
+                  <Icon className="h-5 w-5" />
+                  <span className="font-medium">{item.label}</span>
+                </Button>
+              </Link>
+            );
+          }
           
           return (
             <Button
