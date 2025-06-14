@@ -27,6 +27,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setIsConfigured(configured)
 
     if (!configured) {
+      // Mock user from localStorage for demo purposes
+      const userType = localStorage.getItem('userType')
+      if (userType) {
+        const mockUser: User = {
+          id: '1',
+          email: 'demo@example.com',
+          full_name: localStorage.getItem(userType === 'admin' ? 'adminName' : userType === 'teacher' ? 'teacherName' : 'studentName') || 'Demo User',
+          role: userType as 'student' | 'teacher' | 'parent' | 'admin',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+        setUser(mockUser)
+      }
       setLoading(false)
       return
     }
@@ -123,7 +136,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     if (!isSupabaseConfigured()) {
-      return { error: new Error('Supabase not configured') }
+      // Clear localStorage for demo mode
+      localStorage.removeItem('userType')
+      localStorage.removeItem('adminName')
+      localStorage.removeItem('teacherName')
+      localStorage.removeItem('studentName')
+      setUser(null)
+      return { error: null }
     }
 
     const { error } = await supabase.auth.signOut()

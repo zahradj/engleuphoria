@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +12,7 @@ import { AnimatedBackground } from "@/components/AnimatedBackground";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [userType, setUserType] = useState<"student" | "teacher">("student");
+  const [userType, setUserType] = useState<"student" | "teacher" | "admin">("student");
   const navigate = useNavigate();
   const { toast } = useToast();
   const { languageText } = useLanguage();
@@ -42,6 +43,16 @@ const Login = () => {
         });
         
         navigate("/teacher-dashboard");
+      } else if (userType === "admin") {
+        localStorage.setItem("adminName", email.split("@")[0]);
+        localStorage.setItem("userType", "admin");
+        
+        toast({
+          title: "Admin login successful!",
+          description: "Welcome to the admin dashboard",
+        });
+        
+        navigate("/admin-dashboard");
       } else {
         navigate("/");
       }
@@ -94,12 +105,12 @@ const Login = () => {
 
               <div className="space-y-3">
                 <Label>{languageText.iAmA}</Label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-2">
                   <Button
                     type="button"
                     variant={userType === "student" ? "default" : "outline"}
                     onClick={() => setUserType("student")}
-                    className="h-12"
+                    className="h-12 text-sm"
                   >
                     {languageText.student}
                   </Button>
@@ -107,9 +118,17 @@ const Login = () => {
                     type="button"
                     variant={userType === "teacher" ? "default" : "outline"}
                     onClick={() => setUserType("teacher")}
-                    className="h-12"
+                    className="h-12 text-sm"
                   >
                     {languageText.teacher}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={userType === "admin" ? "default" : "outline"}
+                    onClick={() => setUserType("admin")}
+                    className="h-12 text-sm"
+                  >
+                    Admin
                   </Button>
                 </div>
               </div>
