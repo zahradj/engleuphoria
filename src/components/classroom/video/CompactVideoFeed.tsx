@@ -108,6 +108,8 @@ export function CompactVideoFeed({
               onClick={onToggleCamera}
               disabled={!isConnected}
               className="rounded-full w-6 h-6 p-0"
+            >
+              {isCameraOff ? <VideoOff size={10} /> : <Video size={10} />}
             </Button>
           </div>
 
