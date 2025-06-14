@@ -5,7 +5,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 export const Header = () => {
   const navigate = useNavigate();
-  const { t, language, setLanguage } = useLanguage();
+  const { languageText, language, setLanguage } = useLanguage();
 
   return (
     <header className="bg-white shadow-sm border-b">
@@ -23,13 +23,13 @@ export const Header = () => {
               onClick={() => navigate("/for-parents")}
               className="text-gray-600 hover:text-gray-900 transition-colors"
             >
-              {t.forParents}
+              {languageText.forParents}
             </button>
             <button
               onClick={() => navigate("/for-teachers")}
               className="text-gray-600 hover:text-gray-900 transition-colors"
             >
-              {t.forTeachers}
+              {languageText.forTeachers}
             </button>
             <button
               onClick={() => navigate("/payment")}
@@ -37,7 +37,7 @@ export const Header = () => {
             >
               Pricing
             </button>
-            <span className="text-gray-600">{t.contact}</span>
+            <span className="text-gray-600">{languageText.contact}</span>
           </nav>
           
           <div className="flex items-center space-x-4">
@@ -56,10 +56,10 @@ export const Header = () => {
               variant="outline" 
               onClick={() => navigate("/login")}
             >
-              {t.logIn}
+              {languageText.logIn}
             </Button>
             <Button onClick={() => navigate("/signup")}>
-              {t.signUp}
+              {languageText.signUp}
             </Button>
           </div>
         </div>
