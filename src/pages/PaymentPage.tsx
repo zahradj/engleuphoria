@@ -1,5 +1,6 @@
 
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PaymentPlansGrid } from "@/components/payment/PaymentPlansGrid";
 import { PaymentSuccess } from "@/components/payment/PaymentSuccess";
@@ -10,6 +11,7 @@ import { usePaymentVerification } from "@/hooks/usePaymentVerification";
 import { usePaymentForm } from "@/hooks/usePaymentForm";
 
 const PaymentPage = () => {
+  const navigate = useNavigate();
   const { paymentSuccess } = usePaymentVerification();
   const { formData, handleInputChange, handlePlanSelect } = usePaymentForm();
 
