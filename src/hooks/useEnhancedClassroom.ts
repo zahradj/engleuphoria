@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { EnhancedVideoService, ParticipantData } from '@/services/enhancedVideoService';
@@ -40,6 +39,8 @@ export function useEnhancedClassroom({
   useEffect(() => {
     const initializeVideo = async () => {
       try {
+        console.log('Initializing enhanced video service for:', { roomId, displayName, userRole });
+        
         const service = new EnhancedVideoService(
           {
             roomName: roomId,
@@ -50,14 +51,15 @@ export function useEnhancedClassroom({
           },
           {
             onParticipantJoined: (participantId, displayName) => {
-              console.log('Participant joined:', participantId, displayName);
+              console.log('Enhanced: Participant joined:', participantId, displayName);
               updateParticipants();
             },
             onParticipantLeft: (participantId) => {
-              console.log('Participant left:', participantId);
+              console.log('Enhanced: Participant left:', participantId);
               updateParticipants();
             },
             onConnectionStatusChanged: (connected) => {
+              console.log('Enhanced: Connection status changed:', connected);
               setIsConnected(connected);
               if (connected) {
                 toast({
@@ -67,6 +69,7 @@ export function useEnhancedClassroom({
               }
             },
             onError: (errorMessage) => {
+              console.error('Enhanced: Video service error:', errorMessage);
               setError(errorMessage);
               toast({
                 title: "Connection Error",
@@ -78,16 +81,18 @@ export function useEnhancedClassroom({
         );
 
         await service.initialize();
+        console.log('Enhanced video service initialized successfully');
         setVideoService(service);
       } catch (err) {
+        console.error('Enhanced video service initialization error:', err);
         setError('Failed to initialize video service');
-        console.error('Video service initialization error:', err);
       }
     };
 
     initializeVideo();
 
     return () => {
+      console.log('Cleaning up enhanced video service');
       if (videoService) {
         videoService.dispose();
       }
@@ -97,6 +102,7 @@ export function useEnhancedClassroom({
   const updateParticipants = useCallback(() => {
     if (videoService) {
       const currentParticipants = videoService.getParticipants();
+      console.log('Updating participants:', currentParticipants);
       setParticipants(currentParticipants);
       setConnectionQuality(videoService.getConnectionQuality());
       setIsRecording(videoService.isRecordingActive());
@@ -106,6 +112,7 @@ export function useEnhancedClassroom({
   const joinClassroom = useCallback(async () => {
     if (videoService && !isConnected) {
       try {
+        console.log('Joining enhanced classroom...');
         await videoService.joinRoom();
         
         // Create session record
@@ -120,15 +127,17 @@ export function useEnhancedClassroom({
         };
         
         setSession(newSession);
+        console.log('Enhanced classroom joined successfully');
       } catch (err) {
+        console.error('Enhanced join classroom error:', err);
         setError('Failed to join classroom');
-        console.error('Join classroom error:', err);
       }
     }
   }, [videoService, isConnected, roomId, userId, userRole]);
 
   const leaveClassroom = useCallback(async () => {
     if (videoService) {
+      console.log('Leaving enhanced classroom...');
       await videoService.leaveRoom();
       
       if (session) {

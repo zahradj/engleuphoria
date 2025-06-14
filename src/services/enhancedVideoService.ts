@@ -1,3 +1,4 @@
+
 import { VideoService, VideoServiceConfig, VideoServiceCallbacks } from './videoService';
 
 declare global {
@@ -55,11 +56,21 @@ export class EnhancedVideoService extends VideoService {
   async joinRoom(): Promise<void> {
     try {
       const domain = this.config.domain || 'meet.jit.si';
+      
+      // Create a container div for Jitsi
+      let container = document.getElementById('jitsi-container');
+      if (!container) {
+        container = document.createElement('div');
+        container.id = 'jitsi-container';
+        container.style.display = 'none'; // Hide the actual Jitsi interface
+        document.body.appendChild(container);
+      }
+
       const options = {
         roomName: this.config.roomName,
         width: '100%',
         height: '100%',
-        parentNode: document.createElement('div'),
+        parentNode: container,
         configOverwrite: {
           startWithAudioMuted: true,
           startWithVideoMuted: false,
@@ -88,8 +99,13 @@ export class EnhancedVideoService extends VideoService {
       this.api = new window.JitsiMeetExternalAPI(domain, options);
       this.setupEventListeners();
       
-      this.callbacks.onConnectionStatusChanged?.(true);
+      // Simulate connection after a short delay
+      setTimeout(() => {
+        this.callbacks.onConnectionStatusChanged?.(true);
+      }, 1000);
+      
     } catch (error) {
+      console.error('Failed to join room:', error);
       this.callbacks.onError?.('Failed to join room');
       throw error;
     }
@@ -99,6 +115,7 @@ export class EnhancedVideoService extends VideoService {
     if (!this.api) return;
 
     this.api.addEventListener('participantJoined', (event: any) => {
+      console.log('Participant joined:', event);
       const participant: ParticipantData = {
         id: event.id,
         displayName: event.displayName || 'Unknown',
@@ -114,6 +131,7 @@ export class EnhancedVideoService extends VideoService {
     });
 
     this.api.addEventListener('participantLeft', (event: any) => {
+      console.log('Participant left:', event);
       this.participants.delete(event.id);
       this.callbacks.onParticipantLeft?.(event.id);
     });
@@ -149,38 +167,64 @@ export class EnhancedVideoService extends VideoService {
     this.api.addEventListener('screenSharingStatusChanged', (event: any) => {
       this.isScreenSharing = event.on;
     });
+
+    // Add ready event listener
+    this.api.addEventListener('videoConferenceJoined', () => {
+      console.log('Video conference joined successfully');
+      this.callbacks.onConnectionStatusChanged?.(true);
+    });
   }
 
   async startRecording(): Promise<boolean> {
     if (this.api && this.enhancedConfig.enableRecording) {
-      await this.api.executeCommand('startRecording', {
-        mode: 'stream'
-      });
-      return true;
+      try {
+        await this.api.executeCommand('startRecording', {
+          mode: 'stream'
+        });
+        return true;
+      } catch (error) {
+        console.error('Failed to start recording:', error);
+        return false;
+      }
     }
     return false;
   }
 
   async stopRecording(): Promise<boolean> {
     if (this.api && this.isRecording) {
-      await this.api.executeCommand('stopRecording');
-      return true;
+      try {
+        await this.api.executeCommand('stopRecording');
+        return true;
+      } catch (error) {
+        console.error('Failed to stop recording:', error);
+        return false;
+      }
     }
     return false;
   }
 
   async startScreenShare(): Promise<boolean> {
     if (this.api && this.enhancedConfig.enableScreenShare) {
-      await this.api.executeCommand('toggleShareScreen');
-      return true;
+      try {
+        await this.api.executeCommand('toggleShareScreen');
+        return true;
+      } catch (error) {
+        console.error('Failed to start screen share:', error);
+        return false;
+      }
     }
     return false;
   }
 
   async raiseHand(): Promise<boolean> {
     if (this.api) {
-      await this.api.executeCommand('toggleRaiseHand');
-      return true;
+      try {
+        await this.api.executeCommand('toggleRaiseHand');
+        return true;
+      } catch (error) {
+        console.error('Failed to raise hand:', error);
+        return false;
+      }
     }
     return false;
   }
@@ -199,16 +243,26 @@ export class EnhancedVideoService extends VideoService {
 
   async toggleMicrophone(): Promise<boolean> {
     if (this.api) {
-      await this.api.executeCommand('toggleAudio');
-      return true;
+      try {
+        await this.api.executeCommand('toggleAudio');
+        return true;
+      } catch (error) {
+        console.error('Failed to toggle microphone:', error);
+        return false;
+      }
     }
     return false;
   }
 
   async toggleCamera(): Promise<boolean> {
     if (this.api) {
-      await this.api.executeCommand('toggleVideo');
-      return true;
+      try {
+        await this.api.executeCommand('toggleVideo');
+        return true;
+      } catch (error) {
+        console.error('Failed to toggle camera:', error);
+        return false;
+      }
     }
     return false;
   }
@@ -229,6 +283,12 @@ export class EnhancedVideoService extends VideoService {
     if (this.api) {
       this.api.dispose();
       this.api = null;
+      
+      // Clean up container
+      const container = document.getElementById('jitsi-container');
+      if (container) {
+        container.remove();
+      }
     }
     this.participants.clear();
     this.callbacks.onConnectionStatusChanged?.(false);
