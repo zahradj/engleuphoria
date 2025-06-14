@@ -124,7 +124,7 @@ export function UnifiedCenterPanel({
                     </Badge>
                   )}
                   {isTeacher && (
-                    <Shield size={10} className="text-purple-600" title="Teacher privileges" />
+                    <Shield size={10} className="text-purple-600" />
                   )}
                 </div>
                 <span className="font-medium leading-tight">{tab.label}</span>
