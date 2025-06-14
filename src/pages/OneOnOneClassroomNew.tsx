@@ -41,7 +41,7 @@ const OneOnOneClassroomNew = () => {
   try {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
-        {/* Top Bar - Fixed height */}
+        {/* Enhanced Top Bar with All Controls */}
         <div className="h-20 flex-shrink-0 p-4">
           <OneOnOneTopBar
             classTime={classTime}
@@ -53,14 +53,18 @@ const OneOnOneClassroomNew = () => {
             onToggleMute={() => setIsMuted(!isMuted)}
             onToggleCamera={() => setIsCameraOff(!isCameraOff)}
             onToggleRecording={toggleRecording}
+            roomId={roomId}
+            currentUserId={currentUserId}
+            currentUserName={currentUserName}
+            isTeacher={isTeacher}
           />
         </div>
 
-        {/* Main Classroom Layout - Flexible height with scrolling enabled */}
+        {/* Main Classroom Layout - Simplified */}
         <div className="min-h-[calc(100vh-5rem)] px-4 pb-4">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-[600px]">
             
-            {/* Left Panel - Video Section with Rewards for Teacher */}
+            {/* Left Panel - Simplified Video Section */}
             <div className="lg:col-span-3 min-h-[500px]">
               <OneOnOneVideoSection
                 roomId={roomId}

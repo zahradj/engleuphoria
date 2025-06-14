@@ -2,7 +2,6 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { EnhancedVideoPanel } from "@/components/classroom/enhanced/EnhancedVideoPanel";
-import { SessionManager } from "@/components/classroom/enhanced/SessionManager";
 import { OneOnOneRewards } from "./OneOnOneRewards";
 import { useEnhancedClassroom } from "@/hooks/useEnhancedClassroom";
 
@@ -28,17 +27,8 @@ export function OneOnOneVideoSection({
   const {
     isConnected,
     connectionQuality,
-    error,
-    session,
     participants,
-    isRecording,
-    joinClassroom,
-    leaveClassroom,
-    toggleRecording,
-    toggleMicrophone,
-    toggleCamera,
-    raiseHand,
-    startScreenShare
+    isRecording
   } = useEnhancedClassroom({
     roomId,
     userId: currentUserId,
@@ -46,7 +36,7 @@ export function OneOnOneVideoSection({
     userRole: isTeacher ? 'teacher' : 'student'
   });
 
-  console.log("Enhanced OneOnOneVideoSection:", { 
+  console.log("Simplified OneOnOneVideoSection:", { 
     isConnected, 
     participants: participants.length,
     isRecording,
@@ -55,7 +45,7 @@ export function OneOnOneVideoSection({
 
   return (
     <div className="h-full flex flex-col gap-4">
-      {/* Enhanced Video Panel */}
+      {/* Enhanced Video Panel - Main Content */}
       <div className="flex-1">
         <EnhancedVideoPanel
           participants={participants}
@@ -63,22 +53,11 @@ export function OneOnOneVideoSection({
           isRecording={isRecording}
           connectionQuality={connectionQuality}
           userRole={isTeacher ? 'teacher' : 'student'}
-          onToggleMicrophone={toggleMicrophone}
-          onToggleCamera={toggleCamera}
-          onRaiseHand={raiseHand}
-          onToggleRecording={isTeacher ? toggleRecording : undefined}
-          onStartScreenShare={startScreenShare}
-        />
-      </div>
-
-      {/* Session Manager */}
-      <div className="flex-shrink-0">
-        <SessionManager
-          session={session}
-          isConnected={isConnected}
-          onJoinClassroom={joinClassroom}
-          onLeaveClassroom={leaveClassroom}
-          classTime={0} // This will be replaced by session timer
+          onToggleMicrophone={() => {}} // Controlled from top bar now
+          onToggleCamera={() => {}} // Controlled from top bar now
+          onRaiseHand={() => {}} // Controlled from top bar now
+          onToggleRecording={undefined} // Controlled from top bar now
+          onStartScreenShare={() => {}} // Controlled from top bar now
         />
       </div>
 
@@ -93,13 +72,6 @@ export function OneOnOneVideoSection({
             />
           </Card>
         </div>
-      )}
-
-      {/* Error Display */}
-      {error && (
-        <Card className="p-3 border-red-200 bg-red-50">
-          <p className="text-sm text-red-600">{error}</p>
-        </Card>
       )}
     </div>
   );
