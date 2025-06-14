@@ -8,11 +8,5 @@ export { SENTENCE_TEMPLATES } from '@/data/sentenceTemplates';
 export { COMPREHENSION_STRATEGIES } from '@/data/comprehensionStrategies';
 
 // Re-export services
-export { curriculumPlannerService as enhancedCurriculumService } from '@/services/curriculumPlannerService';
+export { curriculumPlannerService } from '@/services/curriculumPlannerService';
 export { progressTrackingService } from '@/services/progressTrackingService';
-
-// Create a unified service object for easy access
-export const enhancedCurriculumService = {
-  ...curriculumPlannerService,
-  getPhaseProgress: progressTrackingService.getPhaseProgress.bind(progressTrackingService)
-};
