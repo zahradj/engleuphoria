@@ -1,165 +1,39 @@
-import React, { useState, useRef } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+import React from "react";
 import { Dialog } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
 import { WhiteboardToolbar } from "./whiteboard/WhiteboardToolbar";
 import { EmbeddedGameDialog } from "./whiteboard/EmbeddedGameDialog";
-import { EmbeddedGame } from "./whiteboard/EmbeddedGame";
-import { WhiteboardCanvas } from "./whiteboard/WhiteboardCanvas";
-import { setupDrawingContext, createDrawEventHandlers } from "./whiteboard/drawingUtils";
-import { validateAndProcessUrl } from "./whiteboard/SafeUrlValidator";
-
-interface EmbeddedGameData {
-  id: string;
-  title: string;
-  url: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  isBlocked?: boolean;
-}
+import { WhiteboardTabsSection } from "./whiteboard/WhiteboardTabsSection";
+import { useWhiteboardState } from "./whiteboard/useWhiteboardState";
+import { createDrawingHandlers } from "./whiteboard/WhiteboardDrawingHandlers";
 
 export function OneOnOneWhiteboard() {
-  const [activeTool, setActiveTool] = useState<"pencil" | "eraser" | "text" | "highlighter" | "shape" | "game">("pencil");
-  const [color, setColor] = useState("#2563eb");
-  const [activeShape, setActiveShape] = useState<"rectangle" | "circle">("rectangle");
-  const [activeTab, setActiveTab] = useState("page1");
-  const [embeddedGames, setEmbeddedGames] = useState<Record<string, EmbeddedGameData[]>>({});
-  const [gameUrl, setGameUrl] = useState("");
-  const [gameTitle, setGameTitle] = useState("");
-  const [isGameDialogOpen, setIsGameDialogOpen] = useState(false);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { toast } = useToast();
+  const {
+    activeTool,
+    setActiveTool,
+    color,
+    setColor,
+    activeShape,
+    activeTab,
+    setActiveTab,
+    embeddedGames,
+    gameUrl,
+    setGameUrl,
+    gameTitle,
+    setGameTitle,
+    isGameDialogOpen,
+    setIsGameDialogOpen,
+    clearCanvas,
+    addGame,
+    handleIframeError,
+    removeGame
+  } = useWhiteboardState();
 
-  const clearCanvas = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  };
-
-  const addGame = () => {
-    if (!gameUrl || !gameTitle) {
-      toast({
-        title: "Missing Information",
-        description: "Please provide both game title and URL",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const validation = validateAndProcessUrl(gameUrl);
-    
-    if (!validation.isValid) {
-      toast({
-        title: "Invalid URL",
-        description: validation.warning || "Please provide a valid HTTPS URL",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (validation.warning && !validation.isTrusted) {
-      toast({
-        title: "Security Warning",
-        description: validation.warning,
-      });
-    }
-    
-    // Calculate better default size based on whiteboard container
-    const whiteboardElement = document.querySelector('.whiteboard-container');
-    let defaultWidth = 500;
-    let defaultHeight = 400;
-    
-    if (whiteboardElement) {
-      const rect = whiteboardElement.getBoundingClientRect();
-      defaultWidth = Math.min(500, rect.width * 0.6);
-      defaultHeight = Math.min(400, rect.height * 0.5);
-    }
-    
-    const newGame: EmbeddedGameData = {
-      id: Date.now().toString(),
-      title: gameTitle,
-      url: validation.processedUrl,
-      x: 50,
-      y: 50,
-      width: defaultWidth,
-      height: defaultHeight,
-      isBlocked: false
-    };
-
-    setEmbeddedGames(prev => ({
-      ...prev,
-      [activeTab]: [...(prev[activeTab] || []), newGame]
-    }));
-    
-    setGameUrl("");
-    setGameTitle("");
-    setIsGameDialogOpen(false);
-    
-    toast({
-      title: "Content Added",
-      description: `${gameTitle} has been embedded and sized to fit the whiteboard.`,
-    });
-  };
-
-  const handleIframeError = (gameId: string) => {
-    console.log("Marking game as blocked:", gameId);
-    setEmbeddedGames(prev => ({
-      ...prev,
-      [activeTab]: (prev[activeTab] || []).map(game => 
-        game.id === gameId ? { ...game, isBlocked: true } : game
-      )
-    }));
-    
-    toast({
-      title: "Content Blocked",
-      description: "This content cannot be embedded due to security restrictions. You can still open it in a new tab.",
-      variant: "destructive"
-    });
-  };
-
-  const removeGame = (gameId: string) => {
-    setEmbeddedGames(prev => ({
-      ...prev,
-      [activeTab]: (prev[activeTab] || []).filter(game => game.id !== gameId)
-    }));
-    
-    toast({
-      title: "Content Removed",
-      description: "The embedded content has been removed from the whiteboard.",
-    });
-  };
-
-  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (activeTool === "game") {
-      setIsGameDialogOpen(true);
-    }
-  };
-
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (activeTool === "game") return;
-    
-    const canvas = e.currentTarget;
-    const ctx = setupDrawingContext(canvas, activeTool, color);
-    if (!ctx) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-
-    const { draw, stopDrawing } = createDrawEventHandlers(canvas);
-    canvas.addEventListener('mousemove', draw);
-    canvas.addEventListener('mouseup', stopDrawing);
-  };
+  const { handleCanvasClick, startDrawing } = createDrawingHandlers(
+    activeTool,
+    color,
+    () => setIsGameDialogOpen(true)
+  );
 
   const currentPageGames = embeddedGames[activeTab] || [];
 
@@ -186,31 +60,17 @@ export function OneOnOneWhiteboard() {
         </Dialog>
       </WhiteboardToolbar>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
-        <TabsList className="mb-2">
-          <TabsTrigger value="page1">Page 1</TabsTrigger>
-          <TabsTrigger value="page2">Page 2</TabsTrigger>
-          <TabsTrigger value="page3">Page 3</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value={activeTab} className="flex-1 m-0 relative">
-          <WhiteboardCanvas
-            activeTool={activeTool}
-            color={color}
-            onCanvasClick={handleCanvasClick}
-            onStartDrawing={startDrawing}
-          >
-            {currentPageGames.map((game) => (
-              <EmbeddedGame
-                key={game.id}
-                game={game}
-                onRemove={removeGame}
-                onError={handleIframeError}
-              />
-            ))}
-          </WhiteboardCanvas>
-        </TabsContent>
-      </Tabs>
+      <WhiteboardTabsSection
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        activeTool={activeTool}
+        color={color}
+        onCanvasClick={handleCanvasClick}
+        onStartDrawing={startDrawing}
+        currentPageGames={currentPageGames}
+        onRemoveGame={removeGame}
+        onIframeError={handleIframeError}
+      />
     </div>
   );
 }
