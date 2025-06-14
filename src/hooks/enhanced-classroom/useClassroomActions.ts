@@ -1,4 +1,3 @@
-
 import { useCallback } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { EnhancedVideoService } from '@/services/video/enhancedVideoService';
@@ -30,14 +29,15 @@ export function useClassroomActions({
   const { toast } = useToast();
 
   const joinClassroom = useCallback(async () => {
-    console.log('Join classroom called:', { 
+    console.log('🚀 Join classroom called:', { 
       hasVideoService: !!videoService, 
       isConnected, 
-      roomId 
+      roomId,
+      serviceType: videoService?.constructor.name
     });
 
     if (!videoService) {
-      console.error('Video service not available');
+      console.error('🚀 Video service not available');
       toast({
         title: "Service Error",
         description: "Video service is not ready. Please wait and try again.",
@@ -47,13 +47,22 @@ export function useClassroomActions({
     }
 
     if (isConnected) {
-      console.log('Already connected to classroom');
+      console.log('🚀 Already connected to classroom');
+      toast({
+        title: "Already Connected",
+        description: "You are already connected to the classroom",
+      });
       return;
     }
 
     try {
-      console.log('Attempting to join enhanced classroom...');
+      console.log('🚀 Attempting to join enhanced classroom...');
+      
+      // Add a small delay to ensure the service is fully ready
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       await videoService.joinRoom();
+      console.log('🚀 joinRoom() completed successfully');
       
       // Create session record
       const newSession: ClassroomSession = {
@@ -68,14 +77,14 @@ export function useClassroomActions({
       
       setSession(newSession);
       updateParticipants();
-      console.log('Enhanced classroom joined successfully');
+      console.log('🚀 Enhanced classroom joined successfully');
       
       toast({
-        title: "Joined Classroom",
-        description: "Successfully connected to the classroom",
+        title: "Joining Classroom",
+        description: "Connecting to the classroom...",
       });
     } catch (err) {
-      console.error('Enhanced join classroom error:', err);
+      console.error('🚀 Enhanced join classroom error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
       toast({
         title: "Connection Error",

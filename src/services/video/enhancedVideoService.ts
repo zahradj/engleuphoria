@@ -1,4 +1,3 @@
-
 import { VideoService, VideoServiceCallbacks } from '../videoService';
 import { EnhancedVideoConfig, ParticipantData } from './types';
 import { JitsiApiLoader } from './jitsiApiLoader';
@@ -22,58 +21,65 @@ export class EnhancedVideoService extends VideoService {
 
   async initialize(): Promise<void> {
     if (this.initialized) {
-      console.log('Enhanced video service already initialized');
+      console.log('🎥 Enhanced video service already initialized');
       return;
     }
 
-    console.log('Enhanced: Initializing video service...');
+    console.log('🎥 Enhanced: Initializing video service...');
     try {
       await JitsiApiLoader.loadJitsiApi();
       this.initialized = true;
-      console.log('Enhanced: Video service initialized successfully');
+      console.log('🎥 Enhanced: Video service initialized successfully');
     } catch (error) {
-      console.error('Enhanced: Failed to initialize video service:', error);
+      console.error('🎥 Enhanced: Failed to initialize video service:', error);
       this.callbacks.onError?.('Failed to initialize video service');
       throw error;
     }
   }
 
   async joinRoom(): Promise<void> {
+    console.log('🎥 Enhanced: joinRoom called, state:', {
+      initialized: this.initialized,
+      hasApi: !!this.api,
+      config: this.enhancedConfig
+    });
+
     if (!this.initialized) {
       throw new Error('Video service not initialized');
     }
 
     if (this.api) {
-      console.log('Already connected to room');
+      console.log('🎥 Already connected to room');
       return;
     }
 
     try {
-      console.log('Enhanced: Joining room with config:', this.enhancedConfig);
+      console.log('🎥 Enhanced: Joining room with config:', this.enhancedConfig);
       const domain = this.enhancedConfig.domain || 'meet.jit.si';
       
       const container = JitsiApiLoader.createContainer();
       const options = JitsiConfigBuilder.buildOptions(this.enhancedConfig, container);
 
-      console.log('Enhanced: Creating Jitsi API instance with options:', options);
+      console.log('🎥 Enhanced: Creating Jitsi API instance with options:', options);
       
       if (!window.JitsiMeetExternalAPI) {
         throw new Error('JitsiMeetExternalAPI not available');
       }
 
       this.api = new window.JitsiMeetExternalAPI(domain, options);
+      console.log('🎥 Enhanced: Jitsi API instance created:', !!this.api);
       
-      console.log('Enhanced: Setting up event listeners...');
+      console.log('🎥 Enhanced: Setting up event listeners...');
       this.eventHandlers.setupEventListeners(this.api);
       
       // Simulate connection after a short delay
       setTimeout(() => {
-        console.log('Enhanced: Simulating connection success');
+        console.log('🎥 Enhanced: Simulating connection success');
         this.callbacks.onConnectionStatusChanged?.(true);
-      }, 1000);
+      }, 2000);
       
     } catch (error) {
-      console.error('Enhanced: Failed to join room:', error);
+      console.error('🎥 Enhanced: Failed to join room:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to join room';
       this.callbacks.onError?.(errorMessage);
       throw error;
@@ -187,11 +193,13 @@ export class EnhancedVideoService extends VideoService {
   }
 
   isConnected(): boolean {
-    return this.api !== null;
+    const connected = this.api !== null;
+    console.log('🎥 Enhanced: isConnected check:', connected);
+    return connected;
   }
 
   async leaveRoom(): Promise<void> {
-    console.log('Enhanced: Leaving room...');
+    console.log('🎥 Enhanced: Leaving room...');
     if (this.api) {
       this.api.dispose();
       this.api = null;
