@@ -1,11 +1,10 @@
 
 import React from "react";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Trophy, Star, Video, VideoOff, Mic, MicOff } from "lucide-react";
+import { EnhancedVideoPanel } from "@/components/classroom/enhanced/EnhancedVideoPanel";
+import { SessionManager } from "@/components/classroom/enhanced/SessionManager";
 import { OneOnOneRewards } from "./OneOnOneRewards";
-import { useVideoRoom } from "@/hooks/useVideoRoom";
-import { Button } from "@/components/ui/button";
+import { useEnhancedClassroom } from "@/hooks/useEnhancedClassroom";
 
 interface OneOnOneVideoSectionProps {
   roomId: string;
@@ -28,121 +27,80 @@ export function OneOnOneVideoSection({
 }: OneOnOneVideoSectionProps) {
   const {
     isConnected,
-    participants,
+    connectionQuality,
     error,
-    isMuted,
-    isCameraOff,
+    session,
+    participants,
+    isRecording,
+    joinClassroom,
+    leaveClassroom,
+    toggleRecording,
     toggleMicrophone,
-    toggleCamera
-  } = useVideoRoom({
+    toggleCamera,
+    raiseHand,
+    startScreenShare
+  } = useEnhancedClassroom({
     roomId,
     userId: currentUserId,
-    displayName: currentUserName
+    displayName: currentUserName,
+    userRole: isTeacher ? 'teacher' : 'student'
   });
 
-  console.log("OneOnOneVideoSection:", { isConnected, participants: participants.size });
+  console.log("Enhanced OneOnOneVideoSection:", { 
+    isConnected, 
+    participants: participants.length,
+    isRecording,
+    connectionQuality
+  });
 
   return (
-    <Card className="h-full shadow-lg flex flex-col overflow-hidden">
-      {/* Video Area - Consistent 16:9 aspect ratio */}
-      <div className="p-3 flex-shrink-0">
-        <div className="aspect-video bg-gray-900 rounded-lg flex items-center justify-center relative overflow-hidden">
-          {isConnected ? (
-            <div className="text-center text-white">
-              <Video size={24} className="mx-auto mb-2 text-gray-400" />
-              <p className="text-xs mb-1">Video Active</p>
-              <p className="text-xs text-gray-400">
-                {participants.size > 0 ? `With ${participants.size} other(s)` : 'Waiting for others...'}
-              </p>
-            </div>
-          ) : (
-            <div className="text-center text-gray-400">
-              <Video size={24} className="mx-auto mb-2" />
-              <p className="text-xs">Teacher Video</p>
-            </div>
-          )}
-
-          {/* Video Controls Overlay */}
-          {isConnected && (
-            <div className="absolute bottom-2 left-2 right-2 flex justify-center gap-1">
-              <Button
-                variant={isMuted ? "destructive" : "outline"}
-                size="sm"
-                onClick={toggleMicrophone}
-                className="rounded-full w-8 h-8 p-0 bg-black/50 border-white/20"
-              >
-                {isMuted ? <MicOff size={12} /> : <Mic size={12} />}
-              </Button>
-              
-              <Button
-                variant={isCameraOff ? "destructive" : "outline"}
-                size="sm"
-                onClick={toggleCamera}
-                className="rounded-full w-8 h-8 p-0 bg-black/50 border-white/20"
-              >
-                {isCameraOff ? <VideoOff size={12} /> : <Video size={12} />}
-              </Button>
-            </div>
-          )}
-        </div>
+    <div className="h-full flex flex-col gap-4">
+      {/* Enhanced Video Panel */}
+      <div className="flex-1">
+        <EnhancedVideoPanel
+          participants={participants}
+          isConnected={isConnected}
+          isRecording={isRecording}
+          connectionQuality={connectionQuality}
+          userRole={isTeacher ? 'teacher' : 'student'}
+          onToggleMicrophone={toggleMicrophone}
+          onToggleCamera={toggleCamera}
+          onRaiseHand={raiseHand}
+          onToggleRecording={isTeacher ? toggleRecording : undefined}
+          onStartScreenShare={startScreenShare}
+        />
       </div>
 
-      {/* Content based on user role */}
-      <div className="flex-1 p-3 overflow-y-auto">
-        {isTeacher ? (
-          /* Teacher Rewards System */
-          <OneOnOneRewards
-            studentXP={studentXP}
-            onAwardPoints={onAwardPoints || (() => {})}
-            showRewardPopup={showRewardPopup}
-          />
-        ) : (
-          /* Student Stats and Achievements */
-          <>
-            {/* Student Stats */}
-            <div className="mb-4">
-              <h4 className="font-semibold text-sm mb-2">Your Progress</h4>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="bg-blue-50 p-2 rounded-lg text-center">
-                  <div className="text-lg font-bold text-blue-600">{Math.floor(studentXP / 100)}</div>
-                  <div className="text-xs text-blue-600">Level</div>
-                </div>
-                <div className="bg-green-50 p-2 rounded-lg text-center">
-                  <div className="text-lg font-bold text-green-600">{studentXP}</div>
-                  <div className="text-xs text-green-600">Total XP</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Student Achievements */}
-            <div className="mb-4">
-              <h4 className="font-semibold text-sm mb-2">Achievements</h4>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 p-2 bg-yellow-50 rounded-lg">
-                  <Trophy className="w-4 h-4 text-yellow-600" />
-                  <div>
-                    <div className="text-xs font-medium">Great Student</div>
-                    <div className="text-xs text-gray-500">Attend 10 classes</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 p-2 bg-purple-50 rounded-lg">
-                  <Star className="w-4 h-4 text-purple-600" />
-                  <div>
-                    <div className="text-xs font-medium">Quick Learner</div>
-                    <div className="text-xs text-gray-500">Complete tasks fast</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
+      {/* Session Manager */}
+      <div className="flex-shrink-0">
+        <SessionManager
+          session={session}
+          isConnected={isConnected}
+          onJoinClassroom={joinClassroom}
+          onLeaveClassroom={leaveClassroom}
+          classTime={0} // This will be replaced by session timer
+        />
       </div>
 
-      {error && (
-        <div className="p-3 bg-red-50 border-t">
-          <p className="text-red-600 text-xs">{error}</p>
+      {/* Teacher Rewards System */}
+      {isTeacher && (
+        <div className="flex-shrink-0">
+          <Card className="p-3">
+            <OneOnOneRewards
+              studentXP={studentXP}
+              onAwardPoints={onAwardPoints || (() => {})}
+              showRewardPopup={showRewardPopup}
+            />
+          </Card>
         </div>
       )}
-    </Card>
+
+      {/* Error Display */}
+      {error && (
+        <Card className="p-3 border-red-200 bg-red-50">
+          <p className="text-sm text-red-600">{error}</p>
+        </Card>
+      )}
+    </div>
   );
 }
