@@ -3,10 +3,9 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { EnhancedVideoPanel } from "@/components/classroom/enhanced/EnhancedVideoPanel";
 import { OneOnOneRewards } from "./OneOnOneRewards";
-import { useEnhancedClassroom } from "@/hooks/useEnhancedClassroom";
 
 interface OneOnOneVideoSectionProps {
-  roomId: string;
+  enhancedClassroom: any; // Enhanced classroom hook return value
   currentUserId: string;
   currentUserName: string;
   isTeacher: boolean;
@@ -16,7 +15,7 @@ interface OneOnOneVideoSectionProps {
 }
 
 export function OneOnOneVideoSection({
-  roomId,
+  enhancedClassroom,
   currentUserId,
   currentUserName,
   isTeacher,
@@ -28,19 +27,20 @@ export function OneOnOneVideoSection({
     isConnected,
     connectionQuality,
     participants,
-    isRecording
-  } = useEnhancedClassroom({
-    roomId,
-    userId: currentUserId,
-    displayName: currentUserName,
-    userRole: isTeacher ? 'teacher' : 'student'
-  });
+    isRecording,
+    localStream,
+    isMuted,
+    isCameraOff
+  } = enhancedClassroom;
 
-  console.log("Simplified OneOnOneVideoSection:", { 
+  console.log("OneOnOneVideoSection with enhanced classroom:", { 
     isConnected, 
     participants: participants.length,
     isRecording,
-    connectionQuality
+    connectionQuality,
+    hasLocalStream: !!localStream,
+    isMuted,
+    isCameraOff
   });
 
   return (
@@ -53,6 +53,9 @@ export function OneOnOneVideoSection({
           isRecording={isRecording}
           connectionQuality={connectionQuality}
           userRole={isTeacher ? 'teacher' : 'student'}
+          localStream={localStream}
+          isMuted={isMuted}
+          isCameraOff={isCameraOff}
           onToggleMicrophone={() => {}} // Disabled - controlled from top bar
           onToggleCamera={() => {}} // Disabled - controlled from top bar
           onRaiseHand={() => {}} // Disabled - controlled from top bar

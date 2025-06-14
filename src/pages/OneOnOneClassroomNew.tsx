@@ -1,6 +1,7 @@
 
 import React, { useState } from "react";
 import { useOneOnOneClassroom } from "@/hooks/useOneOnOneClassroom";
+import { useEnhancedClassroom } from "@/hooks/useEnhancedClassroom";
 import { OneOnOneTopBar } from "@/components/classroom/oneonone/OneOnOneTopBar";
 import { OneOnOneVideoSection } from "@/components/classroom/oneonone/OneOnOneVideoSection";
 import { OneOnOneCenterPanel } from "@/components/classroom/oneonone/OneOnOneCenterPanel";
@@ -11,24 +12,16 @@ const OneOnOneClassroomNew = () => {
   console.log("OneOnOneClassroomNew component is rendering");
   
   const {
-    isRecording,
-    isMuted,
-    isCameraOff,
     classTime,
     activeRightTab,
     activeCenterTab,
     studentXP,
     studentLevel,
     showRewardPopup,
-    setIsMuted,
-    setIsCameraOff,
     setActiveRightTab,
     setActiveCenterTab,
-    toggleRecording,
     awardPoints
   } = useOneOnOneClassroom();
-
-  console.log("Hook data loaded:", { isRecording, isMuted, isCameraOff, classTime });
 
   // Add user identification - this would normally come from auth context
   const currentUserId = "teacher-1"; // Change to "student-1" to test student view
@@ -36,7 +29,21 @@ const OneOnOneClassroomNew = () => {
   const isTeacher = currentUserId === "teacher-1";
   const roomId = "classroom-room-1";
 
-  console.log("User data:", { currentUserId, currentUserName, isTeacher, roomId });
+  // Single source of truth for enhanced classroom state
+  const enhancedClassroom = useEnhancedClassroom({
+    roomId,
+    userId: currentUserId,
+    displayName: currentUserName,
+    userRole: isTeacher ? 'teacher' : 'student'
+  });
+
+  console.log("Enhanced classroom state:", {
+    isConnected: enhancedClassroom.isConnected,
+    isMuted: enhancedClassroom.isMuted,
+    isCameraOff: enhancedClassroom.isCameraOff,
+    hasLocalStream: !!enhancedClassroom.localStream,
+    participantsCount: enhancedClassroom.participants.length
+  });
 
   try {
     return (
@@ -47,16 +54,11 @@ const OneOnOneClassroomNew = () => {
             classTime={classTime}
             studentName="Emma Thompson"
             studentLevel={studentLevel}
-            isMuted={isMuted}
-            isCameraOff={isCameraOff}
-            isRecording={isRecording}
-            onToggleMute={() => setIsMuted(!isMuted)}
-            onToggleCamera={() => setIsCameraOff(!isCameraOff)}
-            onToggleRecording={toggleRecording}
-            roomId={roomId}
+            enhancedClassroom={enhancedClassroom}
             currentUserId={currentUserId}
             currentUserName={currentUserName}
             isTeacher={isTeacher}
+            roomId={roomId}
           />
         </div>
 
@@ -67,7 +69,7 @@ const OneOnOneClassroomNew = () => {
             {/* Left Panel - Simplified Video Section */}
             <div className="lg:col-span-3 min-h-[500px]">
               <OneOnOneVideoSection
-                roomId={roomId}
+                enhancedClassroom={enhancedClassroom}
                 currentUserId={currentUserId}
                 currentUserName={currentUserName}
                 isTeacher={isTeacher}

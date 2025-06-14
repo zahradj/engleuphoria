@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -21,6 +21,9 @@ interface EnhancedVideoPanelProps {
   isRecording: boolean;
   connectionQuality: string;
   userRole: 'teacher' | 'student';
+  localStream?: MediaStream | null;
+  isMuted: boolean;
+  isCameraOff: boolean;
   onToggleMicrophone: () => void;
   onToggleCamera: () => void;
   onRaiseHand: () => void;
@@ -33,9 +36,20 @@ export function EnhancedVideoPanel({
   isConnected,
   isRecording,
   connectionQuality,
-  userRole
+  userRole,
+  localStream,
+  isMuted,
+  isCameraOff
 }: EnhancedVideoPanelProps) {
-  const currentParticipant = participants.find(p => p.role === userRole);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Update video element when localStream changes
+  useEffect(() => {
+    if (videoRef.current && localStream) {
+      videoRef.current.srcObject = localStream;
+      console.log('🎥 Video element updated with local stream');
+    }
+  }, [localStream]);
 
   return (
     <Card className="h-full flex flex-col">
@@ -71,25 +85,53 @@ export function EnhancedVideoPanel({
 
       {/* Video Area */}
       <div className="flex-1 p-4">
-        <div className="bg-gray-900 rounded-lg aspect-video flex items-center justify-center relative">
-          {isConnected ? (
-            <div className="text-center text-white">
-              <Video className="h-8 w-8 mx-auto mb-2" />
-              <p className="text-sm">Video Conference Active</p>
-              <p className="text-xs text-gray-400 mt-1">
-                {participants.length} participant(s) connected
-              </p>
-            </div>
+        <div className="bg-gray-900 rounded-lg aspect-video flex items-center justify-center relative overflow-hidden">
+          {localStream && !isCameraOff ? (
+            <>
+              <video
+                ref={videoRef}
+                autoPlay
+                muted
+                playsInline
+                className="w-full h-full object-cover"
+              />
+              {/* Local user overlay */}
+              <div className="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
+                You ({userRole})
+                {isMuted && <MicOff className="h-3 w-3 inline ml-1" />}
+              </div>
+            </>
           ) : (
-            <div className="text-center text-gray-500">
-              <VideoOff className="h-8 w-8 mx-auto mb-2" />
-              <p className="text-sm">Not Connected</p>
+            <div className="text-center text-white">
+              {isCameraOff ? (
+                <>
+                  <VideoOff className="h-8 w-8 mx-auto mb-2" />
+                  <p className="text-sm">Camera Off</p>
+                </>
+              ) : localStream ? (
+                <>
+                  <Video className="h-8 w-8 mx-auto mb-2" />
+                  <p className="text-sm">Camera Loading...</p>
+                </>
+              ) : (
+                <>
+                  <VideoOff className="h-8 w-8 mx-auto mb-2" />
+                  <p className="text-sm">No Camera Access</p>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Connection status overlay when connected */}
+          {isConnected && (
+            <div className="absolute top-2 right-2 bg-green-500 bg-opacity-80 text-white px-2 py-1 rounded text-xs">
+              Live
             </div>
           )}
 
           {/* Participant overlay */}
           {participants.length > 0 && (
-            <div className="absolute bottom-2 left-2 right-2">
+            <div className="absolute bottom-2 right-2">
               <div className="flex flex-wrap gap-1">
                 {participants.map((participant) => (
                   <Badge 
@@ -107,8 +149,6 @@ export function EnhancedVideoPanel({
           )}
         </div>
       </div>
-
-      {/* No controls section - all controls moved to top bar */}
     </Card>
   );
 }

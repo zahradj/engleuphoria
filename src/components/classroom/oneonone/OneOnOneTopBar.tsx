@@ -16,18 +16,12 @@ import {
   Hand,
   Monitor
 } from "lucide-react";
-import { useEnhancedClassroom } from "@/hooks/useEnhancedClassroom";
 
 interface OneOnOneTopBarProps {
   classTime: number;
   studentName: string;
   studentLevel: string;
-  isMuted: boolean;
-  isCameraOff: boolean;
-  isRecording: boolean;
-  onToggleMute: () => void;
-  onToggleCamera: () => void;
-  onToggleRecording: () => void;
+  enhancedClassroom: any; // Enhanced classroom hook return value
   roomId: string;
   currentUserId: string;
   currentUserName: string;
@@ -44,7 +38,7 @@ export function OneOnOneTopBar({
   classTime,
   studentName,
   studentLevel,
-  onToggleRecording,
+  enhancedClassroom,
   roomId,
   currentUserId,
   currentUserName,
@@ -55,27 +49,21 @@ export function OneOnOneTopBar({
     connectionQuality,
     error,
     participants,
-    isRecording: enhancedIsRecording,
+    isRecording,
     isMuted,
     isCameraOff,
     joinClassroom,
     leaveClassroom,
-    toggleRecording: enhancedToggleRecording,
+    toggleRecording,
     toggleMicrophone,
     toggleCamera,
     raiseHand,
     startScreenShare
-  } = useEnhancedClassroom({
-    roomId,
-    userId: currentUserId,
-    displayName: currentUserName,
-    userRole: isTeacher ? 'teacher' : 'student'
-  });
+  } = enhancedClassroom;
 
   const handleToggleRecording = () => {
     if (isTeacher) {
-      enhancedToggleRecording();
-      onToggleRecording();
+      toggleRecording();
     }
   };
 
@@ -190,13 +178,13 @@ export function OneOnOneTopBar({
           {/* Recording Control - Teacher Only */}
           {isTeacher && (
             <Button
-              variant={enhancedIsRecording ? "destructive" : "outline"}
+              variant={isRecording ? "destructive" : "outline"}
               size="sm"
               onClick={handleToggleRecording}
               className="rounded-full w-10 h-10 p-0"
               disabled={!isConnected}
             >
-              {enhancedIsRecording ? <Square size={16} /> : <Circle size={16} />}
+              {isRecording ? <Square size={16} /> : <Circle size={16} />}
             </Button>
           )}
         </div>
