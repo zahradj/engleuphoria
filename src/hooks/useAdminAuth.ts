@@ -26,24 +26,35 @@ export const useAdminAuth = () => {
   });
 
   useEffect(() => {
-    if (user) {
-      // Check if user is admin
-      const adminStatus = user.role === 'admin';
-      setIsAdmin(adminStatus);
+    // Check localStorage for admin status in demo mode
+    const userType = localStorage.getItem('userType');
+    const adminStatus = userType === 'admin' || (user && user.role === 'admin');
+    
+    console.log('Admin auth check:', { userType, user, adminStatus });
+    setIsAdmin(adminStatus);
 
-      // For now, grant all permissions to admin users
-      // In production, this would be based on actual permissions from database
-      if (adminStatus) {
-        setPermissions({
-          canManageUsers: true,
-          canManageTeachers: true,
-          canAssignTeachers: true,
-          canViewAnalytics: true,
-          canModerateContent: true,
-          canGenerateReports: true,
-          canAccessSystemSettings: true,
-        });
-      }
+    // For now, grant all permissions to admin users
+    // In production, this would be based on actual permissions from database
+    if (adminStatus) {
+      setPermissions({
+        canManageUsers: true,
+        canManageTeachers: true,
+        canAssignTeachers: true,
+        canViewAnalytics: true,
+        canModerateContent: true,
+        canGenerateReports: true,
+        canAccessSystemSettings: true,
+      });
+    } else {
+      setPermissions({
+        canManageUsers: false,
+        canManageTeachers: false,
+        canAssignTeachers: false,
+        canViewAnalytics: false,
+        canModerateContent: false,
+        canGenerateReports: false,
+        canAccessSystemSettings: false,
+      });
     }
   }, [user]);
 
