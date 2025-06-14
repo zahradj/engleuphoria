@@ -30,7 +30,7 @@ export class EnhancedVideoService extends VideoService {
   private isRecording = false;
   private isScreenSharing = false;
   private connectionQuality = 'good';
-  private config: EnhancedVideoConfig;
+  protected config: EnhancedVideoConfig;
 
   constructor(config: EnhancedVideoConfig, callbacks: VideoServiceCallbacks = {}) {
     super(config, callbacks);

@@ -9,8 +9,8 @@ import {
   Mic, 
   MicOff, 
   Hand, 
-  Screen, 
-  Record, 
+  ScreenShare, 
+  Circle, 
   Users,
   Wifi,
   WifiOff
@@ -68,7 +68,7 @@ export function EnhancedVideoPanel({
             <span className="text-sm">{participants.length}</span>
             {isRecording && (
               <Badge variant="destructive" className="animate-pulse">
-                <Record className="h-3 w-3 mr-1" />
+                <Circle className="h-3 w-3 mr-1 fill-current" />
                 REC
               </Badge>
             )}
@@ -155,7 +155,7 @@ export function EnhancedVideoPanel({
               onClick={onToggleRecording}
               disabled={!isConnected}
             >
-              <Record className="h-4 w-4 mr-2" />
+              <Circle className="h-4 w-4 mr-2" />
               {isRecording ? 'Stop Recording' : 'Start Recording'}
             </Button>
           )}
@@ -167,7 +167,7 @@ export function EnhancedVideoPanel({
               onClick={onStartScreenShare}
               disabled={!isConnected}
             >
-              <Screen className="h-4 w-4 mr-2" />
+              <ScreenShare className="h-4 w-4 mr-2" />
               Share Screen
             </Button>
           )}
