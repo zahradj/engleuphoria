@@ -3,9 +3,12 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CreditCard, Download, Calendar, AlertCircle } from "lucide-react";
+import { CreditCard, Download, Calendar, AlertCircle, Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export const BillingTab = () => {
+  const navigate = useNavigate();
+  
   const subscription = {
     plan: "Standard Plan",
     lessonsRemaining: 8,
@@ -32,7 +35,13 @@ export const BillingTab = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-800">Payment & Billing</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-gray-800">Payment & Billing</h1>
+        <Button onClick={() => navigate("/payment")} className="flex items-center gap-2">
+          <Plus className="h-4 w-4" />
+          View Plans
+        </Button>
+      </div>
       
       {/* Current Subscription */}
       <Card>
@@ -65,8 +74,8 @@ export const BillingTab = () => {
             </div>
             
             <div className="space-y-3">
-              <Button className="w-full">Renew Subscription</Button>
-              <Button variant="outline" className="w-full">Change Plan</Button>
+              <Button onClick={() => navigate("/payment")} className="w-full">Renew Subscription</Button>
+              <Button onClick={() => navigate("/payment")} variant="outline" className="w-full">Change Plan</Button>
               <Button variant="outline" className="w-full">Update Payment Method</Button>
             </div>
           </div>
