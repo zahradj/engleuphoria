@@ -44,7 +44,7 @@ export function OneOnOneVideoSection({
 
   return (
     <Card className="h-full shadow-lg flex flex-col overflow-hidden">
-      {/* Video Area - No header, direct video */}
+      {/* Video Area - Consistent 16:9 aspect ratio */}
       <div className="p-3 flex-shrink-0">
         <div className="aspect-video bg-gray-900 rounded-lg flex items-center justify-center relative overflow-hidden">
           {isConnected ? (

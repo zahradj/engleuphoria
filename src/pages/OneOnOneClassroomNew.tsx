@@ -62,7 +62,7 @@ const OneOnOneClassroomNew = () => {
 
   try {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
         {/* Top Bar - Fixed height */}
         <div className="h-20 flex-shrink-0 p-4">
           <OneOnOneTopBar
@@ -102,12 +102,12 @@ const OneOnOneClassroomNew = () => {
           </Button>
         </div>
 
-        {/* Main Classroom Layout - Calculated height */}
-        <div className="h-[calc(100vh-5rem)] px-4 pb-4">
-          <div className="grid grid-cols-12 gap-4 h-full">
+        {/* Main Classroom Layout - Flexible height with scrolling enabled */}
+        <div className="min-h-[calc(100vh-5rem)] px-4 pb-4">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-[600px]">
             
             {/* Left Panel - Video Section with Rewards for Teacher */}
-            <div className="col-span-3 h-full">
+            <div className="lg:col-span-3 min-h-[500px]">
               <OneOnOneVideoSection
                 roomId={roomId}
                 currentUserId={currentUserId}
@@ -120,7 +120,7 @@ const OneOnOneClassroomNew = () => {
             </div>
 
             {/* Center Panel - Interactive Content */}
-            <div className="col-span-6 h-full">
+            <div className="lg:col-span-6 min-h-[500px]">
               <OneOnOneCenterPanel
                 activeCenterTab={activeCenterTab}
                 onTabChange={setActiveCenterTab}
@@ -128,7 +128,7 @@ const OneOnOneClassroomNew = () => {
             </div>
 
             {/* Right Panel - Student Video & Interactions */}
-            <div className="col-span-3 h-full">
+            <div className="lg:col-span-3 min-h-[500px]">
               <OneOnOneRightPanel
                 studentName="Emma"
                 studentXP={studentXP}

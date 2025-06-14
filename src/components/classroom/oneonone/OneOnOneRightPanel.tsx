@@ -52,7 +52,7 @@ export function OneOnOneRightPanel({
 
   return (
     <Card className="h-full shadow-lg flex flex-col overflow-hidden">
-      {/* Student Video - No header, direct video placement */}
+      {/* Student Video - Consistent with other video components */}
       <div className="p-3 flex-shrink-0">
         <CompactVideoFeed
           stream={videoStream}
@@ -93,8 +93,8 @@ export function OneOnOneRightPanel({
         </div>
       </div>
 
-      {/* Tab Content - Flexible height */}
-      <div className="flex-1 overflow-hidden">
+      {/* Tab Content - Flexible height with scroll */}
+      <div className="flex-1 overflow-y-auto">
         <div className="h-full p-3">
           {activeRightTab === "chat" && <OneOnOneChat />}
           {activeRightTab === "homework" && <OneOnOneHomework />}

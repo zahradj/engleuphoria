@@ -41,8 +41,8 @@ export function CompactVideoFeed({
 
   return (
     <Card className="overflow-hidden">
-      {/* Video Container with consistent 4:3 aspect ratio */}
-      <div className="aspect-[4/3] bg-gray-900 relative">
+      {/* Video Container with consistent 16:9 aspect ratio */}
+      <div className="aspect-video bg-gray-900 relative">
         {stream && !isCameraOff && isConnected ? (
           <video
             ref={videoRef}
@@ -108,8 +108,6 @@ export function CompactVideoFeed({
               onClick={onToggleCamera}
               disabled={!isConnected}
               className="rounded-full w-6 h-6 p-0"
-            >
-              {isCameraOff ? <VideoOff size={10} /> : <Video size={10} />}
             </Button>
           </div>
 
