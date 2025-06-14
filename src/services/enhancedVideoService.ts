@@ -1,4 +1,3 @@
-
 import { VideoService, VideoServiceConfig, VideoServiceCallbacks } from './videoService';
 
 declare global {
@@ -30,11 +29,9 @@ export class EnhancedVideoService extends VideoService {
   private isRecording = false;
   private isScreenSharing = false;
   private connectionQuality = 'good';
-  protected config: EnhancedVideoConfig;
 
   constructor(config: EnhancedVideoConfig, callbacks: VideoServiceCallbacks = {}) {
     super(config, callbacks);
-    this.config = config;
   }
 
   async initialize(): Promise<void> {
