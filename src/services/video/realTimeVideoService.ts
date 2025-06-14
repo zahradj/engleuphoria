@@ -1,4 +1,3 @@
-
 import { VideoService, VideoServiceCallbacks } from '../videoService';
 import { EnhancedVideoConfig, ParticipantData } from './types';
 
@@ -11,8 +10,8 @@ export class RealTimeVideoService extends VideoService {
   private isRecording = false;
   private connectionQuality = 'good';
 
-  // Add missing properties to match EnhancedVideoService interface
-  public api: any = null;
+  // Fix: Make api property private to match EnhancedVideoService
+  private api: any = null;
   public eventHandlers: any = {};
   public initialized: boolean = false;
   public localMediaStream: MediaStream | null = null;
