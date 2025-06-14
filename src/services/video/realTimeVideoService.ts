@@ -7,7 +7,7 @@ export class RealTimeVideoService extends VideoService {
   private peerConnections: Map<string, RTCPeerConnection> = new Map();
   private websocket: WebSocket | null = null;
   private participants: Map<string, ParticipantData> = new Map();
-  private isConnected = false;
+  private connected = false; // Changed from isConnected to avoid conflict
   private isRecording = false;
   private connectionQuality = 'good';
 
@@ -45,7 +45,7 @@ export class RealTimeVideoService extends VideoService {
       
       // For demo purposes, simulate successful connection
       setTimeout(() => {
-        this.isConnected = true;
+        this.connected = true;
         this.callbacks.onConnectionStatusChanged?.(true);
         console.log('🎥 RealTime: Successfully connected to room');
       }, 1500);
@@ -60,7 +60,7 @@ export class RealTimeVideoService extends VideoService {
   async leaveRoom(): Promise<void> {
     console.log('🎥 RealTime: Leaving room...');
     
-    this.isConnected = false;
+    this.connected = false;
     this.participants.clear();
     
     if (this.websocket) {
@@ -153,8 +153,9 @@ export class RealTimeVideoService extends VideoService {
     return this.isRecording;
   }
 
+  // This method is required by the base VideoService class
   isConnected(): boolean {
-    return this.isConnected;
+    return this.connected;
   }
 
   dispose(): void {
