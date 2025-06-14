@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   Video, 
@@ -9,7 +8,6 @@ import {
   Mic, 
   MicOff, 
   Hand, 
-  ScreenShare, 
   Circle, 
   Users,
   Wifi,
@@ -35,12 +33,7 @@ export function EnhancedVideoPanel({
   isConnected,
   isRecording,
   connectionQuality,
-  userRole,
-  onToggleMicrophone,
-  onToggleCamera,
-  onRaiseHand,
-  onToggleRecording,
-  onStartScreenShare
+  userRole
 }: EnhancedVideoPanelProps) {
   const currentParticipant = participants.find(p => p.role === userRole);
 
@@ -115,64 +108,7 @@ export function EnhancedVideoPanel({
         </div>
       </div>
 
-      {/* Controls */}
-      <div className="p-4 border-t">
-        <div className="grid grid-cols-2 gap-2 mb-3">
-          <Button
-            variant={currentParticipant?.isMuted ? "destructive" : "outline"}
-            size="sm"
-            onClick={onToggleMicrophone}
-            disabled={!isConnected}
-          >
-            {currentParticipant?.isMuted ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-          </Button>
-          
-          <Button
-            variant={currentParticipant?.isVideoOff ? "destructive" : "outline"}
-            size="sm"
-            onClick={onToggleCamera}
-            disabled={!isConnected}
-          >
-            {currentParticipant?.isVideoOff ? <VideoOff className="h-4 w-4" /> : <Video className="h-4 w-4" />}
-          </Button>
-        </div>
-
-        <div className="grid grid-cols-1 gap-2">
-          <Button
-            variant={currentParticipant?.isHandRaised ? "default" : "outline"}
-            size="sm"
-            onClick={onRaiseHand}
-            disabled={!isConnected}
-          >
-            <Hand className="h-4 w-4 mr-2" />
-            {currentParticipant?.isHandRaised ? 'Lower Hand' : 'Raise Hand'}
-          </Button>
-
-          {userRole === 'teacher' && onToggleRecording && (
-            <Button
-              variant={isRecording ? "destructive" : "outline"}
-              size="sm"
-              onClick={onToggleRecording}
-              disabled={!isConnected}
-            >
-              <Circle className="h-4 w-4 mr-2" />
-              {isRecording ? 'Stop Recording' : 'Start Recording'}
-            </Button>
-          )}
-
-          {onStartScreenShare && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onStartScreenShare}
-              disabled={!isConnected}
-            >
-              <ScreenShare className="h-4 w-4 mr-2" />
-              Share Screen
-            </Button>
-          )}
-        </div>
-      </div>
+      {/* No controls section - all controls moved to top bar */}
     </Card>
   );
 }

@@ -53,11 +53,11 @@ export function OneOnOneVideoSection({
           isRecording={isRecording}
           connectionQuality={connectionQuality}
           userRole={isTeacher ? 'teacher' : 'student'}
-          onToggleMicrophone={() => {}} // Controlled from top bar now
-          onToggleCamera={() => {}} // Controlled from top bar now
-          onRaiseHand={() => {}} // Controlled from top bar now
-          onToggleRecording={undefined} // Controlled from top bar now
-          onStartScreenShare={() => {}} // Controlled from top bar now
+          onToggleMicrophone={() => {}} // Disabled - controlled from top bar
+          onToggleCamera={() => {}} // Disabled - controlled from top bar
+          onRaiseHand={() => {}} // Disabled - controlled from top bar
+          onToggleRecording={undefined} // Disabled - controlled from top bar
+          onStartScreenShare={() => {}} // Disabled - controlled from top bar
         />
       </div>
 
