@@ -22,6 +22,7 @@ const SimpleClassroomSelector = lazy(() => import("./pages/SimpleClassroomSelect
 const PaymentPage = lazy(() => import("./pages/PaymentPage"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const MaterialLibraryPage = lazy(() => import("./pages/MaterialLibraryPage"));
+const CurriculumLibraryPage = lazy(() => import("./pages/CurriculumLibraryPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -51,6 +52,7 @@ function App() {
                   <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
                   <Route path="/admin-dashboard" element={<AdminDashboard />} />
                   <Route path="/material-library" element={<MaterialLibraryPage />} />
+                  <Route path="/curriculum-library" element={<CurriculumLibraryPage />} />
                   <Route path="/oneonone-classroom-new" element={<OneOnOneClassroomNew />} />
                   <Route path="/classroom-selector" element={<SimpleClassroomSelector />} />
                   <Route path="/payment" element={<PaymentPage />} />
