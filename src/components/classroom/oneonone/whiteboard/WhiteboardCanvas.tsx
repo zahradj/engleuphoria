@@ -1,5 +1,5 @@
 
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 
 interface WhiteboardCanvasProps {
   activeTool: "pencil" | "eraser" | "text" | "highlighter" | "shape" | "game";
@@ -17,21 +17,42 @@ export function WhiteboardCanvas({
   children 
 }: WhiteboardCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Make canvas responsive to container size
+  useEffect(() => {
+    const updateCanvasSize = () => {
+      const canvas = canvasRef.current;
+      const container = containerRef.current;
+      
+      if (canvas && container) {
+        const containerRect = container.getBoundingClientRect();
+        canvas.width = containerRect.width;
+        canvas.height = containerRect.height;
+      }
+    };
+
+    updateCanvasSize();
+    window.addEventListener('resize', updateCanvasSize);
+    
+    return () => window.removeEventListener('resize', updateCanvasSize);
+  }, []);
 
   return (
-    <div className="bg-white rounded-lg border h-full relative whiteboard-container">
+    <div 
+      ref={containerRef}
+      className="bg-white rounded-lg border h-full relative whiteboard-container overflow-hidden"
+    >
       <canvas
         ref={canvasRef}
-        className="w-full h-full cursor-crosshair"
-        width={800}
-        height={600}
+        className="w-full h-full cursor-crosshair absolute inset-0"
         onMouseDown={onStartDrawing}
         onClick={onCanvasClick}
       />
       
       {children}
       
-      <div className="absolute bottom-2 right-2 bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs">
+      <div className="absolute bottom-2 right-2 bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs z-20">
         Collaborative Mode
       </div>
     </div>

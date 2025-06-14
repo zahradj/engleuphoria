@@ -39,14 +39,14 @@ export function WhiteboardTabsSection({
   onIframeError
 }: WhiteboardTabsSectionProps) {
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
-      <TabsList className="mb-2">
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col h-full">
+      <TabsList className="mb-2 flex-shrink-0">
         <TabsTrigger value="page1">Page 1</TabsTrigger>
         <TabsTrigger value="page2">Page 2</TabsTrigger>
         <TabsTrigger value="page3">Page 3</TabsTrigger>
       </TabsList>
       
-      <TabsContent value={activeTab} className="flex-1 m-0 relative">
+      <TabsContent value={activeTab} className="flex-1 m-0 relative min-h-0">
         <WhiteboardCanvas
           activeTool={activeTool}
           color={color}

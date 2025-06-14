@@ -1,4 +1,3 @@
-
 import { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { validateAndProcessUrl } from "./SafeUrlValidator";
@@ -65,15 +64,16 @@ export function useWhiteboardState() {
       });
     }
     
-    // Calculate better default size based on whiteboard container
+    // Calculate larger default size based on whiteboard container
     const whiteboardElement = document.querySelector('.whiteboard-container');
-    let defaultWidth = 400;
-    let defaultHeight = 300;
+    let defaultWidth = 800; // Increased from 400
+    let defaultHeight = 600; // Increased from 300
     
     if (whiteboardElement) {
       const rect = whiteboardElement.getBoundingClientRect();
-      defaultWidth = Math.min(400, rect.width * 0.5);
-      defaultHeight = Math.min(300, rect.height * 0.4);
+      // Use 70% of available space instead of 50% and 40%
+      defaultWidth = Math.min(800, rect.width * 0.7);
+      defaultHeight = Math.min(600, rect.height * 0.7);
     }
     
     const newGame: EmbeddedGameData = {
@@ -98,7 +98,7 @@ export function useWhiteboardState() {
     
     toast({
       title: "Content Added",
-      description: `${gameTitle} has been embedded and sized to fit the whiteboard.`,
+      description: `${gameTitle} has been embedded with larger size for better visibility.`,
     });
   };
 

@@ -61,8 +61,8 @@ export function EmbeddedGame({ game, onRemove, onError }: EmbeddedGameProps) {
         top: `${position.y}px`,
         width: `${size.width}px`,
         height: `${size.height}px`,
-        minWidth: '300px',
-        minHeight: '200px',
+        minWidth: '600px',
+        minHeight: '400px',
         maxWidth: '100%',
         maxHeight: '100%',
         zIndex: 10
