@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
@@ -7,6 +6,7 @@ import { EmbeddedGameDialog } from "./whiteboard/EmbeddedGameDialog";
 import { EmbeddedGame } from "./whiteboard/EmbeddedGame";
 import { WhiteboardCanvas } from "./whiteboard/WhiteboardCanvas";
 import { setupDrawingContext, createDrawEventHandlers } from "./whiteboard/drawingUtils";
+import { validateAndProcessUrl } from "./whiteboard/SafeUrlValidator";
 
 interface EmbeddedGameData {
   id: string;
@@ -42,33 +42,6 @@ export function OneOnOneWhiteboard() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   };
 
-  const isValidGameUrl = (url: string): boolean => {
-    try {
-      const urlObj = new URL(url);
-      const allowedDomains = [
-        'scratch.mit.edu',
-        'kahoot.it',
-        'kahoot.com',
-        'wordwall.net',
-        'nearpod.com',
-        'padlet.com',
-        'jamboard.google.com',
-        'youtube.com',
-        'vimeo.com',
-        'education.com',
-        'abcya.com',
-        'coolmathgames.com',
-        'funbrain.com'
-      ];
-      
-      return allowedDomains.some(domain => 
-        urlObj.hostname === domain || urlObj.hostname.endsWith('.' + domain)
-      ) || urlObj.protocol === 'https:';
-    } catch {
-      return false;
-    }
-  };
-
   const addGame = () => {
     if (!gameUrl || !gameTitle) {
       toast({
@@ -79,19 +52,29 @@ export function OneOnOneWhiteboard() {
       return;
     }
 
-    if (!isValidGameUrl(gameUrl)) {
+    const validation = validateAndProcessUrl(gameUrl);
+    
+    if (!validation.isValid) {
       toast({
         title: "Invalid URL",
-        description: "Please use a valid HTTPS URL from a supported domain",
+        description: validation.warning || "Please provide a valid HTTPS URL",
         variant: "destructive"
       });
       return;
+    }
+
+    if (validation.warning && !validation.isTrusted) {
+      toast({
+        title: "Security Warning",
+        description: validation.warning,
+        variant: "destructive"
+      });
     }
     
     const newGame: EmbeddedGameData = {
       id: Date.now().toString(),
       title: gameTitle,
-      url: gameUrl.startsWith('http') ? gameUrl : `https://${gameUrl}`,
+      url: validation.processedUrl,
       x: 50,
       y: 50,
       width: 400,
@@ -109,18 +92,25 @@ export function OneOnOneWhiteboard() {
     setIsGameDialogOpen(false);
     
     toast({
-      title: "Game Added",
-      description: `${gameTitle} has been embedded in the whiteboard`,
+      title: "Content Added",
+      description: `${gameTitle} has been embedded. If it doesn't load, try opening it in a new tab.`,
     });
   };
 
   const handleIframeError = (gameId: string) => {
+    console.log("Marking game as blocked:", gameId);
     setEmbeddedGames(prev => ({
       ...prev,
       [activeTab]: (prev[activeTab] || []).map(game => 
         game.id === gameId ? { ...game, isBlocked: true } : game
       )
     }));
+    
+    toast({
+      title: "Content Blocked",
+      description: "This content cannot be embedded due to security restrictions. You can still open it in a new tab.",
+      variant: "destructive"
+    });
   };
 
   const removeGame = (gameId: string) => {
