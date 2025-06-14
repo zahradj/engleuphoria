@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -33,7 +32,7 @@ export const TeacherSidebar = ({ activeTab, setActiveTab, onLogout }: TeacherSid
     { id: 'calendar', label: 'Calendar', icon: Calendar, type: 'tab' },
     { id: 'students', label: 'Students', icon: Users, type: 'tab' },
     { id: 'reading-library', label: 'Reading Library', icon: Book, type: 'tab' },
-    { id: 'materials', label: 'Material Library', icon: FolderOpen, type: 'page', path: '/material-library' },
+    { id: 'curriculum', label: 'Curriculum Library', icon: FolderOpen, type: 'page', path: '/curriculum-library' },
     { id: 'history', label: 'Lesson History', icon: Clock, type: 'tab' },
     { id: 'assignments', label: 'Assignments', icon: FileText, type: 'tab' },
     { id: 'resources', label: 'Resources', icon: BookOpen, type: 'tab' },
