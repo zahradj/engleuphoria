@@ -3,9 +3,10 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, BookOpen } from "lucide-react";
+import { MessageCircle, BookOpen, Book } from "lucide-react";
 import { OneOnOneChat } from "./OneOnOneChat";
 import { OneOnOneHomework } from "./OneOnOneHomework";
+import { EnhancedDictionary } from "./dictionary/EnhancedDictionary";
 import { CompactVideoFeed } from "../video/CompactVideoFeed";
 import { useWebRTC } from "@/hooks/useWebRTC";
 
@@ -50,6 +51,12 @@ export function OneOnOneRightPanel({
   const userRole = isTeacher ? 'student' : 'student';
   const isOwnVideo = !isTeacher; // Only students see their own video here
 
+  // Handle adding word to vocabulary
+  const handleAddToVocab = (word: string, definition: string) => {
+    console.log('Adding to vocabulary:', word, definition);
+    // This would integrate with student vocabulary tracking
+  };
+
   return (
     <Card className="h-full shadow-lg flex flex-col overflow-hidden">
       {/* Student Video - Consistent with other video components */}
@@ -90,6 +97,15 @@ export function OneOnOneRightPanel({
             <BookOpen size={12} className="mr-1" />
             Tasks
           </Button>
+          <Button
+            variant={activeRightTab === "dictionary" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => onTabChange("dictionary")}
+            className="text-xs px-3 py-1"
+          >
+            <Book size={12} className="mr-1" />
+            Dictionary
+          </Button>
         </div>
       </div>
 
@@ -98,6 +114,7 @@ export function OneOnOneRightPanel({
         <div className="h-full p-3">
           {activeRightTab === "chat" && <OneOnOneChat />}
           {activeRightTab === "homework" && <OneOnOneHomework />}
+          {activeRightTab === "dictionary" && <EnhancedDictionary onAddToVocab={handleAddToVocab} />}
         </div>
       </div>
 
