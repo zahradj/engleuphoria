@@ -1,17 +1,11 @@
 
-import { useState, useCallback, useEffect } from 'react';
-import { ParticipantData } from '@/services/video/enhancedVideoService';
+import { useState } from 'react';
 import { UseEnhancedClassroomProps, ClassroomSession } from './enhanced-classroom/types';
-import { RealTimeVideoService } from '@/services/video/realTimeVideoService';
-import { EnhancedVideoService } from '@/services/video/enhancedVideoService';
 import { useClassroomActions } from './enhanced-classroom/useClassroomActions';
-import { useMediaAccess } from './enhanced-classroom/useMediaAccess';
-import { useSessionManager } from './enhanced-classroom/useSessionManager';
 import { useRoleManager } from './enhanced-classroom/useRoleManager';
-import { useRealTimeSync } from './enhanced-classroom/useRealTimeSync';
-
-// Create a union type for video services
-type VideoServiceType = RealTimeVideoService | EnhancedVideoService;
+import { useVideoServiceManager } from './enhanced-classroom/useVideoServiceManager';
+import { useEnhancedMediaControls } from './enhanced-classroom/useEnhancedMediaControls';
+import { useSessionInitializer } from './enhanced-classroom/useSessionInitializer';
 
 export function useEnhancedClassroom({
   roomId,
@@ -19,13 +13,7 @@ export function useEnhancedClassroom({
   displayName,
   userRole
 }: UseEnhancedClassroomProps) {
-  const [participants, setParticipants] = useState<ParticipantData[]>([]);
-  const [isConnected, setIsConnected] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [connectionQuality, setConnectionQuality] = useState('good');
   const [session, setSession] = useState<ClassroomSession | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [videoService, setVideoService] = useState<VideoServiceType | null>(null);
 
   console.log('🏫 useEnhancedClassroom initializing with:', {
     roomId,
@@ -34,136 +22,44 @@ export function useEnhancedClassroom({
     userRole
   });
 
-  // Enhanced hooks
-  const sessionManager = useSessionManager({ roomId, userId, userRole });
-  const roleManager = useRoleManager({ 
-    initialRole: userRole, 
-    userId, 
-    userName: displayName 
-  });
-  const realTimeSync = useRealTimeSync({ roomId, userId, userRole });
+  // Video service management
+  const {
+    videoService,
+    participants,
+    isConnected,
+    isRecording,
+    connectionQuality,
+    error: videoError,
+    updateParticipants
+  } = useVideoServiceManager({ roomId, displayName, userRole });
 
-  // Media access management
+  // Enhanced media controls
   const {
     localStream,
     isMuted,
     isCameraOff,
     mediaError,
-    toggleMicrophone,
-    toggleCamera,
-    initializeMedia,
-    stopMedia
-  } = useMediaAccess();
+    enhancedToggleMicrophone,
+    enhancedToggleCamera
+  } = useEnhancedMediaControls({
+    videoService,
+    isConnected,
+    updateParticipants
+  });
 
-  // Initialize video service
-  useEffect(() => {
-    const initService = async () => {
-      try {
-        console.log('🎥 Initializing RealTimeVideoService...');
-        const service = new RealTimeVideoService(
-          {
-            roomName: roomId,
-            displayName,
-            enableRecording: userRole === 'teacher',
-            enableScreenShare: true,
-            maxParticipants: 10
-          },
-          {
-            onConnectionStatusChanged: (connected: boolean) => {
-              console.log('🔗 Connection status changed:', connected);
-              setIsConnected(connected);
-            },
-            onError: (err: string) => {
-              console.error('❌ Video service error:', err);
-              setError(err);
-            },
-            onParticipantJoined: (id, name) => {
-              console.log('👋 Participant joined:', id, name);
-            },
-            onParticipantLeft: (id) => {
-              console.log('👋 Participant left:', id);
-            }
-          }
-        );
+  // Session and sync initialization
+  const { sessionManager, realTimeSync } = useSessionInitializer({
+    roomId,
+    userId,
+    userRole
+  });
 
-        await service.initialize();
-        setVideoService(service);
-        console.log('✅ RealTimeVideoService initialized successfully');
-      } catch (err) {
-        console.error('❌ Failed to initialize video service:', err);
-        setError(err instanceof Error ? err.message : 'Video service initialization failed');
-      }
-    };
-
-    initService();
-
-    return () => {
-      if (videoService) {
-        console.log('🧹 Disposing video service...');
-        videoService.dispose();
-      }
-    };
-  }, [roomId, displayName, userRole]);
-
-  // Auto-join session on mount
-  useEffect(() => {
-    console.log('🚀 Auto-joining session for role:', userRole);
-    if (userRole === 'teacher') {
-      sessionManager.createSession();
-    } else {
-      sessionManager.joinSession();
-    }
-    
-    realTimeSync.connectToSync();
-
-    return () => {
-      realTimeSync.disconnect();
-    };
-  }, [userRole]);
-
-  const updateParticipants = useCallback(() => {
-    if (videoService) {
-      try {
-        const currentParticipants = videoService.getParticipants();
-        setParticipants(currentParticipants);
-        setConnectionQuality(videoService.getConnectionQuality());
-        setIsRecording(videoService.isRecordingActive());
-      } catch (error) {
-        console.error('Error updating participants:', error);
-      }
-    }
-  }, [videoService]);
-
-  // Enhanced toggle functions
-  const enhancedToggleMicrophone = useCallback(async () => {
-    const newMutedState = toggleMicrophone();
-    
-    if (videoService && isConnected) {
-      try {
-        await videoService.toggleMicrophone();
-      } catch (error) {
-        console.error('Failed to toggle microphone in video service:', error);
-      }
-    }
-    
-    updateParticipants();
-    return newMutedState;
-  }, [toggleMicrophone, videoService, isConnected, updateParticipants]);
-
-  const enhancedToggleCamera = useCallback(async () => {
-    const newCameraState = toggleCamera();
-    
-    if (videoService && isConnected) {
-      try {
-        await videoService.toggleCamera();
-      } catch (error) {
-        console.error('Failed to toggle camera in video service:', error);
-      }
-    }
-    
-    updateParticipants();
-    return newCameraState;
-  }, [toggleCamera, videoService, isConnected, updateParticipants]);
+  // Role management
+  const roleManager = useRoleManager({ 
+    initialRole: userRole, 
+    userId, 
+    userName: displayName 
+  });
 
   // Get classroom actions
   const actions = useClassroomActions({
@@ -182,7 +78,7 @@ export function useEnhancedClassroom({
     // Connection state
     isConnected,
     connectionQuality,
-    error: error || mediaError,
+    error: videoError || mediaError,
     
     // Media state
     isMuted,
