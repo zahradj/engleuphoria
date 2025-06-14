@@ -1,5 +1,5 @@
-
 import { useState, useCallback } from 'react';
+import { useEnhancedDictionaryService } from './enhancedDictionaryService';
 
 export interface WordDefinition {
   word: string;
