@@ -30,36 +30,63 @@ export function useClassroomActions({
   const { toast } = useToast();
 
   const joinClassroom = useCallback(async () => {
-    if (videoService && !isConnected) {
-      try {
-        console.log('Joining enhanced classroom...');
-        await videoService.joinRoom();
-        
-        // Create session record
-        const newSession: ClassroomSession = {
-          id: Date.now().toString(),
-          roomId,
-          teacherId: userRole === 'teacher' ? userId : '',
-          studentId: userRole === 'student' ? userId : '',
-          startTime: new Date(),
-          isRecording: false,
-          status: 'active'
-        };
-        
-        setSession(newSession);
-        console.log('Enhanced classroom joined successfully');
-      } catch (err) {
-        console.error('Enhanced join classroom error:', err);
-        toast({
-          title: "Connection Error",
-          description: "Failed to join classroom",
-          variant: "destructive"
-        });
-      }
+    console.log('Join classroom called:', { 
+      hasVideoService: !!videoService, 
+      isConnected, 
+      roomId 
+    });
+
+    if (!videoService) {
+      console.error('Video service not available');
+      toast({
+        title: "Service Error",
+        description: "Video service is not ready. Please wait and try again.",
+        variant: "destructive"
+      });
+      return;
     }
-  }, [videoService, isConnected, roomId, userId, userRole, setSession, toast]);
+
+    if (isConnected) {
+      console.log('Already connected to classroom');
+      return;
+    }
+
+    try {
+      console.log('Attempting to join enhanced classroom...');
+      await videoService.joinRoom();
+      
+      // Create session record
+      const newSession: ClassroomSession = {
+        id: Date.now().toString(),
+        roomId,
+        teacherId: userRole === 'teacher' ? userId : '',
+        studentId: userRole === 'student' ? userId : '',
+        startTime: new Date(),
+        isRecording: false,
+        status: 'active'
+      };
+      
+      setSession(newSession);
+      updateParticipants();
+      console.log('Enhanced classroom joined successfully');
+      
+      toast({
+        title: "Joined Classroom",
+        description: "Successfully connected to the classroom",
+      });
+    } catch (err) {
+      console.error('Enhanced join classroom error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      toast({
+        title: "Connection Error",
+        description: `Failed to join classroom: ${errorMessage}`,
+        variant: "destructive"
+      });
+    }
+  }, [videoService, isConnected, roomId, userId, userRole, setSession, updateParticipants, toast]);
 
   const leaveClassroom = useCallback(async () => {
+    console.log('Leave classroom called');
     if (videoService) {
       console.log('Leaving enhanced classroom...');
       await videoService.leaveRoom();
@@ -109,6 +136,7 @@ export function useClassroomActions({
 
   const toggleMicrophone = useCallback(async () => {
     if (videoService) {
+      console.log('Toggling microphone');
       await videoService.toggleMicrophone();
       updateParticipants();
     }
@@ -116,6 +144,7 @@ export function useClassroomActions({
 
   const toggleCamera = useCallback(async () => {
     if (videoService) {
+      console.log('Toggling camera');
       await videoService.toggleCamera();
       updateParticipants();
     }
@@ -123,6 +152,7 @@ export function useClassroomActions({
 
   const raiseHand = useCallback(async () => {
     if (videoService) {
+      console.log('Raising hand');
       await videoService.raiseHand();
       updateParticipants();
       toast({
@@ -134,6 +164,7 @@ export function useClassroomActions({
 
   const startScreenShare = useCallback(async () => {
     if (videoService) {
+      console.log('Starting screen share');
       await videoService.startScreenShare();
       toast({
         title: "Screen Share",

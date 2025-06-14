@@ -7,7 +7,6 @@ interface UseVideoServiceInitProps {
   roomId: string;
   displayName: string;
   userRole: 'teacher' | 'student';
-  updateParticipants: () => void;
   setIsConnected: (connected: boolean) => void;
   setError: (error: string | null) => void;
 }
@@ -16,7 +15,6 @@ export function useVideoServiceInit({
   roomId,
   displayName,
   userRole,
-  updateParticipants,
   setIsConnected,
   setError
 }: UseVideoServiceInitProps) {
@@ -24,9 +22,12 @@ export function useVideoServiceInit({
   const { toast } = useToast();
 
   useEffect(() => {
+    let isMounted = true;
+
     const initializeVideo = async () => {
       try {
-        console.log('Initializing enhanced video service for:', { roomId, displayName, userRole });
+        console.log('Starting video service initialization for:', { roomId, displayName, userRole });
+        setError(null);
         
         const service = new EnhancedVideoService(
           {
@@ -39,52 +40,67 @@ export function useVideoServiceInit({
           {
             onParticipantJoined: (participantId, displayName) => {
               console.log('Enhanced: Participant joined:', participantId, displayName);
-              updateParticipants();
             },
             onParticipantLeft: (participantId) => {
               console.log('Enhanced: Participant left:', participantId);
-              updateParticipants();
             },
             onConnectionStatusChanged: (connected) => {
               console.log('Enhanced: Connection status changed:', connected);
-              setIsConnected(connected);
-              if (connected) {
-                toast({
-                  title: "Connected",
-                  description: "Successfully joined the classroom",
-                });
+              if (isMounted) {
+                setIsConnected(connected);
+                if (connected) {
+                  toast({
+                    title: "Connected",
+                    description: "Successfully joined the classroom",
+                  });
+                }
               }
             },
             onError: (errorMessage) => {
               console.error('Enhanced: Video service error:', errorMessage);
-              setError(errorMessage);
-              toast({
-                title: "Connection Error",
-                description: errorMessage,
-                variant: "destructive"
-              });
+              if (isMounted) {
+                setError(errorMessage);
+                toast({
+                  title: "Connection Error",
+                  description: errorMessage,
+                  variant: "destructive"
+                });
+              }
             }
           }
         );
 
+        console.log('Initializing enhanced video service...');
         await service.initialize();
-        console.log('Enhanced video service initialized successfully');
-        setVideoService(service);
+        
+        if (isMounted) {
+          console.log('Enhanced video service initialized successfully');
+          setVideoService(service);
+        }
       } catch (err) {
         console.error('Enhanced video service initialization error:', err);
-        setError('Failed to initialize video service');
+        if (isMounted) {
+          const errorMessage = err instanceof Error ? err.message : 'Failed to initialize video service';
+          setError(errorMessage);
+          toast({
+            title: "Initialization Error",
+            description: errorMessage,
+            variant: "destructive"
+          });
+        }
       }
     };
 
     initializeVideo();
 
     return () => {
+      isMounted = false;
       console.log('Cleaning up enhanced video service');
       if (videoService) {
         videoService.dispose();
       }
     };
-  }, [roomId, displayName, userRole, updateParticipants, setIsConnected, setError, toast]);
+  }, [roomId, displayName, userRole, setIsConnected, setError, toast]);
 
   return videoService;
 }

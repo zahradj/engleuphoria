@@ -9,6 +9,7 @@ export class EnhancedVideoService extends VideoService {
   private api: any = null;
   private eventHandlers: JitsiEventHandlers;
   private connectionQuality = 'good';
+  private initialized = false;
 
   constructor(config: EnhancedVideoConfig, callbacks: VideoServiceCallbacks = {}) {
     super(config, callbacks);
@@ -20,17 +21,33 @@ export class EnhancedVideoService extends VideoService {
   }
 
   async initialize(): Promise<void> {
+    if (this.initialized) {
+      console.log('Enhanced video service already initialized');
+      return;
+    }
+
     console.log('Enhanced: Initializing video service...');
     try {
       await JitsiApiLoader.loadJitsiApi();
-      console.log('Enhanced: Jitsi API loaded successfully');
+      this.initialized = true;
+      console.log('Enhanced: Video service initialized successfully');
     } catch (error) {
-      console.error('Enhanced: Failed to load Jitsi API:', error);
+      console.error('Enhanced: Failed to initialize video service:', error);
+      this.callbacks.onError?.('Failed to initialize video service');
       throw error;
     }
   }
 
   async joinRoom(): Promise<void> {
+    if (!this.initialized) {
+      throw new Error('Video service not initialized');
+    }
+
+    if (this.api) {
+      console.log('Already connected to room');
+      return;
+    }
+
     try {
       console.log('Enhanced: Joining room with config:', this.enhancedConfig);
       const domain = this.enhancedConfig.domain || 'meet.jit.si';
@@ -38,7 +55,12 @@ export class EnhancedVideoService extends VideoService {
       const container = JitsiApiLoader.createContainer();
       const options = JitsiConfigBuilder.buildOptions(this.enhancedConfig, container);
 
-      console.log('Enhanced: Creating Jitsi API instance...');
+      console.log('Enhanced: Creating Jitsi API instance with options:', options);
+      
+      if (!window.JitsiMeetExternalAPI) {
+        throw new Error('JitsiMeetExternalAPI not available');
+      }
+
       this.api = new window.JitsiMeetExternalAPI(domain, options);
       
       console.log('Enhanced: Setting up event listeners...');
@@ -52,7 +74,8 @@ export class EnhancedVideoService extends VideoService {
       
     } catch (error) {
       console.error('Enhanced: Failed to join room:', error);
-      this.callbacks.onError?.('Failed to join room');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to join room';
+      this.callbacks.onError?.(errorMessage);
       throw error;
     }
   }
@@ -60,6 +83,7 @@ export class EnhancedVideoService extends VideoService {
   async startRecording(): Promise<boolean> {
     if (this.api && this.enhancedConfig.enableRecording) {
       try {
+        console.log('Starting recording...');
         await this.api.executeCommand('startRecording', {
           mode: 'stream'
         });
@@ -75,6 +99,7 @@ export class EnhancedVideoService extends VideoService {
   async stopRecording(): Promise<boolean> {
     if (this.api && this.eventHandlers.isRecordingActive()) {
       try {
+        console.log('Stopping recording...');
         await this.api.executeCommand('stopRecording');
         return true;
       } catch (error) {
@@ -88,6 +113,7 @@ export class EnhancedVideoService extends VideoService {
   async startScreenShare(): Promise<boolean> {
     if (this.api && this.enhancedConfig.enableScreenShare) {
       try {
+        console.log('Starting screen share...');
         await this.api.executeCommand('toggleShareScreen');
         return true;
       } catch (error) {
@@ -101,6 +127,7 @@ export class EnhancedVideoService extends VideoService {
   async raiseHand(): Promise<boolean> {
     if (this.api) {
       try {
+        console.log('Raising hand...');
         await this.api.executeCommand('toggleRaiseHand');
         return true;
       } catch (error) {
@@ -126,6 +153,7 @@ export class EnhancedVideoService extends VideoService {
   async toggleMicrophone(): Promise<boolean> {
     if (this.api) {
       try {
+        console.log('Toggling microphone...');
         await this.api.executeCommand('toggleAudio');
         return true;
       } catch (error) {
@@ -139,6 +167,7 @@ export class EnhancedVideoService extends VideoService {
   async toggleCamera(): Promise<boolean> {
     if (this.api) {
       try {
+        console.log('Toggling camera...');
         await this.api.executeCommand('toggleVideo');
         return true;
       } catch (error) {
@@ -174,6 +203,7 @@ export class EnhancedVideoService extends VideoService {
 
   dispose(): void {
     this.leaveRoom();
+    this.initialized = false;
   }
 }
 

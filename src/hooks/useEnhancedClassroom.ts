@@ -18,25 +18,29 @@ export function useEnhancedClassroom({
   const [session, setSession] = useState<ClassroomSession | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const updateParticipants = useCallback(() => {
-    if (videoService) {
-      const currentParticipants = videoService.getParticipants();
-      console.log('Updating participants:', currentParticipants);
-      setParticipants(currentParticipants);
-      setConnectionQuality(videoService.getConnectionQuality());
-      setIsRecording(videoService.isRecordingActive());
-    }
-  }, []);
-
   // Initialize video service
   const videoService = useVideoServiceInit({
     roomId,
     displayName,
     userRole,
-    updateParticipants,
     setIsConnected,
     setError
   });
+
+  const updateParticipants = useCallback(() => {
+    console.log('UpdateParticipants called, videoService:', !!videoService);
+    if (videoService) {
+      try {
+        const currentParticipants = videoService.getParticipants();
+        console.log('Updating participants:', currentParticipants);
+        setParticipants(currentParticipants);
+        setConnectionQuality(videoService.getConnectionQuality());
+        setIsRecording(videoService.isRecordingActive());
+      } catch (error) {
+        console.error('Error updating participants:', error);
+      }
+    }
+  }, [videoService]); // Fixed: Added videoService to dependencies
 
   // Get classroom actions
   const actions = useClassroomActions({
@@ -49,6 +53,13 @@ export function useEnhancedClassroom({
     session,
     setSession,
     updateParticipants
+  });
+
+  console.log('useEnhancedClassroom state:', {
+    hasVideoService: !!videoService,
+    isConnected,
+    participantsCount: participants.length,
+    error
   });
 
   return {
