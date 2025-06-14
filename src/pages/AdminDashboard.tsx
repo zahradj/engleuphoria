@@ -40,6 +40,10 @@ const AdminDashboard = () => {
     );
   }
 
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab as AdminTab);
+  };
+
   const renderActiveTab = () => {
     switch (activeTab) {
       case 'overview':
@@ -65,7 +69,7 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-gray-50 flex">
       <AdminSidebar 
         activeTab={activeTab} 
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
         permissions={permissions}
       />
       <div className="flex-1 flex flex-col">
