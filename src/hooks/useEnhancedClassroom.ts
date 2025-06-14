@@ -1,10 +1,13 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { ParticipantData } from '@/services/video/enhancedVideoService';
 import { UseEnhancedClassroomProps, ClassroomSession } from './enhanced-classroom/types';
-import { useVideoServiceInit } from './enhanced-classroom/useVideoServiceInit';
+import { RealTimeVideoService } from '@/services/video/realTimeVideoService';
 import { useClassroomActions } from './enhanced-classroom/useClassroomActions';
 import { useMediaAccess } from './enhanced-classroom/useMediaAccess';
+import { useSessionManager } from './enhanced-classroom/useSessionManager';
+import { useRoleManager } from './enhanced-classroom/useRoleManager';
+import { useRealTimeSync } from './enhanced-classroom/useRealTimeSync';
 
 export function useEnhancedClassroom({
   roomId,
@@ -18,6 +21,16 @@ export function useEnhancedClassroom({
   const [connectionQuality, setConnectionQuality] = useState('good');
   const [session, setSession] = useState<ClassroomSession | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [videoService, setVideoService] = useState<RealTimeVideoService | null>(null);
+
+  // Enhanced hooks
+  const sessionManager = useSessionManager({ roomId, userId, userRole });
+  const roleManager = useRoleManager({ 
+    initialRole: userRole, 
+    userId, 
+    userName: displayName 
+  });
+  const realTimeSync = useRealTimeSync({ roomId, userId, userRole });
 
   // Media access management
   const {
@@ -32,20 +45,65 @@ export function useEnhancedClassroom({
   } = useMediaAccess();
 
   // Initialize video service
-  const videoService = useVideoServiceInit({
-    roomId,
-    displayName,
-    userRole,
-    setIsConnected,
-    setError
-  });
+  useEffect(() => {
+    const initService = async () => {
+      try {
+        const service = new RealTimeVideoService(
+          {
+            roomName: roomId,
+            displayName,
+            enableRecording: userRole === 'teacher',
+            enableScreenShare: true,
+            maxParticipants: 10
+          },
+          {
+            onConnectionStatusChanged: setIsConnected,
+            onError: setError,
+            onParticipantJoined: (id, name) => {
+              console.log('Participant joined:', id, name);
+            },
+            onParticipantLeft: (id) => {
+              console.log('Participant left:', id);
+            }
+          }
+        );
+
+        await service.initialize();
+        setVideoService(service);
+      } catch (err) {
+        console.error('Failed to initialize video service:', err);
+        setError(err instanceof Error ? err.message : 'Video service initialization failed');
+      }
+    };
+
+    initService();
+
+    return () => {
+      if (videoService) {
+        videoService.dispose();
+      }
+    };
+  }, [roomId, displayName, userRole]);
+
+  // Auto-join session on mount
+  useEffect(() => {
+    if (userRole === 'teacher') {
+      sessionManager.createSession();
+    } else {
+      sessionManager.joinSession();
+    }
+    
+    realTimeSync.connectToSync();
+
+    return () => {
+      realTimeSync.disconnect();
+    };
+  }, []);
 
   const updateParticipants = useCallback(() => {
-    console.log('UpdateParticipants called, videoService:', !!videoService);
     if (videoService) {
       try {
         const currentParticipants = videoService.getParticipants();
-        console.log('Updating participants:', currentParticipants);
         setParticipants(currentParticipants);
         setConnectionQuality(videoService.getConnectionQuality());
         setIsRecording(videoService.isRecordingActive());
@@ -55,20 +113,15 @@ export function useEnhancedClassroom({
     }
   }, [videoService]);
 
-  // Enhanced toggle functions that work with both local media and video service
+  // Enhanced toggle functions
   const enhancedToggleMicrophone = useCallback(async () => {
-    console.log('🎤 Enhanced microphone toggle called');
-    
-    // Always toggle local media first
     const newMutedState = toggleMicrophone();
     
-    // If connected to video service, also toggle there
     if (videoService && isConnected) {
       try {
         await videoService.toggleMicrophone();
-        console.log('🎤 Video service microphone toggled');
       } catch (error) {
-        console.error('🎤 Failed to toggle microphone in video service:', error);
+        console.error('Failed to toggle microphone in video service:', error);
       }
     }
     
@@ -77,18 +130,13 @@ export function useEnhancedClassroom({
   }, [toggleMicrophone, videoService, isConnected, updateParticipants]);
 
   const enhancedToggleCamera = useCallback(async () => {
-    console.log('📹 Enhanced camera toggle called');
-    
-    // Always toggle local media first
     const newCameraState = toggleCamera();
     
-    // If connected to video service, also toggle there
     if (videoService && isConnected) {
       try {
         await videoService.toggleCamera();
-        console.log('📹 Video service camera toggled');
       } catch (error) {
-        console.error('📹 Failed to toggle camera in video service:', error);
+        console.error('Failed to toggle camera in video service:', error);
       }
     }
     
@@ -109,16 +157,6 @@ export function useEnhancedClassroom({
     updateParticipants
   });
 
-  console.log('useEnhancedClassroom state:', {
-    hasVideoService: !!videoService,
-    isConnected,
-    participantsCount: participants.length,
-    isMuted,
-    isCameraOff,
-    hasLocalStream: !!localStream,
-    error: error || mediaError
-  });
-
   return {
     // Connection state
     isConnected,
@@ -131,9 +169,14 @@ export function useEnhancedClassroom({
     localStream,
     
     // Session data
-    session,
+    session: sessionManager.session,
     participants,
     isRecording,
+    
+    // Enhanced features
+    roleManager,
+    sessionManager,
+    realTimeSync,
     
     // Actions
     ...actions,
