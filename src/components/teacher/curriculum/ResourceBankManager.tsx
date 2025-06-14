@@ -14,8 +14,8 @@ import { Plus, Edit, Trash, Search, FileText, Video, Headphones, Gamepad2 } from
 export function ResourceBankManager() {
   const [resources, setResources] = useState<Resource[]>(resourceBankService.getAllResources());
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterLevel, setFilterLevel] = useState("");
-  const [filterType, setFilterType] = useState("");
+  const [filterLevel, setFilterLevel] = useState("all");
+  const [filterType, setFilterType] = useState("all");
   const [isEditing, setIsEditing] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -33,8 +33,8 @@ export function ResourceBankManager() {
   const filteredResources = resources.filter(resource => {
     const matchesSearch = resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          resource.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesLevel = !filterLevel || resource.cefrLevel === filterLevel;
-    const matchesType = !filterType || resource.type === filterType;
+    const matchesLevel = filterLevel === "all" || resource.cefrLevel === filterLevel;
+    const matchesType = filterType === "all" || resource.type === filterType;
     
     return matchesSearch && matchesLevel && matchesType;
   });
@@ -135,7 +135,7 @@ export function ResourceBankManager() {
                 <SelectValue placeholder="All levels" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All levels</SelectItem>
+                <SelectItem value="all">All levels</SelectItem>
                 <SelectItem value="A1">A1 - Beginner</SelectItem>
                 <SelectItem value="A2">A2 - Elementary</SelectItem>
                 <SelectItem value="B1">B1 - Intermediate</SelectItem>
@@ -152,7 +152,7 @@ export function ResourceBankManager() {
                 <SelectValue placeholder="All types" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All types</SelectItem>
+                <SelectItem value="all">All types</SelectItem>
                 <SelectItem value="worksheet">Worksheet</SelectItem>
                 <SelectItem value="video">Video</SelectItem>
                 <SelectItem value="audio">Audio</SelectItem>
@@ -164,8 +164,8 @@ export function ResourceBankManager() {
           <div className="flex items-end">
             <Button variant="outline" onClick={() => {
               setSearchTerm("");
-              setFilterLevel("");
-              setFilterType("");
+              setFilterLevel("all");
+              setFilterType("all");
             }}>
               Clear Filters
             </Button>
