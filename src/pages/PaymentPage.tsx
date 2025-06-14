@@ -1,46 +1,32 @@
 
 import React from "react";
-import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PaymentPlansGrid } from "@/components/payment/PaymentPlansGrid";
 import { PaymentSuccess } from "@/components/payment/PaymentSuccess";
-import { PaymentHeader } from "@/components/payment/PaymentHeader";
-import { ContactInfoForm } from "@/components/payment/ContactInfoForm";
-import { SecurityNotice } from "@/components/payment/SecurityNotice";
 import { usePaymentVerification } from "@/hooks/usePaymentVerification";
-import { usePaymentForm } from "@/hooks/usePaymentForm";
+import { usePricingForm } from "@/hooks/usePricingForm";
+import { PricingLayout } from "@/components/pricing/PricingLayout";
+import { PricingHeader } from "@/components/pricing/PricingHeader";
+import { PricingContactForm } from "@/components/pricing/PricingContactForm";
+import { PricingPlansSection } from "@/components/pricing/PricingPlansSection";
+import { PricingSecurityNotice } from "@/components/pricing/PricingSecurityNotice";
 
 const PaymentPage = () => {
-  const navigate = useNavigate();
   const { paymentSuccess } = usePaymentVerification();
-  const { formData, handleInputChange, handlePlanSelect } = usePaymentForm();
+  const { formData, handleInputChange, handlePlanSelect } = usePricingForm();
 
   if (paymentSuccess) {
     return <PaymentSuccess />;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        <PaymentHeader />
-
-        <ContactInfoForm 
-          formData={formData}
-          onInputChange={handleInputChange}
-        />
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Select Your Plan</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <PaymentPlansGrid onPlanSelect={handlePlanSelect} />
-          </CardContent>
-        </Card>
-
-        <SecurityNotice />
-      </div>
-    </div>
+    <PricingLayout>
+      <PricingHeader />
+      <PricingContactForm 
+        formData={formData}
+        onInputChange={handleInputChange}
+      />
+      <PricingPlansSection onPlanSelect={handlePlanSelect} />
+      <PricingSecurityNotice />
+    </PricingLayout>
   );
 };
 
