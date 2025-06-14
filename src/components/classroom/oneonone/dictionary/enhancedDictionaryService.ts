@@ -44,57 +44,69 @@ export function useEnhancedDictionaryService() {
     setImages([]);
     
     try {
-      // Create timeout promise
+      // Create timeout that ensures loading never exceeds 5 seconds
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Request timeout')), 8000);
+        setTimeout(() => reject(new Error('Request timeout')), 5000);
       });
 
-      // Run all API calls in parallel with timeout
-      const results = await Promise.race([
-        Promise.allSettled([
-          fetchDefinition(word, signal),
-          fetchTranslation(word, targetLanguage, signal),
-          fetchImages(word, signal)
-        ]),
-        timeoutPromise
-      ]) as PromiseSettledResult<any>[];
+      // Run all API calls in parallel with aggressive timeout
+      const apiPromises = Promise.allSettled([
+        fetchDefinition(word, signal),
+        fetchTranslation(word, targetLanguage, signal),
+        fetchImages(word, signal)
+      ]);
 
-      // Process definition result
+      const results = await Promise.race([apiPromises, timeoutPromise]) as PromiseSettledResult<any>[];
+
+      // Process definition result with immediate fallback
       const definitionResult = results[0];
       let wordDefinition: WordDefinition | null = null;
 
       if (definitionResult.status === 'fulfilled' && definitionResult.value) {
         wordDefinition = definitionResult.value;
       } else {
-        // Try fallback definition
+        // Immediately try fallback definition
         const fallback = getFallbackDefinition(word);
         if (fallback) {
           wordDefinition = fallback;
         }
       }
 
-      if (wordDefinition) {
-        setDefinition(wordDefinition);
-      } else {
-        throw new Error('Word not found in dictionary');
+      // If no definition found at all, create a basic one
+      if (!wordDefinition) {
+        wordDefinition = {
+          word: word,
+          definition: `No definition found for "${word}". This might be a proper noun, technical term, or the word may not exist in our dictionary.`,
+          partOfSpeech: 'unknown'
+        };
       }
 
-      // Process translation result
+      setDefinition(wordDefinition);
+
+      // Process translation result with immediate fallback
       const translationResult = results[1];
       if (translationResult.status === 'fulfilled' && translationResult.value) {
         setTranslation(translationResult.value);
       } else {
-        // Try fallback translation
+        // Try fallback translation immediately
         const fallbackTrans = getFallbackTranslation(word, targetLanguage);
         if (fallbackTrans) {
           setTranslation(fallbackTrans);
         }
       }
 
-      // Process images result
+      // Process images result with immediate fallback
       const imagesResult = results[2];
       if (imagesResult.status === 'fulfilled' && imagesResult.value) {
         setImages(imagesResult.value);
+      } else {
+        // Always provide placeholder images as fallback
+        setImages([
+          {
+            url: `https://via.placeholder.com/150x100/e3e3e3/666666?text=${encodeURIComponent(word)}`,
+            description: `${word} illustration`
+          }
+        ]);
       }
 
       // Add to recent searches
@@ -110,7 +122,7 @@ export function useEnhancedDictionaryService() {
       
       console.error('Dictionary search error:', err);
       
-      // Try to provide fallback data even on error
+      // Provide fallback data even on complete failure
       const fallbackDef = getFallbackDefinition(word);
       const fallbackTrans = getFallbackTranslation(word, targetLanguage);
       
@@ -119,9 +131,21 @@ export function useEnhancedDictionaryService() {
         if (fallbackTrans) {
           setTranslation(fallbackTrans);
         }
-        setError('Using offline dictionary data');
+        setImages([
+          {
+            url: `https://via.placeholder.com/150x100/e3e3e3/666666?text=${encodeURIComponent(word)}`,
+            description: `${word} illustration`
+          }
+        ]);
+        setError('Using offline dictionary data - some features may be limited');
       } else {
-        setError(err instanceof Error ? err.message : 'Failed to fetch word information');
+        // Create minimal definition even if no fallback exists
+        setDefinition({
+          word: word,
+          definition: `Unable to fetch definition for "${word}". Please check your internet connection and try again.`,
+          partOfSpeech: 'unknown'
+        });
+        setError('Unable to connect to dictionary services');
       }
     } finally {
       setIsLoading(false);
