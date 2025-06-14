@@ -188,7 +188,7 @@ class EnhancedCurriculumService {
       createdAt: new Date(),
       status: 'draft' as const,
       metadata: {
-        framework: 'Enhanced NLEFP',
+        framework: 'NLEFP',
         progressTracking: {
           skillsToTrack: ['sentence_building', 'pattern_recognition', 'comprehension_speed'],
           nlpAnchorsUsed: ['visual_timeline', 'kinesthetic_building', 'pattern_visualization'],
