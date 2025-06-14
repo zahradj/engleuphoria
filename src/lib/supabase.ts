@@ -38,7 +38,7 @@ export interface User {
   id: string
   email: string
   full_name: string
-  role: 'student' | 'teacher' | 'parent'
+  role: 'student' | 'teacher' | 'parent' | 'admin'
   avatar_id?: number
   created_at: string
   updated_at: string
@@ -79,4 +79,42 @@ export interface Payment {
   status: 'pending' | 'completed' | 'failed'
   payment_method: string
   created_at: string
+}
+
+// Admin specific types
+export interface AdminUser {
+  id: string
+  user_id: string
+  permissions: string[]
+  access_level: 'super_admin' | 'admin' | 'moderator'
+  created_at: string
+}
+
+export interface UserAssignment {
+  id: string
+  teacher_id: string
+  student_id: string
+  assigned_by: string
+  status: 'active' | 'inactive'
+  created_at: string
+}
+
+export interface ContentModeration {
+  id: string
+  content_type: 'lesson_material' | 'homework' | 'message'
+  content_id: string
+  uploaded_by: string
+  status: 'pending' | 'approved' | 'rejected'
+  reviewed_by?: string
+  review_notes?: string
+  created_at: string
+}
+
+export interface UsageAnalytics {
+  id: string
+  metric_type: string
+  metric_value: number
+  user_id?: string
+  date: string
+  metadata?: any
 }
