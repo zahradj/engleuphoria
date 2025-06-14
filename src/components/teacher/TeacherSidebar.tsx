@@ -1,5 +1,6 @@
 
 import React from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
   BarChart3, 
@@ -15,7 +16,8 @@ import {
   Settings, 
   LogOut,
   GraduationCap,
-  Book
+  Book,
+  FolderOpen
 } from "lucide-react";
 
 interface TeacherSidebarProps {
@@ -26,18 +28,19 @@ interface TeacherSidebarProps {
 
 export const TeacherSidebar = ({ activeTab, setActiveTab, onLogout }: TeacherSidebarProps) => {
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-    { id: 'ai-assistant', label: 'AI Curriculum', icon: Brain },
-    { id: 'calendar', label: 'Calendar', icon: Calendar },
-    { id: 'students', label: 'Students', icon: Users },
-    { id: 'reading-library', label: 'Reading Library', icon: Book },
-    { id: 'history', label: 'Lesson History', icon: Clock },
-    { id: 'assignments', label: 'Assignments', icon: FileText },
-    { id: 'resources', label: 'Resources', icon: BookOpen },
-    { id: 'messages', label: 'Messages', icon: MessageSquare },
-    { id: 'earnings', label: 'Earnings', icon: DollarSign },
-    { id: 'reports', label: 'Reports', icon: TrendingUp },
-    { id: 'settings', label: 'Settings', icon: Settings }
+    { id: 'dashboard', label: 'Dashboard', icon: BarChart3, type: 'tab' },
+    { id: 'ai-assistant', label: 'AI Curriculum', icon: Brain, type: 'tab' },
+    { id: 'calendar', label: 'Calendar', icon: Calendar, type: 'tab' },
+    { id: 'students', label: 'Students', icon: Users, type: 'tab' },
+    { id: 'reading-library', label: 'Reading Library', icon: Book, type: 'tab' },
+    { id: 'materials', label: 'Material Library', icon: FolderOpen, type: 'page', path: '/material-library' },
+    { id: 'history', label: 'Lesson History', icon: Clock, type: 'tab' },
+    { id: 'assignments', label: 'Assignments', icon: FileText, type: 'tab' },
+    { id: 'resources', label: 'Resources', icon: BookOpen, type: 'tab' },
+    { id: 'messages', label: 'Messages', icon: MessageSquare, type: 'tab' },
+    { id: 'earnings', label: 'Earnings', icon: DollarSign, type: 'tab' },
+    { id: 'reports', label: 'Reports', icon: TrendingUp, type: 'tab' },
+    { id: 'settings', label: 'Settings', icon: Settings, type: 'tab' }
   ];
 
   return (
@@ -48,17 +51,33 @@ export const TeacherSidebar = ({ activeTab, setActiveTab, onLogout }: TeacherSid
       </div>
       
       <div className="flex-1 p-4 space-y-1">
-        {menuItems.map((item) => (
-          <Button
-            key={item.id}
-            variant={activeTab === item.id ? "secondary" : "ghost"}
-            className="justify-start w-full"
-            onClick={() => setActiveTab(item.id)}
-          >
-            <item.icon className="mr-2 h-4 w-4" />
-            {item.label}
-          </Button>
-        ))}
+        {menuItems.map((item) => {
+          if (item.type === 'page') {
+            return (
+              <Link key={item.id} to={item.path}>
+                <Button
+                  variant="ghost"
+                  className="justify-start w-full"
+                >
+                  <item.icon className="mr-2 h-4 w-4" />
+                  {item.label}
+                </Button>
+              </Link>
+            );
+          }
+          
+          return (
+            <Button
+              key={item.id}
+              variant={activeTab === item.id ? "secondary" : "ghost"}
+              className="justify-start w-full"
+              onClick={() => setActiveTab(item.id)}
+            >
+              <item.icon className="mr-2 h-4 w-4" />
+              {item.label}
+            </Button>
+          );
+        })}
       </div>
       
       <div className="p-4 border-t dark:border-gray-700">

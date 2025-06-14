@@ -11,9 +11,11 @@ import {
   Shield, 
   FileText, 
   Home,
-  Settings
+  Settings,
+  FolderOpen
 } from 'lucide-react';
 import { AdminPermissions } from '@/hooks/useAdminAuth';
+import { Link } from 'react-router-dom';
 
 interface AdminSidebarProps {
   activeTab: string;
@@ -23,13 +25,14 @@ interface AdminSidebarProps {
 
 export const AdminSidebar = ({ activeTab, onTabChange, permissions }: AdminSidebarProps) => {
   const menuItems = [
-    { id: 'overview', label: 'Overview', icon: Home, permission: true },
-    { id: 'users', label: 'User Management', icon: Users, permission: permissions.canManageUsers },
-    { id: 'teachers', label: 'Teacher Management', icon: GraduationCap, permission: permissions.canManageTeachers },
-    { id: 'assignments', label: 'Teacher Assignments', icon: UserCheck, permission: permissions.canAssignTeachers },
-    { id: 'analytics', label: 'Analytics', icon: BarChart3, permission: permissions.canViewAnalytics },
-    { id: 'moderation', label: 'Content Moderation', icon: Shield, permission: permissions.canModerateContent },
-    { id: 'reports', label: 'Reports', icon: FileText, permission: permissions.canGenerateReports },
+    { id: 'overview', label: 'Overview', icon: Home, permission: true, type: 'tab' },
+    { id: 'users', label: 'User Management', icon: Users, permission: permissions.canManageUsers, type: 'tab' },
+    { id: 'teachers', label: 'Teacher Management', icon: GraduationCap, permission: permissions.canManageTeachers, type: 'tab' },
+    { id: 'assignments', label: 'Teacher Assignments', icon: UserCheck, permission: permissions.canAssignTeachers, type: 'tab' },
+    { id: 'materials', label: 'Material Library', icon: FolderOpen, permission: permissions.canModerateContent, type: 'page', path: '/material-library' },
+    { id: 'analytics', label: 'Analytics', icon: BarChart3, permission: permissions.canViewAnalytics, type: 'tab' },
+    { id: 'moderation', label: 'Content Moderation', icon: Shield, permission: permissions.canModerateContent, type: 'tab' },
+    { id: 'reports', label: 'Reports', icon: FileText, permission: permissions.canGenerateReports, type: 'tab' },
   ];
 
   return (
@@ -44,6 +47,21 @@ export const AdminSidebar = ({ activeTab, onTabChange, permissions }: AdminSideb
           if (!item.permission) return null;
           
           const Icon = item.icon;
+          
+          if (item.type === 'page') {
+            return (
+              <Link key={item.id} to={item.path}>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start"
+                >
+                  <Icon className="w-4 h-4 mr-2" />
+                  {item.label}
+                </Button>
+              </Link>
+            );
+          }
+          
           return (
             <Button
               key={item.id}

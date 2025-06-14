@@ -8,19 +8,60 @@ import { MaterialsLibraryTab } from "@/components/student/MaterialsLibraryTab";
 
 const MaterialLibraryPage = () => {
   const navigate = useNavigate();
-  const [studentName, setStudentName] = useState("");
+  const [userName, setUserName] = useState("");
+  const [userType, setUserType] = useState("");
 
   useEffect(() => {
     const storedStudentName = localStorage.getItem("studentName");
-    const userType = localStorage.getItem("userType");
+    const storedTeacherName = localStorage.getItem("teacherName");
+    const storedUserType = localStorage.getItem("userType");
 
-    if (!storedStudentName || userType !== "student") {
+    // Check for any valid user type
+    if (!storedUserType || !["student", "teacher", "admin"].includes(storedUserType)) {
       navigate("/login");
       return;
     }
 
-    setStudentName(storedStudentName);
+    setUserType(storedUserType);
+    
+    // Set username based on user type
+    if (storedUserType === "student" && storedStudentName) {
+      setUserName(storedStudentName);
+    } else if (storedUserType === "teacher" && storedTeacherName) {
+      setUserName(storedTeacherName);
+    } else if (storedUserType === "admin") {
+      setUserName("Admin");
+    } else {
+      navigate("/login");
+      return;
+    }
   }, [navigate]);
+
+  const getDashboardRoute = () => {
+    switch (userType) {
+      case "student":
+        return "/student-dashboard";
+      case "teacher":
+        return "/teacher-dashboard";
+      case "admin":
+        return "/admin-dashboard";
+      default:
+        return "/login";
+    }
+  };
+
+  const getUserTypeLabel = () => {
+    switch (userType) {
+      case "student":
+        return "Student";
+      case "teacher":
+        return "Teacher";
+      case "admin":
+        return "Administrator";
+      default:
+        return "User";
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-yellow-50">
@@ -31,7 +72,7 @@ const MaterialLibraryPage = () => {
             <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
-                onClick={() => navigate("/student-dashboard")}
+                onClick={() => navigate(getDashboardRoute())}
                 className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -44,10 +85,11 @@ const MaterialLibraryPage = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="text-sm text-gray-600">Welcome back, {studentName}!</div>
+              <div className="text-sm text-gray-600">Welcome back, {userName}!</div>
+              <div className="text-xs text-gray-500">({getUserTypeLabel()})</div>
               <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center">
                 <span className="text-white font-bold text-sm">
-                  {studentName.charAt(0).toUpperCase()}
+                  {userName.charAt(0).toUpperCase()}
                 </span>
               </div>
             </div>
