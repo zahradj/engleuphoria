@@ -7,12 +7,20 @@ export class RealTimeVideoService extends VideoService {
   private peerConnections: Map<string, RTCPeerConnection> = new Map();
   private websocket: WebSocket | null = null;
   private participants: Map<string, ParticipantData> = new Map();
-  private connected = false; // Changed from isConnected to avoid conflict
+  private connected = false;
   private isRecording = false;
   private connectionQuality = 'good';
 
+  // Add missing properties to match EnhancedVideoService interface
+  public api: any = null;
+  public eventHandlers: any = {};
+  public initialized: boolean = false;
+  public localMediaStream: MediaStream | null = null;
+  public enhancedConfig: EnhancedVideoConfig;
+
   constructor(config: EnhancedVideoConfig, callbacks: VideoServiceCallbacks = {}) {
     super(config, callbacks);
+    this.enhancedConfig = config;
   }
 
   async initialize(): Promise<void> {
@@ -24,6 +32,9 @@ export class RealTimeVideoService extends VideoService {
         video: { width: 640, height: 480 },
         audio: true
       });
+      
+      this.localMediaStream = this.localStream;
+      this.initialized = true;
       
       console.log('🎥 RealTime: Local media obtained');
       this.callbacks.onLocalStreamChanged?.(this.localStream);
@@ -160,5 +171,7 @@ export class RealTimeVideoService extends VideoService {
 
   dispose(): void {
     this.leaveRoom();
+    this.initialized = false;
+    this.localMediaStream = null;
   }
 }

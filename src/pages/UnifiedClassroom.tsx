@@ -29,16 +29,47 @@ const UnifiedClassroom = () => {
   const { toast } = useToast();
   const [hasShownWelcome, setHasShownWelcome] = useState(false);
   
-  // Memoize user profile to prevent recreating object on every render
+  // Enhanced role parameter extraction with debugging and persistence
   const currentUser = useMemo<UserProfile>(() => {
     const roleParam = searchParams.get('role');
     const nameParam = searchParams.get('name');
     const userIdParam = searchParams.get('userId');
     
+    console.log('🔍 URL Parameters Debug:', {
+      roleParam,
+      nameParam,
+      userIdParam,
+      fullSearchParams: Object.fromEntries(searchParams.entries()),
+      currentUrl: window.location.href
+    });
+
+    // Check session storage for persisted role
+    const persistedRole = sessionStorage.getItem('classroom-user-role') as 'teacher' | 'student' | null;
+    const persistedName = sessionStorage.getItem('classroom-user-name');
+    const persistedUserId = sessionStorage.getItem('classroom-user-id');
+
+    // Determine final role with fallback logic
+    const finalRole = roleParam as 'teacher' | 'student' || persistedRole || 'student';
+    const finalName = nameParam || persistedName || (finalRole === 'teacher' ? 'Teacher' : 'Student');
+    const finalUserId = userIdParam || persistedUserId || `user-${Date.now()}`;
+
+    console.log('👤 User Role Resolution:', {
+      fromUrl: roleParam,
+      fromStorage: persistedRole,
+      finalRole,
+      finalName,
+      finalUserId
+    });
+
+    // Persist to session storage
+    sessionStorage.setItem('classroom-user-role', finalRole);
+    sessionStorage.setItem('classroom-user-name', finalName);
+    sessionStorage.setItem('classroom-user-id', finalUserId);
+
     return {
-      id: userIdParam || `user-${Date.now()}`,
-      name: nameParam || (roleParam === 'teacher' ? 'Teacher' : 'Student'),
-      role: (roleParam as 'teacher' | 'student') || 'student'
+      id: finalUserId,
+      name: finalName,
+      role: finalRole
     };
   }, [searchParams]);
 
@@ -95,7 +126,7 @@ const UnifiedClassroom = () => {
 
   // Show enhanced welcome message only once
   useEffect(() => {
-    if (!hasShownWelcome) {
+    if (!hasShownWelcome && currentUser.role) {
       const welcomeMessage = currentUser.role === 'teacher' 
         ? `Welcome to the enhanced classroom, ${currentUser.name}! You have full teaching controls and session management.`
         : `Welcome to the enhanced classroom, ${currentUser.name}! Enjoy the interactive learning experience.`;
@@ -185,6 +216,14 @@ const UnifiedClassroom = () => {
                 <Badge variant="outline" className="bg-blue-50 border-blue-200 text-blue-700">
                   <Clock size={12} className="mr-1" />
                   {Math.floor(classTime / 60)}:{(classTime % 60).toString().padStart(2, '0')}
+                </Badge>
+
+                {/* Role Debug Badge */}
+                <Badge 
+                  variant={currentUser.role === 'teacher' ? 'default' : 'secondary'}
+                  className={currentUser.role === 'teacher' ? 'bg-purple-500' : 'bg-blue-500'}
+                >
+                  {currentUser.role === 'teacher' ? '👩‍🏫 Teacher' : '👨‍🎓 Student'}
                 </Badge>
               </div>
             </div>

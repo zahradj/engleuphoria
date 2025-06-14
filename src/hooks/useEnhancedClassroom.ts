@@ -23,6 +23,13 @@ export function useEnhancedClassroom({
   const [error, setError] = useState<string | null>(null);
   const [videoService, setVideoService] = useState<RealTimeVideoService | null>(null);
 
+  console.log('🏫 useEnhancedClassroom initializing with:', {
+    roomId,
+    userId,
+    displayName,
+    userRole
+  });
+
   // Enhanced hooks
   const sessionManager = useSessionManager({ roomId, userId, userRole });
   const roleManager = useRoleManager({ 
@@ -48,6 +55,7 @@ export function useEnhancedClassroom({
   useEffect(() => {
     const initService = async () => {
       try {
+        console.log('🎥 Initializing RealTimeVideoService...');
         const service = new RealTimeVideoService(
           {
             roomName: roomId,
@@ -57,21 +65,28 @@ export function useEnhancedClassroom({
             maxParticipants: 10
           },
           {
-            onConnectionStatusChanged: setIsConnected,
-            onError: setError,
+            onConnectionStatusChanged: (connected: boolean) => {
+              console.log('🔗 Connection status changed:', connected);
+              setIsConnected(connected);
+            },
+            onError: (err: string) => {
+              console.error('❌ Video service error:', err);
+              setError(err);
+            },
             onParticipantJoined: (id, name) => {
-              console.log('Participant joined:', id, name);
+              console.log('👋 Participant joined:', id, name);
             },
             onParticipantLeft: (id) => {
-              console.log('Participant left:', id);
+              console.log('👋 Participant left:', id);
             }
           }
         );
 
         await service.initialize();
         setVideoService(service);
+        console.log('✅ RealTimeVideoService initialized successfully');
       } catch (err) {
-        console.error('Failed to initialize video service:', err);
+        console.error('❌ Failed to initialize video service:', err);
         setError(err instanceof Error ? err.message : 'Video service initialization failed');
       }
     };
@@ -80,6 +95,7 @@ export function useEnhancedClassroom({
 
     return () => {
       if (videoService) {
+        console.log('🧹 Disposing video service...');
         videoService.dispose();
       }
     };
@@ -87,6 +103,7 @@ export function useEnhancedClassroom({
 
   // Auto-join session on mount
   useEffect(() => {
+    console.log('🚀 Auto-joining session for role:', userRole);
     if (userRole === 'teacher') {
       sessionManager.createSession();
     } else {
@@ -98,7 +115,7 @@ export function useEnhancedClassroom({
     return () => {
       realTimeSync.disconnect();
     };
-  }, []);
+  }, [userRole]);
 
   const updateParticipants = useCallback(() => {
     if (videoService) {
