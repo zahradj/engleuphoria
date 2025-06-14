@@ -178,7 +178,7 @@ const UnifiedClassroom = () => {
           </div>
         )}
 
-        {/* Enhanced Top Bar with Real-time Status */}
+        {/* Enhanced Top Bar without status badges */}
         <div className="h-20 flex-shrink-0 p-4">
           <Card className="p-4 shadow-lg border-0 bg-white/80 backdrop-blur-sm">
             <div className="flex items-center justify-between">
@@ -189,43 +189,7 @@ const UnifiedClassroom = () => {
                 roomId={finalRoomId}
               />
               
-              {/* Enhanced Real-time Status Indicators */}
-              <div className="flex items-center gap-3">
-                <Badge variant={enhancedClassroom.isConnected ? "default" : "secondary"} className="animate-pulse">
-                  {enhancedClassroom.isConnected ? (
-                    <><Wifi size={12} className="mr-1" />Live</>
-                  ) : (
-                    <><WifiOff size={12} className="mr-1" />Connecting</>
-                  )}
-                </Badge>
-                
-                {enhancedClassroom.session && (
-                  <Badge variant="outline" className="bg-green-50 border-green-200 text-green-700">
-                    <Users size={12} className="mr-1" />
-                    Session Active
-                  </Badge>
-                )}
-                
-                {enhancedClassroom.realTimeSync?.isConnected && (
-                  <Badge className="bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700 border-purple-200">
-                    <Sparkles size={12} className="mr-1" />
-                    Sync Active
-                  </Badge>
-                )}
-
-                <Badge variant="outline" className="bg-blue-50 border-blue-200 text-blue-700">
-                  <Clock size={12} className="mr-1" />
-                  {Math.floor(classTime / 60)}:{(classTime % 60).toString().padStart(2, '0')}
-                </Badge>
-
-                {/* Role Debug Badge */}
-                <Badge 
-                  variant={currentUser.role === 'teacher' ? 'default' : 'secondary'}
-                  className={currentUser.role === 'teacher' ? 'bg-purple-500' : 'bg-blue-500'}
-                >
-                  {currentUser.role === 'teacher' ? '👩‍🏫 Teacher' : '👨‍🎓 Student'}
-                </Badge>
-              </div>
+              {/* Removed all status indicators/badges */}
             </div>
           </Card>
         </div>
