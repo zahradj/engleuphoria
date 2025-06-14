@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useSessionManager } from './useSessionManager';
 import { useRealTimeSync } from './useRealTimeSync';
 
@@ -14,12 +14,16 @@ export function useSessionInitializer({
   userId,
   userRole
 }: UseSessionInitializerProps) {
-  const sessionManager = useSessionManager({ roomId, userId, userRole });
-  const realTimeSync = useRealTimeSync({ roomId, userId, userRole });
+  // Memoize props to prevent unnecessary re-initializations
+  const sessionProps = useMemo(() => ({ roomId, userId, userRole }), [roomId, userId, userRole]);
+  
+  const sessionManager = useSessionManager(sessionProps);
+  const realTimeSync = useRealTimeSync(sessionProps);
 
-  // Auto-join session on mount
+  // Auto-join session on mount with stable dependencies
   useEffect(() => {
     console.log('🚀 Auto-joining session for role:', userRole);
+    
     if (userRole === 'teacher') {
       sessionManager.createSession();
     } else {
@@ -31,7 +35,7 @@ export function useSessionInitializer({
     return () => {
       realTimeSync.disconnect();
     };
-  }, [userRole]);
+  }, [userRole, sessionManager, realTimeSync]);
 
   return {
     sessionManager,

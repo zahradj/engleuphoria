@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useEnhancedClassroom } from "@/hooks/useEnhancedClassroom";
 import { useOneOnOneClassroom } from "@/hooks/useOneOnOneClassroom";
@@ -11,8 +11,7 @@ import { OneOnOneRewardPopup } from "@/components/classroom/oneonone/OneOnOneRew
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Users, Wifi, WifiOff, Clock, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 interface UserProfile {
   id: string;
@@ -28,43 +27,39 @@ const UnifiedClassroom = () => {
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [hasShownWelcome, setHasShownWelcome] = useState(false);
+  const userIdRef = useRef<string>();
   
-  // Enhanced role parameter extraction with debugging and persistence
+  // Generate stable user ID only once
+  if (!userIdRef.current) {
+    userIdRef.current = `user-${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  // Enhanced role parameter extraction with stable memoization
   const currentUser = useMemo<UserProfile>(() => {
     const roleParam = searchParams.get('role');
     const nameParam = searchParams.get('name');
     const userIdParam = searchParams.get('userId');
     
-    console.log('🔍 URL Parameters Debug:', {
-      roleParam,
-      nameParam,
-      userIdParam,
-      fullSearchParams: Object.fromEntries(searchParams.entries()),
-      currentUrl: window.location.href
-    });
-
     // Check session storage for persisted role
     const persistedRole = sessionStorage.getItem('classroom-user-role') as 'teacher' | 'student' | null;
     const persistedName = sessionStorage.getItem('classroom-user-name');
     const persistedUserId = sessionStorage.getItem('classroom-user-id');
 
-    // Determine final role with fallback logic
+    // Determine final values with fallback logic
     const finalRole = roleParam as 'teacher' | 'student' || persistedRole || 'student';
     const finalName = nameParam || persistedName || (finalRole === 'teacher' ? 'Teacher' : 'Student');
-    const finalUserId = userIdParam || persistedUserId || `user-${Date.now()}`;
+    const finalUserId = userIdParam || persistedUserId || userIdRef.current!;
 
-    console.log('👤 User Role Resolution:', {
-      fromUrl: roleParam,
-      fromStorage: persistedRole,
-      finalRole,
-      finalName,
-      finalUserId
-    });
-
-    // Persist to session storage
-    sessionStorage.setItem('classroom-user-role', finalRole);
-    sessionStorage.setItem('classroom-user-name', finalName);
-    sessionStorage.setItem('classroom-user-id', finalUserId);
+    // Persist to session storage only if changed
+    if (sessionStorage.getItem('classroom-user-role') !== finalRole) {
+      sessionStorage.setItem('classroom-user-role', finalRole);
+    }
+    if (sessionStorage.getItem('classroom-user-name') !== finalName) {
+      sessionStorage.setItem('classroom-user-name', finalName);
+    }
+    if (sessionStorage.getItem('classroom-user-id') !== finalUserId) {
+      sessionStorage.setItem('classroom-user-id', finalUserId);
+    }
 
     return {
       id: finalUserId,
@@ -73,7 +68,7 @@ const UnifiedClassroom = () => {
     };
   }, [searchParams]);
 
-  const finalRoomId = roomId || "unified-classroom-1";
+  const finalRoomId = useMemo(() => roomId || "unified-classroom-1", [roomId]);
   
   const {
     classTime,
@@ -151,30 +146,18 @@ const UnifiedClassroom = () => {
     }
   }, [enhancedClassroom.error, toast]);
 
-  // Calculate connection progress for loading state
-  const connectionProgress = useMemo(() => {
-    if (enhancedClassroom.isConnected) return 100;
-    if (enhancedClassroom.session) return 75;
-    if (enhancedClassroom.localStream) return 50;
-    return 25;
-  }, [enhancedClassroom.isConnected, enhancedClassroom.session, enhancedClassroom.localStream]);
-
   try {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-        {/* Enhanced Top Bar without status badges */}
+        {/* Enhanced Top Bar */}
         <div className="h-20 flex-shrink-0 p-4">
           <Card className="p-4 shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-            <div className="flex items-center justify-between">
-              <UnifiedTopBar
-                classTime={classTime}
-                currentUser={currentUser}
-                enhancedClassroom={enhancedClassroom}
-                roomId={finalRoomId}
-              />
-              
-              {/* Removed all status indicators/badges */}
-            </div>
+            <UnifiedTopBar
+              classTime={classTime}
+              currentUser={currentUser}
+              enhancedClassroom={enhancedClassroom}
+              roomId={finalRoomId}
+            />
           </Card>
         </div>
 
