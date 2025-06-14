@@ -162,22 +162,6 @@ const UnifiedClassroom = () => {
   try {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-        {/* Enhanced Connection Status Bar */}
-        {!enhancedClassroom.isConnected && (
-          <div className="bg-blue-600 text-white p-2">
-            <div className="container mx-auto flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                <span className="text-sm font-medium">Connecting to Enhanced Classroom...</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Progress value={connectionProgress} className="w-24 h-2" />
-                <span className="text-xs">{connectionProgress}%</span>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Enhanced Top Bar without status badges */}
         <div className="h-20 flex-shrink-0 p-4">
           <Card className="p-4 shadow-lg border-0 bg-white/80 backdrop-blur-sm">
