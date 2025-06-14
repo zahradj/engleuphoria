@@ -7,27 +7,44 @@ export function useMediaAccess() {
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
   const [mediaError, setMediaError] = useState<string | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   const { toast } = useToast();
 
   // Initialize media access
   const initializeMedia = useCallback(async () => {
+    if (isInitialized) return localStream;
+    
     try {
       console.log('🎤 Requesting media access...');
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true
-      });
+      
+      // Try to get both video and audio first
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: 640, height: 480 },
+          audio: true
+        });
+      } catch (error) {
+        console.warn('🎤 Failed to get video+audio, trying audio only:', error);
+        // Fallback to audio only
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: true
+        });
+        setIsCameraOff(true);
+      }
       
       setLocalStream(stream);
       setMediaError(null);
+      setIsInitialized(true);
+      
       console.log('🎤 Media access granted:', { 
         video: stream.getVideoTracks().length > 0,
         audio: stream.getAudioTracks().length > 0
       });
       
       toast({
-        title: "Media Access",
-        description: "Camera and microphone access granted",
+        title: "Media Access Granted",
+        description: `${stream.getVideoTracks().length > 0 ? 'Camera and microphone' : 'Microphone only'} ready`,
       });
       
       return stream;
@@ -35,14 +52,17 @@ export function useMediaAccess() {
       console.error('🎤 Media access denied:', error);
       const errorMessage = error instanceof Error ? error.message : 'Media access denied';
       setMediaError(errorMessage);
+      setIsInitialized(true); // Mark as initialized even on error to prevent infinite retries
+      
       toast({
-        title: "Media Access Denied",
-        description: "Please allow camera and microphone access",
+        title: "Media Access Required",
+        description: "Please allow camera and microphone access to join the classroom",
         variant: "destructive"
       });
+      
       return null;
     }
-  }, [toast]);
+  }, [toast, isInitialized, localStream]);
 
   // Toggle microphone
   const toggleMicrophone = useCallback(() => {
@@ -87,16 +107,21 @@ export function useMediaAccess() {
     if (localStream) {
       localStream.getTracks().forEach(track => track.stop());
       setLocalStream(null);
+      setIsInitialized(false);
       console.log('🎤 Media stream stopped');
     }
   }, [localStream]);
 
-  // Initialize media on mount
+  // Initialize media on mount with error handling
   useEffect(() => {
-    initializeMedia();
-    
+    const timeoutId = setTimeout(() => {
+      if (!isInitialized) {
+        initializeMedia().catch(console.error);
+      }
+    }, 1000); // Delay to allow component to settle
+
     return () => {
-      stopMedia();
+      clearTimeout(timeoutId);
     };
   }, []); // Only run once
 
@@ -105,6 +130,7 @@ export function useMediaAccess() {
     isMuted,
     isCameraOff,
     mediaError,
+    isInitialized,
     toggleMicrophone,
     toggleCamera,
     initializeMedia,

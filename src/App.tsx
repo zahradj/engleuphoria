@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
@@ -18,6 +18,7 @@ const ForTeachers = lazy(() => import("./pages/ForTeachers"));
 const StudentDashboard = lazy(() => import("./pages/StudentDashboard"));
 const TeacherDashboard = lazy(() => import("./pages/TeacherDashboard"));
 const OneOnOneClassroomNew = lazy(() => import("./pages/OneOnOneClassroomNew"));
+const UnifiedClassroom = lazy(() => import("./pages/UnifiedClassroom"));
 const SimpleClassroomSelector = lazy(() => import("./pages/SimpleClassroomSelector"));
 const PaymentPage = lazy(() => import("./pages/PaymentPage"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
@@ -53,7 +54,17 @@ function App() {
                   <Route path="/admin-dashboard" element={<AdminDashboard />} />
                   <Route path="/material-library" element={<MaterialLibraryPage />} />
                   <Route path="/curriculum-library" element={<CurriculumLibraryPage />} />
-                  <Route path="/oneonone-classroom-new" element={<OneOnOneClassroomNew />} />
+                  
+                  {/* New Unified Classroom Routes */}
+                  <Route path="/classroom/:roomId" element={<UnifiedClassroom />} />
+                  <Route path="/classroom" element={<UnifiedClassroom />} />
+                  
+                  {/* Redirect old classroom route to new unified classroom */}
+                  <Route 
+                    path="/oneonone-classroom-new" 
+                    element={<Navigate to="/classroom/demo-room?role=teacher&name=Ms. Johnson&userId=teacher-1" replace />} 
+                  />
+                  
                   <Route path="/classroom-selector" element={<SimpleClassroomSelector />} />
                   <Route path="/payment" element={<PaymentPage />} />
                   <Route path="/pricing" element={<PaymentPage />} />

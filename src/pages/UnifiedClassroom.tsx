@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useEnhancedClassroom } from "@/hooks/useEnhancedClassroom";
@@ -32,7 +31,7 @@ const UnifiedClassroom = () => {
     
     return {
       id: userIdParam || `user-${Date.now()}`,
-      name: nameParam || "User",
+      name: nameParam || (roleParam === 'teacher' ? 'Teacher' : 'Student'),
       role: (roleParam as 'teacher' | 'student') || 'student'
     };
   });
@@ -66,20 +65,32 @@ const UnifiedClassroom = () => {
     hasLocalStream: !!enhancedClassroom.localStream,
     participantsCount: enhancedClassroom.participants.length,
     userRole: currentUser.role,
-    roomId: finalRoomId
+    roomId: finalRoomId,
+    error: enhancedClassroom.error
   });
 
   // Show welcome message based on role
   useEffect(() => {
     const welcomeMessage = currentUser.role === 'teacher' 
-      ? `Welcome to the classroom, ${currentUser.name}! You have full teaching controls.`
-      : `Welcome to the classroom, ${currentUser.name}! Your teacher will join shortly.`;
+      ? `Welcome to the unified classroom, ${currentUser.name}! You have full teaching controls.`
+      : `Welcome to the unified classroom, ${currentUser.name}! Your teacher will join shortly.`;
     
     toast({
       title: `${currentUser.role === 'teacher' ? '👩‍🏫' : '👨‍🎓'} ${currentUser.role === 'teacher' ? 'Teacher' : 'Student'} Mode`,
       description: welcomeMessage,
     });
   }, [currentUser.role, currentUser.name, toast]);
+
+  // Show error if media access fails
+  useEffect(() => {
+    if (enhancedClassroom.error) {
+      toast({
+        title: "Connection Issue",
+        description: enhancedClassroom.error,
+        variant: "destructive"
+      });
+    }
+  }, [enhancedClassroom.error, toast]);
 
   try {
     return (
@@ -143,8 +154,14 @@ const UnifiedClassroom = () => {
       <div className="min-h-screen bg-red-50 p-4 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-red-800 mb-4">Classroom Loading Error</h1>
-          <p className="text-red-600">There was an error loading the classroom. Please check the console for details.</p>
+          <p className="text-red-600">There was an error loading the classroom. Please check your camera and microphone permissions.</p>
           <p className="text-sm text-gray-600 mt-2">Room: {finalRoomId} | Role: {currentUser.role}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Reload Classroom
+          </button>
         </div>
       </div>
     );
