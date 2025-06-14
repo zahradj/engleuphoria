@@ -34,6 +34,10 @@ export class EnhancedVideoService extends VideoService {
     super(config, callbacks);
   }
 
+  private get enhancedConfig(): EnhancedVideoConfig {
+    return this.config as EnhancedVideoConfig;
+  }
+
   async initialize(): Promise<void> {
     return new Promise((resolve, reject) => {
       if (!window.JitsiMeetExternalAPI) {
@@ -61,9 +65,9 @@ export class EnhancedVideoService extends VideoService {
           startWithVideoMuted: false,
           enableWelcomePage: false,
           enableUserRolesBasedOnToken: true,
-          maxParticipants: this.config.maxParticipants || 10,
+          maxParticipants: this.enhancedConfig.maxParticipants || 10,
           recording: {
-            enabled: this.config.enableRecording || false
+            enabled: this.enhancedConfig.enableRecording || false
           }
         },
         interfaceConfigOverwrite: {
@@ -148,7 +152,7 @@ export class EnhancedVideoService extends VideoService {
   }
 
   async startRecording(): Promise<boolean> {
-    if (this.api && this.config.enableRecording) {
+    if (this.api && this.enhancedConfig.enableRecording) {
       await this.api.executeCommand('startRecording', {
         mode: 'stream'
       });
@@ -166,7 +170,7 @@ export class EnhancedVideoService extends VideoService {
   }
 
   async startScreenShare(): Promise<boolean> {
-    if (this.api && this.config.enableScreenShare) {
+    if (this.api && this.enhancedConfig.enableScreenShare) {
       await this.api.executeCommand('toggleShareScreen');
       return true;
     }
