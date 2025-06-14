@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useToast } from "@/hooks/use-toast";
-import { EnhancedVideoService, ParticipantData } from '@/services/enhancedVideoService';
+import { EnhancedVideoService, ParticipantData } from '@/services/video/enhancedVideoService';
 
 interface ClassroomSession {
   id: string;
