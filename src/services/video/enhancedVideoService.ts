@@ -9,6 +9,7 @@ export class EnhancedVideoService extends VideoService {
   private eventHandlers: JitsiEventHandlers;
   private connectionQuality = 'good';
   private initialized = false;
+  private localMediaStream: MediaStream | null = null;
 
   constructor(config: EnhancedVideoConfig, callbacks: VideoServiceCallbacks = {}) {
     super(config, callbacks);
@@ -71,6 +72,17 @@ export class EnhancedVideoService extends VideoService {
       
       console.log('🎥 Enhanced: Setting up event listeners...');
       this.eventHandlers.setupEventListeners(this.api);
+      
+      // Get local media stream for preview
+      try {
+        this.localMediaStream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true
+        });
+        console.log('🎥 Enhanced: Local media stream obtained');
+      } catch (mediaError) {
+        console.warn('🎥 Enhanced: Failed to get local media stream:', mediaError);
+      }
       
       // Simulate connection after a short delay
       setTimeout(() => {
@@ -157,35 +169,63 @@ export class EnhancedVideoService extends VideoService {
   }
 
   async toggleMicrophone(): Promise<boolean> {
+    console.log('🎤 Enhanced: toggleMicrophone called');
+    
+    // If we have local media stream, toggle it directly
+    if (this.localMediaStream) {
+      const audioTrack = this.localMediaStream.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = !audioTrack.enabled;
+        console.log('🎤 Enhanced: Local audio track toggled:', audioTrack.enabled ? 'unmuted' : 'muted');
+      }
+    }
+    
+    // If connected to Jitsi, also toggle there
     if (this.api) {
       try {
-        console.log('Toggling microphone...');
+        console.log('🎤 Enhanced: Toggling microphone in Jitsi...');
         await this.api.executeCommand('toggleAudio');
         return true;
       } catch (error) {
-        console.error('Enhanced: Failed to toggle microphone:', error);
+        console.error('🎤 Enhanced: Failed to toggle microphone in Jitsi:', error);
         return false;
       }
     }
-    return false;
+    
+    console.log('🎤 Enhanced: Microphone toggled (local only)');
+    return true;
   }
 
   async toggleCamera(): Promise<boolean> {
+    console.log('📹 Enhanced: toggleCamera called');
+    
+    // If we have local media stream, toggle it directly
+    if (this.localMediaStream) {
+      const videoTrack = this.localMediaStream.getVideoTracks()[0];
+      if (videoTrack) {
+        videoTrack.enabled = !videoTrack.enabled;
+        console.log('📹 Enhanced: Local video track toggled:', videoTrack.enabled ? 'on' : 'off');
+      }
+    }
+    
+    // If connected to Jitsi, also toggle there
     if (this.api) {
       try {
-        console.log('Toggling camera...');
+        console.log('📹 Enhanced: Toggling camera in Jitsi...');
         await this.api.executeCommand('toggleVideo');
         return true;
       } catch (error) {
-        console.error('Enhanced: Failed to toggle camera:', error);
+        console.error('📹 Enhanced: Failed to toggle camera in Jitsi:', error);
         return false;
       }
     }
-    return false;
+    
+    console.log('📹 Enhanced: Camera toggled (local only)');
+    return true;
   }
 
   getLocalStream(): MediaStream | null {
-    return null; // Jitsi handles streams internally
+    return this.localMediaStream;
   }
 
   getRemoteStreams(): Map<string, MediaStream> {
@@ -205,6 +245,13 @@ export class EnhancedVideoService extends VideoService {
       this.api = null;
       JitsiApiLoader.removeContainer();
     }
+    
+    // Stop local media stream
+    if (this.localMediaStream) {
+      this.localMediaStream.getTracks().forEach(track => track.stop());
+      this.localMediaStream = null;
+    }
+    
     this.eventHandlers.clearParticipants();
     this.callbacks.onConnectionStatusChanged?.(false);
   }

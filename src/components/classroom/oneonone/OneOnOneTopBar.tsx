@@ -14,9 +14,7 @@ import {
   PhoneOff,
   Users,
   Hand,
-  Monitor,
-  Wifi,
-  WifiOff
+  Monitor
 } from "lucide-react";
 import { useEnhancedClassroom } from "@/hooks/useEnhancedClassroom";
 
@@ -46,11 +44,6 @@ export function OneOnOneTopBar({
   classTime,
   studentName,
   studentLevel,
-  isMuted,
-  isCameraOff,
-  isRecording,
-  onToggleMute,
-  onToggleCamera,
   onToggleRecording,
   roomId,
   currentUserId,
@@ -61,9 +54,10 @@ export function OneOnOneTopBar({
     isConnected,
     connectionQuality,
     error,
-    session,
     participants,
     isRecording: enhancedIsRecording,
+    isMuted,
+    isCameraOff,
     joinClassroom,
     leaveClassroom,
     toggleRecording: enhancedToggleRecording,
@@ -77,16 +71,6 @@ export function OneOnOneTopBar({
     displayName: currentUserName,
     userRole: isTeacher ? 'teacher' : 'student'
   });
-
-  const handleToggleMute = () => {
-    toggleMicrophone();
-    onToggleMute();
-  };
-
-  const handleToggleCamera = () => {
-    toggleCamera();
-    onToggleCamera();
-  };
 
   const handleToggleRecording = () => {
     if (isTeacher) {
@@ -165,9 +149,8 @@ export function OneOnOneTopBar({
           <Button
             variant={isMuted ? "destructive" : "outline"}
             size="sm"
-            onClick={handleToggleMute}
+            onClick={toggleMicrophone}
             className="rounded-full w-10 h-10 p-0"
-            disabled={!isConnected}
           >
             {isMuted ? <MicOff size={16} /> : <Mic size={16} />}
           </Button>
@@ -176,9 +159,8 @@ export function OneOnOneTopBar({
           <Button
             variant={isCameraOff ? "destructive" : "outline"}
             size="sm"
-            onClick={handleToggleCamera}
+            onClick={toggleCamera}
             className="rounded-full w-10 h-10 p-0"
-            disabled={!isConnected}
           >
             {isCameraOff ? <VideoOff size={16} /> : <Video size={16} />}
           </Button>
