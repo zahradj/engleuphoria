@@ -3,7 +3,8 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { CURRICULUM_PHASES, enhancedCurriculumService } from "@/services/enhancedCurriculumService";
+import { CURRICULUM_PHASES } from "@/data/curriculumPhases";
+import { progressTrackingService } from "@/services/progressTrackingService";
 import { BookOpen, Target, TrendingUp, Award, Clock, Zap } from "lucide-react";
 
 interface EnhancedProgressTrackerProps {
@@ -27,7 +28,7 @@ export function EnhancedProgressTracker({
   xpTotal,
   timeSpentLearning
 }: EnhancedProgressTrackerProps) {
-  const phaseData = enhancedCurriculumService.getPhaseProgress(studentId, currentPhase);
+  const phaseData = progressTrackingService.getPhaseProgress(studentId, currentPhase);
   const currentPhaseData = phaseData.currentPhase;
   const nextPhaseData = phaseData.nextPhase;
 

@@ -10,3 +10,6 @@ export { COMPREHENSION_STRATEGIES } from '@/data/comprehensionStrategies';
 // Re-export services
 export { curriculumPlannerService } from '@/services/curriculumPlannerService';
 export { progressTrackingService } from '@/services/progressTrackingService';
+
+// For backward compatibility, export progressTrackingService as enhancedCurriculumService
+export { progressTrackingService as enhancedCurriculumService } from '@/services/progressTrackingService';

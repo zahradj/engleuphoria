@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CURRICULUM_PHASES, enhancedCurriculumService } from "@/services/enhancedCurriculumService";
+import { CURRICULUM_PHASES } from "@/data/curriculumPhases";
 import { SentenceBuildingFramework } from "./SentenceBuildingFramework";
 import { RapidComprehensionStrategies } from "./RapidComprehensionStrategies";
 import { EnhancedProgressTracker } from "./EnhancedProgressTracker";
