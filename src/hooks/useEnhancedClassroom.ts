@@ -3,11 +3,15 @@ import { useState, useCallback, useEffect } from 'react';
 import { ParticipantData } from '@/services/video/enhancedVideoService';
 import { UseEnhancedClassroomProps, ClassroomSession } from './enhanced-classroom/types';
 import { RealTimeVideoService } from '@/services/video/realTimeVideoService';
+import { EnhancedVideoService } from '@/services/video/enhancedVideoService';
 import { useClassroomActions } from './enhanced-classroom/useClassroomActions';
 import { useMediaAccess } from './enhanced-classroom/useMediaAccess';
 import { useSessionManager } from './enhanced-classroom/useSessionManager';
 import { useRoleManager } from './enhanced-classroom/useRoleManager';
 import { useRealTimeSync } from './enhanced-classroom/useRealTimeSync';
+
+// Create a union type for video services
+type VideoServiceType = RealTimeVideoService | EnhancedVideoService;
 
 export function useEnhancedClassroom({
   roomId,
@@ -21,7 +25,7 @@ export function useEnhancedClassroom({
   const [connectionQuality, setConnectionQuality] = useState('good');
   const [session, setSession] = useState<ClassroomSession | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [videoService, setVideoService] = useState<RealTimeVideoService | null>(null);
+  const [videoService, setVideoService] = useState<VideoServiceType | null>(null);
 
   console.log('🏫 useEnhancedClassroom initializing with:', {
     roomId,

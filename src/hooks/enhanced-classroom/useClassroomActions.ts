@@ -1,10 +1,15 @@
+
 import { useCallback } from 'react';
 import { useToast } from "@/hooks/use-toast";
+import { RealTimeVideoService } from '@/services/video/realTimeVideoService';
 import { EnhancedVideoService } from '@/services/video/enhancedVideoService';
 import { ClassroomSession } from './types';
 
+// Create a union type for video services
+type VideoServiceType = RealTimeVideoService | EnhancedVideoService;
+
 interface UseClassroomActionsProps {
-  videoService: EnhancedVideoService | null;
+  videoService: VideoServiceType | null;
   isConnected: boolean;
   isRecording: boolean;
   userRole: 'teacher' | 'student';
@@ -28,166 +33,211 @@ export function useClassroomActions({
 }: UseClassroomActionsProps) {
   const { toast } = useToast();
 
-  const joinClassroom = useCallback(async () => {
-    console.log('🚀 Join classroom called:', { 
-      hasVideoService: !!videoService, 
-      isConnected, 
-      roomId,
-      serviceType: videoService?.constructor.name
-    });
-
+  const joinRoom = useCallback(async () => {
     if (!videoService) {
-      console.error('🚀 Video service not available');
-      toast({
-        title: "Service Error",
-        description: "Video service is not ready. Please wait and try again.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (isConnected) {
-      console.log('🚀 Already connected to classroom');
-      toast({
-        title: "Already Connected",
-        description: "You are already connected to the classroom",
-      });
-      return;
+      console.error('❌ Video service not available');
+      return false;
     }
 
     try {
-      console.log('🚀 Attempting to join enhanced classroom...');
-      
-      // Add a small delay to ensure the service is fully ready
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
+      console.log('🚀 Joining room...');
       await videoService.joinRoom();
-      console.log('🚀 joinRoom() completed successfully');
-      
-      // Create session record
-      const newSession: ClassroomSession = {
-        id: Date.now().toString(),
-        roomId,
-        teacherId: userRole === 'teacher' ? userId : '',
-        studentId: userRole === 'student' ? userId : '',
-        startTime: new Date(),
-        isRecording: false,
-        status: 'active'
-      };
-      
-      setSession(newSession);
       updateParticipants();
-      console.log('🚀 Enhanced classroom joined successfully');
       
       toast({
-        title: "Joining Classroom",
-        description: "Connecting to the classroom...",
+        title: "Connected",
+        description: "Successfully joined the classroom",
       });
-    } catch (err) {
-      console.error('🚀 Enhanced join classroom error:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      
+      return true;
+    } catch (error) {
+      console.error('❌ Failed to join room:', error);
       toast({
-        title: "Connection Error",
-        description: `Failed to join classroom: ${errorMessage}`,
+        title: "Connection Failed",
+        description: "Failed to join the classroom",
         variant: "destructive"
       });
-    }
-  }, [videoService, isConnected, roomId, userId, userRole, setSession, updateParticipants, toast]);
-
-  const leaveClassroom = useCallback(async () => {
-    console.log('Leave classroom called');
-    if (videoService) {
-      console.log('Leaving enhanced classroom...');
-      await videoService.leaveRoom();
-      
-      if (session) {
-        const updatedSession = {
-          ...session,
-          endTime: new Date(),
-          status: 'ended' as const
-        };
-        setSession(updatedSession);
-      }
-      
-      toast({
-        title: "Left Classroom",
-        description: "You have successfully left the classroom",
-      });
-    }
-  }, [videoService, session, setSession, toast]);
-
-  const toggleRecording = useCallback(async () => {
-    if (videoService && userRole === 'teacher') {
-      try {
-        if (isRecording) {
-          await videoService.stopRecording();
-          toast({
-            title: "Recording Stopped",
-            description: "Classroom recording has been stopped",
-          });
-        } else {
-          await videoService.startRecording();
-          toast({
-            title: "Recording Started",
-            description: "Classroom is now being recorded",
-          });
-        }
-        updateParticipants();
-      } catch (err) {
-        toast({
-          title: "Recording Error",
-          description: "Failed to toggle recording",
-          variant: "destructive"
-        });
-      }
-    }
-  }, [videoService, userRole, isRecording, toast, updateParticipants]);
-
-  const toggleMicrophone = useCallback(async () => {
-    if (videoService) {
-      console.log('Toggling microphone');
-      await videoService.toggleMicrophone();
-      updateParticipants();
-    }
-  }, [videoService, updateParticipants]);
-
-  const toggleCamera = useCallback(async () => {
-    if (videoService) {
-      console.log('Toggling camera');
-      await videoService.toggleCamera();
-      updateParticipants();
-    }
-  }, [videoService, updateParticipants]);
-
-  const raiseHand = useCallback(async () => {
-    if (videoService) {
-      console.log('Raising hand');
-      await videoService.raiseHand();
-      updateParticipants();
-      toast({
-        title: "Hand Raised",
-        description: "Your hand has been raised",
-      });
+      return false;
     }
   }, [videoService, updateParticipants, toast]);
 
-  const startScreenShare = useCallback(async () => {
-    if (videoService) {
-      console.log('Starting screen share');
-      await videoService.startScreenShare();
-      toast({
-        title: "Screen Share",
-        description: "Screen sharing has been started",
-      });
+  const leaveRoom = useCallback(async () => {
+    if (!videoService) {
+      console.error('❌ Video service not available');
+      return false;
     }
-  }, [videoService, toast]);
+
+    try {
+      console.log('🚪 Leaving room...');
+      await videoService.leaveRoom();
+      updateParticipants();
+      
+      toast({
+        title: "Disconnected",
+        description: "Left the classroom",
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('❌ Failed to leave room:', error);
+      return false;
+    }
+  }, [videoService, updateParticipants, toast]);
+
+  const startRecording = useCallback(async () => {
+    if (userRole !== 'teacher') {
+      toast({
+        title: "Permission Denied",
+        description: "Only teachers can start recording",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (!videoService || !isConnected) {
+      toast({
+        title: "Not Connected",
+        description: "Please connect to the classroom first",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    try {
+      console.log('🎬 Starting recording...');
+      const success = await videoService.startRecording();
+      
+      if (success) {
+        toast({
+          title: "Recording Started",
+          description: "Class recording has begun",
+        });
+        updateParticipants();
+      }
+      
+      return success;
+    } catch (error) {
+      console.error('❌ Failed to start recording:', error);
+      toast({
+        title: "Recording Failed",
+        description: "Failed to start recording",
+        variant: "destructive"
+      });
+      return false;
+    }
+  }, [videoService, isConnected, userRole, updateParticipants, toast]);
+
+  const stopRecording = useCallback(async () => {
+    if (userRole !== 'teacher') {
+      toast({
+        title: "Permission Denied",
+        description: "Only teachers can stop recording",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    if (!videoService || !isConnected) {
+      toast({
+        title: "Not Connected",
+        description: "Please connect to the classroom first",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    try {
+      console.log('🛑 Stopping recording...');
+      const success = await videoService.stopRecording();
+      
+      if (success) {
+        toast({
+          title: "Recording Stopped",
+          description: "Class recording has ended",
+        });
+        updateParticipants();
+      }
+      
+      return success;
+    } catch (error) {
+      console.error('❌ Failed to stop recording:', error);
+      toast({
+        title: "Stop Recording Failed",
+        description: "Failed to stop recording",
+        variant: "destructive"
+      });
+      return false;
+    }
+  }, [videoService, isConnected, userRole, updateParticipants, toast]);
+
+  const raiseHand = useCallback(async () => {
+    if (!videoService || !isConnected) {
+      toast({
+        title: "Not Connected",
+        description: "Please connect to the classroom first",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    try {
+      console.log('✋ Raising hand...');
+      const success = await videoService.raiseHand();
+      
+      if (success) {
+        toast({
+          title: "Hand Raised",
+          description: "Your hand has been raised",
+        });
+        updateParticipants();
+      }
+      
+      return success;
+    } catch (error) {
+      console.error('❌ Failed to raise hand:', error);
+      return false;
+    }
+  }, [videoService, isConnected, updateParticipants, toast]);
+
+  const startScreenShare = useCallback(async () => {
+    if (!videoService || !isConnected) {
+      toast({
+        title: "Not Connected",
+        description: "Please connect to the classroom first",
+        variant: "destructive"
+      });
+      return false;
+    }
+
+    try {
+      console.log('🖥️ Starting screen share...');
+      const success = await videoService.startScreenShare();
+      
+      if (success) {
+        toast({
+          title: "Screen Share Started",
+          description: "You are now sharing your screen",
+        });
+        updateParticipants();
+      }
+      
+      return success;
+    } catch (error) {
+      console.error('❌ Failed to start screen share:', error);
+      toast({
+        title: "Screen Share Failed",
+        description: "Failed to start screen sharing",
+        variant: "destructive"
+      });
+      return false;
+    }
+  }, [videoService, isConnected, updateParticipants, toast]);
 
   return {
-    joinClassroom,
-    leaveClassroom,
-    toggleRecording,
-    toggleMicrophone,
-    toggleCamera,
+    joinRoom,
+    leaveRoom,
+    startRecording,
+    stopRecording,
     raiseHand,
     startScreenShare
   };
