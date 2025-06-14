@@ -71,7 +71,14 @@ export function validateAndProcessUrl(url: string): UrlValidationResult {
       'slides.com',
       'genially.com',
       'mentimeter.com',
-      'polleverywhere.com'
+      'polleverywhere.com',
+      'gamestolearnenglish.com',
+      'eslgamesplus.com',
+      'eslkidslab.com',
+      'learnenglishkids.britishcouncil.org',
+      'cambridge.org',
+      'oup.com',
+      'macmillanenglish.com'
     ];
 
     const isTrusted = trustedDomains.some(domain => 

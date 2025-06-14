@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { X, AlertTriangle, ExternalLink } from "lucide-react";
+import { X, AlertTriangle, ExternalLink, RefreshCw } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface EmbeddedGameData {
@@ -27,6 +27,7 @@ export function EmbeddedGame({ game, onRemove, onError }: EmbeddedGameProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [position, setPosition] = useState({ x: game.x, y: game.y });
+  const [retryCount, setRetryCount] = useState(0);
 
   const handleIframeError = () => {
     console.log("Iframe failed to load:", game.url);
@@ -38,6 +39,13 @@ export function EmbeddedGame({ game, onRemove, onError }: EmbeddedGameProps) {
     console.log("Iframe loaded successfully:", game.url);
     setLoadError(false);
     setLoadTimeout(false);
+    setRetryCount(0);
+  };
+
+  const handleRetry = () => {
+    setLoadError(false);
+    setLoadTimeout(false);
+    setRetryCount(prev => prev + 1);
   };
 
   // Set a timeout to detect if iframe doesn't load within reasonable time
@@ -47,10 +55,10 @@ export function EmbeddedGame({ game, onRemove, onError }: EmbeddedGameProps) {
         console.log("Iframe load timeout for:", game.url);
         setLoadTimeout(true);
       }
-    }, 10000); // 10 second timeout
+    }, 15000); // 15 second timeout for educational games
 
     return () => clearTimeout(timer);
-  }, [game.url, loadError]);
+  }, [game.url, loadError, retryCount]);
 
   const openInNewTab = () => {
     const finalUrl = game.url.startsWith('http') ? game.url : `https://${game.url}`;
@@ -111,6 +119,17 @@ export function EmbeddedGame({ game, onRemove, onError }: EmbeddedGameProps) {
       <div className="flex items-center justify-between p-2 bg-blue-500 text-white text-sm cursor-grab">
         <span className="font-medium truncate">{game.title}</span>
         <div className="flex items-center gap-1">
+          {showError && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 text-white hover:bg-blue-600"
+              onClick={handleRetry}
+              title="Retry loading"
+            >
+              <RefreshCw size={12} />
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"
@@ -140,27 +159,40 @@ export function EmbeddedGame({ game, onRemove, onError }: EmbeddedGameProps) {
              "Failed to load content."}
           </p>
           <p className="text-xs text-center text-gray-500 mb-3">
-            This may happen due to browser security settings or the website's embedding restrictions.
+            Some educational games may have embedding restrictions. Try opening in a new tab or refreshing.
           </p>
-          <Button
-            onClick={openInNewTab}
-            size="sm"
-            className="bg-blue-500 hover:bg-blue-600 text-white"
-          >
-            <ExternalLink size={14} className="mr-1" />
-            Open in New Tab
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={handleRetry}
+              size="sm"
+              variant="outline"
+              className="text-blue-600 border-blue-600 hover:bg-blue-50"
+            >
+              <RefreshCw size={14} className="mr-1" />
+              Retry
+            </Button>
+            <Button
+              onClick={openInNewTab}
+              size="sm"
+              className="bg-blue-500 hover:bg-blue-600 text-white"
+            >
+              <ExternalLink size={14} className="mr-1" />
+              Open in New Tab
+            </Button>
+          </div>
         </div>
       ) : (
         <iframe
+          key={`${game.id}-${retryCount}`}
           src={game.url}
           className="w-full h-[calc(100%-2.5rem)] border-0 pointer-events-auto"
           title={game.title}
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation"
+          sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation allow-top-navigation-by-user-activation"
           onError={handleIframeError}
           onLoad={handleIframeLoad}
           referrerPolicy="strict-origin-when-cross-origin"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+          loading="lazy"
         />
       )}
     </div>
