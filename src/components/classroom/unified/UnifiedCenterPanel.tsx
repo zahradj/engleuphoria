@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { PenTool, Gamepad2, Sparkles, Link, BookOpen } from "lucide-react";
-import { OneOnOneWhiteboard } from "@/components/classroom/oneonone/OneOnOneWhiteboard";
+import { EnhancedOneOnOneWhiteboard } from "@/components/classroom/oneonone/EnhancedOneOnOneWhiteboard";
 import { OneOnOneGames } from "@/components/classroom/oneonone/OneOnOneGames";
 import { EnhancedAIAssistant } from "@/components/classroom/oneonone/ai/EnhancedAIAssistant";
 
@@ -95,7 +95,7 @@ export function UnifiedCenterPanel({
           <div className="p-4">
             {activeCenterTab === "whiteboard" && (
               <div className="bg-white/50 backdrop-blur-sm rounded-xl p-1 border border-white/40 shadow-lg">
-                <OneOnOneWhiteboard />
+                <EnhancedOneOnOneWhiteboard currentUser={currentUser} />
               </div>
             )}
             
