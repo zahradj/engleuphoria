@@ -15,7 +15,8 @@ import {
   BookOpen,
   PenTool,
   Gamepad2,
-  CheckCircle
+  CheckCircle,
+  Trophy
 } from 'lucide-react';
 import { CurriculumUnit } from '@/data/buildAndUseCurriculum';
 

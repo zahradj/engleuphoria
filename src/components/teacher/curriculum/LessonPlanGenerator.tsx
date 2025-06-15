@@ -28,8 +28,37 @@ interface LessonPlanGeneratorProps {
   level: 'A1' | 'A2';
 }
 
+interface LessonPhase {
+  duration: number;
+  activity: string;
+  materials: string[];
+  nlpElement: string;
+}
+
+interface GeneratedPlan {
+  title: string;
+  duration: number;
+  phases: {
+    warmUp: LessonPhase;
+    presentation: LessonPhase;
+    practice: LessonPhase;
+    production: LessonPhase;
+    review: LessonPhase;
+  };
+  assessment: {
+    formative: string;
+    summative: string;
+    homework: string;
+  };
+  differentiation: {
+    visual: string;
+    auditory: string;
+    kinesthetic: string;
+  };
+}
+
 export function LessonPlanGenerator({ unit, onClose, level }: LessonPlanGeneratorProps) {
-  const [generatedPlan, setGeneratedPlan] = useState(null);
+  const [generatedPlan, setGeneratedPlan] = useState<GeneratedPlan | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const generateLessonPlan = () => {
@@ -37,7 +66,7 @@ export function LessonPlanGenerator({ unit, onClose, level }: LessonPlanGenerato
     
     // Simulate AI generation delay
     setTimeout(() => {
-      const plan = {
+      const plan: GeneratedPlan = {
         title: unit ? `${unit.theme} - Build & Use Lesson` : `${level} Level Lesson`,
         duration: unit?.duration || 90,
         phases: {
