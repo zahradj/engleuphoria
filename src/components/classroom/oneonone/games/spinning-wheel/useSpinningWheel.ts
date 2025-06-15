@@ -1,92 +1,104 @@
-
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { WheelConfig, WheelSegment, SpinningWheelState } from "./types";
-import { generateWheelContent, defaultWheelConfigs } from "./wheelContentGenerator";
+import { generateWheelContent } from "./wheelContentGenerator";
 
 export function useSpinningWheel() {
+  const wheelRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+
+  const initialWheelConfigs: WheelConfig[] = [
+    { id: 'vocabulary', name: 'Vocabulary', segments: 6, description: 'Practice new words' },
+    { id: 'grammar', name: 'Grammar', segments: 8, description: 'Practice grammar rules' },
+    { id: 'conversation', name: 'Talk Time', segments: 4, description: 'Speaking practice' },
+    { id: 'story', name: 'Story Time', segments: 5, description: 'Creative storytelling' }
+  ];
+
+  const [wheelConfigs, setWheelConfigs] = useState<WheelConfig[]>(initialWheelConfigs);
   const [state, setState] = useState<SpinningWheelState>({
     isSpinning: false,
     rotation: 0,
     selectedSegment: null,
-    wheelConfig: defaultWheelConfigs[0],
-    segments: [],
-    score: 0
+    wheelConfig: wheelConfigs[0],
+    segments: generateWheelContent(wheelConfigs[0].segments),
+    score: 0,
   });
-  
-  const wheelRef = useRef<HTMLDivElement>(null);
-  const { toast } = useToast();
 
-  const updateSegments = useCallback((config: WheelConfig) => {
-    const newSegments = generateWheelContent(config);
-    setState(prev => ({
-      ...prev,
-      segments: newSegments,
-      selectedSegment: null,
-      rotation: 0
+  const setWheelConfig = (config: WheelConfig) => {
+    setState(prevState => ({
+      ...prevState,
+      wheelConfig: config,
+      segments: generateWheelContent(config.segments)
     }));
-  }, []);
+  };
 
-  const setWheelConfig = useCallback((config: WheelConfig) => {
-    setState(prev => ({ ...prev, wheelConfig: config }));
-    updateSegments(config);
-  }, [updateSegments]);
-
-  const spinWheel = useCallback(() => {
+  const spinWheel = () => {
     if (state.isSpinning) return;
-    
-    setState(prev => ({ ...prev, isSpinning: true, selectedSegment: null }));
-    
-    // Generate random spin (3-8 full rotations + random angle)
-    const spins = 3 + Math.random() * 5;
-    const finalAngle = Math.random() * 360;
-    const totalRotation = state.rotation + (spins * 360) + finalAngle;
-    
-    setState(prev => ({ ...prev, rotation: totalRotation }));
-    
-    // Calculate which segment was selected
-    setTimeout(() => {
-      const segmentAngle = 360 / state.wheelConfig.segments;
-      const normalizedAngle = (360 - (totalRotation % 360) + 90) % 360;
-      const segmentIndex = Math.floor(normalizedAngle / segmentAngle);
-      const selectedSeg = state.segments[segmentIndex];
-      
-      setState(prev => ({
-        ...prev,
-        selectedSegment: selectedSeg,
-        isSpinning: false,
-        score: prev.score + 5
-      }));
-      
-      toast({
-        title: "Wheel Stopped! 🎯",
-        description: `You got: ${selectedSeg?.content}`,
-      });
-    }, 3000);
-  }, [state.isSpinning, state.rotation, state.wheelConfig.segments, state.segments, toast]);
 
-  const resetWheel = useCallback(() => {
-    setState(prev => ({
-      ...prev,
+    const segmentCount = state.segments.length;
+    const spinDuration = 3; // seconds
+    const fullRotation = 360 * 5; // 5 full rotations
+    const segmentAngle = 360 / segmentCount;
+    const winningSegment = Math.floor(Math.random() * segmentCount);
+    const randomOffset = Math.random() * (segmentAngle - 10) + 5; // Random offset within the segment
+    const finalRotation = fullRotation + (360 - winningSegment * segmentAngle) - randomOffset;
+
+    setState(prevState => ({ ...prevState, isSpinning: true, selectedSegment: null }));
+
+    if (wheelRef.current) {
+      wheelRef.current.style.transition = `transform ${spinDuration}s cubic-bezier(0.23, 1, 0.32, 1)`;
+      wheelRef.current.style.transform = `rotate(${finalRotation}deg)`;
+
+      setTimeout(() => {
+        wheelRef.current!.style.transition = 'none';
+        wheelRef.current!.style.transform = `rotate(${finalRotation % 360}deg)`;
+
+        setState(prevState => ({
+          ...prevState,
+          isSpinning: false,
+          rotation: finalRotation % 360,
+          selectedSegment: state.segments[winningSegment],
+          score: prevState.score + 5
+        }));
+
+        toast({
+          title: "Landed on a challenge!",
+          description: `You landed on: ${state.segments[winningSegment].content}. +5 points!`,
+        });
+      }, spinDuration * 1000);
+    }
+  };
+
+  const resetWheel = () => {
+    setState(prevState => ({
+      ...prevState,
       rotation: 0,
       selectedSegment: null,
       score: 0
     }));
-  }, []);
 
-  const generateNewContent = useCallback(() => {
-    updateSegments(state.wheelConfig);
-  }, [state.wheelConfig, updateSegments]);
+    if (wheelRef.current) {
+      wheelRef.current.style.transition = 'none';
+      wheelRef.current.style.transform = 'rotate(0deg)';
+    }
+  };
 
-  // Initialize segments on first load
-  React.useEffect(() => {
-    updateSegments(state.wheelConfig);
-  }, []);
+  const generateNewContent = () => {
+    setState(prevState => ({
+      ...prevState,
+      segments: generateWheelContent(prevState.wheelConfig.segments)
+    }));
+
+    toast({
+      title: "New Content Generated!",
+      description: "The wheel has been updated with fresh challenges.",
+    });
+  };
 
   return {
     state,
     wheelRef,
-    wheelConfigs: defaultWheelConfigs,
+    wheelConfigs,
     setWheelConfig,
     spinWheel,
     resetWheel,
