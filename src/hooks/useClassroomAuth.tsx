@@ -71,16 +71,16 @@ export const ClassroomAuthProvider = ({ children }: { children: React.ReactNode 
           if (authUser) {
             console.log('ClassroomAuth: Auth user exists but no profile, creating default profile');
             // Create a basic user profile with default role for OAuth users
+            const newUserData = {
+              email: authUser.email || '',
+              full_name: authUser.user_metadata?.full_name || 
+                        authUser.user_metadata?.name || 
+                        authUser.email?.split('@')[0] || 'User',
+              role: 'student' as const, // Default to student for OAuth users
+            };
+            
             try {
-              const newUserData = {
-                email: authUser.email || '',
-                full_name: authUser.user_metadata?.full_name || 
-                          authUser.user_metadata?.name || 
-                          authUser.email?.split('@')[0] || 'User',
-                role: 'student' as const, // Default to student for OAuth users
-              };
-              
-              const createdUser = await classroomDatabase.createUser(newUserData);
+              const createdUser = await createUserProfile(userId, newUserData);
               console.log('ClassroomAuth: Created user profile:', createdUser);
               setUser(createdUser);
               
@@ -91,12 +91,26 @@ export const ClassroomAuthProvider = ({ children }: { children: React.ReactNode 
               });
             } catch (createError) {
               console.error('ClassroomAuth: Failed to create user profile:', createError);
+              
+              // If profile creation fails, create a minimal user object from auth data
+              const fallbackUser: User = {
+                id: authUser.id,
+                email: authUser.email || '',
+                full_name: authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'User',
+                role: 'student',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              };
+              setUser(fallbackUser);
+              
               toast({
-                title: "Profile Setup Required",
-                description: "Please complete your profile setup.",
+                title: "Profile Setup Incomplete",
+                description: "You can complete your profile setup later.",
                 variant: "destructive"
               });
             }
+          } else {
+            console.log('ClassroomAuth: No auth user found');
           }
         } else {
           console.error('ClassroomAuth: Database error loading user:', error);
@@ -131,6 +145,24 @@ export const ClassroomAuthProvider = ({ children }: { children: React.ReactNode 
       console.log('ClassroomAuth: Setting loading to false');
       setLoading(false);
     }
+  };
+
+  // Simplified user creation function
+  const createUserProfile = async (userId: string, userData: { email: string; full_name: string; role: 'teacher' | 'student'; avatar_id?: number }) => {
+    const { data, error } = await supabase
+      .from('users')
+      .insert([{ 
+        id: userId,
+        email: userData.email,
+        full_name: userData.full_name,
+        role: userData.role,
+        avatar_id: userData.avatar_id || null
+      }])
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data as User;
   };
 
   const signIn = async (email: string, password: string) => {
@@ -192,7 +224,7 @@ export const ClassroomAuthProvider = ({ children }: { children: React.ReactNode 
               role,
             };
             
-            await classroomDatabase.createUser(newUserData);
+            await createUserProfile(authData.user.id, newUserData);
             console.log('ClassroomAuth: User profile created successfully');
           } catch (profileError) {
             console.error('ClassroomAuth: Error creating user profile:', profileError);
