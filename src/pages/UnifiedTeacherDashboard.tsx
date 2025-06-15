@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -53,9 +54,35 @@ export function UnifiedTeacherDashboard() {
     averageRating: 4.8
   };
 
+  // Mock data for today's classes and teacher functions
+  const mockClasses = [
+    {
+      id: '1',
+      title: 'Beginner English - Level A1',
+      time: '10:00 AM',
+      student: 'John Doe',
+      status: 'upcoming' as const
+    },
+    {
+      id: '2',
+      title: 'Intermediate Conversation',
+      time: '2:00 PM', 
+      student: 'Jane Smith',
+      status: 'upcoming' as const
+    }
+  ];
+
+  const handleStartClass = (classId: string) => {
+    console.log('Starting class:', classId);
+  };
+
+  const handleViewStudent = (studentId: string) => {
+    console.log('Viewing student:', studentId);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
-      <TeacherHeader />
+      <TeacherHeader teacherName="Sarah Johnson" />
       
       <div className="container mx-auto px-4 py-6">
         {/* Quick Stats Banner */}
@@ -154,7 +181,11 @@ export function UnifiedTeacherDashboard() {
             </TabsContent>
 
             <TabsContent value="schedule" className="animate-fade-in">
-              <TodaysClassPanel />
+              <TodaysClassPanel 
+                classes={mockClasses}
+                onStartClass={handleStartClass}
+                onViewStudent={handleViewStudent}
+              />
             </TabsContent>
 
             <TabsContent value="materials" className="animate-fade-in">

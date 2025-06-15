@@ -178,13 +178,21 @@ export class KPIService {
               ...achievement
             });
 
-          // Update teacher points
-          await supabase
+          // Update teacher points using raw SQL
+          const { data: currentUser } = await supabase
             .from('users')
-            .update({
-              teacher_points: supabase.sql`teacher_points + ${achievement.points_awarded}`
-            })
-            .eq('id', teacherId);
+            .select('teacher_points')
+            .eq('id', teacherId)
+            .single();
+
+          if (currentUser) {
+            await supabase
+              .from('users')
+              .update({
+                teacher_points: (currentUser.teacher_points || 0) + achievement.points_awarded
+              })
+              .eq('id', teacherId);
+          }
         }
       }
 

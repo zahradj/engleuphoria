@@ -68,6 +68,7 @@ export function LessonFeedbackTracker() {
           scheduled_at,
           feedback_submitted,
           duration,
+          student_id,
           student:users!student_id(full_name)
         `)
         .eq('teacher_id', user.id)
@@ -85,7 +86,7 @@ export function LessonFeedbackTracker() {
         title: lesson.title,
         scheduled_at: lesson.scheduled_at,
         student_name: lesson.student?.full_name || 'Unknown Student',
-        student_id: lesson.student?.id || '',
+        student_id: lesson.student_id,
         feedback_submitted: lesson.feedback_submitted,
         duration: lesson.duration
       })) || [];
@@ -137,7 +138,6 @@ export function LessonFeedbackTracker() {
         console.error('Error updating lesson:', lessonError);
       }
 
-      // Trigger payment unlock (in a real system, this would update payment status)
       toast({
         title: "Feedback Submitted!",
         description: "Payment for this lesson has been unlocked.",
