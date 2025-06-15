@@ -25,7 +25,7 @@ export function OneOnOneCenterPanel({
   return (
     <Card className="h-full flex flex-col">
       <Tabs value={activeCenterTab} onValueChange={onTabChange} className="h-full flex flex-col">
-        <TabsList className="grid w-full grid-cols-3 rounded-none rounded-t-lg">
+        <TabsList className="grid w-full grid-cols-3 rounded-none rounded-t-lg flex-shrink-0">
           <TabsTrigger value="whiteboard" className="flex items-center gap-2">
             <Palette size={16} />
             <span className="hidden sm:inline">Whiteboard</span>
@@ -40,19 +40,23 @@ export function OneOnOneCenterPanel({
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="whiteboard" className="flex-1 m-0 p-4">
-          <EnhancedOneOnOneWhiteboard 
-            currentUser={currentUser}
-          />
-        </TabsContent>
+        <div className="flex-1 min-h-0">
+          <TabsContent value="whiteboard" className="h-full m-0 p-4 overflow-y-auto">
+            <div className="whiteboard-container h-full min-h-[600px]">
+              <EnhancedOneOnOneWhiteboard 
+                currentUser={currentUser}
+              />
+            </div>
+          </TabsContent>
 
-        <TabsContent value="homework" className="flex-1 m-0 p-4">
-          <OneOnOneHomework />
-        </TabsContent>
+          <TabsContent value="homework" className="h-full m-0 p-4 overflow-y-auto">
+            <OneOnOneHomework />
+          </TabsContent>
 
-        <TabsContent value="games" className="flex-1 m-0 p-4">
-          <OneOnOneGames />
-        </TabsContent>
+          <TabsContent value="games" className="h-full m-0 p-4 overflow-y-auto">
+            <OneOnOneGames />
+          </TabsContent>
+        </div>
       </Tabs>
     </Card>
   );

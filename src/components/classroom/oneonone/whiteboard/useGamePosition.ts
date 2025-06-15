@@ -17,32 +17,32 @@ export function useGamePosition(initialPosition: Position, initialSize: Size) {
   const [position, setPosition] = useState(initialPosition);
   const [size, setSize] = useState(initialSize);
 
-  // Ensure content fits within whiteboard bounds with reduced padding
+  // Center content in whiteboard and ensure it fits within bounds
   const adjustToWhiteboardBounds = () => {
     const whiteboardElement = document.querySelector('.whiteboard-container');
     if (!whiteboardElement) return;
 
     const whiteboardRect = whiteboardElement.getBoundingClientRect();
-    const padding = 20; // Reduced from 40px
-    const topPadding = 60; // Reduced from 100px
+    const padding = 20;
+    const topPadding = 60;
     
     const maxWidth = whiteboardRect.width - (padding * 2);
     const maxHeight = whiteboardRect.height - topPadding - padding;
 
-    // Use more of the available space - aim for 70% of whiteboard size for new content
-    const preferredWidth = Math.max(600, maxWidth * 0.7);
-    const preferredHeight = Math.max(400, maxHeight * 0.7);
+    // Use 80% of the available space for better visibility
+    const preferredWidth = Math.max(600, maxWidth * 0.8);
+    const preferredHeight = Math.max(400, maxHeight * 0.8);
 
-    // Adjust size to fit within whiteboard while being larger
+    // Adjust size to fit within whiteboard
     const adjustedWidth = Math.min(preferredWidth, maxWidth);
     const adjustedHeight = Math.min(preferredHeight, maxHeight);
 
-    // Adjust position to stay within bounds
-    const adjustedX = Math.max(padding, Math.min(position.x, maxWidth - adjustedWidth + padding));
-    const adjustedY = Math.max(padding, Math.min(position.y, maxHeight - adjustedHeight + padding));
+    // Center the game in the whiteboard
+    const centeredX = (maxWidth - adjustedWidth) / 2 + padding;
+    const centeredY = (maxHeight - adjustedHeight) / 2 + topPadding;
 
     setSize({ width: adjustedWidth, height: adjustedHeight });
-    setPosition({ x: adjustedX, y: adjustedY });
+    setPosition({ x: centeredX, y: centeredY });
   };
 
   useEffect(() => {
@@ -66,7 +66,7 @@ export function useGamePosition(initialPosition: Position, initialSize: Size) {
       const newX = e.clientX - dragStart.x;
       const newY = e.clientY - dragStart.y;
       
-      // Constrain to whiteboard bounds with reduced padding
+      // Constrain to whiteboard bounds
       const whiteboardElement = document.querySelector('.whiteboard-container');
       if (whiteboardElement) {
         const whiteboardRect = whiteboardElement.getBoundingClientRect();

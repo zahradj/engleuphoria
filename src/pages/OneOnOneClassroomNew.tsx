@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useOneOnOneClassroom } from "@/hooks/useOneOnOneClassroom";
 import { useEnhancedClassroom } from "@/hooks/useEnhancedClassroom";
@@ -52,9 +53,9 @@ const OneOnOneClassroomNew = () => {
   try {
     return (
       <MediaProvider>
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
-          {/* Enhanced Top Bar with All Controls */}
-          <div className="h-20 flex-shrink-0 p-4">
+        <div className="h-screen bg-gradient-to-br from-blue-50 to-green-50 flex flex-col overflow-hidden">
+          {/* Fixed Top Bar */}
+          <div className="flex-shrink-0 h-20 p-4">
             <OneOnOneTopBar
               classTime={classTime}
               studentName="Emma Thompson"
@@ -67,46 +68,52 @@ const OneOnOneClassroomNew = () => {
             />
           </div>
 
-          {/* Main Classroom Layout - Extended Height */}
-          <div className="min-h-[calc(100vh-5rem)] px-4 pb-4">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[calc(100vh-8rem)]">
+          {/* Main Classroom Layout - Fixed height with flex */}
+          <div className="flex-1 px-4 pb-4 min-h-0">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-full">
               
-              {/* Left Panel - Video Section */}
-              <div className="lg:col-span-3 h-full">
-                <OneOnOneVideoSection
-                  enhancedClassroom={enhancedClassroom}
-                  currentUserId={currentUserId}
-                  currentUserName={currentUserName}
-                  isTeacher={isTeacher}
-                  studentXP={studentXP}
-                  onAwardPoints={awardPoints}
-                  showRewardPopup={showRewardPopup}
-                />
+              {/* Left Panel - Fixed height with internal scroll */}
+              <div className="lg:col-span-3 h-full overflow-hidden">
+                <div className="h-full overflow-y-auto">
+                  <OneOnOneVideoSection
+                    enhancedClassroom={enhancedClassroom}
+                    currentUserId={currentUserId}
+                    currentUserName={currentUserName}
+                    isTeacher={isTeacher}
+                    studentXP={studentXP}
+                    onAwardPoints={awardPoints}
+                    showRewardPopup={showRewardPopup}
+                  />
+                </div>
               </div>
 
-              {/* Center Panel - Extended Interactive Content */}
-              <div className="lg:col-span-6 h-full">
-                <OneOnOneCenterPanel
-                  activeCenterTab={activeCenterTab}
-                  onTabChange={setActiveCenterTab}
-                  currentUser={{
-                    role: isTeacher ? 'teacher' : 'student',
-                    name: currentUserName
-                  }}
-                />
+              {/* Center Panel - Scrollable content */}
+              <div className="lg:col-span-6 h-full overflow-hidden">
+                <div className="h-full overflow-y-auto">
+                  <OneOnOneCenterPanel
+                    activeCenterTab={activeCenterTab}
+                    onTabChange={setActiveCenterTab}
+                    currentUser={{
+                      role: isTeacher ? 'teacher' : 'student',
+                      name: currentUserName
+                    }}
+                  />
+                </div>
               </div>
 
-              {/* Right Panel - Student Video & Interactions */}
-              <div className="lg:col-span-3 h-full">
-                <OneOnOneRightPanel
-                  studentName="Emma"
-                  studentXP={enhancedRewards.currentXP}
-                  activeRightTab={activeRightTab}
-                  onTabChange={setActiveRightTab}
-                  currentUserId={currentUserId}
-                  currentUserName={currentUserName}
-                  isTeacher={isTeacher}
-                />
+              {/* Right Panel - Fixed height with internal scroll */}
+              <div className="lg:col-span-3 h-full overflow-hidden">
+                <div className="h-full overflow-y-auto">
+                  <OneOnOneRightPanel
+                    studentName="Emma"
+                    studentXP={enhancedRewards.currentXP}
+                    activeRightTab={activeRightTab}
+                    onTabChange={setActiveRightTab}
+                    currentUserId={currentUserId}
+                    currentUserName={currentUserName}
+                    isTeacher={isTeacher}
+                  />
+                </div>
               </div>
             </div>
           </div>
