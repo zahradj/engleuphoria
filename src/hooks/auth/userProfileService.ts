@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/services/classroomDatabase';
 
@@ -32,14 +33,15 @@ export const loadUserProfile = async (userId: string): Promise<User | null> => {
   console.log('UserProfileService: Loading user profile for:', userId);
   
   try {
-    // Create the query and immediately execute it with timeout
-    const profileQueryPromise = supabase
-      .from('users')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle();
-
-    const { data: userData, error } = await withTimeout(profileQueryPromise, 8000);
+    // Execute the query to get a Promise, then apply timeout
+    const { data: userData, error } = await withTimeout(
+      supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle(),
+      8000
+    );
     
     if (error) {
       console.log('UserProfileService: Database error loading user profile:', error);
@@ -49,8 +51,10 @@ export const loadUserProfile = async (userId: string): Promise<User | null> => {
         console.log('UserProfileService: User profile not found, checking auth user');
         
         try {
-          const authQueryPromise = supabase.auth.getUser();
-          const { data: { user: authUser } } = await withTimeout(authQueryPromise, 5000);
+          const { data: { user: authUser } } = await withTimeout(
+            supabase.auth.getUser(),
+            5000
+          );
           
           if (authUser) {
             console.log('UserProfileService: Auth user exists but no profile, creating default profile');
