@@ -1,17 +1,11 @@
 
 import { useState, useEffect, createContext, useContext } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { classroomDatabase, User } from '@/services/classroomDatabase';
+import { User } from '@/services/classroomDatabase';
 import { useToast } from '@/hooks/use-toast';
-
-interface AuthContextType {
-  user: User | null;
-  loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  signUp: (email: string, password: string, fullName: string, role: 'teacher' | 'student') => Promise<{ success: boolean; error?: string }>;
-  signOut: () => Promise<void>;
-  isAuthenticated: boolean;
-}
+import { AuthContextType } from './auth/types';
+import { loadUserProfile } from './auth/userProfileService';
+import { signInUser, signUpUser, signOutUser } from './auth/authMethods';
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -27,7 +21,7 @@ export const ClassroomAuthProvider = ({ children }: { children: React.ReactNode 
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('ClassroomAuth: Initial session check:', !!session?.user);
       if (session?.user) {
-        loadUserProfile(session.user.id);
+        handleUserProfileLoad(session.user.id);
       } else {
         console.log('ClassroomAuth: No initial session, setting loading to false');
         setLoading(false);
@@ -39,7 +33,7 @@ export const ClassroomAuthProvider = ({ children }: { children: React.ReactNode 
       async (event, session) => {
         console.log('ClassroomAuth: Auth state changed:', event, !!session?.user);
         if (session?.user) {
-          await loadUserProfile(session.user.id);
+          await handleUserProfileLoad(session.user.id);
         } else {
           console.log('ClassroomAuth: User signed out, clearing state');
           setUser(null);
@@ -51,94 +45,39 @@ export const ClassroomAuthProvider = ({ children }: { children: React.ReactNode 
     return () => subscription.unsubscribe();
   }, []);
 
-  const loadUserProfile = async (userId: string) => {
-    console.log('ClassroomAuth: Loading user profile for:', userId);
+  const handleUserProfileLoad = async (userId: string) => {
     try {
-      const { data: userData, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .single();
+      const userData = await loadUserProfile(userId);
       
-      if (error) {
-        console.log('ClassroomAuth: Error loading user profile:', error);
+      if (userData) {
+        setUser(userData);
         
-        // If user profile doesn't exist, try to get user info from auth
-        if (error.code === 'PGRST116') { // No rows returned
-          console.log('ClassroomAuth: User profile not found, checking auth user');
-          const { data: { user: authUser } } = await supabase.auth.getUser();
-          
-          if (authUser) {
-            console.log('ClassroomAuth: Auth user exists but no profile, creating default profile');
-            // Create a basic user profile with default role for OAuth users
-            const newUserData = {
-              email: authUser.email || '',
-              full_name: authUser.user_metadata?.full_name || 
-                        authUser.user_metadata?.name || 
-                        authUser.email?.split('@')[0] || 'User',
-              role: 'student' as const, // Default to student for OAuth users
-            };
-            
-            try {
-              const createdUser = await createUserProfile(userId, newUserData);
-              console.log('ClassroomAuth: Created user profile:', createdUser);
-              setUser(createdUser);
-              
-              // Show welcome message for new OAuth users
-              toast({
-                title: "Welcome to Engleuphoria!",
-                description: `Profile created successfully! You can update your role in settings.`,
-              });
-            } catch (createError) {
-              console.error('ClassroomAuth: Failed to create user profile:', createError);
-              
-              // If profile creation fails, create a minimal user object from auth data
-              const fallbackUser: User = {
-                id: authUser.id,
-                email: authUser.email || '',
-                full_name: authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'User',
-                role: 'student',
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              };
-              setUser(fallbackUser);
-              
-              toast({
-                title: "Profile Setup Incomplete",
-                description: "You can complete your profile setup later.",
-                variant: "destructive"
-              });
-            }
-          } else {
-            console.log('ClassroomAuth: No auth user found');
+        // Show appropriate toast for new users
+        if (!userData.created_at || new Date(userData.created_at).getTime() > Date.now() - 5000) {
+          if (userData.role === 'student' && userData.full_name !== userData.email?.split('@')[0]) {
+            toast({
+              title: "Welcome to Engleuphoria!",
+              description: `Profile created successfully! You can update your role in settings.`,
+            });
           }
-        } else {
-          console.error('ClassroomAuth: Database error loading user:', error);
-          toast({
-            title: "Error",
-            description: "Failed to load user profile",
-            variant: "destructive"
-          });
         }
-      } else if (userData) {
-        console.log('ClassroomAuth: User profile loaded successfully:', userData.role);
-        // Ensure role is properly typed
-        const typedUser: User = {
-          id: userData.id,
-          email: userData.email,
-          full_name: userData.full_name,
-          role: userData.role as 'teacher' | 'student',
-          avatar_id: userData.avatar_id,
-          created_at: userData.created_at,
-          updated_at: userData.updated_at
-        };
-        setUser(typedUser);
       }
     } catch (error) {
-      console.error('ClassroomAuth: Unexpected error loading user profile:', error);
+      console.error('ClassroomAuth: Error loading user profile:', error);
+      // Show a fallback user with incomplete profile
+      const fallbackUser: User = {
+        id: userId,
+        email: '',
+        full_name: 'User',
+        role: 'student',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+      setUser(fallbackUser);
+      
       toast({
-        title: "Error",
-        description: "An unexpected error occurred",
+        title: "Profile Setup Incomplete",
+        description: "You can complete your profile setup later.",
         variant: "destructive"
       });
     } finally {
@@ -147,112 +86,35 @@ export const ClassroomAuthProvider = ({ children }: { children: React.ReactNode 
     }
   };
 
-  // Simplified user creation function
-  const createUserProfile = async (userId: string, userData: { email: string; full_name: string; role: 'teacher' | 'student'; avatar_id?: number }) => {
-    const { data, error } = await supabase
-      .from('users')
-      .insert([{ 
-        id: userId,
-        email: userData.email,
-        full_name: userData.full_name,
-        role: userData.role,
-        avatar_id: userData.avatar_id || null
-      }])
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data as User;
-  };
-
   const signIn = async (email: string, password: string) => {
-    console.log('ClassroomAuth: Attempting sign in for:', email);
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-
-      if (error) {
-        console.log('ClassroomAuth: Sign in error:', error.message);
-        return { success: false, error: error.message };
-      }
-
-      console.log('ClassroomAuth: Sign in successful');
+    const result = await signInUser(email, password);
+    
+    if (result.success) {
       toast({
         title: "Welcome back!",
         description: "You have successfully signed in.",
       });
-
-      return { success: true };
-    } catch (error) {
-      console.error('ClassroomAuth: Unexpected sign in error:', error);
-      return { success: false, error: 'An unexpected error occurred' };
     }
+    
+    return result;
   };
 
   const signUp = async (email: string, password: string, fullName: string, role: 'teacher' | 'student') => {
-    console.log('ClassroomAuth: Attempting sign up for:', email, 'as', role);
-    try {
-      // First create auth user with metadata
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-            role: role
-          },
-          emailRedirectTo: `${window.location.origin}/`
-        }
+    const result = await signUpUser(email, password, fullName, role);
+    
+    if (result.success) {
+      toast({
+        title: "Account created!",
+        description: `Welcome to Engleuphoria, ${fullName}! Please check your email to verify your account.`,
       });
-
-      if (authError) {
-        console.log('ClassroomAuth: Sign up auth error:', authError.message);
-        return { success: false, error: authError.message };
-      }
-
-      if (authData.user) {
-        console.log('ClassroomAuth: Auth user created, creating profile');
-        
-        // For confirmed users, create profile immediately
-        if (authData.user.email_confirmed_at) {
-          try {
-            const newUserData = {
-              email,
-              full_name: fullName,
-              role,
-            };
-            
-            await createUserProfile(authData.user.id, newUserData);
-            console.log('ClassroomAuth: User profile created successfully');
-          } catch (profileError) {
-            console.error('ClassroomAuth: Error creating user profile:', profileError);
-            return { success: false, error: 'Failed to create user profile' };
-          }
-        }
-
-        toast({
-          title: "Account created!",
-          description: authData.user.email_confirmed_at 
-            ? `Welcome to the ${role} dashboard, ${fullName}!`
-            : `Welcome to Engleuphoria, ${fullName}! Please check your email to verify your account.`,
-        });
-
-        return { success: true };
-      }
-
-      return { success: false, error: 'Failed to create user account' };
-    } catch (error) {
-      console.error('ClassroomAuth: Unexpected sign up error:', error);
-      return { success: false, error: 'An unexpected error occurred' };
     }
+    
+    return result;
   };
 
   const signOut = async () => {
-    console.log('ClassroomAuth: Signing out');
     try {
-      await supabase.auth.signOut();
+      await signOutUser();
       setUser(null);
       toast({
         title: "Signed out",
