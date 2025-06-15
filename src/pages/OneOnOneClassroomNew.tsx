@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useOneOnOneClassroom } from "@/hooks/useOneOnOneClassroom";
 import { useEnhancedClassroom } from "@/hooks/useEnhancedClassroom";
+import { useEnhancedRewards } from "@/hooks/useEnhancedRewards";
 import { MediaProvider } from "@/components/classroom/oneonone/video/MediaContext";
 import { OneOnOneTopBar } from "@/components/classroom/oneonone/OneOnOneTopBar";
 import { OneOnOneVideoSection } from "@/components/classroom/oneonone/OneOnOneVideoSection";
@@ -29,6 +30,9 @@ const OneOnOneClassroomNew = () => {
   const currentUserName = "Ms. Johnson";
   const isTeacher = currentUserId === "teacher-1";
   const roomId = "classroom-room-1";
+
+  // Enhanced rewards integration
+  const enhancedRewards = useEnhancedRewards(studentXP);
 
   // Single source of truth for enhanced classroom state
   const enhancedClassroom = useEnhancedClassroom({
@@ -64,12 +68,12 @@ const OneOnOneClassroomNew = () => {
             />
           </div>
 
-          {/* Main Classroom Layout - Simplified */}
+          {/* Main Classroom Layout - Extended Height */}
           <div className="min-h-[calc(100vh-5rem)] px-4 pb-4">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-[600px]">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[calc(100vh-8rem)]">
               
-              {/* Left Panel - Simplified Video Section */}
-              <div className="lg:col-span-3 min-h-[500px]">
+              {/* Left Panel - Video Section */}
+              <div className="lg:col-span-3 h-full">
                 <OneOnOneVideoSection
                   enhancedClassroom={enhancedClassroom}
                   currentUserId={currentUserId}
@@ -81,19 +85,25 @@ const OneOnOneClassroomNew = () => {
                 />
               </div>
 
-              {/* Center Panel - Interactive Content */}
-              <div className="lg:col-span-6 min-h-[500px]">
+              {/* Center Panel - Extended Interactive Content */}
+              <div className="lg:col-span-6 h-full">
                 <OneOnOneCenterPanel
                   activeCenterTab={activeCenterTab}
                   onTabChange={setActiveCenterTab}
+                  currentUser={{
+                    role: isTeacher ? 'teacher' : 'student',
+                    name: currentUserName
+                  }}
+                  onAwardStar={enhancedRewards.awardStar}
+                  onAwardTask={enhancedRewards.awardTask}
                 />
               </div>
 
               {/* Right Panel - Student Video & Interactions */}
-              <div className="lg:col-span-3 min-h-[500px]">
+              <div className="lg:col-span-3 h-full">
                 <OneOnOneRightPanel
                   studentName="Emma"
-                  studentXP={studentXP}
+                  studentXP={enhancedRewards.currentXP}
                   activeRightTab={activeRightTab}
                   onTabChange={setActiveRightTab}
                   currentUserId={currentUserId}

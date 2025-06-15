@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,9 +29,9 @@ export function InfiniteWhiteboard({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Set initial canvas size to be larger than viewport
-    canvas.width = 3000;
-    canvas.height = 2000;
+    // Set larger canvas size for more drawing space
+    canvas.width = 4000;
+    canvas.height = 3000;
     
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
@@ -132,10 +131,10 @@ export function InfiniteWhiteboard({
         </div>
       </div>
 
-      {/* Canvas Container */}
+      {/* Canvas Container - Made taller */}
       <div 
         ref={containerRef}
-        className="flex-1 overflow-hidden relative bg-gray-100"
+        className="flex-1 overflow-hidden relative bg-gray-100 min-h-[600px]"
         style={{ cursor: activeTool === 'pan' ? 'grab' : 'default' }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -184,7 +183,7 @@ export function InfiniteWhiteboard({
       <div className="flex items-center justify-between p-2 bg-gray-50 border-t text-xs text-gray-600">
         <span>Pan: {Math.round(pan.x)}, {Math.round(pan.y)}</span>
         <Badge className="bg-blue-100 text-blue-700">
-          Infinite Canvas
+          Extended Canvas
         </Badge>
       </div>
     </Card>

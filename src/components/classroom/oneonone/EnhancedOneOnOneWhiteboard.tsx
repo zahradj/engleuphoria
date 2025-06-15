@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { SoundButton } from "@/components/ui/sound-button";
 import { Badge } from "@/components/ui/badge";
@@ -10,11 +9,13 @@ import {
   Circle, 
   Trash2, 
   Move,
-  Link
+  Link,
+  Trophy
 } from "lucide-react";
 import { InfiniteWhiteboard } from "@/components/classroom/whiteboard/InfiniteWhiteboard";
 import { useWhiteboardState } from "./whiteboard/useWhiteboardState";
 import { EmbedLinkDialog } from "./whiteboard/EmbedLinkDialog";
+import { QuickRewardPanel } from "./whiteboard/QuickRewardPanel";
 import { validateAndProcessUrl } from "./whiteboard/SafeUrlValidator";
 import { useToast } from "@/hooks/use-toast";
 
@@ -33,14 +34,21 @@ interface EnhancedOneOnOneWhiteboardProps {
     role: 'teacher' | 'student';
     name: string;
   };
+  onAwardStar?: () => void;
+  onAwardTask?: (type: 'WORKSHEET' | 'VOCABULARY' | 'SPEAKING_PRACTICE') => void;
 }
 
-export function EnhancedOneOnOneWhiteboard({ currentUser }: EnhancedOneOnOneWhiteboardProps) {
-  const [activeTool, setActiveTool] = useState<"pencil" | "eraser" | "text" | "shape" | "pan" | "link">("pencil");
+export function EnhancedOneOnOneWhiteboard({ 
+  currentUser,
+  onAwardStar,
+  onAwardTask
+}: EnhancedOneOnOneWhiteboardProps) {
+  const [activeTool, setActiveTool] = useState<"pencil" | "eraser" | "text" | "shape" | "pan" | "link" | "reward">("pencil");
   const [color, setColor] = useState("#2563eb");
   const [activeShape, setActiveShape] = useState<"rectangle" | "circle">("rectangle");
   const [embeddedContent, setEmbeddedContent] = useState<EmbeddedContent[]>([]);
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
+  const [isRewardPanelOpen, setIsRewardPanelOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
   const [linkTitle, setLinkTitle] = useState("");
   
@@ -54,6 +62,7 @@ export function EnhancedOneOnOneWhiteboard({ currentUser }: EnhancedOneOnOneWhit
     { id: "text", icon: Type, label: "Text" },
     { id: "shape", icon: activeShape === "rectangle" ? Square : Circle, label: "Shape" },
     { id: "link", icon: Link, label: "Embed Link" },
+    { id: "reward", icon: Trophy, label: "Reward Student" },
     { id: "pan", icon: Move, label: "Pan" }
   ];
 
@@ -70,6 +79,31 @@ export function EnhancedOneOnOneWhiteboard({ currentUser }: EnhancedOneOnOneWhit
     }
     setActiveTool("link");
     setIsLinkDialogOpen(true);
+  };
+
+  const handleRewardTool = () => {
+    if (!isTeacher) {
+      toast({
+        title: "Permission Required", 
+        description: "Only teachers can award rewards",
+        variant: "destructive"
+      });
+      return;
+    }
+    setActiveTool("reward");
+    setIsRewardPanelOpen(true);
+  };
+
+  const handleAwardStar = () => {
+    onAwardStar?.();
+    setIsRewardPanelOpen(false);
+    setActiveTool("pencil");
+  };
+
+  const handleAwardTask = (type: 'WORKSHEET' | 'VOCABULARY' | 'SPEAKING_PRACTICE') => {
+    onAwardTask?.(type);
+    setIsRewardPanelOpen(false);
+    setActiveTool("pencil");
   };
 
   const handleEmbedContent = () => {
@@ -134,21 +168,41 @@ export function EnhancedOneOnOneWhiteboard({ currentUser }: EnhancedOneOnOneWhit
       {/* Enhanced Toolbar */}
       <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border">
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 relative">
             {tools.map((tool) => {
               const IconComponent = tool.icon;
               return (
-                <SoundButton
-                  key={tool.id}
-                  variant={activeTool === tool.id ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => tool.id === "link" ? handleLinkTool() : setActiveTool(tool.id as any)}
-                  className="flex items-center gap-1"
-                  disabled={tool.id === "link" && !isTeacher}
-                >
-                  <IconComponent size={16} />
-                  <span className="hidden sm:inline text-xs">{tool.label}</span>
-                </SoundButton>
+                <div key={tool.id} className="relative">
+                  <SoundButton
+                    variant={activeTool === tool.id ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => {
+                      if (tool.id === "link") {
+                        handleLinkTool();
+                      } else if (tool.id === "reward") {
+                        handleRewardTool();
+                      } else {
+                        setActiveTool(tool.id as any);
+                        setIsRewardPanelOpen(false);
+                      }
+                    }}
+                    className="flex items-center gap-1"
+                    disabled={(tool.id === "link" || tool.id === "reward") && !isTeacher}
+                  >
+                    <IconComponent size={16} />
+                    <span className="hidden sm:inline text-xs">{tool.label}</span>
+                  </SoundButton>
+                  
+                  {/* Reward Panel */}
+                  {tool.id === "reward" && (
+                    <QuickRewardPanel
+                      isOpen={isRewardPanelOpen}
+                      onClose={() => setIsRewardPanelOpen(false)}
+                      onAwardStar={handleAwardStar}
+                      onAwardTask={handleAwardTask}
+                    />
+                  )}
+                </div>
               );
             })}
           </div>
@@ -186,8 +240,8 @@ export function EnhancedOneOnOneWhiteboard({ currentUser }: EnhancedOneOnOneWhit
         </div>
       </div>
 
-      {/* Full Width Whiteboard */}
-      <div className="flex-1">
+      {/* Extended Whiteboard */}
+      <div className="flex-1 min-h-[600px]">
         <InfiniteWhiteboard
           activeTool={activeTool}
           color={color}
