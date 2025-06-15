@@ -7,6 +7,7 @@ import { CustomRewardDialog } from "./CustomRewardDialog";
 import { RewardHistory } from "./RewardHistory";
 import { SessionStats } from "./SessionStats";
 import { Trophy, Award, History, BarChart3 } from "lucide-react";
+import { audioService } from "@/services/audioService";
 
 interface RewardData {
   id: string;
@@ -43,6 +44,11 @@ export function TeacherRewardSystem({
     };
     
     setRewardHistory(prev => [reward, ...prev.slice(0, 4)]); // Keep last 5 rewards
+    
+    // Play enhanced sound effect
+    audioService.playRewardSound(points);
+    
+    // Trigger celebration with sound and visual effects
     onAwardPoints(points, reward.reason);
   };
 
@@ -56,6 +62,11 @@ export function TeacherRewardSystem({
     };
     
     setRewardHistory(prev => [reward, ...prev.slice(0, 4)]);
+    
+    // Play enhanced sound effect
+    audioService.playRewardSound(points);
+    
+    // Trigger celebration with sound and visual effects
     onAwardPoints(points, reason);
     setShowCustomDialog(false);
   };

@@ -13,7 +13,7 @@ interface ClassroomState {
   showRewardPopup: boolean;
   setActiveRightTab: (tab: string) => void;
   setActiveCenterTab: (tab: string) => void;
-  awardPoints: (points: number) => void;
+  awardPoints: (points: number, reason?: string) => void;
 }
 
 interface UnifiedClassroomContentProps {
@@ -36,12 +36,6 @@ export function UnifiedClassroomContent({
     awardPoints
   } = classroomState;
 
-  // Enhanced award points function that accepts optional reason
-  const handleAwardPoints = (points: number, reason?: string) => {
-    console.log(`Awarding ${points} points to student${reason ? ` for: ${reason}` : ''}`);
-    awardPoints(points);
-  };
-
   return (
     <div className="min-h-[calc(100vh-5rem)] px-4 pb-4">
       <div className="grid grid-cols-12 gap-4 h-[calc(100vh-6rem)]">
@@ -58,7 +52,7 @@ export function UnifiedClassroomContent({
             <UnifiedLeftSidebar 
               studentXP={studentXP}
               currentUser={currentUser}
-              onAwardPoints={currentUser.role === 'teacher' ? handleAwardPoints : undefined}
+              onAwardPoints={currentUser.role === 'teacher' ? awardPoints : undefined}
             />
           </div>
         </div>

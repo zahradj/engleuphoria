@@ -8,6 +8,8 @@ import { UnifiedClassroomProvider, useUnifiedClassroomContext } from "@/componen
 import { UnifiedClassroomLayout } from "@/components/classroom/unified/UnifiedClassroomLayout";
 import { UnifiedClassroomContent } from "@/components/classroom/unified/UnifiedClassroomContent";
 import { UnifiedClassroomErrorBoundary } from "@/components/classroom/unified/UnifiedClassroomErrorBoundary";
+import { CelebrationOverlay } from "@/components/classroom/rewards/CelebrationOverlay";
+import { useRewardNotifications } from "@/hooks/classroom/useRewardNotifications";
 
 function UnifiedClassroomInner() {
   console.log("UnifiedClassroom component is rendering");
@@ -27,6 +29,13 @@ function UnifiedClassroomInner() {
     setActiveCenterTab,
     awardPoints
   } = classroomState;
+
+  // Add reward notifications for celebrations
+  const { 
+    showRewardNotification, 
+    celebration, 
+    hideCelebration 
+  } = useRewardNotifications();
 
   // Enhanced classroom with real-time features
   const enhancedClassroom = useEnhancedClassroom({
@@ -49,6 +58,12 @@ function UnifiedClassroomInner() {
     syncConnected: enhancedClassroom.realTimeSync?.isConnected
   });
 
+  // Enhanced award points function with celebrations
+  const enhancedAwardPoints = (points: number, reason?: string) => {
+    awardPoints(points, reason);
+    showRewardNotification(points, reason);
+  };
+
   // Show error if there are issues
   useEffect(() => {
     if (enhancedClassroom.error) {
@@ -62,23 +77,35 @@ function UnifiedClassroomInner() {
 
   try {
     return (
-      <UnifiedClassroomLayout 
-        classTime={classTime} 
-        enhancedClassroom={enhancedClassroom}
-      >
-        <UnifiedClassroomContent 
-          classroomState={{
-            activeRightTab,
-            activeCenterTab,
-            studentXP,
-            showRewardPopup,
-            setActiveRightTab,
-            setActiveCenterTab,
-            awardPoints
-          }}
+      <>
+        <UnifiedClassroomLayout 
+          classTime={classTime} 
           enhancedClassroom={enhancedClassroom}
-        />
-      </UnifiedClassroomLayout>
+        >
+          <UnifiedClassroomContent 
+            classroomState={{
+              activeRightTab,
+              activeCenterTab,
+              studentXP,
+              showRewardPopup,
+              setActiveRightTab,
+              setActiveCenterTab,
+              awardPoints: enhancedAwardPoints
+            }}
+            enhancedClassroom={enhancedClassroom}
+          />
+        </UnifiedClassroomLayout>
+
+        {/* Celebration Overlay - Full screen center */}
+        {celebration && (
+          <CelebrationOverlay
+            isVisible={celebration.isVisible}
+            points={celebration.points}
+            reason={celebration.reason}
+            onComplete={hideCelebration}
+          />
+        )}
+      </>
     );
   } catch (error) {
     console.error("Error rendering UnifiedClassroom:", error);
