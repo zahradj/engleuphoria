@@ -4,7 +4,7 @@ import { Navigate } from "react-router-dom";
 import { SignUpHeader } from "@/components/signup/SignUpHeader";
 import { SignUpFooter } from "@/components/signup/SignUpFooter";
 import { SignUpBackground } from "@/components/signup/SignUpBackground";
-import { SignUpForm } from "@/components/signup/SignUpForm";
+import { EnhancedSignUpForm } from "@/components/signup/EnhancedSignUpForm";
 
 const SignUp = () => {
   const { user, loading } = useClassroomAuth();
@@ -24,12 +24,12 @@ const SignUp = () => {
   }
   
   return (
-    <div className="min-h-screen flex flex-col bg-background relative overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 relative overflow-hidden">
       <SignUpBackground />
       <SignUpHeader />
       
       <main className="flex-1 flex items-center justify-center p-6 relative z-10">
-        <SignUpForm />
+        <EnhancedSignUpForm />
       </main>
       
       <SignUpFooter />

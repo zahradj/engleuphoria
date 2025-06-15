@@ -1,4 +1,3 @@
-
 import { useState, useEffect, createContext, useContext } from 'react';
 import { supabase } from '@/lib/supabase';
 import { classroomDatabase, User } from '@/services/classroomDatabase';
@@ -70,17 +69,25 @@ export const ClassroomAuthProvider = ({ children }: { children: React.ReactNode 
           
           if (authUser) {
             console.log('ClassroomAuth: Auth user exists but no profile, creating default profile');
-            // Create a basic user profile with default role
+            // Create a basic user profile with default role for OAuth users
             try {
               const newUserData = {
                 email: authUser.email || '',
-                full_name: authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'User',
-                role: 'student' as const, // Default to student
+                full_name: authUser.user_metadata?.full_name || 
+                          authUser.user_metadata?.name || 
+                          authUser.email?.split('@')[0] || 'User',
+                role: 'student' as const, // Default to student for OAuth users
               };
               
               const createdUser = await classroomDatabase.createUser(newUserData);
               console.log('ClassroomAuth: Created user profile:', createdUser);
               setUser(createdUser);
+              
+              // Show welcome message for new OAuth users
+              toast({
+                title: "Welcome to Engleuphoria!",
+                description: `Profile created successfully! You can update your role in settings.`,
+              });
             } catch (createError) {
               console.error('ClassroomAuth: Failed to create user profile:', createError);
               toast({
