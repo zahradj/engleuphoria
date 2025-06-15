@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Card } from "@/components/ui/card";
-import { OneOnOneRewards } from "../OneOnOneRewards";
+import { OneOnOneRewards } from "./OneOnOneRewards";
 import { MediaProvider, useMediaContext } from "./video/MediaContext";
 import { LessonStartPrompt } from "./video/components/LessonStartPrompt";
 import { LiveVideoPanels } from "./video/components/LiveVideoPanels";
