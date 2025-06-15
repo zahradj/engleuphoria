@@ -6,6 +6,7 @@ import { UnifiedVideoSection } from "./UnifiedVideoSection";
 import { UnifiedCenterPanel } from "./UnifiedCenterPanel";
 import { UnifiedRightPanel } from "./UnifiedRightPanel";
 import { OneOnOneRewardPopup } from "@/components/classroom/oneonone/OneOnOneRewardPopup";
+import { EnhancedSessionManager } from "../enhanced/EnhancedSessionManager";
 import { useUnifiedClassroomContext } from "./UnifiedClassroomProvider";
 
 interface UnifiedClassroomContentProps {
@@ -53,11 +54,16 @@ export function UnifiedClassroomContent({
     }
   }, [currentUser.role, awardPoints]);
 
+  const handleSessionEnd = useCallback((sessionData: any) => {
+    console.log('Session ended:', sessionData);
+    // Could integrate with analytics or reporting system
+  }, []);
+
   return (
     <>
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[600px]">
-        {/* Left Panel - Video Section */}
-        <div className="lg:col-span-3">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 min-h-[600px]">
+        {/* Left Panel - Video Section with Session Manager */}
+        <div className="xl:col-span-3 space-y-4">
           <UnifiedVideoSection
             enhancedClassroom={enhancedClassroom}
             currentUser={currentUser}
@@ -65,10 +71,17 @@ export function UnifiedClassroomContent({
             onAwardPoints={currentUser.role === 'teacher' ? handleAwardPoints : undefined}
             showRewardPopup={showRewardPopup}
           />
+          
+          {/* Session Manager */}
+          <EnhancedSessionManager
+            currentUser={currentUser}
+            enhancedClassroom={enhancedClassroom}
+            onSessionEnd={handleSessionEnd}
+          />
         </div>
 
         {/* Center Panel */}
-        <div className="lg:col-span-6">
+        <div className="xl:col-span-6">
           <UnifiedCenterPanel
             activeCenterTab={activeCenterTab}
             onTabChange={handleCenterTabChange}
@@ -77,7 +90,7 @@ export function UnifiedClassroomContent({
         </div>
 
         {/* Right Panel */}
-        <div className="lg:col-span-3">
+        <div className="xl:col-span-3">
           <UnifiedRightPanel
             studentXP={studentXP}
             activeRightTab={activeRightTab}
@@ -94,6 +107,15 @@ export function UnifiedClassroomContent({
           <Badge className="bg-green-500 text-white shadow-lg">
             <Sparkles size={12} className="mr-1" />
             Enhanced Classroom Active
+          </Badge>
+        </div>
+      )}
+
+      {/* Connection Status */}
+      {!enhancedClassroom.isConnected && (
+        <div className="fixed bottom-4 left-4 z-50">
+          <Badge variant="destructive" className="shadow-lg">
+            Connecting to classroom...
           </Badge>
         </div>
       )}
