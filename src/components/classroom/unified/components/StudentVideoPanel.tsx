@@ -22,7 +22,7 @@ export function StudentVideoPanel({ studentName, currentUser }: StudentVideoPane
     <Card className="p-0 bg-white/90 border border-purple-200 shadow-lg rounded-2xl overflow-hidden relative flex-shrink-0">
       <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-white/70 to-pink-50 pointer-events-none"></div>
       
-      <div className="h-[350px] relative flex flex-col">
+      <div className="aspect-video relative flex flex-col">
         {!media.isConnected ? (
           <div className="flex-1 flex items-center justify-center p-6">
             <div className="text-center">

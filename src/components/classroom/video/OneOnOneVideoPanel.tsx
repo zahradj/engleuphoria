@@ -77,7 +77,7 @@ export function OneOnOneVideoPanel({
         className={`flex flex-row gap-2 p-2 transition-all duration-500 ease-in-out ${animating ? 'animate-fade-in' : ''}`}
       >
         {/* Teacher video */}
-        <div className="w-1/2 aspect-video relative bg-muted-foreground/20 rounded overflow-hidden">
+        <div className="flex-1 aspect-video relative bg-muted-foreground/20 rounded overflow-hidden">
           <VideoFeed
             feed={teacherFeed}
             isSmall={false}
@@ -94,7 +94,7 @@ export function OneOnOneVideoPanel({
         </div>
 
         {/* Student video */}
-        <div className="w-1/2 aspect-video relative bg-muted-foreground/20 rounded overflow-hidden">
+        <div className="flex-1 aspect-video relative bg-muted-foreground/20 rounded overflow-hidden">
           <VideoFeed
             feed={studentFeed}
             isSmall={false}

@@ -44,7 +44,7 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
       <Card className="flex-1 p-0 bg-white/90 border border-green-200 shadow-lg rounded-2xl overflow-hidden relative">
         <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-white/70 to-blue-50 pointer-events-none"></div>
         
-        <div className="h-[350px] relative flex flex-col">
+        <div className="aspect-video relative flex flex-col">
           {!lessonStarted ? (
             <LessonStartPrompt isTeacher={isTeacher} onStartLesson={startLessonAndJoin} />
           ) : (

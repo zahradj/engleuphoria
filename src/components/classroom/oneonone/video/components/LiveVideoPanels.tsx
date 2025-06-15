@@ -15,12 +15,9 @@ export function LiveVideoPanels({ isTeacher, media, lessonStarted, videoRefs }: 
   const hasVideo = media.stream && media.isConnected && !media.isCameraOff;
   
   return (
-    <>
-      <div
-        id="teacher-panel"
-        className="absolute left-2 top-2 bottom-2 w-[48%] flex items-center justify-center"
-        style={{ zIndex: 2 }}
-      >
+    <div className="absolute inset-2 flex gap-4" style={{ zIndex: 2 }}>
+      {/* Teacher Panel */}
+      <div className="flex-1 flex items-center justify-center h-full">
         {isTeacher ? (
           // Teacher sees their own video
           hasVideo ? (
@@ -64,11 +61,8 @@ export function LiveVideoPanels({ isTeacher, media, lessonStarted, videoRefs }: 
         )}
       </div>
       
-      <div
-        id="student-panel"
-        className="absolute right-2 top-2 bottom-2 w-[48%] flex items-center justify-center"
-        style={{ zIndex: 2 }}
-      >
+      {/* Student Panel */}
+      <div className="flex-1 flex items-center justify-center h-full">
         {!isTeacher ? (
           // Student sees their own video
           hasVideo ? (
@@ -111,6 +105,6 @@ export function LiveVideoPanels({ isTeacher, media, lessonStarted, videoRefs }: 
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
