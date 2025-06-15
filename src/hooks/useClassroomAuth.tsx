@@ -76,7 +76,6 @@ export const ClassroomAuthProvider = ({ children }: { children: React.ReactNode 
                 email: authUser.email || '',
                 full_name: authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'User',
                 role: 'student' as const, // Default to student
-                is_active: true
               };
               
               const createdUser = await classroomDatabase.createUser(newUserData);
@@ -170,7 +169,6 @@ export const ClassroomAuthProvider = ({ children }: { children: React.ReactNode 
             email,
             full_name: fullName,
             role,
-            is_active: true
           };
           
           await classroomDatabase.createUser(newUserData);

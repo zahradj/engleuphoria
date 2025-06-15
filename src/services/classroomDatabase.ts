@@ -1,14 +1,12 @@
 import { supabase } from '@/lib/supabase';
 
-// Types for the classroom system
+// Types for the classroom system - Updated to match actual Supabase schema
 export interface User {
   id: string;
   email: string;
   full_name: string;
   role: 'teacher' | 'student';
-  avatar_url?: string;
-  timezone?: string;
-  is_active: boolean;
+  avatar_id?: number;
   created_at: string;
   updated_at: string;
 }
@@ -54,7 +52,7 @@ export interface ChatMessage {
 
 // Classroom Database Service
 export const classroomDatabase = {
-  // User management
+  // User management - Updated to match actual schema
   async createUser(userData: Omit<User, 'id' | 'created_at' | 'updated_at'>) {
     // Get the current user ID from auth
     const { data: { user } } = await supabase.auth.getUser();
@@ -62,7 +60,13 @@ export const classroomDatabase = {
 
     const { data, error } = await supabase
       .from('users')
-      .insert([{ ...userData, id: user.id }])
+      .insert([{ 
+        id: user.id,
+        email: userData.email,
+        full_name: userData.full_name,
+        role: userData.role,
+        avatar_id: userData.avatar_id || null
+      }])
       .select()
       .single();
     
@@ -98,7 +102,6 @@ export const classroomDatabase = {
       .from('users')
       .select('*')
       .eq('role', role)
-      .eq('is_active', true)
       .order('full_name');
     
     if (error) throw error;
