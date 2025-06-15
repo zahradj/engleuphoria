@@ -41,9 +41,10 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
 
   return (
     <div className="h-full flex flex-col">
-      <Card className="flex-1 p-0 bg-white/80 border-0 shadow-2xl glass-enhanced rounded-3xl overflow-hidden ring-1 ring-white/30 relative">
+      <Card className="flex-1 p-0 bg-white/80 border-0 shadow-2xl glass-enhanced rounded-3xl overflow-hidden ring-1 ring-white/30 relative min-h-[500px]">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-100 via-white/50 to-purple-100 pointer-events-none"></div>
-        <div className="aspect-video relative flex items-center justify-center">
+        {/* Removed aspect-video constraint and increased height */}
+        <div className="h-full relative flex items-center justify-center">
           {!lessonStarted ? (
             <LessonStartPrompt isTeacher={isTeacher} onStartLesson={startLessonAndJoin} />
           ) : (

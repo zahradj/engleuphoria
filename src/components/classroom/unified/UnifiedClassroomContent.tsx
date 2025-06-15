@@ -38,13 +38,13 @@ export function UnifiedClassroomContent({
     <div className="min-h-[calc(100vh-5rem)] px-4 pb-4">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-[600px]">
         
-        {/* Left Panel - Video Section */}
-        <div className="lg:col-span-3 min-h-[500px]">
+        {/* Left Panel - Video Section - Increased from 3 to 6 columns */}
+        <div className="lg:col-span-6 min-h-[500px]">
           <UnifiedVideoSection currentUser={currentUser} />
         </div>
 
-        {/* Center Panel - Interactive Content */}
-        <div className="lg:col-span-6 min-h-[500px]">
+        {/* Center Panel - Interactive Content - Reduced from 6 to 3 columns */}
+        <div className="lg:col-span-3 min-h-[500px]">
           <UnifiedCenterPanel
             activeCenterTab={activeCenterTab}
             onTabChange={setActiveCenterTab}
@@ -52,7 +52,7 @@ export function UnifiedClassroomContent({
           />
         </div>
 
-        {/* Right Panel - Student Info & Interactions */}
+        {/* Right Panel - Student Info & Interactions - Kept at 3 columns */}
         <div className="lg:col-span-3 min-h-[500px]">
           <UnifiedRightPanel
             studentName="Emma"

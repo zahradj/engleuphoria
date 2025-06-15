@@ -18,7 +18,7 @@ export function LiveVideoPanels({ isTeacher, media, lessonStarted, videoRefs }: 
     <>
       <div
         id="teacher-panel"
-        className="absolute left-0 top-0 w-1/2 h-full flex items-center justify-center"
+        className="absolute left-2 top-2 bottom-2 w-[48%] flex items-center justify-center"
         style={{ zIndex: 2 }}
       >
         {isTeacher ? (
@@ -28,16 +28,21 @@ export function LiveVideoPanels({ isTeacher, media, lessonStarted, videoRefs }: 
               autoPlay
               muted // Always mute local preview to prevent feedback!
               playsInline
-              className="w-11/12 h-5/6 object-cover rounded-2xl shadow-lg border-2 border-blue-200"
+              className="w-full h-full object-cover rounded-2xl shadow-2xl border-4 border-blue-300"
               ref={videoRefs.teacherVideoRef}
               onLoadedMetadata={() => console.log("🎥 Teacher video metadata loaded")}
               onError={e => console.error("🎥 Teacher video error", e)}
             />
           ) : (
-            <div className="w-36 h-36 rounded-full bg-blue-400 flex items-center justify-center shadow-xl">
-              <span className="text-3xl font-bold text-white">T</span>
+            <div className="w-full h-full rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-2xl border-4 border-blue-300 relative">
+              <div className="text-center">
+                <div className="w-32 h-32 rounded-full bg-blue-400 flex items-center justify-center shadow-xl mb-4 mx-auto">
+                  <span className="text-6xl font-bold text-white">T</span>
+                </div>
+                <p className="text-white font-semibold text-lg">Teacher</p>
+              </div>
               {media.isCameraOff && (
-                <div className="absolute bottom-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
+                <div className="absolute bottom-4 right-4 bg-red-500 text-white text-sm px-3 py-2 rounded-lg shadow-lg">
                   Camera Off
                 </div>
               )}
@@ -45,9 +50,14 @@ export function LiveVideoPanels({ isTeacher, media, lessonStarted, videoRefs }: 
           )
         ) : (
           // Student sees teacher avatar (placeholder - would be teacher's video in real implementation)
-          <div className="w-36 h-36 rounded-full bg-blue-300 flex items-center justify-center shadow-xl">
-            <span className="text-3xl font-semibold text-white">T</span>
-            <div className="absolute bottom-2 right-2 bg-gray-500 text-white text-xs px-2 py-1 rounded">
+          <div className="w-full h-full rounded-2xl bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center shadow-2xl border-4 border-blue-200 relative">
+            <div className="text-center">
+              <div className="w-32 h-32 rounded-full bg-blue-300 flex items-center justify-center shadow-xl mb-4 mx-auto">
+                <span className="text-6xl font-semibold text-white">T</span>
+              </div>
+              <p className="text-white font-semibold text-lg">Teacher</p>
+            </div>
+            <div className="absolute bottom-4 right-4 bg-gray-600 text-white text-sm px-3 py-2 rounded-lg">
               Remote
             </div>
           </div>
@@ -56,7 +66,7 @@ export function LiveVideoPanels({ isTeacher, media, lessonStarted, videoRefs }: 
       
       <div
         id="student-panel"
-        className="absolute right-0 top-0 w-1/2 h-full flex items-center justify-center"
+        className="absolute right-2 top-2 bottom-2 w-[48%] flex items-center justify-center"
         style={{ zIndex: 2 }}
       >
         {!isTeacher ? (
@@ -66,16 +76,21 @@ export function LiveVideoPanels({ isTeacher, media, lessonStarted, videoRefs }: 
               autoPlay
               muted // Always mute local preview for student!
               playsInline
-              className="w-11/12 h-5/6 object-cover rounded-2xl shadow-lg border-2 border-purple-200"
+              className="w-full h-full object-cover rounded-2xl shadow-2xl border-4 border-purple-300"
               ref={videoRefs.studentVideoRef}
               onLoadedMetadata={() => console.log("🎥 Student video metadata loaded")}
               onError={e => console.error("🎥 Student video error", e)}
             />
           ) : (
-            <div className="w-36 h-36 rounded-full bg-purple-400 flex items-center justify-center shadow-xl">
-              <span className="text-3xl font-bold text-white">S</span>
+            <div className="w-full h-full rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-2xl border-4 border-purple-300 relative">
+              <div className="text-center">
+                <div className="w-32 h-32 rounded-full bg-purple-400 flex items-center justify-center shadow-xl mb-4 mx-auto">
+                  <span className="text-6xl font-bold text-white">S</span>
+                </div>
+                <p className="text-white font-semibold text-lg">Student</p>
+              </div>
               {media.isCameraOff && (
-                <div className="absolute bottom-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
+                <div className="absolute bottom-4 right-4 bg-red-500 text-white text-sm px-3 py-2 rounded-lg shadow-lg">
                   Camera Off
                 </div>
               )}
@@ -83,9 +98,14 @@ export function LiveVideoPanels({ isTeacher, media, lessonStarted, videoRefs }: 
           )
         ) : (
           // Teacher sees student avatar (placeholder - would be student's video in real implementation)
-          <div className="w-36 h-36 rounded-full bg-purple-300 flex items-center justify-center shadow-xl">
-            <span className="text-3xl font-semibold text-white">S</span>
-            <div className="absolute bottom-2 right-2 bg-gray-500 text-white text-xs px-2 py-1 rounded">
+          <div className="w-full h-full rounded-2xl bg-gradient-to-br from-purple-400 to-purple-500 flex items-center justify-center shadow-2xl border-4 border-purple-200 relative">
+            <div className="text-center">
+              <div className="w-32 h-32 rounded-full bg-purple-300 flex items-center justify-center shadow-xl mb-4 mx-auto">
+                <span className="text-6xl font-semibold text-white">S</span>
+              </div>
+              <p className="text-white font-semibold text-lg">Student</p>
+            </div>
+            <div className="absolute bottom-4 right-4 bg-gray-600 text-white text-sm px-3 py-2 rounded-lg">
               Remote
             </div>
           </div>
