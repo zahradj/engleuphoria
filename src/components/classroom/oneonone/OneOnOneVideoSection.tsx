@@ -1,7 +1,6 @@
 
 import React from "react";
 import { Card } from "@/components/ui/card";
-import { OneOnOneRewards } from "./OneOnOneRewards";
 import { useMediaContext } from "./video/MediaContext";
 import { LessonStartPrompt } from "./video/components/LessonStartPrompt";
 import { LiveVideoPanels } from "./video/components/LiveVideoPanels";
@@ -49,7 +48,7 @@ export function OneOnOneVideoSection({
 
   return (
     <div className="h-full flex flex-col gap-4">
-      <Card className="p-0 bg-white/80 border-0 shadow-2xl glass-enhanced rounded-3xl overflow-hidden ring-1 ring-white/30 relative">
+      <Card className="flex-1 p-0 bg-white/80 border-0 shadow-2xl glass-enhanced rounded-3xl overflow-hidden ring-1 ring-white/30 relative">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-100 via-white/50 to-purple-100 pointer-events-none"></div>
         <div className="aspect-video relative flex items-center justify-center">
           {!lessonStarted ? (
@@ -75,18 +74,6 @@ export function OneOnOneVideoSection({
         </div>
         <XPProgressSection studentXP={studentXP} showRewardPopup={!!showRewardPopup} />
       </Card>
-
-      {isTeacher && (
-        <div className="flex-shrink-0">
-          <Card className="p-3 mt-2">
-            <OneOnOneRewards
-              studentXP={studentXP}
-              onAwardPoints={onAwardPoints || (() => {})}
-              showRewardPopup={showRewardPopup}
-            />
-          </Card>
-        </div>
-      )}
 
       <SessionLog logMessages={logMessages} />
       <MediaErrorDisplay error={media.error} />
