@@ -1,14 +1,6 @@
+
 import { faker } from '@faker-js/faker';
 import { ESLLevel, ESLSkill, AITemplate, ESLMaterial, GameElement } from '@/types/eslCurriculum';
-
-interface GameElement {
-  id: string;
-  type: 'points' | 'badge' | 'achievement' | 'leaderboard' | 'progress_bar' | 'mini_game' | 'sticker' | 'certificate';
-  name: string;
-  description: string;
-  value: number;
-  ageAppropriate: boolean;
-}
 
 const generateRandomGameElements = (count: number): GameElement[] => {
   const elements: GameElement[] = [];
@@ -263,11 +255,27 @@ const generateAIContent = async (templateId: string, parameters: Record<string, 
   const template = mockAITemplates.find(t => t.id === templateId);
   const level = mockESLLevels.find(l => l.cefrLevel === parameters.level) || mockESLLevels[0];
   
+  // Map template type to valid ESLMaterial type
+  let materialType: ESLMaterial['type'] = 'worksheet';
+  if (template?.type === 'activity') {
+    materialType = 'activity';
+  } else if (template?.type === 'lesson_plan') {
+    materialType = 'lesson_plan';
+  } else if (template?.type === 'story') {
+    materialType = 'story';
+  } else if (template?.type === 'song') {
+    materialType = 'song';
+  } else if (template?.type === 'game') {
+    materialType = 'game';
+  } else if (template?.type === 'exam_prep') {
+    materialType = 'exam_prep';
+  }
+  
   return {
     id: faker.string.uuid(),
     title: `Generated ${template?.name || 'Material'}: ${parameters.topic || 'General'}`,
     description: `AI-generated content for ${parameters.topic || 'general learning'} at ${parameters.level || 'A1'} level`,
-    type: template?.type === 'assessment' ? 'assessment' : (template?.type || 'worksheet'),
+    type: materialType,
     level: level,
     skills: level.skills,
     duration: faker.number.int({ min: 15, max: 45 }),
