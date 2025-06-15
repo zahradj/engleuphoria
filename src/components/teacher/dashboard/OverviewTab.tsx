@@ -1,11 +1,11 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatsCard } from "./StatsCard";
 import { ActivityItem } from "./ActivityItem";
 import { ClassCard } from "./ClassCard";
-import { Calendar, Users, FileText, PlusCircle, CheckCircle, LineChart, Play } from "lucide-react";
+import { Calendar, Users, FileText, PlusCircle, CheckCircle, LineChart } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useNavigate } from "react-router-dom";
 
 interface OverviewTabProps {
   onCreateLessonPlan: () => void;
@@ -23,12 +23,6 @@ export const OverviewTab = ({
   onViewClassDetails 
 }: OverviewTabProps) => {
   const { languageText } = useLanguage();
-  const navigate = useNavigate();
-
-  const handleStartLesson = () => {
-    // Navigate to unified classroom as teacher
-    navigate('/classroom?role=teacher&name=Teacher');
-  };
 
   // Mock classes that teachers can start
   const upcomingClasses = [
@@ -111,13 +105,6 @@ export const OverviewTab = ({
           <CardTitle>{languageText.quickActions}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <Button 
-            className="w-full justify-start bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white"
-            onClick={handleStartLesson}
-          >
-            <Play className="mr-2 h-4 w-4" />
-            Start Lesson Now
-          </Button>
           <Button variant="outline" className="w-full justify-start" onClick={onCreateLessonPlan}>
             <PlusCircle className="mr-2 h-4 w-4" />
             {languageText.createLessonPlan}

@@ -11,7 +11,7 @@ export const useStudentHandlers = () => {
   };
 
   const handleJoinClass = () => {
-    navigate("/classroom?role=student&name=Student");
+    navigate("/classroom-selector");
   };
 
   const handleViewProgress = () => {

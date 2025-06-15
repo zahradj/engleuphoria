@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
@@ -23,7 +24,7 @@ export const useTeacherHandlers = () => {
   };
 
   const handleStartClass = () => {
-    navigate("/classroom?role=teacher&name=Teacher");
+    navigate("/classroom");
   };
 
   const handleScheduleClass = () => {
@@ -82,8 +83,8 @@ export const useTeacherHandlers = () => {
       title: "Starting Class",
       description: `Starting ${className}...`,
     });
-    // Navigate to classroom with teacher role
-    navigate("/classroom?role=teacher&name=Teacher");
+    // Navigate directly to classroom
+    navigate("/classroom");
   };
 
   const handleViewClassDetails = (className: string) => {
@@ -94,7 +95,7 @@ export const useTeacherHandlers = () => {
   };
 
   const handleJoinClass = () => {
-    navigate("/classroom?role=teacher&name=Teacher");
+    navigate("/classroom");
   };
 
   const handleCreateAssignment = () => {
