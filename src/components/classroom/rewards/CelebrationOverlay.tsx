@@ -1,0 +1,79 @@
+
+import React, { useEffect, useState } from "react";
+import { ParticleSystem } from "./ParticleSystem";
+import { CelebrationText } from "./CelebrationText";
+
+interface CelebrationOverlayProps {
+  isVisible: boolean;
+  points: number;
+  reason?: string;
+  onComplete: () => void;
+  duration?: number;
+}
+
+export function CelebrationOverlay({ 
+  isVisible, 
+  points, 
+  reason, 
+  onComplete, 
+  duration = 2500 
+}: CelebrationOverlayProps) {
+  const [showContent, setShowContent] = useState(false);
+
+  useEffect(() => {
+    if (isVisible) {
+      setShowContent(true);
+      
+      const timer = setTimeout(() => {
+        setShowContent(false);
+        setTimeout(onComplete, 300); // Wait for fade-out animation
+      }, duration);
+
+      return () => clearTimeout(timer);
+    } else {
+      setShowContent(false);
+    }
+  }, [isVisible, duration, onComplete]);
+
+  if (!isVisible && !showContent) return null;
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div 
+        className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-40 transition-opacity duration-300 ${
+          showContent ? 'opacity-100' : 'opacity-0'
+        }`}
+        onClick={onComplete}
+      />
+      
+      {/* Celebration Content */}
+      <div 
+        className={`fixed inset-0 flex items-center justify-center z-50 pointer-events-none transition-all duration-300 ${
+          showContent ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
+        }`}
+      >
+        <div className="relative">
+          {/* Background glow effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 via-orange-500/20 to-red-500/20 rounded-full blur-3xl scale-150 animate-pulse" />
+          
+          {/* Main celebration content */}
+          <div className="relative">
+            <CelebrationText 
+              points={points} 
+              reason={reason} 
+              isVisible={showContent} 
+            />
+          </div>
+        </div>
+      </div>
+      
+      {/* Particle System */}
+      <ParticleSystem 
+        isActive={isVisible} 
+        particleCount={points >= 40 ? 80 : points >= 20 ? 60 : 40}
+        duration={duration + 500}
+      />
+    </>
+  );
+}

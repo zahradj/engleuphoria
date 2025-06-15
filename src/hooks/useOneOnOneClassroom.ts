@@ -2,6 +2,7 @@
 import { useClassroomTimer } from "./classroom/useClassroomTimer";
 import { useClassroomState } from "./classroom/useClassroomState";
 import { useClassroomActions } from "./classroom/useClassroomActions";
+import { useRewardNotifications } from "./classroom/useRewardNotifications";
 
 export function useOneOnOneClassroom() {
   console.log("useOneOnOneClassroom hook initializing");
@@ -25,11 +26,18 @@ export function useOneOnOneClassroom() {
     setShowRewardPopup
   } = useClassroomState();
 
+  const { 
+    showRewardNotification, 
+    celebration, 
+    hideCelebration 
+  } = useRewardNotifications();
+
   const { toggleRecording, awardPoints: originalAwardPoints } = useClassroomActions({
     isRecording,
     setIsRecording,
     setStudentXP,
-    setShowRewardPopup
+    setShowRewardPopup,
+    onShowCelebration: showRewardNotification
   });
 
   // Create a wrapper function that matches the expected signature
@@ -50,11 +58,13 @@ export function useOneOnOneClassroom() {
     studentXP,
     studentLevel,
     showRewardPopup,
+    celebration,
     setIsMuted,
     setIsCameraOff,
     setActiveRightTab,
     setActiveCenterTab,
     toggleRecording,
-    awardPoints
+    awardPoints,
+    hideCelebration
   };
 }

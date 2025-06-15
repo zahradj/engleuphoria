@@ -1,6 +1,5 @@
 
 import React from "react";
-import { Button } from "@/components/ui/button";
 import { SoundButton } from "@/components/ui/sound-button";
 import { Star, Sparkles, Award, Trophy } from "lucide-react";
 
@@ -26,8 +25,8 @@ export function QuickRewardButtons({ onReward }: QuickRewardButtonsProps) {
             <SoundButton
               key={reward.points}
               onClick={() => onReward(reward.points, reward.category)}
-              className={`${reward.color} text-white text-xs py-2 px-3 flex items-center justify-center gap-1`}
-              soundType="success"
+              className={`${reward.color} text-white text-xs py-2 px-3 flex items-center justify-center gap-1 hover:scale-105 transition-transform`}
+              soundType="reward"
             >
               <IconComponent size={14} />
               {reward.label}
@@ -39,30 +38,33 @@ export function QuickRewardButtons({ onReward }: QuickRewardButtonsProps) {
       <div className="space-y-2">
         <h4 className="text-xs font-medium text-gray-600">Category Rewards</h4>
         <div className="grid grid-cols-1 gap-1">
-          <Button
+          <SoundButton
             variant="outline"
             size="sm"
             onClick={() => onReward(15, "Speaking Practice")}
-            className="text-xs py-1 px-2"
+            className="text-xs py-1 px-2 hover:scale-105 transition-transform"
+            soundType="reward"
           >
             🗣️ Speaking +15
-          </Button>
-          <Button
+          </SoundButton>
+          <SoundButton
             variant="outline"
             size="sm"
             onClick={() => onReward(10, "Participation")}
-            className="text-xs py-1 px-2"
+            className="text-xs py-1 px-2 hover:scale-105 transition-transform"
+            soundType="reward"
           >
             ✋ Participation +10
-          </Button>
-          <Button
+          </SoundButton>
+          <SoundButton
             variant="outline"
             size="sm"
             onClick={() => onReward(20, "Perfect Answer")}
-            className="text-xs py-1 px-2"
+            className="text-xs py-1 px-2 hover:scale-105 transition-transform"
+            soundType="reward"
           >
             💯 Perfect Answer +20
-          </Button>
+          </SoundButton>
         </div>
       </div>
     </div>

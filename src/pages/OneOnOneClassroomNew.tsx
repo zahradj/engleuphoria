@@ -7,6 +7,7 @@ import { OneOnOneTopBar } from "@/components/classroom/oneonone/OneOnOneTopBar";
 import { OneOnOneVideoSection } from "@/components/classroom/oneonone/OneOnOneVideoSection";
 import { OneOnOneCenterPanel } from "@/components/classroom/oneonone/OneOnOneCenterPanel";
 import { OneOnOneRightPanel } from "@/components/classroom/oneonone/OneOnOneRightPanel";
+import { CelebrationOverlay } from "@/components/classroom/rewards/CelebrationOverlay";
 
 const OneOnOneClassroomNew = () => {
   console.log("OneOnOneClassroomNew component is rendering");
@@ -18,9 +19,11 @@ const OneOnOneClassroomNew = () => {
     studentXP,
     studentLevel,
     showRewardPopup,
+    celebration,
     setActiveRightTab,
     setActiveCenterTab,
-    awardPoints
+    awardPoints,
+    hideCelebration
   } = useOneOnOneClassroom();
 
   // Add user identification - this would normally come from auth context
@@ -112,6 +115,16 @@ const OneOnOneClassroomNew = () => {
               </div>
             </div>
           </div>
+
+          {/* Celebration Overlay */}
+          {celebration && (
+            <CelebrationOverlay
+              isVisible={celebration.isVisible}
+              points={celebration.points}
+              reason={celebration.reason}
+              onComplete={hideCelebration}
+            />
+          )}
         </div>
       </MediaProvider>
     );

@@ -40,11 +40,26 @@ class AudioService {
     this.createTone(800, 0.1, 0.2);
   }
 
-  playRewardSound() {
-    // Magical reward sound - ascending notes
-    this.createTone(523, 0.15); // C
-    setTimeout(() => this.createTone(659, 0.15), 100); // E
-    setTimeout(() => this.createTone(784, 0.2), 200); // G
+  playRewardSound(points: number = 10) {
+    if (points <= 15) {
+      // Simple chime for small rewards
+      this.createTone(523, 0.15); // C
+      setTimeout(() => this.createTone(659, 0.15), 100); // E
+    } else if (points <= 35) {
+      // Rising melody for medium rewards
+      this.createTone(523, 0.12); // C
+      setTimeout(() => this.createTone(659, 0.12), 80); // E
+      setTimeout(() => this.createTone(784, 0.15), 160); // G
+      setTimeout(() => this.createTone(1047, 0.2), 240); // High C
+    } else {
+      // Triumphant fanfare for large rewards
+      this.createTone(523, 0.1); // C
+      setTimeout(() => this.createTone(659, 0.1), 60); // E
+      setTimeout(() => this.createTone(784, 0.1), 120); // G
+      setTimeout(() => this.createTone(1047, 0.15), 180); // High C
+      setTimeout(() => this.createTone(1319, 0.15), 240); // High E
+      setTimeout(() => this.createTone(1568, 0.2), 300); // High G
+    }
   }
 
   playErrorSound() {

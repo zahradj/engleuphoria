@@ -5,11 +5,13 @@ import { audioService } from "@/services/audioService";
 
 interface SoundButtonProps extends ButtonProps {
   soundType?: 'click' | 'success' | 'error' | 'reward';
+  rewardPoints?: number;
   children: React.ReactNode;
 }
 
 export function SoundButton({ 
   soundType = 'click', 
+  rewardPoints = 10,
   onClick, 
   children, 
   ...props 
@@ -27,7 +29,7 @@ export function SoundButton({
         audioService.playErrorSound();
         break;
       case 'reward':
-        audioService.playRewardSound();
+        audioService.playRewardSound(rewardPoints);
         break;
     }
 
