@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, BookOpen } from "lucide-react";
-import { CurriculumLibraryManager } from "@/components/teacher/curriculum/CurriculumLibraryManager";
+import { ESLCurriculumManager } from "@/components/curriculum/ESLCurriculumManager";
 
 const CurriculumLibraryPage = () => {
   const navigate = useNavigate();
@@ -66,7 +66,7 @@ const CurriculumLibraryPage = () => {
               <div className="h-6 w-px bg-gray-300" />
               <div className="flex items-center gap-2">
                 <BookOpen className="h-5 w-5 text-blue-600" />
-                <h1 className="text-xl font-semibold text-gray-900">Curriculum Library</h1>
+                <h1 className="text-xl font-semibold text-gray-900">ESL Curriculum Library</h1>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -83,7 +83,7 @@ const CurriculumLibraryPage = () => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <CurriculumLibraryManager />
+        <ESLCurriculumManager />
       </div>
     </div>
   );
