@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { eslCurriculumService } from "@/services/eslCurriculumService";
 import { ESLLevel, ESLSkill } from "@/types/eslCurriculum";
-import { BookOpen, Users, Clock, Star, ChevronRight, Trophy, Baby, Child, User, GraduationCap } from "lucide-react";
+import { BookOpen, Users, Clock, Star, ChevronRight, Trophy, Baby, User, GraduationCap } from "lucide-react";
 
 interface ESLLevelBrowserProps {
   refreshTrigger: number;
@@ -39,8 +39,8 @@ export function ESLLevelBrowser({ refreshTrigger }: ESLLevelBrowserProps) {
 
   const getAgeIcon = (ageGroup: string) => {
     if (ageGroup.includes('4-7') || ageGroup.includes('True Beginners')) return Baby;
-    if (ageGroup.includes('6-9') || ageGroup.includes('8-11') || ageGroup.includes('9-13')) return Child;
-    if (ageGroup.includes('12-15') || ageGroup.includes('13-16') || ageGroup.includes('Teens')) return User;
+    if (ageGroup.includes('6-9') || ageGroup.includes('8-11') || ageGroup.includes('9-13')) return User;
+    if (ageGroup.includes('12-15') || ageGroup.includes('13-16') || ageGroup.includes('Teens')) return Users;
     return GraduationCap;
   };
 
@@ -54,7 +54,8 @@ export function ESLLevelBrowser({ refreshTrigger }: ESLLevelBrowserProps) {
       'vocabulary': '📚',
       'pronunciation': '🗣️',
       'songs': '🎵',
-      'games': '🎮'
+      'games': '🎮',
+      'exam_prep': '📋'
     };
     return icons[category] || '📋';
   };

@@ -14,7 +14,7 @@ export interface ESLLevel {
 export interface ESLSkill {
   id: string;
   name: string;
-  category: 'listening' | 'speaking' | 'reading' | 'writing' | 'grammar' | 'vocabulary' | 'pronunciation' | 'songs' | 'games';
+  category: 'listening' | 'speaking' | 'reading' | 'writing' | 'grammar' | 'vocabulary' | 'pronunciation' | 'songs' | 'games' | 'exam_prep';
   description: string;
   canStudentPractice: boolean;
   ageAppropriate: boolean;
