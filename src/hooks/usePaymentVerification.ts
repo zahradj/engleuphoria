@@ -5,6 +5,7 @@ import { PaymentService } from '@/services/paymentService';
 
 export const usePaymentVerification = () => {
   const [isVerifying, setIsVerifying] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [verificationResult, setVerificationResult] = useState<{
     success: boolean;
     paymentId?: string;
@@ -21,6 +22,7 @@ export const usePaymentVerification = () => {
       const result = await PaymentService.processPayment(paymentData);
       
       setVerificationResult(result);
+      setPaymentSuccess(result.success);
       
       if (result.success) {
         toast({
@@ -40,6 +42,7 @@ export const usePaymentVerification = () => {
         error: "An unexpected error occurred during payment verification."
       };
       setVerificationResult(result);
+      setPaymentSuccess(false);
       toast({
         title: "Payment Error",
         description: result.error,
@@ -52,6 +55,7 @@ export const usePaymentVerification = () => {
 
   return {
     isVerifying,
+    paymentSuccess,
     verificationResult,
     verifyPayment,
   };

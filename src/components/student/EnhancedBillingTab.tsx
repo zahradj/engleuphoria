@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CreditCard, Download, Calendar, AlertCircle, Settings, RefreshCw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { paymentService, PaymentHistoryItem, SubscriptionDetails } from "@/services/paymentService";
+import { PaymentService, PaymentHistoryItem, SubscriptionDetails } from "@/services/paymentService";
 import { PaymentPlansGrid } from "@/components/payment/PaymentPlansGrid";
 
 export const EnhancedBillingTab = () => {
@@ -23,8 +23,8 @@ export const EnhancedBillingTab = () => {
     try {
       setLoading(true);
       const [historyData, subscriptionData] = await Promise.all([
-        paymentService.getPaymentHistory(),
-        paymentService.getCurrentSubscription()
+        PaymentService.getPaymentHistory(),
+        PaymentService.getCurrentSubscription()
       ]);
       
       setPaymentHistory(historyData);
@@ -52,7 +52,7 @@ export const EnhancedBillingTab = () => {
 
   const handleManageSubscription = async () => {
     try {
-      const { url } = await paymentService.openCustomerPortal();
+      const { url } = await PaymentService.openCustomerPortal();
       window.open(url, '_blank');
     } catch (error) {
       toast({
@@ -124,7 +124,7 @@ export const EnhancedBillingTab = () => {
                   <div className="flex justify-between">
                     <span className="text-gray-600">Current Period:</span>
                     <span className="font-medium">
-                      {formatDate(subscription.current_period_start)} - {formatDate(subscription.current_period_end)}
+                      {formatDate(subscription.current_period_start || subscription.current_period_end)} - {formatDate(subscription.current_period_end)}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -191,7 +191,7 @@ export const EnhancedBillingTab = () => {
                       {payment.amount.toLocaleString()} {payment.currency}
                     </p>
                     <p className="text-sm text-gray-600">
-                      {formatDate(payment.created_at)} • {payment.payment_gateway?.toUpperCase() || payment.payment_method}
+                      {formatDate(payment.created_at)} • {payment.payment_gateway || payment.payment_method}
                     </p>
                     {payment.plan && (
                       <p className="text-xs text-gray-500">{payment.plan.name}</p>

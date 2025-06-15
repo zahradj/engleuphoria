@@ -18,6 +18,11 @@ export interface PaymentHistoryItem {
   payment_method: string
   status: string
   created_at: string
+  payment_gateway?: string
+  invoice_url?: string
+  plan?: {
+    name: string
+  }
   lesson?: {
     title: string
     scheduled_at: string
@@ -27,8 +32,10 @@ export interface PaymentHistoryItem {
 export interface SubscriptionDetails {
   plan: PaymentPlan
   status: 'active' | 'cancelled' | 'past_due'
+  current_period_start: string
   current_period_end: string
   next_billing_date: string
+  cancel_at_period_end?: boolean
 }
 
 export interface ContactInfo {
@@ -79,11 +86,15 @@ export class PaymentService {
 
   static async processPayment(paymentDetails: PaymentDetails): Promise<{ success: boolean; paymentId?: string; error?: string }> {
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('No authenticated user')
+
       // Create a payment record in the payments table
       const { data, error } = await supabase
         .from('payments')
         .insert([{
-          student_id: '', // This should be filled with actual user ID
+          student_id: user.id,
           lesson_id: '', // This should be filled with actual lesson ID
           amount: paymentDetails.plan.price,
           payment_method: paymentDetails.paymentMethod,
@@ -108,8 +119,15 @@ export class PaymentService {
     }
   }
 
-  static async getPaymentHistory(userId: string): Promise<PaymentHistoryItem[]> {
+  static async getPaymentHistory(userId?: string): Promise<PaymentHistoryItem[]> {
     try {
+      // If no userId provided, get current user
+      if (!userId) {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return []
+        userId = user.id
+      }
+
       const { data, error } = await supabase
         .from('payments')
         .select(`
@@ -135,6 +153,28 @@ export class PaymentService {
     } catch (error) {
       console.error('Error fetching payment history:', error)
       return []
+    }
+  }
+
+  static async getCurrentSubscription(): Promise<SubscriptionDetails | null> {
+    try {
+      // Mock subscription data for now
+      // In a real app, this would query a subscriptions table or external service
+      return null
+    } catch (error) {
+      console.error('Error fetching subscription:', error)
+      return null
+    }
+  }
+
+  static async openCustomerPortal(): Promise<{ url: string }> {
+    try {
+      // Mock customer portal URL for now
+      // In a real app, this would create a Stripe customer portal session
+      throw new Error('Customer portal not implemented yet')
+    } catch (error) {
+      console.error('Error opening customer portal:', error)
+      throw error
     }
   }
 }
