@@ -22,9 +22,10 @@ interface StudentPanelProps {
 export const StudentPanel = ({ 
   studentId = "student-456", 
   studentName = "Alex", 
-  points = 150 
+  points: initialPoints = 150 
 }: StudentPanelProps) => {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [points, setPoints] = useState(initialPoints);
   const { toast } = useToast();
 
   const handleLogout = () => {
@@ -39,13 +40,13 @@ export const StudentPanel = ({
       case "dashboard":
         return <DashboardTab studentName={studentName} points={points} />;
       case "profile":
-        return <ProfileTab />;
+        return <ProfileTab studentName={studentName} />;
       case "classes":
         return <EnhancedUpcomingClassesTab studentId={studentId} />;
       case "history":
         return <LessonHistoryTab />;
       case "homework":
-        return <HomeworkTab />;
+        return <HomeworkTab points={points} setPoints={setPoints} />;
       case "progress":
         return <ProgressTrackerTab />;
       case "chat":
