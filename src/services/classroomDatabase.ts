@@ -57,7 +57,7 @@ export interface ChatMessage {
 // Classroom Database Service
 export const classroomDatabase = {
   // User management - Updated to match actual schema
-  async createUser(userData: Omit<User, 'id' | 'created_at' | 'updated_at'>) {
+  async createUser(userData: { email: string; full_name: string; role: 'teacher' | 'student'; avatar_id?: number }) {
     // Get the current user ID from auth
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('No authenticated user');
@@ -140,7 +140,10 @@ export const classroomDatabase = {
     const { data, error } = await supabase
       .from('lessons')
       .insert([{ 
-        ...lessonData, 
+        teacher_id: lessonData.teacher_id,
+        student_id: lessonData.student_id,
+        title: lessonData.title,
+        scheduled_at: lessonData.scheduled_at,
         duration: lessonData.duration || 60,
         cost: 10.00 // Default cost
       }])

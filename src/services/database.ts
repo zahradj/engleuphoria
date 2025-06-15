@@ -1,5 +1,11 @@
 
-import { supabase, Lesson, Homework, Payment } from '@/lib/supabase'
+import { supabase } from '@/integrations/supabase/client'
+import { Tables } from '@/integrations/supabase/types'
+
+// Type aliases for easier use
+type Lesson = Tables<'lessons'>
+type Homework = Tables<'homework'>
+type Payment = Tables<'payments'>
 
 // Lessons Service
 export const lessonsService = {
@@ -20,7 +26,15 @@ export const lessonsService = {
     return data
   },
 
-  async createLesson(lessonData: Omit<Lesson, 'id' | 'created_at'>) {
+  async createLesson(lessonData: {
+    teacher_id: string;
+    student_id: string;
+    title: string;
+    scheduled_at: string;
+    duration?: number;
+    cost?: number;
+    status?: string;
+  }) {
     const { data, error } = await supabase
       .from('lessons')
       .insert([lessonData])
@@ -31,7 +45,7 @@ export const lessonsService = {
     return data
   },
 
-  async updateLessonStatus(lessonId: string, status: Lesson['status']) {
+  async updateLessonStatus(lessonId: string, status: string) {
     const { data, error } = await supabase
       .from('lessons')
       .update({ status })
@@ -76,7 +90,15 @@ export const homeworkService = {
     return data
   },
 
-  async createHomework(homeworkData: Omit<Homework, 'id' | 'created_at'>) {
+  async createHomework(homeworkData: {
+    student_id: string;
+    teacher_id: string;
+    title: string;
+    due_date: string;
+    description?: string;
+    lesson_id?: string;
+    status?: string;
+  }) {
     const { data, error } = await supabase
       .from('homework')
       .insert([homeworkData])
@@ -116,7 +138,14 @@ export const paymentsService = {
     return data
   },
 
-  async createPayment(paymentData: Omit<Payment, 'id' | 'created_at'>) {
+  async createPayment(paymentData: {
+    student_id: string;
+    lesson_id: string;
+    amount: number;
+    payment_method: string;
+    status?: string;
+    currency?: string;
+  }) {
     const { data, error } = await supabase
       .from('payments')
       .insert([paymentData])

@@ -3,12 +3,13 @@ import { useState, useEffect, createContext, useContext } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 import { Session } from '@supabase/supabase-js'
 
-// Define User interface locally since we removed it from lib/supabase
+// Define User interface to match database schema
 interface User {
   id: string
   email: string
   full_name: string
   role: 'student' | 'teacher' | 'parent' | 'admin'
+  avatar_id?: number
   created_at: string
   updated_at: string
 }
@@ -115,13 +116,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) throw error
 
       if (data.user) {
-        // Create user profile
+        // Create user profile with required fields
         const { error: profileError } = await supabase
           .from('users')
           .insert([{
             id: data.user.id,
-            email: data.user.email,
-            ...userData
+            email: data.user.email!,
+            full_name: userData.full_name || 'User',
+            role: userData.role || 'student'
           }])
 
         if (profileError) throw profileError
