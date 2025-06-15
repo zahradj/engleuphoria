@@ -3,10 +3,10 @@ import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { InfiniteWhiteboard } from "@/components/classroom/whiteboard/InfiniteWhiteboard";
 import { UnifiedContentViewer } from "@/components/classroom/content/UnifiedContentViewer";
 import { OneOnOneGames } from "@/components/classroom/oneonone/OneOnOneGames";
-import { Palette, BookOpen, Users, Gamepad2 } from "lucide-react";
+import { AIActivityGenerator } from "@/components/classroom/oneonone/games/AIActivityGenerator";
+import { BookOpen, Users, Gamepad2, Brain } from "lucide-react";
 
 interface UnifiedCenterPanelProps {
   activeCenterTab: string;
@@ -22,14 +22,12 @@ export function UnifiedCenterPanel({
   onTabChange, 
   currentUser 
 }: UnifiedCenterPanelProps) {
-  const [whiteboardTool, setWhiteboardTool] = useState("pencil");
-  const [whiteboardColor, setWhiteboardColor] = useState("#9B87F5");
-
+  const [generatedActivities, setGeneratedActivities] = useState<any[]>([]);
+  
   const isTeacher = currentUser.role === 'teacher';
 
-  const handleCanvasClick = (e: React.MouseEvent) => {
-    // Handle whiteboard interactions
-    console.log("Canvas clicked", e);
+  const handleAIActivityGenerated = (activity: any) => {
+    setGeneratedActivities([activity, ...generatedActivities]);
   };
 
   return (
@@ -37,9 +35,9 @@ export function UnifiedCenterPanel({
       <Tabs value={activeCenterTab} onValueChange={onTabChange} className="h-full flex flex-col">
         <div className="p-4 pb-0">
           <TabsList className="grid w-full grid-cols-4 mb-4">
-            <TabsTrigger value="whiteboard" className="flex items-center gap-2">
-              <Palette size={16} />
-              <span className="hidden sm:inline">Whiteboard</span>
+            <TabsTrigger value="ai-worksheet" className="flex items-center gap-2">
+              <Brain size={16} />
+              <span className="hidden sm:inline">AI Worksheet</span>
             </TabsTrigger>
             <TabsTrigger value="lesson" className="flex items-center gap-2">
               <BookOpen size={16} />
@@ -57,13 +55,13 @@ export function UnifiedCenterPanel({
         </div>
 
         <div className="flex-1 p-4 pt-0 overflow-hidden">
-          <TabsContent value="whiteboard" className="h-full mt-0">
+          <TabsContent value="ai-worksheet" className="h-full mt-0">
             <div className="h-full flex flex-col">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <h3 className="text-lg font-semibold">Interactive Whiteboard</h3>
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-700">
-                    Extended Canvas
+                  <h3 className="text-lg font-semibold">AI Worksheet & Material Generator</h3>
+                  <Badge variant="secondary" className="bg-purple-100 text-purple-700">
+                    AI Powered
                   </Badge>
                 </div>
                 {isTeacher && (
@@ -73,12 +71,25 @@ export function UnifiedCenterPanel({
                 )}
               </div>
               
-              <div className="flex-1">
-                <InfiniteWhiteboard
-                  activeTool={whiteboardTool}
-                  color={whiteboardColor}
-                  onCanvasClick={handleCanvasClick}
-                />
+              <div className="flex-1 overflow-y-auto">
+                <AIActivityGenerator onActivityGenerated={handleAIActivityGenerated} />
+                
+                {generatedActivities.length > 0 && (
+                  <div className="mt-6">
+                    <h4 className="text-md font-semibold mb-3">Generated Materials</h4>
+                    <div className="space-y-3">
+                      {generatedActivities.map((activity, index) => (
+                        <Card key={index} className="p-4 border border-purple-200">
+                          <h5 className="font-medium text-purple-800">{activity.title}</h5>
+                          <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
+                          <Badge variant="secondary" className="mt-2 text-xs">
+                            {activity.type}
+                          </Badge>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </TabsContent>
