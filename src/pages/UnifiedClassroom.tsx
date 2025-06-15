@@ -8,6 +8,7 @@ import { UnifiedClassroomLayout } from "@/components/classroom/unified/UnifiedCl
 import { UnifiedClassroomContent } from "@/components/classroom/unified/UnifiedClassroomContent";
 import { UnifiedClassroomErrorBoundary } from "@/components/classroom/unified/UnifiedClassroomErrorBoundary";
 import { Lesson, User } from "@/services/classroomDatabase";
+import { UnifiedUser, getDisplayName } from "@/types/user";
 
 interface UnifiedClassroomProps {
   lesson?: Lesson;
@@ -21,8 +22,19 @@ function UnifiedClassroomInner({ lesson, userRole, currentUser: propCurrentUser 
   const { toast } = useToast();
   const { currentUser: contextCurrentUser, finalRoomId } = useUnifiedClassroomContext();
   
-  // Use prop currentUser if provided, otherwise fall back to context
-  const currentUser = propCurrentUser || contextCurrentUser;
+  // Convert to unified user type and use prop currentUser if provided, otherwise fall back to context
+  const currentUser: UnifiedUser = propCurrentUser ? {
+    id: propCurrentUser.id,
+    full_name: propCurrentUser.full_name,
+    email: propCurrentUser.email,
+    role: propCurrentUser.role,
+    avatar_url: propCurrentUser.avatar_url
+  } : {
+    id: contextCurrentUser.id,
+    name: contextCurrentUser.name,
+    role: contextCurrentUser.role,
+    avatar: contextCurrentUser.avatar
+  };
   
   // Use lesson's room_id if provided, otherwise fall back to context
   const roomId = lesson?.room_id || finalRoomId;
@@ -40,8 +52,8 @@ function UnifiedClassroomInner({ lesson, userRole, currentUser: propCurrentUser 
     awardPoints
   } = classroomState;
 
-  // Get display name from either User type (full_name) or UserProfile type (name)
-  const displayName = (currentUser as User).full_name || (currentUser as any).name || 'User';
+  // Get display name using helper function
+  const displayName = getDisplayName(currentUser);
 
   // Enhanced classroom with real-time features
   const enhancedClassroom = useEnhancedClassroom({

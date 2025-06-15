@@ -2,16 +2,10 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-
-interface UserProfile {
-  id: string;
-  name: string;
-  role: 'teacher' | 'student';
-  avatar?: string;
-}
+import { UnifiedUser } from "@/types/user";
 
 interface UnifiedClassroomContextType {
-  currentUser: UserProfile;
+  currentUser: UnifiedUser;
   finalRoomId: string;
   hasShownWelcome: boolean;
   setHasShownWelcome: (value: boolean) => void;
@@ -44,7 +38,7 @@ export function UnifiedClassroomProvider({ children }: UnifiedClassroomProviderP
   }
 
   // Enhanced role parameter extraction with stable memoization
-  const currentUser = useMemo<UserProfile>(() => {
+  const currentUser = useMemo<UnifiedUser>(() => {
     const roleParam = searchParams.get('role');
     const nameParam = searchParams.get('name');
     const userIdParam = searchParams.get('userId');
@@ -82,9 +76,10 @@ export function UnifiedClassroomProvider({ children }: UnifiedClassroomProviderP
   // Show enhanced welcome message only once
   useEffect(() => {
     if (!hasShownWelcome && currentUser.role) {
+      const displayName = currentUser.name || 'User';
       const welcomeMessage = currentUser.role === 'teacher' 
-        ? `Welcome to the enhanced classroom, ${currentUser.name}! You have full teaching controls and session management.`
-        : `Welcome to the enhanced classroom, ${currentUser.name}! Enjoy the interactive learning experience.`;
+        ? `Welcome to the enhanced classroom, ${displayName}! You have full teaching controls and session management.`
+        : `Welcome to the enhanced classroom, ${displayName}! Enjoy the interactive learning experience.`;
       
       toast({
         title: `${currentUser.role === 'teacher' ? '👩‍🏫' : '👨‍🎓'} Enhanced ${currentUser.role === 'teacher' ? 'Teacher' : 'Student'} Mode`,
