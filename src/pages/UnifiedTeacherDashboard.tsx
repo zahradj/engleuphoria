@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -61,19 +60,25 @@ export function UnifiedTeacherDashboard() {
       title: 'Beginner English - Level A1',
       time: '10:00 AM',
       student: 'John Doe',
-      status: 'upcoming' as const
+      status: 'upcoming' as const,
+      level: 'A1',
+      topic: 'Basic Greetings',
+      avatar: '/api/placeholder/40/40'
     },
     {
       id: '2',
       title: 'Intermediate Conversation',
       time: '2:00 PM', 
       student: 'Jane Smith',
-      status: 'upcoming' as const
+      status: 'upcoming' as const,
+      level: 'B1',
+      topic: 'Daily Routines',
+      avatar: '/api/placeholder/40/40'
     }
   ];
 
-  const handleStartClass = (classId: string) => {
-    console.log('Starting class:', classId);
+  const handleStartClass = (classId: number, studentName: string) => {
+    console.log('Starting class:', classId, 'with student:', studentName);
   };
 
   const handleViewStudent = (studentId: string) => {
