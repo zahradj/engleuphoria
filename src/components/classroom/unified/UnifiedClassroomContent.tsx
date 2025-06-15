@@ -1,7 +1,6 @@
 
 import React, { useCallback } from "react";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sparkles } from "lucide-react";
 import { UnifiedVideoSection } from "./UnifiedVideoSection";
 import { UnifiedCenterPanel } from "./UnifiedCenterPanel";
@@ -56,10 +55,10 @@ export function UnifiedClassroomContent({
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-12 gap-6 h-[calc(100vh-6rem)]">
-        {/* Left Panel - Enhanced with Teacher Rewards - Now visible on all screen sizes */}
-        <div className="col-span-1 md:col-span-1 lg:col-span-3 animate-fade-in">
-          <ScrollArea className="h-full">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-6rem)]">
+        {/* Left Panel - Fixed Height with Internal Scroll */}
+        <div className="lg:col-span-3 animate-fade-in h-full">
+          <div className="h-full overflow-hidden">
             <UnifiedVideoSection
               enhancedClassroom={enhancedClassroom}
               currentUser={currentUser}
@@ -67,23 +66,23 @@ export function UnifiedClassroomContent({
               onAwardPoints={currentUser.role === 'teacher' ? handleAwardPoints : undefined}
               showRewardPopup={showRewardPopup}
             />
-          </ScrollArea>
+          </div>
         </div>
 
-        {/* Center Panel - Scrollable Content */}
-        <div className="col-span-1 md:col-span-2 lg:col-span-6 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-          <ScrollArea className="h-full">
+        {/* Center Panel - Independent Scrolling */}
+        <div className="lg:col-span-6 animate-fade-in h-full" style={{ animationDelay: '0.1s' }}>
+          <div className="h-full overflow-hidden">
             <UnifiedCenterPanel
               activeCenterTab={activeCenterTab}
               onTabChange={handleCenterTabChange}
               currentUser={currentUser}
             />
-          </ScrollArea>
+          </div>
         </div>
 
-        {/* Right Panel - Scrollable with Enhanced Student Progress */}
-        <div className="col-span-1 md:col-span-1 lg:col-span-3 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-          <ScrollArea className="h-full">
+        {/* Right Panel - Fixed Height with Internal Scroll */}
+        <div className="lg:col-span-3 animate-fade-in h-full" style={{ animationDelay: '0.2s' }}>
+          <div className="h-full overflow-hidden">
             <UnifiedRightPanel
               studentXP={studentXP}
               activeRightTab={activeRightTab}
@@ -91,7 +90,7 @@ export function UnifiedClassroomContent({
               currentUser={currentUser}
               enhancedClassroom={enhancedClassroom}
             />
-          </ScrollArea>
+          </div>
         </div>
       </div>
 

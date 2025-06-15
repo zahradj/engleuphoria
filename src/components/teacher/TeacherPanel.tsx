@@ -61,7 +61,7 @@ export const TeacherPanel = ({
       case "reports":
         return <ReportsTab />;
       case "settings":
-        return <SettingsTab teacherName={teacherName} />;
+        return <SettingsTab />;
       case "backend":
         return <BackendTab />;
       default:

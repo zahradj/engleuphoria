@@ -2,7 +2,7 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { EnhancedVideoPanel } from "@/components/classroom/enhanced/EnhancedVideoPanel";
-import { EnhancedTeacherRewardPanel } from "@/components/classroom/teacher/EnhancedTeacherRewardPanel";
+import { OneOnOneRewards } from "./OneOnOneRewards";
 
 interface OneOnOneVideoSectionProps {
   enhancedClassroom: any; // Enhanced classroom hook return value
@@ -44,7 +44,7 @@ export function OneOnOneVideoSection({
   });
 
   return (
-    <div className="h-full flex flex-col gap-4 p-4">
+    <div className="h-full flex flex-col gap-4">
       {/* Enhanced Video Panel - Main Content */}
       <div className="flex-1">
         <EnhancedVideoPanel
@@ -64,15 +64,16 @@ export function OneOnOneVideoSection({
         />
       </div>
 
-      {/* Enhanced Teacher Rewards System */}
+      {/* Teacher Rewards System */}
       {isTeacher && (
         <div className="flex-shrink-0">
-          <EnhancedTeacherRewardPanel
-            studentXP={studentXP}
-            onAwardPoints={onAwardPoints || (() => {})}
-            showRewardPopup={showRewardPopup}
-            studentName="Emma" // This would come from props in real usage
-          />
+          <Card className="p-3">
+            <OneOnOneRewards
+              studentXP={studentXP}
+              onAwardPoints={onAwardPoints || (() => {})}
+              showRewardPopup={showRewardPopup}
+            />
+          </Card>
         </div>
       )}
     </div>
