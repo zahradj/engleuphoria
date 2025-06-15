@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -26,7 +27,6 @@ export function UnifiedCenterPanel({
   const isTeacher = currentUser.role === 'teacher';
 
   const handleCanvasClick = (e: React.MouseEvent) => {
-    // Handle whiteboard interactions
     console.log("Canvas clicked", e);
   };
 

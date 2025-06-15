@@ -51,14 +51,12 @@ export function useEnhancedContentManager(
     const fileToDelete = contentItems.find(item => item.id === id);
     
     if (fileToDelete) {
-      // Clean up object URL if it exists
       if (fileToDelete.source.startsWith('blob:')) {
         URL.revokeObjectURL(fileToDelete.source);
       }
       
       setContentItems(prev => prev.filter(item => item.id !== id));
       
-      // Update selected content if the deleted file was selected
       if (selectedContent?.id === id) {
         const remainingItems = contentItems.filter(item => item.id !== id);
         setSelectedContent(remainingItems.length > 0 ? remainingItems[0] : null);
@@ -78,11 +76,9 @@ export function useEnhancedContentManager(
       link.download = file.title;
       link.target = '_blank';
       
-      // For blob URLs, we need to handle differently
       if (file.source.startsWith('blob:')) {
         link.click();
       } else {
-        // For external URLs, open in new tab
         window.open(file.source, '_blank');
       }
 
@@ -115,64 +111,18 @@ export function useEnhancedContentManager(
     setPreviewFile(null);
   }, []);
 
-  // Legacy methods for backward compatibility
-  const handleUpload = useCallback((type: MaterialType) => {
-    openUploadDialog();
-  }, [openUploadDialog]);
-
-  const handleEmbedVideo = useCallback(() => {
-    const url = prompt("Enter YouTube or video URL:");
-    if (url) {
-      const newItem: ContentItem = {
-        id: Date.now().toString(),
-        type: "video",
-        title: "Embedded Video",
-        source: url,
-        uploadedBy: isTeacher ? "Teacher" : userName,
-        timestamp: new Date()
-      };
-      setContentItems(prev => [...prev, newItem]);
-      setSelectedContent(newItem);
-    }
-  }, [isTeacher, userName]);
-
-  const handleAddGame = useCallback(() => {
-    const gameUrl = prompt("Enter game/interactive content URL:");
-    if (gameUrl) {
-      const newItem: ContentItem = {
-        id: Date.now().toString(),
-        type: "interactive",
-        title: "Interactive Game",
-        source: gameUrl,
-        uploadedBy: isTeacher ? "Teacher" : userName,
-        timestamp: new Date()
-      };
-      setContentItems(prev => [...prev, newItem]);
-      setSelectedContent(newItem);
-    }
-  }, [isTeacher, userName]);
-
   return {
     contentItems,
     selectedContent,
     setSelectedContent,
-    
-    // Enhanced upload methods
     isUploadDialogOpen,
     openUploadDialog,
     closeUploadDialog,
     handleEnhancedUpload,
-    
-    // File management
     previewFile,
     openPreview,
     closePreview,
     handleFileDelete,
-    handleFileDownload,
-    
-    // Legacy methods
-    handleUpload,
-    handleEmbedVideo,
-    handleAddGame
+    handleFileDownload
   };
 }
