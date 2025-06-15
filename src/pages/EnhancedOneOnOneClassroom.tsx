@@ -10,6 +10,7 @@ import { TodaysGoalsCard } from "@/components/classroom/enhanced/TodaysGoalsCard
 import { CleanLearningCenter } from "@/components/classroom/enhanced/CleanLearningCenter";
 import { StudentProfileCard } from "@/components/classroom/enhanced/StudentProfileCard";
 import { CleanChatInterface } from "@/components/classroom/enhanced/CleanChatInterface";
+import { TeacherVideoCard } from "@/components/classroom/enhanced/TeacherVideoCard";
 
 const EnhancedOneOnOneClassroom = () => {
   console.log("EnhancedOneOnOneClassroom component is rendering");
@@ -107,13 +108,24 @@ const EnhancedOneOnOneClassroom = () => {
       {/* Main Layout - Clean 3-column grid */}
       <div className="h-[calc(100vh-4rem)] p-4">
         <div className="grid grid-cols-12 gap-4 h-full">
-          {/* Left Panel - Teacher & Progress */}
+          {/* Left Panel - Teacher Video & Progress */}
           <div className="col-span-3 space-y-4">
+            {/* Teacher Video Section */}
+            <TeacherVideoCard 
+              user={currentUser}
+              enhancedClassroom={enhancedClassroom}
+            />
+            
+            {/* Teacher Info Card */}
             <CompactTeacherCard user={currentUser} />
+            
+            {/* Student Progress */}
             <StudentProgressCard 
               student={remoteUser}
               achievements={achievements}
             />
+            
+            {/* Goals */}
             <TodaysGoalsCard 
               goals={goals}
               onGoalToggle={handleGoalToggle}
@@ -130,7 +142,7 @@ const EnhancedOneOnOneClassroom = () => {
             />
           </div>
 
-          {/* Right Panel - Student & Chat */}
+          {/* Right Panel - Student Profile & Chat */}
           <div className="col-span-3 space-y-4">
             <StudentProfileCard student={remoteUser} />
             <CleanChatInterface 
