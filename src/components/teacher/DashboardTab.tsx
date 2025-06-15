@@ -27,7 +27,7 @@ export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
   } = useTeacherHandlers();
 
   const handleJoinClassroom = () => {
-    navigate("/classroom?role=teacher&name=Teacher");
+    navigate("/oneonone-classroom-new");
   };
 
   const handleStartClass = (classId: number) => {
@@ -35,7 +35,7 @@ export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
       title: "Starting Class",
       description: `Starting class with ID: ${classId}`,
     });
-    navigate("/classroom?role=teacher&name=Teacher");
+    navigate("/oneonone-classroom-new");
   };
 
   const handleAddStudent = () => {

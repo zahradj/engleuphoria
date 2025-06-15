@@ -16,7 +16,6 @@ import CurriculumLibraryPage from "./pages/CurriculumLibraryPage";
 import ForParents from "./pages/ForParents";
 import ForTeachers from "./pages/ForTeachers";
 import UnifiedClassroom from "./pages/UnifiedClassroom";
-import OneOnOneClassroomNew from "./pages/OneOnOneClassroomNew";
 
 const queryClient = new QueryClient();
 
@@ -40,7 +39,6 @@ function App() {
               <Route path="/for-parents" element={<ForParents />} />
               <Route path="/for-teachers" element={<ForTeachers />} />
               <Route path="/classroom" element={<UnifiedClassroom />} />
-              <Route path="/oneonone-classroom-new" element={<OneOnOneClassroomNew />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
