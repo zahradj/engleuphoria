@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Sparkles } from "lucide-react";
+import { Plus, Sparkles, Wand2, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { AIActivityGenerator } from "./AIActivityGenerator";
@@ -24,7 +24,7 @@ interface CreatedActivity {
 export function CreateActivityGame() {
   const [createdActivities, setCreatedActivities] = useState<CreatedActivity[]>([]);
   const [isCreating, setIsCreating] = useState(false);
-  const [activeTab, setActiveTab] = useState("manual");
+  const [activeTab, setActiveTab] = useState("ai"); // Default to AI tab
   const { toast } = useToast();
 
   const handleAIActivityGenerated = (aiActivity: any) => {
@@ -61,23 +61,50 @@ export function CreateActivityGame() {
 
   if (!isCreating && createdActivities.length === 0) {
     return (
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="manual">Manual Creation</TabsTrigger>
-          <TabsTrigger value="ai" className="flex items-center gap-1">
-            <Sparkles size={14} />
-            AI Generator
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="manual" className="text-center py-8">
-          <EmptyState onCreateActivity={() => setIsCreating(true)} />
-        </TabsContent>
+      <div className="space-y-4">
+        {/* Prominent AI Generator Header */}
+        <Card className="p-6 bg-gradient-to-r from-purple-50 via-blue-50 to-emerald-50 border-purple-200">
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <Wand2 className="h-6 w-6 text-purple-600" />
+              <h2 className="text-xl font-bold text-purple-800">AI Activity Generator</h2>
+              <Badge className="bg-red-500 text-white">NEW</Badge>
+            </div>
+            <p className="text-purple-700 mb-4">
+              Create custom learning activities instantly with AI! Generate worksheets, games, and interactive content tailored to your students.
+            </p>
+            <div className="flex items-center justify-center gap-4 text-sm text-purple-600">
+              <span className="flex items-center gap-1">
+                <Zap className="h-4 w-4" />
+                Instant Generation
+              </span>
+              <span className="flex items-center gap-1">
+                <Sparkles className="h-4 w-4" />
+                AI Powered
+              </span>
+            </div>
+          </div>
+        </Card>
 
-        <TabsContent value="ai">
-          <AIActivityGenerator onActivityGenerated={handleAIActivityGenerated} />
-        </TabsContent>
-      </Tabs>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="ai" className="flex items-center gap-2">
+              <Sparkles size={16} className="text-purple-500" />
+              AI Generator
+              <Badge variant="secondary" className="bg-purple-100 text-purple-700 text-xs">Recommended</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="manual">Manual Creation</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="ai" className="mt-4">
+            <AIActivityGenerator onActivityGenerated={handleAIActivityGenerated} />
+          </TabsContent>
+
+          <TabsContent value="manual" className="text-center py-8">
+            <EmptyState onCreateActivity={() => setIsCreating(true)} />
+          </TabsContent>
+        </Tabs>
+      </div>
     );
   }
 
@@ -98,8 +125,7 @@ export function CreateActivityGame() {
           <Button
             onClick={() => setActiveTab("ai")}
             size="sm"
-            variant="outline"
-            className="border-purple-200 text-purple-600 hover:bg-purple-50"
+            className="bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
           >
             <Sparkles size={16} className="mr-2" />
             AI Generate
@@ -107,10 +133,11 @@ export function CreateActivityGame() {
           <Button
             onClick={() => setIsCreating(true)}
             size="sm"
-            className="bg-purple-500 hover:bg-purple-600"
+            variant="outline"
+            className="border-purple-200 text-purple-600 hover:bg-purple-50"
           >
             <Plus size={16} className="mr-2" />
-            Create New
+            Create Manual
           </Button>
         </div>
       </div>

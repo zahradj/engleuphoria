@@ -1,80 +1,52 @@
 
-import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
-import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
-
-// Lazy load pages for better performance
-const EnhancedIndex = lazy(() => import("./pages/EnhancedIndex"));
-const Login = lazy(() => import("./pages/Login"));
-const SignUp = lazy(() => import("./pages/SignUp"));
-const ForParents = lazy(() => import("./pages/ForParents"));
-const ForTeachers = lazy(() => import("./pages/ForTeachers"));
-const StudentDashboard = lazy(() => import("./pages/StudentDashboard"));
-const TeacherDashboard = lazy(() => import("./pages/TeacherDashboard"));
-const OneOnOneClassroomNew = lazy(() => import("./pages/OneOnOneClassroomNew"));
-const UnifiedClassroom = lazy(() => import("./pages/UnifiedClassroom"));
-const SimpleClassroomSelector = lazy(() => import("./pages/SimpleClassroomSelector"));
-const PaymentPage = lazy(() => import("./pages/PaymentPage"));
-const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
-const MaterialLibraryPage = lazy(() => import("./pages/MaterialLibraryPage"));
-const CurriculumLibraryPage = lazy(() => import("./pages/CurriculumLibraryPage"));
-const NotFound = lazy(() => import("./pages/NotFound"));
+import Dashboard from "./pages/Dashboard";
+import TeacherDashboard from "./pages/TeacherDashboard";
+import StudentDashboard from "./pages/StudentDashboard";
+import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
+import Payment from "./pages/Payment";
+import MaterialLibrary from "./pages/MaterialLibrary";
+import CurriculumLibrary from "./pages/CurriculumLibrary";
+import ForParents from "./pages/ForParents";
+import ForTeachers from "./pages/ForTeachers";
+import Pricing from "./pages/Pricing";
+import UnifiedClassroom from "./pages/UnifiedClassroom";
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <LanguageProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Suspense fallback={
-                <div className="min-h-screen flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-                </div>
-              }>
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/enhanced" element={<EnhancedIndex />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/signup" element={<SignUp />} />
-                  <Route path="/for-parents" element={<ForParents />} />
-                  <Route path="/for-teachers" element={<ForTeachers />} />
-                  <Route path="/student-dashboard" element={<StudentDashboard />} />
-                  <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
-                  <Route path="/admin-dashboard" element={<AdminDashboard />} />
-                  <Route path="/material-library" element={<MaterialLibraryPage />} />
-                  <Route path="/curriculum-library" element={<CurriculumLibraryPage />} />
-                  
-                  {/* New Unified Classroom Routes */}
-                  <Route path="/classroom/:roomId" element={<UnifiedClassroom />} />
-                  <Route path="/classroom" element={<UnifiedClassroom />} />
-                  
-                  {/* Redirect old classroom route to new unified classroom */}
-                  <Route 
-                    path="/oneonone-classroom-new" 
-                    element={<Navigate to="/classroom/demo-room?role=teacher&name=Ms. Johnson&userId=teacher-1" replace />} 
-                  />
-                  
-                  <Route path="/classroom-selector" element={<SimpleClassroomSelector />} />
-                  <Route path="/payment" element={<PaymentPage />} />
-                  <Route path="/pricing" element={<PaymentPage />} />
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
-            </BrowserRouter>
-          </TooltipProvider>
-        </LanguageProvider>
-      </AuthProvider>
+      <LanguageProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
+              <Route path="/student-dashboard" element={<StudentDashboard />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/payment" element={<Payment />} />
+              <Route path="/material-library" element={<MaterialLibrary />} />
+              <Route path="/curriculum-library" element={<CurriculumLibrary />} />
+              <Route path="/for-parents" element={<ForParents />} />
+              <Route path="/for-teachers" element={<ForTeachers />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/classroom" element={<UnifiedClassroom />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }

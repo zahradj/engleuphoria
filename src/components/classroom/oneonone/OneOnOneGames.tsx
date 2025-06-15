@@ -12,7 +12,9 @@ import {
   Plus,
   Grid3x3,
   CirclePlay,
-  Dice1
+  Dice1,
+  Sparkles,
+  Wand2
 } from "lucide-react";
 import { FlashcardsGame } from "./games/FlashcardsGame";
 import { SentenceBuilderGame } from "./games/SentenceBuilderGame";
@@ -28,7 +30,16 @@ export function OneOnOneGames() {
   const [activeGame, setActiveGame] = useState<string | null>(null);
   const [score, setScore] = useState(0);
 
-  const games = [
+  const aiGames = [
+    {
+      id: "create-activity",
+      title: "AI Activity Generator",
+      description: "Create custom activities with AI - worksheets, games & more!",
+      icon: Wand2,
+      color: "bg-gradient-to-br from-purple-100 to-blue-100 text-purple-700",
+      isNew: true,
+      isFeatured: true
+    },
     {
       id: "enhanced-drag-drop",
       title: "Grab & Drag Match",
@@ -52,7 +63,10 @@ export function OneOnOneGames() {
       icon: Dice1,
       color: "bg-blue-100 text-blue-700",
       isNew: true
-    },
+    }
+  ];
+
+  const classicGames = [
     {
       id: "flashcards",
       title: "Vocabulary Flashcards",
@@ -80,13 +94,6 @@ export function OneOnOneGames() {
       description: "Spin the wheel for random questions",
       icon: Play,
       color: "bg-orange-100 text-orange-700"
-    },
-    {
-      id: "create-activity",
-      title: "Create Activity",
-      description: "Design your own custom activities",
-      icon: Plus,
-      color: "bg-pink-100 text-pink-700"
     }
   ];
 
@@ -130,40 +137,67 @@ export function OneOnOneGames() {
           AI Gaming Activities
         </h3>
         <Badge variant="outline" className="text-xs">
-          {games.filter(g => g.isNew).length} New!
+          {aiGames.length} AI Games!
         </Badge>
       </div>
-      
-      <div className="grid grid-cols-2 gap-3">
-        {games.map((game) => (
-          <Card 
-            key={game.id}
-            className="p-4 cursor-pointer hover:shadow-md transition-all relative group"
-            onClick={() => setActiveGame(game.id)}
-          >
-            {game.isNew && (
-              <Badge 
-                variant="secondary" 
-                className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-1"
-              >
-                NEW
-              </Badge>
-            )}
-            
-            <div className={`w-12 h-12 rounded-lg ${game.color} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
-              <game.icon size={24} />
-            </div>
-            <h4 className="font-medium text-sm mb-1">{game.title}</h4>
-            <p className="text-xs text-gray-600 leading-relaxed">{game.description}</p>
-            
-            {game.isNew && (
+
+      {/* Featured AI Games Section */}
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-3">
+          <Sparkles size={16} className="text-purple-600" />
+          <h4 className="font-medium text-purple-800">✨ Featured AI Games</h4>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {aiGames.map((game) => (
+            <Card 
+              key={game.id}
+              className={`p-4 cursor-pointer hover:shadow-md transition-all relative group ${
+                game.isFeatured ? 'ring-2 ring-purple-200 bg-gradient-to-br from-purple-50 to-blue-50' : ''
+              }`}
+              onClick={() => setActiveGame(game.id)}
+            >
+              {game.isNew && (
+                <Badge 
+                  variant="secondary" 
+                  className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-1"
+                >
+                  NEW
+                </Badge>
+              )}
+              
+              <div className={`w-12 h-12 rounded-lg ${game.color} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
+                <game.icon size={24} />
+              </div>
+              <h4 className="font-medium text-sm mb-1">{game.title}</h4>
+              <p className="text-xs text-gray-600 leading-relaxed">{game.description}</p>
+              
               <div className="mt-2 flex items-center gap-1">
                 <Star size={12} className="text-yellow-500" />
                 <span className="text-xs text-yellow-600 font-medium">AI Powered</span>
               </div>
-            )}
-          </Card>
-        ))}
+            </Card>
+          ))}
+        </div>
+      </div>
+
+      {/* Classic Games Section */}
+      <div>
+        <h4 className="font-medium text-gray-700 mb-3">Classic Games</h4>
+        <div className="grid grid-cols-2 gap-3">
+          {classicGames.map((game) => (
+            <Card 
+              key={game.id}
+              className="p-4 cursor-pointer hover:shadow-md transition-all relative group"
+              onClick={() => setActiveGame(game.id)}
+            >
+              <div className={`w-12 h-12 rounded-lg ${game.color} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
+                <game.icon size={24} />
+              </div>
+              <h4 className="font-medium text-sm mb-1">{game.title}</h4>
+              <p className="text-xs text-gray-600 leading-relaxed">{game.description}</p>
+            </Card>
+          ))}
+        </div>
       </div>
       
       <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 via-blue-50 to-emerald-50 rounded-lg border">
@@ -172,18 +206,8 @@ export function OneOnOneGames() {
           <span className="font-medium text-purple-800">New AI Features!</span>
         </div>
         <p className="text-sm text-purple-700 leading-relaxed">
-          Try our new AI-powered games: <strong>Grab & Drag Match</strong> with smart content, 
-          <strong> AI Spinning Wheel</strong> with adaptive questions, and <strong>Roll the Dice</strong> for creative challenges!
-        </p>
-      </div>
-      
-      <div className="mt-4 p-3 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg">
-        <div className="flex items-center gap-2 mb-2">
-          <Star size={14} className="text-orange-600" />
-          <span className="font-medium text-orange-800 text-sm">Pro Tip</span>
-        </div>
-        <p className="text-sm text-orange-700">
-          Complete activities to earn XP points and unlock new levels! AI games adapt to your progress.
+          Try our new <strong>AI Activity Generator</strong> to create custom worksheets and games instantly! 
+          Plus enjoy our enhanced <strong>Grab & Drag Match</strong>, <strong>AI Spinning Wheel</strong>, and <strong>Roll the Dice</strong> games!
         </p>
       </div>
     </div>

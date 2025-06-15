@@ -1,119 +1,56 @@
 
-import { ArrowRight } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { AnimatedButton } from "@/components/AnimatedButton";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, Gamepad2, Sparkles } from "lucide-react";
 
 interface HeroProps {
   onStartClick: () => void;
 }
 
 export const Hero = ({ onStartClick }: HeroProps) => {
-  const navigate = useNavigate();
-  const { languageText } = useLanguage();
-
   return (
-    <div className="flex flex-col-reverse md:flex-row gap-8 items-center">
-      <div className="flex-1 md:max-w-[40%]">
-        <h1 className="text-4xl sm:text-5xl font-bold mb-4 animate-fade-in">
-          <span className="bg-gradient-to-r from-purple to-teal bg-clip-text text-transparent">
-            {languageText.learnEnglish}
-          </span> {languageText.funWay}
+    <section className="text-center py-20 px-4">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-green-600 bg-clip-text text-transparent">
+          Learn English with AI-Powered Fun!
         </h1>
         
-        <p className="text-lg mb-6 text-muted-foreground animate-fade-in animation-delay-300">
-          {languageText.heroDescription}
+        <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+          Experience personalized English learning with interactive games, AI tutors, and real-time feedback. 
+          Perfect for kids and beginners!
         </p>
         
-        <div className="flex flex-wrap gap-4 mb-8">
-          <FeatureCard 
-            icon="video" 
-            title={languageText.interactiveClasses} 
-            description={languageText.liveVideoLessons} 
-            color="purple"
-          />
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+          <Button 
+            size="lg" 
+            onClick={onStartClick}
+            className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white px-8 py-4 text-lg"
+          >
+            Start Learning Now
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Button>
           
-          <FeatureCard 
-            icon="book" 
-            title={languageText.funActivities} 
-            description={languageText.gamesAndQuizzes} 
-            color="teal"
-            delay="300"
-          />
-          
-          <FeatureCard 
-            icon="users" 
-            title={languageText.community} 
-            description={languageText.learnWithFriends} 
-            color="orange"
-            delay="500"
-          />
+          <Button 
+            size="lg" 
+            variant="outline"
+            onClick={() => window.location.href = '/classroom'}
+            className="border-purple-200 text-purple-600 hover:bg-purple-50 px-8 py-4 text-lg"
+          >
+            <Gamepad2 className="mr-2 h-5 w-5" />
+            Try AI Games Now
+          </Button>
         </div>
-        
-        <AnimatedButton size="lg" onClick={onStartClick} className="gap-2" animationType="bounce">
-          {languageText.getStarted} <ArrowRight className="h-4 w-4" />
-        </AnimatedButton>
-      </div>
-      
-      <div className="flex-1 md:flex-grow md:max-w-[60%] relative">
-        {/* Faded circular shadow effects using radial gradients */}
-        <div className="absolute -z-10 top-1/4 left-1/4 w-[110%] h-[110%] bg-purple/15 rounded-full blur-3xl animate-pulse-subtle opacity-70"></div>
-        <div className="absolute -z-10 bottom-1/4 right-1/4 w-[90%] h-[90%] bg-teal/15 rounded-full blur-3xl animate-pulse-subtle opacity-65 animation-delay-300"></div>
-        <div className="absolute -z-10 top-1/3 right-1/3 w-[80%] h-[80%] bg-orange/10 rounded-full blur-3xl animate-pulse-subtle opacity-55 animation-delay-700"></div>
-        
-        <img 
-          src="/lovable-uploads/94b3a265-e3c7-4819-9be4-de2aa5cdc590.png"
-          alt="3D learning illustration with educational elements"
-          className="w-full h-auto object-contain mx-auto max-h-[800px] relative z-5 animate-float"
-        />
-        <div className="absolute -top-4 -right-4 bg-yellow/90 text-yellow-dark font-bold px-4 py-2 rounded-full animate-bounce-light z-20">
-          {languageText.joinNow}
+
+        <div className="bg-gradient-to-r from-purple-50 via-blue-50 to-emerald-50 rounded-xl p-6 border border-purple-100">
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <Sparkles className="h-5 w-5 text-purple-600" />
+            <span className="font-semibold text-purple-800">New AI Features!</span>
+          </div>
+          <p className="text-purple-700">
+            Try our AI-powered games: <strong>Drag & Drop Match</strong>, <strong>Spinning Wheel</strong>, 
+            and <strong>Dice Rolling</strong> games with smart content generation!
+          </p>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
-
-interface FeatureCardProps {
-  icon: "video" | "book" | "users";
-  title: string;
-  description: string;
-  color: "purple" | "teal" | "orange";
-  delay?: string;
-}
-
-const FeatureCard = ({ icon, title, description, color, delay = "0" }: FeatureCardProps) => {
-  // Import icons dynamically based on the icon prop
-  const renderIcon = () => {
-    const className = `text-${color} h-6 w-6`;
-    
-    switch (icon) {
-      case "video":
-        return <Video className={className} />;
-      case "book":
-        return <BookOpen className={className} />;
-      case "users":
-        return <Users className={className} />;
-      default:
-        return null;
-    }
-  };
-
-  const animationClass = delay === "0" ? "animate-scale-in" : `animate-scale-in animation-delay-${delay}`;
-  
-  return (
-    <Card className={`p-4 flex items-center gap-3 w-full sm:w-auto ${animationClass}`}>
-      <div className={`bg-${color}/20 p-2 rounded-full`}>
-        {renderIcon()}
-      </div>
-      <div>
-        <h3 className="font-bold">{title}</h3>
-        <p className="text-sm text-muted-foreground">{description}</p>
-      </div>
-    </Card>
-  );
-};
-
-// Add the imports here to avoid unused imports in the file
-import { Video, BookOpen, Users } from "lucide-react";
-import { Card } from "@/components/ui/card";
