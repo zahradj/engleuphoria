@@ -30,10 +30,10 @@ export function UnifiedCenterPanel({
   const isTeacher = currentUser.role === 'teacher';
   
   const tabs = [
-    { id: "whiteboard", label: "Whiteboard", icon: PenTool, gradient: "from-slate-400 to-slate-500" },
-    { id: "games", label: "Activities", icon: Gamepad2, gradient: "from-gray-400 to-gray-500" },
-    { id: "ai", label: "AI Assistant", icon: Sparkles, gradient: "from-slate-500 to-gray-600", badge: isTeacher ? "Full" : "Student" },
-    { id: "resources", label: "Resources", icon: Link, gradient: "from-slate-400 to-gray-400" }
+    { id: "whiteboard", label: "Whiteboard", icon: PenTool, gradient: "from-blue-500 to-cyan-500" },
+    { id: "games", label: "Activities", icon: Gamepad2, gradient: "from-emerald-500 to-green-500" },
+    { id: "ai", label: "AI Assistant", icon: Sparkles, gradient: "from-purple-500 to-violet-500", badge: isTeacher ? "Full" : "Student" },
+    { id: "resources", label: "Resources", icon: Link, gradient: "from-orange-500 to-amber-500" }
   ];
 
   const studentProfile = {
@@ -54,7 +54,7 @@ export function UnifiedCenterPanel({
   return (
     <Card className="shadow-xl flex flex-col h-full overflow-hidden glass-enhanced backdrop-blur-xl border-0">
       {/* Tab Navigation */}
-      <div className="flex-shrink-0 border-b border-white/20 bg-white/10 backdrop-blur-xl">
+      <div className="flex-shrink-0 border-b border-white/30 bg-white/20 backdrop-blur-xl">
         <div className="p-4">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {tabs.map((tab) => {
@@ -70,13 +70,13 @@ export function UnifiedCenterPanel({
                   className={`h-auto p-4 flex flex-col items-center gap-2 rounded-xl transition-all duration-300 ${
                     isActive 
                       ? `bg-gradient-to-br ${tab.gradient} text-white shadow-lg` 
-                      : `bg-white/40 text-gray-600 hover:bg-white/60 shadow-sm`
+                      : `bg-white/60 text-gray-700 hover:bg-white/80 shadow-sm`
                   }`}
                 >
                   <div className="flex items-center gap-2">
                     <IconComponent size={18} />
                     {tab.badge && (
-                      <Badge variant="secondary" className="text-xs px-2 py-0 h-5 bg-white/30">
+                      <Badge variant="secondary" className="text-xs px-2 py-0 h-5">
                         {tab.badge}
                       </Badge>
                     )}
@@ -94,19 +94,19 @@ export function UnifiedCenterPanel({
         <ScrollArea className="h-full">
           <div className="p-4">
             {activeCenterTab === "whiteboard" && (
-              <div className="bg-white/30 backdrop-blur-sm rounded-xl p-1 border border-white/30 shadow-lg">
+              <div className="bg-white/50 backdrop-blur-sm rounded-xl p-1 border border-white/40 shadow-lg">
                 <OneOnOneWhiteboard />
               </div>
             )}
             
             {activeCenterTab === "games" && (
-              <div className="bg-white/30 backdrop-blur-sm rounded-xl p-1 border border-white/30 shadow-lg">
+              <div className="bg-white/50 backdrop-blur-sm rounded-xl p-1 border border-white/40 shadow-lg">
                 <OneOnOneGames />
               </div>
             )}
             
             {activeCenterTab === "ai" && (
-              <div className="bg-white/30 backdrop-blur-sm rounded-xl p-1 border border-white/30 shadow-lg">
+              <div className="bg-white/50 backdrop-blur-sm rounded-xl p-1 border border-white/40 shadow-lg">
                 <EnhancedAIAssistant
                   studentProfile={studentProfile}
                   onContentGenerated={handleContentGenerated}
@@ -117,14 +117,14 @@ export function UnifiedCenterPanel({
             
             {activeCenterTab === "resources" && (
               <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gradient-to-br from-slate-200 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                  <BookOpen size={24} className="text-slate-500" />
+                <div className="w-16 h-16 bg-gradient-to-br from-orange-200 to-amber-200 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                  <BookOpen size={24} className="text-orange-600" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-700 mb-2">Resources</h3>
-                <p className="text-gray-500 mb-6 max-w-sm mx-auto">
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">Resources</h3>
+                <p className="text-gray-600 mb-6 max-w-sm mx-auto">
                   {isTeacher ? "Manage educational materials" : "Browse learning resources"}
                 </p>
-                <Button className="bg-gradient-to-r from-slate-400 to-gray-500 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-2 rounded-xl">
+                <Button className="bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-2 rounded-xl">
                   {isTeacher ? "Manage" : "Browse"}
                 </Button>
               </div>
