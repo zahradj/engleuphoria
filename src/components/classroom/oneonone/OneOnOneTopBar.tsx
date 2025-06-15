@@ -15,7 +15,7 @@ import {
   Hand,
   Monitor
 } from "lucide-react";
-import { useLocalMedia } from "@/hooks/useLocalMedia";
+import { useMediaContext } from "./video/MediaContext";
 
 interface OneOnOneTopBarProps {
   classTime: number;
@@ -44,10 +44,8 @@ export function OneOnOneTopBar({
   currentUserName,
   isTeacher
 }: OneOnOneTopBarProps) {
-  // Use our new hook for local media state and controls
-  const media = useLocalMedia();
-
-  // Use enhancedClassroom as a fallback for badge slots/demo-only
+  // Use the shared media context for state and controls
+  const media = useMediaContext();
   const participants = enhancedClassroom?.participants || [];
 
   return (

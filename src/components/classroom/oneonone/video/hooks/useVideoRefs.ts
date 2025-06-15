@@ -2,28 +2,29 @@
 import { useRef, useEffect } from "react";
 import { VideoRefs } from "../types";
 
+// Now always assign stream to both refs, for proper local preview in solo session
 export function useVideoRefs(media: any, isTeacher: boolean) {
   const teacherVideoRef = useRef<HTMLVideoElement>(null);
   const studentVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    const teacherVideo = teacherVideoRef.current;
-    const studentVideo = studentVideoRef.current;
-
-    if (media.stream) {
-      if (isTeacher && teacherVideo) {
-        teacherVideo.srcObject = media.stream;
-      }
-      if (!isTeacher && studentVideo) {
-        studentVideo.srcObject = media.stream;
-      }
+    if (!media.stream) {
+      if (teacherVideoRef.current) teacherVideoRef.current.srcObject = null;
+      if (studentVideoRef.current) studentVideoRef.current.srcObject = null;
+      return;
     }
-
+    // Both teacher and student should see their own video if connected, regardless of role (single participant session)
+    if (teacherVideoRef.current) {
+      teacherVideoRef.current.srcObject = media.stream;
+    }
+    if (studentVideoRef.current) {
+      studentVideoRef.current.srcObject = media.stream;
+    }
     return () => {
-      if (teacherVideo) teacherVideo.srcObject = null;
-      if (studentVideo) studentVideo.srcObject = null;
+      if (teacherVideoRef.current) teacherVideoRef.current.srcObject = null;
+      if (studentVideoRef.current) studentVideoRef.current.srcObject = null;
     };
-  }, [media.stream, isTeacher]);
+  }, [media.stream]);
 
   return { teacherVideoRef, studentVideoRef } as VideoRefs;
 }
