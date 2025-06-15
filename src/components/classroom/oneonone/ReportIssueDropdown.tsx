@@ -2,8 +2,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-
-type IssueType = "Audio Issue" | "Video Issue" | "Internet Issue" | "Other";
+import { IssueType } from "./video/types";
 
 interface ReportIssueDropdownProps {
   onReport: (issue: IssueType) => void;
@@ -24,10 +23,13 @@ export function ReportIssueDropdown({ onReport }: ReportIssueDropdownProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuItem onClick={() => { onReport("Audio Issue"); setOpen(false); }}>Audio Issue</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => { onReport("Video Issue"); setOpen(false); }}>Video Issue</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => { onReport("Internet Issue"); setOpen(false); }}>Internet Issue</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => { onReport("Other"); setOpen(false); }}>Other</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => { onReport("Audio not working"); setOpen(false); }}>Audio not working</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => { onReport("Video not working"); setOpen(false); }}>Video not working</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => { onReport("Connection issues"); setOpen(false); }}>Connection issues</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => { onReport("Poor audio quality"); setOpen(false); }}>Poor audio quality</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => { onReport("Poor video quality"); setOpen(false); }}>Poor video quality</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => { onReport("Screen sharing not working"); setOpen(false); }}>Screen sharing not working</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => { onReport("Other technical issue"); setOpen(false); }}>Other technical issue</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
