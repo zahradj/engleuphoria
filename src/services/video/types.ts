@@ -2,11 +2,10 @@
 export interface EnhancedVideoConfig {
   roomName: string;
   displayName: string;
-  domain?: string;
   enableRecording?: boolean;
   enableScreenShare?: boolean;
   maxParticipants?: number;
-  moderatorPassword?: string;
+  domain?: string;
 }
 
 export interface ParticipantData {
@@ -14,13 +13,15 @@ export interface ParticipantData {
   displayName: string;
   role: 'teacher' | 'student';
   isMuted: boolean;
-  isVideoOff: boolean;
-  isHandRaised: boolean;
-  joinTime: Date;
+  isCameraOff: boolean;
+  isHandRaised?: boolean;
+  connectionQuality?: string;
 }
 
-declare global {
-  interface Window {
-    JitsiMeetExternalAPI: any;
-  }
+export interface VideoCallbacks {
+  onConnectionStatusChanged?: (connected: boolean) => void;
+  onParticipantJoined?: (id: string, name: string) => void;
+  onParticipantLeft?: (id: string) => void;
+  onError?: (error: string) => void;
+  onLocalStreamChanged?: (stream: MediaStream | null) => void;
 }
