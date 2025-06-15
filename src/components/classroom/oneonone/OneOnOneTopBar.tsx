@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,12 +15,13 @@ import {
   Hand,
   Monitor
 } from "lucide-react";
+import { useLocalMedia } from "@/hooks/useLocalMedia";
 
 interface OneOnOneTopBarProps {
   classTime: number;
   studentName: string;
   studentLevel: string;
-  enhancedClassroom: any; // Enhanced classroom hook return value
+  enhancedClassroom: any;
   roomId: string;
   currentUserId: string;
   currentUserName: string;
@@ -44,28 +44,11 @@ export function OneOnOneTopBar({
   currentUserName,
   isTeacher
 }: OneOnOneTopBarProps) {
-  const {
-    isConnected,
-    connectionQuality,
-    error,
-    participants,
-    isRecording,
-    isMuted,
-    isCameraOff,
-    joinClassroom,
-    leaveClassroom,
-    toggleRecording,
-    toggleMicrophone,
-    toggleCamera,
-    raiseHand,
-    startScreenShare
-  } = enhancedClassroom;
+  // Use our new hook for local media state and controls
+  const media = useLocalMedia();
 
-  const handleToggleRecording = () => {
-    if (isTeacher) {
-      toggleRecording();
-    }
-  };
+  // Use enhancedClassroom as a fallback for badge slots/demo-only
+  const participants = enhancedClassroom?.participants || [];
 
   return (
     <Card className="w-full shadow-sm">
@@ -93,12 +76,11 @@ export function OneOnOneTopBar({
           <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
             <div className="flex items-center gap-1">
               <div className={`w-2 h-2 rounded-full ${
-                isConnected ? 'bg-green-500' : 'bg-gray-400'
+                media.isConnected ? 'bg-green-500' : 'bg-gray-400'
               }`}></div>
-              <span>{isConnected ? 'Connected' : 'Ready'}</span>
-              {connectionQuality && isConnected && (
-                <span className="text-gray-400">({connectionQuality})</span>
-              )}
+              <span>{media.isConnected ? 'Connected' : 'Ready'}</span>
+              {/* still showing 'good' quality */}
+              <span className="text-gray-400">(good)</span>
             </div>
             {participants.length > 0 && (
               <div className="flex items-center gap-1">
@@ -112,9 +94,9 @@ export function OneOnOneTopBar({
         {/* Right: Enhanced Video Controls */}
         <div className="flex items-center gap-2">
           {/* Connection Control */}
-          {!isConnected ? (
+          {!media.isConnected ? (
             <Button 
-              onClick={joinClassroom} 
+              onClick={media.join} 
               size="sm"
               className="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1"
             >
@@ -123,7 +105,7 @@ export function OneOnOneTopBar({
             </Button>
           ) : (
             <Button 
-              onClick={leaveClassroom} 
+              onClick={media.leave} 
               size="sm"
               variant="destructive"
               className="text-xs px-3 py-1"
@@ -135,66 +117,59 @@ export function OneOnOneTopBar({
 
           {/* Microphone Control */}
           <Button
-            variant={isMuted ? "destructive" : "outline"}
+            variant={media.isMuted ? "destructive" : "outline"}
             size="sm"
-            onClick={toggleMicrophone}
+            onClick={media.toggleMicrophone}
             className="rounded-full w-10 h-10 p-0"
           >
-            {isMuted ? <MicOff size={16} /> : <Mic size={16} />}
+            {media.isMuted ? <MicOff size={16} /> : <Mic size={16} />}
           </Button>
           
           {/* Camera Control */}
           <Button
-            variant={isCameraOff ? "destructive" : "outline"}
+            variant={media.isCameraOff ? "destructive" : "outline"}
             size="sm"
-            onClick={toggleCamera}
+            onClick={media.toggleCamera}
             className="rounded-full w-10 h-10 p-0"
           >
-            {isCameraOff ? <VideoOff size={16} /> : <Video size={16} />}
+            {media.isCameraOff ? <VideoOff size={16} /> : <Video size={16} />}
           </Button>
 
-          {/* Raise Hand Control */}
+          {/* Raise Hand / Screen Share / Record placeholders */}
           <Button
             variant="outline"
             size="sm"
-            onClick={raiseHand}
             className="rounded-full w-10 h-10 p-0"
-            disabled={!isConnected}
+            disabled={!media.isConnected}
           >
             <Hand size={16} />
           </Button>
-
-          {/* Screen Share Control */}
           <Button
             variant="outline"
             size="sm"
-            onClick={startScreenShare}
             className="rounded-full w-10 h-10 p-0"
-            disabled={!isConnected}
+            disabled={!media.isConnected}
           >
             <Monitor size={16} />
           </Button>
-
-          {/* Recording Control - Teacher Only */}
+          {/* Recording only for teacher, placeholder only */}
           {isTeacher && (
             <Button
-              variant={isRecording ? "destructive" : "outline"}
+              variant="outline"
               size="sm"
-              onClick={handleToggleRecording}
               className="rounded-full w-10 h-10 p-0"
-              disabled={!isConnected}
+              disabled={!media.isConnected}
             >
-              {isRecording ? <Square size={16} /> : <Circle size={16} />}
+              <Circle size={16} />
             </Button>
           )}
         </div>
       </div>
-
       {/* Error Display */}
-      {error && (
+      {media.error && (
         <div className="px-4 pb-2">
           <div className="text-xs text-red-600 bg-red-50 p-2 rounded">
-            {error}
+            {media.error}
           </div>
         </div>
       )}

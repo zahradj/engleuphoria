@@ -5,16 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Star, Mic, MicOff, Video, VideoOff, Sparkles, Users, Circle } from "lucide-react";
 import { OneOnOneRewards } from "./OneOnOneRewards";
 import { ReportIssueDropdown } from "./ReportIssueDropdown";
+import { useLocalMedia } from "@/hooks/useLocalMedia";
 
 interface OneOnOneVideoSectionProps {
-  enhancedClassroom: any; // Enhanced classroom hook return value
+  enhancedClassroom: any;
   currentUserId: string;
   currentUserName: string;
   isTeacher: boolean;
   studentXP?: number;
   onAwardPoints?: () => void;
   showRewardPopup?: boolean;
-  lessonStarted?: boolean; // optional external control (for unified logic)
+  lessonStarted?: boolean;
 }
 
 type IssueType = "Audio Issue" | "Video Issue" | "Internet Issue" | "Other";
@@ -29,19 +30,11 @@ export function OneOnOneVideoSection({
   showRewardPopup = false,
   lessonStarted: externalLessonStarted
 }: OneOnOneVideoSectionProps) {
-  const {
-    isConnected,
-    connectionQuality,
-    participants,
-    isRecording,
-    localStream,
-    isMuted,
-    isCameraOff,
-    toggleMicrophone,
-    toggleCamera,
-    // ...other props/actions from enhancedClassroom if needed
-  } = enhancedClassroom;
 
+  // Hook for real media state
+  const media = useLocalMedia();
+
+  // UI-local lesson controls
   const [lessonStarted, setLessonStarted] = useState(externalLessonStarted ?? false);
   const [waitingSince, setWaitingSince] = useState<number | null>(null);
   const [logMessages, setLogMessages] = useState<string[]>([]);
@@ -49,11 +42,9 @@ export function OneOnOneVideoSection({
 
   const [reportedIssue, setReportedIssue] = useState<IssueType | null>(null);
 
-  // Attendance/absence logic
   useEffect(() => {
     if (!lessonStarted) {
       setWaitingSince(Date.now());
-      // Start timeout check for 5 min (300000 ms)
       if (!lessonStartTimeout.current) {
         lessonStartTimeout.current = setTimeout(() => {
           const now = Date.now();
@@ -76,65 +67,53 @@ export function OneOnOneVideoSection({
       }
       setWaitingSince(null);
     }
-    return () => {
-      if (lessonStartTimeout.current) clearTimeout(lessonStartTimeout.current);
-    };
+    return () => { if (lessonStartTimeout.current) clearTimeout(lessonStartTimeout.current); };
   }, [lessonStarted, isTeacher, waitingSince]);
 
-  // Event logging handlers
   const logEvent = (msg: string) => {
     setLogMessages(old => [...old, `[${new Date().toLocaleTimeString()}] ${msg}`]);
   };
 
   useEffect(() => {
-    // Log join/leave/connection error events with minimal proof-of-concept
-    if (isConnected) {
+    if (media.isConnected) {
       logEvent(`${isTeacher ? "Teacher" : "Student"} joined the session.`);
     }
-    // No connection error sample, but extra logic could go here...
-    // eslint-disable-next-line
-  }, [isConnected, isTeacher]);
+  }, [media.isConnected, isTeacher]);
 
-  // Teacher starts lesson
   const handleStartLesson = () => {
     setLessonStarted(true);
     logEvent("Lesson started by Teacher.");
-    // (In real integration: trigger enhancedClassroom.connect or similar)
+    // Optionally connect on start
+    if (!media.isConnected) media.join();
   };
 
-  // Report issue
   const handleReportIssue = (issue: IssueType) => {
     setReportedIssue(issue);
     logEvent(`Technical issue reported: ${issue}`);
     setTimeout(() => setReportedIssue(null), 3000);
   };
 
-  // Separate containers for video as per requirements
-  const teacherVideoRef = useRef<HTMLDivElement>(null);
-  const studentVideoRef = useRef<HTMLDivElement>(null);
+  const teacherVideoRef = useRef<HTMLVideoElement>(null);
+  const studentVideoRef = useRef<HTMLVideoElement>(null);
 
+  // Mount or update local video
   useEffect(() => {
-    // Attach teacher and student video frames to containers with correct IDs
-    // Simulate teacher sees own video on left, student on right, and vice versa for student
-    const teacherContainer = document.getElementById("teacher-video");
-    const studentContainer = document.getElementById("student-video");
-    if (teacherContainer && teacherVideoRef.current) {
-      teacherContainer.innerHTML = "";
-      teacherContainer.appendChild(teacherVideoRef.current);
+    if (lessonStarted && media.stream) {
+      // Teacher or student sees their OWN video (simplest MVP)
+      if (isTeacher && teacherVideoRef.current) {
+        teacherVideoRef.current.srcObject = media.stream;
+      }
+      if (!isTeacher && studentVideoRef.current) {
+        studentVideoRef.current.srcObject = media.stream;
+      }
     }
-    if (studentContainer && studentVideoRef.current) {
-      studentContainer.innerHTML = "";
-      studentContainer.appendChild(studentVideoRef.current);
-    }
-  }, [lessonStarted]);
+  }, [lessonStarted, media.stream, isTeacher]);
 
-  // Flexible rendering based on role and lesson status
   return (
     <div className="h-full flex flex-col gap-4">
       <Card className="p-0 bg-white/80 border-0 shadow-2xl glass-enhanced rounded-3xl overflow-hidden ring-1 ring-white/30 relative">
         <div className="absolute inset-0 bg-gradient-to-br from-blue-100 via-white/50 to-purple-100 pointer-events-none"></div>
         <div className="aspect-video relative flex items-center justify-center">
-          {/* Show teacher-only "Start Lesson" and waiting state */}
           {!lessonStarted ? (
             <div className="w-full h-full flex flex-col items-center justify-center">
               {isTeacher ? (
@@ -163,23 +142,20 @@ export function OneOnOneVideoSection({
               )}
             </div>
           ) : (
-            // Video containers per requirements
             <>
               <div
-                ref={teacherVideoRef}
                 id="teacher-panel"
                 className="absolute left-0 top-0 w-1/2 h-full flex items-center justify-center"
                 style={{ zIndex: 2 }}
               >
-                {/* This node will be moved to #teacher-video */}
                 {isTeacher ? (
-                  localStream && !isCameraOff ? (
+                  media.stream && !media.isCameraOff ? (
                     <video
                       autoPlay
-                      muted={isMuted}
+                      muted={media.isMuted}
                       playsInline
                       className="w-11/12 h-5/6 object-cover rounded-2xl shadow-lg border-2 border-blue-200"
-                      ref={el => { if (el) el.srcObject = localStream; }}
+                      ref={teacherVideoRef}
                     />
                   ) : (
                     <div className="w-36 h-36 rounded-full bg-blue-400 flex items-center justify-center shadow-xl">
@@ -187,7 +163,6 @@ export function OneOnOneVideoSection({
                     </div>
                   )
                 ) : (
-                  // Student sees teacher's video (mock, for demo)
                   <div className="w-36 h-36 rounded-full bg-blue-300 flex items-center justify-center shadow-xl">
                     <span className="text-3xl font-semibold text-white">T</span>
                   </div>
@@ -195,20 +170,18 @@ export function OneOnOneVideoSection({
               </div>
 
               <div
-                ref={studentVideoRef}
                 id="student-panel"
                 className="absolute right-0 top-0 w-1/2 h-full flex items-center justify-center"
                 style={{ zIndex: 2 }}
               >
-                {/* This node will be moved to #student-video */}
                 {!isTeacher ? (
-                  localStream && !isCameraOff ? (
+                  media.stream && !media.isCameraOff ? (
                     <video
                       autoPlay
-                      muted={isMuted}
+                      muted={media.isMuted}
                       playsInline
                       className="w-11/12 h-5/6 object-cover rounded-2xl shadow-lg border-2 border-purple-200"
-                      ref={el => { if (el) el.srcObject = localStream; }}
+                      ref={studentVideoRef}
                     />
                   ) : (
                     <div className="w-36 h-36 rounded-full bg-purple-400 flex items-center justify-center shadow-xl">
@@ -216,7 +189,6 @@ export function OneOnOneVideoSection({
                     </div>
                   )
                 ) : (
-                  // Teacher sees student video (mock demo)
                   <div className="w-36 h-36 rounded-full bg-purple-300 flex items-center justify-center shadow-xl">
                     <span className="text-3xl font-semibold text-white">S</span>
                   </div>
@@ -226,7 +198,7 @@ export function OneOnOneVideoSection({
           )}
 
           {/* Live, Recording, and Status Badges */}
-          {lessonStarted && isConnected && (
+          {lessonStarted && media.isConnected && (
             <div className="absolute top-3 left-3 z-10">
               <Badge className="bg-green-500 text-white shadow-lg flex items-center gap-1 px-3 py-1 rounded-xl text-xs font-bold animate-pulse">
                 <Sparkles size={14} className="mr-1" />
@@ -234,38 +206,39 @@ export function OneOnOneVideoSection({
               </Badge>
             </div>
           )}
-          {isRecording && lessonStarted && (
-            <div className="absolute top-3 right-3 z-10">
-              <Badge variant="destructive" className="animate-pulse shadow-lg flex items-center gap-1 px-2 py-1">
-                <Circle className="h-3 w-3 mr-1 fill-current animate-pulse" />
-                RECORDING
-              </Badge>
-            </div>
-          )}
+          {/* Skipping isRecording badge in demo */}
 
-          {/* Mute/Camera/Screen Share Controls + Issue Reporting */}
           {lessonStarted && (
             <div className="absolute bottom-3 right-3 z-10 flex items-center gap-2">
               <Button
-                variant={isMuted ? "destructive" : "outline"}
+                variant={media.isMuted ? "destructive" : "outline"}
                 size="icon"
-                onClick={() => toggleMicrophone && toggleMicrophone()}
+                onClick={media.toggleMicrophone}
               >
-                {isMuted ? <MicOff size={18} /> : <Mic size={18} />}
+                {media.isMuted ? <MicOff size={18} /> : <Mic size={18} />}
               </Button>
               <Button
-                variant={isCameraOff ? "destructive" : "outline"}
+                variant={media.isCameraOff ? "destructive" : "outline"}
                 size="icon"
-                onClick={() => toggleCamera && toggleCamera()}
+                onClick={media.toggleCamera}
               >
-                {isCameraOff ? <VideoOff size={18} /> : <Video size={18} />}
+                {media.isCameraOff ? <VideoOff size={18} /> : <Video size={18} />}
               </Button>
-              {/* Future: Add screen share control */}
+              <Button
+                variant={media.isConnected ? "destructive" : "outline"}
+                size="icon"
+                onClick={media.isConnected ? media.leave : media.join}
+              >
+                {media.isConnected ? (
+                  <span className="text-xs" title="Disconnect">⏻</span>
+                ) : (
+                  <span className="text-xs" title="Connect">▶️</span>
+                )}
+              </Button>
               <ReportIssueDropdown onReport={handleReportIssue} />
             </div>
           )}
 
-          {/* Technical issue toast */}
           {reportedIssue && (
             <div className="absolute bottom-16 right-3 z-10 bg-yellow-50 border border-yellow-300 px-4 py-2 rounded-lg shadow-md text-yellow-900 font-medium">
               Reported: {reportedIssue}
@@ -299,7 +272,6 @@ export function OneOnOneVideoSection({
         </div>
       </Card>
 
-      {/* Teacher Rewards */}
       {isTeacher && (
         <div className="flex-shrink-0">
           <Card className="p-3 mt-2">
@@ -312,13 +284,19 @@ export function OneOnOneVideoSection({
         </div>
       )}
 
-      {/* Event/activity log for demo/debug/admins */}
       {logMessages.length > 0 && (
         <div className="mt-4 bg-white/70 rounded-lg shadow p-2 max-h-32 overflow-y-auto text-xs text-gray-500">
           <div className="font-bold mb-1 text-gray-700">Session Log</div>
           {logMessages.map((msg, idx) => (
             <div key={idx}>{msg}</div>
           ))}
+        </div>
+      )}
+
+      {/* Show error if media fails */}
+      {media.error && (
+        <div className="mt-2 text-xs text-red-600 text-center">
+          {media.error}
         </div>
       )}
     </div>
