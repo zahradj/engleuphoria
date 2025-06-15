@@ -1,3 +1,4 @@
+
 import { useState, useEffect, createContext, useContext } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { classroomDatabase, User } from '@/services/classroomDatabase';
@@ -107,7 +108,12 @@ export const ClassroomAuthProvider = ({ children }: { children: React.ReactNode 
         }
       } else {
         console.log('ClassroomAuth: User profile loaded successfully:', userData?.role);
-        setUser(userData);
+        // Ensure role is properly typed
+        const typedUser: User = {
+          ...userData,
+          role: userData.role as 'teacher' | 'student'
+        };
+        setUser(typedUser);
       }
     } catch (error) {
       console.error('ClassroomAuth: Unexpected error loading user profile:', error);

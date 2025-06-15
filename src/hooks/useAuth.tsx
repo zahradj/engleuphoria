@@ -1,7 +1,22 @@
 
 import { useState, useEffect, createContext, useContext } from 'react'
-import { supabase, User, isSupabaseConfigured } from '@/lib/supabase'
+import { supabase } from '@/integrations/supabase/client'
 import { Session } from '@supabase/supabase-js'
+
+// Define User interface locally since we removed it from lib/supabase
+interface User {
+  id: string
+  email: string
+  full_name: string
+  role: 'student' | 'teacher' | 'parent' | 'admin'
+  created_at: string
+  updated_at: string
+}
+
+// Helper function to check if Supabase is properly configured
+const isSupabaseConfigured = () => {
+  return true; // Always true since we're using the real Supabase client now
+}
 
 interface AuthContextType {
   user: User | null
@@ -19,7 +34,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
-  const [isConfigured, setIsConfigured] = useState(false)
+  const [isConfigured, setIsConfigured] = useState(true)
 
   useEffect(() => {
     // Check if Supabase is configured
@@ -80,7 +95,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .single()
 
       if (error) throw error
-      setUser(data)
+      setUser(data as User)
     } catch (error) {
       console.error('Error fetching user profile:', error)
     }
