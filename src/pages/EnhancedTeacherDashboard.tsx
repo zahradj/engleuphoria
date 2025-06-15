@@ -17,7 +17,9 @@ import {
   Hand,
   Target,
   Clock,
-  Award
+  Award,
+  LogIn,
+  Loader2
 } from 'lucide-react';
 import { useClassroomAuth } from '@/hooks/useClassroomAuth';
 import { NLPDashboardStats } from '@/components/teacher/nlp/NLPDashboardStats';
@@ -29,11 +31,62 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
 export const EnhancedTeacherDashboard = () => {
-  const { user } = useClassroomAuth();
+  const { user, loading } = useClassroomAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [activePhase, setActivePhase] = useState(1);
   const [selectedLearningStyle, setSelectedLearningStyle] = useState<'visual' | 'auditory' | 'kinesthetic'>('visual');
+
+  // Show loading spinner while authentication is being checked
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-white/20">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+            <p className="text-gray-600">Loading dashboard...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login prompt if user is not authenticated
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-xl border border-white/20 max-w-md w-full mx-4">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-lg mx-auto mb-4">
+              <Brain />
+            </div>
+            <h1 className="text-2xl font-bold text-gray-800 mb-2">
+              NLP Teacher Dashboard
+            </h1>
+            <p className="text-gray-600 mb-6">
+              Please sign in to access the enhanced teacher dashboard with NLP-powered features.
+            </p>
+            <div className="space-y-3">
+              <Button 
+                onClick={() => navigate('/login')}
+                className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
+              >
+                <LogIn className="mr-2 h-4 w-4" />
+                Sign In
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={() => navigate('/signup')}
+                className="w-full"
+              >
+                Create Account
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const nlpPhases = [
     {
@@ -97,8 +150,6 @@ export const EnhancedTeacherDashboard = () => {
       description: 'Movement-based, hands-on activities'
     }
   ];
-
-  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative overflow-hidden">
