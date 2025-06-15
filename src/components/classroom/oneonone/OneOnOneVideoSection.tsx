@@ -8,7 +8,7 @@ import { VideoControlsOverlay } from "./video/components/VideoControlsOverlay";
 import { XPProgressSection } from "./video/components/XPProgressSection";
 import { SessionLog } from "./video/components/SessionLog";
 import { MediaErrorDisplay } from "./video/components/MediaErrorDisplay";
-import { StudentProgressTracker } from "./StudentProgressTracker";
+import { LessonPlanOverview } from "./LessonPlanOverview";
 import { useLessonState } from "./video/hooks/useLessonState";
 import { useSessionLogging } from "./video/hooks/useSessionLogging";
 import { useVideoRefs } from "./video/hooks/useVideoRefs";
@@ -76,11 +76,10 @@ export function OneOnOneVideoSection({
         <XPProgressSection studentXP={studentXP} showRewardPopup={!!showRewardPopup} />
       </Card>
 
-      {/* Student Progress Tracker - Only show for teachers */}
+      {/* Lesson Plan Overview - Only show for teachers */}
       {isTeacher && (
         <div className="flex-shrink-0">
-          <StudentProgressTracker 
-            studentXP={studentXP}
+          <LessonPlanOverview 
             currentUser={{
               role: isTeacher ? 'teacher' : 'student',
               name: currentUserName
