@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import { useEnhancedClassroom } from "@/hooks/useEnhancedClassroom";
 import { useOneOnOneClassroom } from "@/hooks/useOneOnOneClassroom";
 import { useToast } from "@/hooks/use-toast";
+import { MediaProvider } from "@/components/classroom/oneonone/video/MediaContext";
 import { UnifiedClassroomProvider, useUnifiedClassroomContext } from "@/components/classroom/unified/UnifiedClassroomProvider";
 import { UnifiedClassroomLayout } from "@/components/classroom/unified/UnifiedClassroomLayout";
 import { UnifiedClassroomContent } from "@/components/classroom/unified/UnifiedClassroomContent";
@@ -87,9 +88,11 @@ function UnifiedClassroomInner() {
 
 const UnifiedClassroom = () => {
   return (
-    <UnifiedClassroomProvider>
-      <UnifiedClassroomInner />
-    </UnifiedClassroomProvider>
+    <MediaProvider>
+      <UnifiedClassroomProvider>
+        <UnifiedClassroomInner />
+      </UnifiedClassroomProvider>
+    </MediaProvider>
   );
 };
 

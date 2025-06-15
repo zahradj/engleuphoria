@@ -17,6 +17,7 @@ import {
   Crown,
   GraduationCap
 } from "lucide-react";
+import { useMediaContext } from "@/components/classroom/oneonone/video/MediaContext";
 
 interface UserProfile {
   id: string;
@@ -44,17 +45,13 @@ export function UnifiedTopBar({
   enhancedClassroom,
   roomId
 }: UnifiedTopBarProps) {
+  // Use MediaContext for actual video controls
+  const media = useMediaContext();
+  
   const {
-    isConnected,
     participants,
     isRecording,
-    isMuted,
-    isCameraOff,
-    joinClassroom,
-    leaveClassroom,
     toggleRecording,
-    toggleMicrophone,
-    toggleCamera,
     raiseHand,
     startScreenShare
   } = enhancedClassroom;
@@ -96,14 +93,14 @@ export function UnifiedTopBar({
         <div className="flex items-center justify-center gap-2 text-xs mt-1">
           <div className="flex items-center gap-1 px-2 py-1 bg-white/40 rounded-full">
             <div className={`w-2 h-2 rounded-full ${
-              isConnected ? 'bg-emerald-500' : 'bg-gray-400'
+              media.isConnected ? 'bg-emerald-500' : 'bg-gray-400'
             }`}></div>
             <span className="text-gray-700">
-              {isConnected ? 'Live' : 'Connecting'}
+              {media.isConnected ? 'Live' : 'Ready'}
             </span>
           </div>
           
-          {participants.length > 0 && (
+          {participants && participants.length > 0 && (
             <div className="flex items-center gap-1 px-2 py-1 bg-white/40 rounded-full">
               <Users size={10} />
               <span className="text-gray-700">{participants.length}</span>
@@ -121,9 +118,9 @@ export function UnifiedTopBar({
 
       {/* Right: Controls */}
       <div className="flex items-center gap-2">
-        {!isConnected ? (
+        {!media.isConnected ? (
           <Button 
-            onClick={joinClassroom} 
+            onClick={media.join} 
             size="sm"
             className="bg-gradient-to-r from-emerald-500 to-green-600 text-white text-xs px-3 py-2 rounded-lg shadow-md"
           >
@@ -132,7 +129,7 @@ export function UnifiedTopBar({
           </Button>
         ) : (
           <Button 
-            onClick={leaveClassroom} 
+            onClick={media.leave} 
             size="sm"
             variant="destructive"
             className="text-xs px-3 py-2 rounded-lg"
@@ -144,25 +141,25 @@ export function UnifiedTopBar({
 
         <div className="flex items-center gap-1 p-1 bg-white/30 rounded-lg">
           <Button
-            variant={isMuted ? "destructive" : "ghost"}
+            variant={media.isMuted ? "destructive" : "ghost"}
             size="sm"
-            onClick={toggleMicrophone}
+            onClick={media.toggleMicrophone}
             className={`rounded-md w-8 h-8 p-0 ${
-              isMuted ? 'bg-red-500 text-white' : 'bg-white/40 text-gray-700'
+              media.isMuted ? 'bg-red-500 text-white' : 'bg-white/40 text-gray-700'
             }`}
           >
-            {isMuted ? <MicOff size={14} /> : <Mic size={14} />}
+            {media.isMuted ? <MicOff size={14} /> : <Mic size={14} />}
           </Button>
           
           <Button
-            variant={isCameraOff ? "destructive" : "ghost"}
+            variant={media.isCameraOff ? "destructive" : "ghost"}
             size="sm"
-            onClick={toggleCamera}
+            onClick={media.toggleCamera}
             className={`rounded-md w-8 h-8 p-0 ${
-              isCameraOff ? 'bg-red-500 text-white' : 'bg-white/40 text-gray-700'
+              media.isCameraOff ? 'bg-red-500 text-white' : 'bg-white/40 text-gray-700'
             }`}
           >
-            {isCameraOff ? <VideoOff size={14} /> : <Video size={14} />}
+            {media.isCameraOff ? <VideoOff size={14} /> : <Video size={14} />}
           </Button>
 
           <Button
@@ -170,7 +167,7 @@ export function UnifiedTopBar({
             size="sm"
             onClick={raiseHand}
             className="rounded-md w-8 h-8 p-0 bg-white/40 text-gray-700"
-            disabled={!isConnected}
+            disabled={!media.isConnected}
           >
             <Hand size={14} />
           </Button>
@@ -180,7 +177,7 @@ export function UnifiedTopBar({
             size="sm"
             onClick={startScreenShare}
             className="rounded-md w-8 h-8 p-0 bg-white/40 text-gray-700"
-            disabled={!isConnected}
+            disabled={!media.isConnected}
           >
             <Monitor size={14} />
           </Button>
@@ -193,12 +190,21 @@ export function UnifiedTopBar({
               className={`rounded-md w-8 h-8 p-0 ${
                 isRecording ? 'bg-red-500 text-white' : 'bg-white/40 text-gray-700'
               }`}
-              disabled={!isConnected}
+              disabled={!media.isConnected}
             >
               {isRecording ? <Square size={14} /> : <Circle size={14} />}
             </Button>
           )}
         </div>
+
+        {/* Error Display */}
+        {media.error && (
+          <div className="absolute top-full left-0 right-0 mt-2 mx-4">
+            <div className="text-xs text-red-600 bg-red-50 p-2 rounded border border-red-200">
+              {media.error}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
