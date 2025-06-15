@@ -53,6 +53,7 @@ export function EnhancedUploadDialog({
   };
 
   const validateFile = (file: File): boolean => {
+    // Check file size
     if (file.size > maxSizeMB * 1024 * 1024) {
       toast({
         title: "File too large",
@@ -62,6 +63,7 @@ export function EnhancedUploadDialog({
       return false;
     }
 
+    // Check file type
     const isValidType = acceptedTypes.some(type => {
       if (type.includes('*')) {
         return file.type.startsWith(type.replace('*', ''));
@@ -94,6 +96,7 @@ export function EnhancedUploadDialog({
         type: getFileType(file)
       };
 
+      // Create preview for images
       if (uploadFile.type === 'image') {
         uploadFile.preview = URL.createObjectURL(file);
       }
@@ -144,9 +147,15 @@ export function EnhancedUploadDialog({
     onUpload(uploadFiles);
     setUploadFiles([]);
     onClose();
+    
+    toast({
+      title: "Files uploaded!",
+      description: `${uploadFiles.length} file(s) added to whiteboard`
+    });
   };
 
   const handleClose = () => {
+    // Clean up preview URLs
     uploadFiles.forEach(file => {
       if (file.preview) {
         URL.revokeObjectURL(file.preview);
@@ -163,6 +172,7 @@ export function EnhancedUploadDialog({
           <DialogTitle>Upload Files to Whiteboard</DialogTitle>
         </DialogHeader>
 
+        {/* Drop Zone */}
         <Card 
           className={`border-2 border-dashed p-8 text-center transition-colors ${
             isDragging ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
@@ -205,6 +215,7 @@ export function EnhancedUploadDialog({
           </div>
         </Card>
 
+        {/* File Preview */}
         {uploadFiles.length > 0 && (
           <div className="space-y-3">
             <h4 className="font-semibold">Selected Files ({uploadFiles.length})</h4>
@@ -252,6 +263,7 @@ export function EnhancedUploadDialog({
           </div>
         )}
 
+        {/* Actions */}
         <div className="flex gap-3 pt-4">
           <Button variant="outline" onClick={handleClose} className="flex-1">
             Cancel

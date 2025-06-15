@@ -3,7 +3,7 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Image, Video, File, Eye, Trash2 } from "lucide-react";
+import { FileText, Image, Video, File, Eye, Trash2, Download } from "lucide-react";
 import { ContentItem } from "./types";
 
 interface ContentLibraryProps {

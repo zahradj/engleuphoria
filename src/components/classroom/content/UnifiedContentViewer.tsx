@@ -1,7 +1,8 @@
 
 import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { InfiniteWhiteboard } from "@/components/classroom/whiteboard/InfiniteWhiteboard";
+import { WhiteboardCanvas } from "@/components/classroom/whiteboard/WhiteboardCanvas";
+import { WhiteboardToolbar } from "@/components/classroom/whiteboard/WhiteboardToolbar";
 import { ContentLibrary } from "./ContentLibrary";
 import { MaterialViewer } from "./MaterialViewer";
 import { EnhancedUploadDialog } from "./EnhancedUploadDialog";
@@ -17,7 +18,10 @@ interface UnifiedContentViewerProps {
 
 export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentViewerProps) {
   const [activeTab, setActiveTab] = useState("whiteboard");
+  const [activeTool, setActiveTool] = useState<"pencil" | "eraser" | "text" | "highlighter" | "shape">("pencil");
+  const [color, setColor] = useState("#9B87F5");
   
+  // Initialize with a sample PDF content
   const initialContent = [{
     id: "1",
     type: "pdf" as const,
@@ -42,8 +46,17 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
     handleFileDownload
   } = useEnhancedContentManager(initialContent, studentName, isTeacher);
 
+  const clearCanvas = () => {
+    console.log("Clearing canvas");
+  };
+
+  const downloadCanvas = () => {
+    console.log("Downloading canvas");
+  };
+
   return (
     <div className="h-full flex flex-col">
+      {/* Enhanced Upload Controls */}
       <div className="flex items-center gap-3 mb-4 p-3 bg-gray-50 rounded-lg">
         <SoundButton
           variant="outline"
@@ -72,6 +85,7 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
         </div>
       </div>
 
+      {/* Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="whiteboard">Whiteboard</TabsTrigger>
@@ -79,12 +93,25 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
           <TabsTrigger value="library">Content Library</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="whiteboard" className="flex-1 mt-4">
-          <InfiniteWhiteboard
-            activeTool="pencil"
-            color="#9B87F5"
-            onCanvasClick={(e) => console.log("Canvas clicked", e)}
+        <TabsContent value="whiteboard" className="flex-1 flex flex-col mt-4">
+          <WhiteboardToolbar
+            activeTool={activeTool}
+            setActiveTool={setActiveTool}
+            activeShape="rectangle"
+            color={color}
+            setColor={setColor}
+            clearCanvas={clearCanvas}
+            downloadCanvas={downloadCanvas}
           />
+          <div className="flex-1 mt-4">
+            <WhiteboardCanvas
+              pageId="main-board"
+              activeTool={activeTool}
+              color={color}
+              isCollaborative={true}
+              canvasRef={() => {}}
+            />
+          </div>
         </TabsContent>
 
         <TabsContent value="material" className="flex-1 mt-4">
@@ -102,6 +129,7 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
         </TabsContent>
       </Tabs>
 
+      {/* Enhanced Upload Dialog */}
       <EnhancedUploadDialog
         isOpen={isUploadDialogOpen}
         onClose={closeUploadDialog}
@@ -110,6 +138,7 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
         maxSizeMB={100}
       />
 
+      {/* File Preview Modal */}
       <FilePreviewModal
         isOpen={!!previewFile}
         onClose={closePreview}
