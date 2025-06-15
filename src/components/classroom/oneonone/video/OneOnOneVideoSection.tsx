@@ -1,7 +1,6 @@
 
 import React from "react";
 import { Card } from "@/components/ui/card";
-import { OneOnOneRewards } from "../OneOnOneRewards";
 import { useLocalMedia } from "@/hooks/useLocalMedia";
 import { LessonStartPrompt } from "./components/LessonStartPrompt";
 import { LiveVideoPanels } from "./components/LiveVideoPanels";
@@ -72,18 +71,6 @@ export function OneOnOneVideoSection({
         </div>
         <XPProgressSection studentXP={studentXP} showRewardPopup={!!showRewardPopup} />
       </Card>
-
-      {isTeacher && (
-        <div className="flex-shrink-0">
-          <Card className="p-3 mt-2">
-            <OneOnOneRewards
-              studentXP={studentXP}
-              onAwardPoints={onAwardPoints || (() => {})}
-              showRewardPopup={showRewardPopup}
-            />
-          </Card>
-        </div>
-      )}
 
       <SessionLog logMessages={logMessages} />
       <MediaErrorDisplay error={media.error} />
