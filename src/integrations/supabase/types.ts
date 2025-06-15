@@ -73,12 +73,65 @@ export type Database = {
           },
         ]
       }
+      lesson_feedback_submissions: {
+        Row: {
+          feedback_content: string
+          homework_assigned: string | null
+          id: string
+          lesson_id: string
+          lesson_objectives_met: boolean | null
+          parent_communication_notes: string | null
+          payment_unlocked: boolean | null
+          student_id: string
+          student_performance_rating: number | null
+          submitted_at: string | null
+          teacher_id: string
+        }
+        Insert: {
+          feedback_content: string
+          homework_assigned?: string | null
+          id?: string
+          lesson_id: string
+          lesson_objectives_met?: boolean | null
+          parent_communication_notes?: string | null
+          payment_unlocked?: boolean | null
+          student_id: string
+          student_performance_rating?: number | null
+          submitted_at?: string | null
+          teacher_id: string
+        }
+        Update: {
+          feedback_content?: string
+          homework_assigned?: string | null
+          id?: string
+          lesson_id?: string
+          lesson_objectives_met?: boolean | null
+          parent_communication_notes?: string | null
+          payment_unlocked?: boolean | null
+          student_id?: string
+          student_performance_rating?: number | null
+          submitted_at?: string | null
+          teacher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_feedback_submissions_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lessons: {
         Row: {
           cost: number | null
           created_at: string
           duration: number
+          feedback_required: boolean | null
+          feedback_submitted: boolean | null
           id: string
+          quality_rating: number | null
           scheduled_at: string
           status: string
           student_id: string
@@ -89,7 +142,10 @@ export type Database = {
           cost?: number | null
           created_at?: string
           duration?: number
+          feedback_required?: boolean | null
+          feedback_submitted?: boolean | null
           id?: string
+          quality_rating?: number | null
           scheduled_at: string
           status?: string
           student_id: string
@@ -100,7 +156,10 @@ export type Database = {
           cost?: number | null
           created_at?: string
           duration?: number
+          feedback_required?: boolean | null
+          feedback_submitted?: boolean | null
           id?: string
+          quality_rating?: number | null
           scheduled_at?: string
           status?: string
           student_id?: string
@@ -129,7 +188,9 @@ export type Database = {
           amount: number
           created_at: string
           currency: string
+          feedback_completion_required: boolean | null
           id: string
+          kpi_threshold_met: boolean | null
           lesson_id: string
           payment_method: string
           status: string
@@ -139,7 +200,9 @@ export type Database = {
           amount: number
           created_at?: string
           currency?: string
+          feedback_completion_required?: boolean | null
           id?: string
+          kpi_threshold_met?: boolean | null
           lesson_id: string
           payment_method: string
           status?: string
@@ -149,7 +212,9 @@ export type Database = {
           amount?: number
           created_at?: string
           currency?: string
+          feedback_completion_required?: boolean | null
           id?: string
+          kpi_threshold_met?: boolean | null
           lesson_id?: string
           payment_method?: string
           status?: string
@@ -172,6 +237,105 @@ export type Database = {
           },
         ]
       }
+      performance_alerts: {
+        Row: {
+          alert_message: string
+          alert_type: string
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          teacher_id: string
+        }
+        Insert: {
+          alert_message: string
+          alert_type: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          teacher_id: string
+        }
+        Update: {
+          alert_message?: string
+          alert_type?: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          teacher_id?: string
+        }
+        Relationships: []
+      }
+      teacher_achievements: {
+        Row: {
+          achievement_description: string | null
+          achievement_name: string
+          achievement_type: string
+          earned_at: string | null
+          id: string
+          points_awarded: number | null
+          teacher_id: string
+        }
+        Insert: {
+          achievement_description?: string | null
+          achievement_name: string
+          achievement_type: string
+          earned_at?: string | null
+          id?: string
+          points_awarded?: number | null
+          teacher_id: string
+        }
+        Update: {
+          achievement_description?: string | null
+          achievement_name?: string
+          achievement_type?: string
+          earned_at?: string | null
+          id?: string
+          points_awarded?: number | null
+          teacher_id?: string
+        }
+        Relationships: []
+      }
+      teacher_performance_metrics: {
+        Row: {
+          attendance_rate: number | null
+          created_at: string | null
+          curriculum_coverage: number | null
+          feedback_completion_rate: number | null
+          id: string
+          lesson_quality_score: number | null
+          overall_kpi_score: number | null
+          response_time_score: number | null
+          student_progress_impact: number | null
+          teacher_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          attendance_rate?: number | null
+          created_at?: string | null
+          curriculum_coverage?: number | null
+          feedback_completion_rate?: number | null
+          id?: string
+          lesson_quality_score?: number | null
+          overall_kpi_score?: number | null
+          response_time_score?: number | null
+          student_progress_impact?: number | null
+          teacher_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          attendance_rate?: number | null
+          created_at?: string | null
+          curriculum_coverage?: number | null
+          feedback_completion_rate?: number | null
+          id?: string
+          lesson_quality_score?: number | null
+          overall_kpi_score?: number | null
+          response_time_score?: number | null
+          student_progress_impact?: number | null
+          teacher_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           avatar_id: number | null
@@ -179,7 +343,10 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          payment_locked: boolean | null
           role: string
+          teacher_level: string | null
+          teacher_points: number | null
           updated_at: string
         }
         Insert: {
@@ -188,7 +355,10 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          payment_locked?: boolean | null
           role: string
+          teacher_level?: string | null
+          teacher_points?: number | null
           updated_at?: string
         }
         Update: {
@@ -197,7 +367,10 @@ export type Database = {
           email?: string
           full_name?: string
           id?: string
+          payment_locked?: boolean | null
           role?: string
+          teacher_level?: string | null
+          teacher_points?: number | null
           updated_at?: string
         }
         Relationships: []
@@ -207,7 +380,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      update_teacher_performance_metrics: {
+        Args: { teacher_uuid: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
