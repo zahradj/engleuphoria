@@ -1,25 +1,19 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { PenTool, Gamepad2, Sparkles, Link, BookOpen } from "lucide-react";
-import { EnhancedOneOnOneWhiteboard } from "@/components/classroom/oneonone/EnhancedOneOnOneWhiteboard";
-import { OneOnOneGames } from "@/components/classroom/oneonone/OneOnOneGames";
-import { EnhancedAIAssistant } from "@/components/classroom/oneonone/ai/EnhancedAIAssistant";
-
-interface UserProfile {
-  id: string;
-  name: string;
-  role: 'teacher' | 'student';
-  avatar?: string;
-}
+import { InfiniteWhiteboard } from "@/components/classroom/whiteboard/InfiniteWhiteboard";
+import { UnifiedContentViewer } from "@/components/classroom/content/UnifiedContentViewer";
+import { Whiteboard, BookOpen, Users, Gamepad2 } from "lucide-react";
 
 interface UnifiedCenterPanelProps {
   activeCenterTab: string;
   onTabChange: (tab: string) => void;
-  currentUser: UserProfile;
+  currentUser: {
+    role: 'teacher' | 'student';
+    name: string;
+  };
 }
 
 export function UnifiedCenterPanel({ 
@@ -27,111 +21,95 @@ export function UnifiedCenterPanel({
   onTabChange, 
   currentUser 
 }: UnifiedCenterPanelProps) {
+  const [whiteboardTool, setWhiteboardTool] = useState("pencil");
+  const [whiteboardColor, setWhiteboardColor] = useState("#9B87F5");
+
   const isTeacher = currentUser.role === 'teacher';
-  
-  const tabs = [
-    { id: "whiteboard", label: "Whiteboard", icon: PenTool, gradient: "from-blue-500 to-cyan-500" },
-    { id: "games", label: "Activities", icon: Gamepad2, gradient: "from-emerald-500 to-green-500" },
-    { id: "ai", label: "AI Assistant", icon: Sparkles, gradient: "from-purple-500 to-violet-500", badge: isTeacher ? "Full" : "Student" },
-    { id: "resources", label: "Resources", icon: Link, gradient: "from-orange-500 to-amber-500" }
-  ];
 
-  const studentProfile = {
-    level: "Intermediate",
-    weaknesses: ["Past tense", "Pronunciation"],
-    recentTopics: ["Animals", "Daily routine", "Food"],
-    interests: ["Sports", "Music", "Travel"]
-  };
-
-  const handleContentGenerated = (content: string, type: string) => {
-    console.log('Generated content:', { content, type, userRole: currentUser.role });
-  };
-
-  const handleInsertToWhiteboard = (content: string) => {
-    console.log('Inserting to whiteboard:', content);
+  const handleCanvasClick = (e: React.MouseEvent) => {
+    // Handle whiteboard interactions
+    console.log("Canvas clicked", e);
   };
 
   return (
-    <Card className="shadow-xl flex flex-col h-full overflow-hidden glass-enhanced backdrop-blur-xl border-0">
-      {/* Tab Navigation */}
-      <div className="flex-shrink-0 border-b border-white/30 bg-white/20 backdrop-blur-xl">
-        <div className="p-4">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {tabs.map((tab) => {
-              const IconComponent = tab.icon;
-              const isActive = activeCenterTab === tab.id;
-              
-              return (
-                <Button
-                  key={tab.id}
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onTabChange(tab.id)}
-                  className={`h-auto p-4 flex flex-col items-center gap-2 rounded-xl transition-all duration-300 ${
-                    isActive 
-                      ? `bg-gradient-to-br ${tab.gradient} text-white shadow-lg` 
-                      : `bg-white/60 text-gray-700 hover:bg-white/80 shadow-sm`
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <IconComponent size={18} />
-                    {tab.badge && (
-                      <Badge variant="secondary" className="text-xs px-2 py-0 h-5">
-                        {tab.badge}
-                      </Badge>
-                    )}
-                  </div>
-                  <span className="font-medium text-sm">{tab.label}</span>
-                </Button>
-              );
-            })}
-          </div>
+    <Card className="h-full shadow-lg border-0 bg-white/95 backdrop-blur-sm">
+      <Tabs value={activeCenterTab} onValueChange={onTabChange} className="h-full flex flex-col">
+        <div className="p-4 pb-0">
+          <TabsList className="grid w-full grid-cols-4 mb-4">
+            <TabsTrigger value="whiteboard" className="flex items-center gap-2">
+              <Whiteboard size={16} />
+              <span className="hidden sm:inline">Whiteboard</span>
+            </TabsTrigger>
+            <TabsTrigger value="lesson" className="flex items-center gap-2">
+              <BookOpen size={16} />
+              <span className="hidden sm:inline">Lesson</span>
+            </TabsTrigger>
+            <TabsTrigger value="activities" className="flex items-center gap-2">
+              <Gamepad2 size={16} />
+              <span className="hidden sm:inline">Activities</span>
+            </TabsTrigger>
+            <TabsTrigger value="collaboration" className="flex items-center gap-2">
+              <Users size={16} />
+              <span className="hidden sm:inline">Collaborate</span>
+            </TabsTrigger>
+          </TabsList>
         </div>
-      </div>
 
-      {/* Tab Content */}
-      <div className="flex-1 min-h-0">
-        <ScrollArea className="h-full">
-          <div className="p-4">
-            {activeCenterTab === "whiteboard" && (
-              <div className="bg-white/50 backdrop-blur-sm rounded-xl p-1 border border-white/40 shadow-lg">
-                <EnhancedOneOnOneWhiteboard currentUser={currentUser} />
+        <div className="flex-1 p-4 pt-0 overflow-hidden">
+          <TabsContent value="whiteboard" className="h-full mt-0">
+            <div className="h-full flex flex-col">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <h3 className="text-lg font-semibold">Interactive Whiteboard</h3>
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                    Extended Canvas
+                  </Badge>
+                </div>
+                {isTeacher && (
+                  <Badge variant="outline" className="text-xs">
+                    Teacher Mode
+                  </Badge>
+                )}
               </div>
-            )}
-            
-            {activeCenterTab === "games" && (
-              <div className="bg-white/50 backdrop-blur-sm rounded-xl p-1 border border-white/40 shadow-lg">
-                <OneOnOneGames />
-              </div>
-            )}
-            
-            {activeCenterTab === "ai" && (
-              <div className="bg-white/50 backdrop-blur-sm rounded-xl p-1 border border-white/40 shadow-lg">
-                <EnhancedAIAssistant
-                  studentProfile={studentProfile}
-                  onContentGenerated={handleContentGenerated}
-                  onInsertToWhiteboard={handleInsertToWhiteboard}
+              
+              <div className="flex-1">
+                <InfiniteWhiteboard
+                  activeTool={whiteboardTool}
+                  color={whiteboardColor}
+                  onCanvasClick={handleCanvasClick}
                 />
               </div>
-            )}
-            
-            {activeCenterTab === "resources" && (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gradient-to-br from-orange-200 to-amber-200 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                  <BookOpen size={24} className="text-orange-600" />
-                </div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Resources</h3>
-                <p className="text-gray-600 mb-6 max-w-sm mx-auto">
-                  {isTeacher ? "Manage educational materials" : "Browse learning resources"}
-                </p>
-                <Button className="bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-2 rounded-xl">
-                  {isTeacher ? "Manage" : "Browse"}
-                </Button>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="lesson" className="h-full mt-0">
+            <UnifiedContentViewer 
+              isTeacher={isTeacher}
+              studentName={currentUser.name}
+            />
+          </TabsContent>
+
+          <TabsContent value="activities" className="h-full mt-0">
+            <div className="h-full flex items-center justify-center">
+              <div className="text-center">
+                <Gamepad2 size={48} className="mx-auto mb-4 text-gray-400" />
+                <h3 className="text-lg font-semibold mb-2">Interactive Activities</h3>
+                <p className="text-gray-600">Educational games and activities coming soon!</p>
               </div>
-            )}
-          </div>
-        </ScrollArea>
-      </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="collaboration" className="h-full mt-0">
+            <div className="h-full flex items-center justify-center">
+              <div className="text-center">
+                <Users size={48} className="mx-auto mb-4 text-gray-400" />
+                <h3 className="text-lg font-semibold mb-2">Collaboration Tools</h3>
+                <p className="text-gray-600">Real-time collaboration features coming soon!</p>
+              </div>
+            </div>
+          </TabsContent>
+        </div>
+      </Tabs>
     </Card>
   );
 }
