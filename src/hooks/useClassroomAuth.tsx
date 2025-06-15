@@ -1,5 +1,5 @@
 import { useState, useEffect, createContext, useContext } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { classroomDatabase, User } from '@/services/classroomDatabase';
 import { useToast } from '@/hooks/use-toast';
 

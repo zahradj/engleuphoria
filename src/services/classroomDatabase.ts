@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 // Types for the classroom system - Updated to match actual Supabase schema
 export interface User {
