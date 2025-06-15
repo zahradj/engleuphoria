@@ -24,8 +24,8 @@ const Index = () => {
   const navigate = useNavigate();
   
   const handleStart = () => {
-    // Direct users to sign up for systematic flow
-    navigate("/signup");
+    // Direct users to login page for authentication flow
+    navigate("/login");
   };
   
   const handleNameSubmit = () => {
@@ -38,7 +38,7 @@ const Index = () => {
     localStorage.setItem("avatarId", String(selectedAvatar));
     localStorage.setItem("points", "50"); // Starting points
     
-    navigate("/dashboard");
+    navigate("/login");
   };
   
   return (

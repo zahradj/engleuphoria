@@ -139,9 +139,9 @@ export const Login = () => {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
             <GraduationCap className="h-8 w-8 text-blue-600" />
-            <h1 className="text-2xl font-bold text-gray-800">ClassroomConnect</h1>
+            <h1 className="text-2xl font-bold text-gray-800">Engleuphoria</h1>
           </div>
-          <p className="text-gray-600">1-on-1 Virtual Learning Platform</p>
+          <p className="text-gray-600">Learn English the Fun Way</p>
         </div>
 
         <Card className="bg-white/80 backdrop-blur-sm shadow-xl">

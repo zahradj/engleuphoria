@@ -1,4 +1,3 @@
-
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,18 +64,12 @@ export const SignUpForm = () => {
     console.log(values);
     toast({
       title: "Account created!",
-      description: "Welcome to Engleuphoria! Redirecting to your dashboard.",
+      description: "Welcome to Engleuphoria! Please log in to continue.",
     });
     
-    // Redirect based on user type
+    // Redirect to login page for authentication
     setTimeout(() => {
-      if (values.userType === "teacher") {
-        navigate("/teacher-dashboard");
-      } else if (values.userType === "admin") {
-        navigate("/admin-dashboard");
-      } else {
-        navigate("/student-dashboard");
-      }
+      navigate("/login");
     }, 1500);
   };
 

@@ -10,6 +10,10 @@ import { TeacherDashboard } from "@/pages/TeacherDashboard";
 import { StudentDashboard } from "@/pages/StudentDashboard";
 import { ProtectedClassroom } from "@/components/classroom/ProtectedClassroom";
 import UnifiedClassroom from "@/pages/UnifiedClassroom";
+import Index from "@/pages/Index";
+import SignUp from "@/pages/SignUp";
+import ForParents from "@/pages/ForParents";
+import ForTeachers from "@/pages/ForTeachers";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode; requiredRole?: 'teacher' | 'student' }) => {
@@ -49,6 +53,22 @@ const AppRoutes = () => {
   return (
     <Routes>
       {/* Public Routes */}
+      <Route 
+        path="/" 
+        element={
+          user ? (
+            <Navigate to={user.role === 'teacher' ? '/teacher' : '/student'} replace />
+          ) : (
+            <Index />
+          )
+        } 
+      />
+      
+      <Route path="/home" element={<Index />} />
+      <Route path="/signup" element={<SignUp />} />
+      <Route path="/for-parents" element={<ForParents />} />
+      <Route path="/for-teachers" element={<ForTeachers />} />
+      
       <Route 
         path="/login" 
         element={!user ? <Login /> : <Navigate to={user.role === 'teacher' ? '/teacher' : '/student'} replace />} 
@@ -102,18 +122,6 @@ const AppRoutes = () => {
         } 
       />
 
-      {/* Root Route - Redirect based on auth status */}
-      <Route 
-        path="/" 
-        element={
-          user ? (
-            <Navigate to={user.role === 'teacher' ? '/teacher' : '/student'} replace />
-          ) : (
-            <Navigate to="/login" replace />
-          )
-        } 
-      />
-
       {/* Catch-all Route */}
       <Route 
         path="*" 
@@ -121,7 +129,7 @@ const AppRoutes = () => {
           user ? (
             <Navigate to={user.role === 'teacher' ? '/teacher' : '/student'} replace />
           ) : (
-            <Navigate to="/login" replace />
+            <Navigate to="/" replace />
           )
         } 
       />
