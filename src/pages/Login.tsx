@@ -8,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Eye, EyeOff, GraduationCap, Users } from 'lucide-react';
 import { useClassroomAuth } from '@/hooks/useClassroomAuth';
-import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
 export const Login = () => {
@@ -16,7 +15,6 @@ export const Login = () => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('login');
   const { signIn, signUp } = useClassroomAuth();
-  const navigate = useNavigate();
   const { toast } = useToast();
 
   const [loginForm, setLoginForm] = useState({
@@ -49,8 +47,11 @@ export const Login = () => {
       const result = await signIn(loginForm.email, loginForm.password);
       
       if (result.success) {
-        // Navigation will be handled by the auth context
-        navigate('/');
+        // Don't navigate manually - let the auth context handle redirection
+        toast({
+          title: "Welcome back!",
+          description: "You have successfully signed in.",
+        });
       } else {
         toast({
           title: "Login Failed",
