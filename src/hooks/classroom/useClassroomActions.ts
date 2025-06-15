@@ -1,12 +1,11 @@
 
-import { useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 
 interface UseClassroomActionsProps {
   isRecording: boolean;
-  setIsRecording: (value: boolean) => void;
-  setStudentXP: (value: number | ((prev: number) => number)) => void;
-  setShowRewardPopup: (value: boolean) => void;
+  setIsRecording: (recording: boolean) => void;
+  setStudentXP: (xp: number | ((prev: number) => number)) => void;
+  setShowRewardPopup: (show: boolean) => void;
 }
 
 export function useClassroomActions({
@@ -17,26 +16,28 @@ export function useClassroomActions({
 }: UseClassroomActionsProps) {
   const { toast } = useToast();
 
-  const toggleRecording = useCallback(() => {
-    console.log("Toggling recording:", !isRecording);
+  const toggleRecording = () => {
     setIsRecording(!isRecording);
-    const newState = !isRecording;
     toast({
-      title: newState ? "Recording Started" : "Recording Stopped",
-      description: newState ? "Class is now being recorded" : "Class recording has been stopped",
+      title: isRecording ? "Recording Stopped" : "Recording Started",
+      description: isRecording ? "Session recording has been stopped." : "Session recording has started.",
     });
-  }, [isRecording, setIsRecording, toast]);
+  };
 
-  const awardPoints = useCallback(() => {
-    console.log("Awarding points");
-    setStudentXP(prev => prev + 50);
+  const awardPoints = (points: number, reason?: string) => {
+    setStudentXP(prev => prev + points);
     setShowRewardPopup(true);
-    setTimeout(() => setShowRewardPopup(false), 3000);
+    
     toast({
-      title: "🌟 Great Job!",
-      description: "Emma earned 50 XP points!",
+      title: "Points Awarded! 🎉",
+      description: `Student earned ${points} XP${reason ? ` for ${reason}` : ''}`,
     });
-  }, [setStudentXP, setShowRewardPopup, toast]);
+
+    // Hide reward popup after 3 seconds
+    setTimeout(() => {
+      setShowRewardPopup(false);
+    }, 3000);
+  };
 
   return {
     toggleRecording,

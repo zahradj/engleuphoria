@@ -32,25 +32,33 @@ export function UnifiedClassroomContent({
     activeCenterTab,
     studentXP,
     setActiveRightTab,
-    setActiveCenterTab
+    setActiveCenterTab,
+    awardPoints
   } = classroomState;
+
+  // Enhanced award points function that accepts optional reason
+  const handleAwardPoints = (points: number, reason?: string) => {
+    console.log(`Awarding ${points} points to student${reason ? ` for: ${reason}` : ''}`);
+    awardPoints(points);
+  };
 
   return (
     <div className="min-h-[calc(100vh-5rem)] px-4 pb-4">
       <div className="grid grid-cols-12 gap-4 h-[calc(100vh-6rem)]">
         
-        {/* Left Section - Teacher Video + Progress Panels */}
+        {/* Left Section - Teacher Video + Reward System/Progress Panels */}
         <div className="col-span-3 flex flex-col gap-4">
           {/* Teacher Video Section - Fixed height for consistency */}
           <div className="h-[300px]">
             <UnifiedVideoSection currentUser={currentUser} />
           </div>
           
-          {/* Bottom Left Panels - Learning Progress & Achievements */}
+          {/* Bottom Left Panels - Reward System for Teachers, Progress for Students */}
           <div className="flex-1">
             <UnifiedLeftSidebar 
               studentXP={studentXP}
               currentUser={currentUser}
+              onAwardPoints={currentUser.role === 'teacher' ? handleAwardPoints : undefined}
             />
           </div>
         </div>
