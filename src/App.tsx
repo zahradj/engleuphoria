@@ -8,20 +8,25 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ClassroomAuthProvider } from "@/hooks/useClassroomAuth";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 
-// Page imports
+// Page imports - only existing pages
 import Index from "./pages/Index";
-import TeacherPortal from "./pages/TeacherPortal";
-import StudentPortal from "./pages/StudentPortal";
-import ParentPortal from "./pages/ParentPortal";
-import AdminPortal from "./pages/AdminPortal";
-import ClassroomPage from "./pages/ClassroomPage";
-import UnifiedClassroomPage from "./pages/UnifiedClassroomPage";
+import AdminDashboard from "./pages/AdminDashboard";
 import StudentManagement from "./pages/StudentManagement";
 import LessonPlanCreator from "./pages/LessonPlanCreator";
 import LessonScheduler from "./pages/LessonScheduler";
 import PaymentPage from "./pages/PaymentPage";
 import { TeacherDashboard } from "./pages/TeacherDashboard";
 import { EnhancedTeacherDashboard } from "./pages/EnhancedTeacherDashboard";
+import OneOnOneClassroomNew from "./pages/OneOnOneClassroomNew";
+import SimpleClassroomSelector from "./pages/SimpleClassroomSelector";
+import StudentDashboard from "./pages/StudentDashboard";
+import ForTeachers from "./pages/ForTeachers";
+import ForParents from "./pages/ForParents";
+import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
+import NotFound from "./pages/NotFound";
+import CurriculumLibraryPage from "./pages/CurriculumLibraryPage";
+import MaterialLibraryPage from "./pages/MaterialLibraryPage";
 import { CurriculumLibraryManager } from "./components/teacher/curriculum/CurriculumLibraryManager";
 
 const queryClient = new QueryClient();
@@ -37,21 +42,24 @@ const App = () => (
             <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Index />} />
-                <Route path="/teacher" element={<TeacherPortal />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<SignUp />} />
+                <Route path="/for-teachers" element={<ForTeachers />} />
+                <Route path="/for-parents" element={<ForParents />} />
                 <Route path="/enhanced-teacher" element={<EnhancedTeacherDashboard />} />
                 <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
-                <Route path="/student" element={<StudentPortal />} />
-                <Route path="/parent" element={<ParentPortal />} />
-                <Route path="/admin" element={<AdminPortal />} />
-                <Route path="/classroom" element={<ClassroomPage />} />
-                <Route path="/classroom/teacher/:roomId" element={<UnifiedClassroomPage />} />
-                <Route path="/classroom/student/:roomId" element={<UnifiedClassroomPage />} />
-                <Route path="/oneonone-classroom-new" element={<UnifiedClassroomPage />} />
+                <Route path="/student-dashboard" element={<StudentDashboard />} />
+                <Route path="/admin-dashboard" element={<AdminDashboard />} />
+                <Route path="/classroom-selector" element={<SimpleClassroomSelector />} />
+                <Route path="/oneonone-classroom-new" element={<OneOnOneClassroomNew />} />
                 <Route path="/student-management" element={<StudentManagement />} />
                 <Route path="/lesson-plan-creator" element={<LessonPlanCreator />} />
                 <Route path="/lesson-scheduler" element={<LessonScheduler />} />
                 <Route path="/payment" element={<PaymentPage />} />
                 <Route path="/curriculum-library" element={<CurriculumLibraryManager />} />
+                <Route path="/curriculum-library-page" element={<CurriculumLibraryPage />} />
+                <Route path="/material-library" element={<MaterialLibraryPage />} />
+                <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
           </LanguageProvider>
