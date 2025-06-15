@@ -22,6 +22,9 @@ export function UnifiedRightPanel({
   onTabChange,
   currentUser
 }: UnifiedRightPanelProps) {
+  // Ensure we have a valid tab - default to chat if activeRightTab is "progress"
+  const validTab = activeRightTab === "progress" ? "chat" : activeRightTab;
+
   return (
     <div className="h-full flex flex-col gap-4">
       {/* Student Video Section - Fixed height to match teacher video */}
@@ -37,7 +40,7 @@ export function UnifiedRightPanel({
         <StudentInfoTabs
           studentName={studentName}
           studentXP={studentXP}
-          activeRightTab={activeRightTab}
+          activeRightTab={validTab}
           onTabChange={onTabChange}
           currentUser={currentUser}
         />

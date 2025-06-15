@@ -2,11 +2,11 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MessageCircle, Trophy, TrendingUp } from "lucide-react";
+import { MessageCircle, Trophy, Book } from "lucide-react";
 import { StudentProgressHeader } from "./StudentProgressHeader";
 import { ChatTabContent } from "./TabContent/ChatTabContent";
 import { RewardsTabContent } from "./TabContent/RewardsTabContent";
-import { ProgressTabContent } from "./TabContent/ProgressTabContent";
+import { DictionaryTabContent } from "./TabContent/DictionaryTabContent";
 
 interface StudentInfoTabsProps {
   studentName: string;
@@ -45,9 +45,9 @@ export function StudentInfoTabs({
             <Trophy size={14} />
             <span className="hidden sm:inline">Rewards</span>
           </TabsTrigger>
-          <TabsTrigger value="progress" className="flex items-center gap-1">
-            <TrendingUp size={14} />
-            <span className="hidden sm:inline">Progress</span>
+          <TabsTrigger value="dictionary" className="flex items-center gap-1">
+            <Book size={14} />
+            <span className="hidden sm:inline">Dictionary</span>
           </TabsTrigger>
         </TabsList>
 
@@ -60,8 +60,8 @@ export function StudentInfoTabs({
             <RewardsTabContent />
           </TabsContent>
 
-          <TabsContent value="progress" className="h-full p-4">
-            <ProgressTabContent />
+          <TabsContent value="dictionary" className="h-full p-4">
+            <DictionaryTabContent />
           </TabsContent>
         </div>
       </Tabs>
