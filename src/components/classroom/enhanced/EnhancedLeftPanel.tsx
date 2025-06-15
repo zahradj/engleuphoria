@@ -56,9 +56,9 @@ export function EnhancedLeftPanel({
   onGoalToggle 
 }: EnhancedLeftPanelProps) {
   return (
-    <div className="w-80 flex flex-col gap-6">
+    <div className="h-full flex flex-col gap-4">
       {/* Enhanced Teacher Card */}
-      <Card className="p-6 bg-white/70 backdrop-blur-xl border-0 shadow-xl hover:shadow-2xl transition-all duration-300 animate-fade-in">
+      <Card className="p-6 bg-white/70 backdrop-blur-xl border-0 shadow-xl hover:shadow-2xl transition-all duration-300 animate-fade-in flex-shrink-0">
         <div className="flex flex-col items-center text-center">
           <div className="relative mb-4">
             <Avatar className="w-20 h-20 ring-4 ring-white shadow-lg">
@@ -80,7 +80,7 @@ export function EnhancedLeftPanel({
       </Card>
 
       {/* Enhanced Progress Card */}
-      <Card className="p-6 bg-white/70 backdrop-blur-xl border-0 shadow-xl hover:shadow-2xl transition-all duration-300 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+      <Card className="p-6 bg-white/70 backdrop-blur-xl border-0 shadow-xl hover:shadow-2xl transition-all duration-300 animate-fade-in flex-shrink-0" style={{ animationDelay: '0.1s' }}>
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center">
             <Trophy className="text-white" size={20} />
@@ -110,7 +110,7 @@ export function EnhancedLeftPanel({
       </Card>
 
       {/* Enhanced Achievements Card */}
-      <Card className="p-6 bg-white/70 backdrop-blur-xl border-0 shadow-xl hover:shadow-2xl transition-all duration-300 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+      <Card className="p-6 bg-white/70 backdrop-blur-xl border-0 shadow-xl hover:shadow-2xl transition-all duration-300 animate-fade-in flex-shrink-0" style={{ animationDelay: '0.2s' }}>
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg flex items-center justify-center">
             <Star className="text-white" size={20} />
@@ -138,15 +138,15 @@ export function EnhancedLeftPanel({
         </div>
       </Card>
 
-      {/* Enhanced Today's Goals */}
-      <Card className="p-6 bg-white/70 backdrop-blur-xl border-0 shadow-xl hover:shadow-2xl transition-all duration-300 flex-1 animate-fade-in" style={{ animationDelay: '0.3s' }}>
+      {/* Enhanced Today's Goals - Flexible Height */}
+      <Card className="p-6 bg-white/70 backdrop-blur-xl border-0 shadow-xl hover:shadow-2xl transition-all duration-300 flex-1 animate-fade-in overflow-hidden" style={{ animationDelay: '0.3s' }}>
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-red-500 rounded-lg flex items-center justify-center">
             <Target className="text-white" size={20} />
           </div>
           <h3 className="font-bold text-gray-900">Today's Goals</h3>
         </div>
-        <div className="space-y-4">
+        <div className="space-y-4 overflow-y-auto">
           {goals.map((goal, index) => (
             <div key={goal.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-all duration-200">
               <button

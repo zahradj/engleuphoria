@@ -106,30 +106,36 @@ const EnhancedOneOnOneClassroom = () => {
         mediaControls={mediaControls}
       />
 
-      {/* Enhanced Main Layout */}
+      {/* Enhanced Main Layout - Fixed Grid with Equal Heights */}
       <div className="h-[calc(100vh-5rem)] flex gap-6 p-6">
-        {/* Enhanced Left Panel */}
-        <EnhancedLeftPanel 
-          currentUser={currentUser}
-          remoteUser={remoteUser}
-          goals={goals}
-          achievements={achievements}
-          onGoalToggle={handleGoalToggle}
-        />
+        {/* Enhanced Left Panel - Fixed Width */}
+        <div className="w-80 flex-shrink-0">
+          <EnhancedLeftPanel 
+            currentUser={currentUser}
+            remoteUser={remoteUser}
+            goals={goals}
+            achievements={achievements}
+            onGoalToggle={handleGoalToggle}
+          />
+        </div>
 
-        {/* Enhanced Center Panel */}
-        <EnhancedCenterPanel 
-          activeCenterTab={activeCenterTab}
-          currentPage={currentPage}
-          onTabChange={setActiveCenterTab}
-        />
+        {/* Enhanced Center Panel - Flexible Width */}
+        <div className="flex-1 min-w-0">
+          <EnhancedCenterPanel 
+            activeCenterTab={activeCenterTab}
+            currentPage={currentPage}
+            onTabChange={setActiveCenterTab}
+          />
+        </div>
 
-        {/* Enhanced Right Panel */}
-        <EnhancedRightPanel 
-          remoteUser={remoteUser}
-          activeRightTab={activeRightTab}
-          onTabChange={setActiveRightTab}
-        />
+        {/* Enhanced Right Panel - Fixed Width, Equal Height */}
+        <div className="w-80 flex-shrink-0">
+          <EnhancedRightPanel 
+            remoteUser={remoteUser}
+            activeRightTab={activeRightTab}
+            onTabChange={setActiveRightTab}
+          />
+        </div>
       </div>
     </div>
   );
