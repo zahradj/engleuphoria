@@ -8,7 +8,6 @@ import {
   MessageCircle,
   BookOpen,
   Book,
-  Video,
   Star
 } from "lucide-react";
 import { OneOnOneChat } from "@/components/classroom/oneonone/OneOnOneChat";
@@ -52,7 +51,7 @@ export function EnhancedRightPanel({
 
   return (
     <div className="w-80 flex flex-col gap-4">
-      {/* Student Video Section */}
+      {/* Student Profile Section */}
       <Card className="bg-white/70 backdrop-blur-xl border-0 shadow-xl hover:shadow-2xl transition-all duration-300 animate-fade-in" style={{ animationDelay: '0.5s' }}>
         <div className="p-6 bg-gradient-to-r from-green-50 to-teal-50">
           <div className="flex flex-col items-center text-center">
@@ -77,16 +76,6 @@ export function EnhancedRightPanel({
                 <div className="w-2 h-2 bg-white rounded-full mr-1 animate-pulse"></div>
                 Online
               </Badge>
-            </div>
-          </div>
-        </div>
-        
-        {/* Video Feed Placeholder */}
-        <div className="p-4">
-          <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
-            <div className="text-center">
-              <Video size={32} className="text-gray-400 mx-auto mb-2" />
-              <p className="text-sm text-gray-500">Student Video Feed</p>
             </div>
           </div>
         </div>
