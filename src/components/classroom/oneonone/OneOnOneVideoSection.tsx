@@ -1,19 +1,19 @@
+
 import React from "react";
 import { Card } from "@/components/ui/card";
-import { OneOnOneRewards } from "../OneOnOneRewards";
-import { useLocalMedia } from "@/hooks/useLocalMedia";
-import { LessonStartPrompt } from "./components/LessonStartPrompt";
-import { LiveVideoPanels } from "./components/LiveVideoPanels";
-import { VideoControlsOverlay } from "./components/VideoControlsOverlay";
-import { XPProgressSection } from "./components/XPProgressSection";
-import { SessionLog } from "./components/SessionLog";
-import { MediaErrorDisplay } from "./components/MediaErrorDisplay";
-import { useLessonState } from "./hooks/useLessonState";
-import { useSessionLogging } from "./hooks/useSessionLogging";
-import { useVideoRefs } from "./hooks/useVideoRefs";
-import { useReportIssue } from "./hooks/useReportIssue";
-import { OneOnOneVideoSectionProps } from "./types";
+import { OneOnOneRewards } from "./OneOnOneRewards";
 import { MediaProvider, useMediaContext } from "./video/MediaContext";
+import { LessonStartPrompt } from "./video/components/LessonStartPrompt";
+import { LiveVideoPanels } from "./video/components/LiveVideoPanels";
+import { VideoControlsOverlay } from "./video/components/VideoControlsOverlay";
+import { XPProgressSection } from "./video/components/XPProgressSection";
+import { SessionLog } from "./video/components/SessionLog";
+import { MediaErrorDisplay } from "./video/components/MediaErrorDisplay";
+import { useLessonState } from "./video/hooks/useLessonState";
+import { useSessionLogging } from "./video/hooks/useSessionLogging";
+import { useVideoRefs } from "./video/hooks/useVideoRefs";
+import { useReportIssue } from "./video/hooks/useReportIssue";
+import { OneOnOneVideoSectionProps } from "./video/types";
 
 export function OneOnOneVideoSection(props) {
   return (
