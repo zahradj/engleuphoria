@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,7 +13,9 @@ import {
   Sparkles,
   Target,
   Download,
-  Heart
+  Heart,
+  Ear,
+  Hand
 } from 'lucide-react';
 
 interface MaterialItem {
@@ -56,8 +57,8 @@ export function SmartMaterialBrowser({
   const skills = ['Grammar', 'Vocabulary', 'Speaking', 'Listening', 'Reading', 'Writing'];
   const learningStyles = [
     { type: 'visual' as const, name: 'Visual', icon: Eye, color: 'bg-blue-100 text-blue-800' },
-    { type: 'auditory' as const, name: 'Auditory', icon: require('lucide-react').Ear, color: 'bg-green-100 text-green-800' },
-    { type: 'kinesthetic' as const, name: 'Kinesthetic', icon: require('lucide-react').Hand, color: 'bg-purple-100 text-purple-800' }
+    { type: 'auditory' as const, name: 'Auditory', icon: Ear, color: 'bg-green-100 text-green-800' },
+    { type: 'kinesthetic' as const, name: 'Kinesthetic', icon: Hand, color: 'bg-purple-100 text-purple-800' }
   ];
 
   // Mock material data - in real app this would come from API
