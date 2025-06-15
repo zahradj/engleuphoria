@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,9 +10,6 @@ import { WhiteboardTabsSection } from "./whiteboard/WhiteboardTabsSection";
 import { EmbeddedGame } from "./whiteboard/EmbeddedGame";
 import { EmbedLinkDialog } from "./whiteboard/EmbedLinkDialog";
 import { EmbeddedGameDialog } from "./whiteboard/EmbeddedGameDialog";
-import { useWhiteboardState } from "./whiteboard/useWhiteboardState";
-import { useEmbeddedGameState } from "./whiteboard/useEmbeddedGameState";
-import { useGamePosition } from "./whiteboard/useGamePosition";
 import { Palette, Users, Sparkles, Link } from "lucide-react";
 
 interface EnhancedOneOnOneWhiteboardProps {
@@ -19,6 +17,17 @@ interface EnhancedOneOnOneWhiteboardProps {
     role: 'teacher' | 'student';
     name: string;
   };
+}
+
+interface EmbeddedGameData {
+  id: string;
+  title: string;
+  url: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  isBlocked?: boolean;
 }
 
 export function EnhancedOneOnOneWhiteboard({ 
@@ -29,35 +38,81 @@ export function EnhancedOneOnOneWhiteboard({
   const [showEmbedDialog, setShowEmbedDialog] = useState(false);
   const [showGameDialog, setShowGameDialog] = useState(false);
   
-  const {
-    tool,
-    color,
-    strokeWidth,
-    setTool,
-    setColor,
-    setStrokeWidth,
-    clearCanvas,
-    undo,
-    redo,
-    canUndo,
-    canRedo
-  } = useWhiteboardState(canvasRef);
-
-  const {
-    embeddedGame,
-    showGame,
-    addEmbeddedGame,
-    removeEmbeddedGame,
-    isGameFullscreen,
-    toggleGameFullscreen
-  } = useEmbeddedGameState();
-
-  const { position, size, handleMouseDown } = useGamePosition(
-    { x: 100, y: 100 },
-    { width: 600, height: 400 }
-  );
+  // Whiteboard state
+  const [activeTool, setActiveTool] = useState<"pencil" | "eraser" | "text" | "highlighter" | "shape" | "game">("pencil");
+  const [color, setColor] = useState("#000000");
+  const [strokeWidth, setStrokeWidth] = useState(2);
+  const [activeShape, setActiveShape] = useState("rectangle");
+  const [activeTab, setActiveTab] = useState("page1");
+  
+  // Embedded games state
+  const [embeddedGames, setEmbeddedGames] = useState<Record<string, EmbeddedGameData[]>>({});
+  const [gameUrl, setGameUrl] = useState("");
+  const [gameTitle, setGameTitle] = useState("");
 
   const isTeacher = currentUser.role === 'teacher';
+
+  const clearCanvas = () => {
+    if (canvasRef.current) {
+      const ctx = canvasRef.current.getContext('2d');
+      if (ctx) {
+        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      }
+    }
+  };
+
+  const addGame = () => {
+    if (!gameTitle || !gameUrl) return;
+    
+    const newGame: EmbeddedGameData = {
+      id: Date.now().toString(),
+      title: gameTitle,
+      url: gameUrl.startsWith('http') ? gameUrl : `https://${gameUrl}`,
+      x: 100,
+      y: 100,
+      width: 600,
+      height: 400
+    };
+
+    setEmbeddedGames(prev => ({
+      ...prev,
+      [activeTab]: [...(prev[activeTab] || []), newGame]
+    }));
+
+    setGameTitle("");
+    setGameUrl("");
+    setShowGameDialog(false);
+  };
+
+  const removeGame = (gameId: string) => {
+    setEmbeddedGames(prev => ({
+      ...prev,
+      [activeTab]: (prev[activeTab] || []).filter(game => game.id !== gameId)
+    }));
+  };
+
+  const handleIframeError = (gameId: string) => {
+    setEmbeddedGames(prev => ({
+      ...prev,
+      [activeTab]: (prev[activeTab] || []).map(game => 
+        game.id === gameId ? { ...game, isBlocked: true } : game
+      )
+    }));
+  };
+
+  const currentPageGames = embeddedGames[activeTab] || [];
+
+  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (activeTool === "game") {
+      setShowGameDialog(true);
+    }
+  };
+
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (activeTool === "pencil" || activeTool === "eraser") {
+      setIsDrawing(true);
+    }
+  };
 
   return (
     <div className="h-full flex flex-col bg-white rounded-lg shadow-sm overflow-hidden whiteboard-container">
@@ -105,18 +160,14 @@ export function EnhancedOneOnOneWhiteboard({
 
       {/* Toolbar */}
       <WhiteboardToolbar 
-        tool={tool}
+        activeTool={activeTool}
+        setActiveTool={setActiveTool}
+        activeShape={activeShape}
         color={color}
-        strokeWidth={strokeWidth}
-        onToolChange={setTool}
-        onColorChange={setColor}
-        onStrokeWidthChange={setStrokeWidth}
-        onClear={clearCanvas}
-        onUndo={undo}
-        onRedo={redo}
-        canUndo={canUndo}
-        canRedo={canRedo}
-        currentUser={currentUser}
+        setColor={setColor}
+        clearCanvas={clearCanvas}
+        isGameDialogOpen={showGameDialog}
+        setIsGameDialogOpen={setShowGameDialog}
       />
 
       <Separator />
@@ -124,31 +175,34 @@ export function EnhancedOneOnOneWhiteboard({
       {/* Main Content */}
       <div className="flex-1 relative bg-white overflow-hidden">
         <WhiteboardCanvas 
-          ref={canvasRef}
-          tool={tool}
+          activeTool={activeTool}
           color={color}
-          strokeWidth={strokeWidth}
-          isDrawing={isDrawing}
-          setIsDrawing={setIsDrawing}
-        />
-        
-        {/* Embedded Game Overlay */}
-        {embeddedGame && showGame && (
-          <EmbeddedGame
-            game={embeddedGame}
-            position={position}
-            size={size}
-            onMouseDown={handleMouseDown}
-            onRemove={removeEmbeddedGame}
-            isFullscreen={isGameFullscreen}
-            onToggleFullscreen={toggleGameFullscreen}
-            currentUser={currentUser}
-          />
-        )}
+          onCanvasClick={handleCanvasClick}
+          onStartDrawing={startDrawing}
+        >
+          {currentPageGames.map((game) => (
+            <EmbeddedGame
+              key={game.id}
+              game={game}
+              onRemove={removeGame}
+              onError={handleIframeError}
+            />
+          ))}
+        </WhiteboardCanvas>
       </div>
 
       {/* Tabs Section */}
-      <WhiteboardTabsSection currentUser={currentUser} />
+      <WhiteboardTabsSection 
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        activeTool={activeTool}
+        color={color}
+        onCanvasClick={handleCanvasClick}
+        onStartDrawing={startDrawing}
+        currentPageGames={currentPageGames}
+        onRemoveGame={removeGame}
+        onIframeError={handleIframeError}
+      />
 
       {/* Dialogs */}
       <EmbedLinkDialog 
@@ -159,7 +213,7 @@ export function EnhancedOneOnOneWhiteboard({
       <EmbeddedGameDialog
         open={showGameDialog}
         onOpenChange={setShowGameDialog}
-        onAddGame={addEmbeddedGame}
+        onAddGame={addGame}
       />
     </div>
   );

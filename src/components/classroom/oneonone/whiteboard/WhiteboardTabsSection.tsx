@@ -34,7 +34,7 @@ export function WhiteboardTabsSection({
   color,
   onCanvasClick,
   onStartDrawing,
-  currentPageGames,
+  currentPageGames = [], // Default to empty array
   onRemoveGame,
   onIframeError
 }: WhiteboardTabsSectionProps) {
