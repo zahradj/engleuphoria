@@ -8,6 +8,7 @@ import { OneOnOneChat } from "./OneOnOneChat";
 import { OneOnOneHomework } from "./OneOnOneHomework";
 import { EnhancedDictionary } from "./dictionary/EnhancedDictionary";
 import { CompactVideoFeed } from "../video/CompactVideoFeed";
+import { StudentProgress } from "./StudentProgress";
 import { useWebRTC } from "@/hooks/useWebRTC";
 
 interface OneOnOneRightPanelProps {
@@ -118,27 +119,12 @@ export function OneOnOneRightPanel({
         </div>
       </div>
 
-      {/* XP Progress Bar - Only show for students or when teacher is viewing student progress */}
-      <div className="p-3 border-t bg-gradient-to-r from-purple-50 to-purple-100 flex-shrink-0">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-gray-700">{displayName}</span>
-          <Badge className="bg-yellow-100 text-yellow-700 text-xs px-2 py-1">
-            Level {Math.floor(studentXP / 100)}
-          </Badge>
-        </div>
-        
-        <div>
-          <div className="flex justify-between items-center text-xs text-gray-600 mb-1">
-            <span>XP Progress</span>
-            <span>{studentXP % 100}/100</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-1.5">
-            <div 
-              className="bg-yellow-400 h-1.5 rounded-full transition-all duration-300" 
-              style={{ width: `${(studentXP % 100)}%` }}
-            ></div>
-          </div>
-        </div>
+      {/* Simple Progress - Only show for students or when teacher is viewing student progress */}
+      <div className="p-3 border-t flex-shrink-0">
+        <StudentProgress
+          studentXP={studentXP}
+          studentName={displayName}
+        />
       </div>
     </Card>
   );

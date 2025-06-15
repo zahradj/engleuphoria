@@ -2,13 +2,11 @@
 import React, { useState } from "react";
 import { useOneOnOneClassroom } from "@/hooks/useOneOnOneClassroom";
 import { useEnhancedClassroom } from "@/hooks/useEnhancedClassroom";
-import { useEnhancedRewards } from "@/hooks/useEnhancedRewards";
 import { MediaProvider } from "@/components/classroom/oneonone/video/MediaContext";
 import { OneOnOneTopBar } from "@/components/classroom/oneonone/OneOnOneTopBar";
 import { OneOnOneVideoSection } from "@/components/classroom/oneonone/OneOnOneVideoSection";
 import { OneOnOneCenterPanel } from "@/components/classroom/oneonone/OneOnOneCenterPanel";
 import { OneOnOneRightPanel } from "@/components/classroom/oneonone/OneOnOneRightPanel";
-import { OneOnOneRewardPopup } from "@/components/classroom/oneonone/OneOnOneRewardPopup";
 
 const OneOnOneClassroomNew = () => {
   console.log("OneOnOneClassroomNew component is rendering");
@@ -30,9 +28,6 @@ const OneOnOneClassroomNew = () => {
   const currentUserName = "Ms. Johnson";
   const isTeacher = currentUserId === "teacher-1";
   const roomId = "classroom-room-1";
-
-  // Enhanced rewards integration
-  const enhancedRewards = useEnhancedRewards(studentXP);
 
   // Single source of truth for enhanced classroom state
   const enhancedClassroom = useEnhancedClassroom({
@@ -106,7 +101,7 @@ const OneOnOneClassroomNew = () => {
                 <div className="h-full overflow-y-auto">
                   <OneOnOneRightPanel
                     studentName="Emma"
-                    studentXP={enhancedRewards.currentXP}
+                    studentXP={studentXP}
                     activeRightTab={activeRightTab}
                     onTabChange={setActiveRightTab}
                     currentUserId={currentUserId}
@@ -117,9 +112,6 @@ const OneOnOneClassroomNew = () => {
               </div>
             </div>
           </div>
-
-          {/* Floating Reward Popup */}
-          <OneOnOneRewardPopup isVisible={showRewardPopup} />
         </div>
       </MediaProvider>
     );
