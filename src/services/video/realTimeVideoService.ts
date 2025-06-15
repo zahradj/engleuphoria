@@ -1,4 +1,3 @@
-
 import { VideoService, VideoServiceCallbacks } from '../videoService';
 import { EnhancedVideoConfig, ParticipantData } from './types';
 
@@ -10,8 +9,6 @@ export class RealTimeVideoService extends VideoService {
   private connected = false;
   private isRecording = false;
   private connectionQuality = 'good';
-  private connectionAttempts = 0;
-  private maxConnectionAttempts = 3;
 
   // Fix: Make api property private to match EnhancedVideoService
   private api: any = null;
@@ -26,34 +23,14 @@ export class RealTimeVideoService extends VideoService {
   }
 
   async initialize(): Promise<void> {
-    if (this.initialized) {
-      console.log('🎥 RealTime: Already initialized');
-      return;
-    }
-
     try {
       console.log('🎥 RealTime: Initializing video service...');
       
       // Get user media first
-      try {
-        this.localStream = await navigator.mediaDevices.getUserMedia({
-          video: { width: 640, height: 480 },
-          audio: true
-        });
-        console.log('🎥 RealTime: Video and audio obtained');
-      } catch (error) {
-        // Fallback to audio only
-        console.warn('🎥 RealTime: Video failed, trying audio only:', error);
-        try {
-          this.localStream = await navigator.mediaDevices.getUserMedia({
-            audio: true
-          });
-          console.log('🎥 RealTime: Audio only obtained');
-        } catch (audioError) {
-          console.error('🎥 RealTime: No media access:', audioError);
-          throw new Error('Camera and microphone access required');
-        }
-      }
+      this.localStream = await navigator.mediaDevices.getUserMedia({
+        video: { width: 640, height: 480 },
+        audio: true
+      });
       
       this.localMediaStream = this.localStream;
       this.initialized = true;
@@ -63,24 +40,14 @@ export class RealTimeVideoService extends VideoService {
       
     } catch (error) {
       console.error('🎥 RealTime: Failed to get media:', error);
-      this.callbacks.onError?.('Failed to access camera/microphone. Please allow permissions and try again.');
+      this.callbacks.onError?.('Failed to access camera/microphone');
       throw error;
     }
   }
 
   async joinRoom(): Promise<void> {
-    if (this.connected) {
-      console.log('🎥 RealTime: Already connected');
-      return;
-    }
-
-    if (!this.initialized) {
-      await this.initialize();
-    }
-
     try {
       console.log('🎥 RealTime: Joining room...');
-      this.connectionAttempts++;
       
       // Simulate WebSocket connection for signaling
       const wsUrl = `wss://demo-signaling.lovable.app/room/${this.config.roomName}`;
@@ -89,50 +56,15 @@ export class RealTimeVideoService extends VideoService {
       // For demo purposes, simulate successful connection
       setTimeout(() => {
         this.connected = true;
-        this.connectionAttempts = 0;
         this.callbacks.onConnectionStatusChanged?.(true);
         console.log('🎥 RealTime: Successfully connected to room');
-        
-        // Simulate a participant joining after connection
-        if (this.config.displayName.toLowerCase().includes('teacher')) {
-          // Add a mock student
-          setTimeout(() => {
-            this.addMockParticipant('student-mock', 'Mock Student', 'student');
-          }, 2000);
-        } else {
-          // Add a mock teacher
-          setTimeout(() => {
-            this.addMockParticipant('teacher-mock', 'Mock Teacher', 'teacher');
-          }, 2000);
-        }
       }, 1500);
       
     } catch (error) {
       console.error('🎥 RealTime: Failed to join room:', error);
-      if (this.connectionAttempts < this.maxConnectionAttempts) {
-        console.log(`🎥 RealTime: Retrying connection (${this.connectionAttempts}/${this.maxConnectionAttempts})`);
-        setTimeout(() => this.joinRoom(), 2000);
-      } else {
-        this.callbacks.onError?.('Failed to join room after multiple attempts');
-        throw error;
-      }
+      this.callbacks.onError?.('Failed to join room');
+      throw error;
     }
-  }
-
-  private addMockParticipant(id: string, name: string, role: 'teacher' | 'student') {
-    const participant: ParticipantData = {
-      id,
-      displayName: name,
-      role,
-      isMuted: false,
-      isCameraOff: false,
-      isHandRaised: false,
-      connectionQuality: 'good'
-    };
-    
-    this.participants.set(id, participant);
-    this.callbacks.onParticipantJoined?.(id, name);
-    console.log('🎥 RealTime: Mock participant added:', name);
   }
 
   async leaveRoom(): Promise<void> {
@@ -152,7 +84,6 @@ export class RealTimeVideoService extends VideoService {
     if (this.localStream) {
       this.localStream.getTracks().forEach(track => track.stop());
       this.localStream = null;
-      this.localMediaStream = null;
     }
     
     this.callbacks.onConnectionStatusChanged?.(false);
@@ -183,7 +114,6 @@ export class RealTimeVideoService extends VideoService {
   }
 
   async startRecording(): Promise<boolean> {
-    if (!this.connected) return false;
     console.log('🎬 RealTime: Starting recording...');
     this.isRecording = true;
     return true;
@@ -196,25 +126,16 @@ export class RealTimeVideoService extends VideoService {
   }
 
   async raiseHand(): Promise<boolean> {
-    if (!this.connected) return false;
     console.log('✋ RealTime: Hand raised');
     return true;
   }
 
   async startScreenShare(): Promise<boolean> {
-    if (!this.connected) return false;
     try {
       const screenStream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-        audio: true
+        video: true
       });
       console.log('🖥️ RealTime: Screen sharing started');
-      
-      // In a real implementation, you'd replace the video track
-      screenStream.getVideoTracks()[0].onended = () => {
-        console.log('🖥️ RealTime: Screen sharing stopped');
-      };
-      
       return true;
     } catch (error) {
       console.error('🖥️ RealTime: Failed to start screen share:', error);

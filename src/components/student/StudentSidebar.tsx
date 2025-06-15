@@ -14,8 +14,7 @@ import {
   CreditCard, 
   Award, 
   Settings, 
-  LogOut,
-  GraduationCap
+  LogOut 
 } from "lucide-react";
 
 interface StudentSidebarProps {
@@ -44,7 +43,7 @@ export const StudentSidebar = ({ activeTab, setActiveTab, onLogout }: StudentSid
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center">
-            <GraduationCap className="h-5 w-5 text-white" />
+            <span className="text-white font-bold text-lg">E</span>
           </div>
           <div>
             <h1 className="font-bold text-lg bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">

@@ -6,7 +6,6 @@ import { UnifiedVideoSection } from "./UnifiedVideoSection";
 import { UnifiedCenterPanel } from "./UnifiedCenterPanel";
 import { UnifiedRightPanel } from "./UnifiedRightPanel";
 import { OneOnOneRewardPopup } from "@/components/classroom/oneonone/OneOnOneRewardPopup";
-import { EnhancedSessionManager } from "../enhanced/EnhancedSessionManager";
 import { useUnifiedClassroomContext } from "./UnifiedClassroomProvider";
 
 interface UnifiedClassroomContentProps {
@@ -54,73 +53,58 @@ export function UnifiedClassroomContent({
     }
   }, [currentUser.role, awardPoints]);
 
-  const handleSessionEnd = useCallback((sessionData: any) => {
-    console.log('Session ended:', sessionData);
-    // Could integrate with analytics or reporting system
-  }, []);
-
   return (
     <>
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 min-h-[600px]">
-        {/* Left Panel - Video Section with Session Manager */}
-        <div className="xl:col-span-3 space-y-4">
-          <UnifiedVideoSection
-            enhancedClassroom={enhancedClassroom}
-            currentUser={currentUser}
-            studentXP={studentXP}
-            onAwardPoints={currentUser.role === 'teacher' ? handleAwardPoints : undefined}
-            showRewardPopup={showRewardPopup}
-          />
-          
-          {/* Session Manager */}
-          <EnhancedSessionManager
-            currentUser={currentUser}
-            enhancedClassroom={enhancedClassroom}
-            onSessionEnd={handleSessionEnd}
-          />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-6rem)]">
+        {/* Left Panel - Fixed Height with Internal Scroll */}
+        <div className="lg:col-span-3 animate-fade-in h-full">
+          <div className="h-full overflow-hidden">
+            <UnifiedVideoSection
+              enhancedClassroom={enhancedClassroom}
+              currentUser={currentUser}
+              studentXP={studentXP}
+              onAwardPoints={currentUser.role === 'teacher' ? handleAwardPoints : undefined}
+              showRewardPopup={showRewardPopup}
+            />
+          </div>
         </div>
 
-        {/* Center Panel */}
-        <div className="xl:col-span-6">
-          <UnifiedCenterPanel
-            activeCenterTab={activeCenterTab}
-            onTabChange={handleCenterTabChange}
-            currentUser={currentUser}
-          />
+        {/* Center Panel - Independent Scrolling */}
+        <div className="lg:col-span-6 animate-fade-in h-full" style={{ animationDelay: '0.1s' }}>
+          <div className="h-full overflow-hidden">
+            <UnifiedCenterPanel
+              activeCenterTab={activeCenterTab}
+              onTabChange={handleCenterTabChange}
+              currentUser={currentUser}
+            />
+          </div>
         </div>
 
-        {/* Right Panel */}
-        <div className="xl:col-span-3">
-          <UnifiedRightPanel
-            studentXP={studentXP}
-            activeRightTab={activeRightTab}
-            onTabChange={handleRightTabChange}
-            currentUser={currentUser}
-            enhancedClassroom={enhancedClassroom}
-          />
+        {/* Right Panel - Fixed Height with Internal Scroll */}
+        <div className="lg:col-span-3 animate-fade-in h-full" style={{ animationDelay: '0.2s' }}>
+          <div className="h-full overflow-hidden">
+            <UnifiedRightPanel
+              studentXP={studentXP}
+              activeRightTab={activeRightTab}
+              onTabChange={handleRightTabChange}
+              currentUser={currentUser}
+              enhancedClassroom={enhancedClassroom}
+            />
+          </div>
         </div>
       </div>
 
-      {/* Success Indicator */}
+      {/* Enhanced Success Indicator */}
       {enhancedClassroom.isConnected && enhancedClassroom.realTimeSync?.isConnected && (
         <div className="fixed bottom-4 right-4 z-50">
-          <Badge className="bg-green-500 text-white shadow-lg">
+          <Badge className="bg-green-500 text-white animate-pulse shadow-lg">
             <Sparkles size={12} className="mr-1" />
             Enhanced Classroom Active
           </Badge>
         </div>
       )}
 
-      {/* Connection Status */}
-      {!enhancedClassroom.isConnected && (
-        <div className="fixed bottom-4 left-4 z-50">
-          <Badge variant="destructive" className="shadow-lg">
-            Connecting to classroom...
-          </Badge>
-        </div>
-      )}
-
-      {/* Reward Popup - Teacher Only */}
+      {/* Enhanced Reward Popup - Teacher Only */}
       {currentUser.role === 'teacher' && (
         <OneOnOneRewardPopup isVisible={showRewardPopup} />
       )}

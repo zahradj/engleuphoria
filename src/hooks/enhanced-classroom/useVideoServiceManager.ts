@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { RealTimeVideoService } from '@/services/video/realTimeVideoService';
 import { EnhancedVideoService } from '@/services/video/enhancedVideoService';
 import { ParticipantData } from '@/services/video/enhancedVideoService';
@@ -23,8 +23,6 @@ export function useVideoServiceManager({
   const [isRecording, setIsRecording] = useState(false);
   const [connectionQuality, setConnectionQuality] = useState('good');
   const [error, setError] = useState<string | null>(null);
-  const initializingRef = useRef(false);
-  const serviceRef = useRef<VideoServiceType | null>(null);
 
   // Memoize service configuration to prevent unnecessary re-initializations
   const serviceConfig = useMemo(() => ({
@@ -43,70 +41,64 @@ export function useVideoServiceManager({
     onError: (err: string) => {
       console.error('❌ Video service error:', err);
       setError(err);
-      initializingRef.current = false;
     },
     onParticipantJoined: (id: string, name: string) => {
       console.log('👋 Participant joined:', id, name);
-      updateParticipants();
     },
     onParticipantLeft: (id: string) => {
       console.log('👋 Participant left:', id);
-      updateParticipants();
     }
   }), []);
 
-  // Initialize video service only once
+  // Initialize video service only when config changes
   useEffect(() => {
-    if (initializingRef.current || serviceRef.current) return;
+    let mounted = true;
 
     const initService = async () => {
-      if (initializingRef.current) return;
-      initializingRef.current = true;
-
       try {
         console.log('🎥 Initializing RealTimeVideoService...');
         const service = new RealTimeVideoService(serviceConfig, serviceCallbacks);
 
         await service.initialize();
         
-        serviceRef.current = service;
-        setVideoService(service);
-        setError(null);
-        console.log('✅ RealTimeVideoService initialized successfully');
+        if (mounted) {
+          setVideoService(service);
+          console.log('✅ RealTimeVideoService initialized successfully');
+        }
       } catch (err) {
-        console.error('❌ Failed to initialize video service:', err);
-        setError(err instanceof Error ? err.message : 'Video service initialization failed');
-      } finally {
-        initializingRef.current = false;
+        if (mounted) {
+          console.error('❌ Failed to initialize video service:', err);
+          setError(err instanceof Error ? err.message : 'Video service initialization failed');
+        }
       }
     };
 
     initService();
 
     return () => {
-      if (serviceRef.current) {
+      mounted = false;
+      if (videoService) {
         console.log('🧹 Disposing video service...');
-        serviceRef.current.dispose();
-        serviceRef.current = null;
+        videoService.dispose();
       }
     };
-  }, []);
+  }, [serviceConfig, serviceCallbacks]);
 
   const updateParticipants = useCallback(() => {
-    if (serviceRef.current) {
+    if (videoService) {
       try {
-        const currentParticipants = serviceRef.current.getParticipants();
+        const currentParticipants = videoService.getParticipants();
         setParticipants(currentParticipants);
-        setConnectionQuality(serviceRef.current.getConnectionQuality());
-        setIsRecording(serviceRef.current.isRecordingActive());
+        setConnectionQuality(videoService.getConnectionQuality());
+        setIsRecording(videoService.isRecordingActive());
       } catch (error) {
         console.error('Error updating participants:', error);
       }
     }
-  }, []);
+  }, [videoService]);
 
   return {
-    videoService: serviceRef.current,
+    videoService,
     participants,
     isConnected,
     isRecording,
