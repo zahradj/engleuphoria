@@ -1,169 +1,150 @@
 
-import React, { useState } from "react";
+import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   PenTool, 
   Gamepad2, 
-  FileText, 
-  Video,
-  Sparkles,
+  Sparkles, 
+  Link,
   ChevronLeft,
   ChevronRight
 } from "lucide-react";
 import { OneOnOneWhiteboard } from "@/components/classroom/oneonone/OneOnOneWhiteboard";
 import { OneOnOneGames } from "@/components/classroom/oneonone/OneOnOneGames";
+import { EnhancedAIAssistant } from "@/components/classroom/oneonone/ai/EnhancedAIAssistant";
 
-interface EnhancedCenterPanelProps {
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-  userRole: 'teacher' | 'student';
+interface CenterTab {
+  id: string;
+  label: string;
+  icon: any;
+  color: string;
+  bgColor: string;
+  badge?: string;
 }
 
-export function EnhancedCenterPanel({
-  currentPage,
-  totalPages,
-  onPageChange,
-  userRole
-}: EnhancedCenterPanelProps) {
-  const [activeTab, setActiveTab] = useState("whiteboard");
+interface EnhancedCenterPanelProps {
+  activeCenterTab: string;
+  currentPage: number;
+  onTabChange: (tab: string) => void;
+}
 
-  const tabs = [
-    {
-      id: "whiteboard",
-      label: "Whiteboard",
-      icon: PenTool,
-      color: "text-blue-600",
-      description: "Interactive drawing board"
-    },
-    {
-      id: "games",
-      label: "Activities", 
-      icon: Gamepad2,
-      color: "text-green-600",
-      description: "Learning games"
-    },
-    {
-      id: "materials",
-      label: "Materials",
-      icon: FileText,
-      color: "text-purple-600", 
-      description: "Lesson content"
-    },
-    {
-      id: "video",
-      label: "Video",
-      icon: Video,
-      color: "text-red-600",
-      description: "Video lessons"
-    }
+export function EnhancedCenterPanel({ 
+  activeCenterTab, 
+  currentPage, 
+  onTabChange 
+}: EnhancedCenterPanelProps) {
+  const centerTabs: CenterTab[] = [
+    { id: "whiteboard", label: "Whiteboard", icon: PenTool, color: "text-blue-600", bgColor: "bg-blue-50" },
+    { id: "activities", label: "Activities", icon: Gamepad2, color: "text-purple-600", bgColor: "bg-purple-50" },
+    { id: "ai", label: "AI Assistant", icon: Sparkles, badge: "New", color: "text-orange-600", bgColor: "bg-orange-50" },
+    { id: "resources", label: "Resources", icon: Link, color: "text-green-600", bgColor: "bg-green-50" }
   ];
 
   return (
-    <Card className="h-full bg-white/95 backdrop-blur-sm border-white/30 shadow-2xl overflow-hidden">
-      <div className="h-full flex flex-col">
-        {/* Enhanced Header */}
-        <div className="bg-gradient-to-r from-slate-100 to-blue-100 p-4 border-b border-white/30">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
-              <h2 className="text-xl font-bold text-gray-800">Learning Space</h2>
-              <Badge className="bg-white/80 text-gray-700 border-0">
-                Session Active
-              </Badge>
+    <div className="flex-1">
+      <Card className="h-full bg-white/70 backdrop-blur-xl border-0 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden animate-fade-in" style={{ animationDelay: '0.4s' }}>
+        {/* Enhanced Learning Center Header */}
+        <div className="p-6 bg-gradient-to-r from-slate-50 to-blue-50 border-b border-white/30">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <div className="w-3 h-12 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full"></div>
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800">Learning Center</h2>
+                <p className="text-sm text-gray-600 font-medium">Interactive Educational Space</p>
+              </div>
             </div>
             
-            {/* Page Navigation */}
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-                disabled={currentPage <= 1}
-              >
+            {/* Enhanced Page Navigation */}
+            <div className="flex items-center gap-3 bg-white/80 rounded-lg p-2 backdrop-blur-sm">
+              <Button variant="ghost" size="sm" className="hover:bg-blue-100">
                 <ChevronLeft size={16} />
               </Button>
-              <div className="px-3 py-1 bg-white/80 rounded-md text-sm font-medium">
-                {currentPage} / {totalPages}
+              <div className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-md text-sm font-bold">
+                Page {currentPage}
               </div>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-                disabled={currentPage >= totalPages}
-              >
+              <Button variant="ghost" size="sm" className="hover:bg-blue-100">
                 <ChevronRight size={16} />
               </Button>
             </div>
           </div>
-
+          
           {/* Enhanced Tab Navigation */}
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-4 bg-white/60 backdrop-blur-sm border border-white/40 rounded-xl p-1">
-              {tabs.map((tab) => {
-                const IconComponent = tab.icon;
-                return (
-                  <TabsTrigger
-                    key={tab.id}
-                    value={tab.id}
-                    className="flex items-center gap-2 px-4 py-3 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-md transition-all duration-200"
-                  >
-                    <IconComponent size={16} className={activeTab === tab.id ? "text-blue-600" : tab.color} />
-                    <span className="font-medium text-sm">{tab.label}</span>
-                  </TabsTrigger>
-                );
-              })}
-            </TabsList>
-          </Tabs>
+          <div className="flex gap-3">
+            {centerTabs.map((tab) => {
+              const IconComponent = tab.icon;
+              const isActive = activeCenterTab === tab.id;
+              
+              return (
+                <Button
+                  key={tab.id}
+                  variant={isActive ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => onTabChange(tab.id)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium ${
+                    isActive 
+                      ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg transform scale-105' 
+                      : `text-gray-600 hover:${tab.bgColor} hover:${tab.color} hover:shadow-md`
+                  }`}
+                >
+                  <IconComponent size={18} />
+                  <span>{tab.label}</span>
+                  {tab.badge && (
+                    <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-700 animate-pulse">
+                      {tab.badge}
+                    </Badge>
+                  )}
+                </Button>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Tab Content */}
+        {/* Enhanced Tab Content */}
         <div className="flex-1 overflow-hidden">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsContent value="whiteboard" className="h-full m-0 p-4">
-              <div className="h-full rounded-xl overflow-hidden bg-white shadow-inner border border-gray-200">
+          {activeCenterTab === "whiteboard" && (
+            <div className="h-full p-6">
+              <div className="h-full bg-white rounded-xl shadow-inner border border-gray-100 overflow-hidden">
                 <OneOnOneWhiteboard />
               </div>
-            </TabsContent>
-
-            <TabsContent value="games" className="h-full m-0 p-4 overflow-y-auto">
+            </div>
+          )}
+          {activeCenterTab === "activities" && (
+            <div className="h-full p-6 overflow-y-auto">
               <OneOnOneGames />
-            </TabsContent>
-
-            <TabsContent value="materials" className="h-full m-0 p-4">
-              <div className="text-center text-gray-500 mt-12">
-                <FileText size={48} className="mx-auto mb-4 opacity-50" />
-                <h3 className="text-lg font-medium mb-2">Learning Materials</h3>
-                <p className="text-sm mb-4">
-                  {userRole === 'teacher' 
-                    ? "Upload and share materials with your student."
-                    : "Access materials shared by your teacher."
-                  }
-                </p>
-                <Button variant="outline" className="mt-4">
-                  {userRole === 'teacher' ? "Upload Materials" : "Browse Materials"}
+            </div>
+          )}
+          {activeCenterTab === "ai" && (
+            <div className="h-full p-6 overflow-y-auto bg-gradient-to-br from-orange-50 to-yellow-50">
+              <EnhancedAIAssistant
+                studentProfile={{
+                  level: "Intermediate",
+                  weaknesses: ["Past tense", "Pronunciation"],
+                  recentTopics: ["Animals", "Daily routine"],
+                  interests: ["Sports", "Music"]
+                }}
+                onContentGenerated={(content, type) => console.log('Generated:', content, type)}
+                onInsertToWhiteboard={(content) => console.log('Insert:', content)}
+              />
+            </div>
+          )}
+          {activeCenterTab === "resources" && (
+            <div className="h-full p-6 flex items-center justify-center bg-gradient-to-br from-green-50 to-teal-50">
+              <div className="text-center">
+                <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Link size={32} className="text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-800 mb-3">Educational Resources</h3>
+                <p className="text-gray-600 mb-6">Access curated learning materials and educational links.</p>
+                <Button className="bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white shadow-lg">
+                  Browse Resources
                 </Button>
               </div>
-            </TabsContent>
-
-            <TabsContent value="video" className="h-full m-0 p-4">
-              <div className="text-center text-gray-500 mt-12">
-                <Video size={48} className="mx-auto mb-4 opacity-50" />
-                <h3 className="text-lg font-medium mb-2">Video Lessons</h3>
-                <p className="text-sm mb-4">
-                  Watch educational videos and interactive content.
-                </p>
-                <Button variant="outline" className="mt-4">
-                  Browse Videos
-                </Button>
-              </div>
-            </TabsContent>
-          </Tabs>
+            </div>
+          )}
         </div>
-      </div>
-    </Card>
+      </Card>
+    </div>
   );
 }
