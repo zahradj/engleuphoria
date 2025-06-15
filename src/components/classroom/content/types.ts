@@ -6,6 +6,8 @@ export interface ContentItem {
   source: string;
   uploadedBy: string;
   timestamp: Date;
+  size?: number;
+  fileType?: string;
 }
 
 export type MaterialType = "pdf" | "image" | "video" | "interactive";
