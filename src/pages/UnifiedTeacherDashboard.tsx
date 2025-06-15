@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -53,10 +54,10 @@ export function UnifiedTeacherDashboard() {
     averageRating: 4.8
   };
 
-  // Mock data for today's classes and teacher functions
+  // Mock data for today's classes with number IDs to match ClassItem interface
   const mockClasses = [
     {
-      id: '1',
+      id: 1,
       title: 'Beginner English - Level A1',
       time: '10:00 AM',
       student: 'John Doe',
@@ -66,7 +67,7 @@ export function UnifiedTeacherDashboard() {
       avatar: '/api/placeholder/40/40'
     },
     {
-      id: '2',
+      id: 2,
       title: 'Intermediate Conversation',
       time: '2:00 PM', 
       student: 'Jane Smith',

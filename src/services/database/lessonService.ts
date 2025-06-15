@@ -35,8 +35,8 @@ export const lessonService = {
       }])
       .select(`
         *,
-        teacher:users!teacher_id(id, full_name, email, role),
-        student:users!student_id(id, full_name, email, role)
+        teacher:users!teacher_id(id, full_name, email, role, created_at, updated_at),
+        student:users!student_id(id, full_name, email, role, created_at, updated_at)
       `)
       .single();
     
@@ -49,8 +49,16 @@ export const lessonService = {
         room_id: roomId,
         updated_at: data.created_at,
         notes: lessonData.notes,
-        teacher: data.teacher ? { ...data.teacher, role: data.teacher.role as 'teacher' | 'student' } : undefined,
-        student: data.student ? { ...data.student, role: data.student.role as 'teacher' | 'student' } : undefined
+        teacher: data.teacher ? { 
+          ...data.teacher, 
+          role: data.teacher.role as 'teacher' | 'student',
+          avatar_id: undefined
+        } : undefined,
+        student: data.student ? { 
+          ...data.student, 
+          role: data.student.role as 'teacher' | 'student',
+          avatar_id: undefined
+        } : undefined
       } as Lesson;
     }
     throw new Error('Failed to create lesson');
@@ -63,8 +71,8 @@ export const lessonService = {
       .from('lessons')
       .select(`
         *,
-        teacher:users!teacher_id(id, full_name, email, role),
-        student:users!student_id(id, full_name, email, role)
+        teacher:users!teacher_id(id, full_name, email, role, created_at, updated_at),
+        student:users!student_id(id, full_name, email, role, created_at, updated_at)
       `)
       .eq('teacher_id', teacherId)
       .gte('scheduled_at', new Date().toISOString())
@@ -77,8 +85,16 @@ export const lessonService = {
       ...lesson,
       room_id: `${lesson.student?.full_name?.split(' ')[0]?.toLowerCase() || 'student'}-${Math.random().toString(36).substr(2, 8)}`,
       updated_at: lesson.created_at,
-      teacher: lesson.teacher ? { ...lesson.teacher, role: lesson.teacher.role as 'teacher' | 'student' } : undefined,
-      student: lesson.student ? { ...lesson.student, role: lesson.student.role as 'teacher' | 'student' } : undefined
+      teacher: lesson.teacher ? { 
+        ...lesson.teacher, 
+        role: lesson.teacher.role as 'teacher' | 'student',
+        avatar_id: undefined
+      } : undefined,
+      student: lesson.student ? { 
+        ...lesson.student, 
+        role: lesson.student.role as 'teacher' | 'student',
+        avatar_id: undefined
+      } : undefined
     })) as Lesson[];
   },
 
@@ -89,8 +105,8 @@ export const lessonService = {
       .from('lessons')
       .select(`
         *,
-        teacher:users!teacher_id(id, full_name, email, role),
-        student:users!student_id(id, full_name, email, role)
+        teacher:users!teacher_id(id, full_name, email, role, created_at, updated_at),
+        student:users!student_id(id, full_name, email, role, created_at, updated_at)
       `)
       .eq('student_id', studentId)
       .gte('scheduled_at', new Date().toISOString())
@@ -103,8 +119,16 @@ export const lessonService = {
       ...lesson,
       room_id: `${lesson.student?.full_name?.split(' ')[0]?.toLowerCase() || 'student'}-${Math.random().toString(36).substr(2, 8)}`,
       updated_at: lesson.created_at,
-      teacher: lesson.teacher ? { ...lesson.teacher, role: lesson.teacher.role as 'teacher' | 'student' } : undefined,
-      student: lesson.student ? { ...lesson.student, role: lesson.student.role as 'teacher' | 'student' } : undefined
+      teacher: lesson.teacher ? { 
+        ...lesson.teacher, 
+        role: lesson.teacher.role as 'teacher' | 'student',
+        avatar_id: undefined
+      } : undefined,
+      student: lesson.student ? { 
+        ...lesson.student, 
+        role: lesson.student.role as 'teacher' | 'student',
+        avatar_id: undefined
+      } : undefined
     })) as Lesson[];
   },
 
@@ -116,8 +140,8 @@ export const lessonService = {
       .from('lessons')
       .select(`
         *,
-        teacher:users!teacher_id(id, full_name, email, role),
-        student:users!student_id(id, full_name, email, role)
+        teacher:users!teacher_id(id, full_name, email, role, created_at, updated_at),
+        student:users!student_id(id, full_name, email, role, created_at, updated_at)
       `)
       .limit(1)
       .single();
@@ -130,8 +154,16 @@ export const lessonService = {
         ...data,
         room_id: roomId,
         updated_at: data.created_at,
-        teacher: data.teacher ? { ...data.teacher, role: data.teacher.role as 'teacher' | 'student' } : undefined,
-        student: data.student ? { ...data.student, role: data.student.role as 'teacher' | 'student' } : undefined
+        teacher: data.teacher ? { 
+          ...data.teacher, 
+          role: data.teacher.role as 'teacher' | 'student',
+          avatar_id: undefined
+        } : undefined,
+        student: data.student ? { 
+          ...data.student, 
+          role: data.student.role as 'teacher' | 'student',
+          avatar_id: undefined
+        } : undefined
       } as Lesson;
     }
     throw new Error('Lesson not found');
