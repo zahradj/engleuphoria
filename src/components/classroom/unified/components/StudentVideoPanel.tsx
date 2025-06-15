@@ -2,6 +2,8 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Mic, MicOff, Video, VideoOff } from "lucide-react";
 import { useMediaContext } from "@/components/classroom/oneonone/video/MediaContext";
 
 interface StudentVideoPanelProps {
@@ -18,6 +20,11 @@ export function StudentVideoPanel({ studentName, currentUser }: StudentVideoPane
   const isTeacher = currentUser.role === 'teacher';
   const hasVideo = media.stream && media.isConnected && !media.isCameraOff;
 
+  const handleJoinVideo = () => {
+    console.log("🎥 Student joining video...");
+    media.join();
+  };
+
   return (
     <Card className="h-[300px] p-0 bg-white/90 border-2 border-purple-300 shadow-lg rounded-2xl overflow-hidden relative">
       <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-white/70 to-pink-50 pointer-events-none"></div>
@@ -30,7 +37,19 @@ export function StudentVideoPanel({ studentName, currentUser }: StudentVideoPane
                 <span className="text-2xl font-bold text-purple-600">S</span>
               </div>
               <p className="text-purple-600 font-semibold mb-2">Student Video</p>
-              <p className="text-sm text-gray-500">Waiting to connect...</p>
+              {!isTeacher ? (
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-500">Ready to join video?</p>
+                  <Button 
+                    onClick={handleJoinVideo}
+                    className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg shadow-lg"
+                  >
+                    Join Video
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">Waiting for student to join...</p>
+              )}
             </div>
           </div>
         ) : (
@@ -93,6 +112,37 @@ export function StudentVideoPanel({ studentName, currentUser }: StudentVideoPane
                 Student
               </Badge>
             </div>
+
+            {/* Student Video Controls - Only show for students when connected */}
+            {!isTeacher && media.isConnected && (
+              <div className="absolute bottom-3 right-3 flex items-center gap-2">
+                <Button
+                  variant={media.isMuted ? "destructive" : "outline"}
+                  size="icon"
+                  onClick={media.toggleMicrophone}
+                  className="w-8 h-8"
+                >
+                  {media.isMuted ? <MicOff size={16} /> : <Mic size={16} />}
+                </Button>
+                <Button
+                  variant={media.isCameraOff ? "destructive" : "outline"}
+                  size="icon"
+                  onClick={media.toggleCamera}
+                  className="w-8 h-8"
+                >
+                  {media.isCameraOff ? <VideoOff size={16} /> : <Video size={16} />}
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  onClick={media.leave}
+                  className="w-8 h-8"
+                  title="Leave Video"
+                >
+                  <span className="text-xs">⏻</span>
+                </Button>
+              </div>
+            )}
 
             {/* Student Name Label */}
             <div className="absolute bottom-3 left-3">
