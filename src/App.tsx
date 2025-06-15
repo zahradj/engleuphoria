@@ -51,7 +51,7 @@ const AppRoutes = () => {
       {/* Public Routes */}
       <Route 
         path="/login" 
-        element={user ? <Navigate to={user.role === 'teacher' ? '/teacher' : '/student'} replace /> : <Login />} 
+        element={!user ? <Login /> : <Navigate to={user.role === 'teacher' ? '/teacher' : '/student'} replace />} 
       />
 
       {/* Dashboard Routes */}
@@ -117,7 +117,13 @@ const AppRoutes = () => {
       {/* Catch-all Route */}
       <Route 
         path="*" 
-        element={<Navigate to="/" replace />} 
+        element={
+          user ? (
+            <Navigate to={user.role === 'teacher' ? '/teacher' : '/student'} replace />
+          ) : (
+            <Navigate to="/login" replace />
+          )
+        } 
       />
     </Routes>
   );
