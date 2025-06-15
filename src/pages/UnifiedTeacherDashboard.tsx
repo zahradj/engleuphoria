@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,11 +23,15 @@ import {
   Target,
   Eye,
   Ear,
-  Hand
+  Hand,
+  GraduationCap
 } from 'lucide-react';
 import { useClassroomAuth } from '@/hooks/useClassroomAuth';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { TodaysClassPanel } from '@/components/teacher/unified/TodaysClassPanel';
+import { SmartMaterialBrowser } from '@/components/teacher/unified/SmartMaterialBrowser';
+import { BuildAndUseCurriculumLibrary } from '@/components/teacher/curriculum/BuildAndUseCurriculumLibrary';
 
 export const UnifiedTeacherDashboard = () => {
   const { user, loading } = useClassroomAuth();
@@ -65,7 +68,7 @@ export const UnifiedTeacherDashboard = () => {
       student: "Sara Ahmed",
       level: "A2",
       topic: "Past Tense Review",
-      status: "upcoming",
+      status: "upcoming" as const,
       avatar: "SA"
     },
     {
@@ -74,7 +77,7 @@ export const UnifiedTeacherDashboard = () => {
       student: "Adam Chen",
       level: "B1",
       topic: "Conversation Practice",
-      status: "ready",
+      status: "ready" as const,
       avatar: "AC"
     },
     {
@@ -83,7 +86,7 @@ export const UnifiedTeacherDashboard = () => {
       student: "Lina Rossi",
       level: "A1",
       topic: "Vocabulary: Animals",
-      status: "upcoming",
+      status: "upcoming" as const,
       avatar: "LR"
     }
   ];
@@ -129,6 +132,20 @@ export const UnifiedTeacherDashboard = () => {
     toast({
       title: "Loading Materials",
       description: `Finding ${selectedSkill} materials for ${selectedLevel} level...`,
+    });
+  };
+
+  const handleSelectUnit = (unit: any) => {
+    toast({
+      title: "Unit Selected",
+      description: `Opening unit: ${unit.theme}`,
+    });
+  };
+
+  const handleGenerateLesson = (unit: any) => {
+    toast({
+      title: "Generating Lesson",
+      description: `Creating AI lesson plan for: ${unit.theme}`,
     });
   };
 
@@ -182,258 +199,218 @@ export const UnifiedTeacherDashboard = () => {
           </Card>
         </div>
 
-        {/* Today's Focus Panel */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Today's Classes */}
-          <Card className="lg:col-span-2 bg-white/80 backdrop-blur-sm shadow-lg">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="text-blue-500" />
-                Today's Classes
-              </CardTitle>
-              <Badge variant="secondary">{todaysClasses.length} scheduled</Badge>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {todaysClasses.map((class_) => (
-                <div key={class_.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-                      {class_.avatar}
-                    </div>
-                    <div>
-                      <div className="font-medium">{class_.time} - {class_.student}</div>
-                      <div className="text-sm text-gray-600">{class_.level} • {class_.topic}</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge 
-                      variant={class_.status === 'ready' ? 'default' : 'secondary'}
-                      className={class_.status === 'ready' ? 'bg-green-500' : ''}
+        {/* Main Dashboard Tabs */}
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-4 bg-white/80 backdrop-blur-sm">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <TrendingUp size={16} />
+              Dashboard Overview
+            </TabsTrigger>
+            <TabsTrigger value="curriculum" className="flex items-center gap-2">
+              <GraduationCap size={16} />
+              Curriculum Library
+            </TabsTrigger>
+            <TabsTrigger value="materials" className="flex items-center gap-2">
+              <BookOpen size={16} />
+              Smart Materials
+            </TabsTrigger>
+            <TabsTrigger value="students" className="flex items-center gap-2">
+              <Users size={16} />
+              Student Management
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-8">
+            {/* Today's Focus Panel */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <TodaysClassPanel 
+                  classes={todaysClasses}
+                  onStartClass={handleStartClass}
+                  onViewStudent={handleQuickStudentAccess}
+                />
+              </div>
+
+              {/* Quick Student Access */}
+              <Card className="bg-white/80 backdrop-blur-sm shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="text-green-500" />
+                    Quick Student Access
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {recentStudents.map((student) => (
+                    <div 
+                      key={student.name}
+                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                      onClick={() => handleQuickStudentAccess(student.name)}
                     >
-                      {class_.status}
-                    </Badge>
-                    <Button 
-                      size="sm" 
-                      onClick={() => handleStartClass(class_.id, class_.student)}
-                      disabled={class_.status !== 'ready'}
-                    >
-                      <Play size={14} className="mr-1" />
-                      Start
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          {/* Quick Student Access */}
-          <Card className="bg-white/80 backdrop-blur-sm shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="text-green-500" />
-                Quick Student Access
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {recentStudents.map((student) => (
-                <div 
-                  key={student.name}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                  onClick={() => handleQuickStudentAccess(student.name)}
-                >
-                  <div className="w-8 h-8 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full flex items-center justify-center text-white font-semibold text-xs">
-                    {student.avatar}
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-medium text-sm">{student.name}</div>
-                    <div className="text-xs text-gray-500">{student.lastClass}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs font-medium text-green-600">{student.progress}%</div>
-                    <div className="w-12 h-1 bg-gray-200 rounded-full">
-                      <div 
-                        className="h-1 bg-green-500 rounded-full" 
-                        style={{ width: `${student.progress}%` }}
-                      ></div>
+                      <div className="w-8 h-8 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full flex items-center justify-center text-white font-semibold text-xs">
+                        {student.avatar}
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-medium text-sm">{student.name}</div>
+                        <div className="text-xs text-gray-500">{student.lastClass}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xs font-medium text-green-600">{student.progress}%</div>
+                        <div className="w-12 h-1 bg-gray-200 rounded-full">
+                          <div 
+                            className="h-1 bg-green-500 rounded-full" 
+                            style={{ width: `${student.progress}%` }}
+                          ></div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Smart Material Browser */}
-        <Card className="mb-8 bg-white/80 backdrop-blur-sm shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BookOpen className="text-purple-500" />
-              Smart Material Browser
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Level</label>
-                <select 
-                  value={selectedLevel} 
-                  onChange={(e) => setSelectedLevel(e.target.value)}
-                  className="w-full p-2 border rounded-lg bg-white"
-                >
-                  {levels.map(level => (
-                    <option key={level} value={level}>{level}</option>
                   ))}
-                </select>
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-2 block">Skill</label>
-                <select 
-                  value={selectedSkill} 
-                  onChange={(e) => setSelectedSkill(e.target.value)}
-                  className="w-full p-2 border rounded-lg bg-white"
-                >
-                  {skills.map(skill => (
-                    <option key={skill} value={skill}>{skill}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-2 block">Learning Style</label>
-                <div className="flex gap-1">
-                  {learningStyles.map((style) => (
-                    <Button
-                      key={style.type}
-                      variant={selectedLearningStyle === style.type ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedLearningStyle(style.type)}
-                      className="flex-1 text-xs"
-                    >
-                      <style.icon size={12} className="mr-1" />
-                      {style.name}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-              <div className="flex items-end">
-                <Button onClick={handleMaterialAccess} className="w-full">
-                  <Target size={16} className="mr-2" />
-                  Find Materials
-                </Button>
-              </div>
+                </CardContent>
+              </Card>
             </div>
-            
-            {/* Quick Material Actions */}
-            <div className="flex gap-2 flex-wrap">
-              <Button variant="outline" size="sm">
-                <FileText size={14} className="mr-1" />
-                View Lesson Plan
-              </Button>
-              <Button variant="outline" size="sm">
-                <Eye size={14} className="mr-1" />
-                Open Slides
-              </Button>
-              <Button variant="outline" size="sm">
-                <Gamepad2 size={14} className="mr-1" />
-                Launch Game
-              </Button>
-              <Button variant="outline" size="sm">
-                <Upload size={14} className="mr-1" />
-                Upload Custom
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Notifications & Quick Actions */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Real-time Notifications */}
-          <Card className="bg-white/80 backdrop-blur-sm shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Bell className="text-orange-500" />
-                Notifications & Alerts
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 max-h-64 overflow-y-auto">
-              {notifications.map((notification, index) => (
-                <div key={index} className={`p-3 rounded-lg border-l-4 ${
-                  notification.urgent ? 'border-red-500 bg-red-50' : 'border-blue-500 bg-blue-50'
-                }`}>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{notification.text}</p>
-                      <p className="text-xs text-gray-500 mt-1">{notification.time}</p>
+            {/* Notifications & Quick Actions */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Real-time Notifications */}
+              <Card className="bg-white/80 backdrop-blur-sm shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Bell className="text-orange-500" />
+                    Notifications & Alerts
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 max-h-64 overflow-y-auto">
+                  {notifications.map((notification, index) => (
+                    <div key={index} className={`p-3 rounded-lg border-l-4 ${
+                      notification.urgent ? 'border-red-500 bg-red-50' : 'border-blue-500 bg-blue-50'
+                    }`}>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{notification.text}</p>
+                          <p className="text-xs text-gray-500 mt-1">{notification.time}</p>
+                        </div>
+                        {notification.urgent && (
+                          <Badge variant="destructive" className="ml-2">Urgent</Badge>
+                        )}
+                      </div>
                     </div>
-                    {notification.urgent && (
-                      <Badge variant="destructive" className="ml-2">Urgent</Badge>
-                    )}
+                  ))}
+                </CardContent>
+              </Card>
+
+              {/* Post-Class Quick Actions */}
+              <Card className="bg-white/80 backdrop-blur-sm shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CheckCircle className="text-green-500" />
+                    Post-Class Actions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Button variant="outline" className="w-full justify-start">
+                    <CheckCircle size={16} className="mr-2" />
+                    Mark Attendance
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start">
+                    <FileText size={16} className="mr-2" />
+                    Submit Student Feedback
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start">
+                    <Upload size={16} className="mr-2" />
+                    Upload Homework/Notes
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start">
+                    <MessageCircle size={16} className="mr-2" />
+                    Message Parent/Student
+                  </Button>
+                  <Button variant="outline" className="w-full justify-start">
+                    <Award size={16} className="mr-2" />
+                    Award Points/Badges
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* NLP Framework Integration */}
+            <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Brain className="text-purple-500" />
+                  AI-Powered Teaching Insights
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="text-center p-4 bg-white rounded-lg">
+                    <Star className="mx-auto mb-2 text-yellow-500" size={24} />
+                    <h4 className="font-semibold">Smart Recommendations</h4>
+                    <p className="text-sm text-gray-600">AI suggests materials based on student progress</p>
+                  </div>
+                  <div className="text-center p-4 bg-white rounded-lg">
+                    <TrendingUp className="mx-auto mb-2 text-green-500" size={24} />
+                    <h4 className="font-semibold">Progress Analytics</h4>
+                    <p className="text-sm text-gray-600">Track learning patterns and improvement areas</p>
+                  </div>
+                  <div className="text-center p-4 bg-white rounded-lg">
+                    <Gamepad2 className="mx-auto mb-2 text-blue-500" size={24} />
+                    <h4 className="font-semibold">Adaptive Content</h4>
+                    <p className="text-sm text-gray-600">Materials adjust to learning styles automatically</p>
                   </div>
                 </div>
-              ))}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-          {/* Post-Class Quick Actions */}
-          <Card className="bg-white/80 backdrop-blur-sm shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CheckCircle className="text-green-500" />
-                Post-Class Actions
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button variant="outline" className="w-full justify-start">
-                <CheckCircle size={16} className="mr-2" />
-                Mark Attendance
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                <FileText size={16} className="mr-2" />
-                Submit Student Feedback
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                <Upload size={16} className="mr-2" />
-                Upload Homework/Notes
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                <MessageCircle size={16} className="mr-2" />
-                Message Parent/Student
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                <Award size={16} className="mr-2" />
-                Award Points/Badges
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+          {/* Curriculum Library Tab */}
+          <TabsContent value="curriculum">
+            <BuildAndUseCurriculumLibrary
+              onSelectUnit={handleSelectUnit}
+              onGenerateLesson={handleGenerateLesson}
+            />
+          </TabsContent>
 
-        {/* NLP Framework Integration */}
-        <Card className="mt-8 bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Brain className="text-purple-500" />
-              AI-Powered Teaching Insights
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center p-4 bg-white rounded-lg">
-                <Star className="mx-auto mb-2 text-yellow-500" size={24} />
-                <h4 className="font-semibold">Smart Recommendations</h4>
-                <p className="text-sm text-gray-600">AI suggests materials based on student progress</p>
-              </div>
-              <div className="text-center p-4 bg-white rounded-lg">
-                <TrendingUp className="mx-auto mb-2 text-green-500" size={24} />
-                <h4 className="font-semibold">Progress Analytics</h4>
-                <p className="text-sm text-gray-600">Track learning patterns and improvement areas</p>
-              </div>
-              <div className="text-center p-4 bg-white rounded-lg">
-                <Gamepad2 className="mx-auto mb-2 text-blue-500" size={24} />
-                <h4 className="font-semibold">Adaptive Content</h4>
-                <p className="text-sm text-gray-600">Materials adjust to learning styles automatically</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          {/* Smart Materials Tab */}
+          <TabsContent value="materials">
+            <SmartMaterialBrowser
+              selectedLevel={selectedLevel}
+              selectedSkill={selectedSkill}
+              selectedLearningStyle={selectedLearningStyle}
+              onLevelChange={setSelectedLevel}
+              onSkillChange={setSelectedSkill}
+              onLearningStyleChange={setSelectedLearningStyle}
+              onMaterialSelect={(material) => {
+                toast({
+                  title: "Material Selected",
+                  description: `Opening: ${material.title}`,
+                });
+              }}
+            />
+          </TabsContent>
+
+          {/* Student Management Tab */}
+          <TabsContent value="students">
+            <Card className="bg-white/90 backdrop-blur-sm shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="text-blue-500" />
+                  Student Management Center
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <Users size={48} className="mx-auto mb-4 text-gray-400" />
+                  <h3 className="text-lg font-semibold mb-2">Student Management Coming Soon</h3>
+                  <p className="text-gray-600 mb-4">
+                    Advanced student tracking, progress monitoring, and communication tools.
+                  </p>
+                  <Button variant="outline">
+                    View Current Students
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
