@@ -6,13 +6,19 @@ import { Badge } from "@/components/ui/badge";
 import { MessageCircle, BookOpen, Book, Send, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { UnifiedUser, getDisplayName } from "@/types/user";
+
+interface UserProfile {
+  id: string;
+  name: string;
+  role: 'teacher' | 'student';
+  avatar?: string;
+}
 
 interface UnifiedRightPanelProps {
   studentXP: number;
   activeRightTab: string;
   onTabChange: (tab: string) => void;
-  currentUser: UnifiedUser;
+  currentUser: UserProfile;
   enhancedClassroom: any;
 }
 
@@ -28,7 +34,6 @@ export function UnifiedRightPanel({
   
   const isTeacher = currentUser.role === 'teacher';
   const studentLevel = Math.floor(studentXP / 100);
-  const displayName = getDisplayName(currentUser);
 
   const tabs = [
     { id: "chat", label: "Chat", icon: MessageCircle, color: "text-blue-600" },
@@ -61,12 +66,12 @@ export function UnifiedRightPanel({
           <div className="text-center relative z-10">
             <div className="relative mb-2">
               <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-cyan-600 rounded-full flex items-center justify-center mx-auto shadow-lg">
-                <span className="text-lg font-bold text-white">{displayName.charAt(0).toUpperCase()}</span>
+                <span className="text-lg font-bold text-white">E</span>
               </div>
               {/* Online status ring */}
               <div className="absolute -inset-1 bg-gradient-to-r from-emerald-400 to-cyan-500 rounded-full opacity-80 animate-pulse"></div>
             </div>
-            <p className="font-semibold text-gray-800 text-sm">{displayName} ({currentUser.role})</p>
+            <p className="font-semibold text-gray-800 text-sm">Emma (Student)</p>
           </div>
         </div>
         

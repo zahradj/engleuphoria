@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -5,8 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Calendar, Clock, User as UserIcon } from 'lucide-react';
-import { classroomDatabase, User as ClassroomUser } from '@/services/classroomDatabase';
+import { Calendar, Clock, User } from 'lucide-react';
+import { classroomDatabase, User } from '@/services/classroomDatabase';
 import { useToast } from '@/hooks/use-toast';
 
 interface ScheduleLessonModalProps {
@@ -17,7 +18,7 @@ interface ScheduleLessonModalProps {
 }
 
 export const ScheduleLessonModal = ({ isOpen, onClose, teacherId, onLessonScheduled }: ScheduleLessonModalProps) => {
-  const [students, setStudents] = useState<ClassroomUser[]>([]);
+  const [students, setStudents] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     studentId: '',
@@ -124,7 +125,7 @@ export const ScheduleLessonModal = ({ isOpen, onClose, teacherId, onLessonSchedu
                 {students.map((student) => (
                   <SelectItem key={student.id} value={student.id}>
                     <div className="flex items-center gap-2">
-                      <UserIcon className="h-4 w-4" />
+                      <User className="h-4 w-4" />
                       {student.full_name}
                     </div>
                   </SelectItem>

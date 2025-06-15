@@ -7,37 +7,12 @@ import { UnifiedClassroomProvider, useUnifiedClassroomContext } from "@/componen
 import { UnifiedClassroomLayout } from "@/components/classroom/unified/UnifiedClassroomLayout";
 import { UnifiedClassroomContent } from "@/components/classroom/unified/UnifiedClassroomContent";
 import { UnifiedClassroomErrorBoundary } from "@/components/classroom/unified/UnifiedClassroomErrorBoundary";
-import { Lesson, User } from "@/services/classroomDatabase";
-import { UnifiedUser, getDisplayName } from "@/types/user";
 
-interface UnifiedClassroomProps {
-  lesson?: Lesson;
-  userRole?: 'teacher' | 'student';
-  currentUser?: User;
-}
-
-function UnifiedClassroomInner({ lesson, userRole, currentUser: propCurrentUser }: UnifiedClassroomProps) {
+function UnifiedClassroomInner() {
   console.log("UnifiedClassroom component is rendering");
   
   const { toast } = useToast();
-  const { currentUser: contextCurrentUser, finalRoomId } = useUnifiedClassroomContext();
-  
-  // Convert to unified user type and use prop currentUser if provided, otherwise fall back to context
-  const currentUser: UnifiedUser = propCurrentUser ? {
-    id: propCurrentUser.id,
-    full_name: propCurrentUser.full_name,
-    email: propCurrentUser.email,
-    role: propCurrentUser.role,
-    avatar_url: propCurrentUser.avatar_id ? `/avatars/avatar-${propCurrentUser.avatar_id}.svg` : undefined
-  } : {
-    id: contextCurrentUser.id,
-    name: contextCurrentUser.name,
-    role: contextCurrentUser.role,
-    avatar: contextCurrentUser.avatar
-  };
-  
-  // Use lesson's room_id if provided, otherwise fall back to context
-  const roomId = lesson?.room_id || finalRoomId;
+  const { currentUser, finalRoomId } = useUnifiedClassroomContext();
   
   const classroomState = useOneOnOneClassroom();
   const {
@@ -52,15 +27,12 @@ function UnifiedClassroomInner({ lesson, userRole, currentUser: propCurrentUser 
     awardPoints
   } = classroomState;
 
-  // Get display name using helper function
-  const displayName = getDisplayName(currentUser);
-
   // Enhanced classroom with real-time features
   const enhancedClassroom = useEnhancedClassroom({
-    roomId,
+    roomId: finalRoomId,
     userId: currentUser.id,
-    displayName,
-    userRole: userRole || currentUser.role
+    displayName: currentUser.name,
+    userRole: currentUser.role
   });
 
   console.log("Enhanced unified classroom state:", {
@@ -69,8 +41,8 @@ function UnifiedClassroomInner({ lesson, userRole, currentUser: propCurrentUser 
     isCameraOff: enhancedClassroom.isCameraOff,
     hasLocalStream: !!enhancedClassroom.localStream,
     participantsCount: enhancedClassroom.participants.length,
-    userRole: userRole || currentUser.role,
-    roomId,
+    userRole: currentUser.role,
+    roomId: finalRoomId,
     error: enhancedClassroom.error,
     hasSession: !!enhancedClassroom.session,
     syncConnected: enhancedClassroom.realTimeSync?.isConnected
@@ -113,10 +85,10 @@ function UnifiedClassroomInner({ lesson, userRole, currentUser: propCurrentUser 
   }
 }
 
-const UnifiedClassroom = (props: UnifiedClassroomProps = {}) => {
+const UnifiedClassroom = () => {
   return (
     <UnifiedClassroomProvider>
-      <UnifiedClassroomInner {...props} />
+      <UnifiedClassroomInner />
     </UnifiedClassroomProvider>
   );
 };

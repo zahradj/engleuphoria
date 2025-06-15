@@ -7,12 +7,18 @@ import { PenTool, Gamepad2, Sparkles, Link, ChevronLeft, ChevronRight } from "lu
 import { OneOnOneWhiteboard } from "@/components/classroom/oneonone/OneOnOneWhiteboard";
 import { OneOnOneGames } from "@/components/classroom/oneonone/OneOnOneGames";
 import { EnhancedAIAssistant } from "@/components/classroom/oneonone/ai/EnhancedAIAssistant";
-import { UnifiedUser, getDisplayName } from "@/types/user";
+
+interface UserProfile {
+  id: string;
+  name: string;
+  role: 'teacher' | 'student';
+  avatar?: string;
+}
 
 interface UnifiedCenterPanelProps {
   activeCenterTab: string;
   onTabChange: (tab: string) => void;
-  currentUser: UnifiedUser;
+  currentUser: UserProfile;
 }
 
 export function UnifiedCenterPanel({ 

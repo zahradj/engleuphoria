@@ -1,23 +1,7 @@
 
 import { useState, useEffect, createContext, useContext } from 'react'
-import { supabase } from '@/integrations/supabase/client'
+import { supabase, User, isSupabaseConfigured } from '@/lib/supabase'
 import { Session } from '@supabase/supabase-js'
-
-// Define User interface to match database schema
-interface User {
-  id: string
-  email: string
-  full_name: string
-  role: 'student' | 'teacher' | 'parent' | 'admin'
-  avatar_id?: number
-  created_at: string
-  updated_at: string
-}
-
-// Helper function to check if Supabase is properly configured
-const isSupabaseConfigured = () => {
-  return true; // Always true since we're using the real Supabase client now
-}
 
 interface AuthContextType {
   user: User | null
@@ -35,7 +19,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [loading, setLoading] = useState(true)
-  const [isConfigured, setIsConfigured] = useState(true)
+  const [isConfigured, setIsConfigured] = useState(false)
 
   useEffect(() => {
     // Check if Supabase is configured
@@ -96,9 +80,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .single()
 
       if (error) throw error
-      if (data) {
-        setUser(data as User)
-      }
+      setUser(data)
     } catch (error) {
       console.error('Error fetching user profile:', error)
     }
@@ -118,14 +100,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) throw error
 
       if (data.user) {
-        // Create user profile with required fields
+        // Create user profile
         const { error: profileError } = await supabase
           .from('users')
           .insert([{
             id: data.user.id,
-            email: data.user.email!,
-            full_name: userData.full_name || 'User',
-            role: userData.role || 'student'
+            email: data.user.email,
+            ...userData
           }])
 
         if (profileError) throw profileError

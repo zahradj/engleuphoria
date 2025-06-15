@@ -4,7 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useClassroomAuth } from '@/hooks/useClassroomAuth';
 import { classroomDatabase, Lesson } from '@/services/classroomDatabase';
 import { useToast } from '@/hooks/use-toast';
-import UnifiedClassroom from '@/pages/UnifiedClassroom';
+import { UnifiedClassroom } from '@/pages/UnifiedClassroom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
