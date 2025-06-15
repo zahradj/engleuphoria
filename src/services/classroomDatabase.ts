@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 
 // Types for the classroom system
@@ -57,9 +56,13 @@ export interface ChatMessage {
 export const classroomDatabase = {
   // User management
   async createUser(userData: Omit<User, 'id' | 'created_at' | 'updated_at'>) {
+    // Get the current user ID from auth
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('No authenticated user');
+
     const { data, error } = await supabase
       .from('users')
-      .insert([userData])
+      .insert([{ ...userData, id: user.id }])
       .select()
       .single();
     

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, createContext, useContext } from 'react';
 import { supabase } from '@/lib/supabase';
 import { classroomDatabase, User } from '@/services/classroomDatabase';
@@ -96,9 +95,8 @@ export const ClassroomAuthProvider = ({ children }: { children: React.ReactNode 
       }
 
       if (authData.user) {
-        // Create user profile
+        // Create user profile - remove id from the object since it's excluded in the type
         await classroomDatabase.createUser({
-          id: authData.user.id,
           email,
           full_name: fullName,
           role,
