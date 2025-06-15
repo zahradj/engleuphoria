@@ -15,16 +15,12 @@ interface OneOnOneCenterPanelProps {
     role: 'teacher' | 'student';
     name: string;
   };
-  onAwardStar?: () => void;
-  onAwardTask?: (type: 'WORKSHEET' | 'VOCABULARY' | 'SPEAKING_PRACTICE') => void;
 }
 
 export function OneOnOneCenterPanel({ 
   activeCenterTab, 
   onTabChange,
-  currentUser = { role: 'teacher', name: 'Teacher' },
-  onAwardStar,
-  onAwardTask
+  currentUser = { role: 'teacher', name: 'Teacher' }
 }: OneOnOneCenterPanelProps) {
   return (
     <Card className="h-full flex flex-col">
@@ -47,8 +43,6 @@ export function OneOnOneCenterPanel({
         <TabsContent value="whiteboard" className="flex-1 m-0 p-4">
           <EnhancedOneOnOneWhiteboard 
             currentUser={currentUser}
-            onAwardStar={onAwardStar}
-            onAwardTask={onAwardTask}
           />
         </TabsContent>
 

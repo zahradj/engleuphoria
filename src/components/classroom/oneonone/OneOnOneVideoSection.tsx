@@ -9,6 +9,7 @@ import { XPProgressSection } from "./video/components/XPProgressSection";
 import { SessionLog } from "./video/components/SessionLog";
 import { MediaErrorDisplay } from "./video/components/MediaErrorDisplay";
 import { QuickTeachingTools } from "./QuickTeachingTools";
+import { OneOnOneRewards } from "./OneOnOneRewards";
 import { useLessonState } from "./video/hooks/useLessonState";
 import { useSessionLogging } from "./video/hooks/useSessionLogging";
 import { useVideoRefs } from "./video/hooks/useVideoRefs";
@@ -76,14 +77,19 @@ export function OneOnOneVideoSection({
         <XPProgressSection studentXP={studentXP} showRewardPopup={!!showRewardPopup} />
       </Card>
 
-      {/* Quick Teaching Tools - Only show for teachers */}
+      {/* Teaching Tools and Rewards - Only show for teachers */}
       {isTeacher && (
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 space-y-3">
           <QuickTeachingTools 
             currentUser={{
               role: isTeacher ? 'teacher' : 'student',
               name: currentUserName
             }}
+          />
+          <OneOnOneRewards
+            studentXP={studentXP}
+            onAwardPoints={onAwardPoints || (() => {})}
+            showRewardPopup={showRewardPopup}
           />
         </div>
       )}

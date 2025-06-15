@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useOneOnOneClassroom } from "@/hooks/useOneOnOneClassroom";
 import { useEnhancedClassroom } from "@/hooks/useEnhancedClassroom";
@@ -94,8 +93,6 @@ const OneOnOneClassroomNew = () => {
                     role: isTeacher ? 'teacher' : 'student',
                     name: currentUserName
                   }}
-                  onAwardStar={enhancedRewards.awardStar}
-                  onAwardTask={enhancedRewards.awardTask}
                 />
               </div>
 
