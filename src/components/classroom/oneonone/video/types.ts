@@ -9,3 +9,17 @@ export interface OneOnOneVideoSectionProps {
   showRewardPopup?: boolean;
   lessonStarted?: boolean;
 }
+
+export interface VideoRefs {
+  teacherVideoRef: React.RefObject<HTMLVideoElement>;
+  studentVideoRef: React.RefObject<HTMLVideoElement>;
+}
+
+export type IssueType = 
+  | "Audio not working" 
+  | "Video not working" 
+  | "Connection issues" 
+  | "Poor audio quality" 
+  | "Poor video quality"
+  | "Screen sharing not working"
+  | "Other technical issue";
