@@ -88,8 +88,8 @@ export function UnifiedCenterPanel({
 
   return (
     <Card className="h-full shadow-lg flex flex-col overflow-hidden">
-      {/* Enhanced Tab Navigation with Role Indicators */}
-      <div className="border-b p-3 flex-shrink-0 bg-gradient-to-r from-gray-50 to-blue-50">
+      {/* Fixed Tab Navigation */}
+      <div className="flex-shrink-0 border-b p-3 bg-gradient-to-r from-gray-50 to-blue-50">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
           {availableTabs.map((tab) => {
             const IconComponent = tab.icon;
@@ -139,22 +139,22 @@ export function UnifiedCenterPanel({
         </div>
       </div>
 
-      {/* Tab Content with Role-Based Features */}
-      <div className="flex-1 overflow-hidden">
+      {/* Scrollable Tab Content */}
+      <div className="flex-1 overflow-y-auto">
         {activeCenterTab === "whiteboard" && (
-          <div className="h-full p-4">
+          <div className="p-4 h-full">
             <OneOnOneWhiteboard />
           </div>
         )}
         
         {activeCenterTab === "games" && (
-          <div className="h-full p-4">
+          <div className="p-4 h-full">
             <OneOnOneGames />
           </div>
         )}
         
         {activeCenterTab === "ai" && (
-          <div className="h-full p-4">
+          <div className="p-4 h-full">
             <EnhancedAIAssistant
               studentProfile={studentProfile}
               onContentGenerated={handleContentGenerated}
@@ -164,7 +164,7 @@ export function UnifiedCenterPanel({
         )}
         
         {activeCenterTab === "resources" && (
-          <div className="h-full p-4">
+          <div className="p-4 h-full">
             <div className="text-center text-gray-500 mt-8">
               <Link size={32} className="mx-auto mb-4 opacity-50" />
               <h3 className="text-lg font-medium mb-2">Educational Resources</h3>

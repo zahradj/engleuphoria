@@ -148,10 +148,10 @@ const UnifiedClassroom = () => {
 
   try {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-        {/* Enhanced Top Bar */}
-        <div className="h-20 flex-shrink-0 p-4">
-          <Card className="p-4 shadow-lg border-0 bg-white/80 backdrop-blur-sm">
+      <div className="h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-hidden">
+        {/* Fixed Top Bar */}
+        <div className="fixed top-0 left-0 right-0 z-50 h-20 p-4 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+          <Card className="h-full p-4 shadow-lg border-0 bg-white/80 backdrop-blur-sm">
             <UnifiedTopBar
               classTime={classTime}
               currentUser={currentUser}
@@ -161,12 +161,12 @@ const UnifiedClassroom = () => {
           </Card>
         </div>
 
-        {/* Main Enhanced Classroom Layout */}
-        <div className="min-h-[calc(100vh-5rem)] px-4 pb-4">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[600px]">
+        {/* Main Enhanced Classroom Layout - Fixed Height with Top Margin */}
+        <div className="mt-20 h-[calc(100vh-5rem)] px-4 pb-4 overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
             
-            {/* Left Panel - Enhanced Video Section with Animations */}
-            <div className="lg:col-span-3 min-h-[500px] animate-fade-in">
+            {/* Left Panel - Fixed Height */}
+            <div className="lg:col-span-3 h-full animate-fade-in">
               <UnifiedVideoSection
                 enhancedClassroom={enhancedClassroom}
                 currentUser={currentUser}
@@ -176,8 +176,8 @@ const UnifiedClassroom = () => {
               />
             </div>
 
-            {/* Center Panel - Synchronized Interactive Content */}
-            <div className="lg:col-span-6 min-h-[500px] animate-fade-in" style={{ animationDelay: '0.1s' }}>
+            {/* Center Panel - Scrollable Content Only */}
+            <div className="lg:col-span-6 h-full animate-fade-in" style={{ animationDelay: '0.1s' }}>
               <UnifiedCenterPanel
                 activeCenterTab={activeCenterTab}
                 onTabChange={handleCenterTabChange}
@@ -185,8 +185,8 @@ const UnifiedClassroom = () => {
               />
             </div>
 
-            {/* Right Panel - Enhanced Communication & Tools */}
-            <div className="lg:col-span-3 min-h-[500px] animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            {/* Right Panel - Fixed Height */}
+            <div className="lg:col-span-3 h-full animate-fade-in" style={{ animationDelay: '0.2s' }}>
               <UnifiedRightPanel
                 studentXP={studentXP}
                 activeRightTab={activeRightTab}
@@ -217,7 +217,7 @@ const UnifiedClassroom = () => {
   } catch (error) {
     console.error("Error rendering UnifiedClassroom:", error);
     return (
-      <div className="min-h-screen bg-red-50 p-4 flex items-center justify-center">
+      <div className="h-screen bg-red-50 p-4 flex items-center justify-center">
         <Card className="p-8 text-center max-w-md">
           <h1 className="text-2xl font-bold text-red-800 mb-4">Enhanced Classroom Error</h1>
           <p className="text-red-600 mb-4">There was an error loading the enhanced classroom. Please check your camera and microphone permissions.</p>
