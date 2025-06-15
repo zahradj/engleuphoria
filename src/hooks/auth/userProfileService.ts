@@ -33,8 +33,8 @@ export const loadUserProfile = async (userId: string): Promise<User | null> => {
   console.log('UserProfileService: Loading user profile for:', userId);
   
   try {
-    // Execute the Supabase query with timeout wrapper
-    const { data: userData, error } = await withTimeout(
+    // Execute the Supabase query with timeout wrapper - await the query first
+    const result = await withTimeout(
       supabase
         .from('users')
         .select('*')
@@ -42,6 +42,8 @@ export const loadUserProfile = async (userId: string): Promise<User | null> => {
         .maybeSingle(),
       8000
     );
+    
+    const { data: userData, error } = result;
     
     if (error) {
       console.log('UserProfileService: Database error loading user profile:', error);
@@ -51,10 +53,12 @@ export const loadUserProfile = async (userId: string): Promise<User | null> => {
         console.log('UserProfileService: User profile not found, checking auth user');
         
         try {
-          const { data: { user: authUser }, error: authError } = await withTimeout(
+          const authResult = await withTimeout(
             supabase.auth.getUser(),
             5000
           );
+          
+          const { data: { user: authUser }, error: authError } = authResult;
           
           if (authError) {
             console.error('UserProfileService: Auth error:', authError);
