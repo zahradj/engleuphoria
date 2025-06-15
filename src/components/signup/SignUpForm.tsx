@@ -1,3 +1,4 @@
+
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useClassroomAuth } from "@/hooks/useClassroomAuth";
+import { useState } from "react";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -23,6 +26,8 @@ export const SignUpForm = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { languageText } = useLanguage();
+  const { signUp } = useClassroomAuth();
+  const [loading, setLoading] = useState(false);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -34,43 +39,56 @@ export const SignUpForm = () => {
     },
   });
   
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    // Store user data based on type
-    if (values.userType === "teacher") {
-      localStorage.setItem('teacherName', values.name);
-      localStorage.setItem('userType', 'teacher');
-      localStorage.removeItem('studentName'); // Clear any student data
-      localStorage.removeItem('adminName'); // Clear any admin data
-    } else if (values.userType === "student") {
-      localStorage.setItem('studentName', values.name);
-      localStorage.setItem('userType', 'student');
-      localStorage.setItem('points', '50'); // Starting points
-      localStorage.removeItem('teacherName'); // Clear any teacher data
-      localStorage.removeItem('adminName'); // Clear any admin data
-    } else if (values.userType === "admin") {
-      localStorage.setItem('adminName', values.name);
-      localStorage.setItem('userType', 'admin');
-      localStorage.removeItem('teacherName'); // Clear any teacher data
-      localStorage.removeItem('studentName'); // Clear any student data
-    } else {
-      // Parent - for now redirect to student dashboard (could be a parent portal later)
-      localStorage.setItem('studentName', values.name);
-      localStorage.setItem('userType', 'parent');
-      localStorage.setItem('points', '50');
-      localStorage.removeItem('teacherName');
-      localStorage.removeItem('adminName');
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    setLoading(true);
+    
+    try {
+      // Map user types to supported roles
+      let mappedRole: 'teacher' | 'student';
+      if (values.userType === 'teacher' || values.userType === 'admin') {
+        mappedRole = 'teacher';
+      } else {
+        // parent and student both map to student
+        mappedRole = 'student';
+      }
+
+      console.log('SignUpForm: Attempting signup with:', { 
+        email: values.email, 
+        name: values.name, 
+        originalType: values.userType, 
+        mappedRole 
+      });
+
+      const result = await signUp(values.email, values.password, values.name, mappedRole);
+      
+      if (result.success) {
+        toast({
+          title: "Account created!",
+          description: `Welcome to Engleuphoria, ${values.name}! Please check your email to verify your account.`,
+        });
+        
+        // Redirect to login for verification
+        setTimeout(() => {
+          navigate("/login");
+        }, 1500);
+      } else {
+        console.error('SignUpForm: Signup failed:', result.error);
+        toast({
+          title: "Signup Failed",
+          description: result.error || "Failed to create account. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('SignUpForm: Unexpected error:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
-    
-    console.log(values);
-    toast({
-      title: "Account created!",
-      description: "Welcome to Engleuphoria! Please log in to continue.",
-    });
-    
-    // Redirect to login page for authentication
-    setTimeout(() => {
-      navigate("/login");
-    }, 1500);
   };
 
   return (
@@ -93,7 +111,7 @@ export const SignUpForm = () => {
               <FormItem>
                 <FormLabel>{languageText.fullName}</FormLabel>
                 <FormControl>
-                  <Input placeholder="Your name" {...field} />
+                  <Input placeholder="Your name" {...field} disabled={loading} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -107,7 +125,7 @@ export const SignUpForm = () => {
               <FormItem>
                 <FormLabel>{languageText.email}</FormLabel>
                 <FormControl>
-                  <Input placeholder="your.email@example.com" {...field} />
+                  <Input placeholder="your.email@example.com" {...field} disabled={loading} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -121,7 +139,7 @@ export const SignUpForm = () => {
               <FormItem>
                 <FormLabel>{languageText.password}</FormLabel>
                 <FormControl>
-                  <Input type="password" placeholder="••••••" {...field} />
+                  <Input type="password" placeholder="••••••" {...field} disabled={loading} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -139,6 +157,7 @@ export const SignUpForm = () => {
                     onValueChange={field.onChange}
                     defaultValue={field.value}
                     className="flex flex-col space-y-1"
+                    disabled={loading}
                   >
                     <FormItem className="flex items-center space-x-3 space-y-0">
                       <FormControl>
@@ -171,8 +190,8 @@ export const SignUpForm = () => {
             )}
           />
           
-          <Button type="submit" className="w-full">
-            {languageText.signUp}
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? "Creating account..." : languageText.signUp}
           </Button>
         </form>
       </Form>
@@ -180,7 +199,12 @@ export const SignUpForm = () => {
       <div className="mt-6 text-center">
         <p className="text-sm text-muted-foreground">
           {languageText.alreadyHaveAccount}{" "}
-          <Button variant="link" className="p-0 h-auto font-normal" onClick={() => navigate('/login')}>
+          <Button 
+            variant="link" 
+            className="p-0 h-auto font-normal" 
+            onClick={() => navigate('/login')}
+            disabled={loading}
+          >
             {languageText.logIn}
           </Button>
         </p>
