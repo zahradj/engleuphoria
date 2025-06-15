@@ -10,7 +10,7 @@ import Index from "./pages/Index";
 import { StudentDashboard } from "./pages/StudentDashboard";
 import { TeacherDashboard } from "./pages/TeacherDashboard";
 import ClassroomPage from "./pages/ClassroomPage";
-import OneOnOneClassroomNew from "./pages/OneOnOneClassroomNew";
+import EnhancedOneOnOneClassroom from "./pages/EnhancedOneOnOneClassroom";
 import LessonPlanCreator from "./pages/LessonPlanCreator";
 import LessonScheduler from "./pages/LessonScheduler";
 import StudentManagement from "./pages/StudentManagement";
@@ -34,7 +34,7 @@ const App = () => (
               <Route path="/teacher" element={<TeacherDashboard />} />
               <Route path="/unified-teacher" element={<UnifiedTeacherDashboard />} />
               <Route path="/classroom" element={<ClassroomPage />} />
-              <Route path="/oneonone-classroom-new" element={<OneOnOneClassroomNew />} />
+              <Route path="/oneonone-classroom-new" element={<EnhancedOneOnOneClassroom />} />
               <Route path="/lesson-plan-creator" element={<LessonPlanCreator />} />
               <Route path="/lesson-scheduler" element={<LessonScheduler />} />
               <Route path="/student-management" element={<StudentManagement />} />
