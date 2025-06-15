@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -43,23 +44,35 @@ export const TeacherSidebar = ({ activeTab, setActiveTab, onLogout }: TeacherSid
   ];
 
   return (
-    <div className="w-64 flex-shrink-0 border-r bg-gray-50 dark:bg-gray-900 dark:border-gray-700 flex flex-col">
-      <div className="h-16 flex items-center justify-center border-b dark:border-gray-700">
-        <GraduationCap className="h-8 w-8 text-blue-500" />
-        <span className="ml-2 text-lg font-semibold">Teacher Panel</span>
+    <div className="w-64 bg-white shadow-lg border-r border-gray-200 flex flex-col">
+      <div className="p-6 border-b border-gray-200">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+            <GraduationCap className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <h1 className="font-bold text-lg bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              Engleuphoria
+            </h1>
+            <p className="text-sm text-gray-500">Teacher Portal</p>
+          </div>
+        </div>
       </div>
-      
-      <div className="flex-1 p-4 space-y-1">
+
+      <nav className="flex-1 p-4 space-y-2">
         {menuItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = activeTab === item.id;
+          
           if (item.type === 'page') {
             return (
               <Link key={item.id} to={item.path}>
                 <Button
                   variant="ghost"
-                  className="justify-start w-full"
+                  className="w-full justify-start gap-3 h-12 text-gray-600 hover:bg-purple-50 hover:text-purple-600"
                 >
-                  <item.icon className="mr-2 h-4 w-4" />
-                  {item.label}
+                  <Icon className="h-5 w-5" />
+                  <span className="font-medium">{item.label}</span>
                 </Button>
               </Link>
             );
@@ -68,21 +81,29 @@ export const TeacherSidebar = ({ activeTab, setActiveTab, onLogout }: TeacherSid
           return (
             <Button
               key={item.id}
-              variant={activeTab === item.id ? "secondary" : "ghost"}
-              className="justify-start w-full"
+              variant={isActive ? "default" : "ghost"}
+              className={`w-full justify-start gap-3 h-12 ${
+                isActive 
+                  ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-md' 
+                  : 'text-gray-600 hover:bg-purple-50 hover:text-purple-600'
+              }`}
               onClick={() => setActiveTab(item.id)}
             >
-              <item.icon className="mr-2 h-4 w-4" />
-              {item.label}
+              <Icon className="h-5 w-5" />
+              <span className="font-medium">{item.label}</span>
             </Button>
           );
         })}
-      </div>
-      
-      <div className="p-4 border-t dark:border-gray-700">
-        <Button variant="outline" className="w-full" onClick={onLogout}>
-          <LogOut className="mr-2 h-4 w-4" />
-          Logout
+      </nav>
+
+      <div className="p-4 border-t border-gray-200">
+        <Button
+          variant="ghost"
+          className="w-full justify-start gap-3 h-12 text-red-600 hover:bg-red-50 hover:text-red-700"
+          onClick={onLogout}
+        >
+          <LogOut className="h-5 w-5" />
+          <span className="font-medium">Logout</span>
         </Button>
       </div>
     </div>
