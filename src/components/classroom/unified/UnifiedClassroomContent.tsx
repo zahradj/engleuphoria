@@ -48,6 +48,7 @@ export function UnifiedClassroomContent({
           <UnifiedCenterPanel
             activeCenterTab={activeCenterTab}
             onTabChange={setActiveCenterTab}
+            currentUser={currentUser}
           />
         </div>
 
