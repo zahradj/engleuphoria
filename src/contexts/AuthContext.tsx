@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext } from 'react';
-import { useClassroomAuth } from '@/hooks/useClassroomAuth';
+import { useClassroomAuth, ClassroomAuthProvider } from '@/hooks/useClassroomAuth';
 import { User } from '@/services/classroomDatabase';
 
 interface AuthContextType {
@@ -14,6 +14,16 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <ClassroomAuthProvider>
+      <AuthContextProvider>
+        {children}
+      </AuthContextProvider>
+    </ClassroomAuthProvider>
+  );
+};
+
+const AuthContextProvider = ({ children }: { children: React.ReactNode }) => {
   const auth = useClassroomAuth();
   
   return (
