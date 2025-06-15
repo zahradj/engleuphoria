@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -45,7 +46,7 @@ export function UnifiedRightPanel({
 
   return (
     <div className="h-full flex flex-col gap-4">
-      {/* Student Video Section */}
+      {/* Student Video Section - Matching Teacher Video Size */}
       <Card className="p-0 bg-white/90 border border-purple-200 shadow-lg rounded-2xl overflow-hidden relative flex-shrink-0">
         <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-white/70 to-pink-50 pointer-events-none"></div>
         
