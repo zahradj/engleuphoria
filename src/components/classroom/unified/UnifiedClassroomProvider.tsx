@@ -48,7 +48,7 @@ export function UnifiedClassroomProvider({ children }: UnifiedClassroomProviderP
         full_name: user.full_name,
         email: user.email,
         role: user.role,
-        avatar_url: user.avatar_url
+        avatar_url: user.avatar_id ? `/avatars/avatar-${user.avatar_id}.svg` : undefined
       };
     }
 

@@ -28,7 +28,7 @@ function UnifiedClassroomInner({ lesson, userRole, currentUser: propCurrentUser 
     full_name: propCurrentUser.full_name,
     email: propCurrentUser.email,
     role: propCurrentUser.role,
-    avatar_url: propCurrentUser.avatar_url
+    avatar_url: propCurrentUser.avatar_id ? `/avatars/avatar-${propCurrentUser.avatar_id}.svg` : undefined
   } : {
     id: contextCurrentUser.id,
     name: contextCurrentUser.name,
