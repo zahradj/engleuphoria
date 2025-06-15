@@ -90,6 +90,7 @@ export function OneOnOneVideoSection({
             studentXP={studentXP}
             studentName="Emma"
             showRewardPopup={showRewardPopup}
+            onAwardPoints={onAwardPoints}
           />
         </div>
       )}
