@@ -56,9 +56,9 @@ export function UnifiedClassroomContent({
 
   return (
     <>
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-6rem)]">
-        {/* Left Panel - Enhanced with Teacher Rewards */}
-        <div className="lg:col-span-3 animate-fade-in">
+      <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-12 gap-6 h-[calc(100vh-6rem)]">
+        {/* Left Panel - Enhanced with Teacher Rewards - Now visible on all screen sizes */}
+        <div className="col-span-1 md:col-span-1 lg:col-span-3 animate-fade-in">
           <ScrollArea className="h-full">
             <UnifiedVideoSection
               enhancedClassroom={enhancedClassroom}
@@ -71,7 +71,7 @@ export function UnifiedClassroomContent({
         </div>
 
         {/* Center Panel - Scrollable Content */}
-        <div className="lg:col-span-6 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+        <div className="col-span-1 md:col-span-2 lg:col-span-6 animate-fade-in" style={{ animationDelay: '0.1s' }}>
           <ScrollArea className="h-full">
             <UnifiedCenterPanel
               activeCenterTab={activeCenterTab}
@@ -82,7 +82,7 @@ export function UnifiedClassroomContent({
         </div>
 
         {/* Right Panel - Scrollable with Enhanced Student Progress */}
-        <div className="lg:col-span-3 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+        <div className="col-span-1 md:col-span-1 lg:col-span-3 animate-fade-in" style={{ animationDelay: '0.2s' }}>
           <ScrollArea className="h-full">
             <UnifiedRightPanel
               studentXP={studentXP}
