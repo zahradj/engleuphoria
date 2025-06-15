@@ -3,10 +3,13 @@ import React, { useState } from "react";
 import { useOneOnOneClassroom } from "@/hooks/useOneOnOneClassroom";
 import { useEnhancedClassroom } from "@/hooks/useEnhancedClassroom";
 import { useToast } from "@/hooks/use-toast";
-import { EnhancedTopHeader } from "@/components/classroom/enhanced/EnhancedTopHeader";
-import { EnhancedLeftPanel } from "@/components/classroom/enhanced/EnhancedLeftPanel";
-import { EnhancedCenterPanel } from "@/components/classroom/enhanced/EnhancedCenterPanel";
-import { EnhancedRightPanel } from "@/components/classroom/enhanced/EnhancedRightPanel";
+import { CleanTopHeader } from "@/components/classroom/enhanced/CleanTopHeader";
+import { CompactTeacherCard } from "@/components/classroom/enhanced/CompactTeacherCard";
+import { StudentProgressCard } from "@/components/classroom/enhanced/StudentProgressCard";
+import { TodaysGoalsCard } from "@/components/classroom/enhanced/TodaysGoalsCard";
+import { CleanLearningCenter } from "@/components/classroom/enhanced/CleanLearningCenter";
+import { StudentProfileCard } from "@/components/classroom/enhanced/StudentProfileCard";
+import { CleanChatInterface } from "@/components/classroom/enhanced/CleanChatInterface";
 
 const EnhancedOneOnOneClassroom = () => {
   console.log("EnhancedOneOnOneClassroom component is rendering");
@@ -30,7 +33,7 @@ const EnhancedOneOnOneClassroom = () => {
 
   const remoteUser = {
     id: "student-1", 
-    name: "Emma (Student)",
+    name: "Emma",
     role: 'student' as const,
     avatar: "/api/placeholder/100/100",
     level: 12,
@@ -50,6 +53,7 @@ const EnhancedOneOnOneClassroom = () => {
   // State for active tabs
   const [activeCenterTab, setActiveCenterTab] = useState("whiteboard");
   const [activeRightTab, setActiveRightTab] = useState("chat");
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Goals state
   const [goals, setGoals] = useState([
@@ -60,10 +64,10 @@ const EnhancedOneOnOneClassroom = () => {
 
   // Achievements data
   const achievements = [
-    { id: '1', name: 'First Steps', icon: '✓', unlocked: true, color: 'bg-gradient-to-br from-green-400 to-green-600' },
-    { id: '2', name: 'Word Master', icon: '📚', unlocked: true, color: 'bg-gradient-to-br from-blue-400 to-blue-600' },
-    { id: '3', name: 'Speaker', icon: '🎤', unlocked: true, color: 'bg-gradient-to-br from-purple-400 to-purple-600' },
-    { id: '4', name: 'Grammar Pro', icon: 'G', unlocked: false, color: 'bg-gradient-to-br from-gray-300 to-gray-400' }
+    { id: '1', name: 'First Steps', icon: '🏆', unlocked: true },
+    { id: '2', name: 'Word Master', icon: '📚', unlocked: true },
+    { id: '3', name: 'Speaker', icon: '🎤', unlocked: true },
+    { id: '4', name: 'Grammar Pro', icon: '📝', unlocked: false }
   ];
 
   // Media controls
@@ -92,46 +96,45 @@ const EnhancedOneOnOneClassroom = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      {/* Clean background with subtle gradient */}
-      <div className="fixed inset-0 bg-gradient-to-br from-blue-50/30 to-purple-50/20"></div>
-      
-      {/* Top Header - Fixed */}
-      <div className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm">
-        <EnhancedTopHeader 
-          classTime={classTime}
-          mediaControls={mediaControls}
-        />
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Clean Top Header */}
+      <CleanTopHeader 
+        classTime={classTime}
+        mediaControls={mediaControls}
+        isConnected={enhancedClassroom.isConnected}
+      />
 
       {/* Main Layout - Clean 3-column grid */}
-      <div className="relative z-10 h-[calc(100vh-5rem)]">
-        <div className="grid grid-cols-12 gap-4 h-full p-4">
-          {/* Left Panel - Compact */}
-          <div className="col-span-3">
-            <EnhancedLeftPanel 
-              currentUser={currentUser}
-              remoteUser={remoteUser}
-              goals={goals}
+      <div className="h-[calc(100vh-4rem)] p-4">
+        <div className="grid grid-cols-12 gap-4 h-full">
+          {/* Left Panel - Teacher & Progress */}
+          <div className="col-span-3 space-y-4">
+            <CompactTeacherCard user={currentUser} />
+            <StudentProgressCard 
+              student={remoteUser}
               achievements={achievements}
+            />
+            <TodaysGoalsCard 
+              goals={goals}
               onGoalToggle={handleGoalToggle}
             />
           </div>
 
-          {/* Center Panel - Main Content */}
+          {/* Center Panel - Learning Center */}
           <div className="col-span-6">
-            <EnhancedCenterPanel 
+            <CleanLearningCenter 
               activeCenterTab={activeCenterTab}
-              currentPage={1}
+              currentPage={currentPage}
               onTabChange={setActiveCenterTab}
+              onPageChange={setCurrentPage}
             />
           </div>
 
-          {/* Right Panel - Student & Tools */}
-          <div className="col-span-3">
-            <EnhancedRightPanel 
-              remoteUser={remoteUser}
-              activeRightTab={activeRightTab}
+          {/* Right Panel - Student & Chat */}
+          <div className="col-span-3 space-y-4">
+            <StudentProfileCard student={remoteUser} />
+            <CleanChatInterface 
+              activeTab={activeRightTab}
               onTabChange={setActiveRightTab}
             />
           </div>
