@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { InfiniteWhiteboard } from "@/components/classroom/whiteboard/InfiniteWhiteboard";
 import { UnifiedContentViewer } from "@/components/classroom/content/UnifiedContentViewer";
-import { Whiteboard, BookOpen, Users, Gamepad2 } from "lucide-react";
+import { Palette, BookOpen, Users, Gamepad2 } from "lucide-react";
 
 interface UnifiedCenterPanelProps {
   activeCenterTab: string;
@@ -37,7 +37,7 @@ export function UnifiedCenterPanel({
         <div className="p-4 pb-0">
           <TabsList className="grid w-full grid-cols-4 mb-4">
             <TabsTrigger value="whiteboard" className="flex items-center gap-2">
-              <Whiteboard size={16} />
+              <Palette size={16} />
               <span className="hidden sm:inline">Whiteboard</span>
             </TabsTrigger>
             <TabsTrigger value="lesson" className="flex items-center gap-2">
