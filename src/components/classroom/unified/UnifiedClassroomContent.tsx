@@ -64,7 +64,7 @@ export function UnifiedClassroomContent({
           />
         </div>
 
-        {/* Right Panel - Student Info & Chat */}
+        {/* Right Panel - Student Video + Student Info & Chat */}
         <div className="col-span-3">
           <UnifiedRightPanel
             studentName="Emma"
