@@ -25,12 +25,17 @@ export function useOneOnOneClassroom() {
     setShowRewardPopup
   } = useClassroomState();
 
-  const { toggleRecording, awardPoints } = useClassroomActions({
+  const { toggleRecording, awardPoints: originalAwardPoints } = useClassroomActions({
     isRecording,
     setIsRecording,
     setStudentXP,
     setShowRewardPopup
   });
+
+  // Create a wrapper function that matches the expected signature
+  const awardPoints = (points: number, reason?: string) => {
+    originalAwardPoints(points, reason);
+  };
 
   console.log("Hook state initialized");
   console.log("Hook returning values");
