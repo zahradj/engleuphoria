@@ -96,18 +96,29 @@ export function OneOnOneVideoSection({
   const teacherVideoRef = useRef<HTMLVideoElement>(null);
   const studentVideoRef = useRef<HTMLVideoElement>(null);
 
-  // Mount or update local video
+  // Mount or update local video as soon as stream is available,
+  // and always display the local user's stream in their panel.
   useEffect(() => {
-    if (lessonStarted && media.stream) {
-      // Teacher or student sees their OWN video (simplest MVP)
-      if (isTeacher && teacherVideoRef.current) {
-        teacherVideoRef.current.srcObject = media.stream;
+    // Always clean up previous srcObject to avoid leaks
+    const teacherVideo = teacherVideoRef.current;
+    const studentVideo = studentVideoRef.current;
+
+    // Assign stream if present
+    if (media.stream) {
+      if (isTeacher && teacherVideo) {
+        teacherVideo.srcObject = media.stream;
       }
-      if (!isTeacher && studentVideoRef.current) {
-        studentVideoRef.current.srcObject = media.stream;
+      if (!isTeacher && studentVideo) {
+        studentVideo.srcObject = media.stream;
       }
     }
-  }, [lessonStarted, media.stream, isTeacher]);
+
+    // On cleanup, remove srcObject (releasing device)
+    return () => {
+      if (teacherVideo) teacherVideo.srcObject = null;
+      if (studentVideo) studentVideo.srcObject = null;
+    };
+  }, [media.stream, isTeacher]); // Only depend on stream and role
 
   return (
     <div className="h-full flex flex-col gap-4">
@@ -143,6 +154,7 @@ export function OneOnOneVideoSection({
             </div>
           ) : (
             <>
+              {/* --- LIVE VIDEO PANELS --- */}
               <div
                 id="teacher-panel"
                 className="absolute left-0 top-0 w-1/2 h-full flex items-center justify-center"
@@ -152,10 +164,11 @@ export function OneOnOneVideoSection({
                   media.stream && !media.isCameraOff ? (
                     <video
                       autoPlay
-                      muted={media.isMuted}
+                      muted // Always mute local preview to prevent feedback!
                       playsInline
                       className="w-11/12 h-5/6 object-cover rounded-2xl shadow-lg border-2 border-blue-200"
                       ref={teacherVideoRef}
+                      onError={e => console.error("Teacher video error", e)}
                     />
                   ) : (
                     <div className="w-36 h-36 rounded-full bg-blue-400 flex items-center justify-center shadow-xl">
@@ -163,6 +176,7 @@ export function OneOnOneVideoSection({
                     </div>
                   )
                 ) : (
+                  // Student sees teacher avatar
                   <div className="w-36 h-36 rounded-full bg-blue-300 flex items-center justify-center shadow-xl">
                     <span className="text-3xl font-semibold text-white">T</span>
                   </div>
@@ -178,10 +192,11 @@ export function OneOnOneVideoSection({
                   media.stream && !media.isCameraOff ? (
                     <video
                       autoPlay
-                      muted={media.isMuted}
+                      muted // Always mute local preview for student!
                       playsInline
                       className="w-11/12 h-5/6 object-cover rounded-2xl shadow-lg border-2 border-purple-200"
                       ref={studentVideoRef}
+                      onError={e => console.error("Student video error", e)}
                     />
                   ) : (
                     <div className="w-36 h-36 rounded-full bg-purple-400 flex items-center justify-center shadow-xl">
@@ -189,6 +204,7 @@ export function OneOnOneVideoSection({
                     </div>
                   )
                 ) : (
+                  // Teacher sees student avatar
                   <div className="w-36 h-36 rounded-full bg-purple-300 flex items-center justify-center shadow-xl">
                     <span className="text-3xl font-semibold text-white">S</span>
                   </div>
@@ -293,10 +309,12 @@ export function OneOnOneVideoSection({
         </div>
       )}
 
-      {/* Show error if media fails */}
+      {/* Show error if media fails - now with enhanced guidance */}
       {media.error && (
-        <div className="mt-2 text-xs text-red-600 text-center">
+        <div className="mt-2 text-xs text-red-600 text-center bg-red-50 rounded p-2">
           {media.error}
+          <br />
+          Please check camera/microphone settings and allow access if prompted.
         </div>
       )}
     </div>
