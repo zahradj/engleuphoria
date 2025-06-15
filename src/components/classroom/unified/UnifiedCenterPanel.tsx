@@ -73,8 +73,8 @@ export function UnifiedCenterPanel({
   };
 
   return (
-    <Card className="shadow-lg flex flex-col overflow-hidden bg-white min-h-[600px]">
-      {/* Enhanced Tab Navigation */}
+    <Card className="shadow-lg flex flex-col h-full overflow-hidden bg-white">
+      {/* Enhanced Tab Navigation - Fixed Header */}
       <div className="flex-shrink-0 border-b bg-gray-50">
         <div className="p-4">
           <div className="flex items-center justify-between mb-3">
@@ -126,33 +126,27 @@ export function UnifiedCenterPanel({
         </div>
       </div>
 
-      {/* Scrollable Tab Content */}
-      <div className="flex-1 overflow-hidden">
+      {/* Scrollable Tab Content - Takes remaining height */}
+      <div className="flex-1 min-h-0">
         <ScrollArea className="h-full">
-          {activeCenterTab === "whiteboard" && (
-            <div className="p-4">
+          <div className="p-4">
+            {activeCenterTab === "whiteboard" && (
               <OneOnOneWhiteboard />
-            </div>
-          )}
-          
-          {activeCenterTab === "games" && (
-            <div className="p-4">
+            )}
+            
+            {activeCenterTab === "games" && (
               <OneOnOneGames />
-            </div>
-          )}
-          
-          {activeCenterTab === "ai" && (
-            <div className="p-4">
+            )}
+            
+            {activeCenterTab === "ai" && (
               <EnhancedAIAssistant
                 studentProfile={studentProfile}
                 onContentGenerated={handleContentGenerated}
                 onInsertToWhiteboard={handleInsertToWhiteboard}
               />
-            </div>
-          )}
-          
-          {activeCenterTab === "resources" && (
-            <div className="p-4">
+            )}
+            
+            {activeCenterTab === "resources" && (
               <div className="text-center text-gray-500 mt-8">
                 <Link size={32} className="mx-auto mb-4 opacity-50" />
                 <h3 className="text-lg font-medium mb-2">Educational Resources</h3>
@@ -166,8 +160,8 @@ export function UnifiedCenterPanel({
                   {isTeacher ? "Upload Resources" : "Browse Resources"}
                 </Button>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </ScrollArea>
       </div>
     </Card>

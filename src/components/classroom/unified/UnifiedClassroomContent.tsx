@@ -55,36 +55,42 @@ export function UnifiedClassroomContent({
 
   return (
     <>
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-screen">
-        {/* Left Panel - Scrollable */}
-        <div className="lg:col-span-3 animate-fade-in">
-          <UnifiedVideoSection
-            enhancedClassroom={enhancedClassroom}
-            currentUser={currentUser}
-            studentXP={studentXP}
-            onAwardPoints={currentUser.role === 'teacher' ? handleAwardPoints : undefined}
-            showRewardPopup={showRewardPopup}
-          />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-6rem)]">
+        {/* Left Panel - Fixed Height with Internal Scroll */}
+        <div className="lg:col-span-3 animate-fade-in h-full">
+          <div className="h-full overflow-hidden">
+            <UnifiedVideoSection
+              enhancedClassroom={enhancedClassroom}
+              currentUser={currentUser}
+              studentXP={studentXP}
+              onAwardPoints={currentUser.role === 'teacher' ? handleAwardPoints : undefined}
+              showRewardPopup={showRewardPopup}
+            />
+          </div>
         </div>
 
-        {/* Center Panel - Scrollable Content */}
-        <div className="lg:col-span-6 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-          <UnifiedCenterPanel
-            activeCenterTab={activeCenterTab}
-            onTabChange={handleCenterTabChange}
-            currentUser={currentUser}
-          />
+        {/* Center Panel - Independent Scrolling */}
+        <div className="lg:col-span-6 animate-fade-in h-full" style={{ animationDelay: '0.1s' }}>
+          <div className="h-full overflow-hidden">
+            <UnifiedCenterPanel
+              activeCenterTab={activeCenterTab}
+              onTabChange={handleCenterTabChange}
+              currentUser={currentUser}
+            />
+          </div>
         </div>
 
-        {/* Right Panel - Scrollable */}
-        <div className="lg:col-span-3 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-          <UnifiedRightPanel
-            studentXP={studentXP}
-            activeRightTab={activeRightTab}
-            onTabChange={handleRightTabChange}
-            currentUser={currentUser}
-            enhancedClassroom={enhancedClassroom}
-          />
+        {/* Right Panel - Fixed Height with Internal Scroll */}
+        <div className="lg:col-span-3 animate-fade-in h-full" style={{ animationDelay: '0.2s' }}>
+          <div className="h-full overflow-hidden">
+            <UnifiedRightPanel
+              studentXP={studentXP}
+              activeRightTab={activeRightTab}
+              onTabChange={handleRightTabChange}
+              currentUser={currentUser}
+              enhancedClassroom={enhancedClassroom}
+            />
+          </div>
         </div>
       </div>
 
