@@ -17,7 +17,7 @@ export function LiveVideoPanels({ isTeacher, media, lessonStarted, videoRefs }: 
   return (
     <div className="absolute inset-2 flex gap-4" style={{ zIndex: 2 }}>
       {/* Teacher Panel */}
-      <div className="flex-1 flex items-center justify-center h-full">
+      <div className="flex-1 aspect-video max-w-full max-h-full flex items-center justify-center">
         {isTeacher ? (
           // Teacher sees their own video
           hasVideo ? (
@@ -47,7 +47,7 @@ export function LiveVideoPanels({ isTeacher, media, lessonStarted, videoRefs }: 
           )
         ) : (
           // Student sees teacher avatar (placeholder - would be teacher's video in real implementation)
-          <div className="w-full h-full rounded-2xl bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center shadow-2xl border-4 border-blue-200 relative">
+          <div className="w-full h-full rounded-2xl bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center shadow-2xl border-4 border-blue-300 relative">
             <div className="text-center">
               <div className="w-32 h-32 rounded-full bg-blue-300 flex items-center justify-center shadow-xl mb-4 mx-auto">
                 <span className="text-6xl font-semibold text-white">T</span>
@@ -62,7 +62,7 @@ export function LiveVideoPanels({ isTeacher, media, lessonStarted, videoRefs }: 
       </div>
       
       {/* Student Panel */}
-      <div className="flex-1 flex items-center justify-center h-full">
+      <div className="flex-1 aspect-video max-w-full max-h-full flex items-center justify-center">
         {!isTeacher ? (
           // Student sees their own video
           hasVideo ? (
@@ -92,7 +92,7 @@ export function LiveVideoPanels({ isTeacher, media, lessonStarted, videoRefs }: 
           )
         ) : (
           // Teacher sees student avatar (placeholder - would be student's video in real implementation)
-          <div className="w-full h-full rounded-2xl bg-gradient-to-br from-purple-400 to-purple-500 flex items-center justify-center shadow-2xl border-4 border-purple-200 relative">
+          <div className="w-full h-full rounded-2xl bg-gradient-to-br from-purple-400 to-purple-500 flex items-center justify-center shadow-2xl border-4 border-purple-300 relative">
             <div className="text-center">
               <div className="w-32 h-32 rounded-full bg-purple-300 flex items-center justify-center shadow-xl mb-4 mx-auto">
                 <span className="text-6xl font-semibold text-white">S</span>
