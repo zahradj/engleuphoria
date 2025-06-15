@@ -1,140 +1,81 @@
 
+import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { ClassroomAuthProvider, useClassroomAuth } from "@/hooks/useClassroomAuth";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { AuthProvider } from "@/hooks/useAuth";
+import Index from "./pages/Index";
 
-// Pages
-import { Login } from "@/pages/Login";
-import { TeacherDashboard } from "@/pages/TeacherDashboard";
-import { StudentDashboard } from "@/pages/StudentDashboard";
-import { ProtectedClassroom } from "@/components/classroom/ProtectedClassroom";
-import UnifiedClassroom from "@/pages/UnifiedClassroom";
+// Lazy load pages for better performance
+const EnhancedIndex = lazy(() => import("./pages/EnhancedIndex"));
+const Login = lazy(() => import("./pages/Login"));
+const SignUp = lazy(() => import("./pages/SignUp"));
+const ForParents = lazy(() => import("./pages/ForParents"));
+const ForTeachers = lazy(() => import("./pages/ForTeachers"));
+const StudentDashboard = lazy(() => import("./pages/StudentDashboard"));
+const TeacherDashboard = lazy(() => import("./pages/TeacherDashboard"));
+const OneOnOneClassroomNew = lazy(() => import("./pages/OneOnOneClassroomNew"));
+const UnifiedClassroom = lazy(() => import("./pages/UnifiedClassroom"));
+const SimpleClassroomSelector = lazy(() => import("./pages/SimpleClassroomSelector"));
+const PaymentPage = lazy(() => import("./pages/PaymentPage"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const MaterialLibraryPage = lazy(() => import("./pages/MaterialLibraryPage"));
+const CurriculumLibraryPage = lazy(() => import("./pages/CurriculumLibraryPage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
-// Protected Route Component
-const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode; requiredRole?: 'teacher' | 'student' }) => {
-  const { user, loading } = useClassroomAuth();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (requiredRole && user.role !== requiredRole) {
-    return <Navigate to={user.role === 'teacher' ? '/teacher' : '/student'} replace />;
-  }
-
-  return <>{children}</>;
-};
-
-// App Routes Component
-const AppRoutes = () => {
-  const { user, loading } = useClassroomAuth();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  return (
-    <Routes>
-      {/* Public Routes */}
-      <Route 
-        path="/login" 
-        element={user ? <Navigate to={user.role === 'teacher' ? '/teacher' : '/student'} replace /> : <Login />} 
-      />
-
-      {/* Dashboard Routes */}
-      <Route 
-        path="/teacher" 
-        element={
-          <ProtectedRoute requiredRole="teacher">
-            <TeacherDashboard />
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route 
-        path="/student" 
-        element={
-          <ProtectedRoute requiredRole="student">
-            <StudentDashboard />
-          </ProtectedRoute>
-        } 
-      />
-
-      {/* Classroom Routes - Protected */}
-      <Route 
-        path="/classroom/teacher/:roomId" 
-        element={
-          <ProtectedRoute requiredRole="teacher">
-            <ProtectedClassroom userRole="teacher" />
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route 
-        path="/classroom/student/:roomId" 
-        element={
-          <ProtectedRoute requiredRole="student">
-            <ProtectedClassroom userRole="student" />
-          </ProtectedRoute>
-        } 
-      />
-
-      {/* Legacy/Test Routes */}
-      <Route 
-        path="/classroom" 
-        element={
-          <ProtectedRoute>
-            <UnifiedClassroom />
-          </ProtectedRoute>
-        } 
-      />
-
-      {/* Root Route - Redirect based on auth status */}
-      <Route 
-        path="/" 
-        element={
-          user ? (
-            <Navigate to={user.role === 'teacher' ? '/teacher' : '/student'} replace />
-          ) : (
-            <Navigate to="/login" replace />
-          )
-        } 
-      />
-
-      {/* Catch-all Route */}
-      <Route 
-        path="*" 
-        element={<Navigate to="/" replace />} 
-      />
-    </Routes>
-  );
-};
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <LanguageProvider>
-      <ClassroomAuthProvider>
-        <Router>
-          <div className="min-h-screen">
-            <AppRoutes />
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <LanguageProvider>
+          <TooltipProvider>
             <Toaster />
-          </div>
-        </Router>
-      </ClassroomAuthProvider>
-    </LanguageProvider>
+            <Sonner />
+            <BrowserRouter>
+              <Suspense fallback={
+                <div className="min-h-screen flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+                </div>
+              }>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/enhanced" element={<EnhancedIndex />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<SignUp />} />
+                  <Route path="/for-parents" element={<ForParents />} />
+                  <Route path="/for-teachers" element={<ForTeachers />} />
+                  <Route path="/student-dashboard" element={<StudentDashboard />} />
+                  <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
+                  <Route path="/admin-dashboard" element={<AdminDashboard />} />
+                  <Route path="/material-library" element={<MaterialLibraryPage />} />
+                  <Route path="/curriculum-library" element={<CurriculumLibraryPage />} />
+                  
+                  {/* New Unified Classroom Routes */}
+                  <Route path="/classroom/:roomId" element={<UnifiedClassroom />} />
+                  <Route path="/classroom" element={<UnifiedClassroom />} />
+                  
+                  {/* Redirect old classroom route to new unified classroom */}
+                  <Route 
+                    path="/oneonone-classroom-new" 
+                    element={<Navigate to="/classroom/demo-room?role=teacher&name=Ms. Johnson&userId=teacher-1" replace />} 
+                  />
+                  
+                  <Route path="/classroom-selector" element={<SimpleClassroomSelector />} />
+                  <Route path="/payment" element={<PaymentPage />} />
+                  <Route path="/pricing" element={<PaymentPage />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </BrowserRouter>
+          </TooltipProvider>
+        </LanguageProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
 
