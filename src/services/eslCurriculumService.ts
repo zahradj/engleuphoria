@@ -158,7 +158,7 @@ const mockAITemplates: AITemplate[] = [
   {
     id: 'dialogue-creator',
     name: 'Dialogue Creator',
-    type: 'dialogue',
+    type: 'activity',
     prompt: 'Create a dialogue about {scenario} for {level} level students',
     parameters: [
       {
@@ -267,7 +267,7 @@ const generateAIContent = async (templateId: string, parameters: Record<string, 
     id: faker.string.uuid(),
     title: `Generated ${template?.name || 'Material'}: ${parameters.topic || 'General'}`,
     description: `AI-generated content for ${parameters.topic || 'general learning'} at ${parameters.level || 'A1'} level`,
-    type: template?.type === 'quiz' ? 'assessment' : (template?.type || 'worksheet'),
+    type: template?.type === 'assessment' ? 'assessment' : (template?.type || 'worksheet'),
     level: level,
     skills: level.skills,
     duration: faker.number.int({ min: 15, max: 45 }),
