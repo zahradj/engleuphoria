@@ -144,7 +144,7 @@ export const ClassroomAuthProvider = ({ children }: { children: React.ReactNode 
   const signUp = async (email: string, password: string, fullName: string, role: 'teacher' | 'student') => {
     console.log('ClassroomAuth: Attempting sign up for:', email, 'as', role);
     try {
-      // First create auth user
+      // First create auth user with metadata
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -152,7 +152,8 @@ export const ClassroomAuthProvider = ({ children }: { children: React.ReactNode 
           data: {
             full_name: fullName,
             role: role
-          }
+          },
+          emailRedirectTo: `${window.location.origin}/`
         }
       });
 
@@ -163,27 +164,32 @@ export const ClassroomAuthProvider = ({ children }: { children: React.ReactNode 
 
       if (authData.user) {
         console.log('ClassroomAuth: Auth user created, creating profile');
-        // Create user profile
-        try {
-          const newUserData = {
-            email,
-            full_name: fullName,
-            role,
-          };
-          
-          await classroomDatabase.createUser(newUserData);
-          console.log('ClassroomAuth: User profile created successfully');
-
-          toast({
-            title: "Account created!",
-            description: `Welcome to the ${role} dashboard, ${fullName}!`,
-          });
-
-          return { success: true };
-        } catch (profileError) {
-          console.error('ClassroomAuth: Error creating user profile:', profileError);
-          return { success: false, error: 'Failed to create user profile' };
+        
+        // For confirmed users, create profile immediately
+        if (authData.user.email_confirmed_at) {
+          try {
+            const newUserData = {
+              email,
+              full_name: fullName,
+              role,
+            };
+            
+            await classroomDatabase.createUser(newUserData);
+            console.log('ClassroomAuth: User profile created successfully');
+          } catch (profileError) {
+            console.error('ClassroomAuth: Error creating user profile:', profileError);
+            return { success: false, error: 'Failed to create user profile' };
+          }
         }
+
+        toast({
+          title: "Account created!",
+          description: authData.user.email_confirmed_at 
+            ? `Welcome to the ${role} dashboard, ${fullName}!`
+            : `Welcome to Engleuphoria, ${fullName}! Please check your email to verify your account.`,
+        });
+
+        return { success: true };
       }
 
       return { success: false, error: 'Failed to create user account' };
