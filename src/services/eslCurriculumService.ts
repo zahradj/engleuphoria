@@ -436,6 +436,10 @@ class ESLCurriculumService {
         { id: 'week_warrior', name: 'Week Warrior', description: '7-day learning streak', xpValue: 50, ageGroup: 'All' },
         { id: 'month_master', name: 'Month Master', description: '30-day learning streak', xpValue: 200, ageGroup: 'All' }
       ],
+      completionBadges: [
+        { id: 'level_complete', name: 'Level Complete', description: 'Complete an entire ESL level', xpValue: 250, ageGroup: 'All' },
+        { id: 'material_master', name: 'Material Master', description: 'Complete 100 learning materials', xpValue: 300, ageGroup: 'All' }
+      ],
       ageMilestoneBadges: [
         { id: 'little_learner', name: 'Little Learner', description: 'First level completed (4-7 years)', xpValue: 100, ageGroup: '4-7 years' },
         { id: 'young_scholar', name: 'Young Scholar', description: 'Reached Elementary level', xpValue: 150, ageGroup: '8-11 years' },
