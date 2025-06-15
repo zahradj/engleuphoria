@@ -422,11 +422,11 @@ const EnhancedOneOnOneClassroom = () => {
           </Card>
         </div>
 
-        {/* Enhanced Right Panel */}
-        <div className="w-80">
-          <Card className="h-full bg-white/70 backdrop-blur-xl border-0 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden animate-fade-in" style={{ animationDelay: '0.5s' }}>
-            {/* Enhanced Student Video Section */}
-            <div className="p-6 bg-gradient-to-r from-green-50 to-teal-50 border-b border-white/30">
+        {/* Enhanced Right Panel - Now with separate video and tabs sections */}
+        <div className="w-80 flex flex-col gap-4">
+          {/* Student Video Section */}
+          <Card className="bg-white/70 backdrop-blur-xl border-0 shadow-xl hover:shadow-2xl transition-all duration-300 animate-fade-in" style={{ animationDelay: '0.5s' }}>
+            <div className="p-6 bg-gradient-to-r from-green-50 to-teal-50">
               <div className="flex flex-col items-center text-center">
                 <div className="relative mb-4">
                   <Avatar className="w-20 h-20 ring-4 ring-white shadow-lg">
@@ -452,8 +452,21 @@ const EnhancedOneOnOneClassroom = () => {
                 </div>
               </div>
             </div>
+            
+            {/* Video Feed Placeholder */}
+            <div className="p-4">
+              <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
+                <div className="text-center">
+                  <Video size={32} className="text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-500">Student Video Feed</p>
+                </div>
+              </div>
+            </div>
+          </Card>
 
-            {/* Enhanced Right Tab Navigation */}
+          {/* Chat/Tasks/Dictionary Tabs Section */}
+          <Card className="flex-1 bg-white/70 backdrop-blur-xl border-0 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden animate-fade-in" style={{ animationDelay: '0.6s' }}>
+            {/* Tab Navigation */}
             <div className="p-4 border-b border-white/20 bg-gray-50/50">
               <div className="flex gap-1">
                 {rightTabs.map((tab) => {
@@ -480,7 +493,7 @@ const EnhancedOneOnOneClassroom = () => {
               </div>
             </div>
 
-            {/* Enhanced Right Tab Content */}
+            {/* Tab Content */}
             <div className="flex-1 overflow-hidden">
               {activeRightTab === "chat" && (
                 <div className="h-full p-4">
