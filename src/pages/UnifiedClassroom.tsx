@@ -40,11 +40,14 @@ function UnifiedClassroomInner({ lesson, userRole, currentUser: propCurrentUser 
     awardPoints
   } = classroomState;
 
+  // Get display name from either User type (full_name) or UserProfile type (name)
+  const displayName = (currentUser as User).full_name || (currentUser as any).name || 'User';
+
   // Enhanced classroom with real-time features
   const enhancedClassroom = useEnhancedClassroom({
     roomId,
     userId: currentUser.id,
-    displayName: currentUser.name || currentUser.full_name,
+    displayName,
     userRole: userRole || currentUser.role
   });
 
