@@ -55,9 +55,9 @@ export function UnifiedClassroomContent({
 
   return (
     <>
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
-        {/* Left Panel - Fixed Height */}
-        <div className="lg:col-span-3 h-full animate-fade-in">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-screen">
+        {/* Left Panel - Scrollable */}
+        <div className="lg:col-span-3 animate-fade-in">
           <UnifiedVideoSection
             enhancedClassroom={enhancedClassroom}
             currentUser={currentUser}
@@ -67,8 +67,8 @@ export function UnifiedClassroomContent({
           />
         </div>
 
-        {/* Center Panel - Scrollable Content Only */}
-        <div className="lg:col-span-6 h-full animate-fade-in" style={{ animationDelay: '0.1s' }}>
+        {/* Center Panel - Scrollable Content */}
+        <div className="lg:col-span-6 animate-fade-in" style={{ animationDelay: '0.1s' }}>
           <UnifiedCenterPanel
             activeCenterTab={activeCenterTab}
             onTabChange={handleCenterTabChange}
@@ -76,8 +76,8 @@ export function UnifiedClassroomContent({
           />
         </div>
 
-        {/* Right Panel - Fixed Height */}
-        <div className="lg:col-span-3 h-full animate-fade-in" style={{ animationDelay: '0.2s' }}>
+        {/* Right Panel - Scrollable */}
+        <div className="lg:col-span-3 animate-fade-in" style={{ animationDelay: '0.2s' }}>
           <UnifiedRightPanel
             studentXP={studentXP}
             activeRightTab={activeRightTab}

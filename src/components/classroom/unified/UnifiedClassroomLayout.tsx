@@ -18,13 +18,13 @@ export function UnifiedClassroomLayout({
   const { currentUser, finalRoomId } = useUnifiedClassroomContext();
 
   return (
-    <div className="h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 overflow-hidden relative">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 relative">
       {/* Enhanced Background Pattern */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)] pointer-events-none"></div>
       <div className="absolute inset-0 bg-grid-pattern opacity-[0.02] pointer-events-none"></div>
       
       {/* Enhanced Top Bar with Glass Morphism */}
-      <div className="fixed top-0 left-0 right-0 z-50 h-20 p-3">
+      <div className="sticky top-0 z-50 h-20 p-3">
         <div className="h-full bg-white/20 backdrop-blur-xl border border-white/20 rounded-2xl shadow-xl">
           <Card className="h-full p-3 shadow-none border-0 bg-transparent">
             <UnifiedTopBar
@@ -37,9 +37,9 @@ export function UnifiedClassroomLayout({
         </div>
       </div>
 
-      {/* Main Enhanced Classroom Layout with Improved Spacing */}
-      <div className="mt-24 h-[calc(100vh-6rem)] px-4 pb-4 overflow-hidden">
-        <div className="h-full animate-fade-in">
+      {/* Main Enhanced Classroom Layout with Proper Scrolling */}
+      <div className="px-4 pb-4">
+        <div className="animate-fade-in">
           {children}
         </div>
       </div>

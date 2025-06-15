@@ -3,6 +3,7 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { PenTool, Gamepad2, Sparkles, Link, ChevronLeft, ChevronRight } from "lucide-react";
 import { OneOnOneWhiteboard } from "@/components/classroom/oneonone/OneOnOneWhiteboard";
 import { OneOnOneGames } from "@/components/classroom/oneonone/OneOnOneGames";
@@ -72,7 +73,7 @@ export function UnifiedCenterPanel({
   };
 
   return (
-    <Card className="h-full shadow-lg flex flex-col overflow-hidden bg-white">
+    <Card className="shadow-lg flex flex-col overflow-hidden bg-white min-h-[600px]">
       {/* Enhanced Tab Navigation */}
       <div className="flex-shrink-0 border-b bg-gray-50">
         <div className="p-4">
@@ -127,45 +128,47 @@ export function UnifiedCenterPanel({
 
       {/* Scrollable Tab Content */}
       <div className="flex-1 overflow-hidden">
-        {activeCenterTab === "whiteboard" && (
-          <div className="h-full p-4">
-            <OneOnOneWhiteboard />
-          </div>
-        )}
-        
-        {activeCenterTab === "games" && (
-          <div className="h-full p-4 overflow-y-auto">
-            <OneOnOneGames />
-          </div>
-        )}
-        
-        {activeCenterTab === "ai" && (
-          <div className="h-full p-4 overflow-y-auto">
-            <EnhancedAIAssistant
-              studentProfile={studentProfile}
-              onContentGenerated={handleContentGenerated}
-              onInsertToWhiteboard={handleInsertToWhiteboard}
-            />
-          </div>
-        )}
-        
-        {activeCenterTab === "resources" && (
-          <div className="h-full p-4 overflow-y-auto">
-            <div className="text-center text-gray-500 mt-8">
-              <Link size={32} className="mx-auto mb-4 opacity-50" />
-              <h3 className="text-lg font-medium mb-2">Educational Resources</h3>
-              <p className="text-sm mb-4">
-                {isTeacher 
-                  ? "Upload and manage educational materials for your students."
-                  : "Access educational links and materials from your teacher."
-                }
-              </p>
-              <Button variant="outline" className="mt-4">
-                {isTeacher ? "Upload Resources" : "Browse Resources"}
-              </Button>
+        <ScrollArea className="h-full">
+          {activeCenterTab === "whiteboard" && (
+            <div className="p-4">
+              <OneOnOneWhiteboard />
             </div>
-          </div>
-        )}
+          )}
+          
+          {activeCenterTab === "games" && (
+            <div className="p-4">
+              <OneOnOneGames />
+            </div>
+          )}
+          
+          {activeCenterTab === "ai" && (
+            <div className="p-4">
+              <EnhancedAIAssistant
+                studentProfile={studentProfile}
+                onContentGenerated={handleContentGenerated}
+                onInsertToWhiteboard={handleInsertToWhiteboard}
+              />
+            </div>
+          )}
+          
+          {activeCenterTab === "resources" && (
+            <div className="p-4">
+              <div className="text-center text-gray-500 mt-8">
+                <Link size={32} className="mx-auto mb-4 opacity-50" />
+                <h3 className="text-lg font-medium mb-2">Educational Resources</h3>
+                <p className="text-sm mb-4">
+                  {isTeacher 
+                    ? "Upload and manage educational materials for your students."
+                    : "Access educational links and materials from your teacher."
+                  }
+                </p>
+                <Button variant="outline" className="mt-4">
+                  {isTeacher ? "Upload Resources" : "Browse Resources"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </ScrollArea>
       </div>
     </Card>
   );
