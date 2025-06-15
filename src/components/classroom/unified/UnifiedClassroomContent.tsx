@@ -55,56 +55,50 @@ export function UnifiedClassroomContent({
 
   return (
     <>
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-6rem)]">
-        {/* Left Panel - Fixed Height with Internal Scroll */}
-        <div className="lg:col-span-3 animate-fade-in h-full">
-          <div className="h-full overflow-hidden">
-            <UnifiedVideoSection
-              enhancedClassroom={enhancedClassroom}
-              currentUser={currentUser}
-              studentXP={studentXP}
-              onAwardPoints={currentUser.role === 'teacher' ? handleAwardPoints : undefined}
-              showRewardPopup={showRewardPopup}
-            />
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[600px]">
+        {/* Left Panel - Video Section */}
+        <div className="lg:col-span-3">
+          <UnifiedVideoSection
+            enhancedClassroom={enhancedClassroom}
+            currentUser={currentUser}
+            studentXP={studentXP}
+            onAwardPoints={currentUser.role === 'teacher' ? handleAwardPoints : undefined}
+            showRewardPopup={showRewardPopup}
+          />
         </div>
 
-        {/* Center Panel - Independent Scrolling */}
-        <div className="lg:col-span-6 animate-fade-in h-full" style={{ animationDelay: '0.1s' }}>
-          <div className="h-full overflow-hidden">
-            <UnifiedCenterPanel
-              activeCenterTab={activeCenterTab}
-              onTabChange={handleCenterTabChange}
-              currentUser={currentUser}
-            />
-          </div>
+        {/* Center Panel */}
+        <div className="lg:col-span-6">
+          <UnifiedCenterPanel
+            activeCenterTab={activeCenterTab}
+            onTabChange={handleCenterTabChange}
+            currentUser={currentUser}
+          />
         </div>
 
-        {/* Right Panel - Fixed Height with Internal Scroll */}
-        <div className="lg:col-span-3 animate-fade-in h-full" style={{ animationDelay: '0.2s' }}>
-          <div className="h-full overflow-hidden">
-            <UnifiedRightPanel
-              studentXP={studentXP}
-              activeRightTab={activeRightTab}
-              onTabChange={handleRightTabChange}
-              currentUser={currentUser}
-              enhancedClassroom={enhancedClassroom}
-            />
-          </div>
+        {/* Right Panel */}
+        <div className="lg:col-span-3">
+          <UnifiedRightPanel
+            studentXP={studentXP}
+            activeRightTab={activeRightTab}
+            onTabChange={handleRightTabChange}
+            currentUser={currentUser}
+            enhancedClassroom={enhancedClassroom}
+          />
         </div>
       </div>
 
-      {/* Enhanced Success Indicator */}
+      {/* Success Indicator */}
       {enhancedClassroom.isConnected && enhancedClassroom.realTimeSync?.isConnected && (
         <div className="fixed bottom-4 right-4 z-50">
-          <Badge className="bg-green-500 text-white animate-pulse shadow-lg">
+          <Badge className="bg-green-500 text-white shadow-lg">
             <Sparkles size={12} className="mr-1" />
             Enhanced Classroom Active
           </Badge>
         </div>
       )}
 
-      {/* Enhanced Reward Popup - Teacher Only */}
+      {/* Reward Popup - Teacher Only */}
       {currentUser.role === 'teacher' && (
         <OneOnOneRewardPopup isVisible={showRewardPopup} />
       )}

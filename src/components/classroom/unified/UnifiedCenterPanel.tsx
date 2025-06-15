@@ -30,10 +30,10 @@ export function UnifiedCenterPanel({
   const isTeacher = currentUser.role === 'teacher';
   
   const tabs = [
-    { id: "whiteboard", label: "Whiteboard", icon: PenTool, gradient: "from-blue-500 to-cyan-500" },
-    { id: "games", label: "Activities", icon: Gamepad2, gradient: "from-emerald-500 to-green-500" },
-    { id: "ai", label: "AI Assistant", icon: Sparkles, gradient: "from-purple-500 to-violet-500", badge: isTeacher ? "Full" : "Student" },
-    { id: "resources", label: "Resources", icon: Link, gradient: "from-orange-500 to-amber-500" }
+    { id: "whiteboard", label: "Whiteboard", icon: PenTool },
+    { id: "games", label: "Activities", icon: Gamepad2 },
+    { id: "ai", label: "AI Assistant", icon: Sparkles, badge: isTeacher ? "Full" : "Student" },
+    { id: "resources", label: "Resources", icon: Link }
   ];
 
   const studentProfile = {
@@ -52,61 +52,59 @@ export function UnifiedCenterPanel({
   };
 
   return (
-    <Card className="shadow-xl flex flex-col h-full overflow-hidden glass-enhanced backdrop-blur-xl border-0">
+    <Card className="shadow-lg border-gray-200 min-h-[600px] flex flex-col">
       {/* Tab Navigation */}
-      <div className="flex-shrink-0 border-b border-white/30 bg-white/20 backdrop-blur-xl">
-        <div className="p-4">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {tabs.map((tab) => {
-              const IconComponent = tab.icon;
-              const isActive = activeCenterTab === tab.id;
-              
-              return (
-                <Button
-                  key={tab.id}
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onTabChange(tab.id)}
-                  className={`h-auto p-4 flex flex-col items-center gap-2 rounded-xl transition-all duration-300 ${
-                    isActive 
-                      ? `bg-gradient-to-br ${tab.gradient} text-white shadow-lg` 
-                      : `bg-white/60 text-gray-700 hover:bg-white/80 shadow-sm`
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <IconComponent size={18} />
-                    {tab.badge && (
-                      <Badge variant="secondary" className="text-xs px-2 py-0 h-5">
-                        {tab.badge}
-                      </Badge>
-                    )}
-                  </div>
-                  <span className="font-medium text-sm">{tab.label}</span>
-                </Button>
-              );
-            })}
-          </div>
+      <div className="border-b border-gray-200 bg-gray-50/50 p-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {tabs.map((tab) => {
+            const IconComponent = tab.icon;
+            const isActive = activeCenterTab === tab.id;
+            
+            return (
+              <Button
+                key={tab.id}
+                variant="ghost"
+                size="sm"
+                onClick={() => onTabChange(tab.id)}
+                className={`h-auto p-3 flex flex-col items-center gap-2 rounded-lg transition-all duration-300 ${
+                  isActive 
+                    ? 'bg-blue-100 text-blue-700 shadow-sm' 
+                    : 'bg-white text-gray-600 hover:bg-gray-50 shadow-sm border'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <IconComponent size={16} />
+                  {tab.badge && (
+                    <Badge variant="secondary" className="text-xs px-2 py-0 h-4">
+                      {tab.badge}
+                    </Badge>
+                  )}
+                </div>
+                <span className="font-medium text-xs">{tab.label}</span>
+              </Button>
+            );
+          })}
         </div>
       </div>
 
       {/* Tab Content */}
-      <div className="flex-1 min-h-0">
+      <div className="flex-1">
         <ScrollArea className="h-full">
           <div className="p-4">
             {activeCenterTab === "whiteboard" && (
-              <div className="bg-white/50 backdrop-blur-sm rounded-xl p-1 border border-white/40 shadow-lg">
+              <div className="bg-white rounded-lg p-2 border border-gray-200 shadow-sm">
                 <OneOnOneWhiteboard />
               </div>
             )}
             
             {activeCenterTab === "games" && (
-              <div className="bg-white/50 backdrop-blur-sm rounded-xl p-1 border border-white/40 shadow-lg">
+              <div className="bg-white rounded-lg p-2 border border-gray-200 shadow-sm">
                 <OneOnOneGames />
               </div>
             )}
             
             {activeCenterTab === "ai" && (
-              <div className="bg-white/50 backdrop-blur-sm rounded-xl p-1 border border-white/40 shadow-lg">
+              <div className="bg-white rounded-lg p-2 border border-gray-200 shadow-sm">
                 <EnhancedAIAssistant
                   studentProfile={studentProfile}
                   onContentGenerated={handleContentGenerated}
@@ -117,14 +115,14 @@ export function UnifiedCenterPanel({
             
             {activeCenterTab === "resources" && (
               <div className="text-center py-12">
-                <div className="w-16 h-16 bg-gradient-to-br from-orange-200 to-amber-200 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <div className="w-16 h-16 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-4 shadow-sm">
                   <BookOpen size={24} className="text-orange-600" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">Resources</h3>
                 <p className="text-gray-600 mb-6 max-w-sm mx-auto">
                   {isTeacher ? "Manage educational materials" : "Browse learning resources"}
                 </p>
-                <Button className="bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-2 rounded-xl">
+                <Button className="bg-orange-500 text-white shadow-sm hover:bg-orange-600 px-6 py-2 rounded-lg">
                   {isTeacher ? "Manage" : "Browse"}
                 </Button>
               </div>
