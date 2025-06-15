@@ -24,20 +24,24 @@ export function UnifiedRightPanel({
 }: UnifiedRightPanelProps) {
   return (
     <div className="h-full flex flex-col gap-4">
-      {/* Student Video Section */}
-      <StudentVideoPanel
-        studentName={studentName}
-        currentUser={currentUser}
-      />
+      {/* Student Video Section - Fixed height to match teacher video */}
+      <div className="h-[300px]">
+        <StudentVideoPanel
+          studentName={studentName}
+          currentUser={currentUser}
+        />
+      </div>
 
-      {/* Student Info Panel */}
-      <StudentInfoTabs
-        studentName={studentName}
-        studentXP={studentXP}
-        activeRightTab={activeRightTab}
-        onTabChange={onTabChange}
-        currentUser={currentUser}
-      />
+      {/* Student Info Panel - Takes remaining space */}
+      <div className="flex-1">
+        <StudentInfoTabs
+          studentName={studentName}
+          studentXP={studentXP}
+          activeRightTab={activeRightTab}
+          onTabChange={onTabChange}
+          currentUser={currentUser}
+        />
+      </div>
     </div>
   );
 }

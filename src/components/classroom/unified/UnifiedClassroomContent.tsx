@@ -41,13 +41,13 @@ export function UnifiedClassroomContent({
         
         {/* Left Section - Teacher Video + Progress Panels */}
         <div className="col-span-3 flex flex-col gap-4">
-          {/* Teacher Video Section */}
-          <div className="flex-1 min-h-[350px]">
+          {/* Teacher Video Section - Fixed height for consistency */}
+          <div className="h-[300px]">
             <UnifiedVideoSection currentUser={currentUser} />
           </div>
           
           {/* Bottom Left Panels - Learning Progress & Achievements */}
-          <div className="h-[300px]">
+          <div className="flex-1">
             <UnifiedLeftSidebar 
               studentXP={studentXP}
               currentUser={currentUser}

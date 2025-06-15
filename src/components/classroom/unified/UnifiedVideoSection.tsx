@@ -41,15 +41,15 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
 
   return (
     <div className="h-full flex flex-col">
-      <Card className="flex-1 p-0 bg-white/90 border-2 border-blue-300 shadow-lg rounded-2xl overflow-hidden relative">
+      <Card className="h-[300px] p-0 bg-white/90 border-2 border-blue-300 shadow-lg rounded-2xl overflow-hidden relative">
         <div className="absolute inset-0 bg-gradient-to-br from-green-50 via-white/70 to-blue-50 pointer-events-none"></div>
         
-        <div className="aspect-video max-w-full max-h-full relative flex flex-col">
+        <div className="w-full h-full relative flex flex-col">
           {!lessonStarted ? (
             <LessonStartPrompt isTeacher={isTeacher} onStartLesson={startLessonAndJoin} />
           ) : (
-            <div className="flex-1 relative">
-              {/* Teacher Video Area */}
+            <div className="w-full h-full relative">
+              {/* Teacher Video Area - Fixed container size */}
               {isTeacher ? (
                 hasVideo ? (
                   <video

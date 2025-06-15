@@ -19,12 +19,12 @@ export function StudentVideoPanel({ studentName, currentUser }: StudentVideoPane
   const hasVideo = media.stream && media.isConnected && !media.isCameraOff;
 
   return (
-    <Card className="p-0 bg-white/90 border-2 border-purple-300 shadow-lg rounded-2xl overflow-hidden relative flex-shrink-0">
+    <Card className="h-[300px] p-0 bg-white/90 border-2 border-purple-300 shadow-lg rounded-2xl overflow-hidden relative">
       <div className="absolute inset-0 bg-gradient-to-br from-purple-50 via-white/70 to-pink-50 pointer-events-none"></div>
       
-      <div className="aspect-video max-w-full max-h-full relative flex flex-col">
+      <div className="w-full h-full relative flex flex-col">
         {!media.isConnected ? (
-          <div className="flex-1 flex items-center justify-center p-6">
+          <div className="w-full h-full flex items-center justify-center p-6">
             <div className="text-center">
               <div className="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center shadow-lg mb-3 mx-auto">
                 <span className="text-2xl font-bold text-purple-600">S</span>
@@ -34,8 +34,8 @@ export function StudentVideoPanel({ studentName, currentUser }: StudentVideoPane
             </div>
           </div>
         ) : (
-          <div className="flex-1 relative">
-            {/* Student Video Area */}
+          <div className="w-full h-full relative">
+            {/* Student Video Area - Fixed container size matching teacher */}
             {!isTeacher ? (
               // Student sees their own video
               hasVideo ? (
