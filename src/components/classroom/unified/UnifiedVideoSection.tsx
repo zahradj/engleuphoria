@@ -46,8 +46,8 @@ export function UnifiedVideoSection({
 
   return (
     <div className="h-full flex flex-col gap-4">
-      {/* Teacher Video - Simple and Clean */}
-      <Card className="p-4">
+      {/* Teacher Video - Simple and Clean with defensive spacing */}
+      <Card className="p-4 pt-2">
         <div className="aspect-video bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center relative overflow-hidden">
           <div className="text-center">
             <div className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-2">
