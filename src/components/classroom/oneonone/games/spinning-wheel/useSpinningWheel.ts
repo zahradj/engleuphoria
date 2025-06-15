@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { WheelConfig, WheelSegment, SpinningWheelState } from "./types";
@@ -20,7 +21,7 @@ export function useSpinningWheel() {
     rotation: 0,
     selectedSegment: null,
     wheelConfig: wheelConfigs[0],
-    segments: generateWheelContent(wheelConfigs[0].segments),
+    segments: generateWheelContent(wheelConfigs[0]),
     score: 0,
   });
 
@@ -28,7 +29,7 @@ export function useSpinningWheel() {
     setState(prevState => ({
       ...prevState,
       wheelConfig: config,
-      segments: generateWheelContent(config.segments)
+      segments: generateWheelContent(config)
     }));
   };
 
@@ -50,8 +51,10 @@ export function useSpinningWheel() {
       wheelRef.current.style.transform = `rotate(${finalRotation}deg)`;
 
       setTimeout(() => {
-        wheelRef.current!.style.transition = 'none';
-        wheelRef.current!.style.transform = `rotate(${finalRotation % 360}deg)`;
+        if (wheelRef.current) {
+          wheelRef.current.style.transition = 'none';
+          wheelRef.current.style.transform = `rotate(${finalRotation % 360}deg)`;
+        }
 
         setState(prevState => ({
           ...prevState,
@@ -86,7 +89,7 @@ export function useSpinningWheel() {
   const generateNewContent = () => {
     setState(prevState => ({
       ...prevState,
-      segments: generateWheelContent(prevState.wheelConfig.segments)
+      segments: generateWheelContent(prevState.wheelConfig)
     }));
 
     toast({
