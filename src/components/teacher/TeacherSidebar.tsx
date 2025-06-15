@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,8 @@ import {
   LogOut,
   GraduationCap,
   Book,
-  FolderOpen
+  FolderOpen,
+  Sparkles
 } from "lucide-react";
 
 interface TeacherSidebarProps {
@@ -28,6 +30,7 @@ interface TeacherSidebarProps {
 export const TeacherSidebar = ({ activeTab, setActiveTab, onLogout }: TeacherSidebarProps) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3, type: 'tab' },
+    { id: 'enhanced-dashboard', label: 'NLP Dashboard', icon: Sparkles, type: 'page', path: '/enhanced-teacher' },
     { id: 'ai-assistant', label: 'AI Curriculum', icon: Brain, type: 'tab' },
     { id: 'calendar', label: 'Calendar', icon: Calendar, type: 'tab' },
     { id: 'students', label: 'Students', icon: Users, type: 'tab' },
@@ -56,10 +59,19 @@ export const TeacherSidebar = ({ activeTab, setActiveTab, onLogout }: TeacherSid
               <Link key={item.id} to={item.path}>
                 <Button
                   variant="ghost"
-                  className="justify-start w-full"
+                  className={`justify-start w-full ${
+                    item.id === 'enhanced-dashboard' 
+                      ? 'bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700 hover:from-purple-200 hover:to-blue-200' 
+                      : ''
+                  }`}
                 >
                   <item.icon className="mr-2 h-4 w-4" />
                   {item.label}
+                  {item.id === 'enhanced-dashboard' && (
+                    <span className="ml-auto text-xs bg-purple-500 text-white px-1.5 py-0.5 rounded-full">
+                      NEW
+                    </span>
+                  )}
                 </Button>
               </Link>
             );

@@ -1,155 +1,64 @@
 
 import { Toaster } from "@/components/ui/toaster";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { ClassroomAuthProvider, useClassroomAuth } from "@/hooks/useClassroomAuth";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/hooks/useAuth";
+import { ClassroomAuthProvider } from "@/hooks/useClassroomAuth";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 
-// Pages
-import { Login } from "@/pages/Login";
-import { TeacherDashboard } from "@/pages/TeacherDashboard";
-import { StudentDashboard } from "@/pages/StudentDashboard";
-import { ProtectedClassroom } from "@/components/classroom/ProtectedClassroom";
-import UnifiedClassroom from "@/pages/UnifiedClassroom";
-import Index from "@/pages/Index";
-import SignUp from "@/pages/SignUp";
-import ForParents from "@/pages/ForParents";
-import ForTeachers from "@/pages/ForTeachers";
+// Page imports
+import Index from "./pages/Index";
+import TeacherPortal from "./pages/TeacherPortal";
+import StudentPortal from "./pages/StudentPortal";
+import ParentPortal from "./pages/ParentPortal";
+import AdminPortal from "./pages/AdminPortal";
+import ClassroomPage from "./pages/ClassroomPage";
+import UnifiedClassroomPage from "./pages/UnifiedClassroomPage";
+import StudentManagement from "./pages/StudentManagement";
+import LessonPlanCreator from "./pages/LessonPlanCreator";
+import LessonScheduler from "./pages/LessonScheduler";
+import PaymentPage from "./pages/PaymentPage";
+import { TeacherDashboard } from "./pages/TeacherDashboard";
+import { EnhancedTeacherDashboard } from "./pages/EnhancedTeacherDashboard";
+import { CurriculumLibraryManager } from "./components/teacher/curriculum/CurriculumLibraryManager";
 
-// Protected Route Component
-const ProtectedRoute = ({ children, requiredRole }: { children: React.ReactNode; requiredRole?: 'teacher' | 'student' }) => {
-  const { user, loading } = useClassroomAuth();
+const queryClient = new QueryClient();
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (requiredRole && user.role !== requiredRole) {
-    return <Navigate to={user.role === 'teacher' ? '/teacher' : '/student'} replace />;
-  }
-
-  return <>{children}</>;
-};
-
-// App Routes Component
-const AppRoutes = () => {
-  const { user, loading } = useClassroomAuth();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  return (
-    <Routes>
-      {/* Public Routes */}
-      <Route 
-        path="/" 
-        element={
-          user ? (
-            <Navigate to={user.role === 'teacher' ? '/teacher' : '/student'} replace />
-          ) : (
-            <Index />
-          )
-        } 
-      />
-      
-      <Route path="/home" element={<Index />} />
-      <Route path="/signup" element={<SignUp />} />
-      <Route path="/for-parents" element={<ForParents />} />
-      <Route path="/for-teachers" element={<ForTeachers />} />
-      
-      <Route 
-        path="/login" 
-        element={!user ? <Login /> : <Navigate to={user.role === 'teacher' ? '/teacher' : '/student'} replace />} 
-      />
-
-      {/* Dashboard Routes */}
-      <Route 
-        path="/teacher" 
-        element={
-          <ProtectedRoute requiredRole="teacher">
-            <TeacherDashboard />
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route 
-        path="/student" 
-        element={
-          <ProtectedRoute requiredRole="student">
-            <StudentDashboard />
-          </ProtectedRoute>
-        } 
-      />
-
-      {/* Classroom Routes - Protected */}
-      <Route 
-        path="/classroom/teacher/:roomId" 
-        element={
-          <ProtectedRoute requiredRole="teacher">
-            <ProtectedClassroom userRole="teacher" />
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route 
-        path="/classroom/student/:roomId" 
-        element={
-          <ProtectedRoute requiredRole="student">
-            <ProtectedClassroom userRole="student" />
-          </ProtectedRoute>
-        } 
-      />
-
-      {/* Legacy/Test Routes - Now Protected */}
-      <Route 
-        path="/classroom" 
-        element={
-          <ProtectedRoute>
-            <UnifiedClassroom />
-          </ProtectedRoute>
-        } 
-      />
-
-      {/* Catch-all Route */}
-      <Route 
-        path="*" 
-        element={
-          user ? (
-            <Navigate to={user.role === 'teacher' ? '/teacher' : '/student'} replace />
-          ) : (
-            <Navigate to="/" replace />
-          )
-        } 
-      />
-    </Routes>
-  );
-};
-
-function App() {
-  return (
-    <LanguageProvider>
-      <ClassroomAuthProvider>
-        <Router>
-          <div className="min-h-screen">
-            <AppRoutes />
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <AuthProvider>
+        <ClassroomAuthProvider>
+          <LanguageProvider>
             <Toaster />
-          </div>
-        </Router>
-      </ClassroomAuthProvider>
-    </LanguageProvider>
-  );
-}
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/teacher" element={<TeacherPortal />} />
+                <Route path="/enhanced-teacher" element={<EnhancedTeacherDashboard />} />
+                <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
+                <Route path="/student" element={<StudentPortal />} />
+                <Route path="/parent" element={<ParentPortal />} />
+                <Route path="/admin" element={<AdminPortal />} />
+                <Route path="/classroom" element={<ClassroomPage />} />
+                <Route path="/classroom/teacher/:roomId" element={<UnifiedClassroomPage />} />
+                <Route path="/classroom/student/:roomId" element={<UnifiedClassroomPage />} />
+                <Route path="/oneonone-classroom-new" element={<UnifiedClassroomPage />} />
+                <Route path="/student-management" element={<StudentManagement />} />
+                <Route path="/lesson-plan-creator" element={<LessonPlanCreator />} />
+                <Route path="/lesson-scheduler" element={<LessonScheduler />} />
+                <Route path="/payment" element={<PaymentPage />} />
+                <Route path="/curriculum-library" element={<CurriculumLibraryManager />} />
+              </Routes>
+            </BrowserRouter>
+          </LanguageProvider>
+        </ClassroomAuthProvider>
+      </AuthProvider>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;
