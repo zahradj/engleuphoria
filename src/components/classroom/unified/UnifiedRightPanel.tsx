@@ -3,11 +3,9 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, BookOpen, Book, Users } from "lucide-react";
-import { OneOnOneChat } from "@/components/classroom/oneonone/OneOnOneChat";
-import { OneOnOneHomework } from "@/components/classroom/oneonone/OneOnOneHomework";
-import { EnhancedDictionary } from "@/components/classroom/oneonone/dictionary/EnhancedDictionary";
-import { CompactVideoFeed } from "@/components/classroom/video/CompactVideoFeed";
+import { MessageCircle, BookOpen, Book, Send } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface UserProfile {
   id: string;
@@ -32,75 +30,43 @@ export function UnifiedRightPanel({
   enhancedClassroom
 }: UnifiedRightPanelProps) {
   const isTeacher = currentUser.role === 'teacher';
-  const {
-    participants,
-    localStream,
-    isConnected,
-    isMuted,
-    isCameraOff
-  } = enhancedClassroom;
+  const studentLevel = Math.floor(studentXP / 100);
 
-  // For video display: teachers see a compact view, students see their own video
-  const videoStream = localStream;
-  const displayName = currentUser.name;
-  const userRole = currentUser.role;
-
-  // Handle adding word to vocabulary
-  const handleAddToVocab = (word: string, definition: string) => {
-    console.log('Adding to vocabulary:', word, definition);
-    // This would integrate with student vocabulary tracking
-  };
-
-  // Define tabs with role-based visibility
   const tabs = [
-    {
-      id: "chat",
-      label: "Chat",
-      icon: MessageCircle,
-      available: true
-    },
-    {
-      id: "homework", 
-      label: isTeacher ? "Assignments" : "Tasks",
-      icon: BookOpen,
-      available: true
-    },
-    {
-      id: "dictionary",
-      label: "Dictionary", 
-      icon: Book,
-      available: true
-    },
-    {
-      id: "participants",
-      label: "People",
-      icon: Users,
-      available: isTeacher // Teachers can see participant management
-    }
-  ].filter(tab => tab.available);
+    { id: "chat", label: "Chat", icon: MessageCircle },
+    { id: "homework", label: "Tasks", icon: BookOpen },
+    { id: "dictionary", label: "Dictionary", icon: Book }
+  ];
+
+  // Mock chat messages
+  const chatMessages = [
+    { id: 1, sender: 'Teacher Sarah', message: 'Great job on the pronunciation exercise!', time: '10:30', isTeacher: true },
+    { id: 2, sender: 'Emma', message: 'Thank you! Can we practice more words?', time: '10:31', isTeacher: false },
+    { id: 3, sender: 'Teacher Sarah', message: 'Of course! Let\'s try some new vocabulary.', time: '10:32', isTeacher: true }
+  ];
 
   return (
-    <Card className="h-full shadow-lg flex flex-col overflow-hidden">
-      {/* Compact Video Feed - Role-Based Display */}
-      <div className="p-3 flex-shrink-0">
-        <CompactVideoFeed
-          stream={videoStream}
-          isConnected={isConnected}
-          isMuted={isMuted}
-          isCameraOff={isCameraOff}
-          userName={displayName}
-          userRole={userRole}
-          isOwnVideo={true}
-          onToggleMute={undefined} // Controlled from top bar
-          onToggleCamera={undefined} // Controlled from top bar
-          onJoinCall={undefined} // Controlled from top bar
-          onLeaveCall={undefined} // Controlled from top bar
-        />
+    <Card className="h-full shadow-lg flex flex-col overflow-hidden bg-white">
+      {/* Student Video - Clean and Simple */}
+      <div className="p-4 border-b bg-gray-50 flex-shrink-0">
+        <div className="aspect-video bg-gradient-to-br from-green-100 to-blue-100 rounded-lg flex items-center justify-center relative overflow-hidden mb-3">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-2">
+              <span className="text-lg font-bold text-white">E</span>
+            </div>
+            <p className="font-medium text-gray-700 text-sm">Emma (Student)</p>
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <Badge className="bg-green-100 text-green-700">Level {studentLevel}</Badge>
+          <Badge className="bg-blue-100 text-blue-700">Online</Badge>
+        </div>
       </div>
 
-      {/* Tabs Navigation - Role-Based */}
-      <div className="border-b p-2 flex-shrink-0">
-        <div className="flex gap-1 overflow-x-auto">
+      {/* Tabs Navigation */}
+      <div className="border-b p-3 flex-shrink-0">
+        <div className="flex gap-1">
           {tabs.map((tab) => {
             const IconComponent = tab.icon;
             return (
@@ -109,9 +75,13 @@ export function UnifiedRightPanel({
                 variant={activeRightTab === tab.id ? "default" : "ghost"}
                 size="sm"
                 onClick={() => onTabChange(tab.id)}
-                className="text-xs px-3 py-1 flex-shrink-0"
+                className={`text-xs px-3 py-2 flex items-center gap-2 ${
+                  activeRightTab === tab.id 
+                    ? 'bg-blue-600 text-white' 
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
               >
-                <IconComponent size={12} className="mr-1" />
+                <IconComponent size={14} />
                 {tab.label}
               </Button>
             );
@@ -119,60 +89,106 @@ export function UnifiedRightPanel({
         </div>
       </div>
 
-      {/* Tab Content - Role-Aware */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="h-full p-3">
-          {activeRightTab === "chat" && <OneOnOneChat />}
-          {activeRightTab === "homework" && <OneOnOneHomework />}
-          {activeRightTab === "dictionary" && (
-            <EnhancedDictionary onAddToVocab={handleAddToVocab} />
-          )}
-          {activeRightTab === "participants" && isTeacher && (
-            <div className="space-y-2">
-              <h3 className="font-medium text-sm">Participants ({participants.length})</h3>
-              {participants.length === 0 ? (
-                <p className="text-xs text-gray-500">No participants yet</p>
-              ) : (
-                participants.map((participant) => (
-                  <div key={participant.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                    <div>
-                      <div className="text-xs font-medium">{participant.displayName}</div>
-                      <div className="text-xs text-gray-500">{participant.role}</div>
+      {/* Tab Content */}
+      <div className="flex-1 overflow-hidden">
+        {activeRightTab === "chat" && (
+          <div className="h-full flex flex-col">
+            <ScrollArea className="flex-1 p-3">
+              <div className="space-y-3">
+                {chatMessages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`flex flex-col ${
+                      msg.isTeacher ? "items-start" : "items-end"
+                    }`}
+                  >
+                    <div
+                      className={`px-3 py-2 rounded-lg max-w-[85%] ${
+                        msg.isTeacher
+                          ? "bg-gray-100 text-gray-800"
+                          : "bg-blue-600 text-white"
+                      }`}
+                    >
+                      <p className="text-sm">{msg.message}</p>
                     </div>
-                    {participant.isMuted && (
-                      <Badge variant="secondary" className="text-xs">Muted</Badge>
-                    )}
+                    <div className="flex items-center mt-1 text-xs text-gray-500">
+                      <span className={msg.isTeacher ? "text-green-600" : "text-blue-600"}>
+                        {msg.sender}
+                      </span>
+                      <span className="mx-1">•</span>
+                      <span>{msg.time}</span>
+                    </div>
                   </div>
-                ))
-              )}
+                ))}
+              </div>
+            </ScrollArea>
+            
+            <div className="p-3 border-t bg-gray-50 flex gap-2">
+              <Input
+                placeholder="Type a message..."
+                className="flex-1 text-sm"
+              />
+              <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+                <Send size={14} />
+              </Button>
             </div>
-          )}
-        </div>
-      </div>
+          </div>
+        )}
 
-      {/* XP Progress Bar - Student Focus, Teacher Overview */}
-      <div className="p-3 border-t bg-gradient-to-r from-purple-50 to-purple-100 flex-shrink-0">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-gray-700">
-            {isTeacher ? "Student Progress" : "Your Progress"}
-          </span>
-          <Badge className="bg-yellow-100 text-yellow-700 text-xs px-2 py-1">
-            Level {Math.floor(studentXP / 100)}
-          </Badge>
-        </div>
-        
-        <div>
-          <div className="flex justify-between items-center text-xs text-gray-600 mb-1">
-            <span>XP Progress</span>
-            <span>{studentXP % 100}/100</span>
+        {activeRightTab === "homework" && (
+          <div className="p-4 space-y-3">
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+              <h4 className="font-medium text-yellow-800 mb-1">Today's Tasks</h4>
+              <ul className="text-sm text-yellow-700 space-y-1">
+                <li className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  Complete vocabulary exercise
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                  Practice pronunciation
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-gray-300 rounded-full"></div>
+                  Read short story
+                </li>
+              </ul>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <h4 className="font-medium text-blue-800 mb-1">Weekly Goals</h4>
+              <p className="text-sm text-blue-700">
+                Focus on past tense verbs and daily conversation practice.
+              </p>
+            </div>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-1.5">
-            <div 
-              className="bg-yellow-400 h-1.5 rounded-full transition-all duration-300" 
-              style={{ width: `${(studentXP % 100)}%` }}
-            ></div>
+        )}
+
+        {activeRightTab === "dictionary" && (
+          <div className="p-4">
+            <div className="space-y-3">
+              <Input placeholder="Search for a word..." className="text-sm" />
+              
+              <div className="bg-gray-50 rounded-lg p-3">
+                <h4 className="font-medium text-gray-800 mb-2">Recent Words</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span>beautiful</span>
+                    <Badge variant="secondary" className="text-xs">adjective</Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>quickly</span>
+                    <Badge variant="secondary" className="text-xs">adverb</Badge>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>exciting</span>
+                    <Badge variant="secondary" className="text-xs">adjective</Badge>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </Card>
   );
