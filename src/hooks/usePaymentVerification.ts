@@ -1,56 +1,58 @@
 
-import { useState, useEffect } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
-import { paymentService } from "@/services/paymentService";
+import { useState, useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { PaymentService } from '@/services/paymentService';
 
 export const usePaymentVerification = () => {
-  const [searchParams] = useSearchParams();
-  const [isLoading, setIsLoading] = useState(false);
-  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationResult, setVerificationResult] = useState<{
+    success: boolean;
+    paymentId?: string;
+    error?: string;
+  } | null>(null);
   const { toast } = useToast();
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    const sessionId = searchParams.get('session_id');
-    if (sessionId) {
-      verifyPayment(sessionId);
-    }
-  }, [searchParams]);
+  const verifyPayment = async (paymentData: any) => {
+    setIsVerifying(true);
+    setVerificationResult(null);
 
-  const verifyPayment = async (sessionId: string) => {
     try {
-      setIsLoading(true);
-      const result = await paymentService.verifyPayment(sessionId);
+      // Process payment using PaymentService
+      const result = await PaymentService.processPayment(paymentData);
       
-      if (result.success && result.status === 'paid') {
-        setPaymentSuccess(true);
-        localStorage.removeItem('pendingUser');
+      setVerificationResult(result);
+      
+      if (result.success) {
         toast({
-          title: "Payment Successful!",
+          title: "Payment Successful",
           description: "Your payment has been processed successfully.",
         });
-        setTimeout(() => navigate("/dashboard"), 3000);
       } else {
         toast({
-          title: "Payment Verification",
-          description: "Payment is still being processed. Please check back later.",
-          variant: "destructive"
+          title: "Payment Failed",
+          description: result.error || "Payment processing failed.",
+          variant: "destructive",
         });
       }
     } catch (error) {
+      const result = {
+        success: false,
+        error: "An unexpected error occurred during payment verification."
+      };
+      setVerificationResult(result);
       toast({
         title: "Payment Error",
-        description: "Failed to verify payment. Please contact support.",
-        variant: "destructive"
+        description: result.error,
+        variant: "destructive",
       });
     } finally {
-      setIsLoading(false);
+      setIsVerifying(false);
     }
   };
 
   return {
-    isLoading,
-    paymentSuccess
+    isVerifying,
+    verificationResult,
+    verifyPayment,
   };
 };

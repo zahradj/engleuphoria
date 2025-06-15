@@ -11,6 +11,26 @@ export interface PaymentPlan {
   popular?: boolean
 }
 
+export interface PaymentHistoryItem {
+  id: string
+  amount: number
+  currency: string
+  payment_method: string
+  status: string
+  created_at: string
+  lesson?: {
+    title: string
+    scheduled_at: string
+  }
+}
+
+export interface SubscriptionDetails {
+  plan: PaymentPlan
+  status: 'active' | 'cancelled' | 'past_due'
+  current_period_end: string
+  next_billing_date: string
+}
+
 export interface ContactInfo {
   firstName: string
   lastName: string
@@ -88,19 +108,36 @@ export class PaymentService {
     }
   }
 
-  static async getPaymentHistory(userId: string) {
+  static async getPaymentHistory(userId: string): Promise<PaymentHistoryItem[]> {
     try {
       const { data, error } = await supabase
         .from('payments')
-        .select('*')
+        .select(`
+          *,
+          lesson:lessons(title, scheduled_at)
+        `)
         .eq('student_id', userId)
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      return data
+      return (data || []).map(payment => ({
+        id: payment.id,
+        amount: payment.amount,
+        currency: payment.currency,
+        payment_method: payment.payment_method,
+        status: payment.status,
+        created_at: payment.created_at,
+        lesson: payment.lesson ? {
+          title: payment.lesson.title,
+          scheduled_at: payment.lesson.scheduled_at
+        } : undefined
+      }))
     } catch (error) {
       console.error('Error fetching payment history:', error)
       return []
     }
   }
 }
+
+// Export an instance for backward compatibility
+export const paymentService = PaymentService;

@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 // Types for the classroom system - Updated to match actual Supabase schema
@@ -134,7 +133,7 @@ export const classroomDatabase = {
       .eq('id', lessonData.student_id)
       .single();
     
-    const studentName = student?.full_name.split(' ')[0].toLowerCase() || 'student';
+    const studentName = student?.full_name?.split(' ')[0]?.toLowerCase() || 'student';
     const roomId = `${studentName}-${Math.random().toString(36).substr(2, 8)}`;
     
     const { data, error } = await supabase
@@ -157,14 +156,17 @@ export const classroomDatabase = {
     if (error) throw error;
     
     // Transform to match expected Lesson type
-    return {
-      ...data,
-      room_id: roomId,
-      updated_at: data.created_at,
-      notes: lessonData.notes,
-      teacher: data.teacher ? { ...data.teacher, role: data.teacher.role as 'teacher' | 'student' } : undefined,
-      student: data.student ? { ...data.student, role: data.student.role as 'teacher' | 'student' } : undefined
-    } as Lesson;
+    if (data) {
+      return {
+        ...data,
+        room_id: roomId,
+        updated_at: data.created_at,
+        notes: lessonData.notes,
+        teacher: data.teacher ? { ...data.teacher, role: data.teacher.role as 'teacher' | 'student' } : undefined,
+        student: data.student ? { ...data.student, role: data.student.role as 'teacher' | 'student' } : undefined
+      } as Lesson;
+    }
+    throw new Error('Failed to create lesson');
   },
 
   async getLessonsByTeacher(teacherId: string) {
@@ -248,13 +250,16 @@ export const classroomDatabase = {
     if (error) throw error;
     
     // Transform to match expected Lesson type
-    return {
-      ...data,
-      room_id: roomId,
-      updated_at: data.created_at,
-      teacher: data.teacher ? { ...data.teacher, role: data.teacher.role as 'teacher' | 'student' } : undefined,
-      student: data.student ? { ...data.student, role: data.student.role as 'teacher' | 'student' } : undefined
-    } as Lesson;
+    if (data) {
+      return {
+        ...data,
+        room_id: roomId,
+        updated_at: data.created_at,
+        teacher: data.teacher ? { ...data.teacher, role: data.teacher.role as 'teacher' | 'student' } : undefined,
+        student: data.student ? { ...data.student, role: data.student.role as 'teacher' | 'student' } : undefined
+      } as Lesson;
+    }
+    throw new Error('Lesson not found');
   },
 
   async updateLessonStatus(lessonId: string, status: Lesson['status']) {
@@ -273,11 +278,14 @@ export const classroomDatabase = {
     
     if (error) throw error;
     
-    return {
-      ...data,
-      room_id: `room-${Math.random().toString(36).substr(2, 8)}`,
-      updated_at: new Date().toISOString()
-    } as Lesson;
+    if (data) {
+      return {
+        ...data,
+        room_id: `room-${Math.random().toString(36).substr(2, 8)}`,
+        updated_at: new Date().toISOString()
+      } as Lesson;
+    }
+    throw new Error('Failed to update lesson');
   },
 
   // Placeholder methods for classroom sessions (until tables are created)

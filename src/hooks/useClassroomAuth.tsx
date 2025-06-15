@@ -106,12 +106,17 @@ export const ClassroomAuthProvider = ({ children }: { children: React.ReactNode 
             variant: "destructive"
           });
         }
-      } else {
-        console.log('ClassroomAuth: User profile loaded successfully:', userData?.role);
+      } else if (userData) {
+        console.log('ClassroomAuth: User profile loaded successfully:', userData.role);
         // Ensure role is properly typed
         const typedUser: User = {
-          ...userData,
-          role: userData.role as 'teacher' | 'student'
+          id: userData.id,
+          email: userData.email,
+          full_name: userData.full_name,
+          role: userData.role as 'teacher' | 'student',
+          avatar_id: userData.avatar_id,
+          created_at: userData.created_at,
+          updated_at: userData.updated_at
         };
         setUser(typedUser);
       }
