@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { InfiniteWhiteboard } from "@/components/classroom/whiteboard/InfiniteWhiteboard";
 import { UnifiedContentViewer } from "@/components/classroom/content/UnifiedContentViewer";
+import { OneOnOneGames } from "@/components/classroom/oneonone/OneOnOneGames";
 import { Palette, BookOpen, Users, Gamepad2 } from "lucide-react";
 
 interface UnifiedCenterPanelProps {
@@ -90,13 +91,7 @@ export function UnifiedCenterPanel({
           </TabsContent>
 
           <TabsContent value="activities" className="h-full mt-0">
-            <div className="h-full flex items-center justify-center">
-              <div className="text-center">
-                <Gamepad2 size={48} className="mx-auto mb-4 text-gray-400" />
-                <h3 className="text-lg font-semibold mb-2">Interactive Activities</h3>
-                <p className="text-gray-600">Educational games and activities coming soon!</p>
-              </div>
-            </div>
+            <OneOnOneGames />
           </TabsContent>
 
           <TabsContent value="collaboration" className="h-full mt-0">
