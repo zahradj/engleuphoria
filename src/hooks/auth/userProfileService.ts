@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/services/classroomDatabase';
 
@@ -33,15 +32,14 @@ export const loadUserProfile = async (userId: string): Promise<User | null> => {
   console.log('UserProfileService: Loading user profile for:', userId);
   
   try {
-    // Execute the Supabase query to get a Promise, then apply timeout wrapper
-    const { data: userData, error } = await withTimeout(
-      supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle(),
-      8000
-    );
+    // Execute the Supabase query properly by awaiting it first
+    const supabaseQuery = supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
+    
+    const { data: userData, error } = await withTimeout(supabaseQuery, 8000);
     
     if (error) {
       console.log('UserProfileService: Database error loading user profile:', error);
@@ -51,10 +49,8 @@ export const loadUserProfile = async (userId: string): Promise<User | null> => {
         console.log('UserProfileService: User profile not found, checking auth user');
         
         try {
-          const { data: { user: authUser } } = await withTimeout(
-            supabase.auth.getUser(),
-            5000
-          );
+          const authQuery = supabase.auth.getUser();
+          const { data: { user: authUser } } = await withTimeout(authQuery, 5000);
           
           if (authUser) {
             console.log('UserProfileService: Auth user exists but no profile, creating default profile');
@@ -67,10 +63,8 @@ export const loadUserProfile = async (userId: string): Promise<User | null> => {
             };
             
             try {
-              const createdUser = await withTimeout(
-                createUserProfile(userId, newUserData),
-                5000
-              );
+              const createQuery = createUserProfile(userId, newUserData);
+              const createdUser = await withTimeout(createQuery, 5000);
               console.log('UserProfileService: Created user profile:', createdUser);
               return createdUser;
             } catch (createError) {
