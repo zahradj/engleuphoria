@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Star, Mic, MicOff, Video, VideoOff, Sparkles, Users, Circle } from "lucide-react";
 import { OneOnOneRewards } from "./OneOnOneRewards";
 import { ReportIssueDropdown } from "./ReportIssueDropdown";
