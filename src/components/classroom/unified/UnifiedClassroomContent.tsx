@@ -3,6 +3,7 @@ import React from "react";
 import { UnifiedCenterPanel } from "./UnifiedCenterPanel";
 import { UnifiedRightPanel } from "./UnifiedRightPanel";
 import { UnifiedVideoSection } from "./UnifiedVideoSection";
+import { UnifiedLeftSidebar } from "./UnifiedLeftSidebar";
 import { useUnifiedClassroomContext } from "./UnifiedClassroomProvider";
 
 interface ClassroomState {
@@ -36,15 +37,26 @@ export function UnifiedClassroomContent({
 
   return (
     <div className="min-h-[calc(100vh-5rem)] px-4 pb-4">
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-[600px]">
+      <div className="grid grid-cols-12 gap-4 h-[calc(100vh-6rem)]">
         
-        {/* Left Panel - Video Section - Increased from 3 to 6 columns */}
-        <div className="lg:col-span-6 min-h-[500px]">
-          <UnifiedVideoSection currentUser={currentUser} />
+        {/* Left Section - Teacher Video + Progress Panels */}
+        <div className="col-span-3 flex flex-col gap-4">
+          {/* Teacher Video Section */}
+          <div className="flex-1 min-h-[350px]">
+            <UnifiedVideoSection currentUser={currentUser} />
+          </div>
+          
+          {/* Bottom Left Panels - Learning Progress & Achievements */}
+          <div className="h-[300px]">
+            <UnifiedLeftSidebar 
+              studentXP={studentXP}
+              currentUser={currentUser}
+            />
+          </div>
         </div>
 
-        {/* Center Panel - Interactive Content - Reduced from 6 to 3 columns */}
-        <div className="lg:col-span-3 min-h-[500px]">
+        {/* Center Panel - Main Content (Whiteboard, Activities, etc.) */}
+        <div className="col-span-6">
           <UnifiedCenterPanel
             activeCenterTab={activeCenterTab}
             onTabChange={setActiveCenterTab}
@@ -52,8 +64,8 @@ export function UnifiedClassroomContent({
           />
         </div>
 
-        {/* Right Panel - Student Info & Interactions - Kept at 3 columns */}
-        <div className="lg:col-span-3 min-h-[500px]">
+        {/* Right Panel - Student Info & Chat */}
+        <div className="col-span-3">
           <UnifiedRightPanel
             studentName="Emma"
             studentXP={studentXP}
