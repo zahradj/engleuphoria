@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -58,7 +57,7 @@ export const EnhancedUpcomingClassesTab = ({ studentId }: EnhancedUpcomingClasse
       await lessonService.joinLesson(lesson.id, studentId, 'student');
       
       // Navigate to classroom with room parameters
-      const classroomUrl = `/oneonone-classroom-new?roomId=${lesson.room_id}&role=student&name=Student&userId=${studentId}`;
+      const classroomUrl = `/classroom?roomId=${lesson.room_id}&role=student&name=Student&userId=${studentId}`;
       navigate(classroomUrl);
       
       toast({

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -48,7 +47,7 @@ export const EnhancedCalendarTab = ({ teacherId }: EnhancedCalendarTabProps) => 
       await lessonService.joinLesson(lesson.id, teacherId, 'teacher');
       
       // Navigate to classroom with room parameters
-      const classroomUrl = `/oneonone-classroom-new?roomId=${lesson.room_id}&role=teacher&name=Teacher&userId=${teacherId}`;
+      const classroomUrl = `/classroom?roomId=${lesson.room_id}&role=teacher&name=Teacher&userId=${teacherId}`;
       navigate(classroomUrl);
       
       toast({
