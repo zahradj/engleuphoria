@@ -5,12 +5,18 @@ export { getAllLevels } from './eslLevelsService';
 export { getAITemplates, generateAIContent } from './aiTemplatesService';
 export { getBadgeSystem } from './badgeSystemService';
 
+// Import services for the aggregate object
+import { generateRandomGameElements, generateAgeAppropriateGameElements } from './gameElementsService';
+import { getAllLevels } from './eslLevelsService';
+import { getAITemplates, generateAIContent } from './aiTemplatesService';
+import { getBadgeSystem } from './badgeSystemService';
+
 // Aggregate service object for backward compatibility
 export const eslCurriculumService = {
-  generateRandomGameElements: require('./gameElementsService').generateRandomGameElements,
-  generateAgeAppropriateGameElements: require('./gameElementsService').generateAgeAppropriateGameElements,
-  getAllLevels: require('./eslLevelsService').getAllLevels,
-  getAITemplates: require('./aiTemplatesService').getAITemplates,
-  getBadgeSystem: require('./badgeSystemService').getBadgeSystem,
-  generateAIContent: require('./aiTemplatesService').generateAIContent,
+  generateRandomGameElements,
+  generateAgeAppropriateGameElements,
+  getAllLevels,
+  getAITemplates,
+  getBadgeSystem,
+  generateAIContent,
 };
