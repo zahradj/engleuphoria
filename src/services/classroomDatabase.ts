@@ -71,6 +71,12 @@ export const classroomDatabase = {
   },
 
   async getUserByEmail(email: string) {
+    // Check if user is authenticated before making database calls
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('Authentication required');
+    }
+
     const { data, error } = await supabase
       .from('users')
       .select('*')
@@ -82,6 +88,12 @@ export const classroomDatabase = {
   },
 
   async getUsersByRole(role: 'teacher' | 'student') {
+    // Check if user is authenticated before making database calls
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('Authentication required');
+    }
+
     const { data, error } = await supabase
       .from('users')
       .select('*')
@@ -102,6 +114,12 @@ export const classroomDatabase = {
     duration?: number;
     notes?: string;
   }) {
+    // Check if user is authenticated before making database calls
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('Authentication required');
+    }
+
     // Generate unique room ID
     const { data: student } = await supabase
       .from('users')
@@ -127,6 +145,12 @@ export const classroomDatabase = {
   },
 
   async getLessonsByTeacher(teacherId: string) {
+    // Check if user is authenticated before making database calls
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('Authentication required');
+    }
+
     const { data, error } = await supabase
       .from('lessons')
       .select(`
@@ -143,6 +167,12 @@ export const classroomDatabase = {
   },
 
   async getLessonsByStudent(studentId: string) {
+    // Check if user is authenticated before making database calls
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('Authentication required');
+    }
+
     const { data, error } = await supabase
       .from('lessons')
       .select(`
@@ -159,6 +189,12 @@ export const classroomDatabase = {
   },
 
   async getLessonByRoomId(roomId: string) {
+    // Check if user is authenticated before making database calls
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('Authentication required');
+    }
+
     const { data, error } = await supabase
       .from('lessons')
       .select(`
@@ -174,6 +210,12 @@ export const classroomDatabase = {
   },
 
   async updateLessonStatus(lessonId: string, status: Lesson['status']) {
+    // Check if user is authenticated before making database calls
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('Authentication required');
+    }
+
     const { data, error } = await supabase
       .from('lessons')
       .update({ status })

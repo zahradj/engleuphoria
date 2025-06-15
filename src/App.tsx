@@ -92,7 +92,7 @@ const AppRoutes = () => {
         } 
       />
 
-      {/* Legacy/Test Routes */}
+      {/* Legacy/Test Routes - Now Protected */}
       <Route 
         path="/classroom" 
         element={

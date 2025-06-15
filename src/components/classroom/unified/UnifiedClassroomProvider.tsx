@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useClassroomAuth } from "@/hooks/useClassroomAuth";
 import { UnifiedUser } from "@/types/user";
 
 interface UnifiedClassroomContextType {
@@ -29,6 +30,7 @@ export function UnifiedClassroomProvider({ children }: UnifiedClassroomProviderP
   const { roomId } = useParams();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  const { user, loading } = useClassroomAuth();
   const [hasShownWelcome, setHasShownWelcome] = useState(false);
   const userIdRef = useRef<string>();
   
@@ -39,6 +41,18 @@ export function UnifiedClassroomProvider({ children }: UnifiedClassroomProviderP
 
   // Enhanced role parameter extraction with stable memoization
   const currentUser = useMemo<UnifiedUser>(() => {
+    // If we have an authenticated user, use that data
+    if (user && !loading) {
+      return {
+        id: user.id,
+        full_name: user.full_name,
+        email: user.email,
+        role: user.role,
+        avatar_url: user.avatar_url
+      };
+    }
+
+    // Fallback to URL parameters for demo purposes
     const roleParam = searchParams.get('role');
     const nameParam = searchParams.get('name');
     const userIdParam = searchParams.get('userId');
@@ -69,14 +83,14 @@ export function UnifiedClassroomProvider({ children }: UnifiedClassroomProviderP
       name: finalName,
       role: finalRole
     };
-  }, [searchParams]);
+  }, [searchParams, user, loading]);
 
   const finalRoomId = useMemo(() => roomId || "unified-classroom-1", [roomId]);
 
   // Show enhanced welcome message only once
   useEffect(() => {
-    if (!hasShownWelcome && currentUser.role) {
-      const displayName = currentUser.name || 'User';
+    if (!hasShownWelcome && currentUser.role && !loading) {
+      const displayName = currentUser.full_name || currentUser.name || 'User';
       const welcomeMessage = currentUser.role === 'teacher' 
         ? `Welcome to the enhanced classroom, ${displayName}! You have full teaching controls and session management.`
         : `Welcome to the enhanced classroom, ${displayName}! Enjoy the interactive learning experience.`;
@@ -88,7 +102,7 @@ export function UnifiedClassroomProvider({ children }: UnifiedClassroomProviderP
       
       setHasShownWelcome(true);
     }
-  }, [currentUser.role, currentUser.name, toast, hasShownWelcome]);
+  }, [currentUser.role, currentUser.full_name, currentUser.name, toast, hasShownWelcome, loading]);
 
   const contextValue = {
     currentUser,
