@@ -123,6 +123,41 @@ export type Database = {
           },
         ]
       }
+      lesson_participants: {
+        Row: {
+          id: string
+          joined_at: string | null
+          left_at: string | null
+          lesson_id: string | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string | null
+          left_at?: string | null
+          lesson_id?: string | null
+          role: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string | null
+          left_at?: string | null
+          lesson_id?: string | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_participants_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lessons: {
         Row: {
           cost: number | null
@@ -132,6 +167,8 @@ export type Database = {
           feedback_submitted: boolean | null
           id: string
           quality_rating: number | null
+          room_id: string | null
+          room_link: string | null
           scheduled_at: string
           status: string
           student_id: string
@@ -146,6 +183,8 @@ export type Database = {
           feedback_submitted?: boolean | null
           id?: string
           quality_rating?: number | null
+          room_id?: string | null
+          room_link?: string | null
           scheduled_at: string
           status?: string
           student_id: string
@@ -160,6 +199,8 @@ export type Database = {
           feedback_submitted?: boolean | null
           id?: string
           quality_rating?: number | null
+          room_id?: string | null
+          room_link?: string | null
           scheduled_at?: string
           status?: string
           student_id?: string
@@ -380,6 +421,42 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_access_lesson: {
+        Args: { room_uuid: string; user_uuid: string }
+        Returns: boolean
+      }
+      generate_room_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_student_upcoming_lessons: {
+        Args: { student_uuid: string }
+        Returns: {
+          id: string
+          title: string
+          scheduled_at: string
+          duration: number
+          room_id: string
+          room_link: string
+          status: string
+          teacher_name: string
+          teacher_id: string
+        }[]
+      }
+      get_teacher_upcoming_lessons: {
+        Args: { teacher_uuid: string }
+        Returns: {
+          id: string
+          title: string
+          scheduled_at: string
+          duration: number
+          room_id: string
+          room_link: string
+          status: string
+          student_name: string
+          student_id: string
+        }[]
+      }
       update_teacher_performance_metrics: {
         Args: { teacher_uuid: string }
         Returns: undefined
