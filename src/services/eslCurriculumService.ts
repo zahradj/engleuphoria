@@ -1,47 +1,50 @@
-
 import { faker } from '@faker-js/faker';
-import { ESLLevel, ESLSkill, AITemplate, ESLMaterial } from '@/types/eslCurriculum';
+import { ESLLevel, ESLSkill, AITemplate, ESLMaterial, GameElement } from '@/types/eslCurriculum';
 
 interface GameElement {
   id: string;
-  type: 'points' | 'sticker' | 'certificate';
-  value: number;
+  type: 'points' | 'badge' | 'achievement' | 'leaderboard' | 'progress_bar' | 'mini_game' | 'sticker' | 'certificate';
+  name: string;
   description: string;
+  value: number;
+  ageAppropriate: boolean;
 }
 
 const generateRandomGameElements = (count: number): GameElement[] => {
   const elements: GameElement[] = [];
   for (let i = 0; i < count; i++) {
-    const type = faker.helpers.arrayElement(['points', 'sticker', 'certificate']);
+    const type = faker.helpers.arrayElement(['points', 'badge', 'achievement', 'leaderboard', 'progress_bar', 'mini_game', 'sticker', 'certificate']);
     elements.push({
       id: faker.string.uuid(),
-      type: type as 'points' | 'sticker' | 'certificate',
-      value: faker.number.int({ min: 5, max: 50 }),
+      type: type as 'points' | 'badge' | 'achievement' | 'leaderboard' | 'progress_bar' | 'mini_game' | 'sticker' | 'certificate',
+      name: faker.lorem.words(2),
       description: faker.lorem.sentence(),
+      value: faker.number.int({ min: 5, max: 50 }),
+      ageAppropriate: true,
     });
   }
   return elements;
 };
 
-const generateAgeAppropriateGameElements = (ageGroup: string) => {
-  const baseElements = [
-    { id: 'word-match', type: 'points' as const, value: 10, description: 'Match words with pictures' },
-    { id: 'sentence-build', type: 'points' as const, value: 15, description: 'Build simple sentences' },
-    { id: 'vocabulary-quiz', type: 'points' as const, value: 20, description: 'Vocabulary quiz' }
+const generateAgeAppropriateGameElements = (ageGroup: string): GameElement[] => {
+  const baseElements: GameElement[] = [
+    { id: 'word-match', type: 'points', name: 'Word Match', value: 10, description: 'Match words with pictures', ageAppropriate: true },
+    { id: 'sentence-build', type: 'points', name: 'Sentence Builder', value: 15, description: 'Build simple sentences', ageAppropriate: true },
+    { id: 'vocabulary-quiz', type: 'points', name: 'Vocabulary Quiz', value: 20, description: 'Vocabulary quiz', ageAppropriate: true }
   ];
 
   switch (ageGroup) {
     case 'young':
       return [
         ...baseElements,
-        { id: 'star-sticker', type: 'sticker' as const, value: 1, description: 'Colorful star sticker' },
-        { id: 'animal-sticker', type: 'sticker' as const, value: 1, description: 'Cute animal sticker' }
+        { id: 'star-sticker', type: 'sticker', name: 'Star Sticker', value: 1, description: 'Colorful star sticker', ageAppropriate: true },
+        { id: 'animal-sticker', type: 'sticker', name: 'Animal Sticker', value: 1, description: 'Cute animal sticker', ageAppropriate: true }
       ];
     case 'teen':
       return [
         ...baseElements,
-        { id: 'achievement-badge', type: 'certificate' as const, value: 1, description: 'Achievement certificate' },
-        { id: 'progress-certificate', type: 'certificate' as const, value: 1, description: 'Progress certificate' }
+        { id: 'achievement-badge', type: 'certificate', name: 'Achievement Badge', value: 1, description: 'Achievement certificate', ageAppropriate: true },
+        { id: 'progress-certificate', type: 'certificate', name: 'Progress Certificate', value: 1, description: 'Progress certificate', ageAppropriate: true }
       ];
     default:
       return baseElements;
@@ -264,7 +267,7 @@ const generateAIContent = async (templateId: string, parameters: Record<string, 
     id: faker.string.uuid(),
     title: `Generated ${template?.name || 'Material'}: ${parameters.topic || 'General'}`,
     description: `AI-generated content for ${parameters.topic || 'general learning'} at ${parameters.level || 'A1'} level`,
-    type: template?.type || 'worksheet',
+    type: template?.type === 'quiz' ? 'assessment' : (template?.type || 'worksheet'),
     level: level,
     skills: level.skills,
     duration: faker.number.int({ min: 15, max: 45 }),
