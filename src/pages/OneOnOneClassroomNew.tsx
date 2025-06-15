@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useOneOnOneClassroom } from "@/hooks/useOneOnOneClassroom";
 import { useEnhancedClassroom } from "@/hooks/useEnhancedClassroom";
+import { MediaProvider } from "@/components/classroom/oneonone/video/MediaContext";
 import { OneOnOneTopBar } from "@/components/classroom/oneonone/OneOnOneTopBar";
 import { OneOnOneVideoSection } from "@/components/classroom/oneonone/OneOnOneVideoSection";
 import { OneOnOneCenterPanel } from "@/components/classroom/oneonone/OneOnOneCenterPanel";
@@ -47,64 +48,66 @@ const OneOnOneClassroomNew = () => {
 
   try {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
-        {/* Enhanced Top Bar with All Controls */}
-        <div className="h-20 flex-shrink-0 p-4">
-          <OneOnOneTopBar
-            classTime={classTime}
-            studentName="Emma Thompson"
-            studentLevel={studentLevel}
-            enhancedClassroom={enhancedClassroom}
-            currentUserId={currentUserId}
-            currentUserName={currentUserName}
-            isTeacher={isTeacher}
-            roomId={roomId}
-          />
-        </div>
+      <MediaProvider>
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
+          {/* Enhanced Top Bar with All Controls */}
+          <div className="h-20 flex-shrink-0 p-4">
+            <OneOnOneTopBar
+              classTime={classTime}
+              studentName="Emma Thompson"
+              studentLevel={studentLevel}
+              enhancedClassroom={enhancedClassroom}
+              currentUserId={currentUserId}
+              currentUserName={currentUserName}
+              isTeacher={isTeacher}
+              roomId={roomId}
+            />
+          </div>
 
-        {/* Main Classroom Layout - Simplified */}
-        <div className="min-h-[calc(100vh-5rem)] px-4 pb-4">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-[600px]">
-            
-            {/* Left Panel - Simplified Video Section */}
-            <div className="lg:col-span-3 min-h-[500px]">
-              <OneOnOneVideoSection
-                enhancedClassroom={enhancedClassroom}
-                currentUserId={currentUserId}
-                currentUserName={currentUserName}
-                isTeacher={isTeacher}
-                studentXP={studentXP}
-                onAwardPoints={awardPoints}
-                showRewardPopup={showRewardPopup}
-              />
-            </div>
+          {/* Main Classroom Layout - Simplified */}
+          <div className="min-h-[calc(100vh-5rem)] px-4 pb-4">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-[600px]">
+              
+              {/* Left Panel - Simplified Video Section */}
+              <div className="lg:col-span-3 min-h-[500px]">
+                <OneOnOneVideoSection
+                  enhancedClassroom={enhancedClassroom}
+                  currentUserId={currentUserId}
+                  currentUserName={currentUserName}
+                  isTeacher={isTeacher}
+                  studentXP={studentXP}
+                  onAwardPoints={awardPoints}
+                  showRewardPopup={showRewardPopup}
+                />
+              </div>
 
-            {/* Center Panel - Interactive Content */}
-            <div className="lg:col-span-6 min-h-[500px]">
-              <OneOnOneCenterPanel
-                activeCenterTab={activeCenterTab}
-                onTabChange={setActiveCenterTab}
-              />
-            </div>
+              {/* Center Panel - Interactive Content */}
+              <div className="lg:col-span-6 min-h-[500px]">
+                <OneOnOneCenterPanel
+                  activeCenterTab={activeCenterTab}
+                  onTabChange={setActiveCenterTab}
+                />
+              </div>
 
-            {/* Right Panel - Student Video & Interactions */}
-            <div className="lg:col-span-3 min-h-[500px]">
-              <OneOnOneRightPanel
-                studentName="Emma"
-                studentXP={studentXP}
-                activeRightTab={activeRightTab}
-                onTabChange={setActiveRightTab}
-                currentUserId={currentUserId}
-                currentUserName={currentUserName}
-                isTeacher={isTeacher}
-              />
+              {/* Right Panel - Student Video & Interactions */}
+              <div className="lg:col-span-3 min-h-[500px]">
+                <OneOnOneRightPanel
+                  studentName="Emma"
+                  studentXP={studentXP}
+                  activeRightTab={activeRightTab}
+                  onTabChange={setActiveRightTab}
+                  currentUserId={currentUserId}
+                  currentUserName={currentUserName}
+                  isTeacher={isTeacher}
+                />
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Floating Reward Popup */}
-        <OneOnOneRewardPopup isVisible={showRewardPopup} />
-      </div>
+          {/* Floating Reward Popup */}
+          <OneOnOneRewardPopup isVisible={showRewardPopup} />
+        </div>
+      </MediaProvider>
     );
   } catch (error) {
     console.error("Error rendering OneOnOneClassroomNew:", error);

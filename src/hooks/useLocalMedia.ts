@@ -1,5 +1,5 @@
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 
 export function useLocalMedia() {
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -8,10 +8,33 @@ export function useLocalMedia() {
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const mediaRef = useRef<MediaStream | null>(null);
+  const joinAttemptRef = useRef(false);
+
+  // Check if we're in a secure context
+  const isSecureContext = window.isSecureContext || location.protocol === 'https:';
+
+  // Check browser compatibility
+  const isBrowserSupported = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+
+  useEffect(() => {
+    if (!isSecureContext) {
+      setError("HTTPS is required for camera and microphone access. Please use HTTPS or localhost.");
+    } else if (!isBrowserSupported) {
+      setError("Your browser doesn't support camera and microphone access.");
+    }
+  }, [isSecureContext, isBrowserSupported]);
 
   // Connect: request access to webcam & mic
   const join = useCallback(async () => {
     console.log("🎥 Attempting to join video call...");
+    
+    // Prevent multiple simultaneous join attempts
+    if (joinAttemptRef.current) {
+      console.log("🎥 Join already in progress, skipping...");
+      return;
+    }
+    
+    joinAttemptRef.current = true;
     setError(null);
     
     try {
@@ -19,11 +42,21 @@ export function useLocalMedia() {
       if (mediaRef.current && mediaRef.current.active) {
         console.log("🎥 Reusing existing stream");
         setIsConnected(true);
+        joinAttemptRef.current = false;
         return;
       }
 
+      if (!isSecureContext) {
+        throw new Error("HTTPS is required for camera and microphone access");
+      }
+
+      if (!isBrowserSupported) {
+        throw new Error("Your browser doesn't support camera and microphone access");
+      }
+
       console.log("🎥 Requesting media permissions...");
-      const userStream = await navigator.mediaDevices.getUserMedia({
+      
+      const constraints = {
         video: { 
           width: { ideal: 640 }, 
           height: { ideal: 480 },
@@ -31,14 +64,25 @@ export function useLocalMedia() {
         },
         audio: {
           echoCancellation: true,
-          noiseSuppression: true
+          noiseSuppression: true,
+          autoGainControl: true
         },
-      });
+      };
+
+      const userStream = await navigator.mediaDevices.getUserMedia(constraints);
       
       console.log("🎥 Media access granted:", {
         video: userStream.getVideoTracks().length,
-        audio: userStream.getAudioTracks().length
+        audio: userStream.getAudioTracks().length,
+        streamId: userStream.id
       });
+
+      // Ensure we haven't been cancelled while waiting
+      if (!joinAttemptRef.current) {
+        console.log("🎥 Join was cancelled, stopping new stream");
+        userStream.getTracks().forEach(track => track.stop());
+        return;
+      }
 
       setStream(userStream);
       mediaRef.current = userStream;
@@ -59,17 +103,22 @@ export function useLocalMedia() {
           errorMessage = "No camera or microphone found.";
         } else if (err.name === "NotReadableError") {
           errorMessage = "Camera/microphone is already in use by another application.";
+        } else if (err.name === "OverconstrainedError") {
+          errorMessage = "Camera/microphone doesn't meet the required constraints.";
         }
       }
       
       setError(errorMessage);
       setIsConnected(false);
+    } finally {
+      joinAttemptRef.current = false;
     }
-  }, []);
+  }, [isSecureContext, isBrowserSupported]);
 
   // Leave: stop all tracks
   const leave = useCallback(() => {
     console.log("🎥 Leaving video call...");
+    joinAttemptRef.current = false;
     
     if (mediaRef.current) {
       mediaRef.current.getTracks().forEach((track) => {
@@ -118,6 +167,15 @@ export function useLocalMedia() {
       setIsCameraOff(newCameraOffState);
       console.log(`📹 Camera ${newCameraOffState ? 'disabled' : 'enabled'}`);
     }
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (mediaRef.current) {
+        mediaRef.current.getTracks().forEach(track => track.stop());
+      }
+    };
   }, []);
 
   return {

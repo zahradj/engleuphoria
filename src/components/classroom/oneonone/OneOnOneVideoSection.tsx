@@ -2,7 +2,7 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { OneOnOneRewards } from "./OneOnOneRewards";
-import { MediaProvider, useMediaContext } from "./video/MediaContext";
+import { useMediaContext } from "./video/MediaContext";
 import { LessonStartPrompt } from "./video/components/LessonStartPrompt";
 import { LiveVideoPanels } from "./video/components/LiveVideoPanels";
 import { VideoControlsOverlay } from "./video/components/VideoControlsOverlay";
@@ -15,16 +15,7 @@ import { useVideoRefs } from "./video/hooks/useVideoRefs";
 import { useReportIssue } from "./video/hooks/useReportIssue";
 import { OneOnOneVideoSectionProps } from "./video/types";
 
-export function OneOnOneVideoSection(props) {
-  return (
-    <MediaProvider>
-      <OneOnOneVideoSectionInner {...props} />
-    </MediaProvider>
-  );
-}
-
-// Moved the actual main functionality to an inner component, which uses the shared media context
-function OneOnOneVideoSectionInner({
+export function OneOnOneVideoSection({
   enhancedClassroom,
   currentUserId,
   currentUserName,
@@ -44,13 +35,16 @@ function OneOnOneVideoSectionInner({
     if (media.isConnected) {
       logEvent(`${isTeacher ? "Teacher" : "Student"} joined the session.`);
     }
-    // eslint-disable-next-line
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [media.isConnected, isTeacher]);
 
   const startLessonAndJoin = () => {
     handleStartLesson();
     logEvent("Lesson started by Teacher.");
-    if (!media.isConnected) media.join();
+    if (!media.isConnected) {
+      console.log("🎥 Starting lesson and joining media...");
+      media.join();
+    }
   };
 
   return (
@@ -81,6 +75,7 @@ function OneOnOneVideoSectionInner({
         </div>
         <XPProgressSection studentXP={studentXP} showRewardPopup={!!showRewardPopup} />
       </Card>
+
       {isTeacher && (
         <div className="flex-shrink-0">
           <Card className="p-3 mt-2">
@@ -92,6 +87,7 @@ function OneOnOneVideoSectionInner({
           </Card>
         </div>
       )}
+
       <SessionLog logMessages={logMessages} />
       <MediaErrorDisplay error={media.error} />
     </div>
