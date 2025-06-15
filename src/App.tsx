@@ -7,15 +7,15 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
-import StudentDashboard from "./pages/StudentDashboard";
-import TeacherDashboard from "./pages/TeacherDashboard";
+import { StudentDashboard } from "./pages/StudentDashboard";
+import { TeacherDashboard } from "./pages/TeacherDashboard";
 import ClassroomPage from "./pages/ClassroomPage";
 import OneOnOneClassroomNew from "./pages/OneOnOneClassroomNew";
 import LessonPlanCreator from "./pages/LessonPlanCreator";
 import LessonScheduler from "./pages/LessonScheduler";
 import StudentManagement from "./pages/StudentManagement";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
+import { Login } from "./pages/Login";
+import SignUp from "./pages/SignUp";
 import { EnhancedTeacherDashboard } from "./pages/EnhancedTeacherDashboard";
 import { UnifiedTeacherDashboard } from "./pages/UnifiedTeacherDashboard";
 
@@ -41,7 +41,7 @@ const App = () => (
               <Route path="/lesson-scheduler" element={<LessonScheduler />} />
               <Route path="/student-management" element={<StudentManagement />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
+              <Route path="/signup" element={<SignUp />} />
             </Routes>
           </BrowserRouter>
         </AuthProvider>
