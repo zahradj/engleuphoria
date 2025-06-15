@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Dialog } from "@/components/ui/dialog";
 import { WhiteboardCanvas } from "./whiteboard/WhiteboardCanvas";
 import { WhiteboardToolbar } from "./whiteboard/WhiteboardToolbar";
 import { WhiteboardTabsSection } from "./whiteboard/WhiteboardTabsSection";
@@ -42,13 +43,17 @@ export function EnhancedOneOnOneWhiteboard({
   const [activeTool, setActiveTool] = useState<"pencil" | "eraser" | "text" | "highlighter" | "shape" | "game">("pencil");
   const [color, setColor] = useState("#000000");
   const [strokeWidth, setStrokeWidth] = useState(2);
-  const [activeShape, setActiveShape] = useState("rectangle");
+  const [activeShape, setActiveShape] = useState<"circle" | "rectangle">("rectangle");
   const [activeTab, setActiveTab] = useState("page1");
   
   // Embedded games state
   const [embeddedGames, setEmbeddedGames] = useState<Record<string, EmbeddedGameData[]>>({});
   const [gameUrl, setGameUrl] = useState("");
   const [gameTitle, setGameTitle] = useState("");
+  
+  // Embed link state
+  const [embedUrl, setEmbedUrl] = useState("");
+  const [embedTitle, setEmbedTitle] = useState("");
 
   const isTeacher = currentUser.role === 'teacher';
 
@@ -82,6 +87,29 @@ export function EnhancedOneOnOneWhiteboard({
     setGameTitle("");
     setGameUrl("");
     setShowGameDialog(false);
+  };
+
+  const addEmbedLink = () => {
+    if (!embedTitle || !embedUrl) return;
+    
+    const newEmbed: EmbeddedGameData = {
+      id: Date.now().toString(),
+      title: embedTitle,
+      url: embedUrl.startsWith('http') ? embedUrl : `https://${embedUrl}`,
+      x: 150,
+      y: 150,
+      width: 600,
+      height: 400
+    };
+
+    setEmbeddedGames(prev => ({
+      ...prev,
+      [activeTab]: [...(prev[activeTab] || []), newEmbed]
+    }));
+
+    setEmbedTitle("");
+    setEmbedUrl("");
+    setShowEmbedDialog(false);
   };
 
   const removeGame = (gameId: string) => {
@@ -205,16 +233,27 @@ export function EnhancedOneOnOneWhiteboard({
       />
 
       {/* Dialogs */}
-      <EmbedLinkDialog 
-        open={showEmbedDialog}
-        onOpenChange={setShowEmbedDialog}
-      />
+      <Dialog open={showEmbedDialog} onOpenChange={setShowEmbedDialog}>
+        <EmbedLinkDialog 
+          isOpen={showEmbedDialog}
+          onClose={() => setShowEmbedDialog(false)}
+          url={embedUrl}
+          setUrl={setEmbedUrl}
+          title={embedTitle}
+          setTitle={setEmbedTitle}
+          onEmbed={addEmbedLink}
+        />
+      </Dialog>
       
-      <EmbeddedGameDialog
-        open={showGameDialog}
-        onOpenChange={setShowGameDialog}
-        onAddGame={addGame}
-      />
+      <Dialog open={showGameDialog} onOpenChange={setShowGameDialog}>
+        <EmbeddedGameDialog
+          gameTitle={gameTitle}
+          setGameTitle={setGameTitle}
+          gameUrl={gameUrl}
+          setGameUrl={setGameUrl}
+          onAddGame={addGame}
+        />
+      </Dialog>
     </div>
   );
 }

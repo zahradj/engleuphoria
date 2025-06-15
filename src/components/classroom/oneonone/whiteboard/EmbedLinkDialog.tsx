@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -28,6 +28,7 @@ export function EmbedLinkDialog({
   onEmbed
 }: EmbedLinkDialogProps) {
   const detectContentType = (url: string) => {
+    if (!url || typeof url !== 'string') return 'website';
     if (url.includes('youtube.com') || url.includes('youtu.be')) return 'youtube';
     if (url.includes('docs.google.com')) return 'docs';
     if (url.includes('quizizz.com') || url.includes('kahoot.com')) return 'game';
@@ -56,61 +57,59 @@ export function EmbedLinkDialog({
   const IconComponent = getTypeIcon(contentType);
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <ExternalLink size={20} />
-            Embed Link to Whiteboard
-          </DialogTitle>
-        </DialogHeader>
-        
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="title">Content Title</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter a title for this content..."
-            />
-          </div>
-          
-          <div>
-            <Label htmlFor="url">URL</Label>
-            <Input
-              id="url"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="Paste URL (YouTube, Google Docs, etc.)..."
-              onKeyDown={(e) => e.key === 'Enter' && onEmbed()}
-            />
-          </div>
-          
-          {url && (
-            <div className="flex items-center gap-2 p-2 bg-gray-50 rounded">
-              <IconComponent size={16} />
-              <span className="text-sm text-gray-600">Detected:</span>
-              <Badge className={`text-xs ${getTypeColor(contentType)}`}>
-                {contentType}
-              </Badge>
-            </div>
-          )}
-          
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <SoundButton 
-              onClick={onEmbed}
-              disabled={!url.trim() || !title.trim()}
-              soundType="success"
-            >
-              Embed Content
-            </SoundButton>
-          </div>
+    <DialogContent className="sm:max-w-md">
+      <DialogHeader>
+        <DialogTitle className="flex items-center gap-2">
+          <ExternalLink size={20} />
+          Embed Link to Whiteboard
+        </DialogTitle>
+      </DialogHeader>
+      
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="title">Content Title</Label>
+          <Input
+            id="title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Enter a title for this content..."
+          />
         </div>
-      </DialogContent>
-    </Dialog>
+        
+        <div>
+          <Label htmlFor="url">URL</Label>
+          <Input
+            id="url"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="Paste URL (YouTube, Google Docs, etc.)..."
+            onKeyDown={(e) => e.key === 'Enter' && onEmbed()}
+          />
+        </div>
+        
+        {url && (
+          <div className="flex items-center gap-2 p-2 bg-gray-50 rounded">
+            <IconComponent size={16} />
+            <span className="text-sm text-gray-600">Detected:</span>
+            <Badge className={`text-xs ${getTypeColor(contentType)}`}>
+              {contentType}
+            </Badge>
+          </div>
+        )}
+        
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <SoundButton 
+            onClick={onEmbed}
+            disabled={!url.trim() || !title.trim()}
+            soundType="success"
+          >
+            Embed Content
+          </SoundButton>
+        </div>
+      </div>
+    </DialogContent>
   );
 }
