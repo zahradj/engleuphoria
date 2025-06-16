@@ -17,14 +17,6 @@ const SimpleClassroomSelector = () => {
       participants: 2,
       status: "active" as const,
       features: ["AI Worksheet Generator", "Interactive Whiteboard", "Video Chat", "Reward System"]
-    },
-    {
-      id: "group-classroom-1", 
-      title: "Group Learning Space",
-      description: "Collaborative classroom for group lessons",
-      participants: 5,
-      status: "available" as const,
-      features: ["Group Chat", "Shared Whiteboard", "Multi-user Video"]
     }
   ];
 
@@ -44,7 +36,7 @@ const SimpleClassroomSelector = () => {
           <p className="text-gray-600">Select a classroom to join and start your learning session</p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-1 max-w-2xl mx-auto">
           {availableClassrooms.map((classroom) => (
             <Card key={classroom.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
