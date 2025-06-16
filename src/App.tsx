@@ -18,6 +18,7 @@ import ForTeachers from "./pages/ForTeachers";
 import UnifiedClassroom from "./pages/UnifiedClassroom";
 import SimpleClassroomSelector from "./components/classroom/SimpleClassroomSelector";
 import MediaTestPage from "./pages/MediaTestPage";
+import StudentLessonScheduler from "./pages/StudentLessonScheduler";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,7 @@ function App() {
               <Route path="/classroom-selector" element={<SimpleClassroomSelector />} />
               <Route path="/media-test" element={<MediaTestPage />} />
               <Route path="/oneonone-classroom-new" element={<UnifiedClassroom />} />
+              <Route path="/student-lesson-scheduler" element={<StudentLessonScheduler />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>

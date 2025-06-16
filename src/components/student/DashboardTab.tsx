@@ -1,4 +1,5 @@
-import React from "react";
+
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,6 +17,9 @@ import {
   Video
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useStudentHandlers } from "@/hooks/useStudentHandlers";
+import { HomeworkSubmissionModal } from "./HomeworkSubmissionModal";
+import { TeacherMessageModal } from "./TeacherMessageModal";
 
 interface DashboardTabProps {
   studentName: string;
@@ -24,19 +28,47 @@ interface DashboardTabProps {
 
 export const DashboardTab = ({ studentName, points }: DashboardTabProps) => {
   const navigate = useNavigate();
+  const {
+    handleJoinClass,
+    handleSubmitHomework,
+    handleMessageTeacher,
+    handleViewMaterials,
+    handleBookClass,
+    handlePracticeVocabulary,
+    handleViewProgress
+  } = useStudentHandlers();
+
+  const [showHomeworkModal, setShowHomeworkModal] = useState(false);
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [selectedAssignment, setSelectedAssignment] = useState<string | null>(null);
 
   const handleJoinClassroom = () => {
     navigate("/media-test?roomId=unified-classroom-1&role=student&name=" + encodeURIComponent(studentName) + "&userId=student-1");
   };
 
+  const handleHomeworkSubmit = (submission: { text: string; files: File[] }) => {
+    if (selectedAssignment) {
+      handleSubmitHomework(selectedAssignment, submission);
+    }
+    setShowHomeworkModal(false);
+    setSelectedAssignment(null);
+  };
+
+  const openHomeworkSubmission = (assignmentId: string) => {
+    setSelectedAssignment(assignmentId);
+    setShowHomeworkModal(true);
+  };
+
   const upcomingClasses = [
     {
+      id: "class-1",
       title: "Conversation Practice",
       date: "Today",
       time: "2:00 PM",
       teacher: "Ms. Sarah"
     },
     {
+      id: "class-2",
       title: "Grammar: Past Tense",
       date: "Tomorrow",
       time: "10:00 AM",
@@ -46,11 +78,13 @@ export const DashboardTab = ({ studentName, points }: DashboardTabProps) => {
 
   const recentHomework = [
     {
+      id: "hw-1",
       title: "Essay: My Weekend",
       dueDate: "Dec 8",
       status: "pending"
     },
     {
+      id: "hw-2",
       title: "Vocabulary Quiz",
       dueDate: "Dec 6",
       status: "submitted"
@@ -112,7 +146,11 @@ export const DashboardTab = ({ studentName, points }: DashboardTabProps) => {
                     <p className="text-sm text-gray-600">{cls.date} at {cls.time}</p>
                     <p className="text-sm text-blue-600">with {cls.teacher}</p>
                   </div>
-                  <Button size="sm" className="bg-blue-500 hover:bg-blue-600">
+                  <Button 
+                    size="sm" 
+                    className="bg-blue-500 hover:bg-blue-600"
+                    onClick={handleJoinClassroom}
+                  >
                     <Play className="h-4 w-4 mr-1" />
                     Join
                   </Button>
@@ -132,8 +170,8 @@ export const DashboardTab = ({ studentName, points }: DashboardTabProps) => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {recentHomework.map((hw, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+              {recentHomework.map((hw) => (
+                <div key={hw.id} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
                   <div>
                     <h4 className="font-semibold text-gray-800">{hw.title}</h4>
                     <p className="text-sm text-gray-600 flex items-center gap-1">
@@ -141,9 +179,20 @@ export const DashboardTab = ({ studentName, points }: DashboardTabProps) => {
                       Due {hw.dueDate}
                     </p>
                   </div>
-                  <Badge variant={hw.status === 'submitted' ? 'default' : 'secondary'}>
-                    {hw.status}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={hw.status === 'submitted' ? 'default' : 'secondary'}>
+                      {hw.status}
+                    </Badge>
+                    {hw.status === 'pending' && (
+                      <Button 
+                        size="sm" 
+                        onClick={() => openHomeworkSubmission(hw.id)}
+                        className="bg-green-500 hover:bg-green-600"
+                      >
+                        Submit
+                      </Button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -193,25 +242,58 @@ export const DashboardTab = ({ studentName, points }: DashboardTabProps) => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Button variant="outline" className="h-20 flex-col gap-2">
+            <Button 
+              variant="outline" 
+              className="h-20 flex-col gap-2"
+              onClick={handleBookClass}
+            >
               <Calendar className="h-6 w-6" />
               Book Class
             </Button>
-            <Button variant="outline" className="h-20 flex-col gap-2">
+            <Button 
+              variant="outline" 
+              className="h-20 flex-col gap-2"
+              onClick={() => openHomeworkSubmission("new")}
+            >
               <FileText className="h-6 w-6" />
               Submit Homework
             </Button>
-            <Button variant="outline" className="h-20 flex-col gap-2">
+            <Button 
+              variant="outline" 
+              className="h-20 flex-col gap-2"
+              onClick={() => setShowMessageModal(true)}
+            >
               <MessageCircle className="h-6 w-6" />
               Message Teacher
             </Button>
-            <Button variant="outline" className="h-20 flex-col gap-2">
+            <Button 
+              variant="outline" 
+              className="h-20 flex-col gap-2"
+              onClick={handleViewMaterials}
+            >
               <FolderOpen className="h-6 w-6" />
               Study Materials
             </Button>
           </div>
         </CardContent>
       </Card>
+
+      {/* Modals */}
+      <HomeworkSubmissionModal
+        isOpen={showHomeworkModal}
+        onClose={() => {
+          setShowHomeworkModal(false);
+          setSelectedAssignment(null);
+        }}
+        assignmentTitle={selectedAssignment ? recentHomework.find(hw => hw.id === selectedAssignment)?.title || "New Assignment" : "New Assignment"}
+        onSubmit={handleHomeworkSubmit}
+      />
+
+      <TeacherMessageModal
+        isOpen={showMessageModal}
+        onClose={() => setShowMessageModal(false)}
+        onSend={handleMessageTeacher}
+      />
     </div>
   );
 };
