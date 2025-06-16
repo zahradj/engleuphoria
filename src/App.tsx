@@ -17,6 +17,7 @@ import ForParents from "./pages/ForParents";
 import ForTeachers from "./pages/ForTeachers";
 import UnifiedClassroom from "./pages/UnifiedClassroom";
 import SimpleClassroomSelector from "./components/classroom/SimpleClassroomSelector";
+import MediaTestPage from "./pages/MediaTestPage";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ function App() {
               <Route path="/for-teachers" element={<ForTeachers />} />
               <Route path="/classroom" element={<UnifiedClassroom />} />
               <Route path="/classroom-selector" element={<SimpleClassroomSelector />} />
+              <Route path="/media-test" element={<MediaTestPage />} />
               <Route path="/oneonone-classroom-new" element={<UnifiedClassroom />} />
             </Routes>
           </BrowserRouter>

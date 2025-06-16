@@ -25,7 +25,7 @@ const SimpleClassroomSelector = () => {
     const name = isTeacher ? 'Teacher' : 'Student';
     const userId = isTeacher ? 'teacher-1' : 'student-1';
     
-    navigate(`/classroom?roomId=${classroomId}&role=${role}&name=${name}&userId=${userId}`);
+    navigate(`/media-test?roomId=${classroomId}&role=${role}&name=${name}&userId=${userId}`);
   };
 
   return (

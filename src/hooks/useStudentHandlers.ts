@@ -1,4 +1,3 @@
-
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -11,7 +10,7 @@ export const useStudentHandlers = () => {
   };
 
   const handleJoinClass = () => {
-    navigate("/classroom?role=student&name=Student&userId=student-1");
+    navigate("/media-test?roomId=unified-classroom-1&role=student&name=Student&userId=student-1");
   };
 
   const handleViewProgress = () => {

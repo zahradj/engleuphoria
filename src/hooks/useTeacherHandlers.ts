@@ -1,4 +1,3 @@
-
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
@@ -24,7 +23,7 @@ export const useTeacherHandlers = () => {
   };
 
   const handleStartClass = () => {
-    navigate("/classroom?role=teacher&name=Teacher&userId=teacher-1");
+    navigate("/media-test?roomId=unified-classroom-1&role=teacher&name=Teacher&userId=teacher-1");
   };
 
   const handleScheduleClass = () => {
@@ -95,7 +94,7 @@ export const useTeacherHandlers = () => {
   };
 
   const handleJoinClass = () => {
-    navigate("/classroom?role=teacher&name=Teacher&userId=teacher-1");
+    navigate("/media-test?roomId=unified-classroom-1&role=teacher&name=Teacher&userId=teacher-1");
   };
 
   const handleCreateAssignment = () => {

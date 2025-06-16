@@ -26,7 +26,7 @@ export const DashboardTab = ({ studentName, points }: DashboardTabProps) => {
   const navigate = useNavigate();
 
   const handleJoinClassroom = () => {
-    navigate("/oneonone-classroom-new");
+    navigate("/media-test?roomId=unified-classroom-1&role=student&name=" + encodeURIComponent(studentName) + "&userId=student-1");
   };
 
   const upcomingClasses = [
