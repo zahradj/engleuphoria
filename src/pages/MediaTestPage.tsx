@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Camera, Mic, MicOff, CameraOff, CheckCircle, AlertCircle, ArrowRight, RefreshCw } from "lucide-react";
+import { Camera, Mic, MicOff, CameraOff, CheckCircle, AlertCircle, ArrowRight, RefreshCw, Play } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
@@ -18,17 +18,20 @@ const MediaTestPage = () => {
   const [mediaError, setMediaError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [testCompleted, setTestCompleted] = useState(false);
+  const [needsUserInteraction, setNeedsUserInteraction] = useState(false);
   
-  // New states for better validation
+  // Enhanced states for better validation
   const [cameraStatus, setCameraStatus] = useState<'unknown' | 'working' | 'error'>('unknown');
   const [microphoneStatus, setMicrophoneStatus] = useState<'unknown' | 'working' | 'error'>('unknown');
   const [audioLevel, setAudioLevel] = useState(0);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [videoLoadTimeout, setVideoLoadTimeout] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationFrameRef = useRef<number>();
+  const videoTimeoutRef = useRef<NodeJS.Timeout>();
   
   // Get parameters from URL
   const roomId = searchParams.get('roomId') || 'unified-classroom-1';
@@ -76,7 +79,120 @@ const MediaTestPage = () => {
     }
   };
 
-  // Validate media tracks
+  // Setup video element with comprehensive event handling
+  const setupVideoElement = (mediaStream: MediaStream) => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    console.log('Setting up video element with stream:', mediaStream.id);
+
+    // Clear any existing timeout
+    if (videoTimeoutRef.current) {
+      clearTimeout(videoTimeoutRef.current);
+    }
+
+    // Set up event listeners before assigning stream
+    const handleLoadedMetadata = () => {
+      console.log('Video metadata loaded, ready state:', video.readyState);
+      console.log('Video dimensions:', video.videoWidth, 'x', video.videoHeight);
+      
+      // Try to play the video
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            console.log('Video started playing successfully');
+            setIsVideoPlaying(true);
+            setVideoLoadTimeout(false);
+            setNeedsUserInteraction(false);
+          })
+          .catch((error) => {
+            console.error('Video play failed:', error);
+            if (error.name === 'NotAllowedError') {
+              setNeedsUserInteraction(true);
+              toast({
+                title: "User Interaction Required",
+                description: "Click the play button to start the video.",
+                variant: "destructive"
+              });
+            } else {
+              setCameraStatus('error');
+              setMediaError('Video playback failed: ' + error.message);
+            }
+          });
+      }
+    };
+
+    const handlePlaying = () => {
+      console.log('Video is playing');
+      setIsVideoPlaying(true);
+      setVideoLoadTimeout(false);
+      setCameraStatus('working');
+      setNeedsUserInteraction(false);
+      
+      // Clear the timeout since video is working
+      if (videoTimeoutRef.current) {
+        clearTimeout(videoTimeoutRef.current);
+      }
+    };
+
+    const handleError = (e: Event) => {
+      console.error('Video element error:', e);
+      setCameraStatus('error');
+      setIsVideoPlaying(false);
+      setMediaError('Video element error occurred');
+    };
+
+    const handleLoadStart = () => {
+      console.log('Video load started');
+      setIsVideoPlaying(false);
+      setVideoLoadTimeout(false);
+    };
+
+    const handleCanPlay = () => {
+      console.log('Video can play, ready state:', video.readyState);
+    };
+
+    const handleWaiting = () => {
+      console.log('Video is waiting for data');
+    };
+
+    const handleStalled = () => {
+      console.log('Video loading stalled');
+    };
+
+    // Remove existing listeners
+    video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+    video.removeEventListener('playing', handlePlaying);
+    video.removeEventListener('error', handleError);
+    video.removeEventListener('loadstart', handleLoadStart);
+    video.removeEventListener('canplay', handleCanPlay);
+    video.removeEventListener('waiting', handleWaiting);
+    video.removeEventListener('stalled', handleStalled);
+
+    // Add event listeners
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    video.addEventListener('playing', handlePlaying);
+    video.addEventListener('error', handleError);
+    video.addEventListener('loadstart', handleLoadStart);
+    video.addEventListener('canplay', handleCanPlay);
+    video.addEventListener('waiting', handleWaiting);
+    video.addEventListener('stalled', handleStalled);
+
+    // Set the stream
+    video.srcObject = mediaStream;
+
+    // Set a timeout to detect if video fails to load
+    videoTimeoutRef.current = setTimeout(() => {
+      if (!isVideoPlaying) {
+        console.warn('Video failed to start within timeout period');
+        setVideoLoadTimeout(true);
+        setNeedsUserInteraction(true);
+      }
+    }, 5000);
+  };
+
+  // Validate media tracks with proper timing
   const validateMediaTracks = (mediaStream: MediaStream) => {
     const videoTracks = mediaStream.getVideoTracks();
     const audioTracks = mediaStream.getAudioTracks();
@@ -90,19 +206,19 @@ const MediaTestPage = () => {
       audioReadyState: audioTracks[0]?.readyState
     });
 
-    // Check camera status
-    if (videoTracks.length > 0 && videoTracks[0].readyState === 'live') {
-      setCameraStatus('working');
-    } else {
-      setCameraStatus('error');
-    }
-
-    // Check microphone status
-    if (audioTracks.length > 0 && audioTracks[0].readyState === 'live') {
+    // Check audio tracks first (they're usually ready immediately)
+    if (audioTracks.length > 0 && audioTracks[0].readyState === 'live' && audioTracks[0].enabled) {
       setMicrophoneStatus('working');
       startAudioLevelMonitoring(mediaStream);
     } else {
       setMicrophoneStatus('error');
+    }
+
+    // Camera status will be determined by video element events
+    if (videoTracks.length > 0 && videoTracks[0].readyState === 'live' && videoTracks[0].enabled) {
+      setupVideoElement(mediaStream);
+    } else {
+      setCameraStatus('error');
     }
   };
 
@@ -112,49 +228,43 @@ const MediaTestPage = () => {
     setCameraStatus('unknown');
     setMicrophoneStatus('unknown');
     setIsVideoPlaying(false);
+    setVideoLoadTimeout(false);
+    setNeedsUserInteraction(false);
     
     try {
       console.log('Requesting media access...');
       
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
+      // Use more compatible constraints
+      const constraints = {
         video: { 
-          width: { ideal: 640 }, 
-          height: { ideal: 480 },
-          facingMode: "user"
+          width: { ideal: 640, max: 1280 }, 
+          height: { ideal: 480, max: 720 },
+          facingMode: "user",
+          frameRate: { ideal: 30, max: 30 }
         },
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
-          autoGainControl: true
+          autoGainControl: true,
+          sampleRate: 44100
         }
+      };
+
+      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+      
+      console.log('Media access granted, stream details:', {
+        id: mediaStream.id,
+        active: mediaStream.active,
+        videoTracks: mediaStream.getVideoTracks().length,
+        audioTracks: mediaStream.getAudioTracks().length
       });
       
-      console.log('Media access granted, setting up stream...');
       setStream(mediaStream);
-      
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream;
-        
-        // Add event listeners for video
-        videoRef.current.onloadedmetadata = () => {
-          console.log('Video metadata loaded');
-          validateMediaTracks(mediaStream);
-        };
-        
-        videoRef.current.onplaying = () => {
-          console.log('Video is playing');
-          setIsVideoPlaying(true);
-        };
-        
-        videoRef.current.onerror = (e) => {
-          console.error('Video element error:', e);
-          setCameraStatus('error');
-        };
-      }
+      validateMediaTracks(mediaStream);
       
       toast({
         title: "Media Access Granted",
-        description: "Testing camera and microphone...",
+        description: "Setting up camera and microphone...",
       });
       
     } catch (error) {
@@ -165,11 +275,13 @@ const MediaTestPage = () => {
         if (error.name === "NotAllowedError") {
           errorMessage = "Camera/microphone access denied. Please allow permissions and try again.";
         } else if (error.name === "NotFoundError") {
-          errorMessage = "No camera or microphone found.";
+          errorMessage = "No camera or microphone found on this device.";
         } else if (error.name === "NotReadableError") {
           errorMessage = "Camera/microphone is already in use by another application.";
         } else if (error.name === "OverconstrainedError") {
-          errorMessage = "Camera/microphone doesn't meet the required constraints.";
+          errorMessage = "Camera/microphone doesn't meet the required specifications.";
+        } else {
+          errorMessage = `Media error: ${error.message}`;
         }
       }
       
@@ -184,6 +296,26 @@ const MediaTestPage = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleManualVideoStart = async () => {
+    const video = videoRef.current;
+    if (!video || !stream) return;
+
+    try {
+      await video.play();
+      setNeedsUserInteraction(false);
+      setIsVideoPlaying(true);
+      setCameraStatus('working');
+      
+      toast({
+        title: "Video Started",
+        description: "Camera test is now working!",
+      });
+    } catch (error) {
+      console.error('Manual video start failed:', error);
+      setMediaError('Failed to start video manually');
     }
   };
 
@@ -210,12 +342,20 @@ const MediaTestPage = () => {
       if (videoTrack) {
         videoTrack.enabled = !videoTrack.enabled;
         setIsCameraOff(!videoTrack.enabled);
+        
+        if (!videoTrack.enabled) {
+          setIsVideoPlaying(false);
+          setCameraStatus('unknown');
+        } else {
+          // Re-setup video when enabling
+          setupVideoElement(stream);
+        }
       }
     }
   };
 
   const completeTest = () => {
-    if (cameraStatus === 'working' && microphoneStatus === 'working') {
+    if (cameraStatus === 'working' && microphoneStatus === 'working' && isVideoPlaying) {
       setTestCompleted(true);
       toast({
         title: "Media Test Complete",
@@ -224,7 +364,7 @@ const MediaTestPage = () => {
     } else {
       toast({
         title: "Test Not Complete",
-        description: "Please ensure both camera and microphone are working properly.",
+        description: "Please ensure both camera and microphone are working properly and video is playing.",
         variant: "destructive"
       });
     }
@@ -243,6 +383,9 @@ const MediaTestPage = () => {
       stream.getTracks().forEach(track => track.stop());
     }
     stopAudioLevelMonitoring();
+    if (videoTimeoutRef.current) {
+      clearTimeout(videoTimeoutRef.current);
+    }
     navigate(-1);
   };
 
@@ -251,6 +394,9 @@ const MediaTestPage = () => {
       stream.getTracks().forEach(track => track.stop());
     }
     stopAudioLevelMonitoring();
+    if (videoTimeoutRef.current) {
+      clearTimeout(videoTimeoutRef.current);
+    }
     setStream(null);
     initializeMedia();
   };
@@ -266,10 +412,13 @@ const MediaTestPage = () => {
         stream.getTracks().forEach(track => track.stop());
       }
       stopAudioLevelMonitoring();
+      if (videoTimeoutRef.current) {
+        clearTimeout(videoTimeoutRef.current);
+      }
     };
   }, []);
 
-  const canCompleteTest = cameraStatus === 'working' && microphoneStatus === 'working' && isVideoPlaying;
+  const canCompleteTest = cameraStatus === 'working' && microphoneStatus === 'working' && isVideoPlaying && !isCameraOff;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
@@ -291,8 +440,9 @@ const MediaTestPage = () => {
               <CardTitle className="flex items-center gap-2">
                 <Camera className="h-5 w-5" />
                 Camera Test
-                {cameraStatus === 'working' && <CheckCircle className="h-4 w-4 text-green-500" />}
+                {cameraStatus === 'working' && isVideoPlaying && <CheckCircle className="h-4 w-4 text-green-500" />}
                 {cameraStatus === 'error' && <AlertCircle className="h-4 w-4 text-red-500" />}
+                {cameraStatus === 'unknown' && <RefreshCw className="h-4 w-4 animate-spin text-blue-500" />}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -325,12 +475,27 @@ const MediaTestPage = () => {
                       className="w-full h-full object-cover"
                     />
                     
-                    {/* Video status indicator */}
+                    {/* Video status indicators */}
                     {stream && (
-                      <div className="absolute top-4 right-4">
+                      <div className="absolute top-4 right-4 flex flex-col gap-2">
                         <Badge variant={isVideoPlaying ? "default" : "destructive"}>
-                          {isVideoPlaying ? "Video Live" : "Video Loading"}
+                          {isVideoPlaying ? "Video Live" : videoLoadTimeout ? "Video Failed" : "Video Loading"}
                         </Badge>
+                        {videoLoadTimeout && (
+                          <Badge variant="secondary" className="text-xs">
+                            Timeout
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Manual play button overlay */}
+                    {needsUserInteraction && (
+                      <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                        <Button onClick={handleManualVideoStart} size="lg" className="bg-blue-600 hover:bg-blue-700">
+                          <Play className="h-6 w-6 mr-2" />
+                          Start Video
+                        </Button>
                       </div>
                     )}
                   </>
@@ -379,6 +544,7 @@ const MediaTestPage = () => {
                 Microphone Test
                 {microphoneStatus === 'working' && <CheckCircle className="h-4 w-4 text-green-500" />}
                 {microphoneStatus === 'error' && <AlertCircle className="h-4 w-4 text-red-500" />}
+                {microphoneStatus === 'unknown' && <RefreshCw className="h-4 w-4 animate-spin text-blue-500" />}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -399,15 +565,27 @@ const MediaTestPage = () => {
                   </span>
                 </div>
                 
-                {microphoneStatus === 'working' && !isMuted && (
+                {microphoneStatus === 'working' && !isMuted && audioLevel > 5 && (
                   <p className="text-sm text-green-600">
-                    ✓ Speak now to see the audio level indicator move
+                    ✓ Microphone is working! Audio detected.
+                  </p>
+                )}
+
+                {microphoneStatus === 'working' && !isMuted && audioLevel <= 5 && (
+                  <p className="text-sm text-orange-600">
+                    Microphone connected but no audio detected. Try speaking louder.
                   </p>
                 )}
                 
                 {isMuted && (
                   <p className="text-sm text-orange-600">
                     Microphone is muted - unmute to test audio levels
+                  </p>
+                )}
+
+                {microphoneStatus === 'error' && (
+                  <p className="text-sm text-red-600">
+                    Microphone not working. Check permissions and try again.
                   </p>
                 )}
               </div>
@@ -421,7 +599,7 @@ const MediaTestPage = () => {
                 <div className="flex items-center justify-between">
                   <span className="font-medium">Camera Status</span>
                   <div className="flex items-center gap-2">
-                    {cameraStatus === 'working' ? (
+                    {cameraStatus === 'working' && isVideoPlaying ? (
                       <>
                         <CheckCircle className="h-4 w-4 text-green-500" />
                         <span className="text-green-600">Working</span>
@@ -470,9 +648,14 @@ const MediaTestPage = () => {
                         <CheckCircle className="h-4 w-4 text-green-500" />
                         <span className="text-green-600">Live</span>
                       </>
+                    ) : videoLoadTimeout ? (
+                      <>
+                        <AlertCircle className="h-4 w-4 text-red-500" />
+                        <span className="text-red-600">Failed</span>
+                      </>
                     ) : (
                       <>
-                        <AlertCircle className="h-4 w-4 text-orange-500" />
+                        <RefreshCw className="h-4 w-4 animate-spin text-orange-500" />
                         <span className="text-orange-600">Loading</span>
                       </>
                     )}
@@ -489,7 +672,10 @@ const MediaTestPage = () => {
                 {!canCompleteTest && !isLoading && (
                   <div className="text-center mt-4 p-3 bg-yellow-50 rounded-lg">
                     <p className="text-sm text-yellow-800">
-                      Please ensure both camera and microphone are working properly before proceeding
+                      {needsUserInteraction 
+                        ? "Click the 'Start Video' button to complete the camera test"
+                        : "Please ensure both camera and microphone are working properly before proceeding"
+                      }
                     </p>
                   </div>
                 )}
