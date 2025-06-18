@@ -9,6 +9,161 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      curriculum_levels: {
+        Row: {
+          age_group: string
+          cefr_level: string
+          created_at: string | null
+          description: string
+          estimated_hours: number | null
+          id: string
+          level_order: number
+          name: string
+          updated_at: string | null
+          xp_required: number | null
+        }
+        Insert: {
+          age_group: string
+          cefr_level: string
+          created_at?: string | null
+          description: string
+          estimated_hours?: number | null
+          id?: string
+          level_order: number
+          name: string
+          updated_at?: string | null
+          xp_required?: number | null
+        }
+        Update: {
+          age_group?: string
+          cefr_level?: string
+          created_at?: string | null
+          description?: string
+          estimated_hours?: number | null
+          id?: string
+          level_order?: number
+          name?: string
+          updated_at?: string | null
+          xp_required?: number | null
+        }
+        Relationships: []
+      }
+      curriculum_materials: {
+        Row: {
+          cefr_level: string
+          created_at: string | null
+          description: string | null
+          difficulty_rating: number | null
+          downloads: number | null
+          duration: number | null
+          file_name: string | null
+          file_size: number | null
+          file_type: string | null
+          file_url: string | null
+          id: string
+          is_age_appropriate: boolean | null
+          is_public: boolean | null
+          last_accessed: string | null
+          level_id: string | null
+          skill_focus: string[] | null
+          tags: string[] | null
+          theme: string | null
+          title: string
+          type: string
+          updated_at: string | null
+          uploaded_by: string | null
+          views: number | null
+          xp_reward: number | null
+        }
+        Insert: {
+          cefr_level: string
+          created_at?: string | null
+          description?: string | null
+          difficulty_rating?: number | null
+          downloads?: number | null
+          duration?: number | null
+          file_name?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          is_age_appropriate?: boolean | null
+          is_public?: boolean | null
+          last_accessed?: string | null
+          level_id?: string | null
+          skill_focus?: string[] | null
+          tags?: string[] | null
+          theme?: string | null
+          title: string
+          type: string
+          updated_at?: string | null
+          uploaded_by?: string | null
+          views?: number | null
+          xp_reward?: number | null
+        }
+        Update: {
+          cefr_level?: string
+          created_at?: string | null
+          description?: string | null
+          difficulty_rating?: number | null
+          downloads?: number | null
+          duration?: number | null
+          file_name?: string | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          is_age_appropriate?: boolean | null
+          is_public?: boolean | null
+          last_accessed?: string | null
+          level_id?: string | null
+          skill_focus?: string[] | null
+          tags?: string[] | null
+          theme?: string | null
+          title?: string
+          type?: string
+          updated_at?: string | null
+          uploaded_by?: string | null
+          views?: number | null
+          xp_reward?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curriculum_materials_level_id_fkey"
+            columns: ["level_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_levels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      curriculum_skills: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_age_appropriate: boolean | null
+          name: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_age_appropriate?: boolean | null
+          name: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_age_appropriate?: boolean | null
+          name?: string
+        }
+        Relationships: []
+      }
       homework: {
         Row: {
           created_at: string
@@ -220,6 +375,39 @@ export type Database = {
             columns: ["teacher_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      material_skills: {
+        Row: {
+          id: string
+          material_id: string | null
+          skill_id: string | null
+        }
+        Insert: {
+          id?: string
+          material_id?: string | null
+          skill_id?: string | null
+        }
+        Update: {
+          id?: string
+          material_id?: string | null
+          skill_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_skills_material_id_fkey"
+            columns: ["material_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_materials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "material_skills_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_skills"
             referencedColumns: ["id"]
           },
         ]
