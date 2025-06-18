@@ -6,7 +6,7 @@ import { TeacherSidebar } from "@/components/teacher/TeacherSidebar";
 import { TeacherHeader } from "@/components/teacher/TeacherHeader";
 import { DashboardTab } from "@/components/teacher/DashboardTab";
 import { AIIntegrationTab } from "@/components/teacher/AIIntegrationTab";
-import { CalendarTab } from "@/components/teacher/CalendarTab";
+import { EnhancedCalendarTab } from "@/components/teacher/EnhancedCalendarTab";
 import { StudentsTab } from "@/components/teacher/StudentsTab";
 import { LessonHistoryTab } from "@/components/teacher/LessonHistoryTab";
 import { AssignmentsTab } from "@/components/teacher/AssignmentsTab";
@@ -22,11 +22,13 @@ type TabType = 'dashboard' | 'ai-assistant' | 'calendar' | 'students' | 'reading
 const TeacherDashboard = () => {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   const [teacherName, setTeacherName] = useState("");
+  const [teacherId, setTeacherId] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     const storedTeacherName = localStorage.getItem("teacherName");
+    const storedTeacherId = localStorage.getItem("teacherId") || "teacher-1";
     const userType = localStorage.getItem("userType");
 
     if (!storedTeacherName || userType !== "teacher") {
@@ -35,10 +37,12 @@ const TeacherDashboard = () => {
     }
 
     setTeacherName(storedTeacherName);
+    setTeacherId(storedTeacherId);
   }, [navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem("teacherName");
+    localStorage.removeItem("teacherId");
     localStorage.removeItem("userType");
     toast({
       title: "Logged out successfully",
@@ -58,7 +62,7 @@ const TeacherDashboard = () => {
       case 'ai-assistant':
         return <AIIntegrationTab />;
       case 'calendar':
-        return <CalendarTab />;
+        return <EnhancedCalendarTab teacherId={teacherId} />;
       case 'students':
         return <StudentsTab />;
       case 'reading-library':
