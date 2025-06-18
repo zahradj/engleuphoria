@@ -9,8 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useToast } from "@/components/ui/use-toast";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, CalendarIcon, Clock, Users, BookOpen } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -29,7 +28,6 @@ interface ScheduledLesson {
 const LessonScheduler = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { languageText } = useLanguage();
   
   const [lessonData, setLessonData] = useState({
     title: "",
@@ -53,7 +51,7 @@ const LessonScheduler = () => {
   const handleScheduleLesson = () => {
     if (!lessonData.title || !selectedDate || !lessonData.startTime || !lessonData.endTime) {
       toast({
-        title: languageText.validationError,
+        title: "Validation Error",
         description: "Please fill in all required fields",
         variant: "destructive"
       });
@@ -166,7 +164,7 @@ const LessonScheduler = () => {
                         selected={selectedDate}
                         onSelect={setSelectedDate}
                         initialFocus
-                        className="p-3 pointer-events-auto"
+                        className="p-3"
                       />
                     </PopoverContent>
                   </Popover>
