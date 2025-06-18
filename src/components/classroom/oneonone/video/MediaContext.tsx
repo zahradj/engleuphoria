@@ -1,7 +1,8 @@
 
 import React, { createContext, useContext, ReactNode } from 'react';
+import { useLocalMedia } from '@/hooks/useLocalMedia';
 
-interface MediaContextType {
+interface MediaContextType extends ReturnType<typeof useLocalMedia> {
   roomId: string;
 }
 
@@ -13,8 +14,10 @@ interface MediaProviderProps {
 const MediaContext = createContext<MediaContextType | undefined>(undefined);
 
 export function MediaProvider({ children, roomId }: MediaProviderProps) {
+  const media = useLocalMedia();
+  
   return (
-    <MediaContext.Provider value={{ roomId }}>
+    <MediaContext.Provider value={{ ...media, roomId }}>
       {children}
     </MediaContext.Provider>
   );
