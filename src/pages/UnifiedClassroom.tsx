@@ -77,7 +77,7 @@ function UnifiedClassroomInner() {
 
   try {
     return (
-      <>
+      <MediaProvider roomId={finalRoomId}>
         <UnifiedClassroomLayout 
           classTime={classTime} 
           enhancedClassroom={enhancedClassroom}
@@ -105,7 +105,7 @@ function UnifiedClassroomInner() {
             onComplete={hideCelebration}
           />
         )}
-      </>
+      </MediaProvider>
     );
   } catch (error) {
     console.error("Error rendering UnifiedClassroom:", error);
@@ -115,11 +115,9 @@ function UnifiedClassroomInner() {
 
 const UnifiedClassroom = () => {
   return (
-    <MediaProvider>
-      <UnifiedClassroomProvider>
-        <UnifiedClassroomInner />
-      </UnifiedClassroomProvider>
-    </MediaProvider>
+    <UnifiedClassroomProvider>
+      <UnifiedClassroomInner />
+    </UnifiedClassroomProvider>
   );
 };
 
