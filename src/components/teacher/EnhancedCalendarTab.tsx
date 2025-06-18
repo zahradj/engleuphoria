@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Video, Calendar, Clock, User } from "lucide-react";
+import { Plus, Video, Calendar, Clock, User, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { lessonService, ScheduledLesson } from "@/services/lessonService";
@@ -88,6 +88,23 @@ export const EnhancedCalendarTab = ({ teacherId }: EnhancedCalendarTabProps) => 
     return now >= tenMinutesBefore;
   };
 
+  const getTimeUntilLesson = (scheduledAt: string) => {
+    const lessonTime = new Date(scheduledAt);
+    const now = new Date();
+    const diff = lessonTime.getTime() - now.getTime();
+    
+    if (diff < 0) return "Lesson time passed";
+    
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m until lesson`;
+    } else {
+      return `${minutes}m until lesson`;
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -129,6 +146,7 @@ export const EnhancedCalendarTab = ({ teacherId }: EnhancedCalendarTabProps) => 
           {lessons.map((lesson) => {
             const { date, time } = formatDateTime(lesson.scheduled_at);
             const canJoin = canJoinNow(lesson.scheduled_at);
+            const timeUntil = getTimeUntilLesson(lesson.scheduled_at);
             
             return (
               <Card key={lesson.id} className="hover:shadow-md transition-shadow">
@@ -146,35 +164,41 @@ export const EnhancedCalendarTab = ({ teacherId }: EnhancedCalendarTabProps) => 
                         </div>
                         <div className="flex items-center gap-1">
                           <Clock className="h-4 w-4" />
-                          <span>{time} ({lesson.duration} min)</span>
+                          <span>{time}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <User className="h-4 w-4" />
-                          <span>{lesson.student_name || 'Student'}</span>
+                          <span>{lesson.student_name || 'Unknown Student'}</span>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline">
-                          Room: {lesson.room_id}
-                        </Badge>
-                        <Badge variant={lesson.status === 'scheduled' ? 'secondary' : 'default'}>
+                      <div className="flex items-center gap-3">
+                        <Badge 
+                          variant={lesson.status === 'scheduled' ? 'default' : 'secondary'}
+                          className="capitalize"
+                        >
                           {lesson.status}
                         </Badge>
+                        <Badge variant="outline">
+                          {lesson.duration} minutes
+                        </Badge>
+                        {!canJoin && (
+                          <div className="flex items-center gap-1 text-sm text-orange-600">
+                            <AlertCircle className="h-3 w-3" />
+                            <span>{timeUntil}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
-                    
+
                     <div className="flex flex-col gap-2">
                       <Button
                         onClick={() => handleJoinClassroom(lesson)}
                         disabled={!canJoin}
-                        className={canJoin 
-                          ? "bg-green-500 hover:bg-green-600" 
-                          : "bg-gray-400 cursor-not-allowed"
-                        }
+                        className={canJoin ? "bg-green-600 hover:bg-green-700" : ""}
                       >
-                        <Video className="h-4 w-4 mr-1" />
-                        {canJoin ? "Join Classroom" : "Not Ready"}
+                        <Video className="h-4 w-4 mr-2" />
+                        {canJoin ? "Join Now" : "Join Classroom"}
                       </Button>
                       
                       {!canJoin && (

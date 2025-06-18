@@ -1,4 +1,3 @@
-
 import { supabase } from "@/lib/supabase";
 
 export interface CurriculumLevel {
@@ -213,19 +212,37 @@ class EnhancedESLCurriculumService {
   }
 
   async incrementViews(materialId: string): Promise<void> {
+    // Get current views count first
+    const { data: currentMaterial } = await supabase
+      .from('curriculum_materials')
+      .select('views')
+      .eq('id', materialId)
+      .single();
+
+    const currentViews = currentMaterial?.views || 0;
+
     await supabase
       .from('curriculum_materials')
       .update({ 
-        views: supabase.raw('views + 1'),
+        views: currentViews + 1,
         last_accessed: new Date().toISOString()
       })
       .eq('id', materialId);
   }
 
   async incrementDownloads(materialId: string): Promise<void> {
+    // Get current downloads count first
+    const { data: currentMaterial } = await supabase
+      .from('curriculum_materials')
+      .select('downloads')
+      .eq('id', materialId)
+      .single();
+
+    const currentDownloads = currentMaterial?.downloads || 0;
+
     await supabase
       .from('curriculum_materials')
-      .update({ downloads: supabase.raw('downloads + 1') })
+      .update({ downloads: currentDownloads + 1 })
       .eq('id', materialId);
   }
 

@@ -19,20 +19,34 @@ interface LevelUploadDialogProps {
   onUploadComplete: () => void;
 }
 
+type MaterialType = 'worksheet' | 'activity' | 'lesson_plan' | 'assessment' | 'game' | 'video' | 'audio' | 'reading' | 'song' | 'story' | 'exam_prep';
+
+interface FormData {
+  title: string;
+  description: string;
+  type: MaterialType;
+  theme: string;
+  duration: number;
+  difficultyRating: number;
+  skillFocus: string[];
+  tags: string[];
+  newTag: string;
+}
+
 export function LevelUploadDialog({ level, isOpen, onClose, onUploadComplete }: LevelUploadDialogProps) {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     title: "",
     description: "",
-    type: "worksheet" as const,
+    type: "worksheet",
     theme: "",
     duration: 30,
     difficultyRating: 1,
-    skillFocus: [] as string[],
-    tags: [] as string[],
+    skillFocus: [],
+    tags: [],
     newTag: ""
   });
 
@@ -48,7 +62,7 @@ export function LevelUploadDialog({ level, isOpen, onClose, onUploadComplete }: 
     { value: 'song', label: 'Song', icon: Music },
     { value: 'story', label: 'Story', icon: FileText },
     { value: 'exam_prep', label: 'Exam Prep', icon: FileText }
-  ];
+  ] as const;
 
   const skillCategories = [
     'vocabulary', 'grammar', 'speaking', 'listening', 
@@ -87,11 +101,11 @@ export function LevelUploadDialog({ level, isOpen, onClose, onUploadComplete }: 
       // Auto-detect type based on file
       const extension = file.name.split('.').pop()?.toLowerCase();
       if (extension === 'pdf') {
-        setFormData(prev => ({ ...prev, type: 'worksheet' }));
+        setFormData(prev => ({ ...prev, type: 'worksheet' as MaterialType }));
       } else if (['mp4', 'mov', 'avi'].includes(extension || '')) {
-        setFormData(prev => ({ ...prev, type: 'video' }));
+        setFormData(prev => ({ ...prev, type: 'video' as MaterialType }));
       } else if (['mp3', 'wav', 'm4a'].includes(extension || '')) {
-        setFormData(prev => ({ ...prev, type: 'audio' }));
+        setFormData(prev => ({ ...prev, type: 'audio' as MaterialType }));
       }
     }
   };
@@ -264,7 +278,7 @@ export function LevelUploadDialog({ level, isOpen, onClose, onUploadComplete }: 
               <Label htmlFor="type">Material Type</Label>
               <Select 
                 value={formData.type} 
-                onValueChange={(value: any) => setFormData(prev => ({ ...prev, type: value }))}
+                onValueChange={(value: MaterialType) => setFormData(prev => ({ ...prev, type: value }))}
               >
                 <SelectTrigger>
                   <SelectValue />

@@ -1,144 +1,56 @@
 
-import React, { useState } from "react";
-import { useOneOnOneClassroom } from "@/hooks/useOneOnOneClassroom";
-import { useEnhancedClassroom } from "@/hooks/useEnhancedClassroom";
-import { MediaProvider } from "@/components/classroom/oneonone/video/MediaContext";
-import { OneOnOneTopBar } from "@/components/classroom/oneonone/OneOnOneTopBar";
+import React from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { ClassroomAccessGuard } from "@/components/classroom/ClassroomAccessGuard";
 import { OneOnOneVideoSection } from "@/components/classroom/oneonone/OneOnOneVideoSection";
-import { OneOnOneCenterPanel } from "@/components/classroom/oneonone/OneOnOneCenterPanel";
-import { OneOnOneRightPanel } from "@/components/classroom/oneonone/OneOnOneRightPanel";
-import { CelebrationOverlay } from "@/components/classroom/rewards/CelebrationOverlay";
+import { MediaProvider } from "@/components/classroom/oneonone/video/MediaContext";
+import { useOneOnOneClassroom } from "@/hooks/useOneOnOneClassroom";
 
-const OneOnOneClassroomNew = () => {
-  console.log("OneOnOneClassroomNew component is rendering");
+export default function OneOnOneClassroomNew() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   
+  const roomId = searchParams.get("roomId") || "unified-classroom-1";
+  const role = searchParams.get("role") || "student";
+  const name = searchParams.get("name") || "User";
+  const userId = searchParams.get("userId") || "user-1";
+
+  const isTeacher = role === "teacher";
+  const userRole = isTeacher ? "teacher" : "student";
+
   const {
-    classTime,
-    activeRightTab,
-    activeCenterTab,
     studentXP,
-    studentLevel,
     showRewardPopup,
-    celebration,
-    setActiveRightTab,
-    setActiveCenterTab,
-    awardPoints,
-    hideCelebration
+    awardPoints
   } = useOneOnOneClassroom();
 
-  // Add user identification - this would normally come from auth context
-  const currentUserId = "teacher-1"; // Change to "student-1" to test student view
-  const currentUserName = "Ms. Johnson";
-  const isTeacher = currentUserId === "teacher-1";
-  const roomId = "classroom-room-1";
+  const handleAccessDenied = () => {
+    navigate("/teacher-dashboard");
+  };
 
-  // Single source of truth for enhanced classroom state
-  const enhancedClassroom = useEnhancedClassroom({
-    roomId,
-    userId: currentUserId,
-    displayName: currentUserName,
-    userRole: isTeacher ? 'teacher' : 'student'
-  });
-
-  console.log("Enhanced classroom state:", {
-    isConnected: enhancedClassroom.isConnected,
-    isMuted: enhancedClassroom.isMuted,
-    isCameraOff: enhancedClassroom.isCameraOff,
-    hasLocalStream: !!enhancedClassroom.localStream,
-    participantsCount: enhancedClassroom.participants.length
-  });
-
-  try {
-    return (
-      <MediaProvider>
-        <div className="h-screen bg-gradient-to-br from-blue-50 to-green-50 flex flex-col overflow-hidden">
-          {/* Fixed Top Bar */}
-          <div className="flex-shrink-0 h-20 p-4">
-            <OneOnOneTopBar
-              classTime={classTime}
-              studentName="Emma Thompson"
-              studentLevel={studentLevel}
-              enhancedClassroom={enhancedClassroom}
-              currentUserId={currentUserId}
-              currentUserName={currentUserName}
+  return (
+    <ClassroomAccessGuard
+      roomId={roomId}
+      userId={userId}
+      userRole={userRole}
+      onAccessDenied={handleAccessDenied}
+    >
+      <MediaProvider roomId={roomId}>
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4">
+          <div className="max-w-7xl mx-auto h-[calc(100vh-2rem)]">
+            <OneOnOneVideoSection
+              enhancedClassroom={null}
+              currentUserId={userId}
+              currentUserName={name}
               isTeacher={isTeacher}
-              roomId={roomId}
+              studentXP={studentXP}
+              onAwardPoints={awardPoints}
+              showRewardPopup={showRewardPopup}
+              lessonStarted={false}
             />
           </div>
-
-          {/* Main Classroom Layout - Fixed height with flex */}
-          <div className="flex-1 px-4 pb-4 min-h-0">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-full">
-              
-              {/* Left Panel - Fixed height with internal scroll */}
-              <div className="lg:col-span-3 h-full overflow-hidden">
-                <div className="h-full overflow-y-auto">
-                  <OneOnOneVideoSection
-                    enhancedClassroom={enhancedClassroom}
-                    currentUserId={currentUserId}
-                    currentUserName={currentUserName}
-                    isTeacher={isTeacher}
-                    studentXP={studentXP}
-                    onAwardPoints={awardPoints}
-                    showRewardPopup={showRewardPopup}
-                  />
-                </div>
-              </div>
-
-              {/* Center Panel - Scrollable content */}
-              <div className="lg:col-span-6 h-full overflow-hidden">
-                <div className="h-full overflow-y-auto">
-                  <OneOnOneCenterPanel
-                    activeCenterTab={activeCenterTab}
-                    onTabChange={setActiveCenterTab}
-                    currentUser={{
-                      role: isTeacher ? 'teacher' : 'student',
-                      name: currentUserName
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Right Panel - Fixed height with internal scroll */}
-              <div className="lg:col-span-3 h-full overflow-hidden">
-                <div className="h-full overflow-y-auto">
-                  <OneOnOneRightPanel
-                    studentName="Emma"
-                    studentXP={studentXP}
-                    activeRightTab={activeRightTab}
-                    onTabChange={setActiveRightTab}
-                    currentUserId={currentUserId}
-                    currentUserName={currentUserName}
-                    isTeacher={isTeacher}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Celebration Overlay */}
-          {celebration && (
-            <CelebrationOverlay
-              isVisible={celebration.isVisible}
-              points={celebration.points}
-              reason={celebration.reason}
-              onComplete={hideCelebration}
-            />
-          )}
         </div>
       </MediaProvider>
-    );
-  } catch (error) {
-    console.error("Error rendering OneOnOneClassroomNew:", error);
-    return (
-      <div className="min-h-screen bg-red-50 p-4 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-800 mb-4">Classroom Loading Error</h1>
-          <p className="text-red-600">There was an error loading the classroom. Please check the console for details.</p>
-        </div>
-      </div>
-    );
-  }
-};
-
-export default OneOnOneClassroomNew;
+    </ClassroomAccessGuard>
+  );
+}
