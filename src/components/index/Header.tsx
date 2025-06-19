@@ -1,13 +1,24 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Globe } from "lucide-react";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { useLanguage } from '@/hooks/useLanguage';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const Header = () => {
   const navigate = useNavigate();
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage, languageText } = useLanguage();
+
+  // Create a simple translation function using languageText
+  const t = (key: string) => {
+    const keys = key.split('.');
+    let result: any = languageText;
+    for (const k of keys) {
+      result = result?.[k];
+    }
+    return result || key;
+  };
 
   const handleSignUp = () => {
     navigate("/signup");
@@ -35,16 +46,16 @@ export const Header = () => {
         {/* Navigation */}
         <nav className="hidden md:flex items-center gap-6">
           <a href="#about" className="text-gray-600 hover:text-purple-600 transition-colors">
-            {t('landing.aboutUs')}
+            {t('landing.aboutUs') || 'About Us'}
           </a>
           <a href="/for-parents" className="text-gray-600 hover:text-purple-600 transition-colors">
-            {t('landing.forParents')}
+            {t('landing.forParents') || 'For Parents'}
           </a>
           <a href="/for-teachers" className="text-gray-600 hover:text-purple-600 transition-colors">
-            {t('landing.forTeachers')}
+            {t('landing.forTeachers') || 'For Teachers'}
           </a>
           <a href="#contact" className="text-gray-600 hover:text-purple-600 transition-colors">
-            {t('landing.contact')}
+            {t('landing.contact') || 'Contact'}
           </a>
         </nav>
 
@@ -74,11 +85,11 @@ export const Header = () => {
           </DropdownMenu>
 
           <Button variant="ghost" onClick={handleLogin}>
-            {t('landing.logIn')}
+            {t('landing.logIn') || 'Log In'}
           </Button>
           
           <Button onClick={handleSignUp} className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
-            {t('landing.signUp')}
+            {t('landing.signUp') || 'Sign Up'}
           </Button>
         </div>
       </div>
