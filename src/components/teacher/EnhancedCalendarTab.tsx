@@ -3,11 +3,13 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Video, Calendar, Clock, User, AlertCircle } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Plus, Video, Calendar as CalendarIcon, Clock, User, AlertCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { lessonService, ScheduledLesson } from "@/services/lessonService";
 import { ScheduleLessonModal } from "./ScheduleLessonModal";
+import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, eachDayOfInterval, isSameDay, startOfDay, addDays } from "date-fns";
 
 interface EnhancedCalendarTabProps {
   teacherId: string;
@@ -15,8 +17,11 @@ interface EnhancedCalendarTabProps {
 
 export const EnhancedCalendarTab = ({ teacherId }: EnhancedCalendarTabProps) => {
   const [lessons, setLessons] = useState<ScheduledLesson[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState(true);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
+  const [viewMode, setViewMode] = useState<'month' | 'week'>('month');
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -44,10 +49,8 @@ export const EnhancedCalendarTab = ({ teacherId }: EnhancedCalendarTabProps) => 
 
   const handleJoinClassroom = async (lesson: ScheduledLesson) => {
     try {
-      // Track that teacher is joining the lesson
       await lessonService.joinLesson(lesson.id, teacherId, 'teacher');
       
-      // Navigate to classroom with room parameters
       const classroomUrl = `/oneonone-classroom-new?roomId=${lesson.room_id}&role=teacher&name=Teacher&userId=${teacherId}`;
       navigate(classroomUrl);
       
@@ -88,21 +91,155 @@ export const EnhancedCalendarTab = ({ teacherId }: EnhancedCalendarTabProps) => 
     return now >= tenMinutesBefore;
   };
 
-  const getTimeUntilLesson = (scheduledAt: string) => {
-    const lessonTime = new Date(scheduledAt);
-    const now = new Date();
-    const diff = lessonTime.getTime() - now.getTime();
+  const getLessonsForDate = (date: Date) => {
+    return lessons.filter(lesson => 
+      isSameDay(new Date(lesson.scheduled_at), date)
+    );
+  };
+
+  const getWeekDays = () => {
+    const start = startOfWeek(currentWeek, { weekStartsOn: 1 }); // Start on Monday
+    return eachDayOfInterval({
+      start,
+      end: endOfWeek(currentWeek, { weekStartsOn: 1 })
+    });
+  };
+
+  const renderMonthView = () => (
+    <div className="space-y-4">
+      <Calendar
+        mode="single"
+        selected={selectedDate}
+        onSelect={(date) => date && setSelectedDate(date)}
+        className="rounded-md border p-3 pointer-events-auto"
+        components={{
+          Day: ({ date, ...props }) => {
+            const dayLessons = getLessonsForDate(date);
+            return (
+              <div {...props} className="relative">
+                <div>{date.getDate()}</div>
+                {dayLessons.length > 0 && (
+                  <div className="absolute bottom-0 left-0 right-0 flex justify-center">
+                    <div className="w-1 h-1 bg-blue-500 rounded-full"></div>
+                  </div>
+                )}
+              </div>
+            );
+          }
+        }}
+      />
+      
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">
+            {format(selectedDate, 'EEEE, MMMM d, yyyy')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {renderDayLessons(selectedDate)}
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const renderWeekView = () => {
+    const weekDays = getWeekDays();
     
-    if (diff < 0) return "Lesson time passed";
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">
+            {format(weekDays[0], 'MMM d')} - {format(weekDays[6], 'MMM d, yyyy')}
+          </h3>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => setCurrentWeek(subWeeks(currentWeek, 1))}>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setCurrentWeek(addWeeks(currentWeek, 1))}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-7 gap-2">
+          {weekDays.map((day) => (
+            <Card key={day.toISOString()} className="min-h-[200px]">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm text-center">
+                  <div>{format(day, 'EEE')}</div>
+                  <div className="text-lg">{format(day, 'd')}</div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                {renderDayLessons(day, true)}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const renderDayLessons = (date: Date, compact = false) => {
+    const dayLessons = getLessonsForDate(date);
     
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
-    if (hours > 0) {
-      return `${hours}h ${minutes}m until lesson`;
-    } else {
-      return `${minutes}m until lesson`;
+    if (dayLessons.length === 0) {
+      return (
+        <div className="text-center text-gray-500 py-4">
+          {compact ? "No lessons" : "No lessons scheduled for this day"}
+        </div>
+      );
     }
+
+    return (
+      <div className="space-y-2">
+        {dayLessons.map((lesson) => {
+          const { time } = formatDateTime(lesson.scheduled_at);
+          const canJoin = canJoinNow(lesson.scheduled_at);
+          
+          return (
+            <div key={lesson.id} className={`p-3 rounded-lg border ${compact ? 'text-xs' : ''}`}>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className={`font-medium ${compact ? 'text-xs' : 'text-sm'}`}>
+                  {lesson.title}
+                </h4>
+                <Badge variant={lesson.status === 'scheduled' ? 'default' : 'secondary'} className={compact ? 'text-xs px-1' : ''}>
+                  {lesson.status}
+                </Badge>
+              </div>
+              
+              <div className={`flex items-center gap-4 text-gray-600 mb-2 ${compact ? 'text-xs' : 'text-sm'}`}>
+                <div className="flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  <span>{time}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <User className="h-3 w-3" />
+                  <span>{lesson.student_name || 'Unknown Student'}</span>
+                </div>
+              </div>
+
+              {!compact && (
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-xs">
+                    {lesson.duration} min
+                  </Badge>
+                  <Button
+                    onClick={() => handleJoinClassroom(lesson)}
+                    disabled={!canJoin}
+                    size="sm"
+                    className={canJoin ? "bg-green-600 hover:bg-green-700" : ""}
+                  >
+                    <Video className="h-3 w-3 mr-1" />
+                    {canJoin ? "Join" : "Join Classroom"}
+                  </Button>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   if (isLoading) {
@@ -119,101 +256,35 @@ export const EnhancedCalendarTab = ({ teacherId }: EnhancedCalendarTabProps) => 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">Scheduled Lessons</h1>
-        <Button 
-          onClick={() => setShowScheduleModal(true)}
-          className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Schedule Lesson
-        </Button>
+        <h1 className="text-2xl font-bold text-gray-800">Lesson Calendar</h1>
+        <div className="flex gap-2">
+          <div className="flex bg-gray-100 rounded-lg p-1">
+            <Button
+              variant={viewMode === 'month' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('month')}
+            >
+              Month
+            </Button>
+            <Button
+              variant={viewMode === 'week' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('week')}
+            >
+              Week
+            </Button>
+          </div>
+          <Button 
+            onClick={() => setShowScheduleModal(true)}
+            className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Schedule Lesson
+          </Button>
+        </div>
       </div>
 
-      {lessons.length === 0 ? (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-600 mb-2">No Lessons Scheduled</h3>
-            <p className="text-gray-500 mb-4">Schedule your first lesson to get started!</p>
-            <Button onClick={() => setShowScheduleModal(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Schedule Lesson
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4">
-          {lessons.map((lesson) => {
-            const { date, time } = formatDateTime(lesson.scheduled_at);
-            const canJoin = canJoinNow(lesson.scheduled_at);
-            const timeUntil = getTimeUntilLesson(lesson.scheduled_at);
-            
-            return (
-              <Card key={lesson.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                        {lesson.title}
-                      </h3>
-                      
-                      <div className="flex items-center gap-6 text-gray-600 mb-3">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
-                          <span>{date}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-4 w-4" />
-                          <span>{time}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <User className="h-4 w-4" />
-                          <span>{lesson.student_name || 'Unknown Student'}</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-3">
-                        <Badge 
-                          variant={lesson.status === 'scheduled' ? 'default' : 'secondary'}
-                          className="capitalize"
-                        >
-                          {lesson.status}
-                        </Badge>
-                        <Badge variant="outline">
-                          {lesson.duration} minutes
-                        </Badge>
-                        {!canJoin && (
-                          <div className="flex items-center gap-1 text-sm text-orange-600">
-                            <AlertCircle className="h-3 w-3" />
-                            <span>{timeUntil}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col gap-2">
-                      <Button
-                        onClick={() => handleJoinClassroom(lesson)}
-                        disabled={!canJoin}
-                        className={canJoin ? "bg-green-600 hover:bg-green-700" : ""}
-                      >
-                        <Video className="h-4 w-4 mr-2" />
-                        {canJoin ? "Join Now" : "Join Classroom"}
-                      </Button>
-                      
-                      {!canJoin && (
-                        <p className="text-xs text-gray-500 text-center">
-                          Available 10 min before
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
+      {viewMode === 'month' ? renderMonthView() : renderWeekView()}
 
       <ScheduleLessonModal
         isOpen={showScheduleModal}
