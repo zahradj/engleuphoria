@@ -70,39 +70,18 @@ export const Hero = ({ onStartClick }: HeroProps) => {
             </div>
           </div>
 
-          {/* Right Column - Enhanced Educational Illustration */}
+          {/* Right Column - Enhanced Educational Illustration with ForParents style background */}
           <div className="relative">
-            {/* Enhanced background effects */}
-            <div className="absolute inset-0 bg-gradient-to-br from-purple-400/20 via-blue-400/20 to-emerald-400/20 rounded-3xl blur-xl transform scale-110"></div>
-            <div className="absolute inset-0 bg-gradient-to-tr from-yellow-300/10 via-pink-300/10 to-purple-300/10 rounded-3xl blur-2xl transform scale-105 animate-pulse-subtle"></div>
+            {/* Circular shadow effects like ForParents page */}
+            <div className="absolute -z-10 top-1/4 left-1/4 w-[110%] h-[110%] bg-purple/30 rounded-full blur-3xl animate-pulse-subtle opacity-90"></div>
+            <div className="absolute -z-10 bottom-1/4 right-1/4 w-[90%] h-[90%] bg-teal/25 rounded-full blur-3xl animate-pulse-subtle opacity-85 animation-delay-300"></div>
+            <div className="absolute -z-10 top-1/3 right-1/3 w-[80%] h-[80%] bg-orange/20 rounded-full blur-3xl animate-pulse-subtle opacity-75 animation-delay-700"></div>
             
-            {/* Multiple shadow layers for depth */}
-            <div className="absolute inset-0 bg-black/10 rounded-3xl blur-lg transform translate-x-2 translate-y-2"></div>
-            <div className="absolute inset-0 bg-black/5 rounded-3xl blur-md transform translate-x-1 translate-y-1"></div>
-            
-            {/* Colored light spots */}
-            <div className="absolute top-4 left-4 w-8 h-8 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full blur-sm opacity-60 animate-bounce-light"></div>
-            <div className="absolute top-1/3 right-6 w-6 h-6 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full blur-sm opacity-60 animate-float"></div>
-            <div className="absolute bottom-8 left-8 w-5 h-5 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full blur-sm opacity-60 animate-pulse-subtle"></div>
-            <div className="absolute bottom-1/3 right-12 w-7 h-7 bg-gradient-to-br from-emerald-400 to-green-400 rounded-full blur-sm opacity-60 animate-bounce-light"></div>
-            
-            {/* Main image with enhanced styling */}
-            <div className="relative z-10 transform hover:scale-105 transition-transform duration-300">
-              <img 
-                src="/lovable-uploads/27f0b41c-34f2-4a8e-a08b-9a755fe74f97.png" 
-                alt="Interactive English Learning" 
-                className="w-full max-w-2xl mx-auto drop-shadow-2xl filter brightness-110 contrast-105 saturate-110"
-                style={{
-                  filter: 'drop-shadow(0 25px 50px rgba(0, 0, 0, 0.15)) drop-shadow(0 15px 30px rgba(139, 92, 246, 0.1)) drop-shadow(0 8px 16px rgba(59, 130, 246, 0.1))'
-                }}
-              />
-            </div>
-            
-            {/* Floating elements around the image */}
-            <div className="absolute -top-2 -left-2 w-4 h-4 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full animate-float opacity-80"></div>
-            <div className="absolute top-8 -right-4 w-3 h-3 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full animate-bounce-light opacity-80"></div>
-            <div className="absolute -bottom-4 left-12 w-5 h-5 bg-gradient-to-br from-blue-400 to-cyan-500 rounded-full animate-pulse-subtle opacity-80"></div>
-            <div className="absolute bottom-12 -right-2 w-4 h-4 bg-gradient-to-br from-emerald-400 to-green-500 rounded-full animate-float opacity-80"></div>
+            <img 
+              src="/lovable-uploads/27f0b41c-34f2-4a8e-a08b-9a755fe74f97.png" 
+              alt="Interactive English Learning" 
+              className="w-full h-auto max-h-[500px] object-contain animate-float"
+            />
           </div>
         </div>
       </div>
