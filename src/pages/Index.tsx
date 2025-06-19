@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/index/Header";
 import { Hero } from "@/components/index/Hero";
+import { CurriculumFramework } from "@/components/index/CurriculumFramework";
 import { LearningPathway } from "@/components/index/LearningPathway";
 import { Features } from "@/components/index/Features";
 import { XPShowcase } from "@/components/index/XPShowcase";
@@ -51,6 +52,7 @@ const Index = () => {
         {step === "welcome" && (
           <>
             <Hero onStartClick={handleStart} />
+            <CurriculumFramework />
             <LearningPathway />
             <XPShowcase />
             <Features />
