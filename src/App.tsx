@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,6 +19,7 @@ import UnifiedClassroom from "./pages/UnifiedClassroom";
 import SimpleClassroomSelector from "./components/classroom/SimpleClassroomSelector";
 import MediaTestPage from "./pages/MediaTestPage";
 import StudentLessonScheduler from "./pages/StudentLessonScheduler";
+import TeacherApplication from "./pages/TeacherApplication";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +43,7 @@ function App() {
                 <Route path="/curriculum-library" element={<CurriculumLibraryPage />} />
                 <Route path="/for-parents" element={<ForParents />} />
                 <Route path="/for-teachers" element={<ForTeachers />} />
+                <Route path="/teacher-application" element={<TeacherApplication />} />
                 <Route path="/classroom" element={<UnifiedClassroom />} />
                 <Route path="/classroom-selector" element={<SimpleClassroomSelector />} />
                 <Route path="/media-test" element={<MediaTestPage />} />

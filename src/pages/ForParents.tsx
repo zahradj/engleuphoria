@@ -1,281 +1,266 @@
+
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { GraduationCap, BookOpen, Users, BarChart, Award } from "lucide-react";
-import { AnimatedBackground } from "@/components/AnimatedBackground";
+import { Badge } from "@/components/ui/badge";
+import { Header } from "@/components/index/Header";
+import { Footer } from "@/components/index/Footer";
+import { 
+  BookOpen, 
+  Users, 
+  Star, 
+  Award, 
+  Clock, 
+  Shield, 
+  MessageCircle, 
+  TrendingUp,
+  Heart,
+  CheckCircle,
+  Mail,
+  Phone
+} from "lucide-react";
 
 const ForParents = () => {
   const navigate = useNavigate();
-  
+
+  const benefits = [
+    {
+      icon: Shield,
+      title: "Safe Learning Environment",
+      description: "Certified teachers, secure platform, and monitored classes ensure your child's safety."
+    },
+    {
+      icon: Star,
+      title: "Proven Results",
+      description: "95% of students show measurable improvement within 3 months of starting."
+    },
+    {
+      icon: Clock,
+      title: "Flexible Scheduling",
+      description: "Classes that fit your family's schedule, with easy rescheduling options."
+    },
+    {
+      icon: TrendingUp,
+      title: "Progress Tracking",
+      description: "Real-time reports on your child's learning progress and achievements."
+    },
+    {
+      icon: MessageCircle,
+      title: "Direct Communication",
+      description: "Regular updates from teachers and direct messaging for any concerns."
+    },
+    {
+      icon: Award,
+      title: "International Standards",
+      description: "CEFR-aligned curriculum preparing your child for global opportunities."
+    }
+  ];
+
+  const testimonials = [
+    {
+      name: "Sarah Johnson",
+      location: "California, USA",
+      testimonial: "My 8-year-old Emma went from being shy about speaking English to confidently chatting with her teacher. The games and interactive lessons make learning so enjoyable!",
+      rating: 5,
+      childAge: "8 years old"
+    },
+    {
+      name: "Ahmed Al-Hassan",
+      location: "Dubai, UAE",
+      testimonial: "The progress reports help me understand exactly how my son is developing. The teachers are patient and professional.",
+      rating: 5,
+      childAge: "10 years old"
+    },
+    {
+      name: "Maria Rodriguez",
+      location: "Madrid, Spain",
+      testimonial: "EnglEuphoria has made English learning fun for my daughter. She looks forward to every class!",
+      rating: 5,
+      childAge: "6 years old"
+    }
+  ];
+
+  const features = [
+    "Live one-on-one classes with certified teachers",
+    "Interactive games and activities",
+    "Age-appropriate curriculum (4-18 years)",
+    "Regular progress reports",
+    "24/7 customer support",
+    "Flexible scheduling",
+    "Money-back guarantee",
+    "Certificate upon completion"
+  ];
+
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden bg-background">
-      {/* Header */}
-      <header className="w-full bg-white/80 backdrop-blur-sm shadow-sm py-4 px-4 sticky top-0 z-50">
-        <div className="container max-w-7xl mx-auto flex items-center justify-between">
-          <div 
-            onClick={() => navigate('/')}
-            className="flex items-center gap-3 cursor-pointer"
-          >
-            <div className="bg-purple/20 rounded-full p-2">
-              <span className="text-xl font-bold text-purple">E!</span>
-            </div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-purple to-teal bg-clip-text text-transparent">
-              Engleuphoria
-            </h1>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" className="font-semibold" onClick={() => navigate('/for-parents')}>
-              For Parents
-            </Button>
-            <Button variant="ghost" onClick={() => navigate('/for-teachers')}>
-              For Teachers
-            </Button>
-            <Button variant="outline" onClick={() => navigate('/login')}>Log In</Button>
-            <Button onClick={() => navigate('/signup')}>Sign Up</Button>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen flex flex-col">
+      <Header />
       
       {/* Hero Section */}
-      <section className="py-16 md:py-24 container max-w-7xl mx-auto px-4 relative">
-        <div className="grid md:grid-cols-2 gap-12 items-center relative z-10">
-          <div className="space-y-6">
-            <div className="inline-block px-4 py-2 bg-purple/10 rounded-full text-purple font-medium text-sm mb-2">
-              For Parents
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold leading-tight">
-              Watch Your Child's English Skills 
-              <span className="bg-gradient-to-r from-purple to-teal bg-clip-text text-transparent">
-                {" "}Flourish
-              </span>
-            </h1>
-            
-            <p className="text-lg text-muted-foreground">
-              Engleuphoria gives parents visibility into their child's learning journey with detailed progress tracking, 
-              milestone celebrations, and easy communication with teachers.
-            </p>
-            
-            <div className="flex flex-wrap gap-4">
-              <Button size="lg" onClick={() => navigate('/signup')} className="gap-2">
-                Get Started
-              </Button>
-              <Button size="lg" variant="outline" onClick={() => navigate('/for-teachers')}>
-                Learn More
-              </Button>
-            </div>
-          </div>
-          
-          <div className="relative">
-            {/* Circular shadow effects */}
-            <div className="absolute -z-10 top-1/4 left-1/4 w-[110%] h-[110%] bg-purple/30 rounded-full blur-3xl animate-pulse-subtle opacity-90"></div>
-            <div className="absolute -z-10 bottom-1/4 right-1/4 w-[90%] h-[90%] bg-teal/25 rounded-full blur-3xl animate-pulse-subtle opacity-85 animation-delay-300"></div>
-            <div className="absolute -z-10 top-1/3 right-1/3 w-[80%] h-[80%] bg-orange/20 rounded-full blur-3xl animate-pulse-subtle opacity-75 animation-delay-700"></div>
-            
-            <img 
-              src="/lovable-uploads/0629e331-727e-44d8-abdf-01f030c8a277.png" 
-              alt="Book with speech bubbles showing language learning"
-              className="w-full h-auto max-h-[500px] object-contain animate-float"
-            />
-          </div>
-        </div>
-      </section>
-      
-      {/* Features Section */}
-      <section className="py-16 bg-muted/30 relative">
-        {/* Background circular effects */}
-        <div className="absolute -z-10 top-1/2 left-1/3 w-[80%] h-[80%] bg-purple/15 rounded-full blur-3xl animate-pulse-subtle opacity-70"></div>
-        <div className="absolute -z-10 bottom-1/4 right-1/4 w-[60%] h-[60%] bg-teal/10 rounded-full blur-3xl animate-pulse-subtle opacity-65 animation-delay-500"></div>
-        
-        <div className="container max-w-7xl mx-auto px-4">
+      <section className="py-16 px-4 bg-gradient-to-br from-purple-50 via-blue-50 to-emerald-50">
+        <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">What We Offer Parents</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Our comprehensive platform provides everything you need to support your child's English learning journey.
+            <Badge className="mb-4 bg-purple-100 text-purple-700 border-purple-200">
+              For Parents
+            </Badge>
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              Give Your Child the Gift of 
+              <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent"> English Fluency</span>
+            </h1>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+              Watch your child gain confidence, improve grades, and unlock global opportunities 
+              through our personalized English learning program designed specifically for young learners.
             </p>
-          </div>
-          
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            <Card className="transition-all hover:shadow-lg hover:scale-[1.02] duration-300 border-t-4 border-t-purple animate-fade-in">
-              <CardHeader>
-                <div className="bg-purple/20 w-12 h-12 flex items-center justify-center rounded-full mb-3">
-                  <BookOpen className="text-purple h-6 w-6" />
-                </div>
-                <CardTitle>Progress Tracking</CardTitle>
-                <CardDescription>
-                  Follow your child's learning journey in real-time
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Our intuitive dashboard shows which skills your child is mastering and where they might need additional support, with detailed analytics and progress reports.
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="transition-all hover:shadow-lg hover:scale-[1.02] duration-300 border-t-4 border-t-teal animate-fade-in animation-delay-300">
-              <CardHeader>
-                <div className="bg-teal/20 w-12 h-12 flex items-center justify-center rounded-full mb-3">
-                  <Users className="text-teal h-6 w-6" />
-                </div>
-                <CardTitle>Teacher Communication</CardTitle>
-                <CardDescription>
-                  Direct messaging with your child's instructors
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Ask questions, receive updates, and participate in your child's language learning journey with our secure communication platform.
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="transition-all hover:shadow-lg hover:scale-[1.02] duration-300 border-t-4 border-t-yellow animate-fade-in animation-delay-500">
-              <CardHeader>
-                <div className="bg-yellow/20 w-12 h-12 flex items-center justify-center rounded-full mb-3">
-                  <Award className="text-yellow-dark h-6 w-6" />
-                </div>
-                <CardTitle>Milestone Celebrations</CardTitle>
-                <CardDescription>
-                  Recognize and celebrate your child's achievements
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Get notifications when your child reaches important milestones and achievements, helping to build confidence and motivation.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-      
-      {/* Stats Section */}
-      <section className="py-16 container max-w-7xl mx-auto px-4 relative">
-        {/* Background circular effects */}
-        <div className="absolute -z-10 top-1/2 right-1/4 w-[70%] h-[70%] bg-yellow/15 rounded-full blur-3xl animate-pulse-subtle opacity-75"></div>
-        <div className="absolute -z-10 bottom-1/3 left-1/3 w-[50%] h-[50%] bg-orange/10 rounded-full blur-3xl animate-pulse-subtle opacity-65 animation-delay-700"></div>
-        
-        <div className="grid md:grid-cols-3 gap-8">
-          <div className="text-center p-8 border rounded-xl bg-white shadow-sm animate-scale-in">
-            <div className="text-4xl font-bold text-purple mb-2">95%</div>
-            <p className="text-muted-foreground">Parents report improved English skills</p>
-          </div>
-          
-          <div className="text-center p-8 border rounded-xl bg-white shadow-sm animate-scale-in animation-delay-300">
-            <div className="text-4xl font-bold text-teal mb-2">87%</div>
-            <p className="text-muted-foreground">Increase in confidence with language</p>
-          </div>
-          
-          <div className="text-center p-8 border rounded-xl bg-white shadow-sm animate-scale-in animation-delay-500">
-            <div className="text-4xl font-bold text-yellow-dark mb-2">12+</div>
-            <p className="text-muted-foreground">Engaging activities per week</p>
-          </div>
-        </div>
-      </section>
-      
-      {/* Testimonial */}
-      <section className="py-16 bg-gradient-to-r from-purple/10 to-teal/10 relative">
-        {/* Background circular effects */}
-        <div className="absolute -z-10 center top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[90%] h-[90%] bg-purple/15 rounded-full blur-3xl animate-pulse-subtle opacity-70"></div>
-        
-        <div className="container max-w-7xl mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <svg className="w-12 h-12 mx-auto mb-6 text-muted-foreground/30" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
-            </svg>
-            <p className="text-xl md:text-2xl font-medium mb-6">
-              "Engleuphoria has transformed my daughter's approach to learning English. She's excited for her lessons and I can see her progress in real-time."
-            </p>
-            <div className="font-semibold">Rachel T.</div>
-            <div className="text-sm text-muted-foreground">Parent of Sophie, 9 years old</div>
-          </div>
-        </div>
-      </section>
-      
-      {/* CTA Section */}
-      <section className="py-16 container max-w-7xl mx-auto px-4 relative">
-        {/* Background circular effects */}
-        <div className="absolute -z-10 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-purple/20 rounded-full blur-3xl animate-pulse-subtle opacity-50"></div>
-        <div className="absolute -z-10 bottom-0 right-1/4 w-[70%] h-[70%] bg-teal/15 rounded-full blur-3xl animate-pulse-subtle opacity-60 animation-delay-300"></div>
-        
-        <Card className="border-0 shadow-xl bg-gradient-to-r from-purple/80 to-teal/80 text-white relative overflow-hidden animate-scale-in">
-          {/* Card inner glow effects */}
-          <div className="absolute -z-5 top-0 left-0 w-[70%] h-[70%] bg-white/10 rounded-full blur-3xl"></div>
-          <div className="absolute -z-5 bottom-0 right-0 w-[60%] h-[60%] bg-white/5 rounded-full blur-3xl"></div>
-          
-          <CardContent className="p-8 md:p-12">
-            <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div>
-                <h2 className="text-3xl font-bold mb-4">Ready to Start Your Child's English Journey?</h2>
-                <p className="mb-6 text-white/90">
-                  Join thousands of families who have transformed their children's English learning experience with Engleuphoria.
-                </p>
-                <Button size="lg" variant="secondary" onClick={() => navigate('/signup')} className="gap-2">
-                  Sign Up Now
-                </Button>
-              </div>
-              <div className="hidden md:block">
-                <BarChart className="h-48 w-48 mx-auto opacity-20 animate-pulse-subtle" />
-              </div>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button 
+                size="lg" 
+                onClick={() => navigate('/signup')}
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+              >
+                Start Free Trial
+              </Button>
+              <Button 
+                variant="outline" 
+                size="lg"
+                onClick={() => navigate('/classroom')}
+              >
+                Watch Demo Class
+              </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </section>
-      
-      {/* Footer */}
-      <footer className="bg-muted py-12">
-        <div className="container max-w-7xl mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8">
+
+      {/* Benefits Section */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+              Why Parents Choose EnglEuphoria
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Join thousands of satisfied parents who have seen their children thrive with our proven approach.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {benefits.map((benefit, index) => (
+              <Card key={index} className="hover:shadow-lg transition-shadow duration-300">
+                <CardHeader>
+                  <div className="w-12 h-12 bg-gradient-to-r from-purple-100 to-blue-100 rounded-lg flex items-center justify-center mb-4">
+                    <benefit.icon className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <CardTitle className="text-xl">{benefit.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600">{benefit.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features Checklist */}
+      <section className="py-20 bg-gray-50">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="bg-purple/20 rounded-full p-2">
-                  <span className="text-xl font-bold text-purple">E!</span>
-                </div>
-                <div className="text-xl font-bold bg-gradient-to-r from-purple to-teal bg-clip-text text-transparent">
-                  Engleuphoria
-                </div>
-              </div>
-              <p className="text-sm text-muted-foreground mb-4">
-                Making English learning joyful and effective for children worldwide.
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+                Everything Your Child Needs to Excel
+              </h2>
+              <p className="text-xl text-gray-600 mb-8">
+                Our comprehensive program includes all the tools and support your child needs 
+                to master English effectively and enjoyably.
               </p>
+              <div className="space-y-4">
+                {features.map((feature, index) => (
+                  <div key={index} className="flex items-center gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                    <span className="text-gray-700">{feature}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-            
-            <div>
-              <h3 className="font-semibold mb-4">Platform</h3>
-              <ul className="space-y-3">
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">Features</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">Curriculum</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">Resources</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">Pricing</a></li>
-              </ul>
+            <div className="relative">
+              <img 
+                src="/lovable-uploads/27f0b41c-34f2-4a8e-a08b-9a755fe74f97.png" 
+                alt="Child learning English" 
+                className="w-full h-auto rounded-2xl shadow-xl"
+              />
             </div>
-            
-            <div>
-              <h3 className="font-semibold mb-4">Company</h3>
-              <ul className="space-y-3">
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">About Us</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">Careers</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">Blog</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">Contact</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold mb-4">Legal</h3>
-              <ul className="space-y-3">
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">Privacy Policy</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">Terms of Service</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-foreground">Cookie Policy</a></li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="mt-12 pt-6 border-t border-border text-center text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} Engleuphoria. All rights reserved.
           </div>
         </div>
-      </footer>
+      </section>
+
+      {/* Testimonials */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-4 max-w-6xl">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+              What Parents Are Saying
+            </h2>
+            <p className="text-xl text-gray-600">
+              Real stories from real families who have transformed their children's English skills.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {testimonials.map((testimonial, index) => (
+              <Card key={index} className="hover:shadow-lg transition-shadow duration-300">
+                <CardHeader>
+                  <div className="flex items-center gap-1 mb-2">
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                  <CardTitle className="text-lg">{testimonial.name}</CardTitle>
+                  <CardDescription>
+                    {testimonial.location} • {testimonial.childAge}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-gray-600 italic">"{testimonial.testimonial}"</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-gradient-to-r from-purple-600 to-blue-600">
+        <div className="container mx-auto px-4 max-w-4xl text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+            Ready to Start Your Child's English Journey?
+          </h2>
+          <p className="text-xl text-blue-100 mb-8">
+            Join thousands of families worldwide and give your child the advantage of English fluency.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <Button 
+              size="lg" 
+              onClick={() => navigate('/signup')}
+              className="bg-white text-purple-600 hover:bg-gray-100"
+            >
+              Start Free Trial Today
+            </Button>
+            <Button 
+              variant="outline" 
+              size="lg"
+              className="border-white text-white hover:bg-white hover:text-purple-600"
+            >
+              <Mail className="mr-2 h-4 w-4" />
+              Contact Support
+            </Button>
+          </div>
+          <p className="text-blue-100">
+            Questions? Email us at <a href="mailto:support@engleuphoria.com" className="underline font-semibold">support@engleuphoria.com</a>
+          </p>
+        </div>
+      </section>
+
+      <Footer />
     </div>
   );
 };

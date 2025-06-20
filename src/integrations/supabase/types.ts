@@ -523,6 +523,117 @@ export type Database = {
         }
         Relationships: []
       }
+      teacher_applications: {
+        Row: {
+          address: string | null
+          admin_notes: string | null
+          age_groups_experience: string[] | null
+          availability: string | null
+          certifications: string[] | null
+          contact_notes: string | null
+          cover_letter: string | null
+          created_at: string | null
+          cv_url: string | null
+          date_of_birth: string | null
+          education: string | null
+          email: string
+          esl_certification: string | null
+          first_name: string
+          id: string
+          interview_feedback: string | null
+          interview_scheduled_at: string | null
+          interviewed_by: string | null
+          languages_spoken: string[] | null
+          last_contact_date: string | null
+          last_name: string
+          nationality: string | null
+          phone: string | null
+          portfolio_url: string | null
+          preferred_age_groups: string[] | null
+          preferred_schedule: string | null
+          previous_roles: string | null
+          professional_references: Json | null
+          salary_expectation: number | null
+          skills: string[] | null
+          status: string | null
+          teaching_experience_years: number | null
+          teaching_methodology: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          address?: string | null
+          admin_notes?: string | null
+          age_groups_experience?: string[] | null
+          availability?: string | null
+          certifications?: string[] | null
+          contact_notes?: string | null
+          cover_letter?: string | null
+          created_at?: string | null
+          cv_url?: string | null
+          date_of_birth?: string | null
+          education?: string | null
+          email: string
+          esl_certification?: string | null
+          first_name: string
+          id?: string
+          interview_feedback?: string | null
+          interview_scheduled_at?: string | null
+          interviewed_by?: string | null
+          languages_spoken?: string[] | null
+          last_contact_date?: string | null
+          last_name: string
+          nationality?: string | null
+          phone?: string | null
+          portfolio_url?: string | null
+          preferred_age_groups?: string[] | null
+          preferred_schedule?: string | null
+          previous_roles?: string | null
+          professional_references?: Json | null
+          salary_expectation?: number | null
+          skills?: string[] | null
+          status?: string | null
+          teaching_experience_years?: number | null
+          teaching_methodology?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          address?: string | null
+          admin_notes?: string | null
+          age_groups_experience?: string[] | null
+          availability?: string | null
+          certifications?: string[] | null
+          contact_notes?: string | null
+          cover_letter?: string | null
+          created_at?: string | null
+          cv_url?: string | null
+          date_of_birth?: string | null
+          education?: string | null
+          email?: string
+          esl_certification?: string | null
+          first_name?: string
+          id?: string
+          interview_feedback?: string | null
+          interview_scheduled_at?: string | null
+          interviewed_by?: string | null
+          languages_spoken?: string[] | null
+          last_contact_date?: string | null
+          last_name?: string
+          nationality?: string | null
+          phone?: string | null
+          portfolio_url?: string | null
+          preferred_age_groups?: string[] | null
+          preferred_schedule?: string | null
+          previous_roles?: string | null
+          professional_references?: Json | null
+          salary_expectation?: number | null
+          skills?: string[] | null
+          status?: string | null
+          teaching_experience_years?: number | null
+          teaching_methodology?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       teacher_performance_metrics: {
         Row: {
           attendance_rate: number | null
