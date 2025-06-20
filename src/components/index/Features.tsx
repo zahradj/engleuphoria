@@ -1,89 +1,83 @@
 
 import { Card } from "@/components/ui/card";
-import { Video, Award, MessageCircle, Globe } from "lucide-react";
+import { Video, Award, MessageCircle, Users, Star, Trophy } from "lucide-react";
 
 export const Features = () => {
+  const features = [
+    {
+      icon: Video,
+      title: "Live Interactive Classes",
+      description: "Join live sessions with certified teachers who make learning engaging and fun.",
+      color: "purple",
+      gradient: "from-purple-500 to-purple-600"
+    },
+    {
+      icon: Award,
+      title: "Gamified Learning",
+      description: "Earn points, unlock badges, and level up as you progress through your English journey.",
+      color: "blue",
+      gradient: "from-blue-500 to-blue-600"
+    },
+    {
+      icon: MessageCircle,
+      title: "Speaking Practice",
+      description: "Build confidence through conversation practice in a supportive, encouraging environment.",
+      color: "emerald",
+      gradient: "from-emerald-500 to-emerald-600"
+    },
+    {
+      icon: Users,
+      title: "Age-Appropriate Content",
+      description: "Curriculum designed specifically for different age groups from 4 to 18+ years old.",
+      color: "orange",
+      gradient: "from-orange-500 to-orange-600"
+    },
+    {
+      icon: Star,
+      title: "Progress Tracking",
+      description: "Monitor learning outcomes with detailed analytics and comprehensive progress reports.",
+      color: "pink",
+      gradient: "from-pink-500 to-pink-600"
+    },
+    {
+      icon: Trophy,
+      title: "8-Level Curriculum",
+      description: "Complete CEFR-aligned curriculum from Pre-A1 Starter to B2 Advanced levels.",
+      color: "indigo",
+      gradient: "from-indigo-500 to-indigo-600"
+    }
+  ];
+
   return (
-    <section className="py-16 border-t border-border mt-16">
-      <div className="text-center mb-12 animate-fade-in">
-        <h2 className="text-3xl font-bold mb-3">Why Choose Engleuphoria?</h2>
-        <p className="text-muted-foreground max-w-2xl mx-auto">
-          Our playful approach to language learning creates an immersive environment where children naturally absorb English vocabulary, grammar, and pronunciation.
-        </p>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <FeatureCard 
-          icon="video" 
-          title="Interactive Classes" 
-          description="Engage in live, interactive sessions led by certified teachers who make learning fun."
-          color="purple"
-        />
+    <section className="py-20 bg-white">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+            Why Choose EnglEuphoria?
+          </h2>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Our comprehensive approach combines the best of traditional teaching with modern technology 
+            to create an immersive English learning experience.
+          </p>
+        </div>
         
-        <FeatureCard 
-          icon="award" 
-          title="Reward System" 
-          description="Earn points and unlock achievements to stay motivated throughout your learning journey."
-          color="teal"
-          delay="300"
-        />
-        
-        <FeatureCard 
-          icon="message" 
-          title="Practice Speaking" 
-          description="Develop confidence through conversation practice in a supportive environment."
-          color="orange"
-          delay="500"
-        />
-        
-        <FeatureCard 
-          icon="globe" 
-          title="Cultural Learning" 
-          description="Discover cultures from around the world while improving your language skills."
-          color="yellow"
-          delay="700"
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {features.map((feature, index) => (
+            <Card 
+              key={index} 
+              className="p-8 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border-0 bg-gradient-to-br from-white to-gray-50"
+            >
+              <div className="text-center space-y-4">
+                <div className={`mx-auto w-16 h-16 rounded-2xl bg-gradient-to-r ${feature.gradient} flex items-center justify-center shadow-lg`}>
+                  <feature.icon className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">{feature.title}</h3>
+                <p className="text-gray-600 leading-relaxed">{feature.description}</p>
+              </div>
+            </Card>
+          ))}
+        </div>
       </div>
     </section>
-  );
-};
-
-interface FeatureCardProps {
-  icon: "video" | "award" | "message" | "globe";
-  title: string;
-  description: string;
-  color: "purple" | "teal" | "orange" | "yellow";
-  delay?: string;
-}
-
-const FeatureCard = ({ icon, title, description, color, delay = "0" }: FeatureCardProps) => {
-  // Render the appropriate icon based on the icon prop
-  const renderIcon = () => {
-    const className = `h-8 w-8 text-${color}${color === "yellow" ? "-dark" : ""}`;
-    
-    switch (icon) {
-      case "video":
-        return <Video className={className} />;
-      case "award":
-        return <Award className={className} />;
-      case "message":
-        return <MessageCircle className={className} />;
-      case "globe":
-        return <Globe className={className} />;
-      default:
-        return null;
-    }
-  };
-
-  const animationClass = delay === "0" ? "animate-scale-in" : `animate-scale-in animation-delay-${delay}`;
-  
-  return (
-    <Card className={`p-6 flex flex-col items-center text-center hover:shadow-lg transition-shadow ${animationClass}`}>
-      <div className={`bg-${color}/20 p-4 rounded-full mb-4`}>
-        {renderIcon()}
-      </div>
-      <h3 className="text-xl font-bold mb-2">{title}</h3>
-      <p className="text-muted-foreground">{description}</p>
-    </Card>
   );
 };

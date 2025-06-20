@@ -4,11 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/index/Header";
 import { Hero } from "@/components/index/Hero";
 import { CurriculumFramework } from "@/components/index/CurriculumFramework";
-import { LearningPathway } from "@/components/index/LearningPathway";
 import { Features } from "@/components/index/Features";
-import { XPShowcase } from "@/components/index/XPShowcase";
 import { DashboardDemo } from "@/components/index/DashboardDemo";
-import { TeacherShowcase } from "@/components/index/TeacherShowcase";
 import { HowItWorks } from "@/components/index/HowItWorks";
 import { Testimonials } from "@/components/index/Testimonials";
 import { FAQ } from "@/components/index/FAQ";
@@ -48,16 +45,13 @@ const Index = () => {
       <Header />
       
       {/* Main Content */}
-      <main className="flex-1 container max-w-7xl mx-auto px-4 py-8">
+      <main className="flex-1">
         {step === "welcome" && (
           <>
             <Hero onStartClick={handleStart} />
-            <CurriculumFramework />
-            <LearningPathway />
-            <XPShowcase />
             <Features />
+            <CurriculumFramework />
             <DashboardDemo />
-            <TeacherShowcase />
             <HowItWorks onStartClick={handleStart} />
             <Testimonials />
             <FAQ />
@@ -66,21 +60,25 @@ const Index = () => {
         )}
         
         {step === "login" && (
-          <LoginForm 
-            onSubmit={handleNameSubmit} 
-            onGoBack={() => setStep("welcome")} 
-            name={name}
-            setName={setName}
-          />
+          <div className="container max-w-7xl mx-auto px-4 py-8">
+            <LoginForm 
+              onSubmit={handleNameSubmit} 
+              onGoBack={() => setStep("welcome")} 
+              name={name}
+              setName={setName}
+            />
+          </div>
         )}
         
         {step === "avatar" && (
-          <AvatarForm
-            onComplete={handleComplete}
-            onGoBack={() => setStep("login")}
-            selectedAvatar={selectedAvatar}
-            setSelectedAvatar={setSelectedAvatar}
-          />
+          <div className="container max-w-7xl mx-auto px-4 py-8">
+            <AvatarForm
+              onComplete={handleComplete}
+              onGoBack={() => setStep("login")}
+              selectedAvatar={selectedAvatar}
+              setSelectedAvatar={setSelectedAvatar}
+            />
+          </div>
         )}
       </main>
       
