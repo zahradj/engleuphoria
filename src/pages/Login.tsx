@@ -8,19 +8,45 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
+import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [userType, setUserType] = useState<"student" | "teacher" | "admin">("student");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { languageText } = useLanguage();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     
-    if (email && password) {
+    // Basic validation
+    if (!email || !password) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    if (!email.includes("@")) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    // Simulate login process
+    setTimeout(() => {
       // Store user data in localStorage
       if (userType === "student") {
         localStorage.setItem("studentName", email.split("@")[0]);
@@ -28,8 +54,8 @@ const Login = () => {
         localStorage.setItem("userType", "student");
         
         toast({
-          title: "Login successful!",
-          description: "Welcome to your student dashboard",
+          title: "Welcome back!",
+          description: "Successfully logged into your student dashboard",
         });
         
         navigate("/student-dashboard");
@@ -38,8 +64,8 @@ const Login = () => {
         localStorage.setItem("userType", "teacher");
         
         toast({
-          title: "Login successful!",
-          description: "Welcome to your teacher dashboard",
+          title: "Welcome back!",
+          description: "Successfully logged into your teacher dashboard",
         });
         
         navigate("/teacher-dashboard");
@@ -48,63 +74,94 @@ const Login = () => {
         localStorage.setItem("userType", "admin");
         
         toast({
-          title: "Admin login successful!",
-          description: "Welcome to the admin dashboard",
+          title: "Admin access granted",
+          description: "Successfully logged into the admin dashboard",
         });
         
         navigate("/admin-dashboard");
-      } else {
-        navigate("/");
       }
-    } else {
-      toast({
-        title: "Please fill in all fields",
-        description: "Email and password are required",
-        variant: "destructive",
-      });
-    }
+      setIsLoading(false);
+    }, 1500);
   };
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
       <AnimatedBackground />
       
+      {/* Back to Home Button */}
+      <div className="absolute top-6 left-6 z-20">
+        <Button 
+          variant="ghost" 
+          onClick={() => navigate('/')}
+          className="text-gray-600 hover:text-purple-600"
+        >
+          ← Back to Home
+        </Button>
+      </div>
+      
       <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
-        <Card className="w-full max-w-md shadow-2xl bg-white/95 backdrop-blur-sm border-0">
-          <CardHeader className="text-center pb-2">
+        <Card className="w-full max-w-md shadow-2xl bg-white/95 backdrop-blur-sm border-0 animate-fade-in">
+          <CardHeader className="text-center pb-4">
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center">
+                <User className="h-8 w-8 text-white" />
+              </div>
+            </div>
             <CardTitle className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              {languageText.welcomeBack}
+              {languageText.welcomeBack || 'Welcome Back'}
             </CardTitle>
-            <p className="text-gray-600 mt-2">{languageText.signInToContinue}</p>
+            <p className="text-gray-600 mt-2">{languageText.signInToContinue || 'Sign in to continue your learning journey'}</p>
           </CardHeader>
+          
           <CardContent className="space-y-6">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">{languageText.email}</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder={languageText.enterYourEmail}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="h-12"
-                />
+                <Label htmlFor="email" className="text-sm font-medium">{languageText.email || 'Email'}</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder={languageText.enterYourEmail || 'Enter your email'}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="h-12 pl-10"
+                    required
+                  />
+                </div>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="password">{languageText.password}</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder={languageText.enterYourPassword}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="h-12"
-                />
+                <Label htmlFor="password" className="text-sm font-medium">{languageText.password || 'Password'}</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder={languageText.enterYourPassword || 'Enter your password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="h-12 pl-10 pr-10"
+                    required
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-12 px-3 hover:bg-transparent"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4 text-gray-400" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-gray-400" />
+                    )}
+                  </Button>
+                </div>
               </div>
 
               <div className="space-y-3">
-                <Label>{languageText.iAmA}</Label>
+                <Label className="text-sm font-medium">{languageText.iAmA || 'I am a'}</Label>
                 <div className="grid grid-cols-3 gap-2">
                   <Button
                     type="button"
@@ -112,7 +169,7 @@ const Login = () => {
                     onClick={() => setUserType("student")}
                     className="h-12 text-sm"
                   >
-                    {languageText.student}
+                    {languageText.student || 'Student'}
                   </Button>
                   <Button
                     type="button"
@@ -120,7 +177,7 @@ const Login = () => {
                     onClick={() => setUserType("teacher")}
                     className="h-12 text-sm"
                   >
-                    {languageText.teacher}
+                    {languageText.teacher || 'Teacher'}
                   </Button>
                   <Button
                     type="button"
@@ -133,16 +190,27 @@ const Login = () => {
                 </div>
               </div>
 
-              <Button type="submit" className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
-                {languageText.signIn}
+              <Button 
+                type="submit" 
+                className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 transition-all duration-200"
+                disabled={isLoading}
+              >
+                {isLoading ? "Signing in..." : (languageText.signIn || 'Sign In')}
               </Button>
             </form>
 
-            <div className="text-center">
-              <p className="text-gray-600">
-                {languageText.dontHaveAccount}{" "}
-                <Button variant="link" onClick={() => navigate("/signup")} className="p-0 h-auto text-purple-600 hover:text-purple-700">
-                  {languageText.signUp}
+            <div className="text-center space-y-2">
+              <Button variant="link" className="text-sm text-purple-600 hover:text-purple-700">
+                {languageText.forgotPassword || 'Forgot password?'}
+              </Button>
+              <p className="text-gray-600 text-sm">
+                {languageText.dontHaveAccount || "Don't have an account?"}{" "}
+                <Button 
+                  variant="link" 
+                  onClick={() => navigate("/signup")} 
+                  className="p-0 h-auto text-purple-600 hover:text-purple-700 font-semibold"
+                >
+                  {languageText.signUp || 'Sign Up'}
                 </Button>
               </p>
             </div>
