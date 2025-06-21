@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { UnifiedContentViewer } from "@/components/classroom/content/UnifiedContentViewer";
 import { OneOnOneGames } from "@/components/classroom/oneonone/OneOnOneGames";
-import { AIActivityGenerator } from "@/components/classroom/oneonone/games/AIActivityGenerator";
+import { UnifiedAIWorksheetGenerator } from "@/components/classroom/ai/UnifiedAIWorksheetGenerator";
 import { BookOpen, Users, Gamepad2, Brain } from "lucide-react";
 
 interface UnifiedCenterPanelProps {
@@ -22,12 +22,16 @@ export function UnifiedCenterPanel({
   onTabChange, 
   currentUser 
 }: UnifiedCenterPanelProps) {
-  const [generatedActivities, setGeneratedActivities] = useState<any[]>([]);
-  
   const isTeacher = currentUser.role === 'teacher';
 
-  const handleAIActivityGenerated = (activity: any) => {
-    setGeneratedActivities([activity, ...generatedActivities]);
+  const handleContentGenerated = (content: any) => {
+    console.log('Content generated:', content);
+    // Here you could integrate with whiteboard or other classroom tools
+  };
+
+  const handleInsertToWhiteboard = (content: string) => {
+    console.log('Insert to whiteboard:', content);
+    // Here you would integrate with the actual whiteboard component
   };
 
   return (
@@ -37,7 +41,7 @@ export function UnifiedCenterPanel({
           <TabsList className="grid w-full grid-cols-4 mb-4">
             <TabsTrigger value="ai-worksheet" className="flex items-center gap-2">
               <Brain size={16} />
-              <span className="hidden sm:inline">AI Worksheet</span>
+              <span className="hidden sm:inline">AI Generator</span>
             </TabsTrigger>
             <TabsTrigger value="lesson" className="flex items-center gap-2">
               <BookOpen size={16} />
@@ -59,7 +63,7 @@ export function UnifiedCenterPanel({
             <div className="h-full flex flex-col">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <h3 className="text-lg font-semibold">AI Worksheet & Material Generator</h3>
+                  <h3 className="text-lg font-semibold">AI Content Generator</h3>
                   <Badge variant="secondary" className="bg-purple-100 text-purple-700">
                     AI Powered
                   </Badge>
@@ -71,25 +75,11 @@ export function UnifiedCenterPanel({
                 )}
               </div>
               
-              <div className="flex-1 overflow-y-auto">
-                <AIActivityGenerator onActivityGenerated={handleAIActivityGenerated} />
-                
-                {generatedActivities.length > 0 && (
-                  <div className="mt-6">
-                    <h4 className="text-md font-semibold mb-3">Generated Materials</h4>
-                    <div className="space-y-3">
-                      {generatedActivities.map((activity, index) => (
-                        <Card key={index} className="p-4 border border-purple-200">
-                          <h5 className="font-medium text-purple-800">{activity.title}</h5>
-                          <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
-                          <Badge variant="secondary" className="mt-2 text-xs">
-                            {activity.type}
-                          </Badge>
-                        </Card>
-                      ))}
-                    </div>
-                  </div>
-                )}
+              <div className="flex-1 overflow-hidden">
+                <UnifiedAIWorksheetGenerator 
+                  onContentGenerated={handleContentGenerated}
+                  onInsertToWhiteboard={handleInsertToWhiteboard}
+                />
               </div>
             </div>
           </TabsContent>
