@@ -103,7 +103,7 @@ export function LevelDetails({ level }: LevelDetailsProps) {
       </div>
 
       <LevelTabs 
-        level={level}
+        level={convertToCurriculumLevel(level)}
         materials={materials}
         isLoading={isLoading}
         onMaterialUpdate={loadMaterials}
