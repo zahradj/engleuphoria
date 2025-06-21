@@ -102,29 +102,29 @@ export const regionalPricingPlans: RegionalPricingPlan[] = [
     paymentMethods: ["BaridiMob", "CIB"]
   },
   
-  // International Plans (USD)
+  // International Plans (EUR)
   {
     id: "international-trial",
     name: "Trial Lesson",
     type: "one_time",
     region: "international",
     price: 5,
-    currency: "USD",
+    currency: "EUR",
     description: "Try our platform with a single lesson",
     features: {
       lessons: 1,
       progress_reports: true
     },
     is_active: true,
-    paymentMethods: ["Stripe", "PayPal"]
+    paymentMethods: ["Bank Transfer", "SEPA"]
   },
   {
     id: "international-monthly",
     name: "Monthly Plan",
     type: "subscription",
     region: "international",
-    price: 45,
-    currency: "USD",
+    price: 42,
+    currency: "EUR",
     interval: "month",
     description: "Native-level certified teacher",
     features: {
@@ -135,15 +135,15 @@ export const regionalPricingPlans: RegionalPricingPlan[] = [
       certificate: true
     },
     is_active: true,
-    paymentMethods: ["Stripe", "PayPal"]
+    paymentMethods: ["Bank Transfer", "SEPA"]
   },
   {
     id: "international-standard",
     name: "Standard Plan",
     type: "subscription",
     region: "international",
-    price: 85,
-    currency: "USD",
+    price: 78,
+    currency: "EUR",
     interval: "month",
     description: "Enhanced learning with priority support",
     features: {
@@ -156,15 +156,15 @@ export const regionalPricingPlans: RegionalPricingPlan[] = [
     },
     is_active: true,
     popular: true,
-    paymentMethods: ["Stripe", "PayPal"]
+    paymentMethods: ["Bank Transfer", "SEPA"]
   },
   {
     id: "international-premium",
     name: "Power Learner",
     type: "subscription",
     region: "international",
-    price: 120,
-    currency: "USD",
+    price: 110,
+    currency: "EUR",
     interval: "month",
     description: "Progress report + badges + unlimited access",
     features: {
@@ -177,7 +177,7 @@ export const regionalPricingPlans: RegionalPricingPlan[] = [
       certificate: true
     },
     is_active: true,
-    paymentMethods: ["Stripe", "PayPal"]
+    paymentMethods: ["Bank Transfer", "SEPA"]
   }
 ];
 

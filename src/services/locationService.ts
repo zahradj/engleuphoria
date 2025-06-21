@@ -19,7 +19,7 @@ export const detectUserLocation = async (): Promise<LocationInfo> => {
       country: data.country_name || 'Unknown',
       countryCode: data.country_code || 'XX',
       region: isAlgeria ? 'algeria' : 'international',
-      currency: isAlgeria ? 'DZD' : 'USD',
+      currency: isAlgeria ? 'DZD' : 'EUR',
       detected: true
     };
   } catch (error) {
@@ -28,7 +28,7 @@ export const detectUserLocation = async (): Promise<LocationInfo> => {
       country: 'Unknown',
       countryCode: 'XX',
       region: 'international',
-      currency: 'USD',
+      currency: 'EUR',
       detected: false
     };
   }
@@ -46,10 +46,17 @@ export const getRegionConfig = (region: 'algeria' | 'international') => {
   }
   
   return {
-    flag: '🌍',
+    flag: '🇪🇺',
     name: 'International',
-    currency: 'USD',
-    paymentMethods: ['Stripe', 'PayPal', 'Credit Card'],
-    description: 'International pricing'
+    currency: 'EUR',
+    paymentMethods: ['Bank Transfer', 'SEPA', 'Wire Transfer'],
+    description: 'International pricing in Euro',
+    bankingInfo: {
+      bankName: 'Banking Circle S.A.',
+      bankAddress: '2, Boulevard de la Foire L-1528 LUXEMBOURG',
+      iban: 'LU574080000024260839',
+      bic: 'BCIRLULL',
+      beneficiaryName: 'Fatima zahra Djaanine'
+    }
   };
 };

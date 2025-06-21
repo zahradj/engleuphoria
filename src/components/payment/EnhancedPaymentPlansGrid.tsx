@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -48,14 +47,11 @@ export const EnhancedPaymentPlansGrid: React.FC<EnhancedPaymentPlansGridProps> =
     setProcessingPlan(plan.id);
     
     try {
-      if (selectedRegion === 'international' && gateway === 'stripe') {
+      if (selectedRegion === 'international' && gateway === 'bank_transfer') {
         toast({
-          title: "Redirecting to Payment",
-          description: "Opening Stripe checkout in a new tab...",
+          title: "Bank Transfer Instructions",
+          description: "Please use the banking information provided to complete your payment.",
         });
-        setTimeout(() => {
-          window.open('https://checkout.stripe.com/demo', '_blank');
-        }, 1000);
       } else if (selectedRegion === 'algeria') {
         toast({
           title: "Payment Processing",
@@ -63,9 +59,8 @@ export const EnhancedPaymentPlansGrid: React.FC<EnhancedPaymentPlansGridProps> =
         });
       } else {
         toast({
-          title: "Coming Soon",
-          description: `${gateway.toUpperCase()} payment integration will be available soon!`,
-          variant: "destructive"
+          title: "Payment Instructions",
+          description: `${gateway.toUpperCase()} payment - please follow the banking instructions above.`,
         });
       }
       
@@ -104,6 +99,9 @@ export const EnhancedPaymentPlansGrid: React.FC<EnhancedPaymentPlansGridProps> =
     if (currency === 'DZD') {
       return `${price.toLocaleString()} DA`;
     }
+    if (currency === 'EUR') {
+      return `€${price}`;
+    }
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: currency,
@@ -139,20 +137,20 @@ export const EnhancedPaymentPlansGrid: React.FC<EnhancedPaymentPlansGridProps> =
     return (
       <div className="space-y-2">
         <Button 
-          onClick={() => handlePlanSelect(plan, 'stripe')}
+          onClick={() => handlePlanSelect(plan, 'bank_transfer')}
           disabled={processingPlan === plan.id}
           className={`w-full ${plan.popular ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-800 hover:bg-gray-900'}`}
         >
-          <CreditCard className="w-4 h-4 mr-2" />
-          {processingPlan === plan.id ? "Processing..." : "Pay with Card"}
+          <Building2 className="w-4 h-4 mr-2" />
+          {processingPlan === plan.id ? "Processing..." : "Bank Transfer"}
         </Button>
         <Button 
           variant="outline"
-          onClick={() => handlePlanSelect(plan, 'paypal')}
+          onClick={() => handlePlanSelect(plan, 'sepa')}
           disabled={processingPlan === plan.id}
           className="w-full"
         >
-          PayPal
+          SEPA Transfer
         </Button>
       </div>
     );
