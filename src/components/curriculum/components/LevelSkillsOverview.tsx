@@ -55,7 +55,11 @@ export function LevelSkillsOverview({ level, materials }: LevelSkillsOverviewPro
     return colors[color as keyof typeof colors] || colors.blue;
   };
 
+  // Convert skills array to simple strings for rendering
   const levelSkills = level.skills || [];
+  const skillNames = levelSkills.map(skill => 
+    typeof skill === 'string' ? skill : skill.name || 'Unknown Skill'
+  );
 
   return (
     <div className="space-y-6">
@@ -63,12 +67,12 @@ export function LevelSkillsOverview({ level, materials }: LevelSkillsOverviewPro
         <CardHeader>
           <CardTitle>Skills Focus for {level.name}</CardTitle>
           <p className="text-gray-600">
-            This level focuses on {levelSkills.length} core skills appropriate for {level.ageGroup}
+            This level focuses on {skillNames.length} core skills appropriate for {level.ageGroup}
           </p>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {levelSkills.map((skill, index) => (
+            {skillNames.map((skill, index) => (
               <div key={index} className="p-3 bg-gray-50 rounded-lg text-center">
                 <div className="font-medium text-sm">{skill}</div>
               </div>
