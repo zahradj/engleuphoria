@@ -105,8 +105,15 @@ const ForTeachers = () => {
       <Header />
       
       {/* Hero Section */}
-      <section className="py-16 px-4 bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50">
-        <div className="container mx-auto max-w-6xl">
+      <section className="py-16 px-4 bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50 relative overflow-hidden">
+        {/* Background effects similar to home page */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -z-10 top-1/4 left-1/4 w-[300px] h-[300px] bg-emerald/20 rounded-full blur-3xl animate-pulse opacity-60"></div>
+          <div className="absolute -z-10 bottom-1/4 right-1/4 w-[250px] h-[250px] bg-blue/20 rounded-full blur-3xl animate-pulse opacity-60 animation-delay-1000"></div>
+          <div className="absolute -z-10 top-1/3 right-1/3 w-[200px] h-[200px] bg-purple/20 rounded-full blur-3xl animate-pulse opacity-60 animation-delay-500"></div>
+        </div>
+        
+        <div className="container mx-auto max-w-6xl relative z-10">
           <div className="text-center mb-12">
             <Badge className="mb-4 bg-emerald-100 text-emerald-700 border-emerald-200">
               For Teachers
@@ -171,8 +178,15 @@ const ForTeachers = () => {
       </section>
 
       {/* Teaching Features */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4 max-w-6xl">
+      <section className="py-20 bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50 relative overflow-hidden">
+        {/* Background effects */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -z-10 top-1/4 left-1/4 w-[300px] h-[300px] bg-emerald/20 rounded-full blur-3xl animate-pulse opacity-60"></div>
+          <div className="absolute -z-10 bottom-1/4 right-1/4 w-[250px] h-[250px] bg-blue/20 rounded-full blur-3xl animate-pulse opacity-60 animation-delay-1000"></div>
+          <div className="absolute -z-10 top-1/3 right-1/3 w-[200px] h-[200px] bg-purple/20 rounded-full blur-3xl animate-pulse opacity-60 animation-delay-500"></div>
+        </div>
+        
+        <div className="container mx-auto px-4 max-w-6xl relative z-10">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
               World-Class Teaching Tools
@@ -231,20 +245,37 @@ const ForTeachers = () => {
                 </Button>
               </div>
             </div>
-            <div className="relative">
-              <img 
-                src="/lovable-uploads/27f0b41c-34f2-4a8e-a08b-9a755fe74f97.png" 
-                alt="Teacher teaching online" 
-                className="w-full h-auto rounded-2xl shadow-xl"
-              />
+            <div className="relative flex justify-center lg:justify-end">
+              {/* Background effects for the image */}
+              <div className="absolute -z-10 top-1/4 left-1/4 w-[110%] h-[110%] bg-emerald/30 rounded-full blur-3xl animate-pulse-subtle opacity-70"></div>
+              <div className="absolute -z-10 bottom-1/4 right-1/4 w-[90%] h-[90%] bg-blue/25 rounded-full blur-3xl animate-pulse-subtle opacity-60 animation-delay-300"></div>
+              <div className="absolute -z-10 top-1/3 right-1/3 w-[80%] h-[80%] bg-purple/20 rounded-full blur-3xl animate-pulse-subtle opacity-50 animation-delay-700"></div>
+              
+              <div className="relative transform hover:scale-105 transition-transform duration-500">
+                <img 
+                  src="/lovable-uploads/4bb5e9c7-7041-416e-a2a5-b7855a69d88c.png" 
+                  alt="Teacher conducting online lessons with students from around the world"
+                  className="w-full max-w-2xl h-auto object-contain drop-shadow-2xl scale-125"
+                />
+                <div className="absolute -bottom-6 -left-6 bg-emerald-600 text-white p-4 rounded-lg shadow-lg">
+                  <div className="text-2xl font-bold">95%</div>
+                  <div className="text-sm">Teacher Satisfaction</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Testimonials */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4 max-w-6xl">
+      <section className="py-20 bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50 relative overflow-hidden">
+        {/* Background effects */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -z-10 top-1/4 left-1/4 w-[300px] h-[300px] bg-emerald/20 rounded-full blur-3xl animate-pulse opacity-60"></div>
+          <div className="absolute -z-10 bottom-1/4 right-1/4 w-[250px] h-[250px] bg-blue/20 rounded-full blur-3xl animate-pulse opacity-60 animation-delay-1000"></div>
+        </div>
+        
+        <div className="container mx-auto px-4 max-w-6xl relative z-10">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
               What Our Teachers Say
