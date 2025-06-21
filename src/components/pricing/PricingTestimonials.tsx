@@ -12,7 +12,7 @@ export const PricingTestimonials = () => {
       rating: 5
     },
     {
-      name: "Fatima Zahra",
+      name: "Sarah Johnson",
       location: "Oran, Algeria",
       text: "Excellent value for money. The teachers are professional and the platform is easy to use.",
       rating: 5

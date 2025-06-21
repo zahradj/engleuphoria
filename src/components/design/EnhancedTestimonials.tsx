@@ -25,7 +25,7 @@ export const EnhancedTestimonials = () => {
       achievement: "Career Advancement"
     },
     {
-      name: "Fatima Zerrouki",
+      name: "Salma Zerrouki",
       role: "High School Student",
       location: "Constantine, Algeria",
       image: "/avatars/unicorn.svg",
