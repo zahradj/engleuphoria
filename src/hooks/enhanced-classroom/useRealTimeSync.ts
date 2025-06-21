@@ -27,22 +27,31 @@ export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncPro
 
   const [isConnected, setIsConnected] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
+  const hasShownConnectedToast = useRef(false);
   const { toast } = useToast();
 
   const connectToSync = useCallback(() => {
+    // Prevent multiple connection attempts
+    if (isConnected || wsRef.current) {
+      return;
+    }
+
     try {
-      // Simulate WebSocket connection for real-time sync
       console.log('🔄 Connecting to sync service...');
       
       // For demo, simulate connection success
       setTimeout(() => {
-        setIsConnected(true);
-        console.log('🔄 Sync service connected');
-        
-        toast({
-          title: "Sync Connected",
-          description: "Real-time synchronization active",
-        });
+        if (!hasShownConnectedToast.current) {
+          setIsConnected(true);
+          console.log('🔄 Sync service connected');
+          
+          toast({
+            title: "Sync Connected",
+            description: "Real-time synchronization active",
+          });
+          
+          hasShownConnectedToast.current = true;
+        }
       }, 1000);
 
     } catch (error) {
@@ -53,7 +62,7 @@ export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncPro
         variant: "destructive"
       });
     }
-  }, [toast]);
+  }, [toast, isConnected]);
 
   const broadcastStateChange = useCallback((key: keyof SyncState, value: any) => {
     if (userRole !== 'teacher') {
@@ -92,6 +101,7 @@ export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncPro
       wsRef.current = null;
     }
     setIsConnected(false);
+    hasShownConnectedToast.current = false;
     console.log('🔄 Sync service disconnected');
   }, []);
 

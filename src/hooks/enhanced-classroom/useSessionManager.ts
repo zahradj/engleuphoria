@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
 
 interface SessionData {
@@ -25,6 +25,7 @@ interface UseSessionManagerProps {
 export function useSessionManager({ roomId, userId, userRole }: UseSessionManagerProps) {
   const [session, setSession] = useState<SessionData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const hasShownJoinedToast = useRef(false);
   const { toast } = useToast();
 
   const createSession = useCallback(async () => {
@@ -34,6 +35,11 @@ export function useSessionManager({ roomId, userId, userRole }: UseSessionManage
         description: "Only teachers can create sessions",
         variant: "destructive"
       });
+      return;
+    }
+
+    // Prevent duplicate session creation
+    if (session || isLoading) {
       return;
     }
 
@@ -56,10 +62,13 @@ export function useSessionManager({ roomId, userId, userRole }: UseSessionManage
       setSession(newSession);
       console.log('📋 Session created:', newSession.id);
       
-      toast({
-        title: "Session Created",
-        description: `Room ${roomId} is ready for students`,
-      });
+      if (!hasShownJoinedToast.current) {
+        toast({
+          title: "Session Created",
+          description: `Room ${roomId} is ready for students`,
+        });
+        hasShownJoinedToast.current = true;
+      }
 
     } catch (error) {
       toast({
@@ -70,9 +79,14 @@ export function useSessionManager({ roomId, userId, userRole }: UseSessionManage
     } finally {
       setIsLoading(false);
     }
-  }, [roomId, userId, userRole, toast]);
+  }, [roomId, userId, userRole, toast, session, isLoading]);
 
   const joinSession = useCallback(async () => {
+    // Prevent duplicate session joining
+    if (session || isLoading) {
+      return;
+    }
+
     setIsLoading(true);
     try {
       // Simulate finding existing session or creating one
@@ -93,10 +107,13 @@ export function useSessionManager({ roomId, userId, userRole }: UseSessionManage
       setSession(existingSession);
       console.log('📋 Session joined:', existingSession.id);
       
-      toast({
-        title: "Session Joined",
-        description: `Welcome to room ${roomId}`,
-      });
+      if (!hasShownJoinedToast.current) {
+        toast({
+          title: "Session Joined",
+          description: `Welcome to room ${roomId}`,
+        });
+        hasShownJoinedToast.current = true;
+      }
 
     } catch (error) {
       toast({
@@ -107,11 +124,12 @@ export function useSessionManager({ roomId, userId, userRole }: UseSessionManage
     } finally {
       setIsLoading(false);
     }
-  }, [roomId, userId, userRole, toast]);
+  }, [roomId, userId, userRole, toast, session, isLoading]);
 
   const leaveSession = useCallback(() => {
     if (session) {
       setSession(null);
+      hasShownJoinedToast.current = false;
       console.log('📋 Session left');
       
       toast({
