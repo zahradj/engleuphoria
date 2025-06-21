@@ -119,8 +119,15 @@ const AboutUs = () => {
       </section>
 
       {/* Mission Section */}
-      <section className="py-16 px-4 bg-white">
-        <div className="container max-w-6xl mx-auto">
+      <section className="py-16 px-4 bg-white relative overflow-hidden">
+        {/* Background effects similar to homepage */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -z-10 top-1/4 left-1/4 w-[300px] h-[300px] bg-purple/20 rounded-full blur-3xl animate-pulse opacity-60"></div>
+          <div className="absolute -z-10 bottom-1/4 right-1/4 w-[250px] h-[250px] bg-blue/20 rounded-full blur-3xl animate-pulse opacity-60 animation-delay-1000"></div>
+          <div className="absolute -z-10 top-1/3 right-1/3 w-[200px] h-[200px] bg-emerald/20 rounded-full blur-3xl animate-pulse opacity-60 animation-delay-500"></div>
+        </div>
+        
+        <div className="container max-w-6xl mx-auto relative z-10">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <div className="flex items-center mb-4">
@@ -156,15 +163,22 @@ const AboutUs = () => {
                 </div>
               </div>
             </div>
-            <div className="relative">
-              <img 
-                src="/lovable-uploads/af8673d3-cab8-4146-877f-42241ec01b4b.png" 
-                alt="Educational illustration with books, graduation cap, and learning elements"
-                className="rounded-lg shadow-xl"
-              />
-              <div className="absolute -bottom-6 -left-6 bg-purple-600 text-white p-4 rounded-lg shadow-lg">
-                <div className="text-2xl font-bold">5+</div>
-                <div className="text-sm">Years of Excellence</div>
+            <div className="relative flex justify-center lg:justify-end">
+              {/* Background effects for the image */}
+              <div className="absolute -z-10 top-1/4 left-1/4 w-[110%] h-[110%] bg-purple/30 rounded-full blur-3xl animate-pulse-subtle opacity-70"></div>
+              <div className="absolute -z-10 bottom-1/4 right-1/4 w-[90%] h-[90%] bg-blue/25 rounded-full blur-3xl animate-pulse-subtle opacity-60 animation-delay-300"></div>
+              <div className="absolute -z-10 top-1/3 right-1/3 w-[80%] h-[80%] bg-emerald/20 rounded-full blur-3xl animate-pulse-subtle opacity-50 animation-delay-700"></div>
+              
+              <div className="relative transform hover:scale-105 transition-transform duration-500">
+                <img 
+                  src="/lovable-uploads/1be86621-46cd-4f3c-91da-26cae7b49cb3.png" 
+                  alt="3D educational illustration with books, graduation cap, globe, and learning elements"
+                  className="w-full max-w-lg h-auto object-contain drop-shadow-2xl scale-110"
+                />
+                <div className="absolute -bottom-6 -left-6 bg-purple-600 text-white p-4 rounded-lg shadow-lg">
+                  <div className="text-2xl font-bold">5+</div>
+                  <div className="text-sm">Years of Excellence</div>
+                </div>
               </div>
             </div>
           </div>
