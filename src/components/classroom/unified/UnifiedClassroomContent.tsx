@@ -41,14 +41,14 @@ export function UnifiedClassroomContent({
       <div className="grid grid-cols-12 gap-4 h-[calc(100vh-6rem)]">
         
         {/* Left Section - Teacher Video + Reward System/Progress Panels */}
-        <div className="col-span-3 flex flex-col gap-4">
+        <div className="col-span-3 flex flex-col gap-4 min-h-0">
           {/* Teacher Video Section - Fixed height for consistency */}
-          <div className="h-[300px]">
+          <div className="h-[300px] flex-shrink-0">
             <UnifiedVideoSection currentUser={currentUser} />
           </div>
           
           {/* Bottom Left Panels - Reward System for Teachers, Progress for Students */}
-          <div className="flex-1">
+          <div className="flex-1 min-h-0">
             <UnifiedLeftSidebar 
               studentXP={studentXP}
               currentUser={currentUser}
@@ -58,7 +58,7 @@ export function UnifiedClassroomContent({
         </div>
 
         {/* Center Panel - Main Content (Whiteboard, Activities, etc.) */}
-        <div className="col-span-6">
+        <div className="col-span-6 min-h-0">
           <UnifiedCenterPanel
             activeCenterTab={activeCenterTab}
             onTabChange={setActiveCenterTab}
@@ -67,7 +67,7 @@ export function UnifiedClassroomContent({
         </div>
 
         {/* Right Panel - Student Video + Student Info & Chat */}
-        <div className="col-span-3">
+        <div className="col-span-3 min-h-0">
           <UnifiedRightPanel
             studentName="Emma"
             studentXP={studentXP}

@@ -35,9 +35,9 @@ export function UnifiedCenterPanel({
   };
 
   return (
-    <Card className="h-full shadow-lg border-0 bg-white/95 backdrop-blur-sm">
+    <Card className="h-full shadow-lg border-0 bg-white/95 backdrop-blur-sm flex flex-col">
       <Tabs value={activeCenterTab} onValueChange={onTabChange} className="h-full flex flex-col">
-        <div className="p-4 pb-0">
+        <div className="p-4 pb-0 flex-shrink-0">
           <TabsList className="grid w-full grid-cols-4 mb-4">
             <TabsTrigger value="ai-worksheet" className="flex items-center gap-2">
               <Brain size={16} />
@@ -58,9 +58,9 @@ export function UnifiedCenterPanel({
           </TabsList>
         </div>
 
-        <div className="flex-1 p-4 pt-0 overflow-hidden">
-          <TabsContent value="ai-worksheet" className="h-full mt-0">
-            <div className="h-full flex flex-col">
+        <div className="flex-1 min-h-0 overflow-hidden">
+          <TabsContent value="ai-worksheet" className="h-full m-0 data-[state=active]:flex data-[state=active]:flex-col">
+            <div className="p-4 pt-0 flex-shrink-0">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <h3 className="text-lg font-semibold">AI Content Generator</h3>
@@ -74,28 +74,28 @@ export function UnifiedCenterPanel({
                   </Badge>
                 )}
               </div>
-              
-              <div className="flex-1 overflow-hidden">
-                <UnifiedAIWorksheetGenerator 
-                  onContentGenerated={handleContentGenerated}
-                  onInsertToWhiteboard={handleInsertToWhiteboard}
-                />
-              </div>
+            </div>
+            
+            <div className="flex-1 min-h-0 px-4 pb-4">
+              <UnifiedAIWorksheetGenerator 
+                onContentGenerated={handleContentGenerated}
+                onInsertToWhiteboard={handleInsertToWhiteboard}
+              />
             </div>
           </TabsContent>
 
-          <TabsContent value="lesson" className="h-full mt-0">
+          <TabsContent value="lesson" className="h-full m-0 p-4 overflow-y-auto">
             <UnifiedContentViewer 
               isTeacher={isTeacher}
               studentName={currentUser.name}
             />
           </TabsContent>
 
-          <TabsContent value="activities" className="h-full mt-0">
+          <TabsContent value="activities" className="h-full m-0 p-4 overflow-y-auto">
             <OneOnOneGames />
           </TabsContent>
 
-          <TabsContent value="collaboration" className="h-full mt-0">
+          <TabsContent value="collaboration" className="h-full m-0 p-4 overflow-y-auto">
             <div className="h-full flex items-center justify-center">
               <div className="text-center">
                 <Users size={48} className="mx-auto mb-4 text-gray-400" />

@@ -8,7 +8,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Sparkles, 
   FileText, 
@@ -111,273 +110,274 @@ export function UnifiedAIWorksheetGenerator({
   const selectedContentType = contentTypes.find(type => type.value === contentType);
 
   return (
-    <div className="h-full flex flex-col">
-      <CardHeader className="pb-3 flex-shrink-0">
+    <div className="h-full flex flex-col bg-white rounded-lg">
+      {/* Header */}
+      <div className="p-4 border-b flex-shrink-0">
         <div className="flex items-center gap-2">
           <Sparkles className="text-purple-600" size={24} />
-          <CardTitle className="text-xl">AI Content Generator</CardTitle>
+          <h2 className="text-xl font-semibold">AI Content Generator</h2>
           {isDemoMode && (
             <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-300">
               Demo Mode
             </Badge>
           )}
         </div>
-      </CardHeader>
+      </div>
 
-      <CardContent className="flex-1 overflow-hidden">
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'generate' | 'library')} className="h-full flex flex-col">
-          <TabsList className="grid w-full grid-cols-2 mb-4 flex-shrink-0">
-            <TabsTrigger value="generate" className="flex items-center gap-2">
+      {/* Tabs */}
+      <div className="flex-1 min-h-0 flex flex-col">
+        <div className="px-4 pt-4 flex-shrink-0">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="generate" onClick={() => setActiveTab('generate')} className="flex items-center gap-2">
               <Sparkles size={16} />
               Generate
             </TabsTrigger>
-            <TabsTrigger value="library" className="flex items-center gap-2">
+            <TabsTrigger value="library" onClick={() => setActiveTab('library')} className="flex items-center gap-2">
               <Library size={16} />
               Library ({contentLibrary.length})
             </TabsTrigger>
           </TabsList>
+        </div>
 
-          <div className="flex-1 overflow-hidden">
-            <TabsContent value="generate" className="h-full mt-0">
-              <ScrollArea className="h-full">
-                <div className="space-y-4 pr-4">
-                  {isDemoMode && (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                      <div className="flex items-start gap-2">
-                        <AlertCircle size={16} className="text-yellow-600 mt-0.5" />
-                        <div className="text-sm text-yellow-700">
-                          <p className="font-medium">Demo Mode Active</p>
-                          <p>Generated content will be enhanced mock data. Connect to Supabase for AI-powered generation.</p>
-                        </div>
+        {/* Tab Content */}
+        <div className="flex-1 min-h-0 p-4">
+          {activeTab === 'generate' && (
+            <div className="h-full overflow-y-auto">
+              <div className="space-y-4">
+                {isDemoMode && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <div className="flex items-start gap-2">
+                      <AlertCircle size={16} className="text-yellow-600 mt-0.5" />
+                      <div className="text-sm text-yellow-700">
+                        <p className="font-medium">Demo Mode Active</p>
+                        <p>Generated content will be enhanced mock data. Connect to Supabase for AI-powered generation.</p>
                       </div>
                     </div>
+                  </div>
+                )}
+
+                {/* Content Type Selection */}
+                <div>
+                  <Label className="text-sm font-medium">Content Type</Label>
+                  <div className="grid grid-cols-2 gap-2 mt-2">
+                    {contentTypes.map((type) => {
+                      const IconComponent = type.icon;
+                      return (
+                        <Button
+                          key={type.value}
+                          variant={contentType === type.value ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setContentType(type.value as any)}
+                          className="h-auto p-3 flex flex-col items-center text-xs"
+                        >
+                          <IconComponent size={16} className="mb-1" />
+                          <span className="font-medium">{type.label}</span>
+                        </Button>
+                      );
+                    })}
+                  </div>
+                  {selectedContentType && (
+                    <p className="text-xs text-gray-600 mt-1">{selectedContentType.description}</p>
                   )}
+                </div>
 
-                  {/* Content Type Selection */}
+                {/* Topic and Level */}
+                <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <Label className="text-sm font-medium">Content Type</Label>
-                    <div className="grid grid-cols-2 gap-2 mt-2">
-                      {contentTypes.map((type) => {
-                        const IconComponent = type.icon;
-                        return (
-                          <Button
-                            key={type.value}
-                            variant={contentType === type.value ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => setContentType(type.value as any)}
-                            className="h-auto p-3 flex flex-col items-center text-xs"
-                          >
-                            <IconComponent size={16} className="mb-1" />
-                            <span className="font-medium">{type.label}</span>
-                          </Button>
-                        );
-                      })}
-                    </div>
-                    {selectedContentType && (
-                      <p className="text-xs text-gray-600 mt-1">{selectedContentType.description}</p>
-                    )}
-                  </div>
-
-                  {/* Topic and Level */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <Label htmlFor="topic">Topic *</Label>
-                      <Input
-                        id="topic"
-                        value={topic}
-                        onChange={(e) => setTopic(e.target.value)}
-                        placeholder="e.g., Animals, Food, Travel"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="level">Level *</Label>
-                      <Select value={level} onValueChange={(value) => setLevel(value as any)}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {levels.map((levelOption) => (
-                            <SelectItem key={levelOption.value} value={levelOption.value}>
-                              {levelOption.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  {/* Duration */}
-                  <div>
-                    <Label htmlFor="duration">Duration (minutes)</Label>
+                    <Label htmlFor="topic">Topic *</Label>
                     <Input
-                      id="duration"
-                      type="number"
-                      value={duration}
-                      onChange={(e) => setDuration(e.target.value)}
-                      min="10"
-                      max="120"
+                      id="topic"
+                      value={topic}
+                      onChange={(e) => setTopic(e.target.value)}
+                      placeholder="e.g., Animals, Food, Travel"
                     />
                   </div>
-
-                  {/* Learning Objectives */}
                   <div>
-                    <Label>Learning Objectives</Label>
-                    <div className="flex gap-2 mt-1">
-                      <Input
-                        value={newObjective}
-                        onChange={(e) => setNewObjective(e.target.value)}
-                        placeholder="Add learning objective..."
-                        onKeyPress={(e) => e.key === 'Enter' && addLearningObjective()}
-                      />
-                      <Button size="sm" onClick={addLearningObjective}>Add</Button>
-                    </div>
-                    {learningObjectives.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {learningObjectives.map((objective, index) => (
-                          <Badge
-                            key={index}
-                            variant="secondary"
-                            className="cursor-pointer"
-                            onClick={() => removeLearningObjective(index)}
-                          >
-                            {objective} ×
-                          </Badge>
+                    <Label htmlFor="level">Level *</Label>
+                    <Select value={level} onValueChange={(value) => setLevel(value as any)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {levels.map((levelOption) => (
+                          <SelectItem key={levelOption.value} value={levelOption.value}>
+                            {levelOption.label}
+                          </SelectItem>
                         ))}
-                      </div>
-                    )}
+                      </SelectContent>
+                    </Select>
                   </div>
-
-                  {/* Specific Requirements */}
-                  <div>
-                    <Label htmlFor="requirements">Specific Requirements</Label>
-                    <Textarea
-                      id="requirements"
-                      value={specificRequirements}
-                      onChange={(e) => setSpecificRequirements(e.target.value)}
-                      placeholder="Any specific requirements or focus areas..."
-                      rows={3}
-                    />
-                  </div>
-
-                  {/* Generate Button */}
-                  <Button
-                    onClick={handleGenerate}
-                    disabled={isGenerating || !topic.trim()}
-                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                    size="lg"
-                  >
-                    {isGenerating ? (
-                      <>
-                        <Loader2 size={16} className="mr-2 animate-spin" />
-                        Generating {selectedContentType?.label}...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles size={16} className="mr-2" />
-                        Generate {selectedContentType?.label}
-                      </>
-                    )}
-                  </Button>
                 </div>
-              </ScrollArea>
-            </TabsContent>
 
-            <TabsContent value="library" className="h-full mt-0">
-              <div className="h-full flex flex-col">
-                <div className="flex items-center justify-between mb-4 flex-shrink-0">
-                  <h3 className="font-medium">Generated Content</h3>
-                  {contentLibrary.length > 0 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={clearContentLibrary}
-                    >
-                      Clear All
-                    </Button>
+                {/* Duration */}
+                <div>
+                  <Label htmlFor="duration">Duration (minutes)</Label>
+                  <Input
+                    id="duration"
+                    type="number"
+                    value={duration}
+                    onChange={(e) => setDuration(e.target.value)}
+                    min="10"
+                    max="120"
+                  />
+                </div>
+
+                {/* Learning Objectives */}
+                <div>
+                  <Label>Learning Objectives</Label>
+                  <div className="flex gap-2 mt-1">
+                    <Input
+                      value={newObjective}
+                      onChange={(e) => setNewObjective(e.target.value)}
+                      placeholder="Add learning objective..."
+                      onKeyPress={(e) => e.key === 'Enter' && addLearningObjective()}
+                    />
+                    <Button size="sm" onClick={addLearningObjective}>Add</Button>
+                  </div>
+                  {learningObjectives.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {learningObjectives.map((objective, index) => (
+                        <Badge
+                          key={index}
+                          variant="secondary"
+                          className="cursor-pointer"
+                          onClick={() => removeLearningObjective(index)}
+                        >
+                          {objective} ×
+                        </Badge>
+                      ))}
+                    </div>
                   )}
                 </div>
 
-                <div className="flex-1 overflow-hidden">
-                  {contentLibrary.length === 0 ? (
-                    <div className="h-full flex items-center justify-center">
-                      <div className="text-center py-12 text-gray-500">
-                        <Sparkles size={48} className="mx-auto mb-3 text-gray-300" />
-                        <p className="font-medium">No content generated yet</p>
-                        <p className="text-sm">Switch to Generate tab to create your first content</p>
-                      </div>
-                    </div>
+                {/* Specific Requirements */}
+                <div>
+                  <Label htmlFor="requirements">Specific Requirements</Label>
+                  <Textarea
+                    id="requirements"
+                    value={specificRequirements}
+                    onChange={(e) => setSpecificRequirements(e.target.value)}
+                    placeholder="Any specific requirements or focus areas..."
+                    rows={3}
+                  />
+                </div>
+
+                {/* Generate Button */}
+                <Button
+                  onClick={handleGenerate}
+                  disabled={isGenerating || !topic.trim()}
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                  size="lg"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 size={16} className="mr-2 animate-spin" />
+                      Generating {selectedContentType?.label}...
+                    </>
                   ) : (
-                    <ScrollArea className="h-full">
-                      <div className="space-y-3 pr-4">
-                        {contentLibrary.map((item) => (
-                          <Card key={item.id} className="p-4">
-                            <div className="space-y-3">
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                  <h4 className="font-medium text-sm line-clamp-1">{item.title}</h4>
-                                  <div className="flex gap-2 mt-1">
-                                    <Badge variant="secondary" className="text-xs">
-                                      {item.type.replace('_', ' ')}
-                                    </Badge>
-                                    <Badge variant="outline" className="text-xs">
-                                      {item.level}
-                                    </Badge>
-                                    <Badge variant="outline" className="text-xs">
-                                      {item.duration}min
-                                    </Badge>
-                                    {item.metadata.isMockData && (
-                                      <Badge variant="outline" className="text-xs text-yellow-600">
-                                        Mock
-                                      </Badge>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
+                    <>
+                      <Sparkles size={16} className="mr-2" />
+                      Generate {selectedContentType?.label}
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
 
-                              <div className="bg-gray-50 p-3 rounded text-xs max-h-32 overflow-y-auto">
-                                <pre className="whitespace-pre-wrap font-mono text-xs">
-                                  {item.content.substring(0, 200)}...
-                                </pre>
-                              </div>
+          {activeTab === 'library' && (
+            <div className="h-full flex flex-col">
+              <div className="flex items-center justify-between mb-4 flex-shrink-0">
+                <h3 className="font-medium">Generated Content</h3>
+                {contentLibrary.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={clearContentLibrary}
+                  >
+                    Clear All
+                  </Button>
+                )}
+              </div>
 
-                              <div className="flex gap-2">
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => copyToClipboard(item.content)}
-                                >
-                                  <Copy size={12} className="mr-1" />
-                                  Copy
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => insertToWhiteboard(item.content)}
-                                >
-                                  <FileText size={12} className="mr-1" />
-                                  To Board
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => exportContent(item)}
-                                >
-                                  <Download size={12} className="mr-1" />
-                                  Export
-                                </Button>
+              <div className="flex-1 min-h-0 overflow-y-auto">
+                {contentLibrary.length === 0 ? (
+                  <div className="h-full flex items-center justify-center">
+                    <div className="text-center py-12 text-gray-500">
+                      <Sparkles size={48} className="mx-auto mb-3 text-gray-300" />
+                      <p className="font-medium">No content generated yet</p>
+                      <p className="text-sm">Switch to Generate tab to create your first content</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {contentLibrary.map((item) => (
+                      <Card key={item.id} className="p-4">
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h4 className="font-medium text-sm line-clamp-1">{item.title}</h4>
+                              <div className="flex gap-2 mt-1">
+                                <Badge variant="secondary" className="text-xs">
+                                  {item.type.replace('_', ' ')}
+                                </Badge>
+                                <Badge variant="outline" className="text-xs">
+                                  {item.level}
+                                </Badge>
+                                <Badge variant="outline" className="text-xs">
+                                  {item.duration}min
+                                </Badge>
+                                {item.metadata.isMockData && (
+                                  <Badge variant="outline" className="text-xs text-yellow-600">
+                                    Mock
+                                  </Badge>
+                                )}
                               </div>
                             </div>
-                          </Card>
-                        ))}
-                      </div>
-                    </ScrollArea>
-                  )}
-                </div>
+                          </div>
+
+                          <div className="bg-gray-50 p-3 rounded text-xs max-h-32 overflow-y-auto">
+                            <pre className="whitespace-pre-wrap font-mono text-xs">
+                              {item.content.substring(0, 200)}...
+                            </pre>
+                          </div>
+
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => copyToClipboard(item.content)}
+                            >
+                              <Copy size={12} className="mr-1" />
+                              Copy
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => insertToWhiteboard(item.content)}
+                            >
+                              <FileText size={12} className="mr-1" />
+                              To Board
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => exportContent(item)}
+                            >
+                              <Download size={12} className="mr-1" />
+                              Export
+                            </Button>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </div>
-            </TabsContent>
-          </div>
-        </Tabs>
-      </CardContent>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
