@@ -1,7 +1,8 @@
 
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { unifiedAIContentService, AIContentRequest, AIGeneratedContent, ContentLibraryItem } from '@/services/unifiedAIContentService';
+import { unifiedAIContentService } from '@/services/unifiedAIContentService';
+import type { AIContentRequest, AIGeneratedContent, ContentLibraryItem } from '@/services/ai/types';
 
 export const useUnifiedAIContent = () => {
   const [isGenerating, setIsGenerating] = useState(false);

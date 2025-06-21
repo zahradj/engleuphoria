@@ -8,13 +8,14 @@ import {
   Gamepad2,
   BookOpen,
   Brain,
-  Library
+  Library,
+  LucideIcon
 } from "lucide-react";
 
 interface ContentType {
   value: 'worksheet' | 'activity' | 'lesson_plan' | 'quiz' | 'flashcards';
   label: string;
-  icon: React.ComponentType<{ size?: number }>;
+  icon: LucideIcon;
   description: string;
   time: string;
 }
