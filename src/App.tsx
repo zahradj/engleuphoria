@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -15,6 +16,7 @@ import MaterialLibraryPage from "./pages/MaterialLibraryPage";
 import CurriculumLibraryPage from "./pages/CurriculumLibraryPage";
 import ForParents from "./pages/ForParents";
 import ForTeachers from "./pages/ForTeachers";
+import AboutUs from "./pages/AboutUs";
 import UnifiedClassroom from "./pages/UnifiedClassroom";
 import SimpleClassroomSelector from "./components/classroom/SimpleClassroomSelector";
 import MediaTestPage from "./pages/MediaTestPage";
@@ -43,6 +45,7 @@ function App() {
                 <Route path="/curriculum-library" element={<CurriculumLibraryPage />} />
                 <Route path="/for-parents" element={<ForParents />} />
                 <Route path="/for-teachers" element={<ForTeachers />} />
+                <Route path="/about-us" element={<AboutUs />} />
                 <Route path="/teacher-application" element={<TeacherApplication />} />
                 <Route path="/classroom" element={<UnifiedClassroom />} />
                 <Route path="/classroom-selector" element={<SimpleClassroomSelector />} />

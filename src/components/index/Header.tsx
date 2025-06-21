@@ -51,6 +51,9 @@ export const Header = () => {
 
         {/* Navigation */}
         <nav className="hidden md:flex items-center gap-6">
+          <a href="/about-us" className="text-gray-600 hover:text-purple-600 transition-colors">
+            {t('aboutUs') || 'About Us'}
+          </a>
           <a href="/for-parents" className="text-gray-600 hover:text-purple-600 transition-colors">
             {t('forParents') || 'For Parents'}
           </a>
