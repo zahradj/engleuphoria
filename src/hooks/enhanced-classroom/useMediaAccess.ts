@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useToast } from "@/hooks/use-toast";
 
 export function useMediaAccess() {
@@ -8,11 +8,18 @@ export function useMediaAccess() {
   const [isCameraOff, setIsCameraOff] = useState(false);
   const [mediaError, setMediaError] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(false);
   const { toast } = useToast();
+  const hasShownToast = useRef(false);
 
   // Initialize media access
   const initializeMedia = useCallback(async () => {
-    if (isInitialized) return localStream;
+    if (isInitialized || isInitializing) {
+      console.log('🎤 Media already initialized or initializing');
+      return localStream;
+    }
+    
+    setIsInitializing(true);
     
     try {
       console.log('🎤 Requesting media access...');
@@ -21,14 +28,26 @@ export function useMediaAccess() {
       let stream: MediaStream;
       try {
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: 640, height: 480 },
-          audio: true
+          video: { 
+            width: { ideal: 640, max: 1280 }, 
+            height: { ideal: 480, max: 720 },
+            facingMode: "user"
+          },
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }
         });
       } catch (error) {
         console.warn('🎤 Failed to get video+audio, trying audio only:', error);
         // Fallback to audio only
         stream = await navigator.mediaDevices.getUserMedia({
-          audio: true
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }
         });
         setIsCameraOff(true);
       }
@@ -39,13 +58,17 @@ export function useMediaAccess() {
       
       console.log('🎤 Media access granted:', { 
         video: stream.getVideoTracks().length > 0,
-        audio: stream.getAudioTracks().length > 0
+        audio: stream.getAudioTracks().length > 0,
+        streamId: stream.id
       });
       
-      toast({
-        title: "Media Access Granted",
-        description: `${stream.getVideoTracks().length > 0 ? 'Camera and microphone' : 'Microphone only'} ready`,
-      });
+      if (!hasShownToast.current) {
+        toast({
+          title: "Media Ready",
+          description: `${stream.getVideoTracks().length > 0 ? 'Camera and microphone' : 'Microphone only'} connected`,
+        });
+        hasShownToast.current = true;
+      }
       
       return stream;
     } catch (error) {
@@ -54,15 +77,20 @@ export function useMediaAccess() {
       setMediaError(errorMessage);
       setIsInitialized(true); // Mark as initialized even on error to prevent infinite retries
       
-      toast({
-        title: "Media Access Required",
-        description: "Please allow camera and microphone access to join the classroom",
-        variant: "destructive"
-      });
+      if (!hasShownToast.current) {
+        toast({
+          title: "Media Access Required",
+          description: "Please allow camera and microphone access to join the classroom",
+          variant: "destructive"
+        });
+        hasShownToast.current = true;
+      }
       
       return null;
+    } finally {
+      setIsInitializing(false);
     }
-  }, [toast, isInitialized, localStream]);
+  }, [toast, isInitialized, isInitializing, localStream]);
 
   // Toggle microphone
   const toggleMicrophone = useCallback(() => {
@@ -108,22 +136,22 @@ export function useMediaAccess() {
       localStream.getTracks().forEach(track => track.stop());
       setLocalStream(null);
       setIsInitialized(false);
+      hasShownToast.current = false;
       console.log('🎤 Media stream stopped');
     }
   }, [localStream]);
 
-  // Initialize media on mount with error handling
+  // Auto-initialize media on mount
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (!isInitialized) {
+    if (!isInitialized && !isInitializing) {
+      // Delay initialization to allow component to settle
+      const timeoutId = setTimeout(() => {
         initializeMedia().catch(console.error);
-      }
-    }, 1000); // Delay to allow component to settle
+      }, 500);
 
-    return () => {
-      clearTimeout(timeoutId);
-    };
-  }, []); // Only run once
+      return () => clearTimeout(timeoutId);
+    }
+  }, [initializeMedia, isInitialized, isInitializing]);
 
   return {
     localStream,
@@ -131,6 +159,7 @@ export function useMediaAccess() {
     isCameraOff,
     mediaError,
     isInitialized,
+    isInitializing,
     toggleMicrophone,
     toggleCamera,
     initializeMedia,
