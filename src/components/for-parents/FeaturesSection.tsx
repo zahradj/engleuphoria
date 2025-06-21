@@ -52,7 +52,7 @@ export const FeaturesSection = () => {
               <img 
                 src="/lovable-uploads/cba853dc-1886-464e-bdbd-67aea13a21b3.png" 
                 alt="Child learning English with interactive educational tools and progress tracking"
-                className="w-full max-w-lg h-auto object-contain drop-shadow-2xl scale-110"
+                className="w-full max-w-2xl h-auto object-contain drop-shadow-2xl scale-125"
               />
               <div className="absolute -bottom-6 -left-6 bg-purple-600 text-white p-4 rounded-lg shadow-lg">
                 <div className="text-2xl font-bold">98%</div>
