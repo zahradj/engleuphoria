@@ -1,17 +1,16 @@
-
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { CurriculumLevel } from "@/services/enhancedESLCurriculumService";
+import { ESLLevel } from "@/types/eslCurriculum";
 import { Upload, BookOpen, Clock, Trophy, Users } from "lucide-react";
 import { LevelUploadDialog } from "./LevelUploadDialog";
 
 interface EnhancedLevelCardProps {
-  level: CurriculumLevel;
+  level: ESLLevel;
   isSelected: boolean;
-  onSelect: (level: CurriculumLevel) => void;
+  onSelect: (level: ESLLevel) => void;
   materialCount?: number;
   onUploadComplete: () => void;
 }
