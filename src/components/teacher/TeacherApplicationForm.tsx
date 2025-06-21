@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { Upload, X, Plus } from "lucide-react";
 
 interface TeacherApplicationFormProps {
@@ -89,12 +89,15 @@ export const TeacherApplicationForm: React.FC<TeacherApplicationFormProps> = ({ 
   };
 
   const handleArrayChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: prev[field as keyof typeof prev].includes(value)
-        ? (prev[field as keyof typeof prev] as string[]).filter(item => item !== value)
-        : [...(prev[field as keyof typeof prev] as string[]), value]
-    }));
+    setFormData(prev => {
+      const currentArray = prev[field as keyof typeof prev] as string[];
+      return {
+        ...prev,
+        [field]: currentArray.includes(value)
+          ? currentArray.filter(item => item !== value)
+          : [...currentArray, value]
+      };
+    });
   };
 
   const handleReferenceChange = (index: number, field: keyof Reference, value: string) => {
