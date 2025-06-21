@@ -2,7 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Globe, Mail, Phone } from "lucide-react";
+import { Globe, DollarSign } from "lucide-react";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -25,6 +25,10 @@ export const Header = () => {
 
   const handleLogin = () => {
     navigate("/login");
+  };
+
+  const handlePricing = () => {
+    navigate("/payment");
   };
 
   return (
@@ -53,12 +57,14 @@ export const Header = () => {
           <a href="/for-teachers" className="text-gray-600 hover:text-purple-600 transition-colors">
             {t('forTeachers') || 'For Teachers'}
           </a>
-          <div className="flex items-center gap-2 text-gray-600">
-            <Mail className="h-4 w-4" />
-            <a href="mailto:contact@engleuphoria.com" className="hover:text-purple-600 transition-colors">
-              contact@engleuphoria.com
-            </a>
-          </div>
+          <Button
+            variant="ghost"
+            onClick={handlePricing}
+            className="text-gray-600 hover:text-purple-600 transition-colors flex items-center gap-2"
+          >
+            <DollarSign className="h-4 w-4" />
+            Pricing
+          </Button>
         </nav>
 
         {/* Language Switcher and Auth Buttons */}
