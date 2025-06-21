@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -10,10 +9,11 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, FileText, Image, Video, Music, X, Plus } from "lucide-react";
-import { CurriculumLevel, enhancedESLCurriculumService } from "@/services/enhancedESLCurriculumService";
+import { ESLLevel } from "@/types/eslCurriculum";
+import { enhancedESLCurriculumService } from "@/services/enhancedESLCurriculumService";
 
 interface LevelUploadDialogProps {
-  level: CurriculumLevel;
+  level: ESLLevel;
   isOpen: boolean;
   onClose: () => void;
   onUploadComplete: () => void;
