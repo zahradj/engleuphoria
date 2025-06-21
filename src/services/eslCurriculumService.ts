@@ -1,5 +1,6 @@
-
-import { ESLLevel, ESLSkill } from "@/types/eslCurriculum";
+import { ESLLevel, ESLSkill, AITemplate, ESLMaterial } from "@/types/eslCurriculum";
+import { getAITemplates, generateAIContent } from './aiTemplatesService';
+import { getBadgeSystem } from './badgeSystemService';
 
 // Enhanced 12-level ESL curriculum with age-appropriate progression
 const ESL_LEVELS: ESLLevel[] = [
@@ -493,6 +494,18 @@ class ESLCurriculumService {
     // This would be calculated based on actual material completion
     // For now, return a mock progress
     return Math.floor(Math.random() * 100);
+  }
+
+  getAITemplates(): AITemplate[] {
+    return getAITemplates();
+  }
+
+  async generateAIContent(templateId: string, parameters: Record<string, any>): Promise<ESLMaterial> {
+    return generateAIContent(templateId, parameters);
+  }
+
+  getBadgeSystem() {
+    return getBadgeSystem();
   }
 }
 
