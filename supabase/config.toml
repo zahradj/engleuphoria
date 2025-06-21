@@ -1,0 +1,31 @@
+
+project_id = "dcoxpyzoqjvmuuygvlme"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[auth]
+enabled = true
+port = 54324
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["https://engleuphoria.lovable.app"]
+jwt_expiry = 3600
+refresh_token_rotation_enabled = true
+security_update_password_require_reauthentication = true
+enable_signup = true
+
+[functions.ai-conversation]
+verify_jwt = true
+
+[functions.ai-feedback]
+verify_jwt = true
+
+[functions.text-to-speech]
+verify_jwt = true
+
+[functions.speech-to-text]
+verify_jwt = true

@@ -2,10 +2,10 @@
 import { supabase } from '@/lib/supabase';
 import { SpeakingSession, SpeakingProgress, SpeakingScenario } from '@/types/speaking';
 
-// Get current user ID with fallback for demo mode
-const getCurrentUserId = async (): Promise<string> => {
+// Get current user ID with proper authentication handling
+const getCurrentUserId = async (): Promise<string | null> => {
   const { data: { user } } = await supabase.auth.getUser();
-  return user?.id || 'demo-user-id';
+  return user?.id || null;
 };
 
 export const speakingPracticeService = {
@@ -45,8 +45,12 @@ export const speakingPracticeService = {
   },
 
   // Sessions
-  async createSession(sessionData: Omit<SpeakingSession, 'id' | 'created_at' | 'completed_at'>): Promise<SpeakingSession> {
+  async createSession(sessionData: Omit<SpeakingSession, 'id' | 'created_at' | 'completed_at' | 'student_id'>): Promise<SpeakingSession> {
     const userId = await getCurrentUserId();
+    
+    if (!userId) {
+      throw new Error('User must be authenticated to create a speaking session');
+    }
     
     const sessionWithUser = {
       ...sessionData,
@@ -69,8 +73,12 @@ export const speakingPracticeService = {
     return data;
   },
 
-  async getUserSessions(studentId?: string, limit: number = 10): Promise<SpeakingSession[]> {
-    const userId = studentId || await getCurrentUserId();
+  async getUserSessions(limit: number = 10): Promise<SpeakingSession[]> {
+    const userId = await getCurrentUserId();
+    
+    if (!userId) {
+      return [];
+    }
     
     const { data, error } = await supabase
       .from('speaking_sessions')
@@ -87,8 +95,12 @@ export const speakingPracticeService = {
   },
 
   // Progress
-  async getUserProgress(studentId?: string): Promise<SpeakingProgress | null> {
-    const userId = studentId || await getCurrentUserId();
+  async getUserProgress(): Promise<SpeakingProgress | null> {
+    const userId = await getCurrentUserId();
+    
+    if (!userId) {
+      return null;
+    }
     
     const { data, error } = await supabase
       .from('speaking_progress')
@@ -103,8 +115,12 @@ export const speakingPracticeService = {
     return data;
   },
 
-  async initializeProgress(studentId?: string): Promise<SpeakingProgress> {
-    const userId = studentId || await getCurrentUserId();
+  async initializeProgress(): Promise<SpeakingProgress | null> {
+    const userId = await getCurrentUserId();
+    
+    if (!userId) {
+      throw new Error('User must be authenticated to initialize progress');
+    }
     
     const { data, error } = await supabase
       .from('speaking_progress')
@@ -131,12 +147,12 @@ export const speakingPracticeService = {
   },
 
   // Badges and achievements
-  async updateBadges(studentId?: string, newBadge?: string): Promise<void> {
-    const userId = studentId || await getCurrentUserId();
+  async updateBadges(newBadge?: string): Promise<void> {
+    const userId = await getCurrentUserId();
     
-    if (!newBadge) return;
+    if (!userId || !newBadge) return;
     
-    const progress = await this.getUserProgress(userId);
+    const progress = await this.getUserProgress();
     if (!progress) return;
 
     const currentBadges = progress.badges_earned || [];
@@ -159,8 +175,13 @@ export const speakingPracticeService = {
   },
 
   // Speaking time tracking for dashboard
-  async getTodaysSpeakingTime(studentId?: string): Promise<number> {
-    const userId = studentId || await getCurrentUserId();
+  async getTodaysSpeakingTime(): Promise<number> {
+    const userId = await getCurrentUserId();
+    
+    if (!userId) {
+      return 0;
+    }
+    
     const today = new Date().toISOString().split('T')[0];
     
     const { data, error } = await supabase
