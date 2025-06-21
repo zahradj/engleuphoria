@@ -33,55 +33,75 @@ serve(async (req) => {
 
     console.log('Generating AI content:', contentRequest);
 
+    // Optimize model selection based on content type
+    const model = getOptimalModel(contentRequest.type);
+    const maxTokens = getOptimalTokens(contentRequest.type);
+    
     const systemPrompt = createSystemPrompt(contentRequest);
     const userPrompt = createUserPrompt(contentRequest);
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        max_tokens: 2000,
-        temperature: 0.7,
-      }),
-    });
+    // Add timeout handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
-    const data = await response.json();
-    
-    if (!response.ok) {
-      console.error('OpenAI API error:', data);
-      throw new Error(data.error?.message || 'Failed to generate content');
-    }
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+          max_tokens: maxTokens,
+          temperature: 0.7,
+        }),
+        signal: controller.signal,
+      });
 
-    const generatedContent = data.choices[0].message.content;
-    console.log('AI content generated successfully');
+      clearTimeout(timeoutId);
 
-    // Structure the response
-    const structuredContent = {
-      id: `ai_${Date.now()}`,
-      title: `AI-Generated ${contentRequest.type.replace('_', ' ')}: ${contentRequest.topic}`,
-      type: contentRequest.type,
-      topic: contentRequest.topic,
-      level: contentRequest.level,
-      duration: contentRequest.duration || 30,
-      content: generatedContent,
-      metadata: {
-        generatedAt: new Date().toISOString(),
-        model: 'gpt-4.1-2025-04-14',
-        isAIGenerated: true
+      const data = await response.json();
+      
+      if (!response.ok) {
+        console.error('OpenAI API error:', data);
+        throw new Error(data.error?.message || 'Failed to generate content');
       }
-    };
 
-    return new Response(JSON.stringify({ content: structuredContent }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+      const generatedContent = data.choices[0].message.content;
+      console.log('AI content generated successfully');
+
+      // Structure the response
+      const structuredContent = {
+        id: `ai_${Date.now()}`,
+        title: `AI-Generated ${contentRequest.type.replace('_', ' ')}: ${contentRequest.topic}`,
+        type: contentRequest.type,
+        topic: contentRequest.topic,
+        level: contentRequest.level,
+        duration: contentRequest.duration || 30,
+        content: generatedContent,
+        metadata: {
+          generatedAt: new Date().toISOString(),
+          model,
+          isAIGenerated: true,
+          generationTime: Date.now()
+        }
+      };
+
+      return new Response(JSON.stringify({ content: structuredContent }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        throw new Error('Generation timed out. Please try again with a simpler request.');
+      }
+      throw error;
+    }
   } catch (error) {
     console.error('Error in ai-content-generator function:', error);
     return new Response(JSON.stringify({ error: error.message }), {
@@ -91,79 +111,71 @@ serve(async (req) => {
   }
 });
 
+function getOptimalModel(contentType: string): string {
+  // Use faster model for simple content types
+  const simpleTypes = ['worksheet', 'quiz', 'flashcards'];
+  return simpleTypes.includes(contentType) ? 'gpt-4o-mini' : 'gpt-4.1-2025-04-14';
+}
+
+function getOptimalTokens(contentType: string): number {
+  // Optimize token usage based on content type
+  const tokenLimits = {
+    'flashcards': 800,
+    'quiz': 1000,
+    'worksheet': 1200,
+    'activity': 1500,
+    'lesson_plan': 2000
+  };
+  return tokenLimits[contentType] || 1500;
+}
+
 function createSystemPrompt(request: ContentRequest): string {
-  return `You are an expert English language teacher and educational content creator. Create high-quality, engaging educational content that is:
+  // Simplified, more focused system prompt
+  const basePrompt = `You are an expert English teacher. Create concise, engaging ${request.type} content.
 
-1. Age-appropriate and level-appropriate for ${request.level} students
-2. Pedagogically sound with clear learning objectives
-3. Interactive and engaging
-4. Well-structured and easy to follow
-5. Culturally sensitive and inclusive
+Requirements:
+- Level: ${request.level}
+- Topic: ${request.topic}
+- Duration: ${request.duration || 30} minutes
+- Be concise and practical
+- Use clear, simple language
+- Include only essential elements`;
 
-Content Type: ${request.type}
-Level: ${request.level}
-Topic: ${request.topic}
-${request.duration ? `Duration: ${request.duration} minutes` : ''}
-
-Format your response as structured educational content with clear sections, instructions, and learning objectives.`;
+  return basePrompt;
 }
 
 function createUserPrompt(request: ContentRequest): string {
-  const basePrompt = `Create a ${request.type} about "${request.topic}" for ${request.level} level English learners`;
-  
-  let specificPrompt = '';
-  
-  switch (request.type) {
-    case 'worksheet':
-      specificPrompt = `Include:
+  const prompts = {
+    'worksheet': `Create a ${request.level} worksheet about "${request.topic}" with:
+- 3-4 exercise types (fill-in-blanks, multiple choice, matching)
 - Clear instructions
-- 3-5 different exercise types (fill-in-blanks, multiple choice, matching, etc.)
-- Answer key
-- Learning objectives
-- Estimated completion time`;
-      break;
-    case 'activity':
-      specificPrompt = `Include:
-- Clear activity instructions
-- Materials needed
-- Step-by-step procedure
-- Learning objectives
-- Variations for different skill levels
-- Assessment criteria`;
-      break;
-    case 'lesson_plan':
-      specificPrompt = `Include:
-- Lesson objectives
-- Materials needed
-- Warm-up activity (5-10 min)
-- Main activities with timing
-- Practice exercises
-- Wrap-up and assessment
-- Homework suggestions`;
-      break;
-    case 'quiz':
-      specificPrompt = `Include:
-- 10-15 questions of various types
+- Answer key`,
+    
+    'quiz': `Create a ${request.level} quiz about "${request.topic}" with:
+- 8-10 questions (multiple choice, short answer)
+- Answer key with brief explanations`,
+    
+    'flashcards': `Create 12-15 flashcards about "${request.topic}" for ${request.level} learners:
+- Word/phrase on front
+- Definition and example on back`,
+    
+    'activity': `Create an interactive ${request.level} activity about "${request.topic}" with:
 - Clear instructions
-- Answer key with explanations
-- Scoring rubric`;
-      break;
-    case 'flashcards':
-      specificPrompt = `Include:
-- 15-20 vocabulary cards
-- Clear definitions
-- Example sentences
-- Usage notes`;
-      break;
-  }
+- Materials needed
+- Step-by-step procedure`,
+    
+    'lesson_plan': `Create a ${request.duration || 60}-minute lesson plan about "${request.topic}" for ${request.level} learners:
+- Learning objectives
+- Warm-up, main activities, wrap-up
+- Materials needed
+- Assessment`
+  };
 
+  let prompt = prompts[request.type] || `Create ${request.type} content about "${request.topic}" for ${request.level} learners.`;
+  
   if (request.specificRequirements) {
-    specificPrompt += `\n\nSpecific requirements: ${request.specificRequirements}`;
+    prompt += `\n\nSpecific requirements: ${request.specificRequirements}`;
   }
 
-  if (request.learningObjectives && request.learningObjectives.length > 0) {
-    specificPrompt += `\n\nLearning objectives: ${request.learningObjectives.join(', ')}`;
-  }
-
-  return `${basePrompt}\n\n${specificPrompt}`;
+  return prompt;
 }
