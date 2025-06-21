@@ -1,25 +1,18 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { SpeakingProgress, SpeakingScenario } from '@/types/speaking';
 import { speakingPracticeService } from '@/services/speakingPracticeService';
 import { useToast } from '@/hooks/use-toast';
 import { 
-  Mic, 
   MessageCircle, 
   Image, 
-  HelpCircle, 
-  Trophy, 
-  Flame,
-  Clock,
-  Star,
-  PlayCircle
+  HelpCircle
 } from 'lucide-react';
 import { PracticeSession } from './PracticeSession';
 import { SpeakingStats } from './SpeakingStats';
+import { SpeakingHeader } from './components/SpeakingHeader';
+import { PracticeModeCard } from './components/PracticeModeCard';
+import { DailyChallenge } from './components/DailyChallenge';
 
 export const SpeakingPracticeTab = () => {
   const [progress, setProgress] = useState<SpeakingProgress | null>(null);
@@ -98,147 +91,66 @@ export const SpeakingPracticeTab = () => {
     );
   }
 
+  const practiceModesConfig = [
+    {
+      title: '🎭 Role Play',
+      icon: MessageCircle,
+      description: 'Practice real-life conversations like ordering food or meeting new people',
+      scenarios: getPracticeTypeScenarios('role_play'),
+      borderColor: 'hover:border-blue-300',
+      iconBgColor: 'bg-blue-100',
+      iconColor: 'text-blue-600',
+      titleColor: 'text-blue-700'
+    },
+    {
+      title: '🧠 Picture Talk',
+      icon: Image,
+      description: 'Describe pictures and practice your vocabulary and speaking skills',
+      scenarios: getPracticeTypeScenarios('picture_talk'),
+      borderColor: 'hover:border-green-300',
+      iconBgColor: 'bg-green-100',
+      iconColor: 'text-green-600',
+      titleColor: 'text-green-700'
+    },
+    {
+      title: '❓ Random Questions',
+      icon: HelpCircle,
+      description: 'Answer fun questions about yourself, your day, and your interests',
+      scenarios: getPracticeTypeScenarios('random_questions'),
+      borderColor: 'hover:border-purple-300',
+      iconBgColor: 'bg-purple-100',
+      iconColor: 'text-purple-600',
+      titleColor: 'text-purple-700'
+    }
+  ];
+
   return (
     <div className="space-y-6 p-6">
-      {/* Header */}
-      <div className="text-center">
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-          🎙️ AI Speaking Practice
-        </h1>
-        <p className="text-gray-600 mt-2">Practice your English with our friendly AI assistant!</p>
-      </div>
+      <SpeakingHeader />
 
-      {/* Stats Overview */}
       <SpeakingStats 
         progress={progress}
         todaysSpeakingTime={todaysSpeakingTime}
       />
 
-      {/* Practice Modes */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Role Play */}
-        <Card className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-blue-300">
-          <CardHeader className="text-center pb-4">
-            <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-              <MessageCircle className="h-8 w-8 text-blue-600" />
-            </div>
-            <CardTitle className="text-xl text-blue-700">🎭 Role Play</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-gray-600 text-center">
-              Practice real-life conversations like ordering food or meeting new people
-            </p>
-            <div className="space-y-2">
-              {getPracticeTypeScenarios('role_play').slice(0, 3).map((scenario) => (
-                <Button
-                  key={scenario.id}
-                  variant="outline"
-                  className="w-full justify-between text-left"
-                  onClick={() => handleStartPractice(scenario)}
-                >
-                  <span>{scenario.name}</span>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary">{scenario.cefr_level}</Badge>
-                    <PlayCircle className="h-4 w-4" />
-                  </div>
-                </Button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Picture Talk */}
-        <Card className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-green-300">
-          <CardHeader className="text-center pb-4">
-            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
-              <Image className="h-8 w-8 text-green-600" />
-            </div>
-            <CardTitle className="text-xl text-green-700">🧠 Picture Talk</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-gray-600 text-center">
-              Describe pictures and practice your vocabulary and speaking skills
-            </p>
-            <div className="space-y-2">
-              {getPracticeTypeScenarios('picture_talk').slice(0, 3).map((scenario) => (
-                <Button
-                  key={scenario.id}
-                  variant="outline"
-                  className="w-full justify-between text-left"
-                  onClick={() => handleStartPractice(scenario)}
-                >
-                  <span>{scenario.name}</span>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary">{scenario.cefr_level}</Badge>
-                    <PlayCircle className="h-4 w-4" />
-                  </div>
-                </Button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Random Questions */}
-        <Card className="cursor-pointer hover:shadow-lg transition-all duration-200 border-2 hover:border-purple-300">
-          <CardHeader className="text-center pb-4">
-            <div className="mx-auto w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
-              <HelpCircle className="h-8 w-8 text-purple-600" />
-            </div>
-            <CardTitle className="text-xl text-purple-700">❓ Random Questions</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-gray-600 text-center">
-              Answer fun questions about yourself, your day, and your interests
-            </p>
-            <div className="space-y-2">
-              {getPracticeTypeScenarios('random_questions').slice(0, 3).map((scenario) => (
-                <Button
-                  key={scenario.id}
-                  variant="outline"
-                  className="w-full justify-between text-left"
-                  onClick={() => handleStartPractice(scenario)}
-                >
-                  <span>{scenario.name}</span>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary">{scenario.cefr_level}</Badge>
-                    <PlayCircle className="h-4 w-4" />
-                  </div>
-                </Button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        {practiceModesConfig.map((mode, index) => (
+          <PracticeModeCard
+            key={index}
+            title={mode.title}
+            icon={mode.icon}
+            description={mode.description}
+            scenarios={mode.scenarios}
+            borderColor={mode.borderColor}
+            iconBgColor={mode.iconBgColor}
+            iconColor={mode.iconColor}
+            titleColor={mode.titleColor}
+            onStartPractice={handleStartPractice}
+          />
+        ))}
       </div>
 
-      {/* Daily Challenge */}
-      <Card className="bg-gradient-to-r from-orange-50 to-red-50 border-orange-200">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-orange-700">
-            <Trophy className="h-5 w-5" />
-            Daily Speaking Challenge
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-gray-700">Speak for 5 minutes today to earn bonus XP!</p>
-              <div className="flex items-center gap-2 mt-2">
-                <Progress 
-                  value={Math.min((todaysSpeakingTime / 300) * 100, 100)} 
-                  className="w-48" 
-                />
-                <span className="text-sm text-gray-600">
-                  {Math.floor(todaysSpeakingTime / 60)}m / 5m
-                </span>
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">+50 XP</div>
-              <div className="text-sm text-gray-600">Bonus Reward</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <DailyChallenge todaysSpeakingTime={todaysSpeakingTime} />
     </div>
   );
 };
