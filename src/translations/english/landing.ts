@@ -1,12 +1,14 @@
 
 export const landingTranslations = {
-  // Landing page
-  aboutUs: "About Us",
+  // Navigation
   forParents: "For Parents",
   forTeachers: "For Teachers",
-  contact: "Contact",
   logIn: "Log In",
   signUp: "Sign Up",
+  
+  // Landing page
+  aboutUs: "About Us",
+  contact: "Contact",
   learnEnglish: "Learn English",
   funWay: "the fun way",
   heroDescription: "Interactive lessons, games, and activities designed to make English learning enjoyable and effective for children.",

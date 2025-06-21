@@ -48,10 +48,10 @@ export const Header = () => {
         {/* Navigation */}
         <nav className="hidden md:flex items-center gap-6">
           <a href="/for-parents" className="text-gray-600 hover:text-purple-600 transition-colors">
-            {t('landing.forParents') || 'For Parents'}
+            {t('forParents') || 'For Parents'}
           </a>
           <a href="/for-teachers" className="text-gray-600 hover:text-purple-600 transition-colors">
-            {t('landing.forTeachers') || 'For Teachers'}
+            {t('forTeachers') || 'For Teachers'}
           </a>
           <div className="flex items-center gap-2 text-gray-600">
             <Mail className="h-4 w-4" />
@@ -87,11 +87,11 @@ export const Header = () => {
           </DropdownMenu>
 
           <Button variant="ghost" onClick={handleLogin}>
-            {t('landing.logIn') || 'Log In'}
+            {t('logIn') || 'Log In'}
           </Button>
           
           <Button onClick={handleSignUp} className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
-            {t('landing.signUp') || 'Sign Up'}
+            {t('signUp') || 'Sign Up'}
           </Button>
         </div>
       </div>
