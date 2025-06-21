@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Header } from "@/components/index/Header";
 import { Footer } from "@/components/index/Footer";
@@ -25,10 +24,10 @@ const AboutUs = () => {
 
   const teamMembers = [
     {
-      name: "Sarah Johnson",
+      name: "Fatima Zahra Djaanine",
       role: "Founder & CEO",
-      image: "https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=400&h=400&fit=crop&crop=face",
-      description: "Former ESL teacher with 15+ years experience in childhood education."
+      image: "/lovable-uploads/c22e641a-fede-47a3-8585-e8d1ebdaaf66.png",
+      description: "Visionary leader passionate about transforming English education through innovative technology and engaging learning experiences."
     },
     {
       name: "Michael Chen",
