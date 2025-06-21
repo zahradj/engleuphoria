@@ -2,7 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Globe, DollarSign } from "lucide-react";
+import { Globe } from "lucide-react";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -63,9 +63,8 @@ export const Header = () => {
           <Button
             variant="ghost"
             onClick={handlePricing}
-            className="text-gray-600 hover:text-purple-600 transition-colors flex items-center gap-2"
+            className="text-gray-600 hover:text-purple-600 transition-colors"
           >
-            <DollarSign className="h-4 w-4" />
             Pricing
           </Button>
         </nav>
