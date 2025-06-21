@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { SpeakingScenario, ConversationMessage, MessageFeedback } from '@/types/speaking';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { speakingPracticeService } from '@/services/speakingPracticeService';
-import { supabase } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { SessionHeader } from './components/SessionHeader';
 import { AIAvatar } from './components/AIAvatar';
@@ -31,11 +30,16 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [audioQueue, setAudioQueue] = useState<string[]>([]);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(false);
   
   const { recordingState, startRecording, stopRecording, processAudio, reset } = useSpeechRecognition();
   const { toast } = useToast();
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  useEffect(() => {
+    setIsDemoMode(!isSupabaseConfigured());
+  }, []);
 
   useEffect(() => {
     if (isSessionActive && sessionStartTime) {
@@ -106,8 +110,8 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
     
     setMessages([welcomeMessage]);
 
-    // Generate TTS for welcome message if audio is enabled
-    if (isAudioEnabled) {
+    // Generate TTS for welcome message if audio is enabled and not in demo mode
+    if (isAudioEnabled && !isDemoMode) {
       try {
         const { data } = await supabase.functions.invoke('text-to-speech', {
           body: { text: scenario.prompt }
@@ -171,59 +175,78 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
     setMessages(prev => [...prev, userMessage]);
 
     try {
-      // Generate AI response
-      const { data: aiData } = await supabase.functions.invoke('ai-conversation', {
-        body: { 
-          userMessage: text, 
-          scenario,
-          conversationHistory: messages 
+      let aiResponse = "That's great! Keep practicing and you'll improve your English speaking skills.";
+      let feedback: MessageFeedback = {
+        pronunciation_score: 0.8,
+        grammar_score: 0.8,
+        fluency_score: 0.8,
+        rating: 4,
+        encouragement: "Good effort! Keep practicing!"
+      };
+
+      // Try to get AI response and feedback if not in demo mode
+      if (!isDemoMode) {
+        try {
+          // Generate AI response
+          const { data: aiData } = await supabase.functions.invoke('ai-conversation', {
+            body: { 
+              userMessage: text, 
+              scenario,
+              conversationHistory: messages 
+            }
+          });
+
+          if (aiData?.response) {
+            aiResponse = aiData.response;
+          }
+
+          // Generate feedback for user message
+          const { data: feedbackData } = await supabase.functions.invoke('ai-feedback', {
+            body: { text, scenario }
+          });
+
+          if (feedbackData?.feedback) {
+            feedback = feedbackData.feedback;
+          }
+        } catch (error) {
+          console.error('Error getting AI response:', error);
+          // Continue with default response in case of error
         }
-      });
+      }
 
-      if (aiData?.response) {
-        // Generate feedback for user message
-        const { data: feedbackData } = await supabase.functions.invoke('ai-feedback', {
-          body: { text, scenario }
-        });
+      // Update user message with feedback
+      setMessages(prev => prev.map(msg => 
+        msg.id === userMessage.id 
+          ? { ...msg, feedback }
+          : msg
+      ));
 
-        const feedback: MessageFeedback = feedbackData?.feedback || {
-          pronunciation_score: 0.8,
-          grammar_score: 0.8,
-          fluency_score: 0.8,
-          rating: 4,
-          encouragement: "Good effort! Keep practicing!"
-        };
+      // Add AI response
+      const aiMessage: ConversationMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: aiResponse,
+        timestamp: new Date()
+      };
 
-        // Update user message with feedback
-        setMessages(prev => prev.map(msg => 
-          msg.id === userMessage.id 
-            ? { ...msg, feedback }
-            : msg
-        ));
+      setMessages(prev => [...prev, aiMessage]);
 
-        // Add AI response
-        const aiMessage: ConversationMessage = {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: aiData.response,
-          timestamp: new Date()
-        };
-
-        setMessages(prev => [...prev, aiMessage]);
-
-        // Generate TTS for AI response
-        if (isAudioEnabled) {
+      // Generate TTS for AI response if enabled and not in demo mode
+      if (isAudioEnabled && !isDemoMode) {
+        try {
           const { data: ttsData } = await supabase.functions.invoke('text-to-speech', {
-            body: { text: aiData.response }
+            body: { text: aiResponse }
           });
           
           if (ttsData?.audioContent) {
             setAudioQueue(prev => [...prev, ttsData.audioContent]);
           }
+        } catch (error) {
+          console.error('Error generating TTS:', error);
         }
-
-        setAiAvatar(getRandomAiAvatar());
       }
+
+      setAiAvatar(getRandomAiAvatar());
     } catch (error) {
       console.error('Error handling user message:', error);
       toast({
@@ -246,7 +269,6 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
     const xpEarned = Math.max(10, Math.floor(duration / 30) * 5);
 
     const sessionData = {
-      student_id: 'current-user-id', // TODO: Use real user ID
       session_type: scenario.type,
       scenario_name: scenario.name,
       cefr_level: scenario.cefr_level,
@@ -283,6 +305,14 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
   return (
     <div className="max-w-4xl mx-auto space-y-4 p-6">
       <audio ref={audioRef} style={{ display: 'none' }} />
+      
+      {isDemoMode && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+          <p className="text-yellow-800 text-sm">
+            Demo mode: AI responses and audio features are limited. Your progress is saved locally.
+          </p>
+        </div>
+      )}
       
       <SessionHeader
         scenario={scenario}

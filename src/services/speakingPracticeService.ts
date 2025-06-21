@@ -1,9 +1,21 @@
 
-import { supabase } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { SpeakingSession, SpeakingProgress, SpeakingScenario } from '@/types/speaking';
+import {
+  demoSpeakingScenarios,
+  getDemoSpeakingProgress,
+  getDemoSpeakingSessions,
+  updateDemoProgress,
+  addDemoSession,
+  getDemoTodaysSpeakingTime
+} from './demoSpeakingData';
 
 // Get current user ID with proper authentication handling
 const getCurrentUserId = async (): Promise<string | null> => {
+  if (!isSupabaseConfigured()) {
+    return 'demo-student'; // Return demo user ID
+  }
+  
   const { data: { user } } = await supabase.auth.getUser();
   return user?.id || null;
 };
@@ -11,6 +23,15 @@ const getCurrentUserId = async (): Promise<string | null> => {
 export const speakingPracticeService = {
   // Scenarios
   async getScenarios(cefrLevel?: string): Promise<SpeakingScenario[]> {
+    if (!isSupabaseConfigured()) {
+      // Return demo scenarios
+      let scenarios = demoSpeakingScenarios;
+      if (cefrLevel) {
+        scenarios = scenarios.filter(s => s.cefr_level === cefrLevel);
+      }
+      return scenarios;
+    }
+
     let query = supabase
       .from('speaking_scenarios')
       .select('*')
@@ -30,6 +51,10 @@ export const speakingPracticeService = {
   },
 
   async getScenariosByType(type: 'role_play' | 'picture_talk' | 'random_questions'): Promise<SpeakingScenario[]> {
+    if (!isSupabaseConfigured()) {
+      return demoSpeakingScenarios.filter(s => s.type === type);
+    }
+
     const { data, error } = await supabase
       .from('speaking_scenarios')
       .select('*')
@@ -46,6 +71,14 @@ export const speakingPracticeService = {
 
   // Sessions
   async createSession(sessionData: Omit<SpeakingSession, 'id' | 'created_at' | 'completed_at' | 'student_id'>): Promise<SpeakingSession> {
+    if (!isSupabaseConfigured()) {
+      // Handle demo mode
+      const newSession = addDemoSession(sessionData);
+      updateDemoProgress(sessionData);
+      console.log('Demo session created successfully:', newSession);
+      return newSession;
+    }
+
     const userId = await getCurrentUserId();
     
     if (!userId) {
@@ -74,6 +107,11 @@ export const speakingPracticeService = {
   },
 
   async getUserSessions(limit: number = 10): Promise<SpeakingSession[]> {
+    if (!isSupabaseConfigured()) {
+      const sessions = getDemoSpeakingSessions();
+      return sessions.slice(0, limit);
+    }
+
     const userId = await getCurrentUserId();
     
     if (!userId) {
@@ -96,6 +134,10 @@ export const speakingPracticeService = {
 
   // Progress
   async getUserProgress(): Promise<SpeakingProgress | null> {
+    if (!isSupabaseConfigured()) {
+      return getDemoSpeakingProgress();
+    }
+
     const userId = await getCurrentUserId();
     
     if (!userId) {
@@ -116,6 +158,10 @@ export const speakingPracticeService = {
   },
 
   async initializeProgress(): Promise<SpeakingProgress | null> {
+    if (!isSupabaseConfigured()) {
+      return getDemoSpeakingProgress();
+    }
+
     const userId = await getCurrentUserId();
     
     if (!userId) {
@@ -148,6 +194,11 @@ export const speakingPracticeService = {
 
   // Badges and achievements
   async updateBadges(newBadge?: string): Promise<void> {
+    if (!isSupabaseConfigured() || !newBadge) {
+      console.log('Badges update skipped in demo mode');
+      return;
+    }
+
     const userId = await getCurrentUserId();
     
     if (!userId || !newBadge) return;
@@ -176,6 +227,10 @@ export const speakingPracticeService = {
 
   // Speaking time tracking for dashboard
   async getTodaysSpeakingTime(): Promise<number> {
+    if (!isSupabaseConfigured()) {
+      return getDemoTodaysSpeakingTime();
+    }
+
     const userId = await getCurrentUserId();
     
     if (!userId) {

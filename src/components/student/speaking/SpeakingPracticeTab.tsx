@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { SpeakingProgress, SpeakingScenario } from '@/types/speaking';
 import { speakingPracticeService } from '@/services/speakingPracticeService';
-import { supabase } from '@/lib/supabase';
+import { isSupabaseConfigured } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { 
   MessageCircle, 
@@ -25,27 +25,25 @@ export const SpeakingPracticeTab = () => {
   const [todaysSpeakingTime, setTodaysSpeakingTime] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    checkAuthAndLoadData();
+    loadSpeakingPracticeData();
   }, []);
 
-  const checkAuthAndLoadData = async () => {
+  const loadSpeakingPracticeData = async () => {
     try {
       setIsLoading(true);
       setError(null);
       
-      // Check authentication
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setIsAuthenticated(false);
-        setError('Please sign in to use the Speaking Practice feature.');
-        return;
-      }
+      // Check if we're in demo mode
+      const demoMode = !isSupabaseConfigured();
+      setIsDemoMode(demoMode);
       
-      setIsAuthenticated(true);
+      if (demoMode) {
+        console.log('Running in demo mode - using mock data');
+      }
       
       // Load data in parallel
       await Promise.all([
@@ -83,7 +81,7 @@ export const SpeakingPracticeTab = () => {
       setScenarios(allScenarios);
       
       if (allScenarios.length === 0) {
-        console.warn('No speaking scenarios found in database');
+        console.warn('No speaking scenarios found');
       }
     } catch (error) {
       console.error('Error loading scenarios:', error);
@@ -102,15 +100,6 @@ export const SpeakingPracticeTab = () => {
   };
 
   const handleStartPractice = (scenario: SpeakingScenario) => {
-    if (!isAuthenticated) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to start practicing.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
     setSelectedScenario(scenario);
     setActiveMode('practice');
   };
@@ -200,6 +189,15 @@ export const SpeakingPracticeTab = () => {
   return (
     <div className="space-y-6 p-6">
       <SpeakingHeader />
+
+      {isDemoMode && (
+        <Alert className="bg-yellow-50 border-yellow-200">
+          <AlertCircle className="h-4 w-4 text-yellow-600" />
+          <AlertDescription className="text-yellow-800">
+            You're currently using demo mode. Your progress is saved locally and AI features may be limited.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <SpeakingStats 
         progress={progress}
