@@ -1,5 +1,6 @@
 
 import { useState, useRef, useCallback } from 'react';
+import { supabase } from '@/lib/supabase';
 import { VoiceRecordingState } from '@/types/speaking';
 
 export const useSpeechRecognition = () => {
