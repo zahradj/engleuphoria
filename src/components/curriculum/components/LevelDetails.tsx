@@ -76,6 +76,7 @@ export function LevelDetails({ level }: LevelDetailsProps) {
 
   const progress = calculateLevelProgress();
   const completedMaterials = materials.filter(m => m.views > 0).length;
+  const curriculumLevel = convertToCurriculumLevel(level);
 
   return (
     <div className="space-y-6">
@@ -103,7 +104,7 @@ export function LevelDetails({ level }: LevelDetailsProps) {
       </div>
 
       <LevelTabs 
-        level={convertToCurriculumLevel(level)}
+        level={curriculumLevel}
         materials={materials}
         isLoading={isLoading}
         onMaterialUpdate={loadMaterials}
