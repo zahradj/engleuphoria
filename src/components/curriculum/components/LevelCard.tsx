@@ -1,79 +1,119 @@
 
 import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { BookOpen, Clock, Award, Users } from "lucide-react";
 import { ESLLevel } from "@/types/eslCurriculum";
-import { Clock, ChevronRight, Baby, User, Users, GraduationCap } from "lucide-react";
-import { getLevelColor, getAgeIcon, getSkillIcon, getDifficultyLevel } from "../utils/eslLevelUtils";
 
 interface LevelCardProps {
   level: ESLLevel;
   isSelected: boolean;
   onSelect: (level: ESLLevel) => void;
+  progress?: number;
+  materialsCount?: number;
 }
 
-export function LevelCard({ level, isSelected, onSelect }: LevelCardProps) {
-  const iconName = getAgeIcon(level.ageGroup);
-  const AgeIcon = iconName === 'Baby' ? Baby : iconName === 'User' ? User : iconName === 'Users' ? Users : GraduationCap;
-  const difficulty = getDifficultyLevel(level.levelOrder);
-  
+export function LevelCard({ level, isSelected, onSelect, progress = 0, materialsCount = 0 }: LevelCardProps) {
+  const getAgeGroupColor = (ageGroup: string) => {
+    if (ageGroup.includes('4-7')) return 'bg-pink-100 text-pink-700';
+    if (ageGroup.includes('6-9')) return 'bg-purple-100 text-purple-700';
+    if (ageGroup.includes('8-11')) return 'bg-blue-100 text-blue-700';
+    if (ageGroup.includes('10-13')) return 'bg-green-100 text-green-700';
+    if (ageGroup.includes('12-15')) return 'bg-yellow-100 text-yellow-700';
+    if (ageGroup.includes('14-17')) return 'bg-orange-100 text-orange-700';
+    return 'bg-gray-100 text-gray-700';
+  };
+
+  const getCEFRColor = (cefrLevel: string) => {
+    switch (cefrLevel) {
+      case 'Pre-A1': return 'bg-red-100 text-red-700';
+      case 'A1': return 'bg-orange-100 text-orange-700';
+      case 'A1+': return 'bg-amber-100 text-amber-700';
+      case 'A2': return 'bg-yellow-100 text-yellow-700';
+      case 'A2+': return 'bg-lime-100 text-lime-700';
+      case 'B1': return 'bg-green-100 text-green-700';
+      case 'B1+': return 'bg-emerald-100 text-emerald-700';
+      case 'B2': return 'bg-teal-100 text-teal-700';
+      case 'B2+': return 'bg-cyan-100 text-cyan-700';
+      case 'C1': return 'bg-blue-100 text-blue-700';
+      case 'C1+': return 'bg-indigo-100 text-indigo-700';
+      case 'C2': return 'bg-purple-100 text-purple-700';
+      default: return 'bg-gray-100 text-gray-700';
+    }
+  };
+
   return (
     <Card 
-      className={`cursor-pointer transition-all hover:shadow-md ${
-        isSelected ? 'ring-2 ring-blue-500' : ''
+      className={`cursor-pointer transition-all hover:shadow-lg ${
+        isSelected ? 'ring-2 ring-blue-500 bg-blue-50' : ''
       }`}
       onClick={() => onSelect(level)}
     >
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <Badge className={getLevelColor(level.cefrLevel)}>
-            {level.cefrLevel}
-          </Badge>
-          <div className="flex items-center gap-1">
-            <AgeIcon className="h-4 w-4 text-gray-500" />
-            <span className="text-xs text-gray-500">{level.levelOrder}</span>
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <CardTitle className="text-lg font-bold mb-2">{level.name}</CardTitle>
+            <div className="flex gap-2 mb-2">
+              <Badge className={getCEFRColor(level.cefrLevel)}>
+                {level.cefrLevel}
+              </Badge>
+              <Badge variant="outline" className={getAgeGroupColor(level.ageGroup)}>
+                {level.ageGroup}
+              </Badge>
+            </div>
+          </div>
+          <div className="text-2xl font-bold text-gray-400">
+            {level.levelOrder}
           </div>
         </div>
-        
-        <h3 className="font-semibold mb-1 text-sm">{level.name}</h3>
-        <p className="text-xs text-blue-600 mb-2">{level.ageGroup}</p>
-        <p className="text-xs text-gray-600 mb-3 line-clamp-2">{level.description}</p>
-        
-        <div className="space-y-2">
-          <div className="flex items-center gap-2 mb-2">
-            <div className={`w-2 h-2 rounded-full ${difficulty.color}`}></div>
-            <span className="text-xs font-medium">{difficulty.label}</span>
-          </div>
-          
-          <div className="flex items-center justify-between text-xs">
-            <span>Skills: {level.skills.length}</span>
-            <div className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              {level.estimatedHours}h
+        <p className="text-sm text-gray-600 line-clamp-2">{level.description}</p>
+      </CardHeader>
+      
+      <CardContent>
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="flex items-center gap-2">
+              <Clock size={14} className="text-gray-500" />
+              <span>{level.estimatedHours}h</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Award size={14} className="text-gray-500" />
+              <span>{level.xpRequired} XP</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <BookOpen size={14} className="text-gray-500" />
+              <span>{materialsCount} materials</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Users size={14} className="text-gray-500" />
+              <span>{level.skills.length} skills</span>
             </div>
           </div>
           
-          <div className="flex items-center gap-1 mb-2">
-            {level.skills.slice(0, 4).map((skill) => (
-              <span key={skill.id} className="text-xs">
-                {getSkillIcon(skill.category)}
-              </span>
-            ))}
-            {level.skills.length > 4 && (
-              <span className="text-xs text-gray-500">+{level.skills.length - 4}</span>
-            )}
-          </div>
+          {progress > 0 && (
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs text-gray-600">
+                <span>Progress</span>
+                <span>{progress}%</span>
+              </div>
+              <Progress value={progress} className="h-2" />
+            </div>
+          )}
           
-          <div className="text-xs text-purple-600 font-medium">
-            {level.xpRequired === 0 ? 'Starting Level' : `${level.xpRequired} XP Required`}
-          </div>
+          <Button 
+            variant={isSelected ? "default" : "outline"} 
+            size="sm" 
+            className="w-full"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelect(level);
+            }}
+          >
+            {isSelected ? "Selected" : "Select Level"}
+          </Button>
         </div>
-        
-        <Button variant="outline" size="sm" className="w-full mt-3 text-xs">
-          <ChevronRight className="h-3 w-3 ml-auto" />
-          Explore Level
-        </Button>
       </CardContent>
     </Card>
   );

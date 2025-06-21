@@ -1,251 +1,144 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Upload, Search, BarChart3, FolderOpen } from "lucide-react";
-import { enhancedESLCurriculumService, CurriculumLevel } from "@/services/enhancedESLCurriculumService";
-import { EnhancedLevelCard } from "./components/EnhancedLevelCard";
-import { LevelDetailsPanel } from "./components/LevelDetailsPanel";
-import { CurriculumBrowser } from "./components/CurriculumBrowser";
-import { CurriculumAnalytics } from "./components/CurriculumAnalytics";
+import { BookOpen, Layers, TrendingUp, Settings, Sparkles } from "lucide-react";
+import { ESLLevelBrowser } from "./ESLLevelBrowser";
+import { SystematicLearningPath } from "./SystematicLearningPath";
+import { CurriculumAnalytics } from "../teacher/curriculum/CurriculumAnalytics";
+import { AIContentGenerator } from "./AIContentGenerator";
 
 export function ESLCurriculumManager() {
-  const [levels, setLevels] = useState<CurriculumLevel[]>([]);
-  const [selectedLevel, setSelectedLevel] = useState<CurriculumLevel | null>(null);
-  const [materialCounts, setMaterialCounts] = useState<Record<string, number>>({});
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  useEffect(() => {
-    loadLevels();
-  }, [refreshTrigger]);
-
-  const loadLevels = async () => {
-    try {
-      const levelsData = await enhancedESLCurriculumService.getAllLevels();
-      setLevels(levelsData);
-      
-      // Load material counts for each level
-      const counts: Record<string, number> = {};
-      for (const level of levelsData) {
-        const materials = await enhancedESLCurriculumService.getMaterialsByLevel(level.id);
-        counts[level.id] = materials.length;
-      }
-      setMaterialCounts(counts);
-    } catch (error) {
-      console.error('Error loading curriculum levels:', error);
-    }
-  };
-
-  const handleUploadComplete = () => {
+  const handleContentUpdate = () => {
     setRefreshTrigger(prev => prev + 1);
-  };
-
-  const handleLevelSelect = (level: CurriculumLevel) => {
-    setSelectedLevel(selectedLevel?.id === level.id ? null : level);
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          Enhanced 8-Level ESL Curriculum Framework
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          Enhanced ESL Curriculum Framework
         </h1>
-        <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-          Comprehensive age-appropriate curriculum from Pre-A1 (Starter) to B2 (Upper-Intermediate) 
-          with integrated upload system for each level.
+        <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-6">
+          A comprehensive 8-level systematic program designed for age-appropriate ESL learning, 
+          from Pre-A1 (Young Learners) to B2 (Advanced Teens). Features systematic progression, 
+          AI-powered content generation, and comprehensive progress tracking.
         </p>
+        
+        <div className="flex justify-center gap-3 mb-8">
+          <Badge variant="secondary" className="px-4 py-2">
+            <BookOpen size={16} className="mr-2" />
+            8 CEFR Levels
+          </Badge>
+          <Badge variant="secondary" className="px-4 py-2">
+            <Layers size={16} className="mr-2" />
+            Age-Appropriate Content
+          </Badge>
+          <Badge variant="secondary" className="px-4 py-2">
+            <TrendingUp size={16} className="mr-2" />
+            Systematic Progression
+          </Badge>
+          <Badge variant="secondary" className="px-4 py-2">
+            <Sparkles size={16} className="mr-2" />
+            AI-Enhanced Learning
+          </Badge>
+        </div>
       </div>
 
-      {/* Statistics Overview */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5" />
-            Curriculum Overview
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{levels.length}</div>
-              <div className="text-sm text-gray-600">CEFR Levels</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">
-                {Object.values(materialCounts).reduce((a, b) => a + b, 0)}
-              </div>
-              <div className="text-sm text-gray-600">Total Materials</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">
-                {levels.reduce((sum, level) => sum + level.estimatedHours, 0)}
-              </div>
-              <div className="text-sm text-gray-600">Total Hours</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">4-18+</div>
-              <div className="text-sm text-gray-600">Age Range</div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
+      {/* Main Content Tabs */}
       <Tabs defaultValue="levels" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="levels" className="flex items-center gap-2">
             <BookOpen size={16} />
-            Levels Overview
+            Curriculum Levels
           </TabsTrigger>
-          <TabsTrigger value="browse" className="flex items-center gap-2">
-            <Search size={16} />
-            Browse Materials
+          <TabsTrigger value="learning-paths" className="flex items-center gap-2">
+            <Layers size={16} />
+            Learning Paths
           </TabsTrigger>
-          <TabsTrigger value="upload" className="flex items-center gap-2">
-            <Upload size={16} />
-            Bulk Upload
+          <TabsTrigger value="ai-content" className="flex items-center gap-2">
+            <Sparkles size={16} />
+            AI Content Generator
           </TabsTrigger>
           <TabsTrigger value="analytics" className="flex items-center gap-2">
-            <BarChart3 size={16} />
+            <TrendingUp size={16} />
             Analytics
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="levels" className="mt-6 space-y-6">
-          {/* Age Group Categories */}
-          <div className="space-y-6">
-            {/* Young Learners */}
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Badge variant="secondary" className="bg-pink-100 text-pink-800">
-                  Young Learners (4-7 years)
-                </Badge>
-                <span className="text-sm text-gray-600">Pre-A1</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {levels.filter(level => level.cefrLevel === 'Pre-A1').map((level) => (
-                  <EnhancedLevelCard
-                    key={level.id}
-                    level={level}
-                    isSelected={selectedLevel?.id === level.id}
-                    onSelect={handleLevelSelect}
-                    materialCount={materialCounts[level.id] || 0}
-                    onUploadComplete={handleUploadComplete}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Elementary */}
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Badge variant="secondary" className="bg-green-100 text-green-800">
-                  Elementary (6-11 years)
-                </Badge>
-                <span className="text-sm text-gray-600">A1 - A1+</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {levels.filter(level => ['A1', 'A1+'].includes(level.cefrLevel)).map((level) => (
-                  <EnhancedLevelCard
-                    key={level.id}
-                    level={level}
-                    isSelected={selectedLevel?.id === level.id}
-                    onSelect={handleLevelSelect}
-                    materialCount={materialCounts[level.id] || 0}
-                    onUploadComplete={handleUploadComplete}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Pre-Teen & Teen */}
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                  Pre-Teen & Teen (10-17 years)
-                </Badge>
-                <span className="text-sm text-gray-600">A2 - B1+</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {levels.filter(level => ['A2', 'A2+', 'B1', 'B1+'].includes(level.cefrLevel)).map((level) => (
-                  <EnhancedLevelCard
-                    key={level.id}
-                    level={level}
-                    isSelected={selectedLevel?.id === level.id}
-                    onSelect={handleLevelSelect}
-                    materialCount={materialCounts[level.id] || 0}
-                    onUploadComplete={handleUploadComplete}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Young Adults & Adults */}
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Badge variant="secondary" className="bg-purple-100 text-purple-800">
-                  Young Adults & Adults (16+ years)
-                </Badge>
-                <span className="text-sm text-gray-600">B2+</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {levels.filter(level => ['B2'].includes(level.cefrLevel)).map((level) => (
-                  <EnhancedLevelCard
-                    key={level.id}
-                    level={level}
-                    isSelected={selectedLevel?.id === level.id}
-                    onSelect={handleLevelSelect}
-                    materialCount={materialCounts[level.id] || 0}
-                    onUploadComplete={handleUploadComplete}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Level Details Panel */}
-          {selectedLevel && (
-            <LevelDetailsPanel 
-              level={selectedLevel} 
-              materialCount={materialCounts[selectedLevel.id] || 0}
-              onClose={() => setSelectedLevel(null)}
-            />
-          )}
+        <TabsContent value="levels" className="mt-6">
+          <ESLLevelBrowser refreshTrigger={refreshTrigger} />
         </TabsContent>
 
-        <TabsContent value="browse" className="mt-6">
-          <CurriculumBrowser 
-            levels={levels}
-            refreshTrigger={refreshTrigger}
-          />
+        <TabsContent value="learning-paths" className="mt-6">
+          <SystematicLearningPath onContentUpdate={handleContentUpdate} />
         </TabsContent>
 
-        <TabsContent value="upload" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FolderOpen className="h-5 w-5" />
-                Bulk Upload Materials
-              </CardTitle>
-              <p className="text-sm text-gray-600">
-                Upload multiple materials at once. Use individual level cards above for level-specific uploads.
-              </p>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-gray-500">
-                <Upload className="h-12 w-12 mx-auto mb-4" />
-                <p>Bulk upload functionality coming soon.</p>
-                <p className="text-sm">Use individual level cards for now to upload materials.</p>
-              </div>
-            </CardContent>
-          </Card>
+        <TabsContent value="ai-content" className="mt-6">
+          <AIContentGenerator onContentGenerated={handleContentUpdate} />
         </TabsContent>
 
         <TabsContent value="analytics" className="mt-6">
-          <CurriculumAnalytics levels={levels} materialCounts={materialCounts} />
+          <CurriculumAnalytics />
         </TabsContent>
       </Tabs>
+
+      {/* Framework Overview */}
+      <Card className="bg-gradient-to-r from-blue-50 to-purple-50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Settings size={20} />
+            Framework Features
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <BookOpen className="h-6 w-6 text-blue-600" />
+              </div>
+              <h3 className="font-semibold mb-2">Systematic Progression</h3>
+              <p className="text-sm text-gray-600">
+                Carefully structured 8-level progression from beginner to advanced
+              </p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <Layers className="h-6 w-6 text-green-600" />
+              </div>
+              <h3 className="font-semibold mb-2">Age-Appropriate</h3>
+              <p className="text-sm text-gray-600">
+                Content tailored for different age groups from 4 to 17+ years
+              </p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <Sparkles className="h-6 w-6 text-purple-600" />
+              </div>
+              <h3 className="font-semibold mb-2">AI-Enhanced</h3>
+              <p className="text-sm text-gray-600">
+                AI-powered content generation and adaptive learning paths
+              </p>
+            </div>
+            
+            <div className="text-center">
+              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mx-auto mb-3">
+                <TrendingUp className="h-6 w-6 text-orange-600" />
+              </div>
+              <h3 className="font-semibold mb-2">Progress Tracking</h3>
+              <p className="text-sm text-gray-600">
+                Comprehensive analytics and progress monitoring tools
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
