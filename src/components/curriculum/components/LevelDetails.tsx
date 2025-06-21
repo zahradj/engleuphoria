@@ -15,6 +15,21 @@ interface LevelDetailsProps {
   level: ESLLevel;
 }
 
+// Convert ESLLevel to CurriculumLevel format for components that need it
+const convertToCurriculumLevel = (eslLevel: ESLLevel) => ({
+  id: eslLevel.id,
+  name: eslLevel.name,
+  cefrLevel: eslLevel.cefrLevel,
+  ageGroup: eslLevel.ageGroup,
+  description: eslLevel.description,
+  levelOrder: eslLevel.levelOrder,
+  xpRequired: eslLevel.xpRequired,
+  estimatedHours: eslLevel.estimatedHours,
+  skills: eslLevel.skills,
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString()
+});
+
 export function LevelDetails({ level }: LevelDetailsProps) {
   const [materials, setMaterials] = useState<CurriculumMaterial[]>([]);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
