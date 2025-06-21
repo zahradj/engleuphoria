@@ -158,8 +158,8 @@ const AboutUs = () => {
             </div>
             <div className="relative">
               <img 
-                src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=600&h=400&fit=crop" 
-                alt="Children learning with technology"
+                src="/lovable-uploads/af8673d3-cab8-4146-877f-42241ec01b4b.png" 
+                alt="Educational illustration with books, graduation cap, and learning elements"
                 className="rounded-lg shadow-xl"
               />
               <div className="absolute -bottom-6 -left-6 bg-purple-600 text-white p-4 rounded-lg shadow-lg">
