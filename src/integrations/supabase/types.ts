@@ -493,6 +493,147 @@ export type Database = {
         }
         Relationships: []
       }
+      speaking_progress: {
+        Row: {
+          badges_earned: string[] | null
+          created_at: string | null
+          current_cefr_level: string
+          current_streak: number
+          id: string
+          last_practice_date: string | null
+          longest_streak: number
+          speaking_xp: number
+          student_id: string
+          total_sessions: number
+          total_speaking_time: number
+          updated_at: string | null
+        }
+        Insert: {
+          badges_earned?: string[] | null
+          created_at?: string | null
+          current_cefr_level?: string
+          current_streak?: number
+          id?: string
+          last_practice_date?: string | null
+          longest_streak?: number
+          speaking_xp?: number
+          student_id: string
+          total_sessions?: number
+          total_speaking_time?: number
+          updated_at?: string | null
+        }
+        Update: {
+          badges_earned?: string[] | null
+          created_at?: string | null
+          current_cefr_level?: string
+          current_streak?: number
+          id?: string
+          last_practice_date?: string | null
+          longest_streak?: number
+          speaking_xp?: number
+          student_id?: string
+          total_sessions?: number
+          total_speaking_time?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      speaking_scenarios: {
+        Row: {
+          cefr_level: string
+          context_instructions: string | null
+          created_at: string | null
+          description: string
+          difficulty_rating: number | null
+          expected_duration: number
+          id: string
+          is_active: boolean | null
+          name: string
+          prompt: string
+          tags: string[] | null
+          type: string
+        }
+        Insert: {
+          cefr_level: string
+          context_instructions?: string | null
+          created_at?: string | null
+          description: string
+          difficulty_rating?: number | null
+          expected_duration?: number
+          id?: string
+          is_active?: boolean | null
+          name: string
+          prompt: string
+          tags?: string[] | null
+          type: string
+        }
+        Update: {
+          cefr_level?: string
+          context_instructions?: string | null
+          created_at?: string | null
+          description?: string
+          difficulty_rating?: number | null
+          expected_duration?: number
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          prompt?: string
+          tags?: string[] | null
+          type?: string
+        }
+        Relationships: []
+      }
+      speaking_sessions: {
+        Row: {
+          cefr_level: string
+          completed_at: string | null
+          created_at: string | null
+          duration_seconds: number
+          feedback_notes: string | null
+          fluency_score: number | null
+          grammar_score: number | null
+          id: string
+          overall_rating: number | null
+          pronunciation_score: number | null
+          scenario_name: string
+          session_type: string
+          student_id: string
+          xp_earned: number
+        }
+        Insert: {
+          cefr_level: string
+          completed_at?: string | null
+          created_at?: string | null
+          duration_seconds?: number
+          feedback_notes?: string | null
+          fluency_score?: number | null
+          grammar_score?: number | null
+          id?: string
+          overall_rating?: number | null
+          pronunciation_score?: number | null
+          scenario_name: string
+          session_type: string
+          student_id: string
+          xp_earned?: number
+        }
+        Update: {
+          cefr_level?: string
+          completed_at?: string | null
+          created_at?: string | null
+          duration_seconds?: number
+          feedback_notes?: string | null
+          fluency_score?: number | null
+          grammar_score?: number | null
+          id?: string
+          overall_rating?: number | null
+          pronunciation_score?: number | null
+          scenario_name?: string
+          session_type?: string
+          student_id?: string
+          xp_earned?: number
+        }
+        Relationships: []
+      }
       teacher_achievements: {
         Row: {
           achievement_description: string | null

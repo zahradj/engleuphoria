@@ -9,13 +9,14 @@ import { ProfileTab } from "@/components/student/ProfileTab";
 import { UpcomingClassesTab } from "@/components/student/UpcomingClassesTab";
 import { LessonHistoryTab } from "@/components/student/LessonHistoryTab";
 import { HomeworkTab } from "@/components/student/HomeworkTab";
+import { SpeakingPracticeTab } from "@/components/student/speaking/SpeakingPracticeTab";
 import { ProgressTrackerTab } from "@/components/student/ProgressTrackerTab";
 import { ChatTab } from "@/components/student/ChatTab";
 import { BillingTab } from "@/components/student/BillingTab";
 import { CertificatesTab } from "@/components/student/CertificatesTab";
 import { SettingsTab } from "@/components/student/SettingsTab";
 
-type TabType = 'dashboard' | 'profile' | 'classes' | 'history' | 'homework' | 'progress' | 'chat' | 'billing' | 'certificates' | 'settings';
+type TabType = 'dashboard' | 'profile' | 'classes' | 'history' | 'homework' | 'speaking-practice' | 'progress' | 'chat' | 'billing' | 'certificates' | 'settings';
 
 const StudentDashboard = () => {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
@@ -65,6 +66,8 @@ const StudentDashboard = () => {
         return <LessonHistoryTab />;
       case 'homework':
         return <HomeworkTab points={points} setPoints={setPoints} />;
+      case 'speaking-practice':
+        return <SpeakingPracticeTab />;
       case 'progress':
         return <ProgressTrackerTab />;
       case 'chat':

@@ -14,7 +14,8 @@ import {
   CreditCard, 
   Award, 
   Settings, 
-  LogOut 
+  LogOut,
+  Mic
 } from "lucide-react";
 
 interface StudentSidebarProps {
@@ -30,6 +31,7 @@ export const StudentSidebar = ({ activeTab, setActiveTab, onLogout }: StudentSid
     { id: 'classes', label: 'Upcoming Classes', icon: Calendar, type: 'tab' },
     { id: 'history', label: 'Lesson History', icon: BookOpen, type: 'tab' },
     { id: 'homework', label: 'Homework', icon: FileText, type: 'tab' },
+    { id: 'speaking-practice', label: 'AI Speaking Practice', icon: Mic, type: 'tab' },
     { id: 'progress', label: 'Progress Tracker', icon: TrendingUp, type: 'tab' },
     { id: 'chat', label: 'Chat with Teacher', icon: MessageCircle, type: 'tab' },
     { id: 'materials', label: 'Materials Library', icon: FolderOpen, type: 'page', path: '/material-library' },
