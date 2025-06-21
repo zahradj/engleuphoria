@@ -2,28 +2,14 @@
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CurriculumMaterial } from "@/services/enhancedESLCurriculumService";
+import { ESLLevel } from "@/types/eslCurriculum";
 import { LevelMaterialsGrid } from "./LevelMaterialsGrid";
 import { LevelSkillsOverview } from "./LevelSkillsOverview";
 import { LevelProgressTracker } from "./LevelProgressTracker";
 import { LevelInsights } from "./LevelInsights";
 
-// Define CurriculumLevel interface to match what components expect
-interface CurriculumLevel {
-  id: string;
-  name: string;
-  cefrLevel: string;
-  ageGroup: string;
-  description: string;
-  levelOrder: number;
-  xpRequired: number;
-  estimatedHours: number;
-  skills: any[];
-  createdAt: string;
-  updatedAt: string;
-}
-
 interface LevelTabsProps {
-  level: CurriculumLevel;
+  level: ESLLevel;
   materials: CurriculumMaterial[];
   isLoading: boolean;
   onMaterialUpdate: () => void;
