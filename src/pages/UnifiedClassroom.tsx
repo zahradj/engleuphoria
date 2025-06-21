@@ -78,33 +78,35 @@ function UnifiedClassroomInner() {
   try {
     return (
       <MediaProvider roomId={finalRoomId}>
-        <UnifiedClassroomLayout 
-          classTime={classTime} 
-          enhancedClassroom={enhancedClassroom}
-        >
-          <UnifiedClassroomContent 
-            classroomState={{
-              activeRightTab,
-              activeCenterTab,
-              studentXP,
-              showRewardPopup,
-              setActiveRightTab,
-              setActiveCenterTab,
-              awardPoints: enhancedAwardPoints
-            }}
+        <div className="min-h-screen overflow-hidden">
+          <UnifiedClassroomLayout 
+            classTime={classTime} 
             enhancedClassroom={enhancedClassroom}
-          />
-        </UnifiedClassroomLayout>
+          >
+            <UnifiedClassroomContent 
+              classroomState={{
+                activeRightTab,
+                activeCenterTab,
+                studentXP,
+                showRewardPopup,
+                setActiveRightTab,
+                setActiveCenterTab,
+                awardPoints: enhancedAwardPoints
+              }}
+              enhancedClassroom={enhancedClassroom}
+            />
+          </UnifiedClassroomLayout>
 
-        {/* Celebration Overlay - Full screen center */}
-        {celebration && (
-          <CelebrationOverlay
-            isVisible={celebration.isVisible}
-            points={celebration.points}
-            reason={celebration.reason}
-            onComplete={hideCelebration}
-          />
-        )}
+          {/* Celebration Overlay - Full screen center */}
+          {celebration && (
+            <CelebrationOverlay
+              isVisible={celebration.isVisible}
+              points={celebration.points}
+              reason={celebration.reason}
+              onComplete={hideCelebration}
+            />
+          )}
+        </div>
       </MediaProvider>
     );
   } catch (error) {

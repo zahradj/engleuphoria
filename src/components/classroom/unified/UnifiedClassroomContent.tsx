@@ -37,9 +37,46 @@ export function UnifiedClassroomContent({
   } = classroomState;
 
   return (
-    <div className="min-h-[calc(100vh-5rem)] px-4 pb-4">
-      <div className="grid grid-cols-12 gap-4 h-[calc(100vh-6rem)]">
+    <div className="min-h-[calc(100vh-4rem)] sm:min-h-[calc(100vh-5rem)] px-2 sm:px-4 pb-2 sm:pb-4">
+      {/* Mobile Layout - Stack vertically */}
+      <div className="block lg:hidden space-y-4">
+        {/* Video Section */}
+        <div className="h-48 sm:h-64">
+          <UnifiedVideoSection currentUser={currentUser} />
+        </div>
         
+        {/* Center Panel - Main Content */}
+        <div className="h-96 sm:h-[32rem]">
+          <UnifiedCenterPanel
+            activeCenterTab={activeCenterTab}
+            onTabChange={setActiveCenterTab}
+            currentUser={currentUser}
+          />
+        </div>
+
+        {/* Right Panel Content - Student Info & Chat */}
+        <div className="h-80 sm:h-96">
+          <UnifiedRightPanel
+            studentName="Emma"
+            studentXP={studentXP}
+            activeRightTab={activeRightTab}
+            onTabChange={setActiveRightTab}
+            currentUser={currentUser}
+          />
+        </div>
+
+        {/* Left Sidebar Content - Progress/Rewards */}
+        <div className="h-64 sm:h-80">
+          <UnifiedLeftSidebar 
+            studentXP={studentXP}
+            currentUser={currentUser}
+            onAwardPoints={currentUser.role === 'teacher' ? awardPoints : undefined}
+          />
+        </div>
+      </div>
+
+      {/* Desktop Layout - Grid */}
+      <div className="hidden lg:grid grid-cols-12 gap-4 h-[calc(100vh-6rem)]">
         {/* Left Section - Teacher Video + Reward System/Progress Panels */}
         <div className="col-span-3 flex flex-col gap-4 min-h-0">
           {/* Teacher Video Section - Fixed height for consistency */}
