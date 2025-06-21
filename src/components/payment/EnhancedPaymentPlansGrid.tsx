@@ -47,21 +47,47 @@ export const EnhancedPaymentPlansGrid: React.FC<EnhancedPaymentPlansGridProps> =
     setProcessingPlan(plan.id);
     
     try {
-      if (selectedRegion === 'international' && gateway === 'bank_transfer') {
-        toast({
-          title: "Bank Transfer Instructions",
-          description: "Please use the banking information provided to complete your payment.",
-        });
-      } else if (selectedRegion === 'algeria') {
-        toast({
-          title: "Payment Processing",
-          description: `Processing ${gateway.toUpperCase()} payment for Algerian students...`,
-        });
+      console.log(`Processing payment for plan ${plan.id} with gateway ${gateway}`);
+      
+      if (selectedRegion === 'algeria') {
+        if (gateway === 'baridimob') {
+          // Open BaridiMob payment (mock URL for demo)
+          const paymentUrl = `https://pay.baridimob.dz/payment?amount=${plan.price}&currency=${plan.currency}&plan=${plan.id}`;
+          window.open(paymentUrl, '_blank');
+          
+          toast({
+            title: "Opening BaridiMob Payment",
+            description: "You will be redirected to BaridiMob to complete your payment.",
+          });
+        } else if (gateway === 'cib') {
+          // Open CIB payment (mock URL for demo)
+          const paymentUrl = `https://pay.cib.dz/payment?amount=${plan.price}&currency=${plan.currency}&plan=${plan.id}`;
+          window.open(paymentUrl, '_blank');
+          
+          toast({
+            title: "Opening CIB Payment",
+            description: "You will be redirected to CIB to complete your payment.",
+          });
+        }
       } else {
-        toast({
-          title: "Payment Instructions",
-          description: `${gateway.toUpperCase()} payment - please follow the banking instructions above.`,
-        });
+        // International payments
+        if (gateway === 'bank_transfer') {
+          // Show banking instructions
+          toast({
+            title: "Bank Transfer Instructions",
+            description: "Please use the banking information provided above to complete your payment. Reference: " + plan.id,
+            duration: 10000,
+          });
+        } else if (gateway === 'sepa') {
+          // Open SEPA transfer (mock URL for demo)
+          const paymentUrl = `https://sepa.banking-circle.com/transfer?amount=${plan.price}&currency=${plan.currency}&plan=${plan.id}&iban=LU574080000024260839`;
+          window.open(paymentUrl, '_blank');
+          
+          toast({
+            title: "Opening SEPA Transfer",
+            description: "You will be redirected to complete your SEPA transfer.",
+          });
+        }
       }
       
       onPlanSelect?.(plan.id, gateway);
