@@ -76,6 +76,7 @@ export function LevelDetails({ level }: LevelDetailsProps) {
     levelOrder: eslLevel.levelOrder,
     xpRequired: eslLevel.xpRequired,
     estimatedHours: eslLevel.estimatedHours,
+    skills: eslLevel.skills,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   });
