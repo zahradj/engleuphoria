@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { SpeakingScenario, ConversationMessage, MessageFeedback } from '@/types/speaking';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
@@ -177,11 +178,10 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
     try {
       let aiResponse = "That's great! Keep practicing and you'll improve your English speaking skills.";
       let feedback: MessageFeedback = {
-        pronunciation_score: 0.8,
-        grammar_score: 0.8,
-        fluency_score: 0.8,
         rating: 4,
-        encouragement: "Good effort! Keep practicing!"
+        encouragement: "Good effort! Keep practicing!",
+        grammar_suggestions: ["Try using more descriptive words"],
+        alternative_phrases: ["You could also say..."]
       };
 
       // Try to get AI response and feedback if not in demo mode

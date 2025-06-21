@@ -1,4 +1,3 @@
-
 import { SpeakingScenario, SpeakingProgress, SpeakingSession } from '@/types/speaking';
 
 // Mock speaking scenarios for demo mode
@@ -15,8 +14,7 @@ export const demoSpeakingScenarios: SpeakingScenario[] = [
     difficulty_rating: 1,
     tags: ['coffee', 'ordering', 'basic'],
     is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    created_at: new Date().toISOString()
   },
   {
     id: 'demo-2',
@@ -30,8 +28,7 @@ export const demoSpeakingScenarios: SpeakingScenario[] = [
     difficulty_rating: 1,
     tags: ['introduction', 'personal', 'basic'],
     is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    created_at: new Date().toISOString()
   },
   {
     id: 'demo-3',
@@ -45,8 +42,7 @@ export const demoSpeakingScenarios: SpeakingScenario[] = [
     difficulty_rating: 2,
     tags: ['description', 'vocabulary', 'present continuous'],
     is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
+    created_at: new Date().toISOString()
   }
 ];
 
