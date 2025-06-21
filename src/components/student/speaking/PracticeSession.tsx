@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { SpeakingScenario, ConversationMessage, MessageFeedback } from '@/types/speaking';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { speakingPracticeService } from '@/services/speakingPracticeService';
+import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Mic, 
@@ -17,7 +18,8 @@ import {
   RotateCcw, 
   Pause,
   Play,
-  MessageCircle
+  MessageCircle,
+  VolumeX
 } from 'lucide-react';
 
 interface PracticeSessionProps {
@@ -37,11 +39,15 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
   const [elapsedTime, setElapsedTime] = useState(0);
   const [aiAvatar, setAiAvatar] = useState<string>('😊');
   const [isAiSpeaking, setIsAiSpeaking] = useState(false);
+  const [isAudioEnabled, setIsAudioEnabled] = useState(true);
+  const [audioQueue, setAudioQueue] = useState<string[]>([]);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   
   const { recordingState, startRecording, stopRecording, processAudio, reset } = useSpeechRecognition();
   const { toast } = useToast();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
     if (isSessionActive && sessionStartTime) {
@@ -63,9 +69,48 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Process audio queue
+  useEffect(() => {
+    if (audioQueue.length > 0 && !isPlayingAudio && isAudioEnabled) {
+      playNextAudio();
+    }
+  }, [audioQueue, isPlayingAudio, isAudioEnabled]);
+
+  const playNextAudio = async () => {
+    if (audioQueue.length === 0 || !isAudioEnabled) return;
+
+    setIsPlayingAudio(true);
+    setIsAiSpeaking(true);
+    
+    const audioContent = audioQueue[0];
+    setAudioQueue(prev => prev.slice(1));
+
+    try {
+      const audioBlob = new Blob([Uint8Array.from(atob(audioContent), c => c.charCodeAt(0))], {
+        type: 'audio/mpeg'
+      });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      
+      if (audioRef.current) {
+        audioRef.current.src = audioUrl;
+        audioRef.current.onended = () => {
+          URL.revokeObjectURL(audioUrl);
+          setIsPlayingAudio(false);
+          setIsAiSpeaking(false);
+        };
+        await audioRef.current.play();
+      }
+    } catch (error) {
+      console.error('Error playing audio:', error);
+      setIsPlayingAudio(false);
+      setIsAiSpeaking(false);
+    }
+  };
+
   const startSession = async () => {
     setIsSessionActive(true);
     setSessionStartTime(new Date());
+    setAiAvatar('👋');
     
     // Add initial AI message
     const welcomeMessage: ConversationMessage = {
@@ -76,28 +121,58 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
     };
     
     setMessages([welcomeMessage]);
-    setAiAvatar('👋');
+
+    // Generate TTS for welcome message if audio is enabled
+    if (isAudioEnabled) {
+      try {
+        const { data } = await supabase.functions.invoke('text-to-speech', {
+          body: { text: scenario.prompt }
+        });
+        
+        if (data?.audioContent) {
+          setAudioQueue([data.audioContent]);
+        }
+      } catch (error) {
+        console.error('Error generating welcome TTS:', error);
+      }
+    }
     
-    // Simulate AI speech
-    setTimeout(() => {
-      setAiAvatar('😊');
-      setIsAiSpeaking(false);
-    }, 3000);
+    setTimeout(() => setAiAvatar('😊'), 3000);
   };
 
   const handleVoiceInput = async () => {
     if (recordingState.isRecording) {
-      stopRecording();
-      
-      // Process the recorded audio
-      if (recordingState.audioBlob) {
-        const transcript = await processAudio(recordingState.audioBlob);
-        if (transcript.trim()) {
-          await handleUserMessage(transcript);
-        }
+      try {
+        stopRecording();
+        
+        // Wait for the audio blob to be available
+        setTimeout(async () => {
+          if (recordingState.audioBlob) {
+            const transcript = await processAudio(recordingState.audioBlob);
+            if (transcript.trim()) {
+              await handleUserMessage(transcript);
+            }
+          }
+        }, 500);
+      } catch (error) {
+        console.error('Error processing voice input:', error);
+        toast({
+          title: "Recording Error",
+          description: "Failed to process your recording. Please try again.",
+          variant: "destructive"
+        });
       }
     } else {
-      startRecording();
+      try {
+        await startRecording();
+      } catch (error) {
+        console.error('Error starting recording:', error);
+        toast({
+          title: "Microphone Error",
+          description: "Could not access microphone. Please check permissions.",
+          variant: "destructive"
+        });
+      }
     }
   };
 
@@ -111,62 +186,68 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
 
     setMessages(prev => [...prev, userMessage]);
 
-    // Generate AI response and feedback
-    setTimeout(async () => {
-      const aiResponse = await generateAIResponse(text);
-      const feedback = generateFeedback(text);
-      
-      const aiMessage: ConversationMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: aiResponse,
-        timestamp: new Date()
-      };
+    try {
+      // Generate AI response
+      const { data: aiData } = await supabase.functions.invoke('ai-conversation', {
+        body: { 
+          userMessage: text, 
+          scenario,
+          conversationHistory: messages 
+        }
+      });
 
-      // Update user message with feedback
-      setMessages(prev => prev.map(msg => 
-        msg.id === userMessage.id 
-          ? { ...msg, feedback }
-          : msg
-      ).concat([aiMessage]));
+      if (aiData?.response) {
+        // Generate feedback for user message
+        const { data: feedbackData } = await supabase.functions.invoke('ai-feedback', {
+          body: { text, scenario }
+        });
 
-      setAiAvatar(getRandomAiAvatar());
-    }, 1500);
-  };
+        const feedback: MessageFeedback = feedbackData?.feedback || {
+          pronunciation_score: 0.8,
+          grammar_score: 0.8,
+          fluency_score: 0.8,
+          rating: 4,
+          encouragement: "Good effort! Keep practicing!"
+        };
 
-  const generateAIResponse = async (userInput: string): Promise<string> => {
-    // Simulate AI conversation logic
-    const responses = [
-      "That's great! Can you tell me more about that?",
-      "Interesting! What else would you like to share?",
-      "I understand. How do you feel about that?",
-      "That sounds wonderful! What happens next?",
-      "Thank you for sharing. Can you describe it in more detail?"
-    ];
-    
-    return responses[Math.floor(Math.random() * responses.length)];
-  };
+        // Update user message with feedback
+        setMessages(prev => prev.map(msg => 
+          msg.id === userMessage.id 
+            ? { ...msg, feedback }
+            : msg
+        ));
 
-  const generateFeedback = (text: string): MessageFeedback => {
-    // Simulate pronunciation and grammar scoring
-    const pronunciationScore = 0.7 + Math.random() * 0.3;
-    const grammarScore = 0.6 + Math.random() * 0.4;
-    
-    const encouragements = [
-      "Great pronunciation! 🌟",
-      "Well done! 👏",
-      "Keep it up! 💪",
-      "Excellent effort! ⭐",
-      "You're improving! 🎯"
-    ];
+        // Add AI response
+        const aiMessage: ConversationMessage = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: aiData.response,
+          timestamp: new Date()
+        };
 
-    return {
-      pronunciation_score: pronunciationScore,
-      rating: Math.ceil(pronunciationScore * 5),
-      encouragement: encouragements[Math.floor(Math.random() * encouragements.length)],
-      grammar_suggestions: grammarScore < 0.8 ? ["Try using 'the' before nouns"] : [],
-      alternative_phrases: ["You could also say: 'I really enjoy...'"]
-    };
+        setMessages(prev => [...prev, aiMessage]);
+
+        // Generate TTS for AI response
+        if (isAudioEnabled) {
+          const { data: ttsData } = await supabase.functions.invoke('text-to-speech', {
+            body: { text: aiData.response }
+          });
+          
+          if (ttsData?.audioContent) {
+            setAudioQueue(prev => [...prev, ttsData.audioContent]);
+          }
+        }
+
+        setAiAvatar(getRandomAiAvatar());
+      }
+    } catch (error) {
+      console.error('Error handling user message:', error);
+      toast({
+        title: "AI Error",
+        description: "Failed to generate response. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const getRandomAiAvatar = () => {
@@ -178,16 +259,16 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
     if (!sessionStartTime) return;
 
     const duration = Math.floor((Date.now() - sessionStartTime.getTime()) / 1000);
-    const xpEarned = Math.max(10, Math.floor(duration / 30) * 5); // 5 XP per 30 seconds
+    const xpEarned = Math.max(10, Math.floor(duration / 30) * 5);
 
     const sessionData = {
-      student_id: 'current-user-id',
+      student_id: 'current-user-id', // TODO: Use real user ID
       session_type: scenario.type,
       scenario_name: scenario.name,
       cefr_level: scenario.cefr_level,
       duration_seconds: duration,
       xp_earned: xpEarned,
-      overall_rating: 4 // Simulate good performance
+      overall_rating: 4
     };
 
     try {
@@ -239,6 +320,20 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
               <span>🎯 Difficulty: {scenario.difficulty_rating}/5</span>
             </div>
 
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm">🔊 Voice responses:</span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsAudioEnabled(!isAudioEnabled)}
+                >
+                  {isAudioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                  {isAudioEnabled ? 'On' : 'Off'}
+                </Button>
+              </div>
+            </div>
+
             <Button 
               onClick={startSession}
               className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
@@ -255,10 +350,12 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
 
   return (
     <div className="max-w-4xl mx-auto space-y-4 p-6">
+      <audio ref={audioRef} style={{ display: 'none' }} />
+      
       {/* Session Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={onBack}>
+          <Button variant="outline" onClick={endSession}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             End Session
           </Button>
@@ -266,6 +363,13 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
           <span className="text-lg font-medium">{scenario.name}</span>
         </div>
         <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsAudioEnabled(!isAudioEnabled)}
+          >
+            {isAudioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+          </Button>
           <div className="text-lg font-mono">{formatTime(elapsedTime)}</div>
           <Progress value={(elapsedTime / scenario.expected_duration) * 100} className="w-32" />
         </div>
@@ -326,6 +430,9 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
                           ))}
                         </div>
                         <p className="text-xs">{message.feedback.encouragement}</p>
+                        {message.feedback.grammar_suggestions && message.feedback.grammar_suggestions.length > 0 && (
+                          <p className="text-xs mt-1">💡 {message.feedback.grammar_suggestions[0]}</p>
+                        )}
                       </div>
                     )}
                   </div>

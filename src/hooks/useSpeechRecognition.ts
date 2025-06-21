@@ -17,10 +17,11 @@ export const useSpeechRecognition = () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
-          sampleRate: 44100,
+          sampleRate: 24000,
           channelCount: 1,
           echoCancellation: true,
-          noiseSuppression: true
+          noiseSuppression: true,
+          autoGainControl: true
         }
       });
 
@@ -28,7 +29,9 @@ export const useSpeechRecognition = () => {
       chunksRef.current = [];
 
       const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus'
+        mimeType: MediaRecorder.isTypeSupported('audio/webm;codecs=opus') 
+          ? 'audio/webm;codecs=opus' 
+          : 'audio/webm'
       });
 
       mediaRecorderRef.current = mediaRecorder;
@@ -48,17 +51,21 @@ export const useSpeechRecognition = () => {
         }));
       };
 
-      mediaRecorder.start();
+      mediaRecorder.start(1000); // Capture data every second
       setRecordingState(prev => ({ ...prev, isRecording: true }));
+      
+      console.log('Recording started');
     } catch (error) {
       console.error('Error starting recording:', error);
       setRecordingState(prev => ({ ...prev, isRecording: false }));
+      throw error;
     }
   }, []);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && recordingState.isRecording) {
       mediaRecorderRef.current.stop();
+      console.log('Recording stopped');
       
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
@@ -71,6 +78,8 @@ export const useSpeechRecognition = () => {
     setRecordingState(prev => ({ ...prev, isProcessing: true }));
 
     try {
+      console.log('Processing audio blob:', audioBlob.size, 'bytes');
+      
       // Convert blob to base64
       const reader = new FileReader();
       const base64Audio = await new Promise<string>((resolve, reject) => {
@@ -83,14 +92,21 @@ export const useSpeechRecognition = () => {
         reader.readAsDataURL(audioBlob);
       });
 
+      console.log('Calling speech-to-text function...');
+
       // Call Supabase edge function for speech-to-text
       const { data, error } = await supabase.functions.invoke('speech-to-text', {
         body: { audio: base64Audio }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Speech-to-text error:', error);
+        throw error;
+      }
 
       const transcript = data.text || '';
+      console.log('Transcription received:', transcript);
+      
       setRecordingState(prev => ({
         ...prev,
         isProcessing: false,
@@ -101,7 +117,7 @@ export const useSpeechRecognition = () => {
     } catch (error) {
       console.error('Error processing audio:', error);
       setRecordingState(prev => ({ ...prev, isProcessing: false }));
-      return '';
+      throw error;
     }
   }, []);
 
