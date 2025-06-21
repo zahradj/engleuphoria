@@ -2,7 +2,7 @@
 import { useNavigate, Link } from "react-router-dom";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
-import { Globe } from "lucide-react";
+import { Globe, Mail } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 export const Footer = () => {
@@ -28,9 +28,14 @@ export const Footer = () => {
             <Link to="/for-teachers" className="text-muted-foreground hover:text-foreground">
               {languageText.forTeachers}
             </Link>
-            <Link to="#" className="text-muted-foreground hover:text-foreground">
-              {languageText.contact}
-            </Link>
+            
+            {/* Updated Contact Info */}
+            <div className="flex items-center justify-center gap-2 text-muted-foreground">
+              <Mail className="h-4 w-4" />
+              <a href="mailto:contact@engleuphoria.com" className="hover:text-foreground transition-colors">
+                contact@engleuphoria.com
+              </a>
+            </div>
             
             {/* Language Selector for Mobile */}
             <div className="flex justify-center gap-2 mt-2">
@@ -72,9 +77,14 @@ export const Footer = () => {
             <Link to="/for-teachers" className="text-muted-foreground hover:text-foreground">
               {languageText.forTeachers}
             </Link>
-            <Link to="#" className="text-muted-foreground hover:text-foreground">
-              {languageText.contact}
-            </Link>
+            
+            {/* Updated Contact Info */}
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Mail className="h-4 w-4" />
+              <a href="mailto:contact@engleuphoria.com" className="hover:text-foreground transition-colors">
+                contact@engleuphoria.com
+              </a>
+            </div>
             
             {/* Language Selector for Desktop */}
             <div className="ml-4 flex items-center gap-1">

@@ -55,8 +55,8 @@ export const Header = () => {
           </a>
           <div className="flex items-center gap-2 text-gray-600">
             <Mail className="h-4 w-4" />
-            <a href="mailto:support@engleuphoria.com" className="hover:text-purple-600 transition-colors">
-              support@engleuphoria.com
+            <a href="mailto:contact@engleuphoria.com" className="hover:text-purple-600 transition-colors">
+              contact@engleuphoria.com
             </a>
           </div>
         </nav>
