@@ -2,11 +2,25 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lightbulb } from "lucide-react";
-import { ESLLevel } from "@/types/eslCurriculum";
 import { CurriculumMaterial } from "@/services/enhancedESLCurriculumService";
 
+// Define CurriculumLevel interface to match what this component expects
+interface CurriculumLevel {
+  id: string;
+  name: string;
+  cefrLevel: string;
+  ageGroup: string;
+  description: string;
+  levelOrder: number;
+  xpRequired: number;
+  estimatedHours: number;
+  skills: any[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface LevelInsightsProps {
-  level: ESLLevel;
+  level: CurriculumLevel;
   materials: CurriculumMaterial[];
 }
 

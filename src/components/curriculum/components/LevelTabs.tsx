@@ -1,34 +1,33 @@
 
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ESLLevel } from "@/types/eslCurriculum";
 import { CurriculumMaterial } from "@/services/enhancedESLCurriculumService";
 import { LevelMaterialsGrid } from "./LevelMaterialsGrid";
 import { LevelSkillsOverview } from "./LevelSkillsOverview";
 import { LevelProgressTracker } from "./LevelProgressTracker";
 import { LevelInsights } from "./LevelInsights";
 
+// Define CurriculumLevel interface to match what components expect
+interface CurriculumLevel {
+  id: string;
+  name: string;
+  cefrLevel: string;
+  ageGroup: string;
+  description: string;
+  levelOrder: number;
+  xpRequired: number;
+  estimatedHours: number;
+  skills: any[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface LevelTabsProps {
-  level: ESLLevel;
+  level: CurriculumLevel;
   materials: CurriculumMaterial[];
   isLoading: boolean;
   onMaterialUpdate: () => void;
 }
-
-// Convert ESLLevel to CurriculumLevel format for components that need it
-const convertToCurriculumLevel = (eslLevel: ESLLevel) => ({
-  id: eslLevel.id,
-  name: eslLevel.name,
-  cefrLevel: eslLevel.cefrLevel,
-  ageGroup: eslLevel.ageGroup,
-  description: eslLevel.description,
-  levelOrder: eslLevel.levelOrder,
-  xpRequired: eslLevel.xpRequired,
-  estimatedHours: eslLevel.estimatedHours,
-  skills: eslLevel.skills,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString()
-});
 
 export function LevelTabs({ level, materials, isLoading, onMaterialUpdate }: LevelTabsProps) {
   return (
@@ -53,7 +52,7 @@ export function LevelTabs({ level, materials, isLoading, onMaterialUpdate }: Lev
       </TabsContent>
 
       <TabsContent value="progress" className="mt-6">
-        <LevelProgressTracker level={convertToCurriculumLevel(level)} materials={materials} />
+        <LevelProgressTracker level={level} materials={materials} />
       </TabsContent>
 
       <TabsContent value="insights" className="mt-6">
