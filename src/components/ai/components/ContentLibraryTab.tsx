@@ -8,22 +8,12 @@ import {
   Download,
   Share
 } from "lucide-react";
-
-interface ContentItem {
-  id: string;
-  type: string;
-  title: string;
-  metadata: {
-    topic: string;
-    level: string;
-    generatedAt: Date;
-  };
-}
+import { ContentLibraryItem } from "@/services/unifiedAIContentService";
 
 interface ContentLibraryTabProps {
-  generatedContent: ContentItem[];
+  generatedContent: ContentLibraryItem[];
   onClearContent: () => void;
-  onDownload: (content: ContentItem) => void;
+  onDownload: (content: ContentLibraryItem) => void;
 }
 
 export const ContentLibraryTab = ({
@@ -31,7 +21,7 @@ export const ContentLibraryTab = ({
   onClearContent,
   onDownload
 }: ContentLibraryTabProps) => {
-  const handleDownload = (content: ContentItem) => {
+  const handleDownload = (content: ContentLibraryItem) => {
     const dataStr = JSON.stringify(content, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(dataBlob);
@@ -72,11 +62,16 @@ export const ContentLibraryTab = ({
               </CardHeader>
               <CardContent>
                 <div className="space-y-2 mb-4">
-                  <p className="text-xs text-gray-600">Topic: {content.metadata.topic}</p>
-                  <p className="text-xs text-gray-600">Level: {content.metadata.level}</p>
+                  <p className="text-xs text-gray-600">Topic: {content.topic}</p>
+                  <p className="text-xs text-gray-600">Level: {content.level}</p>
                   <p className="text-xs text-gray-600">
-                    Generated: {content.metadata.generatedAt.toLocaleDateString()}
+                    Generated: {new Date(content.metadata.generatedAt).toLocaleDateString()}
                   </p>
+                  {content.metadata.isMockData && (
+                    <Badge variant="outline" className="text-xs text-yellow-600">
+                      Demo Content
+                    </Badge>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <Button size="sm" variant="outline" onClick={() => handleDownload(content)}>
