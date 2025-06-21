@@ -1,26 +1,15 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { SpeakingScenario, ConversationMessage, MessageFeedback } from '@/types/speaking';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { speakingPracticeService } from '@/services/speakingPracticeService';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  Mic, 
-  MicOff, 
-  Volume2, 
-  ArrowLeft, 
-  Star, 
-  RotateCcw, 
-  Pause,
-  Play,
-  MessageCircle,
-  VolumeX
-} from 'lucide-react';
+import { SessionHeader } from './components/SessionHeader';
+import { AIAvatar } from './components/AIAvatar';
+import { ChatMessages } from './components/ChatMessages';
+import { VoiceControls } from './components/VoiceControls';
+import { SessionSetup } from './components/SessionSetup';
 
 interface PracticeSessionProps {
   scenario: SpeakingScenario;
@@ -45,7 +34,6 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
   
   const { recordingState, startRecording, stopRecording, processAudio, reset } = useSpeechRecognition();
   const { toast } = useToast();
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -64,10 +52,6 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [isSessionActive, sessionStartTime]);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
 
   // Process audio queue
   useEffect(() => {
@@ -284,67 +268,15 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
     }
   };
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
   if (!isSessionActive) {
     return (
-      <div className="max-w-2xl mx-auto space-y-6 p-6">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={onBack}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          <Badge variant="outline">{scenario.cefr_level}</Badge>
-        </div>
-
-        <Card>
-          <CardHeader className="text-center">
-            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <MessageCircle className="h-10 w-10 text-blue-600" />
-            </div>
-            <CardTitle className="text-2xl">{scenario.name}</CardTitle>
-            <p className="text-gray-600">{scenario.description}</p>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h4 className="font-medium mb-2">📝 What you'll practice:</h4>
-              <p className="text-gray-700">{scenario.context_instructions}</p>
-            </div>
-
-            <div className="flex items-center justify-between text-sm text-gray-600">
-              <span>⏱️ Expected time: {Math.floor(scenario.expected_duration / 60)} minutes</span>
-              <span>🎯 Difficulty: {scenario.difficulty_rating}/5</span>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-sm">🔊 Voice responses:</span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsAudioEnabled(!isAudioEnabled)}
-                >
-                  {isAudioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-                  {isAudioEnabled ? 'On' : 'Off'}
-                </Button>
-              </div>
-            </div>
-
-            <Button 
-              onClick={startSession}
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-              size="lg"
-            >
-              <Play className="h-5 w-5 mr-2" />
-              Start Practice Session
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+      <SessionSetup
+        scenario={scenario}
+        isAudioEnabled={isAudioEnabled}
+        onBack={onBack}
+        onStartSession={startSession}
+        onToggleAudio={() => setIsAudioEnabled(!isAudioEnabled)}
+      />
     );
   }
 
@@ -352,141 +284,25 @@ export const PracticeSession: React.FC<PracticeSessionProps> = ({
     <div className="max-w-4xl mx-auto space-y-4 p-6">
       <audio ref={audioRef} style={{ display: 'none' }} />
       
-      {/* Session Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={endSession}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            End Session
-          </Button>
-          <Badge variant="outline">{scenario.cefr_level}</Badge>
-          <span className="text-lg font-medium">{scenario.name}</span>
-        </div>
-        <div className="flex items-center gap-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsAudioEnabled(!isAudioEnabled)}
-          >
-            {isAudioEnabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-          </Button>
-          <div className="text-lg font-mono">{formatTime(elapsedTime)}</div>
-          <Progress value={(elapsedTime / scenario.expected_duration) * 100} className="w-32" />
-        </div>
-      </div>
+      <SessionHeader
+        scenario={scenario}
+        elapsedTime={elapsedTime}
+        isAudioEnabled={isAudioEnabled}
+        onEndSession={endSession}
+        onToggleAudio={() => setIsAudioEnabled(!isAudioEnabled)}
+      />
 
-      {/* AI Avatar and Chat */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* AI Avatar */}
-        <Card className="lg:col-span-1">
-          <CardContent className="pt-6 text-center">
-            <div className="text-8xl mb-4">{aiAvatar}</div>
-            <h3 className="font-medium">Your AI Teacher</h3>
-            <p className="text-sm text-gray-600">Ready to help you practice!</p>
-            {isAiSpeaking && (
-              <div className="mt-4">
-                <div className="flex justify-center">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  </div>
-                </div>
-                <p className="text-xs text-blue-600 mt-2">Speaking...</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Chat Messages */}
-        <Card className="lg:col-span-3">
-          <CardContent className="pt-6">
-            <div className="space-y-4 max-h-96 overflow-y-auto mb-4">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                >
-                  <div
-                    className={`max-w-xs lg:max-w-md px-4 py-3 rounded-lg ${
-                      message.role === 'user'
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-100 text-gray-800'
-                    }`}
-                  >
-                    <p>{message.content}</p>
-                    {message.feedback && (
-                      <div className="mt-2 pt-2 border-t border-blue-300">
-                        <div className="flex items-center gap-2 mb-1">
-                          {Array.from({ length: 5 }).map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`h-3 w-3 ${
-                                i < message.feedback!.rating
-                                  ? 'text-yellow-400 fill-current'
-                                  : 'text-gray-300'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                        <p className="text-xs">{message.feedback.encouragement}</p>
-                        {message.feedback.grammar_suggestions && message.feedback.grammar_suggestions.length > 0 && (
-                          <p className="text-xs mt-1">💡 {message.feedback.grammar_suggestions[0]}</p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
-
-            {/* Voice Controls */}
-            <div className="flex items-center justify-center gap-4">
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={handleVoiceInput}
-                disabled={recordingState.isProcessing}
-                className={`${
-                  recordingState.isRecording
-                    ? 'bg-red-100 hover:bg-red-200 text-red-700 border-red-300'
-                    : 'bg-blue-100 hover:bg-blue-200 text-blue-700 border-blue-300'
-                }`}
-              >
-                {recordingState.isRecording ? (
-                  <>
-                    <MicOff className="h-5 w-5 mr-2" />
-                    Stop Recording
-                  </>
-                ) : recordingState.isProcessing ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 mr-2"></div>
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <Mic className="h-5 w-5 mr-2" />
-                    Hold to Speak
-                  </>
-                )}
-              </Button>
-
-              <Button variant="outline" onClick={endSession}>
-                Finish Session
-              </Button>
-            </div>
-
-            {recordingState.isRecording && (
-              <div className="text-center mt-4">
-                <div className="flex justify-center items-center gap-2">
-                  <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                  <span className="text-red-600 font-medium">Recording... Speak clearly!</span>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <AIAvatar avatar={aiAvatar} isAiSpeaking={isAiSpeaking} />
+        
+        <div className="lg:col-span-3 space-y-4">
+          <ChatMessages messages={messages} />
+          <VoiceControls
+            recordingState={recordingState}
+            onVoiceInput={handleVoiceInput}
+            onEndSession={endSession}
+          />
+        </div>
       </div>
     </div>
   );
