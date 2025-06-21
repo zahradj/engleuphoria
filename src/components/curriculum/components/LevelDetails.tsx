@@ -66,6 +66,20 @@ export function LevelDetails({ level }: LevelDetailsProps) {
     return Math.round((completedMaterials / materials.length) * 100);
   };
 
+  // Convert ESLLevel to CurriculumLevel format for components that need it
+  const convertToCurriculumLevel = (eslLevel: ESLLevel) => ({
+    id: eslLevel.id,
+    name: eslLevel.name,
+    cefrLevel: eslLevel.cefrLevel,
+    ageGroup: eslLevel.ageGroup,
+    description: eslLevel.description,
+    levelOrder: eslLevel.levelOrder,
+    xpRequired: eslLevel.xpRequired,
+    estimatedHours: eslLevel.estimatedHours,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  });
+
   return (
     <div className="space-y-6">
       <Card>
@@ -175,7 +189,7 @@ export function LevelDetails({ level }: LevelDetailsProps) {
         </TabsContent>
 
         <TabsContent value="progress" className="mt-6">
-          <LevelProgressTracker level={level} materials={materials} />
+          <LevelProgressTracker level={convertToCurriculumLevel(level)} materials={materials} />
         </TabsContent>
 
         <TabsContent value="insights" className="mt-6">
