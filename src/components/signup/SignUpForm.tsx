@@ -18,7 +18,7 @@ const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
   confirmPassword: z.string().min(6, { message: "Please confirm your password" }),
-  userType: z.enum(["parent", "teacher", "student", "admin"], { 
+  userType: z.enum(["teacher", "student", "admin"], { 
     required_error: "Please select a user type" 
   }),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -41,7 +41,7 @@ export const SignUpForm = () => {
       email: "",
       password: "",
       confirmPassword: "",
-      userType: "parent",
+      userType: "student",
     },
   });
   
@@ -67,12 +67,6 @@ export const SignUpForm = () => {
         localStorage.setItem('userType', 'admin');
         localStorage.removeItem('teacherName');
         localStorage.removeItem('studentName');
-      } else {
-        localStorage.setItem('studentName', values.name);
-        localStorage.setItem('userType', 'parent');
-        localStorage.setItem('points', '50');
-        localStorage.removeItem('teacherName');
-        localStorage.removeItem('adminName');
       }
       
       toast({
@@ -250,12 +244,6 @@ export const SignUpForm = () => {
                   >
                     <FormItem className="flex items-center space-x-3 space-y-0 border rounded-lg p-3 hover:bg-gray-50 transition-colors">
                       <FormControl>
-                        <RadioGroupItem value="parent" />
-                      </FormControl>
-                      <FormLabel className="font-normal cursor-pointer">{languageText.parent || 'Parent'}</FormLabel>
-                    </FormItem>
-                    <FormItem className="flex items-center space-x-3 space-y-0 border rounded-lg p-3 hover:bg-gray-50 transition-colors">
-                      <FormControl>
                         <RadioGroupItem value="teacher" />
                       </FormControl>
                       <FormLabel className="font-normal cursor-pointer">{languageText.teacher || 'Teacher'}</FormLabel>
@@ -266,7 +254,7 @@ export const SignUpForm = () => {
                       </FormControl>
                       <FormLabel className="font-normal cursor-pointer">{languageText.student || 'Student'}</FormLabel>
                     </FormItem>
-                    <FormItem className="flex items-center space-x-3 space-y-0 border rounded-lg p-3 hover:bg-gray-50 transition-colors">
+                    <FormItem className="flex items-center space-x-3 space-y-0 border rounded-lg p-3 hover:bg-gray-50 transition-colors col-span-2">
                       <FormControl>
                         <RadioGroupItem value="admin" />
                       </FormControl>
