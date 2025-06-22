@@ -19,9 +19,10 @@ import {
 interface StudentSidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  onLogout?: () => void;
 }
 
-export const StudentSidebar = ({ activeTab, setActiveTab }: StudentSidebarProps) => {
+export const StudentSidebar = ({ activeTab, setActiveTab, onLogout }: StudentSidebarProps) => {
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
     { id: "teachers", label: "Teachers", icon: Users },
@@ -34,6 +35,15 @@ export const StudentSidebar = ({ activeTab, setActiveTab }: StudentSidebarProps)
     { id: "profile", label: "Profile", icon: User },
     { id: "settings", label: "Settings", icon: Settings },
   ];
+
+  const handleLogout = () => {
+    if (onLogout) {
+      onLogout();
+    } else {
+      localStorage.clear();
+      window.location.href = '/';
+    }
+  };
 
   return (
     <aside className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-white border-r border-gray-200 overflow-y-auto">
@@ -70,10 +80,7 @@ export const StudentSidebar = ({ activeTab, setActiveTab }: StudentSidebarProps)
           <Button
             variant="ghost"
             className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-            onClick={() => {
-              localStorage.clear();
-              window.location.href = '/';
-            }}
+            onClick={handleLogout}
           >
             <LogOut className="h-4 w-4 mr-3" />
             Sign Out
