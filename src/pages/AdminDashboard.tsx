@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
@@ -112,6 +111,8 @@ const AdminDashboard = () => {
         return <ContentModeration />;
       case 'reports':
         return <ReportsGeneration />;
+      case 'teacher-applications':
+        return <TeacherApplicationsManagement />;
       default:
         return <AdminOverview />;
     }

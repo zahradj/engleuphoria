@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
@@ -41,8 +40,8 @@ export const Header = () => {
   };
 
   return (
-    <header className="border-b bg-white/95 backdrop-blur-sm sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-16 items-center justify-between">
         {/* Logo */}
         <div 
           className="flex items-center gap-3 cursor-pointer"
@@ -59,23 +58,25 @@ export const Header = () => {
         </div>
 
         {/* Desktop Navigation */}
-        <nav className="hidden lg:flex items-center gap-6">
-          <a href="/about-us" className="text-gray-600 hover:text-purple-600 transition-colors">
-            {t('aboutUs') || 'About Us'}
-          </a>
-          <a href="/for-parents" className="text-gray-600 hover:text-purple-600 transition-colors">
-            {t('forParents') || 'For Parents'}
-          </a>
-          <a href="/for-teachers" className="text-gray-600 hover:text-purple-600 transition-colors">
-            {t('forTeachers') || 'For Teachers'}
-          </a>
-          <Button
-            variant="ghost"
-            onClick={handlePricing}
-            className="text-gray-600 hover:text-purple-600 transition-colors"
-          >
+        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
+          <Link to="/" className="transition-colors hover:text-foreground/80 text-foreground/60">
+            Home
+          </Link>
+          <Link to="/for-teachers" className="transition-colors hover:text-foreground/80 text-foreground/60">
+            For Teachers
+          </Link>
+          <Link to="/become-teacher" className="transition-colors hover:text-foreground/80 text-foreground/60">
+            Become a Teacher
+          </Link>
+          <Link to="/for-parents" className="transition-colors hover:text-foreground/80 text-foreground/60">
+            For Parents
+          </Link>
+          <Link to="/about-us" className="transition-colors hover:text-foreground/80 text-foreground/60">
+            About
+          </Link>
+          <Link to="/pricing-selection" className="transition-colors hover:text-foreground/80 text-foreground/60">
             Pricing
-          </Button>
+          </Link>
         </nav>
 
         {/* Desktop Language Switcher and Auth Buttons */}

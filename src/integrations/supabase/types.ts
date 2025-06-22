@@ -910,16 +910,21 @@ export type Database = {
           contact_notes: string | null
           cover_letter: string | null
           created_at: string | null
+          current_stage: string | null
           cv_url: string | null
           date_of_birth: string | null
+          documents_approved: boolean | null
           education: string | null
           email: string
+          equipment_test_passed: boolean | null
           esl_certification: string | null
           first_name: string
           id: string
           interview_feedback: string | null
+          interview_passed: boolean | null
           interview_scheduled_at: string | null
           interviewed_by: string | null
+          intro_video_approved: boolean | null
           languages_spoken: string[] | null
           last_contact_date: string | null
           last_name: string
@@ -946,16 +951,21 @@ export type Database = {
           contact_notes?: string | null
           cover_letter?: string | null
           created_at?: string | null
+          current_stage?: string | null
           cv_url?: string | null
           date_of_birth?: string | null
+          documents_approved?: boolean | null
           education?: string | null
           email: string
+          equipment_test_passed?: boolean | null
           esl_certification?: string | null
           first_name: string
           id?: string
           interview_feedback?: string | null
+          interview_passed?: boolean | null
           interview_scheduled_at?: string | null
           interviewed_by?: string | null
+          intro_video_approved?: boolean | null
           languages_spoken?: string[] | null
           last_contact_date?: string | null
           last_name: string
@@ -982,16 +992,21 @@ export type Database = {
           contact_notes?: string | null
           cover_letter?: string | null
           created_at?: string | null
+          current_stage?: string | null
           cv_url?: string | null
           date_of_birth?: string | null
+          documents_approved?: boolean | null
           education?: string | null
           email?: string
+          equipment_test_passed?: boolean | null
           esl_certification?: string | null
           first_name?: string
           id?: string
           interview_feedback?: string | null
+          interview_passed?: boolean | null
           interview_scheduled_at?: string | null
           interviewed_by?: string | null
+          intro_video_approved?: boolean | null
           languages_spoken?: string[] | null
           last_contact_date?: string | null
           last_name?: string
@@ -1010,6 +1025,160 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      teacher_equipment_tests: {
+        Row: {
+          application_id: string | null
+          created_at: string | null
+          download_speed: number | null
+          id: string
+          microphone_test: boolean | null
+          overall_passed: boolean | null
+          ping_latency: number | null
+          screen_sharing_test: boolean | null
+          speaker_test: boolean | null
+          test_completed_at: string | null
+          upload_speed: number | null
+          webcam_test: boolean | null
+        }
+        Insert: {
+          application_id?: string | null
+          created_at?: string | null
+          download_speed?: number | null
+          id?: string
+          microphone_test?: boolean | null
+          overall_passed?: boolean | null
+          ping_latency?: number | null
+          screen_sharing_test?: boolean | null
+          speaker_test?: boolean | null
+          test_completed_at?: string | null
+          upload_speed?: number | null
+          webcam_test?: boolean | null
+        }
+        Update: {
+          application_id?: string | null
+          created_at?: string | null
+          download_speed?: number | null
+          id?: string
+          microphone_test?: boolean | null
+          overall_passed?: boolean | null
+          ping_latency?: number | null
+          screen_sharing_test?: boolean | null
+          speaker_test?: boolean | null
+          test_completed_at?: string | null
+          upload_speed?: number | null
+          webcam_test?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_equipment_tests_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "teacher_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teacher_interviews: {
+        Row: {
+          application_id: string | null
+          approved: boolean | null
+          created_at: string | null
+          duration: number | null
+          id: string
+          interview_notes: string | null
+          interview_type: string | null
+          interviewer_id: string | null
+          rating: number | null
+          scheduled_at: string
+          status: string | null
+          updated_at: string | null
+          zoom_link: string | null
+        }
+        Insert: {
+          application_id?: string | null
+          approved?: boolean | null
+          created_at?: string | null
+          duration?: number | null
+          id?: string
+          interview_notes?: string | null
+          interview_type?: string | null
+          interviewer_id?: string | null
+          rating?: number | null
+          scheduled_at: string
+          status?: string | null
+          updated_at?: string | null
+          zoom_link?: string | null
+        }
+        Update: {
+          application_id?: string | null
+          approved?: boolean | null
+          created_at?: string | null
+          duration?: number | null
+          id?: string
+          interview_notes?: string | null
+          interview_type?: string | null
+          interviewer_id?: string | null
+          rating?: number | null
+          scheduled_at?: string
+          status?: string | null
+          updated_at?: string | null
+          zoom_link?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_interviews_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "teacher_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teacher_interviews_interviewer_id_fkey"
+            columns: ["interviewer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teacher_onboarding_progress: {
+        Row: {
+          application_id: string | null
+          completed: boolean | null
+          completed_at: string | null
+          created_at: string | null
+          data: Json | null
+          id: string
+          step_name: string
+        }
+        Insert: {
+          application_id?: string | null
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          step_name: string
+        }
+        Update: {
+          application_id?: string | null
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          step_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_onboarding_progress_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "teacher_applications"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       teacher_performance_metrics: {
         Row: {
