@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -71,7 +70,7 @@ export const SignUpForm = () => {
       
       toast({
         title: "🎉 Account created successfully!",
-        description: "Welcome to Engleuphoria! Redirecting to your dashboard...",
+        description: "Welcome to Engleuphoria! Please select your learning plan...",
       });
       
       // Redirect based on user type
@@ -81,7 +80,8 @@ export const SignUpForm = () => {
         } else if (values.userType === "admin") {
           navigate("/admin-dashboard");
         } else {
-          navigate("/student-dashboard");
+          // For students, redirect to pricing selection
+          navigate("/pricing-selection");
         }
       }, 1500);
       

@@ -7,22 +7,31 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
-import TeacherDashboard from "./pages/TeacherDashboard";
 import StudentDashboard from "./pages/StudentDashboard";
+import TeacherDashboard from "./pages/TeacherDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
-import Login from "./pages/Login";
+import UnifiedClassroom from "./pages/UnifiedClassroom";
+import OneOnOneClassroomNew from "./pages/OneOnOneClassroomNew";
+import SimpleClassroomSelector from "./pages/SimpleClassroomSelector";
 import SignUp from "./pages/SignUp";
-import PaymentPage from "./pages/PaymentPage";
+import Login from "./pages/Login";
+import PricingSelection from "./pages/PricingSelection";
+import TeacherDiscovery from "./pages/TeacherDiscovery";
+import EnhancedIndex from "./pages/EnhancedIndex";
+import AboutUs from "./pages/AboutUs";
+import ForTeachers from "./pages/ForTeachers";
+import ForParents from "./pages/ForParents";
+import TeacherApplication from "./pages/TeacherApplication";
+import LessonScheduler from "./pages/LessonScheduler";
+import StudentLessonScheduler from "./pages/StudentLessonScheduler";
+import LessonPlanCreator from "./pages/LessonPlanCreator";
 import MaterialLibraryPage from "./pages/MaterialLibraryPage";
 import CurriculumLibraryPage from "./pages/CurriculumLibraryPage";
-import ForParents from "./pages/ForParents";
-import ForTeachers from "./pages/ForTeachers";
-import AboutUs from "./pages/AboutUs";
-import UnifiedClassroom from "./pages/UnifiedClassroom";
-import SimpleClassroomSelector from "./components/classroom/SimpleClassroomSelector";
+import PaymentPage from "./pages/PaymentPage";
 import MediaTestPage from "./pages/MediaTestPage";
-import StudentLessonScheduler from "./pages/StudentLessonScheduler";
-import TeacherApplication from "./pages/TeacherApplication";
+import StudentManagement from "./pages/StudentManagement";
+import WhiteboardPage from "./pages/WhiteboardPage";
+import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
@@ -37,23 +46,31 @@ function App() {
             <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Index />} />
-                <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
-                <Route path="/student-dashboard" element={<StudentDashboard />} />
-                <Route path="/admin-dashboard" element={<AdminDashboard />} />
-                <Route path="/login" element={<Login />} />
+                <Route path="/enhanced" element={<EnhancedIndex />} />
+                <Route path="/about" element={<AboutUs />} />
+                <Route path="/for-teachers" element={<ForTeachers />} />
+                <Route path="/for-parents" element={<ForParents />} />
                 <Route path="/signup" element={<SignUp />} />
-                <Route path="/payment" element={<PaymentPage />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/pricing-selection" element={<PricingSelection />} />
+                <Route path="/teacher-discovery" element={<TeacherDiscovery />} />
+                <Route path="/student-dashboard" element={<StudentDashboard />} />
+                <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
+                <Route path="/admin-dashboard" element={<AdminDashboard />} />
+                <Route path="/unified-classroom" element={<UnifiedClassroom />} />
+                <Route path="/oneonone-classroom-new" element={<OneOnOneClassroomNew />} />
+                <Route path="/classroom-selector" element={<SimpleClassroomSelector />} />
+                <Route path="/teacher-application" element={<TeacherApplication />} />
+                <Route path="/lesson-scheduler" element={<LessonScheduler />} />
+                <Route path="/student-lesson-scheduler" element={<StudentLessonScheduler />} />
+                <Route path="/lesson-plan-creator" element={<LessonPlanCreator />} />
                 <Route path="/material-library" element={<MaterialLibraryPage />} />
                 <Route path="/curriculum-library" element={<CurriculumLibraryPage />} />
-                <Route path="/for-parents" element={<ForParents />} />
-                <Route path="/for-teachers" element={<ForTeachers />} />
-                <Route path="/about-us" element={<AboutUs />} />
-                <Route path="/teacher-application" element={<TeacherApplication />} />
-                <Route path="/classroom" element={<UnifiedClassroom />} />
-                <Route path="/classroom-selector" element={<SimpleClassroomSelector />} />
+                <Route path="/payment" element={<PaymentPage />} />
                 <Route path="/media-test" element={<MediaTestPage />} />
-                <Route path="/oneonone-classroom-new" element={<UnifiedClassroom />} />
-                <Route path="/student-lesson-scheduler" element={<StudentLessonScheduler />} />
+                <Route path="/student-management" element={<StudentManagement />} />
+                <Route path="/whiteboard" element={<WhiteboardPage />} />
+                <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
           </TooltipProvider>

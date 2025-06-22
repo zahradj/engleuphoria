@@ -9,6 +9,92 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      class_bookings: {
+        Row: {
+          booking_type: string
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          created_at: string
+          currency: string
+          duration: number
+          id: string
+          lesson_id: string | null
+          notes: string | null
+          price_paid: number
+          scheduled_at: string
+          status: string
+          student_id: string
+          subscription_id: string | null
+          teacher_id: string
+          updated_at: string
+        }
+        Insert: {
+          booking_type?: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          currency?: string
+          duration?: number
+          id?: string
+          lesson_id?: string | null
+          notes?: string | null
+          price_paid?: number
+          scheduled_at: string
+          status?: string
+          student_id: string
+          subscription_id?: string | null
+          teacher_id: string
+          updated_at?: string
+        }
+        Update: {
+          booking_type?: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          currency?: string
+          duration?: number
+          id?: string
+          lesson_id?: string | null
+          notes?: string | null
+          price_paid?: number
+          scheduled_at?: string
+          status?: string
+          student_id?: string
+          subscription_id?: string | null
+          teacher_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_bookings_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_bookings_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_bookings_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "user_subscriptions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_bookings_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       curriculum_levels: {
         Row: {
           age_group: string
@@ -412,6 +498,108 @@ export type Database = {
           },
         ]
       }
+      messages: {
+        Row: {
+          booking_id: string | null
+          content: string
+          created_at: string
+          id: string
+          is_read: boolean | null
+          message_type: string
+          receiver_id: string
+          sender_id: string
+          updated_at: string
+        }
+        Insert: {
+          booking_id?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message_type?: string
+          receiver_id: string
+          sender_id: string
+          updated_at?: string
+        }
+        Update: {
+          booking_id?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message_type?: string
+          receiver_id?: string
+          sender_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "class_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_receiver_id_fkey"
+            columns: ["receiver_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          action_url: string | null
+          content: string
+          created_at: string
+          id: string
+          is_read: boolean | null
+          scheduled_for: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          action_url?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          scheduled_for?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          action_url?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          scheduled_for?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
@@ -634,6 +822,54 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_plans: {
+        Row: {
+          created_at: string
+          currency: string
+          features: Json
+          id: string
+          interval_type: string
+          is_active: boolean
+          is_trial: boolean
+          max_classes_per_month: number | null
+          name: string
+          price_dzd: number
+          price_eur: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          features?: Json
+          id?: string
+          interval_type?: string
+          is_active?: boolean
+          is_trial?: boolean
+          max_classes_per_month?: number | null
+          name: string
+          price_dzd?: number
+          price_eur?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          features?: Json
+          id?: string
+          interval_type?: string
+          is_active?: boolean
+          is_trial?: boolean
+          max_classes_per_month?: number | null
+          name?: string
+          price_dzd?: number
+          price_eur?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       teacher_achievements: {
         Row: {
           achievement_description: string | null
@@ -817,6 +1053,188 @@ export type Database = {
         }
         Relationships: []
       }
+      teacher_profiles: {
+        Row: {
+          accent: string | null
+          availability_schedule: Json | null
+          bio: string | null
+          created_at: string
+          hourly_rate_dzd: number | null
+          hourly_rate_eur: number | null
+          id: string
+          intro_video_url: string | null
+          is_available: boolean | null
+          languages_spoken: string[] | null
+          profile_image_url: string | null
+          rating: number | null
+          specializations: string[] | null
+          timezone: string | null
+          total_reviews: number | null
+          updated_at: string
+          user_id: string
+          years_experience: number | null
+        }
+        Insert: {
+          accent?: string | null
+          availability_schedule?: Json | null
+          bio?: string | null
+          created_at?: string
+          hourly_rate_dzd?: number | null
+          hourly_rate_eur?: number | null
+          id?: string
+          intro_video_url?: string | null
+          is_available?: boolean | null
+          languages_spoken?: string[] | null
+          profile_image_url?: string | null
+          rating?: number | null
+          specializations?: string[] | null
+          timezone?: string | null
+          total_reviews?: number | null
+          updated_at?: string
+          user_id: string
+          years_experience?: number | null
+        }
+        Update: {
+          accent?: string | null
+          availability_schedule?: Json | null
+          bio?: string | null
+          created_at?: string
+          hourly_rate_dzd?: number | null
+          hourly_rate_eur?: number | null
+          id?: string
+          intro_video_url?: string | null
+          is_available?: boolean | null
+          languages_spoken?: string[] | null
+          profile_image_url?: string | null
+          rating?: number | null
+          specializations?: string[] | null
+          timezone?: string | null
+          total_reviews?: number | null
+          updated_at?: string
+          user_id?: string
+          years_experience?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_profiles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teacher_reviews: {
+        Row: {
+          booking_id: string
+          created_at: string
+          id: string
+          is_public: boolean | null
+          rating: number
+          review_text: string | null
+          student_id: string
+          teacher_id: string
+          updated_at: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          id?: string
+          is_public?: boolean | null
+          rating: number
+          review_text?: string | null
+          student_id: string
+          teacher_id: string
+          updated_at?: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          id?: string
+          is_public?: boolean | null
+          rating?: number
+          review_text?: string | null
+          student_id?: string
+          teacher_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "class_bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teacher_reviews_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teacher_reviews_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_subscriptions: {
+        Row: {
+          classes_used_this_month: number
+          created_at: string
+          id: string
+          payment_method: string | null
+          plan_id: string
+          status: string
+          stripe_subscription_id: string | null
+          subscription_end: string | null
+          subscription_start: string
+          trial_end_date: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          classes_used_this_month?: number
+          created_at?: string
+          id?: string
+          payment_method?: string | null
+          plan_id: string
+          status?: string
+          stripe_subscription_id?: string | null
+          subscription_end?: string | null
+          subscription_start?: string
+          trial_end_date?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          classes_used_this_month?: number
+          created_at?: string
+          id?: string
+          payment_method?: string | null
+          plan_id?: string
+          status?: string
+          stripe_subscription_id?: string | null
+          subscription_end?: string | null
+          subscription_start?: string
+          trial_end_date?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           avatar_id: number | null
@@ -896,6 +1314,10 @@ export type Database = {
           student_name: string
           student_id: string
         }[]
+      }
+      reset_monthly_class_usage: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       update_teacher_performance_metrics: {
         Args: { teacher_uuid: string }
