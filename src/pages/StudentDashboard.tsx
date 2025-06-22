@@ -15,17 +15,21 @@ import { SettingsTab } from "@/components/student/SettingsTab";
 
 const StudentDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [points, setPoints] = useState(150);
+  
+  // Get student name from localStorage or use default
+  const studentName = localStorage.getItem('studentName') || 'Student';
 
   const renderActiveTab = () => {
     switch (activeTab) {
       case "dashboard":
-        return <DashboardTab />;
+        return <DashboardTab studentName={studentName} points={points} />;
       case "teachers":
         return <TeachersTab />;
       case "upcoming-classes":
         return <UpcomingClassesTab />;
       case "homework":
-        return <HomeworkTab />;
+        return <HomeworkTab points={points} setPoints={setPoints} />;
       case "materials":
         return <MaterialsLibraryTab />;
       case "progress":
@@ -35,19 +39,19 @@ const StudentDashboard = () => {
       case "billing":
         return <EnhancedBillingTab />;
       case "profile":
-        return <ProfileTab />;
+        return <ProfileTab studentName={studentName} />;
       case "settings":
         return <SettingsTab />;
       default:
-        return <DashboardTab />;
+        return <DashboardTab studentName={studentName} points={points} />;
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <StudentHeader />
+      <StudentHeader studentName={studentName} points={points} />
       <div className="flex">
-        <StudentSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        <StudentSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
         <main className="flex-1 p-6 ml-64">
           {renderActiveTab()}
         </main>
