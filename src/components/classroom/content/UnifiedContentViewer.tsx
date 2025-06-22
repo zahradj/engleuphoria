@@ -145,9 +145,7 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
                 color={color}
                 strokeWidth={strokeWidth}
                 embeddedContent={embeddedContent}
-                embeddedGames={[]}
                 onRemoveEmbeddedContent={handleRemoveEmbeddedContent}
-                onRemoveEmbeddedGame={() => {}}
               />
             </div>
           </TabsContent>
