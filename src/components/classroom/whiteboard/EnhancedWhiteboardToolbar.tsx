@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { SoundButton } from "@/components/ui/sound-button";
 import { 
   Pencil, 
@@ -112,162 +113,184 @@ export function EnhancedWhiteboardToolbar({
 
   return (
     <>
-      <div className="flex flex-col gap-4 p-4 bg-white border rounded-lg shadow-sm">
-        {/* Main Tools */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Button
-              variant={activeTool === "pencil" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setActiveTool("pencil")}
-              className="flex items-center gap-1"
-            >
-              <Pencil size={16} />
-              <span className="hidden sm:inline">Draw</span>
-            </Button>
-            
-            <Button
-              variant={activeTool === "highlighter" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setActiveTool("highlighter")}
-              className="flex items-center gap-1"
-            >
-              <Highlighter size={16} />
-              <span className="hidden sm:inline">Highlight</span>
-            </Button>
-            
-            <Button
-              variant={activeTool === "text" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setActiveTool("text")}
-              className="flex items-center gap-1"
-            >
-              <Type size={16} />
-              <span className="hidden sm:inline">Text</span>
-            </Button>
-            
-            <Button
-              variant={activeTool === "shape" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setActiveTool("shape")}
-              className="flex items-center gap-1"
-            >
-              {activeShape === "rectangle" ? <Square size={16} /> : <Circle size={16} />}
-              <span className="hidden sm:inline">Shape</span>
-            </Button>
-            
-            <Button
-              variant={activeTool === "move" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setActiveTool("move")}
-              className="flex items-center gap-1"
-            >
-              <Move size={16} />
-              <span className="hidden sm:inline">Move</span>
-            </Button>
-            
-            <Button
-              variant={activeTool === "eraser" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setActiveTool("eraser")}
-              className="flex items-center gap-1"
-            >
-              <Eraser size={16} />
-              <span className="hidden sm:inline">Erase</span>
-            </Button>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsEmbedDialogOpen(true)}
-              className="flex items-center gap-1"
-            >
-              <Link size={16} />
-              <span className="hidden sm:inline">Embed Link</span>
-            </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={clearCanvas}
-              className="flex items-center gap-1"
-            >
-              <Trash2 size={16} />
-              <span className="hidden sm:inline">Clear</span>
-            </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={downloadCanvas}
-              className="flex items-center gap-1"
-            >
-              <Download size={16} />
-              <span className="hidden sm:inline">Save</span>
-            </Button>
-          </div>
-        </div>
-
-        {/* Color Palette */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1">
-            <Palette size={16} className="text-gray-600" />
-            <span className="text-sm text-gray-600">Color:</span>
-          </div>
-          <div className="flex items-center gap-2">
-            {colors.map((c) => (
-              <div
-                key={c}
-                className={`w-6 h-6 rounded-full cursor-pointer border-2 transition-all ${
-                  color === c ? "border-gray-400 scale-110" : "border-gray-200 hover:scale-105"
-                }`}
-                style={{ backgroundColor: c }}
-                onClick={() => setColor(c)}
-              />
-            ))}
-          </div>
-          
-          <div className="flex items-center gap-2 ml-4">
-            <span className="text-sm text-gray-600">Size:</span>
-            <div className="w-20">
-              <Slider
-                value={[strokeWidth]}
-                onValueChange={(value) => setStrokeWidth(value[0])}
-                max={10}
-                min={1}
-                step={1}
-                className="cursor-pointer"
-              />
+      <div className="bg-white border rounded-lg shadow-sm">
+        {/* Main Toolbar */}
+        <div className="p-4 space-y-4">
+          {/* Drawing Tools Section */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1">
+              <Button
+                variant={activeTool === "pencil" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setActiveTool("pencil")}
+                className="flex items-center gap-2 h-9"
+              >
+                <Pencil size={16} />
+                <span className="hidden sm:inline">Draw</span>
+              </Button>
+              
+              <Button
+                variant={activeTool === "highlighter" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setActiveTool("highlighter")}
+                className="flex items-center gap-2 h-9"
+              >
+                <Highlighter size={16} />
+                <span className="hidden sm:inline">Highlight</span>
+              </Button>
+              
+              <Button
+                variant={activeTool === "text" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setActiveTool("text")}
+                className="flex items-center gap-2 h-9"
+              >
+                <Type size={16} />
+                <span className="hidden sm:inline">Text</span>
+              </Button>
+              
+              <Button
+                variant={activeTool === "shape" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setActiveTool("shape")}
+                className="flex items-center gap-2 h-9"
+              >
+                {activeShape === "rectangle" ? <Square size={16} /> : <Circle size={16} />}
+                <span className="hidden sm:inline">Shape</span>
+              </Button>
+              
+              <Button
+                variant={activeTool === "move" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setActiveTool("move")}
+                className="flex items-center gap-2 h-9"
+              >
+                <Move size={16} />
+                <span className="hidden sm:inline">Move</span>
+              </Button>
+              
+              <Button
+                variant={activeTool === "eraser" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setActiveTool("eraser")}
+                className="flex items-center gap-2 h-9"
+              >
+                <Eraser size={16} />
+                <span className="hidden sm:inline">Erase</span>
+              </Button>
             </div>
-            <Badge variant="outline" className="text-xs">
-              {strokeWidth}px
-            </Badge>
-          </div>
-        </div>
 
-        {activeTool === "shape" && (
-          <div className="flex items-center gap-2 pt-2 border-t">
-            <span className="text-sm text-gray-600">Shape:</span>
-            <Button
-              variant={activeShape === "rectangle" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setActiveShape("rectangle")}
-            >
-              <Square size={16} />
-              Rectangle
-            </Button>
-            <Button
-              variant={activeShape === "circle" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setActiveShape("circle")}
-            >
-              <Circle size={16} />
-              Circle
-            </Button>
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsEmbedDialogOpen(true)}
+                className="flex items-center gap-2 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+              >
+                <Link size={16} />
+                <span className="hidden sm:inline">Embed</span>
+              </Button>
+              
+              <Separator orientation="vertical" className="h-6" />
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearCanvas}
+                className="flex items-center gap-2 hover:bg-red-50 hover:border-red-200"
+              >
+                <Trash2 size={16} />
+                <span className="hidden sm:inline">Clear</span>
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={downloadCanvas}
+                className="flex items-center gap-2"
+              >
+                <Download size={16} />
+                <span className="hidden sm:inline">Save</span>
+              </Button>
+            </div>
           </div>
-        )}
+
+          <Separator />
+
+          {/* Color and Size Controls */}
+          <div className="flex items-center justify-between gap-6">
+            {/* Color Palette */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Palette size={16} className="text-gray-600" />
+                <span className="text-sm text-gray-600 font-medium">Color:</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {colors.map((c) => (
+                  <div
+                    key={c}
+                    className={`w-7 h-7 rounded-full cursor-pointer border-2 transition-all hover:scale-110 ${
+                      color === c ? "border-gray-400 scale-110 shadow-md" : "border-gray-200 hover:border-gray-300"
+                    }`}
+                    style={{ backgroundColor: c }}
+                    onClick={() => setColor(c)}
+                  />
+                ))}
+              </div>
+            </div>
+            
+            {/* Stroke Width */}
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-gray-600 font-medium">Size:</span>
+              <div className="flex items-center gap-3">
+                <div className="w-24">
+                  <Slider
+                    value={[strokeWidth]}
+                    onValueChange={(value) => setStrokeWidth(value[0])}
+                    max={10}
+                    min={1}
+                    step={1}
+                    className="cursor-pointer"
+                  />
+                </div>
+                <Badge variant="outline" className="text-xs min-w-[40px] text-center">
+                  {strokeWidth}px
+                </Badge>
+              </div>
+            </div>
+          </div>
+
+          {/* Shape Selection (when shape tool is active) */}
+          {activeTool === "shape" && (
+            <>
+              <Separator />
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-600 font-medium">Shape Type:</span>
+                <div className="flex gap-2">
+                  <Button
+                    variant={activeShape === "rectangle" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setActiveShape("rectangle")}
+                    className="flex items-center gap-2"
+                  >
+                    <Square size={16} />
+                    Rectangle
+                  </Button>
+                  <Button
+                    variant={activeShape === "circle" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setActiveShape("circle")}
+                    className="flex items-center gap-2"
+                  >
+                    <Circle size={16} />
+                    Circle
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Embed Link Dialog */}
@@ -276,7 +299,7 @@ export function EnhancedWhiteboardToolbar({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Link size={20} />
-              Embed Link to Whiteboard
+              Embed Content to Whiteboard
             </DialogTitle>
           </DialogHeader>
           
@@ -288,6 +311,7 @@ export function EnhancedWhiteboardToolbar({
                 value={embedTitle}
                 onChange={(e) => setEmbedTitle(e.target.value)}
                 placeholder="Enter a title for this content..."
+                className="mt-1"
               />
             </div>
             
@@ -298,11 +322,15 @@ export function EnhancedWhiteboardToolbar({
                 value={embedUrl}
                 onChange={(e) => setEmbedUrl(e.target.value)}
                 placeholder="Paste URL (YouTube, Google Docs, etc.)..."
+                className="mt-1"
                 onKeyDown={(e) => e.key === 'Enter' && handleEmbedLink()}
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Supports YouTube, Google Docs, and most embeddable content
+              </p>
             </div>
             
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-2 pt-2">
               <SoundButton variant="outline" onClick={() => setIsEmbedDialogOpen(false)}>
                 Cancel
               </SoundButton>
@@ -310,6 +338,7 @@ export function EnhancedWhiteboardToolbar({
                 onClick={handleEmbedLink}
                 disabled={!embedUrl.trim() || !embedTitle.trim()}
                 soundType="success"
+                className="bg-blue-600 hover:bg-blue-700"
               >
                 Embed Content
               </SoundButton>
