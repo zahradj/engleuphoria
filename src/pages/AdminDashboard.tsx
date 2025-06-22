@@ -13,23 +13,40 @@ import { ContentModeration } from '@/components/admin/ContentModeration';
 import { ReportsGeneration } from '@/components/admin/ReportsGeneration';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Loader2 } from 'lucide-react';
 
 type AdminTab = 'overview' | 'users' | 'teachers' | 'assignments' | 'analytics' | 'moderation' | 'reports';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { isAdmin, permissions } = useAdminAuth();
+  const { isAdmin, isLoading, permissions } = useAdminAuth();
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  // Redirect if not admin
+  // Redirect if not admin (but only after loading is complete)
   React.useEffect(() => {
-    if (!isAdmin) {
+    if (!isLoading && !isAdmin) {
+      console.log('Not admin, redirecting to home page');
       navigate('/');
     }
-  }, [isAdmin, navigate]);
+  }, [isAdmin, isLoading, navigate]);
 
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card>
+          <CardContent className="p-6 flex flex-col items-center">
+            <Loader2 className="h-8 w-8 animate-spin text-purple-600 mb-4" />
+            <h1 className="text-xl font-bold text-gray-800">Loading Admin Panel...</h1>
+            <p className="text-gray-600 mt-2">Verifying your admin permissions</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show access denied if not admin (after loading is complete)
   if (!isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
@@ -37,6 +54,13 @@ const AdminDashboard = () => {
           <CardContent className="p-6">
             <h1 className="text-xl font-bold text-red-600">Access Denied</h1>
             <p className="text-gray-600 mt-2">You don't have permission to access the admin panel.</p>
+            <Button 
+              onClick={() => navigate('/')} 
+              className="mt-4"
+              variant="outline"
+            >
+              Return to Home
+            </Button>
           </CardContent>
         </Card>
       </div>
