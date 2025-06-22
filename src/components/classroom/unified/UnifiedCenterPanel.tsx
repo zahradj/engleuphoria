@@ -5,8 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { UnifiedContentViewer } from "@/components/classroom/content/UnifiedContentViewer";
 import { OneOnOneGames } from "@/components/classroom/oneonone/OneOnOneGames";
-import { UnifiedAIWorksheetGenerator } from "@/components/classroom/ai/UnifiedAIWorksheetGenerator";
-import { BookOpen, Users, Gamepad2, Brain } from "lucide-react";
+import { BookOpen, Users, Gamepad2 } from "lucide-react";
 
 interface UnifiedCenterPanelProps {
   activeCenterTab: string;
@@ -24,25 +23,11 @@ export function UnifiedCenterPanel({
 }: UnifiedCenterPanelProps) {
   const isTeacher = currentUser.role === 'teacher';
 
-  const handleContentGenerated = (content: any) => {
-    console.log('Content generated:', content);
-    // Here you could integrate with whiteboard or other classroom tools
-  };
-
-  const handleInsertToWhiteboard = (content: string) => {
-    console.log('Insert to whiteboard:', content);
-    // Here you would integrate with the actual whiteboard component
-  };
-
   return (
     <Card className="h-full shadow-lg border-0 bg-white/95 backdrop-blur-sm flex flex-col">
       <Tabs value={activeCenterTab} onValueChange={onTabChange} className="h-full flex flex-col">
         <div className="p-4 pb-0 flex-shrink-0">
-          <TabsList className="grid w-full grid-cols-4 mb-4">
-            <TabsTrigger value="ai-worksheet" className="flex items-center gap-2">
-              <Brain size={16} />
-              <span className="hidden sm:inline">AI Generator</span>
-            </TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3 mb-4">
             <TabsTrigger value="lesson" className="flex items-center gap-2">
               <BookOpen size={16} />
               <span className="hidden sm:inline">Lesson</span>
@@ -59,31 +44,6 @@ export function UnifiedCenterPanel({
         </div>
 
         <div className="flex-1 min-h-0 overflow-hidden">
-          <TabsContent value="ai-worksheet" className="h-full m-0 data-[state=active]:flex data-[state=active]:flex-col">
-            <div className="p-4 pt-0 flex-shrink-0">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <h3 className="text-lg font-semibold">AI Content Generator</h3>
-                  <Badge variant="secondary" className="bg-purple-100 text-purple-700">
-                    AI Powered
-                  </Badge>
-                </div>
-                {isTeacher && (
-                  <Badge variant="outline" className="text-xs">
-                    Teacher Mode
-                  </Badge>
-                )}
-              </div>
-            </div>
-            
-            <div className="flex-1 min-h-0 px-4 pb-4">
-              <UnifiedAIWorksheetGenerator 
-                onContentGenerated={handleContentGenerated}
-                onInsertToWhiteboard={handleInsertToWhiteboard}
-              />
-            </div>
-          </TabsContent>
-
           <TabsContent value="lesson" className="h-full m-0 p-4 overflow-y-auto">
             <UnifiedContentViewer 
               isTeacher={isTeacher}

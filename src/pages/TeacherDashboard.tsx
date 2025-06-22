@@ -6,7 +6,6 @@ import { TeacherSidebar } from "@/components/teacher/TeacherSidebar";
 import { TeacherHeader } from "@/components/teacher/TeacherHeader";
 import { MobileTeacherNav } from "@/components/teacher/mobile/MobileTeacherNav";
 import { DashboardTab } from "@/components/teacher/DashboardTab";
-import { AIIntegrationTab } from "@/components/teacher/AIIntegrationTab";
 import { EnhancedCalendarTab } from "@/components/teacher/EnhancedCalendarTab";
 import { StudentsTab } from "@/components/teacher/StudentsTab";
 import { LessonHistoryTab } from "@/components/teacher/LessonHistoryTab";
@@ -18,7 +17,7 @@ import { EarningsTab } from "@/components/teacher/EarningsTab";
 import { ReportsTab } from "@/components/teacher/ReportsTab";
 import { SettingsTab } from "@/components/teacher/SettingsTab";
 
-type TabType = 'dashboard' | 'ai-assistant' | 'calendar' | 'students' | 'reading-library' | 'history' | 'assignments' | 'resources' | 'messages' | 'earnings' | 'reports' | 'settings';
+type TabType = 'dashboard' | 'calendar' | 'students' | 'reading-library' | 'history' | 'assignments' | 'resources' | 'messages' | 'earnings' | 'reports' | 'settings';
 
 const TeacherDashboard = () => {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
@@ -60,8 +59,6 @@ const TeacherDashboard = () => {
     switch (activeTab) {
       case 'dashboard':
         return <DashboardTab teacherName={teacherName} />;
-      case 'ai-assistant':
-        return <AIIntegrationTab />;
       case 'calendar':
         return <EnhancedCalendarTab teacherId={teacherId} />;
       case 'students':
@@ -123,6 +120,6 @@ const TeacherDashboard = () => {
       </div>
     </div>
   );
-};
+}
 
 export default TeacherDashboard;
