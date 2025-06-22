@@ -53,7 +53,12 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
   const handleAddEmbeddedContent = (content: Omit<EmbeddedContent, 'id'>) => {
     const newContent: EmbeddedContent = {
       ...content,
-      id: Date.now().toString()
+      id: Date.now().toString(),
+      // Scale to whiteboard size - use larger default dimensions
+      width: Math.max(content.width, 1000),
+      height: Math.max(content.height, 700),
+      x: content.x || 100,
+      y: content.y || 100
     };
     setEmbeddedContent(prev => [...prev, newContent]);
   };
@@ -65,27 +70,27 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
   return (
     <div className="h-full flex flex-col bg-gradient-to-br from-blue-50 to-indigo-50">
       {/* Compact Header */}
-      <div className="flex items-center justify-between p-3 bg-white/80 backdrop-blur-sm border-b shadow-sm">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between p-2 bg-white/80 backdrop-blur-sm border-b shadow-sm">
+        <div className="flex items-center gap-2">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-              <PenTool size={16} className="text-white" />
+            <div className="w-7 h-7 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+              <PenTool size={14} className="text-white" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-gray-900">Interactive Learning Space</h2>
+              <h2 className="text-sm font-semibold text-gray-900">Interactive Learning Space</h2>
               <p className="text-xs text-gray-600">Enhanced whiteboard with multimedia content</p>
             </div>
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <SoundButton
             variant="outline"
             size="sm"
             onClick={openUploadDialog}
-            className="flex items-center gap-2 bg-white hover:bg-blue-50 h-8 px-2 text-xs"
+            className="flex items-center gap-1 bg-white hover:bg-blue-50 h-7 px-2 text-xs"
           >
-            <Upload size={14} />
+            <Upload size={12} />
             Upload
           </SoundButton>
           
@@ -94,9 +99,9 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
               variant="outline"
               size="sm"
               onClick={() => console.log("Add interactive content")}
-              className="flex items-center gap-2 bg-white hover:bg-green-50 h-8 px-2 text-xs"
+              className="flex items-center gap-1 bg-white hover:bg-green-50 h-7 px-2 text-xs"
             >
-              <Plus size={14} />
+              <Plus size={12} />
               Add
             </SoundButton>
           )}
@@ -104,32 +109,34 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
       </div>
 
       {/* Content Tabs */}
-      <div className="flex-1 p-2 min-h-0">
+      <div className="flex-1 p-1 min-h-0">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-          <TabsList className="grid w-full grid-cols-2 mb-2 bg-white/80 backdrop-blur-sm h-9">
-            <TabsTrigger value="whiteboard" className="flex items-center gap-2 text-xs">
-              <PenTool size={14} />
+          <TabsList className="grid w-full grid-cols-2 mb-1 bg-white/80 backdrop-blur-sm h-8">
+            <TabsTrigger value="whiteboard" className="flex items-center gap-1 text-xs">
+              <PenTool size={12} />
               Enhanced Whiteboard
             </TabsTrigger>
-            <TabsTrigger value="library" className="flex items-center gap-2 text-xs">
-              <BookOpen size={14} />
+            <TabsTrigger value="library" className="flex items-center gap-1 text-xs">
+              <BookOpen size={12} />
               Content Library
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="whiteboard" className="flex-1 flex flex-col space-y-2 min-h-0">
-            <EnhancedWhiteboardToolbar
-              activeTool={activeTool}
-              setActiveTool={setActiveTool}
-              activeShape={activeShape}
-              setActiveShape={setActiveShape}
-              color={color}
-              setColor={setColor}
-              strokeWidth={strokeWidth}
-              setStrokeWidth={setStrokeWidth}
-              onAddEmbeddedContent={handleAddEmbeddedContent}
-            />
-            <div className="flex-1 min-h-0">
+          <TabsContent value="whiteboard" className="flex-1 flex flex-col space-y-1 min-h-0">
+            <div className="flex-shrink-0">
+              <EnhancedWhiteboardToolbar
+                activeTool={activeTool}
+                setActiveTool={setActiveTool}
+                activeShape={activeShape}
+                setActiveShape={setActiveShape}
+                color={color}
+                setColor={setColor}
+                strokeWidth={strokeWidth}
+                setStrokeWidth={setStrokeWidth}
+                onAddEmbeddedContent={handleAddEmbeddedContent}
+              />
+            </div>
+            <div className="flex-1 min-h-0" style={{ minHeight: '600px' }}>
               <EnhancedWhiteboardCanvas
                 activeTool={activeTool}
                 color={color}

@@ -85,13 +85,14 @@ export function EnhancedWhiteboardToolbar({
       }
     }
     
+    // Create larger embedded content that scales with whiteboard
     const newContent = {
       title: embedTitle,
       url: processedUrl,
       x: 50,
       y: 50,
-      width: 400,
-      height: 300
+      width: 1000, // Larger default width
+      height: 700  // Larger default height
     };
     
     if (onAddEmbeddedContent) {
@@ -114,64 +115,101 @@ export function EnhancedWhiteboardToolbar({
   return (
     <>
       <div className="bg-white border rounded-lg shadow-sm">
-        {/* Compact Main Toolbar */}
-        <div className="p-3">
-          {/* Top Row - Drawing Tools */}
-          <div className="flex items-center justify-between mb-3">
+        {/* Ultra-Compact Toolbar */}
+        <div className="p-2">
+          {/* Single Row Layout */}
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
               <Button
                 variant={activeTool === "pencil" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setActiveTool("pencil")}
-                className="h-8 px-2"
+                className="h-7 w-7 p-0"
               >
-                <Pencil size={14} />
+                <Pencil size={12} />
               </Button>
               
               <Button
                 variant={activeTool === "highlighter" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setActiveTool("highlighter")}
-                className="h-8 px-2"
+                className="h-7 w-7 p-0"
               >
-                <Highlighter size={14} />
+                <Highlighter size={12} />
               </Button>
               
               <Button
                 variant={activeTool === "text" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setActiveTool("text")}
-                className="h-8 px-2"
+                className="h-7 w-7 p-0"
               >
-                <Type size={14} />
+                <Type size={12} />
               </Button>
               
               <Button
                 variant={activeTool === "shape" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setActiveTool("shape")}
-                className="h-8 px-2"
+                className="h-7 w-7 p-0"
               >
-                {activeShape === "rectangle" ? <Square size={14} /> : <Circle size={14} />}
+                {activeShape === "rectangle" ? <Square size={12} /> : <Circle size={12} />}
               </Button>
               
               <Button
                 variant={activeTool === "move" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setActiveTool("move")}
-                className="h-8 px-2"
+                className="h-7 w-7 p-0"
               >
-                <Move size={14} />
+                <Move size={12} />
               </Button>
               
               <Button
                 variant={activeTool === "eraser" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setActiveTool("eraser")}
-                className="h-8 px-2"
+                className="h-7 w-7 p-0"
               >
-                <Eraser size={14} />
+                <Eraser size={12} />
               </Button>
+              
+              <Separator orientation="vertical" className="h-6 mx-1" />
+              
+              {/* Color Palette - Compact */}
+              <div className="flex items-center gap-1">
+                <Palette size={12} className="text-gray-600" />
+                {colors.slice(0, 5).map((c) => (
+                  <div
+                    key={c}
+                    className={`w-5 h-5 rounded-full cursor-pointer border transition-all hover:scale-110 ${
+                      color === c ? "border-gray-400 scale-110" : "border-gray-200"
+                    }`}
+                    style={{ backgroundColor: c }}
+                    onClick={() => setColor(c)}
+                  />
+                ))}
+              </div>
+              
+              <Separator orientation="vertical" className="h-6 mx-1" />
+              
+              {/* Size Control - Compact */}
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-gray-600">Size:</span>
+                <div className="w-16">
+                  <Slider
+                    value={[strokeWidth]}
+                    onValueChange={(value) => setStrokeWidth(value[0])}
+                    max={10}
+                    min={1}
+                    step={1}
+                    className="cursor-pointer"
+                  />
+                </div>
+                <Badge variant="outline" className="text-xs min-w-[25px] text-center px-1 py-0 h-5">
+                  {strokeWidth}
+                </Badge>
+              </div>
             </div>
 
             {/* Action Buttons */}
@@ -180,90 +218,52 @@ export function EnhancedWhiteboardToolbar({
                 variant="outline"
                 size="sm"
                 onClick={() => setIsEmbedDialogOpen(true)}
-                className="h-8 px-2 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                className="h-7 w-7 p-0 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
               >
-                <Link size={14} />
+                <Link size={12} />
               </Button>
               
               <Button
                 variant="outline"
                 size="sm"
                 onClick={clearCanvas}
-                className="h-8 px-2 hover:bg-red-50 hover:border-red-200"
+                className="h-7 w-7 p-0 hover:bg-red-50 hover:border-red-200"
               >
-                <Trash2 size={14} />
+                <Trash2 size={12} />
               </Button>
               
               <Button
                 variant="outline"
                 size="sm"
                 onClick={downloadCanvas}
-                className="h-8 px-2"
+                className="h-7 w-7 p-0"
               >
-                <Download size={14} />
+                <Download size={12} />
               </Button>
-            </div>
-          </div>
-
-          {/* Bottom Row - Color and Size Controls */}
-          <div className="flex items-center justify-between gap-4">
-            {/* Color Palette */}
-            <div className="flex items-center gap-2">
-              <Palette size={14} className="text-gray-600" />
-              <div className="flex items-center gap-1">
-                {colors.map((c) => (
-                  <div
-                    key={c}
-                    className={`w-6 h-6 rounded-full cursor-pointer border-2 transition-all hover:scale-110 ${
-                      color === c ? "border-gray-400 scale-110 shadow-md" : "border-gray-200 hover:border-gray-300"
-                    }`}
-                    style={{ backgroundColor: c }}
-                    onClick={() => setColor(c)}
-                  />
-                ))}
-              </div>
-            </div>
-            
-            {/* Stroke Width */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-600 font-medium">Size:</span>
-              <div className="w-20">
-                <Slider
-                  value={[strokeWidth]}
-                  onValueChange={(value) => setStrokeWidth(value[0])}
-                  max={10}
-                  min={1}
-                  step={1}
-                  className="cursor-pointer"
-                />
-              </div>
-              <Badge variant="outline" className="text-xs min-w-[35px] text-center px-1">
-                {strokeWidth}px
-              </Badge>
             </div>
           </div>
 
           {/* Shape Selection (when shape tool is active) */}
           {activeTool === "shape" && (
-            <div className="flex items-center gap-2 mt-2 pt-2 border-t">
-              <span className="text-xs text-gray-600 font-medium">Shape:</span>
+            <div className="flex items-center gap-1 mt-1 pt-1 border-t">
+              <span className="text-xs text-gray-600">Shape:</span>
               <div className="flex gap-1">
                 <Button
                   variant={activeShape === "rectangle" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setActiveShape("rectangle")}
-                  className="h-7 px-2 text-xs"
+                  className="h-6 px-2 text-xs"
                 >
-                  <Square size={12} className="mr-1" />
+                  <Square size={10} className="mr-1" />
                   Rectangle
                 </Button>
                 <Button
                   variant={activeShape === "circle" ? "default" : "outline"}
                   size="sm"
                   onClick={() => setActiveShape("circle")}
-                  className="h-7 px-2 text-xs"
+                  className="h-6 px-2 text-xs"
                 >
-                  <Circle size={12} className="mr-1" />
+                  <Circle size={10} className="mr-1" />
                   Circle
                 </Button>
               </div>
@@ -305,7 +305,7 @@ export function EnhancedWhiteboardToolbar({
                 onKeyDown={(e) => e.key === 'Enter' && handleEmbedLink()}
               />
               <p className="text-xs text-gray-500 mt-1">
-                Supports YouTube, Google Docs, and most embeddable content
+                Content will be scaled to fit the large whiteboard (1000×700px default)
               </p>
             </div>
             

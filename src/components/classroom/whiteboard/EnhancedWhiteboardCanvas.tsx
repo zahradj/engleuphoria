@@ -1,4 +1,3 @@
-
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,8 +46,9 @@ export function EnhancedWhiteboardCanvas({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    canvas.width = 1400;
-    canvas.height = 900;
+    // Increased canvas size for bigger whiteboard
+    canvas.width = 2400;
+    canvas.height = 1600;
     
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
@@ -196,29 +196,28 @@ export function EnhancedWhiteboardCanvas({
 
   return (
     <div className="h-full flex flex-col bg-white rounded-lg border shadow-sm overflow-hidden">
-      {/* Compact Control Bar */}
-      <div className="flex items-center justify-between px-3 py-2 bg-gradient-to-r from-slate-50 to-slate-100 border-b">
-        {/* Zoom Controls */}
-        <div className="flex items-center gap-2">
+      {/* Minimized Control Bar */}
+      <div className="flex items-center justify-between px-2 py-1 bg-gradient-to-r from-slate-50 to-slate-100 border-b">
+        <div className="flex items-center gap-1">
           <div className="flex items-center gap-1 bg-white rounded border shadow-sm p-1">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => handleZoom('out')}
-              className="h-6 w-6 p-0"
+              className="h-5 w-5 p-0"
             >
-              <ZoomOut size={12} />
+              <ZoomOut size={10} />
             </Button>
-            <Badge variant="secondary" className="px-2 py-0 text-xs font-medium min-w-[50px] text-center">
+            <Badge variant="secondary" className="px-1 py-0 text-xs font-medium min-w-[40px] text-center text-[10px]">
               {Math.round(zoom * 100)}%
             </Badge>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => handleZoom('in')}
-              className="h-6 w-6 p-0"
+              className="h-5 w-5 p-0"
             >
-              <ZoomIn size={12} />
+              <ZoomIn size={10} />
             </Button>
           </div>
           
@@ -226,20 +225,19 @@ export function EnhancedWhiteboardCanvas({
             variant="outline"
             size="sm"
             onClick={handleReset}
-            className="h-7 px-2 bg-white text-xs"
+            className="h-6 px-2 bg-white text-xs"
           >
-            <RotateCcw size={12} className="mr-1" />
+            <RotateCcw size={10} className="mr-1" />
             Reset
           </Button>
         </div>
         
-        {/* Action Controls */}
         <div className="flex items-center gap-1">
           <Button
             variant="outline"
             size="sm"
             onClick={clearCanvas}
-            className="h-7 px-2 bg-white hover:bg-red-50 hover:border-red-200 text-xs"
+            className="h-6 px-2 bg-white hover:bg-red-50 hover:border-red-200 text-xs"
           >
             Clear
           </Button>
@@ -247,34 +245,34 @@ export function EnhancedWhiteboardCanvas({
             variant="outline"
             size="sm"
             onClick={downloadCanvas}
-            className="h-7 px-2 bg-white text-xs"
+            className="h-6 px-2 bg-white text-xs"
           >
-            <Download size={12} className="mr-1" />
+            <Download size={10} className="mr-1" />
             Export
           </Button>
         </div>
       </div>
 
-      {/* Large Canvas Container */}
+      {/* Maximized Canvas Container */}
       <div 
         ref={containerRef}
         className="flex-1 relative bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden"
-        style={{ cursor: activeTool === 'move' ? 'grab' : 'default' }}
+        style={{ cursor: activeTool === 'move' ? 'grab' : 'default', minHeight: '600px' }}
       >
         {/* Grid Background */}
         <div 
-          className="absolute inset-0 opacity-20"
+          className="absolute inset-0 opacity-15"
           style={{
             backgroundImage: `
-              linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px)
+              linear-gradient(rgba(59, 130, 246, 0.08) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(59, 130, 246, 0.08) 1px, transparent 1px)
             `,
-            backgroundSize: `${20 * zoom}px ${20 * zoom}px`,
+            backgroundSize: `${25 * zoom}px ${25 * zoom}px`,
             transform: `translate(${pan.x}px, ${pan.y}px)`
           }}
         />
         
-        {/* Large Main Canvas */}
+        {/* Larger Main Canvas */}
         <canvas
           ref={canvasRef}
           className="absolute border-2 border-gray-200 bg-white shadow-lg rounded-lg"
@@ -317,7 +315,7 @@ export function EnhancedWhiteboardCanvas({
           </div>
         )}
         
-        {/* Embedded Content */}
+        {/* Scaled Embedded Content */}
         <div 
           className="absolute"
           style={{
@@ -325,73 +323,77 @@ export function EnhancedWhiteboardCanvas({
             transformOrigin: '0 0'
           }}
         >
-          {embeddedContent.map((content) => (
-            <div
-              key={content.id}
-              className="absolute border-2 border-blue-500 rounded-lg bg-white shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-200"
-              style={{
-                left: `${content.x}px`,
-                top: `${content.y}px`,
-                width: `${content.width}px`,
-                height: `${content.height}px`,
-                minWidth: '300px',
-                minHeight: '200px'
-              }}
-            >
-              {/* Header */}
-              <div className="h-8 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-2 py-1 flex items-center justify-between">
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <div className="w-2 h-2 bg-white rounded-full opacity-75"></div>
-                  <span className="font-medium text-xs truncate">{content.title}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => openInNewTab(content.url)}
-                    className="h-5 w-5 p-0 text-white hover:bg-blue-600 opacity-75 hover:opacity-100"
-                  >
-                    <ExternalLink size={10} />
-                  </Button>
-                  {onRemoveEmbeddedContent && (
+          {embeddedContent.map((content) => {
+            // Scale embedded content to use larger portions of the whiteboard
+            const scaledWidth = Math.max(800, content.width);
+            const scaledHeight = Math.max(600, content.height);
+            
+            return (
+              <div
+                key={content.id}
+                className="absolute border-2 border-blue-500 rounded-lg bg-white shadow-xl overflow-hidden group hover:shadow-2xl transition-all duration-200"
+                style={{
+                  left: `${content.x}px`,
+                  top: `${content.y}px`,
+                  width: `${scaledWidth}px`,
+                  height: `${scaledHeight}px`,
+                  minWidth: '800px',
+                  minHeight: '600px'
+                }}
+              >
+                {/* Header */}
+                <div className="h-8 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-3 py-1 flex items-center justify-between">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    <div className="w-2 h-2 bg-white rounded-full opacity-75"></div>
+                    <span className="font-medium text-sm truncate">{content.title}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => onRemoveEmbeddedContent(content.id)}
-                      className="h-5 w-5 p-0 text-white hover:bg-red-500 opacity-75 hover:opacity-100"
+                      onClick={() => openInNewTab(content.url)}
+                      className="h-6 w-6 p-0 text-white hover:bg-blue-600 opacity-75 hover:opacity-100"
                     >
-                      <X size={10} />
+                      <ExternalLink size={12} />
                     </Button>
-                  )}
+                    {onRemoveEmbeddedContent && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => onRemoveEmbeddedContent(content.id)}
+                        className="h-6 w-6 p-0 text-white hover:bg-red-500 opacity-75 hover:opacity-100"
+                      >
+                        <X size={12} />
+                      </Button>
+                    )}
+                  </div>
                 </div>
+                
+                {/* Content Body - Now larger and more prominent */}
+                <iframe
+                  src={content.url}
+                  className="w-full h-[calc(100%-2rem)] border-0"
+                  title={content.title}
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                />
               </div>
-              
-              {/* Content Body */}
-              <iframe
-                src={content.url}
-                className="w-full h-[calc(100%-2rem)] border-0"
-                title={content.title}
-                sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-                referrerPolicy="strict-origin-when-cross-origin"
-              />
-            </div>
-          ))}
+            );
+          })}
           {children}
         </div>
       </div>
       
-      {/* Compact Status Bar */}
-      <div className="flex items-center justify-between px-3 py-1 bg-gradient-to-r from-slate-50 to-slate-100 border-t text-xs">
-        <div className="flex items-center gap-3">
-          <span className="text-gray-600">
-            Tool: <span className="font-medium capitalize text-gray-800">{activeTool}</span>
+      {/* Minimized Status Bar */}
+      <div className="flex items-center justify-between px-2 py-1 bg-gradient-to-r from-slate-50 to-slate-100 border-t text-xs">
+        <div className="flex items-center gap-2">
+          <span className="text-gray-600 text-xs">
+            <span className="font-medium capitalize text-gray-800">{activeTool}</span>
           </span>
-          <span className="text-gray-600">
-            Color: <span className="inline-block w-2 h-2 rounded-full border ml-1" style={{ backgroundColor: color }}></span>
-          </span>
+          <span className="inline-block w-2 h-2 rounded-full border" style={{ backgroundColor: color }}></span>
         </div>
-        <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs">
-          Enhanced Canvas
+        <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs px-2 py-0">
+          Enhanced Canvas 2400×1600
         </Badge>
       </div>
     </div>
