@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
@@ -6,6 +7,7 @@ import { AdminHeader } from '@/components/admin/AdminHeader';
 import { AdminOverview } from '@/components/admin/AdminOverview';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { TeacherManagement } from '@/components/admin/TeacherManagement';
+import { TeacherApplicationsManagement } from '@/components/admin/TeacherApplicationsManagement';
 import { TeacherAssignments } from '@/components/admin/TeacherAssignments';
 import { AnalyticsDashboard } from '@/components/admin/AnalyticsDashboard';
 import { ContentModeration } from '@/components/admin/ContentModeration';
@@ -14,7 +16,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Menu, X, Loader2 } from 'lucide-react';
 
-type AdminTab = 'overview' | 'users' | 'teachers' | 'assignments' | 'analytics' | 'moderation' | 'reports';
+type AdminTab = 'overview' | 'users' | 'teachers' | 'teacher-applications' | 'assignments' | 'analytics' | 'moderation' | 'reports';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -103,6 +105,8 @@ const AdminDashboard = () => {
         return <UserManagement />;
       case 'teachers':
         return <TeacherManagement />;
+      case 'teacher-applications':
+        return <TeacherApplicationsManagement />;
       case 'assignments':
         return <TeacherAssignments />;
       case 'analytics':
@@ -111,8 +115,6 @@ const AdminDashboard = () => {
         return <ContentModeration />;
       case 'reports':
         return <ReportsGeneration />;
-      case 'teacher-applications':
-        return <TeacherApplicationsManagement />;
       default:
         return <AdminOverview />;
     }
@@ -136,7 +138,7 @@ const AdminDashboard = () => {
           <AdminSidebar 
             activeTab={activeTab} 
             onTabChange={handleTabChange}
-            permissions={permissions}
+            permissions={permissions ? [permissions] : []}
           />
         </div>
 

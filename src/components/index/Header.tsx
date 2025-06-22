@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Globe, Menu, X } from "lucide-react";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
@@ -71,7 +72,7 @@ export const Header = () => {
           <Link to="/for-parents" className="transition-colors hover:text-foreground/80 text-foreground/60">
             For Parents
           </Link>
-          <Link to="/about-us" className="transition-colors hover:text-foreground/80 text-foreground/60">
+          <Link to="/about" className="transition-colors hover:text-foreground/80 text-foreground/60">
             About
           </Link>
           <Link to="/pricing-selection" className="transition-colors hover:text-foreground/80 text-foreground/60">
@@ -157,27 +158,27 @@ export const Header = () => {
       {isMobileMenuOpen && (
         <div className="lg:hidden border-t bg-white/95 backdrop-blur-sm">
           <div className="container mx-auto px-4 py-4 space-y-4">
-            <a 
-              href="/about-us" 
+            <Link 
+              to="/about" 
               className="block text-gray-600 hover:text-purple-600 transition-colors py-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               {t('aboutUs') || 'About Us'}
-            </a>
-            <a 
-              href="/for-parents" 
+            </Link>
+            <Link 
+              to="/for-parents" 
               className="block text-gray-600 hover:text-purple-600 transition-colors py-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               {t('forParents') || 'For Parents'}
-            </a>
-            <a 
-              href="/for-teachers" 
+            </Link>
+            <Link 
+              to="/for-teachers" 
               className="block text-gray-600 hover:text-purple-600 transition-colors py-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               {t('forTeachers') || 'For Teachers'}
-            </a>
+            </Link>
             <Button
               variant="ghost"
               onClick={handlePricing}
