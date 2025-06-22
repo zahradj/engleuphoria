@@ -15,6 +15,8 @@ export const LoginForm = () => {
   const handleLogin = () => {
     if (!name.trim()) return;
     
+    console.log('Setting userType in localStorage:', userType);
+    
     // Store user info in localStorage for demo purposes
     localStorage.setItem('userType', userType);
     localStorage.setItem(`${userType}Name`, name);
