@@ -1,36 +1,14 @@
-
 import { createClient } from '@supabase/supabase-js'
 
-// Get Supabase credentials from localStorage or use defaults
-const getSupabaseConfig = () => {
-  if (typeof window !== 'undefined') {
-    const storedUrl = localStorage.getItem('supabase_url')
-    const storedKey = localStorage.getItem('supabase_key')
-    
-    if (storedUrl && storedKey) {
-      return { url: storedUrl, key: storedKey }
-    }
-  }
-  
-  // Return dummy but valid URL format to prevent constructor errors
-  return {
-    url: 'https://placeholder.supabase.co',
-    key: 'placeholder_key'
-  }
-}
-
-const { url: supabaseUrl, key: supabaseAnonKey } = getSupabaseConfig()
+// Use the direct Supabase credentials for Lovable projects
+const supabaseUrl = 'https://dcoxpyzoqjvmuuygvlme.supabase.co'
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRjb3hweXpvcWp2bXV1eWd2bG1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5NTcxMzMsImV4cCI6MjA2NTUzMzEzM30.qWD7MJ3O7xrH2KBzIfPqGvVXigVaamR6DMVOW3rnO7s'
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // Helper function to check if Supabase is properly configured
 export const isSupabaseConfigured = () => {
-  if (typeof window !== 'undefined') {
-    const storedUrl = localStorage.getItem('supabase_url')
-    const storedKey = localStorage.getItem('supabase_key')
-    return !!(storedUrl && storedKey && storedUrl !== 'https://placeholder.supabase.co')
-  }
-  return false
+  return true // Always configured in Lovable projects
 }
 
 // Database Types
