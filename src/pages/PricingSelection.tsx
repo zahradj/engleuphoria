@@ -27,7 +27,7 @@ const fallbackPlans: SubscriptionPlan[] = [
     price_dzd: 0,
     price_eur: 0,
     max_classes_per_month: 1,
-    features: { chat: false, recordings: false, materials: 'basic', support: 'basic' },
+    features: { chat: true, recordings: false, materials: 'basic', support: 'basic' },
     is_trial: true,
     sort_order: 1
   },
@@ -66,51 +66,22 @@ const fallbackPlans: SubscriptionPlan[] = [
 const PricingSelection = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [plans, setPlans] = useState<SubscriptionPlan[]>(fallbackPlans);
+  const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
-    fetchPlans();
+    // Use fallback data immediately and skip database fetch for now
+    setPlans(fallbackPlans);
+    setLoading(false);
   }, []);
-
-  const fetchPlans = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const { data, error: fetchError } = await supabase
-        .from('subscription_plans')
-        .select('*')
-        .eq('is_active', true)
-        .order('sort_order');
-
-      if (fetchError) {
-        console.error('Database error:', fetchError);
-        // Use fallback data if database query fails
-        setPlans(fallbackPlans);
-        setError('Using offline pricing data');
-      } else {
-        setPlans(data || fallbackPlans);
-      }
-    } catch (error) {
-      console.error('Error fetching plans:', error);
-      // Use fallback data on any error
-      setPlans(fallbackPlans);
-      setError('Unable to connect to database, showing cached pricing');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handlePlanSelection = async (planId: string, isTrialPlan: boolean) => {
     setSelectedPlan(planId);
     setProcessing(true);
 
     try {
-      // For demo purposes, simulate plan selection
       const selectedPlanData = plans.find(p => p.id === planId);
       
       toast({
@@ -157,17 +128,6 @@ const PricingSelection = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p>Loading subscription plans...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 py-12 px-4">
       <div className="max-w-6xl mx-auto">
@@ -179,13 +139,6 @@ const PricingSelection = () => {
             Select the perfect plan to start your English learning journey. 
             All plans include access to qualified teachers and interactive lessons.
           </p>
-          
-          {error && (
-            <div className="mt-4 flex items-center justify-center gap-2 text-amber-600">
-              <AlertCircle className="w-4 h-4" />
-              <span className="text-sm">{error}</span>
-            </div>
-          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
