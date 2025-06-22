@@ -1,24 +1,16 @@
 
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Button } from "@/components/ui/button";
-import { Globe, Menu, X } from "lucide-react";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useNavigate } from 'react-router-dom';
+import { HeaderLogo } from './header/HeaderLogo';
+import { DesktopNavigation } from './header/DesktopNavigation';
+import { LanguageSwitcher } from './header/LanguageSwitcher';
+import { AuthButtons } from './header/AuthButtons';
+import { MobileMenu } from './header/MobileMenu';
+import { MobileMenuButton } from './header/MobileMenuButton';
 
 export const Header = () => {
   const navigate = useNavigate();
-  const { language, setLanguage, languageText } = useLanguage();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  const t = (key: string) => {
-    const keys = key.split('.');
-    let result: any = languageText;
-    for (const k of keys) {
-      result = result?.[k];
-    }
-    return result || key;
-  };
 
   const handleSignUp = () => {
     navigate("/signup");
@@ -35,176 +27,36 @@ export const Header = () => {
     setIsMobileMenuOpen(false);
   };
 
-  const handleNavigation = (path: string) => {
-    navigate(path);
-    setIsMobileMenuOpen(false);
-  };
-
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
-        {/* Logo */}
-        <div 
-          className="flex items-center gap-3 cursor-pointer"
-          onClick={() => navigate('/')}
-        >
-          <img 
-            src="/lovable-uploads/a38a7187-5f12-41aa-bcc6-ef6ffb768fbf.png" 
-            alt="EnglEuphoria Logo" 
-            className="w-8 h-8 sm:w-10 sm:h-10"
-          />
-          <h1 className="text-lg sm:text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-            EnglEuphoria
-          </h1>
-        </div>
+        <HeaderLogo />
 
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
-          <Link to="/" className="transition-colors hover:text-foreground/80 text-foreground/60">
-            Home
-          </Link>
-          <Link to="/for-teachers" className="transition-colors hover:text-foreground/80 text-foreground/60">
-            For Teachers
-          </Link>
-          <Link to="/become-teacher" className="transition-colors hover:text-foreground/80 text-foreground/60">
-            Become a Teacher
-          </Link>
-          <Link to="/for-parents" className="transition-colors hover:text-foreground/80 text-foreground/60">
-            For Parents
-          </Link>
-          <Link to="/about" className="transition-colors hover:text-foreground/80 text-foreground/60">
-            About
-          </Link>
-          <Link to="/pricing-selection" className="transition-colors hover:text-foreground/80 text-foreground/60">
-            Pricing
-          </Link>
-        </nav>
+        <DesktopNavigation />
 
         {/* Desktop Language Switcher and Auth Buttons */}
         <div className="hidden lg:flex items-center gap-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Globe className="h-4 w-4" />
-                {language.toUpperCase()}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setLanguage('english')}>
-                🇺🇸 English
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setLanguage('spanish')}>
-                🇪🇸 Español
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setLanguage('french')}>
-                🇫🇷 Français
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setLanguage('arabic')}>
-                🇸🇦 العربية
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <Button variant="ghost" onClick={handleLogin}>
-            {t('logIn') || 'Log In'}
-          </Button>
-          
-          <Button onClick={handleSignUp} className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
-            {t('signUp') || 'Sign Up'}
-          </Button>
+          <LanguageSwitcher />
+          <AuthButtons onLogin={handleLogin} onSignUp={handleSignUp} />
         </div>
 
         {/* Mobile Menu Button */}
         <div className="lg:hidden flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-1">
-                <Globe className="h-3 w-3" />
-                <span className="text-xs">{language.toUpperCase()}</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setLanguage('english')}>
-                🇺🇸 English
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setLanguage('spanish')}>
-                🇪🇸 Español
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setLanguage('french')}>
-                🇫🇷 Français
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setLanguage('arabic')}>
-                🇸🇦 العربية
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2"
-          >
-            {isMobileMenuOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-          </Button>
+          <LanguageSwitcher size="sm" />
+          <MobileMenuButton 
+            isOpen={isMobileMenuOpen} 
+            onToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+          />
         </div>
       </div>
 
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="lg:hidden border-t bg-white/95 backdrop-blur-sm">
-          <div className="container mx-auto px-4 py-4 space-y-4">
-            <Link 
-              to="/about" 
-              className="block text-gray-600 hover:text-purple-600 transition-colors py-2"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              {t('aboutUs') || 'About Us'}
-            </Link>
-            <Link 
-              to="/for-parents" 
-              className="block text-gray-600 hover:text-purple-600 transition-colors py-2"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              {t('forParents') || 'For Parents'}
-            </Link>
-            <Link 
-              to="/for-teachers" 
-              className="block text-gray-600 hover:text-purple-600 transition-colors py-2"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              {t('forTeachers') || 'For Teachers'}
-            </Link>
-            <Button
-              variant="ghost"
-              onClick={handlePricing}
-              className="w-full justify-start text-gray-600 hover:text-purple-600 transition-colors px-0"
-            >
-              Pricing
-            </Button>
-            
-            <div className="pt-4 border-t space-y-3">
-              <Button 
-                variant="outline" 
-                onClick={handleLogin}
-                className="w-full"
-              >
-                {t('logIn') || 'Log In'}
-              </Button>
-              <Button 
-                onClick={handleSignUp} 
-                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-              >
-                {t('signUp') || 'Sign Up'}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <MobileMenu
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+        onLogin={handleLogin}
+        onSignUp={handleSignUp}
+        onPricing={handlePricing}
+      />
     </header>
   );
 };
