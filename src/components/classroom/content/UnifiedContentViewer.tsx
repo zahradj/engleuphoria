@@ -23,15 +23,8 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
   const [strokeWidth, setStrokeWidth] = useState(3);
   const [activeShape, setActiveShape] = useState<"rectangle" | "circle">("rectangle");
   
-  // Initialize with a sample PDF content
-  const initialContent = [{
-    id: "1",
-    type: "pdf" as const,
-    title: "ESL Animals Lesson",
-    source: "ESL_Animals_Lesson.pdf",
-    uploadedBy: "Ms. Johnson",
-    timestamp: new Date()
-  }];
+  // Initialize with empty content - no default PDF
+  const initialContent: any[] = [];
   
   const {
     contentItems,
@@ -80,14 +73,14 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
       </div>
 
       {/* Content Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
+        <TabsList className="grid w-full grid-cols-3 flex-shrink-0">
           <TabsTrigger value="whiteboard">Enhanced Whiteboard</TabsTrigger>
           <TabsTrigger value="material">Lesson Material</TabsTrigger>
           <TabsTrigger value="library">Content Library</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="whiteboard" className="flex-1 flex flex-col mt-4">
+        <TabsContent value="whiteboard" className="flex-1 flex flex-col mt-4 min-h-0">
           <EnhancedWhiteboardToolbar
             activeTool={activeTool}
             setActiveTool={setActiveTool}
@@ -98,7 +91,7 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
             strokeWidth={strokeWidth}
             setStrokeWidth={setStrokeWidth}
           />
-          <div className="flex-1 mt-4 relative">
+          <div className="flex-1 mt-4 relative min-h-0">
             <EnhancedWhiteboardCanvas
               activeTool={activeTool}
               color={color}
@@ -107,11 +100,11 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
           </div>
         </TabsContent>
 
-        <TabsContent value="material" className="flex-1 mt-4">
+        <TabsContent value="material" className="flex-1 mt-4 min-h-0">
           <MaterialViewer selectedContent={selectedContent} />
         </TabsContent>
 
-        <TabsContent value="library" className="flex-1 mt-4">
+        <TabsContent value="library" className="flex-1 mt-4 min-h-0">
           <ContentLibrary 
             contentItems={contentItems} 
             selectedContent={selectedContent} 

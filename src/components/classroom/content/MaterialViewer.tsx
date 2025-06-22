@@ -10,12 +10,10 @@ interface MaterialViewerProps {
 
 export function MaterialViewer({ selectedContent }: MaterialViewerProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     if (selectedContent) {
       setIsLoading(true);
-      setLoadError(false);
       // Simulate loading time - in real app this would be when content is actually loading
       const timer = setTimeout(() => {
         setIsLoading(false);
@@ -27,20 +25,27 @@ export function MaterialViewer({ selectedContent }: MaterialViewerProps) {
 
   if (!selectedContent) {
     return (
-      <div className="flex items-center justify-center h-full text-muted-foreground">
-        No content selected. Upload or select content from the library.
+      <div className="flex items-center justify-center h-full text-muted-foreground bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+        <div className="text-center p-8">
+          <div className="text-xl mb-2">📚</div>
+          <div className="text-lg font-medium mb-1">No content selected</div>
+          <div className="text-sm">Upload or select content from the library to view it here</div>
+        </div>
       </div>
     );
   }
 
   if (isLoading) {
     return (
-      <div className="h-full">
-        <div className="mb-2">
-          <Skeleton className="h-4 w-64" />
+      <div className="h-full p-4">
+        <div className="mb-4">
+          <Skeleton className="h-6 w-64" />
         </div>
-        <div className="h-[calc(100%-2rem)] border rounded-lg overflow-hidden p-4">
-          <div className="flex items-center justify-center h-full">
+        <div className="h-[calc(100%-3rem)] border rounded-lg overflow-hidden">
+          <div className="p-4 border-b">
+            <Skeleton className="h-8 w-full" />
+          </div>
+          <div className="flex items-center justify-center h-[calc(100%-4rem)]">
             <div className="space-y-4 w-full max-w-md">
               <Skeleton className="h-8 w-full" />
               <Skeleton className="h-64 w-full" />
@@ -53,7 +58,17 @@ export function MaterialViewer({ selectedContent }: MaterialViewerProps) {
     );
   }
 
-  // Check if the source is a valid URL or path
+  // Map content types to material types for TeachingMaterial component
+  const getMaterialType = (contentType: string): "pdf" | "image" | "video" | "interactive" => {
+    switch (contentType) {
+      case "game":
+        return "interactive";
+      default:
+        return contentType as "pdf" | "image" | "video" | "interactive";
+    }
+  };
+
+  // Validate and process source URL
   const validateSource = (source: string): string => {
     if (!source) return "";
     
@@ -77,22 +92,13 @@ export function MaterialViewer({ selectedContent }: MaterialViewerProps) {
     }
   };
 
-  // Map content types to material types for TeachingMaterial component
-  const getMaterialType = (contentType: string): "pdf" | "image" | "video" | "interactive" => {
-    switch (contentType) {
-      case "game":
-        return "interactive";
-      default:
-        return contentType as "pdf" | "image" | "video" | "interactive";
-    }
-  };
-
   return (
-    <div className="h-full">
-      <div className="mb-2 text-sm text-muted-foreground">
-        {selectedContent.title} - uploaded by {selectedContent.uploadedBy}
+    <div className="h-full flex flex-col">
+      <div className="mb-3 px-2">
+        <div className="text-sm font-medium text-gray-900">{selectedContent.title}</div>
+        <div className="text-xs text-gray-500">Uploaded by {selectedContent.uploadedBy}</div>
       </div>
-      <div className="h-[calc(100%-2rem)]">
+      <div className="flex-1 min-h-0">
         <TeachingMaterial
           materialType={getMaterialType(selectedContent.type)}
           source={validateSource(selectedContent.source)}
