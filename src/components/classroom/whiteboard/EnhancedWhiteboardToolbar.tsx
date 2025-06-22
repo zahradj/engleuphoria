@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { SoundButton } from "@/components/ui/sound-button";
+import { GameSelectionDialog } from "./GameSelectionDialog";
 import { 
   Pencil, 
   Eraser, 
@@ -19,13 +20,24 @@ import {
   Highlighter,
   Move,
   Link,
-  Palette
+  Palette,
+  Gamepad2
 } from "lucide-react";
 
 interface EmbeddedContent {
   id: string;
   title: string;
   url: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+interface EmbeddedGameData {
+  id: string;
+  gameId: string;
+  title: string;
   x: number;
   y: number;
   width: number;
@@ -42,6 +54,7 @@ interface EnhancedWhiteboardToolbarProps {
   strokeWidth: number;
   setStrokeWidth: (width: number) => void;
   onAddEmbeddedContent?: (content: Omit<EmbeddedContent, 'id'>) => void;
+  onAddEmbeddedGame?: (game: Omit<EmbeddedGameData, 'id'>) => void;
 }
 
 export function EnhancedWhiteboardToolbar({
@@ -53,9 +66,11 @@ export function EnhancedWhiteboardToolbar({
   setColor,
   strokeWidth,
   setStrokeWidth,
-  onAddEmbeddedContent
+  onAddEmbeddedContent,
+  onAddEmbeddedGame
 }: EnhancedWhiteboardToolbarProps) {
   const [isEmbedDialogOpen, setIsEmbedDialogOpen] = useState(false);
+  const [isGameDialogOpen, setIsGameDialogOpen] = useState(false);
   const [embedUrl, setEmbedUrl] = useState("");
   const [embedTitle, setEmbedTitle] = useState("");
 
@@ -102,6 +117,21 @@ export function EnhancedWhiteboardToolbar({
     setEmbedTitle("");
     setEmbedUrl("");
     setIsEmbedDialogOpen(false);
+  };
+
+  const handleGameSelect = (gameId: string, gameTitle: string) => {
+    const newGame = {
+      gameId,
+      title: gameTitle,
+      x: 100,
+      y: 100,
+      width: 800,
+      height: 600
+    };
+
+    if (onAddEmbeddedGame) {
+      onAddEmbeddedGame(newGame);
+    }
   };
 
   const clearCanvas = () => {
@@ -217,6 +247,15 @@ export function EnhancedWhiteboardToolbar({
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => setIsGameDialogOpen(true)}
+                className="h-7 w-7 p-0 bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
+              >
+                <Gamepad2 size={12} />
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setIsEmbedDialogOpen(true)}
                 className="h-7 w-7 p-0 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
               >
@@ -271,6 +310,13 @@ export function EnhancedWhiteboardToolbar({
           )}
         </div>
       </div>
+
+      {/* Game Selection Dialog */}
+      <GameSelectionDialog
+        isOpen={isGameDialogOpen}
+        onClose={() => setIsGameDialogOpen(false)}
+        onSelectGame={handleGameSelect}
+      />
 
       {/* Embed Link Dialog */}
       <Dialog open={isEmbedDialogOpen} onOpenChange={setIsEmbedDialogOpen}>

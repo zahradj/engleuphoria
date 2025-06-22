@@ -20,6 +20,16 @@ interface EmbeddedContent {
   height: number;
 }
 
+interface EmbeddedGameData {
+  id: string;
+  gameId: string;
+  title: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 interface UnifiedContentViewerProps {
   isTeacher: boolean;
   studentName: string;
@@ -32,6 +42,7 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
   const [strokeWidth, setStrokeWidth] = useState(3);
   const [activeShape, setActiveShape] = useState<"rectangle" | "circle">("rectangle");
   const [embeddedContent, setEmbeddedContent] = useState<EmbeddedContent[]>([]);
+  const [embeddedGames, setEmbeddedGames] = useState<EmbeddedGameData[]>([]);
   
   const initialContent: any[] = [];
   
@@ -54,7 +65,6 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
     const newContent: EmbeddedContent = {
       ...content,
       id: Date.now().toString(),
-      // Scale to whiteboard size - use larger default dimensions
       width: Math.max(content.width, 1000),
       height: Math.max(content.height, 700),
       x: content.x || 100,
@@ -63,8 +73,20 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
     setEmbeddedContent(prev => [...prev, newContent]);
   };
 
+  const handleAddEmbeddedGame = (game: Omit<EmbeddedGameData, 'id'>) => {
+    const newGame: EmbeddedGameData = {
+      ...game,
+      id: Date.now().toString(),
+    };
+    setEmbeddedGames(prev => [...prev, newGame]);
+  };
+
   const handleRemoveEmbeddedContent = (id: string) => {
     setEmbeddedContent(prev => prev.filter(content => content.id !== id));
+  };
+
+  const handleRemoveEmbeddedGame = (id: string) => {
+    setEmbeddedGames(prev => prev.filter(game => game.id !== id));
   };
 
   return (
@@ -78,7 +100,7 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
             </div>
             <div>
               <h2 className="text-sm font-semibold text-gray-900">Interactive Learning Space</h2>
-              <p className="text-xs text-gray-600">Enhanced whiteboard with multimedia content</p>
+              <p className="text-xs text-gray-600">Enhanced whiteboard with multimedia content & games</p>
             </div>
           </div>
         </div>
@@ -134,6 +156,7 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
                 strokeWidth={strokeWidth}
                 setStrokeWidth={setStrokeWidth}
                 onAddEmbeddedContent={handleAddEmbeddedContent}
+                onAddEmbeddedGame={handleAddEmbeddedGame}
               />
             </div>
             <div className="flex-1 min-h-0" style={{ minHeight: '600px' }}>
@@ -142,7 +165,9 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
                 color={color}
                 strokeWidth={strokeWidth}
                 embeddedContent={embeddedContent}
+                embeddedGames={embeddedGames}
                 onRemoveEmbeddedContent={handleRemoveEmbeddedContent}
+                onRemoveEmbeddedGame={handleRemoveEmbeddedGame}
               />
             </div>
           </TabsContent>

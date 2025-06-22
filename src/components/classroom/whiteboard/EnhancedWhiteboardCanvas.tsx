@@ -5,11 +5,22 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { ZoomIn, ZoomOut, Move, RotateCcw, Download, Type, X, ExternalLink } from "lucide-react";
+import { EmbeddedGame } from "./EmbeddedGame";
 
 interface EmbeddedContent {
   id: string;
   title: string;
   url: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+interface EmbeddedGameData {
+  id: string;
+  gameId: string;
+  title: string;
   x: number;
   y: number;
   width: number;
@@ -22,7 +33,9 @@ interface EnhancedWhiteboardCanvasProps {
   strokeWidth?: number;
   children?: React.ReactNode;
   embeddedContent?: EmbeddedContent[];
+  embeddedGames?: EmbeddedGameData[];
   onRemoveEmbeddedContent?: (id: string) => void;
+  onRemoveEmbeddedGame?: (id: string) => void;
 }
 
 export function EnhancedWhiteboardCanvas({ 
@@ -31,7 +44,9 @@ export function EnhancedWhiteboardCanvas({
   strokeWidth = 3,
   children,
   embeddedContent = [],
-  onRemoveEmbeddedContent
+  embeddedGames = [],
+  onRemoveEmbeddedContent,
+  onRemoveEmbeddedGame
 }: EnhancedWhiteboardCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -315,7 +330,7 @@ export function EnhancedWhiteboardCanvas({
           </div>
         )}
         
-        {/* Scaled Embedded Content */}
+        {/* Scaled Embedded Content Container */}
         <div 
           className="absolute"
           style={{
@@ -323,8 +338,8 @@ export function EnhancedWhiteboardCanvas({
             transformOrigin: '0 0'
           }}
         >
+          {/* Embedded Web Content */}
           {embeddedContent.map((content) => {
-            // Scale embedded content to use larger portions of the whiteboard
             const scaledWidth = Math.max(800, content.width);
             const scaledHeight = Math.max(600, content.height);
             
@@ -369,7 +384,7 @@ export function EnhancedWhiteboardCanvas({
                   </div>
                 </div>
                 
-                {/* Content Body - Now larger and more prominent */}
+                {/* Content Body */}
                 <iframe
                   src={content.url}
                   className="w-full h-[calc(100%-2rem)] border-0"
@@ -380,6 +395,16 @@ export function EnhancedWhiteboardCanvas({
               </div>
             );
           })}
+
+          {/* Embedded Games */}
+          {embeddedGames.map((game) => (
+            <EmbeddedGame
+              key={game.id}
+              game={game}
+              onRemove={onRemoveEmbeddedGame || (() => {})}
+            />
+          ))}
+
           {children}
         </div>
       </div>
@@ -393,7 +418,7 @@ export function EnhancedWhiteboardCanvas({
           <span className="inline-block w-2 h-2 rounded-full border" style={{ backgroundColor: color }}></span>
         </div>
         <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs px-2 py-0">
-          Enhanced Canvas 2400×1600
+          Enhanced Canvas 2400×1600 • {embeddedContent.length + embeddedGames.length} embedded items
         </Badge>
       </div>
     </div>
