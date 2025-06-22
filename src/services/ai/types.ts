@@ -23,6 +23,8 @@ export interface AIGeneratedContent {
     isAIGenerated: boolean;
     isMockData?: boolean;
     generationTime?: number;
+    isFallback?: boolean;
+    fallbackReason?: string;
   };
 }
 
