@@ -7,22 +7,10 @@ import { ContentLibrary } from "./ContentLibrary";
 import { MaterialViewer } from "./MaterialViewer";
 import { EnhancedUploadDialog } from "./EnhancedUploadDialog";
 import { FilePreviewModal } from "./FilePreviewModal";
-import { EmbeddedContentManager } from "./EmbeddedContentManager";
-import { EmbeddedContentDisplay } from "./EmbeddedContentDisplay";
+import { EmbeddedLinksPanel } from "./EmbeddedLinksPanel";
 import { useEnhancedContentManager } from "./useEnhancedContentManager";
 import { SoundButton } from "@/components/ui/sound-button";
 import { Upload, Plus } from "lucide-react";
-
-interface EmbeddedContent {
-  id: string;
-  type: 'youtube' | 'docs' | 'game' | 'website';
-  title: string;
-  url: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
 
 interface UnifiedContentViewerProps {
   isTeacher: boolean;
@@ -35,9 +23,6 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
   const [color, setColor] = useState("#9B87F5");
   const [strokeWidth, setStrokeWidth] = useState(3);
   const [activeShape, setActiveShape] = useState<"rectangle" | "circle">("rectangle");
-  
-  // Embedded content state
-  const [embeddedContents, setEmbeddedContents] = useState<EmbeddedContent[]>([]);
   
   // Initialize with a sample PDF content
   const initialContent = [{
@@ -63,24 +48,6 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
     handleFileDelete,
     handleFileDownload
   } = useEnhancedContentManager(initialContent, studentName, isTeacher);
-
-  const handleAddEmbeddedContent = (content: Omit<EmbeddedContent, 'id'>) => {
-    const newContent: EmbeddedContent = {
-      ...content,
-      id: Date.now().toString()
-    };
-    setEmbeddedContents(prev => [...prev, newContent]);
-  };
-
-  const handleRemoveEmbeddedContent = (id: string) => {
-    setEmbeddedContents(prev => prev.filter(content => content.id !== id));
-  };
-
-  const handleUpdateEmbeddedContent = (id: string, updates: Partial<EmbeddedContent>) => {
-    setEmbeddedContents(prev => prev.map(content => 
-      content.id === id ? { ...content, ...updates } : content
-    ));
-  };
 
   return (
     <div className="h-full flex flex-col">
@@ -109,7 +76,7 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
         )}
         
         <div className="text-xs text-gray-600">
-          Enhanced whiteboard with embedded content, zoom, pan, and improved drawing tools
+          Enhanced whiteboard with embed links, zoom, pan, and improved drawing tools
         </div>
       </div>
 
@@ -119,7 +86,7 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
           <TabsTrigger value="whiteboard">Enhanced Whiteboard</TabsTrigger>
           <TabsTrigger value="material">Lesson Material</TabsTrigger>
           <TabsTrigger value="library">Content Library</TabsTrigger>
-          <TabsTrigger value="embedded">Embedded Content</TabsTrigger>
+          <TabsTrigger value="links">Embed Links</TabsTrigger>
         </TabsList>
 
         <TabsContent value="whiteboard" className="flex-1 flex flex-col mt-4">
@@ -138,17 +105,7 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
               activeTool={activeTool}
               color={color}
               strokeWidth={strokeWidth}
-            >
-              {embeddedContents.map((content) => (
-                <EmbeddedContentDisplay
-                  key={content.id}
-                  content={content}
-                  onRemove={handleRemoveEmbeddedContent}
-                  onUpdate={handleUpdateEmbeddedContent}
-                  isTeacher={isTeacher}
-                />
-              ))}
-            </EnhancedWhiteboardCanvas>
+            />
           </div>
         </TabsContent>
 
@@ -166,14 +123,8 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
           />
         </TabsContent>
 
-        <TabsContent value="embedded" className="flex-1 mt-4">
-          <EmbeddedContentManager
-            isTeacher={isTeacher}
-            contents={embeddedContents}
-            onAddContent={handleAddEmbeddedContent}
-            onRemoveContent={handleRemoveEmbeddedContent}
-            onUpdateContent={handleUpdateEmbeddedContent}
-          />
+        <TabsContent value="links" className="flex-1 mt-4">
+          <EmbeddedLinksPanel isTeacher={isTeacher} />
         </TabsContent>
       </Tabs>
 
