@@ -5,7 +5,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { UnifiedContentViewer } from "@/components/classroom/content/UnifiedContentViewer";
 import { OneOnOneGames } from "@/components/classroom/oneonone/OneOnOneGames";
-import { EmbeddedLinksPanel } from "@/components/classroom/content/EmbeddedLinksPanel";
 import { BookOpen, Users, Gamepad2, Link } from "lucide-react";
 
 interface UnifiedCenterPanelProps {
@@ -37,9 +36,9 @@ export function UnifiedCenterPanel({
               <Gamepad2 size={16} />
               <span className="hidden sm:inline">Activities</span>
             </TabsTrigger>
-            <TabsTrigger value="links" className="flex items-center gap-2">
+            <TabsTrigger value="embedded" className="flex items-center gap-2">
               <Link size={16} />
-              <span className="hidden sm:inline">Links</span>
+              <span className="hidden sm:inline">Embedded</span>
             </TabsTrigger>
             <TabsTrigger value="collaboration" className="flex items-center gap-2">
               <Users size={16} />
@@ -60,8 +59,20 @@ export function UnifiedCenterPanel({
             <OneOnOneGames />
           </TabsContent>
 
-          <TabsContent value="links" className="h-full m-0 p-4 overflow-y-auto">
-            <EmbeddedLinksPanel isTeacher={isTeacher} />
+          <TabsContent value="embedded" className="h-full m-0 p-4 overflow-y-auto">
+            <div className="h-full">
+              <div className="mb-4">
+                <h3 className="text-lg font-semibold mb-2">Embedded Content</h3>
+                <p className="text-gray-600 text-sm">
+                  Websites and educational content embedded directly in the classroom. 
+                  {isTeacher ? " Add content using the whiteboard or embedded content tab." : " Your teacher can embed content for interactive lessons."}
+                </p>
+              </div>
+              <UnifiedContentViewer 
+                isTeacher={isTeacher}
+                studentName={currentUser.name}
+              />
+            </div>
           </TabsContent>
 
           <TabsContent value="collaboration" className="h-full m-0 p-4 overflow-y-auto">
