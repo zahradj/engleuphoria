@@ -1,61 +1,94 @@
+import React, { useState } from "react";
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/index";
+import { useNavigate } from 'react-router-dom';
 
-import { useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { AnimatedButton } from "@/components/AnimatedButton";
+export const LoginForm = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [userType, setUserType] = useState('student');
+  const [name, setName] = useState('');
+  const navigate = useNavigate();
 
-interface LoginFormProps {
-  onSubmit: (name: string) => void;
-  onGoBack: () => void;
-  name: string;
-  setName: (name: string) => void;
-}
-
-export const LoginForm = ({ onSubmit, onGoBack, name, setName }: LoginFormProps) => {
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (name.trim()) {
-      onSubmit(name);
+  const handleLogin = () => {
+    if (!name.trim()) return;
+    
+    // Store user info in localStorage for demo purposes
+    localStorage.setItem('userType', userType);
+    localStorage.setItem(`${userType}Name`, name);
+    
+    // Navigate based on user type
+    switch (userType) {
+      case 'student':
+        navigate('/student-dashboard');
+        break;
+      case 'teacher':
+        navigate('/teacher-dashboard');
+        break;
+      case 'admin':
+        navigate('/admin-dashboard');
+        break;
+      default:
+        navigate('/student-dashboard');
     }
+    
+    setIsOpen(false);
   };
 
   return (
-    <div className="max-w-md mx-auto">
-      <div className="text-center mb-6 animate-fade-in">
-        <h2 className="text-2xl font-bold mb-2">Welcome to Engleuphoria!</h2>
-        <p className="text-muted-foreground">Let's start with your name</p>
-      </div>
-      
-      <Card className="p-6 animate-scale-in">
-        <form onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="name" className="text-sm font-medium">
-                What's your name?
-              </label>
-              <Input
-                id="name"
-                placeholder="Enter your name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                className="text-lg"
-              />
-            </div>
-            
-            <AnimatedButton type="submit" className="w-full" animationType="scale">
-              Continue
-            </AnimatedButton>
-          </div>
-        </form>
-      </Card>
-      
-      <div className="mt-4 text-center">
-        <Button variant="ghost" onClick={onGoBack}>
-          Go Back
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button size="lg" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+          Try Demo
         </Button>
-      </div>
-    </div>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Demo Login</DialogTitle>
+          <DialogDescription>
+            Choose your role and enter your name to explore the platform
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium">Your Name</label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Enter your name"
+              className="mt-1"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">I am a...</label>
+            <Select value={userType} onValueChange={setUserType}>
+              <SelectTrigger className="mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="student">Student</SelectItem>
+                <SelectItem value="teacher">Teacher</SelectItem>
+                <SelectItem value="admin">Administrator</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <Button onClick={handleLogin} className="w-full" disabled={!name.trim()}>
+            Continue to Dashboard
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
