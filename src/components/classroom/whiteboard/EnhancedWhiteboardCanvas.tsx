@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { ZoomIn, ZoomOut, Move, RotateCcw, Download, Type } from "lucide-react";
 
 interface EnhancedWhiteboardCanvasProps {
-  activeTool: "pencil" | "eraser" | "text" | "highlighter" | "shape";
+  activeTool: "pencil" | "eraser" | "text" | "highlighter" | "shape" | "move";
   color: string;
   strokeWidth?: number;
   children?: React.ReactNode;
@@ -110,7 +110,7 @@ export function EnhancedWhiteboardCanvas({
       return;
     }
 
-    if (!isDrawing || activeTool === 'text') return;
+    if (!isDrawing || activeTool === 'text' || activeTool === 'move') return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -256,7 +256,8 @@ export function EnhancedWhiteboardCanvas({
             transformOrigin: '0 0',
             cursor: activeTool === 'pencil' ? 'crosshair' : 
                    activeTool === 'eraser' ? 'grab' :
-                   activeTool === 'text' ? 'text' : 'default'
+                   activeTool === 'text' ? 'text' :
+                   activeTool === 'move' ? 'grab' : 'default'
           }}
           onMouseDown={startDrawing}
           onMouseMove={draw}
