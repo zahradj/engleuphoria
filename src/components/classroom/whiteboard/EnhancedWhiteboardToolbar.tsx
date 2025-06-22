@@ -114,123 +114,107 @@ export function EnhancedWhiteboardToolbar({
   return (
     <>
       <div className="bg-white border rounded-lg shadow-sm">
-        {/* Main Toolbar */}
-        <div className="p-4 space-y-4">
-          {/* Drawing Tools Section */}
-          <div className="flex items-center justify-between">
+        {/* Compact Main Toolbar */}
+        <div className="p-3">
+          {/* Top Row - Drawing Tools */}
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-1">
               <Button
                 variant={activeTool === "pencil" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setActiveTool("pencil")}
-                className="flex items-center gap-2 h-9"
+                className="h-8 px-2"
               >
-                <Pencil size={16} />
-                <span className="hidden sm:inline">Draw</span>
+                <Pencil size={14} />
               </Button>
               
               <Button
                 variant={activeTool === "highlighter" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setActiveTool("highlighter")}
-                className="flex items-center gap-2 h-9"
+                className="h-8 px-2"
               >
-                <Highlighter size={16} />
-                <span className="hidden sm:inline">Highlight</span>
+                <Highlighter size={14} />
               </Button>
               
               <Button
                 variant={activeTool === "text" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setActiveTool("text")}
-                className="flex items-center gap-2 h-9"
+                className="h-8 px-2"
               >
-                <Type size={16} />
-                <span className="hidden sm:inline">Text</span>
+                <Type size={14} />
               </Button>
               
               <Button
                 variant={activeTool === "shape" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setActiveTool("shape")}
-                className="flex items-center gap-2 h-9"
+                className="h-8 px-2"
               >
-                {activeShape === "rectangle" ? <Square size={16} /> : <Circle size={16} />}
-                <span className="hidden sm:inline">Shape</span>
+                {activeShape === "rectangle" ? <Square size={14} /> : <Circle size={14} />}
               </Button>
               
               <Button
                 variant={activeTool === "move" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setActiveTool("move")}
-                className="flex items-center gap-2 h-9"
+                className="h-8 px-2"
               >
-                <Move size={16} />
-                <span className="hidden sm:inline">Move</span>
+                <Move size={14} />
               </Button>
               
               <Button
                 variant={activeTool === "eraser" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setActiveTool("eraser")}
-                className="flex items-center gap-2 h-9"
+                className="h-8 px-2"
               >
-                <Eraser size={16} />
-                <span className="hidden sm:inline">Erase</span>
+                <Eraser size={14} />
               </Button>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setIsEmbedDialogOpen(true)}
-                className="flex items-center gap-2 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                className="h-8 px-2 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
               >
-                <Link size={16} />
-                <span className="hidden sm:inline">Embed</span>
+                <Link size={14} />
               </Button>
-              
-              <Separator orientation="vertical" className="h-6" />
               
               <Button
                 variant="outline"
                 size="sm"
                 onClick={clearCanvas}
-                className="flex items-center gap-2 hover:bg-red-50 hover:border-red-200"
+                className="h-8 px-2 hover:bg-red-50 hover:border-red-200"
               >
-                <Trash2 size={16} />
-                <span className="hidden sm:inline">Clear</span>
+                <Trash2 size={14} />
               </Button>
               
               <Button
                 variant="outline"
                 size="sm"
                 onClick={downloadCanvas}
-                className="flex items-center gap-2"
+                className="h-8 px-2"
               >
-                <Download size={16} />
-                <span className="hidden sm:inline">Save</span>
+                <Download size={14} />
               </Button>
             </div>
           </div>
 
-          <Separator />
-
-          {/* Color and Size Controls */}
-          <div className="flex items-center justify-between gap-6">
+          {/* Bottom Row - Color and Size Controls */}
+          <div className="flex items-center justify-between gap-4">
             {/* Color Palette */}
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <Palette size={16} className="text-gray-600" />
-                <span className="text-sm text-gray-600 font-medium">Color:</span>
-              </div>
-              <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
+              <Palette size={14} className="text-gray-600" />
+              <div className="flex items-center gap-1">
                 {colors.map((c) => (
                   <div
                     key={c}
-                    className={`w-7 h-7 rounded-full cursor-pointer border-2 transition-all hover:scale-110 ${
+                    className={`w-6 h-6 rounded-full cursor-pointer border-2 transition-all hover:scale-110 ${
                       color === c ? "border-gray-400 scale-110 shadow-md" : "border-gray-200 hover:border-gray-300"
                     }`}
                     style={{ backgroundColor: c }}
@@ -241,54 +225,49 @@ export function EnhancedWhiteboardToolbar({
             </div>
             
             {/* Stroke Width */}
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-gray-600 font-medium">Size:</span>
-              <div className="flex items-center gap-3">
-                <div className="w-24">
-                  <Slider
-                    value={[strokeWidth]}
-                    onValueChange={(value) => setStrokeWidth(value[0])}
-                    max={10}
-                    min={1}
-                    step={1}
-                    className="cursor-pointer"
-                  />
-                </div>
-                <Badge variant="outline" className="text-xs min-w-[40px] text-center">
-                  {strokeWidth}px
-                </Badge>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-600 font-medium">Size:</span>
+              <div className="w-20">
+                <Slider
+                  value={[strokeWidth]}
+                  onValueChange={(value) => setStrokeWidth(value[0])}
+                  max={10}
+                  min={1}
+                  step={1}
+                  className="cursor-pointer"
+                />
               </div>
+              <Badge variant="outline" className="text-xs min-w-[35px] text-center px-1">
+                {strokeWidth}px
+              </Badge>
             </div>
           </div>
 
           {/* Shape Selection (when shape tool is active) */}
           {activeTool === "shape" && (
-            <>
-              <Separator />
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-600 font-medium">Shape Type:</span>
-                <div className="flex gap-2">
-                  <Button
-                    variant={activeShape === "rectangle" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setActiveShape("rectangle")}
-                    className="flex items-center gap-2"
-                  >
-                    <Square size={16} />
-                    Rectangle
-                  </Button>
-                  <Button
-                    variant={activeShape === "circle" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setActiveShape("circle")}
-                    className="flex items-center gap-2"
-                  >
-                    <Circle size={16} />
-                    Circle
-                  </Button>
-                </div>
+            <div className="flex items-center gap-2 mt-2 pt-2 border-t">
+              <span className="text-xs text-gray-600 font-medium">Shape:</span>
+              <div className="flex gap-1">
+                <Button
+                  variant={activeShape === "rectangle" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setActiveShape("rectangle")}
+                  className="h-7 px-2 text-xs"
+                >
+                  <Square size={12} className="mr-1" />
+                  Rectangle
+                </Button>
+                <Button
+                  variant={activeShape === "circle" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setActiveShape("circle")}
+                  className="h-7 px-2 text-xs"
+                >
+                  <Circle size={12} className="mr-1" />
+                  Circle
+                </Button>
               </div>
-            </>
+            </div>
           )}
         </div>
       </div>
