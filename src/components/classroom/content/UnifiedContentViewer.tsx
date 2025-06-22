@@ -4,7 +4,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EnhancedWhiteboardCanvas } from "@/components/classroom/whiteboard/EnhancedWhiteboardCanvas";
 import { EnhancedWhiteboardToolbar } from "@/components/classroom/whiteboard/EnhancedWhiteboardToolbar";
 import { ContentLibrary } from "./ContentLibrary";
-import { MaterialViewer } from "./MaterialViewer";
 import { EnhancedUploadDialog } from "./EnhancedUploadDialog";
 import { FilePreviewModal } from "./FilePreviewModal";
 import { useEnhancedContentManager } from "./useEnhancedContentManager";
@@ -74,9 +73,8 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
 
       {/* Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
-        <TabsList className="grid w-full grid-cols-3 flex-shrink-0">
+        <TabsList className="grid w-full grid-cols-2 flex-shrink-0">
           <TabsTrigger value="whiteboard">Enhanced Whiteboard</TabsTrigger>
-          <TabsTrigger value="material">Lesson Material</TabsTrigger>
           <TabsTrigger value="library">Content Library</TabsTrigger>
         </TabsList>
 
@@ -98,10 +96,6 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
               strokeWidth={strokeWidth}
             />
           </div>
-        </TabsContent>
-
-        <TabsContent value="material" className="flex-1 mt-4 min-h-0">
-          <MaterialViewer selectedContent={selectedContent} />
         </TabsContent>
 
         <TabsContent value="library" className="flex-1 mt-4 min-h-0">
