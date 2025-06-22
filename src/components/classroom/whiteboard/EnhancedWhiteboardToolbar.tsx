@@ -21,6 +21,16 @@ import {
   Palette
 } from "lucide-react";
 
+interface EmbeddedContent {
+  id: string;
+  title: string;
+  url: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 interface EnhancedWhiteboardToolbarProps {
   activeTool: "pencil" | "eraser" | "text" | "highlighter" | "shape" | "move";
   setActiveTool: (tool: "pencil" | "eraser" | "text" | "highlighter" | "shape" | "move") => void;
@@ -30,6 +40,7 @@ interface EnhancedWhiteboardToolbarProps {
   setColor: (color: string) => void;
   strokeWidth: number;
   setStrokeWidth: (width: number) => void;
+  onAddEmbeddedContent?: (content: Omit<EmbeddedContent, 'id'>) => void;
 }
 
 export function EnhancedWhiteboardToolbar({
@@ -40,7 +51,8 @@ export function EnhancedWhiteboardToolbar({
   color,
   setColor,
   strokeWidth,
-  setStrokeWidth
+  setStrokeWidth,
+  onAddEmbeddedContent
 }: EnhancedWhiteboardToolbarProps) {
   const [isEmbedDialogOpen, setIsEmbedDialogOpen] = useState(false);
   const [embedUrl, setEmbedUrl] = useState("");
@@ -54,15 +66,37 @@ export function EnhancedWhiteboardToolbar({
   const handleEmbedLink = () => {
     if (!embedTitle.trim() || !embedUrl.trim()) return;
     
-    // Process the URL to ensure it's properly formatted
     let processedUrl = embedUrl.trim();
     if (!processedUrl.startsWith('http://') && !processedUrl.startsWith('https://')) {
       processedUrl = `https://${processedUrl}`;
     }
     
-    console.log("Embedding link:", { title: embedTitle, url: processedUrl });
+    // Process YouTube URLs to embed format
+    if (processedUrl.includes('youtube.com/watch?v=')) {
+      const videoId = new URL(processedUrl).searchParams.get('v');
+      if (videoId) {
+        processedUrl = `https://www.youtube.com/embed/${videoId}`;
+      }
+    } else if (processedUrl.includes('youtu.be/')) {
+      const videoId = processedUrl.split('youtu.be/')[1]?.split('?')[0];
+      if (videoId) {
+        processedUrl = `https://www.youtube.com/embed/${videoId}`;
+      }
+    }
     
-    // Reset form and close dialog
+    const newContent = {
+      title: embedTitle,
+      url: processedUrl,
+      x: 50,
+      y: 50,
+      width: 400,
+      height: 300
+    };
+    
+    if (onAddEmbeddedContent) {
+      onAddEmbeddedContent(newContent);
+    }
+    
     setEmbedTitle("");
     setEmbedUrl("");
     setIsEmbedDialogOpen(false);
@@ -195,7 +229,6 @@ export function EnhancedWhiteboardToolbar({
             ))}
           </div>
           
-          {/* Stroke Width */}
           <div className="flex items-center gap-2 ml-4">
             <span className="text-sm text-gray-600">Size:</span>
             <div className="w-20">
@@ -214,7 +247,6 @@ export function EnhancedWhiteboardToolbar({
           </div>
         </div>
 
-        {/* Shape Options */}
         {activeTool === "shape" && (
           <div className="flex items-center gap-2 pt-2 border-t">
             <span className="text-sm text-gray-600">Shape:</span>

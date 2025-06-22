@@ -10,6 +10,16 @@ import { useEnhancedContentManager } from "./useEnhancedContentManager";
 import { SoundButton } from "@/components/ui/sound-button";
 import { Upload, Plus } from "lucide-react";
 
+interface EmbeddedContent {
+  id: string;
+  title: string;
+  url: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 interface UnifiedContentViewerProps {
   isTeacher: boolean;
   studentName: string;
@@ -21,8 +31,8 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
   const [color, setColor] = useState("#9B87F5");
   const [strokeWidth, setStrokeWidth] = useState(3);
   const [activeShape, setActiveShape] = useState<"rectangle" | "circle">("rectangle");
+  const [embeddedContent, setEmbeddedContent] = useState<EmbeddedContent[]>([]);
   
-  // Initialize with empty content - no default PDF
   const initialContent: any[] = [];
   
   const {
@@ -39,6 +49,18 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
     handleFileDelete,
     handleFileDownload
   } = useEnhancedContentManager(initialContent, studentName, isTeacher);
+
+  const handleAddEmbeddedContent = (content: Omit<EmbeddedContent, 'id'>) => {
+    const newContent: EmbeddedContent = {
+      ...content,
+      id: Date.now().toString()
+    };
+    setEmbeddedContent(prev => [...prev, newContent]);
+  };
+
+  const handleRemoveEmbeddedContent = (id: string) => {
+    setEmbeddedContent(prev => prev.filter(content => content.id !== id));
+  };
 
   return (
     <div className="h-full flex flex-col">
@@ -67,7 +89,7 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
         )}
         
         <div className="text-xs text-gray-600">
-          Enhanced whiteboard with zoom, pan, and improved drawing tools
+          Enhanced whiteboard with zoom, pan, embedded content, and improved drawing tools
         </div>
       </div>
 
@@ -88,12 +110,15 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
             setColor={setColor}
             strokeWidth={strokeWidth}
             setStrokeWidth={setStrokeWidth}
+            onAddEmbeddedContent={handleAddEmbeddedContent}
           />
           <div className="flex-1 mt-4 relative min-h-0">
             <EnhancedWhiteboardCanvas
               activeTool={activeTool}
               color={color}
               strokeWidth={strokeWidth}
+              embeddedContent={embeddedContent}
+              onRemoveEmbeddedContent={handleRemoveEmbeddedContent}
             />
           </div>
         </TabsContent>

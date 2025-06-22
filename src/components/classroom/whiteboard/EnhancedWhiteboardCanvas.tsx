@@ -1,24 +1,37 @@
-
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-import { ZoomIn, ZoomOut, Move, RotateCcw, Download, Type } from "lucide-react";
+import { ZoomIn, ZoomOut, Move, RotateCcw, Download, Type, X, ExternalLink } from "lucide-react";
+
+interface EmbeddedContent {
+  id: string;
+  title: string;
+  url: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
 
 interface EnhancedWhiteboardCanvasProps {
   activeTool: "pencil" | "eraser" | "text" | "highlighter" | "shape" | "move";
   color: string;
   strokeWidth?: number;
   children?: React.ReactNode;
+  embeddedContent?: EmbeddedContent[];
+  onRemoveEmbeddedContent?: (id: string) => void;
 }
 
 export function EnhancedWhiteboardCanvas({ 
   activeTool, 
   color, 
   strokeWidth = 3,
-  children 
+  children,
+  embeddedContent = [],
+  onRemoveEmbeddedContent
 }: EnhancedWhiteboardCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -33,14 +46,12 @@ export function EnhancedWhiteboardCanvas({
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Set canvas size
     canvas.width = 1200;
     canvas.height = 800;
     
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
     
-    // Fill with white background
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
   }, []);
@@ -178,6 +189,10 @@ export function EnhancedWhiteboardCanvas({
     setTextInput({ show: false, x: 0, y: 0, value: "" });
   };
 
+  const openInNewTab = (url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <Card className="h-full flex flex-col overflow-hidden">
       {/* Zoom and Pan Controls */}
@@ -290,7 +305,7 @@ export function EnhancedWhiteboardCanvas({
           </div>
         )}
         
-        {/* Embedded content container */}
+        {/* Embedded Content */}
         <div 
           className="absolute"
           style={{
@@ -298,6 +313,54 @@ export function EnhancedWhiteboardCanvas({
             transformOrigin: '0 0'
           }}
         >
+          {embeddedContent.map((content) => (
+            <div
+              key={content.id}
+              className="absolute border-2 border-blue-500 rounded bg-white shadow-lg overflow-hidden"
+              style={{
+                left: `${content.x}px`,
+                top: `${content.y}px`,
+                width: `${content.width}px`,
+                height: `${content.height}px`,
+                minWidth: '300px',
+                minHeight: '200px'
+              }}
+            >
+              {/* Embedded Content Header */}
+              <div className="h-8 bg-blue-500 text-white px-2 py-1 flex items-center justify-between">
+                <span className="font-medium text-sm truncate">{content.title}</span>
+                <div className="flex items-center gap-1">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => openInNewTab(content.url)}
+                    className="h-6 w-6 p-0 text-white hover:bg-blue-600"
+                  >
+                    <ExternalLink size={12} />
+                  </Button>
+                  {onRemoveEmbeddedContent && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => onRemoveEmbeddedContent(content.id)}
+                      className="h-6 w-6 p-0 text-white hover:bg-red-600"
+                    >
+                      <X size={12} />
+                    </Button>
+                  )}
+                </div>
+              </div>
+              
+              {/* Embedded Content Body */}
+              <iframe
+                src={content.url}
+                className="w-full h-[calc(100%-2rem)] border-0"
+                title={content.title}
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                referrerPolicy="strict-origin-when-cross-origin"
+              />
+            </div>
+          ))}
           {children}
         </div>
       </div>
