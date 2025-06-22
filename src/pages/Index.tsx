@@ -61,12 +61,7 @@ const Index = () => {
         
         {step === "login" && (
           <div className="container max-w-7xl mx-auto px-4 py-8">
-            <LoginForm 
-              onSubmit={handleNameSubmit} 
-              onGoBack={() => setStep("welcome")} 
-              name={name}
-              setName={setName}
-            />
+            <LoginForm />
           </div>
         )}
         
