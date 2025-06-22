@@ -28,21 +28,56 @@ export const useAdminAuth = () => {
 
   useEffect(() => {
     const checkAdminStatus = () => {
-      // Check localStorage for admin status in demo mode
+      console.log('=== Admin Auth Check Starting ===');
+      
+      // Get all localStorage values for debugging
       const userType = localStorage.getItem('userType');
       const adminName = localStorage.getItem('adminName');
+      const teacherName = localStorage.getItem('teacherName');
+      const studentName = localStorage.getItem('studentName');
       
-      console.log('Admin auth check:', { userType, adminName, user });
-      
-      // User is admin if userType is 'admin' OR if they have auth user with admin role
+      console.log('localStorage values:', { 
+        userType, 
+        adminName, 
+        teacherName, 
+        studentName,
+        user 
+      });
+
+      // Clear conflicting data if userType is admin but we have other user data
+      if (userType === 'admin') {
+        if (teacherName) {
+          console.log('Clearing conflicting teacher data');
+          localStorage.removeItem('teacherName');
+        }
+        if (studentName) {
+          console.log('Clearing conflicting student data');
+          localStorage.removeItem('studentName');
+        }
+        // Remove any other conflicting userType values
+        const allKeys = Object.keys(localStorage);
+        allKeys.forEach(key => {
+          if (key === 'userType' && localStorage.getItem(key) !== 'admin') {
+            console.log('Clearing conflicting userType:', localStorage.getItem(key));
+            localStorage.setItem('userType', 'admin');
+          }
+        });
+      }
+
+      // Determine admin status
       const adminStatus = userType === 'admin' || (user && user.role === 'admin');
       
-      console.log('Admin status determined:', adminStatus);
+      console.log('Admin status determined:', {
+        adminStatus,
+        fromUserType: userType === 'admin',
+        fromUserRole: user && user.role === 'admin'
+      });
+      
       setIsAdmin(adminStatus);
 
-      // For now, grant all permissions to admin users
-      // In production, this would be based on actual permissions from database
+      // Set permissions based on admin status
       if (adminStatus) {
+        console.log('Setting admin permissions');
         setPermissions({
           canManageUsers: true,
           canManageTeachers: true,
@@ -53,6 +88,7 @@ export const useAdminAuth = () => {
           canAccessSystemSettings: true,
         });
       } else {
+        console.log('Setting no permissions (not admin)');
         setPermissions({
           canManageUsers: false,
           canManageTeachers: false,
@@ -65,19 +101,24 @@ export const useAdminAuth = () => {
       }
       
       setIsLoading(false);
+      console.log('=== Admin Auth Check Complete ===');
     };
 
-    // Check immediately
-    checkAdminStatus();
+    // Add a small delay to ensure localStorage is fully loaded
+    const timeoutId = setTimeout(checkAdminStatus, 100);
 
-    // Also listen for localStorage changes (in case user logs in via another tab)
-    const handleStorageChange = () => {
-      checkAdminStatus();
+    // Also listen for localStorage changes
+    const handleStorageChange = (e: StorageEvent) => {
+      console.log('Storage change detected:', e.key, e.newValue);
+      if (e.key === 'userType' || e.key === 'adminName') {
+        checkAdminStatus();
+      }
     };
 
     window.addEventListener('storage', handleStorageChange);
     
     return () => {
+      clearTimeout(timeoutId);
       window.removeEventListener('storage', handleStorageChange);
     };
   }, [user]);

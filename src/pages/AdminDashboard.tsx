@@ -23,16 +23,28 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
+  console.log('=== AdminDashboard Render ===');
+  console.log('isAdmin:', isAdmin);
+  console.log('isLoading:', isLoading);
+  console.log('localStorage userType:', localStorage.getItem('userType'));
+  console.log('localStorage adminName:', localStorage.getItem('adminName'));
+
   // Redirect if not admin (but only after loading is complete)
   React.useEffect(() => {
+    console.log('AdminDashboard useEffect triggered');
+    console.log('isLoading:', isLoading, 'isAdmin:', isAdmin);
+    
     if (!isLoading && !isAdmin) {
-      console.log('Not admin, redirecting to home page');
+      console.log('Not admin and loading complete, redirecting to home page');
       navigate('/');
+    } else if (!isLoading && isAdmin) {
+      console.log('Admin authenticated successfully');
     }
   }, [isAdmin, isLoading, navigate]);
 
   // Show loading state while checking authentication
   if (isLoading) {
+    console.log('Showing loading state');
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card>
@@ -40,6 +52,10 @@ const AdminDashboard = () => {
             <Loader2 className="h-8 w-8 animate-spin text-purple-600 mb-4" />
             <h1 className="text-xl font-bold text-gray-800">Loading Admin Panel...</h1>
             <p className="text-gray-600 mt-2">Verifying your admin permissions</p>
+            <div className="mt-4 text-xs text-gray-500">
+              <p>UserType: {localStorage.getItem('userType')}</p>
+              <p>AdminName: {localStorage.getItem('adminName')}</p>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -48,12 +64,18 @@ const AdminDashboard = () => {
 
   // Show access denied if not admin (after loading is complete)
   if (!isAdmin) {
+    console.log('Showing access denied');
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card>
           <CardContent className="p-6">
             <h1 className="text-xl font-bold text-red-600">Access Denied</h1>
             <p className="text-gray-600 mt-2">You don't have permission to access the admin panel.</p>
+            <div className="mt-4 text-xs text-gray-500">
+              <p>UserType: {localStorage.getItem('userType')}</p>
+              <p>AdminName: {localStorage.getItem('adminName')}</p>
+              <p>Please log in as an administrator to access this panel.</p>
+            </div>
             <Button 
               onClick={() => navigate('/')} 
               className="mt-4"
@@ -66,6 +88,8 @@ const AdminDashboard = () => {
       </div>
     );
   }
+
+  console.log('Rendering admin dashboard successfully');
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab as AdminTab);

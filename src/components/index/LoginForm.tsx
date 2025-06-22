@@ -15,24 +15,59 @@ export const LoginForm = () => {
   const handleLogin = () => {
     if (!name.trim()) return;
     
-    console.log('Setting userType in localStorage:', userType);
+    console.log('=== Login Form Handling ===');
+    console.log('Selected userType:', userType);
+    console.log('Name:', name);
     
-    // Store user info in localStorage for demo purposes
+    // Clear all previous user data first
+    localStorage.removeItem('studentName');
+    localStorage.removeItem('teacherName');
+    localStorage.removeItem('adminName');
+    localStorage.removeItem('points');
+    
+    console.log('Cleared previous user data');
+    
+    // Set the user type first
     localStorage.setItem('userType', userType);
-    localStorage.setItem(`${userType}Name`, name);
+    console.log('Set userType to:', userType);
+    
+    // Then set the appropriate name
+    if (userType === 'admin') {
+      localStorage.setItem('adminName', name);
+      console.log('Set adminName to:', name);
+    } else if (userType === 'teacher') {
+      localStorage.setItem('teacherName', name);
+      console.log('Set teacherName to:', name);
+    } else {
+      localStorage.setItem('studentName', name);
+      localStorage.setItem('points', '50');
+      console.log('Set studentName to:', name);
+    }
+    
+    // Verify what was actually stored
+    const storedUserType = localStorage.getItem('userType');
+    const storedName = localStorage.getItem(`${userType}Name`);
+    console.log('Verification - stored userType:', storedUserType);
+    console.log('Verification - stored name:', storedName);
+    
+    console.log('=== Navigating to dashboard ===');
     
     // Navigate based on user type
     switch (userType) {
       case 'student':
+        console.log('Navigating to student dashboard');
         navigate('/student-dashboard');
         break;
       case 'teacher':
+        console.log('Navigating to teacher dashboard');
         navigate('/teacher-dashboard');
         break;
       case 'admin':
+        console.log('Navigating to admin dashboard');
         navigate('/admin-dashboard');
         break;
       default:
+        console.log('Default: Navigating to student dashboard');
         navigate('/student-dashboard');
     }
     
