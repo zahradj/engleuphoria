@@ -7,7 +7,6 @@ import { ContentLibrary } from "./ContentLibrary";
 import { MaterialViewer } from "./MaterialViewer";
 import { EnhancedUploadDialog } from "./EnhancedUploadDialog";
 import { FilePreviewModal } from "./FilePreviewModal";
-import { EmbeddedLinksPanel } from "./EmbeddedLinksPanel";
 import { useEnhancedContentManager } from "./useEnhancedContentManager";
 import { SoundButton } from "@/components/ui/sound-button";
 import { Upload, Plus } from "lucide-react";
@@ -76,17 +75,16 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
         )}
         
         <div className="text-xs text-gray-600">
-          Enhanced whiteboard with embed links, zoom, pan, and improved drawing tools
+          Enhanced whiteboard with zoom, pan, and improved drawing tools
         </div>
       </div>
 
       {/* Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="whiteboard">Enhanced Whiteboard</TabsTrigger>
           <TabsTrigger value="material">Lesson Material</TabsTrigger>
           <TabsTrigger value="library">Content Library</TabsTrigger>
-          <TabsTrigger value="links">Embed Links</TabsTrigger>
         </TabsList>
 
         <TabsContent value="whiteboard" className="flex-1 flex flex-col mt-4">
@@ -121,10 +119,6 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
             onPreviewFile={openPreview}
             onDeleteFile={isTeacher ? handleFileDelete : undefined}
           />
-        </TabsContent>
-
-        <TabsContent value="links" className="flex-1 mt-4">
-          <EmbeddedLinksPanel isTeacher={isTeacher} />
         </TabsContent>
       </Tabs>
 
