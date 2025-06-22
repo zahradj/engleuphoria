@@ -1,8 +1,8 @@
 
 import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { WhiteboardCanvas } from "@/components/classroom/whiteboard/WhiteboardCanvas";
-import { WhiteboardToolbar } from "@/components/classroom/whiteboard/WhiteboardToolbar";
+import { EnhancedWhiteboardCanvas } from "@/components/classroom/whiteboard/EnhancedWhiteboardCanvas";
+import { EnhancedWhiteboardToolbar } from "@/components/classroom/whiteboard/EnhancedWhiteboardToolbar";
 import { ContentLibrary } from "./ContentLibrary";
 import { MaterialViewer } from "./MaterialViewer";
 import { EnhancedUploadDialog } from "./EnhancedUploadDialog";
@@ -18,8 +18,10 @@ interface UnifiedContentViewerProps {
 
 export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentViewerProps) {
   const [activeTab, setActiveTab] = useState("whiteboard");
-  const [activeTool, setActiveTool] = useState<"pencil" | "eraser" | "text" | "highlighter" | "shape">("pencil");
+  const [activeTool, setActiveTool] = useState<"pencil" | "eraser" | "text" | "highlighter" | "shape" | "move">("pencil");
   const [color, setColor] = useState("#9B87F5");
+  const [strokeWidth, setStrokeWidth] = useState(3);
+  const [activeShape, setActiveShape] = useState<"rectangle" | "circle">("rectangle");
   
   // Initialize with a sample PDF content
   const initialContent = [{
@@ -45,14 +47,6 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
     handleFileDelete,
     handleFileDownload
   } = useEnhancedContentManager(initialContent, studentName, isTeacher);
-
-  const clearCanvas = () => {
-    console.log("Clearing canvas");
-  };
-
-  const downloadCanvas = () => {
-    console.log("Downloading canvas");
-  };
 
   return (
     <div className="h-full flex flex-col">
@@ -81,35 +75,34 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
         )}
         
         <div className="text-xs text-gray-600">
-          Drag & drop files directly onto the whiteboard
+          Enhanced whiteboard with zoom, pan, and improved drawing tools
         </div>
       </div>
 
       {/* Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="whiteboard">Whiteboard</TabsTrigger>
+          <TabsTrigger value="whiteboard">Enhanced Whiteboard</TabsTrigger>
           <TabsTrigger value="material">Lesson Material</TabsTrigger>
           <TabsTrigger value="library">Content Library</TabsTrigger>
         </TabsList>
 
         <TabsContent value="whiteboard" className="flex-1 flex flex-col mt-4">
-          <WhiteboardToolbar
+          <EnhancedWhiteboardToolbar
             activeTool={activeTool}
             setActiveTool={setActiveTool}
-            activeShape="rectangle"
+            activeShape={activeShape}
+            setActiveShape={setActiveShape}
             color={color}
             setColor={setColor}
-            clearCanvas={clearCanvas}
-            downloadCanvas={downloadCanvas}
+            strokeWidth={strokeWidth}
+            setStrokeWidth={setStrokeWidth}
           />
           <div className="flex-1 mt-4">
-            <WhiteboardCanvas
-              pageId="main-board"
+            <EnhancedWhiteboardCanvas
               activeTool={activeTool}
               color={color}
-              isCollaborative={true}
-              canvasRef={() => {}}
+              strokeWidth={strokeWidth}
             />
           </div>
         </TabsContent>

@@ -5,7 +5,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { UnifiedContentViewer } from "@/components/classroom/content/UnifiedContentViewer";
 import { OneOnOneGames } from "@/components/classroom/oneonone/OneOnOneGames";
-import { BookOpen, Users, Gamepad2 } from "lucide-react";
+import { EmbeddedLinksPanel } from "@/components/classroom/content/EmbeddedLinksPanel";
+import { BookOpen, Users, Gamepad2, Link } from "lucide-react";
 
 interface UnifiedCenterPanelProps {
   activeCenterTab: string;
@@ -27,7 +28,7 @@ export function UnifiedCenterPanel({
     <Card className="h-full shadow-lg border-0 bg-white/95 backdrop-blur-sm flex flex-col">
       <Tabs value={activeCenterTab} onValueChange={onTabChange} className="h-full flex flex-col">
         <div className="p-4 pb-0 flex-shrink-0">
-          <TabsList className="grid w-full grid-cols-3 mb-4">
+          <TabsList className="grid w-full grid-cols-4 mb-4">
             <TabsTrigger value="lesson" className="flex items-center gap-2">
               <BookOpen size={16} />
               <span className="hidden sm:inline">Lesson</span>
@@ -35,6 +36,10 @@ export function UnifiedCenterPanel({
             <TabsTrigger value="activities" className="flex items-center gap-2">
               <Gamepad2 size={16} />
               <span className="hidden sm:inline">Activities</span>
+            </TabsTrigger>
+            <TabsTrigger value="links" className="flex items-center gap-2">
+              <Link size={16} />
+              <span className="hidden sm:inline">Links</span>
             </TabsTrigger>
             <TabsTrigger value="collaboration" className="flex items-center gap-2">
               <Users size={16} />
@@ -53,6 +58,10 @@ export function UnifiedCenterPanel({
 
           <TabsContent value="activities" className="h-full m-0 p-4 overflow-y-auto">
             <OneOnOneGames />
+          </TabsContent>
+
+          <TabsContent value="links" className="h-full m-0 p-4 overflow-y-auto">
+            <EmbeddedLinksPanel isTeacher={isTeacher} />
           </TabsContent>
 
           <TabsContent value="collaboration" className="h-full m-0 p-4 overflow-y-auto">
