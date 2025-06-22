@@ -89,7 +89,7 @@ function UnifiedClassroomInner() {
       isCameraOff={enhancedClassroom.isCameraOff}
       onToggleMicrophone={() => enhancedClassroom.toggleMicrophone()}
       onToggleCamera={() => enhancedClassroom.toggleCamera()}
-      onLeaveCall={() => enhancedClassroom.stopMedia()}
+      onLeaveCall={() => enhancedClassroom.leaveRoom()}
       isExpanded={true}
     />
   );
