@@ -8,7 +8,10 @@ import { EnhancedUploadDialog } from "./EnhancedUploadDialog";
 import { FilePreviewModal } from "./FilePreviewModal";
 import { useEnhancedContentManager } from "./useEnhancedContentManager";
 import { SoundButton } from "@/components/ui/sound-button";
-import { Upload, Plus } from "lucide-react";
+import { Upload, Plus, Link } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface UnifiedContentViewerProps {
   isTeacher: boolean;
@@ -21,6 +24,11 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
   const [color, setColor] = useState("#9B87F5");
   const [strokeWidth, setStrokeWidth] = useState(3);
   const [activeShape, setActiveShape] = useState<"rectangle" | "circle">("rectangle");
+  
+  // Embedded link dialog state
+  const [isEmbedDialogOpen, setIsEmbedDialogOpen] = useState(false);
+  const [embedUrl, setEmbedUrl] = useState("");
+  const [embedTitle, setEmbedTitle] = useState("");
   
   // Initialize with empty content - no default PDF
   const initialContent: any[] = [];
@@ -40,6 +48,38 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
     handleFileDownload
   } = useEnhancedContentManager(initialContent, studentName, isTeacher);
 
+  const handleEmbedLink = () => {
+    if (!embedTitle.trim() || !embedUrl.trim()) return;
+    
+    // Process the URL to ensure it's properly formatted
+    let processedUrl = embedUrl.trim();
+    if (!processedUrl.startsWith('http://') && !processedUrl.startsWith('https://')) {
+      processedUrl = `https://${processedUrl}`;
+    }
+    
+    const newContent = {
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      type: 'interactive' as const,
+      title: embedTitle.trim(),
+      source: processedUrl,
+      uploadedBy: isTeacher ? "Teacher" : studentName,
+      timestamp: new Date(),
+      size: 0,
+      fileType: 'text/html'
+    };
+
+    // Add to content using the enhanced upload handler format
+    handleEnhancedUpload([{
+      file: new File([''], newContent.title, { type: 'text/html' }),
+      type: 'other' as const
+    }]);
+    
+    // Reset form and close dialog
+    setEmbedTitle("");
+    setEmbedUrl("");
+    setIsEmbedDialogOpen(false);
+  };
+
   return (
     <div className="h-full flex flex-col">
       {/* Enhanced Upload Controls */}
@@ -52,6 +92,16 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
         >
           <Upload size={16} />
           Upload Files
+        </SoundButton>
+        
+        <SoundButton
+          variant="outline"
+          size="sm"
+          onClick={() => setIsEmbedDialogOpen(true)}
+          className="flex items-center gap-2"
+        >
+          <Link size={16} />
+          Embed Link
         </SoundButton>
         
         {isTeacher && (
@@ -117,6 +167,54 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
         maxFiles={10}
         maxSizeMB={100}
       />
+
+      {/* Embed Link Dialog */}
+      <Dialog open={isEmbedDialogOpen} onOpenChange={setIsEmbedDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Link size={20} />
+              Embed Link to Whiteboard
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="embedTitle">Content Title</Label>
+              <Input
+                id="embedTitle"
+                value={embedTitle}
+                onChange={(e) => setEmbedTitle(e.target.value)}
+                placeholder="Enter a title for this content..."
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="embedUrl">URL</Label>
+              <Input
+                id="embedUrl"
+                value={embedUrl}
+                onChange={(e) => setEmbedUrl(e.target.value)}
+                placeholder="Paste URL (YouTube, Google Docs, etc.)..."
+                onKeyDown={(e) => e.key === 'Enter' && handleEmbedLink()}
+              />
+            </div>
+            
+            <div className="flex justify-end gap-2">
+              <SoundButton variant="outline" onClick={() => setIsEmbedDialogOpen(false)}>
+                Cancel
+              </SoundButton>
+              <SoundButton 
+                onClick={handleEmbedLink}
+                disabled={!embedUrl.trim() || !embedTitle.trim()}
+                soundType="success"
+              >
+                Embed Content
+              </SoundButton>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* File Preview Modal */}
       <FilePreviewModal
