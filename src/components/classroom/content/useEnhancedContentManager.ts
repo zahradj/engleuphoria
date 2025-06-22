@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { ContentItem, MaterialType } from "./types";
@@ -23,10 +22,54 @@ export function useEnhancedContentManager(
   
   const { toast } = useToast();
 
+  // Enhanced file type detection for better document support
+  const getFileType = (file: File): MaterialType => {
+    const fileName = file.name.toLowerCase();
+    const fileType = file.type.toLowerCase();
+    
+    // Image files
+    if (fileType.startsWith('image/')) {
+      return 'image';
+    }
+    
+    // Video files
+    if (fileType.startsWith('video/')) {
+      return 'video';
+    }
+    
+    // PDF files
+    if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) {
+      return 'pdf';
+    }
+    
+    // Office documents - treat as PDF for viewing
+    if (
+      fileType.includes('document') || 
+      fileType.includes('presentation') || 
+      fileType.includes('spreadsheet') ||
+      fileName.endsWith('.doc') || 
+      fileName.endsWith('.docx') || 
+      fileName.endsWith('.ppt') || 
+      fileName.endsWith('.pptx') || 
+      fileName.endsWith('.xls') || 
+      fileName.endsWith('.xlsx')
+    ) {
+      return 'pdf'; // Treat documents as PDF type for unified viewing
+    }
+    
+    // Interactive content (games, web content)
+    if (fileType.includes('html') || fileName.endsWith('.html')) {
+      return 'interactive';
+    }
+    
+    // Default to PDF for any other document-like files
+    return 'pdf';
+  };
+
   const handleEnhancedUpload = useCallback((uploadFiles: UploadFile[]) => {
     const newItems: ContentItem[] = uploadFiles.map(uploadFile => ({
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      type: uploadFile.type as MaterialType,
+      type: getFileType(uploadFile.file),
       title: uploadFile.file.name,
       source: URL.createObjectURL(uploadFile.file),
       uploadedBy: isTeacher ? "Teacher" : userName,

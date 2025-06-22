@@ -1,8 +1,9 @@
 
 import React, { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { AlertCircle, Play, FileText, Image as ImageIcon } from "lucide-react";
+import { AlertCircle, Play, FileText, Image as ImageIcon, Download, ExternalLink } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 
 interface MaterialContentProps {
   materialType: "pdf" | "image" | "video" | "interactive";
@@ -19,6 +20,7 @@ export function MaterialContent({
   const [imageError, setImageError] = useState(false);
   const [videoError, setVideoError] = useState(false);
   const [iframeError, setIframeError] = useState(false);
+  const [pdfError, setPdfError] = useState(false);
   
   const handleImageError = () => {
     setImageError(true);
@@ -33,6 +35,11 @@ export function MaterialContent({
   const handleIframeError = () => {
     setIframeError(true);
     console.log("iFrame error loading source:", source);
+  };
+
+  const handlePdfError = () => {
+    setPdfError(true);
+    console.log("PDF error loading source:", source);
   };
 
   // Process source URL to ensure it's valid
@@ -59,19 +66,59 @@ export function MaterialContent({
 
   const finalSource = processedSource();
 
+  const handleDownload = () => {
+    const link = document.createElement('a');
+    link.href = finalSource;
+    link.download = 'document';
+    link.click();
+  };
+
+  const openInNewTab = () => {
+    window.open(finalSource, '_blank');
+  };
+
   return (
     <div className="w-full h-full flex items-center justify-center">
       {materialType === "pdf" && (
-        <div className="bg-white aspect-[3/4] w-full max-w-3xl shadow-md rounded-lg border">
-          <div className="h-full flex flex-col items-center justify-center p-8 text-center">
-            <FileText size={48} className="text-muted-foreground mb-4" />
-            <p className="text-muted-foreground text-lg font-medium mb-2">
-              {languageText.pdfPreview}
-            </p>
-            <p className="text-sm text-muted-foreground">
-              {source} (Page {currentPage})
-            </p>
-          </div>
+        <div className="w-full h-full flex items-center justify-center">
+          {pdfError ? (
+            <div className="text-center max-w-md">
+              <Alert className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  This document cannot be previewed directly. You can download it or open it in a new tab.
+                </AlertDescription>
+              </Alert>
+              <div className="flex gap-2 justify-center">
+                <Button onClick={handleDownload} variant="outline" size="sm">
+                  <Download size={16} className="mr-2" />
+                  Download
+                </Button>
+                <Button onClick={openInNewTab} variant="outline" size="sm">
+                  <ExternalLink size={16} className="mr-2" />
+                  Open in New Tab
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="w-full h-full border border-gray-300 rounded-lg overflow-hidden bg-white">
+              {finalSource.startsWith('blob:') ? (
+                <iframe
+                  src={finalSource}
+                  className="w-full h-full border-0"
+                  title="PDF Document"
+                  onError={handlePdfError}
+                />
+              ) : (
+                <iframe
+                  src={`${finalSource}#page=${currentPage}`}
+                  className="w-full h-full border-0"
+                  title="PDF Document"
+                  onError={handlePdfError}
+                />
+              )}
+            </div>
+          )}
         </div>
       )}
       

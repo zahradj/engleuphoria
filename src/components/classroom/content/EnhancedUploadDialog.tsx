@@ -1,10 +1,9 @@
-
 import React, { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Upload, FileText, Image, Video, File, X } from "lucide-react";
+import { Upload, FileText, Image, Video, File, X, FileSpreadsheet, Presentation } from "lucide-react";
 import { SoundButton } from "@/components/ui/sound-button";
 import { useToast } from "@/hooks/use-toast";
 
@@ -29,7 +28,17 @@ export function EnhancedUploadDialog({
   onUpload,
   maxFiles = 5,
   maxSizeMB = 50,
-  acceptedTypes = ['image/*', 'video/*', 'application/pdf', '.doc', '.docx', '.ppt', '.pptx']
+  acceptedTypes = [
+    'image/*', 
+    'video/*', 
+    'application/pdf', 
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-powerpoint',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  ]
 }: EnhancedUploadDialogProps) {
   const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -37,19 +46,66 @@ export function EnhancedUploadDialog({
   const { toast } = useToast();
 
   const getFileType = (file: File): UploadFile['type'] => {
-    if (file.type.startsWith('image/')) return 'image';
-    if (file.type.startsWith('video/')) return 'video';
-    if (file.type === 'application/pdf') return 'pdf';
+    const fileName = file.name.toLowerCase();
+    const fileType = file.type.toLowerCase();
+    
+    if (fileType.startsWith('image/')) return 'image';
+    if (fileType.startsWith('video/')) return 'video';
+    if (fileType === 'application/pdf' || fileName.endsWith('.pdf')) return 'pdf';
+    
+    // Office documents - treat as PDF for viewing
+    if (
+      fileType.includes('document') || 
+      fileType.includes('presentation') || 
+      fileType.includes('spreadsheet') ||
+      fileName.endsWith('.doc') || 
+      fileName.endsWith('.docx') || 
+      fileName.endsWith('.ppt') || 
+      fileName.endsWith('.pptx') || 
+      fileName.endsWith('.xls') || 
+      fileName.endsWith('.xlsx')
+    ) {
+      return 'pdf';
+    }
+    
     return 'other';
   };
 
-  const getFileIcon = (type: UploadFile['type']) => {
+  const getFileIcon = (type: UploadFile['type'], fileName: string) => {
+    const lowerFileName = fileName.toLowerCase();
+    
     switch (type) {
-      case 'image': return <Image size={20} className="text-green-600" />;
-      case 'video': return <Video size={20} className="text-blue-600" />;
-      case 'pdf': return <FileText size={20} className="text-red-600" />;
-      default: return <File size={20} className="text-gray-600" />;
+      case 'image': 
+        return <Image size={20} className="text-green-600" />;
+      case 'video': 
+        return <Video size={20} className="text-blue-600" />;
+      case 'pdf': 
+        if (lowerFileName.includes('ppt') || lowerFileName.includes('presentation')) {
+          return <Presentation size={20} className="text-orange-600" />;
+        }
+        if (lowerFileName.includes('xls') || lowerFileName.includes('sheet')) {
+          return <FileSpreadsheet size={20} className="text-green-600" />;
+        }
+        if (lowerFileName.includes('doc')) {
+          return <FileText size={20} className="text-blue-600" />;
+        }
+        return <FileText size={20} className="text-red-600" />;
+      default: 
+        return <File size={20} className="text-gray-600" />;
     }
+  };
+
+  const getDisplayType = (type: UploadFile['type'], fileName: string): string => {
+    const lowerFileName = fileName.toLowerCase();
+    
+    if (type === 'pdf') {
+      if (lowerFileName.includes('ppt')) return 'PPT';
+      if (lowerFileName.includes('xls')) return 'XLS';
+      if (lowerFileName.includes('doc')) return 'DOC';
+      return 'PDF';
+    }
+    
+    return type.toUpperCase();
   };
 
   const validateFile = (file: File): boolean => {
@@ -64,12 +120,17 @@ export function EnhancedUploadDialog({
     }
 
     // Check file type
+    const fileName = file.name.toLowerCase();
+    const fileType = file.type.toLowerCase();
+    
     const isValidType = acceptedTypes.some(type => {
       if (type.includes('*')) {
-        return file.type.startsWith(type.replace('*', ''));
+        return fileType.startsWith(type.replace('*', ''));
       }
-      return file.type === type || file.name.endsWith(type);
-    });
+      return fileType === type;
+    }) || fileName.endsWith('.doc') || fileName.endsWith('.docx') || 
+        fileName.endsWith('.ppt') || fileName.endsWith('.pptx') ||
+        fileName.endsWith('.xls') || fileName.endsWith('.xlsx');
 
     if (!isValidType) {
       toast({
@@ -211,7 +272,7 @@ export function EnhancedUploadDialog({
           />
           <div className="mt-4 text-xs text-gray-500">
             <p>Max {maxFiles} files, {maxSizeMB}MB each</p>
-            <p>Supports: Images, Videos, PDFs, Documents</p>
+            <p>Supports: Images, Videos, PDFs, Word, PowerPoint, Excel</p>
           </div>
         </Card>
 
@@ -231,7 +292,7 @@ export function EnhancedUploadDialog({
                       />
                     ) : (
                       <div className="w-12 h-12 flex items-center justify-center bg-gray-100 rounded">
-                        {getFileIcon(uploadFile.type)}
+                        {getFileIcon(uploadFile.type, uploadFile.file.name)}
                       </div>
                     )}
                     
@@ -241,7 +302,7 @@ export function EnhancedUploadDialog({
                       </p>
                       <div className="flex items-center gap-2">
                         <Badge variant="secondary" className="text-xs">
-                          {uploadFile.type.toUpperCase()}
+                          {getDisplayType(uploadFile.type, uploadFile.file.name)}
                         </Badge>
                         <span className="text-xs text-gray-500">
                           {(uploadFile.file.size / 1024 / 1024).toFixed(1)} MB
