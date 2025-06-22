@@ -5,22 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { ZoomIn, ZoomOut, Move, RotateCcw, Download, Type, X, ExternalLink } from "lucide-react";
-import { EmbeddedGame } from "./EmbeddedGame";
 
 interface EmbeddedContent {
   id: string;
   title: string;
   url: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-interface EmbeddedGameData {
-  id: string;
-  gameId: string;
-  title: string;
   x: number;
   y: number;
   width: number;
@@ -33,9 +22,7 @@ interface EnhancedWhiteboardCanvasProps {
   strokeWidth?: number;
   children?: React.ReactNode;
   embeddedContent?: EmbeddedContent[];
-  embeddedGames?: EmbeddedGameData[];
   onRemoveEmbeddedContent?: (id: string) => void;
-  onRemoveEmbeddedGame?: (id: string) => void;
 }
 
 export function EnhancedWhiteboardCanvas({ 
@@ -44,9 +31,7 @@ export function EnhancedWhiteboardCanvas({
   strokeWidth = 3,
   children,
   embeddedContent = [],
-  embeddedGames = [],
-  onRemoveEmbeddedContent,
-  onRemoveEmbeddedGame
+  onRemoveEmbeddedContent
 }: EnhancedWhiteboardCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -396,15 +381,6 @@ export function EnhancedWhiteboardCanvas({
             );
           })}
 
-          {/* Embedded Games */}
-          {embeddedGames.map((game) => (
-            <EmbeddedGame
-              key={game.id}
-              game={game}
-              onRemove={onRemoveEmbeddedGame || (() => {})}
-            />
-          ))}
-
           {children}
         </div>
       </div>
@@ -418,7 +394,7 @@ export function EnhancedWhiteboardCanvas({
           <span className="inline-block w-2 h-2 rounded-full border" style={{ backgroundColor: color }}></span>
         </div>
         <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-xs px-2 py-0">
-          Enhanced Canvas 2400×1600 • {embeddedContent.length + embeddedGames.length} embedded items
+          Enhanced Canvas 2400×1600 • {embeddedContent.length} embedded items
         </Badge>
       </div>
     </div>
