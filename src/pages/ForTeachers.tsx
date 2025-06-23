@@ -129,11 +129,11 @@ const ForTeachers = () => {
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
               <Button 
                 size="lg" 
-                onClick={() => navigate('/teacher-application')}
+                onClick={() => navigate('/become-teacher')}
                 className="bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700 text-sm sm:text-base w-full sm:w-auto"
               >
                 <Briefcase className="mr-2 h-4 w-4" />
-                Apply to Teach
+                Become a Teacher
               </Button>
               <Button 
                 variant="outline" 
@@ -238,7 +238,7 @@ const ForTeachers = () => {
               <div className="mt-6 sm:mt-8 px-2">
                 <Button 
                   size="lg" 
-                  onClick={() => navigate('/teacher-application')}
+                  onClick={() => navigate('/become-teacher')}
                   className="bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700 w-full sm:w-auto"
                 >
                   Start Application
@@ -319,11 +319,11 @@ const ForTeachers = () => {
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-6 sm:mb-8 px-4">
             <Button 
               size="lg" 
-              onClick={() => navigate('/teacher-application')}
+              onClick={() => navigate('/become-teacher')}
               className="bg-white text-emerald-600 hover:bg-gray-100 text-sm sm:text-base w-full sm:w-auto"
             >
               <Briefcase className="mr-2 h-4 w-4" />
-              Apply Now
+              Become a Teacher
             </Button>
             <Button 
               variant="outline" 
