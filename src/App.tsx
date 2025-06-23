@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,7 +19,7 @@ import PricingSelection from "./pages/PricingSelection";
 import TeacherDiscovery from "./pages/TeacherDiscovery";
 import EnhancedIndex from "./pages/EnhancedIndex";
 import AboutUs from "./pages/AboutUs";
-import ForTeachers from "./pages/ForTeachers";
+import Teachers from "./pages/Teachers";
 import ForParents from "./pages/ForParents";
 import TeacherApplication from "./pages/TeacherApplication";
 import LessonScheduler from "./pages/LessonScheduler";
@@ -50,7 +51,8 @@ function App() {
                   <Route path="/" element={<Index />} />
                   <Route path="/enhanced" element={<EnhancedIndex />} />
                   <Route path="/about" element={<AboutUs />} />
-                  <Route path="/for-teachers" element={<ForTeachers />} />
+                  <Route path="/teachers" element={<Teachers />} />
+                  <Route path="/for-teachers" element={<Teachers />} />
                   <Route path="/for-parents" element={<ForParents />} />
                   <Route path="/signup" element={<SignUp />} />
                   <Route path="/login" element={<Login />} />
