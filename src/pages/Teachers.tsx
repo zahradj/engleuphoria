@@ -13,14 +13,10 @@ import {
   DollarSign, 
   Clock, 
   Award, 
-  Globe, 
   TrendingUp,
   CheckCircle,
   Star,
-  ArrowRight,
-  Mail,
-  Briefcase,
-  FileText
+  Mail
 } from "lucide-react";
 
 const Teachers = () => {
@@ -86,33 +82,6 @@ const Teachers = () => {
     }
   ];
 
-  const processSteps = [
-    {
-      number: 1,
-      title: "Apply Online",
-      description: "Complete our comprehensive application form",
-      icon: FileText
-    },
-    {
-      number: 2,
-      title: "Equipment Test",
-      description: "Test your equipment and internet connection",
-      icon: Video
-    },
-    {
-      number: 3,
-      title: "Live Interview",
-      description: "Meet with our team for a professional interview",
-      icon: Users
-    },
-    {
-      number: 4,
-      title: "Start Teaching",
-      description: "Get approved and begin your teaching journey",
-      icon: Award
-    }
-  ];
-
   const testimonials = [
     {
       name: "Jennifer Smith",
@@ -127,10 +96,6 @@ const Teachers = () => {
       rating: 5
     }
   ];
-
-  const handleApplyClick = () => {
-    navigate('/teacher-application');
-  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -151,8 +116,8 @@ const Teachers = () => {
               For Teachers
             </Badge>
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6 px-2">
-              Shape Young Minds and
-              <span className="bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent"> Build Your Career</span>
+              Empowering Educators
+              <span className="bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent"> Worldwide</span>
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-3xl mx-auto mb-6 sm:mb-8 px-4">
               Join our global community of certified ESL teachers. Make a meaningful impact 
@@ -161,17 +126,8 @@ const Teachers = () => {
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
               <Button 
                 size="lg" 
-                onClick={handleApplyClick}
-                className="bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700 text-sm sm:text-base w-full sm:w-auto"
-              >
-                <Briefcase className="mr-2 h-4 w-4" />
-                Become a Teacher
-              </Button>
-              <Button 
-                variant="outline" 
-                size="lg"
                 onClick={() => navigate('/signup')}
-                className="text-sm sm:text-base w-full sm:w-auto"
+                className="bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700 text-sm sm:text-base w-full sm:w-auto"
               >
                 Learn More
               </Button>
@@ -288,37 +244,8 @@ const Teachers = () => {
         </div>
       </section>
 
-      {/* Application Process */}
-      <section className="py-12 sm:py-16 md:py-20 bg-gray-50">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <div className="text-center mb-12 sm:mb-16">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 sm:mb-6 px-2">
-              Application Process
-            </h2>
-            <p className="text-lg sm:text-xl text-gray-600 px-4">
-              Join hundreds of teachers who are already making a difference. Apply today and start teaching within a week.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {processSteps.map((step, index) => (
-              <div key={index} className="text-center relative">
-                <div className="w-16 h-16 bg-emerald-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">
-                  {step.number}
-                </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">{step.title}</h3>
-                <p className="text-gray-600 text-sm">{step.description}</p>
-                {index < processSteps.length - 1 && (
-                  <div className="hidden md:block absolute top-8 left-full w-full h-0.5 bg-emerald-200 transform -translate-x-1/2" />
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Testimonials */}
-      <section className="py-12 sm:py-16 md:py-20 bg-white">
+      <section className="py-12 sm:py-16 md:py-20 bg-gray-50">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="text-center mb-12 sm:mb-16">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 sm:mb-6 px-2">
@@ -350,24 +277,16 @@ const Teachers = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
+      {/* Contact Section */}
       <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-r from-emerald-600 to-blue-600">
         <div className="container mx-auto px-4 max-w-4xl text-center">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-4 sm:mb-6 px-2">
-            Ready to Start Your Teaching Journey?
+            Join Our Teaching Community
           </h2>
           <p className="text-lg sm:text-xl text-emerald-100 mb-6 sm:mb-8 px-4">
-            Join our team of dedicated educators and help students around the world achieve English fluency.
+            Connect with our team to learn more about teaching opportunities and how you can make a difference.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center mb-6 sm:mb-8 px-4">
-            <Button 
-              size="lg" 
-              onClick={handleApplyClick}
-              className="bg-white text-emerald-600 hover:bg-gray-100 text-sm sm:text-base w-full sm:w-auto"
-            >
-              <Briefcase className="mr-2 h-4 w-4" />
-              Become a Teacher
-            </Button>
             <Button 
               variant="outline" 
               size="lg"
