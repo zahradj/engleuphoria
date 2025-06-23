@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/index/Header";
@@ -22,8 +21,8 @@ const Index = () => {
   const navigate = useNavigate();
   
   const handleStart = () => {
-    // Direct users to sign up for systematic flow
-    navigate("/signup");
+    // Direct users to student application for the complete journey
+    navigate("/student-application");
   };
   
   const handleNameSubmit = () => {

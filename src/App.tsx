@@ -56,6 +56,7 @@ function App() {
                   <Route path="/for-parents" element={<ForParents />} />
                   <Route path="/signup" element={<SignUp />} />
                   <Route path="/login" element={<Login />} />
+                  <Route path="/student-application" element={<StudentApplication />} />
                   <Route path="/pricing-selection" element={<PricingSelection />} />
                   <Route path="/teacher-discovery" element={<TeacherDiscovery />} />
                   <Route path="/student-dashboard" element={<StudentDashboard />} />

@@ -1,54 +1,52 @@
 
-import React from "react";
+import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
-  LayoutDashboard, 
+  Home, 
+  BookOpen, 
   Users, 
   Calendar, 
-  BookOpen, 
-  FileText, 
+  ClipboardList, 
+  Library, 
   TrendingUp, 
   Mic, 
   CreditCard, 
   User, 
   Settings,
-  LogOut
+  Map,
+  Sparkles
 } from "lucide-react";
 
 interface StudentSidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
-  onLogout?: () => void;
+  hasProfile?: boolean;
 }
 
-export const StudentSidebar = ({ activeTab, setActiveTab, onLogout }: StudentSidebarProps) => {
+export const StudentSidebar: React.FC<StudentSidebarProps> = ({ 
+  activeTab, 
+  setActiveTab,
+  hasProfile = false 
+}) => {
   const menuItems = [
-    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { id: "teachers", label: "Teachers", icon: Users },
-    { id: "upcoming-classes", label: "Upcoming Classes", icon: Calendar },
-    { id: "homework", label: "Homework", icon: BookOpen },
-    { id: "materials", label: "Materials", icon: FileText },
-    { id: "progress", label: "Progress", icon: TrendingUp },
-    { id: "speaking", label: "Speaking Practice", icon: Mic },
-    { id: "billing", label: "Billing", icon: CreditCard },
-    { id: "profile", label: "Profile", icon: User },
-    { id: "settings", label: "Settings", icon: Settings },
+    { id: 'dashboard', label: 'Dashboard', icon: Home },
+    ...(hasProfile ? [{ id: 'learning-path', label: 'My Learning Path', icon: Map, badge: 'New' }] : []),
+    { id: 'teachers', label: 'Teachers', icon: Users },
+    { id: 'upcoming-classes', label: 'Upcoming Classes', icon: Calendar },
+    { id: 'homework', label: 'Homework', icon: ClipboardList },
+    { id: 'materials', label: 'Materials Library', icon: Library },
+    { id: 'progress', label: 'Progress Tracker', icon: TrendingUp },
+    { id: 'speaking', label: 'Speaking Practice', icon: Mic },
+    { id: 'billing', label: 'Billing', icon: CreditCard },
+    { id: 'profile', label: 'Profile', icon: User },
+    { id: 'settings', label: 'Settings', icon: Settings }
   ];
 
-  const handleLogout = () => {
-    if (onLogout) {
-      onLogout();
-    } else {
-      localStorage.clear();
-      window.location.href = '/';
-    }
-  };
-
   return (
-    <aside className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-white border-r border-gray-200 overflow-y-auto">
+    <div className="w-64 bg-white border-r border-gray-200 fixed left-0 top-16 bottom-0 overflow-y-auto">
       <div className="p-4">
-        <div className="space-y-1">
+        <nav className="space-y-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -57,36 +55,26 @@ export const StudentSidebar = ({ activeTab, setActiveTab, onLogout }: StudentSid
               <Button
                 key={item.id}
                 variant={isActive ? "default" : "ghost"}
-                className={`w-full justify-start ${
-                  isActive 
-                    ? "bg-purple-600 text-white hover:bg-purple-700" 
-                    : "hover:bg-gray-100"
+                className={`w-full justify-start text-left ${
+                  isActive ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : ""
                 }`}
                 onClick={() => setActiveTab(item.id)}
               >
-                <Icon className="h-4 w-4 mr-3" />
+                <Icon className="mr-3 h-4 w-4" />
                 {item.label}
-                {item.id === "homework" && (
-                  <Badge variant="destructive" className="ml-auto text-xs">
-                    2
+                {item.badge && (
+                  <Badge variant="secondary" className="ml-auto text-xs">
+                    {item.badge}
                   </Badge>
+                )}
+                {item.id === 'learning-path' && (
+                  <Sparkles className="ml-2 h-3 w-3 text-emerald-500" />
                 )}
               </Button>
             );
           })}
-        </div>
-        
-        <div className="mt-8 pt-4 border-t border-gray-200">
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-            onClick={handleLogout}
-          >
-            <LogOut className="h-4 w-4 mr-3" />
-            Sign Out
-          </Button>
-        </div>
+        </nav>
       </div>
-    </aside>
+    </div>
   );
 };
