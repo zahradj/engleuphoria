@@ -138,7 +138,6 @@ const AdminDashboard = () => {
           <AdminSidebar 
             activeTab={activeTab} 
             onTabChange={handleTabChange}
-            permissions={permissions ? [permissions] : []}
           />
         </div>
 
