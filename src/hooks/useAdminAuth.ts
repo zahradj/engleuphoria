@@ -54,17 +54,9 @@ export const useAdminAuth = () => {
           console.log('Clearing conflicting student data');
           localStorage.removeItem('studentName');
         }
-        // Remove any other conflicting userType values
-        const allKeys = Object.keys(localStorage);
-        allKeys.forEach(key => {
-          if (key === 'userType' && localStorage.getItem(key) !== 'admin') {
-            console.log('Clearing conflicting userType:', localStorage.getItem(key));
-            localStorage.setItem('userType', 'admin');
-          }
-        });
       }
 
-      // Determine admin status
+      // Determine admin status - fix the logic here
       const adminStatus = userType === 'admin' || (user && user.role === 'admin');
       
       console.log('Admin status determined:', {
@@ -73,7 +65,8 @@ export const useAdminAuth = () => {
         fromUserRole: user && user.role === 'admin'
       });
       
-      setIsAdmin(adminStatus);
+      // Convert to boolean explicitly
+      setIsAdmin(Boolean(adminStatus));
 
       // Set permissions based on admin status
       if (adminStatus) {
