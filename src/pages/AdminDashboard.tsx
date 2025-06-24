@@ -20,7 +20,7 @@ type AdminTab = 'overview' | 'users' | 'teachers' | 'teacher-applications' | 'as
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { isAdmin, isLoading, permissions } = useAdminAuth();
+  const { isAdmin, isLoading } = useAdminAuth();
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
@@ -141,40 +141,42 @@ const AdminDashboard = () => {
           />
         </div>
 
-        {/* Mobile Header with Menu Button */}
-        <div className="lg:hidden bg-white border-b border-gray-200 p-4 flex items-center justify-between">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-            className="p-2"
-          >
-            {isMobileSidebarOpen ? (
-              <X className="h-5 w-5" />
-            ) : (
-              <Menu className="h-5 w-5" />
-            )}
-          </Button>
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-sm">A</span>
-            </div>
-            <div>
-              <h1 className="font-bold text-sm bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                Admin Panel
-              </h1>
+        <div className="flex-1 flex flex-col w-full lg:w-auto">
+          {/* Mobile Header with Menu Button */}
+          <div className="lg:hidden bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+              className="p-2"
+            >
+              {isMobileSidebarOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
+            </Button>
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-sm">A</span>
+              </div>
+              <div>
+                <h1 className="font-bold text-sm bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                  Admin Panel
+                </h1>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Desktop Header */}
-        <div className="hidden lg:block">
-          <AdminHeader />
-        </div>
+          {/* Desktop Header */}
+          <div className="hidden lg:block">
+            <AdminHeader />
+          </div>
 
-        <main className="flex-1 overflow-y-auto p-3 sm:p-6">
-          {renderActiveTab()}
-        </main>
+          <main className="flex-1 overflow-y-auto p-3 sm:p-6">
+            {renderActiveTab()}
+          </main>
+        </div>
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -18,10 +19,9 @@ import {
 interface AdminSidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
-  permissions?: string[];
 }
 
-export const AdminSidebar = ({ activeTab, onTabChange, permissions }: AdminSidebarProps) => {
+export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
   const menuItems = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
     { id: "users", label: "Users", icon: Users },
@@ -39,7 +39,7 @@ export const AdminSidebar = ({ activeTab, onTabChange, permissions }: AdminSideb
   };
 
   return (
-    <aside className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-64 bg-white border-r border-gray-200 overflow-y-auto">
+    <aside className="w-64 bg-white border-r border-gray-200 h-full overflow-y-auto">
       <div className="p-4">
         <div className="space-y-1">
           {menuItems.map((item) => {
