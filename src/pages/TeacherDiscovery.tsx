@@ -8,7 +8,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Star, Play, MessageCircle, Clock, Globe, Search, Filter } from "lucide-react";
-import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 
 interface TeacherProfile {
@@ -30,6 +29,64 @@ interface TeacherProfile {
   full_name?: string;
 }
 
+// Mock data for teachers since Supabase isn't connected
+const mockTeachers: TeacherProfile[] = [
+  {
+    id: "1",
+    user_id: "teacher1",
+    bio: "Experienced English teacher with a passion for helping students achieve fluency through interactive lessons.",
+    specializations: ["Business English", "Conversation", "Grammar"],
+    accent: "American",
+    languages_spoken: ["English", "Spanish"],
+    intro_video_url: "",
+    profile_image_url: "",
+    hourly_rate_dzd: 2500,
+    hourly_rate_eur: 15,
+    years_experience: 8,
+    rating: 4.9,
+    total_reviews: 127,
+    is_available: true,
+    timezone: "EST",
+    full_name: "Sarah Johnson"
+  },
+  {
+    id: "2",
+    user_id: "teacher2",
+    bio: "Native British speaker specializing in IELTS preparation and academic English.",
+    specializations: ["IELTS Prep", "Academic English", "Pronunciation"],
+    accent: "British",
+    languages_spoken: ["English", "French"],
+    intro_video_url: "",
+    profile_image_url: "",
+    hourly_rate_dzd: 2800,
+    hourly_rate_eur: 18,
+    years_experience: 6,
+    rating: 4.8,
+    total_reviews: 95,
+    is_available: true,
+    timezone: "GMT",
+    full_name: "James Wilson"
+  },
+  {
+    id: "3",
+    user_id: "teacher3",
+    bio: "Specialized in teaching children and teenagers with fun, engaging methods.",
+    specializations: ["Kids English", "Conversation", "Grammar"],
+    accent: "Australian",
+    languages_spoken: ["English"],
+    intro_video_url: "",
+    profile_image_url: "",
+    hourly_rate_dzd: 2200,
+    hourly_rate_eur: 13,
+    years_experience: 5,
+    rating: 4.7,
+    total_reviews: 78,
+    is_available: true,
+    timezone: "AEST",
+    full_name: "Emma Davis"
+  }
+];
+
 const TeacherDiscovery = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -50,22 +107,8 @@ const TeacherDiscovery = () => {
 
   const fetchTeachers = async () => {
     try {
-      const { data, error } = await supabase
-        .from('teacher_profiles')
-        .select(`
-          *,
-          users!inner(full_name)
-        `)
-        .eq('is_available', true);
-
-      if (error) throw error;
-
-      const teachersWithNames = data?.map(teacher => ({
-        ...teacher,
-        full_name: teacher.users?.full_name
-      })) || [];
-
-      setTeachers(teachersWithNames);
+      // Using mock data instead of Supabase for now
+      setTeachers(mockTeachers);
     } catch (error) {
       console.error('Error fetching teachers:', error);
       toast({
@@ -107,7 +150,10 @@ const TeacherDiscovery = () => {
   };
 
   const handleBookTeacher = (teacherId: string) => {
-    navigate(`/book-teacher/${teacherId}`);
+    toast({
+      title: "Booking Feature",
+      description: "Teacher booking will be available soon!",
+    });
   };
 
   const handleWatchIntro = (videoUrl: string) => {
