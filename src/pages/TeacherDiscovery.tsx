@@ -13,6 +13,8 @@ const TeacherDiscovery = () => {
   const [teachers, setTeachers] = useState<TeacherProfile[]>([]);
   const [loading, setLoading] = useState(true);
 
+  console.log('TeacherDiscovery component rendering...');
+
   const {
     filteredTeachers,
     searchTerm,
@@ -24,13 +26,19 @@ const TeacherDiscovery = () => {
     clearFilters,
   } = useTeacherFilters(teachers);
 
+  console.log('Filtered teachers:', filteredTeachers);
+  console.log('Total teachers:', teachers.length);
+
   useEffect(() => {
+    console.log('Fetching teachers...');
     fetchTeachers();
   }, []);
 
   const fetchTeachers = async () => {
     try {
+      console.log('Setting mock teachers data...');
       setTeachers(mockTeachers);
+      console.log('Mock teachers set:', mockTeachers);
     } catch (error) {
       console.error('Error fetching teachers:', error);
       toast({
@@ -44,6 +52,7 @@ const TeacherDiscovery = () => {
   };
 
   const handleBookTeacher = (teacherId: string) => {
+    console.log('Booking teacher:', teacherId);
     toast({
       title: "Booking Feature",
       description: "Teacher booking will be available soon!",
@@ -51,6 +60,7 @@ const TeacherDiscovery = () => {
   };
 
   const handleWatchIntro = (videoUrl: string) => {
+    console.log('Watch intro clicked for video:', videoUrl);
     if (videoUrl) {
       window.open(videoUrl, '_blank');
     } else {
@@ -62,6 +72,7 @@ const TeacherDiscovery = () => {
   };
 
   if (loading) {
+    console.log('Showing loading state');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -71,6 +82,8 @@ const TeacherDiscovery = () => {
       </div>
     );
   }
+
+  console.log('Rendering main teacher discovery content');
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">

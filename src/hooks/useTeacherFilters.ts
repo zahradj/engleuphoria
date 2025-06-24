@@ -8,14 +8,19 @@ export const useTeacherFilters = (teachers: TeacherProfile[]) => {
   const [selectedSpecialization, setSelectedSpecialization] = useState("all-specializations");
   const [selectedAccent, setSelectedAccent] = useState("all-accents");
 
+  console.log('useTeacherFilters hook called with teachers:', teachers.length);
+
   useEffect(() => {
+    console.log('Filter effect triggered:', { searchTerm, selectedSpecialization, selectedAccent });
     filterTeachers();
   }, [teachers, searchTerm, selectedSpecialization, selectedAccent]);
 
   const filterTeachers = () => {
-    let filtered = teachers;
+    console.log('Starting to filter teachers...');
+    let filtered = [...teachers];
 
     if (searchTerm) {
+      console.log('Applying search filter:', searchTerm);
       filtered = filtered.filter(teacher =>
         teacher.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         teacher.bio?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -26,21 +31,25 @@ export const useTeacherFilters = (teachers: TeacherProfile[]) => {
     }
 
     if (selectedSpecialization && selectedSpecialization !== "all-specializations") {
+      console.log('Applying specialization filter:', selectedSpecialization);
       filtered = filtered.filter(teacher =>
         teacher.specializations.includes(selectedSpecialization)
       );
     }
 
     if (selectedAccent && selectedAccent !== "all-accents") {
+      console.log('Applying accent filter:', selectedAccent);
       filtered = filtered.filter(teacher =>
         teacher.accent === selectedAccent
       );
     }
 
+    console.log('Filtered teachers result:', filtered.length);
     setFilteredTeachers(filtered);
   };
 
   const clearFilters = () => {
+    console.log('Clearing all filters');
     setSearchTerm("");
     setSelectedSpecialization("all-specializations");
     setSelectedAccent("all-accents");
