@@ -22,12 +22,14 @@ interface StudentSidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   hasProfile?: boolean;
+  onLogout?: () => void;
 }
 
 export const StudentSidebar: React.FC<StudentSidebarProps> = ({ 
   activeTab, 
   setActiveTab,
-  hasProfile = false 
+  hasProfile = false,
+  onLogout 
 }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },

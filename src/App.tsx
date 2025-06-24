@@ -34,6 +34,7 @@ import WhiteboardPage from "./pages/WhiteboardPage";
 import NotFound from "./pages/NotFound";
 import BecomeTeacher from "./pages/BecomeTeacher";
 import TeacherOnboarding from "./pages/TeacherOnboarding";
+import StudentApplication from "./pages/StudentApplication";
 
 const queryClient = new QueryClient();
 
