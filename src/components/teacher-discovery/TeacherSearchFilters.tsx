@@ -55,7 +55,7 @@ export const TeacherSearchFilters: React.FC<TeacherSearchFiltersProps> = ({
             <SelectValue placeholder="Specialization" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Specializations</SelectItem>
+            <SelectItem value="all-specializations">All Specializations</SelectItem>
             {getSpecializations().map(spec => (
               <SelectItem key={spec} value={spec}>{spec}</SelectItem>
             ))}
@@ -67,7 +67,7 @@ export const TeacherSearchFilters: React.FC<TeacherSearchFiltersProps> = ({
             <SelectValue placeholder="Accent" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Accents</SelectItem>
+            <SelectItem value="all-accents">All Accents</SelectItem>
             {getAccents().map(accent => (
               <SelectItem key={accent} value={accent}>{accent}</SelectItem>
             ))}

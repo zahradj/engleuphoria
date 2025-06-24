@@ -5,8 +5,8 @@ import { TeacherProfile } from "@/types/teacher-discovery";
 export const useTeacherFilters = (teachers: TeacherProfile[]) => {
   const [filteredTeachers, setFilteredTeachers] = useState<TeacherProfile[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedSpecialization, setSelectedSpecialization] = useState("");
-  const [selectedAccent, setSelectedAccent] = useState("");
+  const [selectedSpecialization, setSelectedSpecialization] = useState("all-specializations");
+  const [selectedAccent, setSelectedAccent] = useState("all-accents");
 
   useEffect(() => {
     filterTeachers();
@@ -25,13 +25,13 @@ export const useTeacherFilters = (teachers: TeacherProfile[]) => {
       );
     }
 
-    if (selectedSpecialization) {
+    if (selectedSpecialization && selectedSpecialization !== "all-specializations") {
       filtered = filtered.filter(teacher =>
         teacher.specializations.includes(selectedSpecialization)
       );
     }
 
-    if (selectedAccent) {
+    if (selectedAccent && selectedAccent !== "all-accents") {
       filtered = filtered.filter(teacher =>
         teacher.accent === selectedAccent
       );
@@ -42,8 +42,8 @@ export const useTeacherFilters = (teachers: TeacherProfile[]) => {
 
   const clearFilters = () => {
     setSearchTerm("");
-    setSelectedSpecialization("");
-    setSelectedAccent("");
+    setSelectedSpecialization("all-specializations");
+    setSelectedAccent("all-accents");
   };
 
   return {
