@@ -79,9 +79,9 @@ export function UnifiedClassroomContent({
       <div className="hidden lg:grid grid-cols-12 gap-4 h-[calc(100vh-6rem)]">
         {/* Left Section - Teacher Video + Reward System/Progress Panels */}
         <div className="col-span-3 flex flex-col gap-4 min-h-0">
-          {/* Teacher Video Section - Fixed height for consistency */}
+          {/* Teacher Video Section - Show teacher video here */}
           <div className="h-[300px] flex-shrink-0">
-            <UnifiedVideoSection currentUser={currentUser} />
+            <UnifiedVideoSection currentUser={{ ...currentUser, role: 'teacher' }} />
           </div>
           
           {/* Bottom Left Panels - Reward System for Teachers, Progress for Students */}
