@@ -1,108 +1,105 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useToast } from '@/hooks/use-toast';
-import { classroomAccessService } from '@/services/classroomAccessService';
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
-interface CurrentUser {
+interface UserProfile {
   id: string;
   name: string;
   role: 'teacher' | 'student';
+  avatar?: string;
 }
 
 interface UnifiedClassroomContextType {
-  currentUser: CurrentUser;
+  currentUser: UserProfile;
   finalRoomId: string;
-  isValidatingAccess: boolean;
-  accessError: string | null;
+  hasShownWelcome: boolean;
+  setHasShownWelcome: (value: boolean) => void;
 }
 
-const UnifiedClassroomContext = createContext<UnifiedClassroomContextType>({
-  currentUser: { id: 'default', name: 'User', role: 'student' },
-  finalRoomId: '',
-  isValidatingAccess: true,
-  accessError: null
-});
+const UnifiedClassroomContext = React.createContext<UnifiedClassroomContextType | null>(null);
 
-export const useUnifiedClassroomContext = () => useContext(UnifiedClassroomContext);
+export const useUnifiedClassroomContext = () => {
+  const context = React.useContext(UnifiedClassroomContext);
+  if (!context) {
+    throw new Error('useUnifiedClassroomContext must be used within UnifiedClassroomProvider');
+  }
+  return context;
+};
 
 interface UnifiedClassroomProviderProps {
   children: React.ReactNode;
 }
 
 export function UnifiedClassroomProvider({ children }: UnifiedClassroomProviderProps) {
-  const { roomId } = useParams<{ roomId: string }>();
-  const navigate = useNavigate();
+  const { roomId } = useParams();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  const [hasShownWelcome, setHasShownWelcome] = useState(false);
+  const userIdRef = useRef<string>();
   
-  const [currentUser, setCurrentUser] = useState<CurrentUser>({ 
-    id: 'default', 
-    name: 'User', 
-    role: 'student' 
-  });
-  const [finalRoomId, setFinalRoomId] = useState('');
-  const [isValidatingAccess, setIsValidatingAccess] = useState(true);
-  const [accessError, setAccessError] = useState<string | null>(null);
+  // Generate stable user ID only once
+  if (!userIdRef.current) {
+    userIdRef.current = `user-${Math.random().toString(36).substr(2, 9)}`;
+  }
 
-  useEffect(() => {
-    const initializeClassroom = async () => {
-      console.log('🏫 Initializing Unified Classroom...');
-      
-      // Determine user info from localStorage or defaults
-      const userType = localStorage.getItem('userType');
-      const teacherName = localStorage.getItem('teacherName');
-      const studentName = localStorage.getItem('studentName');
-      
-      console.log('User data from localStorage:', { userType, teacherName, studentName });
-      
-      let user: CurrentUser;
-      
-      // Determine user role and name based on localStorage
-      if (userType === 'teacher' && teacherName) {
-        user = {
-          id: `teacher-${Date.now()}`,
-          name: teacherName,
-          role: 'teacher'
-        };
-      } else if (userType === 'student' && studentName) {
-        user = {
-          id: `student-${Date.now()}`,
-          name: studentName,
-          role: 'student'
-        };
-      } else {
-        // Fallback: check for any name and default to student
-        const fallbackName = teacherName || studentName || 'User';
-        user = {
-          id: `user-${Date.now()}`,
-          name: fallbackName,
-          role: 'student'
-        };
-      }
-      
-      setCurrentUser(user);
-      console.log('Current user set:', user);
+  // Enhanced role parameter extraction with stable memoization
+  const currentUser = useMemo<UserProfile>(() => {
+    const roleParam = searchParams.get('role');
+    const nameParam = searchParams.get('name');
+    const userIdParam = searchParams.get('userId');
+    
+    // Check session storage for persisted role
+    const persistedRole = sessionStorage.getItem('classroom-user-role') as 'teacher' | 'student' | null;
+    const persistedName = sessionStorage.getItem('classroom-user-name');
+    const persistedUserId = sessionStorage.getItem('classroom-user-id');
 
-      // Set room ID
-      const currentRoomId = roomId || `room-${Date.now()}`;
-      setFinalRoomId(currentRoomId);
-      console.log('Room ID set:', currentRoomId);
+    // Determine final values with fallback logic
+    const finalRole = roleParam as 'teacher' | 'student' || persistedRole || 'student';
+    const finalName = nameParam || persistedName || (finalRole === 'teacher' ? 'Teacher' : 'Student');
+    const finalUserId = userIdParam || persistedUserId || userIdRef.current!;
 
-      // For demo purposes, skip access validation and allow entry
-      setIsValidatingAccess(false);
-      setAccessError(null);
-      
-      console.log('✅ Classroom initialization complete');
+    // Persist to session storage only if changed
+    if (sessionStorage.getItem('classroom-user-role') !== finalRole) {
+      sessionStorage.setItem('classroom-user-role', finalRole);
+    }
+    if (sessionStorage.getItem('classroom-user-name') !== finalName) {
+      sessionStorage.setItem('classroom-user-name', finalName);
+    }
+    if (sessionStorage.getItem('classroom-user-id') !== finalUserId) {
+      sessionStorage.setItem('classroom-user-id', finalUserId);
+    }
+
+    return {
+      id: finalUserId,
+      name: finalName,
+      role: finalRole
     };
+  }, [searchParams]);
 
-    initializeClassroom();
-  }, [roomId, navigate, toast]);
+  const finalRoomId = useMemo(() => roomId || "unified-classroom-1", [roomId]);
 
-  const contextValue: UnifiedClassroomContextType = {
+  // Show enhanced welcome message only once
+  useEffect(() => {
+    if (!hasShownWelcome && currentUser.role) {
+      const welcomeMessage = currentUser.role === 'teacher' 
+        ? `Welcome to the enhanced classroom, ${currentUser.name}! You have full teaching controls and session management.`
+        : `Welcome to the enhanced classroom, ${currentUser.name}! Enjoy the interactive learning experience.`;
+      
+      toast({
+        title: `${currentUser.role === 'teacher' ? '👩‍🏫' : '👨‍🎓'} Enhanced ${currentUser.role === 'teacher' ? 'Teacher' : 'Student'} Mode`,
+        description: welcomeMessage,
+      });
+      
+      setHasShownWelcome(true);
+    }
+  }, [currentUser.role, currentUser.name, toast, hasShownWelcome]);
+
+  const contextValue = {
     currentUser,
     finalRoomId,
-    isValidatingAccess,
-    accessError
+    hasShownWelcome,
+    setHasShownWelcome
   };
 
   return (
