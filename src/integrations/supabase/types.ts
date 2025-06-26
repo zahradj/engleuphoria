@@ -95,6 +95,39 @@ export type Database = {
           },
         ]
       }
+      classroom_sessions: {
+        Row: {
+          created_at: string
+          ended_at: string | null
+          id: string
+          room_id: string
+          session_status: string
+          started_at: string | null
+          teacher_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          room_id: string
+          session_status?: string
+          started_at?: string | null
+          teacher_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          room_id?: string
+          session_status?: string
+          started_at?: string | null
+          teacher_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       curriculum_levels: {
         Row: {
           age_group: string

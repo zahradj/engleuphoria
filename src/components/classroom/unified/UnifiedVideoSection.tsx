@@ -3,9 +3,10 @@ import React, { useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Mic, MicOff, Video, VideoOff, Phone, Clock } from "lucide-react";
+import { Mic, MicOff, Video, VideoOff, Phone, Clock, Play } from "lucide-react";
 import { useMediaContext } from "@/components/classroom/oneonone/video/MediaContext";
 import { useMediaAccess } from "@/hooks/enhanced-classroom/useMediaAccess";
+import { useClassroomSession } from "@/hooks/useClassroomSession";
 
 interface UnifiedVideoSectionProps {
   currentUser: {
@@ -20,6 +21,21 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
   const enhancedMedia = useMediaAccess();
   const isTeacher = currentUser.role === 'teacher';
   const videoRef = useRef<HTMLVideoElement>(null);
+  
+  // Get session state
+  const {
+    session,
+    isLoading: sessionLoading,
+    startSession,
+    endSession,
+    canStartSession,
+    canJoinVideo,
+    isWaitingForTeacher
+  } = useClassroomSession({
+    roomId: media.roomId,
+    userId: currentUser.id,
+    userRole: currentUser.role
+  });
   
   // Get the appropriate media properties based on user role
   const getMediaState = () => {
@@ -60,6 +76,15 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
     }
   }, [mediaState.stream, isTeacher]);
 
+  const handleStartSession = async () => {
+    console.log('🎬 Teacher starting session...');
+    await startSession();
+    // After starting session, initialize teacher's media
+    if (!mediaState.isConnected) {
+      mediaState.joinOrInitialize();
+    }
+  };
+
   const handleJoinVideo = () => {
     console.log(`🎥 ${isTeacher ? 'Teacher' : 'Student'} joining video...`);
     mediaState.joinOrInitialize();
@@ -75,15 +100,30 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
 
   const handleLeaveVideo = () => {
     mediaState.leaveOrStop();
+    if (isTeacher) {
+      endSession();
+    }
   };
 
   const hasVideo = mediaState.stream && mediaState.isConnected && !mediaState.isCameraOff;
-  const userLabel = isTeacher ? "Teacher Sarah" : currentUser.name;
+  const userLabel = isTeacher ? "Teacher" : currentUser.name;
   const gradientColors = isTeacher ? "from-blue-500 to-blue-600" : "from-purple-500 to-purple-600";
   const badgeColor = isTeacher ? "bg-blue-100 text-blue-800" : "bg-purple-100 text-purple-800";
 
-  // For students, check if teacher has joined (simulated for now)
-  const teacherHasJoined = isTeacher ? true : media.isConnected; // Teacher connection indicates teacher presence
+  if (sessionLoading) {
+    return (
+      <div className="h-full flex flex-col">
+        <Card className="h-[300px] p-0 bg-white/90 border-2 border-opacity-50 shadow-lg rounded-2xl overflow-hidden relative">
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
+              <p className="text-gray-500">Loading session...</p>
+            </div>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col">
@@ -95,8 +135,10 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
             <div className="w-full h-full flex items-center justify-center p-6">
               <div className="text-center">
                 <div className={`w-16 h-16 rounded-full ${isTeacher ? 'bg-blue-100' : 'bg-purple-100'} flex items-center justify-center shadow-lg mb-3 mx-auto`}>
-                  {!isTeacher && !teacherHasJoined ? (
+                  {isWaitingForTeacher ? (
                     <Clock className={`w-8 h-8 ${isTeacher ? 'text-blue-600' : 'text-purple-600'} animate-pulse`} />
+                  ) : canStartSession ? (
+                    <Play className={`w-8 h-8 ${isTeacher ? 'text-blue-600' : 'text-purple-600'}`} />
                   ) : (
                     <span className={`text-2xl font-bold ${isTeacher ? 'text-blue-600' : 'text-purple-600'}`}>
                       {isTeacher ? 'T' : 'S'}
@@ -107,37 +149,44 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
                   {isTeacher ? 'Teacher' : 'Student'} Video
                 </p>
                 
-                {!isTeacher && !teacherHasJoined ? (
+                {isWaitingForTeacher ? (
                   <div className="space-y-3">
                     <div className="flex items-center justify-center gap-2 text-amber-600">
                       <Clock className="w-4 h-4" />
-                      <span className="text-sm font-medium">Waiting for teacher to join...</span>
+                      <span className="text-sm font-medium">Waiting for teacher to start session...</span>
                     </div>
-                    <p className="text-xs text-gray-500">You'll be able to join once your teacher starts the session</p>
+                    <p className="text-xs text-gray-500">Your teacher needs to start the session first</p>
                   </div>
-                ) : teacherHasJoined && !isTeacher ? (
+                ) : canStartSession ? (
                   <div className="space-y-3">
-                    <div className="flex items-center justify-center gap-2 text-green-600 mb-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                      <span className="text-sm font-medium">Teacher has joined!</span>
-                    </div>
-                    <p className="text-sm text-gray-500 mb-3">Ready to join video?</p>
+                    <p className="text-sm text-gray-500">Ready to start the session?</p>
+                    <Button 
+                      onClick={handleStartSession}
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg shadow-lg flex items-center gap-2"
+                    >
+                      <Play className="w-4 h-4" />
+                      Start Session
+                    </Button>
+                  </div>
+                ) : canJoinVideo ? (
+                  <div className="space-y-3">
+                    {session?.session_status === 'started' && !isTeacher && (
+                      <div className="flex items-center justify-center gap-2 text-green-600 mb-2">
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span className="text-sm font-medium">Session is active!</span>
+                      </div>
+                    )}
+                    <p className="text-sm text-gray-500">Ready to join the video?</p>
                     <Button 
                       onClick={handleJoinVideo}
-                      className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-lg shadow-lg"
+                      className={`${isTeacher ? 'bg-blue-500 hover:bg-blue-600' : 'bg-purple-500 hover:bg-purple-600'} text-white px-6 py-2 rounded-lg shadow-lg`}
                     >
                       Join Video
                     </Button>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <p className="text-sm text-gray-500">Ready to start the session?</p>
-                    <Button 
-                      onClick={handleJoinVideo}
-                      className={`${isTeacher ? 'bg-blue-500 hover:bg-blue-600' : 'bg-purple-500 hover:bg-purple-600'} text-white px-6 py-2 rounded-lg shadow-lg`}
-                    >
-                      {isTeacher ? 'Start Session' : 'Join Video'}
-                    </Button>
+                    <p className="text-sm text-gray-500">Session not available</p>
                   </div>
                 )}
               </div>
@@ -180,9 +229,9 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
                     ● Live
                   </Badge>
                 )}
-                {!isTeacher && teacherHasJoined && (
+                {session?.session_status === 'started' && (
                   <Badge className="bg-green-100 text-green-800">
-                    Teacher Joined
+                    Session Active
                   </Badge>
                 )}
                 <Badge variant="secondary" className={badgeColor}>
@@ -213,7 +262,7 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
                   size="icon"
                   onClick={handleLeaveVideo}
                   className="w-8 h-8"
-                  title="Leave Video"
+                  title={isTeacher ? "End Session" : "Leave Video"}
                 >
                   <Phone size={16} />
                 </Button>
