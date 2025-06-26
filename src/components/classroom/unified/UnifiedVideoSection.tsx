@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -157,7 +156,7 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
                     </div>
                     <p className="text-xs text-gray-500">Your teacher needs to start the session first</p>
                   </div>
-                ) : canStartSession ? (
+                ) : canStartSession && isTeacher ? (
                   <div className="space-y-3">
                     <p className="text-sm text-gray-500">Ready to start the session?</p>
                     <Button 
