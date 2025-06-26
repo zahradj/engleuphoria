@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 
@@ -25,22 +25,50 @@ export function useClassroomSession({ roomId, userId, userRole }: UseClassroomSe
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const channelRef = useRef<any>(null);
+  const hasInitialized = useRef(false);
+
+  // Validate UUID format
+  const isValidUUID = (uuid: string) => {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(uuid);
+  };
 
   // Load or create session
   useEffect(() => {
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
+
     const initializeSession = async () => {
       try {
         setIsLoading(true);
         setError(null);
+
+        // Skip database operations if userId is not a valid UUID
+        if (!isValidUUID(userId)) {
+          console.warn('Invalid UUID format for userId:', userId);
+          // For non-UUID users, just create a mock session
+          const mockSession: ClassroomSession = {
+            id: 'mock-session',
+            room_id: roomId,
+            teacher_id: userRole === 'teacher' ? userId : 'mock-teacher-id',
+            session_status: userRole === 'teacher' ? 'waiting' : 'waiting',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+          setSession(mockSession);
+          setIsLoading(false);
+          return;
+        }
 
         // First, try to find existing session
         const { data: existingSession, error: fetchError } = await supabase
           .from('classroom_sessions')
           .select('*')
           .eq('room_id', roomId)
-          .single();
+          .maybeSingle();
 
-        if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = no rows returned
+        if (fetchError && fetchError.code !== 'PGRST116') {
           throw fetchError;
         }
 
@@ -74,10 +102,16 @@ export function useClassroomSession({ roomId, userId, userRole }: UseClassroomSe
 
   // Set up realtime subscription
   useEffect(() => {
-    if (!roomId) return;
+    if (!roomId || !isValidUUID(userId)) return;
+
+    // Cleanup existing channel
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
 
     const channel = supabase
-      .channel(`classroom_session_${roomId}`)
+      .channel(`classroom_session_${roomId}_${Date.now()}`) // Add timestamp to ensure unique channel
       .on(
         'postgres_changes',
         {
@@ -104,13 +138,18 @@ export function useClassroomSession({ roomId, userId, userRole }: UseClassroomSe
       )
       .subscribe();
 
+    channelRef.current = channel;
+
     return () => {
-      supabase.removeChannel(channel);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
-  }, [roomId, userRole, toast]);
+  }, [roomId, userRole, toast, userId]);
 
   const startSession = useCallback(async () => {
-    if (userRole !== 'teacher' || !session) return;
+    if (userRole !== 'teacher' || !session || !isValidUUID(userId)) return;
 
     try {
       const { error } = await supabase
@@ -135,10 +174,10 @@ export function useClassroomSession({ roomId, userId, userRole }: UseClassroomSe
         variant: "destructive"
       });
     }
-  }, [session, userRole, toast]);
+  }, [session, userRole, toast, userId]);
 
   const endSession = useCallback(async () => {
-    if (userRole !== 'teacher' || !session) return;
+    if (userRole !== 'teacher' || !session || !isValidUUID(userId)) return;
 
     try {
       const { error } = await supabase
@@ -163,7 +202,7 @@ export function useClassroomSession({ roomId, userId, userRole }: UseClassroomSe
         variant: "destructive"
       });
     }
-  }, [session, userRole, toast]);
+  }, [session, userRole, toast, userId]);
 
   return {
     session,

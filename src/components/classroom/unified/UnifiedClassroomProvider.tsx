@@ -31,6 +31,21 @@ interface UnifiedClassroomProviderProps {
   children: React.ReactNode;
 }
 
+// Generate a proper UUID v4
+const generateUUID = () => {
+  const crypto = window.crypto || (window as any).msCrypto;
+  const array = new Uint8Array(16);
+  crypto.getRandomValues(array);
+  
+  // Set version (4) and variant bits
+  array[6] = (array[6] & 0x0f) | 0x40;
+  array[8] = (array[8] & 0x3f) | 0x80;
+  
+  // Convert to hex string with dashes
+  const hex = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
+  return `${hex.substr(0,8)}-${hex.substr(8,4)}-${hex.substr(12,4)}-${hex.substr(16,4)}-${hex.substr(20,12)}`;
+};
+
 export function UnifiedClassroomProvider({ children }: UnifiedClassroomProviderProps) {
   const { roomId } = useParams();
   const [searchParams] = useSearchParams();
@@ -38,9 +53,9 @@ export function UnifiedClassroomProvider({ children }: UnifiedClassroomProviderP
   const [hasShownWelcome, setHasShownWelcome] = useState(false);
   const userIdRef = useRef<string>();
   
-  // Generate stable user ID only once
+  // Generate stable user ID only once with proper UUID format
   if (!userIdRef.current) {
-    userIdRef.current = `user-${Math.random().toString(36).substr(2, 9)}`;
+    userIdRef.current = generateUUID();
   }
 
   // Enhanced role parameter extraction with stable memoization
@@ -57,7 +72,12 @@ export function UnifiedClassroomProvider({ children }: UnifiedClassroomProviderP
     // Determine final values with fallback logic
     const finalRole = roleParam as 'teacher' | 'student' || persistedRole || 'student';
     const finalName = nameParam || persistedName || (finalRole === 'teacher' ? 'Teacher' : 'Student');
-    const finalUserId = userIdParam || persistedUserId || userIdRef.current!;
+    
+    // Use persisted UUID if valid, otherwise generate new one
+    let finalUserId = persistedUserId;
+    if (!finalUserId || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(finalUserId)) {
+      finalUserId = userIdRef.current!;
+    }
 
     // Persist to session storage only if changed
     if (sessionStorage.getItem('classroom-user-role') !== finalRole) {
