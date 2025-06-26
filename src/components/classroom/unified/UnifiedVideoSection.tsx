@@ -1,11 +1,14 @@
+
 import React, { useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Mic, MicOff, Video, VideoOff, Phone, Clock, Play } from "lucide-react";
 import { useMediaContext } from "@/components/classroom/oneonone/video/MediaContext";
 import { useMediaAccess } from "@/hooks/enhanced-classroom/useMediaAccess";
 import { useClassroomSession } from "@/hooks/useClassroomSession";
+import { VideoStateDisplay } from "./components/VideoStateDisplay";
+import { VideoPlayer } from "./components/VideoPlayer";
+import { VideoControls } from "./components/VideoControls";
+import { VideoStatusIndicators } from "./components/VideoStatusIndicators";
+import { VideoErrorDisplay } from "./components/VideoErrorDisplay";
 
 interface UnifiedVideoSectionProps {
   currentUser: {
@@ -19,7 +22,6 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
   const media = useMediaContext();
   const enhancedMedia = useMediaAccess();
   const isTeacher = currentUser.role === 'teacher';
-  const videoRef = useRef<HTMLVideoElement>(null);
   
   // Get session state
   const {
@@ -67,14 +69,6 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
 
   const mediaState = getMediaState();
 
-  // Set up video element when stream is available
-  useEffect(() => {
-    if (videoRef.current && mediaState.stream) {
-      videoRef.current.srcObject = mediaState.stream;
-      console.log(`🎥 ${isTeacher ? 'Teacher' : 'Student'} video stream connected`);
-    }
-  }, [mediaState.stream, isTeacher]);
-
   const handleStartSession = async () => {
     console.log('🎬 Teacher starting session...');
     await startSession();
@@ -89,14 +83,6 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
     mediaState.joinOrInitialize();
   };
 
-  const handleToggleMicrophone = () => {
-    mediaState.toggleMicrophone();
-  };
-
-  const handleToggleCamera = () => {
-    mediaState.toggleCamera();
-  };
-
   const handleLeaveVideo = () => {
     mediaState.leaveOrStop();
     if (isTeacher) {
@@ -106,8 +92,6 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
 
   const hasVideo = mediaState.stream && mediaState.isConnected && !mediaState.isCameraOff;
   const userLabel = isTeacher ? "Teacher" : currentUser.name;
-  const gradientColors = isTeacher ? "from-blue-500 to-blue-600" : "from-purple-500 to-purple-600";
-  const badgeColor = isTeacher ? "bg-blue-100 text-blue-800" : "bg-purple-100 text-purple-800";
 
   if (sessionLoading) {
     return (
@@ -131,141 +115,39 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
         
         <div className="w-full h-full relative flex flex-col">
           {!mediaState.isConnected ? (
-            <div className="w-full h-full flex items-center justify-center p-6">
-              <div className="text-center">
-                <div className={`w-16 h-16 rounded-full ${isTeacher ? 'bg-blue-100' : 'bg-purple-100'} flex items-center justify-center shadow-lg mb-3 mx-auto`}>
-                  {isWaitingForTeacher ? (
-                    <Clock className={`w-8 h-8 ${isTeacher ? 'text-blue-600' : 'text-purple-600'} animate-pulse`} />
-                  ) : canStartSession ? (
-                    <Play className={`w-8 h-8 ${isTeacher ? 'text-blue-600' : 'text-purple-600'}`} />
-                  ) : (
-                    <span className={`text-2xl font-bold ${isTeacher ? 'text-blue-600' : 'text-purple-600'}`}>
-                      {isTeacher ? 'T' : 'S'}
-                    </span>
-                  )}
-                </div>
-                <p className={`${isTeacher ? 'text-blue-600' : 'text-purple-600'} font-semibold mb-2`}>
-                  {isTeacher ? 'Teacher' : 'Student'} Video
-                </p>
-                
-                {isWaitingForTeacher ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-center gap-2 text-amber-600">
-                      <Clock className="w-4 h-4" />
-                      <span className="text-sm font-medium">Waiting for teacher to start session...</span>
-                    </div>
-                    <p className="text-xs text-gray-500">Your teacher needs to start the session first</p>
-                  </div>
-                ) : canStartSession && isTeacher ? (
-                  <div className="space-y-3">
-                    <p className="text-sm text-gray-500">Ready to start the session?</p>
-                    <Button 
-                      onClick={handleStartSession}
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg shadow-lg flex items-center gap-2"
-                    >
-                      <Play className="w-4 h-4" />
-                      Start Session
-                    </Button>
-                  </div>
-                ) : canJoinVideo ? (
-                  <div className="space-y-3">
-                    {session?.session_status === 'started' && !isTeacher && (
-                      <div className="flex items-center justify-center gap-2 text-green-600 mb-2">
-                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                        <span className="text-sm font-medium">Session is active!</span>
-                      </div>
-                    )}
-                    <p className="text-sm text-gray-500">Ready to join the video?</p>
-                    <Button 
-                      onClick={handleJoinVideo}
-                      className={`${isTeacher ? 'bg-blue-500 hover:bg-blue-600' : 'bg-purple-500 hover:bg-purple-600'} text-white px-6 py-2 rounded-lg shadow-lg`}
-                    >
-                      Join Video
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <p className="text-sm text-gray-500">Session not available</p>
-                  </div>
-                )}
-              </div>
-            </div>
+            <VideoStateDisplay
+              isTeacher={isTeacher}
+              isWaitingForTeacher={isWaitingForTeacher}
+              canStartSession={canStartSession}
+              canJoinVideo={canJoinVideo}
+              sessionStatus={session?.session_status}
+              onStartSession={handleStartSession}
+              onJoinVideo={handleJoinVideo}
+            />
           ) : (
             <div className="w-full h-full relative">
-              {/* Video Area */}
-              {hasVideo ? (
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  muted
-                  playsInline
-                  className="w-full h-full object-cover"
-                  onLoadedMetadata={() => console.log(`🎥 ${userLabel} video metadata loaded`)}
-                  onError={e => console.error(`🎥 ${userLabel} video error`, e)}
-                />
-              ) : (
-                <div className={`w-full h-full bg-gradient-to-br ${gradientColors} flex items-center justify-center relative`}>
-                  <div className="text-center">
-                    <div className={`w-24 h-24 rounded-full ${isTeacher ? 'bg-blue-400' : 'bg-purple-400'} flex items-center justify-center shadow-xl mb-3 mx-auto`}>
-                      <span className="text-4xl font-bold text-white">
-                        {isTeacher ? 'T' : 'S'}
-                      </span>
-                    </div>
-                    <p className="text-white font-semibold">{userLabel}</p>
-                  </div>
-                  {mediaState.isCameraOff && (
-                    <div className="absolute bottom-3 right-3 bg-red-500 text-white text-xs px-2 py-1 rounded">
-                      Camera Off
-                    </div>
-                  )}
-                </div>
-              )}
+              <VideoPlayer
+                stream={mediaState.stream}
+                hasVideo={hasVideo}
+                isTeacher={isTeacher}
+                userLabel={userLabel}
+                isCameraOff={mediaState.isCameraOff}
+              />
 
-              {/* Status Indicators */}
-              <div className="absolute top-3 left-3 flex flex-col gap-2">
-                {mediaState.isConnected && (
-                  <Badge className="bg-green-500 text-white animate-pulse">
-                    ● Live
-                  </Badge>
-                )}
-                {session?.session_status === 'started' && (
-                  <Badge className="bg-green-100 text-green-800">
-                    Session Active
-                  </Badge>
-                )}
-                <Badge variant="secondary" className={badgeColor}>
-                  {isTeacher ? 'Teacher' : 'Student'}
-                </Badge>
-              </div>
+              <VideoStatusIndicators
+                isConnected={mediaState.isConnected}
+                sessionStatus={session?.session_status}
+                isTeacher={isTeacher}
+              />
 
-              {/* Video Controls */}
-              <div className="absolute bottom-3 right-3 flex items-center gap-2">
-                <Button
-                  variant={mediaState.isMuted ? "destructive" : "outline"}
-                  size="icon"
-                  onClick={handleToggleMicrophone}
-                  className="w-8 h-8 bg-black/20 hover:bg-black/40 border-white/30"
-                >
-                  {mediaState.isMuted ? <MicOff size={16} className="text-white" /> : <Mic size={16} className="text-white" />}
-                </Button>
-                <Button
-                  variant={mediaState.isCameraOff ? "destructive" : "outline"}
-                  size="icon"
-                  onClick={handleToggleCamera}
-                  className="w-8 h-8 bg-black/20 hover:bg-black/40 border-white/30"
-                >
-                  {mediaState.isCameraOff ? <VideoOff size={16} className="text-white" /> : <Video size={16} className="text-white" />}
-                </Button>
-                <Button
-                  variant="destructive"
-                  size="icon"
-                  onClick={handleLeaveVideo}
-                  className="w-8 h-8"
-                  title={isTeacher ? "End Session" : "Leave Video"}
-                >
-                  <Phone size={16} />
-                </Button>
-              </div>
+              <VideoControls
+                isMuted={mediaState.isMuted}
+                isCameraOff={mediaState.isCameraOff}
+                isTeacher={isTeacher}
+                onToggleMicrophone={mediaState.toggleMicrophone}
+                onToggleCamera={mediaState.toggleCamera}
+                onLeaveVideo={handleLeaveVideo}
+              />
 
               {/* Name Label */}
               <div className="absolute bottom-3 left-3">
@@ -278,12 +160,7 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
         </div>
       </Card>
 
-      {/* Error Display */}
-      {mediaState.mediaError && (
-        <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
-          {mediaState.mediaError}
-        </div>
-      )}
+      <VideoErrorDisplay error={mediaState.mediaError} />
     </div>
   );
 }
