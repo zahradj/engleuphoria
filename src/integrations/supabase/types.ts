@@ -9,6 +9,48 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      chat_messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          file_name: string | null
+          file_url: string | null
+          id: string
+          message_type: string | null
+          room_id: string
+          sender_id: string
+          sender_name: string
+          sender_role: string
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          file_name?: string | null
+          file_url?: string | null
+          id?: string
+          message_type?: string | null
+          room_id: string
+          sender_id: string
+          sender_name: string
+          sender_role: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          file_name?: string | null
+          file_url?: string | null
+          id?: string
+          message_type?: string | null
+          room_id?: string
+          sender_id?: string
+          sender_name?: string
+          sender_role?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       class_bookings: {
         Row: {
           booking_type: string
@@ -94,6 +136,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      classroom_files: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          file_name: string
+          file_size: number
+          file_type: string
+          file_url: string
+          id: string
+          is_public: boolean | null
+          room_id: string
+          updated_at: string | null
+          uploaded_by: string
+          uploader_name: string
+          uploader_role: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          file_name: string
+          file_size: number
+          file_type: string
+          file_url: string
+          id?: string
+          is_public?: boolean | null
+          room_id: string
+          updated_at?: string | null
+          uploaded_by: string
+          uploader_name: string
+          uploader_role: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          file_name?: string
+          file_size?: number
+          file_type?: string
+          file_url?: string
+          id?: string
+          is_public?: boolean | null
+          room_id?: string
+          updated_at?: string | null
+          uploaded_by?: string
+          uploader_name?: string
+          uploader_role?: string
+        }
+        Relationships: []
       }
       classroom_sessions: {
         Row: {
