@@ -1,0 +1,194 @@
+
+import React, { useState, useRef, useEffect } from 'react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useRealTimeChat } from '@/hooks/useRealTimeChat';
+import { ChatMessage } from '@/services/chatService';
+import { Send, Paperclip, Download } from 'lucide-react';
+import { format } from 'date-fns';
+
+interface RealTimeChatPanelProps {
+  roomId: string;
+  currentUser: {
+    id: string;
+    name: string;
+    role: 'teacher' | 'student';
+  };
+}
+
+function MessageBubble({ message, isOwn }: { message: ChatMessage; isOwn: boolean }) {
+  const handleDownload = async (url: string, filename: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = filename;
+      link.click();
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (error) {
+      console.error('Failed to download file:', error);
+    }
+  };
+
+  return (
+    <div className={`flex ${isOwn ? 'justify-end' : 'justify-start'} mb-3`}>
+      <div className={`max-w-[80%] rounded-lg p-3 ${
+        isOwn 
+          ? 'bg-blue-500 text-white' 
+          : message.sender_role === 'teacher'
+            ? 'bg-green-100 text-green-900'
+            : 'bg-gray-100 text-gray-900'
+      }`}>
+        {!isOwn && (
+          <p className="text-xs font-medium mb-1 opacity-70">
+            {message.sender_name} ({message.sender_role})
+          </p>
+        )}
+        
+        {message.message_type === 'file' ? (
+          <div className="space-y-2">
+            <p className="text-sm">{message.content}</p>
+            {message.file_url && message.file_name && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleDownload(message.file_url!, message.file_name!)}
+                className={`text-xs ${isOwn ? 'border-white text-white hover:bg-white hover:text-blue-500' : ''}`}
+              >
+                <Download size={12} className="mr-1" />
+                Download
+              </Button>
+            )}
+          </div>
+        ) : (
+          <p className="text-sm">{message.content}</p>
+        )}
+        
+        <p className="text-xs mt-1 opacity-70">
+          {format(new Date(message.created_at), 'HH:mm')}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export function RealTimeChatPanel({ roomId, currentUser }: RealTimeChatPanelProps) {
+  const [inputMessage, setInputMessage] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  const { messages, isLoading, isSending, sendMessage, sendFile } = useRealTimeChat({
+    roomId,
+    userId: currentUser.id,
+    userName: currentUser.name,
+    userRole: currentUser.role
+  });
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inputMessage.trim() || isSending) return;
+    
+    await sendMessage(inputMessage);
+    setInputMessage('');
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      alert('File size must be less than 10MB');
+      return;
+    }
+
+    await sendFile(file);
+    
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <Card className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto mb-2"></div>
+          <p className="text-sm text-gray-500">Loading chat...</p>
+        </div>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="h-full flex flex-col">
+      <div className="p-3 border-b">
+        <h3 className="font-semibold text-sm">Class Chat</h3>
+        <p className="text-xs text-gray-500">
+          {messages.length} messages
+        </p>
+      </div>
+
+      <ScrollArea className="flex-1 p-3">
+        <div className="space-y-1">
+          {messages.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-sm text-gray-500">No messages yet</p>
+              <p className="text-xs text-gray-400 mt-1">Start the conversation!</p>
+            </div>
+          ) : (
+            messages.map((message) => (
+              <MessageBubble
+                key={message.id}
+                message={message}
+                isOwn={message.sender_id === currentUser.id}
+              />
+            ))
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+      </ScrollArea>
+
+      <div className="p-3 border-t">
+        <form onSubmit={handleSendMessage} className="flex gap-2">
+          <Input
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            placeholder="Type your message..."
+            disabled={isSending}
+            className="flex-1"
+          />
+          <input
+            ref={fileInputRef}
+            type="file"
+            onChange={handleFileSelect}
+            className="hidden"
+            accept="image/*,.pdf,.doc,.docx,.txt"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isSending}
+          >
+            <Paperclip size={16} />
+          </Button>
+          <Button type="submit" disabled={isSending || !inputMessage.trim()}>
+            <Send size={16} />
+          </Button>
+        </form>
+      </div>
+    </Card>
+  );
+}
