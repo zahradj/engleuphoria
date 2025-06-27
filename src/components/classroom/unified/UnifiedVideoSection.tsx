@@ -94,7 +94,7 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
         isConnected: false,
         isMuted: true,
         isCameraOff: true,
-        mediaError: 'Failed to initialize media',
+        mediaError: 'Failed to initialize media connection',
         toggleMicrophone: () => {},
         toggleCamera: () => {},
         joinOrInitialize: () => {},
@@ -141,6 +141,9 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
   const hasVideo = mediaState.stream && mediaState.isConnected && !mediaState.isCameraOff;
   const userLabel = isTeacher ? "Teacher" : currentUser.name;
 
+  // Determine the primary error to display
+  const primaryError = sessionError || mediaState.mediaError;
+
   // Show error state if there are critical errors
   if (sessionError) {
     return (
@@ -151,8 +154,8 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
               <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center shadow-lg mb-3 mx-auto">
                 <span className="text-2xl">⚠️</span>
               </div>
-              <p className="text-red-600 font-semibold mb-2">Session Error</p>
-              <p className="text-xs text-gray-500">Please refresh the page to try again</p>
+              <p className="text-red-600 font-semibold mb-2">Session Unavailable</p>
+              <p className="text-xs text-gray-500">Unable to connect to the classroom session</p>
             </div>
           </div>
         </Card>
@@ -168,7 +171,7 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
           <div className="w-full h-full flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
-              <p className="text-gray-500">Loading session...</p>
+              <p className="text-gray-500">Connecting to session...</p>
             </div>
           </div>
         </Card>
@@ -228,7 +231,7 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
         </div>
       </Card>
 
-      <VideoErrorDisplay error={mediaState.mediaError} />
+      <VideoErrorDisplay error={primaryError} />
     </div>
   );
 }
