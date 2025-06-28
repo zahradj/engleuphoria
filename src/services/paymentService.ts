@@ -1,6 +1,5 @@
 
 import { supabase } from '@/lib/supabase';
-import { useToast } from '@/hooks/use-toast';
 
 export interface PaymentPlan {
   id: string;
@@ -22,6 +21,33 @@ export interface UserSubscription {
   subscription_start: string;
   subscription_end: string | null;
   plan?: PaymentPlan;
+}
+
+export interface PaymentHistoryItem {
+  id: string;
+  user_id: string;
+  amount: number;
+  currency: string;
+  status: 'pending' | 'completed' | 'failed' | 'cancelled';
+  payment_method: string;
+  payment_gateway?: string;
+  created_at: string;
+  plan?: PaymentPlan;
+  invoice_url?: string;
+}
+
+export interface SubscriptionDetails {
+  id: string;
+  status: 'active' | 'cancelled' | 'expired';
+  current_period_start: string;
+  current_period_end: string;
+  cancel_at_period_end: boolean;
+  plan: {
+    id: string;
+    name: string;
+    price: number;
+    currency: string;
+  };
 }
 
 class PaymentService {
@@ -58,6 +84,83 @@ class PaymentService {
     } catch (error) {
       console.error('Failed to fetch user subscription:', error);
       return null;
+    }
+  }
+
+  async getCurrentSubscription(): Promise<SubscriptionDetails | null> {
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const subscription = await this.getUserSubscription(user.id);
+      if (!subscription || !subscription.plan) return null;
+
+      return {
+        id: subscription.id,
+        status: subscription.status,
+        current_period_start: subscription.subscription_start,
+        current_period_end: subscription.subscription_end || '',
+        cancel_at_period_end: subscription.status === 'cancelled',
+        plan: {
+          id: subscription.plan.id,
+          name: subscription.plan.name,
+          price: subscription.plan.price_dzd,
+          currency: 'DZD'
+        }
+      };
+    } catch (error) {
+      console.error('Failed to get current subscription:', error);
+      return null;
+    }
+  }
+
+  async getPaymentHistory(): Promise<PaymentHistoryItem[]> {
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const { data, error } = await supabase
+        .from('payments')
+        .select(`
+          *,
+          plan:subscription_plans(*)
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Failed to fetch payment history:', error);
+      return [];
+    }
+  }
+
+  async openCustomerPortal(): Promise<{ url: string }> {
+    try {
+      const { data, error } = await supabase.functions.invoke('customer-portal');
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Failed to open customer portal:', error);
+      throw error;
+    }
+  }
+
+  async verifyPayment(sessionId: string): Promise<{ success: boolean; status: string }> {
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-payment', {
+        body: { sessionId }
+      });
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Failed to verify payment:', error);
+      throw error;
     }
   }
 
