@@ -12,7 +12,7 @@ import {
   Settings,
   Users,
   Pin,
-  Spotlight,
+  Focus,
   Volume2,
   VolumeX
 } from 'lucide-react';
@@ -157,8 +157,8 @@ export function AdvancedVideoControls({
               </DropdownMenuItem>
               
               <DropdownMenuItem>
-                <Spotlight className="mr-2 h-4 w-4" />
-                Spotlight
+                <Focus className="mr-2 h-4 w-4" />
+                Focus View
               </DropdownMenuItem>
             </>
           )}

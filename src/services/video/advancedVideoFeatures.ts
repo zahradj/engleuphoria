@@ -1,4 +1,3 @@
-
 export interface ScreenShareState {
   isScreenSharing: boolean;
   screenStream: MediaStream | null;
@@ -62,9 +61,8 @@ export class AdvancedVideoFeatureManager {
       
       const screenStream = await navigator.mediaDevices.getDisplayMedia({
         video: {
-          cursor: 'always',
           displaySurface: 'monitor'
-        },
+        } as DisplayMediaStreamOptions['video'],
         audio: true
       });
 
