@@ -3,10 +3,12 @@ import { EnhancedVideoConfig, ParticipantData } from './types';
 import { JitsiApiLoader } from './jitsiApiLoader';
 import { JitsiEventHandlers } from './jitsiEventHandlers';
 import { JitsiConfigBuilder } from './jitsiConfig';
+import { AdvancedVideoFeatureManager } from './advancedVideoFeatures';
 
 export class EnhancedVideoService extends VideoService {
   private api: any = null;
   private eventHandlers: JitsiEventHandlers;
+  private featureManager: AdvancedVideoFeatureManager;
   private connectionQuality = 'good';
   private initialized = false;
   private localMediaStream: MediaStream | null = null;
@@ -14,6 +16,7 @@ export class EnhancedVideoService extends VideoService {
   constructor(config: EnhancedVideoConfig, callbacks: VideoServiceCallbacks = {}) {
     super(config, callbacks);
     this.eventHandlers = new JitsiEventHandlers(callbacks);
+    this.featureManager = new AdvancedVideoFeatureManager();
   }
 
   private get enhancedConfig(): EnhancedVideoConfig {
@@ -99,13 +102,10 @@ export class EnhancedVideoService extends VideoService {
   }
 
   async startRecording(): Promise<boolean> {
-    if (this.api && this.enhancedConfig.enableRecording) {
+    if (this.api && this.enhancedConfig.enableRecording && this.localMediaStream) {
       try {
-        console.log('Starting recording...');
-        await this.api.executeCommand('startRecording', {
-          mode: 'stream'
-        });
-        return true;
+        console.log('Starting enhanced recording...');
+        return await this.featureManager.startRecording(this.localMediaStream);
       } catch (error) {
         console.error('Enhanced: Failed to start recording:', error);
         return false;
@@ -114,32 +114,70 @@ export class EnhancedVideoService extends VideoService {
     return false;
   }
 
-  async stopRecording(): Promise<boolean> {
-    if (this.api && this.eventHandlers.isRecordingActive()) {
+  async stopRecording(): Promise<string | null> {
+    if (this.featureManager) {
       try {
-        console.log('Stopping recording...');
-        await this.api.executeCommand('stopRecording');
-        return true;
+        console.log('Stopping enhanced recording...');
+        return await this.featureManager.stopRecording();
       } catch (error) {
         console.error('Enhanced: Failed to stop recording:', error);
-        return false;
+        return null;
       }
     }
-    return false;
+    return null;
   }
 
   async startScreenShare(): Promise<boolean> {
     if (this.api && this.enhancedConfig.enableScreenShare) {
       try {
-        console.log('Starting screen share...');
-        await this.api.executeCommand('toggleShareScreen');
-        return true;
+        console.log('Starting enhanced screen share...');
+        const success = await this.featureManager.startScreenShare();
+        
+        // Also try to start screen share in Jitsi if available
+        if (success && this.api) {
+          try {
+            await this.api.executeCommand('toggleShareScreen');
+          } catch (jitsiError) {
+            console.warn('Jitsi screen share failed, using local only:', jitsiError);
+          }
+        }
+        
+        return success;
       } catch (error) {
         console.error('Enhanced: Failed to start screen share:', error);
         return false;
       }
     }
     return false;
+  }
+
+  async stopScreenShare(): Promise<boolean> {
+    try {
+      console.log('Stopping enhanced screen share...');
+      const success = await this.featureManager.stopScreenShare();
+      
+      // Also stop screen share in Jitsi if available
+      if (this.api) {
+        try {
+          await this.api.executeCommand('toggleShareScreen');
+        } catch (jitsiError) {
+          console.warn('Jitsi screen share stop failed:', jitsiError);
+        }
+      }
+      
+      return success;
+    } catch (error) {
+      console.error('Enhanced: Failed to stop screen share:', error);
+      return false;
+    }
+  }
+
+  getScreenShareState() {
+    return this.featureManager.getScreenShareState();
+  }
+
+  getRecordingState() {
+    return this.featureManager.getRecordingState();
   }
 
   async raiseHand(): Promise<boolean> {
@@ -165,7 +203,8 @@ export class EnhancedVideoService extends VideoService {
   }
 
   isRecordingActive(): boolean {
-    return this.eventHandlers.isRecordingActive();
+    const recordingState = this.featureManager.getRecordingState();
+    return recordingState.isRecording || this.eventHandlers.isRecordingActive();
   }
 
   async toggleMicrophone(): Promise<boolean> {
@@ -240,6 +279,11 @@ export class EnhancedVideoService extends VideoService {
 
   async leaveRoom(): Promise<void> {
     console.log('🎥 Enhanced: Leaving room...');
+    
+    // Stop advanced features
+    await this.featureManager.stopScreenShare();
+    await this.featureManager.stopRecording();
+    
     if (this.api) {
       this.api.dispose();
       this.api = null;
