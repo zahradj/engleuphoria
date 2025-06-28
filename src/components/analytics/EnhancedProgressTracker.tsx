@@ -1,317 +1,303 @@
 
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, Award, Target, BarChart3, Clock, Zap, Trophy, Star } from "lucide-react";
-import { progressAnalyticsService, ProgressSummary } from "@/services/progressAnalyticsService";
-import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Trophy, 
+  Zap, 
+  Target, 
+  Calendar, 
+  TrendingUp,
+  AlertCircle,
+  RefreshCw
+} from "lucide-react";
+import { progressAnalyticsService, ProgressSummary, ProgressAnalyticsError } from "@/services/progressAnalyticsService";
+import { AchievementNotification } from "./AchievementNotification";
+import { ErrorBoundary } from "./ErrorBoundary";
+import { LoadingSpinner, ErrorState } from "@/components/ui/loading-states";
 
 interface EnhancedProgressTrackerProps {
   studentId: string;
-  studentName?: string;
+  studentName: string;
 }
 
-export function EnhancedProgressTracker({ studentId, studentName = "Student" }: EnhancedProgressTrackerProps) {
-  const [progressSummary, setProgressSummary] = useState<ProgressSummary | null>(null);
+export function EnhancedProgressTracker({ studentId, studentName }: EnhancedProgressTrackerProps) {
+  const [summary, setSummary] = useState<ProgressSummary | null>(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
-  useEffect(() => {
-    loadProgressData();
-  }, [studentId]);
-
-  const loadProgressData = async () => {
+  const loadProgressSummary = async (showLoading = true) => {
     try {
-      setLoading(true);
-      const summary = await progressAnalyticsService.getProgressSummary(studentId);
-      setProgressSummary(summary);
+      if (showLoading) {
+        setLoading(true);
+      }
+      setError(null);
+      
+      if (!studentId) {
+        throw new ProgressAnalyticsError('Student ID is required', 'INVALID_INPUT');
+      }
+      
+      const data = await progressAnalyticsService.getProgressSummary(studentId);
+      setSummary(data);
     } catch (error) {
-      console.error('Error loading progress data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load progress data",
-        variant: "destructive"
-      });
+      console.error('Error loading progress summary:', error);
+      
+      let errorMessage = 'Failed to load progress data';
+      if (error instanceof ProgressAnalyticsError) {
+        switch (error.code) {
+          case 'NETWORK_ERROR':
+            errorMessage = 'Network connection error. Please check your internet connection.';
+            break;
+          case 'UNAUTHORIZED':
+            errorMessage = 'You need to be logged in to view progress.';
+            break;
+          case 'INVALID_INPUT':
+            errorMessage = 'Invalid student data. Please refresh the page.';
+            break;
+          default:
+            errorMessage = error.message;
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-32 bg-gray-200 rounded"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!progressSummary) {
-    return (
-      <div className="text-center py-8">
-        <Target className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-        <p className="text-gray-600">No progress data available yet. Start learning to see your progress!</p>
-      </div>
-    );
-  }
-
-  const getSkillColor = (skill: string) => {
-    const colors: Record<string, string> = {
-      listening: "bg-blue-500",
-      speaking: "bg-green-500",
-      reading: "bg-purple-500",
-      writing: "bg-orange-500",
-      grammar: "bg-red-500",
-      vocabulary: "bg-yellow-500"
-    };
-    return colors[skill] || "bg-gray-500";
+  const handleRetry = () => {
+    setRetryCount(prev => prev + 1);
+    loadProgressSummary();
   };
 
+  useEffect(() => {
+    loadProgressSummary();
+  }, [studentId, retryCount]);
+
+  const handleRefresh = () => {
+    loadProgressSummary(false); // Don't show loading spinner for refresh
+  };
+
+  if (loading) {
+    return (
+      <LoadingSpinner 
+        size="lg" 
+        message="Loading your progress..." 
+      />
+    );
+  }
+
+  if (error) {
+    return (
+      <ErrorState
+        title="Progress Unavailable"
+        message={error}
+        onRetry={handleRetry}
+        retryLabel="Retry Loading"
+      />
+    );
+  }
+
+  if (!summary) {
+    return (
+      <ErrorState
+        title="No Progress Data"
+        message="No progress data available. Start learning to see your progress here!"
+        showIcon={false}
+      />
+    );
+  }
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">Progress Analytics</h1>
-        <Button onClick={loadProgressData} variant="outline" size="sm">
-          <TrendingUp className="h-4 w-4 mr-2" />
-          Refresh
-        </Button>
-      </div>
+    <ErrorBoundary>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">
+              {studentName}'s Progress
+            </h2>
+            <p className="text-gray-600">
+              Track your learning journey and achievements
+            </p>
+          </div>
+          <Button 
+            onClick={handleRefresh} 
+            variant="outline" 
+            size="sm"
+            disabled={loading}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </div>
 
-      {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-blue-600">Total XP</p>
-                <p className="text-2xl font-bold text-blue-900">{progressSummary.totalXP.toLocaleString()}</p>
-              </div>
-              <Zap className="h-8 w-8 text-blue-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-green-50 to-green-100">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-green-600">Current Level</p>
-                <p className="text-2xl font-bold text-green-900">{progressSummary.currentLevel}</p>
-              </div>
-              <Trophy className="h-8 w-8 text-green-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-purple-600">Achievements</p>
-                <p className="text-2xl font-bold text-purple-900">
-                  {progressSummary.achievementsEarned}/{progressSummary.totalAchievements}
-                </p>
-              </div>
-              <Award className="h-8 w-8 text-purple-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-gradient-to-br from-orange-50 to-orange-100">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-orange-600">Weekly Minutes</p>
-                <p className="text-2xl font-bold text-orange-900">{progressSummary.weeklyActivity}</p>
-              </div>
-              <Clock className="h-8 w-8 text-orange-500" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Tabs defaultValue="progress" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="progress">Level Progress</TabsTrigger>
-          <TabsTrigger value="skills">Skills Breakdown</TabsTrigger>
-          <TabsTrigger value="achievements">Achievements</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="progress" className="space-y-4">
+        {/* Main Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Target className="h-5 w-5 text-blue-500" />
-                Level {progressSummary.currentLevel} Progress
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
                 <div>
-                  <div className="flex justify-between mb-2">
-                    <span className="text-sm font-medium">XP Progress to Next Level</span>
-                    <span className="text-sm text-gray-500">{progressSummary.xpProgress.toFixed(1)}%</span>
-                  </div>
-                  <Progress value={progressSummary.xpProgress} className="h-4" />
+                  <p className="text-sm font-medium text-gray-600">Total XP</p>
+                  <p className="text-2xl font-bold text-blue-600">{summary.totalXP.toLocaleString()}</p>
                 </div>
-                
-                <div className="grid grid-cols-2 gap-4 pt-4">
-                  <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">{progressSummary.currentLevel}</div>
-                    <div className="text-sm text-blue-600">Current Level</div>
-                  </div>
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">{progressSummary.currentLevel + 1}</div>
-                    <div className="text-sm text-green-600">Next Level</div>
-                  </div>
-                </div>
+                <Zap className="h-8 w-8 text-yellow-500" />
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
 
-        <TabsContent value="skills" className="space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-green-500" />
-                Skills Breakdown (XP Earned)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {Object.entries(progressSummary.skillBreakdown).map(([skill, xp]) => (
-                  <div key={skill} className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="font-medium capitalize">{skill}</span>
-                      <span className="text-sm text-gray-500">{xp} XP</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded ${getSkillColor(skill)}`}></div>
-                      <Progress 
-                        value={Math.min(100, (xp / Math.max(...Object.values(progressSummary.skillBreakdown))) * 100)} 
-                        className="flex-1 h-2" 
-                      />
-                    </div>
-                  </div>
-                ))}
-                
-                {Object.keys(progressSummary.skillBreakdown).length === 0 && (
-                  <p className="text-center text-gray-500 py-8">
-                    No skill data available yet. Complete lessons to see your progress!
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Current Level</p>
+                  <p className="text-2xl font-bold text-green-600">{summary.currentLevel}</p>
+                </div>
+                <Target className="h-8 w-8 text-green-500" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Achievements</p>
+                  <p className="text-2xl font-bold text-purple-600">
+                    {summary.achievementsEarned}/{summary.totalAchievements}
                   </p>
-                )}
+                </div>
+                <Trophy className="h-8 w-8 text-yellow-500" />
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
 
-        <TabsContent value="achievements" className="space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Award className="h-5 w-5 text-yellow-500" />
-                Recent Achievements
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {progressSummary.recentAchievements.map((achievement) => (
-                  <div key={achievement.id} className="flex items-center gap-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                    <div className="text-2xl">{achievement.achievement?.icon}</div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-yellow-900">{achievement.achievement?.name}</h4>
-                      <p className="text-sm text-yellow-700">{achievement.achievement?.description}</p>
-                      <p className="text-xs text-yellow-600 mt-1">
-                        Earned {new Date(achievement.earned_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                      +{achievement.achievement?.xp_reward} XP
-                    </Badge>
-                  </div>
-                ))}
-                
-                {progressSummary.recentAchievements.length === 0 && (
-                  <p className="text-center text-gray-500 py-8">
-                    No achievements earned yet. Keep learning to unlock your first achievement!
-                  </p>
-                )}
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">This Week</p>
+                  <p className="text-2xl font-bold text-orange-600">{summary.weeklyActivity}m</p>
+                </div>
+                <Calendar className="h-8 w-8 text-orange-500" />
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
+        </div>
 
-        <TabsContent value="analytics" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-indigo-500" />
-                Learning Analytics
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <h4 className="font-medium">Achievement Progress</h4>
-                  <div className="flex items-center gap-2">
-                    <Progress 
-                      value={(progressSummary.achievementsEarned / progressSummary.totalAchievements) * 100} 
-                      className="flex-1 h-2" 
-                    />
-                    <span className="text-sm text-gray-500">
-                      {Math.round((progressSummary.achievementsEarned / progressSummary.totalAchievements) * 100)}%
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <h4 className="font-medium">Weekly Activity Goal</h4>
-                  <div className="flex items-center gap-2">
-                    <Progress 
-                      value={Math.min(100, (progressSummary.weeklyActivity / 300) * 100)} // 300 minutes weekly goal
-                      className="flex-1 h-2" 
-                    />
-                    <span className="text-sm text-gray-500">
-                      {progressSummary.weeklyActivity}/300 min
-                    </span>
-                  </div>
-                </div>
+        {/* Level Progress */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              Level Progress
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">
+                  Level {summary.currentLevel}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {Math.round(summary.xpProgress)}% to next level
+                </span>
               </div>
-              
-              <div className="mt-6 pt-6 border-t">
-                <h4 className="font-medium mb-3">Performance Summary</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-center p-3 bg-blue-50 rounded">
-                    <Star className="h-6 w-6 mx-auto text-blue-500 mb-1" />
-                    <div className="text-sm font-medium">Consistency</div>
-                    <div className="text-xs text-gray-600">
-                      {progressSummary.weeklyActivity > 0 ? "Active" : "Inactive"} this week
-                    </div>
+              <Progress value={summary.xpProgress} className="h-3" />
+              <p className="text-xs text-gray-500">
+                Keep learning to reach the next level!
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Tabs Content */}
+        <Tabs defaultValue="achievements" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="achievements">Recent Achievements</TabsTrigger>
+            <TabsTrigger value="skills">Skill Breakdown</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="achievements" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Achievements</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {summary.recentAchievements.length > 0 ? (
+                  <div className="space-y-3">
+                    {summary.recentAchievements.map((achievement) => (
+                      <div
+                        key={achievement.id}
+                        className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg"
+                      >
+                        <div className="text-2xl">
+                          {achievement.achievement?.icon || '🏆'}
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold">
+                            {achievement.achievement?.name || 'Achievement'}
+                          </h4>
+                          <p className="text-sm text-gray-600">
+                            {achievement.achievement?.description || 'Well done!'}
+                          </p>
+                        </div>
+                        <Badge variant="secondary">
+                          +{achievement.achievement?.xp_reward || 0} XP
+                        </Badge>
+                      </div>
+                    ))}
                   </div>
-                  <div className="text-center p-3 bg-green-50 rounded">
-                    <Trophy className="h-6 w-6 mx-auto text-green-500 mb-1" />
-                    <div className="text-sm font-medium">Achievements</div>
-                    <div className="text-xs text-gray-600">
-                      {progressSummary.achievementsEarned > 0 ? "Great progress!" : "Get started!"}
-                    </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Trophy className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500">
+                      No achievements yet. Keep learning to unlock your first achievement!
+                    </p>
                   </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="skills" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Skill Breakdown</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {Object.keys(summary.skillBreakdown).length > 0 ? (
+                  <div className="space-y-4">
+                    {Object.entries(summary.skillBreakdown).map(([skill, xp]) => (
+                      <div key={skill} className="space-y-2">
+                        <div className="flex justify-between">
+                          <span className="font-medium capitalize">{skill}</span>
+                          <Badge variant="outline">{xp} XP</Badge>
+                        </div>
+                        <Progress 
+                          value={(xp / Math.max(...Object.values(summary.skillBreakdown))) * 100} 
+                          className="h-2" 
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Target className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500">
+                      No skill data yet. Complete lessons to see your skill progress!
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </ErrorBoundary>
   );
 }

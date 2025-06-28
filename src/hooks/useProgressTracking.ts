@@ -1,8 +1,9 @@
 
 import { useState, useCallback } from 'react';
-import { progressAnalyticsService, Achievement } from '@/services/progressAnalyticsService';
+import { progressAnalyticsService, Achievement, ProgressAnalyticsError } from '@/services/progressAnalyticsService';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useErrorBoundary } from '@/hooks/useErrorBoundary';
 
 interface UseProgressTrackingReturn {
   trackLessonCompletion: (lessonData: {
@@ -18,13 +19,48 @@ interface UseProgressTrackingReturn {
   }) => Promise<void>;
   awardXP: (xpAmount: number, reason?: string) => Promise<void>;
   loading: boolean;
+  error: string | null;
   showAchievementNotification: (achievement: Achievement & { xp_reward: number }) => void;
+  clearError: () => void;
 }
 
 export function useProgressTracking(): UseProgressTrackingReturn {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
+  const { handleAsyncError } = useErrorBoundary();
+
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
+  const handleError = useCallback((error: any, context: string) => {
+    console.error(`Progress tracking error in ${context}:`, error);
+    
+    let errorMessage = 'An unexpected error occurred';
+    
+    if (error instanceof ProgressAnalyticsError) {
+      switch (error.code) {
+        case 'NETWORK_ERROR':
+          errorMessage = 'Network connection error. Please check your internet and try again.';
+          break;
+        case 'UNAUTHORIZED':
+          errorMessage = 'You need to be logged in to track progress.';
+          break;
+        case 'INVALID_INPUT':
+          errorMessage = 'Invalid data provided. Please try again.';
+          break;
+        default:
+          errorMessage = error.message;
+      }
+    } else if (error?.message) {
+      errorMessage = error.message;
+    }
+    
+    setError(errorMessage);
+    handleAsyncError(error, context);
+  }, [handleAsyncError]);
 
   const trackLessonCompletion = useCallback(async (lessonData: {
     duration: number;
@@ -32,10 +68,15 @@ export function useProgressTracking(): UseProgressTrackingReturn {
     skillArea: string;
     xpEarned: number;
   }) => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setError('You must be logged in to track progress');
+      return;
+    }
 
     try {
       setLoading(true);
+      setError(null);
+      
       await progressAnalyticsService.trackLessonCompletion(user.id, lessonData);
       
       toast({
@@ -43,26 +84,32 @@ export function useProgressTracking(): UseProgressTrackingReturn {
         description: `You earned ${lessonData.xpEarned} XP for completing this lesson.`,
       });
     } catch (error) {
-      console.error('Error tracking lesson completion:', error);
+      handleError(error, 'lesson completion tracking');
+      
       toast({
-        title: "Error",
-        description: "Failed to update progress",
+        title: "Progress Update Failed",
+        description: error instanceof ProgressAnalyticsError ? error.message : "Failed to update progress",
         variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
-  }, [user?.id, toast]);
+  }, [user?.id, toast, handleError]);
 
   const trackSpeakingPractice = useCallback(async (speakingData: {
     duration: number;
     overallRating: number;
     xpEarned: number;
   }) => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setError('You must be logged in to track progress');
+      return;
+    }
 
     try {
       setLoading(true);
+      setError(null);
+      
       await progressAnalyticsService.trackSpeakingPractice(user.id, speakingData);
       
       toast({
@@ -70,22 +117,28 @@ export function useProgressTracking(): UseProgressTrackingReturn {
         description: `Great speaking session! You earned ${speakingData.xpEarned} XP.`,
       });
     } catch (error) {
-      console.error('Error tracking speaking practice:', error);
+      handleError(error, 'speaking practice tracking');
+      
       toast({
-        title: "Error",
-        description: "Failed to update speaking progress",
+        title: "Progress Update Failed",
+        description: error instanceof ProgressAnalyticsError ? error.message : "Failed to update speaking progress",
         variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
-  }, [user?.id, toast]);
+  }, [user?.id, toast, handleError]);
 
   const awardXP = useCallback(async (xpAmount: number, reason: string = 'Activity completion') => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setError('You must be logged in to earn XP');
+      return;
+    }
 
     try {
       setLoading(true);
+      setError(null);
+      
       const result = await progressAnalyticsService.updateStudentXP(user.id, xpAmount);
       
       if (result?.level_up) {
@@ -100,19 +153,19 @@ export function useProgressTracking(): UseProgressTrackingReturn {
         });
       }
     } catch (error) {
-      console.error('Error awarding XP:', error);
+      handleError(error, 'XP awarding');
+      
       toast({
-        title: "Error",
-        description: "Failed to award XP",
+        title: "XP Award Failed",
+        description: error instanceof ProgressAnalyticsError ? error.message : "Failed to award XP",
         variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
-  }, [user?.id, toast]);
+  }, [user?.id, toast, handleError]);
 
   const showAchievementNotification = useCallback((achievement: Achievement & { xp_reward: number }) => {
-    // This would typically trigger a global notification component
     toast({
       title: `🏆 Achievement Unlocked: ${achievement.name}`,
       description: `${achievement.description} (+${achievement.xp_reward} XP)`,
@@ -124,6 +177,8 @@ export function useProgressTracking(): UseProgressTrackingReturn {
     trackSpeakingPractice,
     awardXP,
     loading,
-    showAchievementNotification
+    error,
+    showAchievementNotification,
+    clearError
   };
 }

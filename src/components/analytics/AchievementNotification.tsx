@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { X, Trophy, Star, Zap } from "lucide-react";
+import { X, Trophy, Star, Zap, AlertCircle } from "lucide-react";
 import { Achievement } from "@/services/progressAnalyticsService";
 
 interface AchievementNotificationProps {
@@ -20,21 +20,56 @@ export function AchievementNotification({
   duration = 5000
 }: AchievementNotificationProps) {
   const [isVisible, setIsVisible] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (autoClose) {
+    // Validate achievement data
+    if (!achievement || !achievement.name || !achievement.description) {
+      setError('Invalid achievement data');
+      return;
+    }
+
+    if (autoClose && duration > 0) {
       const timer = setTimeout(() => {
         handleClose();
       }, duration);
 
       return () => clearTimeout(timer);
     }
-  }, [autoClose, duration]);
+  }, [autoClose, duration, achievement]);
 
   const handleClose = () => {
-    setIsVisible(false);
-    setTimeout(onClose, 300); // Allow fade out animation
+    try {
+      setIsVisible(false);
+      setTimeout(() => {
+        onClose();
+      }, 300); // Allow fade out animation
+    } catch (error) {
+      console.error('Error closing achievement notification:', error);
+      onClose(); // Fallback to immediate close
+    }
   };
+
+  if (error) {
+    return (
+      <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-right duration-300">
+        <Card className="bg-red-50 border-2 border-red-200 shadow-lg max-w-sm">
+          <div className="p-4 flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 text-red-500" />
+            <span className="text-sm text-red-700">{error}</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="h-6 w-6 p-0 text-red-400 hover:text-red-600"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   if (!isVisible) return null;
 
@@ -60,7 +95,9 @@ export function AchievementNotification({
           </div>
 
           <div className="flex items-center gap-3 mb-3">
-            <div className="text-3xl">{achievement.icon}</div>
+            <div className="text-3xl" role="img" aria-label={achievement.name}>
+              {achievement.icon || '🏆'}
+            </div>
             <div className="flex-1">
               <h4 className="font-bold text-yellow-900">{achievement.name}</h4>
               <p className="text-sm text-yellow-700">{achievement.description}</p>
@@ -69,11 +106,11 @@ export function AchievementNotification({
 
           <div className="flex items-center justify-between">
             <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-              {achievement.category}
+              {achievement.category || 'Achievement'}
             </Badge>
             <div className="flex items-center gap-1 text-sm font-semibold text-yellow-800">
               <Zap className="h-4 w-4" />
-              +{achievement.xp_reward} XP
+              +{achievement.xp_reward || 0} XP
             </div>
           </div>
 
