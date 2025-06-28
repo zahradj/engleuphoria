@@ -1,6 +1,3 @@
-
-import { supabase } from '@/integrations/supabase/client';
-
 export interface Assignment {
   id: string;
   title: string;
