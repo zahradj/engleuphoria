@@ -9,6 +9,42 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          icon: string
+          id: string
+          is_active: boolean
+          name: string
+          requirements: Json
+          xp_reward: number
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description: string
+          icon: string
+          id?: string
+          is_active?: boolean
+          name: string
+          requirements?: Json
+          xp_reward?: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          requirements?: Json
+          xp_reward?: number
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           content: string
@@ -437,6 +473,45 @@ export type Database = {
           },
         ]
       }
+      learning_analytics: {
+        Row: {
+          accuracy_score: number | null
+          activity_type: string
+          completion_rate: number | null
+          id: string
+          metadata: Json | null
+          recorded_at: string
+          session_duration: number
+          skill_area: string
+          student_id: string
+          xp_earned: number
+        }
+        Insert: {
+          accuracy_score?: number | null
+          activity_type: string
+          completion_rate?: number | null
+          id?: string
+          metadata?: Json | null
+          recorded_at?: string
+          session_duration?: number
+          skill_area: string
+          student_id: string
+          xp_earned?: number
+        }
+        Update: {
+          accuracy_score?: number | null
+          activity_type?: string
+          completion_rate?: number | null
+          id?: string
+          metadata?: Json | null
+          recorded_at?: string
+          session_duration?: number
+          skill_area?: string
+          student_id?: string
+          xp_earned?: number
+        }
+        Relationships: []
+      }
       lesson_feedback_submissions: {
         Row: {
           feedback_content: string
@@ -804,6 +879,39 @@ export type Database = {
         }
         Relationships: []
       }
+      performance_metrics: {
+        Row: {
+          created_at: string
+          date_recorded: string
+          id: string
+          metadata: Json | null
+          metric_type: string
+          metric_value: number
+          student_id: string
+          time_period: string
+        }
+        Insert: {
+          created_at?: string
+          date_recorded?: string
+          id?: string
+          metadata?: Json | null
+          metric_type: string
+          metric_value: number
+          student_id: string
+          time_period: string
+        }
+        Update: {
+          created_at?: string
+          date_recorded?: string
+          id?: string
+          metadata?: Json | null
+          metric_type?: string
+          metric_value?: number
+          student_id?: string
+          time_period?: string
+        }
+        Relationships: []
+      }
       speaking_progress: {
         Row: {
           badges_earned: string[] | null
@@ -942,6 +1050,71 @@ export type Database = {
           session_type?: string
           student_id?: string
           xp_earned?: number
+        }
+        Relationships: []
+      }
+      student_achievements: {
+        Row: {
+          achievement_id: string
+          earned_at: string
+          id: string
+          progress: Json | null
+          student_id: string
+        }
+        Insert: {
+          achievement_id: string
+          earned_at?: string
+          id?: string
+          progress?: Json | null
+          student_id: string
+        }
+        Update: {
+          achievement_id?: string
+          earned_at?: string
+          id?: string
+          progress?: Json | null
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_xp: {
+        Row: {
+          created_at: string
+          current_level: number
+          id: string
+          last_activity_date: string | null
+          student_id: string
+          total_xp: number
+          updated_at: string
+          xp_in_current_level: number
+        }
+        Insert: {
+          created_at?: string
+          current_level?: number
+          id?: string
+          last_activity_date?: string | null
+          student_id: string
+          total_xp?: number
+          updated_at?: string
+          xp_in_current_level?: number
+        }
+        Update: {
+          created_at?: string
+          current_level?: number
+          id?: string
+          last_activity_date?: string | null
+          student_id?: string
+          total_xp?: number
+          updated_at?: string
+          xp_in_current_level?: number
         }
         Relationships: []
       }
@@ -1575,6 +1748,10 @@ export type Database = {
         Args: { room_uuid: string; user_uuid: string }
         Returns: boolean
       }
+      check_achievements: {
+        Args: { student_uuid: string; activity_data: Json }
+        Returns: Json[]
+      }
       generate_room_id: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -1610,6 +1787,10 @@ export type Database = {
       reset_monthly_class_usage: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      update_student_xp: {
+        Args: { student_uuid: string; xp_to_add: number }
+        Returns: Json
       }
       update_teacher_performance_metrics: {
         Args: { teacher_uuid: string }
