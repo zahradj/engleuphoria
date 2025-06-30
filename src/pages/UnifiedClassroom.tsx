@@ -58,17 +58,12 @@ function UnifiedClassroomInner() {
       try {
         console.log('🔄 Attempting classroom reconnection...');
         
-        // Try to reinitialize the video service
-        if (enhancedClassroom.videoService) {
-          await enhancedClassroom.videoService.initialize();
-        }
-        
-        // Try to rejoin the room
-        if (!enhancedClassroom.isConnected) {
+        // Try to rejoin the room using available methods
+        if (!enhancedClassroom.isConnected && enhancedClassroom.joinRoom) {
           await enhancedClassroom.joinRoom();
         }
         
-        // Reconnect real-time sync
+        // Reconnect real-time sync if available
         if (enhancedClassroom.realTimeSync && !enhancedClassroom.realTimeSync.isConnected) {
           await enhancedClassroom.realTimeSync.connectToSync();
         }
