@@ -13,6 +13,7 @@ import { MobileVideoPanel } from "@/components/classroom/mobile/MobileVideoPanel
 import { CelebrationOverlay } from "@/components/classroom/rewards/CelebrationOverlay";
 import { useRewardNotifications } from "@/hooks/classroom/useRewardNotifications";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useConnectionRecovery } from "@/hooks/enhanced-classroom/useConnectionRecovery";
 
 function UnifiedClassroomInner() {
   console.log("UnifiedClassroom component is rendering");
@@ -49,6 +50,40 @@ function UnifiedClassroomInner() {
     userRole: currentUser.role
   });
 
+  // Enhanced connection recovery with better error handling
+  const { isRecovering, manualRetry } = useConnectionRecovery({
+    isConnected: enhancedClassroom.isConnected,
+    error: enhancedClassroom.error,
+    onReconnect: async () => {
+      try {
+        console.log('🔄 Attempting classroom reconnection...');
+        
+        // Try to reinitialize the video service
+        if (enhancedClassroom.videoService) {
+          await enhancedClassroom.videoService.initialize();
+        }
+        
+        // Try to rejoin the room
+        if (!enhancedClassroom.isConnected) {
+          await enhancedClassroom.joinRoom();
+        }
+        
+        // Reconnect real-time sync
+        if (enhancedClassroom.realTimeSync && !enhancedClassroom.realTimeSync.isConnected) {
+          await enhancedClassroom.realTimeSync.connectToSync();
+        }
+        
+        console.log('✅ Classroom reconnection attempt completed');
+        
+      } catch (error) {
+        console.error('❌ Classroom reconnection failed:', error);
+        throw error;
+      }
+    },
+    maxRetries: 5,
+    retryDelay: 3000
+  });
+
   console.log("Enhanced unified classroom state:", {
     isConnected: enhancedClassroom.isConnected,
     isMuted: enhancedClassroom.isMuted,
@@ -59,7 +94,8 @@ function UnifiedClassroomInner() {
     roomId: finalRoomId,
     error: enhancedClassroom.error,
     hasSession: !!enhancedClassroom.session,
-    syncConnected: enhancedClassroom.realTimeSync?.isConnected
+    syncConnected: enhancedClassroom.realTimeSync?.isConnected,
+    isRecovering
   });
 
   // Enhanced award points function with celebrations
@@ -68,16 +104,21 @@ function UnifiedClassroomInner() {
     showRewardNotification(points, reason);
   };
 
-  // Show error if there are issues
+  // Show error toast but don't block the UI
   useEffect(() => {
-    if (enhancedClassroom.error) {
-      toast({
-        title: "Connection Issue",
-        description: enhancedClassroom.error,
-        variant: "destructive"
-      });
+    if (enhancedClassroom.error && !isRecovering) {
+      console.warn('Classroom error detected:', enhancedClassroom.error);
+      
+      // Only show error toast if it's not a recoverable connection issue
+      if (!enhancedClassroom.error.includes('session') && !enhancedClassroom.error.includes('connection')) {
+        toast({
+          title: "Classroom Warning",
+          description: enhancedClassroom.error,
+          variant: "destructive"
+        });
+      }
     }
-  }, [enhancedClassroom.error, toast]);
+  }, [enhancedClassroom.error, toast, isRecovering]);
 
   // Mobile video component
   const mobileVideoContent = (
@@ -141,7 +182,11 @@ function UnifiedClassroomInner() {
     );
   } catch (error) {
     console.error("Error rendering UnifiedClassroom:", error);
-    return <UnifiedClassroomErrorBoundary error={enhancedClassroom.error} />;
+    return (
+      <UnifiedClassroomErrorBoundary 
+        error={enhancedClassroom.error || 'An unexpected error occurred'} 
+      />
+    );
   }
 }
 

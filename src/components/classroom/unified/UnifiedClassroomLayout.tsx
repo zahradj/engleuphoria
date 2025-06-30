@@ -1,8 +1,10 @@
 
 import React from "react";
 import { Card } from "@/components/ui/card";
-import { UnifiedTopBar } from "./UnifiedTopBar";
-import { useUnifiedClassroomContext } from "./UnifiedClassroomProvider";
+import { Badge } from "@/components/ui/badge";
+import { Clock, Users, Video, Wifi } from "lucide-react";
+import { ConnectionManager } from "./components/ConnectionManager";
+import { useConnectionRecovery } from "@/hooks/enhanced-classroom/useConnectionRecovery";
 
 interface UnifiedClassroomLayoutProps {
   children: React.ReactNode;
@@ -15,38 +17,108 @@ export function UnifiedClassroomLayout({
   classTime, 
   enhancedClassroom 
 }: UnifiedClassroomLayoutProps) {
-  const { currentUser, finalRoomId } = useUnifiedClassroomContext();
+  
+  const formatTime = (seconds: number): string => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    if (hours > 0) {
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Enhanced connection recovery
+  const { retryCount, isRecovering, manualRetry } = useConnectionRecovery({
+    isConnected: enhancedClassroom?.isConnected || false,
+    error: enhancedClassroom?.error || null,
+    onReconnect: async () => {
+      if (enhancedClassroom?.videoService) {
+        try {
+          // Attempt to reconnect the video service
+          await enhancedClassroom.videoService.initialize();
+          if (!enhancedClassroom.isConnected) {
+            await enhancedClassroom.joinRoom();
+          }
+        } catch (error) {
+          console.error('Reconnection failed:', error);
+          throw error;
+        }
+      }
+    },
+    maxRetries: 5,
+    retryDelay: 3000
+  });
+
+  const handleRefreshPage = () => {
+    window.location.reload();
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/80 to-indigo-100/90 relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_1200px_800px_at_50%_-20%,rgba(120,119,198,0.1),transparent)] pointer-events-none"></div>
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_800px_600px_at_80%_100%,rgba(147,51,234,0.08),transparent)] pointer-events-none"></div>
-      
-      {/* Floating Elements - Hidden on mobile */}
-      <div className="hidden lg:block fixed top-16 left-8 w-64 h-64 bg-gradient-to-br from-blue-300/15 to-cyan-200/15 rounded-full blur-3xl animate-float-slow pointer-events-none"></div>
-      <div className="hidden lg:block fixed bottom-16 right-8 w-56 h-56 bg-gradient-to-br from-violet-300/10 to-pink-200/10 rounded-full blur-3xl animate-float-delayed pointer-events-none"></div>
-      
-      {/* Top Bar */}
-      <div className="sticky top-0 z-50 h-12 sm:h-16 p-2 sm:p-3">
-        <div className="h-full glass-enhanced backdrop-blur-xl border border-white/30 rounded-lg sm:rounded-xl shadow-lg">
-          <Card className="h-full p-2 sm:p-3 shadow-none border-0 bg-transparent">
-            <UnifiedTopBar
-              classTime={classTime}
-              currentUser={currentUser}
-              enhancedClassroom={enhancedClassroom}
-              roomId={finalRoomId}
-            />
-          </Card>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      {/* Header */}
+      <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-40">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <h1 className="text-xl font-bold text-gray-800">Enhanced Classroom</h1>
+              <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                <Video className="h-3 w-3 mr-1" />
+                Live Session
+              </Badge>
+            </div>
+            
+            <div className="flex items-center gap-6">
+              {/* Class Timer */}
+              <div className="flex items-center gap-2 text-sm">
+                <Clock className="h-4 w-4 text-gray-500" />
+                <span className="font-mono text-gray-700">{formatTime(classTime)}</span>
+              </div>
+
+              {/* Participants Count */}
+              <div className="flex items-center gap-2 text-sm">
+                <Users className="h-4 w-4 text-gray-500" />
+                <span className="text-gray-700">
+                  {enhancedClassroom?.participants?.length || 0} participants
+                </span>
+              </div>
+
+              {/* Connection Status */}
+              <ConnectionManager
+                isConnected={enhancedClassroom?.isConnected || false}
+                error={enhancedClassroom?.error}
+                onRetry={manualRetry}
+                onRefresh={handleRefreshPage}
+                connectionQuality={enhancedClassroom?.connectionQuality}
+              />
+            </div>
+          </div>
         </div>
-      </div>
+      </header>
 
       {/* Main Content */}
-      <div className="px-2 sm:px-4 pb-2 sm:pb-4 relative z-10">
-        <div className="animate-fade-in-up">
-          {children}
+      <main className="container mx-auto px-4 py-6">
+        <Card className="bg-white/70 backdrop-blur-sm border-0 shadow-xl">
+          <div className="p-6">
+            {children}
+          </div>
+        </Card>
+      </main>
+
+      {/* Recovery Status Indicator */}
+      {isRecovering && (
+        <div className="fixed bottom-4 right-4 z-50">
+          <Card className="p-3 bg-blue-50 border-blue-200">
+            <div className="flex items-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+              <span className="text-sm text-blue-700">
+                Reconnecting... ({retryCount}/5)
+              </span>
+            </div>
+          </Card>
         </div>
-      </div>
+      )}
     </div>
   );
 }
