@@ -6,8 +6,9 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useRealTimeChat } from '@/hooks/useRealTimeChat';
 import { ChatMessage } from '@/services/chatService';
-import { Send, Paperclip, Download } from 'lucide-react';
+import { Send, Paperclip, Download, AlertCircle, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
+import { LoadingSpinner, ErrorState } from '@/components/ui/loading-states';
 
 interface RealTimeChatPanelProps {
   roomId: string;
@@ -81,7 +82,7 @@ export function RealTimeChatPanel({ roomId, currentUser }: RealTimeChatPanelProp
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  const { messages, isLoading, isSending, sendMessage, sendFile } = useRealTimeChat({
+  const { messages, isLoading, isSending, error, retryCount, sendMessage, sendFile, retry } = useRealTimeChat({
     roomId,
     userId: currentUser.id,
     userName: currentUser.name,
@@ -119,24 +120,48 @@ export function RealTimeChatPanel({ roomId, currentUser }: RealTimeChatPanelProp
     }
   };
 
-  if (isLoading) {
+  if (isLoading && messages.length === 0) {
     return (
       <Card className="h-full flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500 mx-auto mb-2"></div>
-          <p className="text-sm text-gray-500">Loading chat...</p>
-        </div>
+        <LoadingSpinner message="Loading chat..." />
+      </Card>
+    );
+  }
+
+  if (error && messages.length === 0) {
+    return (
+      <Card className="h-full flex items-center justify-center p-4">
+        <ErrorState
+          title="Chat Error"
+          message={`${error.message}${retryCount > 0 ? ` (Attempt ${retryCount}/3)` : ''}`}
+          onRetry={retry}
+          retryLabel="Retry Loading Chat"
+        />
       </Card>
     );
   }
 
   return (
     <Card className="h-full flex flex-col">
-      <div className="p-3 border-b">
-        <h3 className="font-semibold text-sm">Class Chat</h3>
-        <p className="text-xs text-gray-500">
-          {messages.length} messages
-        </p>
+      <div className="p-3 border-b flex items-center justify-between">
+        <div>
+          <h3 className="font-semibold text-sm">Class Chat</h3>
+          <p className="text-xs text-gray-500">
+            {messages.length} messages
+          </p>
+        </div>
+        
+        {error && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={retry}
+            className="text-red-600 hover:text-red-700"
+          >
+            <AlertCircle size={16} className="mr-1" />
+            <RefreshCw size={12} />
+          </Button>
+        )}
       </div>
 
       <ScrollArea className="flex-1 p-3">
@@ -160,6 +185,15 @@ export function RealTimeChatPanel({ roomId, currentUser }: RealTimeChatPanelProp
       </ScrollArea>
 
       <div className="p-3 border-t">
+        {error && (
+          <div className="mb-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-700">
+            <div className="flex items-center gap-1">
+              <AlertCircle size={12} />
+              {error.message}
+            </div>
+          </div>
+        )}
+        
         <form onSubmit={handleSendMessage} className="flex gap-2">
           <Input
             value={inputMessage}
@@ -185,7 +219,7 @@ export function RealTimeChatPanel({ roomId, currentUser }: RealTimeChatPanelProp
             <Paperclip size={16} />
           </Button>
           <Button type="submit" disabled={isSending || !inputMessage.trim()}>
-            <Send size={16} />
+            {isSending ? <RefreshCw size={16} className="animate-spin" /> : <Send size={16} />}
           </Button>
         </form>
       </div>
