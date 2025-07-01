@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { TeacherProfile } from "@/types/teacher-discovery";
-import { mockTeachers } from "@/data/mock-teachers";
+import { getTeachers } from "@/data/teachers";
 import { TeacherSearchFilters } from "@/components/teacher-discovery/TeacherSearchFilters";
 import { TeacherCard } from "@/components/teacher-discovery/TeacherCard";
 import { useTeacherFilters } from "@/hooks/useTeacherFilters";
@@ -36,9 +36,10 @@ const TeacherDiscovery = () => {
 
   const fetchTeachers = async () => {
     try {
-      console.log('Setting mock teachers data...');
-      setTeachers(mockTeachers);
-      console.log('Mock teachers set:', mockTeachers);
+      console.log('Loading teachers data...');
+      const teachersData = await getTeachers();
+      setTeachers(teachersData);
+      console.log('Teachers loaded:', teachersData);
     } catch (error) {
       console.error('Error fetching teachers:', error);
       toast({

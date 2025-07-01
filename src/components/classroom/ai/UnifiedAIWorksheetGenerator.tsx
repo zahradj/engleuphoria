@@ -40,7 +40,7 @@ export function UnifiedAIWorksheetGenerator({
     generateContent,
     clearContentLibrary,
     exportContent,
-    isDemoMode
+    isProduction
   } = useUnifiedAIContent();
 
   // Timer for elapsed time
@@ -123,7 +123,7 @@ export function UnifiedAIWorksheetGenerator({
 
   return (
     <div className="h-full flex flex-col bg-white rounded-lg overflow-hidden">
-      <AIGeneratorHeader isDemoMode={isDemoMode} />
+      <AIGeneratorHeader isDemoMode={!isProduction} />
 
       <ProgressTracker
         isGenerating={isGenerating}

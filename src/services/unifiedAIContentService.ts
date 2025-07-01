@@ -26,8 +26,8 @@ class UnifiedAIContentService {
     return contentLibraryService.exportContent(content);
   }
 
-  isDemoModeActive(): boolean {
-    return contentLibraryService.isDemoModeActive();
+  isProduction(): boolean {
+    return contentLibraryService.isProduction();
   }
 
   getEstimatedGenerationTime(type: string): number {

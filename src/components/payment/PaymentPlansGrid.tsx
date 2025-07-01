@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, Star, CreditCard, Smartphone, Building2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { getMockPricingPlans, PricingPlan } from "@/services/mockPricingData";
+import { getPricingPlans, PricingPlan } from "@/services/pricingData";
 
 interface PaymentPlansGridProps {
   onPlanSelect?: (planId: string, gateway: string) => void;
@@ -23,7 +22,7 @@ export const PaymentPlansGrid: React.FC<PaymentPlansGridProps> = ({ onPlanSelect
 
   const loadPlans = async () => {
     try {
-      const data = await getMockPricingPlans();
+      const data = await getPricingPlans();
       setPlans(data);
     } catch (error) {
       toast({

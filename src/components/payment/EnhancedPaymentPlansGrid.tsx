@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, Star, CreditCard, Smartphone, Building2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { getRegionalPlans, RegionalPricingPlan } from "@/services/enhancedPricingData";
+import { getRegionalPlans, RegionalPricingPlan } from "@/services/pricingData";
 import { getRegionConfig } from "@/services/locationService";
 
 interface EnhancedPaymentPlansGridProps {
