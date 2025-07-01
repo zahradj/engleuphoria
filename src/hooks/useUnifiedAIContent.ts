@@ -1,87 +1,78 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { aiContentApiService } from '@/services/ai/aiContentApiService';
+import { contentLibraryService } from '@/services/ai/contentLibraryService';
+import { ContentLibraryItem, AIContentRequest } from '@/services/ai/types';
 import { useToast } from '@/hooks/use-toast';
-import { unifiedAIContentService } from '@/services/unifiedAIContentService';
-import type { AIContentRequest, AIGeneratedContent, ContentLibraryItem } from '@/services/ai/types';
 
-export const useUnifiedAIContent = () => {
-  const [isGenerating, setIsGenerating] = useState(false);
+export function useUnifiedAIContent() {
   const [contentLibrary, setContentLibrary] = useState<ContentLibraryItem[]>(
-    unifiedAIContentService.getContentLibrary()
+    contentLibraryService.getContentLibrary()
   );
+  const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
-  const generateContent = async (request: AIContentRequest): Promise<AIGeneratedContent | null> => {
-    setIsGenerating(true);
-    
+  const generateContent = useCallback(async (request: AIContentRequest) => {
     try {
-      const generatedContent = await unifiedAIContentService.generateContent(request);
+      setIsGenerating(true);
       
-      // Update library state
-      setContentLibrary(unifiedAIContentService.getContentLibrary());
+      const content = await aiContentApiService.generateContent(request);
       
-      const isDemoMode = unifiedAIContentService.isDemoModeActive();
+      contentLibraryService.addToLibrary(content);
+      setContentLibrary(contentLibraryService.getContentLibrary());
       
       toast({
-        title: `🤖 Content Generated!`,
-        description: `Your ${request.type.replace('_', ' ')} is ready to use${isDemoMode ? ' (demo mode)' : ''}.`,
+        title: "Content Generated",
+        description: `${content.type} for ${content.topic} has been created successfully.`,
       });
-
-      return generatedContent;
+      
+      return content;
     } catch (error) {
-      console.error('Content generation error:', error);
+      console.error('Content generation failed:', error);
       toast({
         title: "Generation Failed",
-        description: "Failed to generate content. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to generate content",
         variant: "destructive"
       });
-      return null;
+      throw error;
     } finally {
       setIsGenerating(false);
     }
-  };
+  }, [toast]);
 
-  const clearContentLibrary = () => {
-    unifiedAIContentService.clearLibrary();
+  const clearContentLibrary = useCallback(() => {
+    contentLibraryService.clearLibrary();
     setContentLibrary([]);
     toast({
       title: "Library Cleared",
       description: "All generated content has been removed.",
     });
-  };
+  }, [toast]);
 
-  const exportContent = (content: ContentLibraryItem) => {
-    try {
-      const dataStr = unifiedAIContentService.exportContent(content);
-      const dataBlob = new Blob([dataStr], { type: 'application/json' });
-      const url = URL.createObjectURL(dataBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${content.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
-      link.click();
-      URL.revokeObjectURL(url);
-      
-      toast({
-        title: "Content Exported",
-        description: `${content.title} has been downloaded.`,
-      });
-    } catch (error) {
-      toast({
-        title: "Export Failed",
-        description: "Failed to export content.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const isDemoMode = unifiedAIContentService.isDemoModeActive();
+  const exportContent = useCallback((content: ContentLibraryItem) => {
+    const exportData = contentLibraryService.exportContent(content);
+    const blob = new Blob([exportData], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${content.title.replace(/\s+/g, '_')}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Content Exported",
+      description: `${content.title} has been downloaded.`,
+    });
+  }, [toast]);
 
   return {
-    isGenerating,
     contentLibrary,
+    isGenerating,
     generateContent,
     clearContentLibrary,
     exportContent,
-    isDemoMode
+    isProduction: contentLibraryService.isProduction()
   };
-};
+}

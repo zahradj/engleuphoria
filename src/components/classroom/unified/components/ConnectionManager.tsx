@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -76,7 +76,7 @@ export function ConnectionManager({
         <span className={status.color}>Connected</span>
         {connectionQuality && (
           <Badge variant="outline" className="text-xs">
-            {connectionQuality}
+            Quality: {connectionQuality}
           </Badge>
         )}
       </div>
@@ -94,7 +94,7 @@ export function ConnectionManager({
             </h4>
             <p className="text-sm text-red-700 mb-3">
               {error.includes('session') || error.includes('Session') 
-                ? "There was a problem connecting to the classroom session. This might be due to network issues or server maintenance."
+                ? "Unable to connect to the classroom session. Please check your internet connection and try again."
                 : error
               }
             </p>
