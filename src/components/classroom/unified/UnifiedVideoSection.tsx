@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { useMediaContext } from "@/components/classroom/oneonone/video/MediaContext";
@@ -58,7 +57,7 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
     userId: properUserId,
     userRole: currentUser.role
   });
-  
+
   // Get the appropriate media properties based on user role
   const getMediaState = () => {
     try {
@@ -171,7 +170,7 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
           <div className="w-full h-full flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
-              <p className="text-gray-500">Connecting to session...</p>
+              <p className="text-gray-500">Waiting for teacher...</p>
             </div>
           </div>
         </Card>
