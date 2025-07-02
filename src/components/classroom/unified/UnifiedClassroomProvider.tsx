@@ -1,129 +1,134 @@
 
-import React, { useState, useEffect, useMemo } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
-
-interface UserProfile {
-  id: string;
-  name: string;
-  role: 'teacher' | 'student';
-  avatar?: string;
-}
 
 interface UnifiedClassroomContextType {
-  currentUser: UserProfile;
+  currentUser: {
+    id: string;
+    name: string;
+    role: 'teacher' | 'student';
+  };
   finalRoomId: string;
-  hasShownWelcome: boolean;
-  setHasShownWelcome: (value: boolean) => void;
+  isLoading: boolean;
+  error: string | null;
 }
 
-const UnifiedClassroomContext = React.createContext<UnifiedClassroomContextType | null>(null);
+const UnifiedClassroomContext = createContext<UnifiedClassroomContextType | undefined>(undefined);
 
-export const useUnifiedClassroomContext = () => {
-  const context = React.useContext(UnifiedClassroomContext);
-  if (!context) {
-    throw new Error('useUnifiedClassroomContext must be used within UnifiedClassroomProvider');
-  }
-  return context;
-};
-
-interface UnifiedClassroomProviderProps {
-  children: React.ReactNode;
-}
-
-export function UnifiedClassroomProvider({ children }: UnifiedClassroomProviderProps) {
-  const { roomId } = useParams();
+export function UnifiedClassroomProvider({ children }: { children: React.ReactNode }) {
   const [searchParams] = useSearchParams();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
-  const [hasShownWelcome, setHasShownWelcome] = useState(false);
-  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
 
-  // Get user from Supabase auth
+  // Get URL parameters
+  const roomId = searchParams.get("roomId") || "unified-classroom-default";
+  const role = (searchParams.get("role") || "student") as 'teacher' | 'student';
+  const name = searchParams.get("name") || "User";
+  const userId = searchParams.get("userId");
+
+  // State for current user
+  const [currentUser, setCurrentUser] = useState({
+    id: userId || '',
+    name,
+    role
+  });
+
   useEffect(() => {
-    const getUserProfile = async () => {
+    const initializeUser = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        setIsLoading(true);
+        setError(null);
+
+        // Check if user is authenticated
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
         
-        if (!user) {
-          // If no authenticated user, use URL parameters as fallback
-          const roleParam = searchParams.get('role') as 'teacher' | 'student' || 'student';
-          const nameParam = searchParams.get('name') || (roleParam === 'teacher' ? 'Teacher' : 'Student');
-          
-          setCurrentUser({
-            id: `temp-${Date.now()}`,
-            name: nameParam,
-            role: roleParam
-          });
+        if (authError) {
+          console.error('Authentication error:', authError);
+          setError('Authentication required. Please log in to join the classroom.');
           return;
         }
 
-        // Get user role from users table or URL parameter
-        const { data: userData } = await supabase
-          .from('users')
-          .select('full_name, role')
-          .eq('id', user.id)
-          .single();
+        if (user) {
+          // Use authenticated user ID
+          setCurrentUser({
+            id: user.id,
+            name: user.user_metadata?.full_name || user.email || name,
+            role
+          });
+        } else if (userId) {
+          // Use provided user ID (for development/testing)
+          setCurrentUser({
+            id: userId,
+            name,
+            role
+          });
+        } else {
+          setError('User authentication required to access classroom.');
+          return;
+        }
 
-        const roleParam = searchParams.get('role') as 'teacher' | 'student';
-        const finalRole = roleParam || userData?.role || 'student';
-        const finalName = userData?.full_name || user.email?.split('@')[0] || 'User';
-
-        setCurrentUser({
-          id: user.id,
-          name: finalName,
-          role: finalRole
+        console.log('🏫 Classroom user initialized:', {
+          id: currentUser.id,
+          name: currentUser.name,
+          role: currentUser.role,
+          roomId
         });
 
       } catch (error) {
-        console.error('Error getting user profile:', error);
+        console.error('Failed to initialize classroom user:', error);
+        setError('Failed to initialize classroom. Please refresh and try again.');
         
-        // Fallback to URL parameters
-        const roleParam = searchParams.get('role') as 'teacher' | 'student' || 'student';
-        const nameParam = searchParams.get('name') || (roleParam === 'teacher' ? 'Teacher' : 'Student');
-        
-        setCurrentUser({
-          id: `fallback-${Date.now()}`,
-          name: nameParam,
-          role: roleParam
+        toast({
+          title: "Initialization Error",
+          description: "Failed to set up classroom connection. Please refresh the page.",
+          variant: "destructive"
         });
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    getUserProfile();
-  }, [searchParams]);
+    initializeUser();
+  }, [userId, name, role, roomId, toast]);
 
-  const finalRoomId = useMemo(() => roomId || "classroom-1", [roomId]);
-
-  // Show welcome message only once
-  useEffect(() => {
-    if (!hasShownWelcome && currentUser?.role) {
-      const welcomeMessage = currentUser.role === 'teacher' 
-        ? `Welcome to the classroom, ${currentUser.name}! You have full teaching controls and session management.`
-        : `Welcome to the classroom, ${currentUser.name}! Enjoy the interactive learning experience.`;
-      
-      toast({
-        title: `${currentUser.role === 'teacher' ? '👩‍🏫' : '👨‍🎓'} ${currentUser.role === 'teacher' ? 'Teacher' : 'Student'} Mode`,
-        description: welcomeMessage,
-      });
-      
-      setHasShownWelcome(true);
-    }
-  }, [currentUser?.role, currentUser?.name, toast, hasShownWelcome]);
-
-  if (!currentUser) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Connecting to classroom...</p>
+        </div>
       </div>
     );
   }
 
-  const contextValue = {
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-red-800 mb-2">Connection Error</h2>
+            <p className="text-red-600 mb-4">{error}</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+            >
+              Refresh Page
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const contextValue: UnifiedClassroomContextType = {
     currentUser,
-    finalRoomId,
-    hasShownWelcome,
-    setHasShownWelcome
+    finalRoomId: roomId,
+    isLoading,
+    error
   };
 
   return (
@@ -131,4 +136,12 @@ export function UnifiedClassroomProvider({ children }: UnifiedClassroomProviderP
       {children}
     </UnifiedClassroomContext.Provider>
   );
+}
+
+export function useUnifiedClassroomContext() {
+  const context = useContext(UnifiedClassroomContext);
+  if (context === undefined) {
+    throw new Error('useUnifiedClassroomContext must be used within a UnifiedClassroomProvider');
+  }
+  return context;
 }

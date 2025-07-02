@@ -70,11 +70,6 @@ export function ContentLibraryTab({
                           {Math.round(item.metadata.generationTime / 1000)}s
                         </Badge>
                       )}
-                      {item.metadata.isMockData && (
-                        <Badge variant="outline" className="text-xs text-yellow-600">
-                          Mock
-                        </Badge>
-                      )}
                     </div>
                   </div>
                 </div>

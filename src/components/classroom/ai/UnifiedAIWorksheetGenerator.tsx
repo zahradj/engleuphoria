@@ -123,7 +123,7 @@ export function UnifiedAIWorksheetGenerator({
 
   return (
     <div className="h-full flex flex-col bg-white rounded-lg overflow-hidden">
-      <AIGeneratorHeader isDemoMode={!isProduction} />
+      <AIGeneratorHeader />
 
       <ProgressTracker
         isGenerating={isGenerating}

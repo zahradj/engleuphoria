@@ -1,9 +1,8 @@
 
 import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle, Wifi } from "lucide-react";
+import { Wifi } from "lucide-react";
 import { AIHeader } from "./components/AIHeader";
 import { ContentLibraryTab } from "./components/ContentLibraryTab";
 import { useUnifiedAIContent } from "@/hooks/useUnifiedAIContent";
@@ -12,8 +11,7 @@ export const EnhancedAIAssistant = () => {
   const {
     contentLibrary,
     clearContentLibrary,
-    exportContent,
-    isProduction
+    exportContent
   } = useUnifiedAIContent();
 
   const handleDownload = (content: any) => {
@@ -33,15 +31,6 @@ export const EnhancedAIAssistant = () => {
           AI Assistant
         </Badge>
       </div>
-
-      {!isProduction && (
-        <Alert className="bg-amber-50 border-amber-200">
-          <AlertCircle className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-amber-800">
-            AI content generation requires proper Supabase configuration and OpenAI API key setup.
-          </AlertDescription>
-        </Alert>
-      )}
 
       <Tabs value="library" className="w-full">
         <TabsList className="grid w-full grid-cols-1">

@@ -1,62 +1,40 @@
 
-export interface LocationInfo {
-  country: string;
-  countryCode: string;
-  region: 'algeria' | 'international';
+export interface RegionConfig {
+  name: string;
+  flag: string;
   currency: string;
-  detected: boolean;
+  description: string;
+  paymentMethods: string[];
 }
 
-export const detectUserLocation = async (): Promise<LocationInfo> => {
-  try {
-    // Try to detect location using IP geolocation
-    const response = await fetch('https://ipapi.co/json/');
-    const data = await response.json();
-    
-    const isAlgeria = data.country_code === 'DZ';
-    
-    return {
-      country: data.country_name || 'Unknown',
-      countryCode: data.country_code || 'XX',
-      region: isAlgeria ? 'algeria' : 'international',
-      currency: isAlgeria ? 'DZD' : 'EUR',
-      detected: true
-    };
-  } catch (error) {
-    console.log('Location detection failed, defaulting to international');
-    return {
-      country: 'Unknown',
-      countryCode: 'XX',
-      region: 'international',
-      currency: 'EUR',
-      detected: false
-    };
-  }
-};
-
-export const getRegionConfig = (region: 'algeria' | 'international') => {
-  if (region === 'algeria') {
-    return {
-      flag: '🇩🇿',
+export const getRegionConfig = (region: 'algeria' | 'international'): RegionConfig => {
+  const configs: Record<string, RegionConfig> = {
+    algeria: {
       name: 'Algeria',
+      flag: '🇩🇿',
       currency: 'DZD',
-      paymentMethods: ['BaridiMob', 'CIB', 'Cash'],
-      description: 'Special pricing for Algerian students'
-    };
-  }
-  
-  return {
-    flag: '🇪🇺',
-    name: 'International',
-    currency: 'EUR',
-    paymentMethods: ['Bank Transfer', 'SEPA', 'Wire Transfer'],
-    description: 'International pricing in Euro',
-    bankingInfo: {
-      bankName: 'Banking Circle S.A.',
-      bankAddress: '2, Boulevard de la Foire L-1528 LUXEMBOURG',
-      iban: 'LU574080000024260839',
-      bic: 'BCIRLULL',
-      beneficiaryName: 'Fatima zahra Djaanine'
+      description: 'Specialized pricing for Algerian students',
+      paymentMethods: ['BaridiMob', 'CIB Bank']
+    },
+    international: {
+      name: 'International',
+      flag: '🌍',
+      currency: 'EUR',
+      description: 'International pricing in Euros',
+      paymentMethods: ['Bank Transfer', 'SEPA']
     }
   };
+
+  return configs[region] || configs.international;
+};
+
+export const detectUserRegion = async (): Promise<'algeria' | 'international'> => {
+  try {
+    // In production, this could use IP geolocation or user preferences
+    // For now, default to Algeria as the primary market
+    return 'algeria';
+  } catch (error) {
+    console.error('Failed to detect user region:', error);
+    return 'algeria';
+  }
 };
