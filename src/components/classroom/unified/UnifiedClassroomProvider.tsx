@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
@@ -30,7 +31,7 @@ export function UnifiedClassroomProvider({ children }: { children: React.ReactNo
 
   // State for current user
   const [currentUser, setCurrentUser] = useState({
-    id: userId || '',
+    id: userId || `${role}-${Date.now()}`,
     name,
     role
   });
@@ -41,16 +42,42 @@ export function UnifiedClassroomProvider({ children }: { children: React.ReactNo
         setIsLoading(true);
         setError(null);
 
+        // For development, we'll allow URL parameters to override authentication
+        if (userId && name && role) {
+          setCurrentUser({
+            id: userId,
+            name,
+            role
+          });
+          
+          console.log('🏫 Classroom user initialized from URL params:', {
+            id: userId,
+            name,
+            role,
+            roomId
+          });
+          
+          setIsLoading(false);
+          return;
+        }
+
         // Check if user is authenticated
         const { data: { user }, error: authError } = await supabase.auth.getUser();
         
         if (authError) {
-          console.error('Authentication error:', authError);
-          setError('Authentication required. Please log in to join the classroom.');
-          return;
-        }
-
-        if (user) {
+          console.warn('Authentication error:', authError);
+          // Don't block access for development, just use URL params
+          if (userId && name && role) {
+            setCurrentUser({
+              id: userId,
+              name,
+              role
+            });
+          } else {
+            setError('User information required to access classroom.');
+            return;
+          }
+        } else if (user) {
           // Use authenticated user ID
           setCurrentUser({
             id: user.id,
