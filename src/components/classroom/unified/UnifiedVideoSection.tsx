@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { useMediaContext } from "@/components/classroom/oneonone/video/MediaContext";
@@ -28,16 +29,11 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
     if (/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
       return id;
     }
-    // Generate a UUID v4 based on the provided ID
-    const crypto = window.crypto || (window as any).msCrypto;
-    const array = new Uint8Array(16);
-    crypto.getRandomValues(array);
-    // Set version (4) and variant bits
-    array[6] = (array[6] & 0x0f) | 0x40;
-    array[8] = (array[8] & 0x3f) | 0x80;
-    // Convert to hex string
-    const hex = Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
-    return `${hex.substr(0,8)}-${hex.substr(8,4)}-${hex.substr(12,4)}-${hex.substr(16,4)}-${hex.substr(20,12)}`;
+    // Generate a consistent UUID based on the provided ID
+    const encoder = new TextEncoder();
+    const data = encoder.encode(id);
+    const hex = Array.from(data, byte => byte.toString(16).padStart(2, '0')).join('').padEnd(32, '0');
+    return `${hex.substr(0,8)}-${hex.substr(8,4)}-4${hex.substr(12,3)}-8${hex.substr(15,3)}-${hex.substr(18,12)}`;
   };
 
   const properUserId = generateProperUserId(currentUser.id);
@@ -138,7 +134,7 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
   };
 
   const hasVideo = mediaState.stream && mediaState.isConnected && !mediaState.isCameraOff;
-  const userLabel = isTeacher ? "Teacher" : currentUser.name;
+  const userLabel = `${currentUser.name} (${isTeacher ? 'Teacher' : 'Student'})`;
 
   // Determine the primary error to display
   const primaryError = sessionError || mediaState.mediaError;
@@ -170,7 +166,9 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
           <div className="w-full h-full flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
-              <p className="text-gray-500">Waiting for teacher...</p>
+              <p className="text-gray-500">
+                {isTeacher ? 'Setting up classroom...' : 'Waiting for teacher...'}
+              </p>
             </div>
           </div>
         </Card>

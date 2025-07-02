@@ -23,39 +23,43 @@ export function useSessionInitializer({
   const sessionManager = useSessionManager(sessionProps);
   const realTimeSync = useRealTimeSync(sessionProps);
 
-  // Auto-join session on mount with stable dependencies
+  // Auto-initialize session and real-time sync
   useEffect(() => {
     // Prevent multiple initializations
     if (hasInitialized.current || initializationInProgress.current) {
       return;
     }
 
-    // Only initialize once per session
     initializationInProgress.current = true;
 
-    console.log('🚀 Auto-joining session for role:', userRole);
+    console.log('🚀 Initializing classroom session...', { userRole, roomId });
     
     const initializeSession = async () => {
       try {
+        // Initialize based on role
         if (userRole === 'teacher') {
+          console.log('👨‍🏫 Teacher initializing - creating session...');
           await sessionManager.createSession();
         } else {
+          console.log('👨‍🎓 Student initializing - joining session...');
           await sessionManager.joinSession();
         }
         
+        // Connect to real-time sync
+        console.log('🔄 Connecting to real-time sync...');
         await realTimeSync.connectToSync();
         
         hasInitialized.current = true;
-        console.log('✅ Session initialization complete');
+        console.log('✅ Classroom initialization complete');
       } catch (error) {
-        console.error('❌ Session initialization failed:', error);
+        console.error('❌ Classroom initialization failed:', error);
       } finally {
         initializationInProgress.current = false;
       }
     };
 
     // Small delay to ensure components are mounted
-    const timeoutId = setTimeout(initializeSession, 100);
+    const timeoutId = setTimeout(initializeSession, 500);
 
     return () => {
       clearTimeout(timeoutId);
@@ -63,7 +67,7 @@ export function useSessionInitializer({
         initializationInProgress.current = false;
       }
     };
-  }, [userRole]); // Only depend on userRole, not the manager objects
+  }, [userRole, roomId]); // Only depend on essential props
 
   // Cleanup on unmount
   useEffect(() => {
@@ -72,7 +76,7 @@ export function useSessionInitializer({
       hasInitialized.current = false;
       initializationInProgress.current = false;
     };
-  }, []);
+  }, [realTimeSync]);
 
   return {
     sessionManager,

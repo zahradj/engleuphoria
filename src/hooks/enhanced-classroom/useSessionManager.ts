@@ -1,19 +1,17 @@
 
 import { useState, useCallback, useRef } from 'react';
+import { supabase } from '@/lib/supabase';
 import { useToast } from "@/hooks/use-toast";
 
-interface SessionData {
+interface ClassroomSession {
   id: string;
-  roomId: string;
-  createdBy: string;
-  createdAt: Date;
-  isActive: boolean;
-  participants: string[];
-  settings: {
-    allowRecording: boolean;
-    maxParticipants: number;
-    isPublic: boolean;
-  };
+  room_id: string;
+  teacher_id: string;
+  session_status: 'waiting' | 'started' | 'ended';
+  started_at?: string;
+  ended_at?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 interface UseSessionManagerProps {
@@ -23,139 +21,186 @@ interface UseSessionManagerProps {
 }
 
 export function useSessionManager({ roomId, userId, userRole }: UseSessionManagerProps) {
-  const [session, setSession] = useState<SessionData | null>(null);
+  const [session, setSession] = useState<ClassroomSession | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const hasShownJoinedToast = useRef(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
+  const channelRef = useRef<any>(null);
 
+  // Create a new session (teacher only)
   const createSession = useCallback(async () => {
     if (userRole !== 'teacher') {
-      toast({
-        title: "Permission Denied",
-        description: "Only teachers can create sessions",
-        variant: "destructive"
-      });
+      setError('Only teachers can create sessions');
       return;
     }
 
-    // Prevent duplicate session creation
-    if (session || isLoading) {
-      return;
-    }
-
-    setIsLoading(true);
     try {
-      const newSession: SessionData = {
-        id: `session-${Date.now()}`,
-        roomId,
-        createdBy: userId,
-        createdAt: new Date(),
-        isActive: true,
-        participants: [userId],
-        settings: {
-          allowRecording: true,
-          maxParticipants: 10,
-          isPublic: false
-        }
-      };
+      setIsLoading(true);
+      setError(null);
+
+      // Check if session already exists
+      const { data: existingSession } = await supabase
+        .from('classroom_sessions')
+        .select('*')
+        .eq('room_id', roomId)
+        .maybeSingle();
+
+      if (existingSession) {
+        setSession(existingSession);
+        console.log('🏫 Using existing session:', existingSession.id);
+        return existingSession;
+      }
+
+      // Create new session
+      const { data: newSession, error: createError } = await supabase
+        .from('classroom_sessions')
+        .insert({
+          room_id: roomId,
+          teacher_id: userId,
+          session_status: 'waiting'
+        })
+        .select()
+        .single();
+
+      if (createError) throw createError;
 
       setSession(newSession);
-      console.log('📋 Session created:', newSession.id);
+      console.log('🏫 Created new session:', newSession.id);
       
-      if (!hasShownJoinedToast.current) {
-        toast({
-          title: "Session Created",
-          description: `Room ${roomId} is ready for students`,
-        });
-        hasShownJoinedToast.current = true;
-      }
-
-    } catch (error) {
       toast({
-        title: "Session Error",
-        description: "Failed to create session",
+        title: "Session Created",
+        description: "Classroom session is ready for students to join.",
+      });
+
+      return newSession;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create session';
+      setError(errorMessage);
+      console.error('❌ Session creation failed:', err);
+      
+      toast({
+        title: "Session Creation Failed",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
       setIsLoading(false);
     }
-  }, [roomId, userId, userRole, toast, session, isLoading]);
+  }, [roomId, userId, userRole, toast]);
 
+  // Join an existing session (student)
   const joinSession = useCallback(async () => {
-    // Prevent duplicate session joining
-    if (session || isLoading) {
-      return;
-    }
-
-    setIsLoading(true);
     try {
-      // Simulate finding existing session or creating one
-      const existingSession: SessionData = {
-        id: `session-${roomId}`,
-        roomId,
-        createdBy: userRole === 'teacher' ? userId : 'teacher-id',
-        createdAt: new Date(),
-        isActive: true,
-        participants: [userId],
-        settings: {
-          allowRecording: userRole === 'teacher',
-          maxParticipants: 10,
-          isPublic: false
-        }
-      };
+      setIsLoading(true);
+      setError(null);
+
+      const { data: existingSession, error: fetchError } = await supabase
+        .from('classroom_sessions')
+        .select('*')
+        .eq('room_id', roomId)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+
+      if (!existingSession) {
+        setError('No active session found for this room');
+        return;
+      }
 
       setSession(existingSession);
-      console.log('📋 Session joined:', existingSession.id);
+      console.log('🏫 Joined session:', existingSession.id);
       
-      if (!hasShownJoinedToast.current) {
+      if (userRole === 'student') {
         toast({
-          title: "Session Joined",
-          description: `Welcome to room ${roomId}`,
+          title: "Joined Session",
+          description: "You've successfully joined the classroom session.",
         });
-        hasShownJoinedToast.current = true;
       }
 
-    } catch (error) {
+      return existingSession;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to join session';
+      setError(errorMessage);
+      console.error('❌ Session join failed:', err);
+      
       toast({
-        title: "Join Error",
-        description: "Failed to join session",
+        title: "Join Failed",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
       setIsLoading(false);
     }
-  }, [roomId, userId, userRole, toast, session, isLoading]);
+  }, [roomId, userRole, toast]);
 
-  const leaveSession = useCallback(() => {
-    if (session) {
-      setSession(null);
-      hasShownJoinedToast.current = false;
-      console.log('📋 Session left');
-      
+  // Start the session (teacher only)
+  const startSession = useCallback(async () => {
+    if (userRole !== 'teacher' || !session) return;
+
+    try {
+      const { error } = await supabase
+        .from('classroom_sessions')
+        .update({
+          session_status: 'started',
+          started_at: new Date().toISOString()
+        })
+        .eq('id', session.id);
+
+      if (error) throw error;
+
       toast({
-        title: "Session Left",
-        description: "You have left the classroom",
+        title: "Session Started",
+        description: "Students can now join the video session.",
+      });
+    } catch (err) {
+      console.error('❌ Failed to start session:', err);
+      toast({
+        title: "Error",
+        description: "Failed to start session. Please try again.",
+        variant: "destructive"
       });
     }
-  }, [session, toast]);
+  }, [session, userRole, toast]);
 
-  const updateSessionSettings = useCallback((newSettings: Partial<SessionData['settings']>) => {
-    if (userRole !== 'teacher') return;
-    
-    if (session) {
-      setSession({
-        ...session,
-        settings: { ...session.settings, ...newSettings }
+  // End the session (teacher only)
+  const endSession = useCallback(async () => {
+    if (userRole !== 'teacher' || !session) return;
+
+    try {
+      const { error } = await supabase
+        .from('classroom_sessions')
+        .update({
+          session_status: 'ended',
+          ended_at: new Date().toISOString()
+        })
+        .eq('id', session.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Session Ended",
+        description: "The classroom session has been ended.",
+      });
+    } catch (err) {
+      console.error('❌ Failed to end session:', err);
+      toast({
+        title: "Error",
+        description: "Failed to end session. Please try again.",
+        variant: "destructive"
       });
     }
-  }, [session, userRole]);
+  }, [session, userRole, toast]);
 
   return {
     session,
     isLoading,
+    error,
     createSession,
     joinSession,
-    leaveSession,
-    updateSessionSettings
+    startSession,
+    endSession,
+    canStartSession: userRole === 'teacher' && session?.session_status === 'waiting',
+    canJoinVideo: session?.session_status === 'started',
+    isWaitingForTeacher: userRole === 'student' && session?.session_status === 'waiting'
   };
 }

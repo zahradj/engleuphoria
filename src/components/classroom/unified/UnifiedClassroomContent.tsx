@@ -77,14 +77,14 @@ export function UnifiedClassroomContent({
 
       {/* Desktop Layout - Grid */}
       <div className="hidden lg:grid grid-cols-12 gap-4 h-[calc(100vh-6rem)]">
-        {/* Left Section - Teacher Video + Reward System/Progress Panels */}
+        {/* Left Section - Current User's Video + Role-based Panels */}
         <div className="col-span-3 flex flex-col gap-4 min-h-0">
-          {/* Teacher Video Section - Show teacher video here */}
+          {/* Current User's Video Section */}
           <div className="h-[300px] flex-shrink-0">
-            <UnifiedVideoSection currentUser={{ ...currentUser, role: 'teacher' }} />
+            <UnifiedVideoSection currentUser={currentUser} />
           </div>
           
-          {/* Bottom Left Panels - Reward System for Teachers, Progress for Students */}
+          {/* Bottom Left Panels - Role-based functionality */}
           <div className="flex-1 min-h-0">
             <UnifiedLeftSidebar 
               studentXP={studentXP}
@@ -103,7 +103,7 @@ export function UnifiedClassroomContent({
           />
         </div>
 
-        {/* Right Panel - Student Video + Student Info & Chat */}
+        {/* Right Panel - Chat & Student Management */}
         <div className="col-span-3 min-h-0">
           <UnifiedRightPanel
             studentName="Emma"

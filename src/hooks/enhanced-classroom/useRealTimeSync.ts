@@ -1,5 +1,6 @@
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
 import { useToast } from "@/hooks/use-toast";
 
 interface SyncState {
@@ -26,67 +27,137 @@ export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncPro
   });
 
   const [isConnected, setIsConnected] = useState(false);
-  const wsRef = useRef<WebSocket | null>(null);
-  const hasShownConnectedToast = useRef(false);
+  const channelRef = useRef<any>(null);
+  const hasConnected = useRef(false);
   const { toast } = useToast();
 
-  const connectToSync = useCallback(() => {
-    // Prevent multiple connection attempts
-    if (isConnected || wsRef.current) {
+  const connectToSync = useCallback(async () => {
+    // Prevent multiple connections
+    if (hasConnected.current || channelRef.current) {
       return;
     }
 
     try {
-      console.log('🔄 Connecting to sync service...');
+      console.log('🔄 Connecting to real-time sync...', { roomId, userId, userRole });
       
-      // For demo, simulate connection success
-      setTimeout(() => {
-        if (!hasShownConnectedToast.current) {
-          setIsConnected(true);
-          console.log('🔄 Sync service connected');
+      // Cleanup existing channel
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+      }
+
+      // Create new channel for the room
+      const channel = supabase
+        .channel(`classroom_${roomId}`)
+        .on('presence', { event: 'sync' }, () => {
+          const newState = channel.presenceState();
+          const participants = Object.entries(newState).map(([key, data]: [string, any]) => ({
+            id: key,
+            ...data[0]
+          }));
           
-          toast({
-            title: "Sync Connected",
-            description: "Real-time synchronization active",
+          setSyncState(prev => ({ ...prev, participants }));
+          console.log('🔄 Participants synced:', participants);
+        })
+        .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+          console.log('👋 User joined:', key, newPresences);
+        })
+        .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+          console.log('👋 User left:', key, leftPresences);
+        })
+        .on('broadcast', { event: 'whiteboard_update' }, ({ payload }) => {
+          if (payload.userId !== userId) {
+            setSyncState(prev => ({ ...prev, whiteboardData: payload.data }));
+          }
+        })
+        .on('broadcast', { event: 'tab_change' }, ({ payload }) => {
+          if (payload.userId !== userId) {
+            setSyncState(prev => ({ ...prev, activeTab: payload.tabId }));
+          }
+        })
+        .on('broadcast', { event: 'slide_change' }, ({ payload }) => {
+          if (payload.userId !== userId) {
+            setSyncState(prev => ({ ...prev, currentSlide: payload.slideNumber }));
+          }
+        });
+
+      // Subscribe to the channel
+      const status = await channel.subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          // Track user presence
+          await channel.track({
+            userId,
+            userRole,
+            name: `${userRole === 'teacher' ? 'Teacher' : 'Student'} ${userId}`,
+            joinedAt: new Date().toISOString()
           });
+
+          setIsConnected(true);
+          hasConnected.current = true;
           
-          hasShownConnectedToast.current = true;
+          console.log('✅ Real-time sync connected');
+          toast({
+            title: "Connected",
+            description: "Real-time classroom sync is active",
+          });
+        } else if (status === 'CHANNEL_ERROR') {
+          setIsConnected(false);
+          hasConnected.current = false;
+          console.error('❌ Channel connection failed');
         }
-      }, 1000);
+      });
+
+      channelRef.current = channel;
 
     } catch (error) {
       console.error('🔄 Sync connection failed:', error);
+      setIsConnected(false);
+      hasConnected.current = false;
+      
       toast({
-        title: "Sync Error",
-        description: "Failed to connect to sync service",
+        title: "Connection Error",
+        description: "Failed to connect to real-time sync",
         variant: "destructive"
       });
     }
-  }, [toast, isConnected]);
+  }, [roomId, userId, userRole, toast]);
 
-  const broadcastStateChange = useCallback((key: keyof SyncState, value: any) => {
-    if (userRole !== 'teacher') {
-      console.log('🔄 Only teachers can broadcast state changes');
+  const broadcastStateChange = useCallback((event: string, payload: any) => {
+    if (!channelRef.current || !isConnected) {
+      console.warn('🔄 Cannot broadcast - not connected');
       return;
     }
 
-    setSyncState(prev => ({ ...prev, [key]: value }));
-    
-    // In real implementation, this would send to WebSocket
-    console.log('🔄 Broadcasting state change:', { key, value });
-  }, [userRole]);
+    channelRef.current.send({
+      type: 'broadcast',
+      event,
+      payload: { ...payload, userId }
+    });
+  }, [isConnected, userId]);
 
   const syncWhiteboard = useCallback((whiteboardData: any) => {
-    broadcastStateChange('whiteboardData', whiteboardData);
+    setSyncState(prev => ({ ...prev, whiteboardData }));
+    broadcastStateChange('whiteboard_update', { data: whiteboardData });
   }, [broadcastStateChange]);
 
   const syncActiveTab = useCallback((tabId: string) => {
-    broadcastStateChange('activeTab', tabId);
-  }, [broadcastStateChange]);
+    if (userRole !== 'teacher') {
+      console.log('🔄 Only teachers can sync tab changes');
+      return;
+    }
+    
+    setSyncState(prev => ({ ...prev, activeTab: tabId }));
+    broadcastStateChange('tab_change', { tabId });
+  }, [userRole, broadcastStateChange]);
 
   const syncSlideChange = useCallback((slideNumber: number) => {
-    broadcastStateChange('currentSlide', slideNumber);
-  }, [broadcastStateChange]);
+    if (userRole !== 'teacher') {
+      console.log('🔄 Only teachers can sync slide changes');
+      return;
+    }
+    
+    setSyncState(prev => ({ ...prev, currentSlide: slideNumber }));
+    broadcastStateChange('slide_change', { slideNumber });
+  }, [userRole, broadcastStateChange]);
 
   const addChatMessage = useCallback((message: any) => {
     setSyncState(prev => ({
@@ -96,14 +167,21 @@ export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncPro
   }, []);
 
   const disconnect = useCallback(() => {
-    if (wsRef.current) {
-      wsRef.current.close();
-      wsRef.current = null;
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
     }
     setIsConnected(false);
-    hasShownConnectedToast.current = false;
-    console.log('🔄 Sync service disconnected');
+    hasConnected.current = false;
+    console.log('🔄 Real-time sync disconnected');
   }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      disconnect();
+    };
+  }, [disconnect]);
 
   return {
     syncState,
