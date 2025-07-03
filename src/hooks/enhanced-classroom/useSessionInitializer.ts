@@ -23,7 +23,7 @@ export function useSessionInitializer({
   const sessionManager = useSessionManager(sessionProps);
   const realTimeSync = useRealTimeSync(sessionProps);
 
-  // Auto-initialize session and real-time sync
+  // Auto-initialize session only (real-time sync auto-connects)
   useEffect(() => {
     // Prevent multiple initializations
     if (hasInitialized.current || initializationInProgress.current) {
@@ -45,10 +45,6 @@ export function useSessionInitializer({
           await sessionManager.joinSession();
         }
         
-        // Connect to real-time sync
-        console.log('🔄 Connecting to real-time sync...');
-        await realTimeSync.connectToSync();
-        
         hasInitialized.current = true;
         console.log('✅ Classroom initialization complete');
       } catch (error) {
@@ -67,7 +63,7 @@ export function useSessionInitializer({
         initializationInProgress.current = false;
       }
     };
-  }, [userRole, roomId]); // Only depend on essential props
+  }, [userRole, roomId, sessionManager]); // Only depend on essential props
 
   // Cleanup on unmount
   useEffect(() => {

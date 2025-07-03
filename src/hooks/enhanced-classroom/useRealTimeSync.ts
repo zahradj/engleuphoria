@@ -34,16 +34,22 @@ export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncPro
   const connectToSync = useCallback(async () => {
     // Prevent multiple connections
     if (hasConnected.current || channelRef.current) {
+      console.log('🔄 Already connected or connecting, skipping...');
       return;
     }
 
     try {
       console.log('🔄 Connecting to real-time sync...', { roomId, userId, userRole });
       
-      // Cleanup existing channel
+      // Cleanup existing channel first
       if (channelRef.current) {
+        console.log('🔄 Cleaning up existing channel...');
         supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
       }
+
+      // Mark as connecting
+      hasConnected.current = true;
 
       // Create new channel for the room
       const channel = supabase
@@ -81,7 +87,7 @@ export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncPro
         });
 
       // Subscribe to the channel
-      const status = await channel.subscribe(async (status) => {
+      await channel.subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
           // Track user presence
           await channel.track({
@@ -92,7 +98,6 @@ export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncPro
           });
 
           setIsConnected(true);
-          hasConnected.current = true;
           
           console.log('✅ Real-time sync connected');
           toast({
@@ -167,6 +172,7 @@ export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncPro
   }, []);
 
   const disconnect = useCallback(() => {
+    console.log('🔄 Disconnecting real-time sync...');
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
@@ -176,12 +182,23 @@ export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncPro
     console.log('🔄 Real-time sync disconnected');
   }, []);
 
-  // Cleanup on unmount
+  // Auto-connect once when hook is initialized
   useEffect(() => {
+    let mounted = true;
+    
+    const initializeConnection = async () => {
+      if (mounted && !hasConnected.current) {
+        await connectToSync();
+      }
+    };
+
+    initializeConnection();
+
     return () => {
+      mounted = false;
       disconnect();
     };
-  }, [disconnect]);
+  }, []); // Empty dependency array to run only once
 
   return {
     syncState,
