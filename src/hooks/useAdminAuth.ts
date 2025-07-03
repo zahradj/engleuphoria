@@ -44,6 +44,18 @@ export const useAdminAuth = () => {
         user 
       });
 
+      // Auto-set admin if accessing admin dashboard and no admin is set
+      if (window.location.pathname === '/admin-dashboard' && userType !== 'admin') {
+        console.log('Auto-setting admin for demo purposes');
+        localStorage.setItem('userType', 'admin');
+        localStorage.setItem('adminName', 'Demo Admin');
+        // Clear other user data
+        localStorage.removeItem('teacherName');
+        localStorage.removeItem('studentName');
+        window.location.reload();
+        return;
+      }
+
       // Clear conflicting data if userType is admin but we have other user data
       if (userType === 'admin') {
         if (teacherName) {
@@ -56,7 +68,7 @@ export const useAdminAuth = () => {
         }
       }
 
-      // Determine admin status - fix the logic here
+      // Determine admin status
       const adminStatus = userType === 'admin' || (user && user.role === 'admin');
       
       console.log('Admin status determined:', {
