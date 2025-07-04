@@ -16,8 +16,10 @@ import { MessagesTab } from "@/components/teacher/MessagesTab";
 import { EarningsTab } from "@/components/teacher/EarningsTab";
 import { ReportsTab } from "@/components/teacher/ReportsTab";
 import { SettingsTab } from "@/components/teacher/SettingsTab";
+import { ProfileSetupTab } from "@/components/teacher/ProfileSetupTab";
+import { ProfileCompleteGuard } from "@/components/teacher/ProfileCompleteGuard";
 
-type TabType = 'dashboard' | 'calendar' | 'students' | 'reading-library' | 'history' | 'assignments' | 'resources' | 'messages' | 'earnings' | 'reports' | 'settings';
+type TabType = 'dashboard' | 'profile' | 'calendar' | 'students' | 'reading-library' | 'history' | 'assignments' | 'resources' | 'messages' | 'earnings' | 'reports' | 'settings';
 
 const TeacherDashboard = () => {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
@@ -56,32 +58,48 @@ const TeacherDashboard = () => {
   };
 
   const renderTabContent = () => {
-    switch (activeTab) {
-      case 'dashboard':
-        return <DashboardTab teacherName={teacherName} />;
-      case 'calendar':
-        return <EnhancedCalendarTab teacherId={teacherId} />;
-      case 'students':
-        return <StudentsTab />;
-      case 'reading-library':
-        return <ReadingLibraryTab />;
-      case 'history':
-        return <LessonHistoryTab />;
-      case 'assignments':
-        return <AssignmentsTab />;
-      case 'resources':
-        return <ResourceLibraryTab />;
-      case 'messages':
-        return <MessagesTab />;
-      case 'earnings':
-        return <EarningsTab />;
-      case 'reports':
-        return <ReportsTab />;
-      case 'settings':
-        return <SettingsTab teacherName={teacherName} />;
-      default:
-        return <DashboardTab teacherName={teacherName} />;
+    const content = (() => {
+      switch (activeTab) {
+        case 'dashboard':
+          return <DashboardTab teacherName={teacherName} />;
+        case 'profile':
+          return <ProfileSetupTab teacherId={teacherId} />;
+        case 'calendar':
+          return <EnhancedCalendarTab teacherId={teacherId} />;
+        case 'students':
+          return <StudentsTab />;
+        case 'reading-library':
+          return <ReadingLibraryTab />;
+        case 'history':
+          return <LessonHistoryTab />;
+        case 'assignments':
+          return <AssignmentsTab />;
+        case 'resources':
+          return <ResourceLibraryTab />;
+        case 'messages':
+          return <MessagesTab />;
+        case 'earnings':
+          return <EarningsTab />;
+        case 'reports':
+          return <ReportsTab />;
+        case 'settings':
+          return <SettingsTab teacherName={teacherName} />;
+        default:
+          return <DashboardTab teacherName={teacherName} />;
+      }
+    })();
+
+    // Don't wrap profile tab in guard since it's the setup itself
+    if (activeTab === 'profile') {
+      return content;
     }
+
+    // Wrap all other tabs in profile completion guard
+    return (
+      <ProfileCompleteGuard teacherId={teacherId}>
+        {content}
+      </ProfileCompleteGuard>
+    );
   };
 
   return (

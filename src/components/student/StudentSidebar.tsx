@@ -15,8 +15,10 @@ import {
   User, 
   Settings,
   Map,
-  Sparkles
+  Sparkles,
+  Search
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface StudentSidebarProps {
   activeTab: string;
@@ -34,7 +36,8 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     ...(hasProfile ? [{ id: 'learning-path', label: 'My Learning Path', icon: Map, badge: 'New' }] : []),
-    { id: 'teachers', label: 'Teachers', icon: Users },
+    { id: 'discover-teachers', label: 'Discover Teachers', icon: Search, isLink: true, path: '/discover-teachers' },
+    { id: 'teachers', label: 'My Teachers', icon: Users },
     { id: 'upcoming-classes', label: 'Upcoming Classes', icon: Calendar },
     { id: 'homework', label: 'Homework', icon: ClipboardList },
     { id: 'materials', label: 'Materials Library', icon: Library },
@@ -52,6 +55,20 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
+            
+            if (item.isLink) {
+              return (
+                <Link key={item.id} to={item.path}>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-left"
+                  >
+                    <Icon className="mr-3 h-4 w-4" />
+                    {item.label}
+                  </Button>
+                </Link>
+              );
+            }
             
             return (
               <Button

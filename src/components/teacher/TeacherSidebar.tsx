@@ -16,7 +16,8 @@ import {
   LogOut,
   GraduationCap,
   Book,
-  FolderOpen
+  FolderOpen,
+  User
 } from "lucide-react";
 
 interface TeacherSidebarProps {
@@ -28,6 +29,7 @@ interface TeacherSidebarProps {
 export const TeacherSidebar = ({ activeTab, setActiveTab, onLogout }: TeacherSidebarProps) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3, type: 'tab' },
+    { id: 'profile', label: 'My Profile', icon: User, type: 'tab' },
     { id: 'ai-assistant', label: 'AI Curriculum', icon: Brain, type: 'tab' },
     { id: 'calendar', label: 'Calendar', icon: Calendar, type: 'tab' },
     { id: 'students', label: 'Students', icon: Users, type: 'tab' },

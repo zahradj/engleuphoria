@@ -1523,6 +1523,8 @@ export type Database = {
           accent: string | null
           availability_schedule: Json | null
           bio: string | null
+          can_teach: boolean | null
+          certificate_urls: string[] | null
           created_at: string
           hourly_rate_dzd: number | null
           hourly_rate_eur: number | null
@@ -1530,6 +1532,8 @@ export type Database = {
           intro_video_url: string | null
           is_available: boolean | null
           languages_spoken: string[] | null
+          profile_approved_by_admin: boolean | null
+          profile_complete: boolean | null
           profile_image_url: string | null
           rating: number | null
           specializations: string[] | null
@@ -1537,12 +1541,15 @@ export type Database = {
           total_reviews: number | null
           updated_at: string
           user_id: string
+          video_url: string | null
           years_experience: number | null
         }
         Insert: {
           accent?: string | null
           availability_schedule?: Json | null
           bio?: string | null
+          can_teach?: boolean | null
+          certificate_urls?: string[] | null
           created_at?: string
           hourly_rate_dzd?: number | null
           hourly_rate_eur?: number | null
@@ -1550,6 +1557,8 @@ export type Database = {
           intro_video_url?: string | null
           is_available?: boolean | null
           languages_spoken?: string[] | null
+          profile_approved_by_admin?: boolean | null
+          profile_complete?: boolean | null
           profile_image_url?: string | null
           rating?: number | null
           specializations?: string[] | null
@@ -1557,12 +1566,15 @@ export type Database = {
           total_reviews?: number | null
           updated_at?: string
           user_id: string
+          video_url?: string | null
           years_experience?: number | null
         }
         Update: {
           accent?: string | null
           availability_schedule?: Json | null
           bio?: string | null
+          can_teach?: boolean | null
+          certificate_urls?: string[] | null
           created_at?: string
           hourly_rate_dzd?: number | null
           hourly_rate_eur?: number | null
@@ -1570,6 +1582,8 @@ export type Database = {
           intro_video_url?: string | null
           is_available?: boolean | null
           languages_spoken?: string[] | null
+          profile_approved_by_admin?: boolean | null
+          profile_complete?: boolean | null
           profile_image_url?: string | null
           rating?: number | null
           specializations?: string[] | null
@@ -1577,6 +1591,7 @@ export type Database = {
           total_reviews?: number | null
           updated_at?: string
           user_id?: string
+          video_url?: string | null
           years_experience?: number | null
         }
         Relationships: [
@@ -1755,6 +1770,26 @@ export type Database = {
       generate_room_id: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_approved_teachers: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: string
+          user_id: string
+          full_name: string
+          bio: string
+          video_url: string
+          profile_image_url: string
+          specializations: string[]
+          accent: string
+          languages_spoken: string[]
+          years_experience: number
+          rating: number
+          total_reviews: number
+          hourly_rate_dzd: number
+          hourly_rate_eur: number
+          timezone: string
+        }[]
       }
       get_student_upcoming_lessons: {
         Args: { student_uuid: string }
