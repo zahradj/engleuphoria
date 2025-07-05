@@ -58,9 +58,10 @@ const Login = () => {
           description: "Successfully logged into your student dashboard",
         });
         
-        navigate("/student-dashboard");
+        navigate("/dashboard");
       } else if (userType === "teacher") {
         localStorage.setItem("teacherName", email.split("@")[0]);
+        localStorage.setItem("teacherId", "teacher-" + Date.now());
         localStorage.setItem("userType", "teacher");
         
         toast({

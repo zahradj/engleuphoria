@@ -18,6 +18,8 @@ import AboutUs from "./pages/AboutUs";
 import MediaTestPage from "./pages/MediaTestPage";
 import NotFound from "./pages/NotFound";
 import { DiscoverTeachers } from "./pages/DiscoverTeachers";
+import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +45,8 @@ function App() {
               <Route path="/for-parents" element={<ForParents />} />
               <Route path="/about" element={<AboutUs />} />
               <Route path="/discover-teachers" element={<DiscoverTeachers />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<SignUp />} />
               <Route path="/media-test" element={<MediaTestPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

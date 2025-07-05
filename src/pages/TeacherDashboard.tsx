@@ -34,7 +34,7 @@ const TeacherDashboard = () => {
     const userType = localStorage.getItem("userType");
 
     if (!storedTeacherName || userType !== "teacher") {
-      navigate("/");
+      navigate("/login");
       return;
     }
 
