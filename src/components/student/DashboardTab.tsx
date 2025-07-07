@@ -59,44 +59,11 @@ export const DashboardTab = ({ studentName, points }: DashboardTabProps) => {
     setShowHomeworkModal(true);
   };
 
-  const upcomingClasses = [
-    {
-      id: "class-1",
-      title: "Conversation Practice",
-      date: "Today",
-      time: "2:00 PM",
-      teacher: "Ms. Sarah"
-    },
-    {
-      id: "class-2",
-      title: "Grammar: Past Tense",
-      date: "Tomorrow",
-      time: "10:00 AM",
-      teacher: "Mr. John"
-    }
-  ];
+  const upcomingClasses: any[] = [];
 
-  const recentHomework = [
-    {
-      id: "hw-1",
-      title: "Essay: My Weekend",
-      dueDate: "Dec 8",
-      status: "pending"
-    },
-    {
-      id: "hw-2",
-      title: "Vocabulary Quiz",
-      dueDate: "Dec 6",
-      status: "submitted"
-    }
-  ];
+  const recentHomework: any[] = [];
 
-  const achievements = [
-    { title: "First Lesson Complete!", icon: "🎯", earned: true },
-    { title: "Week Streak!", icon: "🔥", earned: true },
-    { title: "Homework Master", icon: "📚", earned: false },
-    { title: "Conversation Pro", icon: "💬", earned: false }
-  ];
+  const achievements: any[] = [];
 
   return (
     <div className="space-y-6">
@@ -139,23 +106,30 @@ export const DashboardTab = ({ studentName, points }: DashboardTabProps) => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {upcomingClasses.map((cls, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
-                  <div>
-                    <h4 className="font-semibold text-gray-800">{cls.title}</h4>
-                    <p className="text-sm text-gray-600">{cls.date} at {cls.time}</p>
-                    <p className="text-sm text-blue-600">with {cls.teacher}</p>
-                  </div>
-                  <Button 
-                    size="sm" 
-                    className="bg-blue-500 hover:bg-blue-600"
-                    onClick={handleJoinClassroom}
-                  >
-                    <Play className="h-4 w-4 mr-1" />
-                    Join
-                  </Button>
+              {upcomingClasses.length === 0 ? (
+                <div className="text-center py-8">
+                  <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500">No upcoming classes scheduled</p>
                 </div>
-              ))}
+              ) : (
+                upcomingClasses.map((cls, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                    <div>
+                      <h4 className="font-semibold text-gray-800">{cls.title}</h4>
+                      <p className="text-sm text-gray-600">{cls.date} at {cls.time}</p>
+                      <p className="text-sm text-blue-600">with {cls.teacher}</p>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      className="bg-blue-500 hover:bg-blue-600"
+                      onClick={handleJoinClassroom}
+                    >
+                      <Play className="h-4 w-4 mr-1" />
+                      Join
+                    </Button>
+                  </div>
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
@@ -170,31 +144,38 @@ export const DashboardTab = ({ studentName, points }: DashboardTabProps) => {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {recentHomework.map((hw) => (
-                <div key={hw.id} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                  <div>
-                    <h4 className="font-semibold text-gray-800">{hw.title}</h4>
-                    <p className="text-sm text-gray-600 flex items-center gap-1">
-                      <Clock className="h-4 w-4" />
-                      Due {hw.dueDate}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={hw.status === 'submitted' ? 'default' : 'secondary'}>
-                      {hw.status}
-                    </Badge>
-                    {hw.status === 'pending' && (
-                      <Button 
-                        size="sm" 
-                        onClick={() => openHomeworkSubmission(hw.id)}
-                        className="bg-green-500 hover:bg-green-600"
-                      >
-                        Submit
-                      </Button>
-                    )}
-                  </div>
+              {recentHomework.length === 0 ? (
+                <div className="text-center py-8">
+                  <FileText className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500">No homework assignments yet</p>
                 </div>
-              ))}
+              ) : (
+                recentHomework.map((hw) => (
+                  <div key={hw.id} className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                    <div>
+                      <h4 className="font-semibold text-gray-800">{hw.title}</h4>
+                      <p className="text-sm text-gray-600 flex items-center gap-1">
+                        <Clock className="h-4 w-4" />
+                        Due {hw.dueDate}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={hw.status === 'submitted' ? 'default' : 'secondary'}>
+                        {hw.status}
+                      </Badge>
+                      {hw.status === 'pending' && (
+                        <Button 
+                          size="sm" 
+                          onClick={() => openHomeworkSubmission(hw.id)}
+                          className="bg-green-500 hover:bg-green-600"
+                        >
+                          Submit
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
@@ -210,24 +191,32 @@ export const DashboardTab = ({ studentName, points }: DashboardTabProps) => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {achievements.map((achievement, index) => (
-              <div 
-                key={index} 
-                className={`p-4 rounded-lg text-center transition-all ${
-                  achievement.earned 
-                    ? 'bg-yellow-50 border-2 border-yellow-200' 
-                    : 'bg-gray-50 border-2 border-gray-200 opacity-50'
-                }`}
-              >
-                <div className="text-2xl mb-2">{achievement.icon}</div>
-                <p className="text-sm font-medium text-gray-800">{achievement.title}</p>
-                {achievement.earned && (
-                  <Badge variant="default" className="mt-2 bg-yellow-500">
-                    Earned!
-                  </Badge>
-                )}
+            {achievements.length === 0 ? (
+              <div className="col-span-full text-center py-8">
+                <Award className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-700 mb-2">No Achievements Yet</h3>
+                <p className="text-gray-500">Complete lessons and activities to earn achievements!</p>
               </div>
-            ))}
+            ) : (
+              achievements.map((achievement, index) => (
+                <div 
+                  key={index} 
+                  className={`p-4 rounded-lg text-center transition-all ${
+                    achievement.earned 
+                      ? 'bg-yellow-50 border-2 border-yellow-200' 
+                      : 'bg-gray-50 border-2 border-gray-200 opacity-50'
+                  }`}
+                >
+                  <div className="text-2xl mb-2">{achievement.icon}</div>
+                  <p className="text-sm font-medium text-gray-800">{achievement.title}</p>
+                  {achievement.earned && (
+                    <Badge variant="default" className="mt-2 bg-yellow-500">
+                      Earned!
+                    </Badge>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         </CardContent>
       </Card>
@@ -285,7 +274,7 @@ export const DashboardTab = ({ studentName, points }: DashboardTabProps) => {
           setShowHomeworkModal(false);
           setSelectedAssignment(null);
         }}
-        assignmentTitle={selectedAssignment ? recentHomework.find(hw => hw.id === selectedAssignment)?.title || "New Assignment" : "New Assignment"}
+        assignmentTitle={selectedAssignment && selectedAssignment !== "new" ? recentHomework.find(hw => hw.id === selectedAssignment)?.title || "New Assignment" : "New Assignment"}
         onSubmit={handleHomeworkSubmit}
       />
 
