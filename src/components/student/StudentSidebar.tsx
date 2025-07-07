@@ -16,7 +16,8 @@ import {
   Settings,
   Map,
   Sparkles,
-  Search
+  Search,
+  LogOut
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -92,6 +93,20 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
               </Button>
             );
           })}
+          
+          {/* Logout Button */}
+          {onLogout && (
+            <div className="pt-4 border-t border-gray-200 mt-4">
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-left text-red-600 hover:text-red-700 hover:bg-red-50"
+                onClick={onLogout}
+              >
+                <LogOut className="mr-3 h-4 w-4" />
+                Logout
+              </Button>
+            </div>
+          )}
         </nav>
       </div>
     </div>

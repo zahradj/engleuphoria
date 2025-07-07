@@ -1,5 +1,7 @@
 
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 import { StudentHeader } from "@/components/student/StudentHeader";
 import { StudentSidebar } from "@/components/student/StudentSidebar";
 import { DashboardTab } from "@/components/student/DashboardTab";
@@ -18,6 +20,8 @@ const StudentDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [points, setPoints] = useState(150);
   const [hasProfile, setHasProfile] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
   
   // Get student name from localStorage or use default
   const studentName = localStorage.getItem('studentName') || 'Student';
@@ -32,6 +36,17 @@ const StudentDashboard = () => {
       setActiveTab("learning-path");
     }
   }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('studentName');
+    localStorage.removeItem('userType');
+    localStorage.removeItem('studentProfile');
+    toast({
+      title: "Logged out successfully",
+      description: "See you next time!",
+    });
+    navigate("/");
+  };
 
   const renderActiveTab = () => {
     switch (activeTab) {
@@ -70,6 +85,7 @@ const StudentDashboard = () => {
           activeTab={activeTab} 
           setActiveTab={setActiveTab}
           hasProfile={hasProfile}
+          onLogout={handleLogout}
         />
         <main className="flex-1 p-6 ml-64">
           {renderActiveTab()}
