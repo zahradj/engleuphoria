@@ -20,6 +20,16 @@ import NotFound from "./pages/NotFound";
 import { DiscoverTeachers } from "./pages/DiscoverTeachers";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
+import StudentLessonScheduler from "./pages/StudentLessonScheduler";
+import MaterialLibraryPage from "./pages/MaterialLibraryPage";
+import PaymentPage from "./pages/PaymentPage";
+import WhiteboardPage from "./pages/WhiteboardPage";
+import LessonPlanCreator from "./pages/LessonPlanCreator";
+import StudentManagement from "./pages/StudentManagement";
+import LessonScheduler from "./pages/LessonScheduler";
+import TeacherApplication from "./pages/TeacherApplication";
+import PricingSelection from "./pages/PricingSelection";
+import Contact from "./pages/Contact";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +57,16 @@ function App() {
               <Route path="/discover-teachers" element={<DiscoverTeachers />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignUp />} />
+              <Route path="/student-lesson-scheduler" element={<StudentLessonScheduler />} />
+              <Route path="/material-library" element={<MaterialLibraryPage />} />
+              <Route path="/payment" element={<PaymentPage />} />
+              <Route path="/whiteboard" element={<WhiteboardPage />} />
+              <Route path="/lesson-plan-creator" element={<LessonPlanCreator />} />
+              <Route path="/student-management" element={<StudentManagement />} />
+              <Route path="/lesson-scheduler" element={<LessonScheduler />} />
+              <Route path="/teacher-application" element={<TeacherApplication />} />
+              <Route path="/pricing-selection" element={<PricingSelection />} />
+              <Route path="/contact" element={<Contact />} />
               <Route path="/media-test" element={<MediaTestPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
