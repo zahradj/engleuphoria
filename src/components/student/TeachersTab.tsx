@@ -9,41 +9,7 @@ import { Users, Search, Star, Clock, ArrowRight } from "lucide-react";
 export const TeachersTab = () => {
   const navigate = useNavigate();
 
-  const featuredTeachers = [
-    {
-      id: 1,
-      name: "Sarah Johnson",
-      accent: "American",
-      rating: 4.9,
-      reviews: 127,
-      specializations: ["Business English", "Conversation"],
-      experience: 8,
-      rate: "2,500 DZD/hour",
-      image: "/avatars/teacher1.jpg"
-    },
-    {
-      id: 2,
-      name: "Ahmed Benali",
-      accent: "British",
-      rating: 4.8,
-      reviews: 95,
-      specializations: ["IELTS Prep", "Grammar"],
-      experience: 6,
-      rate: "2,200 DZD/hour",
-      image: "/avatars/teacher2.jpg"
-    },
-    {
-      id: 3,
-      name: "Emma Wilson",
-      accent: "Australian",
-      rating: 4.9,
-      reviews: 156,
-      specializations: ["Kids English", "Pronunciation"],
-      experience: 10,
-      rate: "2,800 DZD/hour",
-      image: "/avatars/teacher3.jpg"
-    }
-  ];
+  const featuredTeachers: any[] = [];
 
   return (
     <div className="space-y-6">
@@ -63,7 +29,7 @@ export const TeachersTab = () => {
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="hover:shadow-md transition-shadow cursor-pointer" 
-              onClick={() => navigate('/teacher-discovery')}>
+              onClick={() => navigate('/discover-teachers')}>
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <div className="bg-purple-100 p-3 rounded-lg">
@@ -78,7 +44,8 @@ export const TeachersTab = () => {
           </CardContent>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow cursor-pointer">
+        <Card className="hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => navigate('/discover-teachers')}>
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <div className="bg-blue-100 p-3 rounded-lg">
@@ -103,60 +70,64 @@ export const TeachersTab = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {featuredTeachers.map((teacher) => (
-              <div key={teacher.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                    <span className="font-semibold text-purple-600">
-                      {teacher.name.split(' ').map(n => n[0]).join('')}
-                    </span>
+          {featuredTeachers.length === 0 ? (
+            <div className="text-center py-12">
+              <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-700 mb-2">No Teachers Found</h3>
+              <p className="text-gray-500 mb-6">You haven't connected with any teachers yet.</p>
+              <Button 
+                onClick={() => navigate('/discover-teachers')}
+                className="px-8"
+              >
+                Discover Teachers
+              </Button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {featuredTeachers.map((teacher) => (
+                <div key={teacher.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                      <span className="font-semibold text-purple-600">
+                        {teacher.name.split(' ').map(n => n[0]).join('')}
+                      </span>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold">{teacher.name}</h4>
+                      <p className="text-sm text-gray-600">{teacher.accent} accent</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-semibold">{teacher.name}</h4>
-                    <p className="text-sm text-gray-600">{teacher.accent} accent</p>
+
+                  <div className="flex items-center gap-1 mb-2">
+                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                    <span className="text-sm font-medium">{teacher.rating}</span>
+                    <span className="text-sm text-gray-500">({teacher.reviews} reviews)</span>
                   </div>
+
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {teacher.specializations.map((spec, index) => (
+                      <Badge key={index} variant="secondary" className="text-xs">
+                        {spec}
+                      </Badge>
+                    ))}
+                  </div>
+
+                  <div className="flex justify-between items-center text-sm mb-3">
+                    <span className="text-gray-600">{teacher.experience} years exp.</span>
+                    <span className="font-semibold text-purple-600">{teacher.rate}</span>
+                  </div>
+
+                  <Button 
+                    className="w-full" 
+                    size="sm"
+                    onClick={() => navigate('/discover-teachers')}
+                  >
+                    View Profile
+                  </Button>
                 </div>
-
-                <div className="flex items-center gap-1 mb-2">
-                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  <span className="text-sm font-medium">{teacher.rating}</span>
-                  <span className="text-sm text-gray-500">({teacher.reviews} reviews)</span>
-                </div>
-
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {teacher.specializations.map((spec, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs">
-                      {spec}
-                    </Badge>
-                  ))}
-                </div>
-
-                <div className="flex justify-between items-center text-sm mb-3">
-                  <span className="text-gray-600">{teacher.experience} years exp.</span>
-                  <span className="font-semibold text-purple-600">{teacher.rate}</span>
-                </div>
-
-                <Button 
-                  className="w-full" 
-                  size="sm"
-                  onClick={() => navigate('/teacher-discovery')}
-                >
-                  View Profile
-                </Button>
-              </div>
-            ))}
-          </div>
-
-          <div className="text-center mt-6">
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/teacher-discovery')}
-              className="px-8"
-            >
-              View All Teachers
-            </Button>
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 

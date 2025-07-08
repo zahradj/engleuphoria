@@ -49,12 +49,12 @@ export const useStudentHandlers = () => {
   };
 
   const handleMessageTeacher = (message: { teacherId: string; subject: string; content: string }) => {
-    // Simulate sending message
-    console.log("Sending message:", message);
+    // Navigate to teachers tab to select and message a teacher
+    console.log("Opening teachers to message:", message);
     
     toast({
-      title: "Message Sent!",
-      description: "Your message has been sent to the teacher.",
+      title: "Select a Teacher",
+      description: "Choose a teacher from your teachers list to send a message.",
     });
   };
 
@@ -63,7 +63,7 @@ export const useStudentHandlers = () => {
   };
 
   const handleBookClass = () => {
-    navigate("/student-lesson-scheduler");
+    navigate("/discover-teachers");
   };
 
   return {
