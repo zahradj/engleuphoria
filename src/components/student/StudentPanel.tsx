@@ -25,7 +25,8 @@ export const StudentPanel = ({
   points: initialPoints = 150 
 }: StudentPanelProps) => {
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [points, setPoints] = useState(initialPoints);
+  const [hasProfile, setHasProfile] = useState(false);
+  const [studentProfile, setStudentProfile] = useState<any>(null);
   const { toast } = useToast();
 
   const handleLogout = () => {
@@ -38,7 +39,7 @@ export const StudentPanel = ({
   const renderActiveTab = () => {
     switch (activeTab) {
       case "dashboard":
-        return <DashboardTab studentName={studentName} points={points} />;
+        return <DashboardTab studentName={studentName} studentId={studentId} hasProfile={hasProfile} studentProfile={studentProfile} />;
       case "profile":
         return <ProfileTab studentName={studentName} />;
       case "classes":
@@ -46,7 +47,7 @@ export const StudentPanel = ({
       case "history":
         return <LessonHistoryTab />;
       case "homework":
-        return <HomeworkTab points={points} setPoints={setPoints} />;
+        return <HomeworkTab />;
       case "progress":
         return <ProgressTrackerTab />;
       case "chat":
@@ -58,7 +59,7 @@ export const StudentPanel = ({
       case "settings":
         return <SettingsTab />;
       default:
-        return <DashboardTab studentName={studentName} points={points} />;
+        return <DashboardTab studentName={studentName} studentId={studentId} hasProfile={hasProfile} studentProfile={studentProfile} />;
     }
   };
 

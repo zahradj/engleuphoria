@@ -5,12 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { FileText, Upload, Clock, CheckCircle } from "lucide-react";
 
-interface HomeworkTabProps {
-  points: number;
-  setPoints: (points: number) => void;
-}
-
-export const HomeworkTab = ({ points, setPoints }: HomeworkTabProps) => {
+export const HomeworkTab = () => {
   const assignments: any[] = [];
 
   return (

@@ -18,22 +18,31 @@ import { LearningPathTab } from "@/components/student/LearningPathTab";
 
 const StudentDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [points, setPoints] = useState(150);
   const [hasProfile, setHasProfile] = useState(false);
+  const [studentProfile, setStudentProfile] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Get student name from localStorage or use default
+  // Generate or get student ID and name
+  const generateStudentId = () => {
+    const existingId = localStorage.getItem('studentId');
+    if (existingId) return existingId;
+    const newId = 'STU' + Math.random().toString(36).substr(2, 6).toUpperCase();
+    localStorage.setItem('studentId', newId);
+    return newId;
+  };
+  
   const studentName = localStorage.getItem('studentName') || 'Student';
+  const studentId = generateStudentId();
 
   useEffect(() => {
     // Check if student has completed their profile
     const profile = localStorage.getItem('studentProfile');
-    setHasProfile(!!profile);
-    
-    // If they have a profile, show learning path by default
-    if (profile && activeTab === "dashboard") {
-      setActiveTab("learning-path");
+    if (profile) {
+      setStudentProfile(JSON.parse(profile));
+      setHasProfile(true);
+    } else {
+      setHasProfile(false);
     }
   }, []);
 
@@ -51,7 +60,7 @@ const StudentDashboard = () => {
   const renderActiveTab = () => {
     switch (activeTab) {
       case "dashboard":
-        return <DashboardTab studentName={studentName} points={points} />;
+        return <DashboardTab studentName={studentName} studentId={studentId} hasProfile={hasProfile} studentProfile={studentProfile} />;
       case "learning-path":
         return <LearningPathTab />;
       case "teachers":
@@ -59,7 +68,7 @@ const StudentDashboard = () => {
       case "upcoming-classes":
         return <UpcomingClassesTab />;
       case "homework":
-        return <HomeworkTab points={points} setPoints={setPoints} />;
+        return <HomeworkTab />;
       case "materials":
         return <MaterialsLibraryTab />;
       case "progress":
@@ -73,13 +82,13 @@ const StudentDashboard = () => {
       case "settings":
         return <SettingsTab />;
       default:
-        return <DashboardTab studentName={studentName} points={points} />;
+        return <DashboardTab studentName={studentName} studentId={studentId} hasProfile={hasProfile} studentProfile={studentProfile} />;
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <StudentHeader studentName={studentName} points={points} />
+      <StudentHeader studentName={studentName} studentId={studentId} hasProfile={hasProfile} studentProfile={studentProfile} />
       <div className="flex">
         <StudentSidebar 
           activeTab={activeTab} 

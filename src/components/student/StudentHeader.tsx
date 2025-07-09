@@ -7,10 +7,12 @@ import { Bell, Star } from "lucide-react";
 
 interface StudentHeaderProps {
   studentName: string;
-  points: number;
+  studentId: string;
+  hasProfile: boolean;
+  studentProfile: any;
 }
 
-export const StudentHeader = ({ studentName, points }: StudentHeaderProps) => {
+export const StudentHeader = ({ studentName, studentId, hasProfile, studentProfile }: StudentHeaderProps) => {
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
@@ -23,17 +25,24 @@ export const StudentHeader = ({ studentName, points }: StudentHeaderProps) => {
           </Avatar>
           <div>
             <h2 className="text-xl font-bold text-gray-800">
-              Welcome back, {studentName}! 👋
+              {studentName} ({studentId}) 👋
             </h2>
-            <p className="text-gray-600">Ready to continue your English journey?</p>
+            <p className="text-gray-600">
+              {hasProfile 
+                ? "Ready to continue your English journey?" 
+                : "Complete your profile to get started!"
+              }
+            </p>
           </div>
         </div>
 
         <div className="flex items-center gap-4">
-          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 gap-1">
-            <Star className="h-4 w-4 fill-current" />
-            {points} points
-          </Badge>
+          {hasProfile && studentProfile?.points && (
+            <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 gap-1">
+              <Star className="h-4 w-4 fill-current" />
+              {studentProfile.points} points
+            </Badge>
+          )}
           
           <Button variant="ghost" size="sm" className="relative">
             <Bell className="h-5 w-5" />

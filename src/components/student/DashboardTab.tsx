@@ -23,10 +23,12 @@ import { TeacherMessageModal } from "./TeacherMessageModal";
 
 interface DashboardTabProps {
   studentName: string;
-  points: number;
+  studentId: string;
+  hasProfile: boolean;
+  studentProfile: any;
 }
 
-export const DashboardTab = ({ studentName, points }: DashboardTabProps) => {
+export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfile }: DashboardTabProps) => {
   const navigate = useNavigate();
   const {
     handleJoinClass,
@@ -43,7 +45,7 @@ export const DashboardTab = ({ studentName, points }: DashboardTabProps) => {
   const [selectedAssignment, setSelectedAssignment] = useState<string | null>(null);
 
   const handleJoinClassroom = () => {
-    navigate("/media-test?roomId=unified-classroom-1&role=student&name=" + encodeURIComponent(studentName) + "&userId=student-1");
+    navigate("/media-test?roomId=unified-classroom-1&role=student&name=" + encodeURIComponent(studentName) + "&userId=" + studentId);
   };
 
   const handleHomeworkSubmit = (submission: { text: string; files: File[] }) => {
@@ -70,20 +72,44 @@ export const DashboardTab = ({ studentName, points }: DashboardTabProps) => {
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-blue-500 to-green-500 rounded-xl p-6 text-white">
         <h1 className="text-2xl font-bold mb-2">Hello, {studentName}! 🌟</h1>
-        <p className="opacity-90 mb-4">You're making great progress in your English journey!</p>
-        <div className="flex gap-4">
-          <div className="bg-white/20 rounded-lg p-3">
-            <div className="flex items-center gap-2">
-              <Star className="h-5 w-5 fill-current" />
-              <span className="font-semibold">{points} Points</span>
-            </div>
-          </div>
-          <div className="bg-white/20 rounded-lg p-3">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              <span className="font-semibold">Level A2</span>
-            </div>
-          </div>
+        <p className="text-sm opacity-80 mb-2">Student ID: {studentId}</p>
+        <p className="opacity-90 mb-4">
+          {hasProfile 
+            ? "Welcome back! Continue your English learning journey." 
+            : "Please complete your profile to get started with personalized learning!"
+          }
+        </p>
+        <div className="flex gap-4 flex-wrap">
+          {hasProfile && studentProfile && (
+            <>
+              {studentProfile.points && (
+                <div className="bg-white/20 rounded-lg p-3">
+                  <div className="flex items-center gap-2">
+                    <Star className="h-5 w-5 fill-current" />
+                    <span className="font-semibold">{studentProfile.points} Points</span>
+                  </div>
+                </div>
+              )}
+              {studentProfile.level && (
+                <div className="bg-white/20 rounded-lg p-3">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    <span className="font-semibold">Level {studentProfile.level}</span>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+          {!hasProfile && (
+            <Button 
+              onClick={() => navigate('/dashboard?tab=profile')}
+              className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+              size="sm"
+            >
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Complete Profile
+            </Button>
+          )}
           <Button 
             onClick={handleJoinClassroom}
             className="bg-white/20 hover:bg-white/30 text-white border-white/30"
