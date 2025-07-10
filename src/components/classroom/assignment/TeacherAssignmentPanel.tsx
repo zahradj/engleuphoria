@@ -10,28 +10,8 @@ import { Plus, Users, Trophy, Clock, CheckCircle } from "lucide-react";
 
 export function TeacherAssignmentPanel() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [assignments, setAssignments] = useState([
-    {
-      id: "1",
-      title: "Vocabulary Matching - Animals",
-      gameType: "word-match",
-      assignedTo: ["Alex Johnson", "Maria Garcia"],
-      createdAt: new Date().toISOString(),
-      status: "active",
-      completions: 1,
-      totalAssigned: 2
-    },
-    {
-      id: "2", 
-      title: "Past Tense Quiz",
-      gameType: "quiz-spinner",
-      assignedTo: ["Emma Johnson"],
-      createdAt: new Date().toISOString(),
-      status: "completed",
-      completions: 1,
-      totalAssigned: 1
-    }
-  ]);
+  // TODO: Replace with real data from API/database
+  const [assignments, setAssignments] = useState<any[]>([]);
 
   const handleCreateAssignment = (assignment: any) => {
     const newAssignment = {

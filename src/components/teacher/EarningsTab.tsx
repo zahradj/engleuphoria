@@ -6,62 +6,18 @@ import { Badge } from "@/components/ui/badge";
 import { DollarSign, TrendingUp, Calendar, Download, CreditCard } from "lucide-react";
 
 export const EarningsTab = () => {
+  // TODO: Replace with real data from API/database
   const earningsData = {
-    thisWeek: 450,
-    thisMonth: 1850,
-    totalEarnings: 12600,
-    pendingPayment: 320,
-    classesThisWeek: 18,
-    averageRating: 4.9
+    thisWeek: 0,
+    thisMonth: 0,
+    totalEarnings: 0,
+    pendingPayment: 0,
+    classesThisWeek: 0,
+    averageRating: 0
   };
 
-  const recentPayments = [
-    {
-      id: 1,
-      date: "Dec 1, 2024",
-      amount: 520,
-      status: "paid",
-      period: "Nov 18-30, 2024",
-      classes: 20
-    },
-    {
-      id: 2,
-      date: "Nov 15, 2024", 
-      amount: 480,
-      status: "paid",
-      period: "Nov 1-15, 2024",
-      classes: 18
-    },
-    {
-      id: 3,
-      date: "Pending",
-      amount: 320,
-      status: "pending",
-      period: "Dec 1-6, 2024",
-      classes: 12
-    }
-  ];
-
-  const upcomingClasses = [
-    {
-      student: "Alex Johnson",
-      date: "Today, 2:00 PM",
-      rate: 25,
-      duration: "1 hour"
-    },
-    {
-      student: "Maria Garcia",
-      date: "Tomorrow, 10:00 AM", 
-      rate: 25,
-      duration: "1 hour"
-    },
-    {
-      student: "Group Class - Beginners",
-      date: "Tomorrow, 3:00 PM",
-      rate: 60,
-      duration: "1.5 hours"
-    }
-  ];
+  const recentPayments: any[] = [];
+  const upcomingClasses: any[] = [];
 
   return (
     <div className="space-y-6">
@@ -140,23 +96,31 @@ export const EarningsTab = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentPayments.map((payment) => (
-                <div key={payment.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                  <div>
-                    <h3 className="font-semibold text-gray-800">${payment.amount}</h3>
-                    <p className="text-sm text-gray-600">{payment.period}</p>
-                    <p className="text-xs text-gray-500">
-                      {payment.classes} classes • {payment.date}
-                    </p>
-                  </div>
-                  <Badge 
-                    variant={payment.status === "paid" ? "default" : "secondary"}
-                    className={payment.status === "paid" ? "bg-green-500" : "bg-orange-500"}
-                  >
-                    {payment.status === "paid" ? "Paid" : "Pending"}
-                  </Badge>
+              {recentPayments.length === 0 ? (
+                <div className="text-center py-8">
+                  <DollarSign className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-600 mb-2">No Payment History</h3>
+                  <p className="text-gray-500">Your payment history will appear here once you start teaching.</p>
                 </div>
-              ))}
+              ) : (
+                recentPayments.map((payment: any) => (
+                  <div key={payment.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                    <div>
+                      <h3 className="font-semibold text-gray-800">${payment.amount}</h3>
+                      <p className="text-sm text-gray-600">{payment.period}</p>
+                      <p className="text-xs text-gray-500">
+                        {payment.classes} classes • {payment.date}
+                      </p>
+                    </div>
+                    <Badge 
+                      variant={payment.status === "paid" ? "default" : "secondary"}
+                      className={payment.status === "paid" ? "bg-green-500" : "bg-orange-500"}
+                    >
+                      {payment.status === "paid" ? "Paid" : "Pending"}
+                    </Badge>
+                  </div>
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
@@ -168,19 +132,27 @@ export const EarningsTab = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {upcomingClasses.map((classInfo, index) => (
-                <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                  <div>
-                    <h3 className="font-semibold text-gray-800">{classInfo.student}</h3>
-                    <p className="text-sm text-gray-600">{classInfo.date}</p>
-                    <p className="text-xs text-gray-500">{classInfo.duration}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-green-600">${classInfo.rate}</p>
-                    <p className="text-xs text-gray-500">Per class</p>
-                  </div>
+              {upcomingClasses.length === 0 ? (
+                <div className="text-center py-8">
+                  <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-600 mb-2">No Upcoming Classes</h3>
+                  <p className="text-gray-500">Schedule your first class to start earning.</p>
                 </div>
-              ))}
+              ) : (
+                upcomingClasses.map((classInfo: any, index: number) => (
+                  <div key={index} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                    <div>
+                      <h3 className="font-semibold text-gray-800">{classInfo.student}</h3>
+                      <p className="text-sm text-gray-600">{classInfo.date}</p>
+                      <p className="text-xs text-gray-500">{classInfo.duration}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-green-600">${classInfo.rate}</p>
+                      <p className="text-xs text-gray-500">Per class</p>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
@@ -202,7 +174,9 @@ export const EarningsTab = () => {
               <p className="text-sm text-gray-600">Average Rating</p>
             </div>
             <div className="text-center">
-              <p className="text-3xl font-bold text-green-600">${(earningsData.thisWeek / earningsData.classesThisWeek).toFixed(0)}</p>
+              <p className="text-3xl font-bold text-green-600">
+                ${earningsData.classesThisWeek > 0 ? (earningsData.thisWeek / earningsData.classesThisWeek).toFixed(0) : '0'}
+              </p>
               <p className="text-sm text-gray-600">Average Per Class</p>
             </div>
           </div>

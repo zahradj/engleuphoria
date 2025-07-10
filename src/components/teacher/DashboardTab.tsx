@@ -54,84 +54,16 @@ export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
     });
   };
 
-  // Enhanced class data with 10 euro lesson cost
-  const todaysClasses = [
-    {
-      id: 1,
-      title: "Beginner English - Group A",
-      time: "9:00 AM",
-      student: "Alex, Maria, Li",
-      studentCount: 3,
-      status: "ready" as const,
-      earnings: 30 // 3 students × €10
-    },
-    {
-      id: 2,
-      title: "Intermediate Conversation",
-      time: "2:00 PM", 
-      student: "Emma Johnson",
-      studentCount: 1,
-      status: "ready" as const,
-      earnings: 10 // 1 student × €10
-    },
-    {
-      id: 3,
-      title: "Grammar Fundamentals",
-      time: "4:00 PM",
-      student: "Carlos, Sophia",
-      studentCount: 2,
-      status: "upcoming" as const,
-      earnings: 20 // 2 students × €10
-    },
-    {
-      id: 4,
-      title: "Advanced Writing Workshop",
-      time: "6:00 PM",
-      student: "David Kim",
-      studentCount: 1,
-      status: "live" as const,
-      earnings: 10 // 1 student × €10
-    }
-  ];
-
-  const pendingHomework = [
-    {
-      student: "Alex Johnson",
-      assignment: "Past Tense Exercises",
-      submitted: "2 hours ago",
-      urgent: false
-    },
-    {
-      student: "Maria Garcia", 
-      assignment: "Vocabulary Practice",
-      submitted: "1 day ago",
-      urgent: true
-    }
-  ];
-
-  const notifications = [
-    {
-      type: "message" as const,
-      text: "New message from Emma Johnson",
-      time: "5 min ago"
-    },
-    {
-      type: "homework" as const,
-      text: "3 homework submissions to grade",
-      time: "1 hour ago"
-    },
-    {
-      type: "schedule" as const,
-      text: "Class rescheduled by Alex Johnson",
-      time: "2 hours ago"
-    }
-  ];
-
-  // Updated earnings data based on €10 per lesson
+  // TODO: Replace with real data from API/database
+  const todaysClasses: any[] = [];
+  const pendingHomework: any[] = [];
+  const notifications: any[] = [];
+  
+  // TODO: Connect to real earnings data
   const earningsData = {
-    weeklyEarnings: 350, // 35 lessons this week × €10
-    pendingPayment: 70,  // 7 completed lessons awaiting payment × €10
-    totalBalance: 2100   // Total accumulated earnings
+    weeklyEarnings: 0,
+    pendingPayment: 0,
+    totalBalance: 0
   };
 
   return (
