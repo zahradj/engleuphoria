@@ -57,6 +57,7 @@ function App() {
               <Route path="/discover-teachers" element={<DiscoverTeachers />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignUp />} />
+              <Route path="/student-registration" element={<SignUp />} />
               <Route path="/student-lesson-scheduler" element={<StudentLessonScheduler />} />
               <Route path="/material-library" element={<MaterialLibraryPage />} />
               <Route path="/payment" element={<PaymentPage />} />
