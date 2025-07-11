@@ -32,6 +32,8 @@ import PricingSelection from "./pages/PricingSelection";
 import Contact from "./pages/Contact";
 import StudentApplication from "./pages/StudentApplication";
 import EmailConfirmation from "./pages/EmailConfirmation";
+import ForTeachers from "./pages/ForTeachers";
+import CurriculumLibrary from "./pages/CurriculumLibrary";
 
 const queryClient = new QueryClient();
 
@@ -72,6 +74,8 @@ function App() {
               <Route path="/teacher-application" element={<TeacherApplication />} />
               <Route path="/pricing-selection" element={<PricingSelection />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/for-teachers" element={<ForTeachers />} />
+              <Route path="/curriculum-library" element={<CurriculumLibrary />} />
               <Route path="/media-test" element={<MediaTestPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

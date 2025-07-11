@@ -19,7 +19,7 @@ export const Footer = () => {
           
           {/* Mobile Footer Links */}
           <div className="flex flex-col md:hidden gap-4 text-center">
-            <Link to="#" className="text-muted-foreground hover:text-foreground">
+            <Link to="/about" className="text-muted-foreground hover:text-foreground">
               {languageText.aboutUs}
             </Link>
             <Link to="/for-parents" className="text-muted-foreground hover:text-foreground">
@@ -68,7 +68,7 @@ export const Footer = () => {
           
           {/* Desktop Footer Links */}
           <div className="hidden md:flex gap-6 items-center">
-            <Link to="#" className="text-muted-foreground hover:text-foreground">
+            <Link to="/about" className="text-muted-foreground hover:text-foreground">
               {languageText.aboutUs}
             </Link>
             <Link to="/for-parents" className="text-muted-foreground hover:text-foreground">
