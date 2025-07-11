@@ -14,6 +14,101 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievement_shares: {
+        Row: {
+          achievement_id: string
+          achievement_tier_id: string | null
+          comments_count: number
+          id: string
+          likes_count: number
+          share_message: string | null
+          share_platform: string
+          shared_at: string
+          student_id: string
+        }
+        Insert: {
+          achievement_id: string
+          achievement_tier_id?: string | null
+          comments_count?: number
+          id?: string
+          likes_count?: number
+          share_message?: string | null
+          share_platform: string
+          shared_at?: string
+          student_id: string
+        }
+        Update: {
+          achievement_id?: string
+          achievement_tier_id?: string | null
+          comments_count?: number
+          id?: string
+          likes_count?: number
+          share_message?: string | null
+          share_platform?: string
+          shared_at?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "achievement_shares_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "achievement_shares_achievement_tier_id_fkey"
+            columns: ["achievement_tier_id"]
+            isOneToOne: false
+            referencedRelation: "achievement_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      achievement_tiers: {
+        Row: {
+          achievement_id: string
+          coin_reward: number
+          created_at: string
+          id: string
+          requirements: Json
+          tier_level: number
+          tier_name: string
+          unlock_requirements: Json | null
+          xp_reward: number
+        }
+        Insert: {
+          achievement_id: string
+          coin_reward?: number
+          created_at?: string
+          id?: string
+          requirements?: Json
+          tier_level: number
+          tier_name: string
+          unlock_requirements?: Json | null
+          xp_reward?: number
+        }
+        Update: {
+          achievement_id?: string
+          coin_reward?: number
+          created_at?: string
+          id?: string
+          requirements?: Json
+          tier_level?: number
+          tier_name?: string
+          unlock_requirements?: Json | null
+          xp_reward?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "achievement_tiers_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       achievements: {
         Row: {
           category: string
@@ -1446,6 +1541,71 @@ export type Database = {
           },
         ]
       }
+      leaderboard_entries: {
+        Row: {
+          additional_data: Json | null
+          id: string
+          leaderboard_id: string
+          rank_position: number
+          recorded_at: string
+          score: number
+          student_id: string
+        }
+        Insert: {
+          additional_data?: Json | null
+          id?: string
+          leaderboard_id: string
+          rank_position: number
+          recorded_at?: string
+          score: number
+          student_id: string
+        }
+        Update: {
+          additional_data?: Json | null
+          id?: string
+          leaderboard_id?: string
+          rank_position?: number
+          recorded_at?: string
+          score?: number
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leaderboard_entries_leaderboard_id_fkey"
+            columns: ["leaderboard_id"]
+            isOneToOne: false
+            referencedRelation: "leaderboards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leaderboards: {
+        Row: {
+          calculation_period: string
+          created_at: string
+          id: string
+          leaderboard_type: string
+          scope_identifier: string | null
+          updated_at: string
+        }
+        Insert: {
+          calculation_period: string
+          created_at?: string
+          id?: string
+          leaderboard_type: string
+          scope_identifier?: string | null
+          updated_at?: string
+        }
+        Update: {
+          calculation_period?: string
+          created_at?: string
+          id?: string
+          leaderboard_type?: string
+          scope_identifier?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       learning_analytics: {
         Row: {
           accuracy_score: number | null
@@ -1482,6 +1642,87 @@ export type Database = {
           skill_area?: string
           student_id?: string
           xp_earned?: number
+        }
+        Relationships: []
+      }
+      learning_challenges: {
+        Row: {
+          challenge_type: string
+          created_at: string
+          current_participants: number | null
+          description: string
+          difficulty_level: number
+          end_date: string
+          id: string
+          is_active: boolean
+          max_participants: number | null
+          requirements: Json
+          rewards: Json
+          start_date: string
+          title: string
+        }
+        Insert: {
+          challenge_type: string
+          created_at?: string
+          current_participants?: number | null
+          description: string
+          difficulty_level?: number
+          end_date: string
+          id?: string
+          is_active?: boolean
+          max_participants?: number | null
+          requirements?: Json
+          rewards?: Json
+          start_date: string
+          title: string
+        }
+        Update: {
+          challenge_type?: string
+          created_at?: string
+          current_participants?: number | null
+          description?: string
+          difficulty_level?: number
+          end_date?: string
+          id?: string
+          is_active?: boolean
+          max_participants?: number | null
+          requirements?: Json
+          rewards?: Json
+          start_date?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      learning_currency: {
+        Row: {
+          achievement_bonus_coins: number
+          coins_spent: number
+          created_at: string
+          id: string
+          streak_bonus_coins: number
+          student_id: string
+          total_coins: number
+          updated_at: string
+        }
+        Insert: {
+          achievement_bonus_coins?: number
+          coins_spent?: number
+          created_at?: string
+          id?: string
+          streak_bonus_coins?: number
+          student_id: string
+          total_coins?: number
+          updated_at?: string
+        }
+        Update: {
+          achievement_bonus_coins?: number
+          coins_spent?: number
+          created_at?: string
+          id?: string
+          streak_bonus_coins?: number
+          student_id?: string
+          total_coins?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -2097,6 +2338,45 @@ export type Database = {
           },
         ]
       }
+      seasonal_events: {
+        Row: {
+          created_at: string
+          description: string
+          end_date: string
+          id: string
+          is_active: boolean
+          name: string
+          participation_requirements: Json | null
+          special_rewards: Json
+          start_date: string
+          theme_data: Json
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          end_date: string
+          id?: string
+          is_active?: boolean
+          name: string
+          participation_requirements?: Json | null
+          special_rewards?: Json
+          start_date: string
+          theme_data?: Json
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          end_date?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          participation_requirements?: Json | null
+          special_rewards?: Json
+          start_date?: string
+          theme_data?: Json
+        }
+        Relationships: []
+      }
       speaking_classroom_sessions: {
         Row: {
           avg_response_time: number | null
@@ -2507,6 +2787,44 @@ export type Database = {
         }
         Relationships: []
       }
+      student_achievement_tiers: {
+        Row: {
+          achievement_tier_id: string
+          created_at: string
+          id: string
+          is_unlocked: boolean
+          progress_data: Json
+          student_id: string
+          unlocked_at: string | null
+        }
+        Insert: {
+          achievement_tier_id: string
+          created_at?: string
+          id?: string
+          is_unlocked?: boolean
+          progress_data?: Json
+          student_id: string
+          unlocked_at?: string | null
+        }
+        Update: {
+          achievement_tier_id?: string
+          created_at?: string
+          id?: string
+          is_unlocked?: boolean
+          progress_data?: Json
+          student_id?: string
+          unlocked_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_achievement_tiers_achievement_tier_id_fkey"
+            columns: ["achievement_tier_id"]
+            isOneToOne: false
+            referencedRelation: "achievement_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_achievements: {
         Row: {
           achievement_id: string
@@ -2535,6 +2853,124 @@ export type Database = {
             columns: ["achievement_id"]
             isOneToOne: false
             referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_challenge_progress: {
+        Row: {
+          challenge_id: string
+          completed_at: string | null
+          completion_percentage: number
+          id: string
+          is_completed: boolean
+          progress_data: Json
+          started_at: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          challenge_id: string
+          completed_at?: string | null
+          completion_percentage?: number
+          id?: string
+          is_completed?: boolean
+          progress_data?: Json
+          started_at?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          challenge_id?: string
+          completed_at?: string | null
+          completion_percentage?: number
+          id?: string
+          is_completed?: boolean
+          progress_data?: Json
+          started_at?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_challenge_progress_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "learning_challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_learning_streaks: {
+        Row: {
+          bonus_coins_earned: number
+          created_at: string
+          current_streak: number
+          id: string
+          last_activity_date: string
+          longest_streak: number
+          streak_multiplier: number
+          streak_type: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          bonus_coins_earned?: number
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_activity_date?: string
+          longest_streak?: number
+          streak_multiplier?: number
+          streak_type: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          bonus_coins_earned?: number
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_activity_date?: string
+          longest_streak?: number
+          streak_multiplier?: number
+          streak_type?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      student_reward_purchases: {
+        Row: {
+          coins_spent: number
+          id: string
+          is_active: boolean
+          purchased_at: string
+          reward_id: string
+          student_id: string
+        }
+        Insert: {
+          coins_spent: number
+          id?: string
+          is_active?: boolean
+          purchased_at?: string
+          reward_id: string
+          student_id: string
+        }
+        Update: {
+          coins_spent?: number
+          id?: string
+          is_active?: boolean
+          purchased_at?: string
+          reward_id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_reward_purchases_reward_id_fkey"
+            columns: ["reward_id"]
+            isOneToOne: false
+            referencedRelation: "virtual_rewards"
             referencedColumns: ["id"]
           },
         ]
@@ -3315,6 +3751,48 @@ export type Database = {
           },
         ]
       }
+      virtual_rewards: {
+        Row: {
+          category: string
+          cost_coins: number
+          created_at: string
+          description: string
+          id: string
+          is_available: boolean
+          limited_quantity: number | null
+          metadata: Json
+          name: string
+          purchased_count: number
+          rarity: string
+        }
+        Insert: {
+          category: string
+          cost_coins: number
+          created_at?: string
+          description: string
+          id?: string
+          is_available?: boolean
+          limited_quantity?: number | null
+          metadata?: Json
+          name: string
+          purchased_count?: number
+          rarity?: string
+        }
+        Update: {
+          category?: string
+          cost_coins?: number
+          created_at?: string
+          description?: string
+          id?: string
+          is_available?: boolean
+          limited_quantity?: number | null
+          metadata?: Json
+          name?: string
+          purchased_count?: number
+          rarity?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -3397,9 +3875,21 @@ export type Database = {
           student_id: string
         }[]
       }
+      purchase_virtual_reward: {
+        Args: { student_uuid: string; reward_uuid: string }
+        Returns: Json
+      }
       reset_monthly_class_usage: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      update_learning_currency: {
+        Args: {
+          student_uuid: string
+          coins_to_add: number
+          currency_source?: string
+        }
+        Returns: Json
       }
       update_learning_model: {
         Args: {
@@ -3409,6 +3899,10 @@ export type Database = {
           confidence?: number
         }
         Returns: string
+      }
+      update_learning_streak: {
+        Args: { student_uuid: string; streak_type_param?: string }
+        Returns: Json
       }
       update_student_xp: {
         Args: { student_uuid: string; xp_to_add: number }
