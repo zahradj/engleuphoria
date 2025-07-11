@@ -30,6 +30,7 @@ import LessonScheduler from "./pages/LessonScheduler";
 import TeacherApplication from "./pages/TeacherApplication";
 import PricingSelection from "./pages/PricingSelection";
 import Contact from "./pages/Contact";
+import StudentApplication from "./pages/StudentApplication";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +59,7 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignUp />} />
               <Route path="/student-registration" element={<SignUp />} />
+              <Route path="/student-application" element={<StudentApplication />} />
               <Route path="/student-lesson-scheduler" element={<StudentLessonScheduler />} />
               <Route path="/material-library" element={<MaterialLibraryPage />} />
               <Route path="/payment" element={<PaymentPage />} />
