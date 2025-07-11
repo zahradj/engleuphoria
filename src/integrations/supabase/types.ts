@@ -703,6 +703,451 @@ export type Database = {
         }
         Relationships: []
       }
+      communities: {
+        Row: {
+          banner_url: string | null
+          category: Database["public"]["Enums"]["community_category"]
+          cefr_level: string
+          community_rules: string | null
+          created_at: string | null
+          created_by: string
+          current_members: number | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          max_members: number | null
+          name: string
+          privacy_level: Database["public"]["Enums"]["community_privacy"] | null
+          requires_approval: boolean | null
+          tags: string[] | null
+          updated_at: string | null
+          weekly_goal_hours: number | null
+        }
+        Insert: {
+          banner_url?: string | null
+          category: Database["public"]["Enums"]["community_category"]
+          cefr_level: string
+          community_rules?: string | null
+          created_at?: string | null
+          created_by: string
+          current_members?: number | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_members?: number | null
+          name: string
+          privacy_level?:
+            | Database["public"]["Enums"]["community_privacy"]
+            | null
+          requires_approval?: boolean | null
+          tags?: string[] | null
+          updated_at?: string | null
+          weekly_goal_hours?: number | null
+        }
+        Update: {
+          banner_url?: string | null
+          category?: Database["public"]["Enums"]["community_category"]
+          cefr_level?: string
+          community_rules?: string | null
+          created_at?: string | null
+          created_by?: string
+          current_members?: number | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_members?: number | null
+          name?: string
+          privacy_level?:
+            | Database["public"]["Enums"]["community_privacy"]
+            | null
+          requires_approval?: boolean | null
+          tags?: string[] | null
+          updated_at?: string | null
+          weekly_goal_hours?: number | null
+        }
+        Relationships: []
+      }
+      community_challenge_participations: {
+        Row: {
+          challenge_id: string
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          points_earned: number | null
+          rank: number | null
+          score: number | null
+          submission_data: Json | null
+          user_id: string
+        }
+        Insert: {
+          challenge_id: string
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          points_earned?: number | null
+          rank?: number | null
+          score?: number | null
+          submission_data?: Json | null
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          points_earned?: number | null
+          rank?: number | null
+          score?: number | null
+          submission_data?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_challenge_participations_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "community_challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_challenges: {
+        Row: {
+          challenge_data: Json | null
+          challenge_type: string
+          community_id: string
+          created_at: string | null
+          created_by: string
+          current_participants: number | null
+          description: string
+          difficulty_level: number | null
+          end_date: string
+          id: string
+          is_active: boolean | null
+          max_participants: number | null
+          reward_points: number | null
+          start_date: string
+          title: string
+        }
+        Insert: {
+          challenge_data?: Json | null
+          challenge_type: string
+          community_id: string
+          created_at?: string | null
+          created_by: string
+          current_participants?: number | null
+          description: string
+          difficulty_level?: number | null
+          end_date: string
+          id?: string
+          is_active?: boolean | null
+          max_participants?: number | null
+          reward_points?: number | null
+          start_date: string
+          title: string
+        }
+        Update: {
+          challenge_data?: Json | null
+          challenge_type?: string
+          community_id?: string
+          created_at?: string | null
+          created_by?: string
+          current_participants?: number | null
+          description?: string
+          difficulty_level?: number | null
+          end_date?: string
+          id?: string
+          is_active?: boolean | null
+          max_participants?: number | null
+          reward_points?: number | null
+          start_date?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_challenges_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_event_participants: {
+        Row: {
+          attendance_status: string | null
+          event_id: string
+          feedback_notes: string | null
+          feedback_rating: number | null
+          id: string
+          joined_at: string | null
+          user_id: string
+        }
+        Insert: {
+          attendance_status?: string | null
+          event_id: string
+          feedback_notes?: string | null
+          feedback_rating?: number | null
+          id?: string
+          joined_at?: string | null
+          user_id: string
+        }
+        Update: {
+          attendance_status?: string | null
+          event_id?: string
+          feedback_notes?: string | null
+          feedback_rating?: number | null
+          id?: string
+          joined_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_event_participants_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "community_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_events: {
+        Row: {
+          community_id: string
+          created_at: string | null
+          current_participants: number | null
+          description: string | null
+          duration_minutes: number | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          is_recurring: boolean | null
+          max_participants: number | null
+          organizer_id: string
+          recurrence_pattern: Json | null
+          requires_signup: boolean | null
+          room_id: string | null
+          scheduled_at: string
+          status: string | null
+          title: string
+        }
+        Insert: {
+          community_id: string
+          created_at?: string | null
+          current_participants?: number | null
+          description?: string | null
+          duration_minutes?: number | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          is_recurring?: boolean | null
+          max_participants?: number | null
+          organizer_id: string
+          recurrence_pattern?: Json | null
+          requires_signup?: boolean | null
+          room_id?: string | null
+          scheduled_at: string
+          status?: string | null
+          title: string
+        }
+        Update: {
+          community_id?: string
+          created_at?: string | null
+          current_participants?: number | null
+          description?: string | null
+          duration_minutes?: number | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          is_recurring?: boolean | null
+          max_participants?: number | null
+          organizer_id?: string
+          recurrence_pattern?: Json | null
+          requires_signup?: boolean | null
+          room_id?: string | null
+          scheduled_at?: string
+          status?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_events_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_likes: {
+        Row: {
+          content_id: string
+          content_type: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          content_id: string
+          content_type: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          content_id?: string
+          content_type?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      community_memberships: {
+        Row: {
+          community_id: string
+          id: string
+          joined_at: string | null
+          last_active_at: string | null
+          role: Database["public"]["Enums"]["community_role"] | null
+          status: string | null
+          total_contributions: number | null
+          user_id: string
+          weekly_hours_contributed: number | null
+        }
+        Insert: {
+          community_id: string
+          id?: string
+          joined_at?: string | null
+          last_active_at?: string | null
+          role?: Database["public"]["Enums"]["community_role"] | null
+          status?: string | null
+          total_contributions?: number | null
+          user_id: string
+          weekly_hours_contributed?: number | null
+        }
+        Update: {
+          community_id?: string
+          id?: string
+          joined_at?: string | null
+          last_active_at?: string | null
+          role?: Database["public"]["Enums"]["community_role"] | null
+          status?: string | null
+          total_contributions?: number | null
+          user_id?: string
+          weekly_hours_contributed?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_memberships_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_post_replies: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string | null
+          id: string
+          likes_count: number | null
+          parent_reply_id: string | null
+          post_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string | null
+          id?: string
+          likes_count?: number | null
+          parent_reply_id?: string | null
+          post_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string | null
+          id?: string
+          likes_count?: number | null
+          parent_reply_id?: string | null
+          post_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_post_replies_parent_reply_id_fkey"
+            columns: ["parent_reply_id"]
+            isOneToOne: false
+            referencedRelation: "community_post_replies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_post_replies_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      community_posts: {
+        Row: {
+          author_id: string
+          community_id: string
+          content: string
+          created_at: string | null
+          id: string
+          is_pinned: boolean | null
+          likes_count: number | null
+          post_type: string | null
+          replies_count: number | null
+          tags: string[] | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          author_id: string
+          community_id: string
+          content: string
+          created_at?: string | null
+          id?: string
+          is_pinned?: boolean | null
+          likes_count?: number | null
+          post_type?: string | null
+          replies_count?: number | null
+          tags?: string[] | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          author_id?: string
+          community_id?: string
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_pinned?: boolean | null
+          likes_count?: number | null
+          post_type?: string | null
+          replies_count?: number | null
+          tags?: string[] | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_posts_community_id_fkey"
+            columns: ["community_id"]
+            isOneToOne: false
+            referencedRelation: "communities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       curriculum_levels: {
         Row: {
           age_group: string
@@ -2713,6 +3158,60 @@ export type Database = {
           },
         ]
       }
+      user_community_stats: {
+        Row: {
+          badges_earned: string[] | null
+          community_points: number | null
+          created_at: string | null
+          id: string
+          last_activity_date: string | null
+          reputation_score: number | null
+          streak_days: number | null
+          total_challenges_completed: number | null
+          total_communities: number | null
+          total_events_attended: number | null
+          total_likes_received: number | null
+          total_posts: number | null
+          total_replies: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          badges_earned?: string[] | null
+          community_points?: number | null
+          created_at?: string | null
+          id?: string
+          last_activity_date?: string | null
+          reputation_score?: number | null
+          streak_days?: number | null
+          total_challenges_completed?: number | null
+          total_communities?: number | null
+          total_events_attended?: number | null
+          total_likes_received?: number | null
+          total_posts?: number | null
+          total_replies?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          badges_earned?: string[] | null
+          community_points?: number | null
+          created_at?: string | null
+          id?: string
+          last_activity_date?: string | null
+          reputation_score?: number | null
+          streak_days?: number | null
+          total_challenges_completed?: number | null
+          total_communities?: number | null
+          total_events_attended?: number | null
+          total_likes_received?: number | null
+          total_posts?: number | null
+          total_replies?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_subscriptions: {
         Row: {
           classes_used_this_month: number
@@ -2921,7 +3420,17 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      community_category:
+        | "conversation_practice"
+        | "business_english"
+        | "ielts_preparation"
+        | "academic_english"
+        | "cultural_exchange"
+        | "pronunciation"
+        | "writing_practice"
+        | "general_discussion"
+      community_privacy: "public" | "private" | "invite_only"
+      community_role: "owner" | "moderator" | "member" | "guest"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3048,6 +3557,19 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      community_category: [
+        "conversation_practice",
+        "business_english",
+        "ielts_preparation",
+        "academic_english",
+        "cultural_exchange",
+        "pronunciation",
+        "writing_practice",
+        "general_discussion",
+      ],
+      community_privacy: ["public", "private", "invite_only"],
+      community_role: ["owner", "moderator", "member", "guest"],
+    },
   },
 } as const

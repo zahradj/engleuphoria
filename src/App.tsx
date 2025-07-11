@@ -46,6 +46,8 @@ const SpeakingClassroomHub = lazy(() => import("./components/speaking-classroom/
 const SpeakingClassroomSession = lazy(() => import("./components/speaking-classroom/SpeakingClassroomSession").then(module => ({ default: module.SpeakingClassroomSessionComponent })));
 const SiteMap = lazy(() => import("./pages/SiteMap"));
 const TeacherOnboarding = lazy(() => import("./pages/TeacherOnboarding"));
+const CommunityHub = lazy(() => import("./components/community/CommunityHub").then(module => ({ default: module.CommunityHub })));
+const CommunityDetail = lazy(() => import("./components/community/CommunityDetail").then(module => ({ default: module.CommunityDetail })));
 
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 
@@ -102,6 +104,8 @@ function App() {
                <Route path="/classroom" element={<ProtectedRoute><UnifiedClassroom /></ProtectedRoute>} />
                <Route path="/speaking-classroom" element={<ProtectedRoute><SpeakingClassroomHub /></ProtectedRoute>} />
                <Route path="/speaking-classroom/:sessionId" element={<ProtectedRoute><SpeakingClassroomSession /></ProtectedRoute>} />
+               <Route path="/communities" element={<ProtectedRoute><CommunityHub /></ProtectedRoute>} />
+               <Route path="/community/:communityId" element={<ProtectedRoute><CommunityDetail /></ProtectedRoute>} />
                <Route path="/whiteboard" element={<ProtectedRoute><WhiteboardPage /></ProtectedRoute>} />
               <Route path="/curriculum-library" element={<ProtectedRoute><CurriculumLibrary /></ProtectedRoute>} />
               <Route path="/payment" element={<ProtectedRoute><PaymentPage /></ProtectedRoute>} />
