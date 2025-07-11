@@ -51,44 +51,40 @@ export const SignUpForm = () => {
     
     if (!isConfigured) {
       // Fallback to localStorage simulation for demo mode
-      setTimeout(() => {
-        // Store user data based on type
-        if (values.userType === "teacher") {
-          localStorage.setItem('teacherName', values.name);
-          localStorage.setItem('userType', 'teacher');
-          localStorage.removeItem('studentName');
-          localStorage.removeItem('adminName');
-        } else if (values.userType === "student") {
-          localStorage.setItem('studentName', values.name);
-          localStorage.setItem('userType', 'student');
-          localStorage.setItem('points', '50');
-          localStorage.removeItem('teacherName');
-          localStorage.removeItem('adminName');
-        } else if (values.userType === "admin") {
-          localStorage.setItem('adminName', values.name);
-          localStorage.setItem('userType', 'admin');
-          localStorage.removeItem('teacherName');
-          localStorage.removeItem('studentName');
-        }
-        
-        toast({
-          title: "🎉 Account created successfully!",
-          description: "Welcome to Engleuphoria! Please select your learning plan...",
-        });
-        
-        // Redirect based on user type
-        setTimeout(() => {
-          if (values.userType === "teacher") {
-            navigate("/teacher-dashboard");
-          } else if (values.userType === "admin") {
-            navigate("/admin-dashboard");
-          } else {
-            navigate("/pricing-selection");
-          }
-        }, 1500);
-        
-        setIsLoading(false);
-      }, 2000);
+      // Store user data based on type
+      if (values.userType === "teacher") {
+        localStorage.setItem('teacherName', values.name);
+        localStorage.setItem('userType', 'teacher');
+        localStorage.removeItem('studentName');
+        localStorage.removeItem('adminName');
+      } else if (values.userType === "student") {
+        localStorage.setItem('studentName', values.name);
+        localStorage.setItem('userType', 'student');
+        localStorage.setItem('points', '50');
+        localStorage.removeItem('teacherName');
+        localStorage.removeItem('adminName');
+      } else if (values.userType === "admin") {
+        localStorage.setItem('adminName', values.name);
+        localStorage.setItem('userType', 'admin');
+        localStorage.removeItem('teacherName');
+        localStorage.removeItem('studentName');
+      }
+      
+      toast({
+        title: "🎉 Account created successfully!",
+        description: "Welcome to Engleuphoria! Please select your learning plan...",
+      });
+      
+      setIsLoading(false);
+      
+      // Redirect based on user type
+      if (values.userType === "teacher") {
+        navigate("/teacher-dashboard");
+      } else if (values.userType === "admin") {
+        navigate("/admin-dashboard");
+      } else {
+        navigate("/pricing-selection");
+      }
       return;
     }
 
