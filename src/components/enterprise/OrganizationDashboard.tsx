@@ -11,7 +11,7 @@ import { Users, TrendingUp, BookOpen, Star, AlertTriangle, CheckCircle, Target }
 
 export const OrganizationDashboard = () => {
   const { currentOrganization, isAdmin } = useOrganization();
-  const { getOrganizationAnalytics, getCohortAnalysis, getRevenueAnalytics } = useAdvancedAnalytics();
+  const { fetchInsights, isLoading } = useAdvancedAnalytics();
   const [analytics, setAnalytics] = useState<any>(null);
   const [cohortData, setCohortData] = useState<any[]>([]);
   const [revenueData, setRevenueData] = useState<any[]>([]);
@@ -24,15 +24,38 @@ export const OrganizationDashboard = () => {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      const [analyticsResult, cohortResult, revenueResult] = await Promise.all([
-        getOrganizationAnalytics(),
-        getCohortAnalysis('monthly'),
-        getRevenueAnalytics()
-      ]);
+      
+      // Mock analytics data for demo
+      const mockAnalytics = {
+        total_users: 1247,
+        engagement_rate: 0.73,
+        total_lessons: 3891,
+        average_satisfaction: 4.2,
+        active_users: 892
+      };
 
-      setAnalytics(analyticsResult);
-      setCohortData(cohortResult || []);
-      setRevenueData(revenueResult || []);
+      const mockCohortData = [
+        { period: 'Jan', active_users: 120, retention_rate: 85 },
+        { period: 'Feb', active_users: 135, retention_rate: 87 },
+        { period: 'Mar', active_users: 142, retention_rate: 89 },
+        { period: 'Apr', active_users: 158, retention_rate: 91 },
+        { period: 'May', active_users: 167, retention_rate: 88 },
+        { period: 'Jun', active_users: 189, retention_rate: 92 },
+        { period: 'Jul', active_users: 201, retention_rate: 94 }
+      ];
+
+      const mockRevenueData = [
+        { month: 'Jan', revenue: 12500 },
+        { month: 'Feb', revenue: 13200 },
+        { month: 'Mar', revenue: 14100 },
+        { month: 'Apr', revenue: 15800 },
+        { month: 'May', revenue: 16900 },
+        { month: 'Jun', revenue: 18200 }
+      ];
+
+      setAnalytics(mockAnalytics);
+      setCohortData(mockCohortData);
+      setRevenueData(mockRevenueData);
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     } finally {
