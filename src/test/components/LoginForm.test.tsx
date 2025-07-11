@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, fireEvent, waitFor } from '@testing-library/react';
-import { screen } from '@testing-library/dom';
+import { render } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { LoginForm } from '@/components/index/LoginForm';
 import { BrowserRouter } from 'react-router-dom';
 
@@ -20,73 +20,75 @@ vi.mock('@/integrations/supabase/client', () => ({
 }));
 
 const renderWithRouter = (component: React.ReactElement) => {
-  return render(
+  const result = render(
     <BrowserRouter>
       {component}
     </BrowserRouter>
   );
+  return result;
 };
 
 describe('LoginForm', () => {
   it('renders login form elements', () => {
-    renderWithRouter(<LoginForm />);
+    const { getByPlaceholder, getByRole } = renderWithRouter(<LoginForm />);
     
-    expect(screen.getByPlaceholder('Email')).toBeInTheDocument();
-    expect(screen.getByPlaceholder('Password')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
+    expect(getByPlaceholder('Email')).toBeInTheDocument();
+    expect(getByPlaceholder('Password')).toBeInTheDocument();
+    expect(getByRole('button', { name: /sign in/i })).toBeInTheDocument();
   });
 
   it('shows validation errors for empty fields', async () => {
-    renderWithRouter(<LoginForm />);
+    const user = userEvent.setup();
+    const { getByRole, getByText } = renderWithRouter(<LoginForm />);
     
-    const submitButton = screen.getByRole('button', { name: /sign in/i });
-    fireEvent.click(submitButton);
+    const submitButton = getByRole('button', { name: /sign in/i });
+    await user.click(submitButton);
     
-    await waitFor(() => {
-      expect(screen.getByText(/email is required/i)).toBeInTheDocument();
-      expect(screen.getByText(/password is required/i)).toBeInTheDocument();
-    });
+    // Check for validation errors
+    expect(getByText(/email is required/i)).toBeInTheDocument();
+    expect(getByText(/password is required/i)).toBeInTheDocument();
   });
 
   it('shows validation error for invalid email', async () => {
-    renderWithRouter(<LoginForm />);
+    const user = userEvent.setup();
+    const { getByPlaceholder, getByRole, getByText } = renderWithRouter(<LoginForm />);
     
-    const emailInput = screen.getByPlaceholder('Email');
-    const submitButton = screen.getByRole('button', { name: /sign in/i });
+    const emailInput = getByPlaceholder('Email');
+    const submitButton = getByRole('button', { name: /sign in/i });
     
-    fireEvent.change(emailInput, { target: { value: 'invalid-email' } });
-    fireEvent.click(submitButton);
+    await user.type(emailInput, 'invalid-email');
+    await user.click(submitButton);
     
-    await waitFor(() => {
-      expect(screen.getByText(/invalid email/i)).toBeInTheDocument();
-    });
+    // Check for validation error
+    expect(getByText(/invalid email/i)).toBeInTheDocument();
   });
 
   it('disables submit button while loading', async () => {
-    renderWithRouter(<LoginForm />);
+    const user = userEvent.setup();
+    const { getByPlaceholder, getByRole } = renderWithRouter(<LoginForm />);
     
-    const emailInput = screen.getByPlaceholder('Email');
-    const passwordInput = screen.getByPlaceholder('Password');
-    const submitButton = screen.getByRole('button', { name: /sign in/i });
+    const emailInput = getByPlaceholder('Email');
+    const passwordInput = getByPlaceholder('Password');
+    const submitButton = getByRole('button', { name: /sign in/i });
     
-    fireEvent.change(emailInput, { target: { value: 'test@example.com' } });
-    fireEvent.change(passwordInput, { target: { value: 'password123' } });
-    fireEvent.click(submitButton);
+    await user.type(emailInput, 'test@example.com');
+    await user.type(passwordInput, 'password123');
+    await user.click(submitButton);
     
     expect(submitButton).toBeDisabled();
   });
 
   it('has proper accessibility attributes', () => {
-    renderWithRouter(<LoginForm />);
+    const { getByRole, getByPlaceholder } = renderWithRouter(<LoginForm />);
     
-    const form = screen.getByRole('form');
+    const form = getByRole('form');
     expect(form).toHaveAttribute('aria-label', 'Login form');
     
-    const emailInput = screen.getByPlaceholder('Email');
+    const emailInput = getByPlaceholder('Email');
     expect(emailInput).toHaveAttribute('type', 'email');
     expect(emailInput).toHaveAttribute('required');
     
-    const passwordInput = screen.getByPlaceholder('Password');
+    const passwordInput = getByPlaceholder('Password');
     expect(passwordInput).toHaveAttribute('type', 'password');
     expect(passwordInput).toHaveAttribute('required');
   });
