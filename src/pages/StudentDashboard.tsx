@@ -15,6 +15,7 @@ import { EnhancedBillingTab } from "@/components/student/EnhancedBillingTab";
 import { ProfileTab } from "@/components/student/ProfileTab";
 import { SettingsTab } from "@/components/student/SettingsTab";
 import { LearningPathTab } from "@/components/student/LearningPathTab";
+import { QuickActions } from "@/components/navigation/QuickActions";
 
 const StudentDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -97,6 +98,7 @@ const StudentDashboard = () => {
           onLogout={handleLogout}
         />
         <main className="flex-1 p-6 ml-64">
+          <QuickActions />
           {renderActiveTab()}
         </main>
       </div>

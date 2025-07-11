@@ -12,6 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/hooks/useAuth";
 import { Eye, EyeOff, User, Mail, Lock, CheckCircle } from "lucide-react";
+import { ProgressIndicator } from "@/components/navigation/ProgressIndicator";
+import { BackNavigation } from "@/components/navigation/BackNavigation";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -34,6 +36,8 @@ export const SignUpForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  const stepLabels = ['Account Details', 'Complete Setup'];
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -105,13 +109,15 @@ export const SignUpForm = () => {
       }
 
       if (data?.user) {
-        toast({
-          title: "🎉 Account created!",
-          description: "Please check your email to confirm your account before signing in.",
-        });
-        
-        // Redirect to email confirmation page
-        navigate("/email-confirmation");
+      toast({
+        title: "🎉 Account Created Successfully!",
+        description: "You can now access your dashboard. Email confirmation is optional.",
+        duration: 5000,
+      });
+      
+      // Navigate directly to appropriate dashboard based on role
+      const dashboardPath = values.userType === 'teacher' ? '/teacher' : values.userType === 'admin' ? '/admin' : '/student';
+      navigate(dashboardPath);
       }
     } catch (error: any) {
       toast({
@@ -131,10 +137,19 @@ export const SignUpForm = () => {
   ];
 
   return (
-    <Card className="w-full max-w-md p-6 shadow-2xl relative overflow-hidden bg-white/95 backdrop-blur-sm animate-fade-in">
-      {/* Card inner glow effects */}
-      <div className="absolute -z-10 top-0 left-0 w-[80%] h-[80%] bg-purple/10 rounded-full blur-2xl"></div>
-      <div className="absolute -z-10 bottom-0 right-0 w-[60%] h-[60%] bg-teal/5 rounded-full blur-2xl"></div>
+    <div className="w-full max-w-md mx-auto">
+      <BackNavigation to="/" label="Back to Home" className="mb-4" />
+      
+      <ProgressIndicator 
+        currentStep={1} 
+        totalSteps={2} 
+        stepLabels={stepLabels}
+      />
+      
+      <Card className="w-full p-6 shadow-2xl relative overflow-hidden bg-white/95 backdrop-blur-sm animate-fade-in">
+        {/* Card inner glow effects */}
+        <div className="absolute -z-10 top-0 left-0 w-[80%] h-[80%] bg-purple/10 rounded-full blur-2xl"></div>
+        <div className="absolute -z-10 bottom-0 right-0 w-[60%] h-[60%] bg-teal/5 rounded-full blur-2xl"></div>
       
       <div className="text-center mb-6">
         <div className="flex justify-center mb-4">
@@ -325,5 +340,16 @@ export const SignUpForm = () => {
         </p>
       </div>
     </Card>
+    
+    <div className="mt-4 text-center">
+      <Button 
+        variant="ghost" 
+        onClick={() => navigate('/pricing-selection')}
+        className="text-sm"
+      >
+        Skip to pricing selection →
+      </Button>
+    </div>
+  </div>
   );
 };

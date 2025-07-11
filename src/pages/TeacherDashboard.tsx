@@ -18,6 +18,7 @@ import { ReportsTab } from "@/components/teacher/ReportsTab";
 import { SettingsTab } from "@/components/teacher/SettingsTab";
 import { ProfileSetupTab } from "@/components/teacher/ProfileSetupTab";
 import { ProfileCompleteGuard } from "@/components/teacher/ProfileCompleteGuard";
+import { QuickActions } from "@/components/navigation/QuickActions";
 
 type TabType = 'dashboard' | 'profile' | 'calendar' | 'students' | 'reading-library' | 'history' | 'assignments' | 'resources' | 'messages' | 'earnings' | 'reports' | 'settings';
 
@@ -131,6 +132,7 @@ const TeacherDashboard = () => {
           <div className="flex-1 flex flex-col overflow-hidden">
             <TeacherHeader teacherName={teacherName} />
             <main className="flex-1 overflow-y-auto p-6">
+              <QuickActions />
               {renderTabContent()}
             </main>
           </div>

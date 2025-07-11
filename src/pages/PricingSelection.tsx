@@ -8,6 +8,10 @@ import { PricingSelectionLayout } from "@/components/pricing/PricingSelectionLay
 import { PricingSelectionHeader } from "@/components/pricing/PricingSelectionHeader";
 import { PricingPlansGrid } from "@/components/pricing/PricingPlansGrid";
 import { PricingFooter } from "@/components/pricing/PricingFooter";
+import { ProgressIndicator } from "@/components/navigation/ProgressIndicator";
+import { BackNavigation } from "@/components/navigation/BackNavigation";
+import { NavigationBreadcrumb } from "@/components/navigation/Breadcrumb";
+import { Button } from "@/components/ui/button";
 
 const PricingSelection = () => {
   const navigate = useNavigate();
@@ -16,6 +20,12 @@ const PricingSelection = () => {
   const [loading, setLoading] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
+
+  const stepLabels = ['Account Details', 'Complete Setup'];
+  const breadcrumbItems = [
+    { label: 'Sign Up', href: '/signup' },
+    { label: 'Choose Plan', isCurrentPage: true }
+  ];
 
   useEffect(() => {
     // Use fallback data immediately and skip database fetch for now
@@ -63,6 +73,18 @@ const PricingSelection = () => {
 
   return (
     <PricingSelectionLayout>
+      <div className="container mx-auto px-4 py-8">
+        <BackNavigation to="/signup" label="Back to Sign Up" />
+        
+        <NavigationBreadcrumb items={breadcrumbItems} />
+        
+        <ProgressIndicator 
+          currentStep={2} 
+          totalSteps={2} 
+          stepLabels={stepLabels}
+        />
+      </div>
+      
       <PricingSelectionHeader />
       <PricingPlansGrid
         plans={plans}
@@ -70,6 +92,21 @@ const PricingSelection = () => {
         selectedPlan={selectedPlan}
         onPlanSelection={handlePlanSelection}
       />
+      
+      <div className="text-center mt-8 mb-8">
+        <Button 
+          variant="ghost" 
+          onClick={() => {
+            const userType = localStorage.getItem('userType') || 'student';
+            const dashboardPath = userType === 'teacher' ? '/teacher-dashboard' : userType === 'admin' ? '/admin-dashboard' : '/student-dashboard';
+            navigate(dashboardPath);
+          }}
+          className="text-sm"
+        >
+          Skip for now - Continue to Dashboard →
+        </Button>
+      </div>
+      
       <PricingFooter />
     </PricingSelectionLayout>
   );
