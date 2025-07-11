@@ -50,6 +50,297 @@ export type Database = {
         }
         Relationships: []
       }
+      adaptive_content: {
+        Row: {
+          ai_generated: boolean | null
+          avg_completion_time: number | null
+          cefr_level: string
+          content_data: Json
+          content_type: string
+          created_at: string | null
+          created_by: string | null
+          difficulty_level: number | null
+          estimated_duration: number | null
+          generation_prompt: string | null
+          id: string
+          is_active: boolean | null
+          learning_objectives: string[]
+          prerequisites: string[] | null
+          success_rate: number | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          ai_generated?: boolean | null
+          avg_completion_time?: number | null
+          cefr_level: string
+          content_data: Json
+          content_type: string
+          created_at?: string | null
+          created_by?: string | null
+          difficulty_level?: number | null
+          estimated_duration?: number | null
+          generation_prompt?: string | null
+          id?: string
+          is_active?: boolean | null
+          learning_objectives: string[]
+          prerequisites?: string[] | null
+          success_rate?: number | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          ai_generated?: boolean | null
+          avg_completion_time?: number | null
+          cefr_level?: string
+          content_data?: Json
+          content_type?: string
+          created_at?: string | null
+          created_by?: string | null
+          difficulty_level?: number | null
+          estimated_duration?: number | null
+          generation_prompt?: string | null
+          id?: string
+          is_active?: boolean | null
+          learning_objectives?: string[]
+          prerequisites?: string[] | null
+          success_rate?: number | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "adaptive_content_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_conversation_messages: {
+        Row: {
+          audio_duration: number | null
+          audio_url: string | null
+          content: string | null
+          created_at: string | null
+          id: string
+          message_type: string
+          metadata: Json | null
+          processing_time_ms: number | null
+          session_id: string
+          tokens_used: number | null
+        }
+        Insert: {
+          audio_duration?: number | null
+          audio_url?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          message_type: string
+          metadata?: Json | null
+          processing_time_ms?: number | null
+          session_id: string
+          tokens_used?: number | null
+        }
+        Update: {
+          audio_duration?: number | null
+          audio_url?: string | null
+          content?: string | null
+          created_at?: string | null
+          id?: string
+          message_type?: string
+          metadata?: Json | null
+          processing_time_ms?: number | null
+          session_id?: string
+          tokens_used?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_conversation_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "ai_tutoring_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_learning_events: {
+        Row: {
+          content_id: string | null
+          created_at: string | null
+          difficulty_rating: number | null
+          event_data: Json
+          event_type: string
+          help_requested: boolean | null
+          id: string
+          performance_score: number | null
+          session_id: string | null
+          student_id: string
+          time_spent_seconds: number | null
+        }
+        Insert: {
+          content_id?: string | null
+          created_at?: string | null
+          difficulty_rating?: number | null
+          event_data?: Json
+          event_type: string
+          help_requested?: boolean | null
+          id?: string
+          performance_score?: number | null
+          session_id?: string | null
+          student_id: string
+          time_spent_seconds?: number | null
+        }
+        Update: {
+          content_id?: string | null
+          created_at?: string | null
+          difficulty_rating?: number | null
+          event_data?: Json
+          event_type?: string
+          help_requested?: boolean | null
+          id?: string
+          performance_score?: number | null
+          session_id?: string | null
+          student_id?: string
+          time_spent_seconds?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_learning_events_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "adaptive_content"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_learning_events_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "ai_tutoring_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_learning_events_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_learning_models: {
+        Row: {
+          confidence_score: number | null
+          created_at: string | null
+          id: string
+          last_updated_at: string | null
+          model_data: Json
+          model_type: string
+          student_id: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          last_updated_at?: string | null
+          model_data?: Json
+          model_type: string
+          student_id: string
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          last_updated_at?: string | null
+          model_data?: Json
+          model_type?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_learning_models_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_tutoring_sessions: {
+        Row: {
+          ai_model: string | null
+          cefr_level: string
+          completed_objectives: string[] | null
+          conversation_id: string
+          created_at: string | null
+          duration_seconds: number | null
+          ended_at: string | null
+          feedback_notes: string | null
+          id: string
+          learning_objectives: string[] | null
+          messages_count: number | null
+          session_data: Json | null
+          session_rating: number | null
+          session_type: string
+          started_at: string | null
+          student_id: string
+          topic: string | null
+          voice_model: string | null
+        }
+        Insert: {
+          ai_model?: string | null
+          cefr_level: string
+          completed_objectives?: string[] | null
+          conversation_id: string
+          created_at?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          feedback_notes?: string | null
+          id?: string
+          learning_objectives?: string[] | null
+          messages_count?: number | null
+          session_data?: Json | null
+          session_rating?: number | null
+          session_type: string
+          started_at?: string | null
+          student_id: string
+          topic?: string | null
+          voice_model?: string | null
+        }
+        Update: {
+          ai_model?: string | null
+          cefr_level?: string
+          completed_objectives?: string[] | null
+          conversation_id?: string
+          created_at?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          feedback_notes?: string | null
+          id?: string
+          learning_objectives?: string[] | null
+          messages_count?: number | null
+          session_data?: Json | null
+          session_rating?: number | null
+          session_type?: string
+          started_at?: string | null
+          student_id?: string
+          topic?: string | null
+          voice_model?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_tutoring_sessions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       analytics_events: {
         Row: {
           created_at: string | null
@@ -1257,6 +1548,71 @@ export type Database = {
         }
         Relationships: []
       }
+      personalized_learning_paths: {
+        Row: {
+          actual_completion_days: number | null
+          ai_generated: boolean | null
+          completed_at: string | null
+          completion_percentage: number | null
+          created_at: string | null
+          current_step: number | null
+          difficulty_preference: string | null
+          estimated_completion_days: number | null
+          id: string
+          last_activity_at: string | null
+          learning_style: string | null
+          path_data: Json
+          path_name: string
+          student_id: string
+          total_steps: number
+          updated_at: string | null
+        }
+        Insert: {
+          actual_completion_days?: number | null
+          ai_generated?: boolean | null
+          completed_at?: string | null
+          completion_percentage?: number | null
+          created_at?: string | null
+          current_step?: number | null
+          difficulty_preference?: string | null
+          estimated_completion_days?: number | null
+          id?: string
+          last_activity_at?: string | null
+          learning_style?: string | null
+          path_data: Json
+          path_name: string
+          student_id: string
+          total_steps: number
+          updated_at?: string | null
+        }
+        Update: {
+          actual_completion_days?: number | null
+          ai_generated?: boolean | null
+          completed_at?: string | null
+          completion_percentage?: number | null
+          created_at?: string | null
+          current_step?: number | null
+          difficulty_preference?: string | null
+          estimated_completion_days?: number | null
+          id?: string
+          last_activity_at?: string | null
+          learning_style?: string | null
+          path_data?: Json
+          path_name?: string
+          student_id?: string
+          total_steps?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personalized_learning_paths_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       speaking_progress: {
         Row: {
           badges_earned: string[] | null
@@ -2123,6 +2479,15 @@ export type Database = {
         Args: { student_uuid: string; activity_data: Json }
         Returns: Json[]
       }
+      generate_adaptive_learning_path: {
+        Args: {
+          student_uuid: string
+          target_cefr_level: string
+          learning_style_param?: string
+          difficulty_pref?: string
+        }
+        Returns: string
+      }
       generate_room_id: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -2186,6 +2551,15 @@ export type Database = {
       reset_monthly_class_usage: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      update_learning_model: {
+        Args: {
+          student_uuid: string
+          model_type_param: string
+          new_model_data: Json
+          confidence?: number
+        }
+        Returns: string
       }
       update_student_xp: {
         Args: { student_uuid: string; xp_to_add: number }
