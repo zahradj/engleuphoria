@@ -22,8 +22,8 @@ export const QuickActions: React.FC = () => {
     const baseActions: QuickAction[] = [
       {
         icon: Settings,
-        label: 'Settings',
-        action: () => navigate('/student'), // Navigate to dashboard for now
+        label: 'Site Map',
+        action: () => navigate('/sitemap'),
         variant: 'outline'
       }
     ];
@@ -63,7 +63,7 @@ export const QuickActions: React.FC = () => {
           {
             icon: MessageSquare,
             label: 'Messages',
-            action: () => navigate('/teacher'), // Navigate to dashboard for now
+            action: () => navigate('/teacher'),
             variant: 'outline'
           },
           {
@@ -80,13 +80,13 @@ export const QuickActions: React.FC = () => {
           {
             icon: Plus,
             label: 'Add User',
-            action: () => navigate('/admin'), // Navigate to dashboard for now
+            action: () => navigate('/admin'),
             variant: 'default'
           },
           {
             icon: Calendar,
             label: 'All Schedules',
-            action: () => navigate('/admin'), // Navigate to dashboard for now
+            action: () => navigate('/admin'),
             variant: 'outline'
           },
           ...baseActions

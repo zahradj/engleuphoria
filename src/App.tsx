@@ -37,6 +37,8 @@ import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import StudentSchedule from "./pages/student/StudentSchedule";
 import BookLesson from "./pages/student/BookLesson";
 import SpeakingPractice from "./pages/student/SpeakingPractice";
+import SiteMap from "./pages/SiteMap";
+import TeacherOnboarding from "./pages/TeacherOnboarding";
 
 const queryClient = new QueryClient();
 
@@ -90,6 +92,10 @@ function App() {
               <Route path="/curriculum-library" element={<ProtectedRoute><CurriculumLibrary /></ProtectedRoute>} />
               <Route path="/payment" element={<ProtectedRoute><PaymentPage /></ProtectedRoute>} />
               <Route path="/media-test" element={<MediaTestPage />} />
+              <Route path="/teacher-onboarding" element={<TeacherOnboarding />} />
+              
+              {/* Site Navigation */}
+              <Route path="/sitemap" element={<SiteMap />} />
               
               {/* Legacy Redirects */}
               <Route path="/dashboard" element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>} />
