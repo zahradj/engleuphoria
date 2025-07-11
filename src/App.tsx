@@ -6,52 +6,62 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { AuthProvider } from "./hooks/useAuth";
-import Index from "./pages/Index";
-import StudentDashboard from "./pages/StudentDashboard";
-import TeacherDashboard from "./pages/TeacherDashboard";
-import AdminDashboard from "./pages/AdminDashboard";
-import UnifiedClassroom from "./pages/UnifiedClassroom";
-import BecomeTeacher from "./pages/BecomeTeacher";
-import ForParents from "./pages/ForParents";
-import AboutUs from "./pages/AboutUs";
-import MediaTestPage from "./pages/MediaTestPage";
-import NotFound from "./pages/NotFound";
-import { DiscoverTeachers } from "./pages/DiscoverTeachers";
-import Login from "./pages/Login";
-import SignUp from "./pages/SignUp";
-import StudentLessonScheduler from "./pages/StudentLessonScheduler";
-import MaterialLibraryPage from "./pages/MaterialLibraryPage";
-import PaymentPage from "./pages/PaymentPage";
-import WhiteboardPage from "./pages/WhiteboardPage";
-import LessonPlanCreator from "./pages/LessonPlanCreator";
-import StudentManagement from "./pages/StudentManagement";
-import LessonScheduler from "./pages/LessonScheduler";
-import TeacherApplication from "./pages/TeacherApplication";
-import PricingSelection from "./pages/PricingSelection";
-import Contact from "./pages/Contact";
-import StudentApplication from "./pages/StudentApplication";
-import EmailConfirmation from "./pages/EmailConfirmation";
-import ForTeachers from "./pages/ForTeachers";
-import CurriculumLibrary from "./pages/CurriculumLibrary";
+import { lazy } from 'react';
+import { LazyRoute } from './components/common/LazyRoute';
+import { ErrorBoundary } from './components/analytics/ErrorBoundary';
+import { Analytics } from './components/common/Analytics';
+
+// Lazy load pages for better performance
+const Index = lazy(() => import("./pages/Index"));
+const StudentDashboard = lazy(() => import("./pages/StudentDashboard"));
+const TeacherDashboard = lazy(() => import("./pages/TeacherDashboard"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const UnifiedClassroom = lazy(() => import("./pages/UnifiedClassroom"));
+const BecomeTeacher = lazy(() => import("./pages/BecomeTeacher"));
+const ForParents = lazy(() => import("./pages/ForParents"));
+const AboutUs = lazy(() => import("./pages/AboutUs"));
+const MediaTestPage = lazy(() => import("./pages/MediaTestPage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const DiscoverTeachers = lazy(() => import("./pages/DiscoverTeachers").then(module => ({ default: module.DiscoverTeachers })));
+const Login = lazy(() => import("./pages/Login"));
+const SignUp = lazy(() => import("./pages/SignUp"));
+const StudentLessonScheduler = lazy(() => import("./pages/StudentLessonScheduler"));
+const MaterialLibraryPage = lazy(() => import("./pages/MaterialLibraryPage"));
+const PaymentPage = lazy(() => import("./pages/PaymentPage"));
+const WhiteboardPage = lazy(() => import("./pages/WhiteboardPage"));
+const LessonPlanCreator = lazy(() => import("./pages/LessonPlanCreator"));
+const StudentManagement = lazy(() => import("./pages/StudentManagement"));
+const LessonScheduler = lazy(() => import("./pages/LessonScheduler"));
+const TeacherApplication = lazy(() => import("./pages/TeacherApplication"));
+const PricingSelection = lazy(() => import("./pages/PricingSelection"));
+const Contact = lazy(() => import("./pages/Contact"));
+const StudentApplication = lazy(() => import("./pages/StudentApplication"));
+const EmailConfirmation = lazy(() => import("./pages/EmailConfirmation"));
+const ForTeachers = lazy(() => import("./pages/ForTeachers"));
+const CurriculumLibrary = lazy(() => import("./pages/CurriculumLibrary"));
+const StudentSchedule = lazy(() => import("./pages/student/StudentSchedule"));
+const BookLesson = lazy(() => import("./pages/student/BookLesson"));
+const SpeakingPractice = lazy(() => import("./pages/student/SpeakingPractice"));
+const SiteMap = lazy(() => import("./pages/SiteMap"));
+const TeacherOnboarding = lazy(() => import("./pages/TeacherOnboarding"));
+
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
-import StudentSchedule from "./pages/student/StudentSchedule";
-import BookLesson from "./pages/student/BookLesson";
-import SpeakingPractice from "./pages/student/SpeakingPractice";
-import SiteMap from "./pages/SiteMap";
-import TeacherOnboarding from "./pages/TeacherOnboarding";
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <LanguageProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-            <Routes>
+      <ErrorBoundary>
+        <AuthProvider>
+          <LanguageProvider>
+            <TooltipProvider>
+              <Analytics />
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <LazyRoute>
+                  <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Index />} />
               <Route path="/about" element={<AboutUs />} />
@@ -107,10 +117,12 @@ function App() {
               {/* 404 */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </LanguageProvider>
-      </AuthProvider>
+                </LazyRoute>
+              </BrowserRouter>
+            </TooltipProvider>
+          </LanguageProvider>
+        </AuthProvider>
+      </ErrorBoundary>
     </QueryClientProvider>
   );
 }

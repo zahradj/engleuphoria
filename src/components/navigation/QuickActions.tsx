@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Plus, Calendar, MessageSquare, BookOpen, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,7 +12,7 @@ interface QuickAction {
   variant?: 'default' | 'outline' | 'secondary';
 }
 
-export const QuickActions: React.FC = () => {
+export const QuickActions: React.FC = memo(() => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -113,8 +113,9 @@ export const QuickActions: React.FC = () => {
               size="sm"
               onClick={action.action}
               className="flex items-center gap-2"
+              aria-label={`${action.label} - Quick action`}
             >
-              <action.icon className="h-4 w-4" />
+              <action.icon className="h-4 w-4" aria-hidden="true" />
               {action.label}
             </Button>
           ))}
@@ -122,4 +123,6 @@ export const QuickActions: React.FC = () => {
       </CardContent>
     </Card>
   );
-};
+});
+
+QuickActions.displayName = 'QuickActions';
