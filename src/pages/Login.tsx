@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/hooks/useAuth";
 import { AnimatedBackground } from "@/components/AnimatedBackground";
 import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
 
@@ -19,6 +20,7 @@ const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { languageText } = useLanguage();
+  const { signIn, isConfigured } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,44 +47,93 @@ const Login = () => {
       return;
     }
 
-    // Simulate login process
-    setTimeout(() => {
-      // Store user data in localStorage
-      if (userType === "student") {
-        localStorage.setItem("studentName", email.split("@")[0]);
-        localStorage.setItem("points", "50");
-        localStorage.setItem("userType", "student");
-        
-        toast({
-          title: "Welcome back!",
-          description: "Successfully logged into your student dashboard",
-        });
-        
-        navigate("/dashboard");
-      } else if (userType === "teacher") {
-        localStorage.setItem("teacherName", email.split("@")[0]);
-        localStorage.setItem("teacherId", "teacher-" + Date.now());
-        localStorage.setItem("userType", "teacher");
-        
-        toast({
-          title: "Welcome back!",
-          description: "Successfully logged into your teacher dashboard",
-        });
-        
-        navigate("/teacher-dashboard");
-      } else if (userType === "admin") {
-        localStorage.setItem("adminName", email.split("@")[0]);
-        localStorage.setItem("userType", "admin");
-        
-        toast({
-          title: "Admin access granted",
-          description: "Successfully logged into the admin dashboard",
-        });
-        
-        navigate("/admin-dashboard");
+    if (!isConfigured) {
+      // Fallback to localStorage simulation for demo mode
+      setTimeout(() => {
+        // Store user data in localStorage
+        if (userType === "student") {
+          localStorage.setItem("studentName", email.split("@")[0]);
+          localStorage.setItem("points", "50");
+          localStorage.setItem("userType", "student");
+          
+          toast({
+            title: "Welcome back!",
+            description: "Successfully logged into your student dashboard",
+          });
+          
+          navigate("/dashboard");
+        } else if (userType === "teacher") {
+          localStorage.setItem("teacherName", email.split("@")[0]);
+          localStorage.setItem("teacherId", "teacher-" + Date.now());
+          localStorage.setItem("userType", "teacher");
+          
+          toast({
+            title: "Welcome back!",
+            description: "Successfully logged into your teacher dashboard",
+          });
+          
+          navigate("/teacher-dashboard");
+        } else if (userType === "admin") {
+          localStorage.setItem("adminName", email.split("@")[0]);
+          localStorage.setItem("userType", "admin");
+          
+          toast({
+            title: "Admin access granted",
+            description: "Successfully logged into the admin dashboard",
+          });
+          
+          navigate("/admin-dashboard");
+        }
+        setIsLoading(false);
+      }, 1500);
+      return;
+    }
+
+    try {
+      const { data, error } = await signIn(email, password);
+
+      if (error) {
+        if (error.message?.includes('Email not confirmed')) {
+          toast({
+            title: "Email not confirmed",
+            description: "Please check your email and click the confirmation link before signing in.",
+            variant: "destructive",
+          });
+        } else if (error.message?.includes('Invalid login credentials')) {
+          toast({
+            title: "Invalid credentials",
+            description: "Please check your email and password and try again.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Sign in failed",
+            description: error.message || "Please try again",
+            variant: "destructive",
+          });
+        }
+        setIsLoading(false);
+        return;
       }
+
+      if (data?.user) {
+        toast({
+          title: "Welcome back!",
+          description: "Successfully signed in to your account",
+        });
+        
+        // Redirect based on user role - will be handled by auth state change
+        navigate("/dashboard");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Sign in failed",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   return (

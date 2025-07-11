@@ -10,6 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/hooks/useAuth";
 import { Eye, EyeOff, User, Mail, Lock, CheckCircle } from "lucide-react";
 
 const formSchema = z.object({
@@ -29,6 +30,7 @@ export const SignUpForm = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { languageText } = useLanguage();
+  const { signUp, isConfigured } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -44,49 +46,86 @@ export const SignUpForm = () => {
     },
   });
   
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     
-    // Simulate account creation process
-    setTimeout(() => {
-      // Store user data based on type
-      if (values.userType === "teacher") {
-        localStorage.setItem('teacherName', values.name);
-        localStorage.setItem('userType', 'teacher');
-        localStorage.removeItem('studentName');
-        localStorage.removeItem('adminName');
-      } else if (values.userType === "student") {
-        localStorage.setItem('studentName', values.name);
-        localStorage.setItem('userType', 'student');
-        localStorage.setItem('points', '50');
-        localStorage.removeItem('teacherName');
-        localStorage.removeItem('adminName');
-      } else if (values.userType === "admin") {
-        localStorage.setItem('adminName', values.name);
-        localStorage.setItem('userType', 'admin');
-        localStorage.removeItem('teacherName');
-        localStorage.removeItem('studentName');
-      }
-      
-      toast({
-        title: "🎉 Account created successfully!",
-        description: "Welcome to Engleuphoria! Please select your learning plan...",
-      });
-      
-      // Redirect based on user type
+    if (!isConfigured) {
+      // Fallback to localStorage simulation for demo mode
       setTimeout(() => {
+        // Store user data based on type
         if (values.userType === "teacher") {
-          navigate("/teacher-dashboard");
+          localStorage.setItem('teacherName', values.name);
+          localStorage.setItem('userType', 'teacher');
+          localStorage.removeItem('studentName');
+          localStorage.removeItem('adminName');
+        } else if (values.userType === "student") {
+          localStorage.setItem('studentName', values.name);
+          localStorage.setItem('userType', 'student');
+          localStorage.setItem('points', '50');
+          localStorage.removeItem('teacherName');
+          localStorage.removeItem('adminName');
         } else if (values.userType === "admin") {
-          navigate("/admin-dashboard");
-        } else {
-          // For students, redirect to pricing selection
-          navigate("/pricing-selection");
+          localStorage.setItem('adminName', values.name);
+          localStorage.setItem('userType', 'admin');
+          localStorage.removeItem('teacherName');
+          localStorage.removeItem('studentName');
         }
-      }, 1500);
-      
+        
+        toast({
+          title: "🎉 Account created successfully!",
+          description: "Welcome to Engleuphoria! Please select your learning plan...",
+        });
+        
+        // Redirect based on user type
+        setTimeout(() => {
+          if (values.userType === "teacher") {
+            navigate("/teacher-dashboard");
+          } else if (values.userType === "admin") {
+            navigate("/admin-dashboard");
+          } else {
+            navigate("/pricing-selection");
+          }
+        }, 1500);
+        
+        setIsLoading(false);
+      }, 2000);
+      return;
+    }
+
+    try {
+      const { data, error } = await signUp(values.email, values.password, {
+        full_name: values.name,
+        role: values.userType
+      });
+
+      if (error) {
+        toast({
+          title: "Sign up failed",
+          description: error.message || "Please try again",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      if (data?.user) {
+        toast({
+          title: "🎉 Account created!",
+          description: "Please check your email to confirm your account before signing in.",
+        });
+        
+        // Redirect to email confirmation page
+        navigate("/email-confirmation");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Sign up failed",
+        description: error.message || "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
-    }, 2000);
+    }
   };
 
   const passwordRequirements = [

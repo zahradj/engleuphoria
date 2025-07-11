@@ -92,9 +92,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     try {
+      const redirectUrl = `${window.location.origin}/email-confirmation`;
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: redirectUrl
+        }
       })
 
       if (error) throw error
