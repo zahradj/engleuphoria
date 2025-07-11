@@ -23,11 +23,11 @@ import { EnhancedAchievementsBoard } from "./EnhancedAchievementsBoard";
 import { SocialLeaderboard } from "./SocialLeaderboard";
 
 interface GamificationDashboardProps {
-  studentId: string;
+  studentId?: string;
   className?: string;
 }
 
-export function GamificationDashboard({ studentId, className = "" }: GamificationDashboardProps) {
+export function GamificationDashboard({ studentId = 'demo-student-id', className = "" }: GamificationDashboardProps) {
   const [activeTab, setActiveTab] = useState("overview");
   const { 
     currency, 

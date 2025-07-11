@@ -1,0 +1,85 @@
+{
+  "name": "Engleuphoria - Joyful English Learning",
+  "short_name": "Engleuphoria",
+  "description": "A vibrant and engaging online platform for children aged 5-12 to learn English in a playful and effective way.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#9B87F5",
+  "orientation": "portrait-primary",
+  "categories": ["education", "kids", "learning"],
+  "lang": "en",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/placeholder.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/placeholder.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/placeholder.svg",
+      "sizes": "1280x720",
+      "type": "image/svg+xml",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/placeholder.svg",
+      "sizes": "750x1334",
+      "type": "image/svg+xml",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Classroom",
+      "short_name": "Classroom",
+      "description": "Join your virtual classroom",
+      "url": "/classroom",
+      "icons": [
+        {
+          "src": "/placeholder.svg",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "AI Tutor",
+      "short_name": "AI Tutor",
+      "description": "Chat with your AI tutor",
+      "url": "/ai-tutor",
+      "icons": [
+        {
+          "src": "/placeholder.svg",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Gamification",
+      "short_name": "Rewards",
+      "description": "Check your achievements and rewards",
+      "url": "/gamification",
+      "icons": [
+        {
+          "src": "/placeholder.svg",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false,
+  "features": [
+    "Cross-platform",
+    "Offline support",
+    "Push notifications"
+  ]
+}

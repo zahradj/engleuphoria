@@ -157,6 +157,36 @@
     border: 0;
   }
 
+  /* Mobile-first optimizations */
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+
+  .scroll-smooth {
+    scroll-behavior: smooth;
+  }
+
+  /* Prevent text size adjustment on mobile */
+  @supports (-webkit-touch-callout: none) {
+    .prevent-ios-zoom {
+      font-size: 16px !important;
+    }
+  }
+
+  /* Better touch targets for mobile */
+  .mobile-touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Optimize for reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .motion-reduce {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+
   .glass-enhanced {
     @apply bg-white/25 backdrop-blur-xl border border-white/30;
     box-shadow: 
