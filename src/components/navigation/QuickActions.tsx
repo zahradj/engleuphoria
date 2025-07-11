@@ -23,7 +23,7 @@ export const QuickActions: React.FC = () => {
       {
         icon: Settings,
         label: 'Settings',
-        action: () => navigate('/settings'),
+        action: () => navigate('/student'), // Navigate to dashboard for now
         variant: 'outline'
       }
     ];
@@ -57,13 +57,13 @@ export const QuickActions: React.FC = () => {
           {
             icon: Calendar,
             label: 'My Schedule',
-            action: () => navigate('/teacher/schedule'),
+            action: () => navigate('/teacher/lesson-scheduler'),
             variant: 'default'
           },
           {
             icon: MessageSquare,
             label: 'Messages',
-            action: () => navigate('/teacher/messages'),
+            action: () => navigate('/teacher'), // Navigate to dashboard for now
             variant: 'outline'
           },
           {
@@ -80,13 +80,13 @@ export const QuickActions: React.FC = () => {
           {
             icon: Plus,
             label: 'Add User',
-            action: () => navigate('/admin/users/new'),
+            action: () => navigate('/admin'), // Navigate to dashboard for now
             variant: 'default'
           },
           {
             icon: Calendar,
             label: 'All Schedules',
-            action: () => navigate('/admin/schedules'),
+            action: () => navigate('/admin'), // Navigate to dashboard for now
             variant: 'outline'
           },
           ...baseActions
