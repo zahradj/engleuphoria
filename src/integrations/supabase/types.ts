@@ -168,6 +168,45 @@ export type Database = {
           },
         ]
       }
+      ai_generated_topics: {
+        Row: {
+          category: string
+          cefr_level: string
+          context_prompts: Json | null
+          created_at: string | null
+          difficulty_score: number | null
+          id: string
+          is_active: boolean | null
+          keywords: string[] | null
+          topic_text: string
+          usage_count: number | null
+        }
+        Insert: {
+          category: string
+          cefr_level: string
+          context_prompts?: Json | null
+          created_at?: string | null
+          difficulty_score?: number | null
+          id?: string
+          is_active?: boolean | null
+          keywords?: string[] | null
+          topic_text: string
+          usage_count?: number | null
+        }
+        Update: {
+          category?: string
+          cefr_level?: string
+          context_prompts?: Json | null
+          created_at?: string | null
+          difficulty_score?: number | null
+          id?: string
+          is_active?: boolean | null
+          keywords?: string[] | null
+          topic_text?: string
+          usage_count?: number | null
+        }
+        Relationships: []
+      }
       ai_learning_events: {
         Row: {
           content_id: string | null
@@ -1613,6 +1652,224 @@ export type Database = {
           },
         ]
       }
+      speaking_classroom_sessions: {
+        Row: {
+          avg_response_time: number | null
+          created_at: string | null
+          difficulty_level: string | null
+          ended_at: string | null
+          generated_topic: string | null
+          group_id: string | null
+          id: string
+          questions_answered: number | null
+          session_metadata: Json | null
+          session_type: string | null
+          started_at: string | null
+          student_id: string | null
+          topic_id: string | null
+          total_questions: number | null
+          vocabulary_used: Json | null
+        }
+        Insert: {
+          avg_response_time?: number | null
+          created_at?: string | null
+          difficulty_level?: string | null
+          ended_at?: string | null
+          generated_topic?: string | null
+          group_id?: string | null
+          id?: string
+          questions_answered?: number | null
+          session_metadata?: Json | null
+          session_type?: string | null
+          started_at?: string | null
+          student_id?: string | null
+          topic_id?: string | null
+          total_questions?: number | null
+          vocabulary_used?: Json | null
+        }
+        Update: {
+          avg_response_time?: number | null
+          created_at?: string | null
+          difficulty_level?: string | null
+          ended_at?: string | null
+          generated_topic?: string | null
+          group_id?: string | null
+          id?: string
+          questions_answered?: number | null
+          session_metadata?: Json | null
+          session_type?: string | null
+          started_at?: string | null
+          student_id?: string | null
+          topic_id?: string | null
+          total_questions?: number | null
+          vocabulary_used?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "speaking_classroom_sessions_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "speaking_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "speaking_classroom_sessions_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "ai_generated_topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      speaking_group_participants: {
+        Row: {
+          ai_feedback: Json | null
+          group_id: string
+          id: string
+          joined_at: string | null
+          left_at: string | null
+          participation_score: number | null
+          questions_answered: number | null
+          questions_asked: number | null
+          session_id: string | null
+          speaking_time_seconds: number | null
+          student_id: string
+        }
+        Insert: {
+          ai_feedback?: Json | null
+          group_id: string
+          id?: string
+          joined_at?: string | null
+          left_at?: string | null
+          participation_score?: number | null
+          questions_answered?: number | null
+          questions_asked?: number | null
+          session_id?: string | null
+          speaking_time_seconds?: number | null
+          student_id: string
+        }
+        Update: {
+          ai_feedback?: Json | null
+          group_id?: string
+          id?: string
+          joined_at?: string | null
+          left_at?: string | null
+          participation_score?: number | null
+          questions_answered?: number | null
+          questions_asked?: number | null
+          session_id?: string | null
+          speaking_time_seconds?: number | null
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "speaking_group_participants_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "speaking_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "speaking_group_participants_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "speaking_group_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      speaking_group_sessions: {
+        Row: {
+          ai_facilitator_prompt: string | null
+          created_at: string | null
+          ended_at: string | null
+          group_id: string
+          id: string
+          participant_count: number | null
+          scheduled_at: string | null
+          session_metadata: Json | null
+          session_status: string | null
+          session_topic: string
+          started_at: string | null
+        }
+        Insert: {
+          ai_facilitator_prompt?: string | null
+          created_at?: string | null
+          ended_at?: string | null
+          group_id: string
+          id?: string
+          participant_count?: number | null
+          scheduled_at?: string | null
+          session_metadata?: Json | null
+          session_status?: string | null
+          session_topic: string
+          started_at?: string | null
+        }
+        Update: {
+          ai_facilitator_prompt?: string | null
+          created_at?: string | null
+          ended_at?: string | null
+          group_id?: string
+          id?: string
+          participant_count?: number | null
+          scheduled_at?: string | null
+          session_metadata?: Json | null
+          session_status?: string | null
+          session_topic?: string
+          started_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "speaking_group_sessions_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "speaking_groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      speaking_groups: {
+        Row: {
+          cefr_level: string
+          created_at: string | null
+          created_by: string | null
+          current_participants: number | null
+          group_name: string
+          id: string
+          is_active: boolean | null
+          max_participants: number | null
+          session_duration: number | null
+          topic_category: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          cefr_level: string
+          created_at?: string | null
+          created_by?: string | null
+          current_participants?: number | null
+          group_name: string
+          id?: string
+          is_active?: boolean | null
+          max_participants?: number | null
+          session_duration?: number | null
+          topic_category?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          cefr_level?: string
+          created_at?: string | null
+          created_by?: string | null
+          current_participants?: number | null
+          group_name?: string
+          id?: string
+          is_active?: boolean | null
+          max_participants?: number | null
+          session_duration?: number | null
+          topic_category?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       speaking_progress: {
         Row: {
           badges_earned: string[] | null
@@ -1657,6 +1914,57 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      speaking_questions: {
+        Row: {
+          ai_analysis: Json | null
+          created_at: string | null
+          group_session_id: string | null
+          id: string
+          question_text: string
+          question_type: string | null
+          response_time_seconds: number | null
+          session_id: string | null
+          student_response: string | null
+        }
+        Insert: {
+          ai_analysis?: Json | null
+          created_at?: string | null
+          group_session_id?: string | null
+          id?: string
+          question_text: string
+          question_type?: string | null
+          response_time_seconds?: number | null
+          session_id?: string | null
+          student_response?: string | null
+        }
+        Update: {
+          ai_analysis?: Json | null
+          created_at?: string | null
+          group_session_id?: string | null
+          id?: string
+          question_text?: string
+          question_type?: string | null
+          response_time_seconds?: number | null
+          session_id?: string | null
+          student_response?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "speaking_questions_group_session_id_fkey"
+            columns: ["group_session_id"]
+            isOneToOne: false
+            referencedRelation: "speaking_group_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "speaking_questions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "speaking_classroom_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       speaking_scenarios: {
         Row: {
@@ -1785,6 +2093,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      student_speaking_profiles: {
+        Row: {
+          availability_schedule: Json | null
+          confidence_level: string | null
+          created_at: string | null
+          current_cefr_level: string
+          id: string
+          learning_style: string | null
+          personality_type: string | null
+          preferred_topics: string[] | null
+          speaking_goals: string[] | null
+          student_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          availability_schedule?: Json | null
+          confidence_level?: string | null
+          created_at?: string | null
+          current_cefr_level?: string
+          id?: string
+          learning_style?: string | null
+          personality_type?: string | null
+          preferred_topics?: string[] | null
+          speaking_goals?: string[] | null
+          student_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          availability_schedule?: Json | null
+          confidence_level?: string | null
+          created_at?: string | null
+          current_cefr_level?: string
+          id?: string
+          learning_style?: string | null
+          personality_type?: string | null
+          preferred_topics?: string[] | null
+          speaking_goals?: string[] | null
+          student_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       student_xp: {
         Row: {

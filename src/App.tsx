@@ -42,6 +42,8 @@ const CurriculumLibrary = lazy(() => import("./pages/CurriculumLibrary"));
 const StudentSchedule = lazy(() => import("./pages/student/StudentSchedule"));
 const BookLesson = lazy(() => import("./pages/student/BookLesson"));
 const SpeakingPractice = lazy(() => import("./pages/student/SpeakingPractice"));
+const SpeakingClassroomHub = lazy(() => import("./components/speaking-classroom/SpeakingClassroomHub").then(module => ({ default: module.SpeakingClassroomHub })));
+const SpeakingClassroomSession = lazy(() => import("./components/speaking-classroom/SpeakingClassroomSession").then(module => ({ default: module.SpeakingClassroomSessionComponent })));
 const SiteMap = lazy(() => import("./pages/SiteMap"));
 const TeacherOnboarding = lazy(() => import("./pages/TeacherOnboarding"));
 
@@ -97,8 +99,10 @@ function App() {
               <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
               
               {/* Shared Protected Routes */}
-              <Route path="/classroom" element={<ProtectedRoute><UnifiedClassroom /></ProtectedRoute>} />
-              <Route path="/whiteboard" element={<ProtectedRoute><WhiteboardPage /></ProtectedRoute>} />
+               <Route path="/classroom" element={<ProtectedRoute><UnifiedClassroom /></ProtectedRoute>} />
+               <Route path="/speaking-classroom" element={<ProtectedRoute><SpeakingClassroomHub /></ProtectedRoute>} />
+               <Route path="/speaking-classroom/:sessionId" element={<ProtectedRoute><SpeakingClassroomSession /></ProtectedRoute>} />
+               <Route path="/whiteboard" element={<ProtectedRoute><WhiteboardPage /></ProtectedRoute>} />
               <Route path="/curriculum-library" element={<ProtectedRoute><CurriculumLibrary /></ProtectedRoute>} />
               <Route path="/payment" element={<ProtectedRoute><PaymentPage /></ProtectedRoute>} />
               <Route path="/media-test" element={<MediaTestPage />} />
