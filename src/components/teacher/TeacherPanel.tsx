@@ -15,6 +15,7 @@ import { SettingsTab } from "./SettingsTab";
 import { AIAssistantTab } from "./AIAssistantTab";
 import { ReadingLibraryTab } from "./ReadingLibraryTab";
 import { BackendTab } from "./BackendTab";
+import { EnhancedEnterpriseHub } from "../enterprise/enhanced/EnhancedEnterpriseHub";
 import { useToast } from "@/hooks/use-toast";
 
 interface TeacherPanelProps {
@@ -64,6 +65,8 @@ export const TeacherPanel = ({
         return <SettingsTab teacherName={teacherName} />;
       case "backend":
         return <BackendTab />;
+      case "enterprise":
+        return <EnhancedEnterpriseHub />;
       default:
         return <DashboardTab teacherName={teacherName} />;
     }

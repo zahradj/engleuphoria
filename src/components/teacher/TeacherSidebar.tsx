@@ -41,6 +41,7 @@ export const TeacherSidebar = ({ activeTab, setActiveTab, onLogout }: TeacherSid
     { id: 'messages', label: 'Messages', icon: MessageSquare, type: 'tab' },
     { id: 'earnings', label: 'Earnings', icon: DollarSign, type: 'tab' },
     { id: 'reports', label: 'Reports', icon: TrendingUp, type: 'tab' },
+    { id: 'enterprise', label: 'Enterprise Hub', icon: BarChart3, type: 'tab' },
     { id: 'settings', label: 'Settings', icon: Settings, type: 'tab' }
   ];
 
