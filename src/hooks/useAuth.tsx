@@ -101,24 +101,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email,
         password,
         options: {
-          emailRedirectTo: redirectUrl
+          emailRedirectTo: redirectUrl,
+          data: {
+            full_name: userData.full_name,
+            role: userData.role
+          }
         }
       })
 
       if (error) throw error
-
-      if (data.user) {
-        // Create user profile
-        const { error: profileError } = await supabase
-          .from('users')
-          .insert([{
-            id: data.user.id,
-            email: data.user.email,
-            ...userData
-          }])
-
-        if (profileError) throw profileError
-      }
 
       return { data, error: null }
     } catch (error) {
