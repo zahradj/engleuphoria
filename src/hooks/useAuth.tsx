@@ -55,10 +55,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Listen for auth changes only if configured
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         setSession(session)
         if (session?.user) {
-          await fetchUserProfile(session.user.id)
+          // Use setTimeout to prevent recursion issues
+          setTimeout(() => {
+            fetchUserProfile(session.user.id)
+          }, 0)
         } else {
           setUser(null)
         }

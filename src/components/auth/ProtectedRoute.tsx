@@ -34,7 +34,17 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       teacher: '/teacher', 
       admin: '/admin'
     };
-    return <Navigate to={dashboardMap[user.role] || '/'} replace />;
+    return <Navigate to={dashboardMap[user.role] || '/student'} replace />;
+  }
+
+  // If no specific role required but user is on /dashboard, redirect to role-specific dashboard
+  if (!requiredRole && window.location.pathname === '/dashboard') {
+    const dashboardMap: Record<string, string> = {
+      student: '/student',
+      teacher: '/teacher', 
+      admin: '/admin'
+    };
+    return <Navigate to={dashboardMap[user.role] || '/student'} replace />;
   }
 
   return <>{children}</>;
