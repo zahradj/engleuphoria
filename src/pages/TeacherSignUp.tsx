@@ -23,7 +23,7 @@ const formSchema = z.object({
   path: ["confirmPassword"],
 });
 
-export const TeacherSignUp = () => {
+const TeacherSignUp = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { signUp, isConfigured } = useAuth();
@@ -279,3 +279,5 @@ export const TeacherSignUp = () => {
     </div>
   );
 };
+
+export default TeacherSignUp;
