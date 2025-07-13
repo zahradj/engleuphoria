@@ -122,11 +122,10 @@ const Login = () => {
           description: "Successfully signed in to your account",
         });
         
-        // Wait for user profile to be fetched, then redirect based on role
-        // ProtectedRoute will handle the redirection
+        // Wait a bit for user profile to be fetched, then redirect
         setTimeout(() => {
           navigate("/dashboard");
-        }, 100);
+        }, 500);
       }
     } catch (error: any) {
       toast({

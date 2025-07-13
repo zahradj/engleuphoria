@@ -25,6 +25,8 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 const DiscoverTeachers = lazy(() => import("./pages/DiscoverTeachers").then(module => ({ default: module.DiscoverTeachers })));
 const Login = lazy(() => import("./pages/Login"));
 const SignUp = lazy(() => import("./pages/SignUp"));
+const TeacherSignUp = lazy(() => import("./pages/TeacherSignUp").then(module => ({ default: module.TeacherSignUp })));
+const StudentSignUp = lazy(() => import("./pages/StudentSignUp").then(module => ({ default: module.StudentSignUp })));
 const StudentLessonScheduler = lazy(() => import("./pages/StudentLessonScheduler"));
 const MaterialLibraryPage = lazy(() => import("./pages/MaterialLibraryPage"));
 const PaymentPage = lazy(() => import("./pages/PaymentPage"));
@@ -81,6 +83,8 @@ function App() {
               {/* Auth Routes */}
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignUp />} />
+              <Route path="/teacher-signup" element={<TeacherSignUp />} />
+              <Route path="/student-signup" element={<StudentSignUp />} />
               <Route path="/email-confirmation" element={<EmailConfirmation />} />
               <Route path="/teacher-application" element={<TeacherApplication />} />
               <Route path="/student-application" element={<StudentApplication />} />
