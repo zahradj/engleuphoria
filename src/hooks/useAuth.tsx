@@ -29,12 +29,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!configured) {
       // Mock user from localStorage for demo purposes
       const userType = localStorage.getItem('userType')
-      if (userType) {
+      const mockEmail = localStorage.getItem('mockUserEmail')
+      
+      if (userType || mockEmail) {
+        // Check for admin email
+        const isAdminEmail = mockEmail === 'f.zahra.djaanine@engleuphoria.com'
+        const finalUserType = isAdminEmail ? 'admin' : (userType || 'student')
+        
         const mockUser: User = {
-          id: '1',
-          email: 'demo@example.com',
-          full_name: localStorage.getItem(userType === 'admin' ? 'adminName' : userType === 'teacher' ? 'teacherName' : 'studentName') || 'Demo User',
-          role: userType as 'student' | 'teacher' | 'parent' | 'admin',
+          id: isAdminEmail ? 'admin-f-zahra' : '1',
+          email: mockEmail || 'demo@example.com',
+          full_name: isAdminEmail ? 'Fatima Zahra Djaanine' : (localStorage.getItem(finalUserType === 'admin' ? 'adminName' : finalUserType === 'teacher' ? 'teacherName' : 'studentName') || 'Demo User'),
+          role: finalUserType as 'student' | 'teacher' | 'parent' | 'admin',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         }

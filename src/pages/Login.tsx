@@ -50,7 +50,9 @@ const Login = () => {
     if (!isConfigured) {
       // Fallback to localStorage simulation for demo mode
       setTimeout(() => {
-        // Store user data in localStorage
+        // Store user data in localStorage with email
+        localStorage.setItem("mockUserEmail", email);
+        
         if (userType === "student") {
           localStorage.setItem("studentName", email.split("@")[0]);
           localStorage.setItem("points", "50");
@@ -74,14 +76,21 @@ const Login = () => {
           
           navigate("/teacher-dashboard");
         } else if (userType === "admin") {
-          localStorage.setItem("adminName", email.split("@")[0]);
+          // Special handling for your admin email
+          if (email === "f.zahra.djaanine@engleuphoria.com") {
+            localStorage.setItem("adminName", "Fatima Zahra Djaanine");
+            toast({
+              title: "Admin access granted",
+              description: "Welcome Fatima! Successfully logged into the admin dashboard",
+            });
+          } else {
+            localStorage.setItem("adminName", email.split("@")[0]);
+            toast({
+              title: "Admin access granted",
+              description: "Successfully logged into the admin dashboard",
+            });
+          }
           localStorage.setItem("userType", "admin");
-          
-          toast({
-            title: "Admin access granted",
-            description: "Successfully logged into the admin dashboard",
-          });
-          
           navigate("/admin-dashboard");
         }
         setIsLoading(false);
