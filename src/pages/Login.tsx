@@ -49,6 +49,36 @@ const Login = () => {
 
     if (!isConfigured) {
       // Fallback to localStorage simulation for demo mode
+      // Special handling for admin email with specific password
+      if (email === "f.zahra.djaanine@engleuphoria.com") {
+        if (password !== "pykjE4-cichys-tarzik") {
+          toast({
+            title: "Invalid credentials",
+            description: "Incorrect password for admin account",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+        
+        // Admin login successful
+        setTimeout(() => {
+          localStorage.setItem("mockUserEmail", email);
+          localStorage.setItem("adminName", "Fatima Zahra Djaanine");
+          localStorage.setItem("userType", "admin");
+          
+          toast({
+            title: "Admin access granted",
+            description: "Welcome Fatima! Successfully logged into the admin dashboard",
+          });
+          
+          navigate("/admin-dashboard");
+          setIsLoading(false);
+        }, 1500);
+        return;
+      }
+      
+      // Regular demo login for other users
       setTimeout(() => {
         // Store user data in localStorage with email
         localStorage.setItem("mockUserEmail", email);
@@ -76,21 +106,14 @@ const Login = () => {
           
           navigate("/teacher-dashboard");
         } else if (userType === "admin") {
-          // Special handling for your admin email
-          if (email === "f.zahra.djaanine@engleuphoria.com") {
-            localStorage.setItem("adminName", "Fatima Zahra Djaanine");
-            toast({
-              title: "Admin access granted",
-              description: "Welcome Fatima! Successfully logged into the admin dashboard",
-            });
-          } else {
-            localStorage.setItem("adminName", email.split("@")[0]);
-            toast({
-              title: "Admin access granted",
-              description: "Successfully logged into the admin dashboard",
-            });
-          }
+          localStorage.setItem("adminName", email.split("@")[0]);
           localStorage.setItem("userType", "admin");
+          
+          toast({
+            title: "Admin access granted",
+            description: "Successfully logged into the admin dashboard",
+          });
+          
           navigate("/admin-dashboard");
         }
         setIsLoading(false);
