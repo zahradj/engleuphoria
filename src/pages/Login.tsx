@@ -51,7 +51,9 @@ const Login = () => {
       // Fallback to localStorage simulation for demo mode
       // Special handling for admin email with specific password
       if (email === "f.zahra.djaanine@engleuphoria.com") {
+        console.log("Admin email detected");
         if (password !== "pykjE4-cichys-tarzik") {
+          console.log("Wrong password for admin");
           toast({
             title: "Invalid credentials",
             description: "Incorrect password for admin account",
@@ -61,22 +63,32 @@ const Login = () => {
           return;
         }
         
+        console.log("Admin login successful, clearing storage");
         // Admin login successful
         // Clear any existing user data first
         localStorage.clear();
         
+        console.log("Setting admin data");
         // Set admin data
         localStorage.setItem("mockUserEmail", email);
         localStorage.setItem("adminName", "Fatima Zahra Djaanine");
         localStorage.setItem("userType", "admin");
+        
+        console.log("localStorage after setting:", {
+          mockUserEmail: localStorage.getItem("mockUserEmail"),
+          adminName: localStorage.getItem("adminName"),
+          userType: localStorage.getItem("userType")
+        });
         
         toast({
           title: "Admin access granted",
           description: "Welcome Fatima! Successfully logged into the admin dashboard",
         });
         
+        console.log("Redirecting to admin dashboard");
         // Force a page reload to ensure auth state is updated
         setTimeout(() => {
+          console.log("Executing redirect");
           window.location.href = "/admin-dashboard";
         }, 1000);
         setIsLoading(false);
