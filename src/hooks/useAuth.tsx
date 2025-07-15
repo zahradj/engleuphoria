@@ -173,6 +173,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!isSupabaseConfigured()) {
       // Clear localStorage for demo mode
       localStorage.removeItem('userType')
+      localStorage.removeItem('mockUserEmail')
       localStorage.removeItem('adminName')
       localStorage.removeItem('teacherName')
       localStorage.removeItem('studentName')

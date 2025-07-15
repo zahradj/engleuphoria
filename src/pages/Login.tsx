@@ -89,7 +89,7 @@ const Login = () => {
         // Force a page reload to ensure auth state is updated
         setTimeout(() => {
           console.log("Executing redirect");
-          window.location.href = "/admin-dashboard";
+          window.location.href = "/admin";
         }, 1000);
         setIsLoading(false);
         return;
@@ -122,7 +122,7 @@ const Login = () => {
         });
         
         setTimeout(() => {
-          window.location.href = "/admin-dashboard";
+          window.location.href = "/admin";
         }, 1000);
         setIsLoading(false);
         return;
@@ -143,7 +143,7 @@ const Login = () => {
             description: "Successfully logged into your student dashboard",
           });
           
-          navigate("/dashboard");
+          navigate("/student");
         } else if (userType === "teacher") {
           localStorage.setItem("teacherName", email.split("@")[0]);
           localStorage.setItem("teacherId", "teacher-" + Date.now());
@@ -154,7 +154,7 @@ const Login = () => {
             description: "Successfully logged into your teacher dashboard",
           });
           
-          navigate("/teacher-dashboard");
+          navigate("/teacher");
         } else if (userType === "admin") {
           localStorage.setItem("adminName", email.split("@")[0]);
           localStorage.setItem("userType", "admin");
@@ -164,7 +164,7 @@ const Login = () => {
             description: "Successfully logged into the admin dashboard",
           });
           
-          navigate("/admin-dashboard");
+          navigate("/admin");
         }
         setIsLoading(false);
       }, 1500);
@@ -204,10 +204,7 @@ const Login = () => {
           description: "Successfully signed in to your account",
         });
         
-        // Wait a bit for user profile to be fetched, then redirect
-        setTimeout(() => {
-          navigate("/dashboard");
-        }, 500);
+        // Redirect based on user role - this will be handled by ProtectedRoute
       }
     } catch (error: any) {
       toast({
