@@ -50,6 +50,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return
     }
 
+    // Listen for localStorage changes to update user state
+    const handleStorageChange = () => {
+      if (!configured) {
+        const userType = localStorage.getItem('userType')
+        const mockEmail = localStorage.getItem('mockUserEmail')
+        
+        if (userType || mockEmail) {
+          const isAdminEmail = mockEmail === 'f.zahra.djaanine@engleuphoria.com'
+          const finalUserType = isAdminEmail ? 'admin' : (userType || 'student')
+          
+          const mockUser: User = {
+            id: isAdminEmail ? 'admin-f-zahra' : '1',
+            email: mockEmail || 'demo@example.com',
+            full_name: isAdminEmail ? 'Fatima Zahra Djaanine' : (localStorage.getItem(finalUserType === 'admin' ? 'adminName' : finalUserType === 'teacher' ? 'teacherName' : 'studentName') || 'Demo User'),
+            role: finalUserType as 'student' | 'teacher' | 'parent' | 'admin',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+          setUser(mockUser)
+        } else {
+          setUser(null)
+        }
+      }
+    }
+
+    window.addEventListener('storage', handleStorageChange)
+
     // Get initial session only if configured
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
@@ -75,7 +102,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     )
 
-    return () => subscription.unsubscribe()
+    return () => {
+      subscription.unsubscribe()
+      window.removeEventListener('storage', handleStorageChange)
+    }
   }, [])
 
   const fetchUserProfile = async (userId: string) => {

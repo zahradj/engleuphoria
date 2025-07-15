@@ -62,19 +62,24 @@ const Login = () => {
         }
         
         // Admin login successful
+        // Clear any existing user data first
+        localStorage.clear();
+        
+        // Set admin data
+        localStorage.setItem("mockUserEmail", email);
+        localStorage.setItem("adminName", "Fatima Zahra Djaanine");
+        localStorage.setItem("userType", "admin");
+        
+        toast({
+          title: "Admin access granted",
+          description: "Welcome Fatima! Successfully logged into the admin dashboard",
+        });
+        
+        // Force a page reload to ensure auth state is updated
         setTimeout(() => {
-          localStorage.setItem("mockUserEmail", email);
-          localStorage.setItem("adminName", "Fatima Zahra Djaanine");
-          localStorage.setItem("userType", "admin");
-          
-          toast({
-            title: "Admin access granted",
-            description: "Welcome Fatima! Successfully logged into the admin dashboard",
-          });
-          
-          navigate("/admin-dashboard");
-          setIsLoading(false);
-        }, 1500);
+          window.location.href = "/admin-dashboard";
+        }, 1000);
+        setIsLoading(false);
         return;
       }
       
