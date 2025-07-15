@@ -16,6 +16,7 @@ const Index = lazy(() => import("./pages/Index"));
 const StudentDashboard = lazy(() => import("./pages/StudentDashboard"));
 const TeacherDashboard = lazy(() => import("./pages/TeacherDashboard"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const AdminRegister = lazy(() => import("./pages/AdminRegister").then(m => ({ default: m.AdminRegister })));
 const UnifiedClassroom = lazy(() => import("./pages/UnifiedClassroom"));
 const BecomeTeacher = lazy(() => import("./pages/BecomeTeacher"));
 const ForParents = lazy(() => import("./pages/ForParents"));
@@ -89,6 +90,9 @@ function App() {
               <Route path="/teacher-application" element={<TeacherApplication />} />
               <Route path="/student-application" element={<StudentApplication />} />
               <Route path="/pricing-selection" element={<PricingSelection />} />
+              
+              {/* Hidden Admin Registration Route */}
+              <Route path="/admin-register-secret" element={<AdminRegister />} />
               
               {/* Student Routes */}
               <Route path="/student" element={<ProtectedRoute requiredRole="student"><StudentDashboard /></ProtectedRoute>} />

@@ -94,6 +94,39 @@ const Login = () => {
         setIsLoading(false);
         return;
       }
+
+      // Check for dynamically registered admin accounts
+      const adminAccounts = JSON.parse(localStorage.getItem('adminAccounts') || '[]');
+      const adminAccount = adminAccounts.find((admin: any) => admin.email === email);
+      
+      if (adminAccount) {
+        if (password !== adminAccount.password) {
+          toast({
+            title: "Invalid credentials",
+            description: "Incorrect password for admin account",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+        
+        // Admin login successful
+        localStorage.clear();
+        localStorage.setItem("mockUserEmail", email);
+        localStorage.setItem("adminName", adminAccount.fullName);
+        localStorage.setItem("userType", "admin");
+        
+        toast({
+          title: "Admin access granted",
+          description: `Welcome ${adminAccount.fullName}! Successfully logged into the admin dashboard`,
+        });
+        
+        setTimeout(() => {
+          window.location.href = "/admin-dashboard";
+        }, 1000);
+        setIsLoading(false);
+        return;
+      }
       
       // Regular demo login for other users
       setTimeout(() => {
