@@ -32,7 +32,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     const dashboardMap: Record<string, string> = {
       student: '/student',
       teacher: '/teacher', 
-      admin: '/admin-dashboard'
+      admin: '/admin'
     };
     return <Navigate to={dashboardMap[user.role] || '/student'} replace />;
   }
@@ -42,7 +42,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     const dashboardMap: Record<string, string> = {
       student: '/student',
       teacher: '/teacher', 
-      admin: '/admin-dashboard'
+      admin: '/admin'
     };
     return <Navigate to={dashboardMap[user.role] || '/student'} replace />;
   }
