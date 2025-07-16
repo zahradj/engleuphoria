@@ -56,19 +56,19 @@ export const LoginForm = () => {
     switch (userType) {
       case 'student':
         console.log('Navigating to student dashboard');
-        navigate('/student-dashboard');
+        navigate('/student');
         break;
       case 'teacher':
         console.log('Navigating to teacher dashboard');
-        navigate('/teacher-dashboard');
+        navigate('/teacher');
         break;
       case 'admin':
         console.log('Navigating to admin dashboard');
-        navigate('/admin-dashboard');
+        navigate('/admin');
         break;
       default:
         console.log('Default: Navigating to student dashboard');
-        navigate('/student-dashboard');
+        navigate('/student');
     }
     
     setIsOpen(false);
