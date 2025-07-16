@@ -22,10 +22,6 @@ export const Header = () => {
     setIsMobileMenuOpen(false);
   };
 
-  const handlePricing = () => {
-    navigate("/payment");
-    setIsMobileMenuOpen(false);
-  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -55,7 +51,6 @@ export const Header = () => {
         onClose={() => setIsMobileMenuOpen(false)}
         onLogin={handleLogin}
         onSignUp={handleSignUp}
-        onPricing={handlePricing}
       />
     </header>
   );

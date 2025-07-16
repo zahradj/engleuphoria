@@ -9,10 +9,9 @@ interface MobileMenuProps {
   onClose: () => void;
   onLogin: () => void;
   onSignUp: () => void;
-  onPricing: () => void;
 }
 
-export const MobileMenu = ({ isOpen, onClose, onLogin, onSignUp, onPricing }: MobileMenuProps) => {
+export const MobileMenu = ({ isOpen, onClose, onLogin, onSignUp }: MobileMenuProps) => {
   const { languageText } = useLanguage();
 
   const t = (key: string) => {
@@ -50,13 +49,6 @@ export const MobileMenu = ({ isOpen, onClose, onLogin, onSignUp, onPricing }: Mo
         >
           {t('forTeachers') || 'For Teachers'}
         </Link>
-        <Button
-          variant="ghost"
-          onClick={onPricing}
-          className="w-full justify-start text-gray-600 hover:text-purple-600 transition-colors px-0"
-        >
-          Pricing
-        </Button>
         
         <div className="pt-4 border-t space-y-3">
           <Button 

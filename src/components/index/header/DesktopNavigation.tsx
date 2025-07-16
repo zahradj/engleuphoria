@@ -17,9 +17,6 @@ export const DesktopNavigation = () => {
       <Link to="/about" className="transition-colors hover:text-foreground/80 text-foreground/60">
         About
       </Link>
-      <Link to="/pricing-selection" className="transition-colors hover:text-foreground/80 text-foreground/60">
-        Pricing
-      </Link>
     </nav>
   );
 };
