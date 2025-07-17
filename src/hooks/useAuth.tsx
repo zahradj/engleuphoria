@@ -21,61 +21,69 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true)
   const [isConfigured, setIsConfigured] = useState(false)
 
+  // Function to update user state from localStorage
+  const updateUserFromStorage = () => {
+    console.log('=== updateUserFromStorage called ===')
+    const userType = localStorage.getItem('userType')
+    const mockEmail = localStorage.getItem('mockUserEmail')
+    
+    console.log('Storage values:', { userType, mockEmail })
+    
+    if (userType || mockEmail) {
+      // Check for admin email
+      const isAdminEmail = mockEmail === 'f.zahra.djaanine@engleuphoria.com'
+      const finalUserType = isAdminEmail ? 'admin' : (userType || 'student')
+      
+      const mockUser: User = {
+        id: isAdminEmail ? 'admin-f-zahra' : '1',
+        email: mockEmail || 'demo@example.com',
+        full_name: isAdminEmail ? 'Fatima Zahra Djaanine' : (localStorage.getItem(finalUserType === 'admin' ? 'adminName' : finalUserType === 'teacher' ? 'teacherName' : 'studentName') || 'Demo User'),
+        role: finalUserType as 'student' | 'teacher' | 'parent' | 'admin',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+      
+      console.log('Setting mock user:', mockUser)
+      setUser(mockUser)
+    } else {
+      console.log('No user data found, setting user to null')
+      setUser(null)
+    }
+  }
+
   useEffect(() => {
+    console.log('=== useAuth useEffect starting ===')
+    
     // Check if Supabase is configured
     const configured = isSupabaseConfigured()
     setIsConfigured(configured)
+    console.log('Supabase configured:', configured)
 
     if (!configured) {
-      // Mock user from localStorage for demo purposes
-      const userType = localStorage.getItem('userType')
-      const mockEmail = localStorage.getItem('mockUserEmail')
-      
-      if (userType || mockEmail) {
-        // Check for admin email
-        const isAdminEmail = mockEmail === 'f.zahra.djaanine@engleuphoria.com'
-        const finalUserType = isAdminEmail ? 'admin' : (userType || 'student')
-        
-        const mockUser: User = {
-          id: isAdminEmail ? 'admin-f-zahra' : '1',
-          email: mockEmail || 'demo@example.com',
-          full_name: isAdminEmail ? 'Fatima Zahra Djaanine' : (localStorage.getItem(finalUserType === 'admin' ? 'adminName' : finalUserType === 'teacher' ? 'teacherName' : 'studentName') || 'Demo User'),
-          role: finalUserType as 'student' | 'teacher' | 'parent' | 'admin',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-        setUser(mockUser)
-      }
+      // Update user from localStorage for demo purposes
+      updateUserFromStorage()
       setLoading(false)
-      return
-    }
+      
+      // Listen for custom auth events (same tab changes)
+      const handleCustomAuthChange = () => {
+        console.log('=== Custom auth change event received ===')
+        updateUserFromStorage()
+      }
+      
+      // Listen for localStorage changes (cross-tab)
+      const handleStorageChange = () => {
+        console.log('=== Storage change event received ===')
+        updateUserFromStorage()
+      }
 
-    // Listen for localStorage changes to update user state
-    const handleStorageChange = () => {
-      if (!configured) {
-        const userType = localStorage.getItem('userType')
-        const mockEmail = localStorage.getItem('mockUserEmail')
-        
-        if (userType || mockEmail) {
-          const isAdminEmail = mockEmail === 'f.zahra.djaanine@engleuphoria.com'
-          const finalUserType = isAdminEmail ? 'admin' : (userType || 'student')
-          
-          const mockUser: User = {
-            id: isAdminEmail ? 'admin-f-zahra' : '1',
-            email: mockEmail || 'demo@example.com',
-            full_name: isAdminEmail ? 'Fatima Zahra Djaanine' : (localStorage.getItem(finalUserType === 'admin' ? 'adminName' : finalUserType === 'teacher' ? 'teacherName' : 'studentName') || 'Demo User'),
-            role: finalUserType as 'student' | 'teacher' | 'parent' | 'admin',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
-          setUser(mockUser)
-        } else {
-          setUser(null)
-        }
+      window.addEventListener('storage', handleStorageChange)
+      window.addEventListener('authStateChanged', handleCustomAuthChange)
+      
+      return () => {
+        window.removeEventListener('storage', handleStorageChange)
+        window.removeEventListener('authStateChanged', handleCustomAuthChange)
       }
     }
-
-    window.addEventListener('storage', handleStorageChange)
 
     // Get initial session only if configured
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -104,7 +112,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     return () => {
       subscription.unsubscribe()
-      window.removeEventListener('storage', handleStorageChange)
     }
   }, [])
 

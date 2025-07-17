@@ -15,7 +15,14 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 }) => {
   const { user, loading } = useAuth();
 
+  console.log('=== ProtectedRoute render ===');
+  console.log('Path:', window.location.pathname);
+  console.log('User:', user);
+  console.log('Loading:', loading);
+  console.log('Required role:', requiredRole);
+
   if (loading) {
+    console.log('Still loading, showing spinner');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -24,6 +31,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   if (!user) {
+    console.log('No user found, redirecting to:', redirectTo);
     return <Navigate to={redirectTo} replace />;
   }
 
@@ -44,8 +52,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       teacher: '/teacher', 
       admin: '/admin'
     };
+    console.log('Redirecting from /dashboard to:', dashboardMap[user.role] || '/student');
     return <Navigate to={dashboardMap[user.role] || '/student'} replace />;
   }
 
+  console.log('✅ ProtectedRoute: All checks passed, rendering children');
   return <>{children}</>;
 };

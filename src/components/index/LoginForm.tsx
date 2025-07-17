@@ -50,28 +50,35 @@ export const LoginForm = () => {
     console.log('Verification - stored userType:', storedUserType);
     console.log('Verification - stored name:', storedName);
     
-    console.log('=== Navigating to dashboard ===');
+    // Dispatch custom event to notify useAuth hook
+    console.log('=== Dispatching auth state change event ===');
+    window.dispatchEvent(new CustomEvent('authStateChanged'));
     
-    // Navigate based on user type
-    switch (userType) {
-      case 'student':
-        console.log('Navigating to student dashboard');
-        navigate('/student');
-        break;
-      case 'teacher':
-        console.log('Navigating to teacher dashboard');
-        navigate('/teacher');
-        break;
-      case 'admin':
-        console.log('Navigating to admin dashboard');
-        navigate('/admin');
-        break;
-      default:
-        console.log('Default: Navigating to student dashboard');
-        navigate('/student');
-    }
-    
-    setIsOpen(false);
+    // Small delay to ensure auth state is updated before navigation
+    setTimeout(() => {
+      console.log('=== Navigating to dashboard ===');
+      
+      // Navigate based on user type
+      switch (userType) {
+        case 'student':
+          console.log('Navigating to student dashboard');
+          navigate('/student');
+          break;
+        case 'teacher':
+          console.log('Navigating to teacher dashboard');
+          navigate('/teacher');
+          break;
+        case 'admin':
+          console.log('Navigating to admin dashboard');
+          navigate('/admin');
+          break;
+        default:
+          console.log('Default: Navigating to student dashboard');
+          navigate('/student');
+      }
+      
+      setIsOpen(false);
+    }, 100);
   };
 
   return (
