@@ -2169,8 +2169,11 @@ export type Database = {
           kpi_threshold_met: boolean | null
           lesson_id: string
           payment_method: string
+          platform_amount: number | null
+          revenue_split_id: string | null
           status: string
           student_id: string
+          teacher_amount: number | null
         }
         Insert: {
           amount: number
@@ -2181,8 +2184,11 @@ export type Database = {
           kpi_threshold_met?: boolean | null
           lesson_id: string
           payment_method: string
+          platform_amount?: number | null
+          revenue_split_id?: string | null
           status?: string
           student_id: string
+          teacher_amount?: number | null
         }
         Update: {
           amount?: number
@@ -2193,8 +2199,11 @@ export type Database = {
           kpi_threshold_met?: boolean | null
           lesson_id?: string
           payment_method?: string
+          platform_amount?: number | null
+          revenue_split_id?: string | null
           status?: string
           student_id?: string
+          teacher_amount?: number | null
         }
         Relationships: [
           {
@@ -2202,6 +2211,13 @@ export type Database = {
             columns: ["lesson_id"]
             isOneToOne: false
             referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_revenue_split_id_fkey"
+            columns: ["revenue_split_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_splits"
             referencedColumns: ["id"]
           },
           {
@@ -2337,6 +2353,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      revenue_splits: {
+        Row: {
+          applies_to: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          platform_percentage: number
+          teacher_percentage: number
+          updated_at: string | null
+        }
+        Insert: {
+          applies_to?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          platform_percentage: number
+          teacher_percentage: number
+          updated_at?: string | null
+        }
+        Update: {
+          applies_to?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          platform_percentage?: number
+          teacher_percentage?: number
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       seasonal_events: {
         Row: {
@@ -3254,6 +3303,79 @@ export type Database = {
         }
         Relationships: []
       }
+      teacher_earnings: {
+        Row: {
+          created_at: string | null
+          earned_at: string | null
+          gross_amount: number
+          id: string
+          lesson_id: string
+          paid_at: string | null
+          payment_id: string | null
+          platform_amount: number
+          revenue_split_id: string | null
+          split_percentage: number
+          status: string | null
+          teacher_amount: number
+          teacher_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          earned_at?: string | null
+          gross_amount: number
+          id?: string
+          lesson_id: string
+          paid_at?: string | null
+          payment_id?: string | null
+          platform_amount: number
+          revenue_split_id?: string | null
+          split_percentage: number
+          status?: string | null
+          teacher_amount: number
+          teacher_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          earned_at?: string | null
+          gross_amount?: number
+          id?: string
+          lesson_id?: string
+          paid_at?: string | null
+          payment_id?: string | null
+          platform_amount?: number
+          revenue_split_id?: string | null
+          split_percentage?: number
+          status?: string | null
+          teacher_amount?: number
+          teacher_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_earnings_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teacher_earnings_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teacher_earnings_revenue_split_id_fkey"
+            columns: ["revenue_split_id"]
+            isOneToOne: false
+            referencedRelation: "revenue_splits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teacher_equipment_tests: {
         Row: {
           application_id: string | null
@@ -3407,6 +3529,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      teacher_payouts: {
+        Row: {
+          created_at: string | null
+          id: string
+          paid_at: string | null
+          payment_method: string | null
+          payment_reference: string | null
+          payout_period_end: string
+          payout_period_start: string
+          status: string | null
+          teacher_id: string
+          total_earnings: number
+          total_lessons: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          payout_period_end: string
+          payout_period_start: string
+          status?: string | null
+          teacher_id: string
+          total_earnings?: number
+          total_lessons?: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          payout_period_end?: string
+          payout_period_start?: string
+          status?: string | null
+          teacher_id?: string
+          total_earnings?: number
+          total_lessons?: number
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       teacher_performance_metrics: {
         Row: {
