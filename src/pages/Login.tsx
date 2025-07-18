@@ -20,7 +20,7 @@ const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { languageText } = useLanguage();
-  const { signIn, isConfigured } = useAuth();
+  const { signIn, isConfigured, refreshUser } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,93 +48,73 @@ const Login = () => {
     }
 
     if (!isConfigured) {
-      // Fallback to localStorage simulation for demo mode
-      // Special handling for admin email with specific password
-      if (email === "f.zahra.djaanine@engleuphoria.com") {
-        console.log("Admin email detected");
-        if (password !== "pykjE4-cichys-tarzik") {
-          console.log("Wrong password for admin");
+      // Demo mode login
+      try {
+        // Handle special admin login
+        if (email === "f.zahra.djaanine@engleuphoria.com") {
+          if (password !== "pykjE4-cichys-tarzik") {
+            toast({
+              title: "Invalid credentials",
+              description: "Incorrect password for admin account",
+              variant: "destructive",
+            });
+            setIsLoading(false);
+            return;
+          }
+          
+          // Set admin data
+          localStorage.setItem("mockUserEmail", email);
+          localStorage.setItem("adminName", "Fatima Zahra Djaanine");
+          localStorage.setItem("userType", "admin");
+          
           toast({
-            title: "Invalid credentials",
-            description: "Incorrect password for admin account",
-            variant: "destructive",
+            title: "Admin access granted",
+            description: "Welcome Fatima! Successfully logged into the admin dashboard",
           });
+          
+          // Update auth state and navigate
+          refreshUser();
+          navigate("/admin");
           setIsLoading(false);
           return;
         }
-        
-        console.log("Admin login successful, clearing storage");
-        // Admin login successful
-        // Clear any existing user data first
-        localStorage.clear();
-        
-        console.log("Setting admin data");
-        // Set admin data
-        localStorage.setItem("mockUserEmail", email);
-        localStorage.setItem("adminName", "Fatima Zahra Djaanine");
-        localStorage.setItem("userType", "admin");
-        
-        console.log("localStorage after setting:", {
-          mockUserEmail: localStorage.getItem("mockUserEmail"),
-          adminName: localStorage.getItem("adminName"),
-          userType: localStorage.getItem("userType")
-        });
-        
-        toast({
-          title: "Admin access granted",
-          description: "Welcome Fatima! Successfully logged into the admin dashboard",
-        });
-        
-        console.log("Redirecting to admin dashboard");
-        // Force a page reload to ensure auth state is updated
-        setTimeout(() => {
-          console.log("Executing redirect");
-          window.location.href = "/admin";
-        }, 1000);
-        setIsLoading(false);
-        return;
-      }
 
-      // Check for dynamically registered admin accounts
-      const adminAccounts = JSON.parse(localStorage.getItem('adminAccounts') || '[]');
-      const adminAccount = adminAccounts.find((admin: any) => admin.email === email);
-      
-      if (adminAccount) {
-        if (password !== adminAccount.password) {
+        // Check for dynamically registered admin accounts
+        const adminAccounts = JSON.parse(localStorage.getItem('adminAccounts') || '[]');
+        const adminAccount = adminAccounts.find((admin: any) => admin.email === email);
+        
+        if (adminAccount) {
+          if (password !== adminAccount.password) {
+            toast({
+              title: "Invalid credentials",
+              description: "Incorrect password for admin account",
+              variant: "destructive",
+            });
+            setIsLoading(false);
+            return;
+          }
+          
+          localStorage.setItem("mockUserEmail", email);
+          localStorage.setItem("adminName", adminAccount.fullName);
+          localStorage.setItem("userType", "admin");
+          
           toast({
-            title: "Invalid credentials",
-            description: "Incorrect password for admin account",
-            variant: "destructive",
+            title: "Admin access granted",
+            description: `Welcome ${adminAccount.fullName}! Successfully logged into the admin dashboard`,
           });
+          
+          refreshUser();
+          navigate("/admin");
           setIsLoading(false);
           return;
         }
         
-        // Admin login successful
-        localStorage.clear();
+        // Regular demo login
         localStorage.setItem("mockUserEmail", email);
-        localStorage.setItem("adminName", adminAccount.fullName);
-        localStorage.setItem("userType", "admin");
-        
-        toast({
-          title: "Admin access granted",
-          description: `Welcome ${adminAccount.fullName}! Successfully logged into the admin dashboard`,
-        });
-        
-        setTimeout(() => {
-          window.location.href = "/admin";
-        }, 1000);
-        setIsLoading(false);
-        return;
-      }
-      
-      // Regular demo login for other users
-      setTimeout(() => {
-        // Store user data in localStorage with email
-        localStorage.setItem("mockUserEmail", email);
+        const userName = email.split("@")[0];
         
         if (userType === "student") {
-          localStorage.setItem("studentName", email.split("@")[0]);
+          localStorage.setItem("studentName", userName);
           localStorage.setItem("points", "50");
           localStorage.setItem("userType", "student");
           
@@ -143,9 +123,10 @@ const Login = () => {
             description: "Successfully logged into your student dashboard",
           });
           
+          refreshUser();
           navigate("/student");
         } else if (userType === "teacher") {
-          localStorage.setItem("teacherName", email.split("@")[0]);
+          localStorage.setItem("teacherName", userName);
           localStorage.setItem("teacherId", "teacher-" + Date.now());
           localStorage.setItem("userType", "teacher");
           
@@ -154,9 +135,10 @@ const Login = () => {
             description: "Successfully logged into your teacher dashboard",
           });
           
+          refreshUser();
           navigate("/teacher");
         } else if (userType === "admin") {
-          localStorage.setItem("adminName", email.split("@")[0]);
+          localStorage.setItem("adminName", userName);
           localStorage.setItem("userType", "admin");
           
           toast({
@@ -164,10 +146,22 @@ const Login = () => {
             description: "Successfully logged into the admin dashboard",
           });
           
+          refreshUser();
           navigate("/admin");
         }
-        setIsLoading(false);
-      }, 1500);
+        
+        // Dispatch auth change event
+        window.dispatchEvent(new CustomEvent('authStateChanged'));
+        
+      } catch (error) {
+        toast({
+          title: "Login failed",
+          description: "An error occurred during demo login",
+          variant: "destructive",
+        });
+      }
+      
+      setIsLoading(false);
       return;
     }
 
