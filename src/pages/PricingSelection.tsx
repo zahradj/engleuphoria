@@ -51,11 +51,11 @@ const PricingSelection = () => {
       // Navigate to appropriate dashboard
       const userType = localStorage.getItem('userType') || 'student';
       if (userType === 'student') {
-        navigate('/student-dashboard');
+        navigate('/student');
       } else if (userType === 'teacher') {
         navigate('/teacher-dashboard');
       } else {
-        navigate('/student-dashboard');
+        navigate('/student');
       }
 
     } catch (error) {
@@ -98,7 +98,7 @@ const PricingSelection = () => {
           variant="ghost" 
           onClick={() => {
             const userType = localStorage.getItem('userType') || 'student';
-            const dashboardPath = userType === 'teacher' ? '/teacher-dashboard' : userType === 'admin' ? '/admin-dashboard' : '/student-dashboard';
+            const dashboardPath = userType === 'teacher' ? '/teacher-dashboard' : userType === 'admin' ? '/admin-dashboard' : '/student';
             navigate(dashboardPath);
           }}
           className="text-sm"

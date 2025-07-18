@@ -43,7 +43,7 @@ const StudentLessonScheduler = () => {
     });
     
     setTimeout(() => {
-      navigate("/student-dashboard");
+      navigate("/student");
     }, 2000);
   };
 
@@ -51,7 +51,7 @@ const StudentLessonScheduler = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 p-6">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-4 mb-6">
-          <Button variant="outline" onClick={() => navigate("/student-dashboard")}>
+          <Button variant="outline" onClick={() => navigate("/student")}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
           </Button>

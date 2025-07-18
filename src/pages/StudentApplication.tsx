@@ -153,7 +153,7 @@ const StudentApplication = () => {
       
       // Redirect to student dashboard
       setTimeout(() => {
-        navigate('/student-dashboard');
+        navigate('/student');
       }, 1500);
       
     } catch (error) {

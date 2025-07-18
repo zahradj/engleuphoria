@@ -40,7 +40,7 @@ const MaterialLibraryPage = () => {
   const getDashboardRoute = () => {
     switch (userType) {
       case "student":
-        return "/student-dashboard";
+        return "/student";
       case "teacher":
         return "/teacher-dashboard";
       case "admin":
