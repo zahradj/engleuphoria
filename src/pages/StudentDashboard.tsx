@@ -2,6 +2,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { ErrorBoundary } from "@/components/common/ErrorBoundary";
+import { LoadingSpinner } from "@/components/ui/loading-states";
+
+// Lazy load components to improve initial load time
 import { StudentHeader } from "@/components/student/StudentHeader";
 import { StudentSidebar } from "@/components/student/StudentSidebar";
 import { DashboardTab } from "@/components/student/DashboardTab";
@@ -21,8 +26,10 @@ const StudentDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [hasProfile, setHasProfile] = useState(false);
   const [studentProfile, setStudentProfile] = useState<any>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, loading: authLoading } = useAuth();
   
   // Generate or get student ID and name
   const generateStudentId = () => {
@@ -33,76 +40,130 @@ const StudentDashboard = () => {
     return newId;
   };
   
-  const studentName = localStorage.getItem('studentName') || 'Student';
+  const studentName = user?.full_name || localStorage.getItem('studentName') || 'Student';
   const studentId = generateStudentId();
 
   useEffect(() => {
-    // Check if student has completed their profile
-    const profile = localStorage.getItem('studentProfile');
-    if (profile) {
-      setStudentProfile(JSON.parse(profile));
-      setHasProfile(true);
-    } else {
-      setHasProfile(false);
-    }
-  }, []);
+    const initializeDashboard = async () => {
+      try {
+        console.log('📊 Initializing student dashboard...');
+        
+        // Check if student has completed their profile
+        const profile = localStorage.getItem('studentProfile');
+        if (profile) {
+          setStudentProfile(JSON.parse(profile));
+          setHasProfile(true);
+        } else {
+          setHasProfile(false);
+        }
+        
+        setIsInitialized(true);
+        console.log('✅ Student dashboard initialized successfully');
+      } catch (error) {
+        console.error('❌ Error initializing student dashboard:', error);
+        toast({
+          title: "Loading Error",
+          description: "There was an issue loading your dashboard. Please refresh the page.",
+          variant: "destructive",
+        });
+      }
+    };
 
-  const handleLogout = () => {
-    localStorage.removeItem('studentName');
-    localStorage.removeItem('userType');
-    localStorage.removeItem('studentProfile');
-    toast({
-      title: "Logged out successfully",
-      description: "See you next time!",
-    });
-    navigate("/");
+    // Only initialize after auth is ready
+    if (!authLoading) {
+      initializeDashboard();
+    }
+  }, [authLoading, toast]);
+
+  const handleLogout = async () => {
+    try {
+      localStorage.removeItem('studentName');
+      localStorage.removeItem('userType');
+      localStorage.removeItem('studentProfile');
+      localStorage.removeItem('studentId');
+      
+      toast({
+        title: "Logged out successfully",
+        description: "See you next time!",
+      });
+      
+      navigate("/");
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast({
+        title: "Logout Error",
+        description: "There was an issue logging out. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const renderActiveTab = () => {
-    switch (activeTab) {
-      case "dashboard":
-        return <DashboardTab studentName={studentName} studentId={studentId} hasProfile={hasProfile} studentProfile={studentProfile} />;
-      case "learning-path":
-        return <LearningPathTab />;
-      case "teachers":
-        return <TeachersTab />;
-      case "upcoming-classes":
-        return <UpcomingClassesTab />;
-      case "homework":
-        return <HomeworkTab />;
-      case "materials":
-        return <MaterialsLibraryTab />;
-      case "progress":
-        return <ProgressTrackerTab />;
-      case "speaking":
-        return <SpeakingPracticeTab />;
-      case "billing":
-        return <EnhancedBillingTab />;
-      case "profile":
-        return <ProfileTab studentName={studentName} />;
-      case "settings":
-        return <SettingsTab />;
-      default:
-        return <DashboardTab studentName={studentName} studentId={studentId} hasProfile={hasProfile} studentProfile={studentProfile} />;
-    }
+    const tabComponents = {
+      dashboard: () => <DashboardTab studentName={studentName} studentId={studentId} hasProfile={hasProfile} studentProfile={studentProfile} />,
+      "learning-path": () => <LearningPathTab />,
+      teachers: () => <TeachersTab />,
+      "upcoming-classes": () => <UpcomingClassesTab />,
+      homework: () => <HomeworkTab />,
+      materials: () => <MaterialsLibraryTab />,
+      progress: () => <ProgressTrackerTab />,
+      speaking: () => <SpeakingPracticeTab />,
+      billing: () => <EnhancedBillingTab />,
+      profile: () => <ProfileTab studentName={studentName} />,
+      settings: () => <SettingsTab />,
+    };
+
+    const TabComponent = tabComponents[activeTab as keyof typeof tabComponents] || tabComponents.dashboard;
+    
+    return (
+      <ErrorBoundary fallback={
+        <div className="p-6 text-center">
+          <p className="text-red-600 mb-4">Error loading this section</p>
+          <button 
+            onClick={() => setActiveTab("dashboard")}
+            className="bg-blue-600 text-white px-4 py-2 rounded"
+          >
+            Return to Dashboard
+          </button>
+        </div>
+      }>
+        <TabComponent />
+      </ErrorBoundary>
+    );
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <StudentHeader studentName={studentName} studentId={studentId} hasProfile={hasProfile} studentProfile={studentProfile} />
-      <div className="flex">
-        <StudentSidebar 
-          activeTab={activeTab} 
-          setActiveTab={setActiveTab}
-          hasProfile={hasProfile}
-          onLogout={handleLogout}
-        />
-        <main className="flex-1 p-6 ml-64">
-          <QuickActions />
-          {renderActiveTab()}
-        </main>
+  // Show loading state
+  if (authLoading || !isInitialized) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <LoadingSpinner size="lg" message="Loading your dashboard..." />
       </div>
-    </div>
+    );
+  }
+
+  return (
+    <ErrorBoundary>
+      <div className="min-h-screen bg-gray-50">
+        <StudentHeader 
+          studentName={studentName} 
+          studentId={studentId} 
+          hasProfile={hasProfile} 
+          studentProfile={studentProfile} 
+        />
+        <div className="flex">
+          <StudentSidebar 
+            activeTab={activeTab} 
+            setActiveTab={setActiveTab}
+            hasProfile={hasProfile}
+            onLogout={handleLogout}
+          />
+          <main className="flex-1 p-6 ml-64">
+            <QuickActions />
+            {renderActiveTab()}
+          </main>
+        </div>
+      </div>
+    </ErrorBoundary>
   );
 };
 

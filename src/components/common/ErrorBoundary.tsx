@@ -1,19 +1,16 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+
+import React, { Component, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { performanceMonitor } from '@/lib/monitoring';
 
 interface Props {
   children: ReactNode;
   fallback?: ReactNode;
-  onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
 interface State {
   hasError: boolean;
   error?: Error;
-  errorInfo?: ErrorInfo;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
@@ -26,22 +23,9 @@ export class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    this.setState({ errorInfo });
-    
-    // Track error
-    performanceMonitor.trackError(error, {
-      componentStack: errorInfo.componentStack,
-      errorBoundary: true,
-    });
-
-    // Call custom error handler
-    this.props.onError?.(error, errorInfo);
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
   }
-
-  handleRetry = () => {
-    this.setState({ hasError: false, error: undefined, errorInfo: undefined });
-  };
 
   render() {
     if (this.state.hasError) {
@@ -50,56 +34,48 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <Card className="w-full max-w-lg mx-auto mt-8">
-          <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              <AlertTriangle className="h-12 w-12 text-destructive" />
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="max-w-md w-full mx-auto p-6">
+            <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+              <AlertTriangle className="h-16 w-16 text-red-500 mx-auto mb-4" />
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                Something went wrong
+              </h1>
+              <p className="text-gray-600 mb-6">
+                We encountered an unexpected error. Please try refreshing the page.
+              </p>
+              <div className="space-y-3">
+                <Button 
+                  onClick={() => window.location.reload()}
+                  className="w-full"
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Refresh Page
+                </Button>
+                <Button 
+                  variant="outline"
+                  onClick={() => this.setState({ hasError: false })}
+                  className="w-full"
+                >
+                  Try Again
+                </Button>
+              </div>
+              {process.env.NODE_ENV === 'development' && this.state.error && (
+                <details className="mt-6 text-left">
+                  <summary className="cursor-pointer text-sm text-gray-500">
+                    Error Details (Dev Only)
+                  </summary>
+                  <pre className="mt-2 text-xs bg-gray-100 p-2 rounded overflow-auto">
+                    {this.state.error.stack}
+                  </pre>
+                </details>
+              )}
             </div>
-            <CardTitle className="text-destructive">Something went wrong</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-muted-foreground text-center">
-              We encountered an unexpected error. This has been reported to our team.
-            </p>
-            
-            {import.meta.env.DEV && this.state.error && (
-              <details className="bg-muted p-4 rounded-md text-sm">
-                <summary className="cursor-pointer font-medium">Error Details</summary>
-                <pre className="mt-2 whitespace-pre-wrap break-words">
-                  {this.state.error.toString()}
-                  {this.state.errorInfo?.componentStack}
-                </pre>
-              </details>
-            )}
-            
-            <div className="flex gap-2 justify-center">
-              <Button onClick={this.handleRetry} variant="outline">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Try Again
-              </Button>
-              <Button onClick={() => window.location.reload()}>
-                Reload Page
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       );
     }
 
     return this.props.children;
   }
-}
-
-// HOC for wrapping components with error boundary
-export function withErrorBoundary<P extends object>(
-  Component: React.ComponentType<P>,
-  fallback?: ReactNode
-) {
-  return function WrappedComponent(props: P) {
-    return (
-      <ErrorBoundary fallback={fallback}>
-        <Component {...props} />
-      </ErrorBoundary>
-    );
-  };
 }

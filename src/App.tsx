@@ -1,9 +1,8 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { AuthProvider } from "./hooks/useAuth";
 import { lazy } from 'react';
@@ -72,73 +71,74 @@ function App() {
               <BrowserRouter>
                 <LazyRoute>
                   <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Index />} />
-              <Route path="/about" element={<AboutUs />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/for-parents" element={<ForParents />} />
-              <Route path="/for-teachers" element={<ForTeachers />} />
-              <Route path="/become-teacher" element={<BecomeTeacher />} />
-              <Route path="/discover-teachers" element={<DiscoverTeachers />} />
-              
-              {/* Auth Routes */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route path="/teacher-signup" element={<TeacherSignUp />} />
-              <Route path="/student-signup" element={<StudentSignUp />} />
-              <Route path="/email-confirmation" element={<EmailConfirmation />} />
-              <Route path="/teacher-application" element={<TeacherApplication />} />
-              <Route path="/student-application" element={<StudentApplication />} />
-              <Route path="/pricing-selection" element={<PricingSelection />} />
-              
-              {/* Hidden Admin Registration Route */}
-              <Route path="/admin-register-secret" element={<AdminRegister />} />
-              
-              {/* Student Routes */}
-              <Route path="/student" element={<ProtectedRoute requiredRole="student"><StudentDashboard /></ProtectedRoute>} />
-              <Route path="/student/schedule" element={<ProtectedRoute requiredRole="student"><StudentSchedule /></ProtectedRoute>} />
-              <Route path="/student/book-lesson" element={<ProtectedRoute requiredRole="student"><BookLesson /></ProtectedRoute>} />
-              <Route path="/student/speaking-practice" element={<ProtectedRoute requiredRole="student"><SpeakingPractice /></ProtectedRoute>} />
-              <Route path="/student/lesson-scheduler" element={<ProtectedRoute requiredRole="student"><StudentLessonScheduler /></ProtectedRoute>} />
-              
-              {/* Teacher Routes */}
-              <Route path="/teacher" element={<ProtectedRoute requiredRole="teacher"><TeacherDashboard /></ProtectedRoute>} />
-              <Route path="/teacher/materials" element={<ProtectedRoute requiredRole="teacher"><MaterialLibraryPage /></ProtectedRoute>} />
-              <Route path="/teacher/lesson-scheduler" element={<ProtectedRoute requiredRole="teacher"><LessonScheduler /></ProtectedRoute>} />
-              <Route path="/teacher/lesson-plan-creator" element={<ProtectedRoute requiredRole="teacher"><LessonPlanCreator /></ProtectedRoute>} />
-              <Route path="/teacher/student-management" element={<ProtectedRoute requiredRole="teacher"><StudentManagement /></ProtectedRoute>} />
-              
-              {/* Admin Routes */}
-              <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
-              
-               {/* Shared Protected Routes */}
-                <Route path="/classroom" element={<ProtectedRoute><UnifiedClassroom /></ProtectedRoute>} />
-                <Route path="/speaking-classroom" element={<ProtectedRoute><SpeakingClassroomHub /></ProtectedRoute>} />
-                <Route path="/speaking-classroom/:sessionId" element={<ProtectedRoute><SpeakingClassroomSession /></ProtectedRoute>} />
-                <Route path="/communities" element={<ProtectedRoute><CommunityHub /></ProtectedRoute>} />
-                <Route path="/community/:communityId" element={<ProtectedRoute><CommunityDetail /></ProtectedRoute>} />
-                <Route path="/gamification" element={<ProtectedRoute><GamificationPage /></ProtectedRoute>} />
-                <Route path="/ai-tutor" element={<ProtectedRoute><AITutorPage /></ProtectedRoute>} />
-                <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-                <Route path="/whiteboard" element={<ProtectedRoute><WhiteboardPage /></ProtectedRoute>} />
-              <Route path="/curriculum-library" element={<ProtectedRoute><CurriculumLibrary /></ProtectedRoute>} />
-              <Route path="/payment" element={<ProtectedRoute><PaymentPage /></ProtectedRoute>} />
-              <Route path="/media-test" element={<MediaTestPage />} />
-              <Route path="/teacher-onboarding" element={<TeacherOnboarding />} />
-              
-              {/* Site Navigation */}
-              <Route path="/sitemap" element={<SiteMap />} />
-              
-              {/* Legacy Redirects */}
-              <Route path="/dashboard" element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>} />
-              <Route path="/teacher-dashboard" element={<ProtectedRoute requiredRole="teacher"><TeacherDashboard /></ProtectedRoute>} />
-              <Route path="/admin-dashboard" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
-              <Route path="/student-registration" element={<SignUp />} />
-              <Route path="/material-library" element={<ProtectedRoute><MaterialLibraryPage /></ProtectedRoute>} />
-              
-              {/* 404 */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+                    {/* Public Routes */}
+                    <Route path="/" element={<Index />} />
+                    <Route path="/about" element={<AboutUs />} />
+                    <Route path="/contact" element={<Contact />} />
+                    <Route path="/for-parents" element={<ForParents />} />
+                    <Route path="/for-teachers" element={<ForTeachers />} />
+                    <Route path="/become-teacher" element={<BecomeTeacher />} />
+                    <Route path="/discover-teachers" element={<DiscoverTeachers />} />
+                    
+                    {/* Auth Routes */}
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<SignUp />} />
+                    <Route path="/teacher-signup" element={<TeacherSignUp />} />
+                    <Route path="/student-signup" element={<StudentSignUp />} />
+                    <Route path="/email-confirmation" element={<EmailConfirmation />} />
+                    <Route path="/teacher-application" element={<TeacherApplication />} />
+                    <Route path="/student-application" element={<StudentApplication />} />
+                    <Route path="/pricing-selection" element={<PricingSelection />} />
+                    
+                    {/* Hidden Admin Registration Route */}
+                    <Route path="/admin-register-secret" element={<AdminRegister />} />
+                    
+                    {/* Student Routes */}
+                    <Route path="/student" element={<ProtectedRoute requiredRole="student"><StudentDashboard /></ProtectedRoute>} />
+                    <Route path="/student/schedule" element={<ProtectedRoute requiredRole="student"><StudentSchedule /></ProtectedRoute>} />
+                    <Route path="/student/book-lesson" element={<ProtectedRoute requiredRole="student"><BookLesson /></ProtectedRoute>} />
+                    <Route path="/student/speaking-practice" element={<ProtectedRoute requiredRole="student"><SpeakingPractice /></ProtectedRoute>} />
+                    <Route path="/student/lesson-scheduler" element={<ProtectedRoute requiredRole="student"><StudentLessonScheduler /></ProtectedRoute>} />
+                    
+                    {/* Teacher Routes */}
+                    <Route path="/teacher" element={<ProtectedRoute requiredRole="teacher"><TeacherDashboard /></ProtectedRoute>} />
+                    <Route path="/teacher/materials" element={<ProtectedRoute requiredRole="teacher"><MaterialLibraryPage /></ProtectedRoute>} />
+                    <Route path="/teacher/lesson-scheduler" element={<ProtectedRoute requiredRole="teacher"><LessonScheduler /></ProtectedRoute>} />
+                    <Route path="/teacher/lesson-plan-creator" element={<ProtectedRoute requiredRole="teacher"><LessonPlanCreator /></ProtectedRoute>} />
+                    <Route path="/teacher/student-management" element={<ProtectedRoute requiredRole="teacher"><StudentManagement /></ProtectedRoute>} />
+                    
+                    {/* Admin Routes */}
+                    <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
+                    
+                    {/* Shared Protected Routes */}
+                    <Route path="/classroom" element={<ProtectedRoute><UnifiedClassroom /></ProtectedRoute>} />
+                    <Route path="/speaking-classroom" element={<ProtectedRoute><SpeakingClassroomHub /></ProtectedRoute>} />
+                    <Route path="/speaking-classroom/:sessionId" element={<ProtectedRoute><SpeakingClassroomSession /></ProtectedRoute>} />
+                    <Route path="/communities" element={<ProtectedRoute><CommunityHub /></ProtectedRoute>} />
+                    <Route path="/community/:communityId" element={<ProtectedRoute><CommunityDetail /></ProtectedRoute>} />
+                    <Route path="/gamification" element={<ProtectedRoute><GamificationPage /></ProtectedRoute>} />
+                    <Route path="/ai-tutor" element={<ProtectedRoute><AITutorPage /></ProtectedRoute>} />
+                    <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+                    <Route path="/whiteboard" element={<ProtectedRoute><WhiteboardPage /></ProtectedRoute>} />
+                    <Route path="/curriculum-library" element={<ProtectedRoute><CurriculumLibrary /></ProtectedRoute>} />
+                    <Route path="/payment" element={<ProtectedRoute><PaymentPage /></ProtectedRoute>} />
+                    <Route path="/media-test" element={<MediaTestPage />} />
+                    <Route path="/teacher-onboarding" element={<TeacherOnboarding />} />
+                    
+                    {/* Site Navigation */}
+                    <Route path="/sitemap" element={<SiteMap />} />
+                    
+                    {/* Legacy Redirects - Updated paths */}
+                    <Route path="/dashboard" element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>} />
+                    <Route path="/teacher-dashboard" element={<ProtectedRoute requiredRole="teacher"><TeacherDashboard /></ProtectedRoute>} />
+                    <Route path="/admin-dashboard" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
+                    <Route path="/student-dashboard" element={<ProtectedRoute requiredRole="student"><Navigate to="/student" replace /></ProtectedRoute>} />
+                    <Route path="/student-registration" element={<SignUp />} />
+                    <Route path="/material-library" element={<ProtectedRoute><MaterialLibraryPage /></ProtectedRoute>} />
+                    
+                    {/* 404 */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
                 </LazyRoute>
               </BrowserRouter>
             </TooltipProvider>
