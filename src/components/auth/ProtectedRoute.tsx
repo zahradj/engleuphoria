@@ -2,6 +2,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -19,8 +20,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   // Show loading spinner while auth is being determined
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-blue-600" />
+          <p className="text-gray-600 text-lg">Loading your dashboard...</p>
+          <p className="text-gray-400 text-sm mt-2">Please wait while we set things up</p>
+        </div>
       </div>
     );
   }

@@ -29,9 +29,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     if (!userType) return null
 
-    // Use mockEmail if available, otherwise generate based on userType
     const email = mockEmail || `demo-${userType}@example.com`
-    
     const isAdminEmail = email === 'f.zahra.djaanine@engleuphoria.com'
     const finalUserType = isAdminEmail ? 'admin' : userType
     
@@ -68,21 +66,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (!isConfigured) {
           // Demo mode: load user from localStorage
           console.log('📱 Demo mode: Loading user from localStorage')
-          refreshUser()
+          const demoUser = createDemoUser()
+          if (mounted) {
+            setUser(demoUser)
+            setLoading(false)
+          }
           
           // Listen for custom auth events
           const handleAuthChange = () => {
             if (mounted) {
               console.log('🔄 Auth state changed in demo mode')
-              refreshUser()
+              const updatedDemoUser = createDemoUser()
+              setUser(updatedDemoUser)
             }
           }
           
           window.addEventListener('authStateChanged', handleAuthChange)
-          
-          if (mounted) {
-            setLoading(false)
-          }
           
           return () => {
             mounted = false
@@ -93,32 +92,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Supabase mode: handle real authentication
         console.log('🔐 Supabase mode: Initializing real auth')
         
-        const { data: { session: initialSession } } = await supabase.auth.getSession()
-        
-        if (mounted) {
-          setSession(initialSession)
-          
-          if (initialSession?.user) {
-            console.log('👤 Found existing session, fetching user profile')
-            await fetchUserProfile(initialSession.user.id)
-          } else {
-            console.log('❌ No existing session found')
-            setUser(null)
-          }
-          
-          setLoading(false)
-        }
-
+        // Set up auth state listener first
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           async (event, session) => {
             if (!mounted) return
             
             console.log('🔄 Auth state changed:', event, !!session)
-            setLoading(true)
+            
             setSession(session)
             
             if (session?.user) {
-              await fetchUserProfile(session.user.id)
+              // Create a user object compatible with our User type
+              const userData: User = {
+                id: session.user.id,
+                email: session.user.email || '',
+                full_name: session.user.user_metadata?.full_name || session.user.email || '',
+                role: session.user.user_metadata?.role || 'student',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              }
+              setUser(userData)
             } else {
               setUser(null)
             }
@@ -126,6 +119,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setLoading(false)
           }
         )
+
+        // Then get initial session
+        const { data: { session: initialSession } } = await supabase.auth.getSession()
+        
+        if (mounted) {
+          setSession(initialSession)
+          
+          if (initialSession?.user) {
+            console.log('👤 Found existing session')
+            const userData: User = {
+              id: initialSession.user.id,
+              email: initialSession.user.email || '',
+              full_name: initialSession.user.user_metadata?.full_name || initialSession.user.email || '',
+              role: initialSession.user.user_metadata?.role || 'student',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            }
+            setUser(userData)
+          } else {
+            console.log('❌ No existing session found')
+            setUser(null)
+          }
+          
+          setLoading(false)
+        }
 
         return () => {
           mounted = false
@@ -148,7 +166,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.warn('⚠️ Auth initialization timeout, forcing loading to false')
         setLoading(false)
       }
-    }, 5000)
+    }, 3000) // Reduced from 5000 to 3000
 
     return () => {
       mounted = false
@@ -157,35 +175,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         cleanup.then(cleanupFn => cleanupFn?.())
       }
     }
-  }, [isConfigured])
-
-  const fetchUserProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .single()
-
-      if (error) throw error
-      setUser(data)
-      console.log('✅ User profile fetched successfully')
-    } catch (error) {
-      console.error('❌ Error fetching user profile:', error)
-      // Create fallback user from session
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session?.user) {
-        setUser({
-          id: session.user.id,
-          email: session.user.email || '',
-          full_name: session.user.user_metadata?.full_name || session.user.email || '',
-          role: session.user.user_metadata?.role || 'student',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-      }
-    }
-  }
+  }, [isConfigured, loading]) // Added loading dependency
 
   const signUp = async (email: string, password: string, userData: Partial<User>) => {
     if (!isConfigured) {
