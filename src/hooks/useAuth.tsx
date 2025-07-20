@@ -220,22 +220,51 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }
 
   const signOut = async () => {
-    if (!isConfigured) {
-      // Clear demo mode data
-      localStorage.removeItem('userType')
-      localStorage.removeItem('mockUserEmail')
-      localStorage.removeItem('adminName')
-      localStorage.removeItem('teacherName')
-      localStorage.removeItem('studentName')
-      setUser(null)
+    try {
+      console.log('🚪 Signing out user')
       
-      // Dispatch auth change event
-      window.dispatchEvent(new CustomEvent('authStateChanged'))
-      return { error: null }
-    }
+      if (!isConfigured) {
+        // Clear demo mode data
+        localStorage.removeItem('userType')
+        localStorage.removeItem('mockUserEmail')
+        localStorage.removeItem('adminName')
+        localStorage.removeItem('teacherName')
+        localStorage.removeItem('studentName')
+        setUser(null)
+        setSession(null)
+        
+        // Dispatch auth change event
+        window.dispatchEvent(new CustomEvent('authStateChanged'))
+        
+        // Force redirect to home page
+        window.location.href = '/'
+        
+        return { error: null }
+      }
 
-    const { error } = await supabase.auth.signOut()
-    return { error }
+      // Clear user state immediately
+      setUser(null)
+      setSession(null)
+      
+      // Supabase sign out
+      const { error } = await supabase.auth.signOut()
+      
+      if (error) {
+        console.error('❌ Logout error:', error)
+      } else {
+        console.log('✅ Successfully logged out')
+      }
+      
+      // Force redirect to home page
+      window.location.href = '/'
+      
+      return { error }
+    } catch (error) {
+      console.error('❌ Sign out error:', error)
+      // Force redirect even on error
+      window.location.href = '/'
+      return { error }
+    }
   }
 
   return (

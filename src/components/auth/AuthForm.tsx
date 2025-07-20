@@ -59,10 +59,12 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onModeChange }) => {
       };
       const targetPath = dashboardMap[user.role] || '/student';
       console.log('🔄 Redirecting to:', targetPath);
-      navigate(targetPath, { replace: true });
+      
+      // Use window.location.href for more reliable redirect
+      window.location.href = targetPath;
       setHasRedirected(true);
     }
-  }, [user, navigate, hasRedirected]);
+  }, [user, hasRedirected]);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
