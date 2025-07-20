@@ -49,18 +49,20 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onModeChange }) => {
   const [hasRedirected, setHasRedirected] = React.useState(false);
   
   React.useEffect(() => {
-    // Only redirect if user is already authenticated and we haven't redirected yet
-    // Don't redirect during signup flow
-    if (user && !hasRedirected && mode === 'login') {
+    // Redirect authenticated users to their appropriate dashboard
+    if (user && !hasRedirected) {
+      console.log('🔄 Redirecting user:', user.email, 'Role:', user.role);
       const dashboardMap: Record<string, string> = {
         student: '/student',
         teacher: '/teacher',
         admin: '/admin'
       };
-      navigate(dashboardMap[user.role] || '/student', { replace: true });
+      const targetPath = dashboardMap[user.role] || '/student';
+      console.log('🔄 Redirecting to:', targetPath);
+      navigate(targetPath, { replace: true });
       setHasRedirected(true);
     }
-  }, [user, navigate, hasRedirected, mode]);
+  }, [user, navigate, hasRedirected]);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
