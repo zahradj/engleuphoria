@@ -45,17 +45,22 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onModeChange }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Redirect if already logged in
+  // Only redirect existing authenticated users on initial load
+  const [hasRedirected, setHasRedirected] = React.useState(false);
+  
   React.useEffect(() => {
-    if (user) {
+    // Only redirect if user is already authenticated and we haven't redirected yet
+    // Don't redirect during signup flow
+    if (user && !hasRedirected && mode === 'login') {
       const dashboardMap: Record<string, string> = {
         student: '/student',
         teacher: '/teacher',
         admin: '/admin'
       };
       navigate(dashboardMap[user.role] || '/student', { replace: true });
+      setHasRedirected(true);
     }
-  }, [user, navigate]);
+  }, [user, navigate, hasRedirected, mode]);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -166,14 +171,20 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onModeChange }) => {
             title: "Account Created Successfully!",
             description: "Please check your email to verify your account.",
           });
-          // Navigate based on role
-          if (formData.role === 'teacher') {
-            navigate('/teacher-application');
-          } else if (formData.role === 'student') {
-            navigate('/student-application');
-          } else {
-            navigate('/login');
-          }
+          
+          // Set flag to prevent automatic redirect
+          setHasRedirected(true);
+          
+          // Navigate based on role after a short delay to ensure state is set
+          setTimeout(() => {
+            if (formData.role === 'teacher') {
+              navigate('/teacher-application');
+            } else if (formData.role === 'student') {
+              navigate('/student-application');
+            } else {
+              navigate('/login');
+            }
+          }, 100);
         }
       }
     } catch (error) {
