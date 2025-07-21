@@ -1,8 +1,8 @@
 
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslation } from 'react-i18next';
 
 export function Footer() {
-  const { languageText } = useLanguage();
+  const { t } = useTranslation();
   
   return (
     <footer className="bg-white py-4 border-t">

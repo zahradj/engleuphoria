@@ -15,37 +15,21 @@ serve(async (req) => {
   }
 
   try {
-    const { texts, targetLanguage, context } = await req.json();
+    const { text, targetLanguage, context } = await req.json();
 
-    if (!texts || !targetLanguage) {
-      return new Response(
-        JSON.stringify({ error: 'Missing required fields: texts and targetLanguage' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    if (!openAIApiKey) {
+      throw new Error('OpenAI API key not configured');
     }
 
-    const languageMap = {
-      'es': 'Spanish',
-      'ar': 'Arabic',
-      'fr': 'French'
-    };
+    const prompt = `Translate the following English text to ${targetLanguage}. 
+Context: This is for an English learning platform for children and students (ESL - English as Second Language).
+Use age-appropriate, educational terminology. Maintain the same tone and educational context.
 
-    const targetLangName = languageMap[targetLanguage] || targetLanguage;
+${context ? `Additional context: ${context}` : ''}
 
-    const systemPrompt = `You are a professional translator specializing in educational content for English as a Second Language (ESL) platforms. 
+English text: "${text}"
 
-Context: This is content for "Engleuphoria", an interactive English learning platform for children and students.
-
-Guidelines:
-- Translate to ${targetLangName} while maintaining educational context
-- Keep technical terms and proper nouns when appropriate
-- Maintain the tone suitable for children and educational environments
-- For UI elements, use common conventions in the target language
-- For Arabic, ensure proper RTL text handling
-- Preserve any placeholder syntax like {} for string interpolation
-- Keep educational terminology accurate and age-appropriate
-
-Return ONLY a JSON object with the translated texts in the same structure as the input.`;
+Respond with ONLY the translated text, no additional explanations.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -56,13 +40,14 @@ Return ONLY a JSON object with the translated texts in the same structure as the
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: systemPrompt },
           { 
-            role: 'user', 
-            content: `Translate this content to ${targetLangName}. Context: ${context || 'Educational platform'}. Input: ${JSON.stringify(texts)}` 
-          }
+            role: 'system', 
+            content: 'You are a professional translator specializing in educational content for ESL learners. Provide accurate, culturally appropriate translations that maintain educational context.' 
+          },
+          { role: 'user', content: prompt }
         ],
-        temperature: 0.1,
+        temperature: 0.3,
+        max_tokens: 1000
       }),
     });
 
@@ -71,25 +56,26 @@ Return ONLY a JSON object with the translated texts in the same structure as the
     }
 
     const data = await response.json();
-    const translatedContent = data.choices[0].message.content;
+    const translatedText = data.choices[0]?.message?.content?.trim() || '';
 
-    let translations;
-    try {
-      translations = JSON.parse(translatedContent);
-    } catch (parseError) {
-      console.error('Failed to parse AI response:', translatedContent);
-      throw new Error('Invalid response format from AI');
-    }
+    console.log(`Translated "${text}" to ${targetLanguage}: "${translatedText}"`);
 
-    return new Response(JSON.stringify({ translations }), {
+    return new Response(JSON.stringify({ 
+      translatedText,
+      originalText: text,
+      targetLanguage 
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('Error in ai-translate function:', error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    console.error('Translation error:', error);
+    return new Response(JSON.stringify({ 
+      error: error.message,
+      translatedText: text // Fallback to original text
+    }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
 });

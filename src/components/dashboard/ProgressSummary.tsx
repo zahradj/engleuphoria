@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslation } from 'react-i18next';
 
 interface ProgressSummaryProps {
   weeklyActivities: { completed: number, total: number };
@@ -9,19 +9,19 @@ interface ProgressSummaryProps {
 }
 
 export function ProgressSummary({ weeklyActivities, classesAttended, points }: ProgressSummaryProps) {
-  const { languageText } = useLanguage();
+  const { t } = useTranslation();
 
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle>{languageText.yourProgress}</CardTitle>
+        <CardTitle>{t('yourProgress')}</CardTitle>
       </CardHeader>
       
       <CardContent>
         <div className="space-y-4">
           <div>
             <div className="flex justify-between mb-1">
-              <span className="text-sm font-medium">{languageText.thisWeekActivities}</span>
+              <span className="text-sm font-medium">{t('thisWeekActivities')}</span>
               <span className="text-sm font-medium">{weeklyActivities.completed}/{weeklyActivities.total}</span>
             </div>
             <div className="h-2 bg-muted rounded-full">
@@ -34,7 +34,7 @@ export function ProgressSummary({ weeklyActivities, classesAttended, points }: P
           
           <div>
             <div className="flex justify-between mb-1">
-              <span className="text-sm font-medium">{languageText.classesAttended}</span>
+              <span className="text-sm font-medium">{t('classesAttended')}</span>
               <span className="text-sm font-medium">{classesAttended}</span>
             </div>
             <div className="h-2 bg-muted rounded-full">
@@ -47,7 +47,7 @@ export function ProgressSummary({ weeklyActivities, classesAttended, points }: P
           
           <div>
             <div className="flex justify-between mb-1">
-              <span className="text-sm font-medium">{languageText.pointsEarned}</span>
+              <span className="text-sm font-medium">{t('pointsEarned')}</span>
               <span className="text-sm font-medium">{points}</span>
             </div>
             <div className="h-2 bg-muted rounded-full">
