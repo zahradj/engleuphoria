@@ -21,11 +21,8 @@ export const AdminHeader = () => {
             Search
           </Button>
           
-          <Button variant="outline" size="sm" className="relative">
+          <Button variant="outline" size="sm" className="relative" disabled>
             <Bell className="w-4 h-4" />
-            <Badge className="absolute -top-2 -right-2 w-5 h-5 p-0 flex items-center justify-center text-xs">
-              3
-            </Badge>
           </Button>
           
           <div className="flex items-center gap-2">

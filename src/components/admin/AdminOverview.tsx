@@ -3,85 +3,119 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Users, GraduationCap, BookOpen, DollarSign, TrendingUp, AlertTriangle, Calendar, Star, Clock, Activity } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 export const AdminOverview = () => {
   const [timeRange, setTimeRange] = useState('week');
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalTeachers: 0,
+    activeLessons: 0,
+    monthlyRevenue: 0,
+    userGrowth: 0,
+    completionRate: 0,
+    avgRating: 0,
+  });
+  
   const [realTimeData, setRealTimeData] = useState({
-    activeUsers: 347,
-    ongoingLessons: 23,
-    systemHealth: 98.7
+    activeUsers: 0,
+    ongoingLessons: 0,
+    systemHealth: 98.5
   });
 
-  // Mock data - in production this would come from APIs
-  const stats = {
-    totalUsers: 1247,
-    totalTeachers: 89,
-    activeLessons: 156,
-    monthlyRevenue: 45600,
-    userGrowth: 12.5,
-    pendingModeration: 8,
-    completionRate: 87.3,
-    avgRating: 4.8,
-    responseTime: '2.3s'
-  };
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        // Fetch total users
+        const { count: totalUsers } = await supabase
+          .from('users')
+          .select('*', { count: 'exact', head: true });
 
-  const recentActivities = [
-    { 
-      type: 'user_registration', 
-      message: 'New student registered: Ahmed Ben Ali', 
-      time: '2 hours ago', 
-      status: 'success',
-      icon: Users 
-    },
-    { 
-      type: 'teacher_approval', 
-      message: 'Teacher Sarah Johnson approved', 
-      time: '4 hours ago', 
-      status: 'info',
-      icon: GraduationCap 
-    },
-    { 
-      type: 'lesson_completed', 
-      message: '15 lessons completed today', 
-      time: '6 hours ago', 
-      status: 'success',
-      icon: BookOpen 
-    },
-    { 
-      type: 'payment_received', 
-      message: 'Payment received from Premium subscriber', 
-      time: '8 hours ago', 
-      status: 'success',
-      icon: DollarSign 
-    },
-    { 
-      type: 'alert', 
-      message: 'Server response time increased', 
-      time: '12 hours ago', 
-      status: 'warning',
-      icon: AlertTriangle 
-    }
-  ];
+        // Fetch total teachers
+        const { count: totalTeachers } = await supabase
+          .from('users')
+          .select('*', { count: 'exact', head: true })
+          .eq('role', 'teacher');
+
+        // Fetch active lessons (scheduled and confirmed)
+        const { count: activeLessons } = await supabase
+          .from('lessons')
+          .select('*', { count: 'exact', head: true })
+          .in('status', ['scheduled', 'confirmed']);
+
+        // Fetch average teacher rating
+        const { data: teacherProfiles } = await supabase
+          .from('teacher_profiles')
+          .select('rating')
+          .not('rating', 'is', null);
+
+        const avgRating = teacherProfiles?.length 
+          ? teacherProfiles.reduce((sum, profile) => sum + (profile.rating || 0), 0) / teacherProfiles.length 
+          : 0;
+
+        // Calculate completion rate from lessons
+        const { count: completedLessons } = await supabase
+          .from('lessons')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'completed');
+
+        const totalLessonsCount = await supabase
+          .from('lessons')
+          .select('*', { count: 'exact', head: true });
+
+        const completionRate = totalLessonsCount.count 
+          ? (completedLessons || 0) / totalLessonsCount.count * 100 
+          : 0;
+
+        setStats({
+          totalUsers: totalUsers || 0,
+          totalTeachers: totalTeachers || 0,
+          activeLessons: activeLessons || 0,
+          monthlyRevenue: 0, // TODO: Implement revenue tracking
+          userGrowth: 0, // TODO: Implement user growth calculation
+          completionRate: Math.round(completionRate),
+          avgRating: Math.round(avgRating * 10) / 10,
+        });
+
+        setRealTimeData(prev => ({
+          ...prev,
+          activeUsers: totalUsers || 0,
+          ongoingLessons: activeLessons || 0,
+        }));
+
+      } catch (error) {
+        console.error('Error fetching admin stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, [timeRange]);
 
   const quickActions = [
-    { label: 'Review Applications', count: 5, action: 'teacher-applications' },
-    { label: 'Moderate Content', count: 8, action: 'moderation' },
-    { label: 'Process Payments', count: 12, action: 'payments' },
-    { label: 'System Alerts', count: 3, action: 'alerts' }
+    { label: 'Review Applications', count: 0, action: 'teacher-applications' },
+    { label: 'Moderate Content', count: 0, action: 'moderation' },
+    { label: 'Process Payments', count: 0, action: 'payments' },
+    { label: 'System Alerts', count: 0, action: 'alerts' }
   ];
 
-  // Simulate real-time updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setRealTimeData(prev => ({
-        activeUsers: prev.activeUsers + Math.floor(Math.random() * 10 - 5),
-        ongoingLessons: Math.max(0, prev.ongoingLessons + Math.floor(Math.random() * 6 - 3)),
-        systemHealth: Math.min(100, Math.max(95, prev.systemHealth + (Math.random() - 0.5) * 2))
-      }));
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/3 mb-2"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/2 mb-6"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-32 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -89,7 +123,7 @@ export const AdminOverview = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Dashboard Overview</h1>
-          <p className="text-gray-600">Real-time platform insights and metrics</p>
+          <p className="text-gray-600">Platform insights and metrics</p>
         </div>
         <div className="flex gap-2">
           {['day', 'week', 'month'].map((range) => (
@@ -112,7 +146,7 @@ export const AdminOverview = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-100 text-sm">Active Users</p>
+                <p className="text-blue-100 text-sm">Total Users</p>
                 <p className="text-2xl font-bold">{realTimeData.activeUsers}</p>
               </div>
               <Activity className="h-8 w-8 text-blue-200" />
@@ -124,7 +158,7 @@ export const AdminOverview = () => {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-green-100 text-sm">Live Lessons</p>
+                <p className="text-green-100 text-sm">Active Lessons</p>
                 <p className="text-2xl font-bold">{realTimeData.ongoingLessons}</p>
               </div>
               <Clock className="h-8 w-8 text-green-200" />
@@ -154,11 +188,7 @@ export const AdminOverview = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</div>
-            <div className="flex items-center text-xs text-green-600 mt-1">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              +{stats.userGrowth}% from last month
-            </div>
-            <Progress value={stats.userGrowth * 2} className="mt-2" />
+            <p className="text-xs text-muted-foreground">Registered users</p>
           </CardContent>
         </Card>
 
@@ -169,11 +199,13 @@ export const AdminOverview = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalTeachers}</div>
-            <p className="text-xs text-muted-foreground">Verified and active</p>
-            <div className="flex items-center mt-2">
-              <Star className="h-3 w-3 text-yellow-500 mr-1" />
-              <span className="text-xs">{stats.avgRating}/5.0 avg rating</span>
-            </div>
+            <p className="text-xs text-muted-foreground">Registered teachers</p>
+            {stats.avgRating > 0 && (
+              <div className="flex items-center mt-2">
+                <Star className="h-3 w-3 text-yellow-500 mr-1" />
+                <span className="text-xs">{stats.avgRating}/5.0 avg rating</span>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -191,15 +223,12 @@ export const AdminOverview = () => {
 
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">Active Lessons</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.monthlyRevenue.toLocaleString()} DZD</div>
-            <div className="flex items-center text-xs text-green-600 mt-1">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              +20.1% from last month
-            </div>
+            <div className="text-2xl font-bold">{stats.activeLessons}</div>
+            <p className="text-xs text-muted-foreground">Scheduled & confirmed</p>
           </CardContent>
         </Card>
       </div>
@@ -219,10 +248,10 @@ export const AdminOverview = () => {
                 <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
                   <span className="font-medium">{action.label}</span>
                   <div className="flex items-center gap-2">
-                    <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">
+                    <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">
                       {action.count}
                     </span>
-                    <Button size="sm" variant="outline">
+                    <Button size="sm" variant="outline" disabled>
                       View
                     </Button>
                   </div>
@@ -232,74 +261,41 @@ export const AdminOverview = () => {
           </CardContent>
         </Card>
 
-        {/* Recent Activities */}
+        {/* System Status */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5" />
-              Recent Activities
+              <TrendingUp className="h-5 w-5" />
+              System Performance
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {recentActivities.map((activity, index) => {
-                const IconComponent = activity.icon;
-                return (
-                  <div key={index} className="flex items-start gap-3 py-2">
-                    <div className={`p-2 rounded-full ${
-                      activity.status === 'success' ? 'bg-green-100 text-green-600' :
-                      activity.status === 'warning' ? 'bg-yellow-100 text-yellow-600' :
-                      activity.status === 'info' ? 'bg-blue-100 text-blue-600' :
-                      'bg-gray-100 text-gray-600'
-                    }`}>
-                      <IconComponent className="h-3 w-3" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{activity.message}</p>
-                      <p className="text-xs text-muted-foreground">{activity.time}</p>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="grid grid-cols-1 gap-6">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">System Health</span>
+                  <span className="text-sm text-green-600">{realTimeData.systemHealth.toFixed(1)}%</span>
+                </div>
+                <Progress value={realTimeData.systemHealth} className="h-2" />
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">Database Status</span>
+                  <span className="text-sm text-green-600">Connected</span>
+                </div>
+                <Progress value={100} className="h-2" />
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium">API Status</span>
+                  <span className="text-sm text-green-600">Operational</span>
+                </div>
+                <Progress value={100} className="h-2" />
+              </div>
             </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* System Status */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
-            System Performance
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">Response Time</span>
-                <span className="text-sm text-green-600">{stats.responseTime}</span>
-              </div>
-              <Progress value={85} className="h-2" />
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">Server Uptime</span>
-                <span className="text-sm text-green-600">99.9%</span>
-              </div>
-              <Progress value={99.9} className="h-2" />
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">Error Rate</span>
-                <span className="text-sm text-green-600">0.1%</span>
-              </div>
-              <Progress value={0.1} className="h-2" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
