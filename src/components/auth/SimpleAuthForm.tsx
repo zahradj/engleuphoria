@@ -9,10 +9,10 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
 import { ArrowRight, Eye, EyeOff, GraduationCap, Lock, Mail, User, X, Home } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { ModernLanguageSwitcher } from '@/components/common/ModernLanguageSwitcher';
+import { supabase } from "@/integrations/supabase/client";
 
 interface SimpleAuthFormProps {
   mode?: 'login' | 'signup';
@@ -31,7 +31,6 @@ const formSchema = z.object({
 export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { signIn, signUp } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -50,10 +49,16 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
     setIsLoading(true);
     try {
       if (mode === 'login') {
-        await signIn(values.email, values.password);
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: values.email,
+          password: values.password,
+        });
+
+        if (error) throw error;
+
         toast({
           title: "Login Successful",
-          description: "You have successfully logged in.",
+          description: "Welcome back!",
         });
         navigate('/dashboard');
       } else {
@@ -66,14 +71,28 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
           return;
         }
 
-        await signUp(values.email, values.password, { role: selectedRole });
+        const { data, error } = await supabase.auth.signUp({
+          email: values.email,
+          password: values.password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+            data: {
+              full_name: values.name,
+              role: selectedRole,
+            }
+          }
+        });
+
+        if (error) throw error;
+
         toast({
           title: "Signup Successful",
-          description: "Your account has been created.",
+          description: "Please check your email to verify your account.",
         });
         navigate('/dashboard');
       }
     } catch (error: any) {
+      console.error('Auth error:', error);
       toast({
         title: "Authentication Failed",
         description: error.message || "Failed to authenticate. Please check your credentials.",
