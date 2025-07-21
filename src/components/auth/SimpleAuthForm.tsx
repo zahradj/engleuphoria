@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Eye, EyeOff, CheckCircle, XCircle, Mail, Lock, User, GraduationCap, BookOpen, Sparkles, Shield, Zap } from 'lucide-react';
+import { Logo } from '@/components/Logo';
 
 interface SimpleAuthFormProps {
   mode: 'login' | 'signup';
@@ -224,12 +225,9 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
       <div className="relative z-10 container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-sm border border-white/20 mb-4">
-              <Sparkles className="w-10 h-10 text-white" />
+            <div className="flex justify-center mb-6">
+              <Logo size="xlarge" className="text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">
-              Engl<span className={`bg-gradient-to-r ${gradientClass} bg-clip-text text-transparent`}>Euphoria</span>
-            </h1>
             <p className="text-white/70 text-sm">Transform your English learning experience</p>
           </div>
 
