@@ -102,16 +102,44 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setSession(session)
             
             if (session?.user) {
-              // Create a user object compatible with our User type
-              const userData: User = {
-                id: session.user.id,
-                email: session.user.email || '',
-                full_name: session.user.user_metadata?.full_name || session.user.email || '',
-                role: session.user.user_metadata?.role || 'student',
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
+              try {
+                // Try to get user data from the database first
+                const { data: userData, error } = await supabase
+                  .from('users')
+                  .select('*')
+                  .eq('id', session.user.id)
+                  .single()
+                
+                if (!error && userData) {
+                  // Use database user data
+                  console.log('✅ Found user in database:', userData)
+                  setUser(userData)
+                } else {
+                  // Fallback to auth metadata
+                  console.log('⚠️ User not found in database, using auth metadata')
+                  const fallbackUser: User = {
+                    id: session.user.id,
+                    email: session.user.email || '',
+                    full_name: session.user.user_metadata?.full_name || session.user.email || '',
+                    role: session.user.user_metadata?.role || 'student',
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                  }
+                  setUser(fallbackUser)
+                }
+              } catch (error) {
+                console.error('❌ Error fetching user data:', error)
+                // Fallback to auth metadata on error
+                const fallbackUser: User = {
+                  id: session.user.id,
+                  email: session.user.email || '',
+                  full_name: session.user.user_metadata?.full_name || session.user.email || '',
+                  role: session.user.user_metadata?.role || 'student',
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
+                }
+                setUser(fallbackUser)
               }
-              setUser(userData)
             } else {
               setUser(null)
             }
@@ -128,15 +156,41 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           
           if (initialSession?.user) {
             console.log('👤 Found existing session')
-            const userData: User = {
-              id: initialSession.user.id,
-              email: initialSession.user.email || '',
-              full_name: initialSession.user.user_metadata?.full_name || initialSession.user.email || '',
-              role: initialSession.user.user_metadata?.role || 'student',
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
+            try {
+              // Try to get user data from the database
+              const { data: userData, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', initialSession.user.id)
+                .single()
+              
+              if (!error && userData) {
+                console.log('✅ Found user in database on init:', userData)
+                setUser(userData)
+              } else {
+                console.log('⚠️ User not found in database on init, using auth metadata')
+                const fallbackUser: User = {
+                  id: initialSession.user.id,
+                  email: initialSession.user.email || '',
+                  full_name: initialSession.user.user_metadata?.full_name || initialSession.user.email || '',
+                  role: initialSession.user.user_metadata?.role || 'student',
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString()
+                }
+                setUser(fallbackUser)
+              }
+            } catch (error) {
+              console.error('❌ Error fetching user data on init:', error)
+              const fallbackUser: User = {
+                id: initialSession.user.id,
+                email: initialSession.user.email || '',
+                full_name: initialSession.user.user_metadata?.full_name || initialSession.user.email || '',
+                role: initialSession.user.user_metadata?.role || 'student',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              }
+              setUser(fallbackUser)
             }
-            setUser(userData)
           } else {
             console.log('❌ No existing session found')
             setUser(null)
