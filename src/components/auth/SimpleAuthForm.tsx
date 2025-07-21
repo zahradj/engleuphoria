@@ -46,22 +46,38 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
   });
 
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+    console.log('🔐 Login attempt started', { mode, email: values.email });
     setIsLoading(true);
     try {
       if (mode === 'login') {
+        console.log('📧 Attempting login with Supabase...');
         const { data, error } = await supabase.auth.signInWithPassword({
           email: values.email,
           password: values.password,
         });
 
-        if (error) throw error;
+        console.log('🔍 Login response:', { data: !!data, error: !!error, user: !!data?.user });
+        
+        if (error) {
+          console.error('❌ Login error:', error);
+          throw error;
+        }
 
-        toast({
-          title: "Login Successful",
-          description: "Welcome back!",
-        });
-        navigate('/dashboard');
+        if (data?.user) {
+          console.log('✅ Login successful, user:', { id: data.user.id, email: data.user.email });
+          toast({
+            title: "Login Successful",
+            description: "Welcome back!",
+          });
+          
+          console.log('🚀 Navigating to dashboard...');
+          navigate('/dashboard');
+        } else {
+          console.warn('⚠️ No user data received');
+          throw new Error('No user data received');
+        }
       } else {
+        console.log('📝 Attempting signup...');
         if (!selectedRole) {
           toast({
             title: "Error",
@@ -83,7 +99,12 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
           }
         });
 
-        if (error) throw error;
+        console.log('🔍 Signup response:', { data: !!data, error: !!error });
+
+        if (error) {
+          console.error('❌ Signup error:', error);
+          throw error;
+        }
 
         toast({
           title: "Signup Successful",
@@ -92,7 +113,7 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
         navigate('/dashboard');
       }
     } catch (error: any) {
-      console.error('Auth error:', error);
+      console.error('💥 Auth error:', error);
       toast({
         title: "Authentication Failed",
         description: error.message || "Failed to authenticate. Please check your credentials.",
@@ -100,6 +121,7 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
       });
     } finally {
       setIsLoading(false);
+      console.log('🏁 Login attempt finished');
     }
   };
 
