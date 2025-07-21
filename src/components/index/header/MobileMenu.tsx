@@ -47,13 +47,13 @@ export const MobileMenu = ({ isOpen, onClose, onLogin, onSignUp }: MobileMenuPro
             onClick={onLogin}
             className="w-full"
           >
-            {t('auth.logIn')}
+            {t('logIn')}
           </Button>
           <Button 
             onClick={onSignUp} 
             className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
           >
-            {t('auth.signUp')}
+            {t('signUp')}
           </Button>
         </div>
       </div>

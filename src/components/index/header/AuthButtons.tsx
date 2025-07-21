@@ -14,11 +14,11 @@ export const AuthButtons = ({ onLogin, onSignUp }: AuthButtonsProps) => {
   return (
     <>
       <Button variant="ghost" onClick={onLogin}>
-        {t('auth.logIn')}
+        {t('logIn')}
       </Button>
       
       <Button onClick={onSignUp} className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
-        {t('auth.signUp')}
+        {t('signUp')}
       </Button>
     </>
   );
