@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
-import { useLanguage } from '@/contexts/LanguageContext';
 
 interface MobileMenuProps {
   isOpen: boolean;
@@ -12,16 +12,7 @@ interface MobileMenuProps {
 }
 
 export const MobileMenu = ({ isOpen, onClose, onLogin, onSignUp }: MobileMenuProps) => {
-  const { languageText } = useLanguage();
-
-  const t = (key: string) => {
-    const keys = key.split('.');
-    let result: any = languageText;
-    for (const k of keys) {
-      result = result?.[k];
-    }
-    return result || key;
-  };
+  const { t } = useTranslation();
 
   if (!isOpen) return null;
 
@@ -33,21 +24,21 @@ export const MobileMenu = ({ isOpen, onClose, onLogin, onSignUp }: MobileMenuPro
           className="block text-gray-600 hover:text-purple-600 transition-colors py-2"
           onClick={onClose}
         >
-          {t('aboutUs') || 'About Us'}
+          {t('navigation.aboutUs')}
         </Link>
         <Link 
           to="/for-parents" 
           className="block text-gray-600 hover:text-purple-600 transition-colors py-2"
           onClick={onClose}
         >
-          {t('forParents') || 'For Parents'}
+          {t('navigation.forParents')}
         </Link>
         <Link 
           to="/for-teachers" 
           className="block text-gray-600 hover:text-purple-600 transition-colors py-2"
           onClick={onClose}
         >
-          {t('forTeachers') || 'For Teachers'}
+          {t('navigation.forTeachers')}
         </Link>
         
         <div className="pt-4 border-t space-y-3">
@@ -56,13 +47,13 @@ export const MobileMenu = ({ isOpen, onClose, onLogin, onSignUp }: MobileMenuPro
             onClick={onLogin}
             className="w-full"
           >
-            {t('logIn') || 'Log In'}
+            {t('auth.logIn')}
           </Button>
           <Button 
             onClick={onSignUp} 
             className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
           >
-            {t('signUp') || 'Sign Up'}
+            {t('auth.signUp')}
           </Button>
         </div>
       </div>

@@ -1,7 +1,7 @@
 
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from "@/components/ui/button";
-import { useLanguage } from '@/contexts/LanguageContext';
 
 interface AuthButtonsProps {
   onLogin: () => void;
@@ -9,25 +9,16 @@ interface AuthButtonsProps {
 }
 
 export const AuthButtons = ({ onLogin, onSignUp }: AuthButtonsProps) => {
-  const { languageText } = useLanguage();
-
-  const t = (key: string) => {
-    const keys = key.split('.');
-    let result: any = languageText;
-    for (const k of keys) {
-      result = result?.[k];
-    }
-    return result || key;
-  };
+  const { t } = useTranslation();
 
   return (
     <>
       <Button variant="ghost" onClick={onLogin}>
-        {t('logIn') || 'Log In'}
+        {t('auth.logIn')}
       </Button>
       
       <Button onClick={onSignUp} className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
-        {t('signUp') || 'Sign Up'}
+        {t('auth.signUp')}
       </Button>
     </>
   );
