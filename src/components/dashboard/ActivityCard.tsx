@@ -2,7 +2,7 @@
 import { ReactNode } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useTranslation } from 'react-i18next';
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface ActivityCardProps {
   icon: ReactNode;
@@ -13,7 +13,7 @@ interface ActivityCardProps {
 }
 
 export function ActivityCard({ icon, title, description, colorClass, onStart }: ActivityCardProps) {
-  const { t } = useTranslation();
+  const { languageText } = useLanguage();
   
   return (
     <Card className="overflow-hidden">
@@ -35,7 +35,7 @@ export function ActivityCard({ icon, title, description, colorClass, onStart }: 
           className="w-full" 
           onClick={onStart}
         >
-          {t('start')}
+          {languageText.start}
         </Button>
       </div>
     </Card>

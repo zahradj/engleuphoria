@@ -80,39 +80,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           (event, session) => {
             if (!mounted) return;
             
-            console.log('🔄 Auth state changed:', event, !!session);
+            console.log('Auth state changed:', event, !!session);
             setSession(session);
             
             if (session?.user) {
-              console.log('👤 User session detected:', { id: session.user.id, email: session.user.email });
               // Defer database call to avoid blocking the auth state change
               setTimeout(async () => {
                 if (!mounted) return;
                 
                 try {
-                  console.log('🔍 Fetching user from database...');
                   const dbUser = await fetchUserFromDatabase(session.user.id);
                   if (mounted) {
-                    const finalUser = dbUser || createFallbackUser(session.user);
-                    console.log('✅ User set in context:', { id: finalUser.id, role: finalUser.role });
-                    setUser(finalUser);
+                    setUser(dbUser || createFallbackUser(session.user));
                   }
                 } catch (error) {
-                  console.error('❌ Error in deferred user fetch:', error);
+                  console.error('Error in deferred user fetch:', error);
                   if (mounted) {
-                    const fallbackUser = createFallbackUser(session.user);
-                    console.log('🔄 Using fallback user:', { id: fallbackUser.id, role: fallbackUser.role });
-                    setUser(fallbackUser);
+                    setUser(createFallbackUser(session.user));
                   }
                 }
               }, 0);
             } else {
-              console.log('❌ No user in session, setting user to null');
               setUser(null);
             }
             
             if (mounted) {
-              console.log('⏳ Setting loading to false');
               setLoading(false);
             }
           }

@@ -1,15 +1,15 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RewardItem } from "@/components/RewardItem";
-import { useTranslation } from 'react-i18next';
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function RewardsSection() {
-  const { t } = useTranslation();
+  const { languageText } = useLanguage();
 
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle>{t('yourRewards')}</CardTitle>
+        <CardTitle>{languageText.yourRewards}</CardTitle>
       </CardHeader>
       
       <CardContent className="space-y-3">

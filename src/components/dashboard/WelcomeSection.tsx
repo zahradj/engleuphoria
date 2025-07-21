@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useTranslation } from 'react-i18next';
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface WelcomeSectionProps {
   studentName: string;
@@ -11,7 +11,7 @@ interface WelcomeSectionProps {
 
 export function WelcomeSection({ studentName }: WelcomeSectionProps) {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { languageText } = useLanguage();
 
   return (
     <Card className="bg-gradient-to-r from-purple-light/70 to-teal-light/70 border-none">
@@ -19,15 +19,15 @@ export function WelcomeSection({ studentName }: WelcomeSectionProps) {
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <div>
             <h2 className="text-2xl font-bold mb-2">
-              {t('welcomeUser', { name: studentName })}
+              {languageText.welcomeUser.replace('{}', studentName)}
             </h2>
             <p className="text-muted-foreground">
-              {t('readyToLearn')}
+              {languageText.readyToLearn}
             </p>
           </div>
           
           <Button className="gap-2" onClick={() => navigate("/classroom/class-1")}>
-            {t('joinNextClass')} <ArrowRight className="h-4 w-4" />
+            {languageText.joinNextClass} <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
       </CardContent>

@@ -1,15 +1,15 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, BookOpen, Video } from "lucide-react";
-import { useTranslation } from 'react-i18next';
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function RecentActivitySection() {
-  const { t } = useTranslation();
+  const { languageText } = useLanguage();
 
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle>{t('recentActivity')}</CardTitle>
+        <CardTitle>{languageText.recentActivity}</CardTitle>
       </CardHeader>
       
       <CardContent className="space-y-2">
@@ -18,7 +18,7 @@ export function RecentActivitySection() {
             <Video className="text-purple h-4 w-4" />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-medium">{t('attendedClass')}</p>
+            <p className="text-sm font-medium">{languageText.attendedClass}</p>
             <p className="text-xs text-muted-foreground">Fun with Phonics</p>
           </div>
           <div className="text-xs text-muted-foreground">2h ago</div>
@@ -29,7 +29,7 @@ export function RecentActivitySection() {
             <BookOpen className="text-teal h-4 w-4" />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-medium">{t('completedActivity')}</p>
+            <p className="text-sm font-medium">{languageText.completedActivity}</p>
             <p className="text-xs text-muted-foreground">Animal Vocabulary</p>
           </div>
           <div className="text-xs text-muted-foreground">1d ago</div>
@@ -40,7 +40,7 @@ export function RecentActivitySection() {
             <ArrowRight className="text-yellow-dark h-4 w-4" />
           </div>
           <div className="flex-1">
-            <p className="text-sm font-medium">{t('earnedBadge')}</p>
+            <p className="text-sm font-medium">{languageText.earnedBadge}</p>
             <p className="text-xs text-muted-foreground">Vocabulary Master</p>
           </div>
           <div className="text-xs text-muted-foreground">2d ago</div>

@@ -7,79 +7,48 @@
 
 @layer base {
   :root {
-    /* Colorful & Playful Theme */
-    --background: 45 100% 97%;
-    --foreground: 260 15% 15%;
+    --background: 220 55% 98%;
+    --foreground: 240 10% 20%;
     --card: 0 0% 100%;
-    --card-foreground: 260 15% 15%;
+    --card-foreground: 240 10% 20%;
     --popover: 0 0% 100%;
-    --popover-foreground: 260 15% 15%;
-    
-    /* Vibrant Primary Colors */
-    --primary: 280 100% 65%;
+    --popover-foreground: 240 10% 20%;
+    --primary: 252 82% 74%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 300 100% 75%;
-    --primary-light: 285 100% 85%;
-    
-    /* Fun Secondary Colors */
-    --secondary: 195 100% 65%;
+    --secondary: 152 75% 42%;
     --secondary-foreground: 0 0% 100%;
-    --secondary-glow: 210 100% 75%;
-    
-    /* Accent Colors */
-    --accent: 60 100% 70%;
-    --accent-foreground: 260 15% 15%;
-    --accent-glow: 65 100% 80%;
-    
-    /* Success & Energy */
-    --success: 140 100% 60%;
-    --success-foreground: 0 0% 100%;
-    
-    /* Warm Orange */
-    --orange: 25 100% 65%;
-    --orange-foreground: 0 0% 100%;
-    
-    /* Soft Backgrounds */
-    --muted: 45 50% 94%;
-    --muted-foreground: 260 10% 45%;
-    --border: 45 30% 88%;
-    --input: 45 30% 92%;
-    --ring: 280 100% 65%;
-    
-    /* Destructive kept subtle */
-    --destructive: 0 75% 60%;
-    --destructive-foreground: 0 0% 100%;
-    
-    --radius: 1rem;
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 5% 45%;
+    --accent: 36 100% 64%;
+    --accent-foreground: 24 75% 35%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 6% 90%;
+    --input: 240 6% 85%;
+    --ring: 252 82% 74%;
+    --radius: 0.8rem;
   }
 
   .dark {
-    /* Dark mode with neon vibes */
-    --background: 260 25% 8%;
-    --foreground: 45 100% 95%;
-    --card: 260 20% 12%;
-    --card-foreground: 45 100% 95%;
-    --popover: 260 20% 12%;
-    --popover-foreground: 45 100% 95%;
-    
-    --primary: 285 100% 70%;
-    --primary-foreground: 260 25% 8%;
-    --primary-glow: 300 100% 80%;
-    
-    --secondary: 200 100% 70%;
-    --secondary-foreground: 260 25% 8%;
-    
-    --accent: 65 100% 75%;
-    --accent-foreground: 260 25% 8%;
-    
-    --muted: 260 15% 18%;
-    --muted-foreground: 45 20% 70%;
-    --border: 260 15% 22%;
-    --input: 260 15% 18%;
-    --ring: 285 100% 70%;
-    
-    --destructive: 0 75% 65%;
-    --destructive-foreground: 0 0% 100%;
+    --background: 240 10% 10%;
+    --foreground: 240 10% 95%;
+    --card: 240 10% 13%;
+    --card-foreground: 240 10% 95%;
+    --popover: 240 10% 13%;
+    --popover-foreground: 240 10% 95%;
+    --primary: 252 70% 64%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 152 65% 32%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 240 10% 20%;
+    --muted-foreground: 240 10% 70%;
+    --accent: 36 90% 54%;
+    --accent-foreground: 240 10% 95%;
+    --destructive: 0 74% 50%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 10% 20%;
+    --input: 240 10% 24%;
+    --ring: 252 70% 64%;
   }
 }
 
@@ -125,8 +94,7 @@
     }
   }
 
-  /* Playful animations */
-  @keyframes fade-in {
+  @keyframes fade-in-up {
     from {
       opacity: 0;
       transform: translateY(20px);
@@ -134,24 +102,6 @@
     to {
       opacity: 1;
       transform: translateY(0);
-    }
-  }
-
-  @keyframes bounce-gentle {
-    0%, 100% {
-      transform: translateY(0px);
-    }
-    50% {
-      transform: translateY(-10px);
-    }
-  }
-
-  @keyframes pulse-glow {
-    0%, 100% {
-      box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
-    }
-    50% {
-      box-shadow: 0 0 40px hsl(var(--primary) / 0.6);
     }
   }
 
@@ -173,25 +123,8 @@
     }
   }
 
-  @keyframes wiggle {
-    0%, 7%, 14%, 21%, 28%, 35%, 42%, 49%, 56%, 63%, 70%, 77%, 84%, 91%, 98%, 100% {
-      transform: rotate(0deg);
-    }
-    3.5%, 10.5%, 17.5%, 24.5%, 31.5%, 38.5%, 45.5%, 52.5%, 59.5%, 66.5%, 73.5%, 80.5%, 87.5%, 94.5% {
-      transform: rotate(1deg);
-    }
-  }
-
-  .animate-fade-in {
-    animation: fade-in 0.6s ease-out;
-  }
-
-  .animate-bounce-gentle {
-    animation: bounce-gentle 2s ease-in-out infinite;
-  }
-
-  .animate-pulse-glow {
-    animation: pulse-glow 2s ease-in-out infinite;
+  .animate-fade-in-up {
+    animation: fade-in-up 0.6s ease-out;
   }
 
   .animate-float-slow {
@@ -200,40 +133,6 @@
 
   .animate-float-delayed {
     animation: float-delayed 8s ease-in-out infinite 2s;
-  }
-
-  .animate-wiggle {
-    animation: wiggle 0.8s ease-in-out;
-  }
-
-  /* Gradients for playful effects */
-  .gradient-primary {
-    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)));
-  }
-
-  .gradient-secondary {
-    background: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--success)));
-  }
-
-  .gradient-warm {
-    background: linear-gradient(135deg, hsl(var(--orange)), hsl(var(--primary-glow)));
-  }
-
-  .gradient-bg {
-    background: linear-gradient(135deg, hsl(var(--background)), hsl(var(--primary) / 0.05));
-  }
-
-  /* Playful Shadows */
-  .shadow-fun {
-    box-shadow: 0 10px 40px -10px hsl(var(--primary) / 0.3);
-  }
-
-  .shadow-glow {
-    box-shadow: 0 0 30px hsl(var(--primary) / 0.4);
-  }
-
-  .shadow-soft {
-    box-shadow: 0 4px 20px hsl(var(--primary) / 0.2);
   }
 
   /* Performance optimized animations */
@@ -289,9 +188,7 @@
   }
 
   .glass-enhanced {
-    background: linear-gradient(135deg, rgba(255,255,255,0.25), rgba(255,255,255,0.1));
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.3);
+    @apply bg-white/25 backdrop-blur-xl border border-white/30;
     box-shadow: 
       0 8px 32px rgba(31, 38, 135, 0.1),
       inset 0 1px 0 rgba(255, 255, 255, 0.2);

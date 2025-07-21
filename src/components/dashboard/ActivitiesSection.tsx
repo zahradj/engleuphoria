@@ -2,12 +2,12 @@
 import { BookOpen, Edit, Video } from "lucide-react";
 import { ActivityCard } from "./ActivityCard";
 import { Button } from "@/components/ui/button";
-import { useTranslation } from 'react-i18next';
+import { useLanguage } from "@/contexts/LanguageContext";
 import { useNavigate } from "react-router-dom";
 
 export function ActivitiesSection() {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { languageText } = useLanguage();
   
   // Activities
   const activities = [
@@ -39,9 +39,9 @@ export function ActivitiesSection() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold">{t('funActivities')}</h2>
+        <h2 className="text-xl font-bold">{languageText.funActivities}</h2>
         <Button variant="ghost" size="sm">
-          {t('viewAll')}
+          {languageText.viewAll}
         </Button>
       </div>
       

@@ -17,17 +17,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 }) => {
   const { user, loading } = useAuth();
 
-  console.log('🛡️ ProtectedRoute check:', { 
-    hasUser: !!user, 
-    loading, 
-    userRole: user?.role,
-    requiredRole,
-    currentPath: window.location.pathname 
-  });
-
   // Show loading spinner while auth is being determined
   if (loading) {
-    console.log('⏳ ProtectedRoute: Still loading auth state');
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
         <div className="text-center">
@@ -41,11 +32,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   // Redirect to login if no user
   if (!user) {
-    console.log('❌ ProtectedRoute: No user found, redirecting to login');
     return <Navigate to={redirectTo} replace />;
   }
-
-  console.log('✅ ProtectedRoute: User authenticated', { role: user.role });
 
   // Check role requirements
   if (requiredRole && user.role !== requiredRole) {

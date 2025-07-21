@@ -2,11 +2,11 @@
 import { Button } from "@/components/ui/button";
 import { ClassCard, ClassInfo } from "@/components/ClassCard";
 import { useNavigate } from "react-router-dom";
-import { useTranslation } from 'react-i18next';
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export function ClassesSection() {
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { languageText } = useLanguage();
   
   // Demo classes
   const classes: ClassInfo[] = [
@@ -44,9 +44,9 @@ export function ClassesSection() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold">{t('upcomingClasses')}</h2>
+        <h2 className="text-xl font-bold">{languageText.upcomingClasses}</h2>
         <Button variant="ghost" size="sm">
-          {t('viewAll')}
+          {languageText.viewAll}
         </Button>
       </div>
       

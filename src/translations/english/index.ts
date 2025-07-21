@@ -17,7 +17,6 @@ import { calendarTranslations } from './calendar';
 import { progressTranslations } from './progress';
 import { whiteboardTranslations } from './whiteboard';
 import { authenticationTranslations } from './authentication';
-import { navigationTranslations } from './navigation';
 
 export const englishTranslations = {
   ...commonTranslations,
@@ -37,6 +36,5 @@ export const englishTranslations = {
   ...calendarTranslations,
   ...progressTranslations,
   ...whiteboardTranslations,
-  ...authenticationTranslations,
-  ...navigationTranslations
+  ...authenticationTranslations
 };

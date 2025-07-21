@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HeaderLogo } from './header/HeaderLogo';
 import { DesktopNavigation } from './header/DesktopNavigation';
-import { ModernLanguageSwitcher } from '@/components/common/ModernLanguageSwitcher';
+import { LanguageSwitcher } from './header/LanguageSwitcher';
 import { AuthButtons } from './header/AuthButtons';
 import { MobileMenu } from './header/MobileMenu';
 import { MobileMenuButton } from './header/MobileMenuButton';
@@ -32,13 +32,13 @@ export const Header = () => {
 
         {/* Desktop Language Switcher and Auth Buttons */}
         <div className="hidden lg:flex items-center gap-4">
-          <ModernLanguageSwitcher />
+          <LanguageSwitcher />
           <AuthButtons onLogin={handleLogin} onSignUp={handleSignUp} />
         </div>
 
         {/* Mobile Menu Button */}
         <div className="lg:hidden flex items-center gap-2">
-          <ModernLanguageSwitcher size="sm" />
+          <LanguageSwitcher size="sm" />
           <MobileMenuButton 
             isOpen={isMobileMenuOpen} 
             onToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 

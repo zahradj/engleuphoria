@@ -1,108 +1,79 @@
-
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
-import { LanguageProvider } from "@/contexts/LanguageContext";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { I18nextProvider } from 'react-i18next';
-import i18n from '@/lib/i18n';
-
-// Import pages
+import { ImprovedProtectedRoute } from "@/components/auth/ImprovedProtectedRoute";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import StudentDashboard from "./pages/StudentDashboard";
-import ForParents from "./pages/ForParents";
-import ForTeachers from "./pages/ForTeachers";
-import AboutUs from "./pages/AboutUs";
-import NotFound from "./pages/NotFound";
-import { ProtectedRoute } from "./components/auth/ProtectedRoute";
-import { AuthRedirect } from "./components/auth/AuthRedirect";
-
-// Classroom and Learning pages
-import OneOnOneClassroomNew from "./pages/OneOnOneClassroomNew";
-import WhiteboardPage from "./pages/WhiteboardPage";
-import SpeakingPractice from "./pages/student/SpeakingPractice";
-
-// Teacher pages
 import TeacherDashboard from "./pages/TeacherDashboard";
-import LessonPlanCreator from "./pages/LessonPlanCreator";
+import AdminDashboard from "./pages/AdminDashboard";
+import TeacherSignUp from "./pages/TeacherSignUp";
+import StudentSignUp from "./pages/StudentSignUp";
+import TeacherApplication from "./pages/TeacherApplication";
+import StudentApplication from "./pages/StudentApplication";
+import OneOnOneClassroomNew from "./pages/OneOnOneClassroomNew";
 
-function App() {
-  return (
-    <I18nextProvider i18n={i18n}>
+const queryClient = new QueryClient();
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <LanguageProvider>
       <AuthProvider>
-        <LanguageProvider>
-        <Router>
-          <div className="min-h-screen bg-background">
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/login" element={
-                <AuthRedirect>
-                  <Login />
-                </AuthRedirect>
-              } />
-              <Route path="/signup" element={
-                <AuthRedirect>
-                  <SignUp />
-                </AuthRedirect>
-              } />
-              <Route path="/for-parents" element={<ForParents />} />
-              <Route path="/for-teachers" element={<ForTeachers />} />
-              <Route path="/about" element={<AboutUs />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/teacher-signup" element={<TeacherSignUp />} />
+              <Route path="/student-signup" element={<StudentSignUp />} />
+              <Route path="/teacher-application" element={<TeacherApplication />} />
+              <Route path="/student-application" element={<StudentApplication />} />
               
-              {/* Protected Routes - Require Authentication */}
-              <Route path="/dashboard" element={
-                <ProtectedRoute>
+              {/* Protected Routes */}
+              <Route path="/student" element={
+                <ImprovedProtectedRoute requiredRole="student">
                   <StudentDashboard />
-                </ProtectedRoute>
+                </ImprovedProtectedRoute>
               } />
               
-              {/* Classroom Routes - Protected */}
-              <Route path="/oneonone-classroom-new" element={
-                <ProtectedRoute>
-                  <OneOnOneClassroomNew />
-                </ProtectedRoute>
-              } />
-              <Route path="/classroom/:classId" element={
-                <ProtectedRoute>
-                  <OneOnOneClassroomNew />
-                </ProtectedRoute>
-              } />
-              
-              {/* Learning Routes - Protected */}
-              <Route path="/whiteboard" element={
-                <ProtectedRoute>
-                  <WhiteboardPage />
-                </ProtectedRoute>
-              } />
-              <Route path="/speaking-practice" element={
-                <ProtectedRoute>
-                  <SpeakingPractice />
-                </ProtectedRoute>
-              } />
-              
-              {/* Teacher Routes - Protected */}
-              <Route path="/teacher-dashboard" element={
-                <ProtectedRoute requiredRole="teacher">
+              <Route path="/teacher" element={
+                <ImprovedProtectedRoute requiredRole="teacher">
                   <TeacherDashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/lesson-creator" element={
-                <ProtectedRoute requiredRole="teacher">
-                  <LessonPlanCreator />
-                </ProtectedRoute>
+                </ImprovedProtectedRoute>
               } />
               
-              {/* 404 Route */}
-              <Route path="*" element={<NotFound />} />
+              <Route path="/admin" element={
+                <ImprovedProtectedRoute requiredRole="admin">
+                  <AdminDashboard />
+                </ImprovedProtectedRoute>
+              } />
+              
+              {/* Generic dashboard route that redirects based on role */}
+              <Route path="/dashboard" element={
+                <ImprovedProtectedRoute>
+                  <div>Redirecting...</div>
+                </ImprovedProtectedRoute>
+              } />
+              
+              <Route path="/oneonone-classroom-new" element={
+                <ImprovedProtectedRoute>
+                  <OneOnOneClassroomNew />
+                </ImprovedProtectedRoute>
+              } />
             </Routes>
-            <Toaster />
-          </div>
-        </Router>
-      </LanguageProvider>
+          </BrowserRouter>
+        </TooltipProvider>
       </AuthProvider>
-    </I18nextProvider>
-  );
-}
+    </LanguageProvider>
+  </QueryClientProvider>
+);
 
 export default App;
