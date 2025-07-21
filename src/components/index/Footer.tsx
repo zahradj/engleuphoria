@@ -1,13 +1,12 @@
 
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import { Logo } from "@/components/Logo";
-import { Button } from "@/components/ui/button";
-import { Globe, Mail } from "lucide-react";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { Mail } from "lucide-react";
+import { ModernLanguageSwitcher } from "@/components/common/ModernLanguageSwitcher";
 
 export const Footer = () => {
-  const navigate = useNavigate();
-  const { language, setLanguage, languageText } = useLanguage();
+  const { t } = useTranslation();
   
   return (
     <footer className="bg-muted py-6">
@@ -20,16 +19,16 @@ export const Footer = () => {
           {/* Mobile Footer Links */}
           <div className="flex flex-col md:hidden gap-4 text-center">
             <Link to="/about" className="text-muted-foreground hover:text-foreground">
-              {languageText.aboutUs}
+              {t('navigation.aboutUs')}
             </Link>
             <Link to="/for-parents" className="text-muted-foreground hover:text-foreground">
-              {languageText.forParents}
+              {t('navigation.forParents')}
             </Link>
             <Link to="/for-teachers" className="text-muted-foreground hover:text-foreground">
-              {languageText.forTeachers}
+              {t('navigation.forTeachers')}
             </Link>
             
-            {/* Updated Contact Info */}
+            {/* Contact Info */}
             <div className="flex items-center justify-center gap-2 text-muted-foreground">
               <Mail className="h-4 w-4" />
               <a href="mailto:contact@engleuphoria.com" className="hover:text-foreground transition-colors">
@@ -38,47 +37,24 @@ export const Footer = () => {
             </div>
             
             {/* Language Selector for Mobile */}
-            <div className="flex justify-center gap-2 mt-2">
-              <Button 
-                size="sm"
-                variant="ghost"
-                className={language === 'english' ? 'underline' : ''}
-                onClick={() => setLanguage('english')}
-              >
-                English
-              </Button>
-              <Button 
-                size="sm"
-                variant="ghost"
-                className={language === 'arabic' ? 'underline' : ''}
-                onClick={() => setLanguage('arabic')}
-              >
-                العربية
-              </Button>
-              <Button 
-                size="sm"
-                variant="ghost"
-                className={language === 'french' ? 'underline' : ''}
-                onClick={() => setLanguage('french')}
-              >
-                Français
-              </Button>
+            <div className="flex justify-center mt-2">
+              <ModernLanguageSwitcher size="sm" />
             </div>
           </div>
           
           {/* Desktop Footer Links */}
           <div className="hidden md:flex gap-6 items-center">
             <Link to="/about" className="text-muted-foreground hover:text-foreground">
-              {languageText.aboutUs}
+              {t('navigation.aboutUs')}
             </Link>
             <Link to="/for-parents" className="text-muted-foreground hover:text-foreground">
-              {languageText.forParents}
+              {t('navigation.forParents')}
             </Link>
             <Link to="/for-teachers" className="text-muted-foreground hover:text-foreground">
-              {languageText.forTeachers}
+              {t('navigation.forTeachers')}
             </Link>
             
-            {/* Updated Contact Info */}
+            {/* Contact Info */}
             <div className="flex items-center gap-2 text-muted-foreground">
               <Mail className="h-4 w-4" />
               <a href="mailto:contact@engleuphoria.com" className="hover:text-foreground transition-colors">
@@ -87,33 +63,8 @@ export const Footer = () => {
             </div>
             
             {/* Language Selector for Desktop */}
-            <div className="ml-4 flex items-center gap-1">
-              <Globe className="h-4 w-4 text-muted-foreground" />
-              <span className="mx-1 text-muted-foreground">|</span>
-              <Button 
-                size="sm"
-                variant="ghost"
-                className={`px-2 py-1 h-auto ${language === 'english' ? 'text-foreground underline' : 'text-muted-foreground'}`}
-                onClick={() => setLanguage('english')}
-              >
-                EN
-              </Button>
-              <Button 
-                size="sm"
-                variant="ghost"
-                className={`px-2 py-1 h-auto ${language === 'arabic' ? 'text-foreground underline' : 'text-muted-foreground'}`}
-                onClick={() => setLanguage('arabic')}
-              >
-                AR
-              </Button>
-              <Button 
-                size="sm"
-                variant="ghost"
-                className={`px-2 py-1 h-auto ${language === 'french' ? 'text-foreground underline' : 'text-muted-foreground'}`}
-                onClick={() => setLanguage('french')}
-              >
-                FR
-              </Button>
+            <div className="ml-4">
+              <ModernLanguageSwitcher size="sm" />
             </div>
           </div>
         </div>
