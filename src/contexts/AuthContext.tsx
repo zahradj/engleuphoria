@@ -211,33 +211,41 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     try {
+      console.log('🚪 Sign out initiated');
       setError(null);
       
       if (!isConfigured) {
+        console.error('❌ Supabase not configured for logout');
         setError('Supabase not configured. Please check your environment setup.');
         return { error: new Error('Supabase not configured') };
       }
 
+      console.log('🔄 Clearing user state...');
       // Clear user state immediately
       setUser(null);
       setSession(null);
       
+      console.log('📤 Calling Supabase signOut...');
       // Supabase sign out
       const { error } = await supabase.auth.signOut();
       
       if (error) {
-        console.error('Logout error:', error);
+        console.error('❌ Logout error:', error);
         setError('Logout failed');
+      } else {
+        console.log('✅ Supabase signOut successful');
       }
       
+      console.log('🏠 Redirecting to home page...');
       // Force redirect to home page
       window.location.href = '/';
       
       return { error };
     } catch (error) {
-      console.error('Sign out error:', error);
+      console.error('❌ Sign out error:', error);
       setError('Sign out failed');
       // Force redirect even on error
+      console.log('🏠 Force redirecting to home page after error...');
       window.location.href = '/';
       return { error };
     }
