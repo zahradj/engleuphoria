@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Eye, EyeOff, User, Mail, Lock, CheckCircle, BookOpen } from "lucide-react";
 import { ProgressIndicator } from "@/components/navigation/ProgressIndicator";
 import { BackNavigation } from "@/components/navigation/BackNavigation";
+import { Logo } from "@/components/Logo";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -50,10 +51,8 @@ export const SignUpForm = () => {
         <div className="absolute -z-10 bottom-0 right-0 w-[60%] h-[60%] bg-teal/5 rounded-full blur-2xl"></div>
       
         <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-full flex items-center justify-center">
-              <User className="h-8 w-8 text-white" />
-            </div>
+          <div className="flex justify-center mb-6">
+            <Logo size="large" />
           </div>
           <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
             Join Engleuphoria
