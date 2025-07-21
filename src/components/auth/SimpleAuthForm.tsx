@@ -229,6 +229,18 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
       </div>
 
       <div className="relative z-10 container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
+        {/* Return Home Tab */}
+        <div className="absolute top-6 left-6">
+          <Button
+            variant="outline"
+            onClick={() => navigate('/')}
+            className="bg-white/80 backdrop-blur-sm border-white/60 text-slate-700 hover:bg-white/90 hover:border-white/80 hover:text-slate-800 shadow-lg hover:shadow-xl transition-all duration-300 rounded-full px-6 py-2 font-medium"
+          >
+            <span className="mr-2">🏠</span>
+            Return Home
+          </Button>
+        </div>
+
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <div className="flex justify-center mb-6">

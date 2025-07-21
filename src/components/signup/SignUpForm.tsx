@@ -42,7 +42,19 @@ export const SignUpForm = () => {
   
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div className="w-full max-w-md mx-auto relative">
+      {/* Return Home Tab */}
+      <div className="absolute -top-16 left-0">
+        <Button
+          variant="outline"
+          onClick={() => navigate('/')}
+          className="bg-white/90 backdrop-blur-sm border-purple-200 text-purple-700 hover:bg-purple-50 hover:border-purple-300 hover:text-purple-800 shadow-lg hover:shadow-xl transition-all duration-300 rounded-full px-6 py-2 font-medium"
+        >
+          <span className="mr-2">🏠</span>
+          Return Home
+        </Button>
+      </div>
+      
       <BackNavigation to="/" label="Back to Home" className="mb-4" />
       
       <Card className="w-full p-8 shadow-2xl relative overflow-hidden bg-white/95 backdrop-blur-sm animate-fade-in rounded-3xl border-0">
