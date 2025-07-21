@@ -97,28 +97,58 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/30 p-4">
+    <div className="min-h-screen flex items-center justify-center relative overflow-hidden p-4" style={{ background: 'var(--gradient-bg)' }}>
+      {/* Playful Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-10 left-10 w-32 h-32 rounded-full bg-gradient-to-r from-primary/20 to-secondary/20 animate-pulse"></div>
+        <div className="absolute top-1/2 right-20 w-24 h-24 rounded-full bg-gradient-to-r from-accent/30 to-orange/30 animate-bounce" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute bottom-20 left-1/3 w-40 h-40 rounded-full bg-gradient-to-r from-success/20 to-primary/20 animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/4 right-1/3 w-16 h-16 rounded-full bg-gradient-to-r from-orange/25 to-accent/25 animate-bounce" style={{ animationDelay: '0.5s' }}></div>
+        
+        {/* Floating Shapes */}
+        <div className="absolute top-1/3 left-1/4 w-8 h-8 bg-primary/30 rotate-45 animate-spin" style={{ animationDuration: '8s' }}></div>
+        <div className="absolute bottom-1/3 right-1/4 w-6 h-6 bg-secondary/40 rounded-full animate-ping" style={{ animationDelay: '3s' }}></div>
+      </div>
+
       <div className="absolute top-4 right-4 z-10">
-        <ModernLanguageSwitcher size="sm" />
+        <div className="bg-white/90 backdrop-blur-sm rounded-full p-2 shadow-lg border-2 border-primary/20">
+          <ModernLanguageSwitcher size="sm" />
+        </div>
       </div>
       
-      <div className="w-full max-w-md space-y-6">
-        <Card className="shadow-2xl border-0 bg-card/95 backdrop-blur-sm">
-          <CardHeader className="space-y-6 pb-8">
-            <div className="flex flex-col items-center space-y-4">
+      <div className="w-full max-w-md space-y-6 relative z-10">
+        <Card className="border-0 overflow-hidden" style={{ 
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85))', 
+          backdropFilter: 'blur(20px)',
+          boxShadow: 'var(--shadow-fun), 0 0 0 1px hsl(var(--primary) / 0.1)'
+        }}>
+          <CardHeader className="space-y-6 pb-8 relative">
+            {/* Fun Header Background */}
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-accent/5 rounded-t-lg"></div>
+            
+            <div className="flex flex-col items-center space-y-4 relative z-10">
               <div className="flex justify-center">
-                <img 
-                  src="/lovable-uploads/32e54089-999a-4546-b2ee-5dc9bc60f841.png" 
-                  alt="Engleuphoria Logo" 
-                  className="h-16 w-auto object-contain"
-                />
+                <div className="relative group">
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-lg opacity-50 group-hover:opacity-75 transition-opacity"></div>
+                  <div className="relative bg-white p-4 rounded-full shadow-lg border-2 border-primary/20">
+                    <img 
+                      src="/lovable-uploads/32e54089-999a-4546-b2ee-5dc9bc60f841.png" 
+                      alt="Engleuphoria Logo" 
+                      className="h-12 w-auto object-contain"
+                    />
+                  </div>
+                </div>
               </div>
               
               <div className="text-center space-y-2">
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                <h1 className="text-3xl font-bold animate-fade-in" style={{ 
+                  background: 'var(--gradient-primary)', 
+                  WebkitBackgroundClip: 'text', 
+                  WebkitTextFillColor: 'transparent' 
+                }}>
                   {mode === 'login' ? t('welcomeBack') : t('createAccount')}
                 </h1>
-                <p className="text-muted-foreground">
+                <p className="text-muted-foreground animate-fade-in" style={{ animationDelay: '0.2s' }}>
                   {mode === 'login' 
                     ? t('loginSubtitle', 'Welcome back to your learning journey') 
                     : t('signupSubtitle', 'Start your English learning adventure')
@@ -127,26 +157,28 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
               </div>
 
               {mode !== 'login' && !selectedRole && (
-                <div className="w-full space-y-3">
-                  <p className="text-center text-sm text-muted-foreground">{t('iAmA')}</p>
+                <div className="w-full space-y-3 animate-fade-in" style={{ animationDelay: '0.4s' }}>
+                  <p className="text-center text-sm font-medium text-muted-foreground">{t('iAmA')}</p>
                   <div className="grid gap-3">
                     <Button
                       type="button"
                       variant="outline"
-                      className="h-auto p-4 justify-start hover:bg-accent/50 transition-all duration-200"
+                      className="h-auto p-4 justify-start transition-all duration-300 hover:scale-105 hover:shadow-lg border-2 border-transparent hover:border-primary/30"
+                      style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1))' }}
                       onClick={() => handleRoleSelect('student')}
                     >
                       <div className="flex items-center space-x-3">
-                        <div className={`relative w-16 h-16 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center shadow-lg`}>
-                          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/20 to-transparent"></div>
+                        <div className="relative w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg overflow-hidden group"
+                             style={{ background: 'linear-gradient(135deg, hsl(220 100% 65%), hsl(280 100% 65%))' }}>
+                          <div className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent group-hover:from-white/40 transition-all"></div>
                           <img 
                             src="/lovable-uploads/dacdeeea-21e1-4790-9f98-a906291e63a3.png" 
                             alt="Logo" 
-                            className="h-8 w-8 object-contain relative z-10"
+                            className="h-8 w-8 object-contain relative z-10 group-hover:scale-110 transition-transform"
                           />
                         </div>
                         <div className="text-left">
-                          <div className="font-semibold">{t('student')}</div>
+                          <div className="font-semibold text-primary">{t('student')}</div>
                           <div className="text-sm text-muted-foreground">{t('studentDescription', 'Learn English with fun activities')}</div>
                         </div>
                       </div>
@@ -155,16 +187,18 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
                     <Button
                       type="button"
                       variant="outline"
-                      className="h-auto p-4 justify-start hover:bg-accent/50 transition-all duration-200"
+                      className="h-auto p-4 justify-start transition-all duration-300 hover:scale-105 hover:shadow-lg border-2 border-transparent hover:border-secondary/30"
+                      style={{ background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(59, 130, 246, 0.1))' }}
                       onClick={() => handleRoleSelect('teacher')}
                     >
                       <div className="flex items-center space-x-3">
-                        <div className={`relative w-16 h-16 rounded-2xl bg-gradient-to-r from-emerald-500 to-blue-500 flex items-center justify-center shadow-lg`}>
-                          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/20 to-transparent"></div>
-                          <GraduationCap className="h-8 w-8 text-white relative z-10" />
+                        <div className="relative w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg overflow-hidden group"
+                             style={{ background: 'linear-gradient(135deg, hsl(140 100% 60%), hsl(195 100% 65%))' }}>
+                          <div className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent group-hover:from-white/40 transition-all"></div>
+                          <GraduationCap className="h-8 w-8 text-white relative z-10 group-hover:scale-110 transition-transform" />
                         </div>
                         <div className="text-left">
-                          <div className="font-semibold">{t('teacher')}</div>
+                          <div className="font-semibold text-secondary">{t('teacher')}</div>
                           <div className="text-sm text-muted-foreground">{t('teacherDescription', 'Create engaging lessons for students')}</div>
                         </div>
                       </div>
@@ -176,10 +210,16 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
           </CardHeader>
 
           {(mode === 'login' || selectedRole) && (
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-6 animate-fade-in" style={{ animationDelay: '0.6s' }}>
               {mode !== 'login' && selectedRole && (
-                <div className="flex items-center justify-center space-x-3 p-4 bg-accent/30 rounded-lg">
-                  <div className={`relative w-12 h-12 rounded-xl bg-gradient-to-r ${selectedRole === 'student' ? 'from-blue-500 to-purple-500' : 'from-emerald-500 to-blue-500'} flex items-center justify-center shadow-md`}>
+                <div className="flex items-center justify-center space-x-3 p-4 rounded-lg border-2" 
+                     style={{ 
+                       background: selectedRole === 'student' 
+                         ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1))'
+                         : 'linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(59, 130, 246, 0.1))',
+                       borderColor: selectedRole === 'student' ? 'hsl(var(--primary) / 0.3)' : 'hsl(var(--secondary) / 0.3)'
+                     }}>
+                  <div className={`relative w-12 h-12 rounded-xl flex items-center justify-center shadow-md ${selectedRole === 'student' ? 'bg-gradient-to-r from-blue-500 to-purple-500' : 'bg-gradient-to-r from-emerald-500 to-blue-500'}`}>
                     <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-white/20 to-transparent"></div>
                     {selectedRole === 'student' ? (
                       <img 
@@ -202,7 +242,7 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
                     variant="ghost"
                     size="sm"
                     onClick={() => setSelectedRole(null)}
-                    className="ml-auto"
+                    className="ml-auto hover:bg-destructive/20 hover:text-destructive transition-colors"
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -217,11 +257,15 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
                       name="name"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('fullName')}</FormLabel>
+                          <FormLabel className="text-foreground font-medium">{t('fullName')}</FormLabel>
                           <FormControl>
-                            <div className="relative">
-                              <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                              <Input placeholder={t('enterFullName', 'Enter your full name')} className="pl-10" {...field} />
+                            <div className="relative group">
+                              <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary transition-colors group-focus-within:text-primary" />
+                              <Input 
+                                placeholder={t('enterFullName', 'Enter your full name')} 
+                                className="pl-10 border-2 border-muted focus:border-primary transition-all duration-300 bg-background/50" 
+                                {...field} 
+                              />
                             </div>
                           </FormControl>
                           <FormMessage />
@@ -235,11 +279,16 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('email')}</FormLabel>
+                        <FormLabel className="text-foreground font-medium">{t('email')}</FormLabel>
                         <FormControl>
-                          <div className="relative">
-                            <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                            <Input placeholder={t('enterEmail', 'Enter your email')} className="pl-10" type="email" {...field} />
+                          <div className="relative group">
+                            <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-secondary transition-colors group-focus-within:text-secondary" />
+                            <Input 
+                              placeholder={t('enterEmail', 'Enter your email')} 
+                              className="pl-10 border-2 border-muted focus:border-secondary transition-all duration-300 bg-background/50" 
+                              type="email" 
+                              {...field} 
+                            />
                           </div>
                         </FormControl>
                         <FormMessage />
@@ -252,13 +301,13 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
                     name="password"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('password')}</FormLabel>
+                        <FormLabel className="text-foreground font-medium">{t('password')}</FormLabel>
                         <FormControl>
-                          <div className="relative">
-                            <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                          <div className="relative group">
+                            <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-accent transition-colors group-focus-within:text-accent" />
                             <Input
                               placeholder={t('enterPassword', 'Enter your password')}
-                              className="pl-10 pr-10"
+                              className="pl-10 pr-10 border-2 border-muted focus:border-accent transition-all duration-300 bg-background/50"
                               type={showPassword ? "text" : "password"}
                               {...field}
                             />
@@ -270,9 +319,9 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
                               onClick={() => setShowPassword(!showPassword)}
                             >
                               {showPassword ? (
-                                <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                <EyeOff className="h-4 w-4 text-muted-foreground hover:text-accent transition-colors" />
                               ) : (
-                                <Eye className="h-4 w-4 text-muted-foreground" />
+                                <Eye className="h-4 w-4 text-muted-foreground hover:text-accent transition-colors" />
                               )}
                             </Button>
                           </div>
@@ -288,13 +337,13 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
                       name="confirmPassword"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('confirmPassword', 'Confirm Password')}</FormLabel>
+                          <FormLabel className="text-foreground font-medium">{t('confirmPassword', 'Confirm Password')}</FormLabel>
                           <FormControl>
-                            <div className="relative">
-                              <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <div className="relative group">
+                              <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-orange transition-colors group-focus-within:text-orange" />
                               <Input
                                 placeholder={t('confirmPasswordPlaceholder', 'Confirm your password')}
-                                className="pl-10 pr-10"
+                                className="pl-10 pr-10 border-2 border-muted focus:border-orange transition-all duration-300 bg-background/50"
                                 type={showConfirmPassword ? "text" : "password"}
                                 {...field}
                               />
@@ -306,9 +355,9 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
                                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                               >
                                 {showConfirmPassword ? (
-                                  <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                  <EyeOff className="h-4 w-4 text-muted-foreground hover:text-orange transition-colors" />
                                 ) : (
-                                  <Eye className="h-4 w-4 text-muted-foreground" />
+                                  <Eye className="h-4 w-4 text-muted-foreground hover:text-orange transition-colors" />
                                 )}
                               </Button>
                             </div>
@@ -322,7 +371,7 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
                   {mode === 'login' && (
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
-                        <Checkbox id="remember" />
+                        <Checkbox id="remember" className="border-primary data-[state=checked]:bg-primary" />
                         <label
                           htmlFor="remember"
                           className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -330,22 +379,30 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
                           {t('rememberMe')}
                         </label>
                       </div>
-                      <Button variant="link" className="px-0 font-normal" type="button">
+                      <Button variant="link" className="px-0 font-normal text-secondary hover:text-secondary/80" type="button">
                         {t('forgotPassword')}
                       </Button>
                     </div>
                   )}
 
-                  <Button type="submit" className="w-full" disabled={isLoading}>
+                  <Button 
+                    type="submit" 
+                    className="w-full text-lg font-semibold py-6 transition-all duration-300 hover:scale-105 hover:shadow-lg border-0" 
+                    style={{ 
+                      background: 'var(--gradient-primary)',
+                      boxShadow: 'var(--shadow-soft)'
+                    }}
+                    disabled={isLoading}
+                  >
                     {isLoading ? (
                       <div className="flex items-center space-x-2">
-                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
                         <span>{mode === 'login' ? t('signingIn', 'Signing in...') : t('creatingAccount', 'Creating account...')}</span>
                       </div>
                     ) : (
                       <span className="flex items-center space-x-2">
                         <span>{mode === 'login' ? t('signIn', 'Sign In') : t('createAccount')}</span>
-                        <ArrowRight className="h-4 w-4" />
+                        <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                       </span>
                     )}
                   </Button>
@@ -354,10 +411,15 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
             </CardContent>
           )}
 
-          <CardFooter className="justify-center">
+          <CardFooter className="justify-center pb-8">
             <p className="text-sm text-muted-foreground">
               {mode === 'login' ? t('dontHaveAccount') : t('alreadyHaveAccount')}{" "}
-              <Button variant="link" className="p-0 h-auto font-semibold text-primary hover:text-primary/80" onClick={toggleMode}>
+              <Button 
+                variant="link" 
+                className="p-0 h-auto font-semibold hover:scale-105 transition-transform" 
+                style={{ color: 'hsl(var(--secondary))' }}
+                onClick={toggleMode}
+              >
                 {mode === 'login' ? t('signUp') : t('logIn')}
               </Button>
             </p>
