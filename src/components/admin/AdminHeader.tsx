@@ -31,7 +31,7 @@ export const AdminHeader = () => {
           <div className="flex items-center gap-2">
             <UserCircle className="w-8 h-8 text-gray-600" />
             <div className="text-sm">
-              <p className="font-medium">{user?.full_name}</p>
+              <p className="font-medium">{user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Admin'}</p>
               <p className="text-gray-500">Administrator</p>
             </div>
             <Button variant="outline" size="sm" onClick={signOut}>

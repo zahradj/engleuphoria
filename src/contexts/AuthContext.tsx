@@ -42,11 +42,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return {
       id: isAdminEmail ? 'admin-f-zahra' : `demo-${userType}-${Date.now()}`,
       email,
-      full_name: fullName,
       role: finalUserType as 'student' | 'teacher' | 'parent' | 'admin',
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
+      updated_at: new Date().toISOString(),
+      user_metadata: { full_name: fullName }
+    } as any;
   };
 
   // Function to fetch user data from database
@@ -75,11 +75,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return {
       id: authUser.id,
       email: authUser.email || '',
-      full_name: authUser.user_metadata?.full_name || authUser.email || '',
       role: authUser.user_metadata?.role || 'student',
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
+      updated_at: new Date().toISOString(),
+      user_metadata: authUser.user_metadata || {}
+    } as any;
   };
 
   // Function to refresh user state
@@ -225,7 +225,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         options: {
           emailRedirectTo: redirectUrl,
           data: {
-            full_name: userData.full_name,
             role: userData.role
           }
         }

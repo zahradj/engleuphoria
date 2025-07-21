@@ -160,7 +160,6 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onModeChange }) => {
         }
       } else {
         const { error } = await signUp(formData.email, formData.password, {
-          full_name: formData.fullName,
           role: formData.role
         });
 

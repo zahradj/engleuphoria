@@ -12,21 +12,11 @@ import SignUp from "./pages/SignUp";
 import StudentDashboard from "./pages/StudentDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
-import TeacherSignup from "./pages/TeacherSignup";
-import StudentSignup from "./pages/StudentSignup";
+import TeacherSignUp from "./pages/TeacherSignUp";
+import StudentSignUp from "./pages/StudentSignUp";
 import TeacherApplication from "./pages/TeacherApplication";
 import StudentApplication from "./pages/StudentApplication";
-import OneOnOneClassroom from "./pages/OneOnOneClassroom";
 import OneOnOneClassroomNew from "./pages/OneOnOneClassroomNew";
-import SpeakingPracticeDashboard from "./pages/SpeakingPracticeDashboard";
-import AIConversationPractice from "./pages/AIConversationPractice";
-import SpeakingGroups from "./pages/SpeakingGroups";
-import SpeakingGroupSession from "./pages/SpeakingGroupSession";
-import TeacherProfile from "./pages/TeacherProfile";
-import BookingConfirmation from "./pages/BookingConfirmation";
-import Communities from "./pages/Communities";
-import CommunityDetails from "./pages/CommunityDetails";
-import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -42,8 +32,8 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignUp />} />
-              <Route path="/teacher-signup" element={<TeacherSignup />} />
-              <Route path="/student-signup" element={<StudentSignup />} />
+              <Route path="/teacher-signup" element={<TeacherSignUp />} />
+              <Route path="/student-signup" element={<StudentSignUp />} />
               <Route path="/teacher-application" element={<TeacherApplication />} />
               <Route path="/student-application" element={<StudentApplication />} />
               
@@ -73,70 +63,9 @@ const App = () => (
                 </ImprovedProtectedRoute>
               } />
               
-              {/* Other protected routes */}
-              <Route path="/oneonone-classroom" element={
-                <ImprovedProtectedRoute>
-                  <OneOnOneClassroom />
-                </ImprovedProtectedRoute>
-              } />
-              
               <Route path="/oneonone-classroom-new" element={
                 <ImprovedProtectedRoute>
                   <OneOnOneClassroomNew />
-                </ImprovedProtectedRoute>
-              } />
-              
-              <Route path="/speaking-practice" element={
-                <ImprovedProtectedRoute>
-                  <SpeakingPracticeDashboard />
-                </ImprovedProtectedRoute>
-              } />
-              
-              <Route path="/ai-conversation" element={
-                <ImprovedProtectedRoute>
-                  <AIConversationPractice />
-                </ImprovedProtectedRoute>
-              } />
-              
-              <Route path="/speaking-groups" element={
-                <ImprovedProtectedRoute>
-                  <SpeakingGroups />
-                </ImprovedProtectedRoute>
-              } />
-              
-              <Route path="/speaking-group/:id" element={
-                <ImprovedProtectedRoute>
-                  <SpeakingGroupSession />
-                </ImprovedProtectedRoute>
-              } />
-              
-              <Route path="/teacher/:id" element={
-                <ImprovedProtectedRoute>
-                  <TeacherProfile />
-                </ImprovedProtectedRoute>
-              } />
-              
-              <Route path="/booking-confirmation" element={
-                <ImprovedProtectedRoute>
-                  <BookingConfirmation />
-                </ImprovedProtectedRoute>
-              } />
-              
-              <Route path="/communities" element={
-                <ImprovedProtectedRoute>
-                  <Communities />
-                </ImprovedProtectedRoute>
-              } />
-              
-              <Route path="/community/:id" element={
-                <ImprovedProtectedRoute>
-                  <CommunityDetails />
-                </ImprovedProtectedRoute>
-              } />
-              
-              <Route path="/settings" element={
-                <ImprovedProtectedRoute>
-                  <Settings />
                 </ImprovedProtectedRoute>
               } />
             </Routes>

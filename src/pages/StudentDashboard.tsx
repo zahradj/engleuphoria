@@ -40,7 +40,7 @@ const StudentDashboard = () => {
     return newId;
   };
   
-  const studentName = user?.full_name || localStorage.getItem('studentName') || 'Student';
+  const studentName = user?.user_metadata?.full_name || localStorage.getItem('studentName') || user?.email?.split('@')[0] || 'Student';
   const studentId = generateStudentId();
 
   useEffect(() => {

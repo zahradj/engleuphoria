@@ -188,7 +188,7 @@ export const RealTimeCollaboration = ({ roomId }: { roomId: string }) => {
     const presence = supabase.channel(`presence_${roomId}`);
     await presence.track({
       id: user.id,
-      name: user.full_name,
+      name: user.user_metadata?.full_name || user.email || 'User',
       role: user.role,
       isOnline: true,
       hasAudio,
@@ -209,7 +209,7 @@ export const RealTimeCollaboration = ({ roomId }: { roomId: string }) => {
     }
 
     // Send join system message
-    await sendSystemMessage(`${user.full_name} joined the session`);
+    await sendSystemMessage(`${user.user_metadata?.full_name || user.email || 'User'} joined the session`);
   };
 
   const toggleAudio = async () => {
@@ -288,7 +288,7 @@ export const RealTimeCollaboration = ({ roomId }: { roomId: string }) => {
     const presence = supabase.channel(`presence_${roomId}`);
     await presence.track({
       id: user.id,
-      name: user.full_name,
+      name: user.user_metadata?.full_name || user.email || 'User',
       role: user.role,
       isOnline: true,
       hasAudio,
@@ -307,7 +307,7 @@ export const RealTimeCollaboration = ({ roomId }: { roomId: string }) => {
         .insert([{
           room_id: roomId,
           sender_id: user.id,
-          sender_name: user.full_name,
+          sender_name: user.user_metadata?.full_name || user.email || 'User',
           sender_role: user.role,
           content: newMessage,
           message_type: 'text'
@@ -342,7 +342,7 @@ export const RealTimeCollaboration = ({ roomId }: { roomId: string }) => {
   };
 
   const leaveSession = async () => {
-    await sendSystemMessage(`${user?.full_name} left the session`);
+    await sendSystemMessage(`${user?.user_metadata?.full_name || user?.email || 'User'} left the session`);
     cleanup();
     setIsConnected(false);
     

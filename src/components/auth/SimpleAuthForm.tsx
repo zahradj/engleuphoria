@@ -153,7 +153,6 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
         }
       } else {
         const { error } = await signUp(formData.email, formData.password, {
-          full_name: formData.fullName,
           role: formData.role
         });
 

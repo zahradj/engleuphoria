@@ -64,7 +64,6 @@ const TeacherSignUp = () => {
 
     try {
       const { data, error } = await signUp(values.email, values.password, {
-        full_name: values.fullName,
         role: 'teacher'
       });
 
