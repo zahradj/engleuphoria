@@ -118,7 +118,7 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
       
       <div className="w-full max-w-md space-y-6 relative z-10">
         <Card className="border-0 overflow-hidden" style={{ 
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255,255,255,0.85))', 
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.75))', 
           backdropFilter: 'blur(20px)',
           boxShadow: 'var(--shadow-fun), 0 0 0 1px hsl(var(--primary) / 0.1)'
         }}>
@@ -132,7 +132,7 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
                   <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary rounded-full blur-lg opacity-50 group-hover:opacity-75 transition-opacity"></div>
                   <div className="relative bg-white p-4 rounded-full shadow-lg border-2 border-primary/20">
                     <img 
-                      src="/lovable-uploads/32e54089-999a-4546-b2ee-5dc9bc60f841.png" 
+                      src="/lovable-uploads/f12c3468-7973-4cd5-a380-b4c18be3e69b.png" 
                       alt="Engleuphoria Logo" 
                       className="h-12 w-auto object-contain"
                     />
@@ -172,7 +172,7 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
                              style={{ background: 'linear-gradient(135deg, hsl(220 100% 65%), hsl(280 100% 65%))' }}>
                           <div className="absolute inset-0 bg-gradient-to-r from-white/30 to-transparent group-hover:from-white/40 transition-all"></div>
                           <img 
-                            src="/lovable-uploads/dacdeeea-21e1-4790-9f98-a906291e63a3.png" 
+                            src="/lovable-uploads/f12c3468-7973-4cd5-a380-b4c18be3e69b.png" 
                             alt="Logo" 
                             className="h-8 w-8 object-contain relative z-10 group-hover:scale-110 transition-transform"
                           />
@@ -223,7 +223,7 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
                     <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-white/20 to-transparent"></div>
                     {selectedRole === 'student' ? (
                       <img 
-                        src="/lovable-uploads/dacdeeea-21e1-4790-9f98-a906291e63a3.png" 
+                        src="/lovable-uploads/f12c3468-7973-4cd5-a380-b4c18be3e69b.png" 
                         alt="Logo" 
                         className="h-6 w-6 object-contain relative z-10"
                       />
