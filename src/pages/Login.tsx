@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { AuthForm } from '@/components/auth/AuthForm';
+import { SimpleAuthForm } from '@/components/auth/SimpleAuthForm';
 
 const Login = () => {
-  return <AuthForm mode="login" />;
+  return <SimpleAuthForm mode="login" />;
 };
 
 export default Login;
