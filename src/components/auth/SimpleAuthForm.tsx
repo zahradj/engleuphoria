@@ -209,17 +209,23 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
       : 'from-slate-900 via-violet-900 to-slate-900';
 
   return (
-    <div className={`min-h-screen relative overflow-hidden bg-gradient-to-br ${backgroundGradient}`}>
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+      {/* Playful background decorations */}
       <div className="absolute inset-0">
-        <div className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
-        <div className="absolute top-40 right-20 w-72 h-72 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse delay-1000"></div>
-        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-gradient-to-r from-pink-400/20 to-blue-400/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse delay-500"></div>
+        {/* Large floating orbs */}
+        <div className="absolute top-20 left-20 w-80 h-80 bg-gradient-to-r from-purple-300/30 to-pink-300/30 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
+        <div className="absolute top-40 right-20 w-72 h-72 bg-gradient-to-r from-blue-300/30 to-cyan-300/30 rounded-full mix-blend-multiply filter blur-2xl animate-float-delayed"></div>
+        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-gradient-to-r from-emerald-300/20 to-teal-300/20 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
         
-        <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-white/30 rounded-full animate-bounce"></div>
-        <div className="absolute top-3/4 right-1/4 w-1 h-1 bg-white/40 rounded-full animate-bounce delay-300"></div>
-        <div className="absolute top-1/2 left-3/4 w-1.5 h-1.5 bg-white/25 rounded-full animate-bounce delay-700"></div>
+        {/* Sparkling dots */}
+        <div className="absolute top-1/4 left-1/4 w-3 h-3 bg-yellow-400/60 rounded-full animate-bounce shadow-lg"></div>
+        <div className="absolute top-3/4 right-1/4 w-2 h-2 bg-pink-400/70 rounded-full animate-bounce delay-300 shadow-md"></div>
+        <div className="absolute top-1/2 left-3/4 w-2.5 h-2.5 bg-blue-400/60 rounded-full animate-bounce delay-700 shadow-lg"></div>
+        <div className="absolute top-1/6 right-1/3 w-1.5 h-1.5 bg-purple-400/80 rounded-full animate-bounce delay-1000"></div>
+        <div className="absolute bottom-1/4 left-1/3 w-3 h-3 bg-emerald-400/60 rounded-full animate-bounce delay-500 shadow-lg"></div>
         
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent opacity-20"></div>
+        {/* Subtle gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-white/20"></div>
       </div>
 
       <div className="relative z-10 container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
@@ -235,39 +241,34 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
             <p className="text-white/70 text-sm">Transform your English learning experience</p>
           </div>
 
-          <Card className="relative backdrop-blur-xl bg-white/40 border-white/50 shadow-2xl overflow-hidden">
-            <div className={`absolute -inset-1 bg-gradient-to-r ${gradientClass} rounded-lg blur opacity-20`}></div>
+          <Card className="relative bg-white/90 backdrop-blur-xl border-0 shadow-2xl overflow-hidden rounded-3xl">
+            {/* Glowing border effect */}
+            <div className={`absolute -inset-1 bg-gradient-to-r ${gradientClass} rounded-3xl blur-sm opacity-30`}></div>
             
-            <div className="relative bg-white/35 backdrop-blur-2xl border border-white/50 rounded-lg">
-              <CardHeader className="text-center pb-6 pt-8">
-                <div className="flex justify-center mb-6">
-                  <div className={`relative w-16 h-16 rounded-2xl bg-gradient-to-r ${gradientClass} flex items-center justify-center shadow-lg`}>
-                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/20 to-transparent"></div>
+            <div className="relative bg-white/95 backdrop-blur-xl rounded-3xl border border-white/60 shadow-inner">
+              <CardHeader className="text-center pb-8 pt-10">
+                {/* Fun floating icon */}
+                <div className="flex justify-center mb-8">
+                  <div className={`relative w-20 h-20 rounded-full bg-gradient-to-r ${gradientClass} flex items-center justify-center shadow-xl hover:scale-110 transition-transform duration-300`}>
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/30 to-transparent"></div>
+                    <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-yellow-300/40 to-pink-300/40 blur-md animate-pulse"></div>
                     {mode === 'login' ? (
-                      <img 
-                        src="/lovable-uploads/dacdeeea-21e1-4790-9f98-a906291e63a3.png" 
-                        alt="Logo" 
-                        className="h-8 w-8 object-contain relative z-10"
-                      />
+                      <Sparkles className="h-10 w-10 text-white relative z-10 animate-bounce" />
                     ) : formData.role === 'teacher' ? (
-                      <GraduationCap className="h-8 w-8 text-white relative z-10" />
+                      <GraduationCap className="h-10 w-10 text-white relative z-10" />
                     ) : (
-                      <img 
-                        src="/lovable-uploads/dacdeeea-21e1-4790-9f98-a906291e63a3.png" 
-                        alt="Logo" 
-                        className="h-8 w-8 object-contain relative z-10"
-                      />
+                      <BookOpen className="h-10 w-10 text-white relative z-10" />
                     )}
                   </div>
                 </div>
                 
-                <CardTitle className="text-2xl font-bold text-slate-800 mb-2">
-                  {mode === 'login' ? 'Welcome Back!' : 'Join the Revolution'}
+                <CardTitle className="text-3xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-3">
+                  {mode === 'login' ? '🎉 Welcome Back!' : '✨ Join the Magic!'}
                 </CardTitle>
-                <CardDescription className="text-slate-700 text-base">
+                <CardDescription className="text-slate-600 text-lg font-medium">
                   {mode === 'login' 
-                    ? 'Continue your learning journey with us'
-                    : 'Start your personalized English learning adventure'
+                    ? 'Ready to continue your amazing journey? 🚀'
+                    : 'Start your extraordinary English adventure today! 🌟'
                   }
                 </CardDescription>
               </CardHeader>
@@ -294,7 +295,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
                           placeholder="Enter your full name"
                           disabled={loading}
                           required
-                          className="h-12 pl-12 bg-white/30 border-slate-400/50 text-slate-800 placeholder:text-slate-600 focus:bg-white/40 focus:border-slate-500 transition-all duration-200"
+                          className="h-14 pl-12 bg-white/50 border-purple-200/60 text-slate-700 placeholder:text-slate-500 focus:bg-white/70 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all duration-300 rounded-xl shadow-sm hover:shadow-md"
                         />
                       </div>
                     </div>
@@ -314,7 +315,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
                         placeholder="your.email@example.com"
                         disabled={loading}
                         required
-                        className={`h-12 pl-12 bg-white/30 border-slate-400/50 text-slate-800 placeholder:text-slate-600 focus:bg-white/40 focus:border-slate-500 transition-all duration-200 ${emailError ? 'border-red-400/60' : ''}`}
+                        className={`h-14 pl-12 bg-white/50 border-purple-200/60 text-slate-700 placeholder:text-slate-500 focus:bg-white/70 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all duration-300 rounded-xl shadow-sm hover:shadow-md ${emailError ? 'border-red-400/80 focus:border-red-400' : ''}`}
                       />
                     </div>
                     {emailError && (
@@ -331,7 +332,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
                         id="role"
                         value={formData.role}
                         onChange={(e) => handleInputChange('role', e.target.value as 'student' | 'teacher' | 'admin')}
-                        className="w-full h-12 px-4 bg-white/30 border border-slate-400/50 text-slate-800 rounded-md focus:bg-white/40 focus:border-slate-500 transition-all duration-200"
+                        className="w-full h-14 px-4 bg-white/50 border border-purple-200/60 text-slate-700 rounded-xl focus:bg-white/70 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all duration-300 shadow-sm hover:shadow-md"
                         disabled={loading}
                       >
                         <option value="student" className="bg-white text-slate-800">Student - Learn & Grow</option>
@@ -354,25 +355,34 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
                         placeholder={mode === 'login' ? "Enter your password" : "Create a secure password"}
                         disabled={loading}
                         required
-                      className="h-12 pl-12 pr-12 bg-white/30 border-slate-400/50 text-slate-800 placeholder:text-slate-600 focus:bg-white/40 focus:border-slate-500 transition-all duration-200"
+                      className="h-14 pl-12 pr-12 bg-white/50 border-purple-200/60 text-slate-700 placeholder:text-slate-500 focus:bg-white/70 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all duration-300 rounded-xl shadow-sm hover:shadow-md"
                       />
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
                         onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 text-slate-600 hover:text-slate-800 hover:bg-white/20"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 h-10 w-10 p-0 text-slate-500 hover:text-purple-600 hover:bg-purple-100/50 rounded-lg transition-all duration-200"
                         disabled={loading}
                       >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                       </Button>
                     </div>
                     
                     {mode === 'signup' && formData.password && (
-                      <div className="mt-3 p-3 bg-white/20 rounded-lg backdrop-blur-sm border border-slate-300/40">
-                        <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs text-slate-700">Password Strength</span>
-                        <span className="text-xs text-slate-800 font-medium">{getPasswordStrength()}/4</span>
+                      <div className="mt-4 p-4 bg-gradient-to-r from-purple-50/80 to-pink-50/80 rounded-xl backdrop-blur-sm border border-purple-200/40 shadow-sm">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                            <Shield className="h-4 w-4 text-purple-500" />
+                            Password Strength
+                          </span>
+                          <span className={`text-sm font-bold px-2 py-1 rounded-full ${
+                            getPasswordStrength() >= 3 ? 'bg-green-100 text-green-700' : 
+                            getPasswordStrength() >= 2 ? 'bg-yellow-100 text-yellow-700' : 
+                            'bg-red-100 text-red-700'
+                          }`}>
+                            {getPasswordStrength()}/4
+                          </span>
                         </div>
                         <div className="flex gap-1 mb-3">
                           {[1, 2, 3, 4].map((i) => (

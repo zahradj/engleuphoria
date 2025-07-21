@@ -11,7 +11,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/hooks/useAuth";
-import { Eye, EyeOff, User, Mail, Lock, CheckCircle, BookOpen } from "lucide-react";
+import { Eye, EyeOff, User, Mail, Lock, CheckCircle, BookOpen, GraduationCap } from "lucide-react";
 import { ProgressIndicator } from "@/components/navigation/ProgressIndicator";
 import { BackNavigation } from "@/components/navigation/BackNavigation";
 import { Logo } from "@/components/Logo";
@@ -45,64 +45,70 @@ export const SignUpForm = () => {
     <div className="w-full max-w-md mx-auto">
       <BackNavigation to="/" label="Back to Home" className="mb-4" />
       
-      <Card className="w-full p-6 shadow-2xl relative overflow-hidden bg-white/95 backdrop-blur-sm animate-fade-in">
-        {/* Card inner glow effects */}
-        <div className="absolute -z-10 top-0 left-0 w-[80%] h-[80%] bg-purple/10 rounded-full blur-2xl"></div>
-        <div className="absolute -z-10 bottom-0 right-0 w-[60%] h-[60%] bg-teal/5 rounded-full blur-2xl"></div>
+      <Card className="w-full p-8 shadow-2xl relative overflow-hidden bg-white/95 backdrop-blur-sm animate-fade-in rounded-3xl border-0">
+        {/* Enhanced glow effects */}
+        <div className="absolute -z-10 top-0 left-0 w-[90%] h-[90%] bg-gradient-to-br from-purple-300/20 to-pink-300/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -z-10 bottom-0 right-0 w-[70%] h-[70%] bg-gradient-to-tl from-blue-300/15 to-cyan-300/15 rounded-full blur-2xl animate-pulse delay-1000"></div>
+        <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-3xl blur-sm"></div>
       
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-6">
-            <Logo size="large" />
+        <div className="text-center mb-10 relative">
+          <div className="flex justify-center mb-8">
+            <div className="relative">
+              <div className="absolute -inset-2 bg-gradient-to-r from-yellow-300/40 to-pink-300/40 rounded-full blur-lg animate-pulse"></div>
+              <Logo size="large" className="relative hover:scale-110 transition-transform duration-300" />
+            </div>
           </div>
-          <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
-            Join Engleuphoria
+          <h2 className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-4">
+            🌟 Join EnglEuphoria! 🌟
           </h2>
-          <p className="text-muted-foreground">Choose how you'd like to get started</p>
+          <p className="text-slate-600 text-lg font-medium">Choose your adventure and let the magic begin! ✨</p>
         </div>
         
-        <div className="space-y-4">
+        <div className="space-y-6">
           <Button 
             onClick={() => handleRoleSelection('student')}
-            className="w-full h-16 text-left bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 border border-blue-200 text-gray-800"
+            className="w-full h-20 text-left bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 border-2 border-blue-200 hover:border-blue-300 text-gray-800 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 rounded-2xl group"
             variant="outline"
           >
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                <BookOpen className="h-6 w-6 text-white" />
+            <div className="flex items-center space-x-5">
+              <div className="relative w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-full"></div>
+                <BookOpen className="h-7 w-7 text-white relative z-10" />
               </div>
               <div className="text-left">
-                <div className="font-semibold text-lg">I'm a Student</div>
-                <div className="text-sm text-muted-foreground">Start your English learning journey</div>
+                <div className="font-bold text-xl text-blue-700 group-hover:text-blue-800">📚 I'm a Student</div>
+                <div className="text-base text-slate-600 font-medium">Start your magical learning journey!</div>
               </div>
             </div>
           </Button>
           
           <Button 
             onClick={() => handleRoleSelection('teacher')}
-            className="w-full h-16 text-left bg-gradient-to-r from-emerald-50 to-blue-50 hover:from-emerald-100 hover:to-blue-100 border border-emerald-200 text-gray-800"
+            className="w-full h-20 text-left bg-gradient-to-r from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 border-2 border-emerald-200 hover:border-emerald-300 text-gray-800 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 rounded-2xl group"
             variant="outline"
           >
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-blue-500 rounded-full flex items-center justify-center">
-                <User className="h-6 w-6 text-white" />
+            <div className="flex items-center space-x-5">
+              <div className="relative w-14 h-14 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-full"></div>
+                <GraduationCap className="h-7 w-7 text-white relative z-10" />
               </div>
               <div className="text-left">
-                <div className="font-semibold text-lg">I'm a Teacher</div>
-                <div className="text-sm text-muted-foreground">Join our teaching community</div>
+                <div className="font-bold text-xl text-emerald-700 group-hover:text-emerald-800">🎓 I'm a Teacher</div>
+                <div className="text-base text-slate-600 font-medium">Join our inspiring community!</div>
               </div>
             </div>
           </Button>
         </div>
         
-        <div className="mt-8 text-center">
-          <p className="text-sm text-muted-foreground">
-            Already have an account?{" "}
+        <div className="mt-10 text-center bg-gradient-to-r from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-200">
+          <p className="text-lg text-slate-600 font-medium">
+            Already part of our family? 👋{" "}
             <Button 
               variant="link" 
-              className="p-0 h-auto font-semibold text-purple-600 hover:text-purple-700" 
+              className="p-0 h-auto font-bold text-xl bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent hover:from-purple-700 hover:to-pink-700 transition-all duration-200" 
               onClick={() => navigate('/login')}
             >
-              Log In
+              ✨ Welcome back! ✨
             </Button>
           </p>
         </div>
