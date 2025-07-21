@@ -15,6 +15,8 @@ import ForParents from "./pages/ForParents";
 import ForTeachers from "./pages/ForTeachers";
 import AboutUs from "./pages/AboutUs";
 import NotFound from "./pages/NotFound";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import { AuthRedirect } from "./components/auth/AuthRedirect";
 
 // Classroom and Learning pages
 import OneOnOneClassroomNew from "./pages/OneOnOneClassroomNew";
@@ -34,24 +36,62 @@ function App() {
           <div className="min-h-screen bg-background">
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route path="/dashboard" element={<StudentDashboard />} />
+              <Route path="/login" element={
+                <AuthRedirect>
+                  <Login />
+                </AuthRedirect>
+              } />
+              <Route path="/signup" element={
+                <AuthRedirect>
+                  <SignUp />
+                </AuthRedirect>
+              } />
               <Route path="/for-parents" element={<ForParents />} />
               <Route path="/for-teachers" element={<ForTeachers />} />
               <Route path="/about" element={<AboutUs />} />
               
-              {/* Classroom Routes */}
-              <Route path="/oneonone-classroom-new" element={<OneOnOneClassroomNew />} />
-              <Route path="/classroom/:classId" element={<OneOnOneClassroomNew />} />
+              {/* Protected Routes - Require Authentication */}
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <StudentDashboard />
+                </ProtectedRoute>
+              } />
               
-              {/* Learning Routes */}
-              <Route path="/whiteboard" element={<WhiteboardPage />} />
-              <Route path="/speaking-practice" element={<SpeakingPractice />} />
+              {/* Classroom Routes - Protected */}
+              <Route path="/oneonone-classroom-new" element={
+                <ProtectedRoute>
+                  <OneOnOneClassroomNew />
+                </ProtectedRoute>
+              } />
+              <Route path="/classroom/:classId" element={
+                <ProtectedRoute>
+                  <OneOnOneClassroomNew />
+                </ProtectedRoute>
+              } />
               
-              {/* Teacher Routes */}
-              <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
-              <Route path="/lesson-creator" element={<LessonPlanCreator />} />
+              {/* Learning Routes - Protected */}
+              <Route path="/whiteboard" element={
+                <ProtectedRoute>
+                  <WhiteboardPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/speaking-practice" element={
+                <ProtectedRoute>
+                  <SpeakingPractice />
+                </ProtectedRoute>
+              } />
+              
+              {/* Teacher Routes - Protected */}
+              <Route path="/teacher-dashboard" element={
+                <ProtectedRoute requiredRole="teacher">
+                  <TeacherDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/lesson-creator" element={
+                <ProtectedRoute requiredRole="teacher">
+                  <LessonPlanCreator />
+                </ProtectedRoute>
+              } />
               
               {/* 404 Route */}
               <Route path="*" element={<NotFound />} />
