@@ -66,7 +66,7 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
           return;
         }
 
-        await signUp(values.email, values.password, selectedRole);
+        await signUp(values.email, values.password, { role: selectedRole });
         toast({
           title: "Signup Successful",
           description: "Your account has been created.",

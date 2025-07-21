@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { createClient } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
 
 interface TranslationRequest {
@@ -8,6 +8,11 @@ interface TranslationRequest {
   targetLanguage: string;
   context?: string;
 }
+
+const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL!,
+  import.meta.env.VITE_SUPABASE_ANON_KEY!
+);
 
 export const useTranslationManager = () => {
   const [isTranslating, setIsTranslating] = useState(false);
