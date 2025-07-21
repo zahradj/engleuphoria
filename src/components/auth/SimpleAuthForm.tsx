@@ -118,13 +118,13 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
       
       <div className="w-full max-w-md space-y-6 relative z-10">
         <Card className="border-0 overflow-hidden" style={{ 
-          background: 'linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.75))', 
-          backdropFilter: 'blur(20px)',
-          boxShadow: 'var(--shadow-fun), 0 0 0 1px hsl(var(--primary) / 0.1)'
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(248,250,252,0.9))', 
+          backdropFilter: 'blur(25px)',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px hsl(var(--primary) / 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
         }}>
           <CardHeader className="space-y-6 pb-8 relative">
-            {/* Fun Header Background */}
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-secondary/5 to-accent/5 rounded-t-lg"></div>
+            {/* Enhanced Header Background */}
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-secondary/6 to-accent/8 rounded-t-lg border-b border-white/20"></div>
             
             <div className="flex flex-col items-center space-y-4 relative z-10">
               <div className="flex justify-center">
@@ -210,7 +210,10 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
           </CardHeader>
 
           {(mode === 'login' || selectedRole) && (
-            <CardContent className="space-y-6 animate-fade-in" style={{ animationDelay: '0.6s' }}>
+            <CardContent className="space-y-6 animate-fade-in relative" style={{ animationDelay: '0.6s' }}>
+              {/* Enhanced Content Background */}
+              <div className="absolute inset-0 bg-gradient-to-b from-white/40 to-white/60 rounded-lg -mx-6 -my-6"></div>
+              <div className="relative z-10">
               {mode !== 'login' && selectedRole && (
                 <div className="flex items-center justify-center space-x-3 p-4 rounded-lg border-2" 
                      style={{ 
@@ -387,37 +390,54 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
 
                   <Button 
                     type="submit" 
-                    className="w-full text-lg font-semibold py-6 transition-all duration-300 hover:scale-105 hover:shadow-lg border-0" 
+                    className="w-full text-lg font-bold py-6 transition-all duration-300 hover:scale-105 hover:shadow-xl border-0 text-white relative overflow-hidden group" 
                     style={{ 
-                      background: 'var(--gradient-primary)',
-                      boxShadow: 'var(--shadow-soft)'
+                      background: mode === 'login' 
+                        ? 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)))' 
+                        : 'linear-gradient(135deg, hsl(var(--accent)), hsl(var(--orange)))',
+                      boxShadow: mode === 'login'
+                        ? '0 8px 25px hsl(var(--primary) / 0.4), 0 0 0 1px hsl(var(--primary) / 0.2)'
+                        : '0 8px 25px hsl(var(--accent) / 0.4), 0 0 0 1px hsl(var(--accent) / 0.2)'
                     }}
                     disabled={isLoading}
                   >
+                    {/* Button glow effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <div className="relative z-10">
                     {isLoading ? (
                       <div className="flex items-center space-x-2">
                         <div className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
                         <span>{mode === 'login' ? t('signingIn', 'Signing in...') : t('creatingAccount', 'Creating account...')}</span>
                       </div>
                     ) : (
-                      <span className="flex items-center space-x-2">
+                      <span className="flex items-center justify-center space-x-2">
                         <span>{mode === 'login' ? t('signIn', 'Sign In') : t('createAccount')}</span>
                         <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                       </span>
                     )}
+                    </div>
                   </Button>
                 </form>
               </Form>
+              </div>
             </CardContent>
           )}
 
-          <CardFooter className="justify-center pb-8">
-            <p className="text-sm text-muted-foreground">
+          <CardFooter className="justify-center pb-8 relative">
+            {/* Footer background for better separation */}
+            <div className="absolute inset-0 bg-gradient-to-t from-white/30 to-transparent rounded-b-lg"></div>
+            <p className="text-sm text-muted-foreground relative z-10">
               {mode === 'login' ? t('dontHaveAccount') : t('alreadyHaveAccount')}{" "}
               <Button 
                 variant="link" 
-                className="p-0 h-auto font-semibold hover:scale-105 transition-transform" 
-                style={{ color: 'hsl(var(--secondary))' }}
+                className="p-0 h-auto font-bold text-lg hover:scale-110 transition-all duration-200 underline-offset-4" 
+                style={{ 
+                  background: mode === 'login' 
+                    ? 'linear-gradient(135deg, hsl(var(--accent)), hsl(var(--orange)))' 
+                    : 'linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)))',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent'
+                }}
                 onClick={toggleMode}
               >
                 {mode === 'login' ? t('signUp') : t('logIn')}
