@@ -1,5 +1,6 @@
 
 import React, { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { StudentSidebar } from "./StudentSidebar";
 import { DashboardTab } from "./DashboardTab";
 import { ProfileTab } from "./ProfileTab";
@@ -11,7 +12,6 @@ import { ChatTab } from "./ChatTab";
 import { BillingTab } from "./BillingTab";
 import { CertificatesTab } from "./CertificatesTab";
 import { SettingsTab } from "./SettingsTab";
-import { useToast } from "@/hooks/use-toast";
 
 interface StudentPanelProps {
   studentId?: string;
@@ -27,14 +27,7 @@ export const StudentPanel = ({
   const [activeTab, setActiveTab] = useState("dashboard");
   const [hasProfile, setHasProfile] = useState(false);
   const [studentProfile, setStudentProfile] = useState<any>(null);
-  const { toast } = useToast();
-
-  const handleLogout = () => {
-    toast({
-      title: "Logged Out",
-      description: "You have been successfully logged out.",
-    });
-  };
+  const { signOut } = useAuth();
 
   const renderActiveTab = () => {
     switch (activeTab) {
@@ -68,7 +61,7 @@ export const StudentPanel = ({
       <StudentSidebar 
         activeTab={activeTab} 
         setActiveTab={setActiveTab}
-        onLogout={handleLogout}
+        onLogout={signOut}
       />
       
       <div className="flex-1 flex flex-col overflow-hidden">

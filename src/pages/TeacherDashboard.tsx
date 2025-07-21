@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { TeacherSidebar } from "@/components/teacher/TeacherSidebar";
 import { TeacherHeader } from "@/components/teacher/TeacherHeader";
@@ -24,35 +25,32 @@ type TabType = 'dashboard' | 'profile' | 'calendar' | 'students' | 'reading-libr
 
 const TeacherDashboard = () => {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
-  const [teacherName, setTeacherName] = useState("");
-  const [teacherId, setTeacherId] = useState("");
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  useEffect(() => {
-    const storedTeacherName = localStorage.getItem("teacherName");
-    const storedTeacherId = localStorage.getItem("teacherId") || "teacher-1";
-    const userType = localStorage.getItem("userType");
+  // Use the authenticated user's information
+  const teacherName = user?.full_name || user?.email || "Teacher";
+  const teacherId = user?.id || "";
 
-    if (!storedTeacherName || userType !== "teacher") {
+  useEffect(() => {
+    // If no user is logged in, redirect to login
+    if (!user) {
       navigate("/login");
       return;
     }
 
-    setTeacherName(storedTeacherName);
-    setTeacherId(storedTeacherId);
-  }, [navigate]);
-
-  const handleLogout = () => {
-    localStorage.removeItem("teacherName");
-    localStorage.removeItem("teacherId");
-    localStorage.removeItem("userType");
-    toast({
-      title: "Logged out successfully",
-      description: "See you next time!",
-    });
-    navigate("/");
-  };
+    // If user is not a teacher, redirect to appropriate dashboard
+    if (user.role !== "teacher") {
+      if (user.role === "student") {
+        navigate("/student");
+      } else if (user.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/login");
+      }
+    }
+  }, [user, navigate]);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab as TabType);
@@ -103,6 +101,18 @@ const TeacherDashboard = () => {
     );
   };
 
+  // Show loading if user is still being fetched
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 via-indigo-50 to-white">
       <div className="flex h-screen">
@@ -112,7 +122,7 @@ const TeacherDashboard = () => {
             <MobileTeacherNav 
               activeTab={activeTab}
               setActiveTab={handleTabChange}
-              onLogout={handleLogout}
+              onLogout={signOut}
               teacherName={teacherName}
             />
             <main className="flex-1 overflow-y-auto p-4">
@@ -126,7 +136,7 @@ const TeacherDashboard = () => {
           <TeacherSidebar 
             activeTab={activeTab} 
             setActiveTab={handleTabChange}
-            onLogout={handleLogout}
+            onLogout={signOut}
           />
           
           <div className="flex-1 flex flex-col overflow-hidden">

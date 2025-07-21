@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/index/Header';
 import { StudentSidebar } from '@/components/student/StudentSidebar';
 import { TeacherSidebar } from '@/components/teacher/TeacherSidebar';

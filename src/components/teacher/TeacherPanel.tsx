@@ -1,6 +1,7 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 import { TeacherSidebar } from "./TeacherSidebar";
 import { DashboardTab } from "./DashboardTab";
 import { EnhancedCalendarTab } from "./EnhancedCalendarTab";
@@ -16,7 +17,6 @@ import { AIAssistantTab } from "./AIAssistantTab";
 import { ReadingLibraryTab } from "./ReadingLibraryTab";
 import { BackendTab } from "./BackendTab";
 import { EnhancedEnterpriseHub } from "../enterprise/enhanced/EnhancedEnterpriseHub";
-import { useToast } from "@/hooks/use-toast";
 
 interface TeacherPanelProps {
   teacherId?: string;
@@ -28,14 +28,7 @@ export const TeacherPanel = ({
   teacherName = "Ms. Sarah" 
 }: TeacherPanelProps) => {
   const [activeTab, setActiveTab] = useState("dashboard");
-  const { toast } = useToast();
-
-  const handleLogout = () => {
-    toast({
-      title: "Logged Out",
-      description: "You have been successfully logged out.",
-    });
-  };
+  const { signOut } = useAuth();
 
   const renderActiveTab = () => {
     switch (activeTab) {
@@ -77,7 +70,7 @@ export const TeacherPanel = ({
       <TeacherSidebar 
         activeTab={activeTab} 
         setActiveTab={setActiveTab}
-        onLogout={handleLogout}
+        onLogout={signOut}
       />
       
       <div className="flex-1 flex flex-col overflow-hidden">
