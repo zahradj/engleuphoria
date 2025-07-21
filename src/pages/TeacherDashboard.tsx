@@ -30,7 +30,7 @@ const TeacherDashboard = () => {
   const { toast } = useToast();
 
   // Use the authenticated user's information
-  const teacherName = user?.full_name || user?.email || "Teacher";
+  const teacherName = user?.user_metadata?.full_name || user?.email || "Teacher";
   const teacherId = user?.id || "";
 
   useEffect(() => {
