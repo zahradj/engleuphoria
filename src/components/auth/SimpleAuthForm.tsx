@@ -99,7 +99,7 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/30 p-4">
       <div className="absolute top-4 right-4 z-10">
-        <ModernLanguageSwitcher size="sm" showText={false} />
+        <ModernLanguageSwitcher size="sm" />
       </div>
       
       <div className="w-full max-w-md space-y-6">

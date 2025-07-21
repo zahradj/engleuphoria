@@ -15,15 +15,13 @@ export const navigationTranslations = {
   support: "Support",
   
   // Auth
-  auth: {
-    logIn: "Log In",
-    signUp: "Sign Up",
-    signOut: "Sign Out",
-    forgotPassword: "Forgot Password?",
-    resetPassword: "Reset Password",
-    createAccount: "Create Account",
-    welcomeBack: "Welcome Back",
-    dontHaveAccount: "Don't have an account?",
-    alreadyHaveAccount: "Already have an account?",
-  }
+  authLogIn: "Log In",
+  authSignUp: "Sign Up", 
+  authSignOut: "Sign Out",
+  authForgotPassword: "Forgot Password?",
+  authResetPassword: "Reset Password",
+  authCreateAccount: "Create Account",
+  authWelcomeBack: "Welcome Back",
+  authDontHaveAccount: "Don't have an account?",
+  authAlreadyHaveAccount: "Already have an account?"
 };

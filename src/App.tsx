@@ -9,21 +9,16 @@ import i18n from '@/lib/i18n';
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
-import Dashboard from "./pages/Dashboard";
+import StudentDashboard from "./pages/StudentDashboard";
 import ForParents from "./pages/ForParents";
 import ForTeachers from "./pages/ForTeachers";
-import About from "./pages/About";
+import AboutUs from "./pages/AboutUs";
 import NotFound from "./pages/NotFound";
 
 // Classroom and Learning pages
-import OneononeClassroomNew from "./pages/OneononeClassroomNew";
-import StudyCalendar from "./pages/StudyCalendar";
-import VocabularyPractice from "./pages/VocabularyPractice";
-import ResourceLibrary from "./pages/ResourceLibrary";
-import Whiteboard from "./pages/Whiteboard";
-import InteractiveStories from "./pages/InteractiveStories";
-import Achievements from "./pages/Achievements";
-import ProgressTracker from "./pages/ProgressTracker";
+import OneOnOneClassroomNew from "./pages/OneOnOneClassroomNew";
+import WhiteboardPage from "./pages/WhiteboardPage";
+import SpeakingPractice from "./pages/student/SpeakingPractice";
 
 // Teacher pages
 import TeacherDashboard from "./pages/TeacherDashboard";
@@ -39,23 +34,18 @@ function App() {
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignUp />} />
-              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/dashboard" element={<StudentDashboard />} />
               <Route path="/for-parents" element={<ForParents />} />
               <Route path="/for-teachers" element={<ForTeachers />} />
-              <Route path="/about" element={<About />} />
+              <Route path="/about" element={<AboutUs />} />
               
               {/* Classroom Routes */}
-              <Route path="/oneonone-classroom-new" element={<OneononeClassroomNew />} />
-              <Route path="/classroom/:classId" element={<OneononeClassroomNew />} />
+              <Route path="/oneonone-classroom-new" element={<OneOnOneClassroomNew />} />
+              <Route path="/classroom/:classId" element={<OneOnOneClassroomNew />} />
               
               {/* Learning Routes */}
-              <Route path="/calendar" element={<StudyCalendar />} />
-              <Route path="/vocabulary" element={<VocabularyPractice />} />
-              <Route path="/resources" element={<ResourceLibrary />} />
-              <Route path="/whiteboard" element={<Whiteboard />} />
-              <Route path="/stories" element={<InteractiveStories />} />
-              <Route path="/achievements" element={<Achievements />} />
-              <Route path="/progress" element={<ProgressTracker />} />
+              <Route path="/whiteboard" element={<WhiteboardPage />} />
+              <Route path="/speaking-practice" element={<SpeakingPractice />} />
               
               {/* Teacher Routes */}
               <Route path="/teacher-dashboard" element={<TeacherDashboard />} />

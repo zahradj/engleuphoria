@@ -40,9 +40,13 @@ export const TranslationManager = () => {
         return;
       }
 
-      const missingTexts = Object.fromEntries(
-        missingKeys.map(key => [key, englishTranslations[key as keyof typeof englishTranslations]])
-      );
+      const missingTexts: Record<string, string> = {};
+      for (const key of missingKeys) {
+        const value = (englishTranslations as any)[key];
+        if (typeof value === 'string') {
+          missingTexts[key] = value;
+        }
+      }
 
       const translated = await translateMissingKeys(missingTexts, languageCode);
       
