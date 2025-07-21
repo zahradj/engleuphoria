@@ -2,6 +2,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { I18nextProvider } from 'react-i18next';
 import i18n from '@/lib/i18n';
 
@@ -27,7 +28,8 @@ import LessonPlanCreator from "./pages/LessonPlanCreator";
 function App() {
   return (
     <I18nextProvider i18n={i18n}>
-      <LanguageProvider>
+      <AuthProvider>
+        <LanguageProvider>
         <Router>
           <div className="min-h-screen bg-background">
             <Routes>
@@ -58,6 +60,7 @@ function App() {
           </div>
         </Router>
       </LanguageProvider>
+      </AuthProvider>
     </I18nextProvider>
   );
 }
