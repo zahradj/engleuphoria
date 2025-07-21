@@ -67,11 +67,6 @@ export const ContentLibraryTab = ({
                   <p className="text-xs text-gray-600">
                     Generated: {new Date(content.metadata.generatedAt).toLocaleDateString()}
                   </p>
-                  {content.metadata.isMockData && (
-                    <Badge variant="outline" className="text-xs text-yellow-600">
-                      Demo Content
-                    </Badge>
-                  )}
                 </div>
                 <div className="flex gap-2">
                   <Button size="sm" variant="outline" onClick={() => handleDownload(content)}>

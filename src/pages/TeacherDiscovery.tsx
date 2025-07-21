@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { TeacherProfile } from "@/types/teacher-discovery";
-import { getTeachers } from "@/data/teachers";
+import { supabase } from "@/lib/supabase";
 import { TeacherSearchFilters } from "@/components/teacher-discovery/TeacherSearchFilters";
 import { TeacherCard } from "@/components/teacher-discovery/TeacherCard";
 import { useTeacherFilters } from "@/hooks/useTeacherFilters";
@@ -36,17 +36,32 @@ const TeacherDiscovery = () => {
 
   const fetchTeachers = async () => {
     try {
-      console.log('Loading teachers data...');
-      const teachersData = await getTeachers();
-      setTeachers(teachersData);
-      console.log('Teachers loaded:', teachersData);
+      console.log('Loading teachers from database...');
+      
+      // Fetch teachers from the get_approved_teachers function
+      const { data: teachersData, error } = await supabase.rpc('get_approved_teachers');
+      
+      if (error) {
+        console.error('Error fetching teachers:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load teachers. Please try again later.",
+          variant: "destructive"
+        });
+        setTeachers([]);
+        return;
+      }
+
+      setTeachers(teachersData || []);
+      console.log('Teachers loaded from database:', teachersData);
     } catch (error) {
       console.error('Error fetching teachers:', error);
       toast({
         title: "Error",
-        description: "Failed to load teachers",
+        description: "Failed to load teachers. Please check your connection.",
         variant: "destructive"
       });
+      setTeachers([]);
     } finally {
       setLoading(false);
     }

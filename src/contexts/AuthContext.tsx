@@ -24,31 +24,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [error, setError] = useState<string | null>(null);
   const [isConfigured] = useState(isSupabaseConfigured());
 
-  // Function to create demo user from localStorage
-  const createDemoUser = (): User | null => {
-    const userType = localStorage.getItem('userType');
-    const mockEmail = localStorage.getItem('mockUserEmail');
-    
-    if (!userType) return null;
-
-    const email = mockEmail || `demo-${userType}@example.com`;
-    const isAdminEmail = email === 'f.zahra.djaanine@engleuphoria.com';
-    const finalUserType = isAdminEmail ? 'admin' : userType;
-    
-    const nameKey = finalUserType === 'admin' ? 'adminName' : 
-                   finalUserType === 'teacher' ? 'teacherName' : 'studentName';
-    const fullName = localStorage.getItem(nameKey) || email.split('@')[0];
-
-    return {
-      id: isAdminEmail ? 'admin-f-zahra' : `demo-${userType}-${Date.now()}`,
-      email,
-      role: finalUserType as 'student' | 'teacher' | 'parent' | 'admin',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      user_metadata: { full_name: fullName }
-    } as any;
-  };
-
   // Function to fetch user data from database
   const fetchUserFromDatabase = async (userId: string): Promise<User | null> => {
     try {
@@ -82,12 +57,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } as any;
   };
 
-  // Function to refresh user state
+  // Function to refresh user state (not used in production)
   const refreshUser = () => {
-    if (!isConfigured) {
-      const demoUser = createDemoUser();
-      setUser(demoUser);
-    }
+    // Only for compatibility - no demo mode in production
   };
 
   useEffect(() => {
@@ -98,27 +70,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setError(null);
         
         if (!isConfigured) {
-          // Demo mode: load user from localStorage
-          const demoUser = createDemoUser();
-          if (mounted) {
-            setUser(demoUser);
-            setLoading(false);
-          }
-          
-          // Listen for custom auth events
-          const handleAuthChange = () => {
-            if (mounted) {
-              const updatedDemoUser = createDemoUser();
-              setUser(updatedDemoUser);
-            }
-          };
-          
-          window.addEventListener('authStateChanged', handleAuthChange);
-          
-          return () => {
-            mounted = false;
-            window.removeEventListener('authStateChanged', handleAuthChange);
-          };
+          setError('Supabase not configured. Please check your environment setup.');
+          setLoading(false);
+          return;
         }
 
         // Supabase mode: set up auth state listener first
@@ -212,7 +166,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signUp = async (email: string, password: string, userData: Partial<User>) => {
     if (!isConfigured) {
-      return { data: null, error: new Error('Supabase not configured') };
+      return { data: null, error: new Error('Supabase not configured. Please check your environment setup.') };
     }
 
     try {
@@ -239,7 +193,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     if (!isConfigured) {
-      return { data: null, error: new Error('Supabase not configured') };
+      return { data: null, error: new Error('Supabase not configured. Please check your environment setup.') };
     }
 
     try {
@@ -260,21 +214,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setError(null);
       
       if (!isConfigured) {
-        // Clear demo mode data
-        localStorage.removeItem('userType');
-        localStorage.removeItem('mockUserEmail');
-        localStorage.removeItem('adminName');
-        localStorage.removeItem('teacherName');
-        localStorage.removeItem('studentName');
-        setUser(null);
-        setSession(null);
-        
-        // Dispatch auth change event
-        window.dispatchEvent(new CustomEvent('authStateChanged'));
-        
-        // Force redirect to home page
-        window.location.href = '/';
-        return { error: null };
+        setError('Supabase not configured. Please check your environment setup.');
+        return { error: new Error('Supabase not configured') };
       }
 
       // Clear user state immediately

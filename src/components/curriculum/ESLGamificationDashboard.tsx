@@ -26,13 +26,8 @@ export function ESLGamificationDashboard({ refreshTrigger }: ESLGamificationDash
     setBadgeSystem(eslCurriculumService.getBadgeSystem());
   }, [refreshTrigger]);
 
-  const mockLeaderboard = [
-    { name: 'Emma Rodriguez', xp: 2150, level: 'B1', badge: '🏆' },
-    { name: 'Alex Chen', xp: 1890, level: 'A2', badge: '🥈' },
-    { name: 'Maria Silva', xp: 1720, level: 'A2', badge: '🥉' },
-    { name: 'You', xp: 1350, level: 'A2', badge: '🌟' },
-    { name: 'John Smith', xp: 1200, level: 'A2', badge: '⭐' }
-  ];
+  // Remove mock leaderboard data - in production this would come from Supabase
+  const mockLeaderboard: any[] = [];
 
   if (!badgeSystem) return <div>Loading gamification data...</div>;
 
@@ -176,7 +171,7 @@ export function ESLGamificationDashboard({ refreshTrigger }: ESLGamificationDash
         </CardContent>
       </Card>
 
-      {/* Leaderboard */}
+      {/* Leaderboard - No mock data in production */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -185,31 +180,10 @@ export function ESLGamificationDashboard({ refreshTrigger }: ESLGamificationDash
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {mockLeaderboard.map((student, index) => (
-              <Card 
-                key={student.name} 
-                className={`p-3 ${student.name === 'You' ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold">
-                      {index + 1}
-                    </div>
-                    <div>
-                      <h5 className="font-medium text-sm">{student.name}</h5>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-xs">
-                          {student.level}
-                        </Badge>
-                        <span className="text-xs text-gray-500">{student.xp} XP</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-2xl">{student.badge}</div>
-                </div>
-              </Card>
-            ))}
+          <div className="text-center py-8">
+            <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500 mb-2">No leaderboard data available</p>
+            <p className="text-sm text-gray-400">Complete lessons to see your ranking</p>
           </div>
         </CardContent>
       </Card>

@@ -129,8 +129,8 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
     try {
       if (!isConfigured) {
         toast({
-          title: "Demo Mode",
-          description: "Supabase not configured. Use the demo login on the home page.",
+          title: "Authentication Error",
+          description: "Supabase not configured. Please check your environment setup.",
           variant: "destructive",
         });
         return;

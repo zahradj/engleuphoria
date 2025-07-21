@@ -21,7 +21,7 @@ export interface AIGeneratedContent {
     generatedAt: string;
     model?: string;
     isAIGenerated: boolean;
-    isMockData?: boolean;
+    
     generationTime?: number;
     isFallback?: boolean;
     fallbackReason?: string;

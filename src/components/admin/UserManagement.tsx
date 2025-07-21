@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, Filter, MoreHorizontal, UserPlus } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Search, Filter, MoreHorizontal, UserPlus, Trash2, Edit } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
 
 interface User {
   id: string;
@@ -19,36 +21,45 @@ export const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState<string>('all');
 
-  // Mock data - in production this would come from APIs
-  const users: User[] = [
-    {
-      id: '1',
-      name: 'Ahmed Ben Ali',
-      email: 'ahmed@example.com',
-      role: 'student',
-      status: 'active',
-      joinDate: '2024-01-15',
-      lastLogin: '2024-06-14'
-    },
-    {
-      id: '2',
-      name: 'Sarah Johnson',
-      email: 'sarah.j@example.com',
-      role: 'teacher',
-      status: 'active',
-      joinDate: '2024-02-10',
-      lastLogin: '2024-06-13'
-    },
-    {
-      id: '3',
-      name: 'Fatima Zahra',
-      email: 'fatima@example.com',
-      role: 'student',
-      status: 'inactive',
-      joinDate: '2024-03-05',
-      lastLogin: '2024-06-01'
-    },
-  ];
+  // Fetch real users from Supabase
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const { data: usersData, error } = await supabase
+          .from('users')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error fetching users:', error);
+          setUsers([]);
+          return;
+        }
+
+        const transformedUsers: User[] = (usersData || []).map((user: any) => ({
+          id: user.id,
+          name: user.full_name || user.email || 'Unknown User',
+          email: user.email,
+          role: user.role,
+          status: 'active', // You might want to add a status field to your users table
+          joinDate: new Date(user.created_at).toISOString().split('T')[0],
+          lastLogin: new Date(user.updated_at).toISOString().split('T')[0]
+        }));
+
+        setUsers(transformedUsers);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        setUsers([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
