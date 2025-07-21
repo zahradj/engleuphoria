@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowRight, Eye, EyeOff, GraduationCap, Lock, Mail, User, X, Home } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { ModernLanguageSwitcher } from '@/components/common/ModernLanguageSwitcher';
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 
 interface SimpleAuthFormProps {
   mode?: 'login' | 'signup';
