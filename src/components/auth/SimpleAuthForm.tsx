@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
@@ -10,7 +10,7 @@ import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { ArrowRight, Eye, EyeOff, GraduationCap, Lock, Mail, User, X } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, GraduationCap, Lock, Mail, User, X, Home } from "lucide-react";
 import { useTranslation } from 'react-i18next';
 import { ModernLanguageSwitcher } from '@/components/common/ModernLanguageSwitcher';
 
@@ -108,6 +108,19 @@ export const SimpleAuthForm = ({ mode = 'login' }: SimpleAuthFormProps) => {
         {/* Floating Shapes */}
         <div className="absolute top-1/3 left-1/4 w-8 h-8 bg-primary/30 rotate-45 animate-spin" style={{ animationDuration: '8s' }}></div>
         <div className="absolute bottom-1/3 right-1/4 w-6 h-6 bg-secondary/40 rounded-full animate-ping" style={{ animationDelay: '3s' }}></div>
+      </div>
+
+      <div className="absolute top-4 left-4 z-10">
+        <Link to="/">
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="bg-white/90 backdrop-blur-sm border-2 border-primary/20 hover:border-primary/40 hover:bg-white transition-all duration-300 shadow-lg"
+          >
+            <Home className="h-4 w-4 mr-2 text-primary" />
+            <span className="font-medium text-primary">Home</span>
+          </Button>
+        </Link>
       </div>
 
       <div className="absolute top-4 right-4 z-10">
