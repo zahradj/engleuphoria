@@ -244,11 +244,19 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
                   <div className={`relative w-16 h-16 rounded-2xl bg-gradient-to-r ${gradientClass} flex items-center justify-center shadow-lg`}>
                     <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/20 to-transparent"></div>
                     {mode === 'login' ? (
-                      <Shield className="h-8 w-8 text-white relative z-10" />
+                      <img 
+                        src="/lovable-uploads/dacdeeea-21e1-4790-9f98-a906291e63a3.png" 
+                        alt="Logo" 
+                        className="h-8 w-8 object-contain relative z-10"
+                      />
                     ) : formData.role === 'teacher' ? (
                       <GraduationCap className="h-8 w-8 text-white relative z-10" />
                     ) : (
-                      <Zap className="h-8 w-8 text-white relative z-10" />
+                      <img 
+                        src="/lovable-uploads/dacdeeea-21e1-4790-9f98-a906291e63a3.png" 
+                        alt="Logo" 
+                        className="h-8 w-8 object-contain relative z-10"
+                      />
                     )}
                   </div>
                 </div>
