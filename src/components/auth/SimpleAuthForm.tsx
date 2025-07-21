@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -45,7 +44,6 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Redirect authenticated users to their dashboard
   React.useEffect(() => {
     if (user) {
       const dashboardMap: Record<string, string> = {
@@ -211,24 +209,20 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
 
   return (
     <div className={`min-h-screen relative overflow-hidden bg-gradient-to-br ${backgroundGradient}`}>
-      {/* Animated Background Elements */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse"></div>
         <div className="absolute top-40 right-20 w-72 h-72 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse delay-1000"></div>
         <div className="absolute -bottom-8 left-20 w-72 h-72 bg-gradient-to-r from-pink-400/20 to-blue-400/20 rounded-full mix-blend-multiply filter blur-xl animate-pulse delay-500"></div>
         
-        {/* Floating Particles */}
         <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-white/30 rounded-full animate-bounce"></div>
         <div className="absolute top-3/4 right-1/4 w-1 h-1 bg-white/40 rounded-full animate-bounce delay-300"></div>
         <div className="absolute top-1/2 left-3/4 w-1.5 h-1.5 bg-white/25 rounded-full animate-bounce delay-700"></div>
         
-        {/* Grid Pattern */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent opacity-20"></div>
       </div>
 
       <div className="relative z-10 container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
         <div className="w-full max-w-md">
-          {/* Logo/Brand Area */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-sm border border-white/20 mb-4">
               <Sparkles className="w-10 h-10 text-white" />
@@ -239,12 +233,10 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
             <p className="text-white/70 text-sm">Transform your English learning experience</p>
           </div>
 
-          <Card className="relative backdrop-blur-xl bg-white/20 border-white/30 shadow-2xl overflow-hidden">
-            {/* Card Glow Effect */}
-            <div className={`absolute -inset-1 bg-gradient-to-r ${gradientClass} rounded-lg blur opacity-15`}></div>
+          <Card className="relative backdrop-blur-xl bg-white/40 border-white/50 shadow-2xl overflow-hidden">
+            <div className={`absolute -inset-1 bg-gradient-to-r ${gradientClass} rounded-lg blur opacity-20`}></div>
             
-            {/* Inner Card */}
-            <div className="relative bg-white/15 backdrop-blur-xl border border-white/30 rounded-lg">
+            <div className="relative bg-white/35 backdrop-blur-2xl border border-white/50 rounded-lg">
               <CardHeader className="text-center pb-6 pt-8">
                 <div className="flex justify-center mb-6">
                   <div className={`relative w-16 h-16 rounded-2xl bg-gradient-to-r ${gradientClass} flex items-center justify-center shadow-lg`}>
@@ -259,10 +251,10 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
                   </div>
                 </div>
                 
-                <CardTitle className="text-2xl font-bold text-white mb-2">
+                <CardTitle className="text-2xl font-bold text-slate-800 mb-2">
                   {mode === 'login' ? 'Welcome Back!' : 'Join the Revolution'}
                 </CardTitle>
-                <CardDescription className="text-white/80 text-base">
+                <CardDescription className="text-slate-700 text-base">
                   {mode === 'login' 
                     ? 'Continue your learning journey with us'
                     : 'Start your personalized English learning adventure'
@@ -272,19 +264,19 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
               
               <CardContent className="px-8 pb-8">
                 {error && (
-                  <div className="mb-6 p-4 bg-red-500/15 border border-red-500/30 rounded-lg backdrop-blur-sm">
-                    <p className="text-sm text-red-300">{error}</p>
+                  <div className="mb-6 p-4 bg-red-500/20 border border-red-500/40 rounded-lg backdrop-blur-sm">
+                    <p className="text-sm text-red-700">{error}</p>
                   </div>
                 )}
                 
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {mode === 'signup' && (
                     <div className="space-y-2">
-                    <label htmlFor="fullName" className="text-sm font-medium text-white/95">
+                    <label htmlFor="fullName" className="text-sm font-medium text-slate-800">
                       Full Name
                       </label>
                     <div className="relative group">
-                      <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/60 group-focus-within:text-white/90 transition-colors" />
+                      <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-600 group-focus-within:text-slate-800 transition-colors" />
                         <Input
                           id="fullName"
                           value={formData.fullName}
@@ -292,18 +284,18 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
                           placeholder="Enter your full name"
                           disabled={loading}
                           required
-                          className="h-12 pl-12 bg-white/20 border-white/40 text-white placeholder:text-white/60 focus:bg-white/25 focus:border-white/50 transition-all duration-200"
+                          className="h-12 pl-12 bg-white/30 border-slate-400/50 text-slate-800 placeholder:text-slate-600 focus:bg-white/40 focus:border-slate-500 transition-all duration-200"
                         />
                       </div>
                     </div>
                   )}
 
                   <div className="space-y-2">
-                  <label htmlFor="email" className="text-sm font-medium text-white/95">
+                  <label htmlFor="email" className="text-sm font-medium text-slate-800">
                     Email Address
                     </label>
                   <div className="relative group">
-                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/60 group-focus-within:text-white/90 transition-colors" />
+                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-600 group-focus-within:text-slate-800 transition-colors" />
                       <Input
                         id="email"
                         type="email"
@@ -312,38 +304,38 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
                         placeholder="your.email@example.com"
                         disabled={loading}
                         required
-                        className={`h-12 pl-12 bg-white/20 border-white/40 text-white placeholder:text-white/60 focus:bg-white/25 focus:border-white/50 transition-all duration-200 ${emailError ? 'border-red-400/60' : ''}`}
+                        className={`h-12 pl-12 bg-white/30 border-slate-400/50 text-slate-800 placeholder:text-slate-600 focus:bg-white/40 focus:border-slate-500 transition-all duration-200 ${emailError ? 'border-red-400/60' : ''}`}
                       />
                     </div>
                     {emailError && (
-                      <p className="text-sm text-red-300 animate-fade-in">{emailError}</p>
+                      <p className="text-sm text-red-700 animate-fade-in">{emailError}</p>
                     )}
                   </div>
 
                   {mode === 'signup' && (
                     <div className="space-y-2">
-                      <label htmlFor="role" className="text-sm font-medium text-white/95">
+                      <label htmlFor="role" className="text-sm font-medium text-slate-800">
                         I am a...
                       </label>
                       <select
                         id="role"
                         value={formData.role}
                         onChange={(e) => handleInputChange('role', e.target.value as 'student' | 'teacher' | 'admin')}
-                        className="w-full h-12 px-4 bg-white/20 border border-white/40 text-white rounded-md focus:bg-white/25 focus:border-white/50 transition-all duration-200"
+                        className="w-full h-12 px-4 bg-white/30 border border-slate-400/50 text-slate-800 rounded-md focus:bg-white/40 focus:border-slate-500 transition-all duration-200"
                         disabled={loading}
                       >
-                        <option value="student" className="bg-slate-800 text-white">Student - Learn & Grow</option>
-                        <option value="teacher" className="bg-slate-800 text-white">Teacher - Inspire & Educate</option>
+                        <option value="student" className="bg-white text-slate-800">Student - Learn & Grow</option>
+                        <option value="teacher" className="bg-white text-slate-800">Teacher - Inspire & Educate</option>
                       </select>
                     </div>
                   )}
 
                   <div className="space-y-2">
-                    <label htmlFor="password" className="text-sm font-medium text-white/95">
+                    <label htmlFor="password" className="text-sm font-medium text-slate-800">
                       Password
                     </label>
                     <div className="relative group">
-                    <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/60 group-focus-within:text-white/90 transition-colors" />
+                    <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-600 group-focus-within:text-slate-800 transition-colors" />
                       <Input
                         id="password"
                         type={showPassword ? "text" : "password"}
@@ -352,14 +344,14 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
                         placeholder={mode === 'login' ? "Enter your password" : "Create a secure password"}
                         disabled={loading}
                         required
-                      className="h-12 pl-12 pr-12 bg-white/20 border-white/40 text-white placeholder:text-white/60 focus:bg-white/25 focus:border-white/50 transition-all duration-200"
+                      className="h-12 pl-12 pr-12 bg-white/30 border-slate-400/50 text-slate-800 placeholder:text-slate-600 focus:bg-white/40 focus:border-slate-500 transition-all duration-200"
                       />
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
                         onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 text-white/60 hover:text-white/90 hover:bg-white/15"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 text-slate-600 hover:text-slate-800 hover:bg-white/20"
                         disabled={loading}
                       >
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -367,10 +359,10 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
                     </div>
                     
                     {mode === 'signup' && formData.password && (
-                      <div className="mt-3 p-3 bg-white/10 rounded-lg backdrop-blur-sm border border-white/20">
+                      <div className="mt-3 p-3 bg-white/20 rounded-lg backdrop-blur-sm border border-slate-300/40">
                         <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs text-white/80">Password Strength</span>
-                        <span className="text-xs text-white/95 font-medium">{getPasswordStrength()}/4</span>
+                        <span className="text-xs text-slate-700">Password Strength</span>
+                        <span className="text-xs text-slate-800 font-medium">{getPasswordStrength()}/4</span>
                         </div>
                         <div className="flex gap-1 mb-3">
                           {[1, 2, 3, 4].map((i) => (
@@ -379,7 +371,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
                               className={`flex-1 h-1 rounded-full transition-all duration-300 ${
                                 i <= getPasswordStrength() 
                                 ? `bg-gradient-to-r ${gradientClass}` 
-                                : 'bg-white/30'
+                                : 'bg-slate-300'
                               }`}
                             />
                           ))}
@@ -390,11 +382,11 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
                             return (
                               <div key={index} className="flex items-center gap-2 text-xs">
                                 {met ? (
-                                  <CheckCircle className="h-3 w-3 text-green-400" />
+                                  <CheckCircle className="h-3 w-3 text-green-600" />
                                 ) : (
-                                  <XCircle className="h-3 w-3 text-white/30" />
+                                  <XCircle className="h-3 w-3 text-slate-400" />
                                 )}
-                                <span className={met ? 'text-green-200' : 'text-white/60'}>
+                                <span className={met ? 'text-green-700' : 'text-slate-600'}>
                                   {req.text}
                                 </span>
                               </div>
@@ -407,11 +399,11 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
 
                   {mode === 'signup' && (
                     <div className="space-y-2">
-                      <label htmlFor="confirmPassword" className="text-sm font-medium text-white/95">
+                      <label htmlFor="confirmPassword" className="text-sm font-medium text-slate-800">
                         Confirm Password
                       </label>
                       <div className="relative group">
-                        <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/60 group-focus-within:text-white/90 transition-colors" />
+                        <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-600 group-focus-within:text-slate-800 transition-colors" />
                         <Input
                           id="confirmPassword"
                           type={showConfirmPassword ? "text" : "password"}
@@ -420,14 +412,14 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
                           placeholder="Confirm your password"
                           disabled={loading}
                           required
-                          className="h-12 pl-12 pr-12 bg-white/20 border-white/40 text-white placeholder:text-white/60 focus:bg-white/25 focus:border-white/50 transition-all duration-200"
+                          className="h-12 pl-12 pr-12 bg-white/30 border-slate-400/50 text-slate-800 placeholder:text-slate-600 focus:bg-white/40 focus:border-slate-500 transition-all duration-200"
                         />
                         <Button
                           type="button"
                           variant="ghost"
                           size="sm"
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 text-white/60 hover:text-white/90 hover:bg-white/15"
+                          className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 text-slate-600 hover:text-slate-800 hover:bg-white/20"
                           disabled={loading}
                         >
                           {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -466,7 +458,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
 
                   <div className="text-center text-sm space-y-4">
                     <div>
-                      <span className="text-white/80">
+                      <span className="text-slate-700">
                         {mode === 'login' ? "New to EnglEuphoria? " : "Already have an account? "}
                       </span>
                       {onModeChange ? (
@@ -488,15 +480,15 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
                     </div>
 
                     {mode === 'signup' && (
-                      <div className="pt-4 border-t border-white/10">
-                        <p className="text-xs text-white/70 mb-3">Looking for specialized signup?</p>
+                      <div className="pt-4 border-t border-slate-300/40">
+                        <p className="text-xs text-slate-600 mb-3">Looking for specialized signup?</p>
                         <div className="flex gap-2">
                           <Button
                             type="button"
                             variant="outline"
                             size="sm"
                             onClick={() => navigate('/teacher-signup')}
-                          className="flex-1 text-xs bg-white/10 border-white/30 text-white/90 hover:bg-white/20 hover:text-white"
+                          className="flex-1 text-xs bg-white/20 border-slate-400/50 text-slate-700 hover:bg-white/30 hover:text-slate-800"
                           >
                             <GraduationCap className="mr-1 h-3 w-3" />
                             Teacher
@@ -506,7 +498,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
                             variant="outline"
                             size="sm"
                             onClick={() => navigate('/student-signup')}
-                            className="flex-1 text-xs bg-white/10 border-white/30 text-white/90 hover:bg-white/20 hover:text-white"
+                            className="flex-1 text-xs bg-white/20 border-slate-400/50 text-slate-700 hover:bg-white/30 hover:text-slate-800"
                           >
                             <BookOpen className="mr-1 h-3 w-3" />
                             Student
@@ -517,7 +509,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
 
                     <Link 
                       to="/" 
-                      className="text-xs text-white/60 hover:text-white/90 inline-flex items-center gap-1 transition-colors duration-200"
+                      className="text-xs text-slate-600 hover:text-slate-800 inline-flex items-center gap-1 transition-colors duration-200"
                     >
                       ← Back to home
                     </Link>
