@@ -1,5 +1,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   LayoutDashboard, 
   Users, 
@@ -21,6 +22,8 @@ interface AdminSidebarProps {
 }
 
 export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
+  const { signOut } = useAuth();
+  
   const menuItems = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
     { id: "users", label: "Users", icon: Users },
@@ -31,11 +34,6 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
     { id: "moderation", label: "Moderation", icon: Mic },
     { id: "reports", label: "Reports", icon: CreditCard },
   ];
-
-  const handleLogout = () => {
-    localStorage.clear();
-    window.location.href = '/';
-  };
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 h-full overflow-y-auto">
@@ -67,7 +65,7 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
           <Button
             variant="ghost"
             className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-            onClick={handleLogout}
+            onClick={signOut}
           >
             <LogOut className="h-4 w-4 mr-3" />
             Sign Out
