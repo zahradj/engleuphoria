@@ -51,9 +51,15 @@ export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncPro
       // Mark as connecting
       hasConnected.current = true;
 
-      // Create new channel for the room
+      // Add small delay to ensure proper cleanup
+      await new Promise(resolve => setTimeout(resolve, 200));
+
+      // Create new channel for the room with unique identifier
+      const channelName = `classroom_sync_${roomId}_${userId}`;
+      console.log('🔄 Creating sync channel:', channelName);
+      
       const channel = supabase
-        .channel(`classroom_${roomId}`)
+        .channel(channelName)
         .on('presence', { event: 'sync' }, () => {
           const newState = channel.presenceState();
           const participants = Object.entries(newState).map(([key, data]: [string, any]) => ({
@@ -87,7 +93,9 @@ export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncPro
         });
 
       // Subscribe to the channel
-      await channel.subscribe(async (status) => {
+      channel.subscribe(async (status) => {
+        console.log('🔄 Sync channel status:', status);
+        
         if (status === 'SUBSCRIBED') {
           // Track user presence
           await channel.track({
@@ -185,10 +193,16 @@ export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncPro
   // Auto-connect once when hook is initialized
   useEffect(() => {
     let mounted = true;
+    let timeoutId: NodeJS.Timeout;
     
     const initializeConnection = async () => {
-      if (mounted && !hasConnected.current) {
-        await connectToSync();
+      if (mounted && !hasConnected.current && !channelRef.current) {
+        // Add delay to prevent immediate connection after mount
+        timeoutId = setTimeout(async () => {
+          if (mounted) {
+            await connectToSync();
+          }
+        }, 500);
       }
     };
 
@@ -196,6 +210,9 @@ export function useRealTimeSync({ roomId, userId, userRole }: UseRealTimeSyncPro
 
     return () => {
       mounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
       disconnect();
     };
   }, []); // Empty dependency array to run only once

@@ -104,44 +104,55 @@ export function useClassroomSession({ roomId, userId, userRole }: UseClassroomSe
   useEffect(() => {
     if (!roomId || !isValidUUID(userId)) return;
 
-    // Cleanup existing channel
+    // Cleanup existing channel first
     if (channelRef.current) {
+      console.log('🧹 Cleaning up existing classroom session channel');
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
     }
 
-    const channel = supabase
-      .channel(`classroom_session_${roomId}_${Date.now()}`) // Add timestamp to ensure unique channel
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'classroom_sessions',
-          filter: `room_id=eq.${roomId}`
-        },
-        (payload) => {
-          console.log('Session state changed:', payload);
-          
-          if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
-            setSession(payload.new as ClassroomSession);
+    // Small delay to ensure proper cleanup
+    const timeoutId = setTimeout(() => {
+      const channelName = `classroom_session_${roomId}_${userId}`;
+      console.log('📡 Creating classroom session channel:', channelName);
+      
+      const channel = supabase
+        .channel(channelName)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'classroom_sessions',
+            filter: `room_id=eq.${roomId}`
+          },
+          (payload) => {
+            console.log('Session state changed:', payload);
             
-            // Show toast notifications for session state changes
-            if (payload.new.session_status === 'started' && userRole === 'student') {
-              toast({
-                title: "Session Started!",
-                description: "Your teacher has started the session. You can now join the video.",
-              });
+            if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT') {
+              setSession(payload.new as ClassroomSession);
+              
+              // Show toast notifications for session state changes
+              if (payload.new.session_status === 'started' && userRole === 'student') {
+                toast({
+                  title: "Session Started!",
+                  description: "Your teacher has started the session. You can now join the video.",
+                });
+              }
             }
           }
-        }
-      )
-      .subscribe();
+        )
+        .subscribe((status) => {
+          console.log('📡 Classroom session channel status:', status);
+        });
 
-    channelRef.current = channel;
+      channelRef.current = channel;
+    }, 100);
 
     return () => {
+      clearTimeout(timeoutId);
       if (channelRef.current) {
+        console.log('🧹 Cleaning up classroom session channel on unmount');
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
       }
