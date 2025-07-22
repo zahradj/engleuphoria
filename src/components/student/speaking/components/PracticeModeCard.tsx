@@ -15,7 +15,8 @@ interface PracticeModeCardProps {
   iconBgColor: string;
   iconColor: string;
   titleColor: string;
-  onStartPractice: (scenario: SpeakingScenario) => void;
+  isLiveChat?: boolean;
+  onStartPractice: (scenario: SpeakingScenario, isLiveChat?: boolean) => void;
 }
 
 export const PracticeModeCard: React.FC<PracticeModeCardProps> = ({
@@ -27,6 +28,7 @@ export const PracticeModeCard: React.FC<PracticeModeCardProps> = ({
   iconBgColor,
   iconColor,
   titleColor,
+  isLiveChat = false,
   onStartPractice
 }) => {
   return (
@@ -47,7 +49,7 @@ export const PracticeModeCard: React.FC<PracticeModeCardProps> = ({
               key={scenario.id}
               variant="outline"
               className="w-full justify-between text-left"
-              onClick={() => onStartPractice(scenario)}
+              onClick={() => onStartPractice(scenario, isLiveChat)}
             >
               <span>{scenario.name}</span>
               <div className="flex items-center gap-2">

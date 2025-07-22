@@ -16,12 +16,14 @@ import { SpeakingStats } from './SpeakingStats';
 import { SpeakingHeader } from './components/SpeakingHeader';
 import { PracticeModeCard } from './components/PracticeModeCard';
 import { DailyChallenge } from './components/DailyChallenge';
+import { LiveAIConversation } from './LiveAIConversation';
+import { SpeakingGoals } from './SpeakingGoals';
 
 export const SpeakingPracticeTab = () => {
   const [progress, setProgress] = useState<SpeakingProgress | null>(null);
   const [scenarios, setScenarios] = useState<SpeakingScenario[]>([]);
   const [selectedScenario, setSelectedScenario] = useState<SpeakingScenario | null>(null);
-  const [activeMode, setActiveMode] = useState<'menu' | 'practice'>('menu');
+  const [activeMode, setActiveMode] = useState<'menu' | 'practice' | 'live_ai'>('menu');
   const [todaysSpeakingTime, setTodaysSpeakingTime] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -77,15 +79,25 @@ export const SpeakingPracticeTab = () => {
 
   const loadScenarios = async () => {
     try {
-      const allScenarios = await speakingPracticeService.getScenarios();
-      setScenarios(allScenarios);
+      // Use level-based scenario retrieval if user has progress
+      const levelBasedScenarios = progress 
+        ? await speakingPracticeService.getStudentAppropriateScenarios()
+        : await speakingPracticeService.getScenarios();
       
-      if (allScenarios.length === 0) {
-        console.warn('No speaking scenarios found');
+      setScenarios(levelBasedScenarios);
+      
+      if (levelBasedScenarios.length === 0) {
+        console.warn('No appropriate speaking scenarios found for current level');
       }
     } catch (error) {
       console.error('Error loading scenarios:', error);
-      throw error;
+      // Fallback to all scenarios if level-based fails
+      try {
+        const fallbackScenarios = await speakingPracticeService.getScenarios();
+        setScenarios(fallbackScenarios);
+      } catch (fallbackError) {
+        throw error;
+      }
     }
   };
 
@@ -99,9 +111,9 @@ export const SpeakingPracticeTab = () => {
     }
   };
 
-  const handleStartPractice = (scenario: SpeakingScenario) => {
+  const handleStartPractice = (scenario: SpeakingScenario, isLiveChat = false) => {
     setSelectedScenario(scenario);
-    setActiveMode('practice');
+    setActiveMode(isLiveChat ? 'live_ai' : 'practice');
   };
 
   const handleSessionComplete = async (sessionData: any) => {
@@ -153,7 +165,28 @@ export const SpeakingPracticeTab = () => {
     );
   }
 
+  if (activeMode === 'live_ai') {
+    return (
+      <LiveAIConversation
+        scenario={selectedScenario}
+        onComplete={handleSessionComplete}
+        onBack={() => setActiveMode('menu')}
+      />
+    );
+  }
+
   const practiceModesConfig = [
+    {
+      title: '🎙️ Live AI Chat',
+      icon: MessageCircle,
+      description: 'Have real-time conversations with AI tutors adapted to your level',
+      scenarios: scenarios, // All scenarios for live chat
+      borderColor: 'hover:border-red-300',
+      iconBgColor: 'bg-red-100',
+      iconColor: 'text-red-600',
+      titleColor: 'text-red-700',
+      isLiveChat: true
+    },
     {
       title: '🎭 Role Play',
       icon: MessageCircle,
@@ -204,7 +237,9 @@ export const SpeakingPracticeTab = () => {
         todaysSpeakingTime={todaysSpeakingTime}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <SpeakingGoals progress={progress} />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {practiceModesConfig.map((mode, index) => (
           <PracticeModeCard
             key={index}
@@ -216,6 +251,7 @@ export const SpeakingPracticeTab = () => {
             iconBgColor={mode.iconBgColor}
             iconColor={mode.iconColor}
             titleColor={mode.titleColor}
+            isLiveChat={mode.isLiveChat}
             onStartPractice={handleStartPractice}
           />
         ))}

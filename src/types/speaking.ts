@@ -78,3 +78,76 @@ export interface SpeakingBadge {
   requirement: string;
   earnedAt?: string;
 }
+
+// New interfaces for enhanced AI speaking practice
+export interface AIConversationSession {
+  id: string;
+  student_id: string;
+  session_type: 'live_chat' | 'voice_practice' | 'assessment';
+  scenario_id?: string;
+  conversation_topic?: string;
+  ai_personality: string;
+  voice_enabled: boolean;
+  session_duration: number;
+  messages_count: number;
+  session_data: Record<string, any>;
+  quality_rating?: number;
+  feedback_notes?: string;
+  started_at: string;
+  ended_at?: string;
+  created_at: string;
+}
+
+export interface SpeakingAssessment {
+  id: string;
+  session_id: string;
+  student_id: string;
+  pronunciation_score?: number;
+  fluency_score?: number;
+  grammar_score?: number;
+  vocabulary_score?: number;
+  coherence_score?: number;
+  overall_cefr_estimate?: string;
+  improvement_areas: string[];
+  strengths: string[];
+  specific_feedback: Record<string, any>;
+  ai_generated_feedback?: string;
+  assessment_date: string;
+  created_at: string;
+}
+
+export interface StudentSpeakingGoals {
+  id: string;
+  student_id: string;
+  target_cefr_level: string;
+  daily_practice_minutes: number;
+  weekly_sessions_goal: number;
+  focus_areas: string[];
+  deadline?: string;
+  current_streak: number;
+  longest_streak: number;
+  is_active: boolean;
+  progress_percentage: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LiveAIMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+  audioUrl?: string;
+  isProcessing?: boolean;
+  feedback?: MessageFeedback;
+}
+
+export interface AIPersonality {
+  id: string;
+  name: string;
+  description: string;
+  voice_model?: string;
+  personality_traits: string[];
+  cefr_levels: string[];
+  avatar_url?: string;
+}
