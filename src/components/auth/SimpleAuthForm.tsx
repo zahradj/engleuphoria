@@ -322,12 +322,16 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
                       <img 
                         src="/lovable-uploads/349cfbe2-60a4-4dcc-a3b6-c410c4da02f3.png" 
                         alt="Logo" 
-                        className="h-10 w-10 relative z-10 animate-bounce object-contain"
+                        className="h-14 w-14 relative z-10 animate-bounce object-contain"
                       />
                     ) : formData.role === 'teacher' ? (
                       <GraduationCap className="h-10 w-10 text-white relative z-10" />
                     ) : (
-                      <BookOpen className="h-10 w-10 text-white relative z-10" />
+                      <img 
+                        src="/lovable-uploads/349cfbe2-60a4-4dcc-a3b6-c410c4da02f3.png" 
+                        alt="Logo" 
+                        className="h-14 w-14 relative z-10 animate-bounce object-contain"
+                      />
                     )}
                   </div>
                 </div>
