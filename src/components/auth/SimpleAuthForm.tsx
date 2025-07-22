@@ -217,6 +217,32 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
         <div className="absolute top-40 right-20 w-72 h-72 bg-gradient-to-r from-blue-300/30 to-cyan-300/30 rounded-full mix-blend-multiply filter blur-2xl animate-float-delayed"></div>
         <div className="absolute -bottom-8 left-20 w-96 h-96 bg-gradient-to-r from-emerald-300/20 to-teal-300/20 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
         
+        {/* Moving Balloons */}
+        <div className="absolute top-10 left-10 w-16 h-20 bg-gradient-to-b from-red-400/60 to-red-500/60 rounded-full animate-float-slow shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-8 bg-gray-400/40"></div>
+        </div>
+        <div className="absolute top-32 right-16 w-14 h-18 bg-gradient-to-b from-blue-400/60 to-blue-500/60 rounded-full animate-float-delayed shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-6 bg-gray-400/40"></div>
+        </div>
+        <div className="absolute top-60 left-32 w-12 h-15 bg-gradient-to-b from-yellow-400/60 to-yellow-500/60 rounded-full animate-bounce shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-5 bg-gray-400/40"></div>
+        </div>
+        <div className="absolute bottom-32 right-32 w-18 h-22 bg-gradient-to-b from-green-400/60 to-green-500/60 rounded-full animate-float-slow shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-7 bg-gray-400/40"></div>
+        </div>
+        <div className="absolute top-1/4 right-1/4 w-10 h-13 bg-gradient-to-b from-purple-400/60 to-purple-500/60 rounded-full animate-bounce delay-300 shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-400/40"></div>
+        </div>
+        <div className="absolute bottom-1/4 left-1/6 w-15 h-19 bg-gradient-to-b from-pink-400/60 to-pink-500/60 rounded-full animate-float-delayed shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-6 bg-gray-400/40"></div>
+        </div>
+        <div className="absolute top-1/3 left-1/2 w-13 h-16 bg-gradient-to-b from-orange-400/60 to-orange-500/60 rounded-full animate-float-slow shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-5 bg-gray-400/40"></div>
+        </div>
+        <div className="absolute bottom-16 right-1/5 w-11 h-14 bg-gradient-to-b from-teal-400/60 to-teal-500/60 rounded-full animate-bounce delay-700 shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-400/40"></div>
+        </div>
+        
         {/* Sparkling dots */}
         <div className="absolute top-1/4 left-1/4 w-3 h-3 bg-yellow-400/60 rounded-full animate-bounce shadow-lg"></div>
         <div className="absolute top-3/4 right-1/4 w-2 h-2 bg-pink-400/70 rounded-full animate-bounce delay-300 shadow-md"></div>
