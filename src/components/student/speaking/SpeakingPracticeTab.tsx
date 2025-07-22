@@ -11,6 +11,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Card, CardContent } from '@/components/ui/card';
 import { PracticeSession } from './PracticeSession';
 import { SpeakingStats } from './SpeakingStats';
 import { SpeakingHeader } from './components/SpeakingHeader';
@@ -18,6 +19,7 @@ import { PracticeModeCard } from './components/PracticeModeCard';
 import { DailyChallenge } from './components/DailyChallenge';
 import { LiveAIConversation } from './LiveAIConversation';
 import { SpeakingGoals } from './SpeakingGoals';
+import { SpeakingLevelIndicator } from './SpeakingLevelIndicator';
 
 export const SpeakingPracticeTab = () => {
   const [progress, setProgress] = useState<SpeakingProgress | null>(null);
@@ -221,42 +223,118 @@ export const SpeakingPracticeTab = () => {
   ];
 
   return (
-    <div className="space-y-6 p-6">
-      <SpeakingHeader />
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background">
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        <SpeakingHeader />
 
-      {isDemoMode && (
-        <Alert className="bg-yellow-50 border-yellow-200">
-          <AlertCircle className="h-4 w-4 text-yellow-600" />
-          <AlertDescription className="text-yellow-800">
-            You're currently using demo mode. Your progress is saved locally and AI features may be limited.
-          </AlertDescription>
-        </Alert>
-      )}
+        {isDemoMode && (
+          <Alert className="bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-300 animate-fade-in">
+            <AlertCircle className="h-4 w-4 text-yellow-600" />
+            <AlertDescription className="text-yellow-800">
+              You're currently using demo mode. Your progress is saved locally and AI features may be limited.
+            </AlertDescription>
+          </Alert>
+        )}
 
-      <SpeakingStats 
-        progress={progress}
-        todaysSpeakingTime={todaysSpeakingTime}
-      />
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">{/* Reduced gap for better mobile layout */}
-        {practiceModesConfig.map((mode, index) => (
-          <PracticeModeCard
-            key={index}
-            title={mode.title}
-            icon={mode.icon}
-            description={mode.description}
-            scenarios={mode.scenarios}
-            borderColor={mode.borderColor}
-            iconBgColor={mode.iconBgColor}
-            iconColor={mode.iconColor}
-            titleColor={mode.titleColor}
-            isLiveChat={mode.isLiveChat}
-            onStartPractice={handleStartPractice}
+        <div className="animate-fade-in animation-delay-200">
+          <SpeakingStats 
+            progress={progress}
+            todaysSpeakingTime={todaysSpeakingTime}
           />
-        ))}
-      </div>
+        </div>
 
-      <DailyChallenge todaysSpeakingTime={todaysSpeakingTime} />
+        <div className="grid lg:grid-cols-2 gap-6">
+          <div className="animate-fade-in animation-delay-400">
+            <DailyChallenge todaysSpeakingTime={todaysSpeakingTime} />
+          </div>
+          
+          {progress && (
+            <div className="animate-fade-in animation-delay-500">
+              <SpeakingLevelIndicator 
+                currentLevel={progress.current_cefr_level}
+                speakingXP={progress.speaking_xp}
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="animate-fade-in animation-delay-600">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-center mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              Choose Your Practice Mode
+            </h2>
+            <p className="text-center text-muted-foreground">
+              Select the type of speaking practice that matches your learning goals
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+            {practiceModesConfig.map((mode, index) => (
+              <div 
+                key={index} 
+                className="animate-fade-in" 
+                style={{ animationDelay: `${(index * 150) + 800}ms` }}
+              >
+                <PracticeModeCard
+                  title={mode.title}
+                  icon={mode.icon}
+                  description={mode.description}
+                  scenarios={mode.scenarios}
+                  borderColor={mode.borderColor}
+                  iconBgColor={mode.iconBgColor}
+                  iconColor={mode.iconColor}
+                  titleColor={mode.titleColor}
+                  isLiveChat={mode.isLiveChat}
+                  onStartPractice={handleStartPractice}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Quick Tips Section */}
+        <div className="animate-fade-in animation-delay-1000">
+          <Card className="bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 border-primary/20">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <div className="w-6 h-6 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center">
+                  <span className="text-xs text-white">💡</span>
+                </div>
+                Quick Tips for Better Practice
+              </h3>
+              <div className="grid md:grid-cols-3 gap-4 text-sm">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    🎯
+                  </div>
+                  <div>
+                    <div className="font-medium text-blue-700">Set Goals</div>
+                    <div className="text-muted-foreground">Practice for at least 5 minutes daily</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    🎤
+                  </div>
+                  <div>
+                    <div className="font-medium text-green-700">Speak Clearly</div>
+                    <div className="text-muted-foreground">Use a quiet environment with good audio</div>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    📈
+                  </div>
+                  <div>
+                    <div className="font-medium text-purple-700">Track Progress</div>
+                    <div className="text-muted-foreground">Review your speaking analytics regularly</div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 };
