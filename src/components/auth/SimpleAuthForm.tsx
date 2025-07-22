@@ -217,59 +217,64 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
         <div className="absolute top-40 right-20 w-72 h-72 bg-gradient-to-r from-blue-300/30 to-cyan-300/30 rounded-full mix-blend-multiply filter blur-2xl animate-float-delayed"></div>
         <div className="absolute -bottom-8 left-20 w-96 h-96 bg-gradient-to-r from-emerald-300/20 to-teal-300/20 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
         
-        {/* Moving Balloons - Evenly Distributed */}
-        <div className="absolute top-[5%] left-[8%] w-16 h-20 bg-gradient-to-b from-red-400/60 to-red-500/60 rounded-full animate-float-slow shadow-lg">
+        {/* Evenly Distributed Balloons - Grid System */}
+        {/* Row 1 - Top 10% */}
+        <div className="absolute top-[10%] left-[5%] w-14 h-18 bg-gradient-to-b from-red-400/60 to-red-500/60 rounded-full animate-float-slow shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-6 bg-gray-400/40"></div>
+        </div>
+        <div className="absolute top-[10%] left-[20%] w-12 h-15 bg-gradient-to-b from-blue-400/60 to-blue-500/60 rounded-full animate-bounce shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-5 bg-gray-400/40"></div>
+        </div>
+        <div className="absolute top-[10%] left-[35%] w-16 h-20 bg-gradient-to-b from-yellow-400/60 to-yellow-500/60 rounded-full animate-float-delayed shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-7 bg-gray-400/40"></div>
+        </div>
+        <div className="absolute top-[10%] right-[35%] w-10 h-13 bg-gradient-to-b from-green-400/60 to-green-500/60 rounded-full animate-bounce delay-300 shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-400/40"></div>
+        </div>
+        <div className="absolute top-[10%] right-[20%] w-13 h-16 bg-gradient-to-b from-purple-400/60 to-purple-500/60 rounded-full animate-float-slow shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-5 bg-gray-400/40"></div>
+        </div>
+        <div className="absolute top-[10%] right-[5%] w-11 h-14 bg-gradient-to-b from-pink-400/60 to-pink-500/60 rounded-full animate-bounce delay-700 shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-400/40"></div>
+        </div>
+
+        {/* Row 2 - Middle 50% */}
+        <div className="absolute top-[50%] left-[5%] w-18 h-22 bg-gradient-to-b from-orange-400/60 to-orange-500/60 rounded-full animate-float-delayed shadow-lg">
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-8 bg-gray-400/40"></div>
         </div>
-        <div className="absolute top-[8%] left-[45%] w-14 h-18 bg-gradient-to-b from-blue-400/60 to-blue-500/60 rounded-full animate-float-delayed shadow-lg">
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-6 bg-gray-400/40"></div>
-        </div>
-        <div className="absolute top-[12%] right-[15%] w-12 h-15 bg-gradient-to-b from-yellow-400/60 to-yellow-500/60 rounded-full animate-bounce shadow-lg">
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-5 bg-gray-400/40"></div>
-        </div>
-        <div className="absolute top-[18%] left-[25%] w-18 h-22 bg-gradient-to-b from-green-400/60 to-green-500/60 rounded-full animate-float-slow shadow-lg">
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-7 bg-gray-400/40"></div>
-        </div>
-        <div className="absolute top-[22%] right-[8%] w-10 h-13 bg-gradient-to-b from-purple-400/60 to-purple-500/60 rounded-full animate-bounce delay-300 shadow-lg">
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-400/40"></div>
-        </div>
-        <div className="absolute top-[35%] left-[12%] w-15 h-19 bg-gradient-to-b from-pink-400/60 to-pink-500/60 rounded-full animate-float-delayed shadow-lg">
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-6 bg-gray-400/40"></div>
-        </div>
-        <div className="absolute top-[40%] right-[35%] w-13 h-16 bg-gradient-to-b from-orange-400/60 to-orange-500/60 rounded-full animate-float-slow shadow-lg">
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-5 bg-gray-400/40"></div>
-        </div>
-        <div className="absolute top-[48%] left-[35%] w-11 h-14 bg-gradient-to-b from-teal-400/60 to-teal-500/60 rounded-full animate-bounce delay-700 shadow-lg">
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-400/40"></div>
-        </div>
-        <div className="absolute top-[55%] right-[12%] w-17 h-21 bg-gradient-to-b from-indigo-400/60 to-indigo-500/60 rounded-full animate-float-delayed shadow-lg">
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-7 bg-gray-400/40"></div>
-        </div>
-        <div className="absolute top-[62%] left-[8%] w-9 h-12 bg-gradient-to-b from-cyan-400/60 to-cyan-500/60 rounded-full animate-bounce delay-500 shadow-lg">
+        <div className="absolute top-[50%] left-[20%] w-9 h-12 bg-gradient-to-b from-teal-400/60 to-teal-500/60 rounded-full animate-bounce delay-500 shadow-lg">
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-3 bg-gray-400/40"></div>
         </div>
-        <div className="absolute bottom-[25%] left-[55%] w-20 h-24 bg-gradient-to-b from-violet-400/60 to-violet-500/60 rounded-full animate-float-slow shadow-lg">
+        <div className="absolute top-[50%] left-[35%] w-15 h-19 bg-gradient-to-b from-indigo-400/60 to-indigo-500/60 rounded-full animate-float-slow shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-6 bg-gray-400/40"></div>
+        </div>
+        <div className="absolute top-[50%] right-[35%] w-12 h-15 bg-gradient-to-b from-cyan-400/60 to-cyan-500/60 rounded-full animate-bounce delay-200 shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-5 bg-gray-400/40"></div>
+        </div>
+        <div className="absolute top-[50%] right-[20%] w-17 h-21 bg-gradient-to-b from-violet-400/60 to-violet-500/60 rounded-full animate-float-delayed shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-7 bg-gray-400/40"></div>
+        </div>
+        <div className="absolute top-[50%] right-[5%] w-8 h-11 bg-gradient-to-b from-rose-400/60 to-rose-500/60 rounded-full animate-bounce delay-800 shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-3 bg-gray-400/40"></div>
+        </div>
+
+        {/* Row 3 - Bottom 90% */}
+        <div className="absolute bottom-[10%] left-[5%] w-20 h-24 bg-gradient-to-b from-lime-400/60 to-lime-500/60 rounded-full animate-float-slow shadow-lg">
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-9 bg-gray-400/40"></div>
         </div>
-        <div className="absolute bottom-[20%] right-[25%] w-8 h-11 bg-gradient-to-b from-rose-400/60 to-rose-500/60 rounded-full animate-bounce delay-200 shadow-lg">
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-3 bg-gray-400/40"></div>
-        </div>
-        <div className="absolute bottom-[15%] left-[20%] w-14 h-17 bg-gradient-to-b from-lime-400/60 to-lime-500/60 rounded-full animate-float-delayed shadow-lg">
+        <div className="absolute bottom-[10%] left-[20%] w-14 h-17 bg-gradient-to-b from-amber-400/60 to-amber-500/60 rounded-full animate-bounce delay-400 shadow-lg">
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-5 bg-gray-400/40"></div>
         </div>
-        <div className="absolute bottom-[12%] right-[45%] w-12 h-15 bg-gradient-to-b from-amber-400/60 to-amber-500/60 rounded-full animate-bounce delay-800 shadow-lg">
+        <div className="absolute bottom-[10%] left-[35%] w-10 h-13 bg-gradient-to-b from-emerald-400/60 to-emerald-500/60 rounded-full animate-float-delayed shadow-lg">
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-400/40"></div>
         </div>
-        <div className="absolute bottom-[8%] right-[5%] w-16 h-19 bg-gradient-to-b from-emerald-400/60 to-emerald-500/60 rounded-full animate-float-slow shadow-lg">
+        <div className="absolute bottom-[10%] right-[35%] w-16 h-19 bg-gradient-to-b from-fuchsia-400/60 to-fuchsia-500/60 rounded-full animate-bounce delay-600 shadow-lg">
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-6 bg-gray-400/40"></div>
         </div>
-        <div className="absolute top-[75%] left-[25%] w-10 h-14 bg-gradient-to-b from-fuchsia-400/60 to-fuchsia-500/60 rounded-full animate-bounce delay-400 shadow-lg">
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-400/40"></div>
-        </div>
-        <div className="absolute top-[65%] right-[5%] w-13 h-16 bg-gradient-to-b from-sky-400/60 to-sky-500/60 rounded-full animate-float-delayed shadow-lg">
+        <div className="absolute bottom-[10%] right-[20%] w-13 h-16 bg-gradient-to-b from-sky-400/60 to-sky-500/60 rounded-full animate-float-slow shadow-lg">
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-5 bg-gray-400/40"></div>
         </div>
-        <div className="absolute bottom-[35%] left-[5%] w-11 h-14 bg-gradient-to-b from-slate-400/60 to-slate-500/60 rounded-full animate-bounce delay-600 shadow-lg">
+        <div className="absolute bottom-[10%] right-[5%] w-11 h-14 bg-gradient-to-b from-slate-400/60 to-slate-500/60 rounded-full animate-bounce delay-900 shadow-lg">
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-400/40"></div>
         </div>
         
