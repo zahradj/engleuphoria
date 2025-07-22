@@ -22,6 +22,7 @@ import UnifiedClassroom from "./pages/UnifiedClassroom";
 import { DiscoverTeachers } from "./pages/DiscoverTeachers";
 import StudentSchedule from "./pages/student/StudentSchedule";
 import BookLesson from "./pages/student/BookLesson";
+import SpeakingPractice from "./pages/student/SpeakingPractice";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const App = () => (
               <Route path="/discover-teachers" element={<DiscoverTeachers />} />
               <Route path="/student/schedule" element={<StudentSchedule />} />
               <Route path="/student/book-lesson" element={<BookLesson />} />
+              <Route path="/student/speaking-practice" element={<SpeakingPractice />} />
               
               {/* Protected Routes */}
               <Route path="/student" element={
