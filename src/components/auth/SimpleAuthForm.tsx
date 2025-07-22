@@ -243,6 +243,38 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-400/40"></div>
         </div>
         
+        {/* More Moving Balloons */}
+        <div className="absolute top-5 left-1/3 w-17 h-21 bg-gradient-to-b from-indigo-400/60 to-indigo-500/60 rounded-full animate-float-delayed shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-7 bg-gray-400/40"></div>
+        </div>
+        <div className="absolute top-44 left-8 w-9 h-12 bg-gradient-to-b from-cyan-400/60 to-cyan-500/60 rounded-full animate-bounce delay-500 shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-3 bg-gray-400/40"></div>
+        </div>
+        <div className="absolute bottom-8 left-1/2 w-20 h-24 bg-gradient-to-b from-violet-400/60 to-violet-500/60 rounded-full animate-float-slow shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-9 bg-gray-400/40"></div>
+        </div>
+        <div className="absolute top-20 right-1/3 w-8 h-11 bg-gradient-to-b from-rose-400/60 to-rose-500/60 rounded-full animate-bounce delay-200 shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-3 bg-gray-400/40"></div>
+        </div>
+        <div className="absolute bottom-40 right-8 w-14 h-17 bg-gradient-to-b from-lime-400/60 to-lime-500/60 rounded-full animate-float-delayed shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-5 bg-gray-400/40"></div>
+        </div>
+        <div className="absolute top-2/3 left-20 w-12 h-15 bg-gradient-to-b from-amber-400/60 to-amber-500/60 rounded-full animate-bounce delay-800 shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-400/40"></div>
+        </div>
+        <div className="absolute top-1/5 right-12 w-16 h-19 bg-gradient-to-b from-emerald-400/60 to-emerald-500/60 rounded-full animate-float-slow shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-6 bg-gray-400/40"></div>
+        </div>
+        <div className="absolute bottom-20 left-1/4 w-10 h-14 bg-gradient-to-b from-fuchsia-400/60 to-fuchsia-500/60 rounded-full animate-bounce delay-400 shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-400/40"></div>
+        </div>
+        <div className="absolute top-1/2 right-5 w-13 h-16 bg-gradient-to-b from-sky-400/60 to-sky-500/60 rounded-full animate-float-delayed shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-5 bg-gray-400/40"></div>
+        </div>
+        <div className="absolute bottom-1/3 left-5 w-11 h-14 bg-gradient-to-b from-slate-400/60 to-slate-500/60 rounded-full animate-bounce delay-600 shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-400/40"></div>
+        </div>
+        
         {/* Sparkling dots */}
         <div className="absolute top-1/4 left-1/4 w-3 h-3 bg-yellow-400/60 rounded-full animate-bounce shadow-lg"></div>
         <div className="absolute top-3/4 right-1/4 w-2 h-2 bg-pink-400/70 rounded-full animate-bounce delay-300 shadow-md"></div>
