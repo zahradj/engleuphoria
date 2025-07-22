@@ -18,6 +18,7 @@ import TeacherApplication from "./pages/TeacherApplication";
 import StudentApplication from "./pages/StudentApplication";
 import OneOnOneClassroomNew from "./pages/OneOnOneClassroomNew";
 import MediaTestPage from "./pages/MediaTestPage";
+import UnifiedClassroom from "./pages/UnifiedClassroom";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
               <Route path="/teacher-application" element={<TeacherApplication />} />
               <Route path="/student-application" element={<StudentApplication />} />
               <Route path="/media-test" element={<MediaTestPage />} />
+              <Route path="/classroom" element={<UnifiedClassroom />} />
               
               {/* Protected Routes */}
               <Route path="/student" element={
