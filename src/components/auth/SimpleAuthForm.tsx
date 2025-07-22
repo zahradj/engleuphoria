@@ -304,13 +304,6 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
 
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <div className="flex justify-center mb-6">
-              <img 
-                src="/lovable-uploads/c9a29797-4fc4-4cb9-be41-bde9a8558663.png" 
-                alt="EnglEuphoria Logo" 
-                className="w-20 h-20 object-contain brightness-110 contrast-110 hover:scale-105 transition-transform duration-200"
-              />
-            </div>
             <p className="text-white/70 text-sm">Transform your English learning experience</p>
           </div>
 
@@ -326,7 +319,11 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
                     <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/30 to-transparent"></div>
                     <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-yellow-300/40 to-pink-300/40 blur-md animate-pulse"></div>
                     {mode === 'login' ? (
-                      <Sparkles className="h-10 w-10 text-white relative z-10 animate-bounce" />
+                      <img 
+                        src="/lovable-uploads/349cfbe2-60a4-4dcc-a3b6-c410c4da02f3.png" 
+                        alt="Logo" 
+                        className="h-10 w-10 relative z-10 animate-bounce object-contain"
+                      />
                     ) : formData.role === 'teacher' ? (
                       <GraduationCap className="h-10 w-10 text-white relative z-10" />
                     ) : (
