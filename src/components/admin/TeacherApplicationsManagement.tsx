@@ -110,7 +110,7 @@ export const TeacherApplicationsManagement = () => {
       const updateData: any = { current_stage: stage };
       
       if (stage === 'approved' && approved) {
-        updateData.status = 'approved';
+        updateData.status = 'accepted';
       } else if (stage === 'rejected') {
         updateData.status = 'rejected';
       }
