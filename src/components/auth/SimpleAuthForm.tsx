@@ -245,7 +245,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
           <div className="text-center mb-8">
             <div className="flex justify-center mb-6">
               <img 
-                src="/lovable-uploads/32e54089-999a-4546-b2ee-5dc9bc60f841.png" 
+                src="/lovable-uploads/c9a29797-4fc4-4cb9-be41-bde9a8558663.png" 
                 alt="EnglEuphoria Logo" 
                 className="w-20 h-20 object-contain brightness-110 contrast-110 hover:scale-105 transition-transform duration-200"
               />

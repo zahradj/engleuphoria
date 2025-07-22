@@ -14,7 +14,7 @@ export const SignUpHeader = () => {
           onClick={() => navigate('/')}
         >
           <img 
-            src="/lovable-uploads/a38a7187-5f12-41aa-bcc6-ef6ffb768fbf.png" 
+            src="/lovable-uploads/c9a29797-4fc4-4cb9-be41-bde9a8558663.png" 
             alt="EnglEuphoria Logo" 
             className="w-10 h-10"
           />
