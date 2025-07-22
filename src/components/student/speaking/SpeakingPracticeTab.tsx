@@ -96,7 +96,8 @@ export const SpeakingPracticeTab = () => {
         const fallbackScenarios = await speakingPracticeService.getScenarios();
         setScenarios(fallbackScenarios);
       } catch (fallbackError) {
-        throw error;
+        // If both fail, set empty array to prevent further errors
+        setScenarios([]);
       }
     }
   };
@@ -237,9 +238,7 @@ export const SpeakingPracticeTab = () => {
         todaysSpeakingTime={todaysSpeakingTime}
       />
 
-      <SpeakingGoals progress={progress} />
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">{/* Reduced gap for better mobile layout */}
         {practiceModesConfig.map((mode, index) => (
           <PracticeModeCard
             key={index}

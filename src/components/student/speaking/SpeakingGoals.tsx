@@ -75,6 +75,8 @@ export const SpeakingGoals: React.FC<SpeakingGoalsProps> = ({ progress }) => {
       setGoals(activeGoals);
     } catch (error) {
       console.error('Error loading goals:', error);
+      // Handle database table not existing gracefully
+      setGoals(null);
     } finally {
       setIsLoading(false);
     }
