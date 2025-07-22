@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DollarSign, TrendingUp, Calendar, Download, CreditCard } from "lucide-react";
+import { TeacherEarningsTracker } from "@/components/dashboard/teacher/TeacherEarningsTracker";
 
 export const EarningsTab = () => {
   // TODO: Replace with real data from API/database
@@ -28,6 +29,9 @@ export const EarningsTab = () => {
           Download Report
         </Button>
       </div>
+
+      {/* New Per-Lesson Payment System */}
+      <TeacherEarningsTracker />
 
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

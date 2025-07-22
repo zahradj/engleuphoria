@@ -13,6 +13,12 @@ export interface ScheduledLesson {
   teacher_name?: string;
   student_id?: string;
   teacher_id?: string;
+  student_charged_amount?: number;
+  teacher_payout_amount?: number;
+  platform_profit_amount?: number;
+  payment_status?: string;
+  cancellation_reason?: string;
+  completed_at?: string;
 }
 
 export interface CreateLessonData {
@@ -138,5 +144,49 @@ export const lessonService = {
       console.error('Error updating lesson status:', error);
       throw error;
     }
+  },
+
+  // Process lesson completion with payment handling
+  async processLessonCompletion(lessonId: string, status: 'completed' | 'cancelled', failureReason?: string): Promise<any> {
+    const { data, error } = await supabase.rpc('process_lesson_completion', {
+      lesson_uuid: lessonId,
+      lesson_status: status,
+      failure_reason: failureReason
+    });
+
+    if (error) {
+      console.error('Error processing lesson completion:', error);
+      throw error;
+    }
+
+    return data;
+  },
+
+  // Get student lesson statistics
+  async getStudentLessonStats(studentId: string): Promise<any> {
+    const { data, error } = await supabase.rpc('get_student_lesson_stats', {
+      student_uuid: studentId
+    });
+
+    if (error) {
+      console.error('Error fetching student lesson stats:', error);
+      throw error;
+    }
+
+    return data;
+  },
+
+  // Get teacher earnings summary
+  async getTeacherEarningsSummary(teacherId: string): Promise<any> {
+    const { data, error } = await supabase.rpc('get_teacher_earnings_summary', {
+      teacher_uuid: teacherId
+    });
+
+    if (error) {
+      console.error('Error fetching teacher earnings:', error);
+      throw error;
+    }
+
+    return data;
   }
 };

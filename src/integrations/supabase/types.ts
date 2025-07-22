@@ -1811,53 +1811,130 @@ export type Database = {
           },
         ]
       }
+      lesson_payments: {
+        Row: {
+          amount_charged: number
+          created_at: string | null
+          id: string
+          lesson_id: string
+          payment_method: string | null
+          platform_profit: number
+          refund_amount: number | null
+          refund_reason: string | null
+          refunded_at: string | null
+          stripe_payment_intent_id: string | null
+          student_id: string
+          teacher_id: string
+          teacher_payout: number
+          transaction_date: string | null
+        }
+        Insert: {
+          amount_charged: number
+          created_at?: string | null
+          id?: string
+          lesson_id: string
+          payment_method?: string | null
+          platform_profit: number
+          refund_amount?: number | null
+          refund_reason?: string | null
+          refunded_at?: string | null
+          stripe_payment_intent_id?: string | null
+          student_id: string
+          teacher_id: string
+          teacher_payout: number
+          transaction_date?: string | null
+        }
+        Update: {
+          amount_charged?: number
+          created_at?: string | null
+          id?: string
+          lesson_id?: string
+          payment_method?: string | null
+          platform_profit?: number
+          refund_amount?: number | null
+          refund_reason?: string | null
+          refunded_at?: string | null
+          stripe_payment_intent_id?: string | null
+          student_id?: string
+          teacher_id?: string
+          teacher_payout?: number
+          transaction_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_payments_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lessons: {
         Row: {
+          cancellation_reason: string | null
+          completed_at: string | null
           cost: number | null
           created_at: string
           duration: number
           feedback_required: boolean | null
           feedback_submitted: boolean | null
           id: string
+          payment_status: string | null
+          platform_profit_amount: number | null
           quality_rating: number | null
           room_id: string | null
           room_link: string | null
           scheduled_at: string
           status: string
+          student_charged_amount: number | null
           student_id: string
           teacher_id: string
+          teacher_payout_amount: number | null
           title: string
         }
         Insert: {
+          cancellation_reason?: string | null
+          completed_at?: string | null
           cost?: number | null
           created_at?: string
           duration?: number
           feedback_required?: boolean | null
           feedback_submitted?: boolean | null
           id?: string
+          payment_status?: string | null
+          platform_profit_amount?: number | null
           quality_rating?: number | null
           room_id?: string | null
           room_link?: string | null
           scheduled_at: string
           status?: string
+          student_charged_amount?: number | null
           student_id: string
           teacher_id: string
+          teacher_payout_amount?: number | null
           title: string
         }
         Update: {
+          cancellation_reason?: string | null
+          completed_at?: string | null
           cost?: number | null
           created_at?: string
           duration?: number
           feedback_required?: boolean | null
           feedback_submitted?: boolean | null
           id?: string
+          payment_status?: string | null
+          platform_profit_amount?: number | null
           quality_rating?: number | null
           room_id?: string | null
           room_link?: string | null
           scheduled_at?: string
           status?: string
+          student_charged_amount?: number | null
           student_id?: string
           teacher_id?: string
+          teacher_payout_amount?: number | null
           title?: string
         }
         Relationships: [
@@ -3147,6 +3224,50 @@ export type Database = {
         }
         Relationships: []
       }
+      teacher_absences: {
+        Row: {
+          absence_date: string
+          absence_type: string
+          created_at: string | null
+          id: string
+          lesson_id: string | null
+          penalty_applied: boolean | null
+          suspension_applied: boolean | null
+          teacher_id: string
+          warning_given: boolean | null
+        }
+        Insert: {
+          absence_date: string
+          absence_type: string
+          created_at?: string | null
+          id?: string
+          lesson_id?: string | null
+          penalty_applied?: boolean | null
+          suspension_applied?: boolean | null
+          teacher_id: string
+          warning_given?: boolean | null
+        }
+        Update: {
+          absence_date?: string
+          absence_type?: string
+          created_at?: string | null
+          id?: string
+          lesson_id?: string | null
+          penalty_applied?: boolean | null
+          suspension_applied?: boolean | null
+          teacher_id?: string
+          warning_given?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_absences_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teacher_achievements: {
         Row: {
           achievement_description: string | null
@@ -3575,6 +3696,50 @@ export type Database = {
         }
         Relationships: []
       }
+      teacher_penalties: {
+        Row: {
+          created_at: string | null
+          id: string
+          lesson_id: string | null
+          notes: string | null
+          penalty_amount: number | null
+          penalty_date: string | null
+          penalty_type: string
+          resolved: boolean | null
+          teacher_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          lesson_id?: string | null
+          notes?: string | null
+          penalty_amount?: number | null
+          penalty_date?: string | null
+          penalty_type: string
+          resolved?: boolean | null
+          teacher_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          lesson_id?: string | null
+          notes?: string | null
+          penalty_amount?: number | null
+          penalty_date?: string | null
+          penalty_type?: string
+          resolved?: boolean | null
+          teacher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_penalties_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teacher_performance_metrics: {
         Row: {
           attendance_rate: number | null
@@ -3973,6 +4138,10 @@ export type Database = {
         Args: { student_uuid: string; activity_data: Json }
         Returns: Json[]
       }
+      check_teacher_penalties: {
+        Args: { teacher_uuid: string }
+        Returns: undefined
+      }
       generate_adaptive_learning_path: {
         Args: {
           student_uuid: string
@@ -4010,6 +4179,10 @@ export type Database = {
         Args: { org_uuid: string }
         Returns: Json
       }
+      get_student_lesson_stats: {
+        Args: { student_uuid: string }
+        Returns: Json
+      }
       get_student_success_prediction: {
         Args: { student_uuid: string }
         Returns: Json
@@ -4028,6 +4201,10 @@ export type Database = {
           teacher_id: string
         }[]
       }
+      get_teacher_earnings_summary: {
+        Args: { teacher_uuid: string }
+        Returns: Json
+      }
       get_teacher_upcoming_lessons: {
         Args: { teacher_uuid: string }
         Returns: {
@@ -4041,6 +4218,14 @@ export type Database = {
           student_name: string
           student_id: string
         }[]
+      }
+      process_lesson_completion: {
+        Args: {
+          lesson_uuid: string
+          lesson_status: string
+          failure_reason?: string
+        }
+        Returns: Json
       }
       purchase_virtual_reward: {
         Args: { student_uuid: string; reward_uuid: string }

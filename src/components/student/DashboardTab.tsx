@@ -29,6 +29,7 @@ import { useNavigate } from "react-router-dom";
 import { useStudentHandlers } from "@/hooks/useStudentHandlers";
 import { HomeworkSubmissionModal } from "./HomeworkSubmissionModal";
 import { TeacherMessageModal } from "./TeacherMessageModal";
+import { StudentLessonTracker } from "@/components/dashboard/student/StudentLessonTracker";
 
 interface DashboardTabProps {
   studentName: string;
@@ -160,6 +161,9 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
           </div>
         </div>
       </div>
+
+      {/* Lesson Tracker Section */}
+      <StudentLessonTracker />
 
       {/* Learning Progress Section */}
       {hasProfile && (
