@@ -17,6 +17,7 @@ import StudentSignUp from "./pages/StudentSignUp";
 import TeacherApplication from "./pages/TeacherApplication";
 import StudentApplication from "./pages/StudentApplication";
 import OneOnOneClassroomNew from "./pages/OneOnOneClassroomNew";
+import MediaTestPage from "./pages/MediaTestPage";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="/student-signup" element={<StudentSignUp />} />
               <Route path="/teacher-application" element={<TeacherApplication />} />
               <Route path="/student-application" element={<StudentApplication />} />
+              <Route path="/media-test" element={<MediaTestPage />} />
               
               {/* Protected Routes */}
               <Route path="/student" element={
