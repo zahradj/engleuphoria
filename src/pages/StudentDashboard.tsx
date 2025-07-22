@@ -29,7 +29,7 @@ const StudentDashboard = () => {
   const [isInitialized, setIsInitialized] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signOut } = useAuth();
   
   // Generate or get student ID and name
   const generateStudentId = () => {
@@ -77,17 +77,20 @@ const StudentDashboard = () => {
 
   const handleLogout = async () => {
     try {
+      // Clear local storage first
       localStorage.removeItem('studentName');
       localStorage.removeItem('userType');
       localStorage.removeItem('studentProfile');
       localStorage.removeItem('studentId');
+      
+      // Call the proper signOut function from AuthContext
+      await signOut();
       
       toast({
         title: "Logged out successfully",
         description: "See you next time!",
       });
       
-      navigate("/");
     } catch (error) {
       console.error('Logout error:', error);
       toast({
