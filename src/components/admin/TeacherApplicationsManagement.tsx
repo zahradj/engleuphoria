@@ -7,6 +7,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
   Search, 
   Eye, 
@@ -15,16 +17,18 @@ import {
   Clock, 
   FileText, 
   Video, 
-  Calendar,
+  CalendarIcon,
   User,
   Mail,
   Phone,
   Globe,
   Award,
-  Download
+  Download,
+  Send
 } from "lucide-react";
 import { supabase } from '@/lib/supabase';
 import { useToast } from "@/components/ui/use-toast";
+import { format } from "date-fns";
 
 interface TeacherApplication {
   id: string;
@@ -57,6 +61,9 @@ export const TeacherApplicationsManagement = () => {
   const [selectedApplication, setSelectedApplication] = useState<TeacherApplication | null>(null);
   const [loading, setLoading] = useState(true);
   const [reviewNotes, setReviewNotes] = useState('');
+  const [showInterviewScheduler, setShowInterviewScheduler] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date>();
+  const [selectedTime, setSelectedTime] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -105,7 +112,100 @@ export const TeacherApplicationsManagement = () => {
     setFilteredApplications(filtered);
   };
 
+  const sendEmail = async (type: 'approval' | 'rejection' | 'interview_invite', application: TeacherApplication, interviewDate?: Date, interviewTime?: string, rejectionReason?: string) => {
+    try {
+      const emailData = {
+        type,
+        teacherName: application.full_name,
+        teacherEmail: application.email,
+        interviewDate: interviewDate ? format(interviewDate, 'EEEE, MMMM do, yyyy') : undefined,
+        interviewTime,
+        rejectionReason
+      };
+
+      const { error } = await supabase.functions.invoke('send-teacher-emails', {
+        body: emailData
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Email Sent",
+        description: `${type.replace('_', ' ')} email sent successfully to ${application.full_name}`,
+      });
+    } catch (error) {
+      console.error('Error sending email:', error);
+      toast({
+        title: "Email Failed",
+        description: "Failed to send email. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const scheduleInterview = async (application: TeacherApplication) => {
+    if (!selectedDate || !selectedTime) {
+      toast({
+        title: "Missing Information",
+        description: "Please select both date and time for the interview",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Schedule interview in database
+      const [hours, minutes] = selectedTime.split(':').map(Number);
+      const scheduledAt = new Date(selectedDate);
+      scheduledAt.setHours(hours, minutes);
+
+      const { error: interviewError } = await supabase
+        .from('teacher_interviews')
+        .insert([{
+          application_id: application.id,
+          scheduled_at: scheduledAt.toISOString(),
+          duration: 20,
+          interview_type: 'video_call',
+          status: 'scheduled'
+        }]);
+
+      if (interviewError) throw interviewError;
+
+      // Update application stage
+      const { error: updateError } = await supabase
+        .from('teacher_applications')
+        .update({ current_stage: 'interview_scheduled' })
+        .eq('id', application.id);
+
+      if (updateError) throw updateError;
+
+      // Send interview email
+      await sendEmail('interview_invite', application, selectedDate, selectedTime);
+
+      toast({
+        title: "Interview Scheduled",
+        description: `Interview scheduled for ${application.full_name}`,
+      });
+
+      setShowInterviewScheduler(false);
+      setSelectedDate(undefined);
+      setSelectedTime('');
+      fetchApplications();
+      setSelectedApplication(null);
+    } catch (error) {
+      console.error('Error scheduling interview:', error);
+      toast({
+        title: "Error",
+        description: "Failed to schedule interview",
+        variant: "destructive",
+      });
+    }
+  };
+
   const updateApplicationStage = async (applicationId: string, stage: string, approved: boolean = false) => {
+    const application = applications.find(app => app.id === applicationId);
+    if (!application) return;
+
     try {
       const updateData: any = { current_stage: stage };
       
@@ -122,6 +222,13 @@ export const TeacherApplicationsManagement = () => {
 
       if (error) throw error;
 
+      // Send appropriate email
+      if (stage === 'approved' && approved) {
+        await sendEmail('approval', application);
+      } else if (stage === 'rejected') {
+        await sendEmail('rejection', application, undefined, undefined, reviewNotes);
+      }
+
       toast({
         title: "Success",
         description: `Application ${approved ? 'approved' : 'updated'} successfully`,
@@ -129,6 +236,7 @@ export const TeacherApplicationsManagement = () => {
 
       fetchApplications();
       setSelectedApplication(null);
+      setReviewNotes('');
     } catch (error) {
       console.error('Error updating application:', error);
       toast({
@@ -394,7 +502,7 @@ export const TeacherApplicationsManagement = () => {
                       className="mt-1"
                     />
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     <Button
                       onClick={() => updateApplicationStage(selectedApplication.id, 'approved', true)}
                       className="bg-green-600 hover:bg-green-700"
@@ -409,7 +517,7 @@ export const TeacherApplicationsManagement = () => {
                       <XCircle className="h-4 w-4 mr-2" />
                       Reject Application
                     </Button>
-                    {selectedApplication.current_stage !== 'equipment_test' && (
+                    {selectedApplication.current_stage !== 'equipment_test' && selectedApplication.current_stage !== 'interview_scheduled' && (
                       <Button
                         variant="outline"
                         onClick={() => updateApplicationStage(selectedApplication.id, 'equipment_test')}
@@ -418,8 +526,91 @@ export const TeacherApplicationsManagement = () => {
                         Send to Equipment Test
                       </Button>
                     )}
+                    {(selectedApplication.current_stage === 'equipment_test' || selectedApplication.current_stage === 'documents_review') && (
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowInterviewScheduler(true)}
+                      >
+                        <CalendarIcon className="h-4 w-4 mr-2" />
+                        Schedule Interview
+                      </Button>
+                    )}
                   </div>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Interview Scheduler Modal */}
+      {showInterviewScheduler && selectedApplication && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle>Schedule Interview</CardTitle>
+              <CardDescription>
+                Schedule an interview with {selectedApplication.full_name}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label>Interview Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start text-left font-normal"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={setSelectedDate}
+                      initialFocus
+                      disabled={(date) => date < new Date()}
+                      className="pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div>
+                <Label>Interview Time</Label>
+                <select
+                  className="w-full p-2 border rounded-md"
+                  value={selectedTime}
+                  onChange={(e) => setSelectedTime(e.target.value)}
+                >
+                  <option value="">Select time</option>
+                  <option value="09:00">9:00 AM</option>
+                  <option value="10:00">10:00 AM</option>
+                  <option value="11:00">11:00 AM</option>
+                  <option value="14:00">2:00 PM</option>
+                  <option value="15:00">3:00 PM</option>
+                  <option value="16:00">4:00 PM</option>
+                </select>
+              </div>
+
+              <div className="flex gap-2 justify-end">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowInterviewScheduler(false);
+                    setSelectedDate(undefined);
+                    setSelectedTime('');
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={() => scheduleInterview(selectedApplication)}>
+                  <Send className="h-4 w-4 mr-2" />
+                  Schedule & Send Invite
+                </Button>
               </div>
             </CardContent>
           </Card>
