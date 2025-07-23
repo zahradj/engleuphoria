@@ -3424,6 +3424,59 @@ export type Database = {
         }
         Relationships: []
       }
+      teacher_availability: {
+        Row: {
+          created_at: string
+          end_time: string
+          id: string
+          is_available: boolean
+          is_booked: boolean
+          lesson_id: string | null
+          notes: string | null
+          price_per_hour: number
+          recurring_pattern: Json | null
+          start_time: string
+          teacher_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_time: string
+          id?: string
+          is_available?: boolean
+          is_booked?: boolean
+          lesson_id?: string | null
+          notes?: string | null
+          price_per_hour?: number
+          recurring_pattern?: Json | null
+          start_time: string
+          teacher_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_time?: string
+          id?: string
+          is_available?: boolean
+          is_booked?: boolean
+          lesson_id?: string | null
+          notes?: string | null
+          price_per_hour?: number
+          recurring_pattern?: Json | null
+          start_time?: string
+          teacher_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_availability_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teacher_earnings: {
         Row: {
           created_at: string | null
