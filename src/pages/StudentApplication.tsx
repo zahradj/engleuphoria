@@ -29,6 +29,7 @@ interface StudentProfile {
   basicInfo: {
     name: string;
     age: number;
+    nationality: string;
     nativeLanguage: string;
     currentGrade: string;
   };
@@ -58,6 +59,7 @@ const StudentApplication = () => {
     basicInfo: {
       name: '',
       age: 0,
+      nationality: '',
       nativeLanguage: '',
       currentGrade: ''
     },
@@ -304,6 +306,20 @@ const StudentApplication = () => {
                   </div>
                   
                   <div>
+                    <Label htmlFor="nationality">What's your nationality? *</Label>
+                    <Input
+                      id="nationality"
+                      value={profile.basicInfo.nationality}
+                      onChange={(e) => setProfile(prev => ({
+                        ...prev,
+                        basicInfo: { ...prev.basicInfo, nationality: e.target.value }
+                      }))}
+                      placeholder="e.g., Algerian, French, American..."
+                      className="mt-1"
+                    />
+                  </div>
+                  
+                  <div>
                     <Label htmlFor="native">What's your native language? *</Label>
                     <Input
                       id="native"
@@ -523,7 +539,7 @@ const StudentApplication = () => {
                   onClick={nextStep}
                   className="bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700"
                   disabled={
-                    (currentStep === 1 && (!profile.basicInfo.name || !profile.basicInfo.age || !profile.basicInfo.nativeLanguage)) ||
+                    (currentStep === 1 && (!profile.basicInfo.name || !profile.basicInfo.age || !profile.basicInfo.nationality || !profile.basicInfo.nativeLanguage)) ||
                     (currentStep === 2 && !profile.englishLevel) ||
                     (currentStep === 6 && !profile.timeCommitment)
                   }
