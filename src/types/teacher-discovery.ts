@@ -6,7 +6,7 @@ export interface TeacherProfile {
   specializations: string[];
   accent: string;
   languages_spoken: string[];
-  intro_video_url: string;
+  video_url: string;
   profile_image_url: string;
   hourly_rate_dzd: number;
   hourly_rate_eur: number;

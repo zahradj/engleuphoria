@@ -77,7 +77,7 @@ export const TeacherCard: React.FC<TeacherCardProps> = ({
             variant="outline"
             size="sm"
             className="flex-1"
-            onClick={() => onWatchIntro(teacher.intro_video_url)}
+            onClick={() => onWatchIntro(teacher.video_url)}
           >
             <Play className="w-3 h-3 mr-1" />
             Watch Intro
