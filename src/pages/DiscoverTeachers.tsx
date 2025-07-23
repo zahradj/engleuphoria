@@ -104,10 +104,13 @@ export const DiscoverTeachers = () => {
   };
 
   const handleBookTeacher = (teacherId: string, teacherName: string) => {
-    toast({
-      title: "Booking Request",
-      description: `Booking system for ${teacherName} will be available soon!`,
-    });
+    // Navigate to booking page with teacher ID
+    window.location.href = `/student/book-lesson?teacherId=${teacherId}`;
+  };
+
+  const handleViewProfile = (teacherId: string) => {
+    // Navigate to teacher profile page
+    window.location.href = `/teacher/${teacherId}`;
   };
 
   const uniqueAccents = [...new Set(teachers.map(t => t.accent).filter(Boolean))];
@@ -248,13 +251,22 @@ export const DiscoverTeachers = () => {
                 </div>
               )}
 
-              {/* Book Button */}
-              <Button 
-                className="w-full" 
-                onClick={() => handleBookTeacher(teacher.user_id, teacher.full_name)}
-              >
-                Book a Lesson
-              </Button>
+              {/* Action Buttons */}
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline"
+                  className="flex-1" 
+                  onClick={() => handleViewProfile(teacher.user_id)}
+                >
+                  View Profile
+                </Button>
+                <Button 
+                  className="flex-1" 
+                  onClick={() => handleBookTeacher(teacher.user_id, teacher.full_name)}
+                >
+                  Book Lesson
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ))}

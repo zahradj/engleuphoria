@@ -20,8 +20,9 @@ import OneOnOneClassroomNew from "./pages/OneOnOneClassroomNew";
 import MediaTestPage from "./pages/MediaTestPage";
 import UnifiedClassroom from "./pages/UnifiedClassroom";
 import { DiscoverTeachers } from "./pages/DiscoverTeachers";
+import { TeacherProfile } from "./pages/TeacherProfile";
+import { BookLesson } from "./pages/BookLesson";
 import StudentSchedule from "./pages/student/StudentSchedule";
-import BookLesson from "./pages/student/BookLesson";
 import SpeakingPractice from "./pages/student/SpeakingPractice";
 
 const queryClient = new QueryClient();
@@ -45,6 +46,7 @@ const App = () => (
               <Route path="/media-test" element={<MediaTestPage />} />
               <Route path="/classroom" element={<UnifiedClassroom />} />
               <Route path="/discover-teachers" element={<DiscoverTeachers />} />
+              <Route path="/teacher/:teacherId" element={<TeacherProfile />} />
               <Route path="/student/schedule" element={<StudentSchedule />} />
               <Route path="/student/book-lesson" element={<BookLesson />} />
               <Route path="/student/speaking-practice" element={<SpeakingPractice />} />
