@@ -11,6 +11,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, userData: Partial<User>) => Promise<any>;
   signIn: (email: string, password: string) => Promise<any>;
   signOut: () => Promise<any>;
+  resetPassword: (email: string) => Promise<any>;
   refreshUser: () => void;
   error: string | null;
 }
@@ -209,6 +210,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const resetPassword = async (email: string) => {
+    if (!isConfigured) {
+      return { data: null, error: new Error('Supabase not configured. Please check your environment setup.') };
+    }
+
+    try {
+      setError(null);
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`
+      });
+      
+      return { data: null, error };
+    } catch (error) {
+      setError('Password reset failed');
+      return { data: null, error };
+    }
+  };
+
   const signOut = async () => {
     try {
       console.log('🚪 Sign out initiated');
@@ -260,6 +279,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       signUp,
       signIn,
       signOut,
+      resetPassword,
       refreshUser,
       error
     }}>
