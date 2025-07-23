@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ interface WeekPlan {
 }
 
 export const LearningPathTab = () => {
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
   const [learningPath, setLearningPath] = useState<WeekPlan[]>([]);
   const [currentWeek, setCurrentWeek] = useState(1);
@@ -149,7 +151,7 @@ export const LearningPathTab = () => {
               To see your personalized learning path, please complete your student application form.
             </p>
             <Button 
-              onClick={() => window.location.href = '/student-application'}
+              onClick={() => navigate('/student-application')}
               className="bg-gradient-to-r from-emerald-600 to-blue-600"
             >
               Complete Profile

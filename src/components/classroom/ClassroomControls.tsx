@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Mic, MicOff, Video, VideoOff, Hand, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";

@@ -256,8 +256,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
       console.log('🏠 Redirecting to home page...');
-      // Force redirect to home page
-      window.location.href = '/';
+      // Force redirect to home page using location.replace for complete reload
+      window.location.replace('/');
       
       return { error };
     } catch (error) {
@@ -265,7 +265,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setError('Sign out failed');
       // Force redirect even on error
       console.log('🏠 Force redirecting to home page after error...');
-      window.location.href = '/';
+      window.location.replace('/');
       return { error };
     }
   };

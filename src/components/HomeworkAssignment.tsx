@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Upload, Check, File } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 export interface Assignment {
   id: string;

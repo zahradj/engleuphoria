@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ interface TeacherOnboardingFlowProps {
 }
 
 export const TeacherOnboardingFlow: React.FC<TeacherOnboardingFlowProps> = ({ userEmail }) => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [currentStage, setCurrentStage] = useState<TeacherApplicationStage>('application_submitted');
   const [applicationId, setApplicationId] = useState<string>('');
@@ -245,7 +247,7 @@ export const TeacherOnboardingFlow: React.FC<TeacherOnboardingFlowProps> = ({ us
                 <Button 
                   size="lg" 
                   className="bg-green-600 hover:bg-green-700"
-                  onClick={() => window.location.href = '/teacher-dashboard'}
+                  onClick={() => navigate('/teacher')}
                 >
                   Access Teacher Dashboard
                 </Button>

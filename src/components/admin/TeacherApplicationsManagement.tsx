@@ -27,7 +27,7 @@ import {
   Send
 } from "lucide-react";
 import { supabase } from '@/lib/supabase';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 
 interface TeacherApplication {

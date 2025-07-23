@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, AlertTriangle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -17,6 +17,7 @@ export const ImprovedProtectedRoute: React.FC<ImprovedProtectedRouteProps> = ({
   requiredRole, 
   redirectTo = '/login' 
 }) => {
+  const navigate = useNavigate();
   const { user, loading, error } = useAuth();
 
   // Show loading spinner while auth is being determined
@@ -42,7 +43,7 @@ export const ImprovedProtectedRoute: React.FC<ImprovedProtectedRouteProps> = ({
             <h3 className="font-semibold text-lg text-gray-900 mb-2">Authentication Error</h3>
             <p className="text-gray-600 mb-4">{error}</p>
             <Button 
-              onClick={() => window.location.href = '/login'} 
+              onClick={() => navigate('/login')} 
               variant="outline"
               className="w-full"
             >
@@ -84,7 +85,7 @@ export const ImprovedProtectedRoute: React.FC<ImprovedProtectedRouteProps> = ({
                 Your account role "{user.role}" is not recognized. Please contact support.
               </p>
               <Button 
-                onClick={() => window.location.href = '/'} 
+                onClick={() => navigate('/')} 
                 variant="outline"
                 className="w-full"
               >

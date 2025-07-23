@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -27,6 +28,7 @@ interface Teacher {
 }
 
 export const DiscoverTeachers = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [filteredTeachers, setFilteredTeachers] = useState<Teacher[]>([]);
@@ -104,13 +106,13 @@ export const DiscoverTeachers = () => {
   };
 
   const handleBookTeacher = (teacherId: string, teacherName: string) => {
-    // Navigate to booking page with teacher ID
-    window.location.href = `/student/book-lesson?teacherId=${teacherId}`;
+    // Navigate to booking page with teacher ID using React Router
+    navigate(`/student/book-lesson?teacherId=${teacherId}`);
   };
 
   const handleViewProfile = (teacherId: string) => {
-    // Navigate to teacher profile page
-    window.location.href = `/teacher/${teacherId}`;
+    // Navigate to teacher profile page using React Router
+    navigate(`/teacher/${teacherId}`);
   };
 
   const uniqueAccents = [...new Set(teachers.map(t => t.accent).filter(Boolean))];

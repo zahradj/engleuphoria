@@ -60,8 +60,8 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onModeChange }) => {
       const targetPath = dashboardMap[user.role] || '/student';
       console.log('🔄 Redirecting to:', targetPath);
       
-      // Use window.location.href for more reliable redirect
-      window.location.href = targetPath;
+      // Use React Router for navigation
+      navigate(targetPath, { replace: true });
       setHasRedirected(true);
     }
   }, [user, hasRedirected]);
