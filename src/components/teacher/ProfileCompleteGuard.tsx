@@ -110,12 +110,6 @@ export const ProfileCompleteGuard = ({ teacherId, children }: ProfileCompleteGua
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-end">
-        <div className="flex items-center gap-2 text-sm text-green-600">
-          <CheckCircle className="w-4 h-4" />
-          Profile Complete
-        </div>
-      </div>
       {children}
     </div>
   );
