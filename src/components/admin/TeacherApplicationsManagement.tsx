@@ -40,7 +40,7 @@ interface TeacherApplication {
   education_level: string;
   teaching_experience_years: number;
   target_age_group: string;
-  intro_video_url?: string;
+  video_url?: string;
   professional_photo_url?: string;
   certificates_urls: string[];
   current_stage: string;
@@ -437,14 +437,14 @@ export const TeacherApplicationsManagement = () => {
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Application Materials</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {selectedApplication.intro_video_url && (
+                  {selectedApplication.video_url && (
                     <div>
                       <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                         <Video className="h-4 w-4" />
                         Introduction Video
                       </Label>
                       <video 
-                        src={selectedApplication.intro_video_url} 
+                        src={selectedApplication.video_url} 
                         controls 
                         className="w-full mt-2 rounded-lg"
                       />
