@@ -92,6 +92,9 @@ export default {
 			},
 			fontFamily: {
 				nunito: ['Nunito', 'sans-serif'],
+				fredoka: ['Fredoka', 'cursive'],
+				inter: ['Inter', 'sans-serif'],
+				comfortaa: ['Comfortaa', 'cursive'],
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
