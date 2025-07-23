@@ -25,7 +25,7 @@ import { BookLesson } from "./pages/BookLesson";
 import StudentSchedule from "./pages/student/StudentSchedule";
 import SpeakingPractice from "./pages/student/SpeakingPractice";
 import ForParents from "./pages/ForParents";
-import ForTeachers from "./pages/ForTeachers";
+import ForTeachers from "./pages/ForTeachers";  
 import AboutUs from "./pages/AboutUs";
 
 const queryClient = new QueryClient();
