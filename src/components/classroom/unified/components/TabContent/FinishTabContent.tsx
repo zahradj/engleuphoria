@@ -231,7 +231,7 @@ export function FinishTabContent({
           </Card>
         )}
 
-        {isTeacher && (sessionStatus === 'ended' || sessionStatus === 'started') && !feedbackSubmitted && (
+        {isTeacher && ['ended', 'started'].includes(sessionStatus || '') && !feedbackSubmitted && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
