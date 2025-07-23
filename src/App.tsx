@@ -24,6 +24,9 @@ import { TeacherProfile } from "./pages/TeacherProfile";
 import { BookLesson } from "./pages/BookLesson";
 import StudentSchedule from "./pages/student/StudentSchedule";
 import SpeakingPractice from "./pages/student/SpeakingPractice";
+import ForParents from "./pages/ForParents";
+import ForTeachers from "./pages/ForTeachers";
+import AboutUs from "./pages/AboutUs";
 
 const queryClient = new QueryClient();
 
@@ -50,7 +53,10 @@ const App = () => (
               <Route path="/student/schedule" element={<StudentSchedule />} />
               <Route path="/student/book-lesson" element={<BookLesson />} />
               <Route path="/student/speaking-practice" element={<SpeakingPractice />} />
-              
+              <Route path="/for-parents" element={<ForParents />} />
+              <Route path="/for-teachers" element={<ForTeachers />} />
+              <Route path="/about" element={<AboutUs />} />
+
               {/* Protected Routes */}
               <Route path="/student" element={
                 <ImprovedProtectedRoute requiredRole="student">
