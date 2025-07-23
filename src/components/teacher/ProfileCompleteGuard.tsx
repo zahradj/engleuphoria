@@ -24,12 +24,15 @@ export const ProfileCompleteGuard = ({ teacherId, children }: ProfileCompleteGua
     try {
       const { data, error } = await supabase
         .from('teacher_profiles')
-        .select('profile_complete, can_teach')
+        .select('profile_complete, can_teach, profile_approved_by_admin')
         .eq('user_id', teacherId)
         .maybeSingle();
 
       if (error) throw error;
 
+      console.log('Profile data:', data);
+      console.log('Profile complete check:', data?.profile_complete && data?.can_teach);
+      
       setProfileComplete(data?.profile_complete && data?.can_teach);
     } catch (error) {
       console.error('Error checking profile status:', error);
