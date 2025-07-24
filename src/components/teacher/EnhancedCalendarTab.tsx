@@ -6,9 +6,11 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { lessonService, ScheduledLesson } from "@/services/lessonService";
 import { ScheduleLessonModal } from "./ScheduleLessonModal";
+import { AvailabilityManager } from "./AvailabilityManager";
 import { CalendarViewSwitcher } from "./calendar/CalendarViewSwitcher";
 import { MonthView } from "./calendar/MonthView";
 import { WeekView } from "./calendar/WeekView";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface EnhancedCalendarTabProps {
   teacherId: string;
@@ -80,37 +82,54 @@ export const EnhancedCalendarTab = ({ teacherId }: EnhancedCalendarTabProps) => 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">Lesson Calendar</h1>
-        <div className="flex gap-2">
-          <CalendarViewSwitcher 
-            viewMode={viewMode} 
-            onViewModeChange={setViewMode} 
-          />
-          <Button 
-            onClick={() => setShowScheduleModal(true)}
-            className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Schedule Lesson
-          </Button>
-        </div>
+        <h1 className="text-2xl font-bold text-gray-800">Teaching Calendar</h1>
       </div>
 
-      {viewMode === 'month' ? (
-        <MonthView
-          selectedDate={selectedDate}
-          onDateSelect={(date) => date && setSelectedDate(date)}
-          lessons={lessons}
-          onJoinClassroom={handleJoinClassroom}
-        />
-      ) : (
-        <WeekView
-          currentWeek={currentWeek}
-          onWeekChange={setCurrentWeek}
-          lessons={lessons}
-          onJoinClassroom={handleJoinClassroom}
-        />
-      )}
+      <Tabs defaultValue="calendar" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="calendar">Lesson Calendar</TabsTrigger>
+          <TabsTrigger value="availability">Manage Availability</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="calendar" className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-gray-700">Scheduled Lessons</h2>
+            <div className="flex gap-2">
+              <CalendarViewSwitcher 
+                viewMode={viewMode} 
+                onViewModeChange={setViewMode} 
+              />
+              <Button 
+                onClick={() => setShowScheduleModal(true)}
+                className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Schedule Lesson
+              </Button>
+            </div>
+          </div>
+
+          {viewMode === 'month' ? (
+            <MonthView
+              selectedDate={selectedDate}
+              onDateSelect={(date) => date && setSelectedDate(date)}
+              lessons={lessons}
+              onJoinClassroom={handleJoinClassroom}
+            />
+          ) : (
+            <WeekView
+              currentWeek={currentWeek}
+              onWeekChange={setCurrentWeek}
+              lessons={lessons}
+              onJoinClassroom={handleJoinClassroom}
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="availability">
+          <AvailabilityManager teacherId={teacherId} />
+        </TabsContent>
+      </Tabs>
 
       <ScheduleLessonModal
         isOpen={showScheduleModal}
