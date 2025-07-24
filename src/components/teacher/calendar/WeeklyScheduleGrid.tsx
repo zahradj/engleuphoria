@@ -62,18 +62,17 @@ export const WeeklyScheduleGrid = ({ teacherId }: WeeklyScheduleGridProps) => {
     
     setIsLoading(true);
     try {
-      const startDate = weekDays[0].toISOString().split('T')[0];
-      const endDate = weekDays[6].toISOString().split('T')[0];
+      const startDate = weekDays[0].toISOString();
+      const endDate = new Date(weekDays[6]);
+      endDate.setDate(endDate.getDate() + 1);
+      const endDateStr = endDate.toISOString();
       
       const { data, error } = await supabase
         .from('teacher_availability')
-        .select(`
-          *,
-          student:student_id(full_name)
-        `)
+        .select('*')
         .eq('teacher_id', teacherId)
-        .gte('date', startDate)
-        .lte('date', endDate);
+        .gte('start_time', startDate)
+        .lt('start_time', endDateStr);
 
       if (error) throw error;
 
@@ -85,18 +84,26 @@ export const WeeklyScheduleGrid = ({ teacherId }: WeeklyScheduleGridProps) => {
       });
 
       data?.forEach(slot => {
-        const dateStr = slot.date;
+        const slotDate = new Date(slot.start_time);
+        const dateStr = slotDate.toISOString().split('T')[0];
         if (!slotsMap[dateStr]) slotsMap[dateStr] = [];
+        
+        // Extract time from start_time timestamp
+        const timeStr = slotDate.toLocaleTimeString('en-US', { 
+          hour12: false, 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        });
         
         slotsMap[dateStr].push({
           id: slot.id,
-          time: slot.start_time,
+          time: timeStr,
           duration: slot.duration,
           lessonType: slot.lesson_type,
           isAvailable: slot.is_available,
           studentId: slot.student_id,
           lessonTitle: slot.lesson_title,
-          studentName: slot.student?.full_name,
+          studentName: undefined, // Will handle student names separately if needed
           lessonCode: slot.lesson_id ? `#${slot.lesson_id.slice(-6).toUpperCase()}` : undefined
         });
       });
@@ -159,15 +166,21 @@ export const WeeklyScheduleGrid = ({ teacherId }: WeeklyScheduleGridProps) => {
       } else {
         // Create new slot
         const [hours, minutes] = time.split(':').map(Number);
-        const endTime = `${(hours + Math.floor((minutes + selectedDuration) / 60)).toString().padStart(2, '0')}:${((minutes + selectedDuration) % 60).toString().padStart(2, '0')}`;
+        
+        // Create proper timestamp for start_time
+        const startDateTime = new Date(date);
+        startDateTime.setHours(hours, minutes, 0, 0);
+        
+        // Calculate end time
+        const endDateTime = new Date(startDateTime);
+        endDateTime.setMinutes(endDateTime.getMinutes() + selectedDuration);
 
         const { error } = await supabase
           .from('teacher_availability')
           .insert({
             teacher_id: teacherId,
-            date: dateStr,
-            start_time: time,
-            end_time: endTime,
+            start_time: startDateTime.toISOString(),
+            end_time: endDateTime.toISOString(),
             duration: selectedDuration,
             lesson_type: 'free_slot',
             is_available: true
