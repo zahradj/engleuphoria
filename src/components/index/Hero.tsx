@@ -109,7 +109,6 @@ export const Hero = ({ onStartClick }: HeroProps) => {
             <div className="absolute -z-10 top-[50%] left-[10%] w-[65%] h-[65%] bg-orange-light/25 rounded-full blur-2xl animate-pulse-subtle opacity-60 animation-delay-1300"></div>
             
             <div className="relative transform hover:scale-105 transition-transform duration-500 w-full">
-              <div className="absolute -inset-4 bg-gradient-to-r from-purple via-blue to-emerald rounded-3xl blur-lg opacity-30 animate-pulse"></div>
               <img 
                 src="/lovable-uploads/27f0b41c-34f2-4a8e-a08b-9a755fe74f97.png" 
                 alt="Interactive English Learning" 
