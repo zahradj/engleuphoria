@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronLeft, ChevronRight, Plus, Users, Clock } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
 import { useAutoHideTaskbar } from "@/hooks/useAutoHideTaskbar";
+import { CalendarHeader } from "./CalendarHeader";
+import { WeekGrid } from "./WeekGrid";
+import { CalendarLegend } from "./CalendarLegend";
 
 interface ScheduleSlot {
   id?: string;
@@ -202,153 +202,30 @@ export const WeeklyScheduleGrid = ({ teacherId }: WeeklyScheduleGridProps) => {
     setCurrentWeek(newWeek);
   };
 
-  const getSlotClassName = (slot?: ScheduleSlot) => {
-    if (!slot || !slot.isAvailable) {
-      return "h-8 border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors";
-    }
-    
-    if (slot.studentId) {
-      return "h-8 border border-red-200 bg-red-100 text-red-800 cursor-pointer transition-colors hover:bg-red-200";
-    }
-    
-    if (slot.lessonType === 'direct_booking') {
-      return "h-8 border border-orange-200 bg-orange-100 text-orange-800 cursor-pointer transition-colors hover:bg-orange-200";
-    }
-    
-    return "h-8 border border-green-200 bg-green-100 text-green-800 cursor-pointer transition-colors hover:bg-green-200";
-  };
-
-  const renderSlotContent = (slot?: ScheduleSlot) => {
-    if (!slot || !slot.isAvailable) {
-      return null;
-    }
-
-    if (slot.studentId && slot.studentName) {
-      return (
-        <div className="px-2 py-1 text-xs font-medium">
-          <div className="font-semibold">{slot.lessonCode || `#${slot.id?.slice(-6).toUpperCase()}`}</div>
-          <div className="text-xs opacity-80">{slot.studentName}</div>
-        </div>
-      );
-    }
-
-    return (
-      <div className="flex items-center justify-center h-full">
-        <Plus className="h-3 w-3 opacity-60" />
-      </div>
-    );
+  const goToToday = () => {
+    setCurrentWeek(new Date());
   };
 
   return (
     <Card className="w-full">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            Weekly Schedule
-          </CardTitle>
-          
-          <div className="flex items-center gap-4">
-            <Select
-              value={selectedDuration.toString()}
-              onValueChange={(value) => setSelectedDuration(Number(value) as 25 | 55)}
-            >
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="25">25 min</SelectItem>
-                <SelectItem value="55">55 min</SelectItem>
-              </SelectContent>
-            </Select>
+      <CardContent className="p-6">
+        <CalendarHeader
+          weekDays={weekDays}
+          selectedDuration={selectedDuration}
+          onDurationChange={setSelectedDuration}
+          onNavigateWeek={navigateWeek}
+          onTodayClick={goToToday}
+        />
+        
+        <WeekGrid
+          weekDays={weekDays}
+          timeSlots={timeSlots}
+          weeklySlots={weeklySlots}
+          selectedDuration={selectedDuration}
+          onTimeSlotClick={handleTimeSlotClick}
+        />
 
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => navigateWeek('prev')}>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              
-              <span className="text-sm font-medium min-w-[200px] text-center">
-                {weekDays[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {weekDays[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-              </span>
-              
-              <Button variant="outline" size="sm" onClick={() => navigateWeek('next')}>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="p-0">
-        <div className="overflow-auto">
-          <div className="min-w-[800px]">
-            {/* Header with days */}
-            <div className="grid grid-cols-8 border-b border-gray-200">
-              <div className="p-3 bg-gray-50 font-medium text-sm">Time</div>
-              {weekDays.map((day, index) => (
-                <div key={index} className="p-3 bg-gray-50 text-center">
-                  <div className="font-medium text-sm">
-                    {day.toLocaleDateString('en-US', { weekday: 'short' })}
-                  </div>
-                  <div className="text-xs text-gray-600">
-                    {day.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Time slots grid */}
-            <div className="divide-y divide-gray-200">
-              {timeSlots.map(time => (
-                <div key={time} className="grid grid-cols-8">
-                  <div className="p-3 text-sm font-medium text-gray-600 bg-gray-50 border-r border-gray-200">
-                    {time}
-                  </div>
-                  {weekDays.map((day, dayIndex) => {
-                    const dateStr = day.toISOString().split('T')[0];
-                    const slot = getSlotForTimeAndDate(time, dateStr);
-                    
-                    return (
-                      <div
-                        key={`${time}-${dayIndex}`}
-                        className={getSlotClassName(slot)}
-                        onClick={(e) => handleTimeSlotClick(time, day, e)}
-                        title={slot?.isAvailable ? `${time} - ${slot.duration}min` : `Click to open ${selectedDuration}min slot`}
-                      >
-                        {renderSlotContent(slot)}
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Legend */}
-        <div className="p-4 border-t border-gray-200 bg-gray-50">
-          <div className="flex flex-wrap gap-4 text-xs">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-gray-100 border border-gray-200 rounded"></div>
-              <span>Available to open</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-100 border border-green-200 rounded"></div>
-              <span>Open for booking</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-orange-100 border border-orange-200 rounded"></div>
-              <span>Direct booking</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-red-100 border border-red-200 rounded"></div>
-              <span>Booked by student</span>
-            </div>
-            <div className="text-gray-600 ml-4">
-              Tip: Click to toggle slots • Ctrl+Click for direct booking
-            </div>
-          </div>
-        </div>
+        <CalendarLegend />
       </CardContent>
     </Card>
   );
