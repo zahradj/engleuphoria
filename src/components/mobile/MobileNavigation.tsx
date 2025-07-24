@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, BookOpen, MessageCircle, Trophy, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAutoHideTaskbar } from '@/hooks/useAutoHideTaskbar';
 
 const navigationItems = [
   { href: '/', icon: Home, label: 'Home' },
@@ -13,9 +14,22 @@ const navigationItems = [
 
 export const MobileNavigation: React.FC = () => {
   const location = useLocation();
+  const { isVisible, handleTaskbarHover } = useAutoHideTaskbar({
+    enabled: true,
+    hideDelay: 3000,
+    hideOnCalendarInteraction: location.pathname.includes('/teacher')
+  });
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border md:hidden">
+    <nav 
+      className={cn(
+        "fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border md:hidden",
+        "transition-transform duration-300 ease-in-out",
+        isVisible ? "translate-y-0" : "translate-y-full"
+      )}
+      onMouseEnter={() => handleTaskbarHover(true)}
+      onMouseLeave={() => handleTaskbarHover(false)}
+    >
       <div className="flex justify-around items-center py-2 px-4">
         {navigationItems.map(({ href, icon: Icon, label }) => {
           const isActive = location.pathname === href;

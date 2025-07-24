@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChevronLeft, ChevronRight, Plus, Users, Clock } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "@/hooks/use-toast";
+import { useAutoHideTaskbar } from "@/hooks/useAutoHideTaskbar";
 
 interface ScheduleSlot {
   id?: string;
@@ -27,6 +28,8 @@ export const WeeklyScheduleGrid = ({ teacherId }: WeeklyScheduleGridProps) => {
   const [weeklySlots, setWeeklySlots] = useState<{ [key: string]: ScheduleSlot[] }>({});
   const [selectedDuration, setSelectedDuration] = useState<25 | 55>(25);
   const [isLoading, setIsLoading] = useState(false);
+  const { handleCalendarInteraction } = useAutoHideTaskbar();
+  const interactionTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Generate time slots from 6 AM to 10 PM
   const timeSlots = Array.from({ length: 32 }, (_, i) => {
@@ -116,6 +119,17 @@ export const WeeklyScheduleGrid = ({ teacherId }: WeeklyScheduleGridProps) => {
   }, [currentWeek, teacherId]);
 
   const handleTimeSlotClick = async (time: string, date: Date, event: React.MouseEvent) => {
+    // Trigger calendar interaction auto-hide
+    handleCalendarInteraction(true);
+    
+    // Clear previous timeout and set new one
+    if (interactionTimeoutRef.current) {
+      clearTimeout(interactionTimeoutRef.current);
+    }
+    interactionTimeoutRef.current = setTimeout(() => {
+      handleCalendarInteraction(false);
+    }, 2000);
+
     const dateStr = date.toISOString().split('T')[0];
     const existingSlot = weeklySlots[dateStr]?.find(slot => slot.time === time);
 
