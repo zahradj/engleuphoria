@@ -3427,43 +3427,55 @@ export type Database = {
       teacher_availability: {
         Row: {
           created_at: string
+          duration: number
           end_time: string
           id: string
           is_available: boolean
           is_booked: boolean
           lesson_id: string | null
+          lesson_title: string | null
+          lesson_type: string
           notes: string | null
           price_per_hour: number
           recurring_pattern: Json | null
           start_time: string
+          student_id: string | null
           teacher_id: string
           updated_at: string
         }
         Insert: {
           created_at?: string
+          duration?: number
           end_time: string
           id?: string
           is_available?: boolean
           is_booked?: boolean
           lesson_id?: string | null
+          lesson_title?: string | null
+          lesson_type?: string
           notes?: string | null
           price_per_hour?: number
           recurring_pattern?: Json | null
           start_time: string
+          student_id?: string | null
           teacher_id: string
           updated_at?: string
         }
         Update: {
           created_at?: string
+          duration?: number
           end_time?: string
           id?: string
           is_available?: boolean
           is_booked?: boolean
           lesson_id?: string | null
+          lesson_title?: string | null
+          lesson_type?: string
           notes?: string | null
           price_per_hour?: number
           recurring_pattern?: Json | null
           start_time?: string
+          student_id?: string | null
           teacher_id?: string
           updated_at?: string
         }
