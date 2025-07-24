@@ -13,12 +13,16 @@ import { supabase } from "@/lib/supabase";
 interface TimeSlot {
   id: string;
   teacher_id: string;
-  date: string;
   start_time: string;
   end_time: string;
-  duration: number;
   is_available: boolean;
+  is_booked: boolean;
+  lesson_id?: string;
+  price_per_hour: number;
+  recurring_pattern?: any;
+  notes?: string;
   created_at: string;
+  updated_at: string;
 }
 
 interface AvailabilityManagerProps {
@@ -46,8 +50,7 @@ export const AvailabilityManager = ({ teacherId }: AvailabilityManagerProps) => 
         .from('teacher_availability')
         .select('*')
         .eq('teacher_id', teacherId)
-        .gte('date', new Date().toISOString().split('T')[0])
-        .order('date', { ascending: true })
+        .gte('start_time', new Date().toISOString())
         .order('start_time', { ascending: true });
 
       if (error) throw error;
@@ -76,10 +79,16 @@ export const AvailabilityManager = ({ teacherId }: AvailabilityManagerProps) => 
 
     setIsCreating(true);
     try {
-      const startTime24 = convertTo24Hour(selectedStartTime);
-      const endTime24 = convertTo24Hour(selectedEndTime);
+      // Combine date and time to create full datetime
+      const startDateTime = new Date(selectedDate);
+      const [startHour, startMin] = selectedStartTime.split(':').map(Number);
+      startDateTime.setHours(startHour, startMin, 0, 0);
       
-      if (startTime24 >= endTime24) {
+      const endDateTime = new Date(selectedDate);
+      const [endHour, endMin] = selectedEndTime.split(':').map(Number);
+      endDateTime.setHours(endHour, endMin, 0, 0);
+      
+      if (startDateTime >= endDateTime) {
         toast({
           title: "Invalid Time Range",
           description: "End time must be after start time.",
@@ -88,17 +97,15 @@ export const AvailabilityManager = ({ teacherId }: AvailabilityManagerProps) => 
         return;
       }
 
-      const duration = calculateDuration(startTime24, endTime24);
-      
       const { data, error } = await supabase
         .from('teacher_availability')
         .insert({
           teacher_id: teacherId,
-          date: selectedDate.toISOString().split('T')[0],
-          start_time: startTime24,
-          end_time: endTime24,
-          duration,
-          is_available: true
+          start_time: startDateTime.toISOString(),
+          end_time: endDateTime.toISOString(),
+          is_available: true,
+          is_booked: false,
+          price_per_hour: 350
         })
         .select()
         .single();
@@ -149,14 +156,15 @@ export const AvailabilityManager = ({ teacherId }: AvailabilityManagerProps) => 
     }
   };
 
-  const convertTo24Hour = (time12: string): string => {
-    return time12;
-  };
-
-  const calculateDuration = (startTime: string, endTime: string): number => {
-    const [startHour, startMin] = startTime.split(':').map(Number);
-    const [endHour, endMin] = endTime.split(':').map(Number);
-    return (endHour * 60 + endMin) - (startHour * 60 + startMin);
+  const groupSlotsByDate = (slots: TimeSlot[]) => {
+    return slots.reduce((groups, slot) => {
+      const date = new Date(slot.start_time).toISOString().split('T')[0];
+      if (!groups[date]) {
+        groups[date] = [];
+      }
+      groups[date].push(slot);
+      return groups;
+    }, {} as Record<string, TimeSlot[]>);
   };
 
   const timeSlots = [
@@ -165,17 +173,6 @@ export const AvailabilityManager = ({ teacherId }: AvailabilityManagerProps) => 
     "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
     "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00"
   ];
-
-  const groupSlotsByDate = (slots: TimeSlot[]) => {
-    return slots.reduce((groups, slot) => {
-      const date = slot.date;
-      if (!groups[date]) {
-        groups[date] = [];
-      }
-      groups[date].push(slot);
-      return groups;
-    }, {} as Record<string, TimeSlot[]>);
-  };
 
   const groupedSlots = groupSlotsByDate(slots);
 
@@ -247,16 +244,24 @@ export const AvailabilityManager = ({ teacherId }: AvailabilityManagerProps) => 
                       <div className="flex items-center gap-3">
                         <Clock className="h-4 w-4 text-gray-500" />
                         <span className="font-medium">
-                          {slot.start_time} - {slot.end_time}
+                          {new Date(slot.start_time).toLocaleTimeString('en-US', { 
+                            hour: '2-digit', 
+                            minute: '2-digit', 
+                            hour12: false 
+                          })} - {new Date(slot.end_time).toLocaleTimeString('en-US', { 
+                            hour: '2-digit', 
+                            minute: '2-digit', 
+                            hour12: false 
+                          })}
                         </span>
-                        <Badge variant={slot.is_available ? "default" : "secondary"}>
-                          {slot.is_available ? "Available" : "Booked"}
+                        <Badge variant={slot.is_available && !slot.is_booked ? "default" : "secondary"}>
+                          {slot.is_available && !slot.is_booked ? "Available" : "Booked"}
                         </Badge>
                         <span className="text-sm text-gray-500">
-                          ({slot.duration} min)
+                          ({Math.round((new Date(slot.end_time).getTime() - new Date(slot.start_time).getTime()) / (1000 * 60))} min)
                         </span>
                       </div>
-                      {slot.is_available && (
+                      {slot.is_available && !slot.is_booked && (
                         <Button
                           variant="outline"
                           size="sm"
@@ -337,7 +342,7 @@ export const AvailabilityManager = ({ teacherId }: AvailabilityManagerProps) => 
                     <div className="text-sm text-blue-700 space-y-1">
                       <div>📅 {selectedDate.toLocaleDateString()}</div>
                       <div>🕒 {selectedStartTime} - {selectedEndTime}</div>
-                      <div>⏱️ {calculateDuration(selectedStartTime, selectedEndTime)} minutes</div>
+                      <div>⏱️ {Math.round((new Date(`1970-01-01T${selectedEndTime}`).getTime() - new Date(`1970-01-01T${selectedStartTime}`).getTime()) / (1000 * 60))} minutes</div>
                     </div>
                   </div>
                 )}
