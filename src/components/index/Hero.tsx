@@ -99,10 +99,14 @@ export const Hero = ({ onStartClick }: HeroProps) => {
 
           {/* Right Column - Enhanced Large Image */}
           <div className="lg:col-span-3 relative flex justify-center lg:justify-end">
-            {/* Background shadow effects matching About page style */}
+            {/* Enhanced colorful background shadow effects */}
             <div className="absolute -z-10 top-1/4 left-1/4 w-[110%] h-[110%] bg-purple/30 rounded-full blur-3xl animate-pulse-subtle opacity-70"></div>
-            <div className="absolute -z-10 bottom-1/4 right-1/4 w-[90%] h-[90%] bg-blue/25 rounded-full blur-3xl animate-pulse-subtle opacity-60 animation-delay-300"></div>
-            <div className="absolute -z-10 top-1/3 right-1/3 w-[80%] h-[80%] bg-emerald/20 rounded-full blur-3xl animate-pulse-subtle opacity-50 animation-delay-700"></div>
+            <div className="absolute -z-10 bottom-1/4 right-1/4 w-[90%] h-[90%] bg-teal/25 rounded-full blur-3xl animate-pulse-subtle opacity-60 animation-delay-300"></div>
+            <div className="absolute -z-10 top-1/3 right-1/3 w-[80%] h-[80%] bg-orange/20 rounded-full blur-3xl animate-pulse-subtle opacity-50 animation-delay-700"></div>
+            <div className="absolute -z-10 bottom-1/3 left-1/3 w-[70%] h-[70%] bg-yellow/25 rounded-full blur-2xl animate-pulse-subtle opacity-65 animation-delay-500"></div>
+            <div className="absolute -z-10 top-[15%] right-[15%] w-[60%] h-[60%] bg-purple-light/30 rounded-full blur-2xl animate-pulse-subtle opacity-55 animation-delay-900"></div>
+            <div className="absolute -z-10 bottom-[20%] left-[20%] w-[85%] h-[85%] bg-teal-light/20 rounded-full blur-3xl animate-pulse-subtle opacity-45 animation-delay-1100"></div>
+            <div className="absolute -z-10 top-[50%] left-[10%] w-[65%] h-[65%] bg-orange-light/25 rounded-full blur-2xl animate-pulse-subtle opacity-60 animation-delay-1300"></div>
             
             <div className="relative transform hover:scale-105 transition-transform duration-500 w-full">
               <div className="absolute -inset-4 bg-gradient-to-r from-purple via-blue to-emerald rounded-3xl blur-lg opacity-30 animate-pulse"></div>
