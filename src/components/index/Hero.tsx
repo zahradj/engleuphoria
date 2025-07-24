@@ -99,16 +99,13 @@ export const Hero = ({ onStartClick }: HeroProps) => {
 
           {/* Right Column - Enhanced Large Image */}
           <div className="lg:col-span-3 relative flex justify-center lg:justify-end">
-            {/* Enhanced shadow color circles */}
-            <div className="absolute -z-10 top-[10%] left-[15%] w-[120px] h-[120px] bg-gradient-to-r from-teal to-teal-dark rounded-full blur-2xl animate-pulse opacity-60"></div>
-            <div className="absolute -z-10 top-[25%] right-[20%] w-[150px] h-[150px] bg-gradient-to-r from-orange to-orange-dark rounded-full blur-2xl animate-pulse opacity-70" style={{animationDelay: '500ms'}}></div>
-            <div className="absolute -z-10 bottom-[30%] left-[10%] w-[100px] h-[100px] bg-gradient-to-r from-yellow to-yellow-dark rounded-full blur-2xl animate-pulse opacity-65" style={{animationDelay: '1s'}}></div>
-            <div className="absolute -z-10 bottom-[15%] right-[25%] w-[130px] h-[130px] bg-gradient-to-r from-purple to-purple-dark rounded-full blur-2xl animate-pulse opacity-75" style={{animationDelay: '1.5s'}}></div>
-            <div className="absolute -z-10 top-[60%] left-[40%] w-[80px] h-[80px] bg-gradient-to-r from-teal-light to-teal rounded-full blur-xl animate-pulse opacity-50" style={{animationDelay: '2s'}}></div>
-            <div className="absolute -z-10 bottom-[50%] right-[10%] w-[110px] h-[110px] bg-gradient-to-r from-orange-light to-orange rounded-full blur-xl animate-pulse opacity-60" style={{animationDelay: '2.5s'}}></div>
+            {/* Background shadow effects matching About page style */}
+            <div className="absolute -z-10 top-1/4 left-1/4 w-[110%] h-[110%] bg-purple/30 rounded-full blur-3xl animate-pulse-subtle opacity-70"></div>
+            <div className="absolute -z-10 bottom-1/4 right-1/4 w-[90%] h-[90%] bg-blue/25 rounded-full blur-3xl animate-pulse-subtle opacity-60 animation-delay-300"></div>
+            <div className="absolute -z-10 top-1/3 right-1/3 w-[80%] h-[80%] bg-emerald/20 rounded-full blur-3xl animate-pulse-subtle opacity-50 animation-delay-700"></div>
             
             <div className="relative transform hover:scale-105 transition-transform duration-500 w-full">
-              <div className="absolute -inset-4 bg-gradient-to-r from-purple via-teal to-orange rounded-3xl blur-lg opacity-40 animate-pulse"></div>
+              <div className="absolute -inset-4 bg-gradient-to-r from-purple via-blue to-emerald rounded-3xl blur-lg opacity-30 animate-pulse"></div>
               <img 
                 src="/lovable-uploads/27f0b41c-34f2-4a8e-a08b-9a755fe74f97.png" 
                 alt="Interactive English Learning" 
