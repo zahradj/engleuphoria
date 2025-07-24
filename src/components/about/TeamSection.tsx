@@ -31,44 +31,26 @@ export const TeamSection = () => {
   ];
 
   return (
-    <section className="py-16 sm:py-20 md:py-24 px-4 bg-gradient-to-br from-white via-joyful-bg to-purple-50 relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-3 h-3 bg-joyful-yellow rounded-full animate-float opacity-60"></div>
-        <div className="absolute top-32 right-20 w-2 h-2 bg-joyful-orange rounded-full animate-float-delayed opacity-70"></div>
-        <div className="absolute bottom-20 left-20 w-4 h-4 bg-joyful-pink rounded-full animate-float opacity-50"></div>
-        
-        <div className="absolute -z-10 top-1/4 left-1/4 w-[300px] h-[300px] bg-joyful-purple/10 rounded-full blur-3xl animate-pulse-gentle"></div>
-        <div className="absolute -z-10 bottom-1/4 right-1/4 w-[250px] h-[250px] bg-joyful-blue/10 rounded-full blur-3xl animate-pulse-gentle animation-delay-1000"></div>
-      </div>
-
-      <div className="container max-w-6xl mx-auto relative z-10">
-        <div className="text-center mb-16 sm:mb-20">
-          <h2 className="font-fun text-3xl sm:text-4xl md:text-5xl font-bold mb-6 text-gray-900">
-            Meet Our 
-            <span className="bg-gradient-to-r from-joyful-purple via-joyful-pink to-joyful-orange bg-clip-text text-transparent"> Team 👥</span>
-          </h2>
-          <p className="font-body text-xl sm:text-2xl text-gray-600">
-            Passionate educators and technologists dedicated to your child's success ✨
+    <section className="py-16 px-4 bg-white">
+      <div className="container max-w-6xl mx-auto">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold mb-4">Meet Our Team</h2>
+          <p className="text-lg text-gray-600">
+            Passionate educators and technologists dedicated to your child's success
           </p>
         </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {teamMembers.map((member, index) => (
-            <Card key={index} className="group text-center hover:shadow-2xl transition-all duration-500 hover:scale-105 border-0 bg-white/80 backdrop-blur-sm rounded-3xl overflow-hidden">
-              <CardContent className="p-8">
-                <div className="relative inline-block mb-6">
-                  <img 
-                    src={member.image} 
-                    alt={member.name}
-                    className="w-28 h-28 rounded-full object-cover ring-4 ring-joyful-purple/20 group-hover:ring-joyful-pink/30 transition-all duration-300"
-                  />
-                  <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-gradient-to-br from-joyful-yellow to-joyful-orange rounded-full flex items-center justify-center text-white font-bold text-sm">
-                    ✨
-                  </div>
-                </div>
-                <h3 className="font-fun font-bold mb-2 text-xl group-hover:text-joyful-purple transition-colors duration-300">{member.name}</h3>
-                <p className="text-joyful-purple font-semibold mb-4 text-lg">{member.role}</p>
-                <p className="font-body text-gray-600 text-base leading-relaxed">{member.description}</p>
+            <Card key={index} className="text-center hover:shadow-lg transition-shadow">
+              <CardContent className="p-6">
+                <img 
+                  src={member.image} 
+                  alt={member.name}
+                  className="w-24 h-24 rounded-full mx-auto mb-4 object-cover"
+                />
+                <h3 className="font-bold mb-1">{member.name}</h3>
+                <p className="text-purple-600 font-medium mb-2">{member.role}</p>
+                <p className="text-gray-600 text-sm">{member.description}</p>
               </CardContent>
             </Card>
           ))}

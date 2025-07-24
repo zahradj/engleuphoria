@@ -45,40 +45,28 @@ export const BenefitsSection = () => {
   ];
 
   return (
-    <section className="py-16 sm:py-20 md:py-24 bg-gradient-to-br from-white via-joyful-bg to-emerald-50 relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-3 h-3 bg-joyful-yellow rounded-full animate-float opacity-60"></div>
-        <div className="absolute top-32 right-20 w-2 h-2 bg-joyful-orange rounded-full animate-float-delayed opacity-70"></div>
-        <div className="absolute bottom-20 left-20 w-4 h-4 bg-joyful-pink rounded-full animate-float opacity-50"></div>
-        
-        <div className="absolute -z-10 top-1/4 left-1/4 w-[300px] h-[300px] bg-joyful-purple/10 rounded-full blur-3xl animate-pulse-gentle"></div>
-        <div className="absolute -z-10 bottom-1/4 right-1/4 w-[250px] h-[250px] bg-joyful-blue/10 rounded-full blur-3xl animate-pulse-gentle animation-delay-1000"></div>
-        <div className="absolute -z-10 top-1/3 right-1/3 w-[200px] h-[200px] bg-emerald/10 rounded-full blur-3xl animate-pulse-gentle animation-delay-500"></div>
-      </div>
-
-      <div className="container mx-auto px-4 max-w-6xl relative z-10">
-        <div className="text-center mb-16 sm:mb-20">
-          <h2 className="font-fun text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-6 sm:mb-8 px-2">
-            Why Parents Choose 
-            <span className="bg-gradient-to-r from-joyful-purple via-joyful-pink to-joyful-orange bg-clip-text text-transparent"> EnglEuphoria ✨</span>
+    <section className="py-12 sm:py-16 md:py-20 bg-white">
+      <div className="container mx-auto px-4 max-w-6xl">
+        <div className="text-center mb-12 sm:mb-16">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 sm:mb-6 px-2">
+            Why Parents Choose EnglEuphoria
           </h2>
-          <p className="font-body text-xl sm:text-2xl text-gray-600 max-w-4xl mx-auto px-4">
-            Join thousands of satisfied parents who have seen their children thrive with our proven approach. 🌟
+          <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto px-4">
+            Join thousands of satisfied parents who have seen their children thrive with our proven approach.
           </p>
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {benefits.map((benefit, index) => (
-            <Card key={index} className="group hover:shadow-2xl transition-all duration-500 hover:scale-105 border-0 bg-white/80 backdrop-blur-sm rounded-3xl overflow-hidden">
-              <CardHeader className="pb-4 pt-8">
-                <div className="w-16 h-16 bg-gradient-to-br from-joyful-purple/20 to-joyful-pink/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <benefit.icon className="h-8 w-8 text-joyful-purple group-hover:text-joyful-pink transition-colors duration-300" />
+            <Card key={index} className="hover:shadow-lg transition-shadow duration-300">
+              <CardHeader className="pb-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-purple-100 to-blue-100 rounded-lg flex items-center justify-center mb-4">
+                  <benefit.icon className="h-6 w-6 text-purple-600" />
                 </div>
-                <CardTitle className="font-fun text-xl sm:text-2xl group-hover:text-joyful-purple transition-colors duration-300">{benefit.title}</CardTitle>
+                <CardTitle className="text-lg sm:text-xl">{benefit.title}</CardTitle>
               </CardHeader>
-              <CardContent className="pb-8">
-                <p className="font-body text-gray-600 text-base sm:text-lg leading-relaxed">{benefit.description}</p>
+              <CardContent>
+                <p className="text-gray-600 text-sm sm:text-base">{benefit.description}</p>
               </CardContent>
             </Card>
           ))}

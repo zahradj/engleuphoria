@@ -59,68 +59,48 @@ const ForTeachers = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-joyful-bg via-white to-purple-50">
+    <div className="min-h-screen bg-background">
       <Header />
       
       <main className="pt-16">
         {/* Hero Section */}
-        <section className="py-16 sm:py-20 md:py-24 bg-gradient-to-br from-joyful-purple via-joyful-pink to-joyful-orange relative overflow-hidden">
-          {/* Background Effects */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-10 left-10 w-4 h-4 bg-white/30 rounded-full animate-float opacity-80"></div>
-            <div className="absolute top-32 right-20 w-3 h-3 bg-joyful-yellow/50 rounded-full animate-float-delayed opacity-90"></div>
-            <div className="absolute bottom-20 left-20 w-5 h-5 bg-white/20 rounded-full animate-float opacity-70"></div>
-            <div className="absolute top-1/2 right-10 w-2.5 h-2.5 bg-joyful-yellow/40 rounded-full animate-float-delayed opacity-80"></div>
-          </div>
-
-          <div className="container max-w-6xl mx-auto px-4 text-center relative z-10">
-            <h1 className="font-fun text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-8 text-white leading-tight">
-              Join Our Teaching 
-              <span className="text-joyful-yellow animate-text-shine"> Community ✨</span>
+        <section className="py-16 bg-gradient-to-r from-primary/10 to-primary/5">
+          <div className="container max-w-6xl mx-auto px-4 text-center">
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 text-foreground">
+              Join Our Teaching Community
             </h1>
-            <p className="font-body text-xl sm:text-2xl md:text-3xl text-white/90 mb-10 max-w-4xl mx-auto leading-relaxed">
+            <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
               Share your passion for English teaching with students worldwide. 
-              Flexible hours, competitive pay, and a supportive community await you. 🌟
+              Flexible hours, competitive pay, and a supportive community await you.
             </p>
-            <div className="flex flex-col sm:flex-row gap-6 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
                 size="lg" 
                 onClick={() => navigate("/teacher-application")}
-                className="group bg-white text-joyful-purple hover:bg-white/90 font-bold text-xl px-10 py-5 rounded-full hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-2xl"
+                className="bg-primary hover:bg-primary/90"
               >
-                🚀 Apply to Teach
-                <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+                Apply to Teach
               </Button>
               <Button 
                 size="lg" 
                 variant="outline"
                 onClick={() => navigate("/become-teacher")}
-                className="group border-2 border-white text-white hover:bg-white hover:text-joyful-purple font-bold text-xl px-10 py-5 rounded-full hover:scale-105 transition-all duration-300"
               >
-                📚 Learn More
+                Learn More
               </Button>
             </div>
           </div>
         </section>
 
         {/* Stats Section */}
-        <section className="py-16 sm:py-20 bg-gradient-to-br from-white via-joyful-bg to-emerald-50 relative overflow-hidden">
-          {/* Background Effects */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-20 left-10 w-3 h-3 bg-joyful-yellow rounded-full animate-float opacity-60"></div>
-            <div className="absolute bottom-32 right-20 w-2 h-2 bg-joyful-orange rounded-full animate-float-delayed opacity-70"></div>
-            <div className="absolute top-1/2 left-20 w-4 h-4 bg-joyful-pink rounded-full animate-float opacity-50"></div>
-          </div>
-
-          <div className="container max-w-6xl mx-auto px-4 relative z-10">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 sm:gap-12">
+        <section className="py-16 bg-muted/50">
+          <div className="container max-w-6xl mx-auto px-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
               {stats.map((stat, index) => (
-                <div key={index} className="text-center group hover:scale-105 transition-transform duration-300">
-                  <div className="w-16 h-16 bg-gradient-to-br from-joyful-purple/20 to-joyful-pink/20 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                    <stat.icon className="h-8 w-8 text-joyful-purple group-hover:text-joyful-pink transition-colors duration-300" />
-                  </div>
-                  <div className="font-fun text-3xl sm:text-4xl font-bold text-gray-900 mb-2">{stat.value}</div>
-                  <div className="font-body text-gray-600 text-lg">{stat.label}</div>
+                <div key={index} className="text-center">
+                  <stat.icon className="h-8 w-8 mx-auto mb-4 text-primary" />
+                  <div className="text-2xl font-bold text-foreground">{stat.value}</div>
+                  <div className="text-muted-foreground">{stat.label}</div>
                 </div>
               ))}
             </div>
@@ -128,32 +108,20 @@ const ForTeachers = () => {
         </section>
 
         {/* Benefits Section */}
-        <section className="py-16 sm:py-20 md:py-24 bg-gradient-to-br from-joyful-bg via-white to-purple-50 relative overflow-hidden">
-          {/* Background Effects */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-20 right-10 w-3 h-3 bg-joyful-yellow rounded-full animate-float opacity-60"></div>
-            <div className="absolute bottom-32 left-20 w-2 h-2 bg-joyful-orange rounded-full animate-float-delayed opacity-70"></div>
-            
-            <div className="absolute -z-10 top-1/4 right-1/4 w-[300px] h-[300px] bg-joyful-purple/10 rounded-full blur-3xl animate-pulse-gentle"></div>
-            <div className="absolute -z-10 bottom-1/4 left-1/4 w-[250px] h-[250px] bg-joyful-blue/10 rounded-full blur-3xl animate-pulse-gentle animation-delay-1000"></div>
-          </div>
-
-          <div className="container max-w-6xl mx-auto px-4 relative z-10">
-            <h2 className="font-fun text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-16 text-gray-900">
-              Why Teach with 
-              <span className="bg-gradient-to-r from-joyful-purple via-joyful-pink to-joyful-orange bg-clip-text text-transparent"> Engleuphoria? ✨</span>
+        <section className="py-16">
+          <div className="container max-w-6xl mx-auto px-4">
+            <h2 className="text-3xl font-bold text-center mb-12 text-foreground">
+              Why Teach with Engleuphoria?
             </h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {benefits.map((benefit, index) => (
-                <Card key={index} className="group text-center hover:shadow-2xl transition-all duration-500 hover:scale-105 border-0 bg-white/80 backdrop-blur-sm rounded-3xl overflow-hidden">
-                  <CardHeader className="pt-8">
-                    <div className="w-16 h-16 bg-gradient-to-br from-joyful-purple/20 to-joyful-pink/20 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
-                      <benefit.icon className="h-8 w-8 text-joyful-purple group-hover:text-joyful-pink transition-colors duration-300" />
-                    </div>
-                    <CardTitle className="font-fun text-xl sm:text-2xl group-hover:text-joyful-purple transition-colors duration-300">{benefit.title}</CardTitle>
+                <Card key={index} className="text-center hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <benefit.icon className="h-12 w-12 mx-auto mb-4 text-primary" />
+                    <CardTitle className="text-xl">{benefit.title}</CardTitle>
                   </CardHeader>
-                  <CardContent className="pb-8">
-                    <p className="font-body text-gray-600 text-base sm:text-lg leading-relaxed">{benefit.description}</p>
+                  <CardContent>
+                    <p className="text-muted-foreground">{benefit.description}</p>
                   </CardContent>
                 </Card>
               ))}
@@ -162,47 +130,38 @@ const ForTeachers = () => {
         </section>
 
         {/* Requirements Section */}
-        <section className="py-16 sm:py-20 md:py-24 bg-gradient-to-br from-white via-joyful-bg to-emerald-50 relative overflow-hidden">
-          {/* Background Effects */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-20 left-10 w-3 h-3 bg-joyful-yellow rounded-full animate-float opacity-60"></div>
-            <div className="absolute bottom-32 right-20 w-2 h-2 bg-joyful-orange rounded-full animate-float-delayed opacity-70"></div>
-            
-            <div className="absolute -z-10 top-1/4 left-1/4 w-[300px] h-[300px] bg-joyful-purple/10 rounded-full blur-3xl animate-pulse-gentle"></div>
-            <div className="absolute -z-10 bottom-1/4 right-1/4 w-[250px] h-[250px] bg-joyful-blue/10 rounded-full blur-3xl animate-pulse-gentle animation-delay-1000"></div>
-          </div>
-
-          <div className="container max-w-5xl mx-auto px-4 relative z-10">
-            <h2 className="font-fun text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-16 text-gray-900">
-              <span className="bg-gradient-to-r from-joyful-purple via-joyful-pink to-joyful-orange bg-clip-text text-transparent"> Requirements 📋</span>
+        <section className="py-16 bg-muted/50">
+          <div className="container max-w-4xl mx-auto px-4">
+            <h2 className="text-3xl font-bold text-center mb-12 text-foreground">
+              Requirements
             </h2>
-            <div className="grid md:grid-cols-2 gap-8 sm:gap-12">
-              <Card className="hover:shadow-2xl transition-all duration-500 hover:scale-105 border-0 bg-white/80 backdrop-blur-sm rounded-3xl overflow-hidden">
-                <CardHeader className="pt-8">
-                  <CardTitle className="font-fun text-2xl sm:text-3xl text-joyful-purple">✅ Essential Requirements</CardTitle>
+            <div className="grid md:grid-cols-2 gap-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Essential Requirements</CardTitle>
                 </CardHeader>
-                <CardContent className="pb-8">
-                  <ul className="space-y-4 font-body text-gray-600 text-lg">
-                    <li className="flex items-start"><span className="text-joyful-purple mr-3">•</span> Native or fluent English speaker</li>
-                    <li className="flex items-start"><span className="text-joyful-purple mr-3">•</span> Bachelor's degree (any field)</li>
-                    <li className="flex items-start"><span className="text-joyful-purple mr-3">•</span> Reliable internet connection</li>
-                    <li className="flex items-start"><span className="text-joyful-purple mr-3">•</span> Quiet teaching environment</li>
-                    <li className="flex items-start"><span className="text-joyful-purple mr-3">•</span> Professional attitude and appearance</li>
+                <CardContent>
+                  <ul className="space-y-3 text-muted-foreground">
+                    <li>• Native or fluent English speaker</li>
+                    <li>• Bachelor's degree (any field)</li>
+                    <li>• Reliable internet connection</li>
+                    <li>• Quiet teaching environment</li>
+                    <li>• Professional attitude and appearance</li>
                   </ul>
                 </CardContent>
               </Card>
               
-              <Card className="hover:shadow-2xl transition-all duration-500 hover:scale-105 border-0 bg-white/80 backdrop-blur-sm rounded-3xl overflow-hidden">
-                <CardHeader className="pt-8">
-                  <CardTitle className="font-fun text-2xl sm:text-3xl text-joyful-pink">⭐ Preferred Qualifications</CardTitle>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Preferred Qualifications</CardTitle>
                 </CardHeader>
-                <CardContent className="pb-8">
-                  <ul className="space-y-4 font-body text-gray-600 text-lg">
-                    <li className="flex items-start"><span className="text-joyful-pink mr-3">•</span> TEFL/TESOL certification</li>
-                    <li className="flex items-start"><span className="text-joyful-pink mr-3">•</span> Teaching experience</li>
-                    <li className="flex items-start"><span className="text-joyful-pink mr-3">•</span> Experience with online platforms</li>
-                    <li className="flex items-start"><span className="text-joyful-pink mr-3">•</span> Additional language skills</li>
-                    <li className="flex items-start"><span className="text-joyful-pink mr-3">•</span> Specialized subject expertise</li>
+                <CardContent>
+                  <ul className="space-y-3 text-muted-foreground">
+                    <li>• TEFL/TESOL certification</li>
+                    <li>• Teaching experience</li>
+                    <li>• Experience with online platforms</li>
+                    <li>• Additional language skills</li>
+                    <li>• Specialized subject expertise</li>
                   </ul>
                 </CardContent>
               </Card>
@@ -211,29 +170,20 @@ const ForTeachers = () => {
         </section>
 
         {/* CTA Section */}
-        <section className="py-16 sm:py-20 md:py-24 bg-gradient-to-br from-joyful-purple via-joyful-pink to-joyful-orange relative overflow-hidden">
-          {/* Background Effects */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-10 left-10 w-4 h-4 bg-white/30 rounded-full animate-float opacity-80"></div>
-            <div className="absolute top-32 right-20 w-3 h-3 bg-joyful-yellow/50 rounded-full animate-float-delayed opacity-90"></div>
-            <div className="absolute bottom-20 left-20 w-5 h-5 bg-white/20 rounded-full animate-float opacity-70"></div>
-          </div>
-
-          <div className="container max-w-5xl mx-auto px-4 text-center relative z-10">
-            <h2 className="font-fun text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-8 leading-tight">
-              Ready to Start 
-              <span className="text-joyful-yellow animate-text-shine"> Teaching? 🚀</span>
+        <section className="py-16">
+          <div className="container max-w-4xl mx-auto px-4 text-center">
+            <h2 className="text-3xl font-bold mb-6 text-foreground">
+              Ready to Start Teaching?
             </h2>
-            <p className="font-body text-xl sm:text-2xl text-white/90 mb-10 leading-relaxed">
-              Join our community of passionate educators and start making a difference today. ✨
+            <p className="text-xl text-muted-foreground mb-8">
+              Join our community of passionate educators and start making a difference today.
             </p>
             <Button 
               size="lg" 
               onClick={() => navigate("/teacher-application")}
-              className="group bg-white text-joyful-purple hover:bg-white/90 font-bold text-xl px-12 py-5 rounded-full hover:scale-105 transition-all duration-300 shadow-xl hover:shadow-2xl"
+              className="bg-primary hover:bg-primary/90"
             >
-              🎓 Apply Now
-              <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+              Apply Now
             </Button>
           </div>
         </section>
