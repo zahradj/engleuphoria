@@ -43,7 +43,17 @@ export const SlotManagementModal = ({
   const { toast } = useToast();
 
   const formatTime12Hour = (time24: string) => {
-    const [hours, minutes] = time24.split(':').map(Number);
+    if (!time24 || typeof time24 !== 'string') {
+      return '12:00 AM'; // Default fallback
+    }
+    
+    const timeParts = time24.split(':');
+    if (timeParts.length < 2) {
+      return '12:00 AM'; // Default fallback for invalid format
+    }
+    
+    const hours = parseInt(timeParts[0], 10) || 0;
+    const minutes = parseInt(timeParts[1], 10) || 0;
     const period = hours >= 12 ? 'PM' : 'AM';
     const displayHours = hours % 12 || 12;
     return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
