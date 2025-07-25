@@ -14,16 +14,9 @@ export const CleanWorkspaceHeader = ({ teacherName }: CleanWorkspaceHeaderProps)
   return (
     <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-14 items-center gap-4 px-4">
-        <SidebarTrigger asChild>
-          <Button 
-            variant="ghost" 
-            size="sm"
-            className="p-2 hover:bg-accent"
-            title="Open Menu"
-          >
-            <Menu className="h-4 w-4" />
-            <span className="sr-only">Toggle Menu</span>
-          </Button>
+        <SidebarTrigger className="p-2 hover:bg-accent" title="Open Menu">
+          <Menu className="h-4 w-4" />
+          <span className="sr-only">Toggle Menu</span>
         </SidebarTrigger>
         
         <div className="flex-1">
