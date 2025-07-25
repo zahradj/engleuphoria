@@ -12,6 +12,8 @@ import { supabase } from "@/lib/supabase";
 import { lessonService, ScheduledLesson } from "@/services/lessonService";
 import { ScheduleLessonModal } from "../ScheduleLessonModal";
 import { QuickSetupModal } from "./QuickSetupModal";
+import { TimeSlotActionModal } from "./TimeSlotActionModal";
+import { SlotManagementModal } from "./SlotManagementModal";
 
 interface UnifiedTeacherCalendarProps {
   teacherId: string;
@@ -43,6 +45,13 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
   const [selectedDuration, setSelectedDuration] = useState<25 | 55>(25);
   const [lessons, setLessons] = useState<ScheduledLesson[]>([]);
   const [daySlots, setDaySlots] = useState<DaySlots>({});
+  
+  // New modal states
+  const [showTimeSlotActionModal, setShowTimeSlotActionModal] = useState(false);
+  const [showSlotManagementModal, setShowSlotManagementModal] = useState(false);
+  const [selectedSlotDate, setSelectedSlotDate] = useState<Date>(new Date());
+  const [selectedSlotTime, setSelectedSlotTime] = useState<string>('');
+  const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -183,91 +192,21 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
     return eachDayOfInterval({ start, end });
   };
 
-  const handleTimeSlotClick = async (date: Date, time: string, slot?: TimeSlot) => {
-    try {
-      if (slot?.slotType === 'lesson') {
-        // Join lesson
-        await handleJoinLesson(slot);
-        return;
-      }
+  const handleTimeSlotClick = (date: Date, time: string, slot?: TimeSlot) => {
+    const dateStr = date.toISOString().split('T')[0];
+    const existingSlot = daySlots[dateStr]?.find(s => s.time === time) || slot;
 
-      // Toggle availability
-      const dateStr = date.toISOString().split('T')[0];
-      const existingSlot = daySlots[dateStr]?.find(s => s.time === time);
-
-      if (existingSlot?.id) {
-        // Delete existing slot
-        const { error } = await supabase
-          .from('teacher_availability')
-          .delete()
-          .eq('id', existingSlot.id);
-
-        if (error) {
-          if (error.message.includes('maintain at least')) {
-            toast({
-              title: "Minimum Slots Required",
-              description: "You need to maintain at least 5 available slots per week. Add more slots before removing this one.",
-              variant: "destructive"
-            });
-          } else {
-            throw error;
-          }
-          return;
-        }
-
-        toast({
-          title: "Slot Removed",
-          description: `Availability slot at ${time} has been removed.`,
-        });
-      } else {
-        // Create new slot
-        const [hours, minutes] = time.split(':').map(Number);
-        const startDateTime = new Date(date);
-        startDateTime.setHours(hours, minutes, 0, 0);
-        
-        const endDateTime = new Date(startDateTime);
-        endDateTime.setMinutes(endDateTime.getMinutes() + selectedDuration);
-
-        const { error } = await supabase
-          .from('teacher_availability')
-          .insert({
-            teacher_id: teacherId,
-            start_time: startDateTime.toISOString(),
-            end_time: endDateTime.toISOString(),
-            duration: selectedDuration,
-            lesson_type: 'free_slot',
-            is_available: true,
-            is_booked: false
-          });
-
-        if (error) {
-          if (error.message.includes('maintain at least')) {
-            toast({
-              title: "Minimum Slots Required",
-              description: "You need to maintain at least 5 available slots per week.",
-              variant: "destructive"
-            });
-          } else {
-            throw error;
-          }
-          return;
-        }
-
-        toast({
-          title: "Slot Added",
-          description: `Available slot created at ${time} for ${selectedDuration} minutes.`,
-        });
-      }
-
-      // Refresh calendar data
-      await loadCalendarData();
-    } catch (error) {
-      console.error('Error toggling time slot:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update availability. Please try again.",
-        variant: "destructive"
-      });
+    if (existingSlot) {
+      // Show slot management modal for existing slots
+      setSelectedSlotDate(date);
+      setSelectedSlotTime(time);
+      setSelectedSlot(existingSlot);
+      setShowSlotManagementModal(true);
+    } else {
+      // Show time slot action modal for empty slots
+      setSelectedSlotDate(date);
+      setSelectedSlotTime(time);
+      setShowTimeSlotActionModal(true);
     }
   };
 
@@ -299,13 +238,13 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
   const getSlotStyle = (slot: TimeSlot) => {
     switch (slot.slotType) {
       case 'lesson':
-        return "bg-primary text-primary-foreground border-primary hover:bg-primary/90 cursor-pointer";
+        return "bg-primary/90 text-primary-foreground border-primary shadow-md hover:bg-primary hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200 cursor-pointer";
       case 'booked':
-        return "bg-blue-500/20 text-blue-700 border-blue-300 hover:bg-blue-500/30 cursor-pointer";
+        return "bg-blue-50 text-blue-800 border-blue-200 hover:bg-blue-100 hover:border-blue-300 transition-all duration-200 cursor-pointer";
       case 'available':
-        return "bg-green-500/20 text-green-700 border-green-300 hover:bg-green-500/30 cursor-pointer";
+        return "bg-success/10 text-success-foreground border-success/30 hover:bg-success/20 hover:border-success/50 transition-all duration-200 cursor-pointer";
       default:
-        return "bg-muted/30 border-border cursor-pointer hover:bg-muted/50";
+        return "bg-background border-border hover:bg-muted/50 hover:border-primary/20 transition-all duration-200 cursor-pointer";
     }
   };
 
@@ -318,35 +257,61 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
       <div
         key={`${dateStr}-${time}`}
         className={`
-          min-h-[60px] p-2 border rounded text-xs transition-colors
+          min-h-[60px] p-2 border rounded-lg text-xs transition-all duration-200 relative group
           ${isPastTime ? 'opacity-50 cursor-not-allowed' : ''}
-          ${slot ? getSlotStyle(slot) : 'bg-background border-border cursor-pointer hover:bg-muted/30'}
+          ${slot ? getSlotStyle(slot) : 'bg-background border-border cursor-pointer hover:bg-primary/5 hover:border-primary/30 hover:shadow-sm'}
         `}
         onClick={() => !isPastTime && handleTimeSlotClick(date, time, slot)}
+        title={slot ? 
+          slot.slotType === 'lesson' ? `Lesson: ${slot.lessonTitle}${slot.studentName ? ` with ${slot.studentName}` : ''}` :
+          slot.slotType === 'available' ? 'Available for booking - Click to manage' :
+          slot.slotType === 'booked' ? 'Booked slot - Click to view details' : 'Time slot'
+          : 
+          isPastTime ? 'Past time slot' : 'Click to create availability'
+        }
       >
         <div className="font-medium">{time}</div>
+        
+        {/* Empty slot indicator */}
+        {!slot && !isPastTime && (
+          <div className="mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <div className="text-xs text-muted-foreground">+ Click to open</div>
+          </div>
+        )}
+        
         {slot && (
           <div className="mt-1 space-y-1">
             {slot.slotType === 'lesson' && (
               <>
                 <div className="flex items-center gap-1">
-                  <PlayCircle className="h-3 w-3" />
-                  <span className="truncate">{slot.lessonTitle}</span>
+                  <PlayCircle className="h-3 w-3 flex-shrink-0" />
+                  <span className="truncate font-medium">{slot.lessonTitle}</span>
                 </div>
                 {slot.studentName && (
                   <div className="flex items-center gap-1">
-                    <User className="h-3 w-3" />
-                    <span className="truncate">{slot.studentName}</span>
+                    <User className="h-3 w-3 flex-shrink-0" />
+                    <span className="truncate text-xs">{slot.studentName}</span>
                   </div>
                 )}
               </>
             )}
             {slot.slotType === 'available' && (
-              <Badge variant="secondary" className="text-xs">Available</Badge>
+              <Badge variant="secondary" className="text-xs bg-success/20 text-success-foreground border-success/30">
+                Available
+              </Badge>
             )}
             {slot.slotType === 'booked' && (
-              <Badge variant="destructive" className="text-xs">Booked</Badge>
+              <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800 border-blue-200">
+                Booked
+              </Badge>
             )}
+          </div>
+        )}
+        
+        {/* Duration indicator for slots */}
+        {slot && (
+          <div className="absolute top-1 right-1 text-xs text-muted-foreground opacity-75">
+            {slot.duration}m
           </div>
         )}
       </div>
@@ -554,6 +519,26 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
         onClose={() => setShowScheduleModal(false)}
         teacherId={teacherId}
         onLessonScheduled={loadCalendarData}
+      />
+
+      <TimeSlotActionModal
+        isOpen={showTimeSlotActionModal}
+        onClose={() => setShowTimeSlotActionModal(false)}
+        date={selectedSlotDate}
+        time={selectedSlotTime}
+        teacherId={teacherId}
+        selectedDuration={selectedDuration}
+        onSlotCreated={loadCalendarData}
+      />
+
+      <SlotManagementModal
+        isOpen={showSlotManagementModal}
+        onClose={() => setShowSlotManagementModal(false)}
+        date={selectedSlotDate}
+        time={selectedSlotTime}
+        slot={selectedSlot!}
+        onSlotDeleted={loadCalendarData}
+        onJoinLesson={handleJoinLesson}
       />
     </div>
   );
