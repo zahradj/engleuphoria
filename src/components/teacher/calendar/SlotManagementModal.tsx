@@ -157,6 +157,11 @@ export const SlotManagementModal = ({
 
   const slotInfo = getSlotTypeInfo();
 
+  // Early return if slot is null to prevent rendering
+  if (!slot) {
+    return null;
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
@@ -185,7 +190,7 @@ export const SlotManagementModal = ({
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span>{formatTime12Hour(time)} {slot ? `(${slot.duration} minutes)` : ''}</span>
+                  <span>{formatTime12Hour(time)} ({slot.duration} minutes)</span>
                 </div>
                 
                 {slot?.slotType === 'lesson' && slot.lessonTitle && (
