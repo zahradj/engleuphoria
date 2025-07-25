@@ -532,11 +532,11 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
       />
 
       <SlotManagementModal
-        isOpen={showSlotManagementModal}
+        isOpen={showSlotManagementModal && selectedSlot !== null}
         onClose={() => setShowSlotManagementModal(false)}
         date={selectedSlotDate}
         time={selectedSlotTime}
-        slot={selectedSlot!}
+        slot={selectedSlot}
         onSlotDeleted={loadCalendarData}
         onJoinLesson={handleJoinLesson}
       />

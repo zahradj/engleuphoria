@@ -25,7 +25,7 @@ interface SlotManagementModalProps {
   onClose: () => void;
   date: Date;
   time: string;
-  slot: TimeSlot;
+  slot: TimeSlot | null;
   onSlotDeleted: () => void;
   onJoinLesson?: (slot: TimeSlot) => void;
 }
@@ -60,6 +60,16 @@ export const SlotManagementModal = ({
   };
 
   const getSlotTypeInfo = () => {
+    if (!slot) {
+      return {
+        icon: <Clock className="h-5 w-5 text-muted-foreground" />,
+        title: "Unknown Slot",
+        description: "Slot information not available",
+        color: "secondary",
+        canDelete: false
+      };
+    }
+
     switch (slot.slotType) {
       case 'lesson':
         return {
@@ -97,7 +107,7 @@ export const SlotManagementModal = ({
   };
 
   const deleteSlot = async () => {
-    if (!slot.id) return;
+    if (!slot?.id) return;
     
     setIsDeleting(true);
     try {
@@ -139,7 +149,7 @@ export const SlotManagementModal = ({
   };
 
   const handleJoinLesson = () => {
-    if (onJoinLesson) {
+    if (onJoinLesson && slot) {
       onJoinLesson(slot);
       onClose();
     }
@@ -175,17 +185,17 @@ export const SlotManagementModal = ({
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span>{formatTime12Hour(time)} ({slot.duration} minutes)</span>
+                  <span>{formatTime12Hour(time)} {slot ? `(${slot.duration} minutes)` : ''}</span>
                 </div>
                 
-                {slot.slotType === 'lesson' && slot.lessonTitle && (
+                {slot?.slotType === 'lesson' && slot.lessonTitle && (
                   <div className="flex items-center gap-2">
                     <PlayCircle className="h-4 w-4 text-muted-foreground" />
                     <span>{slot.lessonTitle}</span>
                   </div>
                 )}
                 
-                {slot.studentName && (
+                {slot?.studentName && (
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-muted-foreground" />
                     <span>Student: {slot.studentName}</span>
@@ -202,7 +212,7 @@ export const SlotManagementModal = ({
           {/* Actions */}
           <div className="space-y-3">
             {/* Join lesson button for lessons */}
-            {slot.slotType === 'lesson' && onJoinLesson && (
+            {slot?.slotType === 'lesson' && onJoinLesson && (
               <Button 
                 onClick={handleJoinLesson}
                 className="w-full"
@@ -216,7 +226,7 @@ export const SlotManagementModal = ({
             {/* Delete button for available slots */}
             {slotInfo.canDelete && (
               <div className="space-y-3">
-                {slot.slotType === 'available' && (
+                {slot?.slotType === 'available' && (
                   <div className="flex items-start gap-2 p-3 bg-destructive/10 rounded-lg border border-destructive/20">
                     <AlertTriangle className="h-4 w-4 text-destructive mt-0.5" />
                     <div className="text-sm">
