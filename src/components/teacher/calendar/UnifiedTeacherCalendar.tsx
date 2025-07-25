@@ -11,6 +11,7 @@ import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, eachDayOfInterval, 
 import { supabase } from "@/lib/supabase";
 import { lessonService, ScheduledLesson } from "@/services/lessonService";
 import { ScheduleLessonModal } from "../ScheduleLessonModal";
+import { QuickSetupModal } from "./QuickSetupModal";
 
 interface UnifiedTeacherCalendarProps {
   teacherId: string;
@@ -201,7 +202,23 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
           .delete()
           .eq('id', existingSlot.id);
 
-        if (error) throw error;
+        if (error) {
+          if (error.message.includes('maintain at least')) {
+            toast({
+              title: "Minimum Slots Required",
+              description: "You need to maintain at least 5 available slots per week. Add more slots before removing this one.",
+              variant: "destructive"
+            });
+          } else {
+            throw error;
+          }
+          return;
+        }
+
+        toast({
+          title: "Slot Removed",
+          description: `Availability slot at ${time} has been removed.`,
+        });
       } else {
         // Create new slot
         const [hours, minutes] = time.split(':').map(Number);
@@ -223,9 +240,26 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
             is_booked: false
           });
 
-        if (error) throw error;
+        if (error) {
+          if (error.message.includes('maintain at least')) {
+            toast({
+              title: "Minimum Slots Required",
+              description: "You need to maintain at least 5 available slots per week.",
+              variant: "destructive"
+            });
+          } else {
+            throw error;
+          }
+          return;
+        }
+
+        toast({
+          title: "Slot Added",
+          description: `Available slot created at ${time} for ${selectedDuration} minutes.`,
+        });
       }
 
+      // Refresh calendar data
       await loadCalendarData();
     } catch (error) {
       console.error('Error toggling time slot:', error);
@@ -265,11 +299,11 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
   const getSlotStyle = (slot: TimeSlot) => {
     switch (slot.slotType) {
       case 'lesson':
-        return "bg-primary text-primary-foreground border-primary";
+        return "bg-primary text-primary-foreground border-primary hover:bg-primary/90 cursor-pointer";
       case 'booked':
-        return "bg-destructive/10 text-destructive border-destructive/20";
+        return "bg-blue-500/20 text-blue-700 border-blue-300 hover:bg-blue-500/30 cursor-pointer";
       case 'available':
-        return "bg-success/10 text-success border-success/20 cursor-pointer hover:bg-success/20";
+        return "bg-green-500/20 text-green-700 border-green-300 hover:bg-green-500/30 cursor-pointer";
       default:
         return "bg-muted/30 border-border cursor-pointer hover:bg-muted/50";
     }
@@ -492,6 +526,13 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
               <option value={55}>55 min</option>
             </select>
           )}
+          
+          <QuickSetupModal teacherId={teacherId} onSlotsCreated={loadCalendarData}>
+            <Button variant="outline" size="sm">
+              <Calendar className="h-4 w-4 mr-2" />
+              Quick Setup
+            </Button>
+          </QuickSetupModal>
           
           <Button onClick={() => setShowScheduleModal(true)}>
             <Plus className="h-4 w-4 mr-2" />
