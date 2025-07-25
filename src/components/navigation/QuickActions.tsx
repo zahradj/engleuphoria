@@ -55,12 +55,6 @@ export const QuickActions: React.FC = memo(() => {
       case 'teacher':
         return [
           {
-            icon: Calendar,
-            label: 'My Schedule',
-            action: () => navigate('/teacher/lesson-scheduler'),
-            variant: 'default'
-          },
-          {
             icon: MessageSquare,
             label: 'Messages',
             action: () => navigate('/teacher'),
