@@ -3,8 +3,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { TeacherSidebar } from "@/components/teacher/TeacherSidebar";
-import { TeacherHeader } from "@/components/teacher/TeacherHeader";
+import { EnhancedTeacherSidebar } from "@/components/teacher/EnhancedTeacherSidebar";
+import { CleanWorkspaceHeader } from "@/components/teacher/CleanWorkspaceHeader";
 import { MobileTeacherNav } from "@/components/teacher/mobile/MobileTeacherNav";
 import { DashboardTab } from "@/components/teacher/DashboardTab";
 import { EnhancedCalendarTab } from "@/components/teacher/EnhancedCalendarTab";
@@ -20,6 +20,7 @@ import { SettingsTab } from "@/components/teacher/SettingsTab";
 import { ProfileSetupTab } from "@/components/teacher/ProfileSetupTab";
 import { ProfileCompleteGuard } from "@/components/teacher/ProfileCompleteGuard";
 import { QuickActions } from "@/components/navigation/QuickActions";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 
 type TabType = 'dashboard' | 'profile' | 'calendar' | 'students' | 'reading-library' | 'history' | 'assignments' | 'resources' | 'messages' | 'earnings' | 'reports' | 'settings';
 
@@ -115,38 +116,38 @@ const TeacherDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 via-indigo-50 to-white">
-      <div className="flex h-screen">
-        {/* Mobile Navigation */}
-        <div className="md:hidden w-full">
-          <div className="flex flex-col h-full">
-            <MobileTeacherNav 
-              activeTab={activeTab}
+      {/* Mobile Navigation */}
+      <div className="md:hidden">
+        <MobileTeacherNav 
+          activeTab={activeTab}
+          setActiveTab={handleTabChange}
+          onLogout={signOut}
+          teacherName={teacherName}
+        />
+        <main className="p-4">
+          {renderTabContent()}
+        </main>
+      </div>
+
+      {/* Desktop Layout with Clean Workspace Mode */}
+      <div className="hidden md:block">
+        <SidebarProvider defaultOpen={false}>
+          <div className="flex min-h-screen w-full">
+            <EnhancedTeacherSidebar 
+              activeTab={activeTab} 
               setActiveTab={handleTabChange}
               onLogout={signOut}
-              teacherName={teacherName}
             />
-            <main className="flex-1 overflow-y-auto p-4">
-              {renderTabContent()}
-            </main>
+            
+            <SidebarInset className="flex-1">
+              <CleanWorkspaceHeader teacherName={teacherName} />
+              <main className="flex-1 overflow-y-auto p-6">
+                <QuickActions />
+                {renderTabContent()}
+              </main>
+            </SidebarInset>
           </div>
-        </div>
-
-        {/* Desktop Layout */}
-        <div className="hidden md:flex w-full">
-          <TeacherSidebar 
-            activeTab={activeTab} 
-            setActiveTab={handleTabChange}
-            onLogout={signOut}
-          />
-          
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <TeacherHeader teacherName={teacherName} />
-            <main className="flex-1 overflow-y-auto p-6">
-              <QuickActions />
-              {renderTabContent()}
-            </main>
-          </div>
-        </div>
+        </SidebarProvider>
       </div>
     </div>
   );
