@@ -6,17 +6,21 @@ import { Copy, X, Clock } from "lucide-react";
 
 interface BulkAvailabilityActionsProps {
   selectedDate: Date;
+  selectedSlots: string[];
   onBulkOpen: (hours: string[], duration: 25 | 55) => void;
   onBulkClose: () => void;
   onCopyFromPrevious: () => void;
+  onClearSelection: () => void;
   isLoading?: boolean;
 }
 
 export const BulkAvailabilityActions = ({
   selectedDate,
+  selectedSlots,
   onBulkOpen,
   onBulkClose,
   onCopyFromPrevious,
+  onClearSelection,
   isLoading = false
 }: BulkAvailabilityActionsProps) => {
   const timePresets = {
@@ -43,6 +47,44 @@ export const BulkAvailabilityActions = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Selected slots actions */}
+        {selectedSlots.length > 0 && (
+          <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
+            <h4 className="text-sm font-medium text-primary mb-2">
+              Selected Slots ({selectedSlots.length})
+            </h4>
+            <div className="flex gap-2 mb-3">
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => onBulkOpen(selectedSlots, 25)}
+                disabled={isLoading}
+                className="flex-1"
+              >
+                Open 25min
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => onBulkOpen(selectedSlots, 55)}
+                disabled={isLoading}
+                className="flex-1"
+              >
+                Open 55min
+              </Button>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onClearSelection}
+              disabled={isLoading}
+              className="w-full"
+            >
+              Clear Selection
+            </Button>
+          </div>
+        )}
+
         {/* Copy from previous day */}
         <Button
           variant="outline"
