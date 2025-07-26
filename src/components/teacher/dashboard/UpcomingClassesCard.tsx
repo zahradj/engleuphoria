@@ -24,9 +24,9 @@ interface UpcomingClassesCardProps {
 export const UpcomingClassesCard = ({ classes, onJoinClass, onStartClass }: UpcomingClassesCardProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "ready": return "bg-green-500";
-      case "live": return "bg-red-500";
-      default: return "bg-gray-500";
+      case "ready": return "bg-secondary text-white";
+      case "live": return "bg-destructive text-white animate-pulse";
+      default: return "bg-muted text-muted-foreground";
     }
   };
 
@@ -39,63 +39,97 @@ export const UpcomingClassesCard = ({ classes, onJoinClass, onStartClass }: Upco
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calendar className="h-5 w-5 text-teal-500" />
-          Today's Classes ({classes.length})
+    <Card className="group hover:shadow-lg transition-all duration-300">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-xl">
+              <Calendar className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold">Today's Classes</h3>
+              <p className="text-sm text-muted-foreground">{classes.length} scheduled</p>
+            </div>
+          </div>
+          {classes.some(c => c.status === "live") && (
+            <div className="flex items-center gap-2 text-destructive text-sm font-medium">
+              <div className="w-2 h-2 bg-destructive rounded-full animate-pulse"></div>
+              Live Now
+            </div>
+          )}
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {classes.map((cls) => (
-            <div key={cls.id} className="flex items-center justify-between p-4 bg-teal-50 rounded-lg border">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <h4 className="font-semibold text-gray-800">{cls.title}</h4>
-                  <Badge className={`${getStatusColor(cls.status)} text-white text-xs`}>
-                    {getStatusText(cls.status)}
-                  </Badge>
+      <CardContent className="space-y-4">
+        {classes.length === 0 ? (
+          <div className="text-center py-8">
+            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+              <Calendar className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <p className="text-muted-foreground">No classes scheduled for today</p>
+          </div>
+        ) : (
+          classes.map((cls) => (
+            <div key={cls.id} className="group/item hover:shadow-md transition-all duration-300 p-4 border border-border rounded-xl bg-card hover:bg-accent/5">
+              <div className="flex items-start justify-between">
+                <div className="flex-1 space-y-3">
+                  <div className="flex items-center gap-3">
+                    <h4 className="font-semibold text-card-foreground group-hover/item:text-primary transition-colors">
+                      {cls.title}
+                    </h4>
+                    <Badge className={`${getStatusColor(cls.status)} text-xs font-medium`}>
+                      {getStatusText(cls.status)}
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Clock className="h-4 w-4" />
+                    <span>{cls.time}</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 text-sm text-primary font-medium">
+                    <Users className="h-4 w-4" />
+                    <span>{cls.student}</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-6 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Users className="h-3 w-3" />
+                      {cls.studentCount} student{cls.studentCount !== 1 ? 's' : ''}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <DollarSign className="h-3 w-3" />
+                      €10/lesson
+                    </span>
+                    <span className="flex items-center gap-1 text-secondary font-semibold">
+                      <span>Total: €{cls.studentCount * 10}</span>
+                    </span>
+                  </div>
                 </div>
-                <p className="text-sm text-gray-600 flex items-center gap-1 mb-1">
-                  <Clock className="h-4 w-4" />
-                  {cls.time}
-                </p>
-                <p className="text-sm text-teal-600 mb-1">{cls.student}</p>
-                <div className="flex items-center gap-4 text-xs text-gray-500">
-                  <span className="flex items-center gap-1">
-                    <Users className="h-3 w-3" />
-                    {cls.studentCount} student{cls.studentCount !== 1 ? 's' : ''}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <DollarSign className="h-3 w-3" />
-                    €10/lesson
-                  </span>
-                  <span className="flex items-center gap-1 text-green-600 font-medium">
-                    Total: €{cls.studentCount * 10}
-                  </span>
+                
+                <div className="flex flex-col gap-2 ml-4">
+                  {cls.status === "ready" || cls.status === "live" ? (
+                    <Button 
+                      size="sm" 
+                      className={cls.status === "live" 
+                        ? "bg-destructive hover:bg-destructive/90 text-white" 
+                        : "bg-secondary hover:bg-secondary/90 text-white"
+                      }
+                      onClick={() => onStartClass(cls.id)}
+                    >
+                      <Play className="h-4 w-4 mr-2" />
+                      {cls.status === "live" ? "Join Live" : "Start"}
+                    </Button>
+                  ) : (
+                    <Button size="sm" variant="outline" className="hover:bg-primary hover:text-primary-foreground">
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Details
+                    </Button>
+                  )}
                 </div>
-              </div>
-              <div className="flex gap-2">
-                {cls.status === "ready" || cls.status === "live" ? (
-                  <Button 
-                    size="sm" 
-                    className={cls.status === "live" ? "bg-red-500 hover:bg-red-600" : "bg-teal-500 hover:bg-teal-600"}
-                    onClick={() => onStartClass(cls.id)}
-                  >
-                    <Play className="h-4 w-4 mr-1" />
-                    {cls.status === "live" ? "Join Live" : "Start"}
-                  </Button>
-                ) : (
-                  <Button size="sm" variant="outline">
-                    <Eye className="h-4 w-4 mr-1" />
-                    View
-                  </Button>
-                )}
               </div>
             </div>
-          ))}
-        </div>
+          ))
+        )}
       </CardContent>
     </Card>
   );

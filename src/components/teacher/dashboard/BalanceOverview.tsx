@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { DollarSign, TrendingUp, Clock } from "lucide-react";
+import { DollarSign, TrendingUp, Clock, ArrowUp, ArrowDown } from "lucide-react";
 
 interface BalanceOverviewProps {
   weeklyEarnings: number;
@@ -15,47 +15,68 @@ export const BalanceOverview = ({
   totalBalance 
 }: BalanceOverviewProps) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 rounded-full">
-              <DollarSign className="h-5 w-5 text-green-600" />
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <Card className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border-0 bg-gradient-to-br from-secondary to-secondary/80 text-white overflow-hidden relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent"></div>
+        <CardContent className="p-6 relative z-10">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
+              <DollarSign className="h-6 w-6 text-white" />
             </div>
-            <div>
-              <p className="text-sm text-green-700 font-medium">This Week</p>
-              <p className="text-2xl font-bold text-green-800">${weeklyEarnings}</p>
+            <div className="flex items-center gap-1 text-white/80 text-sm">
+              <ArrowUp className="h-4 w-4" />
+              +15%
             </div>
           </div>
+          <div>
+            <p className="text-white/80 text-sm font-medium mb-1">This Week</p>
+            <p className="text-3xl font-bold text-white">${weeklyEarnings}</p>
+            <p className="text-white/60 text-xs mt-1">8 lessons completed</p>
+          </div>
         </CardContent>
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-accent to-accent/60"></div>
       </Card>
 
-      <Card className="bg-gradient-to-r from-orange-50 to-amber-50 border-orange-200">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-orange-100 rounded-full">
-              <Clock className="h-5 w-5 text-orange-600" />
+      <Card className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border-0 bg-gradient-to-br from-accent to-accent/80 text-white overflow-hidden relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent"></div>
+        <CardContent className="p-6 relative z-10">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
+              <Clock className="h-6 w-6 text-white" />
             </div>
-            <div>
-              <p className="text-sm text-orange-700 font-medium">Pending</p>
-              <p className="text-2xl font-bold text-orange-800">${pendingPayment}</p>
+            <div className="flex items-center gap-1 text-white/80 text-sm">
+              <Clock className="h-4 w-4 animate-pulse" />
+              2 days
             </div>
           </div>
+          <div>
+            <p className="text-white/80 text-sm font-medium mb-1">Pending Payment</p>
+            <p className="text-3xl font-bold text-white">${pendingPayment}</p>
+            <p className="text-white/60 text-xs mt-1">Will be processed soon</p>
+          </div>
         </CardContent>
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-secondary to-secondary/60"></div>
       </Card>
 
-      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-        <CardContent className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-full">
-              <TrendingUp className="h-5 w-5 text-blue-600" />
+      <Card className="group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border-0 bg-gradient-to-br from-primary to-primary/80 text-white overflow-hidden relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent"></div>
+        <CardContent className="p-6 relative z-10">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
+              <TrendingUp className="h-6 w-6 text-white" />
             </div>
-            <div>
-              <p className="text-sm text-blue-700 font-medium">Total Balance</p>
-              <p className="text-2xl font-bold text-blue-800">${totalBalance}</p>
+            <div className="flex items-center gap-1 text-white/80 text-sm">
+              <ArrowUp className="h-4 w-4" />
+              +8%
             </div>
           </div>
+          <div>
+            <p className="text-white/80 text-sm font-medium mb-1">Total Balance</p>
+            <p className="text-3xl font-bold text-white">${totalBalance}</p>
+            <p className="text-white/60 text-xs mt-1">All-time earnings</p>
+          </div>
         </CardContent>
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-accent to-accent/60"></div>
       </Card>
     </div>
   );

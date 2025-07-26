@@ -8,6 +8,8 @@ import { UpcomingClassesCard } from "./dashboard/UpcomingClassesCard";
 import { PendingHomeworkCard } from "./dashboard/PendingHomeworkCard";
 import { NotificationsCard } from "./dashboard/NotificationsCard";
 import { QuickActionsCard } from "./dashboard/QuickActionsCard";
+import { TeacherStatsOverview } from "./dashboard/TeacherStatsOverview";
+import { RecentActivityFeed } from "./dashboard/RecentActivityFeed";
 import { AddStudentModal } from "./dashboard/AddStudentModal";
 
 interface DashboardTabProps {
@@ -67,7 +69,7 @@ export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 animate-fade-in">
       <WelcomeSection 
         teacherName={teacherName}
         onJoinClassroom={handleJoinClassroom}
@@ -80,25 +82,34 @@ export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
         totalBalance={earningsData.totalBalance}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <UpcomingClassesCard 
-          classes={todaysClasses}
-          onJoinClass={handleJoinClass}
-          onStartClass={handleStartClass}
-        />
-        <PendingHomeworkCard homework={pendingHomework} />
-      </div>
+      <TeacherStatsOverview />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <NotificationsCard notifications={notifications} />
-        <QuickActionsCard 
-          onScheduleClass={handleScheduleClass}
-          onCreateAssignment={handleCreateAssignment}
-          onSendMessage={handleSendMessage}
-          onManageStudents={handleManageStudents}
-          onAddStudent={handleAddStudent}
-          onViewEarnings={handleViewEarnings}
-        />
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        <div className="xl:col-span-2 space-y-6">
+          <UpcomingClassesCard 
+            classes={todaysClasses}
+            onJoinClass={handleJoinClass}
+            onStartClass={handleStartClass}
+          />
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <PendingHomeworkCard homework={pendingHomework} />
+            <NotificationsCard notifications={notifications} />
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <QuickActionsCard 
+            onScheduleClass={handleScheduleClass}
+            onCreateAssignment={handleCreateAssignment}
+            onSendMessage={handleSendMessage}
+            onManageStudents={handleManageStudents}
+            onAddStudent={handleAddStudent}
+            onViewEarnings={handleViewEarnings}
+          />
+          
+          <RecentActivityFeed />
+        </div>
       </div>
 
       <AddStudentModal
