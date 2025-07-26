@@ -112,10 +112,10 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Enhanced Upcoming Classes */}
         <Card className="border-0 shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
+          <CardHeader className="bg-gradient-to-r from-student-light to-student-light/80 rounded-t-lg">
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-blue-600" />
+                <Calendar className="h-5 w-5 text-student" />
                 <span className="text-gray-800">Upcoming Classes</span>
               </div>
               <Button variant="ghost" size="sm" onClick={() => navigate('/discover-teachers')}>
@@ -132,11 +132,11 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
             ) : upcomingClasses.length === 0 ? (
               <div className="text-center py-8">
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Calendar className="h-8 w-8 text-blue-600" />
+                  <Calendar className="h-8 w-8 text-student" />
                 </div>
                 <h3 className="font-semibold text-gray-700 mb-2">No classes scheduled</h3>
                 <p className="text-gray-500 mb-4">Book your first lesson to get started!</p>
-                <Button onClick={() => navigate('/discover-teachers')} className="bg-blue-600 hover:bg-blue-700">
+                <Button onClick={() => navigate('/discover-teachers')} className="bg-student hover:bg-student-dark text-student-foreground">
                   <Plus className="h-4 w-4 mr-2" />
                   Book a Lesson
                 </Button>
@@ -152,7 +152,7 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
                           <Clock className="h-4 w-4" />
                           {new Date(lesson.scheduled_at).toLocaleDateString()} at {new Date(lesson.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </p>
-                        <p className="text-sm text-blue-600 mt-1">with {lesson.teacher_name || 'Teacher'}</p>
+                        <p className="text-sm text-student mt-1">with {lesson.teacher_name || 'Teacher'}</p>
                         <Badge variant="secondary" className="mt-1">
                           {lesson.duration} minutes
                         </Badge>
@@ -160,7 +160,7 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
                       <div className="flex flex-col gap-2">
                         <Button 
                           size="sm" 
-                          className="bg-blue-600 hover:bg-blue-700" 
+                          className="bg-student hover:bg-student-dark text-student-foreground"
                           onClick={() => {
                             if (lesson.room_link) {
                               // Navigate to the classroom with proper parameters
@@ -196,10 +196,10 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
 
         {/* Enhanced Recent Homework */}
         <Card className="border-0 shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-t-lg">
+          <CardHeader className="bg-gradient-to-r from-student-light to-student-light/80 rounded-t-lg">
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-green-600" />
+                <FileText className="h-5 w-5 text-student" />
                 <span className="text-gray-800">Recent Homework</span>
               </div>
               <Button variant="ghost" size="sm" onClick={() => openHomeworkSubmission("new")}>
@@ -210,8 +210,8 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
           <CardContent className="p-6">
             {recentHomework.length === 0 ? (
               <div className="text-center py-8">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FileText className="h-8 w-8 text-green-600" />
+                <div className="w-16 h-16 bg-student-light rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FileText className="h-8 w-8 text-student" />
                 </div>
                 <h3 className="font-semibold text-gray-700 mb-2">No assignments yet</h3>
                 <p className="text-gray-500 mb-4">Your homework will appear here once assigned.</p>
@@ -237,7 +237,7 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
                           {hw.status}
                         </Badge>
                         {hw.status === 'pending' && (
-                          <Button size="sm" onClick={() => openHomeworkSubmission(hw.id)} className="bg-green-600 hover:bg-green-700">
+                          <Button size="sm" onClick={() => openHomeworkSubmission(hw.id)} className="bg-student hover:bg-student-dark text-student-foreground">
                             Submit
                           </Button>
                         )}

@@ -18,7 +18,7 @@ const getGreeting = () => {
 
 export const WelcomeSection = ({ teacherName, onJoinClassroom, weeklyEarnings }: WelcomeSectionProps) => {
   return (
-    <div className="relative overflow-hidden bg-gradient-to-br from-primary via-secondary to-accent rounded-2xl p-8 text-white shadow-2xl">
+    <div className="relative overflow-hidden bg-gradient-to-br from-teacher via-teacher-accent to-teacher-dark rounded-2xl p-8 text-white shadow-2xl">
       {/* Animated background elements */}
       <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent"></div>
       <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16 animate-pulse-subtle"></div>

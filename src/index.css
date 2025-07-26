@@ -29,8 +29,46 @@
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+	--chart-4: 43 74% 66%;
+	--chart-5: 27 87% 67%;
+
+	/* Enhanced role colors - dark mode */
+	--student: 122 39% 49%;
+	--student-light: 122 39% 15%;
+	--student-dark: 122 43% 35%;
+	--student-accent: 122 33% 61%;
+	--student-foreground: 0 0% 100%;
+	
+	--teacher: 207 78% 51%;
+	--teacher-light: 207 100% 15%;
+	--teacher-dark: 208 76% 42%;
+	--teacher-accent: 207 83% 61%;
+	--teacher-foreground: 0 0% 100%;
+	
+	--admin: 280 49% 40%;
+	--admin-light: 280 100% 15%;
+	--admin-dark: 280 57% 32%;
+	--admin-accent: 280 43% 52%;
+	--admin-foreground: 0 0% 100%;
+
+	/* Enhanced role colors */
+	--student: 122 39% 49%;
+	--student-light: 122 39% 92%;
+	--student-dark: 122 43% 35%;
+	--student-accent: 122 33% 61%;
+	--student-foreground: 0 0% 100%;
+	
+	--teacher: 207 78% 51%;
+	--teacher-light: 207 100% 96%;
+	--teacher-dark: 208 76% 42%;
+	--teacher-accent: 207 83% 61%;
+	--teacher-foreground: 0 0% 100%;
+	
+	--admin: 280 49% 40%;
+	--admin-light: 280 100% 94%;
+	--admin-dark: 280 57% 32%;
+	--admin-accent: 280 43% 52%;
+	--admin-foreground: 0 0% 100%;
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;

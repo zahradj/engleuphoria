@@ -41,7 +41,7 @@ export const StudentWelcomeSection = ({
   const dayOfWeek = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary-glow to-accent p-8 text-white">
+    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-student via-student-accent to-student-dark p-8 text-white">
       {/* Animated background elements */}
       <div className="absolute inset-0">
         <div className="absolute top-10 right-10 h-32 w-32 rounded-full bg-white/10 blur-3xl animate-pulse"></div>
@@ -143,7 +143,7 @@ export const StudentWelcomeSection = ({
           
           <Button 
             onClick={() => navigate('/discover-teachers')}
-            className="bg-white hover:bg-white/90 text-primary border-white backdrop-blur-sm hover:scale-105 transition-all duration-200 font-semibold"
+            className="bg-white hover:bg-white/90 text-student border-white backdrop-blur-sm hover:scale-105 transition-all duration-200 font-semibold"
             size="lg"
           >
             <Plus className="h-5 w-5 mr-2" />

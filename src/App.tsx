@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ImprovedProtectedRoute } from "@/components/auth/ImprovedProtectedRoute";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { RoleThemeProvider } from "@/contexts/RoleThemeContext";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
@@ -36,7 +37,8 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <LanguageProvider>
       <AuthProvider>
-        <TooltipProvider>
+        <RoleThemeProvider>
+          <TooltipProvider>
           <Toaster />
           <Sonner />
           <BrowserRouter>
@@ -94,7 +96,8 @@ const App = () => (
               } />
             </Routes>
           </BrowserRouter>
-        </TooltipProvider>
+          </TooltipProvider>
+        </RoleThemeProvider>
       </AuthProvider>
     </LanguageProvider>
   </QueryClientProvider>

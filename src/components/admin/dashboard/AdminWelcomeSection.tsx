@@ -28,7 +28,7 @@ export const AdminWelcomeSection = ({ adminName = 'Administrator', stats }: Admi
   };
 
   return (
-    <Card className="overflow-hidden border-0 bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700 text-white relative">
+    <Card className="overflow-hidden border-0 bg-gradient-to-br from-admin via-admin-accent to-admin-dark text-white relative">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent" />
       <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-32 translate-x-32" />

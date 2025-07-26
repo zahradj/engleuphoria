@@ -68,27 +68,49 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Engleuphoria theme colors
-				purple: {
-					light: '#E5DEFF',
-					DEFAULT: '#9B87F5',
-					dark: '#6E59A5',
+			// Engleuphoria theme colors
+			purple: {
+				light: '#E5DEFF',
+				DEFAULT: '#9B87F5',
+				dark: '#6E59A5',
+			},
+			teal: {
+				light: '#CCFBF1',
+				DEFAULT: '#14B8A6',
+				dark: '#0F766E',
+			},
+			orange: {
+				light: '#FDE1D3',
+				DEFAULT: '#F97316',
+				dark: '#C2410C',
+			},
+			yellow: {
+				light: '#FEF7CD',
+				DEFAULT: '#FACC15',
+				dark: '#A16207',
+			},
+			// Enhanced role colors (Official Role Codes)
+				student: {
+					DEFAULT: 'hsl(var(--student))',
+					light: 'hsl(var(--student-light))',
+					dark: 'hsl(var(--student-dark))',
+					accent: 'hsl(var(--student-accent))',
+					foreground: 'hsl(var(--student-foreground))'
 				},
-				teal: {
-					light: '#CCFBF1',
-					DEFAULT: '#14B8A6',
-					dark: '#0F766E',
+				teacher: {
+					DEFAULT: 'hsl(var(--teacher))',
+					light: 'hsl(var(--teacher-light))',
+					dark: 'hsl(var(--teacher-dark))',
+					accent: 'hsl(var(--teacher-accent))',
+					foreground: 'hsl(var(--teacher-foreground))'
 				},
-				orange: {
-					light: '#FDE1D3',
-					DEFAULT: '#F97316',
-					dark: '#C2410C',
-				},
-				yellow: {
-					light: '#FEF7CD',
-					DEFAULT: '#FACC15',
-					dark: '#A16207',
-				},
+				admin: {
+					DEFAULT: 'hsl(var(--admin))',
+					light: 'hsl(var(--admin-light))',
+					dark: 'hsl(var(--admin-dark))',
+					accent: 'hsl(var(--admin-accent))',
+					foreground: 'hsl(var(--admin-foreground))'
+				}
 			},
 			fontFamily: {
 				nunito: ['Nunito', 'sans-serif'],
@@ -194,6 +216,9 @@ export default {
 			backgroundImage: {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
 				'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+				// Blended dashboard backgrounds
+				'dashboard-blend': 'linear-gradient(135deg, #E8F5E9, #E3F2FD, #F3E5F5)',
+				'dashboard-neutral': 'linear-gradient(135deg, #FAFAFA, #F5F5F5, #F0F0F0)',
 			},
 		}
 	},

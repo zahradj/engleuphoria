@@ -52,7 +52,7 @@ export const MainNavigation: React.FC<MainNavigationProps> = ({
   };
 
   return (
-    <div className="min-h-screen w-full">
+    <div className="min-h-screen w-full bg-dashboard-blend dark:bg-dashboard-neutral">
       <Header />
       <div className="flex w-full">
         {renderSidebar()}
