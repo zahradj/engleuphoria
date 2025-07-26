@@ -9,47 +9,59 @@ export const PricingSection = () => {
   const plans = [
     {
       name: 'Basic',
-      price: '1,500',
+      price: '11.50',
       period: '/month',
+      currency: 'EUR',
+      lessonValue: '12.00',
+      savings: '0.50',
       description: 'Perfect for beginners starting their English journey',
       features: [
-        '2 one-on-one lessons per month',
+        '2 x 30-minute lessons per month',
         'Basic speaking practice',
         'Access to beginner materials',
         'Progress tracking',
-        'Email support'
+        'Email support',
+        'Additional lessons via packages'
       ],
       icon: Star,
       popular: false
     },
     {
       name: 'Smart Learner',
-      price: '3,000',
+      price: '23.00',
       period: '/month',
+      currency: 'EUR',
+      lessonValue: '24.00',
+      savings: '1.00',
       description: 'Most popular choice for consistent learning',
       features: [
-        '4 one-on-one lessons per month',
+        '2 x 60-minute lessons per month',
         'AI-powered conversation practice',
         'Advanced materials library',
         'Personalized learning path',
         'Community access',
-        'Priority support'
+        'Priority support',
+        'Package upgrade discounts'
       ],
       icon: Crown,
       popular: true
     },
     {
       name: 'Pro Learner',
-      price: '5,500',
+      price: '42.00',
       period: '/month',
+      currency: 'EUR',
+      lessonValue: '48.00',
+      savings: '6.00',
       description: 'Intensive learning for rapid progress',
       features: [
-        '8 one-on-one lessons per month',
+        '4 x 60-minute lessons per month',
         'Unlimited speaking practice',
         'Premium materials & resources',
         'Live group classes',
         'Exam preparation support',
-        'Dedicated support'
+        'Dedicated support',
+        'Maximum package savings'
       ],
       icon: Zap,
       popular: false
@@ -98,9 +110,13 @@ export const PricingSection = () => {
                   </div>
                   <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
                   <p className="text-muted-foreground mb-4">{plan.description}</p>
-                  <div className="flex items-baseline justify-center">
-                    <span className="text-4xl font-bold">{plan.price}</span>
-                    <span className="text-lg text-muted-foreground ml-1">DA{plan.period}</span>
+                  <div className="flex items-baseline justify-center mb-2">
+                    <span className="text-4xl font-bold">€{plan.price}</span>
+                    <span className="text-lg text-muted-foreground ml-1">{plan.period}</span>
+                  </div>
+                  <div className="text-center text-sm text-muted-foreground">
+                    <span className="line-through">€{plan.lessonValue} value</span>
+                    <span className="text-green-600 ml-2 font-medium">Save €{plan.savings}</span>
                   </div>
                 </div>
 
@@ -130,11 +146,16 @@ export const PricingSection = () => {
 
         <div className="text-center">
           <p className="text-muted-foreground mb-4">
-            All plans include 7-day money-back guarantee
+            All plans include 7-day money-back guarantee • Unused lessons roll over monthly
           </p>
-          <Button variant="outline" onClick={handleGetStarted}>
-            View All Plans & Features
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button variant="outline" onClick={handleGetStarted}>
+              View All Plans & Features
+            </Button>
+            <Button variant="ghost" onClick={() => navigate('/pricing')}>
+              Individual Lessons & Packages
+            </Button>
+          </div>
         </div>
       </div>
     </section>
