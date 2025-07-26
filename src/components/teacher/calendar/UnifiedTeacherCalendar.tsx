@@ -238,13 +238,13 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
   const getSlotStyle = (slot: TimeSlot) => {
     switch (slot.slotType) {
       case 'lesson':
-        return "bg-primary/90 text-primary-foreground border-primary shadow-md hover:bg-primary hover:shadow-lg transform hover:scale-[1.02] transition-all duration-200 cursor-pointer";
+        return "bg-gradient-to-br from-primary via-primary/90 to-purple-600 text-primary-foreground border border-primary/30 shadow-lg hover:shadow-xl hover:scale-[1.03] transition-all duration-300 cursor-pointer backdrop-blur-sm";
       case 'booked':
-        return "bg-blue-50 text-blue-800 border-blue-200 hover:bg-blue-100 hover:border-blue-300 transition-all duration-200 cursor-pointer";
+        return "bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 text-white border border-blue-400/50 shadow-lg hover:shadow-xl hover:scale-[1.03] transition-all duration-300 cursor-pointer backdrop-blur-sm";
       case 'available':
-        return "bg-success/10 text-success-foreground border-success/30 hover:bg-success/20 hover:border-success/50 transition-all duration-200 cursor-pointer";
+        return "bg-gradient-to-br from-secondary/80 via-secondary to-teal-600 text-secondary-foreground border border-secondary/40 shadow-md hover:shadow-lg hover:scale-[1.03] transition-all duration-300 cursor-pointer backdrop-blur-sm";
       default:
-        return "bg-background border-border hover:bg-muted/50 hover:border-primary/20 transition-all duration-200 cursor-pointer";
+        return "bg-background/80 border border-border hover:bg-primary/10 hover:border-primary/30 hover:shadow-md transition-all duration-300 cursor-pointer backdrop-blur-sm";
     }
   };
 
@@ -257,9 +257,9 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
       <div
         key={`${dateStr}-${time}`}
         className={`
-          min-h-[60px] p-2 border rounded-lg text-xs transition-all duration-200 relative group
-          ${isPastTime ? 'opacity-50 cursor-not-allowed' : ''}
-          ${slot ? getSlotStyle(slot) : 'bg-background border-border cursor-pointer hover:bg-primary/5 hover:border-primary/30 hover:shadow-sm'}
+          min-h-[70px] p-3 rounded-lg text-xs transition-all duration-300 relative group cursor-pointer
+          ${isPastTime ? 'opacity-40 cursor-not-allowed bg-muted/30' : ''}
+          ${slot ? getSlotStyle(slot) : 'bg-background/80 border border-border hover:bg-primary/10 hover:border-primary/30 hover:shadow-md hover:scale-[1.02]'}
         `}
         onClick={() => !isPastTime && handleTimeSlotClick(date, time, slot)}
         title={slot ? 
@@ -270,49 +270,79 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
           isPastTime ? 'Past time slot' : 'Click to create availability'
         }
       >
-        <div className="font-medium">{time}</div>
+        {/* Time Display */}
+        <div className="font-semibold text-foreground mb-2">{time}</div>
         
         {/* Empty slot indicator */}
         {!slot && !isPastTime && (
-          <div className="mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <div className="text-xs text-muted-foreground">+ Click to open</div>
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 bg-primary/5 rounded-lg">
+            <div className="text-center">
+              <Plus className="h-4 w-4 mx-auto mb-1 text-primary" />
+              <div className="text-xs text-primary font-medium">Add Slot</div>
+            </div>
           </div>
         )}
         
+        {/* Slot Content */}
         {slot && (
-          <div className="mt-1 space-y-1">
+          <div className="space-y-2">
             {slot.slotType === 'lesson' && (
               <>
-                <div className="flex items-center gap-1">
-                  <PlayCircle className="h-3 w-3 flex-shrink-0" />
-                  <span className="truncate font-medium">{slot.lessonTitle}</span>
-                </div>
-                {slot.studentName && (
-                  <div className="flex items-center gap-1">
-                    <User className="h-3 w-3 flex-shrink-0" />
-                    <span className="truncate text-xs">{slot.studentName}</span>
+                <div className="flex items-start gap-2">
+                  <PlayCircle className="h-4 w-4 flex-shrink-0 text-primary-foreground mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-primary-foreground truncate text-sm">
+                      {slot.lessonTitle}
+                    </div>
+                    {slot.studentName && (
+                      <div className="flex items-center gap-1 mt-1">
+                        <User className="h-3 w-3 text-primary-foreground/80" />
+                        <span className="text-xs text-primary-foreground/90 truncate">
+                          {slot.studentName}
+                        </span>
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
               </>
             )}
+            
             {slot.slotType === 'available' && (
-              <Badge variant="secondary" className="text-xs bg-success/20 text-success-foreground border-success/30">
-                Available
-              </Badge>
+              <div className="space-y-1">
+                <Badge className="bg-secondary/80 text-secondary-foreground border-secondary/40 shadow-sm">
+                  Available
+                </Badge>
+                <div className="text-xs text-secondary-foreground/80">
+                  Ready for booking
+                </div>
+              </div>
             )}
+            
             {slot.slotType === 'booked' && (
-              <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800 border-blue-200">
-                Booked
-              </Badge>
+              <div className="space-y-1">
+                <Badge className="bg-blue-500/80 text-white border-blue-400/40 shadow-sm">
+                  Booked
+                </Badge>
+                <div className="text-xs text-blue-100">
+                  Student confirmed
+                </div>
+              </div>
             )}
           </div>
         )}
         
-        {/* Duration indicator for slots */}
+        {/* Duration indicator */}
         {slot && (
-          <div className="absolute top-1 right-1 text-xs text-muted-foreground opacity-75">
-            {slot.duration}m
+          <div className="absolute top-2 right-2">
+            <div className="text-xs font-medium px-2 py-1 rounded-full bg-background/20 text-foreground/80 border border-background/40">
+              {slot.duration}m
+            </div>
           </div>
+        )}
+        
+        {/* Hover effect overlay */}
+        {!isPastTime && (
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg pointer-events-none" />
         )}
       </div>
     );
@@ -322,60 +352,157 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
     const weekDays = getWeekDays();
     
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">
-            {format(weekDays[0], 'MMM d')} - {format(weekDays[6], 'MMM d, yyyy')}
-          </h3>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setCurrentWeek(subWeeks(currentWeek, 1))}>
+      <div className="space-y-6">
+        {/* Week Navigation Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-xl border border-primary/10">
+          <div className="space-y-1">
+            <h3 className="text-xl font-bold text-foreground">
+              {format(weekDays[0], 'MMM d')} - {format(weekDays[6], 'MMM d, yyyy')}
+            </h3>
+            <p className="text-sm text-muted-foreground">Weekly view of your teaching schedule</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setCurrentWeek(subWeeks(currentWeek, 1))}
+              className="hover:bg-primary hover:text-primary-foreground transition-all duration-200"
+            >
               <ChevronLeft className="h-4 w-4" />
+              Previous
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setCurrentWeek(addWeeks(currentWeek, 1))}>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setCurrentWeek(new Date())}
+              className="hover:bg-secondary hover:text-secondary-foreground transition-all duration-200"
+            >
+              Today
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setCurrentWeek(addWeeks(currentWeek, 1))}
+              className="hover:bg-primary hover:text-primary-foreground transition-all duration-200"
+            >
+              Next
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         </div>
         
-        <div className="grid grid-cols-8 gap-2">
-          <div className="font-medium text-sm text-muted-foreground">Time</div>
-          {weekDays.map((day) => (
-            <div key={day.toISOString()} className="font-medium text-sm text-center">
-              <div>{format(day, 'EEE')}</div>
-              <div className="text-lg">{format(day, 'd')}</div>
+        {/* Calendar Grid */}
+        <div className="overflow-hidden rounded-xl border border-primary/20 bg-background/50 backdrop-blur-sm">
+          <div className="overflow-x-auto">
+            <div className="min-w-[800px]">
+              {/* Header Row */}
+              <div className="grid grid-cols-8 bg-gradient-to-r from-primary/10 to-secondary/10 border-b border-primary/20">
+                <div className="p-4 font-semibold text-sm text-muted-foreground border-r border-primary/10">
+                  Time
+                </div>
+                {weekDays.map((day) => {
+                  const isToday = isSameDay(day, new Date());
+                  return (
+                    <div 
+                      key={day.toISOString()} 
+                      className={`p-4 text-center border-r last:border-r-0 border-primary/10 ${
+                        isToday ? 'bg-primary/20 font-bold' : ''
+                      }`}
+                    >
+                      <div className={`font-semibold text-sm ${isToday ? 'text-primary' : 'text-foreground'}`}>
+                        {format(day, 'EEE')}
+                      </div>
+                      <div className={`text-lg font-bold ${isToday ? 'text-primary' : 'text-foreground'}`}>
+                        {format(day, 'd')}
+                      </div>
+                      {isToday && (
+                        <div className="text-xs text-primary font-medium mt-1">Today</div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {/* Time Slots */}
+              <div className="divide-y divide-primary/10">
+                {timeSlots.map((time, index) => (
+                  <div key={time} className={`grid grid-cols-8 hover:bg-primary/5 transition-colors duration-150 ${index % 2 === 0 ? 'bg-background/30' : 'bg-background/60'}`}>
+                    <div className="p-3 text-xs font-medium text-muted-foreground border-r border-primary/10 bg-muted/30 flex items-center">
+                      <span className="font-mono">{time}</span>
+                    </div>
+                    {weekDays.map((day) => (
+                      <div key={`${day.toISOString()}-${time}`} className="border-r last:border-r-0 border-primary/10 p-1">
+                        {renderTimeSlot(day, time)}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
-          
-          {timeSlots.map((time) => (
-            <React.Fragment key={time}>
-              <div className="text-xs text-muted-foreground py-2">{time}</div>
-              {weekDays.map((day) => renderTimeSlot(day, time))}
-            </React.Fragment>
-          ))}
+          </div>
         </div>
       </div>
     );
   };
 
   const renderDayView = () => {
+    const isToday = isSameDay(selectedDate, new Date());
+    
     return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">
-            {format(selectedDate, 'EEEE, MMMM d, yyyy')}
-          </h3>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setSelectedDate(addDays(selectedDate, -1))}>
+      <div className="space-y-6">
+        {/* Day Navigation Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-xl border border-primary/10">
+          <div className="space-y-1">
+            <h3 className="text-xl font-bold text-foreground flex items-center gap-2">
+              {format(selectedDate, 'EEEE, MMMM d, yyyy')}
+              {isToday && (
+                <Badge className="bg-primary text-primary-foreground">Today</Badge>
+              )}
+            </h3>
+            <p className="text-sm text-muted-foreground">Detailed view for the selected day</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setSelectedDate(addDays(selectedDate, -1))}
+              className="hover:bg-primary hover:text-primary-foreground transition-all duration-200"
+            >
               <ChevronLeft className="h-4 w-4" />
+              Previous
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setSelectedDate(addDays(selectedDate, 1))}>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setSelectedDate(new Date())}
+              className="hover:bg-secondary hover:text-secondary-foreground transition-all duration-200"
+            >
+              Today
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setSelectedDate(addDays(selectedDate, 1))}
+              className="hover:bg-primary hover:text-primary-foreground transition-all duration-200"
+            >
+              Next
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         </div>
         
-        <div className="grid grid-cols-1 gap-2 max-w-md">
-          {timeSlots.map((time) => renderTimeSlot(selectedDate, time))}
+        {/* Time Slots List */}
+        <div className="max-w-2xl mx-auto">
+          <div className="space-y-3">
+            {timeSlots.map((time, index) => (
+              <div 
+                key={time} 
+                className={`transition-all duration-300 ${index % 2 === 0 ? 'animate-fade-in' : 'animate-fade-in animation-delay-300'}`}
+              >
+                {renderTimeSlot(selectedDate, time)}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -469,77 +596,126 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Teaching Calendar</h1>
-        <div className="flex gap-2 items-center">
-          <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as any)}>
-            <TabsList>
-              <TabsTrigger value="month">Month</TabsTrigger>
-              <TabsTrigger value="week">Week</TabsTrigger>
-              <TabsTrigger value="day">Day</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          
-          {viewMode !== 'month' && (
-            <select
-              value={selectedDuration}
-              onChange={(e) => setSelectedDuration(Number(e.target.value) as 25 | 55)}
-              className="px-3 py-1 border rounded-md"
-            >
-              <option value={25}>25 min</option>
-              <option value={55}>55 min</option>
-            </select>
-          )}
-          
-          <QuickSetupModal teacherId={teacherId} onSlotsCreated={loadCalendarData}>
-            <Button variant="outline" size="sm">
-              <Calendar className="h-4 w-4 mr-2" />
-              Quick Setup
-            </Button>
-          </QuickSetupModal>
-          
-          <Button onClick={() => setShowScheduleModal(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Schedule Lesson
-          </Button>
+    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-secondary/10">
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        {/* Header Section */}
+        <div className="text-center space-y-4 animate-fade-in">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-purple-600 to-secondary bg-clip-text text-transparent">
+            Teaching Schedule
+          </h1>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Manage your lessons, availability, and schedule with ease. Create time slots, track bookings, and join classes seamlessly.
+          </p>
         </div>
+
+        {/* Main Calendar Card */}
+        <Card className="glass-enhanced shadow-2xl border-0 overflow-hidden animate-scale-in">
+          <CardHeader className="bg-gradient-to-r from-primary/10 via-purple-50/50 to-secondary/10 dark:from-primary/20 dark:via-purple-900/30 dark:to-secondary/20 border-b border-primary/20">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+              <div className="space-y-2">
+                <CardTitle className="text-2xl font-bold text-foreground flex items-center gap-3">
+                  <Clock className="h-6 w-6 text-primary" />
+                  Calendar View
+                </CardTitle>
+                <p className="text-muted-foreground">
+                  Switch between different views to manage your schedule
+                </p>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as 'month' | 'week' | 'day')}>
+                  <TabsList className="grid grid-cols-3 bg-background/80 border border-primary/20">
+                    <TabsTrigger value="month" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                      Month
+                    </TabsTrigger>
+                    <TabsTrigger value="week" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                      Week
+                    </TabsTrigger>
+                    <TabsTrigger value="day" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                      Day
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+                
+                <Button 
+                  onClick={() => setShowScheduleModal(true)}
+                  className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
+                >
+                  <Plus className="h-4 w-4 mr-2 group-hover:rotate-90 transition-transform duration-300" />
+                  Schedule Lesson
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          
+          <CardContent className="p-8">
+            <Tabs value={viewMode} className="w-full">
+              <TabsContent value="week" className="mt-0 space-y-6">
+                {renderWeekView()}
+              </TabsContent>
+              <TabsContent value="day" className="mt-0 space-y-6">
+                {renderDayView()}
+              </TabsContent>
+              <TabsContent value="month" className="mt-0 space-y-6">
+                {renderMonthView()}
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+
+        {/* Legend Card */}
+        <Card className="glass-enhanced border-primary/20 animate-fade-in animation-delay-300">
+          <CardContent className="p-6">
+            <h3 className="font-semibold text-lg mb-4 text-foreground">Schedule Legend</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/10 border border-primary/20">
+                <div className="w-4 h-4 rounded bg-primary/90 shadow-sm"></div>
+                <span className="text-sm font-medium">Active Lessons</span>
+              </div>
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-50 border border-blue-200">
+                <div className="w-4 h-4 rounded bg-blue-100 border border-blue-200 shadow-sm"></div>
+                <span className="text-sm font-medium">Booked Slots</span>
+              </div>
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/10 border border-secondary/20">
+                <div className="w-4 h-4 rounded bg-secondary/20 border border-secondary/30 shadow-sm"></div>
+                <span className="text-sm font-medium">Available</span>
+              </div>
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted border border-border">
+                <div className="w-4 h-4 rounded bg-background border border-border shadow-sm"></div>
+                <span className="text-sm font-medium">Empty Slots</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Modals */}
+        <ScheduleLessonModal
+          isOpen={showScheduleModal}
+          onClose={() => setShowScheduleModal(false)}
+          teacherId={teacherId}
+          onLessonScheduled={loadCalendarData}
+        />
+
+        <TimeSlotActionModal
+          isOpen={showTimeSlotActionModal}
+          onClose={() => setShowTimeSlotActionModal(false)}
+          date={selectedSlotDate}
+          time={selectedSlotTime}
+          selectedDuration={selectedDuration}
+          teacherId={teacherId}
+          onSlotCreated={loadCalendarData}
+        />
+
+        <SlotManagementModal
+          isOpen={showSlotManagementModal}
+          onClose={() => setShowSlotManagementModal(false)}
+          slot={selectedSlot}
+          date={selectedSlotDate}
+          time={selectedSlotTime}
+          onSlotDeleted={loadCalendarData}
+          onJoinLesson={handleJoinLesson}
+        />
       </div>
-
-      <Card>
-        <CardContent className="p-6">
-          {viewMode === 'month' && renderMonthView()}
-          {viewMode === 'week' && renderWeekView()}
-          {viewMode === 'day' && renderDayView()}
-        </CardContent>
-      </Card>
-
-      <ScheduleLessonModal
-        isOpen={showScheduleModal}
-        onClose={() => setShowScheduleModal(false)}
-        teacherId={teacherId}
-        onLessonScheduled={loadCalendarData}
-      />
-
-      <TimeSlotActionModal
-        isOpen={showTimeSlotActionModal}
-        onClose={() => setShowTimeSlotActionModal(false)}
-        date={selectedSlotDate}
-        time={selectedSlotTime}
-        teacherId={teacherId}
-        selectedDuration={selectedDuration}
-        onSlotCreated={loadCalendarData}
-      />
-
-      <SlotManagementModal
-        isOpen={showSlotManagementModal && selectedSlot !== null}
-        onClose={() => setShowSlotManagementModal(false)}
-        date={selectedSlotDate}
-        time={selectedSlotTime}
-        slot={selectedSlot}
-        onSlotDeleted={loadCalendarData}
-        onJoinLesson={handleJoinLesson}
-      />
     </div>
   );
 };
