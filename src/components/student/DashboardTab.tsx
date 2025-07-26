@@ -18,6 +18,7 @@ import { TeacherMessageModal } from "./TeacherMessageModal";
 import { StudentLessonTracker } from "@/components/dashboard/student/StudentLessonTracker";
 import { StudentWelcomeSection } from "./dashboard/StudentWelcomeSection";
 import { StudentStatsOverview } from "./dashboard/StudentStatsOverview";
+import { StudentPackagesSection } from "./dashboard/StudentPackagesSection";
 import { StudentActivityFeed } from "./dashboard/StudentActivityFeed";
 import { StudentQuickActions } from "./dashboard/StudentQuickActions";
 import { StudentLearningGoals } from "./dashboard/StudentLearningGoals";
@@ -250,6 +251,9 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
           </CardContent>
         </Card>
       </div>
+
+      {/* Student Packages Section */}
+      {user?.id && <StudentPackagesSection studentId={user.id} />}
 
       {/* Learning Goals and Daily Progress */}
       <StudentLearningGoals hasProfile={hasProfile} />

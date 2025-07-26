@@ -30,6 +30,7 @@ import ForParents from "./pages/ForParents";
 import ForTeachers from "./pages/ForTeachers";  
 import AboutUs from "./pages/AboutUs";
 import CurriculumLibrary from "./pages/CurriculumLibrary";
+import NewPricingPage from "./pages/NewPricingPage";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +63,7 @@ const App = () => (
               <Route path="/for-teachers" element={<ForTeachers />} />
               <Route path="/about" element={<AboutUs />} />
               <Route path="/curriculum-library" element={<CurriculumLibrary />} />
+              <Route path="/pricing" element={<NewPricingPage />} />
 
               {/* Protected Routes */}
               <Route path="/student" element={

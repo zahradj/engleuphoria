@@ -1,6 +1,47 @@
 
-import { SubscriptionPlan } from '@/types/pricing';
+import { SubscriptionPlan, LessonPackage } from '@/types/pricing';
 
+// New lesson packages based on the pricing policy
+export const lessonPackages: LessonPackage[] = [
+  {
+    id: 'pkg-5x30',
+    name: '5 x 30-min lessons',
+    lesson_count: 5,
+    duration_minutes: 30,
+    total_price: 28.00,
+    savings_amount: 2.00,
+    is_active: true
+  },
+  {
+    id: 'pkg-10x30',
+    name: '10 x 30-min lessons',
+    lesson_count: 10,
+    duration_minutes: 30,
+    total_price: 55.00,
+    savings_amount: 5.00,
+    is_active: true
+  },
+  {
+    id: 'pkg-5x60',
+    name: '5 x 60-min lessons',
+    lesson_count: 5,
+    duration_minutes: 60,
+    total_price: 55.00,
+    savings_amount: 5.00,
+    is_active: true
+  },
+  {
+    id: 'pkg-10x60',
+    name: '10 x 60-min lessons',
+    lesson_count: 10,
+    duration_minutes: 60,
+    total_price: 110.00,
+    savings_amount: 10.00,
+    is_active: true
+  }
+];
+
+// Legacy subscription plans for backward compatibility
 export const fallbackPlans: SubscriptionPlan[] = [
   {
     id: 'trial',
