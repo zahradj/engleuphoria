@@ -28,6 +28,7 @@ import SpeakingPractice from "./pages/student/SpeakingPractice";
 import ForParents from "./pages/ForParents";
 import ForTeachers from "./pages/ForTeachers";  
 import AboutUs from "./pages/AboutUs";
+import CurriculumLibrary from "./pages/CurriculumLibrary";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +59,7 @@ const App = () => (
               <Route path="/for-parents" element={<ForParents />} />
               <Route path="/for-teachers" element={<ForTeachers />} />
               <Route path="/about" element={<AboutUs />} />
+              <Route path="/curriculum-library" element={<CurriculumLibrary />} />
 
               {/* Protected Routes */}
               <Route path="/student" element={
