@@ -23,6 +23,7 @@ import { DiscoverTeachers } from "./pages/DiscoverTeachers";
 import { TeacherProfile } from "./pages/TeacherProfile";
 import { BookLesson } from "./pages/BookLesson";
 import StudentSchedule from "./pages/student/StudentSchedule";
+import TeacherSchedule from "./pages/teacher/TeacherSchedule";
 import SpeakingPractice from "./pages/student/SpeakingPractice";
 import ForParents from "./pages/ForParents";
 import ForTeachers from "./pages/ForTeachers";  
@@ -51,6 +52,7 @@ const App = () => (
               <Route path="/discover-teachers" element={<DiscoverTeachers />} />
               <Route path="/teacher/:teacherId" element={<TeacherProfile />} />
               <Route path="/student/schedule" element={<StudentSchedule />} />
+              <Route path="/teacher/schedule" element={<TeacherSchedule />} />
               <Route path="/student/book-lesson" element={<BookLesson />} />
               <Route path="/student/speaking-practice" element={<SpeakingPractice />} />
               <Route path="/for-parents" element={<ForParents />} />

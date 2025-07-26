@@ -217,16 +217,34 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
       await lessonService.joinLesson(slot.lessonId, teacherId, 'teacher');
       
       const lesson = lessons.find(l => l.id === slot.lessonId);
-      if (lesson?.room_id) {
-        const classroomUrl = `/oneonone-classroom-new?roomId=${lesson.room_id}&role=teacher&name=Teacher&userId=${teacherId}`;
-        navigate(classroomUrl);
+      if (lesson?.room_link) {
+        // Use the existing room link with teacher parameters
+        const url = new URL(lesson.room_link);
+        url.searchParams.set('role', 'teacher');
+        url.searchParams.set('name', 'Teacher');
+        url.searchParams.set('userId', teacherId);
+        
+        // Open in new tab for better UX
+        window.open(url.toString(), '_blank');
         
         toast({
           title: "Joining Classroom",
           description: `Joining lesson: ${slot.lessonTitle}`,
         });
+      } else if (lesson?.room_id) {
+        // Fallback to building URL manually
+        const classroomUrl = `/oneonone-classroom-new?roomId=${lesson.room_id}&role=teacher&name=Teacher&userId=${teacherId}`;
+        window.open(classroomUrl, '_blank');
+        
+        toast({
+          title: "Joining Classroom",
+          description: `Joining lesson: ${slot.lessonTitle}`,
+        });
+      } else {
+        throw new Error('No room information available');
       }
     } catch (error) {
+      console.error('Error joining lesson:', error);
       toast({
         title: "Error",
         description: "Failed to join classroom. Please try again.",

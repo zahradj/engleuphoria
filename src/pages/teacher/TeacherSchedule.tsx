@@ -8,15 +8,15 @@ import { useAuth } from '@/hooks/useAuth';
 import { lessonService } from '@/services/lessonService';
 import { useToast } from '@/hooks/use-toast';
 
-const StudentSchedule = () => {
+const TeacherSchedule = () => {
   const [upcomingLessons, setUpcomingLessons] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
 
   const breadcrumbs = [
-    { label: 'Dashboard', path: '/student' },
-    { label: 'Schedule', path: '/student/schedule' }
+    { label: 'Dashboard', path: '/teacher' },
+    { label: 'Schedule', path: '/teacher/schedule' }
   ];
 
   useEffect(() => {
@@ -28,7 +28,7 @@ const StudentSchedule = () => {
 
     try {
       setLoading(true);
-      const lessons = await lessonService.getStudentUpcomingLessons(user.id);
+      const lessons = await lessonService.getTeacherUpcomingLessons(user.id);
       setUpcomingLessons(lessons);
     } catch (error) {
       console.error('Error fetching lessons:', error);
@@ -58,7 +58,7 @@ const StudentSchedule = () => {
           
           <div className="flex items-center gap-3 mb-6">
             <Calendar className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-bold">My Schedule</h1>
+            <h1 className="text-3xl font-bold">My Teaching Schedule</h1>
           </div>
 
           <div className="flex items-center justify-center py-12">
@@ -77,7 +77,7 @@ const StudentSchedule = () => {
         
         <div className="flex items-center gap-3 mb-6">
           <Calendar className="h-8 w-8 text-primary" />
-          <h1 className="text-3xl font-bold">My Schedule</h1>
+          <h1 className="text-3xl font-bold">My Teaching Schedule</h1>
         </div>
 
         {upcomingLessons.length === 0 ? (
@@ -94,7 +94,7 @@ const StudentSchedule = () => {
               <ClassroomConnection
                 key={lesson.id}
                 lesson={lesson}
-                userRole="student"
+                userRole="teacher"
                 onJoinClassroom={handleJoinClassroom}
               />
             ))}
@@ -105,4 +105,4 @@ const StudentSchedule = () => {
   );
 };
 
-export default StudentSchedule;
+export default TeacherSchedule;

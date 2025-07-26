@@ -297,14 +297,19 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
                           className="bg-blue-600 hover:bg-blue-700" 
                           onClick={() => {
                             if (lesson.room_link) {
-                              window.open(lesson.room_link, '_blank');
+                              // Navigate to the classroom with proper parameters
+                              const url = new URL(lesson.room_link);
+                              url.searchParams.set('role', 'student');
+                              url.searchParams.set('name', studentName);
+                              url.searchParams.set('userId', user?.id || '');
+                              window.open(url.toString(), '_blank');
                             } else {
                               handleJoinClassroom();
                             }
                           }}
                         >
                           <Play className="h-4 w-4 mr-1" />
-                          Join
+                          Join Class
                         </Button>
                         <Button 
                           variant="outline" 

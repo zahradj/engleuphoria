@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Calendar, Clock, Video, User, CheckCircle } from "lucide-react";
 import { CompletedLessonCard } from "./CompletedLessonCard";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
 
 interface Lesson {
@@ -26,6 +27,7 @@ export const UpcomingClassesTab = () => {
   const [completedLessons, setCompletedLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchLessons();
@@ -106,7 +108,14 @@ export const UpcomingClassesTab = () => {
 
   const handleJoinClass = (lesson: Lesson) => {
     if (lesson.room_link) {
-      window.open(lesson.room_link, '_blank');
+      // Use the existing room link with student parameters
+      const url = new URL(lesson.room_link);
+      url.searchParams.set('role', 'student');
+      url.searchParams.set('name', 'Student');
+      url.searchParams.set('userId', user?.id || '');
+      
+      // Open in new tab for better UX
+      window.open(url.toString(), '_blank');
     } else {
       toast({
         title: "Room Link Not Available",

@@ -61,9 +61,18 @@ export const lessonService = {
 
   // Create a new lesson
   async createLesson(lessonData: CreateLessonData): Promise<ScheduledLesson> {
+    // Generate a unique room ID and link for the lesson
+    const roomId = `lesson-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const roomLink = `${window.location.origin}/oneonone-classroom-new?roomId=${roomId}`;
+
     const { data, error } = await supabase
       .from('lessons')
-      .insert([lessonData])
+      .insert([{
+        ...lessonData,
+        room_id: roomId,
+        room_link: roomLink,
+        status: 'scheduled'
+      }])
       .select(`
         id,
         title,
@@ -81,6 +90,12 @@ export const lessonService = {
       console.error('Error creating lesson:', error);
       throw error;
     }
+
+    console.log('✅ Lesson created successfully:', {
+      id: data.id,
+      room_id: data.room_id,
+      room_link: data.room_link
+    });
 
     return data;
   },
