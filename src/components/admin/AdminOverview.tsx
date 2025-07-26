@@ -4,6 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Users, GraduationCap, BookOpen, DollarSign, TrendingUp, AlertTriangle, Calendar, Star, Clock, Activity } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { AdminWelcomeSection } from './dashboard/AdminWelcomeSection';
+import { AdminStatsOverview } from './dashboard/AdminStatsOverview';
+import { AdminQuickActions } from './dashboard/AdminQuickActions';
+import { AdminSystemHealth } from './dashboard/AdminSystemHealth';
+import { AdminActivityFeed } from './dashboard/AdminActivityFeed';
 
 export const AdminOverview = () => {
   const [timeRange, setTimeRange] = useState('week');
@@ -117,6 +122,22 @@ export const AdminOverview = () => {
     );
   }
 
+  const handleQuickActions = {
+    onManageUsers: () => console.log('Navigate to user management'),
+    onManageTeachers: () => console.log('Navigate to teacher management'),
+    onViewReports: () => console.log('Navigate to reports'),
+    onViewAnalytics: () => console.log('Navigate to analytics'),
+    onModerateContent: () => console.log('Navigate to content moderation'),
+    onSystemSettings: () => console.log('Navigate to system settings'),
+  };
+
+  const mockCounts = {
+    pendingUsers: 3,
+    pendingTeachers: 2,
+    pendingReports: 1,
+    systemAlerts: 0,
+  };
+
   return (
     <div className="space-y-6">
       {/* Header with Time Range Selector */}
@@ -140,162 +161,56 @@ export const AdminOverview = () => {
         </div>
       </div>
 
-      {/* Real-time Status Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-blue-100 text-sm">Total Users</p>
-                <p className="text-2xl font-bold">{realTimeData.activeUsers}</p>
-              </div>
-              <Activity className="h-8 w-8 text-blue-200" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-green-100 text-sm">Active Lessons</p>
-                <p className="text-2xl font-bold">{realTimeData.ongoingLessons}</p>
-              </div>
-              <Clock className="h-8 w-8 text-green-200" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-purple-100 text-sm">System Health</p>
-                <p className="text-2xl font-bold">{realTimeData.systemHealth.toFixed(1)}%</p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-purple-200" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Enhanced Welcome Section */}
+      <AdminWelcomeSection
+        adminName="Administrator"
+        stats={{
+          totalUsers: stats.totalUsers,
+          totalTeachers: stats.totalTeachers,
+          activeLessons: stats.activeLessons,
+          systemHealth: realTimeData.systemHealth,
+        }}
+      />
 
-      {/* Main Statistics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalUsers.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Registered users</p>
-          </CardContent>
-        </Card>
+      {/* Enhanced Stats Overview */}
+      <AdminStatsOverview
+        stats={{
+          totalUsers: stats.totalUsers,
+          totalTeachers: stats.totalTeachers,
+          activeLessons: stats.activeLessons,
+          averageRating: stats.avgRating,
+          userGrowth: 15.2,
+          teacherGrowth: 8.7,
+          lessonGrowth: 23.1,
+          ratingChange: 0.3,
+        }}
+        loading={loading}
+      />
 
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Teachers</CardTitle>
-            <GraduationCap className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalTeachers}</div>
-            <p className="text-xs text-muted-foreground">Registered teachers</p>
-            {stats.avgRating > 0 && (
-              <div className="flex items-center mt-2">
-                <Star className="h-3 w-3 text-yellow-500 mr-1" />
-                <span className="text-xs">{stats.avgRating}/5.0 avg rating</span>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completion Rate</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.completionRate}%</div>
-            <p className="text-xs text-muted-foreground">Lesson completion</p>
-            <Progress value={stats.completionRate} className="mt-2" />
-          </CardContent>
-        </Card>
-
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Lessons</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.activeLessons}</div>
-            <p className="text-xs text-muted-foreground">Scheduled & confirmed</p>
-          </CardContent>
-        </Card>
-      </div>
-
+      {/* Layout for Quick Actions, System Health, and Activity Feed */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Quick Actions
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {quickActions.map((action, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
-                  <span className="font-medium">{action.label}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">
-                      {action.count}
-                    </span>
-                    <Button size="sm" variant="outline" disabled>
-                      View
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <AdminQuickActions
+          actions={handleQuickActions}
+          counts={mockCounts}
+        />
 
-        {/* System Status */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              System Performance
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 gap-6">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">System Health</span>
-                  <span className="text-sm text-green-600">{realTimeData.systemHealth.toFixed(1)}%</span>
-                </div>
-                <Progress value={realTimeData.systemHealth} className="h-2" />
-              </div>
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Database Status</span>
-                  <span className="text-sm text-green-600">Connected</span>
-                </div>
-                <Progress value={100} className="h-2" />
-              </div>
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">API Status</span>
-                  <span className="text-sm text-green-600">Operational</span>
-                </div>
-                <Progress value={100} className="h-2" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* System Health */}
+        <AdminSystemHealth
+          metrics={{
+            serverUptime: 99.9,
+            databaseHealth: 98.5,
+            apiResponseTime: 125,
+            activeConnections: realTimeData.activeUsers,
+            memoryUsage: 67,
+            storageUsage: 43,
+          }}
+          loading={loading}
+        />
       </div>
+
+      {/* Activity Feed */}
+      <AdminActivityFeed loading={loading} />
     </div>
   );
 };
