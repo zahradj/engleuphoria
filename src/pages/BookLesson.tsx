@@ -9,6 +9,7 @@ import { Star, Clock, Globe, ArrowLeft, CheckCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { lessonService } from '@/services/lessonService';
 
 interface Teacher {
   id: string;
@@ -101,19 +102,17 @@ export const BookLesson = () => {
       const [hours, minutes] = selectedTime.split(':');
       scheduledAt.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
-      const { data, error } = await supabase
-        .from('lessons')
-        .insert({
-          teacher_id: teacher.user_id,
-          student_id: user.id,
-          title: `English Lesson with ${teacher.full_name}`,
-          scheduled_at: scheduledAt.toISOString(),
-          duration: 60,
-          cost: teacher.hourly_rate_eur,
-          status: 'scheduled'
-        });
+      // Use the lesson service to create the lesson for better consistency
+      const lessonData = {
+        title: `English Lesson with ${teacher.full_name}`,
+        teacher_id: teacher.user_id,
+        student_id: user.id,
+        scheduled_at: scheduledAt.toISOString(),
+        duration: 60,
+        cost: teacher.hourly_rate_eur
+      };
 
-      if (error) throw error;
+      const newLesson = await lessonService.createLesson(lessonData);
 
       toast({
         title: "Lesson Booked Successfully!",
