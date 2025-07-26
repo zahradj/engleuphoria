@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useStudentHandlers } from "@/hooks/useStudentHandlers";
+import { useAuth } from "@/hooks/useAuth";
 import { HomeworkSubmissionModal } from "./HomeworkSubmissionModal";
 import { TeacherMessageModal } from "./TeacherMessageModal";
 import { StudentLessonTracker } from "@/components/dashboard/student/StudentLessonTracker";
@@ -40,6 +41,7 @@ interface DashboardTabProps {
 
 export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfile }: DashboardTabProps) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const {
     handleJoinClass,
     handleSubmitHomework,
@@ -71,7 +73,30 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
     setShowHomeworkModal(true);
   };
 
-  const upcomingClasses: any[] = [];
+  // Import the enhanced upcoming classes component
+  const [upcomingClasses, setUpcomingClasses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch upcoming classes on component mount
+  React.useEffect(() => {
+    const fetchUpcomingClasses = async () => {
+      if (!user?.id) return;
+      
+      try {
+        setLoading(true);
+        // Use the existing lesson service to fetch student lessons
+        const { lessonService } = await import('@/services/lessonService');
+        const lessons = await lessonService.getStudentUpcomingLessons(user.id);
+        setUpcomingClasses(lessons.slice(0, 3)); // Show only first 3 on dashboard
+      } catch (error) {
+        console.error('Error fetching upcoming classes:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUpcomingClasses();
+  }, [user?.id]);
 
   const recentHomework: any[] = [];
 
@@ -233,7 +258,12 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
-            {upcomingClasses.length === 0 ? (
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-500">Loading your lessons...</p>
+              </div>
+            ) : upcomingClasses.length === 0 ? (
               <div className="text-center py-8">
                 <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Calendar className="h-8 w-8 text-blue-600" />
@@ -247,21 +277,44 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
               </div>
             ) : (
               <div className="space-y-3">
-                {upcomingClasses.map((cls, index) => (
-                  <div key={index} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
+                {upcomingClasses.map((lesson) => (
+                  <div key={lesson.id} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-800">{cls.title}</h4>
+                        <h4 className="font-semibold text-gray-800">{lesson.title}</h4>
                         <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
                           <Clock className="h-4 w-4" />
-                          {cls.date} at {cls.time}
+                          {new Date(lesson.scheduled_at).toLocaleDateString()} at {new Date(lesson.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </p>
-                        <p className="text-sm text-blue-600 mt-1">with {cls.teacher}</p>
+                        <p className="text-sm text-blue-600 mt-1">with {lesson.teacher_name || 'Teacher'}</p>
+                        <Badge variant="secondary" className="mt-1">
+                          {lesson.duration} minutes
+                        </Badge>
                       </div>
-                      <Button size="sm" className="bg-blue-600 hover:bg-blue-700" onClick={handleJoinClassroom}>
-                        <Play className="h-4 w-4 mr-1" />
-                        Join
-                      </Button>
+                      <div className="flex flex-col gap-2">
+                        <Button 
+                          size="sm" 
+                          className="bg-blue-600 hover:bg-blue-700" 
+                          onClick={() => {
+                            if (lesson.room_link) {
+                              window.open(lesson.room_link, '_blank');
+                            } else {
+                              handleJoinClassroom();
+                            }
+                          }}
+                        >
+                          <Play className="h-4 w-4 mr-1" />
+                          Join
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => navigate('/student/schedule')}
+                        >
+                          <Calendar className="h-4 w-4 mr-1" />
+                          View All
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
