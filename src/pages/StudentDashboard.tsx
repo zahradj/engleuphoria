@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { LoadingSpinner } from "@/components/ui/loading-states";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
 // Lazy load components to improve initial load time
 import { StudentHeader } from "@/components/student/StudentHeader";
@@ -146,20 +147,31 @@ const StudentDashboard = () => {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-gray-50">
-        <StudentHeader 
-          studentName={studentName} 
-          studentId={studentId} 
-          hasProfile={hasProfile} 
-          studentProfile={studentProfile} 
-        />
-        <div className="flex">
-          <main className="flex-1 p-6">
-            <QuickActions />
-            {renderActiveTab()}
-          </main>
+      <SidebarProvider defaultOpen={false}>
+        <div className="min-h-screen bg-gray-50 w-full">
+          <StudentHeader 
+            studentName={studentName} 
+            studentId={studentId} 
+            hasProfile={hasProfile} 
+            studentProfile={studentProfile} 
+          />
+          <div className="flex">
+            <StudentSidebar 
+              activeTab={activeTab} 
+              setActiveTab={setActiveTab}
+              hasProfile={hasProfile}
+              onLogout={handleLogout}
+            />
+            <main className="flex-1 p-6">
+              <div className="mb-4">
+                <SidebarTrigger />
+              </div>
+              <QuickActions />
+              {renderActiveTab()}
+            </main>
+          </div>
         </div>
-      </div>
+      </SidebarProvider>
     </ErrorBoundary>
   );
 };
