@@ -154,13 +154,7 @@ const StudentDashboard = () => {
           studentProfile={studentProfile} 
         />
         <div className="flex">
-          <StudentSidebar 
-            activeTab={activeTab} 
-            setActiveTab={setActiveTab}
-            hasProfile={hasProfile}
-            onLogout={handleLogout}
-          />
-          <main className="flex-1 p-6 ml-64">
+          <main className="flex-1 p-6">
             <QuickActions />
             {renderActiveTab()}
           </main>
