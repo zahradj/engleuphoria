@@ -22,6 +22,8 @@ import { StudentPackagesSection } from "./dashboard/StudentPackagesSection";
 import { StudentActivityFeed } from "./dashboard/StudentActivityFeed";
 import { StudentQuickActions } from "./dashboard/StudentQuickActions";
 import { StudentLearningGoals } from "./dashboard/StudentLearningGoals";
+import { CreditDisplay } from "@/components/student/CreditDisplay";
+import { usePackageValidation } from "@/hooks/usePackageValidation";
 
 interface DashboardTabProps {
   studentName: string;
@@ -33,6 +35,7 @@ interface DashboardTabProps {
 export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfile }: DashboardTabProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { hasActivePackages, totalCredits, loading: packageLoading } = usePackageValidation(user?.id || null);
   const {
     handleJoinClass,
     handleSubmitHomework,
@@ -102,6 +105,14 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
         hasProfile={hasProfile}
         studentProfile={studentProfile}
         onJoinClassroom={handleJoinClassroom}
+      />
+
+      {/* Credit Display - Prominent at top */}
+      <CreditDisplay 
+        totalCredits={totalCredits}
+        loading={packageLoading}
+        showPurchaseButton={true}
+        size="lg"
       />
 
       {/* Lesson Tracker Section */}

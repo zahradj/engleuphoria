@@ -58,25 +58,31 @@ export const StudentPackagesSection: React.FC<StudentPackagesSectionProps> = ({
     );
   }
 
+  const totalCredits = packages.reduce((sum, pkg) => sum + pkg.lessons_remaining, 0);
+  const hasActiveCredits = totalCredits > 0;
+
   if (packages.length === 0) {
     return (
-      <Card>
+      <Card className="border-destructive/20 bg-destructive/5">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-destructive">
             <Package className="w-5 h-5" />
-            My Lesson Packages
+            ⚠️ No Lesson Packages
           </CardTitle>
         </CardHeader>
         <CardContent className="text-center py-8">
           <Package className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-muted-foreground mb-4">
-            You don't have any active lesson packages.
+          <p className="text-muted-foreground mb-2 font-medium">
+            You cannot book lessons without a package!
+          </p>
+          <p className="text-sm text-muted-foreground mb-4">
+            Purchase a lesson package to start booking with our teachers.
           </p>
           <Button 
             onClick={() => window.location.href = '/pricing'}
             className="bg-gradient-to-r from-student to-student-accent hover:from-student-dark hover:to-student text-white"
           >
-            Browse Packages
+            Purchase Package Now
           </Button>
         </CardContent>
       </Card>
@@ -84,12 +90,27 @@ export const StudentPackagesSection: React.FC<StudentPackagesSectionProps> = ({
   }
 
   return (
-    <Card>
+    <Card className={!hasActiveCredits ? "border-warning/30 bg-warning/5" : ""}>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Package className="w-5 h-5" />
-          My Lesson Packages
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Package className="w-5 h-5" />
+            My Lesson Packages
+          </div>
+          <div className="text-right">
+            <p className="text-sm text-muted-foreground">Total Credits</p>
+            <p className={`text-2xl font-bold ${hasActiveCredits ? 'text-student' : 'text-warning'}`}>
+              {totalCredits}
+            </p>
+          </div>
         </CardTitle>
+        {!hasActiveCredits && (
+          <div className="bg-warning/10 border border-warning/20 rounded-lg p-3 mt-3">
+            <p className="text-sm text-warning font-medium">
+              ⚠️ No credits remaining - you cannot book new lessons
+            </p>
+          </div>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         {packages.map((pkg) => (

@@ -59,45 +59,25 @@ export const lessonService = {
     return data || [];
   },
 
-  // Create a new lesson
-  async createLesson(lessonData: CreateLessonData): Promise<ScheduledLesson> {
-    // Generate a unique room ID and link for the lesson
-    const roomId = `lesson-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const roomLink = `${window.location.origin}/oneonone-classroom-new?roomId=${roomId}`;
+  // Create a new lesson with package credit deduction
+  async createLesson(lessonData: CreateLessonData, packagePurchaseId?: string): Promise<ScheduledLesson> {
+    const { lessonPricingService } = await import('./lessonPricingService');
+    
+    // Use the lessonPricingService to handle both lesson creation and payment/credit deduction
+    const result = await lessonPricingService.bookLessonWithPayment(
+      lessonData.teacher_id,
+      lessonData.student_id,
+      lessonData.scheduled_at,
+      lessonData.duration as 30 | 60,
+      packagePurchaseId
+    );
 
-    const { data, error } = await supabase
-      .from('lessons')
-      .insert([{
-        ...lessonData,
-        room_id: roomId,
-        room_link: roomLink,
-        status: 'scheduled'
-      }])
-      .select(`
-        id,
-        title,
-        scheduled_at,
-        duration,
-        room_id,
-        room_link,
-        status,
-        teacher_id,
-        student_id
-      `)
-      .single();
-
-    if (error) {
-      console.error('Error creating lesson:', error);
-      throw error;
-    }
-
-    console.log('✅ Lesson created successfully:', {
-      id: data.id,
-      room_id: data.room_id,
-      room_link: data.room_link
+    console.log('✅ Lesson created with payment/credit handling:', {
+      lesson_id: result.lesson.id,
+      payment_processed: !!result.payment
     });
 
-    return data;
+    return result.lesson;
   },
 
   // Validate lesson access
