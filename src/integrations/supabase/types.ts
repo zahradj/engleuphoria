@@ -1776,6 +1776,42 @@ export type Database = {
           },
         ]
       }
+      lesson_packages: {
+        Row: {
+          created_at: string
+          duration_minutes: number
+          id: string
+          is_active: boolean
+          lesson_count: number
+          name: string
+          savings_amount: number | null
+          total_price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          duration_minutes: number
+          id?: string
+          is_active?: boolean
+          lesson_count: number
+          name: string
+          savings_amount?: number | null
+          total_price: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean
+          lesson_count?: number
+          name?: string
+          savings_amount?: number | null
+          total_price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lesson_participants: {
         Row: {
           id: string
@@ -1877,9 +1913,11 @@ export type Database = {
           cost: number | null
           created_at: string
           duration: number
+          duration_minutes: number | null
           feedback_required: boolean | null
           feedback_submitted: boolean | null
           id: string
+          lesson_price: number | null
           payment_status: string | null
           platform_profit_amount: number | null
           quality_rating: number | null
@@ -1899,9 +1937,11 @@ export type Database = {
           cost?: number | null
           created_at?: string
           duration?: number
+          duration_minutes?: number | null
           feedback_required?: boolean | null
           feedback_submitted?: boolean | null
           id?: string
+          lesson_price?: number | null
           payment_status?: string | null
           platform_profit_amount?: number | null
           quality_rating?: number | null
@@ -1921,9 +1961,11 @@ export type Database = {
           cost?: number | null
           created_at?: string
           duration?: number
+          duration_minutes?: number | null
           feedback_required?: boolean | null
           feedback_submitted?: boolean | null
           id?: string
+          lesson_price?: number | null
           payment_status?: string | null
           platform_profit_amount?: number | null
           quality_rating?: number | null
@@ -2235,6 +2277,42 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      package_lesson_redemptions: {
+        Row: {
+          id: string
+          lesson_id: string
+          package_purchase_id: string
+          redeemed_at: string
+        }
+        Insert: {
+          id?: string
+          lesson_id: string
+          package_purchase_id: string
+          redeemed_at?: string
+        }
+        Update: {
+          id?: string
+          lesson_id?: string
+          package_purchase_id?: string
+          redeemed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "package_lesson_redemptions_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "package_lesson_redemptions_package_purchase_id_fkey"
+            columns: ["package_purchase_id"]
+            isOneToOne: false
+            referencedRelation: "student_package_purchases"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payments: {
         Row: {
@@ -3065,6 +3143,47 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      student_package_purchases: {
+        Row: {
+          expires_at: string | null
+          id: string
+          lessons_remaining: number
+          package_id: string
+          payment_id: string | null
+          purchased_at: string
+          student_id: string
+          total_lessons: number
+        }
+        Insert: {
+          expires_at?: string | null
+          id?: string
+          lessons_remaining: number
+          package_id: string
+          payment_id?: string | null
+          purchased_at?: string
+          student_id: string
+          total_lessons: number
+        }
+        Update: {
+          expires_at?: string | null
+          id?: string
+          lessons_remaining?: number
+          package_id?: string
+          payment_id?: string | null
+          purchased_at?: string
+          student_id?: string
+          total_lessons?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_package_purchases_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "lesson_packages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       student_reward_purchases: {
         Row: {

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Star, Play, Clock, Globe, Search, Users } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
+import { BackNavigation } from '@/components/navigation/BackNavigation';
 
 interface Teacher {
   id: string;
@@ -132,6 +133,7 @@ export const DiscoverTeachers = () => {
 
   return (
     <div className="container mx-auto py-8">
+      <BackNavigation to="/student" label="Back to Dashboard" />
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Discover Our Teachers</h1>
         <p className="text-muted-foreground">
