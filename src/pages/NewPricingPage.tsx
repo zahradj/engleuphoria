@@ -66,7 +66,7 @@ const NewPricingPage = () => {
         </div>
 
         {/* Policy Highlights */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Card className="text-center">
             <CardContent className="pt-6">
               <ShieldCheck className="w-8 h-8 mx-auto mb-2 text-green-500" />
@@ -79,13 +79,6 @@ const NewPricingPage = () => {
               <Clock className="w-8 h-8 mx-auto mb-2 text-blue-500" />
               <p className="text-sm font-medium">6-Hour Policy</p>
               <p className="text-xs text-muted-foreground">Free cancellation</p>
-            </CardContent>
-          </Card>
-          <Card className="text-center">
-            <CardContent className="pt-6">
-              <DollarSign className="w-8 h-8 mx-auto mb-2 text-yellow-500" />
-              <p className="text-sm font-medium">Fair Revenue Split</p>
-              <p className="text-xs text-muted-foreground">50/50 with teachers</p>
             </CardContent>
           </Card>
           <Card className="text-center">
@@ -179,53 +172,6 @@ const NewPricingPage = () => {
           </CardContent>
         </Card>
 
-        {/* Teacher Revenue Information */}
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle>Fair Revenue Sharing</CardTitle>
-            <CardDescription>
-              We believe in supporting our teachers with fair compensation
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-3">
-                <h4 className="font-semibold">30-Minute Lesson</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>Student pays:</span>
-                    <span className="font-medium">€6.00</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Teacher receives:</span>
-                    <span className="font-medium text-green-600">€3.00</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Platform fee:</span>
-                    <span className="font-medium">€3.00</span>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-3">
-                <h4 className="font-semibold">60-Minute Lesson</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>Student pays:</span>
-                    <span className="font-medium">€12.00</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Teacher receives:</span>
-                    <span className="font-medium text-green-600">€6.00</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Platform fee:</span>
-                    <span className="font-medium">€6.00</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
