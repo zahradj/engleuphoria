@@ -147,9 +147,6 @@ export const DashboardDemo = () => {
     <section className="py-16 bg-gradient-to-br from-gray-50 to-white">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <Badge className="mb-4 bg-green-100 text-green-700 border-green-200 px-4 py-2">
-            📊 Dashboard Preview
-          </Badge>
           <h2 className="text-4xl font-bold text-gray-900 mb-6">
             See What You'll Get
           </h2>

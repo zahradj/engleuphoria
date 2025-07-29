@@ -140,9 +140,6 @@ export const Features = () => {
               <div className="bg-white px-4 py-2 rounded-full shadow-sm border border-gray-200">
                 <span className="text-gray-700 font-medium">👨‍🏫 Expert Teachers</span>
               </div>
-              <div className="bg-white px-4 py-2 rounded-full shadow-sm border border-gray-200">
-                <span className="text-gray-700 font-medium">📱 Fun Mobile App</span>
-              </div>
             </div>
           </div>
         </div>
