@@ -1,8 +1,17 @@
 
 import { SubscriptionPlan, LessonPackage } from '@/types/pricing';
 
-// New lesson packages based on the pricing policy
+// New lesson packages based on the pricing policy (€6 for 30min, €12 for 60min)
 export const lessonPackages: LessonPackage[] = [
+  {
+    id: 'pkg-3x30',
+    name: '3 x 30-min lessons',
+    lesson_count: 3,
+    duration_minutes: 30,
+    total_price: 17.00,
+    savings_amount: 1.00,
+    is_active: true
+  },
   {
     id: 'pkg-5x30',
     name: '5 x 30-min lessons',
@@ -22,6 +31,24 @@ export const lessonPackages: LessonPackage[] = [
     is_active: true
   },
   {
+    id: 'pkg-20x30',
+    name: '20 x 30-min lessons',
+    lesson_count: 20,
+    duration_minutes: 30,
+    total_price: 105.00,
+    savings_amount: 15.00,
+    is_active: true
+  },
+  {
+    id: 'pkg-3x60',
+    name: '3 x 60-min lessons',
+    lesson_count: 3,
+    duration_minutes: 60,
+    total_price: 34.00,
+    savings_amount: 2.00,
+    is_active: true
+  },
+  {
     id: 'pkg-5x60',
     name: '5 x 60-min lessons',
     lesson_count: 5,
@@ -37,6 +64,15 @@ export const lessonPackages: LessonPackage[] = [
     duration_minutes: 60,
     total_price: 110.00,
     savings_amount: 10.00,
+    is_active: true
+  },
+  {
+    id: 'pkg-20x60',
+    name: '20 x 60-min lessons',
+    lesson_count: 20,
+    duration_minutes: 60,
+    total_price: 210.00,
+    savings_amount: 30.00,
     is_active: true
   }
 ];

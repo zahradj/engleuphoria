@@ -9,11 +9,11 @@ export const PricingSection = () => {
   const plans = [
     {
       name: 'Basic',
-      price: '11.50',
+      price: '11.00',
       period: '/month',
       currency: 'EUR',
       lessonValue: '12.00',
-      savings: '0.50',
+      savings: '1.00',
       description: 'Perfect for beginners starting their English journey',
       features: [
         '2 x 30-minute lessons per month',
@@ -28,11 +28,11 @@ export const PricingSection = () => {
     },
     {
       name: 'Smart Learner',
-      price: '23.00',
+      price: '22.00',
       period: '/month',
       currency: 'EUR',
       lessonValue: '24.00',
-      savings: '1.00',
+      savings: '2.00',
       description: 'Most popular choice for consistent learning',
       features: [
         '2 x 60-minute lessons per month',
@@ -48,11 +48,11 @@ export const PricingSection = () => {
     },
     {
       name: 'Pro Learner',
-      price: '42.00',
+      price: '44.00',
       period: '/month',
       currency: 'EUR',
       lessonValue: '48.00',
-      savings: '6.00',
+      savings: '4.00',
       description: 'Intensive learning for rapid progress',
       features: [
         '4 x 60-minute lessons per month',
