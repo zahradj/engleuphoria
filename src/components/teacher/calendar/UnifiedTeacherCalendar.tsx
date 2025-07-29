@@ -14,6 +14,7 @@ import { ScheduleLessonModal } from "../ScheduleLessonModal";
 import { QuickSetupModal } from "./QuickSetupModal";
 import { TimeSlotActionModal } from "./TimeSlotActionModal";
 import { SlotManagementModal } from "./SlotManagementModal";
+import { InstructionPrompt } from "@/components/shared/InstructionPrompt";
 
 interface UnifiedTeacherCalendarProps {
   teacherId: string;
@@ -625,6 +626,15 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
             Manage your lessons, availability, and schedule with ease. Create time slots, track bookings, and join classes seamlessly.
           </p>
         </div>
+
+        {/* Instruction Prompt */}
+        <InstructionPrompt
+          icon="🗓️"
+          title="Set Your Availability"
+          description="Click on the calendar below to select the days and time slots when you're available to teach. Once selected, your available slots will automatically appear on the student side for booking."
+          additionalInfo="✅ You can edit or remove your availability at any time. 🔒 Only available (unbooked) time slots will be shown to students."
+          className="max-w-4xl mx-auto"
+        />
 
         {/* Main Calendar Card */}
         <Card className="glass-enhanced shadow-2xl border-0 overflow-hidden animate-scale-in">

@@ -7,6 +7,7 @@ import { NavigationBreadcrumb } from '@/components/navigation/Breadcrumb';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePackageValidation } from '@/hooks/usePackageValidation';
 import { PackageRequiredModal } from '@/components/package/PackageRequiredModal';
+import { InstructionPrompt } from '@/components/shared/InstructionPrompt';
 
 const BookLesson = () => {
   const { user } = useAuth();
@@ -122,6 +123,13 @@ const BookLesson = () => {
             <p className="text-2xl font-bold text-student">{totalCredits}</p>
           </div>
         </div>
+
+        {/* Instruction Prompt */}
+        <InstructionPrompt
+          icon="📚"
+          title="Book a Lesson"
+          description="Choose a day and time from your teacher's available slots below. Only available times are shown. After booking, you'll receive a confirmation and the lesson will appear in your dashboard."
+        />
 
         <div className="grid gap-6">
           {availableTeachers.map((teacher) => (
