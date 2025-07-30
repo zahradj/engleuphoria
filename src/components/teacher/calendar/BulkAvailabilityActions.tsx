@@ -7,7 +7,7 @@ import { Copy, X, Clock } from "lucide-react";
 interface BulkAvailabilityActionsProps {
   selectedDate: Date;
   selectedSlots: string[];
-  onBulkOpen: (hours: string[], duration: 25 | 55) => void;
+  onBulkOpen: (hours: string[], duration: 30 | 60) => void;
   onBulkClose: () => void;
   onCopyFromPrevious: () => void;
   onClearSelection: () => void;
@@ -31,7 +31,7 @@ export const BulkAvailabilityActions = ({
     "Full Day": ["06:00", "06:30", "07:00", "07:30", "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30"]
   };
 
-  const handlePresetOpen = (preset: string, duration: 25 | 55) => {
+  const handlePresetOpen = (preset: string, duration: 30 | 60) => {
     const hours = timePresets[preset as keyof typeof timePresets];
     if (hours) {
       onBulkOpen(hours, duration);
@@ -57,20 +57,20 @@ export const BulkAvailabilityActions = ({
               <Button
                 variant="default"
                 size="sm"
-                onClick={() => onBulkOpen(selectedSlots, 25)}
+                onClick={() => onBulkOpen(selectedSlots, 30)}
                 disabled={isLoading}
                 className="flex-1"
               >
-                Open 25min
+                Open 30min
               </Button>
               <Button
                 variant="default"
                 size="sm"
-                onClick={() => onBulkOpen(selectedSlots, 55)}
+                onClick={() => onBulkOpen(selectedSlots, 60)}
                 disabled={isLoading}
                 className="flex-1"
               >
-                Open 55min
+                Open 60min
               </Button>
             </div>
             <Button
@@ -118,20 +118,20 @@ export const BulkAvailabilityActions = ({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handlePresetOpen(preset, 25)}
+                  onClick={() => handlePresetOpen(preset, 30)}
                   disabled={isLoading}
                   className="flex-1"
                 >
-                  25min
+                  30min
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handlePresetOpen(preset, 55)}
+                  onClick={() => handlePresetOpen(preset, 60)}
                   disabled={isLoading}
                   className="flex-1"
                 >
-                  55min
+                  60min
                 </Button>
               </div>
             </div>

@@ -13,7 +13,7 @@ import { CheckSquare, Square, MousePointer } from "lucide-react";
 interface ScheduleSlot {
   id?: string;
   time: string;
-  duration: 25 | 55;
+  duration: 30 | 60;
   lessonType: 'free_slot' | 'direct_booking';
   isAvailable: boolean;
   studentId?: string;
@@ -29,7 +29,7 @@ interface MultiSelectWeeklyGridProps {
 export const MultiSelectWeeklyGrid = ({ teacherId }: MultiSelectWeeklyGridProps) => {
   const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
   const [weeklySlots, setWeeklySlots] = useState<{ [key: string]: ScheduleSlot[] }>({});
-  const [selectedDuration, setSelectedDuration] = useState<25 | 55>(25);
+  const [selectedDuration, setSelectedDuration] = useState<30 | 60>(30);
   const [isLoading, setIsLoading] = useState(false);
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
   const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
@@ -226,7 +226,7 @@ export const MultiSelectWeeklyGrid = ({ teacherId }: MultiSelectWeeklyGridProps)
     }
   };
 
-  const handleBulkOpen = async (hours: string[], duration: 25 | 55) => {
+  const handleBulkOpen = async (hours: string[], duration: 30 | 60) => {
     setIsLoading(true);
     try {
       const slots = [];
@@ -338,7 +338,7 @@ export const MultiSelectWeeklyGrid = ({ teacherId }: MultiSelectWeeklyGridProps)
     }
     
     if (slot?.isAvailable) {
-      return slot.duration === 55 
+      return slot.duration === 60 
         ? "bg-success text-success-foreground border-success"
         : "bg-success/80 text-success-foreground border-success/80";
     }

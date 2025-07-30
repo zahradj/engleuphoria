@@ -117,16 +117,7 @@ export const SlotManagementModal = ({
         .eq('id', slot.id);
 
       if (error) {
-        if (error.message.includes('maintain at least')) {
-          toast({
-            title: "❌ Cannot Delete Slot",
-            description: "You need to maintain at least 5 available slots per week. Add more slots before removing this one.",
-            variant: "destructive"
-          });
-        } else {
-          throw error;
-        }
-        return;
+        throw error;
       }
 
       toast({

@@ -43,7 +43,7 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
   const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState(true);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
-  const [selectedDuration, setSelectedDuration] = useState<25 | 55>(25);
+  const [selectedDuration, setSelectedDuration] = useState<30 | 60>(30);
   const [lessons, setLessons] = useState<ScheduledLesson[]>([]);
   const [daySlots, setDaySlots] = useState<DaySlots>({});
   

@@ -15,7 +15,7 @@ interface TimeSlotActionModalProps {
   date: Date;
   time: string;
   teacherId: string;
-  selectedDuration: 25 | 55;
+  selectedDuration: 30 | 60;
   onSlotCreated: () => void;
 }
 
@@ -127,16 +127,7 @@ export const TimeSlotActionModal = ({
         .insert(slots);
 
       if (error) {
-        if (error.message.includes('maintain at least')) {
-          toast({
-            title: "Minimum Slots Required",
-            description: "You need to maintain at least 5 available slots per week.",
-            variant: "destructive"
-          });
-        } else {
-          throw error;
-        }
-        return;
+        throw error;
       }
 
       const slotCount = slots.length;
