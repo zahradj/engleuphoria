@@ -1,5 +1,5 @@
 import React from "react";
-import { MultiSelectWeeklyGrid } from "./calendar/MultiSelectWeeklyGrid";
+import { SimplifiedTeacherCalendar } from "./calendar/SimplifiedTeacherCalendar";
 
 interface AvailabilityManagerProps {
   teacherId: string;
@@ -9,11 +9,11 @@ export const AvailabilityManager = ({ teacherId }: AvailabilityManagerProps) => 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-gray-800">Enhanced Availability Management</h2>
-        <p className="text-gray-600">Click individual slots or use Multi-Select mode for bulk actions. Supports both 25min and 55min lessons.</p>
+        <h2 className="text-xl font-bold text-gray-800">Availability Management</h2>
+        <p className="text-gray-600">Easily manage your teaching schedule. Click slots to add/remove availability.</p>
       </div>
       
-      <MultiSelectWeeklyGrid teacherId={teacherId} />
+      <SimplifiedTeacherCalendar teacherId={teacherId} />
     </div>
   );
 };
