@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { StudentProfile } from "@/types/curriculum";
+import { supabase } from "@/lib/supabase";
 import { Plus, Edit, Trash, User } from "lucide-react";
 
 interface StudentProfileFormProps {
@@ -30,12 +31,39 @@ export function StudentProfileForm({ students }: StudentProfileFormProps) {
     parentEmail: ""
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, this would save to database
-    console.log("Saving student profile:", formData);
-    setIsEditing(false);
-    resetForm();
+    
+    try {
+      const profileData = {
+        cefr_level: formData.cefrLevel,
+        learning_style: formData.learningStyle,
+        interests: formData.interests.split(',').map(s => s.trim()).filter(Boolean),
+        strengths: formData.strengths.split(',').map(s => s.trim()).filter(Boolean),
+        gaps: formData.gaps.split(',').map(s => s.trim()).filter(Boolean),
+        long_term_goal: formData.longTermGoal,
+        weekly_minutes: formData.weeklyMinutes,
+        parent_email: formData.parentEmail
+      };
+
+      if (editingStudent) {
+        // Update existing profile
+        const { error } = await supabase
+          .from('student_profiles')
+          .update(profileData)
+          .eq('user_id', editingStudent.id);
+        
+        if (error) throw error;
+      } else {
+        // Create new profile - would need a user first
+        console.log("Would create new student profile:", profileData);
+      }
+      
+      setIsEditing(false);
+      resetForm();
+    } catch (error) {
+      console.error('Error saving student profile:', error);
+    }
   };
 
   const resetForm = () => {

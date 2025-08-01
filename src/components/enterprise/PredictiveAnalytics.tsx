@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAdvancedAnalytics } from '@/hooks/useAdvancedAnalytics';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/lib/supabase';
 import { AlertTriangle, TrendingUp, Brain, Target, Lightbulb, Star, Clock } from 'lucide-react';
 
 interface StudentInsight {
@@ -34,44 +35,62 @@ export const PredictiveAnalytics = () => {
   }, [user]);
 
   const loadStudentData = async () => {
-    // Mock student data for demonstration
-    const mockStudents = [
-      { id: '1', name: 'Alice Johnson' },
-      { id: '2', name: 'Bob Smith' },
-      { id: '3', name: 'Carol Davis' }
-    ];
+    try {
+      // Get real students from database
+      const { data: students, error } = await supabase
+        .from('users')
+        .select('id, full_name')
+        .eq('role', 'student')
+        .limit(10);
 
-    const insights: StudentInsight[] = [];
-    
-    for (const student of mockStudents) {
-      try {
-        const prediction = await generatePredictiveInsights(student.id);
-        const mockInsights = [
-          {
-            title: 'Learning Pattern Detected',
-            description: 'Student shows strong engagement during morning hours',
-            confidence: 0.85,
-            type: 'opportunity',
-            recommendations: ['Schedule important lessons in the morning', 'Maintain consistent study schedule']
-          }
-        ];
-
-        const riskLevel = prediction?.success_probability > 0.7 ? 'low' : 
-                         prediction?.success_probability > 0.4 ? 'medium' : 'high';
-
-        insights.push({
-          studentId: student.id,
-          studentName: student.name,
-          prediction,
-          insights: mockInsights,
-          riskLevel
-        });
-      } catch (error) {
-        console.error(`Error loading data for student ${student.id}:`, error);
+      if (error) {
+        console.error('Error loading students:', error);
+        return;
       }
-    }
 
-    setAllStudentInsights(insights);
+      const insights: StudentInsight[] = [];
+      
+      for (const student of students || []) {
+        try {
+          const prediction = await generatePredictiveInsights(student.id);
+          
+          // Generate insights based on actual data if available
+          const { data: analytics, error: analyticsError } = await supabase
+            .from('learning_analytics')
+            .select('*')
+            .eq('student_id', student.id)
+            .order('recorded_at', { ascending: false })
+            .limit(5);
+
+          const studentInsights = analytics && analytics.length > 0 ? [
+            {
+              title: 'Learning Progress Analysis',
+              description: `Based on ${analytics.length} recent activities`,
+              confidence: 0.8,
+              type: 'opportunity',
+              recommendations: ['Continue current study pattern', 'Focus on weaker areas']
+            }
+          ] : [];
+
+          const riskLevel = prediction?.success_probability > 0.7 ? 'low' : 
+                           prediction?.success_probability > 0.4 ? 'medium' : 'high';
+
+          insights.push({
+            studentId: student.id,
+            studentName: student.full_name,
+            prediction,
+            insights: studentInsights,
+            riskLevel
+          });
+        } catch (error) {
+          console.error(`Error loading data for student ${student.id}:`, error);
+        }
+      }
+
+      setAllStudentInsights(insights);
+    } catch (error) {
+      console.error('Error loading student data:', error);
+    }
   };
 
   const loadPersonalAnalytics = async () => {

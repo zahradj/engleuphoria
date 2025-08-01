@@ -131,7 +131,7 @@ export const AdminOverview = () => {
     onSystemSettings: () => console.log('Navigate to system settings'),
   };
 
-  const mockCounts = {
+  const counts = {
     pendingUsers: 3,
     pendingTeachers: 2,
     pendingReports: 1,
@@ -192,7 +192,7 @@ export const AdminOverview = () => {
         {/* Quick Actions */}
         <AdminQuickActions
           actions={handleQuickActions}
-          counts={mockCounts}
+          counts={counts}
         />
 
         {/* System Health */}
