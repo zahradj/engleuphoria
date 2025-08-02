@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Calendar, User, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,40 +8,82 @@ import { useAuth } from '@/contexts/AuthContext';
 import { usePackageValidation } from '@/hooks/usePackageValidation';
 import { PackageRequiredModal } from '@/components/package/PackageRequiredModal';
 import { InstructionPrompt } from '@/components/shared/InstructionPrompt';
+import { StudentBookingCalendar } from '@/components/student/StudentBookingCalendar';
+import { teacherAvailabilityService, AvailableTimeSlot } from '@/services/teacherAvailabilityService';
+import { lessonService } from '@/services/lessonService';
+import { useToast } from '@/hooks/use-toast';
 
 const BookLesson = () => {
   const { user } = useAuth();
   const { hasActivePackages, totalCredits, loading } = usePackageValidation(user?.id || null);
   const [showModal, setShowModal] = useState(false);
+  const [availableSlots, setAvailableSlots] = useState<AvailableTimeSlot[]>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+  const [isBooking, setIsBooking] = useState(false);
+  const { toast } = useToast();
 
   const breadcrumbs = [
     { label: 'Dashboard', path: '/student' },
     { label: 'Book Lesson', path: '/student/book-lesson' }
   ];
 
-  const availableTeachers = [
-    {
-      id: 1,
-      name: 'Sarah Johnson',
-      specialization: 'Conversation & Grammar',
-      rating: 4.9,
-      nextAvailable: 'Today 2:00 PM'
-    },
-    {
-      id: 2,
-      name: 'Mike Davis',
-      specialization: 'Business English',
-      rating: 4.8,
-      nextAvailable: 'Tomorrow 10:00 AM'
-    }
-  ];
-
-  // Show package requirement modal if no active packages
-  React.useEffect(() => {
-    if (!loading && !hasActivePackages) {
+  // Load available slots when user has packages
+  useEffect(() => {
+    if (!loading && hasActivePackages) {
+      loadAvailableSlots();
+    } else if (!loading && !hasActivePackages) {
       setShowModal(true);
     }
   }, [loading, hasActivePackages]);
+
+  const loadAvailableSlots = async () => {
+    try {
+      setLoadingSlots(true);
+      const slots = await teacherAvailabilityService.getAvailableSlots();
+      setAvailableSlots(slots);
+    } catch (error) {
+      console.error('Error loading available slots:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load available time slots. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingSlots(false);
+    }
+  };
+
+  const handleBookLesson = async (slot: AvailableTimeSlot) => {
+    if (!user?.id) return;
+
+    try {
+      setIsBooking(true);
+      await lessonService.createLesson({
+        title: `Lesson with ${slot.teacherName}`,
+        teacher_id: slot.teacherId,
+        student_id: user.id,
+        scheduled_at: slot.startTime.toISOString(),
+        duration: slot.duration
+      });
+
+      toast({
+        title: "Lesson Booked!",
+        description: `Your lesson with ${slot.teacherName} has been scheduled for ${slot.startTime.toLocaleString()}`
+      });
+
+      // Reload available slots
+      await loadAvailableSlots();
+    } catch (error) {
+      console.error('Error booking lesson:', error);
+      toast({
+        title: "Booking Failed",
+        description: "Unable to book the lesson. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsBooking(false);
+    }
+  };
 
   // Don't render teacher list if no packages
   if (loading) {
@@ -131,37 +173,43 @@ const BookLesson = () => {
           description="Choose a day and time from your teacher's available slots below. Only available times are shown. After booking, you'll receive a confirmation and the lesson will appear in your dashboard."
         />
 
-        <div className="grid gap-6">
-          {availableTeachers.map((teacher) => (
-            <Card key={teacher.id}>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <User className="h-6 w-6" />
-                    <div>
-                      <span>{teacher.name}</span>
-                      <p className="text-sm text-muted-foreground font-normal">
-                        {teacher.specialization}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-sm font-normal">⭐ {teacher.rating}</div>
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Calendar className="h-4 w-4" />
-                    Next available: {teacher.nextAvailable}
-                  </div>
-                  <Button>Book Now</Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {/* Booking Calendar */}
+        {loadingSlots ? (
+          <Card>
+            <CardContent className="p-8">
+              <div className="animate-pulse space-y-4">
+                <div className="h-4 bg-muted rounded w-1/4"></div>
+                <div className="h-8 bg-muted rounded"></div>
+                <div className="h-4 bg-muted rounded w-1/2"></div>
+              </div>
+            </CardContent>
+          </Card>
+        ) : availableSlots.length > 0 ? (
+          <StudentBookingCalendar
+            availableSlots={availableSlots.map(slot => ({
+              id: slot.id,
+              teacherId: slot.teacherId,
+              teacherName: slot.teacherName,
+              startTime: slot.startTime,
+              endTime: slot.endTime,
+              duration: slot.duration,
+              isAvailable: slot.isAvailable
+            }))}
+            onBookLesson={handleBookLesson}
+            isLoading={isBooking}
+          />
+        ) : (
+          <Card>
+            <CardContent className="text-center py-12">
+              <Calendar className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+              <h2 className="text-xl font-semibold mb-2">No Available Slots</h2>
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                There are currently no available time slots from teachers. Please check back later.
+              </p>
+              <Button onClick={loadAvailableSlots}>Refresh</Button>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
