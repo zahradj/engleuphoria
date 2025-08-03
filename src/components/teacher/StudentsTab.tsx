@@ -4,11 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Search, Filter, MessageCircle, Calendar, BarChart3 } from "lucide-react";
+import { Search, Filter, MessageCircle, Calendar, BarChart3, Loader2 } from "lucide-react";
+import { useTeacherStudents } from "@/hooks/useTeacherStudents";
+import { format } from "date-fns";
 
 export const StudentsTab = () => {
-  // TODO: Replace with real data from API/database
-  const students: any[] = [];
+  const { students, loading, error } = useTeacherStudents();
 
   return (
     <div className="space-y-6">
@@ -27,7 +28,21 @@ export const StudentsTab = () => {
       </div>
 
       <div className="grid gap-4">
-        {students.length === 0 ? (
+        {loading ? (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+              <p className="text-gray-600">Loading your students...</p>
+            </CardContent>
+          </Card>
+        ) : error ? (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <p className="text-red-600 mb-4">Error loading students: {error}</p>
+              <Button onClick={() => window.location.reload()}>Try Again</Button>
+            </CardContent>
+          </Card>
+        ) : students.length === 0 ? (
           <Card>
             <CardContent className="p-12 text-center">
               <div className="text-gray-400 mb-4">
@@ -38,10 +53,7 @@ export const StudentsTab = () => {
                 </Avatar>
               </div>
               <h3 className="text-lg font-semibold text-gray-600 mb-2">No Students Yet</h3>
-              <p className="text-gray-500 mb-6">Start building your student base by adding your first student.</p>
-              <Button>
-                Add Your First Student
-              </Button>
+              <p className="text-gray-500 mb-6">Students who book lessons with you will appear here automatically.</p>
             </CardContent>
           </Card>
         ) : (
@@ -60,8 +72,11 @@ export const StudentsTab = () => {
                       <h3 className="text-lg font-semibold text-gray-800">{student.name}</h3>
                       <div className="flex items-center gap-4 text-sm text-gray-600">
                         <Badge variant="outline">{student.level}</Badge>
-                        <span>Next: {student.nextClass}</span>
-                        <span>Attendance: {student.attendance}</span>
+                        <span>{student.total_lessons} lesson{student.total_lessons !== 1 ? 's' : ''}</span>
+                        {student.next_lesson_date && (
+                          <span>Next: {format(new Date(student.next_lesson_date), 'MMM d, h:mm a')}</span>
+                        )}
+                        <span>Attendance: {student.attendance_rate}%</span>
                       </div>
                     </div>
                   </div>
@@ -94,6 +109,12 @@ export const StudentsTab = () => {
                     ></div>
                   </div>
                 </div>
+
+                {student.last_lesson_date && (
+                  <div className="mt-3 text-sm text-gray-500">
+                    Last lesson: {format(new Date(student.last_lesson_date), 'MMM d, yyyy')}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))
