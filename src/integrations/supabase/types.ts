@@ -3185,6 +3185,69 @@ export type Database = {
           },
         ]
       }
+      student_profiles: {
+        Row: {
+          cefr_level: string
+          created_at: string
+          emergency_contact: string | null
+          gaps: string[] | null
+          grade_level: string | null
+          id: string
+          interests: string[] | null
+          learning_style: string | null
+          long_term_goal: string | null
+          parent_email: string | null
+          preferred_lesson_time: string | null
+          profile_image_url: string | null
+          school_name: string | null
+          strengths: string[] | null
+          timezone: string | null
+          updated_at: string
+          user_id: string
+          weekly_minutes: number | null
+        }
+        Insert: {
+          cefr_level?: string
+          created_at?: string
+          emergency_contact?: string | null
+          gaps?: string[] | null
+          grade_level?: string | null
+          id?: string
+          interests?: string[] | null
+          learning_style?: string | null
+          long_term_goal?: string | null
+          parent_email?: string | null
+          preferred_lesson_time?: string | null
+          profile_image_url?: string | null
+          school_name?: string | null
+          strengths?: string[] | null
+          timezone?: string | null
+          updated_at?: string
+          user_id: string
+          weekly_minutes?: number | null
+        }
+        Update: {
+          cefr_level?: string
+          created_at?: string
+          emergency_contact?: string | null
+          gaps?: string[] | null
+          grade_level?: string | null
+          id?: string
+          interests?: string[] | null
+          learning_style?: string | null
+          long_term_goal?: string | null
+          parent_email?: string | null
+          preferred_lesson_time?: string | null
+          profile_image_url?: string | null
+          school_name?: string | null
+          strengths?: string[] | null
+          timezone?: string | null
+          updated_at?: string
+          user_id?: string
+          weekly_minutes?: number | null
+        }
+        Relationships: []
+      }
       student_reward_purchases: {
         Row: {
           coins_spent: number
