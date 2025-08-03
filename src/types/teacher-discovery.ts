@@ -16,4 +16,5 @@ export interface TeacherProfile {
   is_available: boolean;
   timezone: string;
   full_name?: string;
+  payoneer_account_email?: string;
 }

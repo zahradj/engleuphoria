@@ -4043,6 +4043,7 @@ export type Database = {
           intro_video_url: string | null
           is_available: boolean | null
           languages_spoken: string[] | null
+          payoneer_account_email: string | null
           profile_approved_by_admin: boolean | null
           profile_complete: boolean | null
           profile_image_url: string | null
@@ -4068,6 +4069,7 @@ export type Database = {
           intro_video_url?: string | null
           is_available?: boolean | null
           languages_spoken?: string[] | null
+          payoneer_account_email?: string | null
           profile_approved_by_admin?: boolean | null
           profile_complete?: boolean | null
           profile_image_url?: string | null
@@ -4093,6 +4095,7 @@ export type Database = {
           intro_video_url?: string | null
           is_available?: boolean | null
           languages_spoken?: string[] | null
+          payoneer_account_email?: string | null
           profile_approved_by_admin?: boolean | null
           profile_complete?: boolean | null
           profile_image_url?: string | null

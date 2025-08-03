@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Camera, Save, Bell, Globe, Clock, User } from "lucide-react";
+import { Camera, Save, Bell, Globe, Clock, User, CreditCard } from "lucide-react";
 
 interface SettingsTabProps {
   teacherName: string;
@@ -240,6 +240,35 @@ export const SettingsTab = ({ teacherName }: SettingsTabProps) => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Payment Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <CreditCard className="h-5 w-5" />
+            Payment Information
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="payoneer-email">Payoneer Account Email</Label>
+            <Input 
+              id="payoneer-email" 
+              type="email" 
+              placeholder="Enter your Payoneer account email"
+              className="mt-1"
+            />
+            <p className="text-sm text-muted-foreground mt-1">
+              This email will be used to send your lesson payments via Payoneer
+            </p>
+          </div>
+
+          <Button className="w-full">
+            <Save className="h-4 w-4 mr-2" />
+            Save Payment Info
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* Security */}
       <Card>
