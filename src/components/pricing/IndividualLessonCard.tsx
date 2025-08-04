@@ -5,15 +5,15 @@ import { Clock, DollarSign } from 'lucide-react';
 import { LESSON_PRICING } from '@/types/pricing';
 
 interface IndividualLessonCardProps {
-  duration: 30 | 60;
-  onBookLesson: (duration: 30 | 60) => void;
+  duration: 30;
+  onBookLesson: () => void;
 }
 
 export const IndividualLessonCard: React.FC<IndividualLessonCardProps> = ({
   duration,
   onBookLesson
 }) => {
-  const pricing = LESSON_PRICING[duration];
+  const pricing = LESSON_PRICING;
   
   return (
     <Card className="hover:shadow-lg transition-all duration-300 border-2 hover:border-teacher/30">
@@ -53,7 +53,7 @@ export const IndividualLessonCard: React.FC<IndividualLessonCardProps> = ({
         </div>
         
         <Button 
-          onClick={() => onBookLesson(duration)}
+          onClick={onBookLesson}
           className="w-full bg-gradient-to-r from-teacher to-teacher-accent hover:from-teacher-dark hover:to-teacher text-white"
         >
           <DollarSign className="w-4 h-4 mr-2" />

@@ -16,7 +16,7 @@ interface SimplifiedTeacherCalendarProps {
 
 export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalendarProps) => {
   const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
-  const [selectedDuration, setSelectedDuration] = useState<30 | 60>(30);
+  const selectedDuration = 30; // Fixed 30-minute slots
   const [showQuickCreator, setShowQuickCreator] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showSlotModal, setShowSlotModal] = useState(false);
@@ -85,7 +85,8 @@ export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalend
     }
   };
 
-  const handleQuickSlotCreation = (times: string[], duration: 30 | 60) => {
+  const handleQuickSlotCreation = (times: string[]) => {
+    const duration = 30;
     createBulkSlots([selectedDate], times, duration);
     setShowQuickCreator(false);
   };
@@ -114,18 +115,10 @@ export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalend
             </div>
             
             <div className="flex items-center gap-4">
-              <Select
-                value={selectedDuration.toString()}
-                onValueChange={(value) => setSelectedDuration(Number(value) as 30 | 60)}
-              >
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="30">30 min</SelectItem>
-                  <SelectItem value="60">60 min</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Clock className="h-4 w-4" />
+                <span>30-minute slots</span>
+              </div>
 
               <Button
                 variant="outline"
@@ -197,18 +190,9 @@ export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalend
               <p><strong>Time:</strong> {selectedTime}</p>
             </div>
             
-            <Select
-              value={selectedDuration.toString()}
-              onValueChange={(value) => setSelectedDuration(Number(value) as 30 | 60)}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="30">30 minutes</SelectItem>
-                <SelectItem value="60">60 minutes</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="text-sm text-muted-foreground">
+              <strong>Duration:</strong> 30 minutes
+            </div>
 
             <div className="flex gap-2">
               <Button onClick={handleCreateSingleSlot} disabled={isActionsLoading} className="flex-1">

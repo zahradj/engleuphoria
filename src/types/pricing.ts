@@ -26,7 +26,7 @@ export interface StudentPackagePurchase {
 
 // Lesson Pricing Types
 export interface LessonPricing {
-  duration_minutes: 30 | 60;
+  duration_minutes: 30;
   student_price: number;
   teacher_payout: number;
   platform_profit: number;
@@ -70,19 +70,11 @@ export interface TeacherAbsence {
 }
 
 // Pricing Constants
-export const LESSON_PRICING: Record<30 | 60, LessonPricing> = {
-  30: {
-    duration_minutes: 30,
-    student_price: 6.00,
-    teacher_payout: 3.00,
-    platform_profit: 3.00
-  },
-  60: {
-    duration_minutes: 60,
-    student_price: 12.00,
-    teacher_payout: 6.00,
-    platform_profit: 6.00
-  }
+export const LESSON_PRICING: LessonPricing = {
+  duration_minutes: 30,
+  student_price: 6.00,
+  teacher_payout: 3.00,
+  platform_profit: 3.00
 };
 
 // Legacy subscription interface for backward compatibility

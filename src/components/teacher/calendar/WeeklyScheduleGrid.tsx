@@ -26,7 +26,7 @@ interface WeeklyScheduleGridProps {
 export const WeeklyScheduleGrid = ({ teacherId }: WeeklyScheduleGridProps) => {
   const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
   const [weeklySlots, setWeeklySlots] = useState<{ [key: string]: ScheduleSlot[] }>({});
-  const [selectedDuration, setSelectedDuration] = useState<30 | 60>(30);
+  const selectedDuration = 30; // Fixed 30-minute slots
   const [isLoading, setIsLoading] = useState(false);
   const { handleCalendarInteraction } = useAutoHideTaskbar();
   const interactionTimeoutRef = useRef<NodeJS.Timeout>();
@@ -224,8 +224,6 @@ export const WeeklyScheduleGrid = ({ teacherId }: WeeklyScheduleGridProps) => {
       <CardContent className="p-6">
         <CalendarHeader
           weekDays={weekDays}
-          selectedDuration={selectedDuration}
-          onDurationChange={setSelectedDuration}
           onNavigateWeek={navigateWeek}
           onTodayClick={goToToday}
         />

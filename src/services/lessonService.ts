@@ -68,7 +68,6 @@ export const lessonService = {
       lessonData.teacher_id,
       lessonData.student_id,
       lessonData.scheduled_at,
-      lessonData.duration as 30 | 60,
       packagePurchaseId
     );
 

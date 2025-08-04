@@ -7,7 +7,7 @@ import { Copy, X, Clock } from "lucide-react";
 interface BulkAvailabilityActionsProps {
   selectedDate: Date;
   selectedSlots: string[];
-  onBulkOpen: (hours: string[], duration: 30 | 60) => void;
+  onBulkOpen: (hours: string[]) => void;
   onBulkClose: () => void;
   onCopyFromPrevious: () => void;
   onClearSelection: () => void;
@@ -31,10 +31,10 @@ export const BulkAvailabilityActions = ({
     "Full Day": ["06:00", "06:30", "07:00", "07:30", "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "12:00", "12:30", "13:00", "13:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00", "21:30", "22:00", "22:30"]
   };
 
-  const handlePresetOpen = (preset: string, duration: 30 | 60) => {
+  const handlePresetOpen = (preset: string) => {
     const hours = timePresets[preset as keyof typeof timePresets];
     if (hours) {
-      onBulkOpen(hours, duration);
+      onBulkOpen(hours);
     }
   };
 
@@ -57,20 +57,11 @@ export const BulkAvailabilityActions = ({
               <Button
                 variant="default"
                 size="sm"
-                onClick={() => onBulkOpen(selectedSlots, 30)}
+                onClick={() => onBulkOpen(selectedSlots)}
                 disabled={isLoading}
-                className="flex-1"
+                className="w-full"
               >
-                Open 30min
-              </Button>
-              <Button
-                variant="default"
-                size="sm"
-                onClick={() => onBulkOpen(selectedSlots, 60)}
-                disabled={isLoading}
-                className="flex-1"
-              >
-                Open 60min
+                Open 30min Slots
               </Button>
             </div>
             <Button
@@ -113,27 +104,15 @@ export const BulkAvailabilityActions = ({
           
           {Object.keys(timePresets).map(preset => (
             <div key={preset} className="space-y-2">
-              <span className="text-sm text-gray-600">{preset}</span>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePresetOpen(preset, 30)}
-                  disabled={isLoading}
-                  className="flex-1"
-                >
-                  30min
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePresetOpen(preset, 60)}
-                  disabled={isLoading}
-                  className="flex-1"
-                >
-                  60min
-                </Button>
-              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePresetOpen(preset)}
+                disabled={isLoading}
+                className="w-full"
+              >
+                {preset} (30min slots)
+              </Button>
             </div>
           ))}
         </div>

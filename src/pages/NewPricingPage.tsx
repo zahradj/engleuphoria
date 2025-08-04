@@ -43,13 +43,13 @@ const NewPricingPage = () => {
     console.log('Selected package:', packageId);
   };
 
-  const handleBookIndividualLesson = (duration: 30 | 60) => {
+  const handleBookIndividualLesson = () => {
     // TODO: Implement individual lesson booking flow
     toast({
       title: "Lesson Selected",
-      description: `Proceeding to book ${duration}-minute lesson...`,
+      description: "Proceeding to book 30-minute lesson...",
     });
-    console.log('Book individual lesson:', duration);
+    console.log('Book individual lesson: 30 minutes');
   };
 
   return (
@@ -127,13 +127,9 @@ const NewPricingPage = () => {
               </p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+            <div className="max-w-md mx-auto">
               <IndividualLessonCard
                 duration={30}
-                onBookLesson={handleBookIndividualLesson}
-              />
-              <IndividualLessonCard
-                duration={60}
                 onBookLesson={handleBookIndividualLesson}
               />
             </div>

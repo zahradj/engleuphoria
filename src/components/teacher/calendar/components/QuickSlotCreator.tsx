@@ -7,7 +7,7 @@ import { Zap, Clock, Calendar, Plus } from "lucide-react";
 
 interface QuickSlotCreatorProps {
   selectedDate: Date;
-  onCreateSlots: (times: string[], duration: 30 | 60) => void;
+  onCreateSlots: (times: string[]) => void;
   isLoading?: boolean;
 }
 
@@ -20,12 +20,12 @@ const timePresets = {
 };
 
 export const QuickSlotCreator = ({ selectedDate, onCreateSlots, isLoading = false }: QuickSlotCreatorProps) => {
-  const [selectedDuration, setSelectedDuration] = useState<30 | 60>(30);
+  // Fixed 30-minute duration
 
   const handlePresetClick = (preset: string) => {
     const times = timePresets[preset as keyof typeof timePresets];
     if (times) {
-      onCreateSlots(times, selectedDuration);
+      onCreateSlots(times);
     }
   };
 
@@ -42,18 +42,12 @@ export const QuickSlotCreator = ({ selectedDate, onCreateSlots, isLoading = fals
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Duration Selector */}
+        {/* Duration Info */}
         <div className="space-y-2">
           <label className="text-sm font-medium">Slot Duration</label>
-          <Select value={selectedDuration.toString()} onValueChange={(value) => setSelectedDuration(Number(value) as 30 | 60)}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="30">30 minutes</SelectItem>
-              <SelectItem value="60">60 minutes</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="text-sm text-muted-foreground p-2 border rounded">
+            30 minutes (standard lesson duration)
+          </div>
         </div>
 
         {/* Time Presets */}
@@ -83,7 +77,7 @@ export const QuickSlotCreator = ({ selectedDate, onCreateSlots, isLoading = fals
         <div className="pt-2 border-t border-border/50">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Clock className="h-3 w-3" />
-            <span>Creating {selectedDuration}-minute slots for quick booking</span>
+            <span>Creating 30-minute slots for quick booking</span>
           </div>
         </div>
       </CardContent>

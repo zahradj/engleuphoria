@@ -5,16 +5,12 @@ import { ChevronLeft, ChevronRight, Clock, Calendar } from "lucide-react";
 
 interface CalendarHeaderProps {
   weekDays: Date[];
-  selectedDuration: 30 | 60;
-  onDurationChange: (duration: 30 | 60) => void;
   onNavigateWeek: (direction: 'prev' | 'next') => void;
   onTodayClick: () => void;
 }
 
 export const CalendarHeader = ({ 
   weekDays, 
-  selectedDuration, 
-  onDurationChange, 
   onNavigateWeek,
   onTodayClick 
 }: CalendarHeaderProps) => {
@@ -43,18 +39,10 @@ export const CalendarHeader = ({
       </div>
       
       <div className="flex items-center gap-4">
-        <Select
-          value={selectedDuration.toString()}
-          onValueChange={(value) => onDurationChange(Number(value) as 30 | 60)}
-        >
-          <SelectTrigger className="w-32">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="30">30 min</SelectItem>
-            <SelectItem value="60">60 min</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Clock className="h-4 w-4" />
+          <span>30-minute slots</span>
+        </div>
 
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => onNavigateWeek('prev')}>

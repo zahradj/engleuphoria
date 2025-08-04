@@ -45,16 +45,15 @@ export const lessonPricingService = {
   },
 
   // Calculate lesson price based on duration
-  calculateLessonPrice(durationMinutes: 30 | 60): {
+  calculateLessonPrice(): {
     studentPrice: number;
     teacherPayout: number;
     platformProfit: number;
   } {
-    const pricing = LESSON_PRICING[durationMinutes];
     return {
-      studentPrice: pricing.student_price,
-      teacherPayout: pricing.teacher_payout,
-      platformProfit: pricing.platform_profit
+      studentPrice: LESSON_PRICING.student_price,
+      teacherPayout: LESSON_PRICING.teacher_payout,
+      platformProfit: LESSON_PRICING.platform_profit
     };
   },
 
@@ -63,10 +62,10 @@ export const lessonPricingService = {
     teacherId: string,
     studentId: string,
     scheduledAt: string,
-    durationMinutes: 30 | 60,
     packagePurchaseId?: string
   ): Promise<{ lesson: any; payment?: LessonPayment }> {
-    const pricing = this.calculateLessonPrice(durationMinutes);
+    const pricing = this.calculateLessonPrice();
+    const durationMinutes = 30;
     
     // If using a package, check and redeem credits
     if (packagePurchaseId) {
