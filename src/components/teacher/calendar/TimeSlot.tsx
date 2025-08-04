@@ -23,7 +23,7 @@ interface TimeSlotProps {
 
 export const TimeSlot = ({ time, date, slot, selectedDuration, onSlotClick }: TimeSlotProps) => {
   const getSlotClassName = () => {
-    const baseClasses = "h-10 border border-border hover:bg-accent/50 cursor-pointer transition-all duration-200 rounded-sm relative overflow-hidden";
+    const baseClasses = "h-6 border border-border hover:bg-accent/50 cursor-pointer transition-all duration-200 rounded-sm relative overflow-hidden";
     
     if (!slot || !slot.isAvailable) {
       return `${baseClasses} bg-background`;
