@@ -16,7 +16,8 @@ import {
   GraduationCap,
   Book,
   FolderOpen,
-  User
+  User,
+  ArrowUpRight
 } from "lucide-react";
 import {
   Sidebar,
@@ -55,6 +56,7 @@ export const EnhancedTeacherSidebar = ({ activeTab, setActiveTab, onLogout }: En
     { id: 'resources', label: 'Resources', icon: BookOpen, type: 'tab' },
     { id: 'messages', label: 'Messages', icon: MessageSquare, type: 'tab' },
     { id: 'earnings', label: 'Earnings', icon: DollarSign, type: 'tab' },
+    { id: 'withdrawals', label: 'Withdrawals', icon: ArrowUpRight, type: 'tab' },
     { id: 'reports', label: 'Reports', icon: TrendingUp, type: 'tab' },
     { id: 'enterprise', label: 'Enterprise Hub', icon: BarChart3, type: 'tab' },
     { id: 'settings', label: 'Settings', icon: Settings, type: 'tab' }

@@ -19,10 +19,11 @@ import { ReportsTab } from "@/components/teacher/ReportsTab";
 import { SettingsTab } from "@/components/teacher/SettingsTab";
 import { ProfileSetupTab } from "@/components/teacher/ProfileSetupTab";
 import { ProfileCompleteGuard } from "@/components/teacher/ProfileCompleteGuard";
+import { WithdrawalsTab } from "@/components/teacher/WithdrawalsTab";
 import { QuickActions } from "@/components/navigation/QuickActions";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 
-type TabType = 'dashboard' | 'profile' | 'calendar' | 'students' | 'reading-library' | 'history' | 'assignments' | 'resources' | 'messages' | 'earnings' | 'reports' | 'settings';
+type TabType = 'dashboard' | 'profile' | 'calendar' | 'students' | 'reading-library' | 'history' | 'assignments' | 'resources' | 'messages' | 'earnings' | 'withdrawals' | 'reports' | 'settings';
 
 const TeacherDashboard = () => {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
@@ -80,6 +81,8 @@ const TeacherDashboard = () => {
           return <MessagesTab />;
         case 'earnings':
           return <EarningsTab />;
+        case 'withdrawals':
+          return <WithdrawalsTab />;
         case 'reports':
           return <ReportsTab />;
         case 'settings':

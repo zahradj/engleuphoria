@@ -4176,6 +4176,48 @@ export type Database = {
           },
         ]
       }
+      teacher_withdrawals: {
+        Row: {
+          admin_notes: string | null
+          amount: number
+          created_at: string
+          id: string
+          payoneer_account_email: string
+          processed_at: string | null
+          rejection_reason: string | null
+          requested_at: string
+          status: string
+          teacher_id: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount: number
+          created_at?: string
+          id?: string
+          payoneer_account_email: string
+          processed_at?: string | null
+          rejection_reason?: string | null
+          requested_at?: string
+          status?: string
+          teacher_id: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          amount?: number
+          created_at?: string
+          id?: string
+          payoneer_account_email?: string
+          processed_at?: string | null
+          rejection_reason?: string | null
+          requested_at?: string
+          status?: string
+          teacher_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_community_stats: {
         Row: {
           badges_earned: string[] | null
@@ -4450,6 +4492,10 @@ export type Database = {
           teacher_name: string
           teacher_id: string
         }[]
+      }
+      get_teacher_available_balance: {
+        Args: { teacher_uuid: string }
+        Returns: number
       }
       get_teacher_earnings_summary: {
         Args: { teacher_uuid: string }
