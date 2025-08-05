@@ -8,7 +8,8 @@ import {
   Star, 
   TrendingUp,
   TrendingDown,
-  Minus
+  Minus,
+  UserCheck
 } from 'lucide-react';
 
 interface StatCard {
@@ -24,10 +25,12 @@ interface StatCard {
 interface AdminStatsOverviewProps {
   stats?: {
     totalUsers: number;
+    totalStudents: number;
     totalTeachers: number;
     activeLessons: number;
     averageRating: number;
     userGrowth?: number;
+    studentGrowth?: number;
     teacherGrowth?: number;
     lessonGrowth?: number;
     ratingChange?: number;
@@ -64,15 +67,15 @@ export const AdminStatsOverview = ({ stats, loading }: AdminStatsOverviewProps) 
 
   const statCards: StatCard[] = [
     {
-      title: 'Total Users',
-      value: stats?.totalUsers || 0,
-      change: stats?.userGrowth,
-      icon: Users,
+      title: 'Total Students',
+      value: stats?.totalStudents || 0,
+      change: stats?.studentGrowth,
+      icon: UserCheck,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
     },
     {
-      title: 'Active Teachers',
+      title: 'Total Teachers',
       value: stats?.totalTeachers || 0,
       change: stats?.teacherGrowth,
       icon: GraduationCap,

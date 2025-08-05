@@ -15,10 +15,13 @@ export const AdminOverview = () => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalUsers: 0,
+    totalStudents: 0,
     totalTeachers: 0,
     activeLessons: 0,
     monthlyRevenue: 0,
     userGrowth: 0,
+    studentGrowth: 0,
+    teacherGrowth: 0,
     completionRate: 0,
     avgRating: 0,
   });
@@ -36,6 +39,12 @@ export const AdminOverview = () => {
         const { count: totalUsers } = await supabase
           .from('users')
           .select('*', { count: 'exact', head: true });
+
+        // Fetch total students
+        const { count: totalStudents } = await supabase
+          .from('users')
+          .select('*', { count: 'exact', head: true })
+          .eq('role', 'student');
 
         // Fetch total teachers
         const { count: totalTeachers } = await supabase
@@ -75,10 +84,13 @@ export const AdminOverview = () => {
 
         setStats({
           totalUsers: totalUsers || 0,
+          totalStudents: totalStudents || 0,
           totalTeachers: totalTeachers || 0,
           activeLessons: activeLessons || 0,
           monthlyRevenue: 0, // TODO: Implement revenue tracking
           userGrowth: 0, // TODO: Implement user growth calculation
+          studentGrowth: 0, // TODO: Implement student growth calculation
+          teacherGrowth: 0, // TODO: Implement teacher growth calculation
           completionRate: Math.round(completionRate),
           avgRating: Math.round(avgRating * 10) / 10,
         });
@@ -176,11 +188,13 @@ export const AdminOverview = () => {
       <AdminStatsOverview
         stats={{
           totalUsers: stats.totalUsers,
+          totalStudents: stats.totalStudents,
           totalTeachers: stats.totalTeachers,
           activeLessons: stats.activeLessons,
           averageRating: stats.avgRating,
-          userGrowth: 15.2,
-          teacherGrowth: 8.7,
+          userGrowth: stats.userGrowth,
+          studentGrowth: stats.studentGrowth,
+          teacherGrowth: stats.teacherGrowth,
           lessonGrowth: 23.1,
           ratingChange: 0.3,
         }}
