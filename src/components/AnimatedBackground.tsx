@@ -18,10 +18,6 @@ export function AnimatedBackground({ className }: AnimatedBackgroundProps) {
         <div className="absolute top-20 right-[10%] w-24 h-24 bg-yellow-light/20 rounded-full blur-xl animate-float"></div>
         <div className="absolute bottom-32 left-[15%] w-16 h-16 bg-purple-light/30 rounded-full blur-lg animate-float animation-delay-500"></div>
         
-        {/* Small floating particles - reduced opacity */}
-        <div className="absolute top-[30%] left-[20%] w-3 h-3 bg-purple/40 rounded-full animate-bounce-light"></div>
-        <div className="absolute top-[40%] right-[30%] w-2 h-2 bg-teal/40 rounded-full animate-bounce-light animation-delay-300"></div>
-        <div className="absolute bottom-[25%] right-[15%] w-4 h-4 bg-orange/40 rounded-full animate-bounce-light animation-delay-700"></div>
       </div>
     </>
   );

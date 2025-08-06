@@ -17,11 +17,6 @@ export const Hero = ({ onStartClick }: HeroProps) => {
         <div className="absolute -z-10 top-1/3 right-1/3 w-[200px] h-[200px] bg-gradient-to-r from-emerald-300/30 to-lime-300/30 rounded-full blur-3xl animate-bounce opacity-60" style={{animationDuration: '5s', animationDelay: '2s'}}></div>
         <div className="absolute -z-10 bottom-1/2 left-1/2 w-[180px] h-[180px] bg-gradient-to-r from-yellow-300/30 to-orange-300/30 rounded-full blur-3xl animate-bounce opacity-60" style={{animationDuration: '7s', animationDelay: '3s'}}></div>
         
-        {/* Floating stars */}
-        <div className="absolute top-10 right-10 text-yellow-400 text-2xl animate-pulse">⭐</div>
-        <div className="absolute top-32 left-20 text-pink-400 text-xl animate-pulse" style={{animationDelay: '1s'}}>✨</div>
-        <div className="absolute bottom-20 right-32 text-purple-400 text-3xl animate-pulse" style={{animationDelay: '2s'}}>🌟</div>
-        <div className="absolute top-64 right-64 text-blue-400 text-lg animate-pulse" style={{animationDelay: '3s'}}>💫</div>
       </div>
       
       <div className="max-w-7xl mx-auto relative z-10 h-full">
