@@ -4,6 +4,7 @@ import { englishTranslations } from '@/translations/english';
 import { spanishTranslations } from '@/translations/spanish';
 import { arabicTranslations } from '@/translations/arabic';
 import { frenchTranslations } from '@/translations/french';
+import { turkishTranslations } from '@/translations/turkish';
 
 const resources = {
   en: {
@@ -18,7 +19,9 @@ const resources = {
   fr: {
     translation: frenchTranslations,
   },
-};
+  tr: {
+    translation: turkishTranslations,
+  },
 
 i18n
   .use(initReactI18next)
