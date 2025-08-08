@@ -109,11 +109,6 @@ export const Hero = ({ onStartClick }: HeroProps) => {
                 alt="Interactive English Learning" 
                 className="relative w-full max-w-none h-auto object-contain drop-shadow-2xl scale-110 rounded-2xl"
               />
-              {/* Floating emojis around the image */}
-              <div className="absolute top-0 left-0 text-4xl animate-bounce" style={{animationDuration: '3s'}}>🎨</div>
-              <div className="absolute top-16 right-8 text-3xl animate-bounce" style={{animationDuration: '4s', animationDelay: '1s'}}>📚</div>
-              <div className="absolute bottom-12 left-8 text-3xl animate-bounce" style={{animationDuration: '3.5s', animationDelay: '2s'}}>🎯</div>
-              <div className="absolute bottom-0 right-0 text-4xl animate-bounce" style={{animationDuration: '5s', animationDelay: '1.5s'}}>🌈</div>
             </div>
           </div>
         </div>
