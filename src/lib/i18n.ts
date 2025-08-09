@@ -22,6 +22,7 @@ const resources = {
   tr: {
     translation: turkishTranslations,
   },
+};
 
 i18n
   .use(initReactI18next)
