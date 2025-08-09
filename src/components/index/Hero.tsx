@@ -1,13 +1,14 @@
 
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Star } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 
 interface HeroProps {
   onStartClick: () => void;
 }
 
 export const Hero = ({ onStartClick }: HeroProps) => {
-  return (
+  const { t } = useTranslation();
     <section className="relative py-24 px-4 overflow-hidden bg-gradient-to-br from-violet-50 via-sky-50 via-emerald-50 to-yellow-50 min-h-[90vh]">
       {/* Enhanced Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden">
@@ -27,7 +28,7 @@ export const Hero = ({ onStartClick }: HeroProps) => {
               {/* Fun badge */}
               <div className="inline-flex items-center gap-2 bg-gradient-to-r from-pink-100 to-purple-100 px-4 py-2 rounded-full border border-pink-200 shadow-sm">
                 <span className="text-lg">🎉</span>
-                <span className="text-purple-700 font-medium text-sm">Learning Made Fun!</span>
+                <span className="text-purple-700 font-medium text-sm">{t('homepage.hero.badge', { defaultValue: 'Learning Made Fun!' })}</span>
               </div>
               
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight font-fredoka">
@@ -36,14 +37,10 @@ export const Hero = ({ onStartClick }: HeroProps) => {
                 </span>
               </h1>
               <h2 className="text-3xl md:text-4xl font-semibold text-gray-800 font-comfortaa">
-                Learn English the 
-                <span className="text-transparent bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text"> Fun </span>
-                Way! 🚀
+                {t('homepage.hero.tagline', { defaultValue: 'Learn English the Fun Way! 🚀' })}
               </h2>
               <p className="text-xl text-gray-600 leading-relaxed max-w-2xl font-inter">
-                Experience <span className="font-semibold text-purple-600">personalized English learning</span> with interactive games, 
-                expert teachers, and real-time feedback. Perfect for kids and beginners through our 
-                <span className="font-semibold text-blue-600"> comprehensive 8-level curriculum!</span> 🎯
+                {t('homepage.hero.description', { defaultValue: 'Experience personalized English learning with interactive games, expert teachers, and real-time feedback. Perfect for kids and beginners through our comprehensive 8-level curriculum! 🎯' })}
               </p>
             </div>
             
@@ -55,8 +52,8 @@ export const Hero = ({ onStartClick }: HeroProps) => {
                 className="relative bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 hover:from-purple-600 hover:via-pink-600 hover:to-blue-600 text-white px-8 py-6 text-lg shadow-2xl hover:shadow-purple-300/50 transition-all duration-300 transform hover:scale-105 rounded-2xl font-comfortaa font-semibold"
               >
                 <span className="flex items-center gap-2">
-                  🎮 Start Your Adventure
-                  <ArrowRight className="ml-2 h-5 w-5 animate-bounce" />
+                {t('homepage.hero.cta', { defaultValue: 'Start Your Adventure' })}
+                <ArrowRight className="ml-2 h-5 w-5 animate-bounce" />
                 </span>
                 <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 to-pink-400/20 rounded-2xl animate-pulse"></div>
               </Button>
@@ -68,26 +65,23 @@ export const Hero = ({ onStartClick }: HeroProps) => {
                 <div className="bg-gradient-to-r from-yellow-400 to-orange-500 p-3 rounded-2xl shadow-lg animate-bounce">
                   <Star className="h-6 w-6 text-white" />
                 </div>
-                <span className="font-bold text-gray-800 text-xl font-fredoka">8-Level ESL Curriculum 🎓</span>
+                <span className="font-bold text-gray-800 text-xl font-fredoka">{t('homepage.hero.curriculumTitle', { defaultValue: '8-Level ESL Curriculum 🎓' })}</span>
               </div>
               <p className="text-gray-700 font-inter">
-                From <span className="font-semibold text-green-600">Pre-A1 (Starter)</span> to <span className="font-semibold text-blue-600">B2 (Upper-Intermediate)</span> with 
-                <span className="font-semibold text-purple-600"> Drag & Drop</span>, 
-                <span className="font-semibold text-pink-600"> Spinning Wheel</span>, and 
-                <span className="font-semibold text-emerald-600"> Dice Rolling</span> games! 🎲✨
+                {t('homepage.hero.curriculumText', { defaultValue: 'From Pre-A1 (Starter) to B2 (Upper-Intermediate) with Drag & Drop, Spinning Wheel, and Dice Rolling games! 🎲✨' })}
               </p>
             </div>
 
             {/* Fun stats */}
             <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
               <div className="bg-gradient-to-r from-green-100 to-emerald-100 px-4 py-2 rounded-full border border-green-200">
-                <span className="text-green-700 font-semibold text-sm">👥 10,000+ Students</span>
+                <span className="text-green-700 font-semibold text-sm">{t('homepage.hero.stats.students', { defaultValue: '👥 10,000+ Students' })}</span>
               </div>
               <div className="bg-gradient-to-r from-blue-100 to-cyan-100 px-4 py-2 rounded-full border border-blue-200">
-                <span className="text-blue-700 font-semibold text-sm">⭐ 4.9/5 Rating</span>
+                <span className="text-blue-700 font-semibold text-sm">{t('homepage.hero.stats.rating', { defaultValue: '⭐ 4.9/5 Rating' })}</span>
               </div>
               <div className="bg-gradient-to-r from-orange-100 to-yellow-100 px-4 py-2 rounded-full border border-orange-200">
-                <span className="text-orange-700 font-semibold text-sm">🏆 Award Winning</span>
+                <span className="text-orange-700 font-semibold text-sm">{t('homepage.hero.stats.awards', { defaultValue: '🏆 Award Winning' })}</span>
               </div>
             </div>
           </div>
@@ -106,7 +100,7 @@ export const Hero = ({ onStartClick }: HeroProps) => {
             <div className="relative transform hover:scale-105 transition-transform duration-500 w-full animate-float-slow will-change-transform">
               <img 
                 src="/lovable-uploads/27f0b41c-34f2-4a8e-a08b-9a755fe74f97.png" 
-                alt="Interactive English Learning" 
+                alt={t('homepage.hero.imageAlt', { defaultValue: 'Interactive English Learning' })} 
                 className="relative w-full max-w-none h-auto object-contain drop-shadow-2xl scale-110 rounded-2xl"
               />
             </div>

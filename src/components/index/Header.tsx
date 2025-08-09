@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HeaderLogo } from './header/HeaderLogo';
 import { DesktopNavigation } from './header/DesktopNavigation';
-import { LanguageSwitcher } from './header/LanguageSwitcher';
+import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
 import { AuthButtons } from './header/AuthButtons';
 import { MobileMenu } from './header/MobileMenu';
 import { MobileMenuButton } from './header/MobileMenuButton';
@@ -38,7 +38,7 @@ export const Header = () => {
 
         {/* Mobile Menu Button */}
         <div className="lg:hidden flex items-center gap-2">
-          <LanguageSwitcher size="sm" />
+          <LanguageSwitcher />
           <MobileMenuButton 
             isOpen={isMobileMenuOpen} 
             onToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
