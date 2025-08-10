@@ -2,7 +2,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 
-export const useMediaAccess = () => {
+export const useMediaAccess = (opts?: { cameraId?: string; micId?: string }) => {
   const { toast } = useToast();
   
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -31,12 +31,14 @@ export const useMediaAccess = () => {
       
       const constraints = {
         video: { 
+          deviceId: opts?.cameraId ? { exact: opts.cameraId } : undefined,
           width: { ideal: 640, max: 1280 }, 
           height: { ideal: 480, max: 720 },
           facingMode: "user",
           frameRate: { ideal: 30, max: 30 }
         },
         audio: {
+          deviceId: opts?.micId ? { exact: opts.micId } : undefined,
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,

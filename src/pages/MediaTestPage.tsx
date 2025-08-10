@@ -9,6 +9,9 @@ import { VideoPreviewCard } from "@/components/media-test/VideoPreviewCard";
 import { MicrophoneTestCard } from "@/components/media-test/MicrophoneTestCard";
 import { TestStatusCard } from "@/components/media-test/TestStatusCard";
 import { NavigationButtons } from "@/components/media-test/NavigationButtons";
+import { useMediaDevices } from "@/hooks/useMediaDevices";
+import { DeviceSelector } from "@/components/media-test/DeviceSelector";
+
 
 const MediaTestPage = () => {
   const navigate = useNavigate();
@@ -16,6 +19,7 @@ const MediaTestPage = () => {
   const { toast } = useToast();
   
   const [testCompleted, setTestCompleted] = useState(false);
+  const { cameras, microphones, selectedCameraId, selectedMicId, setSelectedCameraId, setSelectedMicId, refreshDevices } = useMediaDevices();
   
   const {
     stream,
@@ -38,7 +42,8 @@ const MediaTestPage = () => {
     initializeMedia,
     retryMediaAccess,
     cleanup
-  } = useMediaAccess();
+  } = useMediaAccess({ cameraId: selectedCameraId || undefined, micId: selectedMicId || undefined });
+
 
   const {
     audioLevel,
@@ -115,13 +120,33 @@ const MediaTestPage = () => {
     const timer = setTimeout(() => {
       initializeMedia();
     }, 500);
-    
+
     return () => {
       clearTimeout(timer);
       cleanup();
       stopAudioLevelMonitoring();
     };
   }, []);
+
+  const handleChangeCamera = (id: string) => {
+    setSelectedCameraId(id);
+    retryMediaAccess();
+    initializeMedia();
+  };
+
+  const handleChangeMic = (id: string) => {
+    setSelectedMicId(id);
+    retryMediaAccess();
+    initializeMedia();
+  };
+
+  useEffect(() => {
+    // After permissions granted, refresh to get device labels
+    if (stream) {
+      refreshDevices();
+    }
+  }, [stream, refreshDevices]);
+
 
   const canCompleteTest = cameraStatus === 'working' && microphoneStatus === 'working' && isVideoPlaying && !isCameraOff;
 
@@ -139,6 +164,16 @@ const MediaTestPage = () => {
         </div>
 
         <div className="grid gap-6 max-w-2xl mx-auto">
+          <DeviceSelector
+            cameras={cameras}
+            microphones={microphones}
+            selectedCameraId={selectedCameraId}
+            selectedMicId={selectedMicId}
+            onChangeCamera={handleChangeCamera}
+            onChangeMic={handleChangeMic}
+            onRefresh={refreshDevices}
+          />
+
           <VideoPreviewCard
             stream={stream}
             isLoading={isLoading}
@@ -160,6 +195,7 @@ const MediaTestPage = () => {
             retryMediaAccess={retryMediaAccess}
             startAudioLevelMonitoring={startAudioLevelMonitoring}
           />
+
 
           <MicrophoneTestCard
             microphoneStatus={microphoneStatus}
