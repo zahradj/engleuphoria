@@ -1,10 +1,9 @@
 
 import React from "react";
 import { UnifiedCenterPanel } from "./UnifiedCenterPanel";
-import { UnifiedRightPanel } from "./UnifiedRightPanel";
-import { UnifiedVideoSection } from "./UnifiedVideoSection";
-import { UnifiedLeftSidebar } from "./UnifiedLeftSidebar";
 import { useUnifiedClassroomContext } from "./UnifiedClassroomProvider";
+import { TwoUpVideo } from "./TwoUpVideo";
+import { MinimalTopBar } from "./MinimalTopBar";
 
 interface ClassroomState {
   activeRightTab: string;
@@ -28,92 +27,50 @@ export function UnifiedClassroomContent({
   const { currentUser } = useUnifiedClassroomContext();
   
   const {
-    activeRightTab,
     activeCenterTab,
     studentXP,
-    setActiveRightTab,
-    setActiveCenterTab,
-    awardPoints
+    setActiveCenterTab
   } = classroomState;
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] sm:min-h-[calc(100vh-5rem)] px-2 sm:px-4 pb-2 sm:pb-4">
-      {/* Mobile Layout - Stack vertically */}
-      <div className="block lg:hidden space-y-4">
-        {/* Video Section */}
-        <div className="h-48 sm:h-64">
-          <UnifiedVideoSection currentUser={currentUser} />
-        </div>
-        
-        {/* Center Panel - Main Content */}
-        <div className="h-96 sm:h-[32rem]">
-          <UnifiedCenterPanel
-            activeCenterTab={activeCenterTab}
-            onTabChange={setActiveCenterTab}
-            currentUser={currentUser}
-          />
-        </div>
+    <div className="min-h-[calc(100vh-4rem)] sm:min-h-[calc(100vh-5rem)]">
+      <MinimalTopBar currentUser={currentUser} studentXP={studentXP} />
 
-        {/* Right Panel Content - Student Info & Chat */}
-        <div className="h-80 sm:h-96">
-          <UnifiedRightPanel
-            studentName="Emma"
-            studentXP={studentXP}
-            activeRightTab={activeRightTab}
-            onTabChange={setActiveRightTab}
-            currentUser={currentUser}
-          />
-        </div>
+      <main className="px-2 sm:px-4 pb-2 sm:pb-4">
+        <h1 className="sr-only">Live Classroom - Lesson and Video</h1>
 
-        {/* Left Sidebar Content - Progress/Rewards */}
-        <div className="h-64 sm:h-80">
-          <UnifiedLeftSidebar 
-            studentXP={studentXP}
-            currentUser={currentUser}
-            onAwardPoints={currentUser.role === 'teacher' ? awardPoints : undefined}
-          />
-        </div>
-      </div>
+        {/* Mobile Layout - Video first, then lesson */}
+        <div className="block lg:hidden space-y-4">
+          <section className="h-64 sm:h-80">
+            <TwoUpVideo currentUser={currentUser} />
+          </section>
 
-      {/* Desktop Layout - Grid */}
-      <div className="hidden lg:grid grid-cols-12 gap-4 h-[calc(100vh-6rem)]">
-        {/* Left Section - Current User's Video + Role-based Panels */}
-        <div className="col-span-3 flex flex-col gap-4 min-h-0">
-          {/* Current User's Video Section */}
-          <div className="h-[300px] flex-shrink-0">
-            <UnifiedVideoSection currentUser={currentUser} />
-          </div>
-          
-          {/* Bottom Left Panels - Role-based functionality */}
-          <div className="flex-1 min-h-0">
-            <UnifiedLeftSidebar 
-              studentXP={studentXP}
+          <section className="min-h-[28rem]">
+            <UnifiedCenterPanel
+              activeCenterTab={activeCenterTab}
+              onTabChange={setActiveCenterTab}
               currentUser={currentUser}
-              onAwardPoints={currentUser.role === 'teacher' ? awardPoints : undefined}
             />
-          </div>
+          </section>
         </div>
 
-        {/* Center Panel - Main Content (Whiteboard, Activities, etc.) */}
-        <div className="col-span-6 min-h-0">
-          <UnifiedCenterPanel
-            activeCenterTab={activeCenterTab}
-            onTabChange={setActiveCenterTab}
-            currentUser={currentUser}
-          />
-        </div>
+        {/* Desktop Layout - Two column: Lesson (8) + Video (4) */}
+        <div className="hidden lg:grid grid-cols-12 gap-4 h-[calc(100vh-6rem)]">
+          <section className="col-span-8 min-h-0">
+            <UnifiedCenterPanel
+              activeCenterTab={activeCenterTab}
+              onTabChange={setActiveCenterTab}
+              currentUser={currentUser}
+            />
+          </section>
 
-        {/* Right Panel - Chat & Student Management */}
-        <div className="col-span-3 min-h-0">
-          <UnifiedRightPanel
-            studentName="Emma"
-            studentXP={studentXP}
-            activeRightTab={activeRightTab}
-            onTabChange={setActiveRightTab}
-            currentUser={currentUser}
-          />
+          <aside className="col-span-4 min-h-0">
+            <div className="sticky top-4 h-[calc(100vh-8rem)]">
+              <TwoUpVideo currentUser={currentUser} />
+            </div>
+          </aside>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
