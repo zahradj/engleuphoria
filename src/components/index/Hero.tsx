@@ -9,6 +9,7 @@ interface HeroProps {
 
 export const Hero = ({ onStartClick }: HeroProps) => {
   const { t } = useTranslation();
+  return (
     <section className="relative py-24 px-4 overflow-hidden bg-gradient-to-br from-violet-50 via-sky-50 via-emerald-50 to-yellow-50 min-h-[90vh]">
       {/* Enhanced Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden">

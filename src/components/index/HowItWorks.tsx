@@ -9,6 +9,7 @@ interface HowItWorksProps {
 
 export const HowItWorks = ({ onStartClick }: HowItWorksProps) => {
   const { t } = useTranslation();
+  return (
     <section className="py-16 border-t border-border">
       <div className="text-center mb-12 animate-fade-in">
         <h2 className="text-3xl font-bold mb-3">{t('homepage.howItWorks.heading', { defaultValue: 'How It Works' })}</h2>
