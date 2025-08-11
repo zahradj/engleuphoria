@@ -1,10 +1,13 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { UnifiedCenterPanel } from "./UnifiedCenterPanel";
-import { UnifiedRightPanel } from "./UnifiedRightPanel";
-import { UnifiedVideoSection } from "./UnifiedVideoSection";
-import { UnifiedLeftSidebar } from "./UnifiedLeftSidebar";
+// Removed panel-heavy imports to focus on minimalist layout
 import { useUnifiedClassroomContext } from "./UnifiedClassroomProvider";
+import { MinimalSidebar, MinimalTool } from "./minimal/MinimalSidebar";
+import { ToolOverlay } from "./minimal/ToolOverlay";
+import { FloatingVideos } from "./minimal/FloatingVideos";
+import { ClassroomChat } from "@/components/classroom/ClassroomChat";
+import { SpinningWheelGame } from "@/components/classroom/oneonone/games/SpinningWheelGame";
 
 interface ClassroomState {
   activeRightTab: string;
@@ -19,14 +22,19 @@ interface ClassroomState {
 interface UnifiedClassroomContentProps {
   classroomState: ClassroomState;
   enhancedClassroom: any;
+  classTime: number;
 }
 
 export function UnifiedClassroomContent({ 
   classroomState, 
-  enhancedClassroom 
+  enhancedClassroom,
+  classTime
 }: UnifiedClassroomContentProps) {
   const { currentUser } = useUnifiedClassroomContext();
-  
+  const isTeacher = currentUser.role === 'teacher';
+  const teacherName = isTeacher ? currentUser.name : "Teacher";
+  const studentName = !isTeacher ? currentUser.name : "Student";
+
   const {
     activeRightTab,
     activeCenterTab,
@@ -36,84 +44,79 @@ export function UnifiedClassroomContent({
     awardPoints
   } = classroomState;
 
-  return (
-    <div className="min-h-[calc(100vh-4rem)] sm:min-h-[calc(100vh-5rem)] px-2 sm:px-4 pb-2 sm:pb-4">
-      {/* Mobile Layout - Stack vertically */}
-      <div className="block lg:hidden space-y-4">
-        {/* Video Section */}
-        <div className="h-48 sm:h-64">
-          <UnifiedVideoSection currentUser={currentUser} />
-        </div>
-        
-        {/* Center Panel - Main Content */}
-        <div className="h-96 sm:h-[32rem]">
-          <UnifiedCenterPanel
-            activeCenterTab={activeCenterTab}
-            onTabChange={setActiveCenterTab}
-            currentUser={currentUser}
-          />
-        </div>
+  const [openTool, setOpenTool] = useState<MinimalTool | null>(null);
 
-        {/* Right Panel Content - Student Info & Chat */}
-        <div className="h-80 sm:h-96">
-          <UnifiedRightPanel
-            studentName="Emma"
-            studentXP={studentXP}
-            activeRightTab={activeRightTab}
-            onTabChange={setActiveRightTab}
-            currentUser={currentUser}
-          />
-        </div>
+  const formatTime = (seconds: number): string => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
 
-        {/* Left Sidebar Content - Progress/Rewards */}
-        <div className="h-64 sm:h-80">
-          <UnifiedLeftSidebar 
-            studentXP={studentXP}
-            currentUser={currentUser}
-            onAwardPoints={currentUser.role === 'teacher' ? awardPoints : undefined}
-          />
-        </div>
-      </div>
+return (
+    <div className="relative">
+      {/* Floating videos */}
+      <FloatingVideos
+        localStream={enhancedClassroom?.localStream || null}
+        remoteStream={null}
+        isTeacher={isTeacher}
+        isCameraOff={enhancedClassroom?.isCameraOff}
+        teacherName={teacherName}
+        studentName={studentName}
+      />
 
-      {/* Desktop Layout - Grid */}
-      <div className="hidden lg:grid grid-cols-12 gap-4 h-[calc(100vh-6rem)]">
-        {/* Left Section - Current User's Video + Role-based Panels */}
-        <div className="col-span-3 flex flex-col gap-4 min-h-0">
-          {/* Current User's Video Section */}
-          <div className="h-[300px] flex-shrink-0">
-            <UnifiedVideoSection currentUser={currentUser} />
-          </div>
-          
-          {/* Bottom Left Panels - Role-based functionality */}
-          <div className="flex-1 min-h-0">
-            <UnifiedLeftSidebar 
-              studentXP={studentXP}
+      {/* Minimal collapsible sidebar with tools */}
+      <MinimalSidebar side="left" onOpenTool={setOpenTool} />
+
+      {/* Central lesson stage - at least 70% width and height */}
+      <div className="container mx-auto px-2 sm:px-4 py-4">
+        <div className="mx-auto w-full lg:w-[72%] min-h-[70vh]">
+          <div className="h-[70vh]">
+            <UnifiedCenterPanel
+              activeCenterTab={activeCenterTab}
+              onTabChange={setActiveCenterTab}
               currentUser={currentUser}
-              onAwardPoints={currentUser.role === 'teacher' ? awardPoints : undefined}
             />
           </div>
         </div>
-
-        {/* Center Panel - Main Content (Whiteboard, Activities, etc.) */}
-        <div className="col-span-6 min-h-0">
-          <UnifiedCenterPanel
-            activeCenterTab={activeCenterTab}
-            onTabChange={setActiveCenterTab}
-            currentUser={currentUser}
-          />
-        </div>
-
-        {/* Right Panel - Chat & Student Management */}
-        <div className="col-span-3 min-h-0">
-          <UnifiedRightPanel
-            studentName="Emma"
-            studentXP={studentXP}
-            activeRightTab={activeRightTab}
-            onTabChange={setActiveRightTab}
-            currentUser={currentUser}
-          />
-        </div>
       </div>
+
+      {/* Overlays */}
+      {openTool === 'chat' && (
+        <ToolOverlay title="Chat" onClose={() => setOpenTool(null)}>
+          <ClassroomChat teacherName={teacherName} studentName={studentName} />
+        </ToolOverlay>
+      )}
+
+      {openTool === 'rewards' && (
+        <ToolOverlay title="Rewards" onClose={() => setOpenTool(null)}>
+          <div className="flex items-center gap-2">
+            <button className="px-3 py-2 rounded border" onClick={() => awardPoints(10, 'Good answer')}>+10</button>
+            <button className="px-3 py-2 rounded border" onClick={() => awardPoints(25, 'Great effort')}>+25</button>
+            <button className="px-3 py-2 rounded border" onClick={() => awardPoints(50, 'Excellent work')}>+50</button>
+          </div>
+        </ToolOverlay>
+      )}
+
+      {openTool === 'timer' && (
+        <ToolOverlay title="Timer" onClose={() => setOpenTool(null)}>
+          <div className="text-center">
+            <div className="text-4xl font-mono">{formatTime(classTime)}</div>
+            <p className="text-sm text-muted-foreground mt-1">Elapsed class time</p>
+          </div>
+        </ToolOverlay>
+      )}
+
+      {openTool === 'wheel' && (
+        <ToolOverlay title="AI Spinning Wheel" onClose={() => setOpenTool(null)}>
+          <SpinningWheelGame />
+        </ToolOverlay>
+      )}
+
+      {openTool === 'ai' && (
+        <ToolOverlay title="AI Tools" onClose={() => setOpenTool(null)}>
+          <div className="text-sm text-muted-foreground">Coming soon: AI activity & picture creator</div>
+        </ToolOverlay>
+      )}
     </div>
   );
 }

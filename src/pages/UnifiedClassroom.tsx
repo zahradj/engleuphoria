@@ -159,6 +159,7 @@ function UnifiedClassroomInner() {
                   awardPoints: enhancedAwardPoints
                 }}
                 enhancedClassroom={enhancedClassroom}
+                classTime={classTime}
               />
             </UnifiedClassroomLayout>
           )}

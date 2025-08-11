@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, Users, Video, Wifi } from "lucide-react";
 import { ConnectionManager } from "./components/ConnectionManager";
 import { useConnectionRecovery } from "@/hooks/enhanced-classroom/useConnectionRecovery";
+import { ClassStatusBar } from "./components/ClassStatusBar";
 
 interface UnifiedClassroomLayoutProps {
   children: React.ReactNode;
@@ -105,6 +106,14 @@ export function UnifiedClassroomLayout({
           </div>
         </Card>
       </main>
+
+      {/* Bottom Status Bar */}
+      <ClassStatusBar
+        elapsedSec={classTime}
+        totalSec={1800}
+        participantsCount={enhancedClassroom?.participants?.length || 0}
+      />
+
 
       {/* Recovery Status Indicator */}
       {isRecovering && (
