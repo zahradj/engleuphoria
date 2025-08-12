@@ -1,13 +1,12 @@
 
 import React, { useState } from "react";
 import { UnifiedCenterPanel } from "./UnifiedCenterPanel";
-// Removed panel-heavy imports to focus on minimalist layout
 import { useUnifiedClassroomContext } from "./UnifiedClassroomProvider";
-import { MinimalSidebar, MinimalTool } from "./minimal/MinimalSidebar";
-import { ToolOverlay } from "./minimal/ToolOverlay";
-import { FloatingVideos } from "./minimal/FloatingVideos";
+import { RightRail, RailTool } from "./components/RightRail";
+import { ToolRailOverlay } from "./components/ToolRailOverlay";
 import { ClassroomChat } from "@/components/classroom/ClassroomChat";
 import { SpinningWheelGame } from "@/components/classroom/oneonone/games/SpinningWheelGame";
+import { Button } from "@/components/ui/button";
 
 interface ClassroomState {
   activeRightTab: string;
@@ -44,7 +43,7 @@ export function UnifiedClassroomContent({
     awardPoints
   } = classroomState;
 
-  const [openTool, setOpenTool] = useState<MinimalTool | null>(null);
+  const [openTool, setOpenTool] = useState<RailTool | null>(null);
 
   const formatTime = (seconds: number): string => {
     const m = Math.floor(seconds / 60);
@@ -52,70 +51,86 @@ export function UnifiedClassroomContent({
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-return (
-    <div className="relative">
-      {/* Floating videos */}
-      <FloatingVideos
-        localStream={enhancedClassroom?.localStream || null}
-        remoteStream={null}
-        isTeacher={isTeacher}
-        isCameraOff={enhancedClassroom?.isCameraOff}
-        teacherName={teacherName}
-        studentName={studentName}
-      />
-
-      {/* Minimal collapsible sidebar with tools */}
-      <MinimalSidebar side="left" onOpenTool={setOpenTool} />
-
-      {/* Central lesson stage - at least 70% width and height */}
-      <div className="container mx-auto px-2 sm:px-4 py-4">
-        <div className="mx-auto w-full lg:w-[72%] min-h-[70vh]">
-          <div className="h-[70vh]">
-            <UnifiedCenterPanel
-              activeCenterTab={activeCenterTab}
-              onTabChange={setActiveCenterTab}
-              currentUser={currentUser}
-            />
-          </div>
-        </div>
+  return (
+    <div className="h-full flex">
+      {/* Main lesson area - 80-85% width */}
+      <div className="flex-1 h-full">
+        <UnifiedCenterPanel
+          activeCenterTab={activeCenterTab}
+          onTabChange={setActiveCenterTab}
+          currentUser={currentUser}
+        />
       </div>
 
-      {/* Overlays */}
+      {/* Right rail - 15-20% width */}
+      <div className="w-80 h-full">
+        <RightRail
+          localStream={enhancedClassroom?.localStream || null}
+          remoteStream={null}
+          isTeacher={isTeacher}
+          isCameraOff={enhancedClassroom?.isCameraOff}
+          teacherName={teacherName}
+          studentName={studentName}
+          onOpenTool={setOpenTool}
+        />
+      </div>
+
+      {/* Tool Overlays */}
       {openTool === 'chat' && (
-        <ToolOverlay title="Chat" onClose={() => setOpenTool(null)}>
+        <ToolRailOverlay title="Chat" onClose={() => setOpenTool(null)}>
           <ClassroomChat teacherName={teacherName} studentName={studentName} />
-        </ToolOverlay>
+        </ToolRailOverlay>
       )}
 
       {openTool === 'rewards' && (
-        <ToolOverlay title="Rewards" onClose={() => setOpenTool(null)}>
-          <div className="flex items-center gap-2">
-            <button className="px-3 py-2 rounded border" onClick={() => awardPoints(10, 'Good answer')}>+10</button>
-            <button className="px-3 py-2 rounded border" onClick={() => awardPoints(25, 'Great effort')}>+25</button>
-            <button className="px-3 py-2 rounded border" onClick={() => awardPoints(50, 'Excellent work')}>+50</button>
+        <ToolRailOverlay title="Rewards" onClose={() => setOpenTool(null)}>
+          <div className="space-y-3">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start" 
+              onClick={() => awardPoints(10, 'Good answer')}
+            >
+              +10 Points - Good answer
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start" 
+              onClick={() => awardPoints(25, 'Great effort')}
+            >
+              +25 Points - Great effort
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start" 
+              onClick={() => awardPoints(50, 'Excellent work')}
+            >
+              +50 Points - Excellent work
+            </Button>
           </div>
-        </ToolOverlay>
+        </ToolRailOverlay>
       )}
 
       {openTool === 'timer' && (
-        <ToolOverlay title="Timer" onClose={() => setOpenTool(null)}>
+        <ToolRailOverlay title="Timer" onClose={() => setOpenTool(null)}>
           <div className="text-center">
-            <div className="text-4xl font-mono">{formatTime(classTime)}</div>
-            <p className="text-sm text-muted-foreground mt-1">Elapsed class time</p>
+            <div className="text-4xl font-mono text-foreground">{formatTime(classTime)}</div>
+            <p className="text-sm text-muted-foreground mt-2">Elapsed class time</p>
           </div>
-        </ToolOverlay>
+        </ToolRailOverlay>
       )}
 
       {openTool === 'wheel' && (
-        <ToolOverlay title="AI Spinning Wheel" onClose={() => setOpenTool(null)}>
+        <ToolRailOverlay title="Spinning Wheel" onClose={() => setOpenTool(null)}>
           <SpinningWheelGame />
-        </ToolOverlay>
+        </ToolRailOverlay>
       )}
 
       {openTool === 'ai' && (
-        <ToolOverlay title="AI Tools" onClose={() => setOpenTool(null)}>
-          <div className="text-sm text-muted-foreground">Coming soon: AI activity & picture creator</div>
-        </ToolOverlay>
+        <ToolRailOverlay title="AI Tools" onClose={() => setOpenTool(null)}>
+          <div className="text-sm text-muted-foreground">
+            Coming soon: AI activity & picture creator
+          </div>
+        </ToolRailOverlay>
       )}
     </div>
   );
