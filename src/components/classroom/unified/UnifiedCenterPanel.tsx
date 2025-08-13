@@ -7,7 +7,8 @@ import { UnifiedContentViewer } from "@/components/classroom/content/UnifiedCont
 import { OneOnOneGames } from "@/components/classroom/oneonone/OneOnOneGames";
 import { StartTabContent } from "./components/TabContent/StartTabContent";
 import { FinishTabContent } from "./components/TabContent/FinishTabContent";
-import { BookOpen, Gamepad2, Play, CheckCircle } from "lucide-react";
+import { BookOpen, Gamepad2, Play, CheckCircle, Sparkles } from "lucide-react";
+import { AITabContent } from "./components/TabContent/AITabContent";
 
 interface UnifiedCenterPanelProps {
   activeCenterTab: string;
@@ -38,7 +39,7 @@ export function UnifiedCenterPanel({
     <Card className="h-full shadow-lg border-0 bg-white/95 backdrop-blur-sm flex flex-col">
       <Tabs value={activeCenterTab} onValueChange={onTabChange} className="h-full flex flex-col">
         <div className="p-4 pb-0 flex-shrink-0">
-          <TabsList className="grid w-full grid-cols-4 mb-4">
+          <TabsList className="grid w-full grid-cols-5 mb-4">
             <TabsTrigger value="start" className="flex items-center gap-2">
               <Play size={16} />
               <span className="hidden sm:inline">Start</span>
@@ -50,6 +51,10 @@ export function UnifiedCenterPanel({
             <TabsTrigger value="activities" className="flex items-center gap-2">
               <Gamepad2 size={16} />
               <span className="hidden sm:inline">Activities</span>
+            </TabsTrigger>
+            <TabsTrigger value="ai" className="flex items-center gap-2">
+              <Sparkles size={16} />
+              <span className="hidden sm:inline">AI Assistant</span>
             </TabsTrigger>
             <TabsTrigger value="finish" className="flex items-center gap-2">
               <CheckCircle size={16} />
@@ -77,6 +82,16 @@ export function UnifiedCenterPanel({
 
           <TabsContent value="activities" className="h-full m-0 p-4 overflow-y-auto">
             <OneOnOneGames />
+          </TabsContent>
+
+          <TabsContent value="ai" className="h-full m-0 p-4 overflow-y-auto">
+            <AITabContent
+              currentUser={currentUser}
+              onInsertToWhiteboard={(content) => {
+                console.log('Inserting to whiteboard:', content);
+                // This would integrate with the whiteboard system
+              }}
+            />
           </TabsContent>
 
           <TabsContent value="finish" className="h-full m-0 overflow-y-auto">
