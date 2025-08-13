@@ -18,7 +18,7 @@ export function VideoTile({ stream, hasVideo, isTeacher, userLabel, isCameraOff 
   }, [stream]);
 
   return (
-    <div className="w-full h-full bg-gradient-to-br from-muted via-muted to-muted/80 rounded-2xl overflow-hidden relative video-frame-enhanced rgb-video-frame">
+    <div className="w-full h-full min-h-[300px] bg-gradient-to-br from-muted via-muted to-muted/80 rounded-2xl overflow-hidden relative video-frame-enhanced rgb-video-frame">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-transparent to-secondary/6 pointer-events-none"></div>
       {hasVideo && stream ? (
         <video

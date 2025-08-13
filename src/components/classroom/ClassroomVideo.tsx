@@ -10,7 +10,7 @@ export function ClassroomVideo({ teacher }: ClassroomVideoProps) {
   const { languageText } = useLanguage();
   
   return (
-    <div className="relative bg-gradient-to-br from-muted/50 to-muted rounded-2xl aspect-video overflow-hidden video-frame-enhanced glass-subtle rgb-video-frame">
+    <div className="relative bg-gradient-to-br from-muted/50 to-muted rounded-2xl aspect-video overflow-hidden video-frame-enhanced glass-subtle rgb-video-frame min-h-[350px]">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5"></div>
       
       <div className="absolute inset-0 flex items-center justify-center">

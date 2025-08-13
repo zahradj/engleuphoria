@@ -11,7 +11,7 @@ interface SideVideoFeedProps {
 export function SideVideoFeed({ feed, isCurrentUser, onClickFeed }: SideVideoFeedProps) {
   return (
     <div
-      className="w-40 flex-shrink-0 aspect-video bg-black rounded-md overflow-hidden relative cursor-pointer hover:ring-2 hover:ring-primary transition-all"
+      className="w-52 flex-shrink-0 aspect-video bg-black rounded-md overflow-hidden relative cursor-pointer hover:ring-2 hover:ring-primary transition-all"
       onClick={() => onClickFeed(feed.id)}
     >
       <VideoFeed

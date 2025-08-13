@@ -16,7 +16,7 @@ export function MainVideoFeed({
   onMaximize,
 }: MainVideoFeedProps) {
   return (
-    <div className="aspect-video bg-black rounded-lg overflow-hidden relative">
+    <div className="aspect-video bg-black rounded-lg overflow-hidden relative min-h-[400px]">
       <VideoFeed
         feed={feed}
         isSmall={false}
