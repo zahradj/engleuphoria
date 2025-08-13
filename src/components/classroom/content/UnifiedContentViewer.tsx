@@ -20,6 +20,8 @@ interface EmbeddedContent {
   y: number;
   width: number;
   height: number;
+  fileType?: string;
+  originalType?: string;
 }
 
 interface UnifiedContentViewerProps {
@@ -79,7 +81,9 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
         x: 100 + (index * 60), // Stagger horizontally
         y: 100 + (index * 60), // Stagger vertically  
         width: 800,
-        height: 600
+        height: 600,
+        fileType: uploadFile.file.type,
+        originalType: uploadFile.type
       };
       
       console.log('✅ Adding content to whiteboard:', newContent);

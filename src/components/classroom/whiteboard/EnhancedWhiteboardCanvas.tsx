@@ -14,6 +14,8 @@ interface EmbeddedContent {
   y: number;
   width: number;
   height: number;
+  fileType?: string;
+  originalType?: string;
 }
 
 interface EnhancedWhiteboardCanvasProps {
@@ -328,10 +330,10 @@ export function EnhancedWhiteboardCanvas({
             const scaledWidth = Math.max(800, content.width);
             const scaledHeight = Math.max(600, content.height);
             
-            // Determine content type from URL
-            const isImage = content.url.includes('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(content.url);
-            const isPDF = content.url.includes('.pdf') || content.title.toLowerCase().endsWith('.pdf');
-            const isOfficeDoc = /\.(doc|docx|ppt|pptx|xls|xlsx)$/i.test(content.title);
+            // Determine content type from stored metadata or fallback to URL/title detection
+            const isImage = content.fileType?.startsWith('image/') || content.originalType === 'image' || content.url.includes('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(content.url);
+            const isPDF = content.fileType?.includes('pdf') || content.originalType === 'pdf' || content.url.includes('.pdf') || content.title.toLowerCase().endsWith('.pdf');
+            const isOfficeDoc = content.fileType?.includes('officedocument') || content.originalType === 'document' || /\.(doc|docx|ppt|pptx|xls|xlsx)$/i.test(content.title);
             
             return (
               <div
