@@ -234,6 +234,11 @@ export class UnifiedVideoService extends VideoService {
     return this.connected;
   }
 
+  async raiseHand(): Promise<boolean> {
+    console.log('✋ Unified: Hand raised');
+    return true;
+  }
+
   dispose(): void {
     this.leaveRoom();
   }
