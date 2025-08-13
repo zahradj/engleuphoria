@@ -1,7 +1,8 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Star } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { audioService } from "@/services/audioService";
 
 interface StarRewardsLineProps {
   points: number;
@@ -10,6 +11,19 @@ interface StarRewardsLineProps {
 
 export function StarRewardsLine({ points, milestones }: StarRewardsLineProps) {
   const { languageText } = useLanguage();
+  const [previousPoints, setPreviousPoints] = useState(points);
+  
+  // Check for milestone achievements and play celebration sound
+  useEffect(() => {
+    if (points > previousPoints) {
+      const newMilestones = milestones.filter(m => m <= points && m > previousPoints);
+      if (newMilestones.length > 0) {
+        // Play celebration sound for milestone achievement
+        audioService.playCelebrationSound();
+      }
+    }
+    setPreviousPoints(points);
+  }, [points, previousPoints, milestones]);
   
   // Sort milestones in descending order
   const sortedMilestones = [...milestones].sort((a, b) => b - a);

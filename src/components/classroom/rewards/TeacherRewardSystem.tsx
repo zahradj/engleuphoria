@@ -6,7 +6,9 @@ import { QuickRewardButtons } from "./QuickRewardButtons";
 import { CustomRewardDialog } from "./CustomRewardDialog";
 import { RewardHistory } from "./RewardHistory";
 import { SessionStats } from "./SessionStats";
-import { Trophy, Award, History, BarChart3 } from "lucide-react";
+import { ApiKeyDialog } from "./ApiKeyDialog";
+import { Trophy, Award, History, BarChart3, Volume2, VolumeX } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { audioService } from "@/services/audioService";
 
 interface RewardData {
@@ -33,6 +35,7 @@ export function TeacherRewardSystem({
 }: TeacherRewardSystemProps) {
   const [rewardHistory, setRewardHistory] = useState<RewardData[]>([]);
   const [showCustomDialog, setShowCustomDialog] = useState(false);
+  const [showApiKeyDialog, setShowApiKeyDialog] = useState(false);
 
   const handleQuickReward = (points: number, category: string) => {
     const reward: RewardData = {
@@ -95,6 +98,30 @@ export function TeacherRewardSystem({
         </TabsList>
 
         <div className="flex-1 overflow-y-auto p-3">
+          {/* Voice Setup Banner */}
+          {!audioService.hasElevenLabsKey() && (
+            <div className="mb-3 p-3 bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <VolumeX className="h-4 w-4 text-purple-600" />
+                  <span className="text-sm text-purple-800 font-medium">Enable Voice Rewards</span>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowApiKeyDialog(true)}
+                  className="text-purple-600 border-purple-300 hover:bg-purple-50"
+                >
+                  <Volume2 className="h-3 w-3 mr-1" />
+                  Setup
+                </Button>
+              </div>
+              <p className="text-xs text-purple-600 mt-1">
+                Add exciting voice congratulations to your rewards!
+              </p>
+            </div>
+          )}
+
           <TabsContent value="rewards" className="mt-0 space-y-3">
             <QuickRewardButtons onReward={handleQuickReward} />
             <CustomRewardDialog 
@@ -117,6 +144,12 @@ export function TeacherRewardSystem({
             />
           </TabsContent>
         </div>
+
+        {/* API Key Dialog */}
+        <ApiKeyDialog
+          isOpen={showApiKeyDialog}
+          onClose={() => setShowApiKeyDialog(false)}
+        />
       </Tabs>
     </Card>
   );

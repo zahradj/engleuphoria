@@ -13,7 +13,7 @@ export function SoundSettings() {
   const [volume, setVolume] = useState([50]);
 
   useEffect(() => {
-    setIsMuted(audioService.isSoundMuted());
+    setIsMuted(audioService.isSoundMuted);
   }, []);
 
   const handleMuteToggle = (muted: boolean) => {
@@ -27,7 +27,7 @@ export function SoundSettings() {
         audioService.playButtonClick();
         break;
       case 'reward':
-        audioService.playRewardSound();
+        audioService.playRewardSound(25);
         break;
       case 'success':
         audioService.playSuccessSound();
