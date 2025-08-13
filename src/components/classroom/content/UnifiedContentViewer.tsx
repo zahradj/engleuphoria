@@ -35,6 +35,11 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
   const [activeShape, setActiveShape] = useState<"rectangle" | "circle">("rectangle");
   const [embeddedContent, setEmbeddedContent] = useState<EmbeddedContent[]>([]);
   
+  // Debug embedded content changes
+  React.useEffect(() => {
+    console.log('📋 EmbeddedContent state updated:', embeddedContent);
+  }, [embeddedContent]);
+  
   const initialContent: any[] = [];
   
   const {
@@ -54,11 +59,15 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
 
   // Enhanced upload handler that also adds to whiteboard
   const handleEnhancedUpload = (uploadFiles: any[]) => {
+    console.log('🔄 UnifiedContentViewer: handleEnhancedUpload called with files:', uploadFiles);
+    
     // First handle the original upload logic
     originalHandleEnhancedUpload(uploadFiles);
     
     // Then add each file to the whiteboard as embedded content
     uploadFiles.forEach((uploadFile, index) => {
+      console.log('📄 Processing upload file:', uploadFile.file.name, 'type:', uploadFile.type);
+      
       const fileUrl = URL.createObjectURL(uploadFile.file);
       const fileName = uploadFile.file.name.toLowerCase();
       
@@ -73,7 +82,12 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
         height: 600
       };
       
-      setEmbeddedContent(prev => [...prev, newContent]);
+      console.log('✅ Adding content to whiteboard:', newContent);
+      setEmbeddedContent(prev => {
+        const updated = [...prev, newContent];
+        console.log('📋 Updated embedded content:', updated);
+        return updated;
+      });
     });
   };
 

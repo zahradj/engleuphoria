@@ -67,6 +67,8 @@ export function useEnhancedContentManager(
   };
 
   const handleEnhancedUpload = useCallback((uploadFiles: UploadFile[]) => {
+    console.log('📁 useEnhancedContentManager: handleEnhancedUpload called with files:', uploadFiles);
+    
     const newItems: ContentItem[] = uploadFiles.map(uploadFile => ({
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
       type: getFileType(uploadFile.file),
@@ -78,7 +80,12 @@ export function useEnhancedContentManager(
       fileType: uploadFile.file.type
     }));
 
-    setContentItems(prev => [...prev, ...newItems]);
+    console.log('📚 Created content items:', newItems);
+    setContentItems(prev => {
+      const updated = [...prev, ...newItems];
+      console.log('📋 Updated content items:', updated);
+      return updated;
+    });
     
     if (newItems.length === 1) {
       setSelectedContent(newItems[0]);
