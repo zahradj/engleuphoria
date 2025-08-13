@@ -21,7 +21,7 @@ interface UseClassroomActionsProps {
 }
 
 export function useClassroomActions({
-  videoService,
+  videoService: videoService as any,
   isConnected,
   isRecording,
   userRole,

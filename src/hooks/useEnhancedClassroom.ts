@@ -4,6 +4,7 @@ import { UseEnhancedClassroomProps, ClassroomSession } from './enhanced-classroo
 import { useClassroomActions } from './enhanced-classroom/useClassroomActions';
 import { useRoleManager } from './enhanced-classroom/useRoleManager';
 import { useVideoServiceManager } from './enhanced-classroom/useVideoServiceManager';
+import { useUnifiedVideo } from './useUnifiedVideo';
 import { useEnhancedMediaControls } from './enhanced-classroom/useEnhancedMediaControls';
 import { useSessionInitializer } from './enhanced-classroom/useSessionInitializer';
 
