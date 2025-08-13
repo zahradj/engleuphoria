@@ -59,46 +59,12 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
     handleFileDownload
   } = useEnhancedContentManager(initialContent, studentName, isTeacher);
 
-  // Enhanced upload handler that also adds to whiteboard
-  const handleEnhancedUpload = async (uploadFiles: any[]) => {
+  // Simple upload handler that only adds to content library
+  const handleEnhancedUpload = (uploadFiles: any[]) => {
     console.log('🔄 UnifiedContentViewer: handleEnhancedUpload called with files:', uploadFiles);
     
-    // First handle the original upload logic and wait for it to complete
-    await originalHandleEnhancedUpload(uploadFiles);
-    
-    // Then add each file to the whiteboard as embedded content, using the processed URLs
-    uploadFiles.forEach((uploadFile, index) => {
-      console.log('📄 Processing upload file:', uploadFile.file.name, 'type:', uploadFile.type);
-      
-      // Find the corresponding content item that was just created by the content manager
-      const matchingContentItem = contentItems.find(item => 
-        item.title === uploadFile.file.name && 
-        item.fileType === uploadFile.file.type
-      );
-      
-      // Use the processed URL from content manager (data URL for PDFs) or fallback to blob URL
-      const fileUrl = matchingContentItem?.source || URL.createObjectURL(uploadFile.file);
-      
-      // Create embedded content for the whiteboard
-      const newContent: EmbeddedContent = {
-        id: Date.now().toString() + index,
-        title: uploadFile.file.name,
-        url: fileUrl,
-        x: 100 + (index * 60), // Stagger horizontally
-        y: 100 + (index * 60), // Stagger vertically  
-        width: 800,
-        height: 600,
-        fileType: uploadFile.file.type,
-        originalType: uploadFile.type
-      };
-      
-      console.log('✅ Adding content to whiteboard:', newContent);
-      setEmbeddedContent(prev => {
-        const updated = [...prev, newContent];
-        console.log('📋 Updated embedded content:', updated);
-        return updated;
-      });
-    });
+    // Only handle the original upload logic to add files to content library
+    originalHandleEnhancedUpload(uploadFiles);
   };
 
   const handleAddEmbeddedContent = (content: Omit<EmbeddedContent, 'id'>) => {
