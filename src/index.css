@@ -7,67 +7,67 @@
 
 @layer base {
   :root {
-    --background: 220 55% 98%;
-    --foreground: 240 10% 20%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 20%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 20%;
-    --primary: 252 82% 74%;
+    --background: 280 30% 98%;
+    --foreground: 280 15% 15%;
+    --card: 280 20% 100%;
+    --card-foreground: 280 15% 15%;
+    --popover: 280 20% 100%;
+    --popover-foreground: 280 15% 15%;
+    --primary: 270 85% 65%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 152 75% 42%;
+    --secondary: 260 70% 50%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 5% 45%;
-    --accent: 36 100% 64%;
-    --accent-foreground: 24 75% 35%;
+    --muted: 280 15% 96%;
+    --muted-foreground: 280 15% 45%;
+    --accent: 290 80% 70%;
+    --accent-foreground: 280 15% 15%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 6% 90%;
-    --input: 240 6% 85%;
-    --ring: 252 82% 74%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-	--chart-4: 43 74% 66%;
-	--chart-5: 27 87% 67%;
+    --border: 280 20% 90%;
+    --input: 280 20% 85%;
+    --ring: 270 85% 65%;
+    --chart-1: 270 85% 65%;
+    --chart-2: 260 70% 50%;
+    --chart-3: 290 80% 70%;
+	--chart-4: 280 60% 60%;
+	--chart-5: 300 75% 65%;
 
-	/* Enhanced role colors - dark mode */
-	--student: 122 39% 49%;
-	--student-light: 122 39% 15%;
-	--student-dark: 122 43% 35%;
-	--student-accent: 122 33% 61%;
+	/* Enhanced role colors - light mode */
+	--student: 270 75% 60%;
+	--student-light: 270 50% 95%;
+	--student-dark: 270 70% 45%;
+	--student-accent: 280 70% 70%;
 	--student-foreground: 0 0% 100%;
 	
-	--teacher: 207 78% 51%;
-	--teacher-light: 207 100% 15%;
-	--teacher-dark: 208 76% 42%;
-	--teacher-accent: 207 83% 61%;
+	--teacher: 260 80% 55%;
+	--teacher-light: 260 40% 96%;
+	--teacher-dark: 260 75% 40%;
+	--teacher-accent: 270 75% 65%;
 	--teacher-foreground: 0 0% 100%;
 	
-	--admin: 280 49% 40%;
-	--admin-light: 280 100% 15%;
-	--admin-dark: 280 57% 32%;
-	--admin-accent: 280 43% 52%;
+	--admin: 290 70% 50%;
+	--admin-light: 290 40% 94%;
+	--admin-dark: 290 65% 35%;
+	--admin-accent: 300 70% 60%;
 	--admin-foreground: 0 0% 100%;
 
 	/* Enhanced role colors */
-	--student: 122 39% 49%;
-	--student-light: 122 39% 92%;
-	--student-dark: 122 43% 35%;
-	--student-accent: 122 33% 61%;
+	--student: 270 75% 60%;
+	--student-light: 270 50% 95%;
+	--student-dark: 270 70% 45%;
+	--student-accent: 280 70% 70%;
 	--student-foreground: 0 0% 100%;
 	
-	--teacher: 207 78% 51%;
-	--teacher-light: 207 100% 96%;
-	--teacher-dark: 208 76% 42%;
-	--teacher-accent: 207 83% 61%;
+	--teacher: 260 80% 55%;
+	--teacher-light: 260 40% 96%;
+	--teacher-dark: 260 75% 40%;
+	--teacher-accent: 270 75% 65%;
 	--teacher-foreground: 0 0% 100%;
 	
-	--admin: 280 49% 40%;
-	--admin-light: 280 100% 94%;
-	--admin-dark: 280 57% 32%;
-	--admin-accent: 280 43% 52%;
+	--admin: 290 70% 50%;
+	--admin-light: 290 40% 94%;
+	--admin-dark: 290 65% 35%;
+	--admin-accent: 300 70% 60%;
 	--admin-foreground: 0 0% 100%;
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -81,30 +81,30 @@
   }
 
   .dark {
-    --background: 240 10% 10%;
-    --foreground: 240 10% 95%;
-    --card: 240 10% 13%;
-    --card-foreground: 240 10% 95%;
-    --popover: 240 10% 13%;
-    --popover-foreground: 240 10% 95%;
-    --primary: 252 70% 64%;
+    --background: 280 20% 8%;
+    --foreground: 280 15% 90%;
+    --card: 280 20% 12%;
+    --card-foreground: 280 15% 90%;
+    --popover: 280 20% 12%;
+    --popover-foreground: 280 15% 90%;
+    --primary: 270 80% 70%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 152 65% 32%;
+    --secondary: 260 65% 45%;
     --secondary-foreground: 0 0% 100%;
-    --muted: 240 10% 20%;
-    --muted-foreground: 240 10% 70%;
-    --accent: 36 90% 54%;
-    --accent-foreground: 240 10% 95%;
+    --muted: 280 15% 18%;
+    --muted-foreground: 280 15% 65%;
+    --accent: 290 75% 75%;
+    --accent-foreground: 280 20% 8%;
     --destructive: 0 74% 50%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 10% 20%;
-    --input: 240 10% 24%;
-    --ring: 252 70% 64%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --border: 280 15% 20%;
+    --input: 280 15% 22%;
+    --ring: 270 80% 70%;
+    --chart-1: 270 80% 70%;
+    --chart-2: 260 65% 45%;
+    --chart-3: 290 75% 75%;
+    --chart-4: 280 55% 55%;
+    --chart-5: 300 70% 60%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 94.1%;
@@ -134,11 +134,11 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-gradient-to-b from-blue-400 to-purple-500 rounded-full;
+    @apply bg-gradient-to-b from-purple-400 to-purple-600 rounded-full;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply from-blue-500 to-purple-600;
+    @apply from-purple-500 to-purple-700;
   }
 }
 
@@ -440,109 +440,117 @@
         transparent 40%, 
         hsla(var(--accent) / 0.08) 80%, 
         hsla(var(--primary) / 0.05));
+    }
+    50% {
+      background: linear-gradient(225deg, 
+        hsla(var(--accent) / 0.12), 
+        transparent 40%, 
+        hsla(var(--primary) / 0.1) 80%, 
+        hsla(var(--secondary) / 0.06));
+    }
   }
 
   /* RGB Color Cycling Effects */
   @keyframes rgb-cycle {
     0% { 
       background: linear-gradient(45deg, 
-        hsl(0, 70%, 60%), 
-        hsl(120, 70%, 60%), 
-        hsl(240, 70%, 60%));
+        hsl(260, 80%, 60%), 
+        hsl(280, 80%, 60%), 
+        hsl(300, 80%, 60%));
     }
     16.66% { 
       background: linear-gradient(45deg, 
-        hsl(60, 70%, 60%), 
-        hsl(180, 70%, 60%), 
-        hsl(300, 70%, 60%));
+        hsl(270, 80%, 60%), 
+        hsl(290, 80%, 60%), 
+        hsl(310, 80%, 60%));
     }
     33.33% { 
       background: linear-gradient(45deg, 
-        hsl(120, 70%, 60%), 
-        hsl(240, 70%, 60%), 
-        hsl(0, 70%, 60%));
+        hsl(280, 80%, 60%), 
+        hsl(300, 80%, 60%), 
+        hsl(260, 80%, 60%));
     }
     50% { 
       background: linear-gradient(45deg, 
-        hsl(180, 70%, 60%), 
-        hsl(300, 70%, 60%), 
-        hsl(60, 70%, 60%));
+        hsl(290, 80%, 60%), 
+        hsl(310, 80%, 60%), 
+        hsl(270, 80%, 60%));
     }
     66.66% { 
       background: linear-gradient(45deg, 
-        hsl(240, 70%, 60%), 
-        hsl(0, 70%, 60%), 
-        hsl(120, 70%, 60%));
+        hsl(300, 80%, 60%), 
+        hsl(260, 80%, 60%), 
+        hsl(280, 80%, 60%));
     }
     83.33% { 
       background: linear-gradient(45deg, 
-        hsl(300, 70%, 60%), 
-        hsl(60, 70%, 60%), 
-        hsl(180, 70%, 60%));
+        hsl(310, 80%, 60%), 
+        hsl(270, 80%, 60%), 
+        hsl(290, 80%, 60%));
     }
     100% { 
       background: linear-gradient(45deg, 
-        hsl(0, 70%, 60%), 
-        hsl(120, 70%, 60%), 
-        hsl(240, 70%, 60%));
+        hsl(260, 80%, 60%), 
+        hsl(280, 80%, 60%), 
+        hsl(300, 80%, 60%));
     }
   }
 
   @keyframes rgb-border-glow {
     0% { 
-      border-color: hsl(0, 80%, 60%);
-      box-shadow: 0 0 20px hsl(0, 80%, 60% / 0.5);
+      border-color: hsl(260, 80%, 60%);
+      box-shadow: 0 0 20px hsl(260, 80%, 60% / 0.5);
     }
     16.66% { 
-      border-color: hsl(60, 80%, 60%);
-      box-shadow: 0 0 20px hsl(60, 80%, 60% / 0.5);
+      border-color: hsl(270, 80%, 60%);
+      box-shadow: 0 0 20px hsl(270, 80%, 60% / 0.5);
     }
     33.33% { 
-      border-color: hsl(120, 80%, 60%);
-      box-shadow: 0 0 20px hsl(120, 80%, 60% / 0.5);
+      border-color: hsl(280, 80%, 60%);
+      box-shadow: 0 0 20px hsl(280, 80%, 60% / 0.5);
     }
     50% { 
-      border-color: hsl(180, 80%, 60%);
-      box-shadow: 0 0 20px hsl(180, 80%, 60% / 0.5);
+      border-color: hsl(290, 80%, 60%);
+      box-shadow: 0 0 20px hsl(290, 80%, 60% / 0.5);
     }
     66.66% { 
-      border-color: hsl(240, 80%, 60%);
-      box-shadow: 0 0 20px hsl(240, 80%, 60% / 0.5);
-    }
-    83.33% { 
       border-color: hsl(300, 80%, 60%);
       box-shadow: 0 0 20px hsl(300, 80%, 60% / 0.5);
     }
+    83.33% { 
+      border-color: hsl(310, 80%, 60%);
+      box-shadow: 0 0 20px hsl(310, 80%, 60% / 0.5);
+    }
     100% { 
-      border-color: hsl(0, 80%, 60%);
-      box-shadow: 0 0 20px hsl(0, 80%, 60% / 0.5);
+      border-color: hsl(260, 80%, 60%);
+      box-shadow: 0 0 20px hsl(260, 80%, 60% / 0.5);
     }
   }
 
   @keyframes rgb-subtle {
     0% { 
       background: linear-gradient(135deg, 
-        hsl(0, 40%, 60% / 0.1), 
-        hsl(120, 40%, 60% / 0.1), 
-        hsl(240, 40%, 60% / 0.1));
+        hsl(260, 40%, 60% / 0.1), 
+        hsl(280, 40%, 60% / 0.1), 
+        hsl(300, 40%, 60% / 0.1));
     }
     33.33% { 
       background: linear-gradient(135deg, 
-        hsl(120, 40%, 60% / 0.1), 
-        hsl(240, 40%, 60% / 0.1), 
-        hsl(0, 40%, 60% / 0.1));
+        hsl(280, 40%, 60% / 0.1), 
+        hsl(300, 40%, 60% / 0.1), 
+        hsl(260, 40%, 60% / 0.1));
     }
     66.66% { 
       background: linear-gradient(135deg, 
-        hsl(240, 40%, 60% / 0.1), 
-        hsl(0, 40%, 60% / 0.1), 
-        hsl(120, 40%, 60% / 0.1));
+        hsl(300, 40%, 60% / 0.1), 
+        hsl(260, 40%, 60% / 0.1), 
+        hsl(280, 40%, 60% / 0.1));
     }
     100% { 
       background: linear-gradient(135deg, 
-        hsl(0, 40%, 60% / 0.1), 
-        hsl(120, 40%, 60% / 0.1), 
-        hsl(240, 40%, 60% / 0.1));
+        hsl(260, 40%, 60% / 0.1), 
+        hsl(280, 40%, 60% / 0.1), 
+        hsl(300, 40%, 60% / 0.1));
     }
   }
 
@@ -572,13 +580,13 @@
     position: absolute;
     inset: -2px;
     background: conic-gradient(from 0deg, 
-      hsl(0, 80%, 60%), 
-      hsl(60, 80%, 60%), 
-      hsl(120, 80%, 60%), 
-      hsl(180, 80%, 60%), 
-      hsl(240, 80%, 60%), 
+      hsl(260, 80%, 60%), 
+      hsl(270, 80%, 60%), 
+      hsl(280, 80%, 60%), 
+      hsl(290, 80%, 60%), 
       hsl(300, 80%, 60%), 
-      hsl(0, 80%, 60%));
+      hsl(310, 80%, 60%), 
+      hsl(260, 80%, 60%));
     border-radius: inherit;
     z-index: -1;
     animation: spin 3s linear infinite;
@@ -590,13 +598,28 @@
       transform: rotate(360deg);
     }
   }
-    50% {
-      background: linear-gradient(225deg, 
-        hsla(var(--accent) / 0.12), 
-        transparent 40%, 
-        hsla(var(--primary) / 0.1) 80%, 
-        hsla(var(--secondary) / 0.06));
-    }
+
+  /* RGB Button and Text Effects */
+  .rgb-button {
+    position: relative;
+    background: linear-gradient(45deg, 
+      hsl(260, 70%, 55%), 
+      hsl(280, 70%, 55%), 
+      hsl(300, 70%, 55%));
+    animation: rgb-cycle 2s ease-in-out infinite;
+    border: none;
+    color: white;
+  }
+
+  .rgb-text {
+    background: linear-gradient(45deg, 
+      hsl(260, 80%, 60%), 
+      hsl(280, 80%, 60%), 
+      hsl(300, 80%, 60%));
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: rgb-cycle 2s ease-in-out infinite;
   }
 
   .video-frame-enhanced {
