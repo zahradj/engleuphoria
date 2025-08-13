@@ -36,8 +36,8 @@ export function RightRail({
   return (
     <div className="h-full bg-background border-l border-border flex flex-col">
       {/* Teacher Video */}
-      <div className="p-4 border-b border-border">
-        <div className="aspect-[4/3]">
+      <div className="p-2 border-b border-border">
+        <div className="aspect-[3/4] w-full">
           <VideoTile
             stream={topStream}
             hasVideo={!!topStream}
@@ -49,8 +49,8 @@ export function RightRail({
       </div>
 
       {/* Student Video */}
-      <div className="p-4 border-b border-border">
-        <div className="aspect-[4/3]">
+      <div className="p-2 border-b border-border">
+        <div className="aspect-[3/4] w-full">
           <VideoTile
             stream={bottomStream}
             hasVideo={!!bottomStream}
@@ -62,7 +62,7 @@ export function RightRail({
       </div>
 
       {/* Tool Buttons */}
-      <div className="flex-1 p-3 space-y-3">
+      <div className="flex-1 p-2 space-y-2">
         <ToolButton
           icon={<Gift className="h-4 w-4" />}
           label="Rewards"

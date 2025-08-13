@@ -65,7 +65,7 @@ export function UnifiedClassroomContent({
       </div>
 
       {/* Right rail - 15-20% width */}
-      <div className="w-80 h-full">
+      <div className="w-96 h-full">
         <div className="h-full glass-subtle rounded-3xl overflow-hidden backdrop-blur-sm animate-fade-in interactive-hover">
           <RightRail
             localStream={enhancedClassroom?.localStream || null}
