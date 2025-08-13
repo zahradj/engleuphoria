@@ -18,14 +18,22 @@ serve(async (req) => {
 
   try {
     const { 
+      type,
       contentType, 
+      level,
       cefrLevel, 
       topic, 
       difficultyLevel, 
       learningObjectives,
       duration,
-      studentId 
+      studentId,
+      specificRequirements,
+      studentAge
     } = await req.json();
+
+    // Use 'type' if available, otherwise fall back to 'contentType'
+    const actualContentType = type || contentType;
+    const actualLevel = level || cefrLevel;
 
     if (!openAIApiKey) {
       throw new Error('OpenAI API key not configured');
@@ -35,80 +43,107 @@ serve(async (req) => {
 
     // Create content generation prompt based on type
     let prompt = '';
-    switch (contentType) {
+    switch (actualContentType) {
       case 'lesson':
-        prompt = `Create a comprehensive English lesson for ${cefrLevel} level students.
+      case 'lesson_plan':
+        prompt = `Create a comprehensive English lesson plan for ${actualLevel} level students.
 Topic: ${topic}
-Duration: ${duration} minutes
-Difficulty: ${difficultyLevel}/10
-Learning Objectives: ${learningObjectives?.join(', ')}
+Duration: ${duration || 45} minutes
+Student Age: ${studentAge || 'Not specified'}
+Learning Objectives: ${learningObjectives?.join(', ') || 'General language learning'}
+Specific Requirements: ${specificRequirements || 'None'}
 
 Include:
-1. Lesson introduction and objectives
-2. Vocabulary list with definitions and examples
-3. Grammar points with clear explanations
-4. Practice exercises (3-5 varied activities)
-5. Assessment questions
-6. Homework suggestions
+1. Lesson title and objectives
+2. Materials needed
+3. Warm-up activity (5-10 minutes)
+4. Main lesson content with vocabulary and grammar
+5. Practice activities (20-30 minutes)
+6. Assessment and feedback
+7. Homework assignment
+8. Extension activities for advanced learners
 
-Format as structured JSON with sections for easy parsing.`;
-        break;
-
-      case 'exercise':
-        prompt = `Generate interactive English exercises for ${cefrLevel} level.
-Topic: ${topic}
-Difficulty: ${difficultyLevel}/10
-Objectives: ${learningObjectives?.join(', ')}
-
-Create 5-7 varied exercises including:
-- Multiple choice questions
-- Fill-in-the-blank
-- Matching activities
-- Short answer questions
-- Error correction
-
-Each exercise should have clear instructions, questions, and answer keys.
-Format as JSON with exercise type, instructions, questions, and answers.`;
-        break;
-
-      case 'quiz':
-        prompt = `Create an assessment quiz for ${cefrLevel} English learners.
-Topic: ${topic}
-Difficulty: ${difficultyLevel}/10
-Duration: ${duration} minutes
-
-Include:
-- 10-15 questions of varying types
-- Clear instructions
-- Point values for each question
-- Comprehensive answer key with explanations
-- Performance rubric
-
-Mix question types: multiple choice, true/false, short answer, essay.
-Format as JSON with metadata and question array.`;
+Format as structured JSON with clear sections for easy implementation.`;
         break;
 
       case 'worksheet':
-        prompt = `Design a printable worksheet for ${cefrLevel} English students.
+        prompt = `Design a printable worksheet for ${actualLevel} English students.
 Topic: ${topic}
-Difficulty: ${difficultyLevel}/10
+Student Age: ${studentAge || 'Not specified'}
+Learning Objectives: ${learningObjectives?.join(', ') || 'General practice'}
+Specific Requirements: ${specificRequirements || 'None'}
 
 Include:
 - Clear title and instructions
 - Student name/date fields
 - 8-12 engaging activities
-- Visual elements descriptions
-- Answer key
-- Teacher notes
+- Visual elements descriptions where helpful
+- Answer key for teachers
+- Difficulty progression from easy to challenging
 
 Activities should be varied and engaging. Format as JSON with layout structure.`;
         break;
 
+      case 'activity':
+        prompt = `Create interactive English activities for ${actualLevel} level students.
+Topic: ${topic}
+Duration: ${duration || 30} minutes
+Student Age: ${studentAge || 'Not specified'}
+Learning Objectives: ${learningObjectives?.join(', ') || 'Interactive practice'}
+Specific Requirements: ${specificRequirements || 'None'}
+
+Generate 5-7 varied activities including:
+- Speaking activities and role-plays
+- Interactive games
+- Group work exercises
+- Creative tasks
+- Technology-enhanced activities
+
+Each activity should have clear instructions, materials needed, and learning outcomes.
+Format as JSON with activity type, instructions, materials, and procedures.`;
+        break;
+
+      case 'quiz':
+        prompt = `Create an assessment quiz for ${actualLevel} English learners.
+Topic: ${topic}
+Duration: ${duration || 20} minutes
+Student Age: ${studentAge || 'Not specified'}
+Learning Objectives: ${learningObjectives?.join(', ') || 'Assessment of understanding'}
+
+Include:
+- 10-15 questions of varying types
+- Clear instructions for each section
+- Point values for each question
+- Comprehensive answer key with explanations
+- Performance rubric and grading criteria
+
+Mix question types: multiple choice, true/false, short answer, fill-in-the-blank.
+Format as JSON with metadata and question array.`;
+        break;
+
+      case 'flashcards':
+        prompt = `Create educational flashcards for ${actualLevel} English learners.
+Topic: ${topic}
+Student Age: ${studentAge || 'Not specified'}
+Learning Objectives: ${learningObjectives?.join(', ') || 'Vocabulary memorization'}
+Specific Requirements: ${specificRequirements || 'None'}
+
+Generate 15-25 flashcards including:
+- Vocabulary words with definitions
+- Example sentences showing usage
+- Synonyms and antonyms where applicable
+- Visual description suggestions
+- Memory tips or mnemonics
+
+Each flashcard should have a front (word/concept) and back (definition/explanation).
+Format as JSON with flashcard array and study instructions.`;
+        break;
+
       default:
-        throw new Error('Invalid content type');
+        throw new Error(`Invalid content type: ${actualContentType}. Supported types: worksheet, activity, lesson_plan, quiz, flashcards`);
     }
 
-    console.log('Generating content with OpenAI:', contentType);
+    console.log('Generating content with OpenAI:', actualContentType, 'for level:', actualLevel);
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -146,7 +181,7 @@ Activities should be varied and engaging. Format as JSON with layout structure.`
     } catch (parseError) {
       // If JSON parsing fails, wrap the content
       generatedContent = {
-        type: contentType,
+        type: actualContentType,
         content: data.choices[0].message.content,
         generated_at: new Date().toISOString()
       };
@@ -156,15 +191,15 @@ Activities should be varied and engaging. Format as JSON with layout structure.`
     const { data: savedContent, error: saveError } = await supabase
       .from('adaptive_content')
       .insert({
-        title: `AI-Generated ${contentType}: ${topic}`,
-        content_type: contentType,
-        difficulty_level: difficultyLevel,
-        cefr_level: cefrLevel,
+        title: `AI-Generated ${actualContentType}: ${topic}`,
+        content_type: actualContentType,
+        difficulty_level: difficultyLevel || 5,
+        cefr_level: actualLevel,
         learning_objectives: learningObjectives || [],
         content_data: generatedContent,
         ai_generated: true,
         generation_prompt: prompt,
-        tags: [topic, cefrLevel, `difficulty_${difficultyLevel}`],
+        tags: [topic, actualLevel, `difficulty_${difficultyLevel || 5}`],
         estimated_duration: duration || 30,
         is_active: true
       })
@@ -183,9 +218,9 @@ Activities should be varied and engaging. Format as JSON with layout structure.`
         event_type: 'content_generated',
         content_id: savedContent.id,
         event_data: {
-          content_type: contentType,
+          content_type: actualContentType,
           topic,
-          difficulty_level: difficultyLevel,
+          difficulty_level: difficultyLevel || 5,
           generation_time: new Date().toISOString()
         }
       });
