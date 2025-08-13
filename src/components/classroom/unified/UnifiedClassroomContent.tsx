@@ -52,10 +52,10 @@ export function UnifiedClassroomContent({
   };
 
   return (
-    <div className="h-full flex gap-4">
+    <div className="h-full flex gap-6">
       {/* Main lesson area - 80-85% width */}
       <div className="flex-1 h-full">
-        <div className="h-full glass-enhanced rounded-3xl overflow-hidden backdrop-blur-lg">
+        <div className="h-full glass-enhanced rounded-3xl overflow-hidden backdrop-blur-lg classroom-ambient floating-animation">
           <UnifiedCenterPanel
             activeCenterTab={activeCenterTab}
             onTabChange={setActiveCenterTab}
@@ -66,7 +66,7 @@ export function UnifiedClassroomContent({
 
       {/* Right rail - 15-20% width */}
       <div className="w-80 h-full">
-        <div className="h-full glass-subtle rounded-2xl overflow-hidden backdrop-blur-sm animate-fade-in">
+        <div className="h-full glass-subtle rounded-3xl overflow-hidden backdrop-blur-sm animate-fade-in interactive-hover">
           <RightRail
             localStream={enhancedClassroom?.localStream || null}
             remoteStream={null}

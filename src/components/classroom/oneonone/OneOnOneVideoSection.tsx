@@ -50,9 +50,10 @@ export function OneOnOneVideoSection({
 
   return (
     <div className="h-full flex flex-col gap-6">
-      <Card className="flex-1 p-0 border-0 glass-enhanced rounded-3xl overflow-hidden relative floating-animation video-panel-glow">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background/80 to-secondary/5 pointer-events-none"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-background/20 via-transparent to-transparent pointer-events-none"></div>
+      <Card className="flex-1 p-0 border-0 glass-enhanced rounded-3xl overflow-hidden relative floating-animation video-panel-glow classroom-ambient">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-background/75 to-secondary/6 pointer-events-none"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-background/30 via-transparent to-accent/5 pointer-events-none"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/3 to-transparent pointer-events-none animate-pulse"></div>
         <div className="aspect-video relative flex items-center justify-center">
           {!lessonStarted ? (
             <LessonStartPrompt isTeacher={isTeacher} onStartLesson={startLessonAndJoin} />
@@ -66,10 +67,10 @@ export function OneOnOneVideoSection({
                 </div>
               )}
               {lessonStarted && media.isConnected && (
-                <div className="absolute top-3 left-3 z-10">
-                  <span className="bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg flex items-center gap-1 px-3 py-1 rounded-xl text-xs font-bold pulse-ring">
-                    <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                    LIVE
+                <div className="absolute top-4 left-4 z-10">
+                  <span className="bg-gradient-to-r from-secondary to-secondary-foreground text-white shadow-xl flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-bold pulse-ring status-indicator">
+                    <div className="w-3 h-3 bg-white rounded-full animate-pulse shadow-lg"></div>
+                    LIVE SESSION
                   </span>
                 </div>
               )}
@@ -81,8 +82,8 @@ export function OneOnOneVideoSection({
 
       {/* Teaching Tools and Simple Progress - Only show for teachers */}
       {isTeacher && (
-        <div className="flex-shrink-0 space-y-4">
-          <div className="glass-subtle rounded-2xl p-4 animate-fade-in">
+        <div className="flex-shrink-0 space-y-5">
+          <div className="glass-subtle rounded-3xl p-6 animate-fade-in interactive-hover">
             <QuickTeachingTools 
               currentUser={{
                 role: isTeacher ? 'teacher' : 'student',
@@ -90,7 +91,7 @@ export function OneOnOneVideoSection({
               }}
             />
           </div>
-          <div className="glass-subtle rounded-2xl p-4 animate-fade-in">
+          <div className="glass-subtle rounded-3xl p-6 animate-fade-in interactive-hover">
             <StudentProgress
               studentXP={studentXP}
               studentName="Emma"
