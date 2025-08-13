@@ -399,6 +399,11 @@
     33% {
       opacity: 0.9;
       transform: scale(1.08) rotate(1deg);
+    }
+    66% {
+      opacity: 0.7;
+      transform: scale(1.05) rotate(-0.5deg);
+    }
   }
 
   @keyframes rainbow-shift {
@@ -442,10 +447,6 @@
         transparent 40%, 
         hsla(var(--primary) / 0.1) 80%, 
         hsla(var(--secondary) / 0.06));
-    }
-    66% {
-      opacity: 0.7;
-      transform: scale(1.05) rotate(-0.5deg);
     }
   }
 
