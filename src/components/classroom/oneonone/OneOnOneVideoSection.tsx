@@ -68,9 +68,9 @@ export function OneOnOneVideoSection({
               )}
               {lessonStarted && media.isConnected && (
                 <div className="absolute top-4 left-4 z-10">
-                  <span className="bg-gradient-to-r from-secondary to-secondary-foreground text-white shadow-xl flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-bold pulse-ring status-indicator">
+                  <span className="rgb-button flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-bold pulse-ring status-indicator">
                     <div className="w-3 h-3 bg-white rounded-full animate-pulse shadow-lg"></div>
-                    LIVE SESSION
+                    <span className="rgb-text font-bold">LIVE SESSION</span>
                   </span>
                 </div>
               )}
