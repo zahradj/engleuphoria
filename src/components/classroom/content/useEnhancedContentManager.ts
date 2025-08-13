@@ -66,18 +66,41 @@ export function useEnhancedContentManager(
     return 'pdf';
   };
 
-  const handleEnhancedUpload = useCallback((uploadFiles: UploadFile[]) => {
+  const handleEnhancedUpload = useCallback(async (uploadFiles: UploadFile[]) => {
     console.log('📁 useEnhancedContentManager: handleEnhancedUpload called with files:', uploadFiles);
     
-    const newItems: ContentItem[] = uploadFiles.map(uploadFile => ({
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      type: getFileType(uploadFile.file),
-      title: uploadFile.file.name,
-      source: URL.createObjectURL(uploadFile.file),
-      uploadedBy: isTeacher ? "Teacher" : userName,
-      timestamp: new Date(),
-      size: uploadFile.file.size,
-      fileType: uploadFile.file.type
+    const newItems: ContentItem[] = await Promise.all(uploadFiles.map(async (uploadFile) => {
+      const fileType = getFileType(uploadFile.file);
+      let source: string;
+      
+      // Convert PDFs to data URLs to avoid Chrome blocking
+      if (fileType === 'pdf' || uploadFile.file.type === 'application/pdf') {
+        try {
+          const reader = new FileReader();
+          source = await new Promise<string>((resolve, reject) => {
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = () => reject(reader.error);
+            reader.readAsDataURL(uploadFile.file);
+          });
+        } catch (error) {
+          console.error('Failed to convert PDF to data URL:', error);
+          // Fallback to blob URL
+          source = URL.createObjectURL(uploadFile.file);
+        }
+      } else {
+        source = URL.createObjectURL(uploadFile.file);
+      }
+      
+      return {
+        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+        type: fileType,
+        title: uploadFile.file.name,
+        source,
+        uploadedBy: isTeacher ? "Teacher" : userName,
+        timestamp: new Date(),
+        size: uploadFile.file.size,
+        fileType: uploadFile.file.type
+      };
     }));
 
     console.log('📚 Created content items:', newItems);
