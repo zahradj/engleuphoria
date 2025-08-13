@@ -18,7 +18,7 @@ export function VideoTile({ stream, hasVideo, isTeacher, userLabel, isCameraOff 
   }, [stream]);
 
   return (
-    <div className="aspect-video bg-muted rounded-lg overflow-hidden relative">
+    <div className="w-full h-full bg-muted rounded-2xl overflow-hidden relative video-frame-enhanced">
       {hasVideo && stream ? (
         <video
           ref={videoRef}
@@ -30,14 +30,16 @@ export function VideoTile({ stream, hasVideo, isTeacher, userLabel, isCameraOff 
       ) : (
         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted-foreground/20">
           <div className="text-center">
-            <div className={`w-8 h-8 rounded-full ${
-              isTeacher ? 'bg-primary' : 'bg-secondary'
-            } flex items-center justify-center mx-auto mb-1`}>
-              <span className="text-sm font-bold text-primary-foreground">
+            <div className={`w-12 h-12 rounded-full ${
+              isTeacher ? 'bg-gradient-to-br from-teacher to-teacher-accent' : 'bg-gradient-to-br from-student to-student-accent'
+            } flex items-center justify-center mx-auto mb-2 shadow-lg ring-2 ${
+              isTeacher ? 'ring-teacher/20' : 'ring-student/20'
+            }`}>
+              <span className="text-lg font-bold text-white">
                 {isTeacher ? 'T' : 'S'}
               </span>
             </div>
-            <p className="text-xs text-muted-foreground font-medium">{userLabel}</p>
+            <p className="text-sm text-foreground font-semibold">{userLabel}</p>
           </div>
         </div>
       )}

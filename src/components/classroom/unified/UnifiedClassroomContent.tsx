@@ -123,11 +123,6 @@ export function UnifiedClassroomContent({
         </ToolRailOverlay>
       )}
 
-      {openTool === 'wheel' && (
-        <ToolRailOverlay title="Spinning Wheel" onClose={() => setOpenTool(null)}>
-          <SpinningWheelGame />
-        </ToolRailOverlay>
-      )}
 
       {openTool === 'ai' && (
         <ToolRailOverlay title="AI Tools" onClose={() => setOpenTool(null)}>

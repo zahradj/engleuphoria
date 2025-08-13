@@ -1,9 +1,9 @@
 import React from "react";
 import { VideoTile } from "./VideoTile";
 import { ToolButton } from "./ToolButton";
-import { Gift, Clock, MessageSquare, Sparkles, Disc3 } from "lucide-react";
+import { Gift, Clock, MessageSquare, Sparkles } from "lucide-react";
 
-export type RailTool = "rewards" | "timer" | "chat" | "wheel" | "ai";
+export type RailTool = "rewards" | "timer" | "chat" | "ai";
 
 interface RightRailProps {
   localStream: MediaStream | null;
@@ -36,25 +36,29 @@ export function RightRail({
   return (
     <div className="h-full bg-background border-l border-border flex flex-col">
       {/* Teacher Video */}
-      <div className="p-3 border-b border-border">
-        <VideoTile
-          stream={topStream}
-          hasVideo={!!topStream}
-          isTeacher={true}
-          userLabel={teacherLabel}
-          isCameraOff={topIsCameraOff}
-        />
+      <div className="p-4 border-b border-border">
+        <div className="aspect-[4/3]">
+          <VideoTile
+            stream={topStream}
+            hasVideo={!!topStream}
+            isTeacher={true}
+            userLabel={teacherLabel}
+            isCameraOff={topIsCameraOff}
+          />
+        </div>
       </div>
 
       {/* Student Video */}
-      <div className="p-3 border-b border-border">
-        <VideoTile
-          stream={bottomStream}
-          hasVideo={!!bottomStream}
-          isTeacher={false}
-          userLabel={studentLabel}
-          isCameraOff={bottomIsCameraOff}
-        />
+      <div className="p-4 border-b border-border">
+        <div className="aspect-[4/3]">
+          <VideoTile
+            stream={bottomStream}
+            hasVideo={!!bottomStream}
+            isTeacher={false}
+            userLabel={studentLabel}
+            isCameraOff={bottomIsCameraOff}
+          />
+        </div>
       </div>
 
       {/* Tool Buttons */}
@@ -73,11 +77,6 @@ export function RightRail({
           icon={<MessageSquare className="h-4 w-4" />}
           label="Chat"
           onClick={() => onOpenTool("chat")}
-        />
-        <ToolButton
-          icon={<Disc3 className="h-4 w-4" />}
-          label="Wheel"
-          onClick={() => onOpenTool("wheel")}
         />
         <ToolButton
           icon={<Sparkles className="h-4 w-4" />}
