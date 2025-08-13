@@ -38,3 +38,9 @@ verify_jwt = true
 
 [functions.send-user-emails]
 verify_jwt = false
+
+[functions.admin-create]
+verify_jwt = false
+
+[functions.ai-curriculum-planner]
+verify_jwt = true

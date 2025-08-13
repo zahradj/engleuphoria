@@ -1,21 +1,9 @@
 import { PlannerRequest, PlannerResponse, CurriculumPlan, Resource } from '@/types/curriculum';
 import { nlefpCurriculumService, NLEFP_MODULES } from './nlefpCurriculumService';
+import { supabase } from '@/integrations/supabase/client';
 
 class AIPlannerService {
-  private apiKey: string | null = null;
-
-  constructor() {
-    if (typeof window !== 'undefined') {
-      this.apiKey = localStorage.getItem('openai_api_key');
-    }
-  }
-
-  setApiKey(key: string) {
-    this.apiKey = key;
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('openai_api_key', key);
-    }
-  }
+  // Remove client-side API key storage for security
 
   private buildNLEFPPrompt(request: PlannerRequest): string {
     const { studentProfile, availableResources } = request;
@@ -101,55 +89,23 @@ Output JSON schema:
   }
 
   async generateCurriculum(request: PlannerRequest): Promise<PlannerResponse> {
-    if (!this.apiKey) {
-      return this.generateNLEFPCurriculum(request);
-    }
-
     try {
-      const prompt = this.buildNLEFPPrompt(request);
-      
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.7,
-          max_tokens: 3000,
-        }),
+      // Use secure server-side OpenAI integration
+      const { data, error } = await supabase.functions.invoke('ai-curriculum-planner', {
+        body: { plannerRequest: request }
       });
 
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
+      if (error) {
+        console.error('AI Planner error:', error);
+        return this.generateNLEFPCurriculum(request);
       }
 
-      const data = await response.json();
-      const content = data.choices[0]?.message?.content;
-      
-      if (!content) {
-        throw new Error('No content received from API');
+      if (data.success) {
+        return { success: true, plan: data.plan };
+      } else {
+        console.error('AI Planner error:', data.error);
+        return this.generateNLEFPCurriculum(request);
       }
-
-      const planData = JSON.parse(content);
-      
-      const plan: CurriculumPlan = {
-        id: `nlefp_ai_plan_${Date.now()}`,
-        studentId: request.studentProfile.id,
-        weeks: planData.weeks,
-        badgeRule: planData.badge_rule || planData.badgeRule,
-        createdAt: new Date(),
-        status: 'draft',
-        metadata: {
-          framework: 'NLEFP',
-          progressTracking: planData.progressTracking,
-          nlpIntegration: true
-        }
-      };
-
-      return { success: true, plan };
 
     } catch (error) {
       console.error('AI Planner error:', error);

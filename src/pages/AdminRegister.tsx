@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, Eye, EyeOff } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 export const AdminRegister: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -54,68 +55,38 @@ export const AdminRegister: React.FC = () => {
         return;
       }
 
-      if (formData.password.length < 8) {
-        toast({
-          title: "Validation Error",
-          description: "Password must be at least 8 characters long",
-          variant: "destructive",
-        });
-        return;
-      }
+      // Call the secure server-side admin creation function
+      const { data, error } = await supabase.functions.invoke('admin-create', {
+        body: {
+          fullName: formData.fullName,
+          email: formData.email,
+          password: formData.password,
+          secretKey: formData.secretKey
+        }
+      });
 
-      // Check secret key (you can change this secret)
-      if (formData.secretKey !== "ENGLEUPHORIA_ADMIN_2024") {
-        toast({
-          title: "Access Denied",
-          description: "Invalid secret key",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.email)) {
-        toast({
-          title: "Validation Error",
-          description: "Please enter a valid email address",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // For now, we'll just store in localStorage (in production, this would go to a secure backend)
-      const adminData = {
-        id: crypto.randomUUID(),
-        fullName: formData.fullName,
-        email: formData.email,
-        role: 'admin',
-        createdAt: new Date().toISOString()
-      };
-
-      // Store admin credentials securely (this is mock - in real app would be backend)
-      const existingAdmins = JSON.parse(localStorage.getItem('adminAccounts') || '[]');
-      
-      // Check if admin already exists
-      if (existingAdmins.some((admin: any) => admin.email === formData.email)) {
+      if (error) {
+        console.error('Admin creation error:', error);
         toast({
           title: "Registration Failed",
-          description: "An admin with this email already exists",
+          description: "Failed to create admin account",
           variant: "destructive",
         });
         return;
       }
 
-      existingAdmins.push({
-        ...adminData,
-        password: formData.password // In production, this would be hashed
-      });
-      
-      localStorage.setItem('adminAccounts', JSON.stringify(existingAdmins));
+      if (!data.success) {
+        toast({
+          title: "Registration Failed",
+          description: data.error || "Unknown error occurred",
+          variant: "destructive",
+        });
+        return;
+      }
 
       toast({
         title: "Admin Registration Successful",
-        description: `Admin account created for ${formData.fullName}`,
+        description: data.message,
       });
 
       // Clear form

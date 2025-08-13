@@ -108,13 +108,10 @@ export const AIIntegrationTab = () => {
   };
 
   const handleApiKeySubmit = () => {
-    if (apiKey.trim()) {
-      aiPlannerService.setApiKey(apiKey);
-      toast({
-        title: "API Key Saved",
-        description: "OpenAI API key has been configured successfully.",
-      });
-    }
+    toast({
+      title: "API Integration Active",
+      description: "AI features are now handled securely on the server.",
+    });
   };
 
   return (
@@ -398,7 +395,7 @@ export const AIIntegrationTab = () => {
                   </Button>
                 </div>
                 <p className="text-sm text-gray-600 mt-1">
-                  Required for AI-powered NLEFP curriculum generation. Stored locally.
+                  AI features are now handled securely on the server. No local API key needed.
                 </p>
               </div>
 

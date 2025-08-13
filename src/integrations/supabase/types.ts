@@ -216,6 +216,30 @@ export type Database = {
           },
         ]
       }
+      admin_secrets: {
+        Row: {
+          created_at: string | null
+          expires_at: string
+          id: string
+          secret_hash: string
+          used: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          secret_hash: string
+          used?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          secret_hash?: string
+          used?: boolean | null
+        }
+        Relationships: []
+      }
       ai_conversation_messages: {
         Row: {
           audio_duration: number | null
