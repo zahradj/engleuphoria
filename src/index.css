@@ -440,121 +440,113 @@
         transparent 40%, 
         hsla(var(--accent) / 0.08) 80%, 
         hsla(var(--primary) / 0.05));
-    }
-    50% {
-      background: linear-gradient(225deg, 
-        hsla(var(--accent) / 0.12), 
-        transparent 40%, 
-        hsla(var(--primary) / 0.1) 80%, 
-        hsla(var(--secondary) / 0.06));
-    }
   }
 
-  /* RGB Color Cycling Effects - More Visible */
+  /* RGB Color Cycling Effects */
   @keyframes rgb-cycle {
     0% { 
       background: linear-gradient(45deg, 
-        hsl(0, 100%, 70%), 
-        hsl(120, 100%, 70%), 
-        hsl(240, 100%, 70%));
+        hsl(0, 70%, 60%), 
+        hsl(120, 70%, 60%), 
+        hsl(240, 70%, 60%));
     }
     16.66% { 
       background: linear-gradient(45deg, 
-        hsl(60, 100%, 70%), 
-        hsl(180, 100%, 70%), 
-        hsl(300, 100%, 70%));
+        hsl(60, 70%, 60%), 
+        hsl(180, 70%, 60%), 
+        hsl(300, 70%, 60%));
     }
     33.33% { 
       background: linear-gradient(45deg, 
-        hsl(120, 100%, 70%), 
-        hsl(240, 100%, 70%), 
-        hsl(0, 100%, 70%));
+        hsl(120, 70%, 60%), 
+        hsl(240, 70%, 60%), 
+        hsl(0, 70%, 60%));
     }
     50% { 
       background: linear-gradient(45deg, 
-        hsl(180, 100%, 70%), 
-        hsl(300, 100%, 70%), 
-        hsl(60, 100%, 70%));
+        hsl(180, 70%, 60%), 
+        hsl(300, 70%, 60%), 
+        hsl(60, 70%, 60%));
     }
     66.66% { 
       background: linear-gradient(45deg, 
-        hsl(240, 100%, 70%), 
-        hsl(0, 100%, 70%), 
-        hsl(120, 100%, 70%));
+        hsl(240, 70%, 60%), 
+        hsl(0, 70%, 60%), 
+        hsl(120, 70%, 60%));
     }
     83.33% { 
       background: linear-gradient(45deg, 
-        hsl(300, 100%, 70%), 
-        hsl(60, 100%, 70%), 
-        hsl(180, 100%, 70%));
+        hsl(300, 70%, 60%), 
+        hsl(60, 70%, 60%), 
+        hsl(180, 70%, 60%));
     }
     100% { 
       background: linear-gradient(45deg, 
-        hsl(0, 100%, 70%), 
-        hsl(120, 100%, 70%), 
-        hsl(240, 100%, 70%));
+        hsl(0, 70%, 60%), 
+        hsl(120, 70%, 60%), 
+        hsl(240, 70%, 60%));
     }
   }
 
   @keyframes rgb-border-glow {
     0% { 
-      border-color: hsl(0, 100%, 70%);
-      box-shadow: 0 0 30px hsl(0, 100%, 70%), 0 0 60px hsl(0, 100%, 70% / 0.5);
+      border-color: hsl(0, 80%, 60%);
+      box-shadow: 0 0 20px hsl(0, 80%, 60% / 0.5);
     }
     16.66% { 
-      border-color: hsl(60, 100%, 70%);
-      box-shadow: 0 0 30px hsl(60, 100%, 70%), 0 0 60px hsl(60, 100%, 70% / 0.5);
+      border-color: hsl(60, 80%, 60%);
+      box-shadow: 0 0 20px hsl(60, 80%, 60% / 0.5);
     }
     33.33% { 
-      border-color: hsl(120, 100%, 70%);
-      box-shadow: 0 0 30px hsl(120, 100%, 70%), 0 0 60px hsl(120, 100%, 70% / 0.5);
+      border-color: hsl(120, 80%, 60%);
+      box-shadow: 0 0 20px hsl(120, 80%, 60% / 0.5);
     }
     50% { 
-      border-color: hsl(180, 100%, 70%);
-      box-shadow: 0 0 30px hsl(180, 100%, 70%), 0 0 60px hsl(180, 100%, 70% / 0.5);
+      border-color: hsl(180, 80%, 60%);
+      box-shadow: 0 0 20px hsl(180, 80%, 60% / 0.5);
     }
     66.66% { 
-      border-color: hsl(240, 100%, 70%);
-      box-shadow: 0 0 30px hsl(240, 100%, 70%), 0 0 60px hsl(240, 100%, 70% / 0.5);
+      border-color: hsl(240, 80%, 60%);
+      box-shadow: 0 0 20px hsl(240, 80%, 60% / 0.5);
     }
     83.33% { 
-      border-color: hsl(300, 100%, 70%);
-      box-shadow: 0 0 30px hsl(300, 100%, 70%), 0 0 60px hsl(300, 100%, 70% / 0.5);
+      border-color: hsl(300, 80%, 60%);
+      box-shadow: 0 0 20px hsl(300, 80%, 60% / 0.5);
     }
     100% { 
-      border-color: hsl(0, 100%, 70%);
-      box-shadow: 0 0 30px hsl(0, 100%, 70%), 0 0 60px hsl(0, 100%, 70% / 0.5);
+      border-color: hsl(0, 80%, 60%);
+      box-shadow: 0 0 20px hsl(0, 80%, 60% / 0.5);
     }
   }
 
   @keyframes rgb-subtle {
     0% { 
       background: linear-gradient(135deg, 
-        hsl(0, 80%, 70% / 0.3), 
-        hsl(120, 80%, 70% / 0.3), 
-        hsl(240, 80%, 70% / 0.3));
+        hsl(0, 40%, 60% / 0.1), 
+        hsl(120, 40%, 60% / 0.1), 
+        hsl(240, 40%, 60% / 0.1));
     }
     33.33% { 
       background: linear-gradient(135deg, 
-        hsl(120, 80%, 70% / 0.3), 
-        hsl(240, 80%, 70% / 0.3), 
-        hsl(0, 80%, 70% / 0.3));
+        hsl(120, 40%, 60% / 0.1), 
+        hsl(240, 40%, 60% / 0.1), 
+        hsl(0, 40%, 60% / 0.1));
     }
     66.66% { 
       background: linear-gradient(135deg, 
-        hsl(240, 80%, 70% / 0.3), 
-        hsl(0, 80%, 70% / 0.3), 
-        hsl(120, 80%, 70% / 0.3));
+        hsl(240, 40%, 60% / 0.1), 
+        hsl(0, 40%, 60% / 0.1), 
+        hsl(120, 40%, 60% / 0.1));
     }
     100% { 
       background: linear-gradient(135deg, 
-        hsl(0, 80%, 70% / 0.3), 
-        hsl(120, 80%, 70% / 0.3), 
-        hsl(240, 80%, 70% / 0.3));
+        hsl(0, 40%, 60% / 0.1), 
+        hsl(120, 40%, 60% / 0.1), 
+        hsl(240, 40%, 60% / 0.1));
     }
   }
 
-  /* RGB Effect Classes - Enhanced Visibility */
+  /* RGB Effect Classes */
   .rgb-background {
     position: relative;
   }
@@ -563,35 +555,34 @@
     content: '';
     position: absolute;
     inset: 0;
-    animation: rgb-subtle 2s ease-in-out infinite;
+    animation: rgb-subtle 4s ease-in-out infinite;
     border-radius: inherit;
     pointer-events: none;
     z-index: 1;
-    opacity: 0.8;
   }
 
   .rgb-video-frame {
     position: relative;
-    border: 3px solid;
-    animation: rgb-border-glow 2s ease-in-out infinite;
+    border: 2px solid;
+    animation: rgb-border-glow 3s ease-in-out infinite;
   }
 
   .rgb-video-frame::after {
     content: '';
     position: absolute;
-    inset: -3px;
+    inset: -2px;
     background: conic-gradient(from 0deg, 
-      hsl(0, 100%, 70%), 
-      hsl(60, 100%, 70%), 
-      hsl(120, 100%, 70%), 
-      hsl(180, 100%, 70%), 
-      hsl(240, 100%, 70%), 
-      hsl(300, 100%, 70%), 
-      hsl(0, 100%, 70%));
+      hsl(0, 80%, 60%), 
+      hsl(60, 80%, 60%), 
+      hsl(120, 80%, 60%), 
+      hsl(180, 80%, 60%), 
+      hsl(240, 80%, 60%), 
+      hsl(300, 80%, 60%), 
+      hsl(0, 80%, 60%));
     border-radius: inherit;
     z-index: -1;
-    animation: spin 2s linear infinite;
-    opacity: 0.9;
+    animation: spin 3s linear infinite;
+    opacity: 0.6;
   }
 
   @keyframes spin {
@@ -599,23 +590,13 @@
       transform: rotate(360deg);
     }
   }
-
-  /* Additional RGB Classes for all elements */
-  .rgb-button {
-    background: linear-gradient(45deg, hsl(0, 100%, 70%), hsl(120, 100%, 70%), hsl(240, 100%, 70%));
-    background-size: 200% 200%;
-    animation: rgb-cycle 2s ease-in-out infinite;
-    color: white !important;
-    border: 2px solid transparent;
-  }
-
-  .rgb-text {
-    background: linear-gradient(45deg, hsl(0, 100%, 70%), hsl(120, 100%, 70%), hsl(240, 100%, 70%));
-    background-size: 200% 200%;
-    animation: rgb-cycle 2s ease-in-out infinite;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    50% {
+      background: linear-gradient(225deg, 
+        hsla(var(--accent) / 0.12), 
+        transparent 40%, 
+        hsla(var(--primary) / 0.1) 80%, 
+        hsla(var(--secondary) / 0.06));
+    }
   }
 
   .video-frame-enhanced {
