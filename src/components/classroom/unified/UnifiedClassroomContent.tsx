@@ -52,27 +52,31 @@ export function UnifiedClassroomContent({
   };
 
   return (
-    <div className="h-full flex">
+    <div className="h-full flex gap-4">
       {/* Main lesson area - 80-85% width */}
       <div className="flex-1 h-full">
-        <UnifiedCenterPanel
-          activeCenterTab={activeCenterTab}
-          onTabChange={setActiveCenterTab}
-          currentUser={currentUser}
-        />
+        <div className="h-full glass-enhanced rounded-3xl overflow-hidden backdrop-blur-lg">
+          <UnifiedCenterPanel
+            activeCenterTab={activeCenterTab}
+            onTabChange={setActiveCenterTab}
+            currentUser={currentUser}
+          />
+        </div>
       </div>
 
       {/* Right rail - 15-20% width */}
       <div className="w-80 h-full">
-        <RightRail
-          localStream={enhancedClassroom?.localStream || null}
-          remoteStream={null}
-          isTeacher={isTeacher}
-          isCameraOff={enhancedClassroom?.isCameraOff}
-          teacherName={teacherName}
-          studentName={studentName}
-          onOpenTool={setOpenTool}
-        />
+        <div className="h-full glass-subtle rounded-2xl overflow-hidden backdrop-blur-sm animate-fade-in">
+          <RightRail
+            localStream={enhancedClassroom?.localStream || null}
+            remoteStream={null}
+            isTeacher={isTeacher}
+            isCameraOff={enhancedClassroom?.isCameraOff}
+            teacherName={teacherName}
+            studentName={studentName}
+            onOpenTool={setOpenTool}
+          />
+        </div>
       </div>
 
       {/* Tool Overlays */}
