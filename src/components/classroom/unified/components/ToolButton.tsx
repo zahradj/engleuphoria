@@ -11,11 +11,13 @@ export function ToolButton({ icon, label, onClick }: ToolButtonProps) {
   return (
     <Button
       variant="ghost"
-      className="w-full justify-start gap-2 h-10 text-sm hover:bg-accent hover:text-accent-foreground"
+      className="w-full justify-start gap-3 h-12 text-sm hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 hover:text-foreground transition-all duration-300 border border-transparent hover:border-primary/20 rounded-xl group"
       onClick={onClick}
     >
-      {icon}
-      <span className="truncate">{label}</span>
+      <div className="text-primary group-hover:text-secondary transition-colors duration-300">
+        {icon}
+      </div>
+      <span className="truncate font-medium">{label}</span>
     </Button>
   );
 }

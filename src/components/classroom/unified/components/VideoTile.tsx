@@ -18,7 +18,8 @@ export function VideoTile({ stream, hasVideo, isTeacher, userLabel, isCameraOff 
   }, [stream]);
 
   return (
-    <div className="w-full h-full bg-muted rounded-2xl overflow-hidden relative video-frame-enhanced">
+    <div className="w-full h-full bg-gradient-to-br from-muted via-muted to-muted/80 rounded-2xl overflow-hidden relative video-frame-enhanced border border-primary/20">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-transparent to-secondary/6 pointer-events-none"></div>
       {hasVideo && stream ? (
         <video
           ref={videoRef}
@@ -28,7 +29,7 @@ export function VideoTile({ stream, hasVideo, isTeacher, userLabel, isCameraOff 
           className="w-full h-full object-cover"
         />
       ) : (
-        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted-foreground/20">
+        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted/90 to-muted-foreground/10">
           <div className="text-center">
             <div className={`w-12 h-12 rounded-full ${
               isTeacher ? 'bg-gradient-to-br from-teacher to-teacher-accent' : 'bg-gradient-to-br from-student to-student-accent'
@@ -44,7 +45,7 @@ export function VideoTile({ stream, hasVideo, isTeacher, userLabel, isCameraOff 
         </div>
       )}
       {isCameraOff && (
-        <div className="absolute bottom-1 right-1 bg-destructive text-destructive-foreground text-xs px-1 py-0.5 rounded">
+        <div className="absolute bottom-2 right-2 bg-gradient-to-r from-destructive to-destructive/80 text-destructive-foreground text-xs px-2 py-1 rounded-lg shadow-lg">
           Camera Off
         </div>
       )}
