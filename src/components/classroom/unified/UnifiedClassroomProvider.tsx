@@ -81,7 +81,7 @@ export function UnifiedClassroomProvider({ children }: { children: React.ReactNo
           // Use authenticated user ID
           setCurrentUser({
             id: user.id,
-            name: user.user_metadata?.full_name || user.email || name,
+            name: user.user_metadata?.full_name || name || 'Teacher',
             role
           });
         } else if (userId) {
