@@ -50,8 +50,105 @@ class AudioService {
     this.clapBuffer = createClap();
   }
 
+  // Generate cheerful chime sound for low points
+  private generateChimeSound(): AudioBuffer | null {
+    if (!this.context) return null;
+
+    const bufferSize = this.context.sampleRate * 0.5; // 500ms
+    const buffer = this.context.createBuffer(2, bufferSize, this.context.sampleRate);
+    
+    for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+      const channelData = buffer.getChannelData(channel);
+      for (let i = 0; i < bufferSize; i++) {
+        const t = i / this.context.sampleRate;
+        // Create a pleasant chime with harmonics
+        let sample = 0;
+        sample += Math.sin(2 * Math.PI * 523.25 * t) * Math.exp(-t * 3); // C5
+        sample += Math.sin(2 * Math.PI * 659.25 * t) * Math.exp(-t * 3) * 0.7; // E5
+        sample += Math.sin(2 * Math.PI * 783.99 * t) * Math.exp(-t * 3) * 0.5; // G5
+        channelData[i] = sample * 0.3;
+      }
+    }
+    return buffer;
+  }
+
+  // Generate success fanfare for medium points
+  private generateFanfareSound(): AudioBuffer | null {
+    if (!this.context) return null;
+
+    const bufferSize = this.context.sampleRate * 1.0; // 1 second
+    const buffer = this.context.createBuffer(2, bufferSize, this.context.sampleRate);
+    
+    for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+      const channelData = buffer.getChannelData(channel);
+      for (let i = 0; i < bufferSize; i++) {
+        const t = i / this.context.sampleRate;
+        // Create triumphant fanfare
+        let sample = 0;
+        if (t < 0.3) {
+          sample += Math.sin(2 * Math.PI * 261.63 * t) * Math.exp(-t * 2); // C4
+          sample += Math.sin(2 * Math.PI * 329.63 * t) * Math.exp(-t * 2) * 0.8; // E4
+        } else if (t < 0.6) {
+          sample += Math.sin(2 * Math.PI * 329.63 * t) * Math.exp(-(t-0.3) * 2); // E4
+          sample += Math.sin(2 * Math.PI * 392.00 * t) * Math.exp(-(t-0.3) * 2) * 0.8; // G4
+        } else {
+          sample += Math.sin(2 * Math.PI * 523.25 * t) * Math.exp(-(t-0.6) * 2); // C5
+          sample += Math.sin(2 * Math.PI * 659.25 * t) * Math.exp(-(t-0.6) * 2) * 0.8; // E5
+        }
+        channelData[i] = sample * 0.4;
+      }
+    }
+    return buffer;
+  }
+
+  // Generate epic victory sound for high points
+  private generateVictorySound(): AudioBuffer | null {
+    if (!this.context) return null;
+
+    const bufferSize = this.context.sampleRate * 1.5; // 1.5 seconds
+    const buffer = this.context.createBuffer(2, bufferSize, this.context.sampleRate);
+    
+    for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+      const channelData = buffer.getChannelData(channel);
+      for (let i = 0; i < bufferSize; i++) {
+        const t = i / this.context.sampleRate;
+        // Create epic victory sound with ascending notes
+        let sample = 0;
+        const envelope = Math.exp(-t * 1.5);
+        
+        // Multiple harmonious tones
+        sample += Math.sin(2 * Math.PI * 261.63 * t) * envelope; // C4
+        sample += Math.sin(2 * Math.PI * 329.63 * t) * envelope * 0.8; // E4
+        sample += Math.sin(2 * Math.PI * 392.00 * t) * envelope * 0.6; // G4
+        sample += Math.sin(2 * Math.PI * 523.25 * t) * envelope * 0.4; // C5
+        
+        // Add sparkle effect
+        if (Math.random() < 0.1) {
+          sample += Math.sin(2 * Math.PI * 1046.50 * t) * envelope * 0.3; // C6
+        }
+        
+        channelData[i] = sample * 0.3;
+      }
+    }
+    return buffer;
+  }
+
+  private playCustomSound(buffer: AudioBuffer | null, volume: number = 0.5) {
+    if (!this.context || !buffer || this.isMuted) return;
+
+    const source = this.context.createBufferSource();
+    const gainNode = this.context.createGain();
+    
+    source.buffer = buffer;
+    source.connect(gainNode);
+    gainNode.connect(this.context.destination);
+    gainNode.gain.value = volume;
+    
+    source.start();
+  }
+
   private playClappingSound(intensity: number = 1) {
-    if (!this.context || !this.clapBuffer) return;
+    if (!this.context || !this.clapBuffer || this.isMuted) return;
 
     const numClaps = Math.min(Math.max(Math.floor(intensity / 10), 1), 5);
     
@@ -136,10 +233,27 @@ class AudioService {
     }
   }
 
-  // Main reward sound function
+  // Main reward sound function with enhanced sound effects
   async playRewardSound(points: number) {
-    // Play clapping sound immediately
-    this.playClappingSound(points);
+    if (this.isMuted) return;
+
+    // Play different sound effects based on points
+    if (points >= 50) {
+      // Epic victory sound + intense clapping
+      this.playCustomSound(this.generateVictorySound(), 0.6);
+      setTimeout(() => this.playClappingSound(points), 200);
+    } else if (points >= 25) {
+      // Fanfare sound + moderate clapping
+      this.playCustomSound(this.generateFanfareSound(), 0.5);
+      setTimeout(() => this.playClappingSound(points), 300);
+    } else if (points >= 10) {
+      // Cheerful chime + light clapping
+      this.playCustomSound(this.generateChimeSound(), 0.4);
+      setTimeout(() => this.playClappingSound(points), 200);
+    } else {
+      // Simple clapping for small rewards
+      this.playClappingSound(points);
+    }
     
     // Generate appropriate voice message based on points
     let message = '';
@@ -177,24 +291,32 @@ class AudioService {
       message = messages[Math.floor(Math.random() * messages.length)];
     }
 
-    // Play voice message
-    await this.generateVoiceMessage(message, points);
+    // Play voice message with delay to layer with sound effects
+    setTimeout(() => {
+      this.generateVoiceMessage(message, points);
+    }, 600);
   }
 
-  // Play celebration sound for milestones
+  // Play celebration sound for milestones with enhanced effects
   async playCelebrationSound() {
-    // Intense clapping for celebrations
-    this.playClappingSound(100);
+    if (this.isMuted) return;
+    
+    // Epic celebration with multiple layered sounds
+    this.playCustomSound(this.generateVictorySound(), 0.7);
+    setTimeout(() => this.playClappingSound(100), 300);
+    setTimeout(() => this.playCustomSound(this.generateChimeSound(), 0.4), 800);
     
     const celebrationMessages = [
       'Congratulations! You\'ve reached a new milestone!',
-      'Amazing achievement! You\'re doing incredible work!',
-      'Fantastic! You\'ve unlocked a new level!',
-      'Brilliant! This is outstanding progress!'
+      'Amazing achievement! You\'ve unlocked a new level!',
+      'Fantastic! This is outstanding progress!',
+      'Brilliant! You\'ve earned something special!'
     ];
     
     const message = celebrationMessages[Math.floor(Math.random() * celebrationMessages.length)];
-    await this.generateVoiceMessage(message, 100);
+    setTimeout(() => {
+      this.generateVoiceMessage(message, 100);
+    }, 1000);
   }
 
   // Check if API key is set
@@ -213,18 +335,28 @@ class AudioService {
 
   playButtonClick() {
     if (this.isMuted) return;
-    this.playClappingSound(1);
+    this.playCustomSound(this.generateChimeSound(), 0.2);
   }
 
   playSuccessSound() {
     if (this.isMuted) return;
-    this.playClappingSound(3);
+    this.playCustomSound(this.generateFanfareSound(), 0.3);
   }
 
   playErrorSound() {
     if (this.isMuted) return;
-    // Play a different sound for errors (lower pitch clap)
-    this.playClappingSound(1);
+    // Play a different sound for errors (lower pitch)
+    if (this.context) {
+      const errorBuffer = this.context.createBuffer(2, this.context.sampleRate * 0.3, this.context.sampleRate);
+      for (let channel = 0; channel < errorBuffer.numberOfChannels; channel++) {
+        const channelData = errorBuffer.getChannelData(channel);
+        for (let i = 0; i < channelData.length; i++) {
+          const t = i / this.context.sampleRate;
+          channelData[i] = Math.sin(2 * Math.PI * 220 * t) * Math.exp(-t * 5) * 0.3; // Low A note
+        }
+      }
+      this.playCustomSound(errorBuffer, 0.4);
+    }
   }
 
   playPronunciation(text: string) {
