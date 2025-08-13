@@ -58,7 +58,7 @@ export function UnifiedCenterPanel({
           </TabsList>
         </div>
 
-        <div className="flex-1 min-h-0 overflow-auto">
+        <div className="flex-1 min-h-0 overflow-hidden">
           <TabsContent value="start" className="h-full m-0 overflow-y-auto">
             <StartTabContent
               onStartLesson={onStartLesson}

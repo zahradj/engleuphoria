@@ -133,7 +133,7 @@ function UnifiedClassroomInner() {
   try {
     return (
       <MediaProvider roomId={finalRoomId}>
-        <div className="min-h-screen overflow-auto">
+        <div className="min-h-screen overflow-hidden">
           {isMobile ? (
             <MobileClassroomLayout
               currentUser={currentUser}
