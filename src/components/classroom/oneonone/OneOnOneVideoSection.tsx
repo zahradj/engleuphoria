@@ -51,9 +51,9 @@ export function OneOnOneVideoSection({
   return (
     <div className="h-full flex flex-col gap-6">
       <Card className="flex-1 p-0 border-0 glass-enhanced rounded-3xl overflow-hidden relative floating-animation video-panel-glow classroom-ambient">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/12 via-background/70 to-secondary/10 pointer-events-none"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-accent/8 via-transparent to-primary/6 pointer-events-none"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-secondary/5 via-primary/4 to-accent/6 pointer-events-none animate-pulse"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-accent/8 to-secondary/12 pointer-events-none animate-pulse"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-accent/10 via-primary/6 to-secondary/8 pointer-events-none"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-secondary/8 via-accent/10 to-primary/12 pointer-events-none animate-pulse"></div>
         <div className="aspect-video relative flex items-center justify-center">
           {!lessonStarted ? (
             <LessonStartPrompt isTeacher={isTeacher} onStartLesson={startLessonAndJoin} />

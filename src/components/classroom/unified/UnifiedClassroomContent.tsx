@@ -56,8 +56,9 @@ export function UnifiedClassroomContent({
       {/* Main lesson area - 80-85% width */}
       <div className="flex-1 h-full">
         <div className="h-full glass-enhanced rounded-3xl overflow-hidden backdrop-blur-lg classroom-ambient floating-animation relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-secondary/8 pointer-events-none"></div>
-          <div className="absolute inset-0 bg-gradient-to-tl from-accent/6 via-transparent to-primary/4 pointer-events-none"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/12 via-accent/8 to-secondary/10 pointer-events-none"></div>
+          <div className="absolute inset-0 bg-gradient-to-tl from-accent/8 via-secondary/6 to-primary/10 pointer-events-none"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-secondary/6 via-primary/8 to-accent/10 pointer-events-none animate-pulse"></div>
           <UnifiedCenterPanel
             activeCenterTab={activeCenterTab}
             onTabChange={setActiveCenterTab}
@@ -69,7 +70,8 @@ export function UnifiedClassroomContent({
       {/* Right rail - 15-20% width */}
       <div className="w-80 h-full">
         <div className="h-full glass-subtle rounded-3xl overflow-hidden backdrop-blur-sm animate-fade-in interactive-hover relative">
-          <div className="absolute inset-0 bg-gradient-to-b from-secondary/8 via-transparent to-primary/6 pointer-events-none"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-secondary/12 via-accent/8 to-primary/10 pointer-events-none"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/6 via-secondary/8 to-accent/6 pointer-events-none animate-pulse"></div>
           <RightRail
             localStream={enhancedClassroom?.localStream || null}
             remoteStream={null}

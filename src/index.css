@@ -253,15 +253,20 @@
 
   /* Enhanced glassmorphism effects */
   .glass-enhanced {
-    background: hsla(var(--background) / 0.85);
+    background: linear-gradient(135deg, 
+      hsla(var(--background) / 0.85), 
+      hsla(var(--primary) / 0.1), 
+      hsla(var(--secondary) / 0.08), 
+      hsla(var(--accent) / 0.12));
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid hsla(var(--border) / 0.3);
+    border: 1px solid hsla(var(--primary) / 0.4);
     box-shadow: 
-      0 20px 50px -12px hsla(var(--foreground) / 0.25),
-      0 0 60px hsla(var(--primary) / 0.2),
-      inset 0 1px 0 hsla(255 255 255 / 0.3),
-      inset 0 -1px 0 hsla(var(--primary) / 0.1);
+      0 20px 50px -12px hsla(var(--primary) / 0.35),
+      0 0 60px hsla(var(--secondary) / 0.25),
+      inset 0 1px 0 hsla(var(--accent) / 0.4),
+      inset 0 -1px 0 hsla(var(--primary) / 0.2),
+      0 0 100px hsla(var(--accent) / 0.15);
     position: relative;
   }
 
@@ -269,19 +274,29 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, hsla(var(--primary) / 0.1), transparent 30%, hsla(var(--secondary) / 0.05) 70%, hsla(var(--accent) / 0.1));
+    background: linear-gradient(45deg, 
+      hsla(var(--primary) / 0.15), 
+      hsla(var(--accent) / 0.1) 25%, 
+      transparent 50%, 
+      hsla(var(--secondary) / 0.12) 75%, 
+      hsla(var(--primary) / 0.08));
     border-radius: inherit;
     pointer-events: none;
+    animation: rainbow-shift 6s ease-in-out infinite;
   }
 
   .glass-subtle {
-    background: hsla(var(--background) / 0.95);
+    background: linear-gradient(135deg, 
+      hsla(var(--background) / 0.95), 
+      hsla(var(--secondary) / 0.08), 
+      hsla(var(--accent) / 0.06));
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border: 1px solid hsla(var(--border) / 0.25);
+    border: 1px solid hsla(var(--secondary) / 0.3);
     box-shadow: 
-      0 12px 40px hsla(var(--foreground) / 0.15),
-      inset 0 1px 0 hsla(255 255 255 / 0.2);
+      0 12px 40px hsla(var(--secondary) / 0.2),
+      inset 0 1px 0 hsla(var(--accent) / 0.3),
+      0 0 60px hsla(var(--primary) / 0.1);
     position: relative;
   }
 
@@ -289,9 +304,14 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(145deg, hsla(var(--primary) / 0.05), transparent 50%, hsla(var(--secondary) / 0.03));
+    background: linear-gradient(225deg, 
+      hsla(var(--secondary) / 0.1), 
+      transparent 40%, 
+      hsla(var(--accent) / 0.08) 80%, 
+      hsla(var(--primary) / 0.05));
     border-radius: inherit;
     pointer-events: none;
+    animation: color-dance 8s ease-in-out infinite;
   }
 
   .video-panel-glow {
@@ -379,6 +399,49 @@
     33% {
       opacity: 0.9;
       transform: scale(1.08) rotate(1deg);
+  }
+
+  @keyframes rainbow-shift {
+    0%, 100% {
+      background: linear-gradient(45deg, 
+        hsla(var(--primary) / 0.15), 
+        hsla(var(--accent) / 0.1) 25%, 
+        transparent 50%, 
+        hsla(var(--secondary) / 0.12) 75%, 
+        hsla(var(--primary) / 0.08));
+    }
+    33% {
+      background: linear-gradient(45deg, 
+        hsla(var(--secondary) / 0.15), 
+        hsla(var(--primary) / 0.1) 25%, 
+        transparent 50%, 
+        hsla(var(--accent) / 0.12) 75%, 
+        hsla(var(--secondary) / 0.08));
+    }
+    66% {
+      background: linear-gradient(45deg, 
+        hsla(var(--accent) / 0.15), 
+        hsla(var(--secondary) / 0.1) 25%, 
+        transparent 50%, 
+        hsla(var(--primary) / 0.12) 75%, 
+        hsla(var(--accent) / 0.08));
+    }
+  }
+
+  @keyframes color-dance {
+    0%, 100% {
+      background: linear-gradient(225deg, 
+        hsla(var(--secondary) / 0.1), 
+        transparent 40%, 
+        hsla(var(--accent) / 0.08) 80%, 
+        hsla(var(--primary) / 0.05));
+    }
+    50% {
+      background: linear-gradient(225deg, 
+        hsla(var(--accent) / 0.12), 
+        transparent 40%, 
+        hsla(var(--primary) / 0.1) 80%, 
+        hsla(var(--secondary) / 0.06));
     }
     66% {
       opacity: 0.7;
