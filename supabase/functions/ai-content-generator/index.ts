@@ -17,6 +17,11 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Request received:', req.method);
+    
+    const requestBody = await req.json();
+    console.log('Request body received:', JSON.stringify(requestBody, null, 2));
+    
     const { 
       type,
       contentType, 
@@ -29,11 +34,29 @@ serve(async (req) => {
       studentId,
       specificRequirements,
       studentAge
-    } = await req.json();
+    } = requestBody;
 
     // Use 'type' if available, otherwise fall back to 'contentType'
     const actualContentType = type || contentType;
     const actualLevel = level || cefrLevel;
+
+    console.log('Parsed values:', {
+      actualContentType,
+      actualLevel,
+      topic,
+      duration,
+      learningObjectives
+    });
+
+    if (!actualContentType) {
+      console.error('No content type provided in request body');
+      throw new Error('Content type is required');
+    }
+
+    if (!topic) {
+      console.error('No topic provided in request body');
+      throw new Error('Topic is required');
+    }
 
     if (!openAIApiKey) {
       throw new Error('OpenAI API key not configured');
@@ -188,18 +211,30 @@ Format as JSON with flashcard array and study instructions.`;
     }
 
     // Save to adaptive_content table
+    const cefrLevelMapping = {
+      'beginner': 'A1',
+      'intermediate': 'B1', 
+      'advanced': 'C1'
+    };
+    
+    const mappedCefrLevel = actualLevel && cefrLevelMapping[actualLevel] 
+      ? cefrLevelMapping[actualLevel] 
+      : actualLevel || 'B1'; // Default to B1 if no level provided
+
+    console.log('Saving to database with CEFR level:', mappedCefrLevel);
+
     const { data: savedContent, error: saveError } = await supabase
       .from('adaptive_content')
       .insert({
         title: `AI-Generated ${actualContentType}: ${topic}`,
         content_type: actualContentType,
         difficulty_level: difficultyLevel || 5,
-        cefr_level: actualLevel,
+        cefr_level: mappedCefrLevel,
         learning_objectives: learningObjectives || [],
         content_data: generatedContent,
         ai_generated: true,
         generation_prompt: prompt,
-        tags: [topic, actualLevel, `difficulty_${difficultyLevel || 5}`],
+        tags: [topic, mappedCefrLevel, `difficulty_${difficultyLevel || 5}`],
         estimated_duration: duration || 30,
         is_active: true
       })
