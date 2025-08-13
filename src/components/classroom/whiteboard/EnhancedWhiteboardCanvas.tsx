@@ -5,6 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { ZoomIn, ZoomOut, Move, RotateCcw, Download, Type, X, ExternalLink, FileText } from "lucide-react";
+import { Document, Page, pdfjs } from 'react-pdf';
+
+// Configure PDF.js worker
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 interface EmbeddedContent {
   id: string;
@@ -43,6 +47,7 @@ export function EnhancedWhiteboardCanvas({
   const [isPanning, setIsPanning] = useState(false);
   const [lastPanPoint, setLastPanPoint] = useState({ x: 0, y: 0 });
   const [textInput, setTextInput] = useState({ show: false, x: 0, y: 0, value: "" });
+  const [pdfPages, setPdfPages] = useState<Record<string, number>>({});
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -385,11 +390,40 @@ export function EnhancedWhiteboardCanvas({
                       className="max-w-full max-h-full object-contain"
                     />
                   ) : isPDF ? (
-                    <iframe
-                      src={content.url}
-                      className="w-full h-full border-0"
-                      title={content.title}
-                    />
+                    <div className="w-full h-full">
+                      <Document
+                        file={content.url}
+                        onLoadSuccess={({ numPages }) => {
+                          setPdfPages(prev => ({ ...prev, [content.id]: numPages }));
+                        }}
+                        className="flex items-center justify-center h-full"
+                        loading={
+                          <div className="flex items-center justify-center h-full">
+                            <div className="text-gray-500">Loading PDF...</div>
+                          </div>
+                        }
+                        error={
+                          <div className="flex flex-col items-center justify-center h-full text-gray-600">
+                            <FileText size={48} className="mb-2 text-blue-500" />
+                            <p className="text-sm mb-2">Unable to display PDF</p>
+                            <Button
+                              size="sm"
+                              onClick={() => openInNewTab(content.url)}
+                              className="bg-blue-500 hover:bg-blue-600 text-white"
+                            >
+                              <ExternalLink size={16} className="mr-2" />
+                              Open in New Tab
+                            </Button>
+                          </div>
+                        }
+                      >
+                        <Page
+                          pageNumber={1}
+                          width={Math.min(scaledWidth - 40, 760)}
+                          className="border-0"
+                        />
+                      </Document>
+                    </div>
                   ) : isOfficeDoc ? (
                     <div className="w-full h-full flex flex-col items-center justify-center text-gray-600">
                       <FileText size={64} className="mb-4 text-blue-500" />
