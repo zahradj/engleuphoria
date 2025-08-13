@@ -385,21 +385,11 @@ export function EnhancedWhiteboardCanvas({
                       className="max-w-full max-h-full object-contain"
                     />
                   ) : isPDF ? (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-gray-600">
-                      <FileText size={64} className="mb-4 text-red-500" />
-                      <p className="text-lg font-semibold mb-2">PDF Document</p>
-                      <p className="text-sm mb-4">{content.title}</p>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          onClick={() => openInNewTab(content.url)}
-                          className="bg-red-500 hover:bg-red-600 text-white"
-                        >
-                          <ExternalLink size={16} className="mr-2" />
-                          Open PDF
-                        </Button>
-                      </div>
-                    </div>
+                    <iframe
+                      src={content.url}
+                      className="w-full h-full border-0"
+                      title={content.title}
+                    />
                   ) : isOfficeDoc ? (
                     <div className="w-full h-full flex flex-col items-center justify-center text-gray-600">
                       <FileText size={64} className="mb-4 text-blue-500" />
