@@ -3,7 +3,7 @@ import React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Image, Video, File, Eye, Trash2, Download } from "lucide-react";
+import { FileText, Image, Video, File, Eye, Trash2, Download, Plus } from "lucide-react";
 import { ContentItem } from "./types";
 
 interface ContentLibraryProps {
@@ -12,6 +12,7 @@ interface ContentLibraryProps {
   onSelectContent: (item: ContentItem) => void;
   onPreviewFile?: (item: ContentItem) => void;
   onDeleteFile?: (id: string) => void;
+  onAddToWhiteboard?: (item: ContentItem) => void;
 }
 
 export function ContentLibrary({ 
@@ -19,7 +20,8 @@ export function ContentLibrary({
   selectedContent, 
   onSelectContent,
   onPreviewFile,
-  onDeleteFile
+  onDeleteFile,
+  onAddToWhiteboard
 }: ContentLibraryProps) {
   const getFileIcon = (type: string) => {
     switch (type) {
@@ -85,6 +87,21 @@ export function ContentLibrary({
                 </p>
                 
                 <div className="flex gap-1">
+                  {onAddToWhiteboard && (
+                    <Button
+                      variant="default"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAddToWhiteboard(item);
+                      }}
+                      className="text-xs px-2 py-1 h-7"
+                    >
+                      <Plus size={12} className="mr-1" />
+                      Add to Board
+                    </Button>
+                  )}
+                  
                   {onPreviewFile && (
                     <Button
                       variant="outline"

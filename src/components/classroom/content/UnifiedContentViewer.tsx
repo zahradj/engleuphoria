@@ -7,6 +7,7 @@ import { ContentLibrary } from "./ContentLibrary";
 import { EnhancedUploadDialog } from "./EnhancedUploadDialog";
 import { FilePreviewModal } from "./FilePreviewModal";
 import { useEnhancedContentManager } from "./useEnhancedContentManager";
+import { ContentItem } from "./types";
 import { SoundButton } from "@/components/ui/sound-button";
 import { TeacherAssignmentPanel } from "../assignment/TeacherAssignmentPanel";
 import { StudentAssignmentPanel } from "../assignment/StudentAssignmentPanel";
@@ -81,6 +82,25 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
 
   const handleRemoveEmbeddedContent = (id: string) => {
     setEmbeddedContent(prev => prev.filter(content => content.id !== id));
+  };
+
+  const handleAddContentToWhiteboard = (item: ContentItem) => {
+    const newContent: EmbeddedContent = {
+      id: Date.now().toString(),
+      title: item.title,
+      url: item.source,
+      x: 100,
+      y: 100,
+      width: 800,
+      height: 600,
+      fileType: item.fileType,
+      originalType: item.type
+    };
+    
+    setEmbeddedContent(prev => [...prev, newContent]);
+    
+    // Switch to whiteboard tab
+    setActiveTab('whiteboard');
   };
 
   return (
@@ -183,6 +203,7 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
                 onSelectContent={setSelectedContent}
                 onPreviewFile={openPreview}
                 onDeleteFile={isTeacher ? handleFileDelete : undefined}
+                onAddToWhiteboard={handleAddContentToWhiteboard}
               />
             </div>
           </TabsContent>
