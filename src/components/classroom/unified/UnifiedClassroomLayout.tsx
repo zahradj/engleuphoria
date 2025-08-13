@@ -59,7 +59,7 @@ export function UnifiedClassroomLayout({
   return (
     <div className="h-screen flex flex-col bg-background">
       {/* Full-screen grid layout */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-auto">
         {/* Main content area - 80-85% width */}
         <main className="flex-1 bg-background">
           {children}
