@@ -3,11 +3,10 @@ import { useCallback } from 'react';
 import { useToast } from "@/hooks/use-toast";
 import { RealTimeVideoService } from '@/services/video/realTimeVideoService';
 import { EnhancedVideoService } from '@/services/video/enhancedVideoService';
-import { UnifiedVideoService } from '@/services/video/unifiedVideoService';
 import { ClassroomSession } from './types';
 
 // Create a union type for video services
-type VideoServiceType = RealTimeVideoService | EnhancedVideoService | UnifiedVideoService;
+type VideoServiceType = RealTimeVideoService | EnhancedVideoService;
 
 interface UseClassroomActionsProps {
   videoService: VideoServiceType | null;
@@ -106,8 +105,7 @@ export function useClassroomActions({
 
     try {
       console.log('🎬 Starting recording...');
-      // Check if the video service has the startRecording method
-      const success = 'startRecording' in videoService ? await videoService.startRecording() : true;
+      const success = await videoService.startRecording();
       
       if (success) {
         toast({
@@ -150,8 +148,7 @@ export function useClassroomActions({
 
     try {
       console.log('🛑 Stopping recording...');
-      // Check if the video service has the stopRecording method
-      const success = 'stopRecording' in videoService ? await videoService.stopRecording() : true;
+      const success = await videoService.stopRecording();
       
       if (success) {
         toast({
@@ -185,8 +182,7 @@ export function useClassroomActions({
 
     try {
       console.log('✋ Raising hand...');
-      // Check if the video service has the raiseHand method
-      const success = 'raiseHand' in videoService ? await videoService.raiseHand() : true;
+      const success = await videoService.raiseHand();
       
       if (success) {
         toast({
@@ -215,8 +211,7 @@ export function useClassroomActions({
 
     try {
       console.log('🖥️ Starting screen share...');
-      // Check if the video service has the startScreenShare method
-      const success = 'startScreenShare' in videoService ? await videoService.startScreenShare() : true;
+      const success = await videoService.startScreenShare();
       
       if (success) {
         toast({

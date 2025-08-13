@@ -2,11 +2,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { RealTimeVideoService } from '@/services/video/realTimeVideoService';
 import { EnhancedVideoService } from '@/services/video/enhancedVideoService';
-import { UnifiedVideoService } from '@/services/video/unifiedVideoService';
 import { ParticipantData } from '@/services/video/enhancedVideoService';
-import { ParticipantInfo } from '@/services/video/unifiedVideoService';
 
-type VideoServiceType = RealTimeVideoService | EnhancedVideoService | UnifiedVideoService;
+type VideoServiceType = RealTimeVideoService | EnhancedVideoService;
 
 interface UseVideoServiceManagerProps {
   roomId: string;
@@ -58,14 +56,14 @@ export function useVideoServiceManager({
 
     const initService = async () => {
       try {
-        console.log('🎥 Initializing UnifiedVideoService...');
-        const service = new UnifiedVideoService(serviceConfig, serviceCallbacks);
+        console.log('🎥 Initializing RealTimeVideoService...');
+        const service = new RealTimeVideoService(serviceConfig, serviceCallbacks);
 
         await service.initialize();
         
         if (mounted) {
           setVideoService(service);
-          console.log('✅ UnifiedVideoService initialized successfully');
+          console.log('✅ RealTimeVideoService initialized successfully');
         }
       } catch (err) {
         if (mounted) {
@@ -90,19 +88,7 @@ export function useVideoServiceManager({
     if (videoService) {
       try {
         const currentParticipants = videoService.getParticipants();
-        // Convert ParticipantInfo to ParticipantData if needed
-        const compatibleParticipants = Array.isArray(currentParticipants) 
-          ? currentParticipants.map((p: any) => ({
-              id: p.id,
-              displayName: p.displayName || p.name,
-              role: p.role || (p.isTeacher ? 'teacher' : 'student'),
-              isVideoOff: p.isVideoOff || p.isCameraOff,
-              isMuted: p.isMuted,
-              isHandRaised: p.isHandRaised || false,
-              joinTime: p.joinTime || new Date()
-            } as ParticipantData))
-          : [];
-        setParticipants(compatibleParticipants);
+        setParticipants(currentParticipants);
         setConnectionQuality(videoService.getConnectionQuality());
         setIsRecording(videoService.isRecordingActive());
       } catch (error) {

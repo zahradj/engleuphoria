@@ -7,8 +7,6 @@ import { ToolRailOverlay } from "./components/ToolRailOverlay";
 import { ClassroomChat } from "@/components/classroom/ClassroomChat";
 import { SpinningWheelGame } from "@/components/classroom/oneonone/games/SpinningWheelGame";
 import { Button } from "@/components/ui/button";
-import { EnhancedVideoPlayer } from "./components/EnhancedVideoPlayer";
-import { EnhancedVideoControls } from "./components/EnhancedVideoControls";
 
 interface ClassroomState {
   activeRightTab: string;
@@ -55,58 +53,14 @@ export function UnifiedClassroomContent({
 
   return (
     <div className="h-full flex gap-4">
-      {/* Main lesson area - Enhanced video section */}
+      {/* Main lesson area - 80-85% width */}
       <div className="flex-1 h-full">
-        <div className="h-full glass-enhanced rounded-3xl overflow-hidden backdrop-blur-lg p-6">
-          {/* Floating background elements */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-8 left-12 w-32 h-32 bg-gradient-to-br from-blue-400/10 to-purple-500/10 rounded-full animate-float-slow" />
-            <div className="absolute bottom-16 right-16 w-24 h-24 bg-gradient-to-br from-emerald-400/10 to-teal-500/10 rounded-full animate-float-delayed" />
-          </div>
-          
-          {/* Enhanced Video Grid */}
-          <div className="relative z-10 h-full flex flex-col">
-            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <EnhancedVideoPlayer
-                stream={enhancedClassroom?.localStream}
-                hasVideo={!!enhancedClassroom?.localStream && !enhancedClassroom?.isCameraOff}
-                isTeacher={isTeacher}
-                userLabel={teacherName}
-                isMuted={enhancedClassroom?.isMuted || false}
-                isCameraOff={enhancedClassroom?.isCameraOff || false}
-                isConnected={enhancedClassroom?.isConnected || false}
-                connectionQuality="good"
-                className="animate-video-appear"
-              />
-              <EnhancedVideoPlayer
-                stream={null}
-                hasVideo={false}
-                isTeacher={!isTeacher}
-                userLabel={studentName}
-                isMuted={false}
-                isCameraOff={true}
-                isConnected={false}
-                connectionQuality="fair"
-                className="animate-video-appear [animation-delay:200ms]"
-              />
-            </div>
-            
-            <div className="flex justify-center">
-              <EnhancedVideoControls
-                isConnected={enhancedClassroom?.isConnected || false}
-                isMuted={enhancedClassroom?.isMuted || false}
-                isCameraOff={enhancedClassroom?.isCameraOff || false}
-                isRecording={enhancedClassroom?.isRecording || false}
-                isTeacher={isTeacher}
-                onToggleMicrophone={() => enhancedClassroom?.toggleMicrophone?.()}
-                onToggleCamera={() => enhancedClassroom?.toggleCamera?.()}
-                onJoinCall={() => enhancedClassroom?.joinRoom?.()}
-                onLeaveCall={() => enhancedClassroom?.leaveRoom?.()}
-                onStartRecording={() => enhancedClassroom?.startRecording?.()}
-                onStopRecording={() => enhancedClassroom?.stopRecording?.()}
-              />
-            </div>
-          </div>
+        <div className="h-full glass-enhanced rounded-3xl overflow-hidden backdrop-blur-lg">
+          <UnifiedCenterPanel
+            activeCenterTab={activeCenterTab}
+            onTabChange={setActiveCenterTab}
+            currentUser={currentUser}
+          />
         </div>
       </div>
 
