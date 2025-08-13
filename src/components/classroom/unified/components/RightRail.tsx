@@ -62,7 +62,7 @@ export function RightRail({
       </div>
 
       {/* Tool Buttons */}
-      <div className="flex-1 p-2 space-y-2">
+      <div className="flex-1 p-3 space-y-3 min-h-0">
         <ToolButton
           icon={<Gift className="h-4 w-4" />}
           label="Rewards"
