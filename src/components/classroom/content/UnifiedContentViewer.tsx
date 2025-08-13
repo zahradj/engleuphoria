@@ -60,18 +60,24 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
   } = useEnhancedContentManager(initialContent, studentName, isTeacher);
 
   // Enhanced upload handler that also adds to whiteboard
-  const handleEnhancedUpload = (uploadFiles: any[]) => {
+  const handleEnhancedUpload = async (uploadFiles: any[]) => {
     console.log('🔄 UnifiedContentViewer: handleEnhancedUpload called with files:', uploadFiles);
     
-    // First handle the original upload logic
-    originalHandleEnhancedUpload(uploadFiles);
+    // First handle the original upload logic and wait for it to complete
+    await originalHandleEnhancedUpload(uploadFiles);
     
-    // Then add each file to the whiteboard as embedded content
+    // Then add each file to the whiteboard as embedded content, using the processed URLs
     uploadFiles.forEach((uploadFile, index) => {
       console.log('📄 Processing upload file:', uploadFile.file.name, 'type:', uploadFile.type);
       
-      const fileUrl = URL.createObjectURL(uploadFile.file);
-      const fileName = uploadFile.file.name.toLowerCase();
+      // Find the corresponding content item that was just created by the content manager
+      const matchingContentItem = contentItems.find(item => 
+        item.title === uploadFile.file.name && 
+        item.fileType === uploadFile.file.type
+      );
+      
+      // Use the processed URL from content manager (data URL for PDFs) or fallback to blob URL
+      const fileUrl = matchingContentItem?.source || URL.createObjectURL(uploadFile.file);
       
       // Create embedded content for the whiteboard
       const newContent: EmbeddedContent = {
