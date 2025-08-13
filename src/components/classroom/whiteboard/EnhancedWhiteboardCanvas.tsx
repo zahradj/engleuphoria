@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-import { ZoomIn, ZoomOut, Move, RotateCcw, Download, Type, X, ExternalLink } from "lucide-react";
+import { ZoomIn, ZoomOut, Move, RotateCcw, Download, Type, X, ExternalLink, FileText } from "lucide-react";
 
 interface EmbeddedContent {
   id: string;
@@ -323,10 +323,15 @@ export function EnhancedWhiteboardCanvas({
             transformOrigin: '0 0'
           }}
         >
-          {/* Embedded Web Content */}
+          {/* Embedded Content */}
           {embeddedContent.map((content) => {
             const scaledWidth = Math.max(800, content.width);
             const scaledHeight = Math.max(600, content.height);
+            
+            // Determine content type from URL
+            const isImage = content.url.includes('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(content.url);
+            const isPDF = content.url.includes('.pdf') || content.title.toLowerCase().endsWith('.pdf');
+            const isOfficeDoc = /\.(doc|docx|ppt|pptx|xls|xlsx)$/i.test(content.title);
             
             return (
               <div
@@ -370,13 +375,55 @@ export function EnhancedWhiteboardCanvas({
                 </div>
                 
                 {/* Content Body */}
-                <iframe
-                  src={content.url}
-                  className="w-full h-[calc(100%-2rem)] border-0"
-                  title={content.title}
-                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-                  referrerPolicy="strict-origin-when-cross-origin"
-                />
+                <div className="w-full h-[calc(100%-2rem)] bg-gray-50 flex items-center justify-center">
+                  {isImage ? (
+                    <img
+                      src={content.url}
+                      alt={content.title}
+                      className="max-w-full max-h-full object-contain"
+                    />
+                  ) : isPDF ? (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-gray-600">
+                      <FileText size={64} className="mb-4 text-red-500" />
+                      <p className="text-lg font-semibold mb-2">PDF Document</p>
+                      <p className="text-sm mb-4">{content.title}</p>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => openInNewTab(content.url)}
+                          className="bg-red-500 hover:bg-red-600 text-white"
+                        >
+                          <ExternalLink size={16} className="mr-2" />
+                          Open PDF
+                        </Button>
+                      </div>
+                    </div>
+                  ) : isOfficeDoc ? (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-gray-600">
+                      <FileText size={64} className="mb-4 text-blue-500" />
+                      <p className="text-lg font-semibold mb-2">Office Document</p>
+                      <p className="text-sm mb-4">{content.title}</p>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => openInNewTab(content.url)}
+                          className="bg-blue-500 hover:bg-blue-600 text-white"
+                        >
+                          <ExternalLink size={16} className="mr-2" />
+                          Open Document
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <iframe
+                      src={content.url}
+                      className="w-full h-full border-0"
+                      title={content.title}
+                      sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                      referrerPolicy="strict-origin-when-cross-origin"
+                    />
+                  )}
+                </div>
               </div>
             );
           })}

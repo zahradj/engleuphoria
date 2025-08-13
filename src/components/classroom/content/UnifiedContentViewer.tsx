@@ -44,13 +44,38 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
     isUploadDialogOpen,
     openUploadDialog,
     closeUploadDialog,
-    handleEnhancedUpload,
+    handleEnhancedUpload: originalHandleEnhancedUpload,
     previewFile,
     openPreview,
     closePreview,
     handleFileDelete,
     handleFileDownload
   } = useEnhancedContentManager(initialContent, studentName, isTeacher);
+
+  // Enhanced upload handler that also adds to whiteboard
+  const handleEnhancedUpload = (uploadFiles: any[]) => {
+    // First handle the original upload logic
+    originalHandleEnhancedUpload(uploadFiles);
+    
+    // Then add each file to the whiteboard as embedded content
+    uploadFiles.forEach((uploadFile, index) => {
+      const fileUrl = URL.createObjectURL(uploadFile.file);
+      const fileName = uploadFile.file.name.toLowerCase();
+      
+      // Create embedded content for the whiteboard
+      const newContent: EmbeddedContent = {
+        id: Date.now().toString() + index,
+        title: uploadFile.file.name,
+        url: fileUrl,
+        x: 100 + (index * 60), // Stagger horizontally
+        y: 100 + (index * 60), // Stagger vertically  
+        width: 800,
+        height: 600
+      };
+      
+      setEmbeddedContent(prev => [...prev, newContent]);
+    });
+  };
 
   const handleAddEmbeddedContent = (content: Omit<EmbeddedContent, 'id'>) => {
     const newContent: EmbeddedContent = {
