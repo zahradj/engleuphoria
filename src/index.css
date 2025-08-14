@@ -39,6 +39,22 @@
 	--student-accent: 280 70% 70%;
 	--student-foreground: 0 0% 100%;
 	
+	/* Mint green color system */
+	--mint: 162 76% 47%;
+	--mint-light: 162 76% 97%;
+	--mint-50: 162 76% 95%;
+	--mint-100: 162 76% 90%;
+	--mint-200: 162 76% 80%;
+	--mint-300: 162 76% 70%;
+	--mint-400: 162 76% 60%;
+	--mint-500: 162 76% 47%;
+	--mint-600: 162 76% 37%;
+	--mint-700: 162 76% 27%;
+	--mint-800: 162 76% 17%;
+	--mint-900: 162 76% 10%;
+	--mint-dark: 162 76% 27%;
+	--mint-foreground: 0 0% 100%;
+	
 	--teacher: 260 80% 55%;
 	--teacher-light: 260 40% 96%;
 	--teacher-dark: 260 75% 40%;

@@ -89,6 +89,22 @@ export default {
 				DEFAULT: '#FACC15',
 				dark: '#A16207',
 			},
+			mint: {
+				DEFAULT: 'hsl(var(--mint))',
+				light: 'hsl(var(--mint-light))',
+				dark: 'hsl(var(--mint-dark))',
+				foreground: 'hsl(var(--mint-foreground))',
+				50: 'hsl(var(--mint-50))',
+				100: 'hsl(var(--mint-100))',
+				200: 'hsl(var(--mint-200))',
+				300: 'hsl(var(--mint-300))',
+				400: 'hsl(var(--mint-400))',
+				500: 'hsl(var(--mint-500))',
+				600: 'hsl(var(--mint-600))',
+				700: 'hsl(var(--mint-700))',
+				800: 'hsl(var(--mint-800))',
+				900: 'hsl(var(--mint-900))',
+			},
 			// Enhanced role colors (Official Role Codes)
 				student: {
 					DEFAULT: 'hsl(var(--student))',
