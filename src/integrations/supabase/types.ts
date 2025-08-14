@@ -1460,6 +1460,45 @@ export type Database = {
           },
         ]
       }
+      generated_curriculums: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          curriculum_data: Json
+          estimated_study_time: number
+          id: string
+          is_active: boolean | null
+          level: string
+          neuroscientific_features: string[]
+          progression_map: Json
+          total_pages: number
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          curriculum_data: Json
+          estimated_study_time: number
+          id: string
+          is_active?: boolean | null
+          level: string
+          neuroscientific_features: string[]
+          progression_map: Json
+          total_pages: number
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          curriculum_data?: Json
+          estimated_study_time?: number
+          id?: string
+          is_active?: boolean | null
+          level?: string
+          neuroscientific_features?: string[]
+          progression_map?: Json
+          total_pages?: number
+        }
+        Relationships: []
+      }
       homework: {
         Row: {
           created_at: string
@@ -1749,6 +1788,71 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      lesson_completions: {
+        Row: {
+          attention_optimization_score: number | null
+          completed_at: string | null
+          completion_data: Json | null
+          conversation_time_seconds: number | null
+          curriculum_id: string
+          grammar_practiced: string[] | null
+          id: string
+          lesson_id: string
+          lesson_number: number
+          memory_consolidation_score: number | null
+          neuroscience_engagement_score: number | null
+          pages_completed: number | null
+          student_id: string
+          total_pages: number | null
+          vocabulary_learned: string[] | null
+          week_number: number
+        }
+        Insert: {
+          attention_optimization_score?: number | null
+          completed_at?: string | null
+          completion_data?: Json | null
+          conversation_time_seconds?: number | null
+          curriculum_id: string
+          grammar_practiced?: string[] | null
+          id?: string
+          lesson_id: string
+          lesson_number: number
+          memory_consolidation_score?: number | null
+          neuroscience_engagement_score?: number | null
+          pages_completed?: number | null
+          student_id: string
+          total_pages?: number | null
+          vocabulary_learned?: string[] | null
+          week_number: number
+        }
+        Update: {
+          attention_optimization_score?: number | null
+          completed_at?: string | null
+          completion_data?: Json | null
+          conversation_time_seconds?: number | null
+          curriculum_id?: string
+          grammar_practiced?: string[] | null
+          id?: string
+          lesson_id?: string
+          lesson_number?: number
+          memory_consolidation_score?: number | null
+          neuroscience_engagement_score?: number | null
+          pages_completed?: number | null
+          student_id?: string
+          total_pages?: number | null
+          vocabulary_learned?: string[] | null
+          week_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_completions_curriculum_id_fkey"
+            columns: ["curriculum_id"]
+            isOneToOne: false
+            referencedRelation: "generated_curriculums"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       lesson_feedback_submissions: {
         Row: {
@@ -3129,6 +3233,59 @@ export type Database = {
           },
         ]
       }
+      student_curriculum_progress: {
+        Row: {
+          completion_percentage: number | null
+          conversation_milestones_achieved: string[] | null
+          current_lesson: number | null
+          current_week: number | null
+          curriculum_id: string
+          grammar_patterns_learned: string[] | null
+          id: string
+          last_activity_at: string | null
+          neuroscience_scores: Json | null
+          started_at: string | null
+          student_id: string
+          vocabulary_mastered: string[] | null
+        }
+        Insert: {
+          completion_percentage?: number | null
+          conversation_milestones_achieved?: string[] | null
+          current_lesson?: number | null
+          current_week?: number | null
+          curriculum_id: string
+          grammar_patterns_learned?: string[] | null
+          id?: string
+          last_activity_at?: string | null
+          neuroscience_scores?: Json | null
+          started_at?: string | null
+          student_id: string
+          vocabulary_mastered?: string[] | null
+        }
+        Update: {
+          completion_percentage?: number | null
+          conversation_milestones_achieved?: string[] | null
+          current_lesson?: number | null
+          current_week?: number | null
+          curriculum_id?: string
+          grammar_patterns_learned?: string[] | null
+          id?: string
+          last_activity_at?: string | null
+          neuroscience_scores?: Json | null
+          started_at?: string | null
+          student_id?: string
+          vocabulary_mastered?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_curriculum_progress_curriculum_id_fkey"
+            columns: ["curriculum_id"]
+            isOneToOne: false
+            referencedRelation: "generated_curriculums"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_learning_streaks: {
         Row: {
           bonus_coins_earned: number
@@ -4450,6 +4607,62 @@ export type Database = {
         }
         Relationships: []
       }
+      weekly_assessments: {
+        Row: {
+          assessment_data: Json | null
+          completed_at: string | null
+          conversation_duration_seconds: number | null
+          conversation_fluency_score: number | null
+          curriculum_id: string
+          grammar_accuracy_percentage: number | null
+          id: string
+          neuroscience_retention_score: number | null
+          sentence_construction_score: number | null
+          student_id: string
+          theme: string
+          vocabulary_accuracy_percentage: number | null
+          week_number: number
+        }
+        Insert: {
+          assessment_data?: Json | null
+          completed_at?: string | null
+          conversation_duration_seconds?: number | null
+          conversation_fluency_score?: number | null
+          curriculum_id: string
+          grammar_accuracy_percentage?: number | null
+          id?: string
+          neuroscience_retention_score?: number | null
+          sentence_construction_score?: number | null
+          student_id: string
+          theme: string
+          vocabulary_accuracy_percentage?: number | null
+          week_number: number
+        }
+        Update: {
+          assessment_data?: Json | null
+          completed_at?: string | null
+          conversation_duration_seconds?: number | null
+          conversation_fluency_score?: number | null
+          curriculum_id?: string
+          grammar_accuracy_percentage?: number | null
+          id?: string
+          neuroscience_retention_score?: number | null
+          sentence_construction_score?: number | null
+          student_id?: string
+          theme?: string
+          vocabulary_accuracy_percentage?: number | null
+          week_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_assessments_curriculum_id_fkey"
+            columns: ["curriculum_id"]
+            isOneToOne: false
+            referencedRelation: "generated_curriculums"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -4502,6 +4715,10 @@ export type Database = {
       }
       get_organization_analytics: {
         Args: { org_uuid: string }
+        Returns: Json
+      }
+      get_student_curriculum_analytics: {
+        Args: { p_student_id: string; p_curriculum_id: string }
         Returns: Json
       }
       get_student_lesson_stats: {

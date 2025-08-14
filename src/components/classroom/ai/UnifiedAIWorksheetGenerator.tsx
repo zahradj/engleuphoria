@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, Library } from "lucide-react";
+import { Sparkles, Library, BookOpen } from "lucide-react";
 import { useUnifiedAIContent } from "@/hooks/useUnifiedAIContent";
 import { AIContentRequest } from "@/services/unifiedAIContentService";
 import { unifiedAIContentService } from "@/services/unifiedAIContentService";
@@ -9,6 +9,7 @@ import { AIGeneratorHeader } from "./components/AIGeneratorHeader";
 import { ProgressTracker } from "./components/ProgressTracker";
 import { GenerationForm } from "./components/GenerationForm";
 import { ContentLibraryTab } from "./components/ContentLibraryTab";
+import { CurriculumGenerationPanel } from "./CurriculumGenerationPanel";
 
 interface UnifiedAIWorksheetGeneratorProps {
   onContentGenerated?: (content: any) => void;
@@ -19,7 +20,7 @@ export function UnifiedAIWorksheetGenerator({
   onContentGenerated, 
   onInsertToWhiteboard 
 }: UnifiedAIWorksheetGeneratorProps) {
-  const [activeTab, setActiveTab] = useState<'generate' | 'library'>('generate');
+  const [activeTab, setActiveTab] = useState<'generate' | 'library' | 'curriculum'>('generate');
   const [topic, setTopic] = useState('');
   const [level, setLevel] = useState<'beginner' | 'intermediate' | 'advanced'>('beginner');
   const [contentType, setContentType] = useState<'worksheet' | 'activity' | 'lesson_plan' | 'quiz' | 'flashcards'>('worksheet');
@@ -150,10 +151,14 @@ export function UnifiedAIWorksheetGenerator({
       {/* Tabs */}
       <div className="flex-1 min-h-0 flex flex-col">
         <div className="px-4 pt-4 flex-shrink-0">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="generate" onClick={() => setActiveTab('generate')} className="flex items-center gap-2">
               <Sparkles size={16} />
               Generate
+            </TabsTrigger>
+            <TabsTrigger value="curriculum" onClick={() => setActiveTab('curriculum')} className="flex items-center gap-2">
+              <BookOpen size={16} />
+              A-Z Curriculum
             </TabsTrigger>
             <TabsTrigger value="library" onClick={() => setActiveTab('library')} className="flex items-center gap-2">
               <Library size={16} />
@@ -183,6 +188,19 @@ export function UnifiedAIWorksheetGenerator({
               isGenerating={isGenerating}
               onGenerate={handleGenerate}
             />
+          )}
+
+          {activeTab === 'curriculum' && (
+            <div className="p-4">
+              <CurriculumGenerationPanel 
+                onCurriculumGenerated={(curriculum) => {
+                  console.log('Curriculum generated:', curriculum);
+                  if (onContentGenerated) {
+                    onContentGenerated(curriculum);
+                  }
+                }}
+              />
+            </div>
           )}
 
           {activeTab === 'library' && (
