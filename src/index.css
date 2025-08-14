@@ -121,6 +121,23 @@
     --chart-3: 290 75% 75%;
     --chart-4: 280 55% 55%;
     --chart-5: 300 70% 60%;
+    
+    /* Mint green color system - dark mode */
+    --mint: 162 76% 57%;
+    --mint-light: 162 76% 15%;
+    --mint-50: 162 76% 12%;
+    --mint-100: 162 76% 18%;
+    --mint-200: 162 76% 25%;
+    --mint-300: 162 76% 35%;
+    --mint-400: 162 76% 45%;
+    --mint-500: 162 76% 57%;
+    --mint-600: 162 76% 67%;
+    --mint-700: 162 76% 77%;
+    --mint-800: 162 76% 85%;
+    --mint-900: 162 76% 92%;
+    --mint-dark: 162 76% 35%;
+    --mint-foreground: 0 0% 100%;
+    
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 94.1%;

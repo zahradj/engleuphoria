@@ -215,9 +215,10 @@ export function RewardsTabContent() {
       </Accordion>
 
       {/* Mint Green Glow Effect */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-32 bg-mint-300/20 rounded-full blur-3xl animate-pulse-subtle"></div>
-        <div className="absolute bottom-0 right-1/4 w-24 h-24 bg-mint-400/15 rounded-full blur-2xl animate-float"></div>
+      <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-lg">
+        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-32 h-32 bg-mint-300/30 rounded-full blur-3xl animate-pulse-subtle"></div>
+        <div className="absolute bottom-4 right-1/4 w-24 h-24 bg-mint-400/25 rounded-full blur-2xl animate-float"></div>
+        <div className="absolute top-1/2 left-4 w-16 h-16 bg-mint-500/20 rounded-full blur-xl animate-bounce-light"></div>
       </div>
     </div>
   );
