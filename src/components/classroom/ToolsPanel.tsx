@@ -18,6 +18,7 @@ interface ToolsPanelProps {
   onShowRewards: () => void;
   onStartTimer: () => void;
   onUploadMaterial: () => void;
+  isTeacherView?: boolean;
 }
 
 export function ToolsPanel({
@@ -31,7 +32,8 @@ export function ToolsPanel({
   onLayoutChange,
   onShowRewards,
   onStartTimer,
-  onUploadMaterial
+  onUploadMaterial,
+  isTeacherView = true
 }: ToolsPanelProps) {
   const { languageText } = useLanguage();
   const { toast } = useToast();
@@ -65,6 +67,12 @@ export function ToolsPanel({
 
         {/* Teaching Tools */}
         <TeachingTools 
+          permissions={{
+            canControlLessonFlow: isTeacherView,
+            canUploadContent: isTeacherView,
+            canCreatePolls: isTeacherView,
+            canSpotlightStudents: isTeacherView,
+          }}
           onStartTimer={onStartTimer}
           onUploadMaterial={onUploadMaterial}
           onShowGames={onShowGames}
