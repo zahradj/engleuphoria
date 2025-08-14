@@ -72,10 +72,30 @@ export function EnhancedContentLibrary({
   // Load AI-generated content and curriculums
   useEffect(() => {
     loadContent();
+    generateAllCurriculum();
   }, []);
 
-  const loadContent = async () => {
+  const generateAllCurriculum = async () => {
     setIsLoading(true);
+    try {
+      // Check if curriculum is already generated
+      const existingContent = await bulkCurriculumService.getGeneratedContent();
+      if (existingContent.length < 294) {
+        console.log('Generating complete A-Z curriculum...');
+        await bulkCurriculumService.generateFullCurriculum((progress, level, lesson, total) => {
+          console.log(`Progress: ${progress.toFixed(1)}% - ${level} Lesson ${lesson}/${total}`);
+        });
+        // Reload content after generation
+        await loadContent();
+      }
+    } catch (error) {
+      console.error('Failed to generate curriculum:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loadContent = async () => {
     try {
       // Load from localStorage or API
       const savedAiContent = localStorage.getItem('ai-generated-content');
@@ -93,8 +113,6 @@ export function EnhancedContentLibrary({
       setBulkCurriculumContent(bulkContent);
     } catch (error) {
       console.error('Failed to load content:', error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -285,9 +303,9 @@ export function EnhancedContentLibrary({
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <Button onClick={loadContent} variant="outline" size="sm" disabled={isLoading}>
+              <Button onClick={generateAllCurriculum} variant="outline" size="sm" disabled={isLoading}>
                 <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                Refresh
+                {isLoading ? 'Generating...' : 'Generate All'}
               </Button>
               <Badge variant="secondary" className="bg-primary/10">
                 {contentStats.total} items
@@ -323,14 +341,10 @@ export function EnhancedContentLibrary({
             </div>
           </div>
 
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="browse" className="flex items-center gap-2">
               <Search size={16} />
               Browse Content
-            </TabsTrigger>
-            <TabsTrigger value="generate" className="flex items-center gap-2">
-              <Brain size={16} />
-              AI Generator
             </TabsTrigger>
             <TabsTrigger value="analytics" className="flex items-center gap-2">
               <Target size={16} />
@@ -404,10 +418,13 @@ export function EnhancedContentLibrary({
             {isLoading ? (
               <div className="text-center py-12">
                 <RefreshCw size={48} className="mx-auto mb-4 text-muted-foreground animate-spin" />
-                <h3 className="text-lg font-medium mb-2">Loading content...</h3>
+                <h3 className="text-lg font-medium mb-2">Generating Complete A-Z Curriculum...</h3>
                 <p className="text-muted-foreground">
-                  Fetching the latest curriculum and AI-generated content
+                  Creating 294 lessons across all CEFR levels (A1-C2). This may take a few minutes.
                 </p>
+                <div className="mt-4 text-sm text-muted-foreground">
+                  Current content: {bulkCurriculumContent.length}/294 lessons
+                </div>
               </div>
             ) : filteredContent.length === 0 ? (
               <div className="text-center py-12">
@@ -416,156 +433,92 @@ export function EnhancedContentLibrary({
                 <p className="text-muted-foreground mb-4">
                   {searchTerm || filters.type !== 'all' || filters.level !== 'all'
                     ? 'Try adjusting your search or filters'
-                    : 'Start by generating AI content or uploading materials'
+                    : 'Content is being generated. Please wait...'
                   }
                 </p>
-                <Button onClick={() => setActiveTab('generate')}>
-                  <Brain size={16} className="mr-2" />
-                  Generate Content
+                <Button onClick={generateAllCurriculum} disabled={isLoading}>
+                  <RefreshCw size={16} className="mr-2" />
+                  Generate All Lessons
                 </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredContent.map((item) => {
-                  const IconComponent = getContentIcon(item);
-                  const colorClass = getContentColor(item);
+              <div className="space-y-4">
+                {/* List View of All Content */}
+                <div className="bg-white rounded-lg border">
+                  <div className="p-4 border-b">
+                    <h3 className="font-medium">All Curriculum Content ({filteredContent.length} lessons)</h3>
+                  </div>
+                  <div className="divide-y max-h-[600px] overflow-y-auto">
+                    {filteredContent.map((item, index) => {
+                      const IconComponent = getContentIcon(item);
 
-                  return (
-                    <Card
-                      key={item.id}
-                      className={`cursor-pointer transition-all hover:shadow-lg ${
-                        selectedContent?.id === item.id ? 'ring-2 ring-primary' : ''
-                      }`}
-                      onClick={() => onSelectContent(item)}
-                    >
-                      <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between">
-                          <div className={`w-10 h-10 ${colorClass} rounded-lg flex items-center justify-center mb-2`}>
-                            <IconComponent size={20} className="text-white" />
-                          </div>
-                          <div className="flex gap-1 flex-wrap">
-                            {item.level && (
-                              <Badge className={`text-xs ${getLevelColor(item.level)}`}>
-                                {item.level}
-                              </Badge>
-                            )}
-                            <Badge variant="outline" className="text-xs">
-                              {item.contentType === 'bulk-curriculum' ? 'Curriculum' : 
-                               item.contentType === 'ai-generated' ? 'AI' :
-                               item.contentType || item.type}
-                            </Badge>
+                      return (
+                        <div
+                          key={item.id}
+                          className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors ${
+                            selectedContent?.id === item.id ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''
+                          }`}
+                          onClick={() => onSelectContent(item)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3 flex-1">
+                              <div className="text-sm text-muted-foreground font-mono">
+                                #{(index + 1).toString().padStart(3, '0')}
+                              </div>
+                              <div className={`w-8 h-8 ${getContentColor(item)} rounded flex items-center justify-center`}>
+                                <IconComponent size={16} className="text-white" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h4 className="font-medium text-sm truncate">{item.title}</h4>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <Badge className={`text-xs ${getLevelColor(item.level)}`}>
+                                    {item.level}
+                                  </Badge>
+                                  <span className="text-xs text-muted-foreground">
+                                    {item.contentType === 'bulk-curriculum' ? 'Curriculum Lesson' : 
+                                     item.contentType === 'ai-generated' ? 'AI Generated' :
+                                     item.contentType || item.type}
+                                  </span>
+                                  {item.topic && (
+                                    <span className="text-xs text-muted-foreground">• {item.topic}</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {item.contentType === 'bulk-curriculum' && (
+                                <div className="text-right text-xs text-muted-foreground">
+                                  <div>20 pages</div>
+                                  <div>{item.duration || 30} min</div>
+                                </div>
+                              )}
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDownloadContent(item);
+                                }}
+                                className="h-8 w-8 p-0"
+                              >
+                                <Download size={14} />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8 w-8 p-0"
+                              >
+                                <Eye size={14} />
+                              </Button>
+                            </div>
                           </div>
                         </div>
-                        <CardTitle className="text-sm font-medium line-clamp-2">
-                          {item.title}
-                        </CardTitle>
-                      </CardHeader>
-
-                      <CardContent className="pt-0">
-                        {item.contentType === 'bulk-curriculum' && (
-                          <div className="space-y-2 text-xs text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <FileText size={12} />
-                              20 pages
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Clock size={12} />
-                              {item.duration || 30} minutes
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Target size={12} />
-                              Difficulty: {item.difficulty || 5}/10
-                            </div>
-                            {item.topic && (
-                              <div className="text-xs truncate">Topic: {item.topic}</div>
-                            )}
-                          </div>
-                        )}
-
-                        {item.contentType === 'curriculum' && (
-                          <div className="space-y-2 text-xs text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <FileText size={12} />
-                              {item.metadata?.totalPages} pages
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Clock size={12} />
-                              {item.metadata?.totalWeeks} weeks
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Target size={12} />
-                              {item.metadata?.estimatedHours}h study time
-                            </div>
-                          </div>
-                        )}
-
-                        {item.contentType === 'ai-generated' && (
-                          <div className="space-y-2 text-xs text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <Sparkles size={12} />
-                              {item.type} - {item.level}
-                            </div>
-                            {item.duration && (
-                              <div className="flex items-center gap-1">
-                                <Clock size={12} />
-                                {item.duration} minutes
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {item.contentType === 'upload' && (
-                          <div className="space-y-2 text-xs text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <FileText size={12} />
-                              {item.fileType || 'Document'}
-                            </div>
-                            {item.size && (
-                              <div className="flex items-center gap-1">
-                                <Target size={12} />
-                                {(item.size / 1024 / 1024).toFixed(1)} MB
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        <div className="flex gap-1 mt-3">
-                          <Button size="sm" variant="outline" className="flex-1 h-7 text-xs">
-                            <Eye size={12} className="mr-1" />
-                            Preview
-                          </Button>
-                          {onAddToWhiteboard && (
-                            <Button size="sm" variant="outline" className="flex-1 h-7 text-xs">
-                              <Play size={12} className="mr-1" />
-                              Use
-                            </Button>
-                          )}
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="h-7 w-7 p-0"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDownloadContent(item);
-                            }}
-                          >
-                            <Download size={12} />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             )}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="generate" className="flex-1 min-h-0">
-          <div className="h-full p-4">
-            <CurriculumGenerationPanel
-              onCurriculumGenerated={handleCurriculumGenerated}
-            />
           </div>
         </TabsContent>
 
