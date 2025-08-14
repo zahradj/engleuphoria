@@ -20,11 +20,13 @@ import {
   FileText,
   Video,
   Image,
-  Mic
+  Mic,
+  RefreshCw
 } from 'lucide-react';
 import { ContentLibraryItem } from '@/services/unifiedAIContentService';
 import { GeneratedCurriculum, curriculumGenerationService } from '@/services/curriculumGenerationService';
 import { CurriculumGenerationPanel } from '../ai/CurriculumGenerationPanel';
+import { bulkCurriculumService } from '@/services/ai/bulkCurriculumService';
 
 interface EnhancedContentLibraryProps {
   contentItems: any[];
@@ -41,7 +43,7 @@ interface EnhancedContentLibraryProps {
 }
 
 interface ContentFilter {
-  type: 'all' | 'ai-generated' | 'curriculum' | 'uploads' | 'media';
+  type: 'all' | 'ai-generated' | 'curriculum' | 'uploads' | 'media' | 'bulk-curriculum';
   level: 'all' | 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
   subject: 'all' | 'grammar' | 'vocabulary' | 'conversation' | 'reading' | 'writing';
 }
@@ -64,6 +66,7 @@ export function EnhancedContentLibrary({
   });
   const [aiContent, setAiContent] = useState<ContentLibraryItem[]>([]);
   const [curriculums, setCurriculums] = useState<GeneratedCurriculum[]>([]);
+  const [bulkCurriculumContent, setBulkCurriculumContent] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   // Load AI-generated content and curriculums
@@ -72,6 +75,7 @@ export function EnhancedContentLibrary({
   }, []);
 
   const loadContent = async () => {
+    setIsLoading(true);
     try {
       // Load from localStorage or API
       const savedAiContent = localStorage.getItem('ai-generated-content');
@@ -83,8 +87,14 @@ export function EnhancedContentLibrary({
       if (savedCurriculums) {
         setCurriculums(JSON.parse(savedCurriculums));
       }
+
+      // Load bulk curriculum content from Supabase
+      const bulkContent = await bulkCurriculumService.getGeneratedContent();
+      setBulkCurriculumContent(bulkContent);
     } catch (error) {
       console.error('Failed to load content:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -105,6 +115,25 @@ export function EnhancedContentLibrary({
           estimatedHours: curriculum.estimatedStudyTime,
           generatedAt: curriculum.generatedAt
         }
+      })),
+      ...bulkCurriculumContent.map(item => ({
+        id: item.id,
+        title: item.title,
+        type: item.content_type,
+        level: item.cefr_level,
+        contentType: 'bulk-curriculum',
+        topic: item.content_data?.topic || 'Language Learning',
+        duration: item.estimated_duration || 30,
+        pages: 20,
+        difficulty: item.difficulty_level,
+        createdAt: item.created_at,
+        tags: item.tags || [],
+        metadata: {
+          difficulty_level: item.difficulty_level,
+          learning_objectives: item.learning_objectives,
+          ai_generated: item.ai_generated,
+          estimated_duration: item.estimated_duration
+        }
       }))
     ];
 
@@ -120,7 +149,8 @@ export function EnhancedContentLibrary({
       filtered = filtered.filter(item =>
         item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.level?.toLowerCase().includes(searchTerm.toLowerCase())
+        item.level?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.topic?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -130,6 +160,8 @@ export function EnhancedContentLibrary({
         filtered = filtered.filter(item => item.contentType === 'ai-generated');
       } else if (filters.type === 'curriculum') {
         filtered = filtered.filter(item => item.contentType === 'curriculum');
+      } else if (filters.type === 'bulk-curriculum') {
+        filtered = filtered.filter(item => item.contentType === 'bulk-curriculum');
       } else if (filters.type === 'uploads') {
         filtered = filtered.filter(item => item.contentType === 'upload');
       } else if (filters.type === 'media') {
@@ -163,8 +195,33 @@ export function EnhancedContentLibrary({
     });
   };
 
+  const handleDownloadContent = async (item: any) => {
+    try {
+      if (item.contentType === 'bulk-curriculum') {
+        // Download the full lesson content
+        const blob = new Blob([JSON.stringify(item, null, 2)], { 
+          type: 'application/json' 
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${item.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } else {
+        // Handle other content types
+        console.log('Downloading:', item.title);
+      }
+    } catch (error) {
+      console.error('Download failed:', error);
+    }
+  };
+
   const getContentIcon = (item: any) => {
     if (item.contentType === 'curriculum') return Brain;
+    if (item.contentType === 'bulk-curriculum') return BookOpen;
     if (item.contentType === 'ai-generated') return Sparkles;
     if (item.fileType === 'video') return Video;
     if (item.fileType === 'image') return Image;
@@ -174,6 +231,7 @@ export function EnhancedContentLibrary({
 
   const getContentColor = (item: any) => {
     if (item.contentType === 'curriculum') return 'bg-purple-500';
+    if (item.contentType === 'bulk-curriculum') return 'bg-indigo-500';
     if (item.contentType === 'ai-generated') return 'bg-blue-500';
     if (item.fileType === 'video') return 'bg-red-500';
     if (item.fileType === 'image') return 'bg-green-500';
@@ -181,7 +239,36 @@ export function EnhancedContentLibrary({
     return 'bg-gray-500';
   };
 
+  const getLevelColor = (level: string) => {
+    const colors = {
+      A1: 'bg-green-100 text-green-800',
+      A2: 'bg-blue-100 text-blue-800',
+      B1: 'bg-yellow-100 text-yellow-800',
+      B2: 'bg-orange-100 text-orange-800',
+      C1: 'bg-red-100 text-red-800',
+      C2: 'bg-purple-100 text-purple-800'
+    };
+    return colors[level as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+  };
+
   const filteredContent = getFilteredContent();
+
+  // Content statistics
+  const contentStats = {
+    total: filteredContent.length,
+    bulkCurriculum: bulkCurriculumContent.length,
+    aiGenerated: aiContent.length,
+    curriculums: curriculums.length,
+    uploads: contentItems.length,
+    byLevel: {
+      A1: filteredContent.filter(item => item.level === 'A1').length,
+      A2: filteredContent.filter(item => item.level === 'A2').length,
+      B1: filteredContent.filter(item => item.level === 'B1').length,
+      B2: filteredContent.filter(item => item.level === 'B2').length,
+      C1: filteredContent.filter(item => item.level === 'C1').length,
+      C2: filteredContent.filter(item => item.level === 'C2').length
+    }
+  };
 
   return (
     <div className="h-full flex flex-col">
@@ -194,12 +281,46 @@ export function EnhancedContentLibrary({
                 Enhanced Content Library
               </h2>
               <p className="text-sm text-muted-foreground">
-                AI-generated curriculums, content library, and course materials
+                Complete A-Z curriculum, AI-generated content, and course materials
               </p>
             </div>
-            <Badge variant="secondary" className="bg-primary/10">
-              {filteredContent.length} items
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Button onClick={loadContent} variant="outline" size="sm" disabled={isLoading}>
+                <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+              <Badge variant="secondary" className="bg-primary/10">
+                {contentStats.total} items
+              </Badge>
+            </div>
+          </div>
+
+          {/* Content Statistics */}
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-3 mb-4">
+            <div className="text-center p-2 bg-white rounded-lg shadow-sm">
+              <div className="text-lg font-bold text-indigo-600">{contentStats.bulkCurriculum}</div>
+              <div className="text-xs text-muted-foreground">Curriculum</div>
+            </div>
+            <div className="text-center p-2 bg-white rounded-lg shadow-sm">
+              <div className="text-lg font-bold text-blue-600">{contentStats.aiGenerated}</div>
+              <div className="text-xs text-muted-foreground">AI Generated</div>
+            </div>
+            <div className="text-center p-2 bg-white rounded-lg shadow-sm">
+              <div className="text-lg font-bold text-purple-600">{contentStats.curriculums}</div>
+              <div className="text-xs text-muted-foreground">Courses</div>
+            </div>
+            <div className="text-center p-2 bg-white rounded-lg shadow-sm">
+              <div className="text-lg font-bold text-green-600">{contentStats.uploads}</div>
+              <div className="text-xs text-muted-foreground">Uploads</div>
+            </div>
+            <div className="text-center p-2 bg-white rounded-lg shadow-sm">
+              <div className="text-lg font-bold text-orange-600">{Object.values(contentStats.byLevel).reduce((a, b) => a + b, 0)}</div>
+              <div className="text-xs text-muted-foreground">All Levels</div>
+            </div>
+            <div className="text-center p-2 bg-white rounded-lg shadow-sm">
+              <div className="text-lg font-bold text-primary">{contentStats.total}</div>
+              <div className="text-xs text-muted-foreground">Total</div>
+            </div>
           </div>
 
           <TabsList className="grid w-full grid-cols-3">
@@ -224,7 +345,7 @@ export function EnhancedContentLibrary({
             <div className="flex gap-2">
               <div className="flex-1">
                 <Input
-                  placeholder="Search content, curriculums, and materials..."
+                  placeholder="Search curriculum lessons, AI content, and materials..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full"
@@ -242,7 +363,8 @@ export function EnhancedContentLibrary({
                 className="text-sm border rounded px-2 py-1"
               >
                 <option value="all">All Types</option>
-                <option value="curriculum">Curriculums</option>
+                <option value="bulk-curriculum">A-Z Curriculum</option>
+                <option value="curriculum">Custom Curriculums</option>
                 <option value="ai-generated">AI Generated</option>
                 <option value="uploads">Uploads</option>
                 <option value="media">Media Files</option>
@@ -259,7 +381,7 @@ export function EnhancedContentLibrary({
                 <option value="B1">B1 - Intermediate</option>
                 <option value="B2">B2 - Upper-Intermediate</option>
                 <option value="C1">C1 - Advanced</option>
-                <option value="C2">C2 - Master</option>
+                <option value="C2">C2 - Mastery</option>
               </select>
 
               <select
@@ -279,7 +401,15 @@ export function EnhancedContentLibrary({
 
           {/* Content Grid */}
           <div className="flex-1 min-h-0 overflow-y-auto p-4">
-            {filteredContent.length === 0 ? (
+            {isLoading ? (
+              <div className="text-center py-12">
+                <RefreshCw size={48} className="mx-auto mb-4 text-muted-foreground animate-spin" />
+                <h3 className="text-lg font-medium mb-2">Loading content...</h3>
+                <p className="text-muted-foreground">
+                  Fetching the latest curriculum and AI-generated content
+                </p>
+              </div>
+            ) : filteredContent.length === 0 ? (
               <div className="text-center py-12">
                 <Library size={48} className="mx-auto mb-4 text-muted-foreground" />
                 <h3 className="text-lg font-medium mb-2">No content found</h3>
@@ -313,14 +443,16 @@ export function EnhancedContentLibrary({
                           <div className={`w-10 h-10 ${colorClass} rounded-lg flex items-center justify-center mb-2`}>
                             <IconComponent size={20} className="text-white" />
                           </div>
-                          <div className="flex gap-1">
+                          <div className="flex gap-1 flex-wrap">
                             {item.level && (
-                              <Badge variant="secondary" className="text-xs">
+                              <Badge className={`text-xs ${getLevelColor(item.level)}`}>
                                 {item.level}
                               </Badge>
                             )}
                             <Badge variant="outline" className="text-xs">
-                              {item.contentType || item.type}
+                              {item.contentType === 'bulk-curriculum' ? 'Curriculum' : 
+                               item.contentType === 'ai-generated' ? 'AI' :
+                               item.contentType || item.type}
                             </Badge>
                           </div>
                         </div>
@@ -330,6 +462,26 @@ export function EnhancedContentLibrary({
                       </CardHeader>
 
                       <CardContent className="pt-0">
+                        {item.contentType === 'bulk-curriculum' && (
+                          <div className="space-y-2 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <FileText size={12} />
+                              20 pages
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Clock size={12} />
+                              {item.duration || 30} minutes
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Target size={12} />
+                              Difficulty: {item.difficulty || 5}/10
+                            </div>
+                            {item.topic && (
+                              <div className="text-xs truncate">Topic: {item.topic}</div>
+                            )}
+                          </div>
+                        )}
+
                         {item.contentType === 'curriculum' && (
                           <div className="space-y-2 text-xs text-muted-foreground">
                             <div className="flex items-center gap-1">
@@ -388,7 +540,15 @@ export function EnhancedContentLibrary({
                               Use
                             </Button>
                           )}
-                          <Button size="sm" variant="outline" className="h-7 w-7 p-0">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-7 w-7 p-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDownloadContent(item);
+                            }}
+                          >
                             <Download size={12} />
                           </Button>
                         </div>
@@ -411,25 +571,36 @@ export function EnhancedContentLibrary({
 
         <TabsContent value="analytics" className="flex-1 min-h-0">
           <div className="h-full p-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <Brain className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-medium">AI Generated</span>
+                    <BookOpen className="w-4 h-4 text-indigo-500" />
+                    <span className="text-sm font-medium">A-Z Curriculum</span>
                   </div>
-                  <div className="text-2xl font-bold">{aiContent.length}</div>
-                  <div className="text-xs text-muted-foreground">Total items</div>
+                  <div className="text-2xl font-bold">{contentStats.bulkCurriculum}</div>
+                  <div className="text-xs text-muted-foreground">Ready-to-use lessons</div>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-2">
-                    <BookOpen className="w-4 h-4 text-purple-500" />
+                    <Brain className="w-4 h-4 text-primary" />
+                    <span className="text-sm font-medium">AI Generated</span>
+                  </div>
+                  <div className="text-2xl font-bold">{contentStats.aiGenerated}</div>
+                  <div className="text-xs text-muted-foreground">Custom content</div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Target className="w-4 h-4 text-purple-500" />
                     <span className="text-sm font-medium">Curriculums</span>
                   </div>
-                  <div className="text-2xl font-bold">{curriculums.length}</div>
+                  <div className="text-2xl font-bold">{contentStats.curriculums}</div>
                   <div className="text-xs text-muted-foreground">Generated courses</div>
                 </CardContent>
               </Card>
@@ -438,49 +609,29 @@ export function EnhancedContentLibrary({
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <FileText className="w-4 h-4 text-green-500" />
-                    <span className="text-sm font-medium">Uploaded Files</span>
+                    <span className="text-sm font-medium">Total Content</span>
                   </div>
-                  <div className="text-2xl font-bold">{contentItems.length}</div>
-                  <div className="text-xs text-muted-foreground">Course materials</div>
+                  <div className="text-2xl font-bold">{contentStats.total}</div>
+                  <div className="text-xs text-muted-foreground">All items</div>
                 </CardContent>
               </Card>
             </div>
 
+            {/* Level Distribution */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Content Usage Overview</CardTitle>
+                <CardTitle className="text-sm font-medium">Content by CEFR Level</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>Curriculum Progress</span>
-                      <span>75%</span>
+                <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+                  {Object.entries(contentStats.byLevel).map(([level, count]) => (
+                    <div key={level} className="text-center p-3 bg-muted rounded-lg">
+                      <div className={`text-lg font-bold ${getLevelColor(level).split(' ')[1]}`}>
+                        {count}
+                      </div>
+                      <div className="text-xs text-muted-foreground">{level}</div>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-primary h-2 rounded-full" style={{ width: '75%' }}></div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>Content Engagement</span>
-                      <span>85%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-green-500 h-2 rounded-full" style={{ width: '85%' }}></div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>AI Content Usage</span>
-                      <span>60%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-blue-500 h-2 rounded-full" style={{ width: '60%' }}></div>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
