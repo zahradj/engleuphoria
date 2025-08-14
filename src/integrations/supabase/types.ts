@@ -3221,6 +3221,9 @@ export type Database = {
           learning_style: string | null
           long_term_goal: string | null
           parent_email: string | null
+          placement_test_completed_at: string | null
+          placement_test_score: number | null
+          placement_test_total: number | null
           preferred_lesson_time: string | null
           profile_image_url: string | null
           school_name: string | null
@@ -3241,6 +3244,9 @@ export type Database = {
           learning_style?: string | null
           long_term_goal?: string | null
           parent_email?: string | null
+          placement_test_completed_at?: string | null
+          placement_test_score?: number | null
+          placement_test_total?: number | null
           preferred_lesson_time?: string | null
           profile_image_url?: string | null
           school_name?: string | null
@@ -3261,6 +3267,9 @@ export type Database = {
           learning_style?: string | null
           long_term_goal?: string | null
           parent_email?: string | null
+          placement_test_completed_at?: string | null
+          placement_test_score?: number | null
+          placement_test_total?: number | null
           preferred_lesson_time?: string | null
           profile_image_url?: string | null
           school_name?: string | null
@@ -4554,6 +4563,15 @@ export type Database = {
       reset_monthly_class_usage: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      save_placement_test_result: {
+        Args: {
+          p_user_id: string
+          p_cefr_level: string
+          p_score: number
+          p_total: number
+        }
+        Returns: boolean
       }
       update_learning_currency: {
         Args: {
