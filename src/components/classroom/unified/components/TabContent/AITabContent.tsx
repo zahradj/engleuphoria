@@ -16,6 +16,8 @@ interface AITabContentProps {
 export function AITabContent({ currentUser, onInsertToWhiteboard }: AITabContentProps) {
   const [activeAITab, setActiveAITab] = useState("generator");
 
+  console.log('AITabContent rendering with user:', currentUser);
+
   const handleContentGenerated = (content: any) => {
     console.log('AI Content generated:', content);
     // This could integrate with the whiteboard or lesson content

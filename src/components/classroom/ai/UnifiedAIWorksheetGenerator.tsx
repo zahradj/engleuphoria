@@ -90,6 +90,15 @@ export function UnifiedAIWorksheetGenerator({
   const handleGenerate = async () => {
     if (!topic.trim()) return;
 
+    console.log('🚀 Starting content generation with params:', {
+      type: contentType,
+      topic: topic.trim(),
+      level,
+      duration: parseInt(duration),
+      specificRequirements,
+      learningObjectives
+    });
+
     // Set estimated time
     const estimated = unifiedAIContentService.getEstimatedGenerationTime(contentType);
     setEstimatedTime(estimated);
@@ -103,12 +112,18 @@ export function UnifiedAIWorksheetGenerator({
       learningObjectives: learningObjectives.length > 0 ? learningObjectives : undefined
     };
 
-    const result = await generateContent(request);
-    if (result && onContentGenerated) {
-      onContentGenerated(result);
-    }
+    try {
+      const result = await generateContent(request);
+      console.log('✅ Content generation successful:', result);
+      
+      if (result && onContentGenerated) {
+        onContentGenerated(result);
+      }
 
-    setActiveTab('library');
+      setActiveTab('library');
+    } catch (error) {
+      console.error('❌ Content generation failed:', error);
+    }
   };
 
   const copyToClipboard = (content: string) => {
