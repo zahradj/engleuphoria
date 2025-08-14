@@ -59,13 +59,16 @@ export function AITabContent({ currentUser, onInsertToWhiteboard }: AITabContent
             <DictionaryTabContent />
           </TabsContent>
 
-          <TabsContent value="library" className="h-full m-0 p-4">
-            <div className="flex items-center justify-center h-full text-gray-500">
-              <div className="text-center">
+          <TabsContent value="library" className="h-full m-0">
+            <div className="h-full">
+              <div className="text-center py-12 text-gray-500">
                 <Library size={48} className="mx-auto mb-4 text-gray-400" />
-                <h3 className="text-lg font-medium mb-2">Content Library</h3>
-                <p className="text-sm">
-                  Generated AI content and saved materials will appear here
+                <h3 className="text-lg font-medium mb-2">Enhanced Content Library</h3>
+                <p className="text-sm mb-4">
+                  Access AI-generated curriculums, course materials, and classroom resources
+                </p>
+                <p className="text-xs text-gray-400">
+                  Coming soon: Integrated content management with the whiteboard system
                 </p>
               </div>
             </div>

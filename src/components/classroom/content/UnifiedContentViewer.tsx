@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EnhancedWhiteboardCanvas } from "@/components/classroom/whiteboard/EnhancedWhiteboardCanvas";
 import { EnhancedWhiteboardToolbar } from "@/components/classroom/whiteboard/EnhancedWhiteboardToolbar";
-import { ContentLibrary } from "./ContentLibrary";
+import { EnhancedContentLibrary } from "./EnhancedContentLibrary";
 import { EnhancedUploadDialog } from "./EnhancedUploadDialog";
 import { FilePreviewModal } from "./FilePreviewModal";
 import { useEnhancedContentManager } from "./useEnhancedContentManager";
@@ -28,9 +28,14 @@ interface EmbeddedContent {
 interface UnifiedContentViewerProps {
   isTeacher: boolean;
   studentName: string;
+  currentUser?: {
+    id: string;
+    role: 'teacher' | 'student';
+    name: string;
+  };
 }
 
-export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentViewerProps) {
+export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: UnifiedContentViewerProps) {
   const [activeTab, setActiveTab] = useState("whiteboard");
   const [activeTool, setActiveTool] = useState<"pencil" | "eraser" | "text" | "highlighter" | "shape" | "move">("pencil");
   const [color, setColor] = useState("#9B87F5");
@@ -197,13 +202,18 @@ export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentV
 
           <TabsContent value="library" className="flex-1 min-h-0">
             <div className="h-full bg-white rounded-lg border shadow-sm">
-              <ContentLibrary 
+              <EnhancedContentLibrary 
                 contentItems={contentItems} 
                 selectedContent={selectedContent} 
                 onSelectContent={setSelectedContent}
                 onPreviewFile={openPreview}
                 onDeleteFile={isTeacher ? handleFileDelete : undefined}
                 onAddToWhiteboard={handleAddContentToWhiteboard}
+                currentUser={currentUser || {
+                  id: 'default',
+                  role: isTeacher ? 'teacher' : 'student',
+                  name: studentName
+                }}
               />
             </div>
           </TabsContent>
