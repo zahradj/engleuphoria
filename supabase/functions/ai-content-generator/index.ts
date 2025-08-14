@@ -33,7 +33,11 @@ serve(async (req) => {
       duration,
       studentId,
       specificRequirements,
-      studentAge
+      studentAge,
+      isBulkGeneration = false,
+      curriculumContext = null,
+      objectives = [],
+      requirements = ''
     } = requestBody;
 
     // Use 'type' if available, otherwise fall back to 'contentType'
@@ -84,6 +88,24 @@ APPLY THESE 10 NEUROSCIENCE-BASED LEARNING PRINCIPLES:
 
 Make content brain-friendly, engaging, and scientifically optimized for retention and recall.`;
 
+    // Enhanced bulk generation context
+    const bulkContext = isBulkGeneration && curriculumContext ? `
+BULK CURRICULUM CONTEXT:
+- Level: ${curriculumContext.level}
+- Week: ${curriculumContext.week}/${curriculumContext.totalWeeks}
+- Theme: ${curriculumContext.theme}
+- Lesson Number: ${curriculumContext.lessonNumber}
+- This is part of a complete A-Z curriculum generation process
+- Ensure consistency with previous lessons in this level
+- Reference real-world, current events and internet content
+- Include cultural integration from multiple English-speaking countries
+- Target sentence complexity: ${curriculumContext.level === 'A1' ? '5-8 words' : 
+  curriculumContext.level === 'A2' ? '8-12 words' :
+  curriculumContext.level === 'B1' ? '12-18 words' :
+  curriculumContext.level === 'B2' ? '18-22 words' :
+  curriculumContext.level === 'C1' ? '22-25 words' : '25+ words'}
+` : '';
+
     switch (actualContentType) {
       case 'lesson':
       case 'lesson_plan':
@@ -91,8 +113,10 @@ Make content brain-friendly, engaging, and scientifically optimized for retentio
 Topic: ${topic}
 Duration: ${duration || 45} minutes
 Student Age: ${studentAge || 'Not specified'}
-Learning Objectives: ${learningObjectives?.join(', ') || 'General language learning'}
-Specific Requirements: ${specificRequirements || 'None'}
+Learning Objectives: ${learningObjectives?.join(', ') || objectives?.join(', ') || 'General language learning'}
+Specific Requirements: ${specificRequirements || requirements || 'None'}
+
+${bulkContext}
 
 ${neuroscienceInstructions}
 

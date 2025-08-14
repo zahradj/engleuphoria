@@ -1,12 +1,14 @@
 
 export interface AIContentRequest {
-  type: 'worksheet' | 'activity' | 'lesson_plan' | 'quiz' | 'flashcards';
+  type: 'worksheet' | 'activity' | 'lesson_plan' | 'quiz' | 'flashcards' | 'lesson';
   topic: string;
   level: 'beginner' | 'intermediate' | 'advanced';
   duration?: number;
   specificRequirements?: string;
   studentAge?: string;
   learningObjectives?: string[];
+  objectives?: string[];
+  requirements?: string;
 }
 
 export interface AIGeneratedContent {
