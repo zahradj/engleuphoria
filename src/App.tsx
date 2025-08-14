@@ -31,6 +31,7 @@ import ForTeachers from "./pages/ForTeachers";
 import AboutUs from "./pages/AboutUs";
 import CurriculumLibrary from "./pages/CurriculumLibrary";
 import NewPricingPage from "./pages/NewPricingPage";
+import PlacementTest from "./pages/PlacementTest";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +65,7 @@ const App = () => (
               <Route path="/about" element={<AboutUs />} />
               <Route path="/curriculum-library" element={<CurriculumLibrary />} />
               <Route path="/pricing" element={<NewPricingPage />} />
+              <Route path="/placement-test" element={<PlacementTest />} />
 
               {/* Protected Routes */}
               <Route path="/student" element={
