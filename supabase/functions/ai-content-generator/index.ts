@@ -64,102 +64,155 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Create content generation prompt based on type
+    // Enhanced prompt generation incorporating 10 neuroscience-based learning principles
     let prompt = '';
+    
+    // Common neuroscience-based instructions applied to all content types
+    const neuroscienceInstructions = `
+APPLY THESE 10 NEUROSCIENCE-BASED LEARNING PRINCIPLES:
+
+1. NOVELTY EFFECT: Include unexpected elements, surprise challenges, varied formats, and novel sound effect suggestions
+2. PICTURE SUPERIORITY EFFECT: Pair all new vocabulary with vivid images, GIFs, emojis, and color-coded visuals  
+3. DUAL CODING: Combine verbal explanations with visual elements, gestures, animations, and multi-sensory input
+4. RETRIEVAL PRACTICE: Include mini-quizzes, "teach back" moments, recall questions, and active memory retrieval
+5. CHUNKED LEARNING: Break content into 5-8 minute segments with micro-activities between sections
+6. TESTING EFFECT: Add frequent low-stakes comprehension checks and "guess before reveal" questions
+7. EMOTIONAL ENGAGEMENT: Personalize examples, use roleplay/storytelling, celebration suggestions, and enthusiastic praise
+8. GENERATION EFFECT: Let students predict, create examples, and generate their own content
+9. INTERLEAVING: Mix topics, alternate between skills (reading/writing/speaking/listening), review older material
+10. MULTISENSORY INPUT: Engage multiple senses, include movement, gestures, sounds, visuals, and kinesthetic elements
+
+Make content brain-friendly, engaging, and scientifically optimized for retention and recall.`;
+
     switch (actualContentType) {
       case 'lesson':
       case 'lesson_plan':
-        prompt = `Create a comprehensive English lesson plan for ${actualLevel} level students.
+        prompt = `Create a neuroscience-optimized English lesson plan for ${actualLevel} level students.
 Topic: ${topic}
 Duration: ${duration || 45} minutes
 Student Age: ${studentAge || 'Not specified'}
 Learning Objectives: ${learningObjectives?.join(', ') || 'General language learning'}
 Specific Requirements: ${specificRequirements || 'None'}
 
-Include:
-1. Lesson title and objectives
-2. Materials needed
-3. Warm-up activity (5-10 minutes)
-4. Main lesson content with vocabulary and grammar
-5. Practice activities (20-30 minutes)
-6. Assessment and feedback
-7. Homework assignment
-8. Extension activities for advanced learners
+${neuroscienceInstructions}
 
-Format as structured JSON with clear sections for easy implementation.`;
+Structure the lesson with:
+1. Attention-grabbing novelty opener (3-5 min) - unexpected element to trigger curiosity
+2. Visual vocabulary introduction with dual coding (8-10 min) - images + verbal explanations
+3. Chunked learning segments (3x 7-8 min blocks) with micro-activities between
+4. Retrieval practice mini-quizzes after each chunk
+5. Emotional engagement through personalized examples and storytelling
+6. Generation activities where students create their own content
+7. Interleaved skill practice (mixing reading/writing/speaking/listening)
+8. Multisensory consolidation with movement and gestures
+9. Surprise mystery challenge mid-lesson
+10. Active recall summary with student "teach back" moments
+
+Include specific sound effect suggestions, color-coding systems, gesture instructions, and celebration triggers.
+Format as structured JSON with detailed implementation notes.`;
         break;
 
       case 'worksheet':
-        prompt = `Design a printable worksheet for ${actualLevel} English students.
+        prompt = `Design a neuroscience-optimized printable worksheet for ${actualLevel} English students.
 Topic: ${topic}
 Student Age: ${studentAge || 'Not specified'}
 Learning Objectives: ${learningObjectives?.join(', ') || 'General practice'}
 Specific Requirements: ${specificRequirements || 'None'}
 
-Include:
-- Clear title and instructions
-- Student name/date fields
-- 8-12 engaging activities
-- Visual elements descriptions where helpful
-- Answer key for teachers
-- Difficulty progression from easy to challenging
+${neuroscienceInstructions}
 
-Activities should be varied and engaging. Format as JSON with layout structure.`;
+Create a brain-friendly worksheet with:
+- Novelty elements: Unexpected formats, surprise boxes, varied activity styles
+- Picture superiority: Vivid image descriptions paired with every new word
+- Dual coding: Visual + verbal instruction combinations
+- Chunked sections: 3-4 distinct 5-minute activity blocks
+- Retrieval practice: Quick recall boxes between sections
+- Emotional engagement: Personalized example spaces for student interests
+- Generation activities: Spaces for students to create their own examples
+- Interleaving: Mix different skills within the worksheet
+- Multisensory cues: Movement instructions, color-coding, texture suggestions
+- Testing effect: Mini self-check quizzes embedded throughout
+
+Include celebration checkboxes, sound effect suggestions for teachers, and brain break activities.
+Format as JSON with detailed visual layout and implementation instructions.`;
         break;
 
       case 'activity':
-        prompt = `Create interactive English activities for ${actualLevel} level students.
+        prompt = `Create neuroscience-enhanced interactive English activities for ${actualLevel} level students.
 Topic: ${topic}
 Duration: ${duration || 30} minutes
 Student Age: ${studentAge || 'Not specified'}
 Learning Objectives: ${learningObjectives?.join(', ') || 'Interactive practice'}
 Specific Requirements: ${specificRequirements || 'None'}
 
-Generate 5-7 varied activities including:
-- Speaking activities and role-plays
-- Interactive games
-- Group work exercises
-- Creative tasks
-- Technology-enhanced activities
+${neuroscienceInstructions}
 
-Each activity should have clear instructions, materials needed, and learning outcomes.
-Format as JSON with activity type, instructions, materials, and procedures.`;
+Design 5-7 brain-optimized activities featuring:
+- Novelty hooks: Surprise elements, unexpected twists, varied formats
+- Picture superiority: Activities pairing visuals with language learning
+- Dual coding: Combine verbal instructions with visual demonstrations
+- Chunked timing: 5-8 minute activity segments with transition breaks
+- Retrieval practice: Built-in recall moments and memory challenges
+- Emotional engagement: Personalized scenarios, role-play opportunities
+- Generation tasks: Students create their own content and examples
+- Interleaved practice: Mix speaking, listening, reading, writing within activities
+- Multisensory engagement: Movement, gestures, sounds, tactile elements
+- Testing integration: Quick formative assessments embedded naturally
+
+Include specific celebration triggers, sound effect cues, and brain-break suggestions.
+Format as JSON with detailed neuroscience implementation notes for each activity.`;
         break;
 
       case 'quiz':
-        prompt = `Create an assessment quiz for ${actualLevel} English learners.
+        prompt = `Create a neuroscience-optimized assessment quiz for ${actualLevel} English learners.
 Topic: ${topic}
 Duration: ${duration || 20} minutes
 Student Age: ${studentAge || 'Not specified'}
 Learning Objectives: ${learningObjectives?.join(', ') || 'Assessment of understanding'}
 
-Include:
-- 10-15 questions of varying types
-- Clear instructions for each section
-- Point values for each question
-- Comprehensive answer key with explanations
-- Performance rubric and grading criteria
+${neuroscienceInstructions}
 
-Mix question types: multiple choice, true/false, short answer, fill-in-the-blank.
-Format as JSON with metadata and question array.`;
+Design a brain-friendly quiz incorporating:
+- Novelty elements: Unexpected question formats, surprise bonus rounds
+- Picture superiority: Visual questions paired with text-based ones
+- Dual coding: Questions combining images with verbal prompts
+- Chunked sections: 3-4 distinct quiz segments with micro-breaks
+- Retrieval practice: Progressive difficulty to strengthen recall
+- Emotional engagement: Personalized scenarios in questions
+- Generation opportunities: Creative response sections
+- Interleaved assessment: Mix different skill types throughout
+- Multisensory questions: Include listening, visual, and kinesthetic elements
+- Celebration triggers: Achievement badges and progress indicators
+
+Include 12-18 varied questions with brain-friendly formatting, celebration checkpoints, and confidence boosters.
+Add specific sound effect suggestions and visual enhancement notes.
+Format as JSON with neuroscience implementation guidance.`;
         break;
 
       case 'flashcards':
-        prompt = `Create educational flashcards for ${actualLevel} English learners.
+        prompt = `Create neuroscience-enhanced educational flashcards for ${actualLevel} English learners.
 Topic: ${topic}
 Student Age: ${studentAge || 'Not specified'}
 Learning Objectives: ${learningObjectives?.join(', ') || 'Vocabulary memorization'}
 Specific Requirements: ${specificRequirements || 'None'}
 
-Generate 15-25 flashcards including:
-- Vocabulary words with definitions
-- Example sentences showing usage
-- Synonyms and antonyms where applicable
-- Visual description suggestions
-- Memory tips or mnemonics
+${neuroscienceInstructions}
 
-Each flashcard should have a front (word/concept) and back (definition/explanation).
-Format as JSON with flashcard array and study instructions.`;
+Generate 20-30 brain-optimized flashcards featuring:
+- Novelty elements: Unexpected memory tricks, varied card formats
+- Picture superiority: Vivid visual descriptions for every card
+- Dual coding: Combine images with verbal memory aids
+- Chunked organization: Group cards by themes for manageable learning
+- Retrieval practice: Progressive spaced repetition suggestions
+- Emotional engagement: Personal connection prompts and relatable examples
+- Generation tasks: Student-created example spaces
+- Interleaved topics: Mix different word types and grammatical categories
+- Multisensory memory aids: Gesture suggestions, sound associations, tactile cues
+- Self-testing integration: Built-in quiz functionality
+
+Include memory palace techniques, mnemonic devices, and celebration milestones.
+Add specific study sequence recommendations and brain-break timing.
+Format as JSON with advanced memory enhancement features.`;
         break;
 
       default:
@@ -179,7 +232,22 @@ Format as JSON with flashcard array and study instructions.`;
         messages: [
           {
             role: 'system',
-            content: 'You are an expert English language curriculum designer and teacher trainer. Generate high-quality, pedagogically sound educational content that is engaging, age-appropriate, and aligned with CEFR standards. Always format responses as valid JSON.'
+            content: `You are an expert English language curriculum designer, neuroscience-informed pedagogy specialist, and master teacher trainer. 
+
+You understand how the brain learns languages and apply cutting-edge neuroscience research to create highly effective, brain-friendly educational content. You specialize in:
+
+- Novelty Effect (attention through unexpected stimuli)
+- Picture Superiority Effect (visual-verbal memory enhancement) 
+- Dual Coding Theory (multi-modal information processing)
+- Retrieval Practice (active recall strengthening)
+- Chunked Learning (working memory optimization)
+- Testing Effect (frequent low-stakes assessment)
+- Emotional Engagement (memory consolidation through emotion)
+- Generation Effect (self-created content retention)
+- Interleaving (mixed practice for adaptability)
+- Multisensory Input (comprehensive sensory engagement)
+
+Generate scientifically-optimized, pedagogically sound, engaging, age-appropriate content aligned with CEFR standards. Always format responses as valid JSON with detailed implementation notes for neuroscience-based teaching strategies.`
           },
           {
             role: 'user',
