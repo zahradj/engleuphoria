@@ -1,9 +1,9 @@
 import React from "react";
 import { VideoTile } from "./VideoTile";
 import { ToolButton } from "./ToolButton";
-import { Gift, Clock, MessageSquare, Sparkles } from "lucide-react";
+import { Gift, Clock, MessageSquare, Languages } from "lucide-react";
 
-export type RailTool = "rewards" | "timer" | "chat" | "ai";
+export type RailTool = "rewards" | "timer" | "chat" | "translator";
 
 interface RightRailProps {
   localStream: MediaStream | null;
@@ -79,9 +79,9 @@ export function RightRail({
           onClick={() => onOpenTool("chat")}
         />
         <ToolButton
-          icon={<Sparkles className="h-4 w-4" />}
-          label="AI"
-          onClick={() => onOpenTool("ai")}
+          icon={<Languages className="h-4 w-4" />}
+          label="Translator"
+          onClick={() => onOpenTool("translator")}
         />
       </div>
     </div>

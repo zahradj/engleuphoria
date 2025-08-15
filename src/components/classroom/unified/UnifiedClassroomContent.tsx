@@ -4,6 +4,7 @@ import { UnifiedCenterPanel } from "./UnifiedCenterPanel";
 import { useUnifiedClassroomContext } from "./UnifiedClassroomProvider";
 import { RightRail, RailTool } from "./components/RightRail";
 import { ToolRailOverlay } from "./components/ToolRailOverlay";
+import { AITranslator } from "@/components/classroom/ai/AITranslator";
 import { ClassroomChat } from "@/components/classroom/ClassroomChat";
 import { SpinningWheelGame } from "@/components/classroom/oneonone/games/SpinningWheelGame";
 import { Button } from "@/components/ui/button";
@@ -129,11 +130,14 @@ export function UnifiedClassroomContent({
       )}
 
 
-      {openTool === 'ai' && (
-        <ToolRailOverlay title="AI Tools" onClose={() => setOpenTool(null)}>
-          <div className="text-sm text-muted-foreground">
-            Coming soon: AI activity & picture creator
-          </div>
+      {openTool === 'translator' && (
+        <ToolRailOverlay title="AI Translator" onClose={() => setOpenTool(null)}>
+          <AITranslator 
+            onInsertToWhiteboard={(text) => {
+              console.log('Inserting translation to whiteboard:', text);
+              // This would integrate with the whiteboard system
+            }}
+          />
         </ToolRailOverlay>
       )}
     </div>
