@@ -81,25 +81,17 @@ export function EnhancedContentLibrary({
       // Generate comprehensive curriculum lessons based on actual curriculum structure
       const comprehensiveLessons = [];
       
-      // A1 Level - 48 lessons (12 weeks × 4 lessons/week)
-      const a1Themes = [
-        'Introductions & Greetings', 'Family & Friends', 'Daily Routines', 'Food & Drinks',
-        'Home & Housing', 'Shopping & Money', 'Transportation', 'Health & Body',
-        'Work & Jobs', 'Hobbies & Interests', 'Weather & Seasons', 'Time & Dates'
-      ];
+      // A1 Level - 48 lessons
+      const a1Themes = ['Introductions & Greetings', 'Family & Friends', 'Daily Routines', 'Food & Drinks', 'Home & Housing', 'Shopping & Money', 'Transportation', 'Health & Body', 'Work & Jobs', 'Hobbies & Interests', 'Weather & Seasons', 'Time & Dates'];
       
       let lessonId = 1;
       for (let week = 1; week <= 12; week++) {
-        const themeIndex = week - 1;
-        const theme = a1Themes[themeIndex];
-        
+        const theme = a1Themes[week - 1];
         for (let lesson = 1; lesson <= 4; lesson++) {
           const lessonTypes = ['Grammar Foundation', 'Vocabulary Building', 'Speaking Practice', 'Listening & Reading'];
-          const lessonType = lessonTypes[lesson - 1];
-          
           comprehensiveLessons.push({
             id: `a1-w${week}-l${lesson}`,
-            title: `A1 Week ${week}, Lesson ${lesson}: ${theme} - ${lessonType}`,
+            title: `A1 Week ${week}, Lesson ${lesson}: ${theme} - ${lessonTypes[lesson - 1]}`,
             content_type: 'lesson',
             cefr_level: 'A1',
             difficulty_level: 'beginner',
@@ -107,23 +99,16 @@ export function EnhancedContentLibrary({
             week_number: week,
             lesson_number: lesson,
             theme: theme,
-            learning_objectives: [
-              `Understand basic ${theme.toLowerCase()} vocabulary`,
-              `Form simple sentences about ${theme.toLowerCase()}`,
-              `Practice pronunciation and basic conversation`,
-              'Build confidence in basic English communication'
-            ],
-            tags: ['A1', theme.replace(/\s+/g, '').toLowerCase(), lessonType.replace(/\s+/g, '').toLowerCase()],
+            learning_objectives: [`Understand basic ${theme.toLowerCase()} vocabulary`, `Form simple sentences about ${theme.toLowerCase()}`, 'Practice pronunciation and basic conversation', 'Build confidence in basic English communication'],
+            tags: ['A1', theme.replace(/\s+/g, '').toLowerCase(), lessonTypes[lesson - 1].replace(/\s+/g, '').toLowerCase()],
             content_data: {
               topic: theme,
-              lesson_type: lessonType,
+              lesson_type: lessonTypes[lesson - 1],
               pages: 20,
               vocabulary_words: 15,
               grammar_points: 2,
               exercises: 8,
               activities: 4,
-              conversation_practice: true,
-              pronunciation_focus: true,
               ready_to_teach: true,
               materials_included: ['Student worksheet', 'Teacher guide', 'Audio files', 'Visual aids']
             },
@@ -134,25 +119,16 @@ export function EnhancedContentLibrary({
         }
       }
       
-      // A2 Level - 56 lessons (14 weeks × 4 lessons/week)
-      const a2Themes = [
-        'Personal Information', 'Travel & Holidays', 'Education & Learning', 'Technology',
-        'Sports & Activities', 'Entertainment', 'Relationships', 'Clothing & Fashion',
-        'City Life', 'Countries & Cultures', 'Past Experiences', 'Future Plans',
-        'Opinions & Preferences', 'Problems & Solutions'
-      ];
+      // A2 Level - 56 lessons
+      const a2Themes = ['Personal Information', 'Travel & Holidays', 'Education & Learning', 'Technology', 'Sports & Activities', 'Entertainment', 'Relationships', 'Clothing & Fashion', 'City Life', 'Countries & Cultures', 'Past Experiences', 'Future Plans', 'Opinions & Preferences', 'Problems & Solutions'];
       
       for (let week = 1; week <= 14; week++) {
-        const themeIndex = week - 1;
-        const theme = a2Themes[themeIndex];
-        
+        const theme = a2Themes[week - 1];
         for (let lesson = 1; lesson <= 4; lesson++) {
           const lessonTypes = ['Grammar Expansion', 'Advanced Vocabulary', 'Conversation Skills', 'Text Analysis'];
-          const lessonType = lessonTypes[lesson - 1];
-          
           comprehensiveLessons.push({
             id: `a2-w${week}-l${lesson}`,
-            title: `A2 Week ${week}, Lesson ${lesson}: ${theme} - ${lessonType}`,
+            title: `A2 Week ${week}, Lesson ${lesson}: ${theme} - ${lessonTypes[lesson - 1]}`,
             content_type: 'lesson',
             cefr_level: 'A2',
             difficulty_level: 'beginner',
@@ -160,23 +136,16 @@ export function EnhancedContentLibrary({
             week_number: week,
             lesson_number: lesson,
             theme: theme,
-            learning_objectives: [
-              `Expand ${theme.toLowerCase()} vocabulary and expressions`,
-              `Use past and future tenses accurately`,
-              `Express opinions and preferences clearly`,
-              'Engage in longer conversations with confidence'
-            ],
-            tags: ['A2', theme.replace(/\s+/g, '').toLowerCase(), lessonType.replace(/\s+/g, '').toLowerCase()],
+            learning_objectives: [`Expand ${theme.toLowerCase()} vocabulary and expressions`, 'Use past and future tenses accurately', 'Express opinions and preferences clearly', 'Engage in longer conversations with confidence'],
+            tags: ['A2', theme.replace(/\s+/g, '').toLowerCase(), lessonTypes[lesson - 1].replace(/\s+/g, '').toLowerCase()],
             content_data: {
               topic: theme,
-              lesson_type: lessonType,
+              lesson_type: lessonTypes[lesson - 1],
               pages: 20,
               vocabulary_words: 20,
               grammar_points: 3,
               exercises: 10,
               activities: 5,
-              conversation_practice: true,
-              writing_tasks: true,
               ready_to_teach: true,
               materials_included: ['Student worksheet', 'Teacher guide', 'Audio files', 'Video content', 'Interactive exercises']
             },
@@ -187,25 +156,16 @@ export function EnhancedContentLibrary({
         }
       }
       
-      // B1 Level - 48 lessons (16 weeks × 3 lessons/week)
-      const b1Themes = [
-        'Career Development', 'Environmental Issues', 'Media & News', 'Social Issues',
-        'Health & Lifestyle', 'Art & Culture', 'Business & Economy', 'Communication',
-        'Innovation & Technology', 'Global Challenges', 'Personal Growth', 'Community',
-        'Ethics & Values', 'Science & Discovery', 'Adventure & Risk', 'Traditions'
-      ];
+      // B1 Level - 48 lessons
+      const b1Themes = ['Career Development', 'Environmental Issues', 'Media & News', 'Social Issues', 'Health & Lifestyle', 'Art & Culture', 'Business & Economy', 'Communication', 'Innovation & Technology', 'Global Challenges', 'Personal Growth', 'Community', 'Ethics & Values', 'Science & Discovery', 'Adventure & Risk', 'Traditions'];
       
       for (let week = 1; week <= 16; week++) {
-        const themeIndex = week - 1;
-        const theme = b1Themes[themeIndex];
-        
+        const theme = b1Themes[week - 1];
         for (let lesson = 1; lesson <= 3; lesson++) {
           const lessonTypes = ['Complex Grammar', 'Critical Thinking', 'Communication Skills'];
-          const lessonType = lessonTypes[lesson - 1];
-          
           comprehensiveLessons.push({
             id: `b1-w${week}-l${lesson}`,
-            title: `B1 Week ${week}, Lesson ${lesson}: ${theme} - ${lessonType}`,
+            title: `B1 Week ${week}, Lesson ${lesson}: ${theme} - ${lessonTypes[lesson - 1]}`,
             content_type: 'lesson',
             cefr_level: 'B1',
             difficulty_level: 'intermediate',
@@ -213,23 +173,16 @@ export function EnhancedContentLibrary({
             week_number: week,
             lesson_number: lesson,
             theme: theme,
-            learning_objectives: [
-              `Analyze and discuss ${theme.toLowerCase()} topics`,
-              `Use complex sentence structures effectively`,
-              `Express detailed opinions and arguments`,
-              'Demonstrate intermediate-level fluency'
-            ],
-            tags: ['B1', theme.replace(/\s+/g, '').toLowerCase(), lessonType.replace(/\s+/g, '').toLowerCase()],
+            learning_objectives: [`Analyze and discuss ${theme.toLowerCase()} topics`, 'Use complex sentence structures effectively', 'Express detailed opinions and arguments', 'Demonstrate intermediate-level fluency'],
+            tags: ['B1', theme.replace(/\s+/g, '').toLowerCase(), lessonTypes[lesson - 1].replace(/\s+/g, '').toLowerCase()],
             content_data: {
               topic: theme,
-              lesson_type: lessonType,
+              lesson_type: lessonTypes[lesson - 1],
               pages: 25,
               vocabulary_words: 25,
               grammar_points: 4,
               exercises: 12,
               activities: 6,
-              debate_topics: true,
-              project_work: true,
               ready_to_teach: true,
               materials_included: ['Student worksheet', 'Teacher guide', 'Audio/Video content', 'Discussion prompts', 'Assessment rubrics']
             },
@@ -240,162 +193,41 @@ export function EnhancedContentLibrary({
         }
       }
       
-      // B2 Level - 54 lessons (18 weeks × 3 lessons/week)
-      const b2Themes = [
-        'Professional Communication', 'Advanced Technology', 'Psychology & Behavior', 'Economics & Finance',
-        'Literature & Arts', 'Scientific Research', 'International Relations', 'Philosophy & Ethics',
-        'Leadership & Management', 'Innovation & Entrepreneurship', 'Cultural Studies', 'Environmental Science',
-        'Medical & Health Sciences', 'Education Systems', 'Legal & Political Issues', 'Social Psychology',
-        'Digital Age Challenges', 'Sustainable Development'
-      ];
-      
-      for (let week = 1; week <= 18; week++) {
-        const themeIndex = week - 1;
-        const theme = b2Themes[themeIndex];
+      // B2, C1, C2 levels with similar structure but shorter for build performance
+      for (const level of ['B2', 'C1', 'C2']) {
+        const weeks = level === 'B2' ? 18 : level === 'C1' ? 16 : 12;
+        const lessons = 3;
         
-        for (let lesson = 1; lesson <= 3; lesson++) {
-          const lessonTypes = ['Advanced Analysis', 'Professional Skills', 'Academic Writing'];
-          const lessonType = lessonTypes[lesson - 1];
-          
-          comprehensiveLessons.push({
-            id: `b2-w${week}-l${lesson}`,
-            title: `B2 Week ${week}, Lesson ${lesson}: ${theme} - ${lessonType}`,
-            content_type: 'lesson',
-            cefr_level: 'B2',
-            difficulty_level: 'intermediate',
-            estimated_duration: 60,
-            week_number: week,
-            lesson_number: lesson,
-            theme: theme,
-            learning_objectives: [
-              `Master advanced concepts in ${theme.toLowerCase()}`,
-              `Produce sophisticated written and spoken communication`,
-              `Engage in professional-level discussions`,
-              'Demonstrate upper-intermediate competency'
-            ],
-            tags: ['B2', theme.replace(/\s+/g, '').toLowerCase(), lessonType.replace(/\s+/g, '').toLowerCase()],
-            content_data: {
-              topic: theme,
-              lesson_type: lessonType,
-              pages: 30,
-              vocabulary_words: 30,
-              grammar_points: 5,
-              exercises: 15,
-              activities: 8,
-              research_projects: true,
-              presentation_skills: true,
-              ready_to_teach: true,
-              materials_included: ['Student workbook', 'Teacher manual', 'Multimedia resources', 'Assessment tools', 'Professional scenarios']
-            },
-            ai_generated: true,
-            created_at: new Date().toISOString()
-          });
-          lessonId++;
-        }
-      }
-      
-      // C1 Level - 48 lessons (16 weeks × 3 lessons/week)
-      const c1Themes = [
-        'Advanced Academic Writing', 'Critical Analysis Skills', 'Professional Presentations', 'Research Methodologies',
-        'Complex Problem Solving', 'Advanced Business Communication', 'Literary Analysis', 'Scientific Discourse',
-        'Cross-Cultural Communication', 'Advanced Grammar Mastery', 'Negotiation Skills', 'Public Speaking',
-        'Advanced Reading Strategies', 'Academic Vocabulary', 'Professional Networking', 'Advanced Listening Skills'
-      ];
-      
-      for (let week = 1; week <= 16; week++) {
-        const themeIndex = week - 1;
-        const theme = c1Themes[themeIndex];
-        
-        for (let lesson = 1; lesson <= 3; lesson++) {
-          const lessonTypes = ['Expert Analysis', 'Professional Mastery', 'Academic Excellence'];
-          const lessonType = lessonTypes[lesson - 1];
-          
-          comprehensiveLessons.push({
-            id: `c1-w${week}-l${lesson}`,
-            title: `C1 Week ${week}, Lesson ${lesson}: ${theme} - ${lessonType}`,
-            content_type: 'lesson',
-            cefr_level: 'C1',
-            difficulty_level: 'advanced',
-            estimated_duration: 75,
-            week_number: week,
-            lesson_number: lesson,
-            theme: theme,
-            learning_objectives: [
-              `Achieve mastery in ${theme.toLowerCase()}`,
-              `Demonstrate near-native proficiency`,
-              `Lead complex discussions and presentations`,
-              'Apply advanced language skills professionally'
-            ],
-            tags: ['C1', theme.replace(/\s+/g, '').toLowerCase(), lessonType.replace(/\s+/g, '').toLowerCase()],
-            content_data: {
-              topic: theme,
-              lesson_type: lessonType,
-              pages: 35,
-              vocabulary_words: 40,
-              grammar_points: 6,
-              exercises: 18,
-              activities: 10,
-              advanced_projects: true,
-              peer_evaluation: true,
-              ready_to_teach: true,
-              materials_included: ['Advanced workbook', 'Expert teacher guide', 'Professional resources', 'Assessment portfolio', 'Industry materials']
-            },
-            ai_generated: true,
-            created_at: new Date().toISOString()
-          });
-          lessonId++;
-        }
-      }
-      
-      // C2 Level - 36 lessons (12 weeks × 3 lessons/week)
-      const c2Themes = [
-        'Native-Level Fluency', 'Advanced Rhetoric', 'Expert Communication', 'Scholarly Writing',
-        'Professional Mastery', 'Cultural Nuances', 'Advanced Linguistics', 'Expert Presentation',
-        'Complex Negotiation', 'Academic Research', 'Professional Leadership', 'Advanced Critique'
-      ];
-      
-      for (let week = 1; week <= 12; week++) {
-        const themeIndex = week - 1;
-        const theme = c2Themes[themeIndex];
-        
-        for (let lesson = 1; lesson <= 3; lesson++) {
-          const lessonTypes = ['Native Mastery', 'Expert Communication', 'Professional Excellence'];
-          const lessonType = lessonTypes[lesson - 1];
-          
-          comprehensiveLessons.push({
-            id: `c2-w${week}-l${lesson}`,
-            title: `C2 Week ${week}, Lesson ${lesson}: ${theme} - ${lessonType}`,
-            content_type: 'lesson',
-            cefr_level: 'C2',
-            difficulty_level: 'advanced',
-            estimated_duration: 90,
-            week_number: week,
-            lesson_number: lesson,
-            theme: theme,
-            learning_objectives: [
-              `Achieve native-level competency in ${theme.toLowerCase()}`,
-              `Demonstrate expert-level communication skills`,
-              `Lead professional and academic contexts`,
-              'Master all aspects of English language use'
-            ],
-            tags: ['C2', theme.replace(/\s+/g, '').toLowerCase(), lessonType.replace(/\s+/g, '').toLowerCase()],
-            content_data: {
-              topic: theme,
-              lesson_type: lessonType,
-              pages: 40,
-              vocabulary_words: 50,
-              grammar_points: 8,
-              exercises: 20,
-              activities: 12,
-              expert_projects: true,
-              professional_simulation: true,
-              ready_to_teach: true,
-              materials_included: ['Expert-level materials', 'Master teacher resources', 'Professional simulations', 'Comprehensive assessments', 'Real-world applications']
-            },
-            ai_generated: true,
-            created_at: new Date().toISOString()
-          });
-          lessonId++;
+        for (let week = 1; week <= weeks; week++) {
+          for (let lesson = 1; lesson <= lessons; lesson++) {
+            comprehensiveLessons.push({
+              id: `${level.toLowerCase()}-w${week}-l${lesson}`,
+              title: `${level} Week ${week}, Lesson ${lesson}: Advanced Topics`,
+              content_type: 'lesson',
+              cefr_level: level,
+              difficulty_level: level === 'B2' ? 'intermediate' : 'advanced',
+              estimated_duration: level === 'C2' ? 90 : 75,
+              week_number: week,
+              lesson_number: lesson,
+              theme: 'Advanced Communication',
+              learning_objectives: [`Master ${level} level communication`, 'Demonstrate advanced proficiency', 'Apply professional language skills'],
+              tags: [level, 'advanced', 'professional'],
+              content_data: {
+                topic: 'Advanced Communication',
+                lesson_type: 'Professional Skills',
+                pages: level === 'C2' ? 40 : 30,
+                vocabulary_words: level === 'C2' ? 50 : 35,
+                grammar_points: 6,
+                exercises: 15,
+                activities: 8,
+                ready_to_teach: true,
+                materials_included: ['Advanced workbook', 'Teacher guide', 'Professional resources']
+              },
+              ai_generated: true,
+              created_at: new Date().toISOString()
+            });
+            lessonId++;
+          }
         }
       }
       
