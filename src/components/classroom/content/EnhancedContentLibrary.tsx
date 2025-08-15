@@ -434,8 +434,8 @@ export function EnhancedContentLibrary({
   };
 
   return (
-    <div className="h-full flex flex-col">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+    <div className="min-h-screen flex flex-col">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="min-h-screen flex flex-col">
         <div className="flex-shrink-0 p-4 border-b bg-gradient-to-r from-blue-50 to-purple-50">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -593,7 +593,7 @@ export function EnhancedContentLibrary({
                   <div className="p-4 border-b">
                     <h3 className="font-medium">All Curriculum Content ({filteredContent.length} lessons)</h3>
                   </div>
-                  <div className="divide-y max-h-[600px] overflow-y-auto">
+                  <div className="divide-y min-h-[70vh] overflow-y-auto">
                     {filteredContent.map((item, index) => {
                       const IconComponent = getContentIcon(item);
 
