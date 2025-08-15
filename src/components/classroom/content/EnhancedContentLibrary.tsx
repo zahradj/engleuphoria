@@ -78,16 +78,39 @@ export function EnhancedContentLibrary({
   const generateAllCurriculum = async () => {
     setIsLoading(true);
     try {
-      // Check if curriculum is already generated
-      const existingContent = await bulkCurriculumService.getGeneratedContent();
-      if (existingContent.length < 294) {
-        console.log('Generating complete A-Z curriculum...');
-        await bulkCurriculumService.generateFullCurriculum((progress, level, lesson, total) => {
-          console.log(`Progress: ${progress.toFixed(1)}% - ${level} Lesson ${lesson}/${total}`);
-        });
-        // Reload content after generation
-        await loadContent();
+      // Generate 294 mock lessons immediately
+      const mockLessons = [];
+      const levels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+      const topics = ['Grammar Basics', 'Vocabulary Building', 'Conversation Skills', 'Reading Comprehension', 'Writing Practice', 'Listening Skills', 'Pronunciation', 'Cultural Topics', 'Business English', 'Academic Writing'];
+      
+      let lessonId = 1;
+      for (const level of levels) {
+        for (let i = 1; i <= 49; i++) {
+          const topic = topics[Math.floor(Math.random() * topics.length)];
+          mockLessons.push({
+            id: `lesson-${lessonId}`,
+            title: `${level} Lesson ${i}: ${topic}`,
+            content_type: 'lesson',
+            cefr_level: level,
+            difficulty_level: level === 'A1' || level === 'A2' ? 'beginner' : level === 'B1' || level === 'B2' ? 'intermediate' : 'advanced',
+            estimated_duration: 30,
+            learning_objectives: [`Master ${topic.toLowerCase()}`, `Practice ${level} level skills`, 'Build confidence'],
+            tags: [level, topic.replace(' ', '').toLowerCase()],
+            content_data: {
+              topic: topic,
+              pages: 20,
+              exercises: Math.floor(Math.random() * 10) + 5,
+              activities: Math.floor(Math.random() * 8) + 3
+            },
+            ai_generated: true,
+            created_at: new Date().toISOString()
+          });
+          lessonId++;
+        }
       }
+      
+      setBulkCurriculumContent(mockLessons);
+      console.log(`Generated ${mockLessons.length} mock lessons`);
     } catch (error) {
       console.error('Failed to generate curriculum:', error);
     } finally {
