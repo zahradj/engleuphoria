@@ -72,177 +72,84 @@ export function EnhancedContentLibrary({
   // Load AI-generated content and curriculums
   useEffect(() => {
     loadContent();
-    generateAllCurriculum();
   }, []);
 
-  const generateAllCurriculum = async () => {
-    setIsLoading(true);
-    try {
-      // Generate comprehensive curriculum lessons based on actual curriculum structure
-      const comprehensiveLessons = [];
-      
-      // A1 Level - 48 lessons
-      const a1Themes = ['Introductions & Greetings', 'Family & Friends', 'Daily Routines', 'Food & Drinks', 'Home & Housing', 'Shopping & Money', 'Transportation', 'Health & Body', 'Work & Jobs', 'Hobbies & Interests', 'Weather & Seasons', 'Time & Dates'];
-      
-      let lessonId = 1;
-      for (let week = 1; week <= 12; week++) {
-        const theme = a1Themes[week - 1];
-        for (let lesson = 1; lesson <= 4; lesson++) {
-          const lessonTypes = ['Grammar Foundation', 'Vocabulary Building', 'Speaking Practice', 'Listening & Reading'];
-          comprehensiveLessons.push({
-            id: `a1-w${week}-l${lesson}`,
-            title: `A1 Week ${week}, Lesson ${lesson}: ${theme} - ${lessonTypes[lesson - 1]}`,
-            content_type: 'lesson',
-            cefr_level: 'A1',
-            difficulty_level: 'beginner',
-            estimated_duration: 45,
-            week_number: week,
-            lesson_number: lesson,
-            theme: theme,
-            learning_objectives: [`Understand basic ${theme.toLowerCase()} vocabulary`, `Form simple sentences about ${theme.toLowerCase()}`, 'Practice pronunciation and basic conversation', 'Build confidence in basic English communication'],
-            tags: ['A1', theme.replace(/\s+/g, '').toLowerCase(), lessonTypes[lesson - 1].replace(/\s+/g, '').toLowerCase()],
-            content_data: {
-              topic: theme,
-              lesson_type: lessonTypes[lesson - 1],
-              pages: 20,
-              vocabulary_words: 15,
-              grammar_points: 2,
-              exercises: 8,
-              activities: 4,
-              ready_to_teach: true,
-              materials_included: ['Student worksheet', 'Teacher guide', 'Audio files', 'Visual aids']
-            },
-            ai_generated: true,
-            created_at: new Date().toISOString()
-          });
-          lessonId++;
-        }
-      }
-      
-      // A2 Level - 56 lessons
-      const a2Themes = ['Personal Information', 'Travel & Holidays', 'Education & Learning', 'Technology', 'Sports & Activities', 'Entertainment', 'Relationships', 'Clothing & Fashion', 'City Life', 'Countries & Cultures', 'Past Experiences', 'Future Plans', 'Opinions & Preferences', 'Problems & Solutions'];
-      
-      for (let week = 1; week <= 14; week++) {
-        const theme = a2Themes[week - 1];
-        for (let lesson = 1; lesson <= 4; lesson++) {
-          const lessonTypes = ['Grammar Expansion', 'Advanced Vocabulary', 'Conversation Skills', 'Text Analysis'];
-          comprehensiveLessons.push({
-            id: `a2-w${week}-l${lesson}`,
-            title: `A2 Week ${week}, Lesson ${lesson}: ${theme} - ${lessonTypes[lesson - 1]}`,
-            content_type: 'lesson',
-            cefr_level: 'A2',
-            difficulty_level: 'beginner',
-            estimated_duration: 45,
-            week_number: week,
-            lesson_number: lesson,
-            theme: theme,
-            learning_objectives: [`Expand ${theme.toLowerCase()} vocabulary and expressions`, 'Use past and future tenses accurately', 'Express opinions and preferences clearly', 'Engage in longer conversations with confidence'],
-            tags: ['A2', theme.replace(/\s+/g, '').toLowerCase(), lessonTypes[lesson - 1].replace(/\s+/g, '').toLowerCase()],
-            content_data: {
-              topic: theme,
-              lesson_type: lessonTypes[lesson - 1],
-              pages: 20,
-              vocabulary_words: 20,
-              grammar_points: 3,
-              exercises: 10,
-              activities: 5,
-              ready_to_teach: true,
-              materials_included: ['Student worksheet', 'Teacher guide', 'Audio files', 'Video content', 'Interactive exercises']
-            },
-            ai_generated: true,
-            created_at: new Date().toISOString()
-          });
-          lessonId++;
-        }
-      }
-      
-      // B1 Level - 48 lessons
-      const b1Themes = ['Career Development', 'Environmental Issues', 'Media & News', 'Social Issues', 'Health & Lifestyle', 'Art & Culture', 'Business & Economy', 'Communication', 'Innovation & Technology', 'Global Challenges', 'Personal Growth', 'Community', 'Ethics & Values', 'Science & Discovery', 'Adventure & Risk', 'Traditions'];
-      
-      for (let week = 1; week <= 16; week++) {
-        const theme = b1Themes[week - 1];
-        for (let lesson = 1; lesson <= 3; lesson++) {
-          const lessonTypes = ['Complex Grammar', 'Critical Thinking', 'Communication Skills'];
-          comprehensiveLessons.push({
-            id: `b1-w${week}-l${lesson}`,
-            title: `B1 Week ${week}, Lesson ${lesson}: ${theme} - ${lessonTypes[lesson - 1]}`,
-            content_type: 'lesson',
-            cefr_level: 'B1',
-            difficulty_level: 'intermediate',
-            estimated_duration: 60,
-            week_number: week,
-            lesson_number: lesson,
-            theme: theme,
-            learning_objectives: [`Analyze and discuss ${theme.toLowerCase()} topics`, 'Use complex sentence structures effectively', 'Express detailed opinions and arguments', 'Demonstrate intermediate-level fluency'],
-            tags: ['B1', theme.replace(/\s+/g, '').toLowerCase(), lessonTypes[lesson - 1].replace(/\s+/g, '').toLowerCase()],
-            content_data: {
-              topic: theme,
-              lesson_type: lessonTypes[lesson - 1],
-              pages: 25,
-              vocabulary_words: 25,
-              grammar_points: 4,
-              exercises: 12,
-              activities: 6,
-              ready_to_teach: true,
-              materials_included: ['Student worksheet', 'Teacher guide', 'Audio/Video content', 'Discussion prompts', 'Assessment rubrics']
-            },
-            ai_generated: true,
-            created_at: new Date().toISOString()
-          });
-          lessonId++;
-        }
-      }
-      
-      // B2, C1, C2 levels with similar structure but shorter for build performance
-      for (const level of ['B2', 'C1', 'C2']) {
-        const weeks = level === 'B2' ? 18 : level === 'C1' ? 16 : 12;
-        const lessons = 3;
+  const generateCurriculumHTML = (item: any) => {
+    const html = `
+      <div style="padding: 20px; font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
+        <h1 style="color: #2563eb; border-bottom: 2px solid #2563eb; padding-bottom: 10px;">${item.title}</h1>
         
-        for (let week = 1; week <= weeks; week++) {
-          for (let lesson = 1; lesson <= lessons; lesson++) {
-            comprehensiveLessons.push({
-              id: `${level.toLowerCase()}-w${week}-l${lesson}`,
-              title: `${level} Week ${week}, Lesson ${lesson}: Advanced Topics`,
-              content_type: 'lesson',
-              cefr_level: level,
-              difficulty_level: level === 'B2' ? 'intermediate' : 'advanced',
-              estimated_duration: level === 'C2' ? 90 : 75,
-              week_number: week,
-              lesson_number: lesson,
-              theme: 'Advanced Communication',
-              learning_objectives: [`Master ${level} level communication`, 'Demonstrate advanced proficiency', 'Apply professional language skills'],
-              tags: [level, 'advanced', 'professional'],
-              content_data: {
-                topic: 'Advanced Communication',
-                lesson_type: 'Professional Skills',
-                pages: level === 'C2' ? 40 : 30,
-                vocabulary_words: level === 'C2' ? 50 : 35,
-                grammar_points: 6,
-                exercises: 15,
-                activities: 8,
-                ready_to_teach: true,
-                materials_included: ['Advanced workbook', 'Teacher guide', 'Professional resources']
-              },
-              ai_generated: true,
-              created_at: new Date().toISOString()
-            });
-            lessonId++;
-          }
-        }
-      }
-      
-      setBulkCurriculumContent(comprehensiveLessons);
-      console.log(`Generated ${comprehensiveLessons.length} comprehensive curriculum lessons ready to teach`);
-    } catch (error) {
-      console.error('Failed to generate curriculum:', error);
-    } finally {
-      setIsLoading(false);
-    }
+        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
+          <h2 style="color: #475569;">Lesson Overview</h2>
+          <p><strong>CEFR Level:</strong> ${item.level}</p>
+          <p><strong>Duration:</strong> ${item.duration || item.metadata?.estimated_duration || 45} minutes</p>
+          <p><strong>Theme:</strong> ${item.topic || item.theme || 'General English'}</p>
+          <p><strong>Difficulty:</strong> ${item.difficulty || item.metadata?.difficulty_level || 'Intermediate'}</p>
+        </div>
+
+        <div style="margin: 20px 0;">
+          <h2 style="color: #475569;">Learning Objectives</h2>
+          <ul>
+            ${(item.metadata?.learning_objectives || [
+              'Develop vocabulary and language skills',
+              'Practice communication in English',
+              'Build confidence in language use',
+              'Apply new knowledge in practical contexts'
+            ]).map((obj: string) => `<li style="margin: 5px 0;">${obj}</li>`).join('')}
+          </ul>
+        </div>
+
+        <div style="margin: 20px 0;">
+          <h2 style="color: #475569;">Lesson Structure</h2>
+          <div style="display: grid; gap: 15px;">
+            <div style="background: white; padding: 15px; border-left: 4px solid #10b981; border-radius: 4px;">
+              <h3 style="margin: 0 0 10px 0; color: #10b981;">Warm-up (5 minutes)</h3>
+              <p>Interactive introduction to today's topic with engaging questions and activities.</p>
+            </div>
+            <div style="background: white; padding: 15px; border-left: 4px solid #3b82f6; border-radius: 4px;">
+              <h3 style="margin: 0 0 10px 0; color: #3b82f6;">Main Content (25 minutes)</h3>
+              <p>Core lesson material including vocabulary, grammar, and practical exercises.</p>
+            </div>
+            <div style="background: white; padding: 15px; border-left: 4px solid #f59e0b; border-radius: 4px;">
+              <h3 style="margin: 0 0 10px 0; color: #f59e0b;">Practice Activities (10 minutes)</h3>
+              <p>Interactive exercises to reinforce learning and build confidence.</p>
+            </div>
+            <div style="background: white; padding: 15px; border-left: 4px solid #ef4444; border-radius: 4px;">
+              <h3 style="margin: 0 0 10px 0; color: #ef4444;">Wrap-up (5 minutes)</h3>
+              <p>Review key points and assign homework or next steps.</p>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin: 20px 0;">
+          <h2 style="color: #475569;">Materials Included</h2>
+          <ul>
+            ${(item.content_data?.materials_included || item.metadata?.materials_included || [
+              'Student worksheet with exercises',
+              'Teacher guide with instructions',
+              'Audio/video resources',
+              'Interactive activities'
+            ]).map((material: string) => `<li style="margin: 5px 0;">${material}</li>`).join('')}
+          </ul>
+        </div>
+
+        <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+          <h3 style="color: #92400e; margin: 0 0 10px 0;">Teacher Notes</h3>
+          <p style="margin: 0; color: #92400e;">This lesson is ready to teach and includes all necessary materials. Adapt the content based on your students' needs and pace.</p>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+          <p style="color: #64748b; font-size: 14px;">Generated by EnglEuphoria Curriculum System</p>
+        </div>
+      </div>
+    `;
+    return html;
   };
 
   const loadContent = async () => {
+    setIsLoading(true);
     try {
-      // Load from localStorage or API
+      // Load from localStorage as fallback
       const savedAiContent = localStorage.getItem('ai-generated-content');
       if (savedAiContent) {
         setAiContent(JSON.parse(savedAiContent));
@@ -253,11 +160,167 @@ export function EnhancedContentLibrary({
         setCurriculums(JSON.parse(savedCurriculums));
       }
 
-      // Load bulk curriculum content from Supabase
-      const bulkContent = await bulkCurriculumService.getGeneratedContent();
+      // Load curriculum content from Supabase or generate comprehensive lessons
+      let bulkContent = await bulkCurriculumService.getGeneratedContent();
+      
+      // If no content in DB, generate comprehensive curriculum lessons
+      if (bulkContent.length === 0) {
+        const comprehensiveLessons = [];
+        
+        // A1 Level - 48 lessons
+        const a1Themes = ['Introductions & Greetings', 'Family & Friends', 'Daily Routines', 'Food & Drinks', 'Home & Housing', 'Shopping & Money', 'Transportation', 'Health & Body', 'Work & Jobs', 'Hobbies & Interests', 'Weather & Seasons', 'Time & Dates'];
+        
+        for (let week = 1; week <= 12; week++) {
+          const theme = a1Themes[week - 1];
+          for (let lesson = 1; lesson <= 4; lesson++) {
+            const lessonTypes = ['Grammar Foundation', 'Vocabulary Building', 'Speaking Practice', 'Listening & Reading'];
+            comprehensiveLessons.push({
+              id: `a1-w${week}-l${lesson}`,
+              title: `A1 Week ${week}, Lesson ${lesson}: ${theme} - ${lessonTypes[lesson - 1]}`,
+              content_type: 'lesson',
+              cefr_level: 'A1',
+              difficulty_level: 'beginner',
+              estimated_duration: 45,
+              week_number: week,
+              lesson_number: lesson,
+              theme: theme,
+              learning_objectives: [`Understand basic ${theme.toLowerCase()} vocabulary`, `Form simple sentences about ${theme.toLowerCase()}`, 'Practice pronunciation and basic conversation', 'Build confidence in basic English communication'],
+              tags: ['A1', theme.replace(/\s+/g, '').toLowerCase(), lessonTypes[lesson - 1].replace(/\s+/g, '').toLowerCase()],
+              content_data: {
+                topic: theme,
+                lesson_type: lessonTypes[lesson - 1],
+                pages: 20,
+                vocabulary_words: 15,
+                grammar_points: 2,
+                exercises: 8,
+                activities: 4,
+                ready_to_teach: true,
+                materials_included: ['Student worksheet', 'Teacher guide', 'Audio files', 'Visual aids']
+              },
+              ai_generated: true,
+              created_at: new Date().toISOString()
+            });
+          }
+        }
+        
+        // A2 Level - 56 lessons
+        const a2Themes = ['Personal Information', 'Travel & Holidays', 'Education & Learning', 'Technology', 'Sports & Activities', 'Entertainment', 'Relationships', 'Clothing & Fashion', 'City Life', 'Countries & Cultures', 'Past Experiences', 'Future Plans', 'Opinions & Preferences', 'Problems & Solutions'];
+        
+        for (let week = 1; week <= 14; week++) {
+          const theme = a2Themes[week - 1];
+          for (let lesson = 1; lesson <= 4; lesson++) {
+            const lessonTypes = ['Grammar Expansion', 'Advanced Vocabulary', 'Conversation Skills', 'Text Analysis'];
+            comprehensiveLessons.push({
+              id: `a2-w${week}-l${lesson}`,
+              title: `A2 Week ${week}, Lesson ${lesson}: ${theme} - ${lessonTypes[lesson - 1]}`,
+              content_type: 'lesson',
+              cefr_level: 'A2',
+              difficulty_level: 'beginner',
+              estimated_duration: 45,
+              week_number: week,
+              lesson_number: lesson,
+              theme: theme,
+              learning_objectives: [`Expand ${theme.toLowerCase()} vocabulary and expressions`, 'Use past and future tenses accurately', 'Express opinions and preferences clearly', 'Engage in longer conversations with confidence'],
+              tags: ['A2', theme.replace(/\s+/g, '').toLowerCase(), lessonTypes[lesson - 1].replace(/\s+/g, '').toLowerCase()],
+              content_data: {
+                topic: theme,
+                lesson_type: lessonTypes[lesson - 1],
+                pages: 20,
+                vocabulary_words: 20,
+                grammar_points: 3,
+                exercises: 10,
+                activities: 5,
+                ready_to_teach: true,
+                materials_included: ['Student worksheet', 'Teacher guide', 'Audio files', 'Video content', 'Interactive exercises']
+              },
+              ai_generated: true,
+              created_at: new Date().toISOString()
+            });
+          }
+        }
+        
+        // B1 Level - 48 lessons
+        const b1Themes = ['Career Development', 'Environmental Issues', 'Media & News', 'Social Issues', 'Health & Lifestyle', 'Art & Culture', 'Business & Economy', 'Communication', 'Innovation & Technology', 'Global Challenges', 'Personal Growth', 'Community', 'Ethics & Values', 'Science & Discovery', 'Adventure & Risk', 'Traditions'];
+        
+        for (let week = 1; week <= 16; week++) {
+          const theme = b1Themes[week - 1];
+          for (let lesson = 1; lesson <= 3; lesson++) {
+            const lessonTypes = ['Complex Grammar', 'Critical Thinking', 'Communication Skills'];
+            comprehensiveLessons.push({
+              id: `b1-w${week}-l${lesson}`,
+              title: `B1 Week ${week}, Lesson ${lesson}: ${theme} - ${lessonTypes[lesson - 1]}`,
+              content_type: 'lesson',
+              cefr_level: 'B1',
+              difficulty_level: 'intermediate',
+              estimated_duration: 60,
+              week_number: week,
+              lesson_number: lesson,
+              theme: theme,
+              learning_objectives: [`Analyze and discuss ${theme.toLowerCase()} topics`, 'Use complex sentence structures effectively', 'Express detailed opinions and arguments', 'Demonstrate intermediate-level fluency'],
+              tags: ['B1', theme.replace(/\s+/g, '').toLowerCase(), lessonTypes[lesson - 1].replace(/\s+/g, '').toLowerCase()],
+              content_data: {
+                topic: theme,
+                lesson_type: lessonTypes[lesson - 1],
+                pages: 25,
+                vocabulary_words: 25,
+                grammar_points: 4,
+                exercises: 12,
+                activities: 6,
+                ready_to_teach: true,
+                materials_included: ['Student worksheet', 'Teacher guide', 'Audio/Video content', 'Discussion prompts', 'Assessment rubrics']
+              },
+              ai_generated: true,
+              created_at: new Date().toISOString()
+            });
+          }
+        }
+        
+        // B2, C1, C2 levels
+        for (const level of ['B2', 'C1', 'C2']) {
+          const weeks = level === 'B2' ? 18 : level === 'C1' ? 16 : 12;
+          const lessons = 3;
+          
+          for (let week = 1; week <= weeks; week++) {
+            for (let lesson = 1; lesson <= lessons; lesson++) {
+              comprehensiveLessons.push({
+                id: `${level.toLowerCase()}-w${week}-l${lesson}`,
+                title: `${level} Week ${week}, Lesson ${lesson}: Advanced Topics`,
+                content_type: 'lesson',
+                cefr_level: level,
+                difficulty_level: level === 'B2' ? 'intermediate' : 'advanced',
+                estimated_duration: level === 'C2' ? 90 : 75,
+                week_number: week,
+                lesson_number: lesson,
+                theme: 'Advanced Communication',
+                learning_objectives: [`Master ${level} level communication`, 'Demonstrate advanced proficiency', 'Apply professional language skills'],
+                tags: [level, 'advanced', 'professional'],
+                content_data: {
+                  topic: 'Advanced Communication',
+                  lesson_type: 'Professional Skills',
+                  pages: level === 'C2' ? 40 : 30,
+                  vocabulary_words: level === 'C2' ? 50 : 35,
+                  grammar_points: 6,
+                  exercises: 15,
+                  activities: 8,
+                  ready_to_teach: true,
+                  materials_included: ['Advanced workbook', 'Teacher guide', 'Professional resources']
+                },
+                ai_generated: true,
+                created_at: new Date().toISOString()
+              });
+            }
+          }
+        }
+        
+        bulkContent = comprehensiveLessons;
+        console.log(`Generated ${comprehensiveLessons.length} comprehensive curriculum lessons`);
+      }
+      
       setBulkCurriculumContent(bulkContent);
     } catch (error) {
       console.error('Failed to load content:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -361,14 +424,13 @@ export function EnhancedContentLibrary({
   const handleDownloadContent = async (item: any) => {
     try {
       if (item.contentType === 'bulk-curriculum') {
-        // Download the full lesson content
-        const blob = new Blob([JSON.stringify(item, null, 2)], { 
-          type: 'application/json' 
-        });
+        // Generate HTML content for the lesson
+        const htmlContent = generateCurriculumHTML(item);
+        const blob = new Blob([htmlContent], { type: 'text/html' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${item.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
+        a.download = `${item.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.html`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -379,6 +441,28 @@ export function EnhancedContentLibrary({
       }
     } catch (error) {
       console.error('Download failed:', error);
+    }
+  };
+
+  const handleAddToWhiteboard = (item: any) => {
+    if (item.contentType === 'bulk-curriculum' && onAddToWhiteboard) {
+      // Generate HTML content for the whiteboard
+      const htmlContent = generateCurriculumHTML(item);
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      
+      const whiteboardContent = {
+        id: item.id,
+        title: item.title,
+        type: 'html',
+        url: url,
+        content: htmlContent,
+        isEmbedded: true
+      };
+      
+      onAddToWhiteboard(whiteboardContent);
+    } else if (onAddToWhiteboard) {
+      onAddToWhiteboard(item);
     }
   };
 
@@ -448,9 +532,9 @@ export function EnhancedContentLibrary({
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <Button onClick={generateAllCurriculum} variant="outline" size="sm" disabled={isLoading}>
+              <Button onClick={loadContent} variant="outline" size="sm" disabled={isLoading}>
                 <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                {isLoading ? 'Generating...' : 'Generate All'}
+                {isLoading ? 'Loading...' : 'Refresh'}
               </Button>
               <Badge variant="secondary" className="bg-primary/10">
                 {contentStats.total} items
@@ -581,9 +665,9 @@ export function EnhancedContentLibrary({
                     : 'Content is being generated. Please wait...'
                   }
                 </p>
-                <Button onClick={generateAllCurriculum} disabled={isLoading}>
+                <Button onClick={loadContent} disabled={isLoading}>
                   <RefreshCw size={16} className="mr-2" />
-                  Generate All Lessons
+                  Load Curriculum
                 </Button>
               </div>
             ) : (
@@ -648,13 +732,18 @@ export function EnhancedContentLibrary({
                               >
                                 <Download size={14} />
                               </Button>
-                              <Button
+                               <Button
                                 size="sm"
                                 variant="outline"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleAddToWhiteboard(item);
+                                }}
                                 className="h-8 w-8 p-0"
-                              >
-                                <Eye size={14} />
-                              </Button>
+                                title="Add to Whiteboard"
+                               >
+                                 <Play size={14} />
+                               </Button>
                             </div>
                           </div>
                         </div>
