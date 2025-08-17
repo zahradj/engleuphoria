@@ -51,27 +51,88 @@ export function SystematicLessonsLibrary({
       setLevels(curriculumLevels);
 
       // Load all lessons from all levels
-      const lessonsFromAllLevels: SystematicLesson[] = [];
+      let lessonsFromAllLevels: SystematicLesson[] = [];
       for (const level of curriculumLevels) {
         const levelLessons = await curriculumService.getLessonsForLevel(level.id);
-        lessonsFromAllLevels.push(...levelLessons.map(lesson => ({
-          ...lesson,
-          level_info: level
-        })));
+        lessonsFromAllLevels.push(
+          ...levelLessons.map(lesson => ({
+            ...lesson,
+            level_info: level
+          }))
+        );
+      }
+
+      // If no lessons exist yet, seed a small set so teachers can start immediately
+      if (lessonsFromAllLevels.length === 0 && curriculumLevels.length > 0) {
+        toast({
+          title: 'Preparing lessons',
+          description: 'Seeding sample systematic lessons for each level...'
+        });
+
+        const diffs: Record<string, number> = { 'Pre-A1': 1, A1: 1, A2: 2, B1: 3, B2: 4, C1: 5, C2: 6 };
+
+        for (const level of curriculumLevels) {
+          const topics = curriculumService.getCEFRTopics(level.cefr_level) || [];
+          const sampleCount = Math.min(4, topics.length || 4);
+
+          for (let i = 0; i < sampleCount; i++) {
+            const lessonNum = i + 1;
+            const topic = topics[i] || `Core Topic ${lessonNum}`;
+            const template = curriculumService.getLessonTemplate();
+
+            await curriculumService.createSystematicLesson({
+              curriculum_level_id: level.id,
+              lesson_number: lessonNum,
+              title: `${level.cefr_level} Lesson ${lessonNum}: ${topic}`,
+              topic,
+              grammar_focus: undefined,
+              vocabulary_set: [],
+              communication_outcome: `Talk about ${topic.toLowerCase()}`,
+              lesson_objectives: [
+                `Understand key vocabulary about ${topic.toLowerCase()}`,
+                `Use simple structures to discuss ${topic.toLowerCase()}`
+              ],
+              slides_content: template,
+              activities: [],
+              gamified_elements: template?.gamification ?? {},
+              is_review_lesson: lessonNum % 4 === 0,
+              prerequisite_lessons: [],
+              difficulty_level: diffs[level.cefr_level] ?? 1,
+              estimated_duration: ['B1','B2','C1','C2'].includes(level.cefr_level) ? 60 : 45,
+              status: 'published'
+            });
+          }
+        }
+
+        // Reload after seeding
+        lessonsFromAllLevels = [];
+        for (const level of curriculumLevels) {
+          const levelLessons = await curriculumService.getLessonsForLevel(level.id);
+          lessonsFromAllLevels.push(
+            ...levelLessons.map(lesson => ({
+              ...lesson,
+              level_info: level
+            }))
+          );
+        }
+
+        toast({
+          title: 'Lessons ready',
+          description: 'Sample systematic lessons have been added.'
+        });
       }
 
       setAllLessons(lessonsFromAllLevels);
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to load curriculum lessons",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to load curriculum lessons',
+        variant: 'destructive'
       });
     } finally {
       setIsLoading(false);
     }
   };
-
   const filterLessons = () => {
     let filtered = [...allLessons];
 
