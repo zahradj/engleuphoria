@@ -90,18 +90,79 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
   };
 
   const handleAddContentToWhiteboard = (item: ContentItem) => {
+    console.log('🎯 Adding content to whiteboard:', item);
+    
+    let contentUrl = item.source;
+    
+    // Handle curriculum/lesson content by generating HTML
+    const isCurriculumContent = item.type === 'curriculum' || item.type === 'lesson' || item.type === 'bulk-curriculum';
+    
+    if (isCurriculumContent) {
+      const html = `
+        <div style="padding: 20px; font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; background: white;">
+          <h1 style="color: #2563eb; border-bottom: 2px solid #2563eb; padding-bottom: 10px;">${item.title}</h1>
+          
+          <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <h2 style="color: #475569;">Lesson Overview</h2>
+            <p><strong>CEFR Level:</strong> ${item.level || 'B1'}</p>
+            <p><strong>Duration:</strong> ${item.duration || item.metadata?.estimated_duration || 45} minutes</p>
+            <p><strong>Theme:</strong> ${item.topic || item.theme || 'General English'}</p>
+            <p><strong>Difficulty:</strong> ${item.difficulty || item.metadata?.difficulty_level || 'Intermediate'}</p>
+          </div>
+
+          <div style="margin: 20px 0;">
+            <h2 style="color: #475569;">Learning Objectives</h2>
+            <ul>
+              ${(item.metadata?.learning_objectives || [
+                'Develop vocabulary and language skills',
+                'Practice communication in English',
+                'Build confidence in language use',
+                'Apply new knowledge in practical contexts'
+              ]).map((obj: string) => `<li style="margin: 5px 0;">${obj}</li>`).join('')}
+            </ul>
+          </div>
+
+          ${item.content ? `
+            <div style="margin: 20px 0;">
+              <h2 style="color: #475569;">Lesson Content</h2>
+              <div style="background: white; padding: 15px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                ${item.content}
+              </div>
+            </div>
+          ` : ''}
+
+          ${(item.metadata?.activities && item.metadata.activities.length > 0) ? `
+            <div style="margin: 20px 0;">
+              <h2 style="color: #475569;">Activities</h2>
+              ${item.metadata.activities.map((activity: any, index: number) => `
+                <div style="background: #f1f5f9; padding: 15px; margin: 10px 0; border-radius: 8px;">
+                  <h3 style="color: #334155;">Activity ${index + 1}: ${activity.title || 'Practice Exercise'}</h3>
+                  <p>${activity.description || activity.content || 'Interactive learning activity'}</p>
+                  ${activity.duration ? `<p><em>Duration: ${activity.duration} minutes</em></p>` : ''}
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
+        </div>
+      `;
+      
+      const blob = new Blob([html], { type: 'text/html' });
+      contentUrl = URL.createObjectURL(blob);
+    }
+    
     const newContent: EmbeddedContent = {
       id: Date.now().toString(),
       title: item.title,
-      url: item.source,
+      url: contentUrl,
       x: 100,
       y: 100,
       width: 800,
       height: 600,
-      fileType: item.fileType,
+      fileType: isCurriculumContent ? 'text/html' : item.fileType,
       originalType: item.type
     };
     
+    console.log('✅ Created embedded content:', newContent);
     setEmbeddedContent(prev => [...prev, newContent]);
     
     // Switch to whiteboard tab
