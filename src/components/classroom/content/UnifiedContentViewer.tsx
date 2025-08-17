@@ -92,10 +92,14 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
   const handleAddContentToWhiteboard = (item: ContentItem) => {
     console.log('🎯 Adding content to whiteboard:', item);
     
-    let contentUrl = item.source;
+    // Prefer existing URL (from library) then source
+    const anyItem: any = item as any;
+    let contentUrl: string | undefined = anyItem.source || anyItem.url;
     
-    // Handle curriculum/lesson content by generating HTML
-    const isCurriculumContent = item.type === 'curriculum' || item.type === 'lesson' || item.type === 'bulk-curriculum';
+    // Determine content type broadly
+    const contentType: string = (anyItem.contentType || item.type || '').toString();
+    // Handle curriculum/lesson content by generating HTML when needed
+    const isCurriculumContent = ['curriculum','lesson','bulk-curriculum'].includes(contentType) || contentType === 'html';
     
     if (isCurriculumContent) {
       const html = `
