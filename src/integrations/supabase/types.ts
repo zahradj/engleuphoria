@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -422,6 +422,113 @@ export type Database = {
           {
             foreignKeyName: "ai_learning_models_student_id_fkey"
             columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_lesson_artifacts: {
+        Row: {
+          artifact_type: string
+          created_at: string
+          format: string
+          id: string
+          lesson_id: string
+          metadata: Json | null
+          public_url: string | null
+          storage_path: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          artifact_type: string
+          created_at?: string
+          format: string
+          id?: string
+          lesson_id: string
+          metadata?: Json | null
+          public_url?: string | null
+          storage_path?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          artifact_type?: string
+          created_at?: string
+          format?: string
+          id?: string
+          lesson_id?: string
+          metadata?: Json | null
+          public_url?: string | null
+          storage_path?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_lesson_artifacts_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "ai_lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_lesson_artifacts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_lessons: {
+        Row: {
+          age_range: string | null
+          created_at: string
+          duration_minutes: number | null
+          id: string
+          level: string
+          objectives: string[] | null
+          script: Json | null
+          status: string | null
+          title: string | null
+          topic: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          age_range?: string | null
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          level: string
+          objectives?: string[] | null
+          script?: Json | null
+          status?: string | null
+          title?: string | null
+          topic: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          age_range?: string | null
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          level?: string
+          objectives?: string[] | null
+          script?: Json | null
+          status?: string | null
+          title?: string | null
+          topic?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_lessons_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -4673,7 +4780,7 @@ export type Database = {
         Returns: boolean
       }
       check_achievements: {
-        Args: { student_uuid: string; activity_data: Json }
+        Args: { activity_data: Json; student_uuid: string }
         Returns: Json[]
       }
       check_teacher_penalties: {
@@ -4682,10 +4789,10 @@ export type Database = {
       }
       generate_adaptive_learning_path: {
         Args: {
+          difficulty_pref?: string
+          learning_style_param?: string
           student_uuid: string
           target_cefr_level: string
-          learning_style_param?: string
-          difficulty_pref?: string
         }
         Returns: string
       }
@@ -4696,21 +4803,21 @@ export type Database = {
       get_approved_teachers: {
         Args: Record<PropertyKey, never>
         Returns: {
-          id: string
-          user_id: string
-          full_name: string
-          bio: string
-          video_url: string
-          profile_image_url: string
-          specializations: string[]
           accent: string
-          languages_spoken: string[]
-          years_experience: number
-          rating: number
-          total_reviews: number
+          bio: string
+          full_name: string
           hourly_rate_dzd: number
           hourly_rate_eur: number
+          id: string
+          languages_spoken: string[]
+          profile_image_url: string
+          rating: number
+          specializations: string[]
           timezone: string
+          total_reviews: number
+          user_id: string
+          video_url: string
+          years_experience: number
         }[]
       }
       get_organization_analytics: {
@@ -4718,7 +4825,7 @@ export type Database = {
         Returns: Json
       }
       get_student_curriculum_analytics: {
-        Args: { p_student_id: string; p_curriculum_id: string }
+        Args: { p_curriculum_id: string; p_student_id: string }
         Returns: Json
       }
       get_student_lesson_stats: {
@@ -4732,15 +4839,15 @@ export type Database = {
       get_student_upcoming_lessons: {
         Args: { student_uuid: string }
         Returns: {
-          id: string
-          title: string
-          scheduled_at: string
           duration: number
+          id: string
           room_id: string
           room_link: string
+          scheduled_at: string
           status: string
-          teacher_name: string
           teacher_id: string
+          teacher_name: string
+          title: string
         }[]
       }
       get_teacher_available_balance: {
@@ -4754,27 +4861,27 @@ export type Database = {
       get_teacher_upcoming_lessons: {
         Args: { teacher_uuid: string }
         Returns: {
-          id: string
-          title: string
-          scheduled_at: string
           duration: number
+          id: string
           room_id: string
           room_link: string
+          scheduled_at: string
           status: string
-          student_name: string
           student_id: string
+          student_name: string
+          title: string
         }[]
       }
       process_lesson_completion: {
         Args: {
-          lesson_uuid: string
-          lesson_status: string
           failure_reason?: string
+          lesson_status: string
+          lesson_uuid: string
         }
         Returns: Json
       }
       purchase_virtual_reward: {
-        Args: { student_uuid: string; reward_uuid: string }
+        Args: { reward_uuid: string; student_uuid: string }
         Returns: Json
       }
       reset_monthly_class_usage: {
@@ -4783,32 +4890,32 @@ export type Database = {
       }
       save_placement_test_result: {
         Args: {
-          p_user_id: string
           p_cefr_level: string
           p_score: number
           p_total: number
+          p_user_id: string
         }
         Returns: boolean
       }
       update_learning_currency: {
         Args: {
-          student_uuid: string
           coins_to_add: number
           currency_source?: string
+          student_uuid: string
         }
         Returns: Json
       }
       update_learning_model: {
         Args: {
-          student_uuid: string
+          confidence?: number
           model_type_param: string
           new_model_data: Json
-          confidence?: number
+          student_uuid: string
         }
         Returns: string
       }
       update_learning_streak: {
-        Args: { student_uuid: string; streak_type_param?: string }
+        Args: { streak_type_param?: string; student_uuid: string }
         Returns: Json
       }
       update_student_xp: {
