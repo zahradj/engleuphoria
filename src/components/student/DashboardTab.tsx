@@ -24,6 +24,7 @@ import { StudentQuickActions } from "./dashboard/StudentQuickActions";
 import { StudentLearningGoals } from "./dashboard/StudentLearningGoals";
 import { CreditDisplay } from "@/components/student/CreditDisplay";
 import { usePackageValidation } from "@/hooks/usePackageValidation";
+import { LessonHistory } from "./dashboard/LessonHistory";
 
 interface DashboardTabProps {
   studentName: string;
@@ -279,6 +280,11 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
             onOpenMessageModal={() => setShowMessageModal(true)}
           />
         </div>
+      </div>
+
+      {/* All Lessons Section */}
+      <div className="mt-8">
+        <LessonHistory />
       </div>
 
       {/* Modals */}

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, Play, Eye, Users, DollarSign } from "lucide-react";
 
 interface ClassInfo {
-  id: number;
+  id: string;
   title: string;
   time: string;
   student: string;
@@ -18,7 +18,7 @@ interface ClassInfo {
 interface UpcomingClassesCardProps {
   classes: ClassInfo[];
   onJoinClass: () => void;
-  onStartClass: (classId: number) => void;
+  onStartClass: (classId: string) => void;
 }
 
 export const UpcomingClassesCard = ({ classes, onJoinClass, onStartClass }: UpcomingClassesCardProps) => {
