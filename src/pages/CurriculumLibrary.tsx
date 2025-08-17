@@ -21,31 +21,13 @@ import {
   Image as ImageIcon,
   ExternalLink
 } from 'lucide-react';
-import { bulkCurriculumService } from '@/services/ai/bulkCurriculumService';
 import { SystematicLessonsLibrary } from '@/components/curriculum/SystematicLessonsLibrary';
 
 const CurriculumLibrary = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [levelFilter, setLevelFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
-  const [curriculumContent, setCurriculumContent] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    loadCurriculumContent();
-  }, []);
-
-  const loadCurriculumContent = async () => {
-    setIsLoading(true);
-    try {
-      const content = await bulkCurriculumService.getGeneratedContent();
-      setCurriculumContent(content);
-    } catch (error) {
-      console.error('Failed to load curriculum content:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const openInClassroom = (lesson: any) => {
     const classroomUrl = `/classroom?roomId=unified-classroom-1&role=teacher&name=teacher&userId=teacher-1&lesson=${lesson.id}`;
@@ -161,16 +143,7 @@ const CurriculumLibrary = () => {
     
     return matchesSearch && matchesLevel && matchesType;
   });
-
-  const filteredCurriculumContent = curriculumContent.filter(item => {
-    const matchesSearch = !searchTerm || 
-      item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.theme?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesLevel = levelFilter === 'all' || item.cefr_level === levelFilter;
-    
-    return matchesSearch && matchesLevel;
-  });
-
+  
   const featuredMaterials = materials.filter(material => material.featured);
 
   return (
@@ -306,75 +279,9 @@ const CurriculumLibrary = () => {
           </div>
         </section>
 
-        {/* Legacy Curriculum Content */}
+        {/* Template Materials */}
         <section className="py-16">
           <div className="container max-w-6xl mx-auto px-4">
-            <h2 className="text-3xl font-bold mb-8 text-foreground">
-              Legacy Curriculum Lessons ({filteredCurriculumContent.length})
-            </h2>
-            {isLoading ? (
-              <div className="text-center py-12">
-                <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
-                <p>Loading curriculum content...</p>
-              </div>
-            ) : (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                {filteredCurriculumContent.map((lesson) => (
-                  <Card key={lesson.id} className="hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <BookOpen className="h-6 w-6 text-primary" />
-                        <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs">
-                          Ready to Teach
-                        </Badge>
-                      </div>
-                      <CardTitle className="text-base">{lesson.title}</CardTitle>
-                      <div className="flex items-center gap-2">
-                        <Badge className={`${getLevelColor(lesson.cefr_level)} text-xs`}>
-                          {lesson.cefr_level}
-                        </Badge>
-                        <Badge variant="outline" className="text-xs">{lesson.theme}</Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-muted-foreground mb-3 text-sm line-clamp-2">
-                        Week {lesson.week_number}, Lesson {lesson.lesson_number}: {lesson.content_data?.lesson_type}
-                      </p>
-                      <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {lesson.estimated_duration} min
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <FileText className="h-3 w-3" />
-                          {lesson.content_data?.pages || 20} pages
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <BookOpen className="h-3 w-3" />
-                          {lesson.content_data?.exercises || 8} exercises
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="flex-1 text-xs"
-                          onClick={() => openInClassroom(lesson)}
-                        >
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Open in Classroom
-                        </Button>
-                        <Button size="sm" className="flex-1 text-xs">
-                          <Download className="h-3 w-3 mr-1" />
-                          Download
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-
             <h2 className="text-3xl font-bold mb-8 text-foreground">
               Template Materials ({filteredMaterials.length})
             </h2>
