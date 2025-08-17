@@ -62,68 +62,113 @@ export function SystematicLessonsLibrary({
         );
       }
 
-      // If no lessons exist yet, seed a small set so teachers can start immediately
+      // If no lessons exist yet, generate the complete curriculum
       if (lessonsFromAllLevels.length === 0 && curriculumLevels.length > 0) {
         toast({
-          title: 'Preparing lessons',
-          description: 'Seeding sample systematic lessons for each level...'
+          title: 'Building Complete Curriculum',
+          description: 'Generating 360+ systematic lessons across all CEFR levels. This may take a few minutes...'
         });
 
-        const diffs: Record<string, number> = { 'Pre-A1': 1, A1: 1, A2: 2, B1: 3, B2: 4, C1: 5, C2: 6 };
+        try {
+          // Call the enhanced curriculum generator
+          const response = await fetch('/functions/v1/curriculum-generator', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              action: 'generate_full_curriculum',
+              batchSize: 15
+            })
+          });
 
-        for (const level of curriculumLevels) {
-          const topics = curriculumService.getCEFRTopics(level.cefr_level) || [];
-          const sampleCount = Math.min(4, topics.length || 4);
+          if (!response.ok) {
+            throw new Error('Failed to generate curriculum');
+          }
 
-          for (let i = 0; i < sampleCount; i++) {
-            const lessonNum = i + 1;
-            const topic = topics[i] || `Core Topic ${lessonNum}`;
-            const template = curriculumService.getLessonTemplate();
-
-            await curriculumService.createSystematicLesson({
-              curriculum_level_id: level.id,
-              lesson_number: lessonNum,
-              title: `${level.cefr_level} Lesson ${lessonNum}: ${topic}`,
-              topic,
-              grammar_focus: undefined,
-              vocabulary_set: [],
-              communication_outcome: `Talk about ${topic.toLowerCase()}`,
-              lesson_objectives: [
-                `Understand key vocabulary about ${topic.toLowerCase()}`,
-                `Use simple structures to discuss ${topic.toLowerCase()}`
-              ],
-              slides_content: template,
-              activities: [],
-              gamified_elements: template?.gamification ?? {},
-              is_review_lesson: lessonNum % 4 === 0,
-              prerequisite_lessons: [],
-              difficulty_level: diffs[level.cefr_level] ?? 1,
-              estimated_duration: ['B1','B2','C1','C2'].includes(level.cefr_level) ? 60 : 45,
-              status: 'published'
+          const result = await response.json();
+          
+          if (result.success) {
+            toast({
+              title: 'Curriculum Ready!',
+              description: `Successfully generated ${result.total_generated} lessons. Reloading...`
             });
+
+            // Reload lessons after generation
+            lessonsFromAllLevels = [];
+            for (const level of curriculumLevels) {
+              const levelLessons = await curriculumService.getLessonsForLevel(level.id);
+              lessonsFromAllLevels.push(
+                ...levelLessons.map(lesson => ({
+                  ...lesson,
+                  level_info: level
+                }))
+              );
+            }
+          } else {
+            throw new Error(result.error || 'Generation failed');
+          }
+        } catch (generationError) {
+          console.error('Curriculum generation error:', generationError);
+          toast({
+            title: 'Generation Error',
+            description: 'Failed to generate full curriculum. Creating sample lessons instead.',
+            variant: 'destructive'
+          });
+          
+          // Fallback: create minimal sample lessons
+          const diffs: Record<string, number> = { 'Pre-A1': 1, A1: 1, A2: 2, B1: 3, B2: 4, C1: 5, C2: 6 };
+
+          for (const level of curriculumLevels.slice(0, 2)) { // Only first 2 levels for samples
+            const topics = curriculumService.getCEFRTopics(level.cefr_level) || [];
+            const sampleCount = Math.min(4, topics.length || 4);
+
+            for (let i = 0; i < sampleCount; i++) {
+              const lessonNum = i + 1;
+              const topic = topics[i] || `Core Topic ${lessonNum}`;
+              const template = curriculumService.getLessonTemplate();
+
+              await curriculumService.createSystematicLesson({
+                curriculum_level_id: level.id,
+                lesson_number: lessonNum,
+                title: `${level.cefr_level} Lesson ${lessonNum}: ${topic}`,
+                topic,
+                grammar_focus: 'Basic Grammar',
+                vocabulary_set: ['word1', 'word2', 'word3', 'word4', 'word5'],
+                communication_outcome: `Talk about ${topic.toLowerCase()}`,
+                lesson_objectives: [
+                  `Understand key vocabulary about ${topic.toLowerCase()}`,
+                  `Use simple structures to discuss ${topic.toLowerCase()}`
+                ],
+                slides_content: template,
+                activities: [],
+                gamified_elements: template?.gamification ?? {},
+                is_review_lesson: lessonNum % 4 === 0,
+                prerequisite_lessons: [],
+                difficulty_level: diffs[level.cefr_level] ?? 1,
+                estimated_duration: ['B1','B2','C1','C2'].includes(level.cefr_level) ? 60 : 45,
+                status: 'published'
+              });
+            }
+          }
+
+          // Reload with samples
+          lessonsFromAllLevels = [];
+          for (const level of curriculumLevels) {
+            const levelLessons = await curriculumService.getLessonsForLevel(level.id);
+            lessonsFromAllLevels.push(
+              ...levelLessons.map(lesson => ({
+                ...lesson,
+                level_info: level
+              }))
+            );
           }
         }
-
-        // Reload after seeding
-        lessonsFromAllLevels = [];
-        for (const level of curriculumLevels) {
-          const levelLessons = await curriculumService.getLessonsForLevel(level.id);
-          lessonsFromAllLevels.push(
-            ...levelLessons.map(lesson => ({
-              ...lesson,
-              level_info: level
-            }))
-          );
-        }
-
-        toast({
-          title: 'Lessons ready',
-          description: 'Sample systematic lessons have been added.'
-        });
       }
 
       setAllLessons(lessonsFromAllLevels);
     } catch (error) {
+      console.error('Error loading lessons:', error);
       toast({
         title: 'Error',
         description: 'Failed to load curriculum lessons',
@@ -180,7 +225,15 @@ export function SystematicLessonsLibrary({
 
   const handleLessonAction = (lesson: SystematicLesson) => {
     if (isClassroomMode && onSelectLesson) {
-      onSelectLesson(lesson);
+      // Convert lesson to whiteboard-compatible format
+      const whiteboardLesson = {
+        ...lesson,
+        type: 'systematic_lesson',
+        contentType: 'systematic_lesson',
+        slides: lesson.slides_content?.slides || [],
+        whiteboard_compatible: true
+      };
+      onSelectLesson(whiteboardLesson);
     } else if (onOpenInClassroom) {
       onOpenInClassroom(lesson);
     } else {
