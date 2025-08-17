@@ -517,16 +517,58 @@ function generateLessonObjectives(topic: string, level: string): string[] {
     `Improve listening comprehension skills`
   ];
 
-  const levelSpecificObjectives = {
-    'Pre-A1': [`Recognize basic words about ${topic}`, 'Use simple phrases in context'],
-    'A1': [`Form simple sentences about ${topic}`, 'Ask and answer basic questions'],
-    'A2': [`Express opinions about ${topic}`, 'Describe experiences related to ${topic}`],
-    'B1': [`Discuss ${topic} in detail`, 'Present arguments and opinions'],
-    'B2': [`Analyze complex aspects of ${topic}`, 'Participate in debates and discussions`],
-    'C1': [`Critically evaluate ${topic}`, 'Use sophisticated language structures`],
-    'C2': [`Demonstrate expertise in discussing ${topic}`, 'Use precise and nuanced language`]
-  };
+  // Build level-specific objectives dynamically to avoid template literal parsing issues
+  let levelSpecificObjectives: string[] = [];
+  
+  switch (level) {
+    case 'Pre-A1':
+      levelSpecificObjectives = [
+        `Recognize basic words about ${topic}`,
+        'Use simple phrases in context'
+      ];
+      break;
+    case 'A1':
+      levelSpecificObjectives = [
+        `Form simple sentences about ${topic}`,
+        'Ask and answer basic questions'
+      ];
+      break;
+    case 'A2':
+      levelSpecificObjectives = [
+        `Express opinions about ${topic}`,
+        `Describe experiences related to ${topic}`
+      ];
+      break;
+    case 'B1':
+      levelSpecificObjectives = [
+        `Discuss ${topic} in detail`,
+        'Present arguments and opinions'
+      ];
+      break;
+    case 'B2':
+      levelSpecificObjectives = [
+        `Analyze complex aspects of ${topic}`,
+        'Participate in debates and discussions'
+      ];
+      break;
+    case 'C1':
+      levelSpecificObjectives = [
+        `Critically evaluate ${topic}`,
+        'Use sophisticated language structures'
+      ];
+      break;
+    case 'C2':
+      levelSpecificObjectives = [
+        `Demonstrate expertise in discussing ${topic}`,
+        'Use precise and nuanced language'
+      ];
+      break;
+    default:
+      levelSpecificObjectives = [
+        `Discuss ${topic} in detail`,
+        'Present arguments and opinions'
+      ];
+  }
 
-  const specific = levelSpecificObjectives[level as keyof typeof levelSpecificObjectives] || levelSpecificObjectives['B1'];
-  return [...baseObjectives, ...specific];
+  return [...baseObjectives, ...levelSpecificObjectives];
 }
