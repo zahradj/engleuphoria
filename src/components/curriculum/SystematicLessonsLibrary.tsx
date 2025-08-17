@@ -224,8 +224,29 @@ export function SystematicLessonsLibrary({
   };
 
   const handleLessonAction = (lesson: SystematicLesson) => {
-    if (isClassroomMode && onSelectLesson) {
+    if (isClassroomMode && onOpenInClassroom) {
       // Convert lesson to whiteboard-compatible format
+      const whiteboardLesson = {
+        ...lesson,
+        type: 'systematic_lesson',
+        contentType: 'systematic_lesson',
+        slides: lesson.slides_content?.slides || [],
+        whiteboard_compatible: true,
+        title: lesson.title,
+        level: levels.find(l => l.id === lesson.curriculum_level_id)?.cefr_level || 'B1',
+        topic: lesson.topic,
+        duration: lesson.estimated_duration,
+        metadata: {
+          learning_objectives: lesson.lesson_objectives,
+          grammar_focus: lesson.grammar_focus,
+          vocabulary_set: lesson.vocabulary_set,
+          communication_outcome: lesson.communication_outcome,
+          estimated_duration: lesson.estimated_duration,
+          difficulty_level: lesson.difficulty_level
+        }
+      };
+      onOpenInClassroom(whiteboardLesson);
+    } else if (onSelectLesson) {
       const whiteboardLesson = {
         ...lesson,
         type: 'systematic_lesson',
@@ -234,8 +255,6 @@ export function SystematicLessonsLibrary({
         whiteboard_compatible: true
       };
       onSelectLesson(whiteboardLesson);
-    } else if (onOpenInClassroom) {
-      onOpenInClassroom(lesson);
     } else {
       // Default action - open in classroom
       const classroomUrl = `/classroom?roomId=unified-classroom-1&role=teacher&name=teacher&userId=teacher-1&lesson=${lesson.id}`;

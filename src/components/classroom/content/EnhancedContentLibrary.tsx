@@ -348,6 +348,7 @@ export function EnhancedContentLibrary({
           <div className="h-full p-4">
             <SystematicLessonsLibrary 
               onSelectLesson={onSelectContent}
+              onOpenInClassroom={onAddToWhiteboard}
               isClassroomMode={true}
             />
           </div>

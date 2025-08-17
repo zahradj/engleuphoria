@@ -47,6 +47,24 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
   React.useEffect(() => {
     console.log('📋 EmbeddedContent state updated:', embeddedContent);
   }, [embeddedContent]);
+
+  // Auto-load lesson from URL parameter
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const lessonId = urlParams.get('lesson');
+    
+    if (lessonId) {
+      console.log('🔄 Auto-loading lesson from URL:', lessonId);
+      // Load lesson from database and add to whiteboard
+      loadLessonById(lessonId);
+    }
+  }, []);
+
+  const loadLessonById = async (lessonId: string) => {
+    // For now, skip auto-loading until we have the proper method
+    console.log('⏭️ Skipping auto-load for lesson:', lessonId);
+    return;
+  };
   
   const initialContent: any[] = [];
   
@@ -99,7 +117,7 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
     // Determine content type broadly
     const contentType: string = (anyItem.contentType || item.type || '').toString();
     // Handle curriculum/lesson content by generating HTML when needed
-    const isCurriculumContent = ['curriculum','lesson','bulk-curriculum'].includes(contentType) || contentType === 'html';
+    const isCurriculumContent = ['curriculum','lesson','bulk-curriculum','systematic_lesson'].includes(contentType) || contentType === 'html';
     
     if (isCurriculumContent) {
       const html = `
