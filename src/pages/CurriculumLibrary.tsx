@@ -22,6 +22,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { bulkCurriculumService } from '@/services/ai/bulkCurriculumService';
+import { SystematicLessonsLibrary } from '@/components/curriculum/SystematicLessonsLibrary';
 
 const CurriculumLibrary = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -298,11 +299,18 @@ const CurriculumLibrary = () => {
           </div>
         </section>
 
-        {/* Curriculum Content */}
+        {/* Systematic Curriculum Lessons */}
         <section className="py-16 bg-muted/50">
           <div className="container max-w-6xl mx-auto px-4">
+            <SystematicLessonsLibrary />
+          </div>
+        </section>
+
+        {/* Legacy Curriculum Content */}
+        <section className="py-16">
+          <div className="container max-w-6xl mx-auto px-4">
             <h2 className="text-3xl font-bold mb-8 text-foreground">
-              Curriculum Lessons ({filteredCurriculumContent.length})
+              Legacy Curriculum Lessons ({filteredCurriculumContent.length})
             </h2>
             {isLoading ? (
               <div className="text-center py-12">

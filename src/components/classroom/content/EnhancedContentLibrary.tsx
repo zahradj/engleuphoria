@@ -27,6 +27,7 @@ import { ContentLibraryItem } from '@/services/unifiedAIContentService';
 import { GeneratedCurriculum, curriculumGenerationService } from '@/services/curriculumGenerationService';
 import { CurriculumGenerationPanel } from '../ai/CurriculumGenerationPanel';
 import { bulkCurriculumService } from '@/services/ai/bulkCurriculumService';
+import { SystematicLessonsLibrary } from '@/components/curriculum/SystematicLessonsLibrary';
 
 interface EnhancedContentLibraryProps {
   contentItems: any[];
@@ -43,7 +44,7 @@ interface EnhancedContentLibraryProps {
 }
 
 interface ContentFilter {
-  type: 'all' | 'ai-generated' | 'curriculum' | 'uploads' | 'media' | 'bulk-curriculum';
+  type: 'all' | 'ai-generated' | 'curriculum' | 'uploads' | 'media' | 'bulk-curriculum' | 'systematic-lessons';
   level: 'all' | 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
   subject: 'all' | 'grammar' | 'vocabulary' | 'conversation' | 'reading' | 'writing';
 }
@@ -570,10 +571,14 @@ export function EnhancedContentLibrary({
             </div>
           </div>
 
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="browse" className="flex items-center gap-2">
               <Search size={16} />
               Browse Content
+            </TabsTrigger>
+            <TabsTrigger value="systematic" className="flex items-center gap-2">
+              <Sparkles size={16} />
+              Systematic Lessons
             </TabsTrigger>
             <TabsTrigger value="analytics" className="flex items-center gap-2">
               <Target size={16} />
@@ -753,6 +758,15 @@ export function EnhancedContentLibrary({
                 </div>
               </div>
             )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="systematic" className="flex-1 min-h-0">
+          <div className="h-full p-4">
+            <SystematicLessonsLibrary 
+              onSelectLesson={onSelectContent}
+              isClassroomMode={true}
+            />
           </div>
         </TabsContent>
 
