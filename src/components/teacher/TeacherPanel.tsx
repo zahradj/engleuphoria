@@ -17,7 +17,7 @@ import { AIAssistantTab } from "./AIAssistantTab";
 import { ReadingLibraryTab } from "./ReadingLibraryTab";
 import { BackendTab } from "./BackendTab";
 import { EnhancedEnterpriseHub } from "../enterprise/enhanced/EnhancedEnterpriseHub";
-import { AILessonGenerator } from "./AILessonGenerator";
+import CurriculumArchitect from "./CurriculumArchitect";
 
 interface TeacherPanelProps {
   teacherId?: string;
@@ -36,7 +36,7 @@ export const TeacherPanel = ({
       case "dashboard":
         return <DashboardTab teacherName={teacherName} />;
       case "ai-generator":
-        return <AILessonGenerator />;
+        return <CurriculumArchitect />;
       case "ai-assistant":
         return <AIAssistantTab />;
       case "calendar":
