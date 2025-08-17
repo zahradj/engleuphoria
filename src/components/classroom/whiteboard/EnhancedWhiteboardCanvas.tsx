@@ -336,9 +336,9 @@ export function EnhancedWhiteboardCanvas({
             const scaledHeight = Math.max(600, content.height);
             
             // Determine content type from stored metadata or fallback to URL/title detection
-            const isImage = content.fileType?.startsWith('image/') || content.originalType === 'image' || content.url.includes('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(content.url);
-            const isPDF = content.fileType?.includes('pdf') || content.originalType === 'pdf' || content.url.includes('.pdf') || content.title.toLowerCase().endsWith('.pdf');
-            const isOfficeDoc = content.fileType?.includes('officedocument') || content.originalType === 'document' || /\.(doc|docx|ppt|pptx|xls|xlsx)$/i.test(content.title);
+            const isImage = content.fileType?.startsWith('image/') || content.originalType === 'image' || (content.url && content.url.includes('image/')) || (content.url && /\.(jpg|jpeg|png|gif|webp)$/i.test(content.url));
+            const isPDF = content.fileType?.includes('pdf') || content.originalType === 'pdf' || (content.url && content.url.includes('.pdf')) || (content.title && content.title.toLowerCase().endsWith('.pdf'));
+            const isOfficeDoc = content.fileType?.includes('officedocument') || content.originalType === 'document' || (content.title && /\.(doc|docx|ppt|pptx|xls|xlsx)$/i.test(content.title));
             
             return (
               <div
