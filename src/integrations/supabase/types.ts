@@ -3703,6 +3703,80 @@ export type Database = {
         }
         Relationships: []
       }
+      systematic_lessons: {
+        Row: {
+          activities: Json | null
+          communication_outcome: string | null
+          created_at: string | null
+          curriculum_level_id: string
+          difficulty_level: number | null
+          estimated_duration: number | null
+          gamified_elements: Json | null
+          grammar_focus: string | null
+          id: string
+          is_review_lesson: boolean | null
+          lesson_number: number
+          lesson_objectives: Json | null
+          prerequisite_lessons: string[] | null
+          slides_content: Json | null
+          status: string | null
+          title: string
+          topic: string
+          updated_at: string | null
+          vocabulary_set: Json | null
+        }
+        Insert: {
+          activities?: Json | null
+          communication_outcome?: string | null
+          created_at?: string | null
+          curriculum_level_id: string
+          difficulty_level?: number | null
+          estimated_duration?: number | null
+          gamified_elements?: Json | null
+          grammar_focus?: string | null
+          id?: string
+          is_review_lesson?: boolean | null
+          lesson_number: number
+          lesson_objectives?: Json | null
+          prerequisite_lessons?: string[] | null
+          slides_content?: Json | null
+          status?: string | null
+          title: string
+          topic: string
+          updated_at?: string | null
+          vocabulary_set?: Json | null
+        }
+        Update: {
+          activities?: Json | null
+          communication_outcome?: string | null
+          created_at?: string | null
+          curriculum_level_id?: string
+          difficulty_level?: number | null
+          estimated_duration?: number | null
+          gamified_elements?: Json | null
+          grammar_focus?: string | null
+          id?: string
+          is_review_lesson?: boolean | null
+          lesson_number?: number
+          lesson_objectives?: Json | null
+          prerequisite_lessons?: string[] | null
+          slides_content?: Json | null
+          status?: string | null
+          title?: string
+          topic?: string
+          updated_at?: string | null
+          vocabulary_set?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "systematic_lessons_curriculum_level_id_fkey"
+            columns: ["curriculum_level_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_levels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teacher_absences: {
         Row: {
           absence_date: string
