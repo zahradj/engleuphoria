@@ -17,7 +17,8 @@ import {
   GraduationCap,
   Book,
   FolderOpen,
-  User
+  User,
+  Wand2
 } from "lucide-react";
 
 interface TeacherSidebarProps {
@@ -30,6 +31,7 @@ export const TeacherSidebar = ({ activeTab, setActiveTab, onLogout }: TeacherSid
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3, type: 'tab' },
     { id: 'profile', label: 'My Profile', icon: User, type: 'tab' },
+    { id: 'ai-generator', label: 'AI Generator', icon: Wand2, type: 'tab' },
     { id: 'ai-assistant', label: 'AI Curriculum', icon: Brain, type: 'tab' },
     { id: 'calendar', label: 'Calendar', icon: Calendar, type: 'tab' },
     { id: 'students', label: 'Students', icon: Users, type: 'tab' },

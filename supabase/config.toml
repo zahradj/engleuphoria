@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.ai-curriculum-planner]
 verify_jwt = true
+
+[functions.ai-multigen]
+verify_jwt = true
