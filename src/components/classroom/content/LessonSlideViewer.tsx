@@ -38,7 +38,7 @@ export function LessonSlideViewer({ slides, title, className = "" }: LessonSlide
   };
 
   const renderSlideContent = (slide: any, isActive: boolean) => {
-    const baseClassName = `h-full p-6 rounded-xl transition-all duration-500 ${isActive ? 'animate-fade-in' : ''}`;
+    const baseClassName = `min-h-full p-6 rounded-xl transition-all duration-500 ${isActive ? 'animate-fade-in' : ''}`;
     const content = slide && slide.content ? slide.content : {};
     const sTitle = (slide && (slide.title || (content && content.title))) || title || 'Lesson';
     const sType = (slide && slide.type) || 'default';
@@ -236,10 +236,10 @@ export function LessonSlideViewer({ slides, title, className = "" }: LessonSlide
   }
 
   return (
-    <div className={`${className} flex flex-col h-full`}>
-      {/* Slide Content - Main area */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="h-full">
+    <div className={`${className} h-full`}>
+      {/* Slide Content - Full height minus navigation */}
+      <div className="h-full pb-20 overflow-y-auto">
+        <div className="min-h-full">
           {renderSlideContent(slides[currentSlide], true)}
         </div>
       </div>
