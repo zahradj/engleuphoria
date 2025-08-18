@@ -3,7 +3,7 @@ import { VideoTile } from "./VideoTile";
 import { ToolButton } from "./ToolButton";
 import { Gift, Clock, MessageSquare, Languages } from "lucide-react";
 
-export type RailTool = "rewards" | "timer" | "chat" | "translator";
+export type RailTool = "rewards" | "chat" | "translator";
 
 interface RightRailProps {
   localStream: MediaStream | null;
@@ -67,11 +67,6 @@ export function RightRail({
           icon={<Gift className="h-4 w-4" />}
           label="Rewards"
           onClick={() => onOpenTool("rewards")}
-        />
-        <ToolButton
-          icon={<Clock className="h-4 w-4" />}
-          label="Timer"
-          onClick={() => onOpenTool("timer")}
         />
         <ToolButton
           icon={<MessageSquare className="h-4 w-4" />}

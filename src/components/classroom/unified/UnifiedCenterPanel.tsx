@@ -3,10 +3,12 @@ import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { UnifiedContentViewer } from "@/components/classroom/content/UnifiedContentViewer";
 import { OneOnOneGames } from "@/components/classroom/oneonone/OneOnOneGames";
 import { StartTabContent } from "./components/TabContent/StartTabContent";
 import { FinishTabContent } from "./components/TabContent/FinishTabContent";
+import { ActivityCountdownTimer } from "@/components/classroom/ActivityCountdownTimer";
 import { BookOpen, Gamepad2, Play, CheckCircle } from "lucide-react";
 
 interface UnifiedCenterPanelProps {
@@ -38,11 +40,35 @@ export function UnifiedCenterPanel({
     <Card className="h-full shadow-lg border-0 bg-white/95 backdrop-blur-sm flex flex-col">
       <Tabs value={activeCenterTab} onValueChange={onTabChange} className="h-full flex flex-col">
         <div className="p-4 pb-0 flex-shrink-0">
-          <TabsList className="grid w-full grid-cols-4 mb-4">
-            <TabsTrigger value="start" className="flex items-center gap-2">
-              <Play size={16} />
-              <span className="hidden sm:inline">Start</span>
-            </TabsTrigger>
+          {/* Top Bar with Timer and Start/Finish buttons */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <Button
+                variant={sessionStatus === 'started' ? "default" : "outline"}
+                size="sm"
+                onClick={onStartLesson}
+                disabled={sessionStatus === 'started'}
+                className="flex items-center gap-2"
+              >
+                <Play size={14} />
+                Start Lesson
+              </Button>
+              <Button
+                variant={sessionStatus === 'ended' ? "default" : "outline"}
+                size="sm"
+                onClick={onEndLesson}
+                disabled={sessionStatus !== 'started'}
+                className="flex items-center gap-2"
+              >
+                <CheckCircle size={14} />
+                Finish Lesson
+              </Button>
+            </div>
+            
+            <ActivityCountdownTimer className="ml-auto" />
+          </div>
+          
+          <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="lesson" className="flex items-center gap-2">
               <BookOpen size={16} />
               <span className="hidden sm:inline">Lesson</span>
@@ -51,23 +77,10 @@ export function UnifiedCenterPanel({
               <Gamepad2 size={16} />
               <span className="hidden sm:inline">Activities</span>
             </TabsTrigger>
-            <TabsTrigger value="finish" className="flex items-center gap-2">
-              <CheckCircle size={16} />
-              <span className="hidden sm:inline">Finish</span>
-            </TabsTrigger>
           </TabsList>
         </div>
 
         <div className="flex-1 min-h-0 overflow-hidden">
-          <TabsContent value="start" className="h-full m-0 overflow-y-auto">
-            <StartTabContent
-              onStartLesson={onStartLesson}
-              isTeacher={isTeacher}
-              sessionStatus={sessionStatus}
-              roomId={roomId}
-            />
-          </TabsContent>
-
           <TabsContent value="lesson" className="h-full m-0 p-4 overflow-y-auto">
             <UnifiedContentViewer 
               isTeacher={isTeacher}
@@ -77,18 +90,6 @@ export function UnifiedCenterPanel({
 
           <TabsContent value="activities" className="h-full m-0 p-4 overflow-y-auto">
             <OneOnOneGames />
-          </TabsContent>
-
-
-          <TabsContent value="finish" className="h-full m-0 overflow-y-auto">
-            <FinishTabContent
-              onEndLesson={onEndLesson}
-              isTeacher={isTeacher}
-              sessionStatus={sessionStatus}
-              roomId={roomId}
-              studentId={!isTeacher ? currentUser.id : undefined}
-              teacherId={isTeacher ? currentUser.id : undefined}
-            />
           </TabsContent>
         </div>
       </Tabs>

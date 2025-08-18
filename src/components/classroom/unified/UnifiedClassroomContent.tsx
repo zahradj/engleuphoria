@@ -120,14 +120,6 @@ export function UnifiedClassroomContent({
         </ToolRailOverlay>
       )}
 
-      {openTool === 'timer' && (
-        <ToolRailOverlay title="Timer" onClose={() => setOpenTool(null)}>
-          <div className="text-center">
-            <div className="text-4xl font-mono text-foreground">{formatTime(classTime)}</div>
-            <p className="text-sm text-muted-foreground mt-2">Elapsed class time</p>
-          </div>
-        </ToolRailOverlay>
-      )}
 
 
       {openTool === 'translator' && (
