@@ -17,7 +17,8 @@ import {
   Book,
   FolderOpen,
   User,
-  ArrowUpRight
+  ArrowUpRight,
+  Presentation
 } from "lucide-react";
 import {
   Sidebar,
@@ -47,6 +48,7 @@ export const EnhancedTeacherSidebar = ({ activeTab, setActiveTab, onLogout }: En
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3, type: 'tab' },
     { id: 'profile', label: 'My Profile', icon: User, type: 'tab' },
     { id: 'ai-assistant', label: 'AI Curriculum', icon: Brain, type: 'tab' },
+    { id: 'slides', label: 'Lesson Slides', icon: Presentation, type: 'tab' },
     { id: 'calendar', label: 'Calendar', icon: Calendar, type: 'tab' },
     { id: 'students', label: 'Students', icon: Users, type: 'tab' },
     { id: 'reading-library', label: 'Reading Library', icon: Book, type: 'tab' },
