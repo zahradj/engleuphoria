@@ -192,68 +192,89 @@ async function generateSlidesForContent(supabase: any, contentId: string, conten
 }
 
 async function generateSlidesData(contentItem: any) {
-  const prompt = `You are an expert instructional designer creating interactive slides for an English lesson. 
+  // Extract CEFR level and age group for kid-specific content
+  const cefrLevel = contentItem.level_info?.cefr_level || 'A1';
+  const ageGroup = getAgeGroupFromCEFR(cefrLevel);
+  const isEarlyAge = ageGroup.includes('4-6') || ageGroup.includes('6-9');
+  
+  const prompt = `You are an expert in child language learning, creating interactive slides for ages ${ageGroup} using the 1:1 Kids Program curriculum.
 
 LESSON DETAILS:
 - Title: ${contentItem.title}
 - Topic: ${contentItem.topic}
-- Level: ${contentItem.level_info?.cefr_level || 'B1'}
-- Grammar Focus: ${contentItem.grammar_focus || 'General'}
-- Duration: ${contentItem.estimated_duration || 45} minutes
+- CEFR Level: ${cefrLevel}
+- Age Group: ${ageGroup}
+- Grammar Focus: ${contentItem.grammar_focus || 'Sentence Building'}
+- Duration: ${contentItem.estimated_duration || 30} minutes
 - Vocabulary: ${JSON.stringify(contentItem.vocabulary_set || [])}
-- Objectives: ${JSON.stringify(contentItem.lesson_objectives || [])}
+- Target Sentences: ${JSON.stringify(contentItem.lesson_objectives || [])}
 
-Create 14 comprehensive interactive slides with Engleuphoria branding for extended classroom use. Include multiple gamified activities, extensive speaking practice, and thorough review sections.
+CRITICAL: Follow the "Placement Test – Daily Routine" slide style exactly:
+- Large tap targets (minimum 44px)
+- Picture-led activities for early ages
+- Clear, simple language
+- Child-safe imagery
+- Calm, encouraging feedback
 
-SLIDE REQUIREMENTS:
-1. Title Slide - Welcome with Engleuphoria branding and lesson preview
-2. Warm-up Activity - Engaging opener with interactive elements
-3. Learning Objectives - Clear goals with progress tracking
-4. Previous Knowledge Check - Quick review of prerequisites
-5. Vocabulary Introduction - Visual key words with pronunciation
-6. Vocabulary Practice - Interactive matching and memory games
-7. Grammar Focus - Target structures with examples
-8. Grammar Practice - Guided practice with immediate feedback
-9. Gamified Activity 1 - Drag & Drop matching with point system
-10. Gamified Activity 2 - Multiple choice quiz with badges
-11. Speaking Practice 1 - Guided conversation tasks
-12. Speaking Practice 2 - Free conversation and roleplay
-13. Review & Assessment - Comprehensive consolidation exercise
-14. Wrap-up & Celebration - Achievement summary and next steps
+CREATE EXACTLY 10-12 SLIDES following this blueprint:
+1. Warmup (fluency spark): Picture talk or quick Q&A (60-90s)
+2. Target Language (pattern focus): Form → meaning → use with kid-friendly examples
+3. Sentence Builder: Drag chunks/words into order (snap & validate)
+4. Pronunciation/Prosody: Model + shadow (record/playback)
+5. Accuracy Drill: MCQ / transform / error-fix on the target pattern
+6. Controlled Output: Prompt → student produces 4-6 accurate sentences
+7. Micro-input (listen/read): Extract & rebuild key sentences
+8. Communicative Task (1:1): Role-play/story strip; teacher adapts pace
+9. Fluency Sprint: Timed speaking/writing with word bank → full sentences
+10. Exit Check: 2-3 auto-scored items; show sticker/reward
 
-Each slide should have:
-- Engleuphoria color scheme (blue/purple gradients)
-- Interactive elements suitable for whiteboards
-- Clear instructions for teachers
-- Student engagement features
-- Time allocations
-- Learning objectives alignment
+${isEarlyAge ? 'FOR AGES 4-7: Slides 3-4 should be phonics/TPR instead of complex grammar.' : ''}
 
-Return ONLY a JSON object with this structure:
+SENTENCE-BUILDING FOCUS for ${cefrLevel}:
+${getSentenceBuildingSyllabus(cefrLevel)}
+
+Return ONLY a valid JSON object with this schema:
 {
+  "version": "2.0",
+  "theme": "mist-blue",
   "slides": [
     {
-      "slide_number": 1,
-      "title": "Slide title",
-      "content": "Detailed content with instructions",
-      "duration": 3,
-      "activity_type": "title|warm_up|objectives|vocabulary|grammar|activity|speaking|review|wrap_up",
-      "interactive_elements": ["element1", "element2"],
-      "teacher_notes": "Instructions for the teacher",
-      "gamification": {
-        "points_possible": 10,
-        "badges": ["badge_name"],
-        "challenges": ["challenge_description"]
+      "id": "slide-1",
+      "type": "warmup|target_language|sentence_builder|pronunciation_shadow|accuracy_mcq|transform|error_fix|micro_input|communicative_task|fluency_sprint|exit_check|picture_choice|labeling|tpr_phonics",
+      "prompt": "Main instruction text",
+      "instructions": "Teacher instructions",
+      "media": {
+        "type": "image|video|audio",
+        "url": "placeholder-url",
+        "alt": "Alt text"
+      },
+      "options": [
+        {
+          "id": "opt-1",
+          "text": "Option text",
+          "image": "optional-image-url",
+          "isCorrect": true
+        }
+      ],
+      "correct": "correct-answer-or-array",
+      "timeLimit": 120,
+      "accessibility": {
+        "screenReaderText": "Screen reader description",
+        "highContrast": false,
+        "largeText": ${isEarlyAge}
       }
     }
   ],
-  "total_slides": 14,
-  "total_duration": 60,
-  "gamification": {
-    "total_points": 140,
-    "achievement_badges": ["Vocabulary Master", "Grammar Champion", "Speaking Star", "Perfect Practice", "Lesson Hero"],
-    "progress_tracking": "Detailed completion percentage with skill breakdowns",
-    "bonus_challenges": ["Speed Round", "Perfect Score", "Speaking Champion"]
+  "durationMin": 30,
+  "metadata": {
+    "CEFR": "${cefrLevel}",
+    "module": 1,
+    "lesson": 1,
+    "targets": ["sentence patterns"],
+    "weights": {
+      "accuracy": 60,
+      "fluency": 40
+    }
   }
 }`;
 
@@ -264,19 +285,18 @@ Return ONLY a JSON object with this structure:
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-4o-2024-08-06',
+      model: 'gpt-5-2025-08-07',
       messages: [
         {
           role: 'system',
-          content: 'You are an expert instructional designer. Always respond with valid JSON only. No additional text outside the JSON structure.'
+          content: 'You are an expert in child language learning and instructional design. Create ONLY valid JSON. Focus on sentence-building progression and age-appropriate activities.'
         },
         {
           role: 'user',
           content: prompt
         }
       ],
-      temperature: 0.7,
-      max_tokens: 4000,
+      max_completion_tokens: 4000,
     }),
   });
 
@@ -296,16 +316,33 @@ Return ONLY a JSON object with this structure:
     
     // Validate and enhance slides data
     return {
-      slides: slidesData.slides || [],
-      total_slides: slidesData.total_slides || 14,
-      total_duration: slidesData.total_duration || 60,
-      gamification: slidesData.gamification || {},
+      ...slidesData,
       generated_at: new Date().toISOString(),
-      generated_by: 'ai-slide-generator-v2',
-      version: '2.0'
+      generated_by: 'ai-slide-generator-k12-v2.0'
     };
   } catch (parseError) {
     console.error('JSON parse error:', parseError);
     throw new Error('Invalid JSON response from OpenAI');
   }
+}
+
+function getAgeGroupFromCEFR(cefrLevel: string): string {
+  switch (cefrLevel) {
+    case 'Pre-A1': return '4-6';
+    case 'A1': return '6-9';
+    case 'A2': return '9-12';
+    case 'B1': return '12-15';
+    default: return '6-9';
+  }
+}
+
+function getSentenceBuildingSyllabus(cefrLevel: string): string {
+  const syllabus = {
+    'Pre-A1': 'Names, colors, nouns, S + be + noun/adj, this/that, I like…, there is/are, simple imperatives, basic wh- questions with picture support',
+    'A1': 'SVO in present, frequency, have/has, can/can\'t, adjectives order basics, and/but/so, when/what/where questions',
+    'A2': 'Past simple (reg/irreg), going to/will, comparatives/superlatives, object pronouns, because/when/if (zero/first), starter phrasal verbs',
+    'B1': 'Present perfect, continuous aspects, relative clauses (who/which/that), modals (advice/obligation/possibility), cohesive devices (however/therefore)'
+  };
+  
+  return syllabus[cefrLevel as keyof typeof syllabus] || syllabus['A1'];
 }
