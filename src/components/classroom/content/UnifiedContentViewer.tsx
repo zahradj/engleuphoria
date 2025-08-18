@@ -55,7 +55,7 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
     
     if (lessonId) {
       console.log('🔄 Auto-loading lesson from URL:', lessonId);
-      setActiveTab('lesson');
+      setActiveTab('whiteboard');
       loadLessonById(lessonId);
     }
   }, []);
@@ -118,6 +118,7 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
       };
 
       setEmbeddedContent(prev => [...prev, lessonContent]);
+      setActiveTab('whiteboard');
       
     } catch (error) {
       console.error('Error loading lesson:', error);
@@ -516,6 +517,13 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
     const isCurriculumContent = ['curriculum','lesson','bulk-curriculum','systematic_lesson'].includes(contentType) || contentType === 'html';
     
     if (isCurriculumContent) {
+      if ((anyItem as any).slides && (anyItem as any).slides.length > 0) {
+        const pseudoLesson: any = {
+          title: item.title,
+          slides_content: { slides: (anyItem as any).slides, version: '2.0' }
+        };
+        contentUrl = `data:text/html;charset=utf-8,${encodeURIComponent(generateLessonSlidesHTML(pseudoLesson))}`;
+      } else {
       const html = `
         <!DOCTYPE html>
         <html lang="en">
@@ -943,6 +951,7 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
       
       const blob = new Blob([html], { type: 'text/html' });
       contentUrl = URL.createObjectURL(blob);
+    }
     }
     
     const newContent: EmbeddedContent = {
