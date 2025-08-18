@@ -13,10 +13,12 @@ import {
   Sparkles,
   ExternalLink,
   FileText,
-  Users
+  Users,
+  Presentation
 } from 'lucide-react';
 import { curriculumService, type SystematicLesson, type CurriculumLevel } from '@/services/curriculumService';
 import { useToast } from '@/hooks/use-toast';
+import { SlideGenerationControls } from './SlideGenerationControls';
 
 interface SystematicLessonsLibraryProps {
   onSelectLesson?: (lesson: SystematicLesson) => void;
@@ -329,6 +331,9 @@ export function SystematicLessonsLibrary({
         </div>
       </div>
 
+      {/* Slide Generation Controls */}
+      <SlideGenerationControls onSlidesGenerated={loadLessonsData} />
+
       {/* Search and Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
@@ -411,7 +416,7 @@ export function SystematicLessonsLibrary({
                     {lesson.estimated_duration} min
                   </div>
                   <div className="flex items-center gap-1">
-                    <FileText className="h-3 w-3" />
+                    <Presentation className="h-3 w-3" />
                     {slidesCount} slides
                   </div>
                   <div className="flex items-center gap-1">
@@ -419,6 +424,15 @@ export function SystematicLessonsLibrary({
                     {activitiesCount} activities
                   </div>
                 </div>
+
+                {/* Slides Status Indicator */}
+                {lesson.slides_content?.slides && (
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-300 text-xs">
+                      Interactive Slides Ready
+                    </Badge>
+                  </div>
+                )}
 
                 {lesson.vocabulary_set && lesson.vocabulary_set.length > 0 && (
                   <div className="flex flex-wrap gap-1">
