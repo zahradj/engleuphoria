@@ -64,6 +64,34 @@ export function SystematicLessonsLibrary({
         );
       }
 
+      // Auto-generate slides for lessons that don't have them
+      if (lessonsFromAllLevels.length > 0) {
+        const lessonsWithoutSlides = lessonsFromAllLevels.filter(lesson => 
+          !lesson.slides_content?.slides || lesson.slides_content.slides.length === 0
+        );
+        
+        if (lessonsWithoutSlides.length > 0) {
+          toast({
+            title: 'Preparing Interactive Slides',
+            description: `Generating slides for ${lessonsWithoutSlides.length} lessons in the background...`
+          });
+
+          try {
+            const { supabase } = await import('@/integrations/supabase/client');
+            await supabase.functions.invoke('ai-slide-generator', {
+              body: { batch_generate: true }
+            });
+            
+            // Reload lessons after slide generation
+            setTimeout(() => {
+              loadLessonsData();
+            }, 3000);
+          } catch (error) {
+            console.log('Slide generation in progress, will check later');
+          }
+        }
+      }
+
       // If no lessons exist yet, generate the complete curriculum
       if (lessonsFromAllLevels.length === 0 && curriculumLevels.length > 0) {
         toast({

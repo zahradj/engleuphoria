@@ -55,15 +55,146 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
     
     if (lessonId) {
       console.log('🔄 Auto-loading lesson from URL:', lessonId);
-      // Load lesson from database and add to whiteboard
+      setActiveTab('lesson');
       loadLessonById(lessonId);
     }
   }, []);
 
   const loadLessonById = async (lessonId: string) => {
-    // For now, skip auto-loading until we have the proper method
-    console.log('⏭️ Skipping auto-load for lesson:', lessonId);
-    return;
+    try {
+      const { curriculumService } = await import('@/services/curriculumService');
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      // Fetch lesson from database
+      const lesson = await curriculumService.getSystematicLessonById(lessonId);
+      if (!lesson) {
+        console.error('Lesson not found:', lessonId);
+        return;
+      }
+
+      // Check if lesson has slides, if not generate them
+      if (!lesson.slides_content?.slides || lesson.slides_content.slides.length === 0) {
+        console.log('🎨 Generating slides for lesson:', lesson.title);
+        
+        try {
+          const { data, error } = await supabase.functions.invoke('ai-slide-generator', {
+            body: { 
+              content_id: lessonId, 
+              content_type: 'lesson' 
+            }
+          });
+
+          if (error) throw error;
+          
+          // Reload lesson with generated slides
+          const updatedLesson = await curriculumService.getSystematicLessonById(lessonId);
+          if (updatedLesson?.slides_content?.slides) {
+            lesson.slides_content = updatedLesson.slides_content;
+          }
+        } catch (error) {
+          console.error('Failed to generate slides:', error);
+        }
+      }
+
+      // Add lesson with slides to whiteboard
+      const lessonContent = {
+        id: `lesson-${Date.now()}`,
+        title: lesson.title,
+        url: `data:text/html;charset=utf-8,${encodeURIComponent(generateLessonSlidesHTML(lesson))}`,
+        x: 100,
+        y: 100,
+        width: 1200,
+        height: 800,
+        fileType: 'lesson-slides',
+        originalType: 'systematic_lesson'
+      };
+
+      setEmbeddedContent(prev => [...prev, lessonContent]);
+      
+    } catch (error) {
+      console.error('Error loading lesson:', error);
+    }
+  };
+
+  const generateLessonSlidesHTML = (lesson: any) => {
+    if (lesson.slides_content?.slides) {
+      // Use the React component for interactive slides
+      return `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${lesson.title} - Interactive Slides</title>
+          <style>
+            body { margin: 0; font-family: Inter, sans-serif; }
+            .slides-container { width: 100vw; height: 100vh; }
+          </style>
+        </head>
+        <body>
+          <div class="slides-container">
+            <div id="lesson-slides-root"></div>
+          </div>
+          <script type="module">
+            import { createElement } from 'react';
+            import { createRoot } from 'react-dom/client';
+            import { LessonSlidesViewer } from '/src/components/classroom/lesson-slides/LessonSlidesViewer.tsx';
+            
+            const slidesData = ${JSON.stringify(lesson.slides_content)};
+            const root = createRoot(document.getElementById('lesson-slides-root'));
+            root.render(createElement(LessonSlidesViewer, { slidesData }));
+          </script>
+        </body>
+        </html>
+      `;
+    }
+    
+    // Fallback to HTML content
+    return generateLessonHTML(lesson);
+  };
+
+  const generateLessonHTML = (lesson: any) => {
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>${lesson.title}</title>
+        <style>
+          body { font-family: Inter, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+          .lesson-container { max-width: 900px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; }
+          .lesson-header { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; padding: 30px; text-align: center; }
+          .lesson-title { font-size: 2.5em; font-weight: 700; margin: 0; }
+          .lesson-content { padding: 40px; }
+          .section { margin-bottom: 30px; background: #fafbfc; padding: 20px; border-radius: 15px; }
+          .section-title { font-size: 1.5em; font-weight: 600; color: #1e293b; margin-bottom: 15px; }
+        </style>
+      </head>
+      <body>
+        <div class="lesson-container">
+          <div class="lesson-header">
+            <h1 class="lesson-title">${lesson.title}</h1>
+            <p>Interactive English Lesson • CEFR Level ${lesson.level_info?.cefr_level || 'B1'}</p>
+          </div>
+          <div class="lesson-content">
+            <div class="section">
+              <h2 class="section-title">📋 Lesson Overview</h2>
+              <p><strong>Topic:</strong> ${lesson.topic}</p>
+              <p><strong>Grammar Focus:</strong> ${lesson.grammar_focus}</p>
+              <p><strong>Duration:</strong> ${lesson.estimated_duration} minutes</p>
+            </div>
+            <div class="section">
+              <h2 class="section-title">🎯 Learning Objectives</h2>
+              <ul>
+                ${(lesson.lesson_objectives || []).map((obj: string) => `<li>${obj}</li>`).join('')}
+              </ul>
+            </div>
+            <div class="section">
+              <h2 class="section-title">💬 Communication Outcome</h2>
+              <p>${lesson.communication_outcome}</p>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
   };
   
   const initialContent: any[] = [];
