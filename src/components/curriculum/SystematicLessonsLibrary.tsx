@@ -17,6 +17,8 @@ import {
   Presentation
 } from 'lucide-react';
 import { curriculumService, type SystematicLesson, type CurriculumLevel } from '@/services/curriculumService';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { SlideGenerationControls } from './SlideGenerationControls';
 
@@ -47,22 +49,33 @@ export function SystematicLessonsLibrary({
     filterLessons();
   }, [searchTerm, selectedLevel, allLessons]);
 
+  const { data: lessons, isLoading: lessonsLoading } = useQuery({
+    queryKey: ['systematic-lessons'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('systematic_lessons')
+        .select('*')
+        .not('status', 'eq', 'archived')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
   const loadLessonsData = async () => {
     try {
       const curriculumLevels = await curriculumService.getCurriculumLevels();
       setLevels(curriculumLevels);
 
-      // Load all lessons from all levels
-      let lessonsFromAllLevels: SystematicLesson[] = [];
-      for (const level of curriculumLevels) {
-        const levelLessons = await curriculumService.getLessonsForLevel(level.id);
-        lessonsFromAllLevels.push(
-          ...levelLessons.map(lesson => ({
-            ...lesson,
-            level_info: level
-          }))
-        );
-      }
+      // Use lessons from React Query
+      let lessonsFromAllLevels: SystematicLesson[] = lessons || [];
+      
+      // Add level info to lessons
+      lessonsFromAllLevels = lessonsFromAllLevels.map(lesson => ({
+        ...lesson,
+        level_info: curriculumLevels.find(level => level.id === lesson.curriculum_level_id)
+      }));
 
       // Note: Slide generation now happens on-demand when clicking "Use Lesson"
 

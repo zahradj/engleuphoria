@@ -308,6 +308,8 @@ export class BulkCurriculumService {
         .from('adaptive_content')
         .select('*')
         .eq('content_type', 'lesson')
+        .eq('is_active', true)
+        .is('archived_at', null)
         .order('created_at', { ascending: false });
 
       if (error) throw error;

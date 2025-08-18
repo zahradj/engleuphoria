@@ -7,7 +7,7 @@
 
 @layer base {
   :root {
-    /* Clean Modern Color System */
+    /* Clean Modern Color System - Default (Soft Slate Blue) */
     
     /* Primary Ramp - Soft Slate Blue */
     --primary-50: 220 30% 97%;
@@ -131,6 +131,159 @@
     --accent-foreground: var(--accent-200);
     --input: var(--neutral-800);
     --ring: var(--primary-400);
+  }
+
+  /* K-12 Themes for 1:1 Kids Program */
+  [data-theme="mist-blue"] {
+    /* Primary Ramp - Powder Blue */
+    --primary-50: 210 100% 98%;   /* #F6FAFF */
+    --primary-100: 210 90% 96%;   /* #EAF4FF */
+    --primary-200: 210 80% 92%;   /* #D1E8FF */
+    --primary-300: 210 75% 85%;   /* #A8D4FF */
+    --primary-400: 210 70% 75%;   /* #7DBFF0 */
+    --primary-500: 210 65% 66%;   /* #6BA8E5 */
+    --primary-600: 210 60% 58%;   /* #4E93D7 */
+    --primary-700: 210 55% 50%;   /* #3A7DBB */
+    --primary-800: 210 50% 42%;   /* #2F689E */
+    --primary-900: 210 45% 28%;   /* #1F4464 */
+
+    /* Accent Ramp - Soft Teal */
+    --accent-50: 170 50% 97%;     /* #F0FCFA */
+    --accent-100: 170 45% 93%;    /* #E0F9F5 */
+    --accent-200: 170 40% 85%;    /* #B8F0E8 */
+    --accent-300: 170 45% 75%;    /* #8DE5D6 */
+    --accent-400: 170 45% 65%;    /* #6AD9C8 */
+    --accent-500: 170 45% 58%;    /* #63C3B1 */
+    --accent-600: 170 45% 50%;    /* #4DAE9B */
+    --accent-700: 170 45% 42%;    /* #3E9186 */
+    --accent-800: 170 40% 35%;    /* #31726A */
+    --accent-900: 170 35% 28%;    /* #255951 */
+
+    /* Neutrals - Cool Blue-Gray */
+    --neutral-50: 220 20% 98%;    /* #FAFBFD */
+    --neutral-100: 220 18% 95%;   /* #F1F3F7 */
+    --neutral-200: 220 20% 90%;   /* #E5E9EF */
+    --neutral-300: 220 15% 82%;   /* #CDD3DC */
+    --neutral-400: 220 12% 65%;   /* #9BA3B0 */
+    --neutral-500: 220 10% 48%;   /* #72798A */
+    --neutral-600: 220 15% 38%;   /* #5C6675 */
+    --neutral-700: 220 20% 28%;   /* #46525F */
+    --neutral-800: 220 25% 20%;   /* #343E4A */
+    --neutral-900: 220 30% 12%;   /* #1F252E */
+
+    /* Surface tokens */
+    --bg: var(--neutral-50);
+    --surface: 0 0% 100%;
+    --surface-2: 220 20% 96%;     /* #F3F5F9 */
+    --border: var(--neutral-200);
+    --muted: 220 20% 94%;         /* #EEF1F6 */
+    --text: 220 30% 10%;          /* #1A1A1A */
+    --text-muted: var(--neutral-600);
+    --text-subtle: var(--neutral-500);
+
+    /* State colors - AA compliant */
+    --success: 145 65% 35%;       /* #2E7D5B */
+    --success-soft: 145 45% 92%;  /* #E8F4EF */
+    --success-on: 145 80% 15%;    /* #113326 */
+    
+    --info: 210 65% 45%;          /* #2C6EAA */
+    --info-soft: 210 60% 94%;     /* #E8F1FA */
+    --info-on: 210 75% 20%;       /* #0F2A40 */
+    
+    --warning: 40 65% 45%;        /* #916C2A */
+    --warning-soft: 40 70% 92%;   /* #FBF4E6 */
+    --warning-on: 40 80% 15%;     /* #2E230D */
+    
+    --error: 0 65% 50%;           /* #A64A4A */
+    --error-soft: 0 65% 93%;      /* #FBEAEA */
+    --error-on: 0 75% 20%;        /* #3A1515 */
+
+    /* Focus ring */
+    --focus-ring: var(--primary-600);
+    
+    /* Chart palette */
+    --chart-1: var(--primary-500);
+    --chart-2: var(--accent-500);
+    --chart-3: var(--primary-400);
+    --chart-4: var(--accent-400);
+    --chart-5: var(--primary-300);
+    --chart-6: var(--accent-300);
+  }
+
+  [data-theme="sage-sand"] {
+    /* Primary Ramp - Sage Green */
+    --primary-50: 145 35% 97%;    /* #F5FAF7 */
+    --primary-100: 145 30% 94%;   /* #EAF5ED */
+    --primary-200: 145 25% 87%;   /* #D1E6D8 */
+    --primary-300: 145 30% 78%;   /* #B2D5BE */
+    --primary-400: 145 30% 68%;   /* #94C5A5 */
+    --primary-500: 145 30% 60%;   /* #7FB39C */
+    --primary-600: 145 35% 50%;   /* #629C85 */
+    --primary-700: 145 40% 40%;   /* #4E7D69 */
+    --primary-800: 145 45% 32%;   /* #3D634F */
+    --primary-900: 145 50% 22%;   /* #2A453B */
+
+    /* Accent Ramp - Dusty Lavender */
+    --accent-50: 260 30% 96%;     /* #F7F5FB */
+    --accent-100: 260 25% 92%;    /* #EDE8F5 */
+    --accent-200: 260 30% 85%;    /* #D9CDE8 */
+    --accent-300: 260 25% 75%;    /* #C4B5D6 */
+    --accent-400: 260 25% 70%;    /* #B5A3CC */
+    --accent-500: 260 25% 70%;    /* #A79BC8 */
+    --accent-600: 260 30% 60%;    /* #9084B3 */
+    --accent-700: 260 35% 50%;    /* #786C9E */
+    --accent-800: 260 40% 40%;    /* #5F5580 */
+    --accent-900: 260 45% 30%;    /* #4A4064 */
+
+    /* Neutrals - Warm Sand */
+    --neutral-50: 40 35% 98%;     /* #FBFAF8 */
+    --neutral-100: 40 30% 95%;    /* #F6F2EB */
+    --neutral-200: 40 25% 90%;    /* #EAE4D9 */
+    --neutral-300: 40 20% 82%;    /* #D7CFC0 */
+    --neutral-400: 40 15% 65%;    /* #A69B88 */
+    --neutral-500: 40 12% 48%;    /* #7A7062 */
+    --neutral-600: 40 15% 38%;    /* #5A564F */
+    --neutral-700: 40 20% 28%;    /* #47423C */
+    --neutral-800: 40 25% 20%;    /* #36312B */
+    --neutral-900: 40 30% 12%;    /* #252118 */
+
+    /* Surface tokens */
+    --bg: var(--neutral-50);
+    --surface: 0 0% 100%;
+    --surface-2: 40 45% 95%;      /* #F6F2EB */
+    --border: var(--neutral-200);
+    --muted: 40 30% 94%;          /* #F1ECE4 */
+    --text: 40 30% 10%;           /* #1A1A1A */
+    --text-muted: var(--neutral-600);
+    --text-subtle: var(--neutral-500);
+
+    /* State colors - AA compliant */
+    --success: 145 65% 35%;       /* #2E7D5B */
+    --success-soft: 145 45% 92%;  /* #E8F4EF */
+    --success-on: 145 80% 15%;    /* #113326 */
+    
+    --info: 210 65% 45%;          /* #2C6EAA */
+    --info-soft: 210 60% 94%;     /* #E8F1FA */
+    --info-on: 210 75% 20%;       /* #0F2A40 */
+    
+    --warning: 40 65% 45%;        /* #916C2A */
+    --warning-soft: 40 70% 92%;   /* #FBF4E6 */
+    --warning-on: 40 80% 15%;     /* #2E230D */
+    
+    --error: 0 65% 50%;           /* #A64A4A */
+    --error-soft: 0 65% 93%;      /* #FBEAEA */
+    --error-on: 0 75% 20%;        /* #3A1515 */
+
+    /* Focus ring */
+    --focus-ring: var(--primary-600);
+    
+    /* Chart palette */
+    --chart-1: var(--primary-500);
+    --chart-2: var(--accent-500);
+    --chart-3: var(--primary-400);
+    --chart-4: var(--accent-400);
+    --chart-5: var(--primary-300);
+    --chart-6: var(--accent-300);
   }
 }
 

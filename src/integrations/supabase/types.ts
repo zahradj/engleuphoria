@@ -148,6 +148,8 @@ export type Database = {
       adaptive_content: {
         Row: {
           ai_generated: boolean | null
+          archived_at: string | null
+          archived_reason: string | null
           avg_completion_time: number | null
           cefr_level: string
           content_data: Json
@@ -168,6 +170,8 @@ export type Database = {
         }
         Insert: {
           ai_generated?: boolean | null
+          archived_at?: string | null
+          archived_reason?: string | null
           avg_completion_time?: number | null
           cefr_level: string
           content_data: Json
@@ -188,6 +192,8 @@ export type Database = {
         }
         Update: {
           ai_generated?: boolean | null
+          archived_at?: string | null
+          archived_reason?: string | null
           avg_completion_time?: number | null
           cefr_level?: string
           content_data?: Json
@@ -3706,6 +3712,8 @@ export type Database = {
       systematic_lessons: {
         Row: {
           activities: Json | null
+          archived_at: string | null
+          archived_reason: string | null
           communication_outcome: string | null
           created_at: string | null
           curriculum_level_id: string
@@ -3727,6 +3735,8 @@ export type Database = {
         }
         Insert: {
           activities?: Json | null
+          archived_at?: string | null
+          archived_reason?: string | null
           communication_outcome?: string | null
           created_at?: string | null
           curriculum_level_id: string
@@ -3748,6 +3758,8 @@ export type Database = {
         }
         Update: {
           activities?: Json | null
+          archived_at?: string | null
+          archived_reason?: string | null
           communication_outcome?: string | null
           created_at?: string | null
           curriculum_level_id?: string

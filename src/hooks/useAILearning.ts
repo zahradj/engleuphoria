@@ -105,6 +105,7 @@ export const useAILearning = () => {
         .from('adaptive_content')
         .select('*')
         .eq('is_active', true)
+        .is('archived_at', null)
         .order('created_at', { ascending: false });
 
       if (cefrLevel) {
