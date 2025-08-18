@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { UnifiedContentViewer } from "@/components/classroom/content/UnifiedContentViewer";
-import { OneOnOneGames } from "@/components/classroom/oneonone/OneOnOneGames";
+import { CanvaStyleWhiteboard } from "@/components/classroom/whiteboard/CanvaStyleWhiteboard";
 import { StartTabContent } from "./components/TabContent/StartTabContent";
 import { FinishTabContent } from "./components/TabContent/FinishTabContent";
 import { BookOpen, Gamepad2, Play, CheckCircle } from "lucide-react";
@@ -68,15 +68,24 @@ export function UnifiedCenterPanel({
             />
           </TabsContent>
 
-          <TabsContent value="lesson" className="h-full m-0 p-4 overflow-y-auto">
-            <UnifiedContentViewer 
+          <TabsContent value="lesson" className="h-full m-0 overflow-hidden">
+            <CanvaStyleWhiteboard
               isTeacher={isTeacher}
-              studentName={currentUser.name}
+              roomId={roomId}
+              currentUser={currentUser}
+              embeddedContent={[]}
+              onAddContent={(content) => console.log('Adding content:', content)}
             />
           </TabsContent>
 
-          <TabsContent value="activities" className="h-full m-0 p-4 overflow-y-auto">
-            <OneOnOneGames />
+          <TabsContent value="activities" className="h-full m-0 overflow-hidden">
+            <CanvaStyleWhiteboard
+              isTeacher={isTeacher}
+              roomId={roomId}
+              currentUser={currentUser}
+              embeddedContent={[]}
+              onAddContent={(content) => console.log('Adding activity:', content)}
+            />
           </TabsContent>
 
 
