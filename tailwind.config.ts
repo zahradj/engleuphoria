@@ -30,6 +30,28 @@ export default {
 				ring: 'hsl(var(--ring))',
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
+				
+				// Brand Monochrome System
+				brand: {
+					50: 'hsl(var(--brand-50))',
+					100: 'hsl(var(--brand-100))',
+					200: 'hsl(var(--brand-200))',
+					300: 'hsl(var(--brand-300))',
+					400: 'hsl(var(--brand-400))',
+					500: 'hsl(var(--brand-500))',
+					600: 'hsl(var(--brand-600))',
+					700: 'hsl(var(--brand-700))',
+					800: 'hsl(var(--brand-800))',
+					900: 'hsl(var(--brand-900))',
+				},
+				
+				// Semantic tokens
+				surface: 'hsl(var(--surface))',
+				'surface-contrast': 'hsl(var(--surface-contrast))',
+				text: 'hsl(var(--text))',
+				'text-muted': 'hsl(var(--text-muted))',
+				'text-subtle': 'hsl(var(--text-subtle))',
+				
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
 					foreground: 'hsl(var(--primary-foreground))'
@@ -68,44 +90,8 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-			// Engleuphoria theme colors
-			purple: {
-				light: '#E5DEFF',
-				DEFAULT: '#9B87F5',
-				dark: '#6E59A5',
-			},
-			teal: {
-				light: '#CCFBF1',
-				DEFAULT: '#14B8A6',
-				dark: '#0F766E',
-			},
-			orange: {
-				light: '#FDE1D3',
-				DEFAULT: '#F97316',
-				dark: '#C2410C',
-			},
-			yellow: {
-				light: '#FEF7CD',
-				DEFAULT: '#FACC15',
-				dark: '#A16207',
-			},
-			mint: {
-				DEFAULT: 'hsl(var(--mint))',
-				light: 'hsl(var(--mint-light))',
-				dark: 'hsl(var(--mint-dark))',
-				foreground: 'hsl(var(--mint-foreground))',
-				50: 'hsl(var(--mint-50))',
-				100: 'hsl(var(--mint-100))',
-				200: 'hsl(var(--mint-200))',
-				300: 'hsl(var(--mint-300))',
-				400: 'hsl(var(--mint-400))',
-				500: 'hsl(var(--mint-500))',
-				600: 'hsl(var(--mint-600))',
-				700: 'hsl(var(--mint-700))',
-				800: 'hsl(var(--mint-800))',
-				900: 'hsl(var(--mint-900))',
-			},
-			// Enhanced role colors (Official Role Codes)
+				
+				// Role colors using brand system
 				student: {
 					DEFAULT: 'hsl(var(--student))',
 					light: 'hsl(var(--student-light))',

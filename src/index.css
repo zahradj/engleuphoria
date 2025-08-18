@@ -7,145 +7,122 @@
 
 @layer base {
   :root {
-    --background: 280 30% 98%;
-    --foreground: 280 15% 15%;
-    --card: 280 20% 100%;
-    --card-foreground: 280 15% 15%;
-    --popover: 280 20% 100%;
-    --popover-foreground: 280 15% 15%;
-    --primary: 270 85% 65%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 260 70% 50%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 280 15% 96%;
-    --muted-foreground: 280 15% 45%;
-    --accent: 290 80% 70%;
-    --accent-foreground: 280 15% 15%;
+    /* Brand Monochrome System - Base Hue: 270° (Purple-Blue) */
+    --brand-hue: 270;
+    
+    /* 10-step Brand Color Ramp */
+    --brand-50: var(--brand-hue) 40% 98%;
+    --brand-100: var(--brand-hue) 40% 95%;
+    --brand-200: var(--brand-hue) 45% 88%;
+    --brand-300: var(--brand-hue) 50% 75%;
+    --brand-400: var(--brand-hue) 60% 65%;
+    --brand-500: var(--brand-hue) 70% 55%;
+    --brand-600: var(--brand-hue) 75% 45%;
+    --brand-700: var(--brand-hue) 80% 35%;
+    --brand-800: var(--brand-hue) 85% 25%;
+    --brand-900: var(--brand-hue) 90% 15%;
+
+    /* Semantic Design Tokens */
+    --surface: 0 0% 100%;
+    --surface-contrast: 0 0% 4%;
+    --text: 0 0% 9%;
+    --text-muted: 0 0% 45%;
+    --text-subtle: 0 0% 65%;
+
+    /* Component Tokens mapped to Brand System */
+    --background: var(--surface);
+    --foreground: var(--text);
+    --card: var(--surface);
+    --card-foreground: var(--text);
+    --popover: var(--surface);
+    --popover-foreground: var(--text);
+    --primary: var(--brand-500);
+    --primary-foreground: var(--surface);
+    --secondary: var(--brand-100);
+    --secondary-foreground: var(--brand-800);
+    --muted: var(--brand-50);
+    --muted-foreground: var(--text-muted);
+    --accent: var(--brand-200);
+    --accent-foreground: var(--brand-800);
     --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 280 20% 90%;
-    --input: 280 20% 85%;
-    --ring: 270 85% 65%;
-    --chart-1: 270 85% 65%;
-    --chart-2: 260 70% 50%;
-    --chart-3: 290 80% 70%;
-	--chart-4: 280 60% 60%;
-	--chart-5: 300 75% 65%;
+    --destructive-foreground: var(--surface);
+    --border: var(--brand-200);
+    --input: var(--brand-100);
+    --ring: var(--brand-500);
+    
+    /* Chart colors using brand ramp */
+    --chart-1: var(--brand-500);
+    --chart-2: var(--brand-600);
+    --chart-3: var(--brand-400);
+    --chart-4: var(--brand-700);
+    --chart-5: var(--brand-300);
 
-	/* Enhanced role colors - light mode */
-	--student: 270 75% 60%;
-	--student-light: 270 50% 95%;
-	--student-dark: 270 70% 45%;
-	--student-accent: 280 70% 70%;
-	--student-foreground: 0 0% 100%;
-	
-	/* Mint green color system */
-	--mint: 162 76% 47%;
-	--mint-light: 162 76% 97%;
-	--mint-50: 162 76% 95%;
-	--mint-100: 162 76% 90%;
-	--mint-200: 162 76% 80%;
-	--mint-300: 162 76% 70%;
-	--mint-400: 162 76% 60%;
-	--mint-500: 162 76% 47%;
-	--mint-600: 162 76% 37%;
-	--mint-700: 162 76% 27%;
-	--mint-800: 162 76% 17%;
-	--mint-900: 162 76% 10%;
-	--mint-dark: 162 76% 27%;
-	--mint-foreground: 0 0% 100%;
-	
-	--teacher: 260 80% 55%;
-	--teacher-light: 260 40% 96%;
-	--teacher-dark: 260 75% 40%;
-	--teacher-accent: 270 75% 65%;
-	--teacher-foreground: 0 0% 100%;
-	
-	--admin: 290 70% 50%;
-	--admin-light: 290 40% 94%;
-	--admin-dark: 290 65% 35%;
-	--admin-accent: 300 70% 60%;
-	--admin-foreground: 0 0% 100%;
+    /* Enhanced role colors using brand system */
+    --student: var(--brand-400);
+    --student-light: var(--brand-50);
+    --student-dark: var(--brand-600);
+    --student-accent: var(--brand-300);
+    --student-foreground: var(--surface);
+    
+    --teacher: var(--brand-600);
+    --teacher-light: var(--brand-50);
+    --teacher-dark: var(--brand-800);
+    --teacher-accent: var(--brand-400);
+    --teacher-foreground: var(--surface);
+    
+    --admin: var(--brand-700);
+    --admin-light: var(--brand-50);
+    --admin-dark: var(--brand-900);
+    --admin-accent: var(--brand-500);
+    --admin-foreground: var(--surface);
 
-	/* Enhanced role colors */
-	--student: 270 75% 60%;
-	--student-light: 270 50% 95%;
-	--student-dark: 270 70% 45%;
-	--student-accent: 280 70% 70%;
-	--student-foreground: 0 0% 100%;
-	
-	--teacher: 260 80% 55%;
-	--teacher-light: 260 40% 96%;
-	--teacher-dark: 260 75% 40%;
-	--teacher-accent: 270 75% 65%;
-	--teacher-foreground: 0 0% 100%;
-	
-	--admin: 290 70% 50%;
-	--admin-light: 290 40% 94%;
-	--admin-dark: 290 65% 35%;
-	--admin-accent: 300 70% 60%;
-	--admin-foreground: 0 0% 100%;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-    --radius: 0.8rem;
+    /* Sidebar using brand system */
+    --sidebar-background: var(--surface);
+    --sidebar-foreground: var(--text);
+    --sidebar-primary: var(--brand-500);
+    --sidebar-primary-foreground: var(--surface);
+    --sidebar-accent: var(--brand-50);
+    --sidebar-accent-foreground: var(--brand-800);
+    --sidebar-border: var(--brand-200);
+    --sidebar-ring: var(--brand-500);
+    
+    --radius: 1rem;
   }
 
   .dark {
-    --background: 280 20% 8%;
-    --foreground: 280 15% 90%;
-    --card: 280 20% 12%;
-    --card-foreground: 280 15% 90%;
-    --popover: 280 20% 12%;
-    --popover-foreground: 280 15% 90%;
-    --primary: 270 80% 70%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 260 65% 45%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 280 15% 18%;
-    --muted-foreground: 280 15% 65%;
-    --accent: 290 75% 75%;
-    --accent-foreground: 280 20% 8%;
-    --destructive: 0 74% 50%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 280 15% 20%;
-    --input: 280 15% 22%;
-    --ring: 270 80% 70%;
-    --chart-1: 270 80% 70%;
-    --chart-2: 260 65% 45%;
-    --chart-3: 290 75% 75%;
-    --chart-4: 280 55% 55%;
-    --chart-5: 300 70% 60%;
+    /* Dark mode adjustments */
+    --surface: 0 0% 4%;
+    --surface-contrast: 0 0% 98%;
+    --text: 0 0% 95%;
+    --text-muted: 0 0% 65%;
+    --text-subtle: 0 0% 45%;
+
+    --background: var(--surface);
+    --foreground: var(--text);
+    --card: var(--brand-hue) 20% 8%;
+    --card-foreground: var(--text);
+    --popover: var(--brand-hue) 20% 8%;
+    --popover-foreground: var(--text);
+    --primary: var(--brand-400);
+    --primary-foreground: var(--surface);
+    --secondary: var(--brand-800);
+    --secondary-foreground: var(--text);
+    --muted: var(--brand-hue) 20% 12%;
+    --muted-foreground: var(--text-muted);
+    --accent: var(--brand-700);
+    --accent-foreground: var(--text);
+    --border: var(--brand-hue) 20% 18%;
+    --input: var(--brand-hue) 20% 15%;
+    --ring: var(--brand-400);
     
-    /* Mint green color system - dark mode */
-    --mint: 162 76% 57%;
-    --mint-light: 162 76% 15%;
-    --mint-50: 162 76% 12%;
-    --mint-100: 162 76% 18%;
-    --mint-200: 162 76% 25%;
-    --mint-300: 162 76% 35%;
-    --mint-400: 162 76% 45%;
-    --mint-500: 162 76% 57%;
-    --mint-600: 162 76% 67%;
-    --mint-700: 162 76% 77%;
-    --mint-800: 162 76% 85%;
-    --mint-900: 162 76% 92%;
-    --mint-dark: 162 76% 35%;
-    --mint-foreground: 0 0% 100%;
-    
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 94.1%;
-    --sidebar-primary-foreground: 240 5.9% 10%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: var(--surface);
+    --sidebar-foreground: var(--text);
+    --sidebar-primary: var(--brand-400);
+    --sidebar-primary-foreground: var(--surface);
+    --sidebar-accent: var(--brand-hue) 20% 12%;
+    --sidebar-accent-foreground: var(--text);
+    --sidebar-border: var(--brand-hue) 20% 18%;
+    --sidebar-ring: var(--brand-400);
   }
 }
 

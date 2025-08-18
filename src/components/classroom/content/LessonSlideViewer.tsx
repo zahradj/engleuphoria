@@ -46,18 +46,18 @@ export function LessonSlideViewer({ slides, title, className = "" }: LessonSlide
     switch (sType) {
       case 'title':
         return (
-          <div className={`${baseClassName} bg-gradient-to-br from-primary via-secondary to-accent text-primary-foreground`}>
+          <div className={`${baseClassName} slide-monochrome text-foreground`}>
             <div className="text-center space-y-4">
               <div className="animate-bounce-light">
-                <h1 className="text-3xl md:text-4xl font-bold mb-3">{content.title || sTitle}</h1>
-                <h2 className="text-lg md:text-xl font-medium opacity-90">{content.subtitle || "A2 Elementary English Lesson"}</h2>
+                <h1 className="text-3xl md:text-4xl font-bold mb-3 text-brand-800">{content.title || sTitle}</h1>
+                <h2 className="text-lg md:text-xl font-medium opacity-90 text-brand-600">{content.subtitle || "A2 Elementary English Lesson"}</h2>
               </div>
               <div className="flex items-center justify-center space-x-3 mt-6">
-                <Badge className="bg-white/20 text-white border-white/30 px-3 py-1.5 text-sm">
+                <Badge className="bg-brand-500 text-white border-brand-600 px-3 py-1.5 text-sm">
                   <Clock size={14} className="mr-1.5" />
                   45 minutes
                 </Badge>
-                <Badge className="bg-white/20 text-white border-white/30 px-3 py-1.5 text-sm">
+                <Badge className="bg-brand-500 text-white border-brand-600 px-3 py-1.5 text-sm">
                   <Target size={14} className="mr-1.5" />
                   A2 Level
                 </Badge>
@@ -68,19 +68,19 @@ export function LessonSlideViewer({ slides, title, className = "" }: LessonSlide
       
       case 'objectives':
         return (
-          <div className={`${baseClassName} bg-gradient-to-br from-secondary/10 to-accent/10 overflow-y-auto`}>
+          <div className={`${baseClassName} slide-accent overflow-y-auto`}>
             <div className="text-center mb-6">
-              <h2 className="text-2xl md:text-3xl font-bold text-primary mb-3">🎯 Today's Goals</h2>
-              <p className="text-lg text-muted-foreground">What we'll achieve together!</p>
+              <h2 className="text-2xl md:text-3xl font-bold text-brand-800 mb-3">🎯 Today's Goals</h2>
+              <p className="text-lg text-brand-600">What we'll achieve together!</p>
             </div>
             <div className="grid md:grid-cols-2 gap-4 flex-1">
               {(content.objectives || []).map((objective: string, index: number) => (
-                <Card key={index} className="p-4 glass-subtle hover:scale-105 transition-all duration-300 animate-fade-in" style={{ animationDelay: `${index * 200}ms` }}>
+                <Card key={index} className="p-4 border-2 border-brand-300 bg-surface hover:scale-105 transition-all duration-300 animate-fade-in" style={{ animationDelay: `${index * 200}ms` }}>
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-lg">
+                    <div className="w-10 h-10 bg-brand-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
                       {index + 1}
                     </div>
-                    <div className="text-base font-medium">{objective}</div>
+                    <div className="text-base font-medium text-foreground">{objective}</div>
                   </div>
                 </Card>
               ))}
