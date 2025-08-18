@@ -64,37 +64,7 @@ export function SystematicLessonsLibrary({
         );
       }
 
-      // Auto-upgrade lessons to have long interactive slide decks (14+ slides)
-      if (lessonsFromAllLevels.length > 0) {
-        const lessonsNeedingUpgrade = lessonsFromAllLevels.filter(lesson => 
-          !lesson.slides_content?.slides || 
-          lesson.slides_content.slides.length < 12 ||
-          !lesson.slides_content.version || 
-          lesson.slides_content.version !== '2.0'
-        );
-        
-        if (lessonsNeedingUpgrade.length > 0) {
-          toast({
-            title: 'Upgrading to Extended Slide Decks',
-            description: `Converting ${lessonsNeedingUpgrade.length} lessons to 14-slide interactive format...`,
-            duration: 5000
-          });
-
-          try {
-            const { supabase } = await import('@/integrations/supabase/client');
-            await supabase.functions.invoke('ai-slide-generator', {
-              body: { batch_generate: true }
-            });
-            
-            // Reload lessons after upgrade
-            setTimeout(() => {
-              loadLessonsData();
-            }, 5000);
-          } catch (error) {
-            console.log('Slide upgrade in progress, will check later');
-          }
-        }
-      }
+      // Note: Slide generation now happens on-demand when clicking "Use Lesson"
 
       // If no lessons exist yet, generate the complete curriculum
       if (lessonsFromAllLevels.length === 0 && curriculumLevels.length > 0) {
@@ -363,8 +333,6 @@ export function SystematicLessonsLibrary({
         </div>
       </div>
 
-      {/* Slide Generation Controls */}
-      <SlideGenerationControls onSlidesGenerated={loadLessonsData} />
 
       {/* Search and Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
@@ -458,19 +426,17 @@ export function SystematicLessonsLibrary({
                   </div>
                 </div>
 
-                {/* Enhanced Slides Status Indicator */}
+                {/* Simplified Slides Status */}
                 <div className="flex items-center gap-2 flex-wrap">
                   {hasExtendedSlides ? (
-                    <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 border-emerald-300 text-xs">
-                      ✨ Extended Interactive Slides ({slidesCount} slides)
-                    </Badge>
-                  ) : slidesCount > 0 ? (
-                    <Badge variant="secondary" className="bg-yellow-50 text-yellow-700 border-yellow-300 text-xs">
-                      📊 Basic Slides ({slidesCount} slides) - Upgrading...
+                    <Badge className="bg-green-100 text-green-800 border-green-200">
+                      <Presentation className="h-3 w-3 mr-1" />
+                      Interactive Slides Ready ({slidesCount} slides)
                     </Badge>
                   ) : (
-                    <Badge variant="secondary" className="bg-gray-50 text-gray-700 border-gray-300 text-xs">
-                      🔄 Generating Slides...
+                    <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50">
+                      <Sparkles className="h-3 w-3 mr-1" />
+                      Slides Creating On First Open
                     </Badge>
                   )}
                 </div>
