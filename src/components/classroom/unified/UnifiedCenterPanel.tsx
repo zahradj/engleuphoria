@@ -37,7 +37,7 @@ export function UnifiedCenterPanel({
   const isTeacher = currentUser.role === 'teacher';
 
   return (
-    <Card className="h-full shadow-lg border-0 bg-white/95 backdrop-blur-sm flex flex-col">
+    <Card className="h-full shadow-lg border-2 border-brand-200 bg-gradient-to-br from-surface via-brand-50 to-brand-100 backdrop-blur-sm flex flex-col">
       <Tabs value={activeCenterTab} onValueChange={onTabChange} className="h-full flex flex-col">
         <div className="p-4 pb-0 flex-shrink-0">
           {/* Top Bar with Timer and Start/Finish buttons */}
@@ -48,7 +48,11 @@ export function UnifiedCenterPanel({
                 size="sm"
                 onClick={onStartLesson}
                 disabled={sessionStatus === 'started'}
-                className="flex items-center gap-2"
+                className={`flex items-center gap-2 ${
+                  sessionStatus === 'started' 
+                    ? 'bg-brand-500 hover:bg-brand-600 text-white' 
+                    : 'border-brand-300 text-brand-600 hover:bg-brand-50'
+                }`}
               >
                 <Play size={14} />
                 Start Lesson
@@ -58,7 +62,11 @@ export function UnifiedCenterPanel({
                 size="sm"
                 onClick={onEndLesson}
                 disabled={sessionStatus !== 'started'}
-                className="flex items-center gap-2"
+                className={`flex items-center gap-2 ${
+                  sessionStatus === 'ended' 
+                    ? 'bg-brand-500 hover:bg-brand-600 text-white' 
+                    : 'border-brand-300 text-brand-600 hover:bg-brand-50'
+                }`}
               >
                 <CheckCircle size={14} />
                 Finish Lesson
@@ -68,12 +76,18 @@ export function UnifiedCenterPanel({
             <ActivityCountdownTimer className="ml-auto" />
           </div>
           
-          <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="lesson" className="flex items-center gap-2">
+          <TabsList className="grid w-full grid-cols-2 mb-4 bg-brand-100 border border-brand-200">
+            <TabsTrigger 
+              value="lesson" 
+              className="flex items-center gap-2 data-[state=active]:bg-brand-500 data-[state=active]:text-white text-brand-600"
+            >
               <BookOpen size={16} />
               <span className="hidden sm:inline">Lesson</span>
             </TabsTrigger>
-            <TabsTrigger value="activities" className="flex items-center gap-2">
+            <TabsTrigger 
+              value="activities" 
+              className="flex items-center gap-2 data-[state=active]:bg-brand-500 data-[state=active]:text-white text-brand-600"
+            >
               <Gamepad2 size={16} />
               <span className="hidden sm:inline">Activities</span>
             </TabsTrigger>

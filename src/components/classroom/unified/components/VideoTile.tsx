@@ -18,8 +18,8 @@ export function VideoTile({ stream, hasVideo, isTeacher, userLabel, isCameraOff 
   }, [stream]);
 
   return (
-    <div className="w-full h-full min-h-[300px] bg-gradient-to-br from-muted via-muted to-muted/80 rounded-2xl overflow-hidden relative video-frame-enhanced rgb-video-frame">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/8 via-transparent to-secondary/6 pointer-events-none"></div>
+    <div className="w-full h-full min-h-[300px] bg-gradient-to-br from-brand-100 via-brand-200 to-brand-300 rounded-2xl overflow-hidden relative border-2 border-brand-300 shadow-lg">
+      <div className="absolute inset-0 bg-gradient-to-br from-brand-200/20 via-transparent to-brand-400/10 pointer-events-none"></div>
       {hasVideo && stream ? (
         <video
           ref={videoRef}
@@ -29,18 +29,16 @@ export function VideoTile({ stream, hasVideo, isTeacher, userLabel, isCameraOff 
           className="w-full h-full object-cover"
         />
       ) : (
-        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted/90 to-muted-foreground/10">
+        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-brand-100/90 to-brand-200/50">
           <div className="text-center">
             <div className={`w-12 h-12 rounded-full ${
-              isTeacher ? 'bg-gradient-to-br from-teacher to-teacher-accent' : 'bg-gradient-to-br from-student to-student-accent'
-            } flex items-center justify-center mx-auto mb-2 shadow-lg ring-2 ${
-              isTeacher ? 'ring-teacher/20' : 'ring-student/20'
-            }`}>
+              isTeacher ? 'bg-gradient-to-br from-brand-500 to-brand-600' : 'bg-gradient-to-br from-brand-400 to-brand-500'
+            } flex items-center justify-center mx-auto mb-2 shadow-lg ring-2 ring-brand-300/40`}>
               <span className="text-lg font-bold text-white">
                 {isTeacher ? 'T' : 'S'}
               </span>
             </div>
-            <p className="text-sm text-foreground font-semibold">{userLabel}</p>
+            <p className="text-sm text-brand-800 font-semibold">{userLabel}</p>
           </div>
         </div>
       )}

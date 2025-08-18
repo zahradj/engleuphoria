@@ -56,10 +56,10 @@ export function UnifiedClassroomContent({
     <div className="h-full flex gap-6">
       {/* Main lesson area - 80-85% width */}
       <div className="flex-1 h-full">
-        <div className="h-full glass-enhanced rounded-3xl overflow-hidden backdrop-blur-lg classroom-ambient floating-animation relative rgb-background">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/12 via-accent/8 to-secondary/10 pointer-events-none"></div>
-          <div className="absolute inset-0 bg-gradient-to-tl from-accent/8 via-secondary/6 to-primary/10 pointer-events-none"></div>
-          <div className="absolute inset-0 bg-gradient-to-r from-secondary/6 via-primary/8 to-accent/10 pointer-events-none animate-pulse"></div>
+        <div className="h-full rounded-3xl overflow-hidden backdrop-blur-lg relative border-2 border-brand-300 bg-gradient-to-br from-brand-50 via-surface to-brand-100 shadow-xl">
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-100/30 via-brand-200/20 to-brand-300/10 pointer-events-none"></div>
+          <div className="absolute inset-0 bg-gradient-to-tl from-brand-200/20 via-brand-100/15 to-brand-300/10 pointer-events-none"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-brand-100/10 via-brand-200/15 to-brand-300/10 pointer-events-none animate-pulse"></div>
           <UnifiedCenterPanel
             activeCenterTab={activeCenterTab}
             onTabChange={setActiveCenterTab}
@@ -70,9 +70,9 @@ export function UnifiedClassroomContent({
 
       {/* Right rail - 15-20% width */}
       <div className="w-80 h-full">
-        <div className="h-full glass-subtle rounded-3xl overflow-hidden backdrop-blur-sm animate-fade-in interactive-hover relative rgb-background">
-          <div className="absolute inset-0 bg-gradient-to-b from-secondary/12 via-accent/8 to-primary/10 pointer-events-none"></div>
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/6 via-secondary/8 to-accent/6 pointer-events-none animate-pulse"></div>
+        <div className="h-full rounded-3xl overflow-hidden backdrop-blur-sm relative border-2 border-brand-200 bg-gradient-to-b from-brand-50 to-brand-100 shadow-lg">
+          <div className="absolute inset-0 bg-gradient-to-b from-brand-100/20 via-brand-200/10 to-brand-300/10 pointer-events-none"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-brand-100/10 via-brand-200/15 to-brand-100/10 pointer-events-none animate-pulse"></div>
           <RightRail
             localStream={enhancedClassroom?.localStream || null}
             remoteStream={null}
@@ -97,21 +97,21 @@ export function UnifiedClassroomContent({
           <div className="space-y-3">
             <Button 
               variant="outline" 
-              className="w-full justify-start" 
+              className="w-full justify-start border-brand-300 text-brand-600 hover:bg-brand-50" 
               onClick={() => awardPoints(10, 'Good answer')}
             >
               +10 Points - Good answer
             </Button>
             <Button 
               variant="outline" 
-              className="w-full justify-start" 
+              className="w-full justify-start border-brand-300 text-brand-600 hover:bg-brand-50" 
               onClick={() => awardPoints(25, 'Great effort')}
             >
               +25 Points - Great effort
             </Button>
             <Button 
               variant="outline" 
-              className="w-full justify-start" 
+              className="w-full justify-start border-brand-300 text-brand-600 hover:bg-brand-50" 
               onClick={() => awardPoints(50, 'Excellent work')}
             >
               +50 Points - Excellent work

@@ -34,9 +34,9 @@ export function RightRail({
   const bottomIsCameraOff = isTeacher ? false : isCameraOff;
 
   return (
-    <div className="h-full bg-background border-l border-border flex flex-col">
+    <div className="h-full bg-gradient-to-b from-brand-50 to-brand-100 border-l-2 border-brand-200 flex flex-col">
       {/* Teacher Video */}
-      <div className="p-2 border-b border-border">
+      <div className="p-3 border-b-2 border-brand-200">
         <div className="aspect-video w-full">
           <VideoTile
             stream={topStream}
@@ -49,7 +49,7 @@ export function RightRail({
       </div>
 
       {/* Student Video */}
-      <div className="p-2 border-b border-border">
+      <div className="p-3 border-b-2 border-brand-200">
         <div className="aspect-video w-full">
           <VideoTile
             stream={bottomStream}
@@ -62,7 +62,7 @@ export function RightRail({
       </div>
 
       {/* Tool Buttons */}
-      <div className="flex-1 p-3 space-y-3 min-h-0">
+      <div className="flex-1 p-4 space-y-3 min-h-0">
         <ToolButton
           icon={<Gift className="h-4 w-4" />}
           label="Rewards"
