@@ -25,72 +25,37 @@ export default {
 		},
 		extend: {
 			colors: {
-				border: 'hsl(var(--border-color))',
+				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				
-				// Primary Calm Color System
+				// Brand Monochrome System
+				brand: {
+					50: 'hsl(var(--brand-50))',
+					100: 'hsl(var(--brand-100))',
+					200: 'hsl(var(--brand-200))',
+					300: 'hsl(var(--brand-300))',
+					400: 'hsl(var(--brand-400))',
+					500: 'hsl(var(--brand-500))',
+					600: 'hsl(var(--brand-600))',
+					700: 'hsl(var(--brand-700))',
+					800: 'hsl(var(--brand-800))',
+					900: 'hsl(var(--brand-900))',
+				},
+				
+				// Semantic tokens
+				surface: 'hsl(var(--surface))',
+				'surface-contrast': 'hsl(var(--surface-contrast))',
+				text: 'hsl(var(--text))',
+				'text-muted': 'hsl(var(--text-muted))',
+				'text-subtle': 'hsl(var(--text-subtle))',
+				
 				primary: {
-					50: 'hsl(var(--primary-50))',
-					100: 'hsl(var(--primary-100))',
-					200: 'hsl(var(--primary-200))',
-					300: 'hsl(var(--primary-300))',
-					400: 'hsl(var(--primary-400))',
-					500: 'hsl(var(--primary-500))',
-					600: 'hsl(var(--primary-600))',
-					700: 'hsl(var(--primary-700))',
-					800: 'hsl(var(--primary-800))',
-					900: 'hsl(var(--primary-900))',
 					DEFAULT: 'hsl(var(--primary))',
 					foreground: 'hsl(var(--primary-foreground))'
 				},
-				
-				// Accent Color System (restrained usage)
-				accent: {
-					50: 'hsl(var(--accent-50))',
-					100: 'hsl(var(--accent-100))',
-					200: 'hsl(var(--accent-200))',
-					300: 'hsl(var(--accent-300))',
-					400: 'hsl(var(--accent-400))',
-					500: 'hsl(var(--accent-500))',
-					600: 'hsl(var(--accent-600))',
-					700: 'hsl(var(--accent-700))',
-					800: 'hsl(var(--accent-800))',
-					900: 'hsl(var(--accent-900))',
-					DEFAULT: 'hsl(var(--accent-color))',
-					foreground: 'hsl(var(--accent-foreground))'
-				},
-				
-				// Neutral System
-				surface: {
-					DEFAULT: 'hsl(var(--surface))',
-					2: 'hsl(var(--surface-2))'
-				},
-				
-				// State Colors
-				success: {
-					DEFAULT: 'hsl(var(--success))',
-					soft: 'hsl(var(--success-soft))',
-					on: 'hsl(var(--success-on))'
-				},
-				info: {
-					DEFAULT: 'hsl(var(--info))',
-					soft: 'hsl(var(--info-soft))',
-					on: 'hsl(var(--info-on))'
-				},
-				warning: {
-					DEFAULT: 'hsl(var(--warning))',
-					soft: 'hsl(var(--warning-soft))',
-					on: 'hsl(var(--warning-on))'
-				},
-				error: {
-					DEFAULT: 'hsl(var(--error))',
-					soft: 'hsl(var(--error-soft))',
-					on: 'hsl(var(--error-on))'
-				},
-				
 				secondary: {
 					DEFAULT: 'hsl(var(--secondary))',
 					foreground: 'hsl(var(--secondary-foreground))'
@@ -100,8 +65,12 @@ export default {
 					foreground: 'hsl(var(--destructive-foreground))'
 				},
 				muted: {
-					DEFAULT: 'hsl(var(--muted-color))',
+					DEFAULT: 'hsl(var(--muted))',
 					foreground: 'hsl(var(--muted-foreground))'
+				},
+				accent: {
+					DEFAULT: 'hsl(var(--accent))',
+					foreground: 'hsl(var(--accent-foreground))'
 				},
 				popover: {
 					DEFAULT: 'hsl(var(--popover))',
@@ -110,6 +79,39 @@ export default {
 				card: {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
+				},
+				sidebar: {
+					DEFAULT: 'hsl(var(--sidebar-background))',
+					foreground: 'hsl(var(--sidebar-foreground))',
+					primary: 'hsl(var(--sidebar-primary))',
+					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
+					accent: 'hsl(var(--sidebar-accent))',
+					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
+					border: 'hsl(var(--sidebar-border))',
+					ring: 'hsl(var(--sidebar-ring))'
+				},
+				
+				// Role colors using brand system
+				student: {
+					DEFAULT: 'hsl(var(--student))',
+					light: 'hsl(var(--student-light))',
+					dark: 'hsl(var(--student-dark))',
+					accent: 'hsl(var(--student-accent))',
+					foreground: 'hsl(var(--student-foreground))'
+				},
+				teacher: {
+					DEFAULT: 'hsl(var(--teacher))',
+					light: 'hsl(var(--teacher-light))',
+					dark: 'hsl(var(--teacher-dark))',
+					accent: 'hsl(var(--teacher-accent))',
+					foreground: 'hsl(var(--teacher-foreground))'
+				},
+				admin: {
+					DEFAULT: 'hsl(var(--admin))',
+					light: 'hsl(var(--admin-light))',
+					dark: 'hsl(var(--admin-dark))',
+					accent: 'hsl(var(--admin-accent))',
+					foreground: 'hsl(var(--admin-foreground))'
 				}
 			},
 			fontFamily: {
