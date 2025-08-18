@@ -38,7 +38,7 @@ export function LessonSlideViewer({ slides, title, className = "" }: LessonSlide
   };
 
   const renderSlideContent = (slide: any, isActive: boolean) => {
-    const baseClassName = `min-h-full p-6 rounded-xl transition-all duration-500 ${isActive ? 'animate-fade-in' : ''}`;
+    const baseClassName = `h-full flex flex-col justify-center p-6 transition-all duration-500 ${isActive ? 'animate-fade-in' : ''}`;
     const content = slide && slide.content ? slide.content : {};
     const sTitle = (slide && (slide.title || (content && content.title))) || title || 'Lesson';
     const sType = (slide && slide.type) || 'default';
@@ -46,7 +46,7 @@ export function LessonSlideViewer({ slides, title, className = "" }: LessonSlide
     switch (sType) {
       case 'title':
         return (
-          <div className={`${baseClassName} flex flex-col items-center justify-center bg-gradient-to-br from-primary via-secondary to-accent text-primary-foreground`}>
+          <div className={`${baseClassName} bg-gradient-to-br from-primary via-secondary to-accent text-primary-foreground`}>
             <div className="text-center space-y-4">
               <div className="animate-bounce-light">
                 <h1 className="text-3xl md:text-4xl font-bold mb-3">{content.title || sTitle}</h1>
@@ -68,12 +68,12 @@ export function LessonSlideViewer({ slides, title, className = "" }: LessonSlide
       
       case 'objectives':
         return (
-          <div className={`${baseClassName} bg-gradient-to-br from-secondary/10 to-accent/10`}>
+          <div className={`${baseClassName} bg-gradient-to-br from-secondary/10 to-accent/10 overflow-y-auto`}>
             <div className="text-center mb-6">
               <h2 className="text-2xl md:text-3xl font-bold text-primary mb-3">🎯 Today's Goals</h2>
               <p className="text-lg text-muted-foreground">What we'll achieve together!</p>
             </div>
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-2 gap-4 flex-1">
               {(content.objectives || []).map((objective: string, index: number) => (
                 <Card key={index} className="p-4 glass-subtle hover:scale-105 transition-all duration-300 animate-fade-in" style={{ animationDelay: `${index * 200}ms` }}>
                   <div className="flex items-center space-x-3">
@@ -236,10 +236,10 @@ export function LessonSlideViewer({ slides, title, className = "" }: LessonSlide
   }
 
   return (
-    <div className={`${className} flex flex-col h-full`}>
-      {/* Slide Content - Full height minus navigation */}
-      <div className="flex-1 min-h-0 pb-24 overflow-y-auto">
-        <div className="min-h-full">
+    <div className={`${className} h-full flex flex-col`}>
+      {/* Slide Content - Takes full height */}
+      <div className="flex-1 h-full">
+        <div className="h-full w-full">
           {renderSlideContent(slides[currentSlide], true)}
         </div>
       </div>
