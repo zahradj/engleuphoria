@@ -63,28 +63,28 @@ export function ActivityCountdownTimer({ className = "" }: ActivityCountdownTime
 
   const getTimerColor = () => {
     const percentage = remainingSeconds / totalSeconds;
-    if (percentage <= 0.1) return "text-destructive";
-    if (percentage <= 0.2) return "text-orange-500";
-    return "text-brand-600";
+    if (percentage <= 0.1) return "text-error";
+    if (percentage <= 0.2) return "text-warning";
+    return "text-primary-600";
   };
 
   if (isSettingTime) {
     return (
-      <div className={`flex items-center gap-2 bg-brand-50/90 backdrop-blur-sm px-3 py-2 rounded-lg border-2 border-brand-200 ${className}`}>
-        <Timer size={16} className="text-brand-600" />
+      <div className={`flex items-center gap-2 bg-surface border border-muted rounded-lg px-3 py-2 shadow-sm ${className}`}>
+        <Timer size={16} className="text-primary-500" />
         <Input
           type="number"
           value={inputMinutes}
           onChange={(e) => setInputMinutes(Math.max(1, parseInt(e.target.value) || 1))}
-          className="w-16 h-6 text-sm border-brand-300 focus:border-brand-500"
+          className="w-16 h-6 text-sm border-muted focus:border-primary-300 focus:ring-1 focus:ring-primary-300"
           min="1"
           max="60"
         />
-        <span className="text-sm text-brand-600">min</span>
-        <Button size="sm" variant="outline" onClick={setNewTime} className="h-6 px-2 text-xs border-brand-300 text-brand-600 hover:bg-brand-100">
+        <span className="text-sm text-muted-foreground">min</span>
+        <Button size="sm" variant="outline" onClick={setNewTime} className="h-6 px-2 text-xs border-muted hover:bg-surface-2">
           Set
         </Button>
-        <Button size="sm" variant="ghost" onClick={() => setIsSettingTime(false)} className="h-6 px-2 text-xs text-brand-600 hover:bg-brand-100">
+        <Button size="sm" variant="ghost" onClick={() => setIsSettingTime(false)} className="h-6 px-2 text-xs hover:bg-surface-2">
           Cancel
         </Button>
       </div>
@@ -92,10 +92,10 @@ export function ActivityCountdownTimer({ className = "" }: ActivityCountdownTime
   }
 
   return (
-    <div className={`flex items-center gap-2 bg-brand-50/90 backdrop-blur-sm px-3 py-2 rounded-lg border-2 border-brand-200 shadow-sm ${className}`}>
-      <Timer size={16} className="text-brand-600" />
+    <div className={`flex items-center gap-2 bg-surface border border-muted rounded-lg px-3 py-2 shadow-sm ${className}`}>
+      <Timer size={16} className="text-primary-500" />
       <span 
-        className={`font-mono text-lg font-semibold cursor-pointer ${getTimerColor()}`}
+        className={`font-mono text-base font-medium cursor-pointer ${getTimerColor()}`}
         onClick={() => setIsSettingTime(true)}
         title="Click to set time"
       >
@@ -103,15 +103,15 @@ export function ActivityCountdownTimer({ className = "" }: ActivityCountdownTime
       </span>
       <div className="flex gap-1">
         {!isRunning ? (
-          <Button variant="ghost" size="sm" onClick={startTimer} className="h-6 w-6 p-0 text-brand-600 hover:bg-brand-100">
+          <Button variant="ghost" size="sm" onClick={startTimer} className="h-6 w-6 p-0 hover:bg-surface-2">
             <Play size={12} />
           </Button>
         ) : (
-          <Button variant="ghost" size="sm" onClick={pauseTimer} className="h-6 w-6 p-0 text-brand-600 hover:bg-brand-100">
+          <Button variant="ghost" size="sm" onClick={pauseTimer} className="h-6 w-6 p-0 hover:bg-surface-2">
             <Pause size={12} />
           </Button>
         )}
-        <Button variant="ghost" size="sm" onClick={resetTimer} className="h-6 w-6 p-0 text-brand-600 hover:bg-brand-100">
+        <Button variant="ghost" size="sm" onClick={resetTimer} className="h-6 w-6 p-0 hover:bg-surface-2">
           <RotateCcw size={12} />
         </Button>
       </div>

@@ -7,122 +7,155 @@
 
 @layer base {
   :root {
-    /* Brand Monochrome System - Base Hue: 270° (Purple-Blue) */
-    --brand-hue: 270;
+    /* Theme: Mist Blue - Clean, calming blue with slate neutrals */
+    --theme-name: 'mist-blue';
     
-    /* 10-step Brand Color Ramp */
-    --brand-50: var(--brand-hue) 40% 98%;
-    --brand-100: var(--brand-hue) 40% 95%;
-    --brand-200: var(--brand-hue) 45% 88%;
-    --brand-300: var(--brand-hue) 50% 75%;
-    --brand-400: var(--brand-hue) 60% 65%;
-    --brand-500: var(--brand-hue) 70% 55%;
-    --brand-600: var(--brand-hue) 75% 45%;
-    --brand-700: var(--brand-hue) 80% 35%;
-    --brand-800: var(--brand-hue) 85% 25%;
-    --brand-900: var(--brand-hue) 90% 15%;
+    /* Primary Ramp - Mist Blue (210°, 25-35% saturation) */
+    --primary-50: 210 35% 98%;
+    --primary-100: 210 30% 95%;
+    --primary-200: 210 28% 90%;
+    --primary-300: 210 26% 82%;
+    --primary-400: 210 25% 70%;
+    --primary-500: 210 30% 58%;
+    --primary-600: 210 35% 46%;
+    --primary-700: 210 40% 36%;
+    --primary-800: 210 45% 26%;
+    --primary-900: 210 50% 18%;
 
-    /* Semantic Design Tokens */
-    --surface: 0 0% 100%;
-    --surface-contrast: 0 0% 4%;
-    --text: 0 0% 9%;
-    --text-muted: 0 0% 45%;
-    --text-subtle: 0 0% 65%;
+    /* Accent Ramp - Soft Teal (180°, 20-30% saturation) */
+    --accent-50: 180 30% 97%;
+    --accent-100: 180 25% 94%;
+    --accent-200: 180 23% 88%;
+    --accent-300: 180 22% 78%;
+    --accent-400: 180 20% 65%;
+    --accent-500: 180 25% 52%;
+    --accent-600: 180 30% 42%;
+    --accent-700: 180 35% 32%;
+    --accent-800: 180 40% 24%;
+    --accent-900: 180 45% 16%;
 
-    /* Component Tokens mapped to Brand System */
-    --background: var(--surface);
+    /* Neutral System - Slate tones */
+    --bg: 210 20% 98%;
+    --surface: 210 15% 96%;
+    --surface-2: 210 12% 94%;
+    --border: 210 15% 88%;
+    --muted: 210 10% 82%;
+    --text: 210 15% 12%;
+    --text-muted: 210 10% 45%;
+
+    /* State Colors - Color-blind safe */
+    --success: 142 35% 45%;
+    --success-soft: 142 25% 95%;
+    --success-on: 142 40% 15%;
+    
+    --info: 210 30% 50%;
+    --info-soft: 210 25% 95%;
+    --info-on: 210 35% 15%;
+    
+    --warning: 35 40% 55%;
+    --warning-soft: 35 30% 95%;
+    --warning-on: 35 45% 20%;
+    
+    --error: 0 35% 55%;
+    --error-soft: 0 25% 95%;
+    --error-on: 0 40% 20%;
+
+    /* Focus ring */
+    --focus-ring: 210 35% 46%;
+
+    /* Component mappings */
+    --background: var(--bg);
     --foreground: var(--text);
     --card: var(--surface);
     --card-foreground: var(--text);
     --popover: var(--surface);
     --popover-foreground: var(--text);
-    --primary: var(--brand-500);
-    --primary-foreground: var(--surface);
-    --secondary: var(--brand-100);
-    --secondary-foreground: var(--brand-800);
-    --muted: var(--brand-50);
+    --primary: var(--primary-500);
+    --primary-foreground: 0 0% 100%;
+    --secondary: var(--surface-2);
+    --secondary-foreground: var(--text);
+    --muted-color: var(--muted);
     --muted-foreground: var(--text-muted);
-    --accent: var(--brand-200);
-    --accent-foreground: var(--brand-800);
-    --destructive: 0 84% 60%;
-    --destructive-foreground: var(--surface);
-    --border: var(--brand-200);
-    --input: var(--brand-100);
-    --ring: var(--brand-500);
+    --accent-color: var(--accent-500);
+    --accent-foreground: 0 0% 100%;
+    --destructive: var(--error);
+    --destructive-foreground: 0 0% 100%;
+    --border-color: var(--border);
+    --input: var(--surface-2);
+    --ring: var(--focus-ring);
     
-    /* Chart colors using brand ramp */
-    --chart-1: var(--brand-500);
-    --chart-2: var(--brand-600);
-    --chart-3: var(--brand-400);
-    --chart-4: var(--brand-700);
-    --chart-5: var(--brand-300);
+    --radius: 0.75rem;
+  }
 
-    /* Enhanced role colors using brand system */
-    --student: var(--brand-400);
-    --student-light: var(--brand-50);
-    --student-dark: var(--brand-600);
-    --student-accent: var(--brand-300);
-    --student-foreground: var(--surface);
+  [data-theme="sage-sand"] {
+    /* Theme: Sage Sand - Warm sage with sandy neutrals */
+    --theme-name: 'sage-sand';
     
-    --teacher: var(--brand-600);
-    --teacher-light: var(--brand-50);
-    --teacher-dark: var(--brand-800);
-    --teacher-accent: var(--brand-400);
-    --teacher-foreground: var(--surface);
-    
-    --admin: var(--brand-700);
-    --admin-light: var(--brand-50);
-    --admin-dark: var(--brand-900);
-    --admin-accent: var(--brand-500);
-    --admin-foreground: var(--surface);
+    /* Primary Ramp - Sage Green (140°, 25-35% saturation) */
+    --primary-50: 140 35% 97%;
+    --primary-100: 140 30% 94%;
+    --primary-200: 140 28% 88%;
+    --primary-300: 140 26% 80%;
+    --primary-400: 140 25% 68%;
+    --primary-500: 140 30% 56%;
+    --primary-600: 140 35% 44%;
+    --primary-700: 140 40% 34%;
+    --primary-800: 140 45% 25%;
+    --primary-900: 140 50% 17%;
 
-    /* Sidebar using brand system */
-    --sidebar-background: var(--surface);
-    --sidebar-foreground: var(--text);
-    --sidebar-primary: var(--brand-500);
-    --sidebar-primary-foreground: var(--surface);
-    --sidebar-accent: var(--brand-50);
-    --sidebar-accent-foreground: var(--brand-800);
-    --sidebar-border: var(--brand-200);
-    --sidebar-ring: var(--brand-500);
+    /* Accent Ramp - Dusty Lavender (270°, 20-30% saturation) */
+    --accent-50: 270 30% 97%;
+    --accent-100: 270 25% 94%;
+    --accent-200: 270 23% 88%;
+    --accent-300: 270 22% 78%;
+    --accent-400: 270 20% 65%;
+    --accent-500: 270 25% 52%;
+    --accent-600: 270 30% 42%;
+    --accent-700: 270 35% 32%;
+    --accent-800: 270 40% 24%;
+    --accent-900: 270 45% 16%;
+
+    /* Neutral System - Warm sand tones */
+    --bg: 30 25% 98%;
+    --surface: 30 20% 96%;
+    --surface-2: 30 15% 94%;
+    --border: 30 15% 88%;
+    --muted: 30 12% 82%;
+    --text: 30 15% 12%;
+    --text-muted: 30 10% 45%;
+
+    /* State Colors - Adjusted for sage theme */
+    --success: 142 35% 45%;
+    --success-soft: 142 25% 95%;
+    --success-on: 142 40% 15%;
     
-    --radius: 1rem;
+    --info: 140 30% 50%;
+    --info-soft: 140 25% 95%;
+    --info-on: 140 35% 15%;
+    
+    --warning: 35 40% 55%;
+    --warning-soft: 35 30% 95%;
+    --warning-on: 35 45% 20%;
+    
+    --error: 0 35% 55%;
+    --error-soft: 0 25% 95%;
+    --error-on: 0 40% 20%;
+
+    --focus-ring: 140 35% 44%;
   }
 
   .dark {
-    /* Dark mode adjustments */
-    --surface: 0 0% 4%;
-    --surface-contrast: 0 0% 98%;
-    --text: 0 0% 95%;
-    --text-muted: 0 0% 65%;
-    --text-subtle: 0 0% 45%;
-
-    --background: var(--surface);
-    --foreground: var(--text);
-    --card: var(--brand-hue) 20% 8%;
-    --card-foreground: var(--text);
-    --popover: var(--brand-hue) 20% 8%;
-    --popover-foreground: var(--text);
-    --primary: var(--brand-400);
-    --primary-foreground: var(--surface);
-    --secondary: var(--brand-800);
-    --secondary-foreground: var(--text);
-    --muted: var(--brand-hue) 20% 12%;
-    --muted-foreground: var(--text-muted);
-    --accent: var(--brand-700);
-    --accent-foreground: var(--text);
-    --border: var(--brand-hue) 20% 18%;
-    --input: var(--brand-hue) 20% 15%;
-    --ring: var(--brand-400);
+    /* Dark mode adjustments - keeping it minimal and clean */
+    --bg: 210 15% 8%;
+    --surface: 210 12% 10%;
+    --surface-2: 210 10% 12%;
+    --border: 210 12% 18%;
+    --muted: 210 8% 25%;
+    --text: 210 10% 92%;
+    --text-muted: 210 8% 65%;
     
-    --sidebar-background: var(--surface);
-    --sidebar-foreground: var(--text);
-    --sidebar-primary: var(--brand-400);
-    --sidebar-primary-foreground: var(--surface);
-    --sidebar-accent: var(--brand-hue) 20% 12%;
-    --sidebar-accent-foreground: var(--text);
-    --sidebar-border: var(--brand-hue) 20% 18%;
-    --sidebar-ring: var(--brand-400);
+    --primary-500: 210 35% 65%;
+    --accent-500: 180 30% 60%;
   }
 }
 
