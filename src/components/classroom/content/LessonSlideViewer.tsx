@@ -38,7 +38,7 @@ export function LessonSlideViewer({ slides, title, className = "" }: LessonSlide
   };
 
   const renderSlideContent = (slide: any, isActive: boolean) => {
-    const baseClassName = `min-h-[600px] p-8 rounded-xl transition-all duration-500 ${isActive ? 'animate-fade-in' : ''}`;
+    const baseClassName = `h-full p-6 rounded-xl transition-all duration-500 ${isActive ? 'animate-fade-in' : ''}`;
     const content = slide && slide.content ? slide.content : {};
     const sTitle = (slide && (slide.title || (content && content.title))) || title || 'Lesson';
     const sType = (slide && slide.type) || 'default';
@@ -46,19 +46,19 @@ export function LessonSlideViewer({ slides, title, className = "" }: LessonSlide
     switch (sType) {
       case 'title':
         return (
-          <div className={`${baseClassName} flex flex-col items-center justify-center bg-gradient-to-br from-primary via-secondary to-accent text-white`}>
-            <div className="text-center space-y-6">
+          <div className={`${baseClassName} flex flex-col items-center justify-center bg-gradient-to-br from-primary via-secondary to-accent text-primary-foreground`}>
+            <div className="text-center space-y-4">
               <div className="animate-bounce-light">
-                <h1 className="text-5xl font-bold mb-4">{content.title || sTitle}</h1>
-                <h2 className="text-2xl font-medium opacity-90">{content.subtitle || "A2 Elementary English Lesson"}</h2>
+                <h1 className="text-3xl md:text-4xl font-bold mb-3">{content.title || sTitle}</h1>
+                <h2 className="text-lg md:text-xl font-medium opacity-90">{content.subtitle || "A2 Elementary English Lesson"}</h2>
               </div>
-              <div className="flex items-center justify-center space-x-4 mt-8">
-                <Badge className="bg-white/20 text-white border-white/30 px-4 py-2">
-                  <Clock size={16} className="mr-2" />
+              <div className="flex items-center justify-center space-x-3 mt-6">
+                <Badge className="bg-white/20 text-white border-white/30 px-3 py-1.5 text-sm">
+                  <Clock size={14} className="mr-1.5" />
                   45 minutes
                 </Badge>
-                <Badge className="bg-white/20 text-white border-white/30 px-4 py-2">
-                  <Target size={16} className="mr-2" />
+                <Badge className="bg-white/20 text-white border-white/30 px-3 py-1.5 text-sm">
+                  <Target size={14} className="mr-1.5" />
                   A2 Level
                 </Badge>
               </div>
@@ -69,18 +69,18 @@ export function LessonSlideViewer({ slides, title, className = "" }: LessonSlide
       case 'objectives':
         return (
           <div className={`${baseClassName} bg-gradient-to-br from-secondary/10 to-accent/10`}>
-            <div className="text-center mb-8">
-              <h2 className="text-4xl font-bold text-primary mb-4">🎯 Today's Goals</h2>
-              <p className="text-xl text-muted-foreground">What we'll achieve together!</p>
+            <div className="text-center mb-6">
+              <h2 className="text-2xl md:text-3xl font-bold text-primary mb-3">🎯 Today's Goals</h2>
+              <p className="text-lg text-muted-foreground">What we'll achieve together!</p>
             </div>
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid md:grid-cols-2 gap-4">
               {(content.objectives || []).map((objective: string, index: number) => (
-                <Card key={index} className="p-6 glass-subtle hover:scale-105 transition-all duration-300 animate-fade-in" style={{ animationDelay: `${index * 200}ms` }}>
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white font-bold text-xl">
+                <Card key={index} className="p-4 glass-subtle hover:scale-105 transition-all duration-300 animate-fade-in" style={{ animationDelay: `${index * 200}ms` }}>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-lg">
                       {index + 1}
                     </div>
-                    <div className="text-lg font-medium">{objective}</div>
+                    <div className="text-base font-medium">{objective}</div>
                   </div>
                 </Card>
               ))}
@@ -91,20 +91,20 @@ export function LessonSlideViewer({ slides, title, className = "" }: LessonSlide
       case 'vocabulary':
         return (
           <div className={`${baseClassName} bg-gradient-to-br from-teacher/10 to-teacher-accent/10`}>
-            <div className="text-center mb-8">
-              <h2 className="text-4xl font-bold text-primary mb-4">{content.sectionTitle || "📚 Vocabulary"}</h2>
+            <div className="text-center mb-6">
+              <h2 className="text-2xl md:text-3xl font-bold text-primary mb-3">{content.sectionTitle || "📚 Vocabulary"}</h2>
             </div>
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-3 gap-4">
               {(content.items || []).map((item: any, index: number) => (
                 <Card 
                   key={index} 
-                  className="p-6 text-center glass-subtle hover:scale-105 transition-all duration-300 cursor-pointer animate-fade-in"
+                  className="p-4 text-center glass-subtle hover:scale-105 transition-all duration-300 cursor-pointer animate-fade-in"
                   style={{ animationDelay: `${index * 150}ms` }}
                   onClick={() => toast.success(`${item.emoji || "📝"} ${item.text || item.word || item.verb} ${item.time ? `- ${item.time}` : ""}`)}
                 >
-                  <div className="text-4xl mb-4">{item.emoji || "📝"}</div>
-                  <div className="text-xl font-semibold mb-2">{item.text || item.word || item.verb}</div>
-                  {item.time && <Badge variant="secondary">{item.time}</Badge>}
+                  <div className="text-3xl mb-3">{item.emoji || "📝"}</div>
+                  <div className="text-lg font-semibold mb-2">{item.text || item.word || item.verb}</div>
+                  {item.time && <Badge variant="secondary" className="text-xs">{item.time}</Badge>}
                   {item.definition && <p className="text-sm text-muted-foreground mt-2">{item.definition}</p>}
                 </Card>
               ))}
@@ -237,15 +237,15 @@ export function LessonSlideViewer({ slides, title, className = "" }: LessonSlide
 
   return (
     <div className={`${className} flex flex-col h-full`}>
-      {/* Slide Content - Main scrollable area */}
+      {/* Slide Content - Main area */}
       <div className="flex-1 overflow-y-auto">
-        <div className="max-w-full mx-auto">
+        <div className="h-full">
           {renderSlideContent(slides[currentSlide], true)}
         </div>
       </div>
 
       {/* Navigation Controls - Fixed at bottom */}
-      <div className="flex-shrink-0 bg-white border-t border-gray-200 p-4">
+      <div className="flex-shrink-0 bg-background/80 backdrop-blur-sm border-t border-border p-3">
         <div className="flex items-center justify-between">
           <Button
             variant="outline"
