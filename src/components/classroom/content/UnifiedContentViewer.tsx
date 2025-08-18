@@ -72,6 +72,9 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
         return;
       }
 
+      // Clear any existing lesson content first
+      setEmbeddedContent(prev => prev.filter(content => content.originalType !== 'systematic_lesson'));
+
       // Check if lesson needs extended slides upgrade
       const needsUpgrade = !lesson.slides_content?.slides || 
                           lesson.slides_content.slides.length < 12 ||
@@ -101,7 +104,7 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
         }
       }
 
-      // Add lesson with slides to whiteboard
+      // Add lesson with new/upgraded slides to whiteboard
       const lessonContent = {
         id: `lesson-${Date.now()}`,
         title: lesson.title,
