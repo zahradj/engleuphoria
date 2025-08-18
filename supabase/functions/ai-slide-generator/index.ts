@@ -54,38 +54,43 @@ async function generateSlidesForAllContent(supabase: any) {
   console.log('🏗️ Starting batch slide generation for all content...');
   
   try {
-    // Get all content without slides
+    // Get all content without slides OR with short slide decks (less than 12 slides)
     const { data: contentItems, error } = await supabase
       .from('systematic_lessons')
       .select('*')
-      .is('slides_content', null)
+      .or('slides_content.is.null,slides_content->slides->0.is.null')
       .limit(50); // Process in batches to avoid timeouts
+    
+    // Filter for lessons that need longer slide decks
+    const needsUpgrade = contentItems?.filter(item => 
+      !item.slides_content?.slides || item.slides_content.slides.length < 12
+    ) || [];
 
     if (error) {
       throw new Error(`Failed to fetch content: ${error.message}`);
     }
 
-    if (!contentItems || contentItems.length === 0) {
+    if (!needsUpgrade || needsUpgrade.length === 0) {
       return new Response(
         JSON.stringify({
           success: true,
-          message: 'No content items need slide generation',
+          message: 'All lessons already have long interactive slide decks',
           generated_count: 0
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`📚 Found ${contentItems.length} content items to process`);
+    console.log(`📚 Found ${needsUpgrade.length} lessons need slide upgrades (from ${contentItems.length} total)`);
 
     let successCount = 0;
     const errors = [];
 
     // Process items in smaller batches to avoid rate limits
-    const batchSize = 5;
-    for (let i = 0; i < contentItems.length; i += batchSize) {
-      const batch = contentItems.slice(i, i + batchSize);
-      console.log(`🔄 Processing batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(contentItems.length/batchSize)}`);
+    const batchSize = 3; // Smaller batches for longer generation
+    for (let i = 0; i < needsUpgrade.length; i += batchSize) {
+      const batch = needsUpgrade.slice(i, i + batchSize);
+      console.log(`🔄 Processing batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(needsUpgrade.length/batchSize)}`);
 
       const batchPromises = batch.map(async (item) => {
         try {
@@ -110,21 +115,22 @@ async function generateSlidesForAllContent(supabase: any) {
 
       await Promise.all(batchPromises);
       
-      // Small delay between batches
-      if (i + batchSize < contentItems.length) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
+      // Longer delay between batches for complex generation
+      if (i + batchSize < needsUpgrade.length) {
+        await new Promise(resolve => setTimeout(resolve, 4000));
       }
     }
 
-    console.log(`🎉 Batch slide generation complete! Generated slides for ${successCount}/${contentItems.length} items.`);
+    console.log(`🎉 Slide upgrade complete! Generated slides for ${successCount}/${needsUpgrade.length} lessons.`);
 
     return new Response(
       JSON.stringify({
         success: true,
         generated_count: successCount,
-        total_processed: contentItems.length,
+        total_processed: needsUpgrade.length,
+        total_lessons_checked: contentItems.length,
         errors: errors,
-        message: `Successfully generated slides for ${successCount} content items`
+        message: `Successfully upgraded ${successCount} lessons with long interactive slide decks`
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -197,19 +203,23 @@ LESSON DETAILS:
 - Vocabulary: ${JSON.stringify(contentItem.vocabulary_set || [])}
 - Objectives: ${JSON.stringify(contentItem.lesson_objectives || [])}
 
-Create 10 interactive slides with Engleuphoria branding for classroom use. Include gamified activities, speaking practice, and review sections.
+Create 14 comprehensive interactive slides with Engleuphoria branding for extended classroom use. Include multiple gamified activities, extensive speaking practice, and thorough review sections.
 
 SLIDE REQUIREMENTS:
-1. Title Slide - Welcome with Engleuphoria branding
-2. Warm-up Activity - Engaging opener
-3. Learning Objectives - Clear goals
-4. Vocabulary Introduction - Visual key words
-5. Grammar Focus - Target structures
-6. Gamified Activity 1 - Drag & Drop matching
-7. Gamified Activity 2 - Multiple choice quiz
-8. Speaking Practice - Real conversation tasks
-9. Review Activity - Consolidation exercise
-10. Wrap-up & Rewards - Achievement celebration
+1. Title Slide - Welcome with Engleuphoria branding and lesson preview
+2. Warm-up Activity - Engaging opener with interactive elements
+3. Learning Objectives - Clear goals with progress tracking
+4. Previous Knowledge Check - Quick review of prerequisites
+5. Vocabulary Introduction - Visual key words with pronunciation
+6. Vocabulary Practice - Interactive matching and memory games
+7. Grammar Focus - Target structures with examples
+8. Grammar Practice - Guided practice with immediate feedback
+9. Gamified Activity 1 - Drag & Drop matching with point system
+10. Gamified Activity 2 - Multiple choice quiz with badges
+11. Speaking Practice 1 - Guided conversation tasks
+12. Speaking Practice 2 - Free conversation and roleplay
+13. Review & Assessment - Comprehensive consolidation exercise
+14. Wrap-up & Celebration - Achievement summary and next steps
 
 Each slide should have:
 - Engleuphoria color scheme (blue/purple gradients)
@@ -237,12 +247,13 @@ Return ONLY a JSON object with this structure:
       }
     }
   ],
-  "total_slides": 10,
-  "total_duration": 45,
+  "total_slides": 14,
+  "total_duration": 60,
   "gamification": {
-    "total_points": 100,
-    "achievement_badges": ["Vocabulary Master", "Grammar Champion", "Speaking Star"],
-    "progress_tracking": "Lesson completion percentage"
+    "total_points": 140,
+    "achievement_badges": ["Vocabulary Master", "Grammar Champion", "Speaking Star", "Perfect Practice", "Lesson Hero"],
+    "progress_tracking": "Detailed completion percentage with skill breakdowns",
+    "bonus_challenges": ["Speed Round", "Perfect Score", "Speaking Champion"]
   }
 }`;
 
@@ -286,11 +297,12 @@ Return ONLY a JSON object with this structure:
     // Validate and enhance slides data
     return {
       slides: slidesData.slides || [],
-      total_slides: slidesData.total_slides || 10,
-      total_duration: slidesData.total_duration || 45,
+      total_slides: slidesData.total_slides || 14,
+      total_duration: slidesData.total_duration || 60,
       gamification: slidesData.gamification || {},
       generated_at: new Date().toISOString(),
-      generated_by: 'ai-slide-generator'
+      generated_by: 'ai-slide-generator-v2',
+      version: '2.0'
     };
   } catch (parseError) {
     console.error('JSON parse error:', parseError);

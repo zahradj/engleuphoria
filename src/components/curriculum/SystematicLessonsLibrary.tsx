@@ -64,16 +64,20 @@ export function SystematicLessonsLibrary({
         );
       }
 
-      // Auto-generate slides for lessons that don't have them
+      // Auto-upgrade lessons to have long interactive slide decks (14+ slides)
       if (lessonsFromAllLevels.length > 0) {
-        const lessonsWithoutSlides = lessonsFromAllLevels.filter(lesson => 
-          !lesson.slides_content?.slides || lesson.slides_content.slides.length === 0
+        const lessonsNeedingUpgrade = lessonsFromAllLevels.filter(lesson => 
+          !lesson.slides_content?.slides || 
+          lesson.slides_content.slides.length < 12 ||
+          !lesson.slides_content.version || 
+          lesson.slides_content.version !== '2.0'
         );
         
-        if (lessonsWithoutSlides.length > 0) {
+        if (lessonsNeedingUpgrade.length > 0) {
           toast({
-            title: 'Preparing Interactive Slides',
-            description: `Generating slides for ${lessonsWithoutSlides.length} lessons in the background...`
+            title: 'Upgrading to Extended Slide Decks',
+            description: `Converting ${lessonsNeedingUpgrade.length} lessons to 14-slide interactive format...`,
+            duration: 5000
           });
 
           try {
@@ -82,12 +86,12 @@ export function SystematicLessonsLibrary({
               body: { batch_generate: true }
             });
             
-            // Reload lessons after slide generation
+            // Reload lessons after upgrade
             setTimeout(() => {
               loadLessonsData();
-            }, 3000);
+            }, 5000);
           } catch (error) {
-            console.log('Slide generation in progress, will check later');
+            console.log('Slide upgrade in progress, will check later');
           }
         }
       }
@@ -391,8 +395,9 @@ export function SystematicLessonsLibrary({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredLessons.map((lesson) => {
           const level = levels.find(l => l.id === lesson.curriculum_level_id);
-          const slidesCount = lesson.slides_content?.slides?.length || 8;
+          const slidesCount = lesson.slides_content?.slides?.length || 0;
           const activitiesCount = lesson.activities?.length || 5;
+          const hasExtendedSlides = slidesCount >= 12 && lesson.slides_content?.version === '2.0';
           
           return (
             <Card key={lesson.id} className="hover:shadow-lg transition-shadow">
@@ -453,14 +458,22 @@ export function SystematicLessonsLibrary({
                   </div>
                 </div>
 
-                {/* Slides Status Indicator */}
-                {lesson.slides_content?.slides && (
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-300 text-xs">
-                      Interactive Slides Ready
+                {/* Enhanced Slides Status Indicator */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  {hasExtendedSlides ? (
+                    <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 border-emerald-300 text-xs">
+                      ✨ Extended Interactive Slides ({slidesCount} slides)
                     </Badge>
-                  </div>
-                )}
+                  ) : slidesCount > 0 ? (
+                    <Badge variant="secondary" className="bg-yellow-50 text-yellow-700 border-yellow-300 text-xs">
+                      📊 Basic Slides ({slidesCount} slides) - Upgrading...
+                    </Badge>
+                  ) : (
+                    <Badge variant="secondary" className="bg-gray-50 text-gray-700 border-gray-300 text-xs">
+                      🔄 Generating Slides...
+                    </Badge>
+                  )}
+                </div>
 
                 {lesson.vocabulary_set && lesson.vocabulary_set.length > 0 && (
                   <div className="flex flex-wrap gap-1">

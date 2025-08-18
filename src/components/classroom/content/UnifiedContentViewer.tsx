@@ -72,9 +72,14 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
         return;
       }
 
-      // Check if lesson has slides, if not generate them
-      if (!lesson.slides_content?.slides || lesson.slides_content.slides.length === 0) {
-        console.log('🎨 Generating slides for lesson:', lesson.title);
+      // Check if lesson needs extended slides upgrade
+      const needsUpgrade = !lesson.slides_content?.slides || 
+                          lesson.slides_content.slides.length < 12 ||
+                          !lesson.slides_content.version ||
+                          lesson.slides_content.version !== '2.0';
+      
+      if (needsUpgrade) {
+        console.log('🎨 Upgrading lesson to extended slides:', lesson.title);
         
         try {
           const { data, error } = await supabase.functions.invoke('ai-slide-generator', {
@@ -86,13 +91,13 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
 
           if (error) throw error;
           
-          // Reload lesson with generated slides
+          // Reload lesson with upgraded slides
           const updatedLesson = await curriculumService.getSystematicLessonById(lessonId);
           if (updatedLesson?.slides_content?.slides) {
             lesson.slides_content = updatedLesson.slides_content;
           }
         } catch (error) {
-          console.error('Failed to generate slides:', error);
+          console.error('Failed to upgrade slides:', error);
         }
       }
 
@@ -118,29 +123,286 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
 
   const generateLessonSlidesHTML = (lesson: any) => {
     if (lesson.slides_content?.slides) {
-      // Use the React component for interactive slides
+      // Create self-contained HTML with embedded slide viewer
+      const slidesData = lesson.slides_content;
       return `
         <!DOCTYPE html>
-        <html>
+        <html lang="en">
         <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>${lesson.title} - Interactive Slides</title>
           <style>
-            body { margin: 0; font-family: Inter, sans-serif; }
-            .slides-container { width: 100vw; height: 100vh; }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { 
+              font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              height: 100vh;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
+            .slides-viewer {
+              width: 95vw;
+              max-width: 1400px;
+              height: 90vh;
+              background: white;
+              border-radius: 20px;
+              box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+              display: flex;
+              flex-direction: column;
+              overflow: hidden;
+            }
+            .slide-header {
+              background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+              color: white;
+              padding: 20px 30px;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+            }
+            .slide-title {
+              font-size: 1.8em;
+              font-weight: 700;
+            }
+            .slide-nav {
+              display: flex;
+              gap: 15px;
+              align-items: center;
+            }
+            .nav-button {
+              background: rgba(255,255,255,0.2);
+              border: none;
+              color: white;
+              padding: 10px 20px;
+              border-radius: 8px;
+              cursor: pointer;
+              font-weight: 500;
+              transition: all 0.3s ease;
+            }
+            .nav-button:hover {
+              background: rgba(255,255,255,0.3);
+              transform: translateY(-2px);
+            }
+            .nav-button:disabled {
+              opacity: 0.5;
+              cursor: not-allowed;
+              transform: none;
+            }
+            .slide-content {
+              flex: 1;
+              padding: 40px;
+              overflow-y: auto;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+            }
+            .current-slide {
+              text-align: center;
+              animation: slideIn 0.5s ease-out;
+            }
+            @keyframes slideIn {
+              from { opacity: 0; transform: translateX(20px); }
+              to { opacity: 1; transform: translateX(0); }
+            }
+            .slide-number {
+              font-size: 1.5em;
+              font-weight: 600;
+              color: #2563eb;
+              margin-bottom: 20px;
+            }
+            .slide-activity-type {
+              background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+              color: white;
+              padding: 8px 20px;
+              border-radius: 20px;
+              font-size: 0.9em;
+              font-weight: 500;
+              display: inline-block;
+              margin-bottom: 25px;
+              text-transform: capitalize;
+            }
+            .slide-text {
+              font-size: 1.3em;
+              line-height: 1.6;
+              color: #1e293b;
+              margin-bottom: 30px;
+              max-width: 800px;
+              margin-left: auto;
+              margin-right: auto;
+            }
+            .interactive-elements {
+              display: flex;
+              flex-wrap: wrap;
+              gap: 15px;
+              justify-content: center;
+              margin: 20px 0;
+            }
+            .interactive-element {
+              background: #f1f5f9;
+              border: 2px solid #e2e8f0;
+              padding: 15px 25px;
+              border-radius: 12px;
+              font-weight: 500;
+              color: #475569;
+              transition: all 0.3s ease;
+              cursor: pointer;
+            }
+            .interactive-element:hover {
+              background: #e2e8f0;
+              border-color: #2563eb;
+              color: #2563eb;
+              transform: translateY(-2px);
+            }
+            .teacher-notes {
+              background: #fef3c7;
+              border-left: 4px solid #f59e0b;
+              padding: 20px;
+              margin-top: 30px;
+              border-radius: 8px;
+              font-style: italic;
+              color: #92400e;
+            }
+            .progress-bar {
+              background: #e2e8f0;
+              height: 6px;
+              border-radius: 3px;
+              overflow: hidden;
+              margin-top: 10px;
+            }
+            .progress-fill {
+              height: 100%;
+              background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+              transition: width 0.5s ease;
+            }
+            .gamification-info {
+              background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+              border: 1px solid #0ea5e9;
+              padding: 20px;
+              border-radius: 12px;
+              margin-top: 20px;
+              text-align: left;
+            }
+            .points-badge {
+              background: #dc2626;
+              color: white;
+              padding: 5px 12px;
+              border-radius: 15px;
+              font-size: 0.8em;
+              font-weight: 600;
+              margin-right: 10px;
+            }
+            .badges {
+              display: flex;
+              gap: 10px;
+              margin-top: 10px;
+              flex-wrap: wrap;
+            }
+            .badge {
+              background: #fbbf24;
+              color: #92400e;
+              padding: 5px 12px;
+              border-radius: 15px;
+              font-size: 0.8em;
+              font-weight: 500;
+            }
           </style>
         </head>
         <body>
-          <div class="slides-container">
-            <div id="lesson-slides-root"></div>
+          <div class="slides-viewer">
+            <div class="slide-header">
+              <h1 class="slide-title">${lesson.title}</h1>
+              <div class="slide-nav">
+                <span id="slide-counter">1 / ${slidesData.slides.length}</span>
+                <button class="nav-button" onclick="previousSlide()" id="prev-btn">Previous</button>
+                <button class="nav-button" onclick="nextSlide()" id="next-btn">Next</button>
+              </div>
+            </div>
+            <div class="slide-content">
+              <div id="current-slide" class="current-slide"></div>
+              <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: ${100/slidesData.slides.length}%"></div>
+              </div>
+            </div>
           </div>
-          <script type="module">
-            import { createElement } from 'react';
-            import { createRoot } from 'react-dom/client';
-            import { LessonSlidesViewer } from '/src/components/classroom/lesson-slides/LessonSlidesViewer.tsx';
-            
-            const slidesData = ${JSON.stringify(lesson.slides_content)};
-            const root = createRoot(document.getElementById('lesson-slides-root'));
-            root.render(createElement(LessonSlidesViewer, { slidesData }));
+
+          <script>
+            const slidesData = ${JSON.stringify(slidesData)};
+            let currentSlideIndex = 0;
+
+            function updateSlide() {
+              const slide = slidesData.slides[currentSlideIndex];
+              if (!slide) return;
+
+              const slideHtml = \`
+                <div class="slide-number">Slide \${slide.slide_number} of \${slidesData.slides.length}</div>
+                <div class="slide-activity-type">\${slide.activity_type.replace('_', ' ')}</div>
+                <h2 style="font-size: 2.2em; margin-bottom: 20px; color: #1e293b;">\${slide.title}</h2>
+                <div class="slide-text">\${slide.content}</div>
+                
+                \${slide.interactive_elements && slide.interactive_elements.length > 0 ? \`
+                  <div class="interactive-elements">
+                    \${slide.interactive_elements.map(el => \`<div class="interactive-element">\${el}</div>\`).join('')}
+                  </div>
+                \` : ''}
+                
+                \${slide.gamification ? \`
+                  <div class="gamification-info">
+                    <div style="font-weight: 600; margin-bottom: 10px; color: #0f172a;">
+                      <span class="points-badge">\${slide.gamification.points_possible} Points</span>
+                      Activity Rewards
+                    </div>
+                    \${slide.gamification.badges && slide.gamification.badges.length > 0 ? \`
+                      <div class="badges">
+                        \${slide.gamification.badges.map(badge => \`<span class="badge">\${badge}</span>\`).join('')}
+                      </div>
+                    \` : ''}
+                  </div>
+                \` : ''}
+                
+                \${slide.teacher_notes ? \`
+                  <div class="teacher-notes">
+                    <strong>Teacher Notes:</strong> \${slide.teacher_notes}
+                  </div>
+                \` : ''}
+              \`;
+
+              document.getElementById('current-slide').innerHTML = slideHtml;
+              document.getElementById('slide-counter').textContent = \`\${currentSlideIndex + 1} / \${slidesData.slides.length}\`;
+              document.getElementById('progress-fill').style.width = \`\${((currentSlideIndex + 1) / slidesData.slides.length) * 100}%\`;
+              
+              // Update navigation buttons
+              document.getElementById('prev-btn').disabled = currentSlideIndex === 0;
+              document.getElementById('next-btn').disabled = currentSlideIndex === slidesData.slides.length - 1;
+            }
+
+            function nextSlide() {
+              if (currentSlideIndex < slidesData.slides.length - 1) {
+                currentSlideIndex++;
+                updateSlide();
+              }
+            }
+
+            function previousSlide() {
+              if (currentSlideIndex > 0) {
+                currentSlideIndex--;
+                updateSlide();
+              }
+            }
+
+            // Keyboard navigation
+            document.addEventListener('keydown', (e) => {
+              if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                nextSlide();
+              } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                previousSlide();
+              }
+            });
+
+            // Initialize first slide
+            updateSlide();
           </script>
         </body>
         </html>
