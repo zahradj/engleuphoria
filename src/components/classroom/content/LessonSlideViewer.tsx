@@ -244,9 +244,9 @@ export function LessonSlideViewer({ slides, title, className = "" }: LessonSlide
         </div>
       </div>
 
-      {/* Navigation Controls - Fixed at bottom */}
-      <div className="flex-shrink-0 bg-background/80 backdrop-blur-sm border-t border-border p-3">
-        <div className="flex items-center justify-between">
+      {/* Navigation Controls - Fixed at bottom of page */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-border p-4 shadow-lg">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Button
             variant="outline"
             size="sm"
@@ -258,8 +258,8 @@ export function LessonSlideViewer({ slides, title, className = "" }: LessonSlide
             Previous
           </Button>
 
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-foreground">
               Slide {currentSlide + 1} of {slides.length}
             </span>
             <div className="flex gap-1">
@@ -267,8 +267,8 @@ export function LessonSlideViewer({ slides, title, className = "" }: LessonSlide
                 <button
                   key={index}
                   onClick={() => goToSlide(index)}
-                  className={`w-2 h-2 rounded-full transition-colors ${
-                    index === currentSlide ? 'bg-primary' : 'bg-gray-300'
+                  className={`w-2.5 h-2.5 rounded-full transition-all duration-200 ${
+                    index === currentSlide ? 'bg-primary scale-125' : 'bg-muted-foreground/40 hover:bg-muted-foreground/60'
                   }`}
                 />
               ))}
