@@ -37,17 +37,20 @@ export function LessonSlideViewer({ slides, title, className = "" }: LessonSlide
     setCurrentSlide(index);
   };
 
-  const renderSlideContent = (slide: Slide, isActive: boolean) => {
+  const renderSlideContent = (slide: any, isActive: boolean) => {
     const baseClassName = `min-h-[600px] p-8 rounded-xl transition-all duration-500 ${isActive ? 'animate-fade-in' : ''}`;
+    const content = slide && slide.content ? slide.content : {};
+    const sTitle = (slide && (slide.title || (content && content.title))) || title || 'Lesson';
+    const sType = (slide && slide.type) || 'default';
     
-    switch (slide.type) {
+    switch (sType) {
       case 'title':
         return (
           <div className={`${baseClassName} flex flex-col items-center justify-center bg-gradient-to-br from-primary via-secondary to-accent text-white`}>
             <div className="text-center space-y-6">
               <div className="animate-bounce-light">
-                <h1 className="text-5xl font-bold mb-4">{slide.content.title || title}</h1>
-                <h2 className="text-2xl font-medium opacity-90">{slide.content.subtitle || "A2 Elementary English Lesson"}</h2>
+                <h1 className="text-5xl font-bold mb-4">{content.title || sTitle}</h1>
+                <h2 className="text-2xl font-medium opacity-90">{content.subtitle || "A2 Elementary English Lesson"}</h2>
               </div>
               <div className="flex items-center justify-center space-x-4 mt-8">
                 <Badge className="bg-white/20 text-white border-white/30 px-4 py-2">
@@ -71,7 +74,7 @@ export function LessonSlideViewer({ slides, title, className = "" }: LessonSlide
               <p className="text-xl text-muted-foreground">What we'll achieve together!</p>
             </div>
             <div className="grid md:grid-cols-2 gap-6">
-              {(slide.content.objectives || []).map((objective: string, index: number) => (
+              {(content.objectives || []).map((objective: string, index: number) => (
                 <Card key={index} className="p-6 glass-subtle hover:scale-105 transition-all duration-300 animate-fade-in" style={{ animationDelay: `${index * 200}ms` }}>
                   <div className="flex items-center space-x-4">
                     <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white font-bold text-xl">
@@ -89,10 +92,10 @@ export function LessonSlideViewer({ slides, title, className = "" }: LessonSlide
         return (
           <div className={`${baseClassName} bg-gradient-to-br from-teacher/10 to-teacher-accent/10`}>
             <div className="text-center mb-8">
-              <h2 className="text-4xl font-bold text-primary mb-4">{slide.content.sectionTitle || "📚 Vocabulary"}</h2>
+              <h2 className="text-4xl font-bold text-primary mb-4">{content.sectionTitle || "📚 Vocabulary"}</h2>
             </div>
             <div className="grid md:grid-cols-3 gap-6">
-              {(slide.content.items || []).map((item: any, index: number) => (
+              {(content.items || []).map((item: any, index: number) => (
                 <Card 
                   key={index} 
                   className="p-6 text-center glass-subtle hover:scale-105 transition-all duration-300 cursor-pointer animate-fade-in"
@@ -114,17 +117,17 @@ export function LessonSlideViewer({ slides, title, className = "" }: LessonSlide
         return (
           <div className={`${baseClassName} bg-gradient-to-br from-mint/10 to-mint-light`}>
             <div className="text-center mb-8">
-              <h2 className="text-4xl font-bold text-primary mb-4">{slide.content.activityTitle || "🎯 Practice Activity"}</h2>
-              <p className="text-xl text-muted-foreground">{slide.content.instructions || "Complete the activity below!"}</p>
+              <h2 className="text-4xl font-bold text-primary mb-4">{content.activityTitle || "🎯 Practice Activity"}</h2>
+              <p className="text-xl text-muted-foreground">{content.instructions || "Complete the activity below!"}</p>
             </div>
             <Card className="p-8 glass-subtle">
               <div className="text-center space-y-6">
                 <div className="text-2xl font-semibold text-primary">
-                  {slide.content.question || slide.content.prompt || "Practice time!"}
+                  {content.question || content.prompt || "Practice time!"}
                 </div>
-                {slide.content.options && (
+                {content.options && (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-                    {slide.content.options.map((option: any, index: number) => (
+                    {content.options.map((option: any, index: number) => (
                       <Button 
                         key={index}
                         variant="outline" 
@@ -136,8 +139,8 @@ export function LessonSlideViewer({ slides, title, className = "" }: LessonSlide
                     ))}
                   </div>
                 )}
-                {slide.content.content && (
-                  <div className="prose prose-lg max-w-none" dangerouslySetInnerHTML={{ __html: slide.content.content }} />
+                {content.content && (
+                  <div className="prose prose-lg max-w-none" dangerouslySetInnerHTML={{ __html: content.content }} />
                 )}
               </div>
             </Card>
@@ -149,17 +152,17 @@ export function LessonSlideViewer({ slides, title, className = "" }: LessonSlide
           <div className={`${baseClassName} bg-gradient-to-br from-mint/20 to-mint-light`}>
             <div className="text-center mb-8">
               <h2 className="text-4xl font-bold text-primary mb-4">🗣️ Speaking Practice</h2>
-              <p className="text-xl text-muted-foreground">{slide.content.instructions || "Practice speaking!"}</p>
+              <p className="text-xl text-muted-foreground">{content.instructions || "Practice speaking!"}</p>
             </div>
             <div className="grid md:grid-cols-2 gap-8">
               <Card className="p-6 glass-subtle">
                 <h3 className="text-2xl font-bold mb-4 text-center text-secondary">Scenario</h3>
                 <div className="bg-primary/10 p-4 rounded-lg mb-4">
-                  <p className="text-lg">{slide.content.scenario || "Practice conversation with your partner"}</p>
+                  <p className="text-lg">{content.scenario || "Practice conversation with your partner"}</p>
                 </div>
-                {slide.content.roles && (
+                {content.roles && (
                   <div className="space-y-3">
-                    {slide.content.roles.map((role: string, index: number) => (
+                    {content.roles.map((role: string, index: number) => (
                       <div key={index} className="p-3 bg-white/50 rounded-lg">
                         <strong>Role {index + 1}:</strong> {role}
                       </div>
@@ -170,7 +173,7 @@ export function LessonSlideViewer({ slides, title, className = "" }: LessonSlide
               <Card className="p-6 glass-subtle">
                 <h3 className="text-2xl font-bold mb-4 text-center text-secondary">Useful Phrases</h3>
                 <div className="space-y-3">
-                  {(slide.content.phrases || []).map((phrase: string, index: number) => (
+                  {(content.phrases || []).map((phrase: string, index: number) => (
                     <div key={index} className="p-3 bg-primary/10 rounded-lg text-center">
                       <span className="font-medium">"{phrase}"</span>
                     </div>
@@ -188,11 +191,11 @@ export function LessonSlideViewer({ slides, title, className = "" }: LessonSlide
               <div className="mb-8">
                 <Trophy className="text-6xl text-amber-500 mx-auto mb-4" />
                 <h2 className="text-4xl font-bold text-primary mb-4">🎉 Great Work!</h2>
-                <p className="text-xl text-muted-foreground">{slide.content.message || "You've completed the lesson!"}</p>
+                <p className="text-xl text-muted-foreground">{content.message || "You've completed the lesson!"}</p>
               </div>
-              {slide.content.achievements && (
+              {content.achievements && (
                 <div className="grid md:grid-cols-3 gap-6 mt-8">
-                  {slide.content.achievements.map((achievement: string, index: number) => (
+                  {content.achievements.map((achievement: string, index: number) => (
                     <Card key={index} className="p-6 glass-subtle">
                       <CheckCircle className="text-green-500 mx-auto mb-4" size={32} />
                       <p className="font-medium">{achievement}</p>
@@ -208,13 +211,13 @@ export function LessonSlideViewer({ slides, title, className = "" }: LessonSlide
         return (
           <div className={`${baseClassName} bg-gradient-to-br from-secondary/5 to-accent/5`}>
             <div className="text-center mb-8">
-              <h2 className="text-4xl font-bold text-primary mb-4">{slide.title}</h2>
+              <h2 className="text-4xl font-bold text-primary mb-4">{sTitle}</h2>
             </div>
-            {slide.content.content && (
-              <div className="prose prose-lg max-w-none" dangerouslySetInnerHTML={{ __html: slide.content.content }} />
+            {content.content && (
+              <div className="prose prose-lg max-w-none" dangerouslySetInnerHTML={{ __html: content.content }} />
             )}
-            {slide.content.text && (
-              <div className="text-lg leading-relaxed">{slide.content.text}</div>
+            {content.text && (
+              <div className="text-lg leading-relaxed">{content.text}</div>
             )}
           </div>
         );
