@@ -65,6 +65,21 @@ class CurriculumService {
     return data || [];
   }
 
+  async getSystematicLessonById(lessonId: string): Promise<SystematicLesson | null> {
+    const { data, error } = await supabase
+      .from('systematic_lessons')
+      .select('*')
+      .eq('id', lessonId)
+      .single();
+    
+    if (error) {
+      console.error('Error fetching lesson:', error);
+      return null;
+    }
+    
+    return data;
+  }
+
   async createSystematicLesson(lesson: Partial<SystematicLesson>): Promise<SystematicLesson> {
     const { data, error } = await supabase
       .from('systematic_lessons')
