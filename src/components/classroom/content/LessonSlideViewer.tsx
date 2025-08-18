@@ -236,9 +236,9 @@ export function LessonSlideViewer({ slides, title, className = "" }: LessonSlide
   }
 
   return (
-    <div className={`${className} h-full`}>
+    <div className={`${className} flex flex-col h-full`}>
       {/* Slide Content - Full height minus navigation */}
-      <div className="h-full pb-20 overflow-y-auto">
+      <div className="flex-1 min-h-0 pb-24 overflow-y-auto">
         <div className="min-h-full">
           {renderSlideContent(slides[currentSlide], true)}
         </div>
