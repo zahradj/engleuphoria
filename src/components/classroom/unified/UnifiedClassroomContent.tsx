@@ -53,13 +53,11 @@ export function UnifiedClassroomContent({
   };
 
   return (
-    <div className="h-full flex gap-6">
+    <div className="h-full flex gap-4">
       {/* Main lesson area - 80-85% width */}
       <div className="flex-1 h-full">
-        <div className="h-full rounded-3xl overflow-hidden backdrop-blur-lg relative border-2 border-brand-300 bg-gradient-to-br from-brand-50 via-surface to-brand-100 shadow-xl">
-          <div className="absolute inset-0 bg-gradient-to-br from-brand-100/30 via-brand-200/20 to-brand-300/10 pointer-events-none"></div>
-          <div className="absolute inset-0 bg-gradient-to-tl from-brand-200/20 via-brand-100/15 to-brand-300/10 pointer-events-none"></div>
-          <div className="absolute inset-0 bg-gradient-to-r from-brand-100/10 via-brand-200/15 to-brand-300/10 pointer-events-none animate-pulse"></div>
+        <div className="h-full rounded-2xl overflow-hidden relative border border-neutral-200 bg-surface shadow-lg">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary-50/30 via-neutral-50/20 to-accent-50/30 pointer-events-none"></div>
           <UnifiedCenterPanel
             activeCenterTab={activeCenterTab}
             onTabChange={setActiveCenterTab}
@@ -70,9 +68,8 @@ export function UnifiedClassroomContent({
 
       {/* Right rail - 15-20% width */}
       <div className="w-80 h-full">
-        <div className="h-full rounded-3xl overflow-hidden backdrop-blur-sm relative border-2 border-brand-200 bg-gradient-to-b from-brand-50 to-brand-100 shadow-lg">
-          <div className="absolute inset-0 bg-gradient-to-b from-brand-100/20 via-brand-200/10 to-brand-300/10 pointer-events-none"></div>
-          <div className="absolute inset-0 bg-gradient-to-r from-brand-100/10 via-brand-200/15 to-brand-100/10 pointer-events-none animate-pulse"></div>
+        <div className="h-full rounded-2xl overflow-hidden relative border border-neutral-200 bg-surface shadow-md">
+          <div className="absolute inset-0 bg-gradient-to-b from-accent-50/20 via-neutral-50/10 to-primary-50/20 pointer-events-none"></div>
           <RightRail
             localStream={enhancedClassroom?.localStream || null}
             remoteStream={null}
@@ -97,21 +94,21 @@ export function UnifiedClassroomContent({
           <div className="space-y-3">
             <Button 
               variant="outline" 
-              className="w-full justify-start border-brand-300 text-brand-600 hover:bg-brand-50" 
+              className="w-full justify-start border-neutral-200 text-primary-600 hover:bg-primary-50" 
               onClick={() => awardPoints(10, 'Good answer')}
             >
               +10 Points - Good answer
             </Button>
             <Button 
               variant="outline" 
-              className="w-full justify-start border-brand-300 text-brand-600 hover:bg-brand-50" 
+              className="w-full justify-start border-neutral-200 text-primary-600 hover:bg-primary-50" 
               onClick={() => awardPoints(25, 'Great effort')}
             >
               +25 Points - Great effort
             </Button>
             <Button 
               variant="outline" 
-              className="w-full justify-start border-brand-300 text-brand-600 hover:bg-brand-50" 
+              className="w-full justify-start border-neutral-200 text-primary-600 hover:bg-primary-50" 
               onClick={() => awardPoints(50, 'Excellent work')}
             >
               +50 Points - Excellent work
