@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
+import { type Slide as SlidesPanelSlide } from './SlidesPanel';
 
 interface BoardElement {
   id: string;
@@ -24,7 +25,7 @@ interface BoardElement {
   createdAt: Date;
 }
 
-interface Slide {
+interface BoardSlide {
   id: string;
   title: string;
   elements: BoardElement[];
@@ -64,10 +65,15 @@ interface Comment {
   isResolved?: boolean;
 }
 
-export function useCanvaStyleBoard(roomId: string, currentUser: { id: string; name: string; role: 'teacher' | 'student' }) {
+export function useCanvaStyleBoard(currentUser: { id: string; name: string; role: 'teacher' | 'student' }) {
   const [elements, setElements] = useState<BoardElement[]>([]);
   const [selectedElements, setSelectedElements] = useState<string[]>([]);
-  const [slides, setSlides] = useState<Slide[]>([
+  const [activeTool, setActiveTool] = useState<string>('select');
+  const [color, setColor] = useState<string>('#000000');
+  const [zoom, setZoom] = useState<number>(1);
+  const [showGrid, setShowGrid] = useState<boolean>(false);
+  
+  const [boardSlides, setBoardSlides] = useState<BoardSlide[]>([
     {
       id: 'slide-1',
       title: 'Slide 1',
@@ -75,6 +81,8 @@ export function useCanvaStyleBoard(roomId: string, currentUser: { id: string; na
       createdAt: new Date()
     }
   ]);
+  
+  const [slidesPanel, setSlidesPanel] = useState<SlidesPanelSlide[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [cursors, setCursors] = useState<Record<string, Cursor>>({});
   const [comments, setComments] = useState<Comment[]>([]);
@@ -125,8 +133,8 @@ export function useCanvaStyleBoard(roomId: string, currentUser: { id: string; na
     setElements(prev => {
       const updated = [...prev, newElement];
       
-      // Update current slide
-      setSlides(slides => slides.map((slide, index) => 
+      // Update current board slide
+      setBoardSlides(slides => slides.map((slide, index) => 
         index === currentSlide 
           ? { ...slide, elements: updated }
           : slide
@@ -167,7 +175,7 @@ export function useCanvaStyleBoard(roomId: string, currentUser: { id: string; na
       const updated = prev.filter(el => !idsToDelete.includes(el.id));
       
       // Update current slide
-      setSlides(slides => slides.map((slide, index) => 
+      setBoardSlides(slides => slides.map((slide, index) => 
         index === currentSlide 
           ? { ...slide, elements: updated }
           : slide
@@ -205,7 +213,7 @@ export function useCanvaStyleBoard(roomId: string, currentUser: { id: string; na
       const updated = [...prev, ...duplicated];
       
       // Update current slide
-      setSlides(slides => slides.map((slide, index) => 
+      setBoardSlides(slides => slides.map((slide, index) => 
         index === currentSlide 
           ? { ...slide, elements: updated }
           : slide
@@ -228,37 +236,25 @@ export function useCanvaStyleBoard(roomId: string, currentUser: { id: string; na
   }, []);
 
   // Slide management
-  const addSlide = useCallback((slideData?: Partial<Slide>) => {
-    const newSlide: Slide = {
+  const addSlide = useCallback((title = 'New Slide') => {
+    const newSlide: BoardSlide = {
       id: `slide-${Date.now()}`,
-      title: `Slide ${slides.length + 1}`,
+      title,
       elements: [],
-      createdAt: new Date(),
-      ...slideData
+      createdAt: new Date()
     };
     
-    setSlides(prev => [...prev, newSlide]);
-    setCurrentSlide(slides.length);
-    setElements([]);
-    
+    setBoardSlides(prev => [...prev, newSlide]);
+    setCurrentSlide(boardSlides.length);
     toast.success('New slide added');
-  }, [slides.length]);
+  }, [boardSlides.length]);
 
   const setCurrentSlideHandler = useCallback((slideIndex: number) => {
-    if (slideIndex >= 0 && slideIndex < slides.length) {
-      // Save current slide elements
-      setSlides(prev => prev.map((slide, index) => 
-        index === currentSlide 
-          ? { ...slide, elements }
-          : slide
-      ));
-      
-      // Load new slide elements
+    if (slideIndex >= 0 && slideIndex < boardSlides.length) {
       setCurrentSlide(slideIndex);
-      setElements(slides[slideIndex]?.elements || []);
-      setSelectedElements([]);
+      setElements(boardSlides[slideIndex].elements);
     }
-  }, [currentSlide, elements, slides]);
+  }, [boardSlides]);
 
   // Comments
   const addComment = useCallback((x: number, y: number, content: string) => {
@@ -316,7 +312,7 @@ export function useCanvaStyleBoard(roomId: string, currentUser: { id: string; na
   const exportBoard = useCallback(async () => {
     // In a real implementation, this would render the canvas to PNG/SVG/PDF
     const boardData = {
-      slides: slides.map((slide, index) => ({
+      boardSlides: boardSlides.map((slide, index) => ({
         ...slide,
         elements: index === currentSlide ? elements : slide.elements
       })),
@@ -333,25 +329,40 @@ export function useCanvaStyleBoard(roomId: string, currentUser: { id: string; na
     URL.revokeObjectURL(url);
     
     toast.success('Board exported');
-  }, [slides, currentSlide, elements, currentUser.id]);
+  }, [boardSlides, currentSlide, elements, currentUser.id]);
 
   // Import
   const importContent = useCallback((data: any) => {
     // Handle imported content
-    if (data.slides) {
-      setSlides(data.slides);
+    if (data.boardSlides) {
+      setBoardSlides(data.boardSlides);
       setCurrentSlide(0);
-      setElements(data.slides[0]?.elements || []);
+      setElements(data.boardSlides[0]?.elements || []);
     }
     
     toast.success('Content imported');
   }, []);
 
   return {
+    // Board state
     elements,
     selectedElements,
+    activeTool,
+    setActiveTool,
+    color,
+    setColor,
+    zoom,
+    setZoom,
+    showGrid,
+    setShowGrid,
+    
+    // Slides
+    boardSlides,
+    slidesPanel,
+    setSlidesPanel,
     currentSlide,
-    slides,
+    
+    // Collaboration
     cursors,
     comments,
     addElement,

@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-interface Slide {
+export interface Slide {
   id: string;
   title: string;
   type: 'upload' | 'embed' | 'canva' | 'generated';
