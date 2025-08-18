@@ -6,6 +6,7 @@ import { EnhancedWhiteboardToolbar } from "@/components/classroom/whiteboard/Enh
 import { EnhancedContentLibrary } from "./EnhancedContentLibrary";
 import { EnhancedUploadDialog } from "./EnhancedUploadDialog";
 import { FilePreviewModal } from "./FilePreviewModal";
+import { LessonSlideViewer } from "./LessonSlideViewer";
 import { useEnhancedContentManager } from "./useEnhancedContentManager";
 import { ContentItem } from "./types";
 import { SoundButton } from "@/components/ui/sound-button";
@@ -42,6 +43,8 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
   const [strokeWidth, setStrokeWidth] = useState(3);
   const [activeShape, setActiveShape] = useState<"rectangle" | "circle">("rectangle");
   const [embeddedContent, setEmbeddedContent] = useState<EmbeddedContent[]>([]);
+  const [currentLessonSlides, setCurrentLessonSlides] = useState<any[]>([]);
+  const [currentLessonTitle, setCurrentLessonTitle] = useState("");
   
   // Debug embedded content changes
   React.useEffect(() => {
@@ -518,11 +521,10 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
     
     if (isCurriculumContent) {
       if ((anyItem as any).slides && (anyItem as any).slides.length > 0) {
-        const pseudoLesson: any = {
-          title: item.title,
-          slides_content: { slides: (anyItem as any).slides, version: '2.0' }
-        };
-        contentUrl = `data:text/html;charset=utf-8,${encodeURIComponent(generateLessonSlidesHTML(pseudoLesson))}`;
+        setCurrentLessonSlides((anyItem as any).slides);
+        setCurrentLessonTitle(item.title);
+        setActiveTab('slides');
+        return;
       } else {
       const html = `
         <!DOCTYPE html>
@@ -1015,7 +1017,11 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
 
       <div className="flex-1 p-1 min-h-0">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-          <TabsList className="grid w-full grid-cols-3 mb-1 bg-white/80 backdrop-blur-sm h-8">
+          <TabsList className="grid w-full grid-cols-4 mb-1 bg-white/80 backdrop-blur-sm h-8">
+            <TabsTrigger value="slides" className="flex items-center gap-1 text-xs">
+              <BookOpen size={12} />
+              Slides
+            </TabsTrigger>
             <TabsTrigger value="whiteboard" className="flex items-center gap-1 text-xs">
               <PenTool size={12} />
               Whiteboard
@@ -1029,6 +1035,16 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
               Content Library
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="slides" className="flex-1 min-h-0">
+            <div className="h-full">
+              <LessonSlideViewer 
+                slides={currentLessonSlides}
+                title={currentLessonTitle}
+                className="h-full"
+              />
+            </div>
+          </TabsContent>
 
           <TabsContent value="whiteboard" className="flex-1 flex flex-col space-y-1 min-h-0">
             <div className="flex-shrink-0">
@@ -1044,14 +1060,16 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
                 onAddEmbeddedContent={handleAddEmbeddedContent}
               />
             </div>
-            <div className="flex-1 min-h-0" style={{ minHeight: '600px' }}>
-              <EnhancedWhiteboardCanvas
-                activeTool={activeTool}
-                color={color}
-                strokeWidth={strokeWidth}
-                embeddedContent={embeddedContent}
-                onRemoveEmbeddedContent={handleRemoveEmbeddedContent}
-              />
+            <div className="flex-1 min-h-0 overflow-hidden">
+              <div className="h-full overflow-y-auto" style={{ minHeight: '800px' }}>
+                <EnhancedWhiteboardCanvas
+                  activeTool={activeTool}
+                  color={color}
+                  strokeWidth={strokeWidth}
+                  embeddedContent={embeddedContent}
+                  onRemoveEmbeddedContent={handleRemoveEmbeddedContent}
+                />
+              </div>
             </div>
           </TabsContent>
 
