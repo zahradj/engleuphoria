@@ -148,7 +148,7 @@ const StudentDashboard = () => {
   return (
     <ErrorBoundary>
       <SidebarProvider defaultOpen={false}>
-        <div className="min-h-screen bg-gray-50 w-full">
+        <div className="min-h-screen bg-primary-50 w-full">
           <StudentHeader 
             studentName={studentName} 
             studentId={studentId} 
@@ -162,7 +162,7 @@ const StudentDashboard = () => {
               hasProfile={hasProfile}
               onLogout={handleLogout}
             />
-            <main className="flex-1 p-6">
+            <main className="flex-1 p-6 bg-gradient-to-br from-primary-50 via-accent-50 to-primary-100">
               <div className="mb-4">
                 <SidebarTrigger />
               </div>

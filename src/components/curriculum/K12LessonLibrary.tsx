@@ -1,0 +1,207 @@
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { 
+  BookOpen, 
+  Search, 
+  Play, 
+  Clock, 
+  Target, 
+  Brain,
+  Users,
+  Star
+} from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+
+interface K12LessonLibraryProps {
+  onSelectLesson?: (lesson: any) => void;
+  isClassroomMode?: boolean;
+}
+
+export const K12LessonLibrary: React.FC<K12LessonLibraryProps> = ({
+  onSelectLesson,
+  isClassroomMode = false
+}) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedLevel, setSelectedLevel] = useState('all');
+
+  const { data: lessons, isLoading } = useQuery({
+    queryKey: ['k12-lessons'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('systematic_lessons')
+        .select('*, curriculum_levels(name, cefr_level)')
+        .not('status', 'eq', 'archived')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  const filteredLessons = lessons?.filter(lesson => {
+    const matchesSearch = searchTerm === '' || 
+      lesson.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      lesson.topic?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesLevel = selectedLevel === 'all' || 
+      lesson.curriculum_levels?.cefr_level === selectedLevel;
+    
+    return matchesSearch && matchesLevel;
+  }) || [];
+
+  const levels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+
+  const getLevelColor = (level: string) => {
+    const colors = {
+      A1: 'bg-emerald-100 text-emerald-700',
+      A2: 'bg-blue-100 text-blue-700',
+      B1: 'bg-amber-100 text-amber-700',
+      B2: 'bg-orange-100 text-orange-700',
+      C1: 'bg-red-100 text-red-700',
+      C2: 'bg-purple-100 text-purple-700'
+    };
+    return colors[level as keyof typeof colors] || 'bg-neutral-100 text-neutral-700';
+  };
+
+  if (isLoading) {
+    return (
+      <div className="p-8 text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+        <p className="text-muted-foreground">Loading K12 lessons...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <Brain className="h-6 w-6 text-primary" />
+            K12 Curriculum Library
+          </h2>
+          <p className="text-muted-foreground">
+            {filteredLessons.length} interactive lessons for young learners
+          </p>
+        </div>
+        <Badge variant="secondary" className="bg-primary/10 text-primary">
+          {lessons?.length || 0} Total Lessons
+        </Badge>
+      </div>
+
+      {/* Search and Filters */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex-1">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              placeholder="Search lessons by title or topic..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
+        <select
+          value={selectedLevel}
+          onChange={(e) => setSelectedLevel(e.target.value)}
+          className="px-3 py-2 border rounded-md bg-background text-foreground"
+        >
+          <option value="all">All Levels</option>
+          {levels.map(level => (
+            <option key={level} value={level}>{level}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Lessons Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredLessons.map((lesson) => (
+          <Card key={lesson.id} className="hover:shadow-md transition-shadow">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <CardTitle className="text-lg line-clamp-2">
+                    {lesson.title}
+                  </CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {lesson.topic}
+                  </p>
+                </div>
+                {lesson.curriculum_levels?.cefr_level && (
+                  <Badge className={`ml-2 ${getLevelColor(lesson.curriculum_levels.cefr_level)}`}>
+                    {lesson.curriculum_levels.cefr_level}
+                  </Badge>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {/* Lesson Details */}
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-1 text-muted-foreground">
+                    <Clock className="h-4 w-4" />
+                    <span>{lesson.estimated_duration || 30} min</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-muted-foreground">
+                    <Target className="h-4 w-4" />
+                    <span>Level {lesson.difficulty_level || 1}</span>
+                  </div>
+                </div>
+
+                {/* Learning Objective */}
+                {lesson.learning_objective && (
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {lesson.learning_objective}
+                  </p>
+                )}
+
+                {/* Communication Outcome */}
+                {lesson.communication_outcome && (
+                  <div className="flex items-start gap-2 text-sm">
+                    <Users className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                    <p className="text-muted-foreground line-clamp-2">
+                      {lesson.communication_outcome}
+                    </p>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex gap-2 pt-2">
+                  <Button 
+                    onClick={() => onSelectLesson?.(lesson)} 
+                    size="sm" 
+                    className="flex-1"
+                  >
+                    <Play className="h-4 w-4 mr-1" />
+                    {isClassroomMode ? 'Start Lesson' : 'View Lesson'}
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <BookOpen className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {filteredLessons.length === 0 && (
+        <div className="text-center py-12">
+          <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">No lessons found</h3>
+          <p className="text-muted-foreground">
+            {searchTerm || selectedLevel !== 'all'
+              ? 'Try adjusting your search criteria'
+              : 'Lessons will appear here once generated'
+            }
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};

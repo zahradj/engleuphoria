@@ -24,7 +24,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { SystematicLessonsLibrary } from '@/components/curriculum/SystematicLessonsLibrary';
-import CurriculumGeneration from '@/pages/CurriculumGeneration';
+import { K12LessonLibrary } from '@/components/curriculum/K12LessonLibrary';
 
 interface EnhancedContentLibraryProps {
   contentItems: any[];
@@ -361,7 +361,10 @@ export function EnhancedContentLibrary({
 
         <TabsContent value="k12-curriculum" className="flex-1 min-h-0">
           <div className="h-full p-4">
-            <CurriculumGeneration />
+            <K12LessonLibrary 
+              onSelectLesson={onSelectContent}
+              isClassroomMode={true}
+            />
           </div>
         </TabsContent>
 
