@@ -32,7 +32,6 @@ import AboutUs from "./pages/AboutUs";
 import CurriculumLibrary from "./pages/CurriculumLibrary";
 import NewPricingPage from "./pages/NewPricingPage";
 import PlacementTest from "./pages/PlacementTest";
-import CurriculumGeneration from "./pages/CurriculumGeneration";
 
 const queryClient = new QueryClient();
 
@@ -67,7 +66,6 @@ const App = () => (
               <Route path="/curriculum-library" element={<CurriculumLibrary />} />
               <Route path="/pricing" element={<NewPricingPage />} />
               <Route path="/placement-test" element={<PlacementTest />} />
-              <Route path="/curriculum-generation" element={<CurriculumGeneration />} />
 
               {/* Protected Routes */}
               <Route path="/student" element={

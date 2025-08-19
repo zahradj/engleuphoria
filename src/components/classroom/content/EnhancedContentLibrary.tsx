@@ -24,6 +24,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { SystematicLessonsLibrary } from '@/components/curriculum/SystematicLessonsLibrary';
+import CurriculumGeneration from '@/pages/CurriculumGeneration';
 
 interface EnhancedContentLibraryProps {
   contentItems: any[];
@@ -182,10 +183,14 @@ export function EnhancedContentLibrary({
           </div>
           </div>
 
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="systematic" className="flex items-center gap-2">
               <Sparkles size={16} />
               Systematic Lessons
+            </TabsTrigger>
+            <TabsTrigger value="k12-curriculum" className="flex items-center gap-2">
+              <Brain size={16} />
+              K12 Curriculum
             </TabsTrigger>
             <TabsTrigger value="browse" className="flex items-center gap-2">
               <Search size={16} />
@@ -351,6 +356,12 @@ export function EnhancedContentLibrary({
               onOpenInClassroom={onAddToWhiteboard}
               isClassroomMode={true}
             />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="k12-curriculum" className="flex-1 min-h-0">
+          <div className="h-full p-4">
+            <CurriculumGeneration />
           </div>
         </TabsContent>
 
