@@ -9,41 +9,41 @@
   :root {
     /* Custom K12 Color System */
     
-    /* Primary Ramp - Warm Cream (#F3E2D4) */
-    --primary-50: 25 50% 97%;    /* Lightest cream */
-    --primary-100: 25 45% 93%;   /* Very light cream */
-    --primary-200: 25 40% 89%;   /* Light cream - base #F3E2D4 */
-    --primary-300: 25 35% 82%;   /* Medium cream */
-    --primary-400: 25 30% 75%;   /* Darker cream */
-    --primary-500: 25 25% 68%;   /* Deep cream */
-    --primary-600: 25 20% 61%;   /* Deeper cream */
-    --primary-700: 25 18% 54%;   /* Dark cream */
-    --primary-800: 25 15% 47%;   /* Very dark cream */
-    --primary-900: 25 12% 35%;   /* Darkest cream */
+    /* Primary Ramp - Rich Warm Brown */
+    --primary-50: 25 40% 95%;    /* Lightest cream */
+    --primary-100: 25 38% 90%;   /* Very light cream */
+    --primary-200: 25 35% 82%;   /* Light cream */
+    --primary-300: 25 32% 72%;   /* Medium cream */
+    --primary-400: 25 30% 62%;   /* Darker cream */
+    --primary-500: 25 28% 52%;   /* Deep warm brown */
+    --primary-600: 25 30% 42%;   /* Deeper brown */
+    --primary-700: 25 32% 32%;   /* Dark brown */
+    --primary-800: 25 35% 25%;   /* Very dark brown */
+    --primary-900: 25 40% 18%;   /* Darkest brown */
 
-    /* Accent Ramp - Soft Lavender (#C5B0CD) */
-    --accent-50: 290 30% 97%;    /* Lightest lavender */
-    --accent-100: 290 25% 93%;   /* Very light lavender */
-    --accent-200: 290 20% 86%;   /* Light lavender - base #C5B0CD */
-    --accent-300: 290 18% 79%;   /* Medium lavender */
-    --accent-400: 290 16% 72%;   /* Darker lavender */
-    --accent-500: 290 14% 65%;   /* Deep lavender */
-    --accent-600: 290 12% 58%;   /* Deeper lavender */
-    --accent-700: 290 10% 51%;   /* Dark lavender */
-    --accent-800: 290 8% 44%;    /* Very dark lavender */
-    --accent-900: 290 6% 32%;    /* Darkest lavender */
+    /* Accent Ramp - Rich Purple */
+    --accent-50: 290 45% 95%;    /* Lightest lavender */
+    --accent-100: 290 40% 88%;   /* Very light lavender */
+    --accent-200: 290 35% 78%;   /* Light lavender */
+    --accent-300: 290 32% 68%;   /* Medium lavender */
+    --accent-400: 290 30% 58%;   /* Darker lavender */
+    --accent-500: 290 28% 48%;   /* Deep purple */
+    --accent-600: 290 30% 38%;   /* Deeper purple */
+    --accent-700: 290 32% 28%;   /* Dark purple */
+    --accent-800: 290 35% 22%;   /* Very dark purple */
+    --accent-900: 290 40% 16%;   /* Darkest purple */
 
-    /* Neutral System - Blue-Gray (#415E72) */
-    --neutral-50: 207 20% 96%;   /* Lightest blue-gray */
-    --neutral-100: 207 18% 92%;  /* Very light blue-gray */
-    --neutral-200: 207 16% 85%;  /* Light blue-gray */
-    --neutral-300: 207 14% 75%;  /* Medium blue-gray */
-    --neutral-400: 207 12% 65%;  /* Darker blue-gray */
-    --neutral-500: 207 25% 35%;  /* Base blue-gray - #415E72 */
-    --neutral-600: 207 27% 30%;  /* Deeper blue-gray */
-    --neutral-700: 207 35% 18%;  /* Very dark blue-gray - #17313E */
-    --neutral-800: 207 40% 15%;  /* Darker navy */
-    --neutral-900: 207 45% 12%;  /* Darkest navy */
+    /* Neutral System - Rich Blue-Gray */
+    --neutral-50: 207 25% 96%;   /* Lightest blue-gray */
+    --neutral-100: 207 22% 90%;  /* Very light blue-gray */
+    --neutral-200: 207 20% 82%;  /* Light blue-gray */
+    --neutral-300: 207 18% 70%;  /* Medium blue-gray */
+    --neutral-400: 207 16% 58%;  /* Darker blue-gray */
+    --neutral-500: 207 30% 42%;  /* Rich blue-gray */
+    --neutral-600: 207 35% 32%;  /* Deeper blue-gray */
+    --neutral-700: 207 40% 22%;  /* Dark blue-gray */
+    --neutral-800: 207 45% 16%;  /* Very dark blue-gray */
+    --neutral-900: 207 50% 12%;  /* Darkest navy */
 
     /* Semantic Tokens */
     --bg: var(--neutral-50);
