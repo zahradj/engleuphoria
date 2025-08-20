@@ -3,6 +3,7 @@ export interface Media {
   url: string;
   alt?: string;
   autoplay?: boolean;
+  imagePrompt?: string;
 }
 
 export interface Option {
@@ -30,15 +31,22 @@ export interface Slide {
 
 export type SlideType = 
   | 'warmup'
+  | 'vocabulary_preview'
   | 'target_language'
+  | 'listening_comprehension'
   | 'sentence_builder'
   | 'pronunciation_shadow'
+  | 'grammar_focus'
   | 'accuracy_mcq'
   | 'transform'
   | 'error_fix'
+  | 'picture_description'
+  | 'controlled_practice'
   | 'micro_input'
+  | 'roleplay_setup'
   | 'communicative_task'
   | 'fluency_sprint'
+  | 'review_consolidation'
   | 'exit_check'
   | 'picture_choice'
   | 'labeling'
@@ -49,6 +57,7 @@ export interface LessonSlides {
   theme: 'mist-blue' | 'sage-sand' | 'default';
   slides: Slide[];
   durationMin: number;
+  total_slides?: number;
   metadata: {
     CEFR: string;
     module: number;

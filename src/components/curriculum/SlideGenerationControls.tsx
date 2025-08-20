@@ -43,10 +43,10 @@ export function SlideGenerationControls({ onSlidesGenerated }: SlideGenerationCo
         errors: []
       });
 
-      toast({
-        title: "Starting Slide Generation",
-        description: "Creating interactive slides for all content library lessons...",
-      });
+        toast({
+          title: "Starting 20-Slide Generation",
+          description: "Creating comprehensive 20-slide lessons with AI-generated images...",
+        });
 
       const { data, error } = await supabase.functions.invoke('ai-slide-generator', {
         body: { batch_generate: true }
@@ -66,8 +66,8 @@ export function SlideGenerationControls({ onSlidesGenerated }: SlideGenerationCo
         } : null);
 
         toast({
-          title: "Slides Generated Successfully! 🎉",
-          description: `Created interactive slides for ${data.generated_count} lessons with gamified activities.`,
+          title: "20-Slide Lessons Generated Successfully! 🎉",
+          description: `Created ${data.generated_count * 20} slides with AI-generated images for ${data.generated_count} lessons.`,
         });
 
         onSlidesGenerated?.();
@@ -122,13 +122,13 @@ export function SlideGenerationControls({ onSlidesGenerated }: SlideGenerationCo
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Presentation className="h-5 w-5 text-primary" />
-          Interactive Slide Generator
+          20-Slide AI Lesson Generator
           <Badge variant="secondary" className="bg-primary/10 text-primary">
-            AI-Powered
+            OpenAI Enhanced
           </Badge>
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          Generate beautiful, interactive slides for all Content Library lessons with gamified activities and Engleuphoria branding.
+          Generate comprehensive 20-slide interactive lessons with OpenAI-generated images, gamified activities, and rich educational content.
         </p>
       </CardHeader>
 
@@ -138,15 +138,15 @@ export function SlideGenerationControls({ onSlidesGenerated }: SlideGenerationCo
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="flex items-center gap-2 text-sm">
                 <PlayCircle className="h-4 w-4 text-green-600" />
-                <span>10 Interactive Slides per Lesson</span>
+                <span>20 Interactive Slides per Lesson</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <Zap className="h-4 w-4 text-yellow-600" />
-                <span>3 Gamified Activities</span>
+                <span>AI-Generated Images</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <Sparkles className="h-4 w-4 text-purple-600" />
-                <span>Speaking & Review Sections</span>
+                <span>Comprehensive Activities</span>
               </div>
             </div>
 
@@ -157,7 +157,7 @@ export function SlideGenerationControls({ onSlidesGenerated }: SlideGenerationCo
               size="lg"
             >
               <Presentation className="h-4 w-4 mr-2" />
-              Generate Slides for All Lessons
+              Generate 20-Slide Lessons for All
             </Button>
           </div>
         )}
@@ -166,7 +166,7 @@ export function SlideGenerationControls({ onSlidesGenerated }: SlideGenerationCo
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
-              <span className="text-sm font-medium">Generating interactive slides...</span>
+              <span className="text-sm font-medium">Generating 20-slide lessons with AI images...</span>
             </div>
             
             <Progress value={progress} className="w-full" />
@@ -201,15 +201,15 @@ export function SlideGenerationControls({ onSlidesGenerated }: SlideGenerationCo
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-300">
-                  {generationStatus.completed * 10} Slides
+                  {generationStatus.completed * 20} Slides
                 </Badge>
                 <span>Total Slides</span>
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300">
-                  {generationStatus.completed * 3} Activities
+                  {generationStatus.completed * 15} Images
                 </Badge>
-                <span>Gamified Elements</span>
+                <span>AI Generated</span>
               </div>
             </div>
 
@@ -248,7 +248,7 @@ export function SlideGenerationControls({ onSlidesGenerated }: SlideGenerationCo
         <div className="pt-4 border-t border-border/50">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Clock className="h-3 w-3" />
-            <span>Generation time: ~2-3 minutes per lesson</span>
+            <span>Generation time: ~5-8 minutes per 20-slide lesson</span>
           </div>
         </div>
       </CardContent>

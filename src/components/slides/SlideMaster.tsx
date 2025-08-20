@@ -4,53 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ChevronLeft, ChevronRight, Volume2, CheckCircle, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-export interface Media {
-  type: 'image' | 'video' | 'audio';
-  url: string;
-  alt?: string;
-  autoplay?: boolean;
-}
-
-export interface Option {
-  id: string;
-  text: string;
-  image?: string;
-  isCorrect?: boolean;
-}
-
-export interface Slide {
-  id: string;
-  type: 'warmup' | 'target_language' | 'sentence_builder' | 'pronunciation_shadow' | 'accuracy_mcq' | 'transform' | 'error_fix' | 'micro_input' | 'communicative_task' | 'fluency_sprint' | 'exit_check' | 'picture_choice' | 'labeling' | 'tpr_phonics';
-  prompt: string;
-  instructions?: string;
-  media?: Media;
-  options?: Option[];
-  correct?: string | string[];
-  timeLimit?: number;
-  accessibility?: {
-    screenReaderText?: string;
-    highContrast?: boolean;
-    largeText?: boolean;
-  };
-}
-
-export interface LessonSlides {
-  version: '2.0';
-  theme: 'mist-blue' | 'sage-sand' | 'default';
-  slides: Slide[];
-  durationMin: number;
-  metadata: {
-    CEFR: string;
-    module: number;
-    lesson: number;
-    targets: string[];
-    weights: {
-      accuracy: number;
-      fluency: number;
-    };
-  };
-}
+import { Media, Option, Slide, LessonSlides } from '@/types/slides';
 
 export interface SlideMasterProps {
   slide: Slide;

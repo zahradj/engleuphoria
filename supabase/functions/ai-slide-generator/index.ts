@@ -61,9 +61,9 @@ async function generateSlidesForAllContent(supabase: any) {
       .or('slides_content.is.null,slides_content->slides->0.is.null')
       .limit(50); // Process in batches to avoid timeouts
     
-    // Filter for lessons that need longer slide decks
+    // Filter for lessons that need longer slide decks (20 slides minimum)
     const needsUpgrade = contentItems?.filter(item => 
-      !item.slides_content?.slides || item.slides_content.slides.length < 12
+      !item.slides_content?.slides || item.slides_content.slides.length < 20
     ) || [];
 
     if (error) {
@@ -74,20 +74,20 @@ async function generateSlidesForAllContent(supabase: any) {
       return new Response(
         JSON.stringify({
           success: true,
-          message: 'All lessons already have long interactive slide decks',
+          message: 'All lessons already have 20+ interactive slide decks',
           generated_count: 0
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`📚 Found ${needsUpgrade.length} lessons need slide upgrades (from ${contentItems.length} total)`);
+    console.log(`📚 Found ${needsUpgrade.length} lessons need slide upgrades to 20 slides (from ${contentItems.length} total)`);
 
     let successCount = 0;
     const errors = [];
 
     // Process items in smaller batches to avoid rate limits
-    const batchSize = 3; // Smaller batches for longer generation
+    const batchSize = 2; // Smaller batches for 20-slide generation
     for (let i = 0; i < needsUpgrade.length; i += batchSize) {
       const batch = needsUpgrade.slice(i, i + batchSize);
       console.log(`🔄 Processing batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(needsUpgrade.length/batchSize)}`);
@@ -115,13 +115,13 @@ async function generateSlidesForAllContent(supabase: any) {
 
       await Promise.all(batchPromises);
       
-      // Longer delay between batches for complex generation
+      // Longer delay between batches for 20-slide generation
       if (i + batchSize < needsUpgrade.length) {
-        await new Promise(resolve => setTimeout(resolve, 4000));
+        await new Promise(resolve => setTimeout(resolve, 6000));
       }
     }
 
-    console.log(`🎉 Slide upgrade complete! Generated slides for ${successCount}/${needsUpgrade.length} lessons.`);
+    console.log(`🎉 Slide upgrade complete! Generated 20-slide decks for ${successCount}/${needsUpgrade.length} lessons.`);
 
     return new Response(
       JSON.stringify({
@@ -130,7 +130,7 @@ async function generateSlidesForAllContent(supabase: any) {
         total_processed: needsUpgrade.length,
         total_lessons_checked: contentItems.length,
         errors: errors,
-        message: `Successfully upgraded ${successCount} lessons with long interactive slide decks`
+        message: `Successfully upgraded ${successCount} lessons with 20-slide interactive decks`
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -205,7 +205,7 @@ LESSON DETAILS:
 - CEFR Level: ${cefrLevel}
 - Age Group: ${ageGroup}
 - Grammar Focus: ${contentItem.grammar_focus || 'Sentence Building'}
-- Duration: ${contentItem.estimated_duration || 30} minutes
+- Duration: ${contentItem.estimated_duration || 45} minutes
 - Vocabulary: ${JSON.stringify(contentItem.vocabulary_set || [])}
 - Target Sentences: ${JSON.stringify(contentItem.lesson_objectives || [])}
 
@@ -213,22 +213,38 @@ CRITICAL: Follow the "Placement Test – Daily Routine" slide style exactly:
 - Large tap targets (minimum 44px)
 - Picture-led activities for early ages
 - Clear, simple language
-- Child-safe imagery
+- Child-safe imagery with OpenAI-generated image prompts
 - Calm, encouraging feedback
 
-CREATE EXACTLY 10-12 SLIDES following this blueprint:
-1. Warmup (fluency spark): Picture talk or quick Q&A (60-90s)
-2. Target Language (pattern focus): Form → meaning → use with kid-friendly examples
-3. Sentence Builder: Drag chunks/words into order (snap & validate)
-4. Pronunciation/Prosody: Model + shadow (record/playback)
-5. Accuracy Drill: MCQ / transform / error-fix on the target pattern
-6. Controlled Output: Prompt → student produces 4-6 accurate sentences
-7. Micro-input (listen/read): Extract & rebuild key sentences
-8. Communicative Task (1:1): Role-play/story strip; teacher adapts pace
-9. Fluency Sprint: Timed speaking/writing with word bank → full sentences
-10. Exit Check: 2-3 auto-scored items; show sticker/reward
+CREATE EXACTLY 20 SLIDES following this comprehensive blueprint:
+1. Warmup Introduction: Welcome slide with lesson overview
+2. Vocabulary Preview 1: Introduce first set of vocabulary with images
+3. Vocabulary Preview 2: Introduce second set of vocabulary with images  
+4. Target Language Presentation: Form → meaning → use with examples
+5. Listening Comprehension: Audio/visual activity with target language
+6. Sentence Builder 1: Drag words/chunks into correct order
+7. Sentence Builder 2: Advanced sentence construction
+8. Pronunciation Practice: Model + shadow with audio feedback
+9. Grammar Focus: Targeted grammar explanation with examples
+10. Accuracy Drill 1: Multiple choice questions
+11. Accuracy Drill 2: Transform/error-fix exercises
+12. Picture Description: Describe images using target language
+13. Controlled Practice: Guided sentence production
+14. Micro-input Activity: Listen/read and rebuild sentences
+15. Role-play Setup: Communicative task preparation
+16. Role-play Activity: Interactive communication task
+17. Fluency Sprint 1: Timed speaking with word bank
+18. Fluency Sprint 2: Free production with prompts
+19. Review & Consolidation: Summary of key points
+20. Exit Check: Assessment with rewards/achievements
 
-${isEarlyAge ? 'FOR AGES 4-7: Slides 3-4 should be phonics/TPR instead of complex grammar.' : ''}
+${isEarlyAge ? 'FOR AGES 4-7: Include more phonics/TPR activities and visual supports.' : ''}
+
+IMPORTANT: For each slide with media, provide an OpenAI image generation prompt:
+- Use child-friendly, educational imagery
+- Describe scenes relevant to the lesson topic
+- Include diverse characters and settings
+- Ensure age-appropriate content
 
 SENTENCE-BUILDING FOCUS for ${cefrLevel}:
 ${getSentenceBuildingSyllabus(cefrLevel)}
@@ -246,7 +262,8 @@ Return ONLY a valid JSON object with this schema:
       "media": {
         "type": "image|video|audio",
         "url": "placeholder-url",
-        "alt": "Alt text"
+        "alt": "Alt text",
+        "imagePrompt": "Detailed OpenAI image generation prompt"
       },
       "options": [
         {
@@ -265,7 +282,7 @@ Return ONLY a valid JSON object with this schema:
       }
     }
   ],
-  "durationMin": 30,
+  "durationMin": 45,
   "metadata": {
     "CEFR": "${cefrLevel}",
     "module": 1,
@@ -296,7 +313,7 @@ Return ONLY a valid JSON object with this schema:
           content: prompt
         }
       ],
-      max_completion_tokens: 4000,
+      max_completion_tokens: 8000,
     }),
   });
 
@@ -314,11 +331,27 @@ Return ONLY a valid JSON object with this schema:
   try {
     const slidesData = JSON.parse(content);
     
+    // Generate images for slides with image prompts
+    if (slidesData.slides) {
+      for (const slide of slidesData.slides) {
+        if (slide.media?.imagePrompt && slide.media.type === 'image') {
+          try {
+            const imageUrl = await generateSlideImage(slide.media.imagePrompt);
+            slide.media.url = imageUrl;
+          } catch (imageError) {
+            console.error('Failed to generate image for slide:', slide.id, imageError);
+            // Keep placeholder URL if image generation fails
+          }
+        }
+      }
+    }
+    
     // Validate and enhance slides data
     return {
       ...slidesData,
       generated_at: new Date().toISOString(),
-      generated_by: 'ai-slide-generator-k12-v2.0'
+      generated_by: 'ai-slide-generator-k12-v3.0',
+      total_slides: slidesData.slides?.length || 0
     };
   } catch (parseError) {
     console.error('JSON parse error:', parseError);
@@ -345,4 +378,44 @@ function getSentenceBuildingSyllabus(cefrLevel: string): string {
   };
   
   return syllabus[cefrLevel as keyof typeof syllabus] || syllabus['A1'];
+}
+
+async function generateSlideImage(imagePrompt: string): Promise<string> {
+  console.log('🎨 Generating image with prompt:', imagePrompt);
+  
+  try {
+    const response = await fetch('https://api.openai.com/v1/images/generations', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openaiApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-image-1',
+        prompt: `Educational illustration for children: ${imagePrompt}. Style: Clean, colorful, child-friendly cartoon illustration with soft colors and diverse characters.`,
+        n: 1,
+        size: '1024x1024',
+        quality: 'high',
+        response_format: 'b64_json'
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`OpenAI Image API error: ${response.status} - ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    const base64Image = data.data[0]?.b64_json;
+    
+    if (!base64Image) {
+      throw new Error('No image data received from OpenAI');
+    }
+
+    // Return data URL for direct use
+    return `data:image/png;base64,${base64Image}`;
+    
+  } catch (error) {
+    console.error('Error generating image:', error);
+    throw error;
+  }
 }
