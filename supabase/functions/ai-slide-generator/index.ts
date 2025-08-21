@@ -209,36 +209,106 @@ LESSON DETAILS:
 - Vocabulary: ${JSON.stringify(contentItem.vocabulary_set || [])}
 - Target Sentences: ${JSON.stringify(contentItem.lesson_objectives || [])}
 
-CRITICAL REQUIREMENT: ${force20Slides ? 'GENERATE EXACTLY 20 SLIDES - THIS IS MANDATORY!' : 'Generate 8-12 interactive slides'}
+CRITICAL REQUIREMENT: ${force20Slides ? 'GENERATE EXACTLY 22 SLIDES - THIS IS MANDATORY FOR SYSTEMATIC CURRICULUM!' : 'Generate 8-12 interactive slides'}
 
-CRITICAL: Follow the "Placement Test – Daily Routine" slide style exactly:
-- Large tap targets (minimum 44px)
-- Picture-led activities for early ages
-- Clear, simple language
-- Child-safe imagery with OpenAI-generated image prompts
-- Calm, encouraging feedback
+SYSTEMATIC CURRICULUM DESIGN PRINCIPLES:
+- Balance all 5 core skills: Grammar, Reading, Writing, Listening, Speaking
+- Accuracy AND Fluency development in every lesson
+- Interactive, gamified elements throughout
+- Real-life communication focus
+- Step-by-step skill progression
+- Clear learning objectives and outcomes
+- Assessment and review components
 
-${force20Slides ? `CREATE EXACTLY 20 SLIDES following this comprehensive blueprint:` : `CREATE 8-12 SLIDES including:`}
-1. Warmup Introduction: Welcome slide with lesson overview (type: "warmup")
-2. Vocabulary Preview 1: Introduce first set of vocabulary with images (type: "vocabulary_preview")
-3. Vocabulary Preview 2: Introduce second set of vocabulary with images (type: "vocabulary_preview")
-4. Target Language Presentation: Form → meaning → use with examples (type: "target_language")
-5. Listening Comprehension: Audio/visual activity with target language (type: "listening_comprehension")
-6. Sentence Builder 1: Drag words/chunks into correct order (type: "sentence_builder")
-7. Sentence Builder 2: Advanced sentence construction (type: "sentence_builder")
-8. Pronunciation Practice: Model + shadow with audio feedback (type: "pronunciation_shadow" or "tpr_phonics" for Pre-A1)
-9. Grammar Focus: Targeted grammar explanation with examples (type: "grammar_focus")
-10. Accuracy Drill 1: Multiple choice questions (type: "accuracy_mcq")
-11. Accuracy Drill 2: Transform/error-fix exercises (type: "transform" or "error_fix")
-12. Picture Description: Describe images using target language (type: "picture_description")
-13. Controlled Practice: Guided sentence production (type: "controlled_practice")
-14. Controlled Output: 4-6 sentences writing task (type: "controlled_output")
-15. Micro-input Activity: Listen/read and rebuild sentences (type: "micro_input")
-16. Role-play Setup: Communicative task preparation (type: "roleplay_setup")
-17. Role-play Activity: Interactive communication task (type: "communicative_task")
-18. Fluency Sprint 1: Timed speaking with word bank (type: "fluency_sprint")
-19. Fluency Sprint 2: Free production with prompts (type: "fluency_sprint")
-20. Exit Check: Assessment with autoscore & sticker rewards (type: "exit_check")
+${force20Slides ? `CREATE EXACTLY 22 SLIDES following this SYSTEMATIC CURRICULUM blueprint:` : `CREATE 8-12 SLIDES including:`}
+
+SLIDE 1: Welcome & Objectives (type: "warmup")
+- Lesson title, learning objectives, communication outcomes
+- Preview of skills covered (grammar, vocabulary, communication)
+
+SLIDE 2: Vocabulary Preview 1 (type: "vocabulary_preview") 
+- Introduce first 4-6 key vocabulary items with images
+- Interactive matching or drag-drop activity
+
+SLIDE 3: Vocabulary Preview 2 (type: "vocabulary_preview")
+- Introduce remaining vocabulary with context sentences
+- Picture choice or labeling activity
+
+SLIDE 4: Target Language Introduction (type: "target_language")
+- Present main grammar/language focus with clear examples
+- Form → Meaning → Use progression
+
+SLIDE 5: Listening for Gist (type: "listening_comprehension")
+- Audio activity for general understanding
+- Multiple choice or true/false questions
+
+SLIDE 6: Listening for Detail (type: "listening_comprehension") 
+- Same audio, focus on specific information
+- Gap-fill or ordering activity
+
+SLIDE 7: Sentence Builder 1 (type: "sentence_builder")
+- Drag words to create target sentences
+- Focus on accuracy and word order
+
+SLIDE 8: Sentence Builder 2 (type: "sentence_builder")
+- More complex sentence construction
+- Multiple sentence patterns
+
+SLIDE 9: Pronunciation & Fluency (type: "pronunciation_shadow")
+- Model pronunciation with audio
+- Shadowing and repetition exercises
+
+SLIDE 10: Grammar Focus (type: "grammar_focus")
+- Explicit grammar instruction with examples
+- Rule explanation and pattern recognition
+
+SLIDE 11: Accuracy Check 1 (type: "accuracy_mcq")
+- Multiple choice grammar/vocabulary questions
+- Immediate feedback with explanations
+
+SLIDE 12: Error Correction (type: "error_fix")
+- Find and fix common errors
+- Peer feedback simulation
+
+SLIDE 13: Reading Comprehension (type: "picture_description")
+- Read short text and answer questions
+- Gist and detail comprehension
+
+SLIDE 14: Controlled Writing (type: "controlled_practice")
+- Guided writing with prompts
+- Sentence completion or transformation
+
+SLIDE 15: Free Writing (type: "controlled_output")
+- Creative writing task (4-6 sentences)
+- Use target language in personal context
+
+SLIDE 16: Micro-Input Processing (type: "micro_input")
+- Listen/read and process input quickly
+- Information gap or matching activity
+
+SLIDE 17: Communication Setup (type: "roleplay_setup")
+- Prepare for speaking task
+- Context, roles, and useful phrases
+
+SLIDE 18: Speaking Practice (type: "communicative_task")
+- Role-play or discussion activity
+- Real-life communication scenarios
+
+SLIDE 19: Fluency Challenge 1 (type: "fluency_sprint")
+- Timed speaking with visual prompts
+- Focus on speed and natural flow
+
+SLIDE 20: Fluency Challenge 2 (type: "fluency_sprint")
+- Free speaking task with minimal support
+- Personal expression and creativity
+
+SLIDE 21: Review & Consolidation (type: "review_consolidation")
+- Review key learning points
+- Self-assessment and reflection
+
+SLIDE 22: Exit Assessment (type: "exit_check")
+- Quick assessment of lesson objectives
+- Badge/progress tracking and next steps
 
 ${isEarlyAge ? 'FOR AGES 4-7: Include more phonics/TPR activities and visual supports.' : ''}
 

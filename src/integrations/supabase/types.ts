@@ -1380,6 +1380,54 @@ export type Database = {
           },
         ]
       }
+      content_generation_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_details: string | null
+          failed_items: number
+          id: string
+          job_type: string
+          metadata: Json
+          processed_items: number
+          progress_percentage: number
+          started_at: string | null
+          status: string
+          total_items: number
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_details?: string | null
+          failed_items?: number
+          id?: string
+          job_type: string
+          metadata?: Json
+          processed_items?: number
+          progress_percentage?: number
+          started_at?: string | null
+          status?: string
+          total_items?: number
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_details?: string | null
+          failed_items?: number
+          id?: string
+          job_type?: string
+          metadata?: Json
+          processed_items?: number
+          progress_percentage?: number
+          started_at?: string | null
+          status?: string
+          total_items?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       curriculum_levels: {
         Row: {
           age_group: string

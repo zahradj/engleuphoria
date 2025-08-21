@@ -50,3 +50,9 @@ verify_jwt = true
 
 [functions.curriculum-generator]
 verify_jwt = true
+
+[functions.ai-systematic-curriculum-batch]
+verify_jwt = false
+
+[functions.k12-curriculum-generator]
+verify_jwt = false
