@@ -264,7 +264,13 @@ export const K12LessonLibrary: React.FC<K12LessonLibraryProps> = ({
                     {/* Action Buttons */}
                     <div className="flex gap-2 pt-2">
                       <Button 
-                        onClick={() => onSelectLesson?.(lesson)} 
+                        onClick={() => onSelectLesson?.({
+                          ...lesson,
+                          type: 'systematic_lesson',
+                          level: lesson.curriculum_levels?.cefr_level,
+                          slides_content: lesson.slides_content,
+                          id: lesson.id
+                        })} 
                         size="sm" 
                         className="flex-1"
                       >

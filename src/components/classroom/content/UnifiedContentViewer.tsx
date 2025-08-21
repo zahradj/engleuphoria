@@ -508,7 +508,7 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
     setEmbeddedContent(prev => prev.filter(content => content.id !== id));
   };
 
-  const handleAddContentToWhiteboard = (item: ContentItem) => {
+  const handleAddContentToWhiteboard = async (item: ContentItem) => {
     console.log('🎯 Adding content to whiteboard:', item);
     
     // Prefer existing URL (from library) then source
@@ -521,11 +521,88 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
     const isCurriculumContent = ['curriculum','lesson','bulk-curriculum','systematic_lesson'].includes(contentType) || contentType === 'html';
     
     if (isCurriculumContent) {
-      if ((anyItem as any).slides && (anyItem as any).slides.length > 0) {
-        setCurrentLessonSlides((anyItem as any).slides);
+      // Check if systematic lesson with slides_content or slides array
+      if (anyItem.slides_content?.slides && anyItem.slides_content.slides.length > 0) {
+        console.log('🎨 Using systematic lesson slides_content with', anyItem.slides_content.slides.length, 'slides');
+        // Embed the multi-slide viewer directly on the whiteboard
+        const lessonContent = {
+          id: `lesson-${Date.now()}`,
+          title: item.title,
+          url: `data:text/html;charset=utf-8,${encodeURIComponent(generateLessonSlidesHTML(anyItem))}`,
+          x: 100,
+          y: 100,
+          width: 1200,
+          height: 800,
+          fileType: 'lesson-slides',
+          originalType: 'systematic_lesson'
+        };
+        setEmbeddedContent(prev => [...prev, lessonContent]);
+        setActiveTab('whiteboard');
+        return;
+      } else if (anyItem.slides && anyItem.slides.length > 0) {
+        console.log('🎨 Using lesson slides array with', anyItem.slides.length, 'slides');
+        setCurrentLessonSlides(anyItem.slides);
         setCurrentLessonTitle(item.title);
         setActiveTab('slides');
         return;
+      } else if (anyItem.id && contentType === 'systematic_lesson') {
+        console.log('🔄 Systematic lesson needs slides generation, id:', anyItem.id);
+        try {
+          // Fetch full lesson data first
+          const { curriculumService } = await import('@/services/curriculumService');
+          const fullLesson = await curriculumService.getSystematicLessonById(anyItem.id);
+          
+          if (fullLesson?.slides_content?.slides && fullLesson.slides_content.slides.length > 0) {
+            console.log('🎨 Found existing slides_content, embedding directly');
+            const lessonContent = {
+              id: `lesson-${Date.now()}`,
+              title: item.title,
+              url: `data:text/html;charset=utf-8,${encodeURIComponent(generateLessonSlidesHTML(fullLesson))}`,
+              x: 100,
+              y: 100,
+              width: 1200,
+              height: 800,
+              fileType: 'lesson-slides',
+              originalType: 'systematic_lesson'
+            };
+            setEmbeddedContent(prev => [...prev, lessonContent]);
+            setActiveTab('whiteboard');
+            return;
+          } else {
+            console.log('🎨 Generating slides for systematic lesson');
+            const { supabase } = await import('@/integrations/supabase/client');
+            const { data, error } = await supabase.functions.invoke('ai-slide-generator', {
+              body: { 
+                content_id: anyItem.id,
+                content_type: 'systematic_lesson',
+                generate_20_slides: true
+              }
+            });
+            
+            if (error) throw error;
+            
+            // Reload and embed
+            const updatedLesson = await curriculumService.getSystematicLessonById(anyItem.id);
+            if (updatedLesson?.slides_content?.slides) {
+              const lessonContent = {
+                id: `lesson-${Date.now()}`,
+                title: item.title,
+                url: `data:text/html;charset=utf-8,${encodeURIComponent(generateLessonSlidesHTML(updatedLesson))}`,
+                x: 100,
+                y: 100,
+                width: 1200,
+                height: 800,
+                fileType: 'lesson-slides',
+                originalType: 'systematic_lesson'
+              };
+              setEmbeddedContent(prev => [...prev, lessonContent]);
+              setActiveTab('whiteboard');
+              return;
+            }
+          }
+        } catch (error) {
+          console.error('❌ Failed to load/generate systematic lesson slides:', error);
+        }
       } else {
       const html = `
         <!DOCTYPE html>

@@ -19,6 +19,7 @@ export function useConnectionRecovery({
 }: UseConnectionRecoveryProps) {
   const [retryCount, setRetryCount] = useState(0);
   const [isRecovering, setIsRecovering] = useState(false);
+  const [lastToastTime, setLastToastTime] = useState(0);
   const retryTimeoutRef = useRef<NodeJS.Timeout>();
   const { toast } = useToast();
 
@@ -46,10 +47,15 @@ export function useConnectionRecovery({
       // If we get here, the reconnection attempt was made
       setRetryCount(currentAttempt);
       
-      toast({
-        title: "Reconnection Attempt",
-        description: `Trying to reconnect... (${currentAttempt}/${maxRetries})`,
-      });
+      // Throttle reconnection toasts (max 1 every 10 seconds)
+      const now = Date.now();
+      if (now - lastToastTime > 10000) {
+        setLastToastTime(now);
+        toast({
+          title: "Reconnection Attempt",
+          description: `Trying to reconnect... (${currentAttempt}/${maxRetries})`,
+        });
+      }
 
     } catch (err) {
       console.error(`❌ Recovery attempt ${currentAttempt} failed:`, err);
