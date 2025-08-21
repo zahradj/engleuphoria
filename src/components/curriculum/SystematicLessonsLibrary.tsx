@@ -3,330 +3,158 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabase';
 import { 
   BookOpen, 
   Play, 
-  Download, 
-  Search, 
   Clock, 
   Target, 
+  Search, 
+  Filter,
   Sparkles,
-  ExternalLink,
-  FileText,
+  Presentation,
+  Zap,
+  ChevronRight,
   Users,
-  Presentation
+  CheckCircle
 } from 'lucide-react';
-import { curriculumService, type SystematicLesson, type CurriculumLevel } from '@/services/curriculumService';
-import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
-import { SlideGenerationControls } from './SlideGenerationControls';
 
-interface SystematicLessonsLibraryProps {
-  onSelectLesson?: (lesson: SystematicLesson) => void;
-  onOpenInClassroom?: (lesson: SystematicLesson) => void;
-  isClassroomMode?: boolean;
+interface LessonContent {
+  id: string;
+  title: string;
+  topic: string;
+  cefr_level: string;
+  module_number: number;
+  lesson_number: number;
+  duration_minutes: number;
+  learning_objectives: string[];
+  vocabulary_focus: string[];
+  grammar_focus: string[];
+  slides_content: any;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
-export function SystematicLessonsLibrary({ 
-  onSelectLesson, 
-  onOpenInClassroom, 
-  isClassroomMode = false 
-}: SystematicLessonsLibraryProps) {
-  const [levels, setLevels] = useState<CurriculumLevel[]>([]);
-  const [allLessons, setAllLessons] = useState<SystematicLesson[]>([]);
-  const [filteredLessons, setFilteredLessons] = useState<SystematicLesson[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedLevel, setSelectedLevel] = useState<string>('all');
+interface SystematicLessonsLibraryProps {
+  onContentUpdate?: () => void;
+}
+
+export function SystematicLessonsLibrary({ onContentUpdate }: SystematicLessonsLibraryProps) {
+  const [lessons, setLessons] = useState<LessonContent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [levelFilter, setLevelFilter] = useState('all');
+  const [moduleFilter, setModuleFilter] = useState('all');
+  const [generatingSlides, setGeneratingSlides] = useState<string[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
-    loadLessonsData();
+    fetchLessons();
   }, []);
 
-  useEffect(() => {
-    filterLessons();
-  }, [searchTerm, selectedLevel, allLessons]);
-
-  const { data: lessons, isLoading: lessonsLoading } = useQuery({
-    queryKey: ['systematic-lessons'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('systematic_lessons')
-        .select('*')
-        .not('status', 'eq', 'archived')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
-    }
-  });
-
-  const loadLessonsData = async () => {
+  const fetchLessons = async () => {
     try {
-      const curriculumLevels = await curriculumService.getCurriculumLevels();
-      setLevels(curriculumLevels);
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('lessons_content')
+        .select('*')
+        .eq('is_active', true)
+        .order('module_number', { ascending: true })
+        .order('lesson_number', { ascending: true });
 
-      // Use lessons from React Query
-      let lessonsFromAllLevels: SystematicLesson[] = lessons || [];
-      
-      // Add level info to lessons
-      lessonsFromAllLevels = lessonsFromAllLevels.map(lesson => ({
-        ...lesson,
-        level_info: curriculumLevels.find(level => level.id === lesson.curriculum_level_id)
-      }));
-
-      // Note: Slide generation now happens on-demand when clicking "Use Lesson"
-
-      // If no lessons exist yet, generate the complete curriculum
-      if (lessonsFromAllLevels.length === 0 && curriculumLevels.length > 0) {
-        toast({
-          title: 'Building Complete Curriculum',
-          description: 'Generating 360+ systematic lessons across all CEFR levels. This may take a few minutes...'
-        });
-
-        try {
-          // Call the enhanced curriculum generator
-          const response = await fetch('/functions/v1/curriculum-generator', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              action: 'generate_full_curriculum',
-              batchSize: 15
-            })
-          });
-
-          if (!response.ok) {
-            throw new Error('Failed to generate curriculum');
-          }
-
-          const result = await response.json();
-          
-          if (result.success) {
-            toast({
-              title: 'Curriculum Ready!',
-              description: `Successfully generated ${result.total_generated} lessons. Reloading...`
-            });
-
-            // Reload lessons after generation
-            lessonsFromAllLevels = [];
-            for (const level of curriculumLevels) {
-              const levelLessons = await curriculumService.getLessonsForLevel(level.id);
-              lessonsFromAllLevels.push(
-                ...levelLessons.map(lesson => ({
-                  ...lesson,
-                  level_info: level
-                }))
-              );
-            }
-          } else {
-            throw new Error(result.error || 'Generation failed');
-          }
-        } catch (generationError) {
-          console.error('Curriculum generation error:', generationError);
-          toast({
-            title: 'Generation Error',
-            description: 'Failed to generate full curriculum. Creating sample lessons instead.',
-            variant: 'destructive'
-          });
-          
-          // Fallback: create minimal sample lessons
-          const diffs: Record<string, number> = { 'Pre-A1': 1, A1: 1, A2: 2, B1: 3, B2: 4, C1: 5, C2: 6 };
-
-          for (const level of curriculumLevels.slice(0, 2)) { // Only first 2 levels for samples
-            const topics = curriculumService.getCEFRTopics(level.cefr_level) || [];
-            const sampleCount = Math.min(4, topics.length || 4);
-
-            for (let i = 0; i < sampleCount; i++) {
-              const lessonNum = i + 1;
-              const topic = topics[i] || `Core Topic ${lessonNum}`;
-              const template = curriculumService.getLessonTemplate();
-
-              await curriculumService.createSystematicLesson({
-                curriculum_level_id: level.id,
-                lesson_number: lessonNum,
-                title: `${level.cefr_level} Lesson ${lessonNum}: ${topic}`,
-                topic,
-                grammar_focus: 'Basic Grammar',
-                vocabulary_set: ['word1', 'word2', 'word3', 'word4', 'word5'],
-                communication_outcome: `Talk about ${topic.toLowerCase()}`,
-                lesson_objectives: [
-                  `Understand key vocabulary about ${topic.toLowerCase()}`,
-                  `Use simple structures to discuss ${topic.toLowerCase()}`
-                ],
-                slides_content: template,
-                activities: [],
-                gamified_elements: template?.gamification ?? {},
-                is_review_lesson: lessonNum % 4 === 0,
-                prerequisite_lessons: [],
-                difficulty_level: diffs[level.cefr_level] ?? 1,
-                estimated_duration: ['B1','B2','C1','C2'].includes(level.cefr_level) ? 60 : 45,
-                status: 'published'
-              });
-            }
-          }
-
-          // Reload with samples
-          lessonsFromAllLevels = [];
-          for (const level of curriculumLevels) {
-            const levelLessons = await curriculumService.getLessonsForLevel(level.id);
-            lessonsFromAllLevels.push(
-              ...levelLessons.map(lesson => ({
-                ...lesson,
-                level_info: level
-              }))
-            );
-          }
-        }
-      }
-
-      setAllLessons(lessonsFromAllLevels);
+      if (error) throw error;
+      setLessons(data || []);
     } catch (error) {
-      console.error('Error loading lessons:', error);
+      console.error('Error fetching lessons:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to load curriculum lessons',
-        variant: 'destructive'
+        title: "Error",
+        description: "Failed to fetch lessons. Please try again.",
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
     }
   };
-  const filterLessons = () => {
-    let filtered = [...allLessons];
 
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter(lesson =>
-        lesson.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        lesson.topic.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        lesson.grammar_focus?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        lesson.communication_outcome?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
+  const generateSlidesForLesson = async (lessonId: string, lessonTitle: string) => {
+    setGeneratingSlides(prev => [...prev, lessonId]);
+    
+    try {
+      toast({
+        title: "Generating Slides",
+        description: `Creating 22 interactive slides for "${lessonTitle}"...`,
+      });
 
-    // Filter by level
-    if (selectedLevel !== 'all') {
-      filtered = filtered.filter(lesson => lesson.curriculum_level_id === selectedLevel);
-    }
-
-    // Sort by level order and lesson number
-    filtered.sort((a, b) => {
-      const levelA = levels.find(l => l.id === a.curriculum_level_id);
-      const levelB = levels.find(l => l.id === b.curriculum_level_id);
-      
-      if (levelA && levelB) {
-        if (levelA.level_order !== levelB.level_order) {
-          return levelA.level_order - levelB.level_order;
+      const { data, error } = await supabase.functions.invoke('ai-slide-generator', {
+        body: { 
+          action: 'generate_full_deck',
+          content_id: lessonId
         }
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        toast({
+          title: "Slides Generated! 🎨",
+          description: `Created ${data.total_slides} interactive slides ready for classroom use.`,
+        });
+        
+        // Refresh lessons to show updated slide count
+        await fetchLessons();
+        onContentUpdate?.();
+      } else {
+        throw new Error(data.error || 'Failed to generate slides');
       }
-      
-      return a.lesson_number - b.lesson_number;
-    });
-
-    setFilteredLessons(filtered);
-  };
-
-  const getLevelColor = (levelName: string) => {
-    if (levelName.includes('A1') || levelName.includes('Pre-A1')) return 'bg-green-100 text-green-800';
-    if (levelName.includes('A2')) return 'bg-green-200 text-green-900';
-    if (levelName.includes('B1')) return 'bg-blue-100 text-blue-800';
-    if (levelName.includes('B2')) return 'bg-blue-200 text-blue-900';
-    if (levelName.includes('C1')) return 'bg-purple-100 text-purple-800';
-    if (levelName.includes('C2')) return 'bg-purple-200 text-purple-900';
-    return 'bg-gray-100 text-gray-800';
-  };
-
-  const handleLessonAction = (lesson: SystematicLesson) => {
-    if (isClassroomMode && onOpenInClassroom) {
-      // Convert lesson to whiteboard-compatible format
-      const whiteboardLesson = {
-        ...lesson,
-        type: 'systematic_lesson',
-        contentType: 'systematic_lesson',
-        slides: lesson.slides_content?.slides || [],
-        whiteboard_compatible: true,
-        title: lesson.title,
-        level: levels.find(l => l.id === lesson.curriculum_level_id)?.cefr_level || 'B1',
-        topic: lesson.topic,
-        duration: lesson.estimated_duration,
-        metadata: {
-          learning_objectives: lesson.lesson_objectives,
-          grammar_focus: lesson.grammar_focus,
-          vocabulary_set: lesson.vocabulary_set,
-          communication_outcome: lesson.communication_outcome,
-          estimated_duration: lesson.estimated_duration,
-          difficulty_level: lesson.difficulty_level
-        }
-      };
-      onOpenInClassroom(whiteboardLesson);
-    } else if (onSelectLesson) {
-      const whiteboardLesson = {
-        ...lesson,
-        type: 'systematic_lesson',
-        contentType: 'systematic_lesson',
-        slides: lesson.slides_content?.slides || [],
-        whiteboard_compatible: true
-      };
-      onSelectLesson(whiteboardLesson);
-    } else {
-      // Default action - open in classroom
-      const classroomUrl = `/classroom?roomId=unified-classroom-1&role=teacher&name=teacher&userId=teacher-1&lesson=${lesson.id}`;
-      window.open(classroomUrl, '_blank');
+    } catch (error) {
+      console.error('Error generating slides:', error);
+      toast({
+        title: "Generation Error",
+        description: error.message || "Failed to generate slides. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setGeneratingSlides(prev => prev.filter(id => id !== lessonId));
     }
   };
 
-  const downloadLesson = (lesson: SystematicLesson) => {
-    // Create downloadable content
-    const lessonContent = {
-      title: lesson.title,
-      topic: lesson.topic,
-      level: levels.find(l => l.id === lesson.curriculum_level_id)?.cefr_level,
-      duration: lesson.estimated_duration,
-      objectives: lesson.lesson_objectives,
-      grammar_focus: lesson.grammar_focus,
-      vocabulary: lesson.vocabulary_set,
-      communication_outcome: lesson.communication_outcome,
-      slides: lesson.slides_content,
-      activities: lesson.activities,
-      gamification: lesson.gamified_elements
-    };
-
-    const blob = new Blob([JSON.stringify(lessonContent, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${lesson.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-
-    toast({
-      title: "Lesson Downloaded",
-      description: `${lesson.title} has been downloaded successfully`
-    });
+  const openInClassroom = (lesson: LessonContent) => {
+    // Store lesson data and open classroom
+    localStorage.setItem('currentLessonContent', JSON.stringify(lesson));
+    window.open(`/oneonone-classroom-new?roomId=lesson-${lesson.id}&role=teacher&name=Teacher&userId=teacher-1&lessonMode=true`, '_blank');
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'published': return 'bg-green-100 text-green-800';
-      case 'draft': return 'bg-yellow-100 text-yellow-800';
-      case 'archived': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-blue-100 text-blue-800';
-    }
-  };
+  const filteredLessons = lessons.filter(lesson => {
+    const matchesSearch = lesson.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         lesson.topic.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesLevel = levelFilter === 'all' || lesson.cefr_level === levelFilter;
+    const matchesModule = moduleFilter === 'all' || lesson.module_number.toString() === moduleFilter;
+    
+    return matchesSearch && matchesLevel && matchesModule;
+  });
+
+  const lessonsWithSlides = filteredLessons.filter(lesson => 
+    lesson.slides_content && Object.keys(lesson.slides_content).length > 0
+  );
+
+  const lessonsWithoutSlides = filteredLessons.filter(lesson => 
+    !lesson.slides_content || Object.keys(lesson.slides_content).length === 0
+  );
 
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-          <span className="ml-2">Loading curriculum lessons...</span>
-        </div>
+        {[1, 2, 3, 4].map(i => (
+          <Card key={i} className="animate-pulse">
+            <CardContent className="py-8">
+              <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+              <div className="h-3 bg-gray-100 rounded w-1/2"></div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
     );
   }
@@ -334,166 +162,224 @@ export function SystematicLessonsLibrary({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <Sparkles className="h-6 w-6 text-primary" />
-            Systematic Curriculum Lessons
-          </h2>
-          <p className="text-muted-foreground">
-            {allLessons.length} lessons across {levels.length} CEFR levels
-          </p>
-        </div>
+      <div>
+        <h2 className="text-2xl font-bold mb-2">Systematic ESL Lessons</h2>
+        <p className="text-muted-foreground">
+          Structured curriculum lessons with AI-generated interactive slides ready for classroom use.
+        </p>
       </div>
 
+      {/* Filters */}
+      <Card>
+        <CardContent className="py-4">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search lessons by title or topic..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Select value={levelFilter} onValueChange={setLevelFilter}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Levels</SelectItem>
+                  <SelectItem value="A1">A1</SelectItem>
+                  <SelectItem value="A2">A2</SelectItem>
+                  <SelectItem value="B1">B1</SelectItem>
+                  <SelectItem value="B2">B2</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Select value={moduleFilter} onValueChange={setModuleFilter}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Module" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Modules</SelectItem>
+                  {[1, 2, 3, 4, 5, 6].map(num => (
+                    <SelectItem key={num} value={num.toString()}>Module {num}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Search and Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            placeholder="Search lessons by title, topic, or grammar focus..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <select 
-          value={selectedLevel}
-          onChange={(e) => setSelectedLevel(e.target.value)}
-          className="px-3 py-2 border rounded-md"
-        >
-          <option value="all">All Levels</option>
-          {levels.map(level => (
-            <option key={level.id} value={level.id}>
-              {level.cefr_level} - {level.name}
-            </option>
-          ))}
-        </select>
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="py-4">
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5 text-blue-600" />
+              <div>
+                <div className="text-2xl font-bold">{filteredLessons.length}</div>
+                <div className="text-sm text-muted-foreground">Total Lessons</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="py-4">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              <div>
+                <div className="text-2xl font-bold">{lessonsWithSlides.length}</div>
+                <div className="text-sm text-muted-foreground">With Slides</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="py-4">
+            <div className="flex items-center gap-2">
+              <Presentation className="h-5 w-5 text-purple-600" />
+              <div>
+                <div className="text-2xl font-bold">{lessonsWithoutSlides.length}</div>
+                <div className="text-sm text-muted-foreground">Need Slides</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="py-4">
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-orange-600" />
+              <div>
+                <div className="text-2xl font-bold">{lessonsWithSlides.length * 22}</div>
+                <div className="text-sm text-muted-foreground">Total Slides</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Lessons Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredLessons.map((lesson) => {
-          const level = levels.find(l => l.id === lesson.curriculum_level_id);
-          const slidesCount = lesson.slides_content?.slides?.length || 0;
-          const activitiesCount = lesson.activities?.length || 5;
-          const hasExtendedSlides = slidesCount >= 12 && lesson.slides_content?.version === '2.0';
-          
+          const hasSlides = lesson.slides_content && Object.keys(lesson.slides_content).length > 0;
+          const isGenerating = generatingSlides.includes(lesson.id);
+          const slideCount = hasSlides ? lesson.slides_content?.slides?.length || 22 : 0;
+
           return (
-            <Card key={lesson.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
+            <Card key={lesson.id} className={`transition-all duration-200 hover:shadow-lg ${
+              hasSlides ? 'border-green-200 bg-green-50/30' : 'border-orange-200 bg-orange-50/30'
+            }`}>
+              <CardHeader>
                 <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-2">
-                    <BookOpen className="h-5 w-5 text-primary" />
-                    <span className="text-sm font-medium text-muted-foreground">
-                      Lesson {lesson.lesson_number}
-                    </span>
+                  <div>
+                    <CardTitle className="text-lg line-clamp-2 mb-1">
+                      {lesson.title}
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {lesson.topic}
+                    </p>
                   </div>
-                  <Badge className={getStatusColor(lesson.status)} variant="secondary">
-                    {lesson.status}
+                  <Badge variant={hasSlides ? "default" : "secondary"}>
+                    {lesson.cefr_level}
                   </Badge>
                 </div>
-                <CardTitle className="text-lg leading-tight">{lesson.title}</CardTitle>
-                <div className="flex items-center gap-2">
-                  {level && (
-                    <Badge className={getLevelColor(level.name)}>
-                      {level.cefr_level}
-                    </Badge>
-                  )}
-                  <Badge variant="outline">{lesson.topic}</Badge>
-                  {lesson.is_review_lesson && (
-                    <Badge variant="secondary" className="bg-orange-100 text-orange-800">
-                      Review
-                    </Badge>
-                  )}
-                </div>
               </CardHeader>
-              
+
               <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  {lesson.grammar_focus && (
-                    <p className="text-sm text-muted-foreground">
-                      <span className="font-medium">Grammar:</span> {lesson.grammar_focus}
-                    </p>
-                  )}
-                  {lesson.communication_outcome && (
-                    <p className="text-sm text-muted-foreground">
-                      <span className="font-medium">Outcome:</span> {lesson.communication_outcome}
-                    </p>
-                  )}
+                <div className="flex items-center justify-between text-sm">
+                  <span className="flex items-center gap-1">
+                    <Target className="h-4 w-4" />
+                    Module {lesson.module_number}, Lesson {lesson.lesson_number}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-4 w-4" />
+                    {lesson.duration_minutes}min
+                  </span>
                 </div>
 
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    {lesson.estimated_duration} min
+                {/* Slides Status */}
+                <div className="flex items-center justify-between p-3 rounded-lg border">
+                  <div className="flex items-center gap-2">
+                    <Presentation className={`h-4 w-4 ${hasSlides ? 'text-green-600' : 'text-gray-400'}`} />
+                    <span className="text-sm">
+                      {hasSlides ? `${slideCount} Slides Ready` : 'No Slides Yet'}
+                    </span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Presentation className="h-3 w-3" />
-                    {slidesCount} slides
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Target className="h-3 w-3" />
-                    {activitiesCount} activities
-                  </div>
-                </div>
-
-                {/* Simplified Slides Status */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  {hasExtendedSlides ? (
-                    <Badge className="bg-green-100 text-green-800 border-green-200">
-                      <Presentation className="h-3 w-3 mr-1" />
-                      Interactive Slides Ready ({slidesCount} slides)
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50">
-                      <Sparkles className="h-3 w-3 mr-1" />
-                      Slides Creating On First Open
-                    </Badge>
+                  {hasSlides && (
+                    <CheckCircle className="h-4 w-4 text-green-600" />
                   )}
                 </div>
 
-                {lesson.vocabulary_set && lesson.vocabulary_set.length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {lesson.vocabulary_set.slice(0, 3).map((word: string, index: number) => (
-                      <Badge key={index} variant="outline" className="text-xs">
-                        {word}
-                      </Badge>
-                    ))}
-                    {lesson.vocabulary_set.length > 3 && (
-                      <Badge variant="outline" className="text-xs">
-                        +{lesson.vocabulary_set.length - 3} more
-                      </Badge>
-                    )}
+                {/* Learning Objectives */}
+                {lesson.learning_objectives && lesson.learning_objectives.length > 0 && (
+                  <div>
+                    <div className="text-sm font-medium mb-2">Learning Objectives:</div>
+                    <div className="space-y-1">
+                      {lesson.learning_objectives.slice(0, 2).map((objective, idx) => (
+                        <div key={idx} className="text-xs text-muted-foreground flex items-center gap-1">
+                          <ChevronRight className="h-3 w-3" />
+                          {objective}
+                        </div>
+                      ))}
+                      {lesson.learning_objectives.length > 2 && (
+                        <div className="text-xs text-muted-foreground">
+                          +{lesson.learning_objectives.length - 2} more
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 
-                <div className="flex gap-2">
-                  <Button 
-                    size="sm" 
-                    className="flex-1"
-                    onClick={() => handleLessonAction(lesson)}
-                  >
-                    {isClassroomMode ? (
-                      <>
-                        <Play className="h-3 w-3 mr-1" />
-                        Use Lesson
-                      </>
-                    ) : (
-                      <>
-                        <ExternalLink className="h-3 w-3 mr-1" />
-                        Open in Classroom
-                      </>
-                    )}
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => downloadLesson(lesson)}
-                  >
-                    <Download className="h-3 w-3" />
-                  </Button>
+                {/* Actions */}
+                <div className="space-y-2">
+                  {!hasSlides ? (
+                    <Button
+                      onClick={() => generateSlidesForLesson(lesson.id, lesson.title)}
+                      disabled={isGenerating}
+                      className="w-full"
+                      variant="outline"
+                    >
+                      {isGenerating ? (
+                        <>
+                          <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full mr-2"></div>
+                          Generating Slides...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4 mr-2" />
+                          Generate 22 Slides
+                        </>
+                      )}
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => openInClassroom(lesson)}
+                      className="w-full"
+                    >
+                      <Play className="h-4 w-4 mr-2" />
+                      Use in Classroom
+                    </Button>
+                  )}
+
+                  {hasSlides && (
+                    <Button
+                      onClick={() => generateSlidesForLesson(lesson.id, lesson.title)}
+                      disabled={isGenerating}
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                    >
+                      <Zap className="h-4 w-4 mr-2" />
+                      Regenerate Slides
+                    </Button>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -502,18 +388,13 @@ export function SystematicLessonsLibrary({
       </div>
 
       {filteredLessons.length === 0 && (
-        <div className="text-center py-12">
-          <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-muted-foreground mb-2">
-            No lessons found
-          </h3>
-          <p className="text-muted-foreground">
-            {searchTerm || selectedLevel !== 'all' 
-              ? 'Try adjusting your search criteria or filters'
-              : 'No systematic lessons have been generated yet. Use the Curriculum Architect to create lessons.'
-            }
-          </p>
-        </div>
+        <Card>
+          <CardContent className="py-12 text-center">
+            <BookOpen size={48} className="mx-auto mb-4 text-gray-300" />
+            <h3 className="text-lg font-medium text-gray-600 mb-2">No lessons found</h3>
+            <p className="text-gray-500">Try adjusting your search filters or check back later.</p>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

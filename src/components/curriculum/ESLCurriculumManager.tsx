@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, Layers, TrendingUp, Settings, Sparkles } from "lucide-react";
 import { ESLLevelBrowser } from "./ESLLevelBrowser";
-import { SystematicLearningPath } from "./SystematicLearningPath";
+import { SystematicLessonsLibrary } from "./SystematicLessonsLibrary";
 import { CurriculumAnalytics } from "../teacher/curriculum/CurriculumAnalytics";
 import { AIContentGenerator } from "./AIContentGenerator";
 import { InteractiveLessonsLibrary } from "./InteractiveLessonsLibrary";
@@ -63,7 +63,7 @@ export function ESLCurriculumManager() {
           </TabsTrigger>
           <TabsTrigger value="learning-paths" className="flex items-center gap-2">
             <Layers size={16} />
-            Learning Paths
+            Systematic Lessons
           </TabsTrigger>
           <TabsTrigger value="ai-content" className="flex items-center gap-2">
             <Sparkles size={16} />
@@ -84,7 +84,7 @@ export function ESLCurriculumManager() {
           </TabsContent>
 
         <TabsContent value="learning-paths" className="mt-6">
-          <SystematicLearningPath onContentUpdate={handleContentUpdate} />
+          <SystematicLessonsLibrary onContentUpdate={handleContentUpdate} />
         </TabsContent>
 
         <TabsContent value="ai-content" className="mt-6">

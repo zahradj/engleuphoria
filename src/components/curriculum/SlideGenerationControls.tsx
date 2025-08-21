@@ -40,14 +40,14 @@ export function SlideGenerationControls({ onSlidesGenerated }: SlideGenerationCo
       setGenerationStatus({
         total: 0,
         completed: 0,
-        current: 'Initializing...',
+        current: 'Initializing batch generation...',
         errors: []
       });
 
-        toast({
-          title: "Starting 20-Slide Generation",
-          description: "Creating comprehensive 20-slide lessons with AI-generated images...",
-        });
+      toast({
+        title: "Starting Batch Generation",
+        description: "Creating 22-slide lessons for all content without slides...",
+      });
 
       const { data, error } = await supabase.functions.invoke('ai-slide-generator', {
         body: { batch_generate: true }
@@ -63,12 +63,13 @@ export function SlideGenerationControls({ onSlidesGenerated }: SlideGenerationCo
           ...prev,
           completed: data.generated_count,
           total: data.total_processed,
-          current: 'Complete!'
+          current: 'Complete!',
+          errors: data.errors || []
         } : null);
 
         toast({
-          title: "20-Slide Lessons Generated Successfully! 🎉",
-          description: `Created ${data.generated_count * 20} slides with AI-generated images for ${data.generated_count} lessons.`,
+          title: "Slide Generation Complete! 🎉",
+          description: `Created slides for ${data.generated_count} lessons (${data.generated_count * 22} total slides).`,
         });
 
         onSlidesGenerated?.();
@@ -91,15 +92,14 @@ export function SlideGenerationControls({ onSlidesGenerated }: SlideGenerationCo
   const generateSingleSlide = async (contentId: string) => {
     try {
       toast({
-        title: "Generating Slides",
+        title: "Generating Full Slide Deck",
         description: "Creating 22 interactive slides with OpenAI...",
       });
 
       const { data, error } = await supabase.functions.invoke('ai-slide-generator', {
         body: { 
-          content_id: contentId,
-          content_type: 'systematic_lesson',
-          generate_20_slides: true
+          action: 'generate_full_deck',
+          content_id: contentId
         }
       });
 
@@ -110,12 +110,12 @@ export function SlideGenerationControls({ onSlidesGenerated }: SlideGenerationCo
       if (data.success) {
         toast({
           title: "Slides Generated! 🎨",
-          description: `Created ${data.slides?.total_slides || 22} interactive slides.`,
+          description: `Created ${data.total_slides || 22} interactive slides ready for classroom.`,
         });
         onSlidesGenerated?.();
       }
     } catch (error) {
-      console.error('Single slide generation error:', error);
+      console.error('Slide deck generation error:', error);
       toast({
         title: "Generation Error",
         description: error.message,
