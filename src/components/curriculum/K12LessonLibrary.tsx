@@ -72,8 +72,18 @@ export const K12LessonLibrary: React.FC<K12LessonLibraryProps> = ({
 
       if (error) throw error;
 
-      // Add generated slides to Content Library
+      // Store slides in the database lesson
       if (data?.slides) {
+        await supabase
+          .from('systematic_lessons')
+          .update({ 
+            slides: data.slides,
+            slide_count: data.slides.length,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', lessonId);
+
+        // Also add to Content Library for easy access
         const lesson = lessons?.find(l => l.id === lessonId);
         const libraryItem = {
           id: `slides-${lessonId}-${Date.now()}`,
@@ -97,7 +107,7 @@ export const K12LessonLibrary: React.FC<K12LessonLibraryProps> = ({
 
       toast({
         title: "20-Slide Deck Generated! 🎉",
-        description: "Interactive lesson with warmup, sentence builder, pronunciation, accuracy drills, fluency sprint, and exit check with rewards. Added to Content Library."
+        description: "Interactive lesson slides saved to database and added to Content Library. Now available in Systematic Curriculum Lessons."
       });
     } catch (error) {
       console.error('Failed to generate slides:', error);
