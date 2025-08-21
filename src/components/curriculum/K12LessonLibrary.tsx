@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { contentLibraryService } from '@/services/ai/contentLibraryService';
 
 interface K12LessonLibraryProps {
   onSelectLesson?: (lesson: any) => void;
@@ -71,9 +72,32 @@ export const K12LessonLibrary: React.FC<K12LessonLibraryProps> = ({
 
       if (error) throw error;
 
+      // Add generated slides to Content Library
+      if (data?.slides) {
+        const lesson = lessons?.find(l => l.id === lessonId);
+        const libraryItem = {
+          id: `slides-${lessonId}-${Date.now()}`,
+          title: `20-Slide Deck: ${lesson?.title || 'Lesson'}`,
+          type: 'slides',
+          topic: lesson?.topic || 'Interactive Lesson',
+          level: lesson?.curriculum_levels?.cefr_level || 'A1',
+          duration: lesson?.estimated_duration || 30,
+          content: JSON.stringify(data.slides),
+          metadata: {
+            generatedAt: new Date().toISOString(),
+            model: 'gpt-4o-mini',
+            isAIGenerated: true,
+            slideCount: data.slides.length,
+            lessonId: lessonId
+          }
+        };
+        
+        contentLibraryService.addToLibrary(libraryItem);
+      }
+
       toast({
         title: "20-Slide Deck Generated! 🎉",
-        description: "Interactive lesson with warmup, sentence builder, pronunciation, accuracy drills, fluency sprint, and exit check with rewards."
+        description: "Interactive lesson with warmup, sentence builder, pronunciation, accuracy drills, fluency sprint, and exit check with rewards. Added to Content Library."
       });
     } catch (error) {
       console.error('Failed to generate slides:', error);
