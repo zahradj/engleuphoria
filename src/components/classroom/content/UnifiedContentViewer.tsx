@@ -91,7 +91,8 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
           const { data, error } = await supabase.functions.invoke('ai-slide-generator', {
             body: { 
               content_id: lessonId, 
-              content_type: 'lesson' 
+              content_type: 'lesson',
+              generate_20_slides: true
             }
           });
 

@@ -92,7 +92,8 @@ export function SlideGenerationControls({ onSlidesGenerated }: SlideGenerationCo
       const { data, error } = await supabase.functions.invoke('ai-slide-generator', {
         body: { 
           content_id: contentId,
-          content_type: 'lesson'
+          content_type: 'lesson',
+          generate_20_slides: true
         }
       });
 
