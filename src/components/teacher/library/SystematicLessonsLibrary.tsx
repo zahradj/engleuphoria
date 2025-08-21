@@ -26,25 +26,25 @@ interface SystematicLesson {
   title: string;
   topic: string;
   cefr_level: string;
-  age_group: string;
+  module_number: number;
   lesson_number: number;
-  week_number: number;
-  estimated_duration: number;
+  duration_minutes: number;
   learning_objectives: string[];
+  vocabulary_focus: string[];
+  grammar_focus: string[];
+  difficulty_level: string;
   slides_content: any;
-  status: string;
+  is_active: boolean;
   created_at: string;
-  curriculum_level?: {
-    name: string;
-    cefr_level: string;
-    age_group: string;
-  };
+  metadata?: any;
 }
 
 export const SystematicLessonsLibrary = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLevel, setSelectedLevel] = useState<string>('all');
-  const [selectedAgeGroup, setSelectedAgeGroup] = useState<string>('all');
+  
+  const [isSeeding, setIsSeeding] = useState(false);
+  const [isGeneratingSlides, setIsGeneratingSlides] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -55,26 +55,19 @@ export const SystematicLessonsLibrary = () => {
   }, []);
 
   const { data: lessons = [], isLoading, error } = useQuery({
-    queryKey: ['systematic-lessons', selectedLevel, selectedAgeGroup],
+    queryKey: ['systematic-lessons', selectedLevel],
     queryFn: async () => {
       console.log('📚 Fetching systematic lessons from database...');
       
       let query = supabase
-        .from('systematic_lessons')
-        .select(`
-          *,
-          curriculum_level:curriculum_levels(name, cefr_level, age_group)
-        `)
-        .eq('status', 'published')
-        .order('curriculum_level_id')
+        .from('lessons_content')
+        .select('*')
+        .eq('is_active', true)
+        .order('module_number')
         .order('lesson_number');
 
       if (selectedLevel !== 'all') {
         query = query.eq('cefr_level', selectedLevel);
-      }
-      
-      if (selectedAgeGroup !== 'all') {
-        query = query.eq('age_group', selectedAgeGroup);
       }
 
       const { data, error } = await query;
@@ -96,13 +89,90 @@ export const SystematicLessonsLibrary = () => {
     queryClient.invalidateQueries({ queryKey: ['systematic-lessons'] });
   };
 
+  const handleSeedLessons = async () => {
+    setIsSeeding(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('bulk-lesson-generator', {
+        body: { action: 'seed_420_lessons' }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Lessons Seeded Successfully!",
+        description: `${data.stats.inserted} lessons created across 7 CEFR levels (${data.stats.skipped} duplicates skipped)`,
+      });
+
+      refreshLibrary();
+    } catch (error) {
+      console.error('Error seeding lessons:', error);
+      toast({
+        title: "Seeding Failed",
+        description: error.message || "Failed to seed lessons. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSeeding(false);
+    }
+  };
+
+  const handleGenerateAllSlides = async () => {
+    setIsGeneratingSlides(true);
+    try {
+      // Get lessons without slides
+      const { data: lessonsNeedingSlides } = await supabase
+        .from('lessons_content')
+        .select('id, title')
+        .eq('is_active', true)
+        .or('slides_content.is.null,slides_content.eq.{}');
+
+      if (!lessonsNeedingSlides?.length) {
+        toast({
+          title: "No Lessons Need Slides",
+          description: "All lessons already have slides generated.",
+        });
+        setIsGeneratingSlides(false);
+        return;
+      }
+
+      toast({
+        title: "Generating Slides",
+        description: `Starting slide generation for ${lessonsNeedingSlides.length} lessons. This may take several minutes...`,
+      });
+
+      const { data, error } = await supabase.functions.invoke('ai-slide-generator', {
+        body: { 
+          batch_generate: true,
+          lesson_ids: lessonsNeedingSlides.map(l => l.id).slice(0, 50) // Limit to 50 lessons to avoid timeout
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Slide Generation Complete!",
+        description: `Successfully generated slides for multiple lessons.`,
+      });
+
+      refreshLibrary();
+    } catch (error) {
+      console.error('Error generating slides:', error);
+      toast({
+        title: "Slide Generation Failed",
+        description: error.message || "Failed to generate slides. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGeneratingSlides(false);
+    }
+  };
+
   const filteredLessons = lessons.filter(lesson =>
     lesson.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     lesson.topic.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const uniqueLevels = [...new Set(lessons.map(l => l.cefr_level))];
-  const uniqueAgeGroups = [...new Set(lessons.map(l => l.age_group))];
 
   if (error) {
     return (
@@ -134,10 +204,28 @@ export const SystematicLessonsLibrary = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Systematic Lessons Library</h1>
           <p className="text-muted-foreground">
-            Structured curriculum lessons for different CEFR levels and age groups
+            420 systematic ESL lessons across 7 levels (A1-C2), 30 minutes each
           </p>
         </div>
         <div className="flex gap-2">
+          <Button 
+            onClick={handleSeedLessons} 
+            disabled={isSeeding}
+            variant="default" 
+            size="sm"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            {isSeeding ? 'Seeding...' : 'Seed 420 Lessons'}
+          </Button>
+          <Button 
+            onClick={handleGenerateAllSlides} 
+            disabled={isGeneratingSlides || lessons.length === 0}
+            variant="secondary" 
+            size="sm"
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            {isGeneratingSlides ? 'Generating...' : 'Generate Slides for All'}
+          </Button>
           <Button onClick={refreshLibrary} variant="outline" size="sm">
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
@@ -168,19 +256,14 @@ export const SystematicLessonsLibrary = () => {
                 className="px-3 py-2 border rounded-md bg-background"
               >
                 <option value="all">All Levels</option>
-                {uniqueLevels.map(level => (
+                <option value="A1">A1</option>
+                <option value="A2">A2</option>
+                <option value="B1">B1</option>
+                <option value="B2">B2</option>
+                <option value="C1">C1</option>
+                <option value="C2">C2</option>
+                {uniqueLevels.filter(level => !['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].includes(level)).map(level => (
                   <option key={level} value={level}>{level}</option>
-                ))}
-              </select>
-              
-              <select
-                value={selectedAgeGroup}
-                onChange={(e) => setSelectedAgeGroup(e.target.value)}
-                className="px-3 py-2 border rounded-md bg-background"
-              >
-                <option value="all">All Ages</option>
-                {uniqueAgeGroups.map(age => (
-                  <option key={age} value={age}>{age}</option>
                 ))}
               </select>
             </div>
@@ -245,10 +328,10 @@ export const SystematicLessonsLibrary = () => {
                         {lesson.cefr_level}
                       </Badge>
                       <Badge variant="outline" className="text-xs">
-                        {lesson.age_group}
+                        {lesson.difficulty_level}
                       </Badge>
                       <Badge variant="outline" className="text-xs">
-                        Week {lesson.week_number}
+                        Module {lesson.module_number}
                       </Badge>
                     </div>
                   </div>
@@ -263,7 +346,7 @@ export const SystematicLessonsLibrary = () => {
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Clock className="w-4 h-4" />
-                    <span>{lesson.estimated_duration}min</span>
+                    <span>{lesson.duration_minutes}min</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Target className="w-4 h-4" />
