@@ -26,14 +26,14 @@ serve(async (req) => {
 
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const { content_id, content_type, batch_generate } = await req.json();
+    const { content_id, content_type, batch_generate, generate_20_slides } = await req.json();
     
-    console.log('🎨 AI Slide Generator request:', { content_id, content_type, batch_generate });
+    console.log('🎨 AI Slide Generator request:', { content_id, content_type, batch_generate, generate_20_slides });
 
     if (batch_generate) {
       return await generateSlidesForAllContent(supabase);
     } else if (content_id) {
-      return await generateSlidesForContent(supabase, content_id, content_type);
+      return await generateSlidesForContent(supabase, content_id, content_type, generate_20_slides);
     } else {
       return new Response(
         JSON.stringify({ error: 'Content ID or batch_generate flag required' }),
@@ -94,7 +94,7 @@ async function generateSlidesForAllContent(supabase: any) {
 
       const batchPromises = batch.map(async (item) => {
         try {
-          const slidesData = await generateSlidesData(item);
+          const slidesData = await generateSlidesData(item, true); // Force 20 slides for batch generation
           
           const { error: updateError } = await supabase
             .from('systematic_lessons')
@@ -148,7 +148,7 @@ async function generateSlidesForAllContent(supabase: any) {
   }
 }
 
-async function generateSlidesForContent(supabase: any, contentId: string, contentType: string) {
+async function generateSlidesForContent(supabase: any, contentId: string, contentType: string, generate20Slides = false) {
   try {
     // Get the content item
     const { data: contentItem, error } = await supabase
@@ -161,7 +161,7 @@ async function generateSlidesForContent(supabase: any, contentId: string, conten
       throw new Error('Content item not found');
     }
 
-    const slidesData = await generateSlidesData(contentItem);
+    const slidesData = await generateSlidesData(contentItem, generate20Slides);
 
     // Update the content with slides
     const { error: updateError } = await supabase
@@ -191,7 +191,7 @@ async function generateSlidesForContent(supabase: any, contentId: string, conten
   }
 }
 
-async function generateSlidesData(contentItem: any) {
+async function generateSlidesData(contentItem: any, force20Slides = false) {
   // Extract CEFR level and age group for kid-specific content
   const cefrLevel = contentItem.level_info?.cefr_level || 'A1';
   const ageGroup = getAgeGroupFromCEFR(cefrLevel);
@@ -209,6 +209,8 @@ LESSON DETAILS:
 - Vocabulary: ${JSON.stringify(contentItem.vocabulary_set || [])}
 - Target Sentences: ${JSON.stringify(contentItem.lesson_objectives || [])}
 
+CRITICAL REQUIREMENT: ${force20Slides ? 'GENERATE EXACTLY 20 SLIDES - THIS IS MANDATORY!' : 'Generate 8-12 interactive slides'}
+
 CRITICAL: Follow the "Placement Test – Daily Routine" slide style exactly:
 - Large tap targets (minimum 44px)
 - Picture-led activities for early ages
@@ -216,7 +218,7 @@ CRITICAL: Follow the "Placement Test – Daily Routine" slide style exactly:
 - Child-safe imagery with OpenAI-generated image prompts
 - Calm, encouraging feedback
 
-CREATE EXACTLY 20 SLIDES following this comprehensive blueprint:
+${force20Slides ? `CREATE EXACTLY 20 SLIDES following this comprehensive blueprint:` : `CREATE 8-12 SLIDES including:`}
 1. Warmup Introduction: Welcome slide with lesson overview (type: "warmup")
 2. Vocabulary Preview 1: Introduce first set of vocabulary with images (type: "vocabulary_preview")
 3. Vocabulary Preview 2: Introduce second set of vocabulary with images (type: "vocabulary_preview")
