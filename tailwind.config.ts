@@ -25,103 +25,47 @@ export default {
 		},
 		extend: {
 			colors: {
-				border: 'hsl(var(--border))',
-				input: 'hsl(var(--input))',
-				ring: 'hsl(var(--ring))',
-				background: 'hsl(var(--background))',
-				foreground: 'hsl(var(--foreground))',
-				
-				// Clean Color System
+				border: "hsl(var(--border))",
+				input: "hsl(var(--input))",
+				ring: "hsl(var(--ring))",
+				background: "hsl(var(--background))",
+				foreground: "hsl(var(--foreground))",
 				primary: {
-					50: 'hsl(var(--primary-50))',
-					100: 'hsl(var(--primary-100))',
-					200: 'hsl(var(--primary-200))',
-					300: 'hsl(var(--primary-300))',
-					400: 'hsl(var(--primary-400))',
-					500: 'hsl(var(--primary-500))',
-					600: 'hsl(var(--primary-600))',
-					700: 'hsl(var(--primary-700))',
-					800: 'hsl(var(--primary-800))',
-					900: 'hsl(var(--primary-900))',
-					DEFAULT: 'hsl(var(--primary))',
-					foreground: 'hsl(var(--primary-foreground))'
+					DEFAULT: "hsl(var(--primary))",
+					foreground: "hsl(var(--primary-foreground))",
+				},
+				secondary: {
+					DEFAULT: "hsl(var(--secondary))",
+					foreground: "hsl(var(--secondary-foreground))",
 				},
 				accent: {
-					50: 'hsl(var(--accent-50))',
-					100: 'hsl(var(--accent-100))',
-					200: 'hsl(var(--accent-200))',
-					300: 'hsl(var(--accent-300))',
-					400: 'hsl(var(--accent-400))',
-					500: 'hsl(var(--accent-500))',
-					600: 'hsl(var(--accent-600))',
-					700: 'hsl(var(--accent-700))',
-					800: 'hsl(var(--accent-800))',
-					900: 'hsl(var(--accent-900))',
-					DEFAULT: 'hsl(var(--accent))',
-					foreground: 'hsl(var(--accent-foreground))'
+					DEFAULT: "hsl(var(--accent))",
+					foreground: "hsl(var(--accent-foreground))",
 				},
-				neutral: {
-					50: 'hsl(var(--neutral-50))',
-					100: 'hsl(var(--neutral-100))',
-					200: 'hsl(var(--neutral-200))',
-					300: 'hsl(var(--neutral-300))',
-					400: 'hsl(var(--neutral-400))',
-					500: 'hsl(var(--neutral-500))',
-					600: 'hsl(var(--neutral-600))',
-					700: 'hsl(var(--neutral-700))',
-					800: 'hsl(var(--neutral-800))',
-					900: 'hsl(var(--neutral-900))',
-				},
-				
-				// Semantic tokens
-				surface: 'hsl(var(--surface))',
-				'surface-2': 'hsl(var(--surface-2))',
-				text: 'hsl(var(--text))',
-				'text-muted': 'hsl(var(--text-muted))',
-				'text-subtle': 'hsl(var(--text-subtle))',
-				
-				// State colors
 				success: {
-					DEFAULT: 'hsl(var(--success))',
-					soft: 'hsl(var(--success-soft))',
-					foreground: 'hsl(var(--success-on))'
+					DEFAULT: "hsl(var(--success))",
+					foreground: "hsl(var(--success-foreground))",
 				},
 				info: {
-					DEFAULT: 'hsl(var(--info))',
-					soft: 'hsl(var(--info-soft))',
-					foreground: 'hsl(var(--info-on))'
-				},
-				warning: {
-					DEFAULT: 'hsl(var(--warning))',
-					soft: 'hsl(var(--warning-soft))',
-					foreground: 'hsl(var(--warning-on))'
-				},
-				error: {
-					DEFAULT: 'hsl(var(--error))',
-					soft: 'hsl(var(--error-soft))',
-					foreground: 'hsl(var(--error-on))'
-				},
-				
-				secondary: {
-					DEFAULT: 'hsl(var(--secondary))',
-					foreground: 'hsl(var(--secondary-foreground))'
+					DEFAULT: "hsl(var(--info))",
+					foreground: "hsl(var(--info-foreground))",
 				},
 				destructive: {
-					DEFAULT: 'hsl(var(--destructive))',
-					foreground: 'hsl(var(--destructive-foreground))'
+					DEFAULT: "hsl(var(--destructive))",
+					foreground: "hsl(var(--destructive-foreground))",
 				},
 				muted: {
-					DEFAULT: 'hsl(var(--muted))',
-					foreground: 'hsl(var(--muted-foreground))'
+					DEFAULT: "hsl(var(--muted))",
+					foreground: "hsl(var(--muted-foreground))",
 				},
 				popover: {
-					DEFAULT: 'hsl(var(--popover))',
-					foreground: 'hsl(var(--popover-foreground))'
+					DEFAULT: "hsl(var(--popover))",
+					foreground: "hsl(var(--popover-foreground))",
 				},
 				card: {
-					DEFAULT: 'hsl(var(--card))',
-					foreground: 'hsl(var(--card-foreground))'
-				}
+					DEFAULT: "hsl(var(--card))",
+					foreground: "hsl(var(--card-foreground))",
+				},
 			},
 			fontFamily: {
 				nunito: ['Nunito', 'sans-serif'],

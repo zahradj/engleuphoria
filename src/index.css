@@ -5,132 +5,140 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Modern typography and spacing */
+.launch-ready {
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+/* Smooth transitions for professional feel */
+.smooth-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Clean focus states */
+.focus-visible:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Professional shadows */
+.professional-shadow {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.professional-shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Engagement gradients */
+.engagement-gradient {
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
+}
+
+.success-gradient {
+  background: linear-gradient(135deg, hsl(var(--success)) 0%, hsl(var(--primary)) 100%);
+}
+
+/* Clean borders */
+.clean-border {
+  border: 1px solid hsl(var(--border));
+}
+
+/* Professional hover states */
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+}
+
 @layer base {
   :root {
-    /* Custom K12 Color System */
+    /* Launch-ready color palette - Professional and Modern */
     
-    /* Primary Ramp - Rich Warm Brown */
-    --primary-50: 25 40% 95%;    /* Lightest cream */
-    --primary-100: 25 38% 90%;   /* Very light cream */
-    --primary-200: 25 35% 82%;   /* Light cream */
-    --primary-300: 25 32% 72%;   /* Medium cream */
-    --primary-400: 25 30% 62%;   /* Darker cream */
-    --primary-500: 25 28% 52%;   /* Deep warm brown */
-    --primary-600: 25 30% 42%;   /* Deeper brown */
-    --primary-700: 25 32% 32%;   /* Dark brown */
-    --primary-800: 25 35% 25%;   /* Very dark brown */
-    --primary-900: 25 40% 18%;   /* Darkest brown */
+    /* #F3E2D4 (soft beige) - background and base color */
+    --background: 28 33% 92%;
+    --foreground: 200 45% 15%; /* #17313E deep navy for text */
 
-    /* Accent Ramp - Rich Purple */
-    --accent-50: 290 45% 95%;    /* Lightest lavender */
-    --accent-100: 290 40% 88%;   /* Very light lavender */
-    --accent-200: 290 35% 78%;   /* Light lavender */
-    --accent-300: 290 32% 68%;   /* Medium lavender */
-    --accent-400: 290 30% 58%;   /* Darker lavender */
-    --accent-500: 290 28% 48%;   /* Deep purple */
-    --accent-600: 290 30% 38%;   /* Deeper purple */
-    --accent-700: 290 32% 28%;   /* Dark purple */
-    --accent-800: 290 35% 22%;   /* Very dark purple */
-    --accent-900: 290 40% 16%;   /* Darkest purple */
+    /* Card colors */
+    --card: 0 0% 100%; /* Pure white for cards */
+    --card-foreground: 200 45% 15%; /* #17313E */
 
-    /* Neutral System - Rich Blue-Gray */
-    --neutral-50: 207 25% 96%;   /* Lightest blue-gray */
-    --neutral-100: 207 22% 90%;  /* Very light blue-gray */
-    --neutral-200: 207 20% 82%;  /* Light blue-gray */
-    --neutral-300: 207 18% 70%;  /* Medium blue-gray */
-    --neutral-400: 207 16% 58%;  /* Darker blue-gray */
-    --neutral-500: 207 30% 42%;  /* Rich blue-gray */
-    --neutral-600: 207 35% 32%;  /* Deeper blue-gray */
-    --neutral-700: 207 40% 22%;  /* Dark blue-gray */
-    --neutral-800: 207 45% 16%;  /* Very dark blue-gray */
-    --neutral-900: 207 50% 12%;  /* Darkest navy */
+    /* Popover colors */
+    --popover: 0 0% 100%;
+    --popover-foreground: 200 45% 15%; /* #17313E */
 
-    /* Semantic Tokens */
-    --bg: var(--neutral-50);
-    --surface: 0 0% 100%;
-    --surface-2: var(--neutral-50);
-    --border: var(--neutral-200);
-    --text: var(--neutral-900);
-    --text-muted: var(--neutral-600);
-    --text-subtle: var(--neutral-500);
-
-    /* State Colors */
-    --success: 142 76% 36%;
-    --success-soft: 142 30% 95%;
-    --success-on: 0 0% 100%;
-    
-    --info: 199 89% 48%;
-    --info-soft: 199 30% 95%;
-    --info-on: 0 0% 100%;
-    
-    --warning: 38 92% 50%;
-    --warning-soft: 38 30% 95%;
-    --warning-on: 0 0% 100%;
-    
-    --error: 0 84% 60%;
-    --error-soft: 0 30% 95%;
-    --error-on: 0 0% 100%;
-
-    /* Component Mappings */
-    --background: var(--bg);
-    --foreground: var(--text);
-    --card: var(--surface);
-    --card-foreground: var(--text);
-    --popover: var(--surface);
-    --popover-foreground: var(--text);
-    --primary: var(--primary-500);
+    /* #C5B0CD (muted lavender) - accent color for buttons and highlights */
+    --primary: 281 28% 74%;
     --primary-foreground: 0 0% 100%;
-    --secondary: var(--neutral-100);
-    --secondary-foreground: var(--neutral-800);
-    --muted: var(--neutral-100);
-    --muted-foreground: var(--text-muted);
-    --accent: var(--accent-100);
-    --accent-foreground: var(--accent-800);
-    --destructive: var(--error);
-    --destructive-foreground: var(--error-on);
-    --input: var(--surface);
-    --ring: var(--primary-500);
 
-    /* Chart Palette */
-    --chart-1: var(--primary-500);
-    --chart-2: var(--accent-500);
-    --chart-3: var(--primary-400);
-    --chart-4: var(--accent-400);
-    --chart-5: var(--primary-300);
-    --chart-6: var(--accent-300);
+    /* #415E72 (muted blue-gray) - for text headers and navigation */
+    --secondary: 200 28% 42%;
+    --secondary-foreground: 0 0% 100%;
 
-    /* Focus Ring */
-    --focus-ring: var(--primary-600);
-    
+    /* Muted colors */
+    --muted: 28 33% 96%; /* Lighter version of background */
+    --muted-foreground: 200 28% 42%; /* #415E72 */
+
+    /* #17313E (deep navy) - for call-to-action buttons and highlights */
+    --accent: 200 45% 15%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Success and state colors */
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --info: 200 45% 15%; /* #17313E */
+    --info-foreground: 0 0% 100%;
+
+    /* Destructive colors */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Border and input */
+    --border: 281 28% 85%; /* Lighter lavender */
+    --input: 281 28% 85%;
+    --ring: 281 28% 74%; /* #C5B0CD */
+
+    /* Radius for modern feel */
     --radius: 0.75rem;
   }
 
   .dark {
-    /* Dark Mode Adjustments */
-    --bg: var(--neutral-900);
-    --surface: var(--neutral-800);
-    --surface-2: var(--neutral-700);
-    --border: var(--neutral-700);
-    --text: var(--neutral-50);
-    --text-muted: var(--neutral-400);
-    --text-subtle: var(--neutral-500);
+    /* Dark mode - elegant navy theme */
+    --background: 200 45% 8%; /* Very dark navy */
+    --foreground: 28 33% 92%; /* #F3E2D4 */
 
-    --background: var(--bg);
-    --foreground: var(--text);
-    --card: var(--surface);
-    --card-foreground: var(--text);
-    --popover: var(--surface);
-    --popover-foreground: var(--text);
-    --primary: var(--primary-400);
-    --primary-foreground: var(--neutral-900);
-    --secondary: var(--neutral-800);
-    --secondary-foreground: var(--neutral-200);
-    --muted: var(--neutral-800);
-    --muted-foreground: var(--text-muted);
-    --accent: var(--accent-800);
-    --accent-foreground: var(--accent-200);
-    --input: var(--neutral-800);
-    --ring: var(--primary-400);
+    /* Card colors */
+    --card: 200 45% 12%; /* Slightly lighter navy */
+    --card-foreground: 28 33% 92%; /* #F3E2D4 */
+
+    /* Popover colors */
+    --popover: 200 45% 12%;
+    --popover-foreground: 28 33% 92%; /* #F3E2D4 */
+
+    /* Primary colors */
+    --primary: 281 28% 74%; /* #C5B0CD */
+    --primary-foreground: 200 45% 8%;
+
+    /* Secondary colors */
+    --secondary: 200 28% 42%; /* #415E72 */
+    --secondary-foreground: 28 33% 92%; /* #F3E2D4 */
+
+    /* Muted colors */
+    --muted: 200 45% 15%; /* #17313E */
+    --muted-foreground: 281 28% 74%; /* #C5B0CD */
+
+    /* Accent colors */
+    --accent: 281 28% 74%; /* #C5B0CD */
+    --accent-foreground: 200 45% 8%;
+
+    /* Destructive colors */
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 28 33% 92%; /* #F3E2D4 */
+
+    /* Border and input */
+    --border: 200 28% 25%;
+    --input: 200 28% 25%;
+    --ring: 281 28% 74%; /* #C5B0CD */
   }
 
   /* K-12 Themes for 1:1 Kids Program */

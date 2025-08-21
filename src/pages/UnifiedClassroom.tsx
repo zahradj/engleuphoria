@@ -15,6 +15,9 @@ import { useRewardNotifications } from "@/hooks/classroom/useRewardNotifications
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useConnectionRecovery } from "@/hooks/enhanced-classroom/useConnectionRecovery";
 import { ThemeSelector } from "@/components/ui/theme-selector";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { BookOpen, Star } from "lucide-react";
 
 function UnifiedClassroomInner() {
   console.log("UnifiedClassroom component is rendering");
@@ -134,10 +137,37 @@ function UnifiedClassroomInner() {
   try {
     return (
       <MediaProvider roomId={finalRoomId}>
-        <div className="min-h-screen overflow-hidden">
-          {/* Theme Selector in top-right corner */}
-          <div className="absolute top-4 right-4 z-50">
-            <ThemeSelector />
+        <div className="min-h-screen bg-background launch-ready overflow-hidden">
+          {/* Clean Header */}
+          <div className="h-16 bg-card border-b clean-border flex items-center justify-between px-6 professional-shadow z-50">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <BookOpen className="h-4 w-4 text-primary" />
+                </div>
+                <h1 className="font-semibold text-foreground">Live Classroom</h1>
+              </div>
+              {classTime && (
+                <Badge variant="secondary" className="font-mono">
+                  {classTime}
+                </Badge>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-3">
+              {currentUser.role === 'teacher' && (
+                <Button
+                  onClick={() => enhancedAwardPoints(10, 'Teacher recognition')}
+                  size="sm"
+                  variant="outline"
+                  className="hover-lift smooth-transition"
+                >
+                  <Star className="h-4 w-4 mr-2" />
+                  Award Points
+                </Button>
+              )}
+              <ThemeSelector />
+            </div>
           </div>
           
           {isMobile ? (
@@ -145,32 +175,32 @@ function UnifiedClassroomInner() {
               currentUser={currentUser}
               classTime={classTime}
               videoContent={mobileVideoContent}
-              chatContent={<div className="p-4 text-center text-gray-500">Chat coming soon</div>}
-              whiteboardContent={<div className="p-4 text-center text-gray-500">Whiteboard coming soon</div>}
-              studentsContent={<div className="p-4 text-center text-gray-500">Students panel coming soon</div>}
+              chatContent={<div className="p-4 text-center text-muted-foreground">Chat feature coming soon</div>}
+              whiteboardContent={<div className="p-4 text-center text-muted-foreground">Whiteboard loading...</div>}
+              studentsContent={<div className="p-4 text-center text-muted-foreground">Students panel loading...</div>}
             />
           ) : (
-            <UnifiedClassroomLayout 
-              classTime={classTime} 
-              enhancedClassroom={enhancedClassroom}
-            >
-              <UnifiedClassroomContent 
-                classroomState={{
-                  activeRightTab,
-                  activeCenterTab,
-                  studentXP,
-                  showRewardPopup,
-                  setActiveRightTab,
-                  setActiveCenterTab,
-                  awardPoints: enhancedAwardPoints
-                }}
-                enhancedClassroom={enhancedClassroom}
-                classTime={classTime}
-              />
-            </UnifiedClassroomLayout>
+            <div className="flex h-[calc(100vh-4rem)]">
+              {/* Main Content Area */}
+              <div className="flex-1 flex flex-col">
+                <UnifiedClassroomContent 
+                  classroomState={{
+                    activeRightTab,
+                    activeCenterTab,
+                    studentXP,
+                    showRewardPopup,
+                    setActiveRightTab,
+                    setActiveCenterTab,
+                    awardPoints: enhancedAwardPoints
+                  }}
+                  enhancedClassroom={enhancedClassroom}
+                  classTime={classTime}
+                />
+              </div>
+            </div>
           )}
 
-          {/* Celebration Overlay - Full screen center */}
+          {/* Celebration Overlay - Clean and Focused */}
           {celebration && (
             <CelebrationOverlay
               isVisible={celebration.isVisible}
