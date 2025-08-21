@@ -142,8 +142,11 @@ export function LessonSlideViewer({
           <h3 className="text-xl font-semibold text-muted-foreground">No slides available</h3>
           <p className="text-muted-foreground">This lesson doesn't have any slides to display.</p>
           <Badge variant="outline" className="mt-4">
-            {slides?.length || 0} legacy slides found
+            Input type: {typeof slides}
           </Badge>
+          <div className="mt-2 text-xs text-muted-foreground">
+            Raw slides: {JSON.stringify(slides, null, 2).slice(0, 200)}...
+          </div>
         </Card>
       </div>
     );
@@ -172,54 +175,100 @@ export function LessonSlideViewer({
   );
 }
 
-function convertLegacySlidesToNew(slides: any[], title: string): LessonSlides | null {
-  if (!slides || slides.length === 0) return null;
+function convertLegacySlidesToNew(slides: any, title: string): LessonSlides | null {
+  console.log('🔄 Converting slides:', slides);
+  
+  if (!slides) return null;
 
-  // Check if already in new format
-  if (slides[0]?.version === '2.0' || slides[0]?.slides) {
-    return slides[0] as LessonSlides;
+  // Check if already in LessonSlides format (v2.0)
+  if (slides.version === '2.0' && slides.slides) {
+    console.log('✅ Already in v2.0 format');
+    return slides as LessonSlides;
   }
 
-  // Convert legacy slides to new format
-  const convertedSlides: Slide[] = slides.map((slide, index) => ({
-    id: slide.id || `slide-${index + 1}`,
-    type: mapLegacyTypeToNew(slide.type || 'default'),
-    prompt: slide.title || slide.content?.title || `Slide ${index + 1}`,
-    instructions: slide.content?.instructions || slide.teacher_notes || "Follow the instructions on screen",
-    media: slide.content?.image ? {
-      type: 'image' as const,
-      url: slide.content.image,
-      alt: slide.content?.alt || "Lesson image"
-    } : undefined,
-    options: slide.content?.options?.map((opt: any, optIndex: number) => ({
-      id: opt.id || `opt-${optIndex}`,
-      text: typeof opt === 'string' ? opt : (opt.text || opt.label),
-      isCorrect: opt.isCorrect || opt.correct || false
-    })),
-    correct: slide.content?.correct || (slide.content?.options?.find((opt: any) => opt.isCorrect)?.id),
-    timeLimit: slide.duration ? slide.duration * 60 : undefined,
-    accessibility: {
-      screenReaderText: slide.content?.accessibleDescription,
-      largeText: true
-    }
-  }));
-
-  return {
-    version: '2.0',
-    theme: 'mist-blue',
-    slides: convertedSlides,
-    durationMin: 30,
-    metadata: {
-      CEFR: 'A1',
-      module: 1,
-      lesson: 1,
-      targets: ["sentence building"],
-      weights: {
-        accuracy: 60,
-        fluency: 40
+  // Handle LessonSlidesViewer format (different schema)
+  if (slides.slides && Array.isArray(slides.slides)) {
+    console.log('🔄 Converting from LessonSlidesViewer format');
+    const convertedSlides: Slide[] = slides.slides.map((slide: any, index: number) => ({
+      id: slide.id || `slide-${index + 1}`,
+      type: mapLegacyTypeToNew(slide.activity_type || 'default'),
+      prompt: slide.title || `Slide ${index + 1}`,
+      instructions: slide.content || slide.teacher_notes || "Follow the instructions on screen",
+      options: slide.interactive_elements?.map((element: string, optIndex: number) => ({
+        id: `opt-${optIndex}`,
+        text: element,
+        isCorrect: false
+      })),
+      timeLimit: slide.duration ? slide.duration * 60 : undefined,
+      accessibility: {
+        largeText: true
       }
-    }
-  };
+    }));
+
+    return {
+      version: '2.0',
+      theme: 'mist-blue',
+      slides: convertedSlides,
+      durationMin: slides.total_duration || 30,
+      metadata: {
+        CEFR: 'A1',
+        module: 1,
+        lesson: 1,
+        targets: ["lesson content"],
+        weights: {
+          accuracy: 60,
+          fluency: 40
+        }
+      }
+    };
+  }
+
+  // Handle legacy array format
+  if (Array.isArray(slides)) {
+    console.log('🔄 Converting from legacy array format');
+    const convertedSlides: Slide[] = slides.map((slide, index) => ({
+      id: slide.id || `slide-${index + 1}`,
+      type: mapLegacyTypeToNew(slide.type || 'default'),
+      prompt: slide.title || slide.content?.title || `Slide ${index + 1}`,
+      instructions: slide.content?.instructions || slide.teacher_notes || "Follow the instructions on screen",
+      media: slide.content?.image ? {
+        type: 'image' as const,
+        url: slide.content.image,
+        alt: slide.content?.alt || "Lesson image"
+      } : undefined,
+      options: slide.content?.options?.map((opt: any, optIndex: number) => ({
+        id: opt.id || `opt-${optIndex}`,
+        text: typeof opt === 'string' ? opt : (opt.text || opt.label),
+        isCorrect: opt.isCorrect || opt.correct || false
+      })),
+      correct: slide.content?.correct || (slide.content?.options?.find((opt: any) => opt.isCorrect)?.id),
+      timeLimit: slide.duration ? slide.duration * 60 : undefined,
+      accessibility: {
+        screenReaderText: slide.content?.accessibleDescription,
+        largeText: true
+      }
+    }));
+
+    return {
+      version: '2.0',
+      theme: 'mist-blue',
+      slides: convertedSlides,
+      durationMin: 30,
+      metadata: {
+        CEFR: 'A1',
+        module: 1,
+        lesson: 1,
+        targets: ["sentence building"],
+        weights: {
+          accuracy: 60,
+          fluency: 40
+        }
+      }
+    };
+  }
+
+  console.log('❌ Unable to convert slides format');
+  return null;
 }
 
 function mapLegacyTypeToNew(legacyType: string): Slide['type'] {

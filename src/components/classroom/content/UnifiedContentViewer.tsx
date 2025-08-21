@@ -43,7 +43,7 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
   const [strokeWidth, setStrokeWidth] = useState(3);
   const [activeShape, setActiveShape] = useState<"rectangle" | "circle">("rectangle");
   const [embeddedContent, setEmbeddedContent] = useState<EmbeddedContent[]>([]);
-  const [currentLessonSlides, setCurrentLessonSlides] = useState<any[]>([]);
+  const [currentLessonSlides, setCurrentLessonSlides] = useState<any>(null);
   const [currentLessonTitle, setCurrentLessonTitle] = useState("");
   
   // Debug embedded content changes
@@ -68,6 +68,8 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
       const { curriculumService } = await import('@/services/curriculumService');
       const { supabase } = await import('@/integrations/supabase/client');
       
+      console.log('🔄 Loading lesson:', lessonId);
+      
       // Fetch lesson from database
       const lesson = await curriculumService.getSystematicLessonById(lessonId);
       if (!lesson) {
@@ -75,17 +77,22 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
         return;
       }
 
+      console.log('📚 Lesson data:', lesson);
+
       // Clear any existing lesson content first
       setEmbeddedContent(prev => prev.filter(content => content.originalType !== 'systematic_lesson'));
 
-      // Check if lesson needs extended slides upgrade
-      const needsUpgrade = !lesson.slides_content?.slides || 
-                          lesson.slides_content.slides.length < 12 ||
-                          !lesson.slides_content.version ||
+      // Check if lesson needs slides generation or upgrade
+      const needsGeneration = !lesson.slides_content || 
+                             !lesson.slides_content?.slides || 
+                             lesson.slides_content.slides.length === 0;
+
+      const needsUpgrade = lesson.slides_content?.slides && 
+                          lesson.slides_content.slides.length < 12 &&
                           lesson.slides_content.version !== '2.0';
       
-      if (needsUpgrade) {
-        console.log('🎨 Upgrading lesson to extended slides:', lesson.title);
+      if (needsGeneration || needsUpgrade) {
+        console.log('🎨 Generating/upgrading lesson slides:', lesson.title);
         
         try {
           const { data, error } = await supabase.functions.invoke('ai-slide-generator', {
@@ -98,31 +105,20 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
 
           if (error) throw error;
           
-          // Reload lesson with upgraded slides
+          // Reload lesson with new slides
           const updatedLesson = await curriculumService.getSystematicLessonById(lessonId);
-          if (updatedLesson?.slides_content?.slides) {
+          if (updatedLesson?.slides_content) {
             lesson.slides_content = updatedLesson.slides_content;
           }
         } catch (error) {
-          console.error('Failed to upgrade slides:', error);
+          console.error('Failed to generate/upgrade slides:', error);
         }
       }
 
-      // Add lesson with new/upgraded slides to whiteboard
-      const lessonContent = {
-        id: `lesson-${Date.now()}`,
-        title: lesson.title,
-        url: `data:text/html;charset=utf-8,${encodeURIComponent(generateLessonSlidesHTML(lesson))}`,
-        x: 100,
-        y: 100,
-        width: 1200,
-        height: 800,
-        fileType: 'lesson-slides',
-        originalType: 'systematic_lesson'
-      };
-
-      setEmbeddedContent(prev => [...prev, lessonContent]);
-      setActiveTab('whiteboard');
+      // Set the lesson slides for React component
+      setCurrentLessonSlides(lesson.slides_content);
+      setCurrentLessonTitle(lesson.title);
+      setActiveTab('lesson-viewer');
       
     } catch (error) {
       console.error('Error loading lesson:', error);
@@ -524,26 +520,16 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
       // Check if systematic lesson with slides_content or slides array
       if (anyItem.slides_content?.slides && anyItem.slides_content.slides.length > 0) {
         console.log('🎨 Using systematic lesson slides_content with', anyItem.slides_content.slides.length, 'slides');
-        // Embed the multi-slide viewer directly on the whiteboard
-        const lessonContent = {
-          id: `lesson-${Date.now()}`,
-          title: item.title,
-          url: `data:text/html;charset=utf-8,${encodeURIComponent(generateLessonSlidesHTML(anyItem))}`,
-          x: 100,
-          y: 100,
-          width: 1200,
-          height: 800,
-          fileType: 'lesson-slides',
-          originalType: 'systematic_lesson'
-        };
-        setEmbeddedContent(prev => [...prev, lessonContent]);
-        setActiveTab('whiteboard');
+        // Use React component instead of iframe
+        setCurrentLessonSlides(anyItem.slides_content);
+        setCurrentLessonTitle(item.title);
+        setActiveTab('lesson-viewer');
         return;
       } else if (anyItem.slides && anyItem.slides.length > 0) {
         console.log('🎨 Using lesson slides array with', anyItem.slides.length, 'slides');
         setCurrentLessonSlides(anyItem.slides);
         setCurrentLessonTitle(item.title);
-        setActiveTab('slides');
+        setActiveTab('lesson-viewer');
         return;
       } else if (anyItem.id && contentType === 'systematic_lesson') {
         console.log('🔄 Systematic lesson needs slides generation, id:', anyItem.id);
@@ -553,20 +539,10 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
           const fullLesson = await curriculumService.getSystematicLessonById(anyItem.id);
           
           if (fullLesson?.slides_content?.slides && fullLesson.slides_content.slides.length > 0) {
-            console.log('🎨 Found existing slides_content, embedding directly');
-            const lessonContent = {
-              id: `lesson-${Date.now()}`,
-              title: item.title,
-              url: `data:text/html;charset=utf-8,${encodeURIComponent(generateLessonSlidesHTML(fullLesson))}`,
-              x: 100,
-              y: 100,
-              width: 1200,
-              height: 800,
-              fileType: 'lesson-slides',
-              originalType: 'systematic_lesson'
-            };
-            setEmbeddedContent(prev => [...prev, lessonContent]);
-            setActiveTab('whiteboard');
+            console.log('🎨 Found existing slides_content, using React component');
+            setCurrentLessonSlides(fullLesson.slides_content);
+            setCurrentLessonTitle(item.title);
+            setActiveTab('lesson-viewer');
             return;
           } else {
             console.log('🎨 Generating slides for systematic lesson');
@@ -1095,7 +1071,11 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
 
       <div className="flex-1 p-1 min-h-0">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-          <TabsList className="grid w-full grid-cols-4 mb-1 bg-white/80 backdrop-blur-sm h-8">
+          <TabsList className="grid w-full grid-cols-5 mb-1 bg-white/80 backdrop-blur-sm h-8">
+            <TabsTrigger value="lesson-viewer" className="flex items-center gap-1 text-xs">
+              <BookOpen size={12} />
+              Lesson
+            </TabsTrigger>
             <TabsTrigger value="slides" className="flex items-center gap-1 text-xs">
               <BookOpen size={12} />
               Slides
@@ -1113,6 +1093,26 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
               Content Library
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="lesson-viewer" className="flex-1 min-h-0">
+            {currentLessonSlides ? (
+              <LessonSlideViewer
+                slides={currentLessonSlides}
+                title={currentLessonTitle}
+                className="h-full"
+                studentId={currentUser?.id}
+                isTeacher={isTeacher}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-96">
+                <div className="text-center">
+                  <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-muted-foreground">No lesson loaded</h3>
+                  <p className="text-muted-foreground">Select a lesson from the content library to begin</p>
+                </div>
+              </div>
+            )}
+          </TabsContent>
 
           <TabsContent value="slides" className="flex-1 min-h-0">
             <div className="h-full">
