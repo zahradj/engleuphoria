@@ -56,3 +56,6 @@ verify_jwt = false
 
 [functions.k12-curriculum-generator]
 verify_jwt = false
+
+[functions.ai-lesson-generator]
+verify_jwt = false

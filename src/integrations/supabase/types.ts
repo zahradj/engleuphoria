@@ -2285,6 +2285,66 @@ export type Database = {
           },
         ]
       }
+      lessons_content: {
+        Row: {
+          cefr_level: string
+          created_at: string | null
+          created_by: string | null
+          difficulty_level: string | null
+          duration_minutes: number | null
+          grammar_focus: string[] | null
+          id: string
+          is_active: boolean | null
+          learning_objectives: string[] | null
+          lesson_number: number
+          metadata: Json | null
+          module_number: number
+          slides_content: Json
+          title: string
+          topic: string
+          updated_at: string | null
+          vocabulary_focus: string[] | null
+        }
+        Insert: {
+          cefr_level?: string
+          created_at?: string | null
+          created_by?: string | null
+          difficulty_level?: string | null
+          duration_minutes?: number | null
+          grammar_focus?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          learning_objectives?: string[] | null
+          lesson_number?: number
+          metadata?: Json | null
+          module_number?: number
+          slides_content?: Json
+          title: string
+          topic: string
+          updated_at?: string | null
+          vocabulary_focus?: string[] | null
+        }
+        Update: {
+          cefr_level?: string
+          created_at?: string | null
+          created_by?: string | null
+          difficulty_level?: string | null
+          duration_minutes?: number | null
+          grammar_focus?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          learning_objectives?: string[] | null
+          lesson_number?: number
+          metadata?: Json | null
+          module_number?: number
+          slides_content?: Json
+          title?: string
+          topic?: string
+          updated_at?: string | null
+          vocabulary_focus?: string[] | null
+        }
+        Relationships: []
+      }
       material_skills: {
         Row: {
           id: string

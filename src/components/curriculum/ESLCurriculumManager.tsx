@@ -8,6 +8,7 @@ import { ESLLevelBrowser } from "./ESLLevelBrowser";
 import { SystematicLearningPath } from "./SystematicLearningPath";
 import { CurriculumAnalytics } from "../teacher/curriculum/CurriculumAnalytics";
 import { AIContentGenerator } from "./AIContentGenerator";
+import { InteractiveLessonsLibrary } from "./InteractiveLessonsLibrary";
 
 export function ESLCurriculumManager() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -50,10 +51,14 @@ export function ESLCurriculumManager() {
       </div>
 
       {/* Main Content Tabs */}
-      <Tabs defaultValue="levels" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="levels" className="flex items-center gap-2">
+      <Tabs defaultValue="lessons" className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="lessons" className="flex items-center gap-2">
             <BookOpen size={16} />
+            Interactive Lessons
+          </TabsTrigger>
+          <TabsTrigger value="levels" className="flex items-center gap-2">
+            <Layers size={16} />
             Curriculum Levels
           </TabsTrigger>
           <TabsTrigger value="learning-paths" className="flex items-center gap-2">
@@ -70,9 +75,13 @@ export function ESLCurriculumManager() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="levels" className="mt-6">
-          <ESLLevelBrowser refreshTrigger={refreshTrigger} />
-        </TabsContent>
+          <TabsContent value="lessons" className="mt-6">
+            <InteractiveLessonsLibrary />
+          </TabsContent>
+
+          <TabsContent value="levels" className="mt-6">
+            <ESLLevelBrowser refreshTrigger={refreshTrigger} />
+          </TabsContent>
 
         <TabsContent value="learning-paths" className="mt-6">
           <SystematicLearningPath onContentUpdate={handleContentUpdate} />
