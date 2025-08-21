@@ -15,6 +15,7 @@ import {
   Star
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface K12LessonLibraryProps {
   onSelectLesson?: (lesson: any) => void;
@@ -27,6 +28,8 @@ export const K12LessonLibrary: React.FC<K12LessonLibraryProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLevel, setSelectedLevel] = useState('all');
+  const [isGenerating, setIsGenerating] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const { data: lessons, isLoading } = useQuery({
     queryKey: ['k12-lessons'],
@@ -54,6 +57,35 @@ export const K12LessonLibrary: React.FC<K12LessonLibraryProps> = ({
   }) || [];
 
   const levels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+
+  const generateSlides = async (lessonId: string) => {
+    setIsGenerating(lessonId);
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-slide-generator', {
+        body: { 
+          content_id: lessonId,
+          content_type: 'lesson',
+          generate_20_slides: true
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "20-Slide Deck Generated! 🎉",
+        description: "Interactive lesson with warmup, sentence builder, pronunciation, accuracy drills, fluency sprint, and exit check with rewards."
+      });
+    } catch (error) {
+      console.error('Failed to generate slides:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Could not generate 20-slide deck. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(null);
+    }
+  };
 
   const getLevelColor = (level: string) => {
     const colors = {
@@ -180,8 +212,18 @@ export const K12LessonLibrary: React.FC<K12LessonLibraryProps> = ({
                     <Play className="h-4 w-4 mr-1" />
                     {isClassroomMode ? 'Start Lesson' : 'View Lesson'}
                   </Button>
-                  <Button variant="outline" size="sm">
-                    <BookOpen className="h-4 w-4" />
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => generateSlides(lesson.id)}
+                    disabled={isGenerating === lesson.id}
+                    title="Generate 20-slide interactive deck"
+                  >
+                    {isGenerating === lesson.id ? (
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    ) : (
+                      <Star className="h-4 w-4" />
+                    )}
                   </Button>
                 </div>
               </div>

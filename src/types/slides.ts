@@ -42,6 +42,7 @@ export type SlideType =
   | 'error_fix'
   | 'picture_description'
   | 'controlled_practice'
+  | 'controlled_output'
   | 'micro_input'
   | 'roleplay_setup'
   | 'communicative_task'

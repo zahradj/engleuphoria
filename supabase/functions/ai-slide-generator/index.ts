@@ -217,26 +217,26 @@ CRITICAL: Follow the "Placement Test – Daily Routine" slide style exactly:
 - Calm, encouraging feedback
 
 CREATE EXACTLY 20 SLIDES following this comprehensive blueprint:
-1. Warmup Introduction: Welcome slide with lesson overview
-2. Vocabulary Preview 1: Introduce first set of vocabulary with images
-3. Vocabulary Preview 2: Introduce second set of vocabulary with images  
-4. Target Language Presentation: Form → meaning → use with examples
-5. Listening Comprehension: Audio/visual activity with target language
-6. Sentence Builder 1: Drag words/chunks into correct order
-7. Sentence Builder 2: Advanced sentence construction
-8. Pronunciation Practice: Model + shadow with audio feedback
-9. Grammar Focus: Targeted grammar explanation with examples
-10. Accuracy Drill 1: Multiple choice questions
-11. Accuracy Drill 2: Transform/error-fix exercises
-12. Picture Description: Describe images using target language
-13. Controlled Practice: Guided sentence production
-14. Micro-input Activity: Listen/read and rebuild sentences
-15. Role-play Setup: Communicative task preparation
-16. Role-play Activity: Interactive communication task
-17. Fluency Sprint 1: Timed speaking with word bank
-18. Fluency Sprint 2: Free production with prompts
-19. Review & Consolidation: Summary of key points
-20. Exit Check: Assessment with rewards/achievements
+1. Warmup Introduction: Welcome slide with lesson overview (type: "warmup")
+2. Vocabulary Preview 1: Introduce first set of vocabulary with images (type: "vocabulary_preview")
+3. Vocabulary Preview 2: Introduce second set of vocabulary with images (type: "vocabulary_preview")
+4. Target Language Presentation: Form → meaning → use with examples (type: "target_language")
+5. Listening Comprehension: Audio/visual activity with target language (type: "listening_comprehension")
+6. Sentence Builder 1: Drag words/chunks into correct order (type: "sentence_builder")
+7. Sentence Builder 2: Advanced sentence construction (type: "sentence_builder")
+8. Pronunciation Practice: Model + shadow with audio feedback (type: "pronunciation_shadow" or "tpr_phonics" for Pre-A1)
+9. Grammar Focus: Targeted grammar explanation with examples (type: "grammar_focus")
+10. Accuracy Drill 1: Multiple choice questions (type: "accuracy_mcq")
+11. Accuracy Drill 2: Transform/error-fix exercises (type: "transform" or "error_fix")
+12. Picture Description: Describe images using target language (type: "picture_description")
+13. Controlled Practice: Guided sentence production (type: "controlled_practice")
+14. Controlled Output: 4-6 sentences writing task (type: "controlled_output")
+15. Micro-input Activity: Listen/read and rebuild sentences (type: "micro_input")
+16. Role-play Setup: Communicative task preparation (type: "roleplay_setup")
+17. Role-play Activity: Interactive communication task (type: "communicative_task")
+18. Fluency Sprint 1: Timed speaking with word bank (type: "fluency_sprint")
+19. Fluency Sprint 2: Free production with prompts (type: "fluency_sprint")
+20. Exit Check: Assessment with autoscore & sticker rewards (type: "exit_check")
 
 ${isEarlyAge ? 'FOR AGES 4-7: Include more phonics/TPR activities and visual supports.' : ''}
 
@@ -256,7 +256,7 @@ Return ONLY a valid JSON object with this schema:
   "slides": [
     {
       "id": "slide-1",
-      "type": "warmup|target_language|sentence_builder|pronunciation_shadow|accuracy_mcq|transform|error_fix|micro_input|communicative_task|fluency_sprint|exit_check|picture_choice|labeling|tpr_phonics",
+      "type": "warmup|vocabulary_preview|target_language|sentence_builder|pronunciation_shadow|accuracy_mcq|transform|error_fix|controlled_output|micro_input|communicative_task|fluency_sprint|exit_check|picture_choice|labeling|tpr_phonics",
       "prompt": "Main instruction text",
       "instructions": "Teacher instructions",
       "media": {
