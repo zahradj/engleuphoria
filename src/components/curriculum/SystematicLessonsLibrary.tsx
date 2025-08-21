@@ -44,7 +44,6 @@ export function SystematicLessonsLibrary({ onContentUpdate }: SystematicLessonsL
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [levelFilter, setLevelFilter] = useState('all');
-  const [moduleFilter, setModuleFilter] = useState('all');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -86,9 +85,8 @@ export function SystematicLessonsLibrary({ onContentUpdate }: SystematicLessonsL
     const matchesSearch = lesson.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          lesson.topic.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesLevel = levelFilter === 'all' || lesson.cefr_level === levelFilter;
-    const matchesModule = moduleFilter === 'all' || lesson.module_number.toString() === moduleFilter;
     
-    return matchesSearch && matchesLevel && matchesModule;
+    return matchesSearch && matchesLevel;
   });
 
   const lessonsWithSlides = filteredLessons.filter(lesson => 
@@ -152,18 +150,6 @@ export function SystematicLessonsLibrary({ onContentUpdate }: SystematicLessonsL
                   <SelectItem value="A2">A2</SelectItem>
                   <SelectItem value="B1">B1</SelectItem>
                   <SelectItem value="B2">B2</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Select value={moduleFilter} onValueChange={setModuleFilter}>
-                <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Module" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Modules</SelectItem>
-                  {[1, 2, 3, 4, 5, 6].map(num => (
-                    <SelectItem key={num} value={num.toString()}>Module {num}</SelectItem>
-                  ))}
                 </SelectContent>
               </Select>
             </div>
