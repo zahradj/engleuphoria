@@ -1071,14 +1071,10 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
 
       <div className="flex-1 p-1 min-h-0">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-          <TabsList className="grid w-full grid-cols-5 mb-1 bg-white/80 backdrop-blur-sm h-8">
+          <TabsList className="grid w-full grid-cols-4 mb-1 bg-white/80 backdrop-blur-sm h-8">
             <TabsTrigger value="lesson-viewer" className="flex items-center gap-1 text-xs">
               <BookOpen size={12} />
               Lesson
-            </TabsTrigger>
-            <TabsTrigger value="slides" className="flex items-center gap-1 text-xs">
-              <BookOpen size={12} />
-              Slides
             </TabsTrigger>
             <TabsTrigger value="whiteboard" className="flex items-center gap-1 text-xs">
               <PenTool size={12} />
@@ -1114,15 +1110,6 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
             )}
           </TabsContent>
 
-          <TabsContent value="slides" className="flex-1 min-h-0">
-            <div className="h-full">
-              <LessonSlideViewer 
-                slides={currentLessonSlides}
-                title={currentLessonTitle}
-                className="h-full"
-              />
-            </div>
-          </TabsContent>
 
           <TabsContent value="whiteboard" className="flex-1 flex flex-col space-y-1 min-h-0">
             <div className="flex-shrink-0">
