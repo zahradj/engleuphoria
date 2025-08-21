@@ -13,13 +13,10 @@ import {
   Target, 
   Search, 
   Filter,
-  Sparkles,
-  Presentation,
-  Zap,
   ChevronRight,
   Users,
   CheckCircle,
-  FileText
+  Presentation
 } from 'lucide-react';
 
 interface LessonContent {
@@ -49,9 +46,6 @@ export function SystematicLessonsLibrary({ onContentUpdate }: SystematicLessonsL
   const [searchTerm, setSearchTerm] = useState('');
   const [levelFilter, setLevelFilter] = useState('all');
   const [moduleFilter, setModuleFilter] = useState('all');
-  const [generatingSlides, setGeneratingSlides] = useState<string[]>([]);
-  const [isSeeding, setIsSeeding] = useState(false);
-  const [isGeneratingAll, setIsGeneratingAll] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -82,125 +76,6 @@ export function SystematicLessonsLibrary({ onContentUpdate }: SystematicLessonsL
     }
   };
 
-  const handleSeedLessons = async () => {
-    setIsSeeding(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('bulk-lesson-generator', {
-        body: { action: 'seed_420_lessons' }
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: 'Lessons Seeded',
-        description: `${data?.stats?.inserted ?? 0} lessons created (${data?.stats?.skipped ?? 0} duplicates skipped)`,
-      });
-
-      await fetchLessons();
-    } catch (error: any) {
-      console.error('Error seeding lessons:', error);
-      toast({
-        title: 'Seeding Failed',
-        description: error.message || 'Failed to seed lessons. Please try again.',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsSeeding(false);
-    }
-  };
-
-  const handleGenerateAllSlides = async () => {
-    setIsGeneratingAll(true);
-    try {
-      const { data: lessonsNeedingSlides } = await supabase
-        .from('lessons_content')
-        .select('id, title')
-        .eq('is_active', true)
-        .or('slides_content.is.null,slides_content.eq.{}');
-
-      const toGenerate = lessonsNeedingSlides?.map(l => l.id) ?? [];
-      if (toGenerate.length === 0) {
-        toast({
-          title: 'No Lessons Need Slides',
-          description: 'All lessons already have slides generated.'
-        });
-        setIsGeneratingAll(false);
-        return;
-      }
-
-      toast({
-        title: 'Generating Slides',
-        description: `Starting slide generation for ${Math.min(toGenerate.length, 50)} lessons...`
-      });
-
-      const { error } = await supabase.functions.invoke('ai-slide-generator', {
-        body: {
-          batch_generate: true,
-          lesson_ids: toGenerate.slice(0, 50)
-        }
-      });
-
-      if (error) throw error;
-
-      toast({
-        title: 'Slide Generation Complete',
-        description: 'Successfully generated slides for multiple lessons.'
-      });
-
-      await fetchLessons();
-    } catch (error: any) {
-      console.error('Error generating slides:', error);
-      toast({
-        title: 'Generation Failed',
-        description: error.message || 'Failed to generate slides. Please try again.',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsGeneratingAll(false);
-    }
-  };
-
-  const generateSlidesForLesson = async (lessonId: string, lessonTitle: string) => {
-    setGeneratingSlides(prev => [...prev, lessonId]);
-    
-    try {
-      toast({
-        title: "Generating Slides",
-        description: `Creating 22 interactive slides for "${lessonTitle}"...`,
-      });
-
-      const { data, error } = await supabase.functions.invoke('ai-slide-generator', {
-        body: { 
-          action: 'generate_full_deck',
-          content_id: lessonId
-        }
-      });
-
-      if (error) throw error;
-
-      if (data.success) {
-        toast({
-          title: "Slides Generated! 🎨",
-          description: `Created ${data.total_slides} interactive slides ready for classroom use.`,
-        });
-        
-        // Refresh lessons to show updated slide count
-        await fetchLessons();
-        onContentUpdate?.();
-      } else {
-        throw new Error(data.error || 'Failed to generate slides');
-      }
-    } catch (error) {
-      console.error('Error generating slides:', error);
-      toast({
-        title: "Generation Error",
-        description: error.message || "Failed to generate slides. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setGeneratingSlides(prev => prev.filter(id => id !== lessonId));
-    }
-  };
 
   const openInClassroom = (lesson: LessonContent) => {
     // Store lesson data and open classroom
@@ -247,18 +122,8 @@ export function SystematicLessonsLibrary({ onContentUpdate }: SystematicLessonsL
         <div>
           <h2 className="text-2xl font-bold mb-1">Systematic ESL Lessons</h2>
           <p className="text-muted-foreground">
-            Structured curriculum lessons with AI-generated interactive slides ready for classroom use.
+            Structured curriculum lessons with interactive slides ready for classroom use.
           </p>
-        </div>
-        <div className="flex gap-2 w-full md:w-auto">
-          <Button onClick={handleSeedLessons} disabled={isSeeding} className="flex-1 md:flex-none" variant="default">
-            <Sparkles className="h-4 w-4 mr-2" />
-            {isSeeding ? 'Seeding...' : 'Seed 420 Lessons'}
-          </Button>
-          <Button onClick={handleGenerateAllSlides} disabled={isGeneratingAll || lessons.length === 0} variant="secondary" className="flex-1 md:flex-none">
-            <FileText className="h-4 w-4 mr-2" />
-            {isGeneratingAll ? 'Generating...' : 'Generate Slides for All'}
-          </Button>
         </div>
       </div>
 
@@ -362,7 +227,6 @@ export function SystematicLessonsLibrary({ onContentUpdate }: SystematicLessonsL
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredLessons.map((lesson) => {
           const hasSlides = lesson.slides_content && Object.keys(lesson.slides_content).length > 0;
-          const isGenerating = generatingSlides.includes(lesson.id);
           const slideCount = hasSlides ? lesson.slides_content?.slides?.length || 22 : 0;
 
           return (
@@ -432,45 +296,13 @@ export function SystematicLessonsLibrary({ onContentUpdate }: SystematicLessonsL
 
                 {/* Actions */}
                 <div className="space-y-2">
-                  {!hasSlides ? (
-                    <Button
-                      onClick={() => generateSlidesForLesson(lesson.id, lesson.title)}
-                      disabled={isGenerating}
-                      className="w-full"
-                      variant="outline"
-                    >
-                      {isGenerating ? (
-                        <>
-                          <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full mr-2"></div>
-                          Generating Slides...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="h-4 w-4 mr-2" />
-                          Generate 22 Slides
-                        </>
-                      )}
-                    </Button>
-                  ) : (
+                  {hasSlides && (
                     <Button
                       onClick={() => openInClassroom(lesson)}
                       className="w-full"
                     >
                       <Play className="h-4 w-4 mr-2" />
                       Use in Classroom
-                    </Button>
-                  )}
-
-                  {hasSlides && (
-                    <Button
-                      onClick={() => generateSlidesForLesson(lesson.id, lesson.title)}
-                      disabled={isGenerating}
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                    >
-                      <Zap className="h-4 w-4 mr-2" />
-                      Regenerate Slides
                     </Button>
                   )}
                 </div>
@@ -487,12 +319,8 @@ export function SystematicLessonsLibrary({ onContentUpdate }: SystematicLessonsL
             <BookOpen className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-xl font-semibold mb-2">No Lessons Available</h3>
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Your lesson library is empty. Click "Seed 420 Lessons" to populate it with a comprehensive ESL curriculum covering all CEFR levels.
+              Your lesson library is empty. Please contact your administrator to add lessons to the curriculum.
             </p>
-            <Button onClick={handleSeedLessons} disabled={isSeeding} size="lg">
-              <Sparkles className="h-5 w-5 mr-2" />
-              {isSeeding ? 'Seeding 420 Lessons...' : 'Seed 420 Lessons Now'}
-            </Button>
           </CardContent>
         </Card>
       )}
@@ -500,15 +328,9 @@ export function SystematicLessonsLibrary({ onContentUpdate }: SystematicLessonsL
       {filteredLessons.length === 0 && lessons.length > 0 && (
         <Card>
           <CardContent className="py-12 text-center space-y-4">
-            <BookOpen size={48} className="mx-auto mb-2 text-gray-300" />
+            <Search size={48} className="mx-auto mb-2 text-gray-300" />
             <h3 className="text-lg font-medium text-gray-600">No lessons found</h3>
-            <p className="text-gray-500">Seed the systematic curriculum to get started.</p>
-            <div className="flex justify-center">
-              <Button onClick={handleSeedLessons} disabled={isSeeding}>
-                <Sparkles className="h-4 w-4 mr-2" />
-                {isSeeding ? 'Seeding...' : 'Seed 420 Lessons'}
-              </Button>
-            </div>
+            <p className="text-gray-500">Try adjusting your search filters to find lessons.</p>
           </CardContent>
         </Card>
       )}
