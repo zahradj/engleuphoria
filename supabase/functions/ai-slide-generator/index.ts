@@ -295,30 +295,62 @@ Return ONLY a valid JSON object with this schema:
   }
 }`;
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${openaiApiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'gpt-5-2025-08-07',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an expert in child language learning and instructional design. Create ONLY valid JSON. Focus on sentence-building progression and age-appropriate activities.'
+  let response;
+  let attempts = 0;
+  const maxAttempts = 2;
+  
+  // Try with primary model first, fallback to backup model
+  const models = ['gpt-5-2025-08-07', 'gpt-4.1-2025-04-14'];
+  
+  while (attempts < maxAttempts) {
+    try {
+      const currentModel = models[attempts];
+      console.log(`🤖 Attempting slide generation with model: ${currentModel} (attempt ${attempts + 1})`);
+      
+      response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openaiApiKey}`,
+          'Content-Type': 'application/json',
         },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      max_completion_tokens: 8000,
-    }),
-  });
+        body: JSON.stringify({
+          model: currentModel,
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert in child language learning and instructional design. Create ONLY valid JSON. Focus on sentence-building progression and age-appropriate activities.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_completion_tokens: 8000,
+        }),
+      });
 
-  if (!response.ok) {
-    throw new Error(`OpenAI API error: ${response.status} - ${response.statusText}`);
+      if (response.ok) {
+        break; // Success, exit retry loop
+      }
+      
+      console.error(`❌ Model ${currentModel} failed with status: ${response.status}`);
+      attempts++;
+      
+      if (attempts >= maxAttempts) {
+        throw new Error(`All models failed. Last error: ${response.status} - ${response.statusText}`);
+      }
+      
+    } catch (error) {
+      attempts++;
+      console.error(`❌ Attempt ${attempts} failed:`, error.message);
+      
+      if (attempts >= maxAttempts) {
+        throw new Error(`Failed after ${maxAttempts} attempts: ${error.message}`);
+      }
+      
+      // Short delay before retry
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
   }
 
   const data = await response.json();

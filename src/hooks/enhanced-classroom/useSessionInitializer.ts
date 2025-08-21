@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useSessionManager } from './useSessionManager';
 import { useRealTimeSync } from './useRealTimeSync';
+import { supabase } from '@/lib/supabase';
 
 interface UseSessionInitializerProps {
   roomId: string;
@@ -30,12 +31,29 @@ export function useSessionInitializer({
       return;
     }
 
+    // Only initialize on classroom pages and for authenticated users
+    const isClassroomPage = window.location.pathname.includes('/classroom') || 
+                            window.location.pathname.includes('/unified-classroom');
+    
+    if (!isClassroomPage) {
+      console.log('🚫 Skipping session initialization - not on classroom page');
+      return;
+    }
+
     initializationInProgress.current = true;
 
     console.log('🚀 Initializing classroom session...', { userRole, roomId });
     
     const initializeSession = async () => {
       try {
+        // Check authentication first
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) {
+          console.log('🚫 Skipping session initialization - authentication required');
+          initializationInProgress.current = false;
+          return;
+        }
+
         // Initialize based on role
         if (userRole === 'teacher') {
           console.log('👨‍🏫 Teacher initializing - creating session...');
