@@ -11,7 +11,8 @@ import {
   CheckCircle,
   AlertCircle,
   PlayCircle,
-  Download
+  Download,
+  Plus
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
@@ -89,10 +90,15 @@ export function SlideGenerationControls({ onSlidesGenerated }: SlideGenerationCo
 
   const generateSingleSlide = async (contentId: string) => {
     try {
+      toast({
+        title: "Generating Slides",
+        description: "Creating 22 interactive slides with OpenAI...",
+      });
+
       const { data, error } = await supabase.functions.invoke('ai-slide-generator', {
         body: { 
           content_id: contentId,
-          content_type: 'lesson',
+          content_type: 'systematic_lesson',
           generate_20_slides: true
         }
       });
@@ -104,7 +110,7 @@ export function SlideGenerationControls({ onSlidesGenerated }: SlideGenerationCo
       if (data.success) {
         toast({
           title: "Slides Generated! 🎨",
-          description: "Interactive lesson slides created successfully.",
+          description: `Created ${data.slides?.total_slides || 22} interactive slides.`,
         });
         onSlidesGenerated?.();
       }
@@ -115,6 +121,39 @@ export function SlideGenerationControls({ onSlidesGenerated }: SlideGenerationCo
         description: error.message,
         variant: "destructive"
       });
+    }
+  };
+
+  const handleGenerateMissingSlides = async () => {
+    try {
+      setIsGenerating(true);
+      toast({
+        title: "Finding Lessons",
+        description: "Scanning for lessons without slides...",
+      });
+
+      const { data, error } = await supabase.functions.invoke('ai-slide-generator', {
+        body: { batch_generate: true }
+      });
+
+      if (error) throw new Error(error.message);
+
+      if (data.success) {
+        toast({
+          title: "Missing Slides Generated! 🎉",
+          description: `Generated slides for ${data.generated_count} lessons.`,
+        });
+        onSlidesGenerated?.();
+      }
+    } catch (error) {
+      console.error('Batch generation error:', error);
+      toast({
+        title: "Generation Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -151,15 +190,28 @@ export function SlideGenerationControls({ onSlidesGenerated }: SlideGenerationCo
               </div>
             </div>
 
-            <Button 
-              onClick={generateAllSlides}
-              disabled={isGenerating}
-              className="w-full"
-              size="lg"
-            >
-              <Presentation className="h-4 w-4 mr-2" />
-              Generate 20-Slide Lessons for All
-            </Button>
+            <div className="space-y-2">
+              <Button 
+                onClick={generateAllSlides}
+                disabled={isGenerating}
+                className="w-full"
+                size="lg"
+              >
+                <Presentation className="h-4 w-4 mr-2" />
+                Generate 22-Slide Lessons for All
+              </Button>
+              
+              <Button 
+                onClick={handleGenerateMissingSlides}
+                disabled={isGenerating}
+                variant="outline"
+                className="w-full"
+                size="sm"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Generate Missing Slides Only
+              </Button>
+            </div>
           </div>
         )}
 

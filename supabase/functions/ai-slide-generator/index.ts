@@ -197,30 +197,27 @@ async function generateSlidesData(contentItem: any, force20Slides = true) {
   const ageGroup = getAgeGroupFromCEFR(cefrLevel);
   const isEarlyAge = ageGroup.includes('4-6') || ageGroup.includes('6-9');
   
-  const prompt = `You are an expert in child language learning, creating interactive slides for ages ${ageGroup} using the 1:1 Kids Program curriculum.
+  const prompt = `You are an expert language learning curriculum designer creating interactive slides for CEFR level ${cefrLevel}.
 
 LESSON DETAILS:
 - Title: ${contentItem.title}
 - Topic: ${contentItem.topic}
 - CEFR Level: ${cefrLevel}
-- Age Group: ${ageGroup}
-- Grammar Focus: ${contentItem.grammar_focus || 'Sentence Building'}
+- Grammar Focus: ${contentItem.grammar_focus || 'Grammar fundamentals'}
 - Duration: ${contentItem.estimated_duration || 45} minutes
 - Vocabulary: ${JSON.stringify(contentItem.vocabulary_set || [])}
-- Target Sentences: ${JSON.stringify(contentItem.lesson_objectives || [])}
+- Learning Objectives: ${JSON.stringify(contentItem.lesson_objectives || [])}
 
-CRITICAL REQUIREMENT: ${force20Slides ? 'GENERATE EXACTLY 22 SLIDES - THIS IS MANDATORY FOR SYSTEMATIC CURRICULUM!' : 'Generate 8-12 interactive slides'}
+CRITICAL REQUIREMENT: GENERATE EXACTLY 22 SLIDES using the LessonSlides v2.0 schema.
 
 SYSTEMATIC CURRICULUM DESIGN PRINCIPLES:
-- Balance all 5 core skills: Grammar, Reading, Writing, Listening, Speaking
-- Accuracy AND Fluency development in every lesson
-- Interactive, gamified elements throughout
-- Real-life communication focus
-- Step-by-step skill progression
-- Clear learning objectives and outcomes
-- Assessment and review components
+- Balanced skill development: Speaking, Listening, Reading, Writing, Grammar
+- Progressive difficulty with scaffolding
+- Interactive and engaging activities
+- Real-world communication focus
+- Assessment and feedback integration
 
-${force20Slides ? `CREATE EXACTLY 22 SLIDES following this SYSTEMATIC CURRICULUM blueprint:` : `CREATE 8-12 SLIDES including:`}
+CREATE EXACTLY 22 SLIDES following this blueprint:`
 
 SLIDE 1: Welcome & Objectives (type: "warmup")
 - Lesson title, learning objectives, communication outcomes
@@ -369,15 +366,22 @@ Return ONLY a valid JSON object with this schema:
 
   let response;
   let attempts = 0;
-  const maxAttempts = 2;
+  const maxAttempts = 3;
   
-  // Try with primary model first, fallback to backup model
-  const models = ['gpt-5-2025-08-07', 'gpt-4.1-2025-04-14'];
+  // Optimized model strategy: fast, reliable models with fallbacks
+  const models = ['gpt-5-mini-2025-08-07', 'gpt-4.1-2025-04-14', 'o4-mini-2025-04-16'];
   
   while (attempts < maxAttempts) {
     try {
       const currentModel = models[attempts];
       console.log(`🤖 Attempting slide generation with model: ${currentModel} (attempt ${attempts + 1})`);
+      
+      // Exponential backoff for rate limits
+      if (attempts > 0) {
+        const delay = Math.min(1000 * Math.pow(2, attempts - 1) + Math.random() * 1000, 10000);
+        console.log(`⏳ Waiting ${Math.round(delay)}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
       
       response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -390,22 +394,25 @@ Return ONLY a valid JSON object with this schema:
           messages: [
             {
               role: 'system',
-              content: 'You are an expert in child language learning and instructional design. Create ONLY valid JSON. Focus on sentence-building progression and age-appropriate activities.'
+              content: 'You are an expert curriculum designer. Create ONLY valid JSON following the exact LessonSlides v2.0 schema. Ensure exactly 22 slides with proper structure.'
             },
             {
               role: 'user',
               content: prompt
             }
           ],
-          max_completion_tokens: 8000,
+          max_completion_tokens: currentModel.includes('gpt-5') || currentModel.includes('gpt-4.1') ? 6000 : 4000,
+          // Note: temperature removed for GPT-5/4.1 compatibility
         }),
       });
 
       if (response.ok) {
+        console.log(`✅ Model ${currentModel} succeeded`);
         break; // Success, exit retry loop
       }
       
-      console.error(`❌ Model ${currentModel} failed with status: ${response.status}`);
+      const errorText = await response.text();
+      console.error(`❌ Model ${currentModel} failed with status: ${response.status} - ${errorText}`);
       attempts++;
       
       if (attempts >= maxAttempts) {
@@ -419,9 +426,6 @@ Return ONLY a valid JSON object with this schema:
       if (attempts >= maxAttempts) {
         throw new Error(`Failed after ${maxAttempts} attempts: ${error.message}`);
       }
-      
-      // Short delay before retry
-      await new Promise(resolve => setTimeout(resolve, 1000));
     }
   }
 
@@ -435,31 +439,91 @@ Return ONLY a valid JSON object with this schema:
   try {
     const slidesData = JSON.parse(content);
     
-    // Generate images for slides with image prompts
-    if (slidesData.slides) {
-      for (const slide of slidesData.slides) {
-        if (slide.media?.imagePrompt && slide.media.type === 'image') {
-          try {
-            const imageUrl = await generateSlideImage(slide.media.imagePrompt);
-            slide.media.url = imageUrl;
-          } catch (imageError) {
-            console.error('Failed to generate image for slide:', slide.id, imageError);
-            // Keep placeholder URL if image generation fails
-          }
-        }
-      }
-    }
+    // Validate and normalize the slides data structure
+    const normalizedSlides = normalizeSlideData(slidesData, contentItem);
     
-    // Validate and enhance slides data
-    return {
-      ...slidesData,
-      generated_at: new Date().toISOString(),
-      generated_by: 'ai-slide-generator-k12-v3.0',
-      total_slides: slidesData.slides?.length || 0
-    };
+    // Optional: Generate images in background to avoid blocking
+    EdgeRuntime.waitUntil(generateSlideImages(normalizedSlides));
+    
+    return normalizedSlides;
   } catch (parseError) {
     console.error('JSON parse error:', parseError);
+    console.log('Raw content:', content?.substring(0, 500));
     throw new Error('Invalid JSON response from OpenAI');
+  }
+}
+
+function normalizeSlideData(rawData: any, contentItem: any): any {
+  // Ensure proper structure according to LessonSlides v2.0 schema
+  const normalized = {
+    version: "2.0",
+    theme: rawData.theme || "mist-blue",
+    slides: [],
+    durationMin: rawData.durationMin || contentItem.estimated_duration || 45,
+    total_slides: 0,
+    metadata: {
+      CEFR: contentItem.level_info?.cefr_level || 'A1',
+      module: rawData.metadata?.module || 1,
+      lesson: rawData.metadata?.lesson || 1,
+      targets: rawData.metadata?.targets || [],
+      weights: {
+        accuracy: rawData.metadata?.weights?.accuracy || 60,
+        fluency: rawData.metadata?.weights?.fluency || 40
+      }
+    },
+    generated_at: new Date().toISOString(),
+    generated_by: 'ai-slide-generator-v4.0',
+  };
+
+  // Validate and normalize slides
+  if (rawData.slides && Array.isArray(rawData.slides)) {
+    normalized.slides = rawData.slides.map((slide: any, index: number) => ({
+      id: slide.id || `slide-${index + 1}`,
+      type: slide.type || 'warmup',
+      prompt: slide.prompt || slide.content || 'Interactive slide content',
+      instructions: slide.instructions || `Instructions for slide ${index + 1}`,
+      media: slide.media ? {
+        type: slide.media.type || 'image',
+        url: slide.media.url || 'placeholder-url',
+        alt: slide.media.alt || `Slide ${index + 1} image`,
+        imagePrompt: slide.media.imagePrompt
+      } : undefined,
+      options: slide.options || undefined,
+      correct: slide.correct || undefined,
+      timeLimit: slide.timeLimit || 120,
+      accessibility: {
+        screenReaderText: slide.accessibility?.screenReaderText || slide.prompt,
+        highContrast: slide.accessibility?.highContrast || false,
+        largeText: slide.accessibility?.largeText || false
+      }
+    }));
+  }
+
+  // Ensure exactly 22 slides
+  if (normalized.slides.length < 22) {
+    console.log(`⚠️ Only ${normalized.slides.length} slides generated, should be 22`);
+  }
+  
+  normalized.total_slides = normalized.slides.length;
+  return normalized;
+}
+
+async function generateSlideImages(slidesData: any) {
+  if (!slidesData.slides) return;
+  
+  console.log('🎨 Starting background image generation...');
+  
+  for (const slide of slidesData.slides) {
+    if (slide.media?.imagePrompt && slide.media.type === 'image') {
+      try {
+        const imageUrl = await generateSlideImage(slide.media.imagePrompt);
+        slide.media.url = imageUrl;
+        console.log(`✅ Generated image for slide: ${slide.id}`);
+      } catch (imageError) {
+        console.error(`❌ Failed to generate image for slide: ${slide.id}`, imageError);
+        // Keep placeholder URL if image generation fails
+      }
+    }
   }
 }
 
