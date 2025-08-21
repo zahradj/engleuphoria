@@ -362,7 +362,7 @@ export function EnhancedContentLibrary({
         <TabsContent value="k12-curriculum" className="flex-1 min-h-0">
           <div className="h-full p-4">
             <K12LessonLibrary 
-              onSelectLesson={onSelectContent}
+              onSelectLesson={onAddToWhiteboard}
               isClassroomMode={true}
             />
           </div>
