@@ -73,10 +73,10 @@ export function UnifiedClassroomLayout({
         participantsCount={enhancedClassroom?.participants?.length || 0}
       />
 
-      {/* Recovery Status Indicator */}
+      {/* Recovery Status Indicator - Non-blocking */}
       {isRecovering && (
-        <div className="fixed bottom-16 right-4 z-50">
-          <Card className="p-3 bg-muted border">
+        <div className="fixed top-4 right-4 z-30 pointer-events-none">
+          <Card className="p-3 bg-background/95 backdrop-blur-sm border shadow-lg">
             <div className="flex items-center gap-2">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
               <span className="text-sm text-foreground">
