@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   BookOpen, 
   Play, 
@@ -18,7 +18,8 @@ import {
   Zap,
   ChevronRight,
   Users,
-  CheckCircle
+  CheckCircle,
+  FileText
 } from 'lucide-react';
 
 interface LessonContent {
@@ -49,6 +50,8 @@ export function SystematicLessonsLibrary({ onContentUpdate }: SystematicLessonsL
   const [levelFilter, setLevelFilter] = useState('all');
   const [moduleFilter, setModuleFilter] = useState('all');
   const [generatingSlides, setGeneratingSlides] = useState<string[]>([]);
+  const [isSeeding, setIsSeeding] = useState(false);
+  const [isGeneratingAll, setIsGeneratingAll] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -76,6 +79,84 @@ export function SystematicLessonsLibrary({ onContentUpdate }: SystematicLessonsL
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSeedLessons = async () => {
+    setIsSeeding(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('bulk-lesson-generator', {
+        body: { action: 'seed_420_lessons' }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Lessons Seeded',
+        description: `${data?.stats?.inserted ?? 0} lessons created (${data?.stats?.skipped ?? 0} duplicates skipped)`,
+      });
+
+      await fetchLessons();
+    } catch (error: any) {
+      console.error('Error seeding lessons:', error);
+      toast({
+        title: 'Seeding Failed',
+        description: error.message || 'Failed to seed lessons. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSeeding(false);
+    }
+  };
+
+  const handleGenerateAllSlides = async () => {
+    setIsGeneratingAll(true);
+    try {
+      const { data: lessonsNeedingSlides } = await supabase
+        .from('lessons_content')
+        .select('id, title')
+        .eq('is_active', true)
+        .or('slides_content.is.null,slides_content.eq.{}');
+
+      const toGenerate = lessonsNeedingSlides?.map(l => l.id) ?? [];
+      if (toGenerate.length === 0) {
+        toast({
+          title: 'No Lessons Need Slides',
+          description: 'All lessons already have slides generated.'
+        });
+        setIsGeneratingAll(false);
+        return;
+      }
+
+      toast({
+        title: 'Generating Slides',
+        description: `Starting slide generation for ${Math.min(toGenerate.length, 50)} lessons...`
+      });
+
+      const { error } = await supabase.functions.invoke('ai-slide-generator', {
+        body: {
+          batch_generate: true,
+          lesson_ids: toGenerate.slice(0, 50)
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Slide Generation Complete',
+        description: 'Successfully generated slides for multiple lessons.'
+      });
+
+      await fetchLessons();
+    } catch (error: any) {
+      console.error('Error generating slides:', error);
+      toast({
+        title: 'Generation Failed',
+        description: error.message || 'Failed to generate slides. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsGeneratingAll(false);
     }
   };
 
@@ -162,11 +243,23 @@ export function SystematicLessonsLibrary({ onContentUpdate }: SystematicLessonsL
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold mb-2">Systematic ESL Lessons</h2>
-        <p className="text-muted-foreground">
-          Structured curriculum lessons with AI-generated interactive slides ready for classroom use.
-        </p>
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+        <div>
+          <h2 className="text-2xl font-bold mb-1">Systematic ESL Lessons</h2>
+          <p className="text-muted-foreground">
+            Structured curriculum lessons with AI-generated interactive slides ready for classroom use.
+          </p>
+        </div>
+        <div className="flex gap-2 w-full md:w-auto">
+          <Button onClick={handleSeedLessons} disabled={isSeeding} className="flex-1 md:flex-none" variant="default">
+            <Sparkles className="h-4 w-4 mr-2" />
+            {isSeeding ? 'Seeding...' : 'Seed 420 Lessons'}
+          </Button>
+          <Button onClick={handleGenerateAllSlides} disabled={isGeneratingAll || lessons.length === 0} variant="secondary" className="flex-1 md:flex-none">
+            <FileText className="h-4 w-4 mr-2" />
+            {isGeneratingAll ? 'Generating...' : 'Generate Slides for All'}
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -389,10 +482,16 @@ export function SystematicLessonsLibrary({ onContentUpdate }: SystematicLessonsL
 
       {filteredLessons.length === 0 && (
         <Card>
-          <CardContent className="py-12 text-center">
-            <BookOpen size={48} className="mx-auto mb-4 text-gray-300" />
-            <h3 className="text-lg font-medium text-gray-600 mb-2">No lessons found</h3>
-            <p className="text-gray-500">Try adjusting your search filters or check back later.</p>
+          <CardContent className="py-12 text-center space-y-4">
+            <BookOpen size={48} className="mx-auto mb-2 text-gray-300" />
+            <h3 className="text-lg font-medium text-gray-600">No lessons found</h3>
+            <p className="text-gray-500">Seed the systematic curriculum to get started.</p>
+            <div className="flex justify-center">
+              <Button onClick={handleSeedLessons} disabled={isSeeding}>
+                <Sparkles className="h-4 w-4 mr-2" />
+                {isSeeding ? 'Seeding...' : 'Seed 420 Lessons'}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
