@@ -63,14 +63,17 @@ export const K12LessonLibrary: React.FC<K12LessonLibraryProps> = ({
 
   const generateSlides = async (lessonId: string) => {
     setIsGenerating(lessonId);
+    console.log('🎨 Starting slide generation for lesson:', lessonId);
     try {
       const { data, error } = await supabase.functions.invoke('ai-slide-generator', {
         body: { 
           content_id: lessonId,
-          content_type: 'lesson',
+          content_type: 'systematic_lesson',
           generate_20_slides: true
         }
       });
+
+      console.log('🎨 Slide generation response:', { data, error });
 
       if (error) throw error;
 
@@ -109,8 +112,8 @@ export const K12LessonLibrary: React.FC<K12LessonLibraryProps> = ({
       }
 
       toast({
-        title: "20-Slide Deck Generated! 🎉",
-        description: "Interactive lesson slides saved to database and added to Content Library. Now available in Systematic Curriculum Lessons."
+        title: "22-Slide Systematic Curriculum Generated! 🎉",
+        description: `Created ${data?.slides?.slides?.length || 0} comprehensive slides covering all core skills. Available on whiteboard now.`
       });
     } catch (error) {
       console.error('Failed to generate slides:', error);

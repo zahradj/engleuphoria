@@ -26,14 +26,14 @@ serve(async (req) => {
 
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const { content_id, content_type, batch_generate, generate_20_slides } = await req.json();
+    const { content_id, content_type, batch_generate, generate_20_slides = true } = await req.json();
     
     console.log('🎨 AI Slide Generator request:', { content_id, content_type, batch_generate, generate_20_slides });
 
     if (batch_generate) {
       return await generateSlidesForAllContent(supabase);
     } else if (content_id) {
-      return await generateSlidesForContent(supabase, content_id, content_type, generate_20_slides);
+      return await generateSlidesForContent(supabase, content_id, content_type, true); // Always force 22 slides for systematic lessons
     } else {
       return new Response(
         JSON.stringify({ error: 'Content ID or batch_generate flag required' }),
@@ -191,7 +191,7 @@ async function generateSlidesForContent(supabase: any, contentId: string, conten
   }
 }
 
-async function generateSlidesData(contentItem: any, force20Slides = false) {
+async function generateSlidesData(contentItem: any, force20Slides = true) {
   // Extract CEFR level and age group for kid-specific content
   const cefrLevel = contentItem.level_info?.cefr_level || 'A1';
   const ageGroup = getAgeGroupFromCEFR(cefrLevel);
