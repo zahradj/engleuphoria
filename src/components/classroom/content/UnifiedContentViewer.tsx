@@ -38,7 +38,10 @@ interface UnifiedContentViewerProps {
 }
 
 export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: UnifiedContentViewerProps) {
-  const [activeTab, setActiveTab] = useState("whiteboard");
+  const [activeTab, setActiveTab] = useState(() => {
+    // Default to Content Library for teachers to see lessons immediately
+    return isTeacher ? "content" : "whiteboard";
+  });
   const [activeTool, setActiveTool] = useState<"pencil" | "eraser" | "text" | "highlighter" | "shape" | "move">("pencil");
   const [color, setColor] = useState("#9B87F5");
   const [strokeWidth, setStrokeWidth] = useState(3);

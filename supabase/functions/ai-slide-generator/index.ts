@@ -8,6 +8,10 @@ const corsHeaders = {
 };
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+
+if (!openAIApiKey) {
+  console.error('OPENAI_API_KEY environment variable is not set');
+}
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
@@ -219,6 +223,10 @@ For each slide, provide:
 
 Respond with valid JSON only:`;
 
+  if (!openAIApiKey) {
+    throw new Error('OpenAI API key is not configured. Please set the OPENAI_API_KEY environment variable.');
+  }
+
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -226,12 +234,13 @@ Respond with valid JSON only:`;
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-5-2025-08-07',
+      model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: 'You are an expert ESL curriculum designer. Create comprehensive, engaging lesson slides with clear instructions and interactive elements. Always respond with valid JSON only.' },
         { role: 'user', content: prompt }
       ],
-      max_completion_tokens: 4000,
+      max_tokens: 4000,
+      temperature: 0.7,
     }),
   });
 
@@ -321,6 +330,10 @@ Create an engaging slide with:
 
 Respond with valid JSON only:`;
 
+  if (!openAIApiKey) {
+    throw new Error('OpenAI API key is not configured. Please set the OPENAI_API_KEY environment variable.');
+  }
+
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -328,12 +341,13 @@ Respond with valid JSON only:`;
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-5-2025-08-07',
+      model: 'gpt-4o-mini',
       messages: [
         { role: 'system', content: 'You are an expert ESL curriculum designer. Create one engaging lesson slide with clear instructions. Always respond with valid JSON only.' },
         { role: 'user', content: prompt }
       ],
-      max_completion_tokens: 800,
+      max_tokens: 800,
+      temperature: 0.7,
     }),
   });
 

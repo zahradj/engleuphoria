@@ -55,7 +55,10 @@ export function EnhancedContentLibrary({
   onAddToWhiteboard,
   currentUser
 }: EnhancedContentLibraryProps) {
-  const [activeTab, setActiveTab] = useState('systematic');
+  const [activeTab, setActiveTab] = useState(() => {
+    // Persist the last used tab in localStorage
+    return localStorage.getItem('contentLibraryActiveTab') || 'systematic';
+  });
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState<ContentFilter>({
     type: 'all',
@@ -164,7 +167,10 @@ export function EnhancedContentLibrary({
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="min-h-screen flex flex-col">
+      <Tabs value={activeTab} onValueChange={(value) => {
+        setActiveTab(value);
+        localStorage.setItem('contentLibraryActiveTab', value);
+      }} className="min-h-screen flex flex-col">
         <div className="flex-shrink-0 p-4 border-b bg-gradient-to-r from-blue-50 to-purple-50">
           <div className="flex items-center justify-between mb-4">
             <div>

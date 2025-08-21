@@ -480,7 +480,24 @@ export function SystematicLessonsLibrary({ onContentUpdate }: SystematicLessonsL
         })}
       </div>
 
-      {filteredLessons.length === 0 && (
+      {/* Empty State */}
+      {lessons.length === 0 && !isLoading && (
+        <Card className="text-center py-12">
+          <CardContent>
+            <BookOpen className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-xl font-semibold mb-2">No Lessons Available</h3>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+              Your lesson library is empty. Click "Seed 420 Lessons" to populate it with a comprehensive ESL curriculum covering all CEFR levels.
+            </p>
+            <Button onClick={handleSeedLessons} disabled={isSeeding} size="lg">
+              <Sparkles className="h-5 w-5 mr-2" />
+              {isSeeding ? 'Seeding 420 Lessons...' : 'Seed 420 Lessons Now'}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {filteredLessons.length === 0 && lessons.length > 0 && (
         <Card>
           <CardContent className="py-12 text-center space-y-4">
             <BookOpen size={48} className="mx-auto mb-2 text-gray-300" />
