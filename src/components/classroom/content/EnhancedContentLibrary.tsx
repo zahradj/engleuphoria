@@ -166,11 +166,11 @@ export function EnhancedContentLibrary({
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="h-full flex flex-col">
       <Tabs value={activeTab} onValueChange={(value) => {
         setActiveTab(value);
         localStorage.setItem('contentLibraryActiveTab', value);
-      }} className="min-h-screen flex flex-col">
+      }} className="h-full flex flex-col">
         <div className="flex-shrink-0 p-4 border-b bg-gradient-to-r from-blue-50 to-purple-50">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -352,7 +352,7 @@ export function EnhancedContentLibrary({
         </TabsContent>
 
         <TabsContent value="systematic" className="flex-1 min-h-0">
-          <div className="h-full p-4">
+          <div className="h-full overflow-y-auto p-4">
             <SystematicLessonsLibrary />
           </div>
         </TabsContent>
