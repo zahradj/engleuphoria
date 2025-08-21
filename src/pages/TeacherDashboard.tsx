@@ -1,165 +1,162 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Calendar, 
-  Users, 
-  BookOpen, 
-  Clock, 
-  DollarSign,
-  Plus,
-  Eye,
-  MessageSquare,
-  BarChart3,
-  Settings,
-  ChevronRight
-} from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useNavigate } from 'react-router-dom';
 
-interface TeacherStats {
-  upcomingLessons: any[];
-  totalEarnings: number;
-  studentsThisMonth: number;
-  lessonsCompleted: number;
-  avgRating: number;
-  availabilitySlots: number;
-}
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { EnhancedTeacherSidebar } from "@/components/teacher/EnhancedTeacherSidebar";
+import { CleanWorkspaceHeader } from "@/components/teacher/CleanWorkspaceHeader";
+import { MobileTeacherNav } from "@/components/teacher/mobile/MobileTeacherNav";
+import { DashboardTab } from "@/components/teacher/DashboardTab";
+import { EnhancedCalendarTab } from "@/components/teacher/EnhancedCalendarTab";
+import { StudentsTab } from "@/components/teacher/StudentsTab";
+import { LessonHistoryTab } from "@/components/teacher/LessonHistoryTab";
+import { AssignmentsTab } from "@/components/teacher/AssignmentsTab";
+import { ResourceLibraryTab } from "@/components/teacher/ResourceLibraryTab";
+import { ReadingLibraryTab } from "@/components/teacher/ReadingLibraryTab";
+import { MessagesTab } from "@/components/teacher/MessagesTab";
+import { EarningsTab } from "@/components/teacher/EarningsTab";
+import { ReportsTab } from "@/components/teacher/ReportsTab";
+import { SettingsTab } from "@/components/teacher/SettingsTab";
+import { ProfileSetupTab } from "@/components/teacher/ProfileSetupTab";
+import { ProfileCompleteGuard } from "@/components/teacher/ProfileCompleteGuard";
+import { WithdrawalsTab } from "@/components/teacher/WithdrawalsTab";
+import { QuickActions } from "@/components/navigation/QuickActions";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { DailyRoutinesSlides } from "@/components/classroom/lesson-slides/DailyRoutinesSlides";
 
-export default function TeacherDashboard() {
+type TabType = 'dashboard' | 'profile' | 'calendar' | 'students' | 'reading-library' | 'history' | 'assignments' | 'resources' | 'messages' | 'earnings' | 'withdrawals' | 'reports' | 'settings' | 'slides';
+
+const TeacherDashboard = () => {
+  const [activeTab, setActiveTab] = useState<TabType>('dashboard');
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('overview');
+  const { toast } = useToast();
 
-  // Fetch teacher data
-  const { data: stats, isLoading } = useQuery({
-    queryKey: ['teacherStats'],
-    queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+  // Use the authenticated user's information
+  const teacherName = user?.user_metadata?.full_name || user?.email || "Teacher";
+  const teacherId = user?.id || "";
 
-      // Get upcoming lessons
-      const { data: lessons } = await supabase
-        .from('lessons')
-        .select(`
-          *,
-          student:users!lessons_student_id_fkey(full_name)
-        `)
-        .eq('teacher_id', user.id)
-        .gte('scheduled_at', new Date().toISOString())
-        .order('scheduled_at', { ascending: true })
-        .limit(5);
-
-      // Get teacher profile
-      const { data: profile } = await supabase
-        .from('teacher_profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      // Get earnings
-      const { data: earnings } = await supabase
-        .from('teacher_earnings')
-        .select('teacher_amount')
-        .eq('teacher_id', user.id)
-        .eq('status', 'paid');
-
-      const totalEarnings = earnings?.reduce((sum, e) => sum + Number(e.teacher_amount), 0) || 0;
-
-      return {
-        upcomingLessons: lessons || [],
-        totalEarnings,
-        studentsThisMonth: 15, // Mock data
-        lessonsCompleted: 45, // Mock data  
-        avgRating: profile?.rating || 0,
-        availabilitySlots: 24 // Mock data
-      } as TeacherStats;
+  useEffect(() => {
+    // If no user is logged in, redirect to login
+    if (!user) {
+      navigate("/login");
+      return;
     }
-  });
 
-  if (isLoading) {
+    // If user is not a teacher, redirect to appropriate dashboard
+    if (user.role !== "teacher") {
+      if (user.role === "student") {
+        navigate("/student");
+      } else if (user.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/login");
+      }
+    }
+  }, [user, navigate]);
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab as TabType);
+  };
+
+  const renderTabContent = () => {
+    const content = (() => {
+      switch (activeTab) {
+        case 'dashboard':
+          return <DashboardTab teacherName={teacherName} />;
+        case 'profile':
+          return <ProfileSetupTab teacherId={teacherId} />;
+        case 'slides':
+          return <DailyRoutinesSlides />;
+        case 'calendar':
+          return <EnhancedCalendarTab teacherId={teacherId} />;
+        case 'students':
+          return <StudentsTab />;
+        case 'reading-library':
+          return <ReadingLibraryTab />;
+        case 'history':
+          return <LessonHistoryTab />;
+        case 'assignments':
+          return <AssignmentsTab />;
+        case 'resources':
+          return <ResourceLibraryTab />;
+        case 'messages':
+          return <MessagesTab />;
+        case 'earnings':
+          return <EarningsTab />;
+        case 'withdrawals':
+          return <WithdrawalsTab />;
+        case 'reports':
+          return <ReportsTab />;
+        case 'settings':
+          return <SettingsTab teacherName={teacherName} />;
+        default:
+          return <DashboardTab teacherName={teacherName} />;
+      }
+    })();
+
+    // Don't wrap profile tab in guard since it's the setup itself
+    if (activeTab === 'profile') {
+      return content;
+    }
+
+    // Wrap all other tabs in profile completion guard
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <ProfileCompleteGuard teacherId={teacherId}>
+        {content}
+      </ProfileCompleteGuard>
+    );
+  };
+
+  // Show loading if user is still being fetched
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background launch-ready">
-      <div className="max-w-7xl mx-auto p-6 space-y-8">
-        {/* Professional Header */}
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold text-foreground">
-            Teacher Dashboard
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Manage your classes, track student progress, and grow your teaching practice.
-          </p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-primary-200 via-accent-200 to-primary-300">
+      {/* Mobile Navigation */}
+      <div className="md:hidden">
+        <MobileTeacherNav 
+          activeTab={activeTab}
+          setActiveTab={handleTabChange}
+          onLogout={signOut}
+          teacherName={teacherName}
+        />
+        <main className="p-4 bg-primary-300/80">
+          {renderTabContent()}
+        </main>
+      </div>
 
-        {/* Quick Actions */}
-        <section>
-          <h2 className="text-2xl font-semibold mb-4 text-foreground">Quick Actions</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Button
-              onClick={() => navigate('/teacher-availability')}
-              className="h-24 flex-col gap-2 bg-gradient-to-br from-primary to-accent text-white hover:scale-105 smooth-transition"
-            >
-              <Calendar className="h-6 w-6" />
-              <span className="text-sm font-medium">Set Availability</span>
-            </Button>
+      {/* Desktop Layout with Clean Workspace Mode */}
+      <div className="hidden md:block">
+        <SidebarProvider defaultOpen={false}>
+          <div className="flex min-h-screen w-full bg-gradient-to-br from-primary-200 via-accent-200 to-primary-300">
+            <EnhancedTeacherSidebar 
+              activeTab={activeTab} 
+              setActiveTab={handleTabChange}
+              onLogout={signOut}
+            />
             
-            <Button
-              onClick={() => navigate('/unified-classroom')}
-              variant="outline"
-              className="h-24 flex-col gap-2 hover-lift smooth-transition"
-            >
-              <BookOpen className="h-6 w-6" />
-              <span className="text-sm font-medium">Start Class</span>
-            </Button>
-            
-            <Button
-              onClick={() => navigate('/k12-lessons')}
-              variant="outline"
-              className="h-24 flex-col gap-2 hover-lift smooth-transition"
-            >
-              <Plus className="h-6 w-6" />
-              <span className="text-sm font-medium">Lesson Library</span>
-            </Button>
-            
-            <Button
-              onClick={() => navigate('/teacher-profile')}
-              variant="outline"
-              className="h-24 flex-col gap-2 hover-lift smooth-transition"
-            >
-              <Settings className="h-6 w-6" />
-              <span className="text-sm font-medium">Profile</span>
-            </Button>
+            <SidebarInset className="flex-1">
+              <CleanWorkspaceHeader teacherName={teacherName} />
+              <main className="flex-1 overflow-y-auto p-6 bg-gradient-to-br from-primary-300/90 via-accent-300/90 to-primary-400/90">
+                <QuickActions />
+                {renderTabContent()}
+              </main>
+            </SidebarInset>
           </div>
-        </section>
-
-        {/* Professional CTA */}
-        <Card className="text-center professional-shadow-lg engagement-gradient text-white">
-          <CardContent className="p-8">
-            <h3 className="text-2xl font-bold mb-4">Ready to teach your next class?</h3>
-            <p className="text-white/90 mb-6">
-              Everything you need for successful online teaching is at your fingertips.
-            </p>
-            <Button 
-              onClick={() => navigate('/unified-classroom')}
-              variant="secondary"
-              size="lg"
-              className="hover:scale-105 smooth-transition"
-            >
-              Start Teaching
-              <ChevronRight className="ml-2 h-5 w-5" />
-            </Button>
-          </CardContent>
-        </Card>
+        </SidebarProvider>
       </div>
     </div>
   );
 }
+
+export default TeacherDashboard;
