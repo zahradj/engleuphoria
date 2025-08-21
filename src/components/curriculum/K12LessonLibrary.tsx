@@ -74,35 +74,36 @@ export const K12LessonLibrary: React.FC<K12LessonLibraryProps> = ({
 
       if (error) throw error;
 
-      // Store slides in the database lesson
+      // Slides are saved by the edge function into slides_content; reflect in local DB to be safe
       if (data?.slides) {
-        await supabase
+        const slidesPayload = data.slides;
+        const { error: updateError } = await supabase
           .from('systematic_lessons')
           .update({ 
-            slides: data.slides,
-            slide_count: data.slides.length,
+            slides_content: slidesPayload,
             updated_at: new Date().toISOString()
           })
           .eq('id', lessonId);
+        if (updateError) throw updateError;
 
         // Also add to Content Library for easy access
         const lesson = lessons?.find(l => l.id === lessonId);
         const libraryItem = {
           id: `slides-${lessonId}-${Date.now()}`,
-          title: `20-Slide Deck: ${lesson?.title || 'Lesson'}`,
+          title: `${(slidesPayload?.metadata?.CEFR || lesson?.curriculum_levels?.cefr_level || '')} | ${lesson?.title || 'Lesson'} – Slides`,
           type: 'slides',
           topic: lesson?.topic || 'Interactive Lesson',
           level: lesson?.curriculum_levels?.cefr_level || 'A1',
           duration: lesson?.estimated_duration || 30,
-          content: JSON.stringify(data.slides),
+          content: JSON.stringify(slidesPayload),
           metadata: {
             generatedAt: new Date().toISOString(),
             model: 'gpt-4o-mini',
             isAIGenerated: true,
-            slideCount: data.slides.length,
+            slideCount: slidesPayload?.total_slides || slidesPayload?.slides?.length || 0,
             lessonId: lessonId
           }
-        };
+        } as any;
         
         contentLibraryService.addToLibrary(libraryItem);
       }

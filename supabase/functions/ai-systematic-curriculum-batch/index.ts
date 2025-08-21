@@ -293,7 +293,7 @@ async function generateSingleLesson(supabase: any, cefrLevel: string, moduleNumb
       estimated_duration: lessonData.estimated_duration,
       difficulty: lessonData.difficulty,
       status: 'draft',
-      slide_content: null // Will be generated later when user requests slides
+      slides_content: null // Will be generated later when user requests slides
     });
 
   if (insertError) {
