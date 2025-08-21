@@ -17,6 +17,8 @@ import {
   CheckCircle,
   Presentation
 } from 'lucide-react';
+import { SlideGenerator } from './SlideGenerator';
+import { AutoSlideGenerator } from './AutoSlideGenerator';
 
 interface LessonContent {
   id: string;
@@ -114,6 +116,8 @@ export function SystematicLessonsLibrary({ onContentUpdate }: SystematicLessonsL
 
   return (
     <div className="space-y-6">
+      <AutoSlideGenerator />
+      
       {/* Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
         <div>
@@ -279,7 +283,7 @@ export function SystematicLessonsLibrary({ onContentUpdate }: SystematicLessonsL
                   </div>
                 )}
 
-                {/* Actions */}
+                 {/* Actions */}
                 <div className="space-y-2">
                   {hasSlides && (
                     <Button
@@ -289,6 +293,15 @@ export function SystematicLessonsLibrary({ onContentUpdate }: SystematicLessonsL
                       <Play className="h-4 w-4 mr-2" />
                       Use in Classroom
                     </Button>
+                  )}
+                  
+                  {!hasSlides && (
+                    <SlideGenerator
+                      contentId={lesson.id}
+                      lessonTitle={lesson.title}
+                      hasSlides={hasSlides}
+                      onSlidesGenerated={fetchLessons}
+                    />
                   )}
                 </div>
               </CardContent>
