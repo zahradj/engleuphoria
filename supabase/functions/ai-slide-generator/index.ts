@@ -217,7 +217,7 @@ SYSTEMATIC CURRICULUM DESIGN PRINCIPLES:
 - Real-world communication focus
 - Assessment and feedback integration
 
-CREATE EXACTLY 22 SLIDES following this blueprint:`
+CREATE EXACTLY 22 SLIDES following this blueprint:
 
 SLIDE 1: Welcome & Objectives (type: "warmup")
 - Lesson title, learning objectives, communication outcomes

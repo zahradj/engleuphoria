@@ -4,7 +4,6 @@ import { EnhancedWhiteboardCanvas } from "@/components/classroom/whiteboard/Enha
 import { EnhancedWhiteboardToolbar } from "@/components/classroom/whiteboard/EnhancedWhiteboardToolbar";
 import { EnhancedContentLibrary } from "./EnhancedContentLibrary";
 import { EnhancedUploadDialog } from "./EnhancedUploadDialog";
-import { FilePreviewModal } from "./FilePreviewModal";
 import { LessonSlideViewer } from "./LessonSlideViewer";
 import { useEnhancedContentManager } from "./useEnhancedContentManager";
 import { ContentItem } from "./types";
@@ -550,63 +549,61 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
     isUploadDialogOpen,
     openUploadDialog,
     closeUploadDialog,
-    isPreviewModalOpen,
-    previewContent,
-    openPreviewModal,
-    closePreviewModal,
-    handleUpload,
-    handleSaveEdit,
-    handleDeleteContent,
-    addContentToWhiteboard: originalAddContentToWhiteboard,
-  } = useEnhancedContentManager(initialContent);
+    handleEnhancedUpload,
+    previewFile,
+    openPreview,
+    closePreview,
+    handleFileDelete,
+    handleFileDownload
+  } = useEnhancedContentManager(initialContent, studentName, isTeacher);
 
-    const handleAddToWhiteboard = async (content: ContentItem) => {
-      if (content.type === "lesson" || content.type === "curriculum") {
-        // Auto-generate slides if needed
-        await loadLessonById(content.id);
-        return;
-      }
+  const handleAddToWhiteboard = async (content: ContentItem) => {
+    if (content.type === "lesson" || content.type === "curriculum") {
+      // Auto-generate slides if needed
+      await loadLessonById(content.id);
+      return;
+    }
 
-      // Handle file-based content
-      const blob = new Blob([content.content || ''], { type: getContentType(content.fileType) });
-      const url = URL.createObjectURL(blob);
-      
-      const newEmbeddedContent: EmbeddedContent = {
-        id: content.id,
-        title: content.title,
-        url,
-        x: Math.random() * 200,
-        y: Math.random() * 200,
-        width: 400,
-        height: 300,
-        fileType: content.fileType,
-        originalType: content.type
-      };
-
-      setEmbeddedContent(prev => [...prev, newEmbeddedContent]);
-      setActiveTab("whiteboard");
+    // Handle file-based content
+    const blob = new Blob([content.content || ''], { type: getContentType(content.fileType) });
+    const url = URL.createObjectURL(blob);
+    
+    const newEmbeddedContent: EmbeddedContent = {
+      id: content.id,
+      title: content.title,
+      url,
+      x: Math.random() * 200,
+      y: Math.random() * 200,
+      width: 400,
+      height: 300,
+      fileType: content.fileType,
+      originalType: content.type
     };
 
-    const getContentType = (fileType: string | undefined): string => {
-      if (!fileType) return 'text/plain';
-      
-      const typeMap: { [key: string]: string } = {
-        'pdf': 'application/pdf',
-        'jpg': 'image/jpeg',
-        'jpeg': 'image/jpeg',
-        'png': 'image/png',
-        'gif': 'image/gif',
-        'mp4': 'video/mp4',
-        'webm': 'video/webm',
-        'mp3': 'audio/mpeg',
-        'wav': 'audio/wav',
-        'html': 'text/html',
-        'txt': 'text/plain',
-        'json': 'application/json'
-      };
+    setEmbeddedContent(prev => [...prev, newEmbeddedContent]);
+    setActiveTab("whiteboard");
+  };
 
-      return typeMap[fileType.toLowerCase()] || 'application/octet-stream';
+  const getContentType = (fileType: string | undefined): string => {
+    if (!fileType) return 'text/plain';
+    
+    const typeMap: { [key: string]: string } = {
+      'pdf': 'application/pdf',
+      'jpg': 'image/jpeg',
+      'jpeg': 'image/jpeg',
+      'png': 'image/png',
+      'gif': 'image/gif',
+      'mp4': 'video/mp4',
+      'webm': 'video/webm',
+      'mp3': 'audio/mpeg',
+      'wav': 'audio/wav',
+      'html': 'text/html',
+      'txt': 'text/plain',
+      'json': 'application/json'
     };
+
+    return typeMap[fileType.toLowerCase()] || 'application/octet-stream';
+  };
 
   const handleUpdateEmbeddedContent = (id: string, updates: Partial<EmbeddedContent>) => {
     setEmbeddedContent(prev => 
@@ -653,23 +650,20 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
             <div className="h-full relative">
               <EnhancedWhiteboardToolbar
                 activeTool={activeTool}
-                onToolChange={setActiveTool}
+                setActiveTool={setActiveTool}
                 color={color}
-                onColorChange={setColor}
+                setColor={setColor}
                 strokeWidth={strokeWidth}
-                onStrokeWidthChange={setStrokeWidth}
+                setStrokeWidth={setStrokeWidth}
                 activeShape={activeShape}
-                onShapeChange={setActiveShape}
-                onAddContent={openUploadDialog}
+                setActiveShape={setActiveShape}
               />
               <div className="h-full pt-16">
                 <EnhancedWhiteboardCanvas
                   activeTool={activeTool}
                   color={color}
                   strokeWidth={strokeWidth}
-                  activeShape={activeShape}
                   embeddedContent={embeddedContent}
-                  onUpdateEmbeddedContent={handleUpdateEmbeddedContent}
                   onRemoveEmbeddedContent={handleRemoveEmbeddedContent}
                 />
               </div>
@@ -680,12 +674,10 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
             <div className="h-full">
               <EnhancedContentLibrary
                 contentItems={contentItems}
+                selectedContent={selectedContent}
+                onSelectContent={setSelectedContent}
                 onAddToWhiteboard={addContentToWhiteboard}
-                onPreview={openPreviewModal}
-                onEdit={setSelectedContent}
-                onDelete={handleDeleteContent}
-                onUpload={openUploadDialog}
-                isTeacher={isTeacher}
+                currentUser={currentUser || { id: 'default', role: isTeacher ? 'teacher' : 'student', name: studentName }}
               />
             </div>
           </TabsContent>
@@ -711,9 +703,9 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
                     </div>
                   </div>
                   <div className="flex-1">
-                    <LessonSlideViewer
-                      slides={currentLessonSlides}
-                      onComplete={() => console.log('Lesson completed')}
+                    <LessonSlideViewer 
+                      slides={currentLessonSlides} 
+                      title={currentLessonTitle}
                     />
                   </div>
                 </div>
@@ -734,9 +726,9 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
           <TabsContent value="assignments" className="h-full m-0">
             <div className="h-full">
               {isTeacher ? (
-                <TeacherAssignmentPanel currentUser={currentUser} />
+                <TeacherAssignmentPanel />
               ) : (
-                <StudentAssignmentPanel currentUser={currentUser} />
+                <StudentAssignmentPanel studentName={studentName} />
               )}
             </div>
           </TabsContent>
@@ -746,18 +738,12 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
       <EnhancedUploadDialog
         isOpen={isUploadDialogOpen}
         onClose={closeUploadDialog}
-        onUpload={handleUpload}
-        onSave={handleSaveEdit}
-        editingContent={selectedContent}
+        onUpload={handleEnhancedUpload}
       />
 
-      <FilePreviewModal
-        isOpen={isPreviewModalOpen}
-        onClose={closePreviewModal}
-        content={previewContent}
-      />
-
-      <SoundButton />
+      <SoundButton>
+        🔊
+      </SoundButton>
     </div>
   );
 }
