@@ -354,7 +354,6 @@ export function EnhancedContentLibrary({
 
         <TabsContent value="systematic" className="flex-1 min-h-0">
           <div className="h-full overflow-y-auto p-4">
-            <AutoSlideGenerator />
             <SystematicLessonsLibrary />
           </div>
         </TabsContent>

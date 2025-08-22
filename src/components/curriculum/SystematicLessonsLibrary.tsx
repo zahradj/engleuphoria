@@ -17,8 +17,6 @@ import {
   CheckCircle,
   Presentation
 } from 'lucide-react';
-import { SlideGenerator } from './SlideGenerator';
-import { AutoSlideGenerator } from './AutoSlideGenerator';
 
 interface LessonContent {
   id: string;
@@ -78,9 +76,9 @@ export function SystematicLessonsLibrary({ onContentUpdate }: SystematicLessonsL
 
 
   const openInClassroom = (lesson: LessonContent) => {
-    // Store lesson data and open classroom
+    // Store lesson data and open classroom with skipGen flag
     localStorage.setItem('currentLessonContent', JSON.stringify(lesson));
-    window.open(`/oneonone-classroom-new?roomId=lesson-${lesson.id}&role=teacher&name=Teacher&userId=teacher-1&lessonMode=true`, '_blank');
+    window.open(`/oneonone-classroom-new?roomId=lesson-${lesson.id}&role=teacher&name=Teacher&userId=teacher-1&lessonMode=true&skipGen=1`, '_blank');
   };
 
   const filteredLessons = lessons.filter(lesson => {
@@ -116,7 +114,6 @@ export function SystematicLessonsLibrary({ onContentUpdate }: SystematicLessonsL
 
   return (
     <div className="space-y-6">
-      <AutoSlideGenerator />
       
       {/* Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
@@ -285,24 +282,13 @@ export function SystematicLessonsLibrary({ onContentUpdate }: SystematicLessonsL
 
                  {/* Actions */}
                 <div className="space-y-2">
-                  {hasSlides && (
-                    <Button
-                      onClick={() => openInClassroom(lesson)}
-                      className="w-full"
-                    >
-                      <Play className="h-4 w-4 mr-2" />
-                      Use in Classroom
-                    </Button>
-                  )}
-                  
-                  {!hasSlides && (
-                    <SlideGenerator
-                      contentId={lesson.id}
-                      lessonTitle={lesson.title}
-                      hasSlides={hasSlides}
-                      onSlidesGenerated={fetchLessons}
-                    />
-                  )}
+                  <Button
+                    onClick={() => openInClassroom(lesson)}
+                    className="w-full"
+                  >
+                    <Play className="h-4 w-4 mr-2" />
+                    Use Lesson
+                  </Button>
                 </div>
               </CardContent>
             </Card>

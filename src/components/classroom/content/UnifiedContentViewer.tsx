@@ -61,11 +61,12 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
   React.useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const lessonId = urlParams.get('lesson');
+    const skipGen = urlParams.get('skipGen');
     
     if (lessonId) {
       console.log('🔄 Auto-loading lesson from URL:', lessonId);
       setActiveTab('whiteboard');
-      loadLessonById(lessonId);
+      loadLessonById(lessonId, skipGen === '1');
     }
   }, []);
 
@@ -99,7 +100,7 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
     };
   };
 
-  const loadLessonById = async (lessonId: string) => {
+  const loadLessonById = async (lessonId: string, skipGeneration = false) => {
     try {
       const { curriculumService } = await import('@/services/curriculumService');
       
@@ -126,7 +127,7 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
                           (lesson.slides_content.slides.length < 20 || 
                            lesson.slides_content.version !== '2.0');
       
-      if (needsGeneration || needsUpgrade) {
+      if ((needsGeneration || needsUpgrade) && !skipGeneration) {
         console.log('🎨 Generating/upgrading lesson slides:', lesson.title);
         setIsGeneratingSlides(true);
         
@@ -173,6 +174,10 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
         } finally {
           setIsGeneratingSlides(false);
         }
+      } else if (needsGeneration || needsUpgrade) {
+        // Skip generation and use fallback
+        console.log('📋 Using fallback slides for:', lesson.title);
+        lesson.slides_content = createFallbackSlides(lesson);
       }
 
       // Set the lesson slides for React component
