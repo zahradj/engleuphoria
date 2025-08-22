@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { SystematicLessonsLibrary } from '@/components/curriculum/SystematicLessonsLibrary';
 import { K12LessonLibrary } from '@/components/curriculum/K12LessonLibrary';
-import { ManualSlideGenerator } from '@/components/test/ManualSlideGenerator';
+import { AutoSlideGenerator } from '@/components/curriculum/AutoSlideGenerator';
 
 interface EnhancedContentLibraryProps {
   contentItems: any[];
@@ -354,10 +354,8 @@ export function EnhancedContentLibrary({
 
         <TabsContent value="systematic" className="flex-1 min-h-0">
           <div className="h-full overflow-y-auto p-4">
-            <ManualSlideGenerator />
-            <div className="mt-4">
-              <SystematicLessonsLibrary />
-            </div>
+            <AutoSlideGenerator />
+            <SystematicLessonsLibrary />
           </div>
         </TabsContent>
 
