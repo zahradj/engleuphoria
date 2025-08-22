@@ -18,12 +18,68 @@ export interface AIGeneratedContent {
   topic: string;
   level: string;
   duration: number;
-  content: string;
+  content: string | any; // Allow both string and object content
+  worksheet?: {
+    title: string;
+    content: string;
+    answers: string;
+    instructions: string;
+  };
+  activities?: {
+    matchPairs?: Array<{
+      id: string;
+      left: string;
+      right: string;
+      leftImage?: string;
+      rightImage?: string;
+    }>;
+    dragDropItems?: Array<{
+      id: string;
+      text: string;
+      targetId: string;
+      image?: string;
+    }>;
+    dragDropTargets?: Array<{
+      id: string;
+      text: string;
+      acceptsItemIds: string[];
+      image?: string;
+    }>;
+    clozeText?: string;
+    clozeGaps?: Array<{
+      id: string;
+      correctAnswers: string[];
+      options?: string[];
+    }>;
+  };
+  vocabulary?: Array<{
+    word: string;
+    definition: string;
+    example: string;
+    imagePrompt: string;
+    pronunciation: string;
+    partOfSpeech: string;
+  }>;
+  slides?: Array<{
+    id: string;
+    type: string;
+    prompt: string;
+    instructions?: string;
+    media?: {
+      type: string;
+      imagePrompt?: string;
+    };
+    options?: Array<{
+      id: string;
+      text: string;
+      isCorrect?: boolean;
+    }>;
+    correct?: string;
+  }>;
   metadata: {
     generatedAt: string;
     model?: string;
     isAIGenerated: boolean;
-    
     generationTime?: number;
     isFallback?: boolean;
     fallbackReason?: string;

@@ -106,10 +106,12 @@ BULK CURRICULUM CONTEXT:
   curriculumContext.level === 'C1' ? '22-25 words' : '25+ words'}
 ` : '';
 
+    // Generate comprehensive content with ChatGPT including worksheets, activities, images, and vocabulary
     switch (actualContentType) {
       case 'lesson':
       case 'lesson_plan':
-        prompt = `Create a neuroscience-optimized English lesson plan for ${actualLevel} level students.
+        prompt = `Create a comprehensive English lesson package for ${actualLevel} level students including worksheet, interactive activities, vocabulary list with image prompts, and lesson slides.
+
 Topic: ${topic}
 Duration: ${duration || 45} minutes
 Student Age: ${studentAge || 'Not specified'}
@@ -117,27 +119,70 @@ Learning Objectives: ${learningObjectives?.join(', ') || objectives?.join(', ') 
 Specific Requirements: ${specificRequirements || requirements || 'None'}
 
 ${bulkContext}
-
 ${neuroscienceInstructions}
 
-Structure the lesson with:
-1. Attention-grabbing novelty opener (3-5 min) - unexpected element to trigger curiosity
-2. Visual vocabulary introduction with dual coding (8-10 min) - images + verbal explanations
-3. Chunked learning segments (3x 7-8 min blocks) with micro-activities between
-4. Retrieval practice mini-quizzes after each chunk
-5. Emotional engagement through personalized examples and storytelling
-6. Generation activities where students create their own content
-7. Interleaved skill practice (mixing reading/writing/speaking/listening)
-8. Multisensory consolidation with movement and gestures
-9. Surprise mystery challenge mid-lesson
-10. Active recall summary with student "teach back" moments
+RETURN A COMPREHENSIVE JSON OBJECT with these exact keys:
 
-Include specific sound effect suggestions, color-coding systems, gesture instructions, and celebration triggers.
-Format as structured JSON with detailed implementation notes.`;
+{
+  "worksheet": {
+    "title": "Printable worksheet title",
+    "content": "Complete formatted worksheet with exercises, fill-in-the-blanks, matching activities",
+    "answers": "Answer key for all exercises",
+    "instructions": "Teacher instructions for the worksheet"
+  },
+  "activities": {
+    "matchPairs": [
+      {"id": "1", "left": "English word", "right": "Definition/Translation", "leftImage": "image description", "rightImage": "image description"}
+    ],
+    "dragDropItems": [
+      {"id": "1", "text": "Draggable item", "targetId": "target1", "image": "image description"}
+    ],
+    "dragDropTargets": [
+      {"id": "target1", "text": "Drop zone label", "acceptsItemIds": ["1"], "image": "image description"}
+    ],
+    "clozeText": "Text with _____ gaps to fill",
+    "clozeGaps": [
+      {"id": "gap1", "correctAnswers": ["answer1", "answer2"], "options": ["option1", "option2", "option3"]}
+    ]
+  },
+  "vocabulary": [
+    {
+      "word": "English word",
+      "definition": "Clear definition",
+      "example": "Example sentence",
+      "imagePrompt": "Detailed prompt for AI image generation",
+      "pronunciation": "Phonetic pronunciation",
+      "partOfSpeech": "noun/verb/adjective/etc"
+    }
+  ],
+  "slides": [
+    {
+      "id": "slide1",
+      "type": "vocabulary_preview",
+      "prompt": "Slide content/question",
+      "instructions": "Teacher instructions",
+      "media": {"type": "image", "imagePrompt": "Image generation prompt"},
+      "options": [{"id": "1", "text": "Option", "isCorrect": true}],
+      "correct": "correct answer"
+    }
+  ],
+  "lessonPlan": {
+    "objectives": ["Learning objective 1", "Learning objective 2"],
+    "materials": ["Required materials"],
+    "warmUp": "5-minute warm-up activity",
+    "presentation": "Main lesson content presentation",
+    "practice": "Guided practice activities",
+    "production": "Independent practice/assessment",
+    "coolDown": "Lesson wrap-up activity"
+  }
+}
+
+Create 10-15 vocabulary words, 3-5 interactive activities, 8-12 lesson slides, and a comprehensive worksheet.`;
         break;
 
       case 'worksheet':
-        prompt = `Design a neuroscience-optimized printable worksheet for ${actualLevel} English students.
+        prompt = `Create a comprehensive worksheet package for ${actualLevel} English students with interactive activities and vocabulary.
+
 Topic: ${topic}
 Student Age: ${studentAge || 'Not specified'}
 Learning Objectives: ${learningObjectives?.join(', ') || 'General practice'}
@@ -145,24 +190,48 @@ Specific Requirements: ${specificRequirements || 'None'}
 
 ${neuroscienceInstructions}
 
-Create a brain-friendly worksheet with:
-- Novelty elements: Unexpected formats, surprise boxes, varied activity styles
-- Picture superiority: Vivid image descriptions paired with every new word
-- Dual coding: Visual + verbal instruction combinations
-- Chunked sections: 3-4 distinct 5-minute activity blocks
-- Retrieval practice: Quick recall boxes between sections
-- Emotional engagement: Personalized example spaces for student interests
-- Generation activities: Spaces for students to create their own examples
-- Interleaving: Mix different skills within the worksheet
-- Multisensory cues: Movement instructions, color-coding, texture suggestions
-- Testing effect: Mini self-check quizzes embedded throughout
+RETURN A COMPREHENSIVE JSON OBJECT with these exact keys:
 
-Include celebration checkboxes, sound effect suggestions for teachers, and brain break activities.
-Format as JSON with detailed visual layout and implementation instructions.`;
+{
+  "worksheet": {
+    "title": "Worksheet title",
+    "content": "Complete formatted worksheet with multiple exercise types",
+    "answers": "Complete answer key",
+    "instructions": "Teacher instructions"
+  },
+  "activities": {
+    "matchPairs": [
+      {"id": "1", "left": "Term", "right": "Definition", "leftImage": "image description", "rightImage": "image description"}
+    ],
+    "dragDropItems": [
+      {"id": "1", "text": "Item to drag", "targetId": "target1", "image": "image description"}
+    ],
+    "dragDropTargets": [
+      {"id": "target1", "text": "Drop zone", "acceptsItemIds": ["1"], "image": "image description"}
+    ],
+    "clozeText": "Text with _____ for students to complete",
+    "clozeGaps": [
+      {"id": "gap1", "correctAnswers": ["answer"], "options": ["option1", "option2", "option3"]}
+    ]
+  },
+  "vocabulary": [
+    {
+      "word": "Key vocabulary word",
+      "definition": "Clear definition",
+      "example": "Example in context",
+      "imagePrompt": "Detailed image generation prompt",
+      "pronunciation": "Phonetic guide",
+      "partOfSpeech": "word type"
+    }
+  ]
+}
+
+Include 8-12 vocabulary words and 3-4 different interactive activities.`;
         break;
 
       case 'activity':
-        prompt = `Create neuroscience-enhanced interactive English activities for ${actualLevel} level students.
+        prompt = `Create an interactive activity package for ${actualLevel} English students with vocabulary and worksheet components.
+
 Topic: ${topic}
 Duration: ${duration || 30} minutes
 Student Age: ${studentAge || 'Not specified'}
@@ -171,24 +240,48 @@ Specific Requirements: ${specificRequirements || 'None'}
 
 ${neuroscienceInstructions}
 
-Design 5-7 brain-optimized activities featuring:
-- Novelty hooks: Surprise elements, unexpected twists, varied formats
-- Picture superiority: Activities pairing visuals with language learning
-- Dual coding: Combine verbal instructions with visual demonstrations
-- Chunked timing: 5-8 minute activity segments with transition breaks
-- Retrieval practice: Built-in recall moments and memory challenges
-- Emotional engagement: Personalized scenarios, role-play opportunities
-- Generation tasks: Students create their own content and examples
-- Interleaved practice: Mix speaking, listening, reading, writing within activities
-- Multisensory engagement: Movement, gestures, sounds, tactile elements
-- Testing integration: Quick formative assessments embedded naturally
+RETURN A COMPREHENSIVE JSON OBJECT with these exact keys:
 
-Include specific celebration triggers, sound effect cues, and brain-break suggestions.
-Format as JSON with detailed neuroscience implementation notes for each activity.`;
+{
+  "activities": {
+    "matchPairs": [
+      {"id": "1", "left": "Item A", "right": "Item B", "leftImage": "image description", "rightImage": "image description"}
+    ],
+    "dragDropItems": [
+      {"id": "1", "text": "Draggable", "targetId": "target1", "image": "image description"}
+    ],
+    "dragDropTargets": [
+      {"id": "target1", "text": "Target", "acceptsItemIds": ["1"], "image": "image description"}
+    ],
+    "clozeText": "Complete this text with missing _____",
+    "clozeGaps": [
+      {"id": "gap1", "correctAnswers": ["word"], "options": ["opt1", "opt2", "opt3"]}
+    ]
+  },
+  "vocabulary": [
+    {
+      "word": "Activity vocabulary",
+      "definition": "Definition",
+      "example": "Usage example",
+      "imagePrompt": "Image generation prompt",
+      "pronunciation": "Pronunciation guide",
+      "partOfSpeech": "word class"
+    }
+  ],
+  "worksheet": {
+    "title": "Activity worksheet",
+    "content": "Practice exercises related to the interactive activities",
+    "answers": "Answer key",
+    "instructions": "How to use the worksheet"
+  }
+}
+
+Create 5-7 interactive activities with supporting vocabulary and worksheet.`;
         break;
 
       case 'quiz':
-        prompt = `Create a neuroscience-optimized assessment quiz for ${actualLevel} English learners.
+        prompt = `Create a comprehensive quiz package for ${actualLevel} English learners with interactive elements.
+
 Topic: ${topic}
 Duration: ${duration || 20} minutes
 Student Age: ${studentAge || 'Not specified'}
@@ -196,25 +289,48 @@ Learning Objectives: ${learningObjectives?.join(', ') || 'Assessment of understa
 
 ${neuroscienceInstructions}
 
-Design a brain-friendly quiz incorporating:
-- Novelty elements: Unexpected question formats, surprise bonus rounds
-- Picture superiority: Visual questions paired with text-based ones
-- Dual coding: Questions combining images with verbal prompts
-- Chunked sections: 3-4 distinct quiz segments with micro-breaks
-- Retrieval practice: Progressive difficulty to strengthen recall
-- Emotional engagement: Personalized scenarios in questions
-- Generation opportunities: Creative response sections
-- Interleaved assessment: Mix different skill types throughout
-- Multisensory questions: Include listening, visual, and kinesthetic elements
-- Celebration triggers: Achievement badges and progress indicators
+RETURN A COMPREHENSIVE JSON OBJECT with these exact keys:
 
-Include 12-18 varied questions with brain-friendly formatting, celebration checkpoints, and confidence boosters.
-Add specific sound effect suggestions and visual enhancement notes.
-Format as JSON with neuroscience implementation guidance.`;
+{
+  "quiz": {
+    "title": "Quiz title",
+    "questions": [
+      {
+        "id": "q1",
+        "question": "Question text",
+        "type": "multiple_choice",
+        "options": ["Option A", "Option B", "Option C", "Option D"],
+        "correct": "Option A",
+        "explanation": "Why this is correct",
+        "imagePrompt": "Image for question if needed"
+      }
+    ],
+    "scoring": "Scoring guidelines",
+    "timeLimit": 20
+  },
+  "activities": {
+    "matchPairs": [
+      {"id": "1", "left": "Term", "right": "Answer", "leftImage": "image desc", "rightImage": "image desc"}
+    ]
+  },
+  "vocabulary": [
+    {
+      "word": "Quiz vocabulary",
+      "definition": "Clear definition",
+      "example": "Example sentence",
+      "imagePrompt": "Image generation prompt",
+      "pronunciation": "Pronunciation",
+      "partOfSpeech": "word type"
+    }
+  ]
+}
+
+Include 12-15 quiz questions with varied types and supporting vocabulary.`;
         break;
 
       case 'flashcards':
-        prompt = `Create neuroscience-enhanced educational flashcards for ${actualLevel} English learners.
+        prompt = `Create a comprehensive flashcard package for ${actualLevel} English learners with interactive activities.
+
 Topic: ${topic}
 Student Age: ${studentAge || 'Not specified'}
 Learning Objectives: ${learningObjectives?.join(', ') || 'Vocabulary memorization'}
@@ -222,21 +338,44 @@ Specific Requirements: ${specificRequirements || 'None'}
 
 ${neuroscienceInstructions}
 
-Generate 20-30 brain-optimized flashcards featuring:
-- Novelty elements: Unexpected memory tricks, varied card formats
-- Picture superiority: Vivid visual descriptions for every card
-- Dual coding: Combine images with verbal memory aids
-- Chunked organization: Group cards by themes for manageable learning
-- Retrieval practice: Progressive spaced repetition suggestions
-- Emotional engagement: Personal connection prompts and relatable examples
-- Generation tasks: Student-created example spaces
-- Interleaved topics: Mix different word types and grammatical categories
-- Multisensory memory aids: Gesture suggestions, sound associations, tactile cues
-- Self-testing integration: Built-in quiz functionality
+RETURN A COMPREHENSIVE JSON OBJECT with these exact keys:
 
-Include memory palace techniques, mnemonic devices, and celebration milestones.
-Add specific study sequence recommendations and brain-break timing.
-Format as JSON with advanced memory enhancement features.`;
+{
+  "flashcards": [
+    {
+      "id": "card1",
+      "front": "English word/phrase",
+      "back": "Definition/translation",
+      "example": "Example sentence",
+      "imagePrompt": "Image generation prompt for the word",
+      "pronunciation": "Phonetic guide",
+      "difficulty": 1
+    }
+  ],
+  "activities": {
+    "matchPairs": [
+      {"id": "1", "left": "Word", "right": "Definition", "leftImage": "image desc", "rightImage": "image desc"}
+    ],
+    "dragDropItems": [
+      {"id": "1", "text": "Word", "targetId": "target1", "image": "image desc"}
+    ],
+    "dragDropTargets": [
+      {"id": "target1", "text": "Definition", "acceptsItemIds": ["1"], "image": "image desc"}
+    ]
+  },
+  "vocabulary": [
+    {
+      "word": "Flashcard word",
+      "definition": "Definition",
+      "example": "Example usage",
+      "imagePrompt": "Detailed image prompt",
+      "pronunciation": "Pronunciation guide",
+      "partOfSpeech": "word class"
+    }
+  ]
+}
+
+Create 20-25 flashcards with supporting interactive activities.`;
         break;
 
       default:
@@ -252,34 +391,29 @@ Format as JSON with advanced memory enhancement features.`;
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-2025-04-14',
+        model: 'gpt-5-2025-08-07',
         messages: [
           {
             role: 'system',
             content: `You are an expert English language curriculum designer, neuroscience-informed pedagogy specialist, and master teacher trainer. 
 
-You understand how the brain learns languages and apply cutting-edge neuroscience research to create highly effective, brain-friendly educational content. You specialize in:
+You understand how the brain learns languages and apply cutting-edge neuroscience research to create highly effective, brain-friendly educational content.
 
-- Novelty Effect (attention through unexpected stimuli)
-- Picture Superiority Effect (visual-verbal memory enhancement) 
-- Dual Coding Theory (multi-modal information processing)
-- Retrieval Practice (active recall strengthening)
-- Chunked Learning (working memory optimization)
-- Testing Effect (frequent low-stakes assessment)
-- Emotional Engagement (memory consolidation through emotion)
-- Generation Effect (self-created content retention)
-- Interleaving (mixed practice for adaptability)
-- Multisensory Input (comprehensive sensory engagement)
+You MUST return a valid JSON object with the exact structure requested. Include:
+- Comprehensive worksheets with multiple exercise types
+- Interactive activities (match pairs, drag & drop, cloze exercises)
+- Rich vocabulary lists with detailed image generation prompts
+- Lesson slides when requested
+- All content optimized for neuroscience-based learning principles
 
-Generate scientifically-optimized, pedagogically sound, engaging, age-appropriate content aligned with CEFR standards. Always format responses as valid JSON with detailed implementation notes for neuroscience-based teaching strategies.`
+CRITICAL: Always return valid JSON that exactly matches the requested structure. Include detailed image generation prompts for every visual element to enable AI image creation.`
           },
           {
             role: 'user',
             content: prompt
           }
         ],
-        max_tokens: 2000,
-        temperature: 0.7,
+        max_completion_tokens: 4000,
       }),
     });
 
@@ -292,13 +426,31 @@ Generate scientifically-optimized, pedagogically sound, engaging, age-appropriat
 
     let generatedContent;
     try {
-      generatedContent = JSON.parse(data.choices[0].message.content);
+      const rawContent = data.choices[0].message.content;
+      console.log('Raw GPT response:', rawContent);
+      
+      // Clean the content if it has markdown code blocks
+      const cleanedContent = rawContent.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+      generatedContent = JSON.parse(cleanedContent);
+      
+      // Ensure we have the expected structure
+      if (!generatedContent.vocabulary) {
+        generatedContent.vocabulary = [];
+      }
+      if (!generatedContent.activities) {
+        generatedContent.activities = {};
+      }
+      
+      console.log('Parsed content structure:', Object.keys(generatedContent));
     } catch (parseError) {
+      console.error('JSON parsing failed:', parseError);
       // If JSON parsing fails, wrap the content
       generatedContent = {
         type: actualContentType,
         content: data.choices[0].message.content,
-        generated_at: new Date().toISOString()
+        generated_at: new Date().toISOString(),
+        vocabulary: [],
+        activities: {}
       };
     }
 

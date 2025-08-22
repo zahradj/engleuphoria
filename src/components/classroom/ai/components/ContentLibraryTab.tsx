@@ -7,7 +7,10 @@ import {
   Sparkles, 
   Copy,
   FileText,
-  Download
+  Download,
+  BookOpen,
+  Activity,
+  Image
 } from "lucide-react";
 import { ContentLibraryItem } from "@/services/unifiedAIContentService";
 
@@ -74,17 +77,53 @@ export function ContentLibraryTab({
                   </div>
                 </div>
 
-                <div className="bg-gray-50 p-3 rounded text-xs max-h-32 overflow-y-auto">
-                  <pre className="whitespace-pre-wrap font-mono text-xs">
-                    {item.content.substring(0, 200)}...
-                  </pre>
+                {/* Enhanced Content Preview */}
+                <div className="space-y-2">
+                  <div className="flex flex-wrap gap-1">
+                    {item.worksheet && (
+                      <Badge variant="secondary" className="text-xs">
+                        <FileText size={10} className="mr-1" />
+                        Worksheet
+                      </Badge>
+                    )}
+                    {item.activities && (
+                      <Badge variant="secondary" className="text-xs">
+                        <Activity size={10} className="mr-1" />
+                        Interactive
+                      </Badge>
+                    )}
+                    {item.vocabulary && item.vocabulary.length > 0 && (
+                      <Badge variant="secondary" className="text-xs">
+                        <BookOpen size={10} className="mr-1" />
+                        {item.vocabulary.length} words
+                      </Badge>
+                    )}
+                    {item.vocabulary?.some((word: any) => word.imagePrompt) && (
+                      <Badge variant="secondary" className="text-xs">
+                        <Image size={10} className="mr-1" />
+                        AI Images
+                      </Badge>
+                    )}
+                  </div>
+
+                  <div className="bg-gray-50 p-3 rounded text-xs max-h-32 overflow-y-auto">
+                    <div className="text-muted-foreground">
+                      {item.worksheet?.title || 
+                       (typeof item.content === 'string' ? item.content.substring(0, 200) + '...' : 
+                        'Comprehensive content package with ' + 
+                        [item.worksheet && 'worksheet', 
+                         item.activities && 'interactive activities', 
+                         item.vocabulary && `${item.vocabulary.length} vocabulary words`].filter(Boolean).join(', ')
+                       )}
+                    </div>
+                  </div>
                 </div>
 
                 <div className="flex gap-2">
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => onCopyToClipboard(item.content)}
+                    onClick={() => onCopyToClipboard(typeof item.content === 'string' ? item.content : JSON.stringify(item.content, null, 2))}
                   >
                     <Copy size={12} className="mr-1" />
                     Copy
@@ -92,7 +131,7 @@ export function ContentLibraryTab({
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => onInsertToWhiteboard(item.content)}
+                    onClick={() => onInsertToWhiteboard(typeof item.content === 'string' ? item.content : JSON.stringify(item.content, null, 2))}
                   >
                     <FileText size={12} className="mr-1" />
                     To Board

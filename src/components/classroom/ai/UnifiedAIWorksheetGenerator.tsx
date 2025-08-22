@@ -91,7 +91,7 @@ export function UnifiedAIWorksheetGenerator({
   const handleGenerate = async () => {
     if (!topic.trim()) return;
 
-    console.log('🚀 Starting content generation with params:', {
+    console.log('🚀 Starting comprehensive content generation with ChatGPT:', {
       type: contentType,
       topic: topic.trim(),
       level,
@@ -115,7 +115,12 @@ export function UnifiedAIWorksheetGenerator({
 
     try {
       const result = await generateContent(request);
-      console.log('✅ Content generation successful:', result);
+      console.log('✅ Comprehensive content generated:', {
+        hasWorksheet: !!result.worksheet,
+        hasActivities: !!result.activities,
+        hasVocabulary: !!result.vocabulary && result.vocabulary.length > 0,
+        hasSlides: !!result.slides && result.slides.length > 0
+      });
       
       if (result && onContentGenerated) {
         onContentGenerated(result);
