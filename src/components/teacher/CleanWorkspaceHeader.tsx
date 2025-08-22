@@ -12,7 +12,7 @@ export const CleanWorkspaceHeader = ({ teacherName }: CleanWorkspaceHeaderProps)
   const { open } = useSidebar();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-surface/95 backdrop-blur supports-[backdrop-filter]:bg-surface/80">
+    <header className="sticky top-0 z-40 border-b backdrop-blur" style={{ backgroundColor: '#C4D9FF', borderColor: '#C5BAFF' }}>
       <div className="flex h-12 items-center gap-4 px-4">
         <SidebarTrigger className="p-2 hover:bg-muted rounded-md transition-colors" title="Open Menu">
           <Menu className="h-4 w-4" />

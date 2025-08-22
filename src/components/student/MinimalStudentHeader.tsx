@@ -25,7 +25,7 @@ export const MinimalStudentHeader: React.FC<MinimalStudentHeaderProps> = ({
     .slice(0, 2);
 
   return (
-    <div className="bg-surface border-b border-border p-4">
+    <div className="border-b p-4" style={{ backgroundColor: '#C4D9FF', borderColor: '#C5BAFF' }}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10 border-2 border-primary/20">

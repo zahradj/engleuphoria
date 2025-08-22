@@ -124,8 +124,8 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Enhanced Upcoming Classes */}
-        <Card className="border-0 shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-student-light to-student-light/80 rounded-t-lg">
+        <Card style={{ backgroundColor: '#FBFBFB', borderColor: '#C5BAFF' }}>
+          <CardHeader style={{ backgroundColor: '#C4D9FF' }} className="rounded-t-lg">
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-student" />
@@ -208,8 +208,8 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
         </Card>
 
         {/* Enhanced Recent Homework */}
-        <Card className="border-0 shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-student-light to-student-light/80 rounded-t-lg">
+        <Card style={{ backgroundColor: '#FBFBFB', borderColor: '#C5BAFF' }}>
+          <CardHeader style={{ backgroundColor: '#C4D9FF' }} className="rounded-t-lg">
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <FileText className="h-5 w-5 text-student" />

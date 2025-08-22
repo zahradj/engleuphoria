@@ -58,7 +58,7 @@ export function MobileTeacherNav({ activeTab, setActiveTab, onLogout, teacherNam
   };
 
   return (
-    <div className="flex items-center justify-between p-4 bg-white border-b md:hidden">
+    <div className="flex items-center justify-between p-4 border-b md:hidden" style={{ backgroundColor: '#C4D9FF', borderColor: '#C5BAFF' }}>
       {/* Logo and Teacher Info */}
       <div className="flex items-center gap-3">
         <div className="w-8 h-8 bg-gradient-to-r from-teal-500 to-indigo-500 rounded-full flex items-center justify-center">

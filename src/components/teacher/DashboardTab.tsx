@@ -192,7 +192,7 @@ export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
           <RecentActivityFeed />
           
           {/* All Lessons Section */}
-          <div className="bg-card rounded-xl border border-border p-6">
+          <div className="rounded-xl border p-6" style={{ backgroundColor: '#FBFBFB', borderColor: '#C5BAFF' }}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold">All Lessons</h3>
               <button 
@@ -222,7 +222,7 @@ export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
             ) : (
               <div className="space-y-3">
                 {recentLessons.slice(0, 5).map((lesson) => (
-                  <div key={lesson.id} className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-accent/5 transition-colors">
+                  <div key={lesson.id} className="flex items-center justify-between p-3 rounded-lg border transition-colors" style={{ borderColor: '#C4D9FF' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E8F9FF'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
                     <div className="flex-1">
                       <div className="font-medium text-sm">{lesson.title}</div>
                       <div className="text-xs text-muted-foreground space-x-2">
