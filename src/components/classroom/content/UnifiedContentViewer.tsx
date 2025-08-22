@@ -217,24 +217,102 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
       // Gamified Activities (3-4 slides)
       {
         id: "slide-16",
-        type: "controlled_practice",
-        prompt: "Spinning Wheel Q&A",
-        instructions: "Answer the questions that come up on the spinning wheel!",
-        accessibility: { screenReaderText: "Interactive spinning wheel quiz", highContrast: false, largeText: false }
+        type: "match",
+        prompt: 'Match Words with Pictures',
+        instructions: 'Connect each word with its matching picture.',
+        matchPairs: [
+          {
+            id: 'pair-1',
+            left: vocabulary[0] || 'Hello',
+            right: 'Greeting gesture',
+            leftImage: 'https://images.unsplash.com/photo-1607990281513-2c110a25bd8c?w=200'
+          },
+          {
+            id: 'pair-2', 
+            left: vocabulary[1] || 'Goodbye',
+            right: 'Waving hand',
+            leftImage: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=200'
+          },
+          {
+            id: 'pair-3',
+            left: vocabulary[2] || 'Please',
+            right: 'Polite request',
+            leftImage: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=200'
+          },
+          {
+            id: 'pair-4',
+            left: vocabulary[3] || 'Thank you',
+            right: 'Grateful expression',
+            leftImage: 'https://images.unsplash.com/photo-1607990281513-2c110a25bd8c?w=200'
+          }
+        ],
+        timeLimit: 120,
+        accessibility: { screenReaderText: "Match vocabulary words with their meanings", highContrast: false, largeText: false }
       },
       {
         id: "slide-17",
-        type: "roleplay_setup",
-        prompt: "Role-play Time!",
-        instructions: "Practice conversations using today's vocabulary and grammar.",
-        accessibility: { screenReaderText: "Role-play activity setup", highContrast: false, largeText: false }
+        type: "drag_drop",
+        prompt: 'Sort Items by Category',
+        instructions: 'Drag each item to the correct category.',
+        dragDropItems: [
+          { id: 'apple', text: 'Apple', targetId: 'food' },
+          { id: 'car', text: 'Car', targetId: 'transport' },
+          { id: 'book', text: 'Book', targetId: 'school' },
+          { id: 'orange', text: 'Orange', targetId: 'food' }
+        ],
+        dragDropTargets: [
+          {
+            id: 'food',
+            text: 'Food',
+            acceptsItemIds: ['apple', 'orange'],
+            image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=120'
+          },
+          {
+            id: 'transport',
+            text: 'Transport', 
+            acceptsItemIds: ['car'],
+            image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=120'
+          },
+          {
+            id: 'school',
+            text: 'School',
+            acceptsItemIds: ['book'],
+            image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=120'
+          }
+        ],
+        timeLimit: 180,
+        accessibility: { screenReaderText: "Sort items into categories activity", highContrast: false, largeText: false }
       },
       {
         id: "slide-18",
-        type: "controlled_output",
-        prompt: "Quick Quiz Challenge", 
-        instructions: "Test your knowledge with this fun, fast-paced quiz!",
-        accessibility: { screenReaderText: "Quick knowledge quiz", highContrast: false, largeText: false }
+        type: "cloze",
+        prompt: 'Complete the Sentences',
+        instructions: 'Fill in the missing words to complete each sentence.',
+        clozeText: 'My name [gap1] John. I [gap2] from England. I [gap3] English and Spanish. Nice to [gap4] you!',
+        clozeGaps: [
+          {
+            id: 'gap1',
+            correctAnswers: ['is'],
+            options: ['is', 'are', 'am', 'be']
+          },
+          {
+            id: 'gap2', 
+            correctAnswers: ['am', 'come'],
+            options: ['am', 'is', 'are', 'come']
+          },
+          {
+            id: 'gap3',
+            correctAnswers: ['speak'],
+            options: ['speak', 'speaks', 'speaking', 'spoken']
+          },
+          {
+            id: 'gap4',
+            correctAnswers: ['meet'],
+            options: ['meet', 'see', 'know', 'find']
+          }
+        ],
+        timeLimit: 300,
+        accessibility: { screenReaderText: "Fill in the blanks sentence completion activity", highContrast: false, largeText: false }
       },
       {
         id: "slide-19",
@@ -269,14 +347,14 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
       
       // Review & Wrap-up (2-3 slides)
       {
-        id: "slide-23",
+        id: "slide-26",
         type: "review_consolidation",
         prompt: "Today's Key Points",
         instructions: `Let's review: Vocabulary (${vocabulary.slice(0, 3).join(', ')}) and Grammar (${grammar[0] || 'sentence patterns'})`,
         accessibility: { screenReaderText: "Lesson review and key points", highContrast: false, largeText: false }
       },
       {
-        id: "slide-24",
+        id: "slide-27",
         type: "exit_check",
         prompt: "Final Review Quiz",
         instructions: "Quick multiple choice questions to check your understanding.",
@@ -290,10 +368,16 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
         accessibility: { screenReaderText: "Final comprehension check", highContrast: false, largeText: false }
       },
       {
-        id: "slide-25",
+        id: "slide-28",
         type: "review_consolidation",
         prompt: "Homework & Reflection",
         instructions: "Practice using today's vocabulary in real conversations. Think about how you can use these words this week!",
+        media: {
+          type: 'image',
+          url: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400',
+          alt: 'Celebration',
+          imagePrompt: 'Celebration with confetti and happy people learning'
+        },
         accessibility: { screenReaderText: "Homework assignment and reflection", highContrast: false, largeText: false }
       }
     ];
