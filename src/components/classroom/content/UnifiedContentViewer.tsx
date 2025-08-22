@@ -50,6 +50,7 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
   const [currentLessonSlides, setCurrentLessonSlides] = useState<any>(null);
   const [currentLessonTitle, setCurrentLessonTitle] = useState("");
   const [isGeneratingSlides, setIsGeneratingSlides] = useState(false);
+  const [isRegeneratingWithAI, setIsRegeneratingWithAI] = useState(false);
   const { toast } = useToast();
   
   // Debug embedded content changes
@@ -581,6 +582,87 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
     }
   };
 
+  const regenerateWithAI = async () => {
+    if (!selectedContent?.id && !currentLessonTitle) {
+      toast({
+        title: "No Lesson Selected",
+        description: "Please select a lesson from the content library first.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsRegeneratingWithAI(true);
+    toast({
+      title: "Regenerating with AI (PPP)",
+      description: "Creating pedagogically structured slides using Presentation, Practice, Production methodology...",
+    });
+
+    try {
+      // Use selectedContent.id if available, otherwise create a mock lesson for AI generation
+      let contentId = selectedContent?.id;
+      
+      if (!contentId) {
+        // Create a temporary lesson context for AI generation
+        const mockLesson = {
+          id: 'temp-' + Date.now(),
+          title: currentLessonTitle || 'English Lesson',
+          topic: 'English Communication',
+          cefr_level: 'A1',
+          duration_minutes: 30,
+          learning_objectives: [
+            'Students can use basic greetings appropriately',
+            'Students can introduce themselves confidently', 
+            'Students can engage in simple conversations'
+          ],
+          vocabulary_focus: ['hello', 'hi', 'good morning', 'my name is', 'nice to meet you'],
+          grammar_focus: ['Simple present tense', 'Question formation', 'Basic sentence structure']
+        };
+        
+        // Save temporary lesson for AI processing
+        const { data: tempLesson, error: saveError } = await supabase
+          .from('systematic_lessons')
+          .insert(mockLesson)
+          .select()
+          .single();
+          
+        if (saveError) throw saveError;
+        contentId = tempLesson.id;
+      }
+
+      const { data, error } = await supabase.functions.invoke('ai-slide-generator', {
+        body: { 
+          action: 'generate_full_deck',
+          content_id: contentId,
+          slide_count: 25,
+          structure: 'ppp'
+        }
+      });
+
+      if (error) throw error;
+      
+      if (data?.success) {
+        setCurrentLessonSlides(data.slides);
+        setCurrentLessonTitle(data.slides?.metadata?.title || currentLessonTitle);
+        toast({
+          title: "AI Slides Generated! 🎉",
+          description: `Created ${data.slides?.total_slides || 25} pedagogically structured slides using PPP methodology.`,
+        });
+      } else {
+        throw new Error(data?.error || 'Failed to generate slides');
+      }
+    } catch (error) {
+      console.error('Failed to regenerate with AI:', error);
+      toast({
+        title: "AI Generation Failed",
+        description: error.message || "Failed to generate slides",
+        variant: "destructive"
+      });
+    } finally {
+      setIsRegeneratingWithAI(false);
+    }
+  };
+
   const generateLessonSlidesHTML = (lesson: any) => {
     if (lesson.slides_content?.slides) {
       // Create self-contained HTML with embedded slide viewer
@@ -1077,6 +1159,20 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
                       <div className="text-sm text-muted-foreground">
                         {currentLessonSlides?.total_slides || 0} interactive slides
                       </div>
+                      <Button
+                        onClick={regenerateWithAI}
+                        disabled={isRegeneratingWithAI || !selectedContent?.id}
+                        variant="default"
+                        size="sm"
+                        className="gap-2"
+                      >
+                        {isRegeneratingWithAI ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <BookOpen className="h-4 w-4" />
+                        )}
+                        {isRegeneratingWithAI ? 'Generating...' : 'Regenerate with AI (PPP)'}
+                      </Button>
                       <Button
                         onClick={async () => {
                           const { sampleInteractiveSlides } = await import('@/data/sampleSlides');

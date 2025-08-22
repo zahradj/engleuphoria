@@ -246,51 +246,93 @@ Review & Wrap-up (2 slides):
 
   const slideStructure = structure || defaultStructure;
   
-  const prompt = `Create exactly ${slideCount} interactive ESL lesson slides for the lesson: "${lesson.title}"
+  const prompt = `Create exactly ${slideCount} interactive ESL lesson slides using PPP methodology (Presentation, Practice, Production) for: "${lesson.title}"
 
 LESSON DETAILS:
-Topic: ${lesson.topic}
-CEFR Level: ${lesson.cefr_level}
-Duration: 30 minutes
-Target Age: Young learners (7-12 years old)
-Learning Objectives: 
-- Students can greet others using "Hello", "Hi", "Good morning"
-- Students can introduce themselves using "My name is..." and "I am..."
-- Students can ask and answer "What's your name?" and "How are you?"
+Topic: ${lesson.topic || 'English Communication'}
+CEFR Level: ${lesson.cefr_level || 'A1'}
+Duration: ${lesson.duration_minutes || 30} minutes
+Target Age: ${lesson.target_age || 'Young learners (7-12 years old)'}
+Learning Objectives: ${JSON.stringify(lesson.learning_objectives || [
+  'Students can use basic greetings appropriately',
+  'Students can introduce themselves confidently', 
+  'Students can engage in simple conversations'
+])}
 
-Vocabulary Focus: Hello, Hi, Good morning, Good afternoon, My name is, I am, What's your name?, How are you?, Fine, Nice to meet you
-Grammar Focus: Simple present with "be" verb, Question formation with "What" and "How"
+Vocabulary Focus: ${JSON.stringify(lesson.vocabulary_focus || ['hello', 'hi', 'good morning', 'my name is', 'nice to meet you'])}
+Grammar Focus: ${JSON.stringify(lesson.grammar_focus || ['Simple present tense', 'Question formation', 'Basic sentence structure'])}
 
 Create a comprehensive ${slideCount}-slide lesson following this structure:
 ${slideStructure}
 
-DESIGN REQUIREMENTS:
-- Each slide must be interactive and engaging for young learners
-- Use simple, clear language appropriate for A1 level
-- Include visual descriptions for image generation
-- Make activities fun and gamified
-- Ensure cultural sensitivity in examples
-- Add movement and energy where appropriate
+PPP METHODOLOGY REQUIREMENTS:
+1. PRESENTATION (Slides 1-8): Introduce new language clearly with context
+2. PRACTICE (Slides 9-18): Controlled practice activities with immediate feedback  
+3. PRODUCTION (Slides 19-${slideCount}): Freer communication tasks and real-world application
 
-For each slide, provide this exact JSON structure:
+DESIGN REQUIREMENTS:
+- Each slide must be interactive and pedagogically sound
+- Use clear, level-appropriate language 
+- Include detailed image prompts for visual support
+- Create engaging, gamified activities with immediate feedback
+- Ensure cultural sensitivity and inclusivity
+- Progress from controlled to free practice
+- Include various activity types: match, drag_drop, cloze, multiple choice
+
+For interactive activities, use these specific slide types and structures:
+
+MATCH ACTIVITY:
 {
   "id": "slide-{number}",
-  "type": "{slide_type}",
-  "prompt": "Clear, simple instruction for students",
-  "instructions": "Detailed teacher notes and timing",
-  "media": {
-    "type": "image",
-    "imagePrompt": "Detailed description for AI image generation",
-    "alt": "Accessibility description"
-  },
-  "options": ["Option 1", "Option 2", "Option 3", "Option 4"],
-  "correct": "correct answer or index",
-  "timeLimit": 60,
-  "accessibility": {
-    "screenReaderText": "Description for screen readers",
-    "highContrast": true,
-    "largeText": false
-  }
+  "type": "match", 
+  "prompt": "Match the words with their meanings",
+  "instructions": "Students drag items from left to right to match pairs",
+  "matchPairs": [
+    {"id": "1", "left": "Hello", "right": "A greeting"},
+    {"id": "2", "left": "Goodbye", "right": "A farewell"}
+  ],
+  "timeLimit": 90,
+  "accessibility": {"screenReaderText": "Matching activity", "highContrast": false}
+}
+
+DRAG & DROP ACTIVITY:
+{
+  "id": "slide-{number}",
+  "type": "drag_drop",
+  "prompt": "Drag the words to complete the sentences",
+  "instructions": "Students drag words into correct sentence positions",
+  "dragDropItems": [
+    {"id": "1", "text": "is", "targetId": "gap1"},
+    {"id": "2", "text": "am", "targetId": "gap2"}
+  ],
+  "dragDropTargets": [
+    {"id": "gap1", "text": "My name ___ John", "acceptsItemIds": ["1"]},
+    {"id": "gap2", "text": "I ___ happy", "acceptsItemIds": ["2"]}
+  ]
+}
+
+CLOZE ACTIVITY:
+{
+  "id": "slide-{number}",
+  "type": "cloze",
+  "prompt": "Fill in the missing words",
+  "instructions": "Students complete the text by filling gaps",
+  "clozeText": "Hello, my name {{gap1}} Sarah and I {{gap2}} from London.",
+  "clozeGaps": [
+    {"id": "gap1", "correctAnswers": ["is"]},
+    {"id": "gap2", "correctAnswers": ["am", "come"]}
+  ]
+}
+
+MULTIPLE CHOICE:
+{
+  "id": "slide-{number}",
+  "type": "accuracy_mcq",
+  "prompt": "Choose the correct answer",
+  "instructions": "Select the best response",
+  "options": ["Hello", "Goodbye", "Thank you", "Sorry"],
+  "correct": 0,
+  "media": {"type": "image", "imagePrompt": "Person waving hello", "alt": "Greeting gesture"}
 }
 
 IMPORTANT: 
@@ -313,13 +355,12 @@ Create the lesson slides now:`;
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-4o-mini',
+      model: 'gpt-5-2025-08-07',
       messages: [
-        { role: 'system', content: 'You are an expert ESL curriculum designer. Create comprehensive, engaging lesson slides with clear instructions and interactive elements. Always respond with valid JSON only.' },
+        { role: 'system', content: 'You are an expert ESL curriculum designer specializing in PPP methodology (Presentation, Practice, Production). Create comprehensive, engaging lesson slides with clear instructions and interactive elements. Always respond with valid JSON only.' },
         { role: 'user', content: prompt }
       ],
-      max_tokens: 4000,
-      temperature: 0.7,
+      max_completion_tokens: 4000,
     }),
   });
 
@@ -420,13 +461,12 @@ Respond with valid JSON only:`;
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-4o-mini',
+      model: 'gpt-5-mini-2025-08-07',
       messages: [
-        { role: 'system', content: 'You are an expert ESL curriculum designer. Create one engaging lesson slide with clear instructions. Always respond with valid JSON only.' },
+        { role: 'system', content: 'You are an expert ESL curriculum designer specializing in PPP methodology. Create one engaging lesson slide with clear instructions. Always respond with valid JSON only.' },
         { role: 'user', content: prompt }
       ],
-      max_tokens: 800,
-      temperature: 0.7,
+      max_completion_tokens: 800,
     }),
   });
 
