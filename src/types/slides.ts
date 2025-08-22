@@ -13,6 +13,34 @@ export interface Option {
   isCorrect?: boolean;
 }
 
+export interface MatchPair {
+  id: string;
+  left: string;
+  right: string;
+  leftImage?: string;
+  rightImage?: string;
+}
+
+export interface DragDropItem {
+  id: string;
+  text: string;
+  targetId: string;
+  image?: string;
+}
+
+export interface DragDropTarget {
+  id: string;
+  text: string;
+  acceptsItemIds: string[];
+  image?: string;
+}
+
+export interface ClozeGap {
+  id: string;
+  correctAnswers: string[];
+  options?: string[];
+}
+
 export interface Slide {
   id: string;
   type: SlideType;
@@ -27,6 +55,12 @@ export interface Slide {
     highContrast?: boolean;
     largeText?: boolean;
   };
+  // Interactive activity data
+  matchPairs?: MatchPair[];
+  dragDropItems?: DragDropItem[];
+  dragDropTargets?: DragDropTarget[];
+  clozeText?: string;
+  clozeGaps?: ClozeGap[];
 }
 
 export type SlideType = 
@@ -51,7 +85,10 @@ export type SlideType =
   | 'exit_check'
   | 'picture_choice'
   | 'labeling'
-  | 'tpr_phonics';
+  | 'tpr_phonics'
+  | 'match'
+  | 'drag_drop'
+  | 'cloze';
 
 export interface LessonSlides {
   version: '2.0';

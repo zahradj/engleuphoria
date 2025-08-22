@@ -23,4 +23,15 @@ export const interactiveTranslations = {
   saveProgress: "Save Progress",
   continueLesson: "Continue Lesson",
   interactiveExercise: "Interactive Exercise",
+  
+  // Activity types
+  matchPairs: "Match Pairs",
+  fillInTheGaps: "Fill in the Gaps",
+  checkAnswers: "Check Answers",
+  dropHere: "Drop Here",
+  matchThese: "Match these",
+  withThese: "With these",
+  dragItems: "Drag these items",
+  allCorrect: "All correct!",
+  needCorrection: "Some answers need correction",
 };

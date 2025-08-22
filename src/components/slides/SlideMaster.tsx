@@ -5,6 +5,9 @@ import { Progress } from '@/components/ui/progress';
 import { ChevronLeft, ChevronRight, Volume2, CheckCircle, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Media, Option, Slide, LessonSlides } from '@/types/slides';
+import { MatchPairs } from './interactive/MatchPairs';
+import { DragDropMatch } from './interactive/DragDropMatch';
+import { ClozeActivity } from './interactive/ClozeActivity';
 
 export interface SlideMasterProps {
   slide: Slide;
@@ -45,6 +48,7 @@ export function SlideMaster({
   onNext,
   onPrevious,
   onOptionSelect,
+  onActivityResult,
   selectedOptions = [],
   showFeedback = false,
   isCorrect,
@@ -96,7 +100,7 @@ export function SlideMaster({
     if (!slide.options) return null;
 
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 animate-enter">
         {slide.options.map((option) => {
           const isSelected = selectedOptions.includes(option.id);
           const showCorrectness = showFeedback && option.isCorrect !== undefined;
@@ -108,7 +112,7 @@ export function SlideMaster({
               size="lg"
               className={cn(
                 "min-h-[60px] p-4 text-left justify-start relative mobile-touch-target",
-                "transition-all duration-200 text-wrap",
+                "transition-all duration-200 text-wrap hover-scale",
                 showCorrectness && option.isCorrect && "bg-success-soft border-success text-success-on",
                 showCorrectness && !option.isCorrect && isSelected && "bg-error-soft border-error text-error-on",
                 "focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
@@ -141,6 +145,77 @@ export function SlideMaster({
     );
   };
 
+  const renderInteractiveActivity = () => {
+    if (!onActivityResult) return null;
+
+    switch (slide.type) {
+      case 'match':
+        if (!slide.matchPairs || slide.matchPairs.length === 0) return null;
+        return (
+          <MatchPairs
+            pairs={slide.matchPairs}
+            onComplete={(correct, attempts) => {
+              onActivityResult({
+                itemId: slide.id,
+                correct,
+                timeMs: Date.now() - (timeElapsed * 1000),
+                attempts,
+                tags: [slide.type],
+                cefr: level,
+                accuracyPercent: correct ? 100 : 0
+              });
+            }}
+            showFeedback={showFeedback}
+          />
+        );
+
+      case 'drag_drop':
+        if (!slide.dragDropItems || !slide.dragDropTargets) return null;
+        return (
+          <DragDropMatch
+            items={slide.dragDropItems}
+            targets={slide.dragDropTargets}
+            onComplete={(correct, attempts) => {
+              onActivityResult({
+                itemId: slide.id,
+                correct,
+                timeMs: Date.now() - (timeElapsed * 1000),
+                attempts,
+                tags: [slide.type],
+                cefr: level,
+                accuracyPercent: correct ? 100 : 0
+              });
+            }}
+            showFeedback={showFeedback}
+          />
+        );
+
+      case 'cloze':
+        if (!slide.clozeText || !slide.clozeGaps) return null;
+        return (
+          <ClozeActivity
+            text={slide.clozeText}
+            gaps={slide.clozeGaps}
+            onComplete={(correct, attempts) => {
+              onActivityResult({
+                itemId: slide.id,
+                correct,
+                timeMs: Date.now() - (timeElapsed * 1000),
+                attempts,
+                tags: [slide.type],
+                cefr: level,
+                accuracyPercent: correct ? 100 : 0
+              });
+            }}
+            showFeedback={showFeedback}
+          />
+        );
+
+      default:
+        return null;
+    }
+  };
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -148,7 +223,7 @@ export function SlideMaster({
   };
 
   return (
-    <div className="h-full flex flex-col bg-background text-foreground relative">
+    <div className="h-full flex flex-col bg-background text-foreground relative animate-fade-in">
       {/* Header */}
       <div className="bg-surface border-b border-border px-6 py-4">
         <div className="flex items-center justify-between max-w-4xl mx-auto">
@@ -207,7 +282,7 @@ export function SlideMaster({
       <div className="flex-1 min-h-0 overflow-auto px-6 py-8">
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Prompt Area */}
-          <div className="text-center space-y-4">
+          <div className="text-center space-y-4 animate-scale-in">
             <h1 className="text-2xl sm:text-3xl font-bold text-text">
               {slide.prompt}
             </h1>
@@ -220,13 +295,16 @@ export function SlideMaster({
 
           {/* Media Zone */}
           {slide.media && (
-            <div className="flex justify-center">
+            <div className="flex justify-center animate-fade-in">
               {renderMedia()}
             </div>
           )}
 
-          {/* Options Grid */}
-          {slide.options && (
+          {/* Interactive Activities */}
+          {renderInteractiveActivity()}
+
+          {/* Options Grid - only show for non-interactive slides */}
+          {slide.options && !['match', 'drag_drop', 'cloze'].includes(slide.type) && (
             <div className="max-w-2xl mx-auto">
               {renderOptions()}
             </div>
@@ -235,7 +313,7 @@ export function SlideMaster({
           {/* Feedback Panel */}
           {showFeedback && (
             <div className={cn(
-              "p-6 rounded-lg border-2 text-center space-y-3",
+              "p-6 rounded-lg border-2 text-center space-y-3 animate-scale-in",
               isCorrect 
                 ? "bg-success-soft border-success text-success-on" 
                 : "bg-error-soft border-error text-error-on"
