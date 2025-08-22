@@ -34,6 +34,7 @@ interface EnhancedContentLibraryProps {
   onPreviewFile?: (content: any) => void;
   onDeleteFile?: (content: any) => void;
   onAddToWhiteboard?: (content: any) => void;
+  onLoadLesson?: (lessonId: string) => void;
   currentUser: {
     id: string;
     role: 'teacher' | 'student';
@@ -54,6 +55,7 @@ export function EnhancedContentLibrary({
   onPreviewFile,
   onDeleteFile,
   onAddToWhiteboard,
+  onLoadLesson,
   currentUser
 }: EnhancedContentLibraryProps) {
   const [activeTab, setActiveTab] = useState(() => {
@@ -354,7 +356,7 @@ export function EnhancedContentLibrary({
 
         <TabsContent value="systematic" className="flex-1 min-h-0">
           <div className="h-full overflow-y-auto p-4">
-            <SystematicLessonsLibrary />
+            <SystematicLessonsLibrary onLoadLesson={onLoadLesson} />
           </div>
         </TabsContent>
 

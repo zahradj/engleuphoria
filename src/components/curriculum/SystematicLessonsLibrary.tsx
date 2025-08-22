@@ -37,9 +37,10 @@ interface LessonContent {
 
 interface SystematicLessonsLibraryProps {
   onContentUpdate?: () => void;
+  onLoadLesson?: (lessonId: string) => void;
 }
 
-export function SystematicLessonsLibrary({ onContentUpdate }: SystematicLessonsLibraryProps) {
+export function SystematicLessonsLibrary({ onContentUpdate, onLoadLesson }: SystematicLessonsLibraryProps) {
   const [lessons, setLessons] = useState<LessonContent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -76,9 +77,14 @@ export function SystematicLessonsLibrary({ onContentUpdate }: SystematicLessonsL
 
 
   const openInClassroom = (lesson: LessonContent) => {
-    // Store lesson data and open classroom with skipGen flag
-    localStorage.setItem('currentLessonContent', JSON.stringify(lesson));
-    window.open(`/oneonone-classroom-new?roomId=lesson-${lesson.id}&role=teacher&name=Teacher&userId=teacher-1&lessonMode=true&skipGen=1`, '_blank');
+    if (onLoadLesson) {
+      // Load lesson in current tab
+      onLoadLesson(lesson.id);
+    } else {
+      // Fallback to opening new window
+      localStorage.setItem('currentLessonContent', JSON.stringify(lesson));
+      window.open(`/oneonone-classroom-new?roomId=lesson-${lesson.id}&role=teacher&name=Teacher&userId=teacher-1&lessonMode=true&skipGen=1`, '_blank');
+    }
   };
 
   const filteredLessons = lessons.filter(lesson => {

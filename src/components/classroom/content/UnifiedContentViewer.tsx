@@ -630,6 +630,12 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
     handleAddToWhiteboard(content);
   };
 
+  const handleLoadLesson = (lessonId: string) => {
+    console.log('📚 Loading lesson in current tab:', lessonId);
+    setActiveTab('lesson-viewer');
+    loadLessonById(lessonId, true); // Always skip generation for direct lesson loading
+  };
+
   return (
     <div className="h-full bg-background">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
@@ -685,6 +691,7 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
                 selectedContent={selectedContent}
                 onSelectContent={setSelectedContent}
                 onAddToWhiteboard={addContentToWhiteboard}
+                onLoadLesson={handleLoadLesson}
                 currentUser={currentUser || { id: 'default', role: isTeacher ? 'teacher' : 'student', name: studentName }}
               />
             </div>
