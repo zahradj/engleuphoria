@@ -210,6 +210,82 @@
     --chart-6: var(--accent-300);
   }
 
+  [data-theme="pastel-sky"] {
+    /* Primary Ramp - Soft Sky Blue #C4D9FF */
+    --primary-50: 215 100% 98%;   /* #FBFCFF */
+    --primary-100: 215 100% 95%;  /* #F2F7FF */
+    --primary-200: 215 100% 87%;  /* #C4D9FF */
+    --primary-300: 215 85% 82%;   /* #B8D1FA */
+    --primary-400: 215 75% 72%;   /* #9FC0F5 */
+    --primary-500: 215 65% 62%;   /* #86AFF0 */
+    --primary-600: 215 60% 52%;   /* #6D9EEB */
+    --primary-700: 215 55% 42%;   /* #4B7DD1 */
+    --primary-800: 215 50% 32%;   /* #3962B7 */
+    --primary-900: 215 45% 22%;   /* #27479D */
+
+    /* Accent Ramp - Soft Lavender #C5BAFF */
+    --accent-50: 255 100% 98%;    /* #FEFBFF */
+    --accent-100: 255 85% 94%;    /* #F7F0FF */
+    --accent-200: 255 70% 87%;    /* #C5BAFF */
+    --accent-300: 255 65% 82%;    /* #BAA8FA */
+    --accent-400: 255 60% 72%;    /* #A896F5 */
+    --accent-500: 255 55% 62%;    /* #9684F0 */
+    --accent-600: 255 50% 52%;    /* #8472EB */
+    --accent-700: 255 45% 42%;    /* #6B51D1 */
+    --accent-800: 255 40% 32%;    /* #5236B7 */
+    --accent-900: 255 35% 22%;    /* #391B9D */
+
+    /* Neutral Ramp - Light Blue-Gray to match #E8F9FF */
+    --neutral-50: 206 100% 98%;   /* #FBFBFB */
+    --neutral-100: 206 80% 96%;   /* #E8F9FF */
+    --neutral-200: 206 60% 92%;   /* #D8F0FC */
+    --neutral-300: 206 40% 85%;   /* #C2E4F7 */
+    --neutral-400: 206 30% 70%;   /* #A0C7E8 */
+    --neutral-500: 206 25% 55%;   /* #7EAAD9 */
+    --neutral-600: 206 30% 45%;   /* #5C8DCA */
+    --neutral-700: 206 35% 35%;   /* #3A70BB */
+    --neutral-800: 206 40% 25%;   /* #1853AC */
+    --neutral-900: 206 45% 15%;   /* #06369D */
+
+    /* Surface tokens */
+    --bg: 206 100% 98%;           /* #FBFBFB */
+    --surface: 0 0% 100%;         /* White */
+    --surface-2: 206 80% 96%;     /* #E8F9FF */
+    --border: 206 60% 92%;        /* #D8F0FC */
+    --muted: 206 70% 94%;         /* #E0F4FE */
+    --text: 206 45% 12%;          /* #0A2A5C */
+    --text-muted: 206 30% 45%;    /* #5C8DCA */
+    --text-subtle: 206 25% 55%;   /* #7EAAD9 */
+
+    /* State colors - AA compliant */
+    --success: 142 70% 35%;       /* #1E8B5A */
+    --success-soft: 142 50% 92%;  /* #E8F6F0 */
+    --success-on: 142 80% 15%;    /* #0F3C26 */
+    
+    --info: 199 85% 45%;          /* #1E7BAA */
+    --info-soft: 199 50% 92%;     /* #E8F4FA */
+    --info-on: 199 80% 20%;       /* #0F3240 */
+    
+    --warning: 38 85% 45%;        /* #B8741A */
+    --warning-soft: 38 50% 92%;   /* #FBF2E6 */
+    --warning-on: 38 80% 15%;     /* #2E1E0D */
+    
+    --error: 0 70% 50%;           /* #CC4444 */
+    --error-soft: 0 50% 92%;      /* #FBEAEA */
+    --error-on: 0 80% 20%;        /* #3A1515 */
+
+    /* Focus ring */
+    --focus-ring: var(--primary-600);
+    
+    /* Chart palette */
+    --chart-1: var(--primary-500);
+    --chart-2: var(--accent-500);
+    --chart-3: var(--primary-400);
+    --chart-4: var(--accent-400);
+    --chart-5: var(--primary-300);
+    --chart-6: var(--accent-300);
+  }
+
   [data-theme="sage-sand"] {
     /* Primary Ramp - Sage Green */
     --primary-50: 145 35% 97%;    /* #F5FAF7 */

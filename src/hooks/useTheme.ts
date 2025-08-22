@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 
-export type Theme = 'default' | 'mist-blue' | 'sage-sand';
+export type Theme = 'default' | 'mist-blue' | 'sage-sand' | 'pastel-sky';
 
 export function useTheme() {
   const [theme, setTheme] = useState<Theme>(() => {
     const stored = localStorage.getItem('k12-theme');
-    return (stored as Theme) || 'default';
+    return (stored as Theme) || 'pastel-sky';
   });
 
   useEffect(() => {

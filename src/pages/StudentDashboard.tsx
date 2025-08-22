@@ -8,7 +8,7 @@ import { LoadingSpinner } from "@/components/ui/loading-states";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
 // Lazy load components to improve initial load time
-import { StudentHeader } from "@/components/student/StudentHeader";
+import { MinimalStudentHeader } from "@/components/student/MinimalStudentHeader";
 import { StudentSidebar } from "@/components/student/StudentSidebar";
 import { DashboardTab } from "@/components/student/DashboardTab";
 import { TeachersTab } from "@/components/student/TeachersTab";
@@ -148,24 +148,23 @@ const StudentDashboard = () => {
   return (
     <ErrorBoundary>
       <SidebarProvider defaultOpen={false}>
-        <div className="min-h-screen bg-primary-200 w-full">
-          <StudentHeader 
-            studentName={studentName} 
-            studentId={studentId} 
-            hasProfile={hasProfile} 
-            studentProfile={studentProfile} 
+        <div className="flex min-h-screen w-full bg-background">
+          <StudentSidebar 
+            activeTab={activeTab} 
+            setActiveTab={setActiveTab}
+            hasProfile={hasProfile}
+            onLogout={handleLogout}
           />
-          <div className="flex">
-            <StudentSidebar 
-              activeTab={activeTab} 
-              setActiveTab={setActiveTab}
+          
+          <div className="flex-1 flex flex-col">
+            <MinimalStudentHeader 
+              studentName={studentName}
+              studentId={studentId}
               hasProfile={hasProfile}
-              onLogout={handleLogout}
+              studentProfile={studentProfile}
             />
-            <main className="flex-1 p-6 bg-gradient-to-br from-primary-200 via-accent-200 to-primary-300">
-              <div className="mb-4">
-                <SidebarTrigger />
-              </div>
+            <main className="flex-1 overflow-y-auto p-6 bg-surface-2">
+              <SidebarTrigger />
               <QuickActions />
               {renderActiveTab()}
             </main>

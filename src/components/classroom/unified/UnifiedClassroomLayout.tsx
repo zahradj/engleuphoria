@@ -61,7 +61,7 @@ export function UnifiedClassroomLayout({
       {/* Full-screen grid layout */}
       <div className="flex-1 flex overflow-hidden">
         {/* Main content area - 80-85% width */}
-        <main className="flex-1 bg-background">
+        <main className="flex-1 bg-surface-2">
           {children}
         </main>
       </div>
@@ -76,7 +76,7 @@ export function UnifiedClassroomLayout({
       {/* Recovery Status Indicator - Non-blocking */}
       {isRecovering && (
         <div className="fixed top-4 right-4 z-30 pointer-events-none">
-          <Card className="p-3 bg-background/95 backdrop-blur-sm border shadow-lg">
+          <Card className="p-3 bg-surface/95 backdrop-blur-sm border border-border shadow-lg">
             <div className="flex items-center gap-2">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
               <span className="text-sm text-foreground">

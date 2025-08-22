@@ -46,21 +46,13 @@ export const EnhancedTeacherSidebar = ({ activeTab, setActiveTab, onLogout }: En
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3, type: 'tab' },
-    { id: 'profile', label: 'My Profile', icon: User, type: 'tab' },
-    { id: 'ai-assistant', label: 'AI Curriculum', icon: Brain, type: 'tab' },
+    { id: 'profile', label: 'Profile', icon: User, type: 'tab' },
     { id: 'slides', label: 'Lesson Slides', icon: Presentation, type: 'tab' },
     { id: 'calendar', label: 'Calendar', icon: Calendar, type: 'tab' },
     { id: 'students', label: 'Students', icon: Users, type: 'tab' },
     { id: 'reading-library', label: 'Reading Library', icon: Book, type: 'tab' },
     { id: 'curriculum', label: 'Curriculum Library', icon: FolderOpen, type: 'page', path: '/curriculum-library' },
-    { id: 'history', label: 'Lesson History', icon: Clock, type: 'tab' },
-    { id: 'assignments', label: 'Assignments', icon: FileText, type: 'tab' },
-    { id: 'resources', label: 'Resources', icon: BookOpen, type: 'tab' },
-    { id: 'messages', label: 'Messages', icon: MessageSquare, type: 'tab' },
     { id: 'earnings', label: 'Earnings', icon: DollarSign, type: 'tab' },
-    { id: 'withdrawals', label: 'Withdrawals', icon: ArrowUpRight, type: 'tab' },
-    { id: 'reports', label: 'Reports', icon: TrendingUp, type: 'tab' },
-    { id: 'enterprise', label: 'Enterprise Hub', icon: BarChart3, type: 'tab' },
     { id: 'settings', label: 'Settings', icon: Settings, type: 'tab' }
   ];
 

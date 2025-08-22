@@ -10,7 +10,7 @@ export interface SlideMasterProps {
   slide: Slide;
   currentSlide: number;
   totalSlides: number;
-  theme?: 'mist-blue' | 'sage-sand' | 'default';
+  theme?: 'mist-blue' | 'sage-sand' | 'default' | 'pastel-sky';
   isTeacher?: boolean;
   onNext?: () => void;
   onPrevious?: () => void;

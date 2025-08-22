@@ -47,16 +47,11 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     ...(hasProfile ? [{ id: 'learning-path', label: 'My Learning Path', icon: Map, badge: 'New' }] : []),
-    { id: 'discover-teachers', label: 'Discover Teachers', icon: Search, isLink: true, path: '/discover-teachers' },
     { id: 'teachers', label: 'My Teachers', icon: Users },
-    { id: 'upcoming-classes', label: 'Upcoming Classes', icon: Calendar },
+    { id: 'upcoming-classes', label: 'Classes', icon: Calendar },
     { id: 'homework', label: 'Homework', icon: ClipboardList },
-    { id: 'materials', label: 'Materials Library', icon: Library },
-    { id: 'progress', label: 'Progress Tracker', icon: TrendingUp },
-    { id: 'speaking', label: 'Speaking Practice', icon: Mic },
-    { id: 'billing', label: 'Billing', icon: CreditCard },
-    { id: 'profile', label: 'Profile', icon: User },
-    { id: 'settings', label: 'Settings', icon: Settings }
+    { id: 'progress', label: 'Progress', icon: TrendingUp },
+    { id: 'profile', label: 'Profile', icon: User }
   ];
 
   const { state } = useSidebar();
@@ -72,19 +67,6 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
               {menuItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
-                
-                if (item.isLink) {
-                  return (
-                    <SidebarMenuItem key={item.id}>
-                      <SidebarMenuButton asChild>
-                        <Link to={item.path}>
-                          <Icon className="h-4 w-4" />
-                          {!isCollapsed && <span>{item.label}</span>}
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                }
                 
                 return (
                   <SidebarMenuItem key={item.id}>
