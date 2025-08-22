@@ -10,10 +10,11 @@ import { ContentItem } from "./types";
 import { SoundButton } from "@/components/ui/sound-button";
 import { TeacherAssignmentPanel } from "../assignment/TeacherAssignmentPanel";
 import { StudentAssignmentPanel } from "../assignment/StudentAssignmentPanel";
-import { Upload, Plus, BookOpen, PenTool, Gamepad2, Loader2 } from "lucide-react";
+import { Upload, Plus, BookOpen, PenTool, Gamepad2, Loader2, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { createGreetingsDeck, createGreetingsPPPRequest } from "@/utils/createGreetingsDeck";
 
 interface EmbeddedContent {
   id: string;
@@ -51,6 +52,7 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
   const [currentLessonTitle, setCurrentLessonTitle] = useState("");
   const [isGeneratingSlides, setIsGeneratingSlides] = useState(false);
   const [isRegeneratingWithAI, setIsRegeneratingWithAI] = useState(false);
+  const [isGeneratingGreetingsPPP, setIsGeneratingGreetingsPPP] = useState(false);
   const { toast } = useToast();
   
   // Debug embedded content changes
@@ -654,6 +656,65 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
     }
   };
 
+  const loadGreetingsDeck = () => {
+    const greetingsDeck = createGreetingsDeck();
+    setCurrentLessonSlides(greetingsDeck);
+    setCurrentLessonTitle("Greetings and Introductions");
+    setActiveTab('lesson-viewer');
+    
+    toast({
+      title: "Greetings Lesson Loaded! 👋",
+      description: "Ready-to-use interactive greetings lesson with 6 engaging slides.",
+    });
+  };
+
+  const generateGreetingsPPP = async () => {
+    setIsGeneratingGreetingsPPP(true);
+    toast({
+      title: "Generating Greetings PPP Deck",
+      description: "Creating 25 pedagogically structured slides for greetings and introductions...",
+    });
+
+    try {
+      const requestData = createGreetingsPPPRequest();
+      
+      const { data, error } = await supabase.functions.invoke('ai-slide-generator', {
+        body: requestData
+      });
+
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw new Error(error.message || 'Failed to call AI generator');
+      }
+      
+      if (data?.success) {
+        console.log('✅ Greetings PPP generation successful:', data);
+        setCurrentLessonSlides(data.slides);
+        setCurrentLessonTitle("Greetings and Introductions (PPP)");
+        setActiveTab('lesson-viewer');
+        toast({
+          title: "Greetings PPP Generated! 🎉",
+          description: `Created ${data.slides?.total_slides || 25} structured slides using PPP methodology.`,
+        });
+      } else {
+        console.error('PPP generation failed:', data);
+        throw new Error(data?.error || 'Failed to generate PPP slides');
+      }
+    } catch (error) {
+      console.error('Failed to generate Greetings PPP:', error);
+      
+      // Fallback to basic greetings deck
+      loadGreetingsDeck();
+      toast({
+        title: "AI Generation Failed",
+        description: "Loaded basic greetings lesson instead. You can try AI generation again later.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGeneratingGreetingsPPP(false);
+    }
+  };
+
   const generateLessonSlidesHTML = (lesson: any) => {
     if (lesson.slides_content?.slides) {
       // Create self-contained HTML with embedded slide viewer
@@ -1151,9 +1212,32 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
                         {currentLessonSlides?.total_slides || 0} interactive slides
                       </div>
                       <Button
+                        onClick={loadGreetingsDeck}
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                      >
+                        <Wand2 className="h-4 w-4" />
+                        Load Greetings (Quick)
+                      </Button>
+                      <Button
+                        onClick={generateGreetingsPPP}
+                        disabled={isGeneratingGreetingsPPP}
+                        variant="default"
+                        size="sm"
+                        className="gap-2"
+                      >
+                        {isGeneratingGreetingsPPP ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Wand2 className="h-4 w-4" />
+                        )}
+                        {isGeneratingGreetingsPPP ? 'Generating...' : 'Generate Greetings (PPP, 25 slides)'}
+                      </Button>
+                      <Button
                         onClick={regenerateWithAI}
                         disabled={isRegeneratingWithAI}
-                        variant="default"
+                        variant="secondary"
                         size="sm"
                         className="gap-2"
                       >
