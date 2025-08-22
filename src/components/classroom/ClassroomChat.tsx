@@ -78,12 +78,18 @@ export function ClassroomChat({ teacherName, studentName }: ClassroomChatProps) 
   });
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-lg shadow-sm border">
-      <div className="p-3 bg-muted/30 border-b">
-        <h3 className="font-medium">{languageText.chat}</h3>
-        <div className="flex justify-between text-xs text-muted-foreground mt-1">
-          <span className="font-medium text-blue-500">{studentName} (Student)</span>
-          <span className="font-medium text-green-500">{teacherName} (Teacher)</span>
+    <div className="flex flex-col h-full rounded-lg shadow-sm" style={{ 
+      backgroundColor: '#FBFBFB', 
+      border: '1px solid rgba(196, 217, 255, 0.4)'
+    }}>
+      <div className="p-3 border-b" style={{ 
+        backgroundColor: 'rgba(232, 249, 255, 0.4)', 
+        borderBottomColor: 'rgba(196, 217, 255, 0.4)'
+      }}>
+        <h3 className="font-medium" style={{ color: '#374151' }}>{languageText.chat}</h3>
+        <div className="flex justify-between text-xs mt-1" style={{ color: '#6B7280' }}>
+          <span className="font-medium" style={{ color: '#3B82F6' }}>{studentName} (Student)</span>
+          <span className="font-medium" style={{ color: '#10B981' }}>{teacherName} (Teacher)</span>
         </div>
       </div>
 
@@ -97,16 +103,16 @@ export function ClassroomChat({ teacherName, studentName }: ClassroomChatProps) 
               }`}
             >
               <div
-                className={`px-3 py-2 rounded-lg max-w-[85%] ${
-                  msg.isTeacher
-                    ? "bg-muted"
-                    : "bg-primary text-white"
-                }`}
+                className={`px-3 py-2 rounded-lg max-w-[85%]`}
+                style={msg.isTeacher
+                  ? { backgroundColor: 'rgba(232, 249, 255, 0.6)', color: '#374151' }
+                  : { backgroundColor: '#4F46E5', color: 'white' }
+                }
               >
                 <p className="text-sm">{msg.content}</p>
               </div>
-              <div className="flex items-center mt-1 text-xs text-muted-foreground">
-                <span className={msg.isTeacher ? "text-green-500" : "text-blue-500"}>
+              <div className="flex items-center mt-1 text-xs" style={{ color: '#6B7280' }}>
+                <span style={{ color: msg.isTeacher ? '#10B981' : '#3B82F6' }}>
                   {msg.sender}
                 </span>
                 <span className="mx-1">•</span>
@@ -117,14 +123,17 @@ export function ClassroomChat({ teacherName, studentName }: ClassroomChatProps) 
         </div>
       </ScrollArea>
 
-      <Separator />
+      <div style={{ height: '1px', backgroundColor: 'rgba(196, 217, 255, 0.4)' }}></div>
 
       <div className="p-3 flex gap-2">
         <Button
           variant="ghost"
           size="icon"
-          className="shrink-0"
+          className="shrink-0 transition-colors duration-200"
           title={languageText.attachment}
+          style={{ color: '#6B7280' }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E8F9FF'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
         >
           <Paperclip size={18} />
         </Button>
@@ -136,12 +145,20 @@ export function ClassroomChat({ teacherName, studentName }: ClassroomChatProps) 
             if (e.key === "Enter") sendMessage();
           }}
           className="flex-1"
+          style={{ 
+            borderColor: 'rgba(196, 217, 255, 0.5)',
+            backgroundColor: '#FBFBFB'
+          }}
         />
         <Button
           onClick={sendMessage}
           size="icon"
           className="shrink-0"
           disabled={!message.trim()}
+          style={{ 
+            backgroundColor: message.trim() ? '#4F46E5' : 'rgba(196, 217, 255, 0.3)',
+            color: 'white'
+          }}
         >
           <SendHorizontal size={18} />
         </Button>

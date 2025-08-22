@@ -892,23 +892,42 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
   };
 
   return (
-    <div className="h-full bg-background">
+    <div className="h-full" style={{ backgroundColor: '#FBFBFB' }}>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="whiteboard" className="flex items-center gap-2">
+        <TabsList className="grid w-full grid-cols-4" style={{ 
+          backgroundColor: 'rgba(232, 249, 255, 0.6)', 
+          border: '1px solid rgba(196, 217, 255, 0.4)'
+        }}>
+          <TabsTrigger 
+            value="whiteboard" 
+            className="flex items-center gap-2 transition-all duration-300"
+            style={{ color: '#4F46E5' }}
+          >
             <PenTool size={16} />
             Whiteboard
           </TabsTrigger>
-          <TabsTrigger value="content" className="flex items-center gap-2">
+          <TabsTrigger 
+            value="content" 
+            className="flex items-center gap-2 transition-all duration-300"
+            style={{ color: '#4F46E5' }}
+          >
             <Upload size={16} />
             Content Library
           </TabsTrigger>
-          <TabsTrigger value="lesson-viewer" className="flex items-center gap-2">
+          <TabsTrigger 
+            value="lesson-viewer" 
+            className="flex items-center gap-2 transition-all duration-300"
+            style={{ color: '#4F46E5' }}
+          >
             <BookOpen size={16} />
             Lesson
             {isGeneratingSlides && <Loader2 className="h-4 w-4 animate-spin ml-1" />}
           </TabsTrigger>
-          <TabsTrigger value="assignments" className="flex items-center gap-2">
+          <TabsTrigger 
+            value="assignments" 
+            className="flex items-center gap-2 transition-all duration-300"
+            style={{ color: '#4F46E5' }}
+          >
             <Gamepad2 size={16} />
             Assignments
           </TabsTrigger>
