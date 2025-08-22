@@ -124,32 +124,32 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Enhanced Upcoming Classes */}
-        <Card style={{ backgroundColor: '#FBFBFB', borderColor: '#C5BAFF' }}>
-          <CardHeader style={{ backgroundColor: '#C4D9FF' }} className="rounded-t-lg">
+        <Card className="bg-card border-border/50 shadow-lg hover:shadow-xl transition-all duration-300">
+          <CardHeader className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-t-lg border-b border-border/30">
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-student" />
-                <span className="text-gray-800">Upcoming Classes</span>
+                <Calendar className="h-5 w-5 text-primary" />
+                <span className="text-foreground font-semibold">Upcoming Classes</span>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/discover-teachers')}>
-                <Plus className="h-4 w-4" />
+              <Button variant="ghost" size="sm" onClick={() => navigate('/discover-teachers')} className="hover:bg-primary/10">
+                <Plus className="h-4 w-4 text-primary" />
               </Button>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
             {loading ? (
               <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-gray-500">Loading your lessons...</p>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-text-muted">Loading your lessons...</p>
               </div>
             ) : upcomingClasses.length === 0 ? (
               <div className="text-center py-8">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Calendar className="h-8 w-8 text-student" />
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Calendar className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="font-semibold text-gray-700 mb-2">No classes scheduled</h3>
-                <p className="text-gray-500 mb-4">Book your first lesson to get started!</p>
-                <Button onClick={() => navigate('/discover-teachers')} className="bg-student hover:bg-student-dark text-student-foreground">
+                <h3 className="font-semibold text-foreground mb-2">No classes scheduled</h3>
+                <p className="text-text-muted mb-4">Book your first lesson to get started!</p>
+                <Button onClick={() => navigate('/discover-teachers')} className="bg-gradient-to-r from-primary to-accent text-white hover:opacity-90">
                   <Plus className="h-4 w-4 mr-2" />
                   Book a Lesson
                 </Button>
@@ -157,15 +157,15 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
             ) : (
               <div className="space-y-3">
                 {upcomingClasses.map((lesson) => (
-                  <div key={lesson.id} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
+                  <div key={lesson.id} className="p-4 border border-border/30 rounded-lg hover:shadow-md transition-all duration-200 bg-surface hover:bg-surface-2">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-800">{lesson.title}</h4>
-                        <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
+                        <h4 className="font-semibold text-foreground">{lesson.title}</h4>
+                        <p className="text-sm text-text-muted flex items-center gap-1 mt-1">
                           <Clock className="h-4 w-4" />
                           {new Date(lesson.scheduled_at).toLocaleDateString()} at {new Date(lesson.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </p>
-                        <p className="text-sm text-student mt-1">with {lesson.teacher_name || 'Teacher'}</p>
+                        <p className="text-sm text-primary mt-1">with {lesson.teacher_name || 'Teacher'}</p>
                         <Badge variant="secondary" className="mt-1">
                           {lesson.duration} minutes
                         </Badge>
@@ -173,7 +173,7 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
                       <div className="flex flex-col gap-2">
                         <Button 
                           size="sm" 
-                          className="bg-student hover:bg-student-dark text-student-foreground"
+                          className="bg-gradient-to-r from-primary to-accent text-white hover:opacity-90"
                           onClick={() => {
                             if (lesson.room_link) {
                               // Navigate to the classroom with proper parameters
@@ -194,6 +194,7 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
                           variant="outline" 
                           size="sm"
                           onClick={() => navigate('/student/schedule')}
+                          className="border-border/50 hover:bg-surface-2"
                         >
                           <Calendar className="h-4 w-4 mr-1" />
                           View All
@@ -208,27 +209,27 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
         </Card>
 
         {/* Enhanced Recent Homework */}
-        <Card style={{ backgroundColor: '#FBFBFB', borderColor: '#C5BAFF' }}>
-          <CardHeader style={{ backgroundColor: '#C4D9FF' }} className="rounded-t-lg">
+        <Card className="bg-card border-border/50 shadow-lg hover:shadow-xl transition-all duration-300">
+          <CardHeader className="bg-gradient-to-r from-accent/10 to-primary/10 rounded-t-lg border-b border-border/30">
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <FileText className="h-5 w-5 text-student" />
-                <span className="text-gray-800">Recent Homework</span>
+                <FileText className="h-5 w-5 text-accent" />
+                <span className="text-foreground font-semibold">Recent Homework</span>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => openHomeworkSubmission("new")}>
-                <Plus className="h-4 w-4" />
+              <Button variant="ghost" size="sm" onClick={() => openHomeworkSubmission("new")} className="hover:bg-accent/10">
+                <Plus className="h-4 w-4 text-accent" />
               </Button>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
             {recentHomework.length === 0 ? (
               <div className="text-center py-8">
-                <div className="w-16 h-16 bg-student-light rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FileText className="h-8 w-8 text-student" />
+                <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FileText className="h-8 w-8 text-accent" />
                 </div>
-                <h3 className="font-semibold text-gray-700 mb-2">No assignments yet</h3>
-                <p className="text-gray-500 mb-4">Your homework will appear here once assigned.</p>
-                <Button variant="outline" onClick={() => openHomeworkSubmission("new")}>
+                <h3 className="font-semibold text-foreground mb-2">No assignments yet</h3>
+                <p className="text-text-muted mb-4">Your homework will appear here once assigned.</p>
+                <Button variant="outline" onClick={() => openHomeworkSubmission("new")} className="border-border/50 hover:bg-surface-2">
                   <Plus className="h-4 w-4 mr-2" />
                   Submit Work
                 </Button>
@@ -236,11 +237,11 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
             ) : (
               <div className="space-y-3">
                 {recentHomework.map((hw) => (
-                  <div key={hw.id} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
+                  <div key={hw.id} className="p-4 border border-border/30 rounded-lg hover:shadow-md transition-all duration-200 bg-surface hover:bg-surface-2">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <h4 className="font-semibold text-gray-800">{hw.title}</h4>
-                        <p className="text-sm text-gray-600 flex items-center gap-1 mt-1">
+                        <h4 className="font-semibold text-foreground">{hw.title}</h4>
+                        <p className="text-sm text-text-muted flex items-center gap-1 mt-1">
                           <Clock className="h-4 w-4" />
                           Due {hw.dueDate}
                         </p>
@@ -250,7 +251,7 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
                           {hw.status}
                         </Badge>
                         {hw.status === 'pending' && (
-                          <Button size="sm" onClick={() => openHomeworkSubmission(hw.id)} className="bg-student hover:bg-student-dark text-student-foreground">
+                          <Button size="sm" onClick={() => openHomeworkSubmission(hw.id)} className="bg-gradient-to-r from-accent to-primary text-white hover:opacity-90">
                             Submit
                           </Button>
                         )}
