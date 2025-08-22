@@ -9,17 +9,17 @@
   :root {
     /* Custom K12 Color System */
     
-    /* Primary Ramp - Rich Warm Brown */
-    --primary-50: 25 40% 95%;    /* Lightest cream */
-    --primary-100: 25 38% 90%;   /* Very light cream */
-    --primary-200: 25 35% 82%;   /* Light cream */
-    --primary-300: 25 32% 72%;   /* Medium cream */
-    --primary-400: 25 30% 62%;   /* Darker cream */
-    --primary-500: 25 28% 52%;   /* Deep warm brown */
-    --primary-600: 25 30% 42%;   /* Deeper brown */
-    --primary-700: 25 32% 32%;   /* Dark brown */
-    --primary-800: 25 35% 25%;   /* Very dark brown */
-    --primary-900: 25 40% 18%;   /* Darkest brown */
+    /* Primary Ramp - Clean Blue */
+    --primary-50: 210 100% 98%;   /* Lightest blue */
+    --primary-100: 210 95% 95%;   /* Very light blue */
+    --primary-200: 210 85% 88%;   /* Light blue */
+    --primary-300: 210 75% 78%;   /* Medium blue */
+    --primary-400: 210 65% 68%;   /* Darker blue */
+    --primary-500: 210 55% 58%;   /* Deep blue */
+    --primary-600: 210 60% 48%;   /* Deeper blue */
+    --primary-700: 210 65% 38%;   /* Dark blue */
+    --primary-800: 210 70% 28%;   /* Very dark blue */
+    --primary-900: 210 75% 18%;   /* Darkest blue */
 
     /* Accent Ramp - Rich Purple */
     --accent-50: 290 45% 95%;    /* Lightest lavender */

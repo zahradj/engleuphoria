@@ -12,13 +12,13 @@ interface RewardItemProps {
 export function RewardItem({ title, description, points, unlocked }: RewardItemProps) {
   return (
     <Card className={`p-4 transition-all ${
-      unlocked ? "bg-gradient-to-br from-yellow-light to-yellow-light/50" : "bg-muted/50"
+      unlocked ? "bg-gradient-to-br from-primary-50 to-primary-100/50" : "bg-muted/50"
     }`}>
       <div className="flex items-start gap-3">
         <div className={`p-2 rounded-lg ${
-          unlocked ? "bg-yellow text-yellow-dark" : "bg-muted text-muted-foreground"
+          unlocked ? "bg-primary-100 text-primary-700" : "bg-muted text-muted-foreground"
         }`}>
-          <Trophy size={24} className={unlocked ? "fill-yellow-dark" : ""} />
+          <Trophy size={24} className={unlocked ? "fill-primary-700" : ""} />
         </div>
         
         <div className="flex-1">
@@ -27,10 +27,10 @@ export function RewardItem({ title, description, points, unlocked }: RewardItemP
           
           <div className="flex items-center gap-1 mt-2">
             <Star size={16} className={`${
-              unlocked ? "fill-yellow text-yellow-dark" : "text-muted-foreground"
+              unlocked ? "fill-primary text-primary-700" : "text-muted-foreground"
             }`} />
             <span className={`text-sm ${
-              unlocked ? "text-yellow-dark font-bold" : "text-muted-foreground"
+              unlocked ? "text-primary-700 font-bold" : "text-muted-foreground"
             }`}>
               {points} points
             </span>
@@ -39,7 +39,7 @@ export function RewardItem({ title, description, points, unlocked }: RewardItemP
         
         <div className={`text-xs uppercase font-bold px-2 py-1 rounded ${
           unlocked 
-            ? "bg-yellow/30 text-yellow-dark"
+            ? "bg-primary-100/30 text-primary-700"
             : "bg-muted text-muted-foreground"
         }`}>
           {unlocked ? "Unlocked" : "Locked"}
