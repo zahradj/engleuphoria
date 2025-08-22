@@ -70,46 +70,273 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
     }
   }, []);
 
-  const createFallbackSlides = (lesson: any) => {
+  const createUniversalDeck = (lesson: any) => {
+    const level = lesson.cefr_level || lesson.level_info?.cefr_level || 'A1';
+    const title = lesson.title || 'English Lesson';
+    const objectives = lesson.learning_objectives || lesson.lesson_objectives || [
+      'Use basic vocabulary and phrases',
+      'Practice listening and speaking skills',
+      'Engage in simple conversations'
+    ];
+    const vocabulary = lesson.vocabulary_focus || ['hello', 'goodbye', 'please', 'thank you'];
+    const grammar = lesson.grammar_focus || ['Simple present tense', 'Basic sentence structure'];
+    
+    const slides = [
+      // Warm-up (2-3 slides)
+      {
+        id: "slide-1",
+        type: "warmup",
+        prompt: `Welcome to ${title}!`,
+        instructions: "Let's start with a fun warm-up activity. Say hello to everyone and share how you're feeling today.",
+        accessibility: { screenReaderText: `Welcome slide for ${title}`, highContrast: false, largeText: false }
+      },
+      {
+        id: "slide-2", 
+        type: "warmup",
+        prompt: "Quick Review",
+        instructions: "Think about what you learned in the previous lesson. Share one thing you remember.",
+        accessibility: { screenReaderText: "Quick review of previous lesson", highContrast: false, largeText: false }
+      },
+      
+      // Introduction (2 slides)
+      {
+        id: "slide-3",
+        type: "vocabulary_preview", 
+        prompt: `Today's Topic: ${title}`,
+        instructions: `Learning Objectives: ${objectives.slice(0, 3).join(', ')}`,
+        accessibility: { screenReaderText: "Today's lesson objectives", highContrast: false, largeText: false }
+      },
+      {
+        id: "slide-4",
+        type: "target_language",
+        prompt: "Key Words Preview",
+        instructions: `We'll learn these important words: ${vocabulary.slice(0, 6).join(', ')}`,
+        accessibility: { screenReaderText: "Preview of key vocabulary", highContrast: false, largeText: false }
+      },
+      
+      // Presentation / Input (5-6 slides)
+      {
+        id: "slide-5",
+        type: "vocabulary_preview",
+        prompt: "Vocabulary Focus",
+        instructions: `New words: ${vocabulary.join(', ')}. Listen and repeat each word.`,
+        accessibility: { screenReaderText: "Vocabulary presentation", highContrast: false, largeText: false }
+      },
+      {
+        id: "slide-6",
+        type: "grammar_focus", 
+        prompt: "Grammar Patterns",
+        instructions: `Today's grammar: ${grammar.join(', ')}. Let's see some examples.`,
+        accessibility: { screenReaderText: "Grammar pattern introduction", highContrast: false, largeText: false }
+      },
+      {
+        id: "slide-7",
+        type: "listening_comprehension",
+        prompt: "Listen and Learn",
+        instructions: "Listen to the examples and pay attention to pronunciation and intonation.",
+        accessibility: { screenReaderText: "Listening comprehension activity", highContrast: false, largeText: false }
+      },
+      {
+        id: "slide-8",
+        type: "sentence_builder",
+        prompt: "Example Sentences",
+        instructions: "Look at these example sentences using our new vocabulary and grammar.",
+        accessibility: { screenReaderText: "Example sentences", highContrast: false, largeText: false }
+      },
+      {
+        id: "slide-9",
+        type: "pronunciation_shadow",
+        prompt: "Pronunciation Practice", 
+        instructions: "Repeat after me. Focus on clear pronunciation and natural rhythm.",
+        accessibility: { screenReaderText: "Pronunciation practice", highContrast: false, largeText: false }
+      },
+      {
+        id: "slide-10",
+        type: "micro_input",
+        prompt: "Context Examples",
+        instructions: "See how these words and phrases are used in real conversations.",
+        accessibility: { screenReaderText: "Contextual examples", highContrast: false, largeText: false }
+      },
+      
+      // Guided Practice (4-5 slides)
+      {
+        id: "slide-11",
+        type: "accuracy_mcq",
+        prompt: "Fill in the Blanks",
+        instructions: "Complete the sentences using the new vocabulary words.",
+        accessibility: { screenReaderText: "Fill in the blanks exercise", highContrast: false, largeText: false }
+      },
+      {
+        id: "slide-12",
+        type: "picture_choice",
+        prompt: "Match Words & Meanings",
+        instructions: "Match each word with its correct meaning or picture.",
+        accessibility: { screenReaderText: "Vocabulary matching activity", highContrast: false, largeText: false }
+      },
+      {
+        id: "slide-13",
+        type: "transform", 
+        prompt: "Sentence Building",
+        instructions: "Use the words to create your own sentences.",
+        accessibility: { screenReaderText: "Sentence building exercise", highContrast: false, largeText: false }
+      },
+      {
+        id: "slide-14",
+        type: "error_fix",
+        prompt: "Fix the Mistakes",
+        instructions: "Can you find and correct the errors in these sentences?",
+        accessibility: { screenReaderText: "Error correction activity", highContrast: false, largeText: false }
+      },
+      {
+        id: "slide-15",
+        type: "labeling",
+        prompt: "Drag & Drop",
+        instructions: "Drag the words to complete the sentences correctly.",
+        accessibility: { screenReaderText: "Drag and drop exercise", highContrast: false, largeText: false }
+      },
+      
+      // Gamified Activities (3-4 slides)
+      {
+        id: "slide-16",
+        type: "controlled_practice",
+        prompt: "Spinning Wheel Q&A",
+        instructions: "Answer the questions that come up on the spinning wheel!",
+        accessibility: { screenReaderText: "Interactive spinning wheel quiz", highContrast: false, largeText: false }
+      },
+      {
+        id: "slide-17",
+        type: "roleplay_setup",
+        prompt: "Role-play Time!",
+        instructions: "Practice conversations using today's vocabulary and grammar.",
+        accessibility: { screenReaderText: "Role-play activity setup", highContrast: false, largeText: false }
+      },
+      {
+        id: "slide-18",
+        type: "controlled_output",
+        prompt: "Quick Quiz Challenge", 
+        instructions: "Test your knowledge with this fun, fast-paced quiz!",
+        accessibility: { screenReaderText: "Quick knowledge quiz", highContrast: false, largeText: false }
+      },
+      {
+        id: "slide-19",
+        type: "fluency_sprint",
+        prompt: "Speed Speaking",
+        instructions: "How quickly can you use all the new words in sentences?",
+        accessibility: { screenReaderText: "Fluency speed practice", highContrast: false, largeText: false }
+      },
+      
+      // Communication Practice (3-4 slides)
+      {
+        id: "slide-20",
+        type: "communicative_task",
+        prompt: "Pair Work Practice",
+        instructions: "Work with a partner to practice the new language in conversation.",
+        accessibility: { screenReaderText: "Pair work communication practice", highContrast: false, largeText: false }
+      },
+      {
+        id: "slide-21",
+        type: "picture_description",
+        prompt: "Ask and Answer",
+        instructions: "Take turns asking and answering questions using today's vocabulary.",
+        accessibility: { screenReaderText: "Question and answer practice", highContrast: false, largeText: false }
+      },
+      {
+        id: "slide-22",
+        type: "roleplay_setup",
+        prompt: "Mini Role-play Scenario",
+        instructions: "Act out this scenario using everything you've learned today.",
+        accessibility: { screenReaderText: "Role-play scenario practice", highContrast: false, largeText: false }
+      },
+      
+      // Review & Wrap-up (2-3 slides)
+      {
+        id: "slide-23",
+        type: "review_consolidation",
+        prompt: "Today's Key Points",
+        instructions: `Let's review: Vocabulary (${vocabulary.slice(0, 3).join(', ')}) and Grammar (${grammar[0] || 'sentence patterns'})`,
+        accessibility: { screenReaderText: "Lesson review and key points", highContrast: false, largeText: false }
+      },
+      {
+        id: "slide-24",
+        type: "exit_check",
+        prompt: "Final Review Quiz",
+        instructions: "Quick multiple choice questions to check your understanding.",
+        accessibility: { screenReaderText: "Final comprehension check", highContrast: false, largeText: false }
+      },
+      {
+        id: "slide-25",
+        type: "review_consolidation",
+        prompt: "Homework & Reflection",
+        instructions: "Practice using today's vocabulary in real conversations. Think about how you can use these words this week!",
+        accessibility: { screenReaderText: "Homework assignment and reflection", highContrast: false, largeText: false }
+      }
+    ];
+
     return {
       version: "2.0",
       theme: "mist-blue",
-      slides: [
-        {
-          id: "slide-1",
-          type: "warmup",
-          prompt: `Welcome to ${lesson.title}`,
-          instructions: "Lesson overview and objectives",
-          accessibility: {
-            screenReaderText: `Welcome slide for ${lesson.title}`,
-            highContrast: false,
-            largeText: false
-          }
-        }
-      ],
-      durationMin: lesson.estimated_duration || 45,
+      slides: slides,
+      durationMin: lesson.duration_minutes || 30,
+      total_slides: slides.length,
       metadata: {
-        CEFR: lesson.level_info?.cefr_level || 'A1',
-        module: 1,
-        lesson: 1,
-        targets: lesson.lesson_objectives || [],
+        CEFR: level,
+        module: lesson.module_number || 1,
+        lesson: lesson.lesson_number || 1,
+        targets: objectives,
         weights: { accuracy: 60, fluency: 40 }
       },
       generated_at: new Date().toISOString(),
-      generated_by: 'fallback-template'
+      generated_by: 'universal-template'
     };
   };
 
   const loadLessonById = async (lessonId: string, skipGeneration = false) => {
     try {
-      const { curriculumService } = await import('@/services/curriculumService');
-      
       console.log('🔄 Loading lesson:', lessonId);
       
-      // Fetch lesson from database
-      const lesson = await curriculumService.getSystematicLessonById(lessonId);
+      // Try multiple sources for lesson content
+      let lesson = null;
+      
+      // 1. Try localStorage first (for immediate access)
+      const storedLesson = localStorage.getItem('currentLessonContent');
+      if (storedLesson) {
+        try {
+          lesson = JSON.parse(storedLesson);
+          console.log('📚 Found lesson in localStorage:', lesson.title);
+        } catch (e) {
+          console.warn('Failed to parse stored lesson:', e);
+        }
+      }
+      
+      // 2. Try lessons_content table if not in localStorage
       if (!lesson) {
-        console.error('Lesson not found:', lessonId);
+        const { data: lessonsData, error: lessonsError } = await supabase
+          .from('lessons_content')
+          .select('*')
+          .eq('id', lessonId)
+          .single();
+          
+        if (lessonsData && !lessonsError) {
+          lesson = lessonsData;
+          console.log('📚 Found lesson in lessons_content:', lesson.title);
+        }
+      }
+      
+      // 3. Try systematic_lessons table as fallback
+      if (!lesson) {
+        try {
+          const { curriculumService } = await import('@/services/curriculumService');
+          lesson = await curriculumService.getSystematicLessonById(lessonId);
+          if (lesson) {
+            console.log('📚 Found lesson in systematic_lessons:', lesson.title);
+          }
+        } catch (e) {
+          console.warn('Failed to load from systematic_lessons:', e);
+        }
+      }
+      
+      if (!lesson) {
+        console.error('Lesson not found in any source:', lessonId);
         return;
       }
 
@@ -169,15 +396,15 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
             variant: "destructive"
           });
           
-          // Create minimal fallback template
-          lesson.slides_content = createFallbackSlides(lesson);
+          // Create universal deck template
+          lesson.slides_content = createUniversalDeck(lesson);
         } finally {
           setIsGeneratingSlides(false);
         }
       } else if (needsGeneration || needsUpgrade) {
-        // Skip generation and use fallback
-        console.log('📋 Using fallback slides for:', lesson.title);
-        lesson.slides_content = createFallbackSlides(lesson);
+        // Skip generation and use universal deck
+        console.log('📋 Creating universal deck for:', lesson.title);
+        lesson.slides_content = createUniversalDeck(lesson);
       }
 
       // Set the lesson slides for React component

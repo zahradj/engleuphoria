@@ -77,12 +77,15 @@ export function SystematicLessonsLibrary({ onContentUpdate, onLoadLesson }: Syst
 
 
   const openInClassroom = (lesson: LessonContent) => {
+    // Always store lesson content in localStorage for immediate access
+    localStorage.setItem('currentLessonContent', JSON.stringify(lesson));
+    
     if (onLoadLesson) {
       // Load lesson in current tab
+      console.log('📚 Loading lesson in current classroom tab:', lesson.title);
       onLoadLesson(lesson.id);
     } else {
       // Fallback to opening new window
-      localStorage.setItem('currentLessonContent', JSON.stringify(lesson));
       window.open(`/oneonone-classroom-new?roomId=lesson-${lesson.id}&role=teacher&name=Teacher&userId=teacher-1&lessonMode=true&skipGen=1`, '_blank');
     }
   };
