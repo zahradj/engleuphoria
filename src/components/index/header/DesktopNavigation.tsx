@@ -10,9 +10,6 @@ export const DesktopNavigation = () => {
       <Link to="/" className="transition-colors hover:text-foreground/80 text-foreground/60">
         {t('home', { defaultValue: 'Home' })}
       </Link>
-      <Link to="/placement-test" className="transition-colors hover:text-foreground/80 text-foreground/60">
-        {t('placementTest', { defaultValue: 'Placement Test' })}
-      </Link>
       <Link to="/for-teachers" className="transition-colors hover:text-foreground/80 text-foreground/60">
         {t('forTeachers', { defaultValue: 'For Teachers' })}
       </Link>

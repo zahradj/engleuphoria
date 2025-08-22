@@ -27,13 +27,6 @@ export const MobileMenu = ({ isOpen, onClose, onLogin, onSignUp }: MobileMenuPro
           {t('aboutUs', { defaultValue: 'About Us' })}
         </Link>
         <Link 
-          to="/placement-test" 
-          className="block text-gray-600 hover:text-purple-600 transition-colors py-2"
-          onClick={onClose}
-        >
-          {t('placementTest', { defaultValue: 'Placement Test' })}
-        </Link>
-        <Link 
           to="/for-parents" 
           className="block text-gray-600 hover:text-purple-600 transition-colors py-2"
           onClick={onClose}

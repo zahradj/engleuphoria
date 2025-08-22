@@ -1,31 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
 import { 
-  BookOpen, 
-  Brain, 
   Search, 
   Filter, 
   Download, 
-  Eye, 
   Play, 
-  Clock, 
-  Users, 
-  Target,
-  Sparkles,
+  FileText, 
+  Video, 
+  Image, 
+  Mic, 
   Library,
-  FileText,
-  Video,
-  Image,
-  Mic,
-  RefreshCw
+  Sparkles,
+  GraduationCap
 } from 'lucide-react';
 import { SystematicLessonsLibrary } from '@/components/curriculum/SystematicLessonsLibrary';
-import { K12LessonLibrary } from '@/components/curriculum/K12LessonLibrary';
-import { AutoSlideGenerator } from '@/components/curriculum/AutoSlideGenerator';
+import { PlacementTestLibrary } from './PlacementTestLibrary';
 
 interface EnhancedContentLibraryProps {
   contentItems: any[];
@@ -192,10 +185,14 @@ export function EnhancedContentLibrary({
           </div>
           </div>
 
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="systematic" className="flex items-center gap-2">
               <Sparkles size={16} />
               Systematic Lessons
+            </TabsTrigger>
+            <TabsTrigger value="placement" className="flex items-center gap-2">
+              <GraduationCap size={16} />
+              Placement Test
             </TabsTrigger>
             <TabsTrigger value="browse" className="flex items-center gap-2">
               <Search size={16} />
@@ -358,6 +355,15 @@ export function EnhancedContentLibrary({
           <div className="h-full overflow-y-auto p-4">
             <SystematicLessonsLibrary onLoadLesson={onLoadLesson} />
           </div>
+        </TabsContent>
+
+        <TabsContent value="placement" className="flex-1 min-h-0">
+          <PlacementTestLibrary 
+            onTestComplete={(result) => {
+              console.log('Placement test completed:', result);
+              // Here you could save the result to the user's profile
+            }}
+          />
         </TabsContent>
 
 
