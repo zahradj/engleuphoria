@@ -53,20 +53,25 @@ export function UnifiedClassroomContent({
   };
 
   return (
-    <div className="h-full flex gap-6 p-2">
+    <div className="h-full flex gap-6 p-2" style={{ backgroundColor: '#FBFBFB' }}>
       {/* Main lesson area - 80-85% width */}
       <div className="flex-1 h-full relative">
         {/* Ambient background effects */}
-        <div className="absolute -inset-4 bg-gradient-to-br from-primary-100/20 via-accent-50/30 to-neutral-100/20 rounded-3xl blur-xl animate-pulse-subtle opacity-60"></div>
+        <div className="absolute -inset-4 rounded-3xl blur-xl animate-pulse-subtle opacity-60" style={{ background: 'linear-gradient(135deg, #E8F9FF 0%, #C4D9FF 50%, #C5BAFF 100%)' }}></div>
         
-        <div className="relative h-full rounded-2xl overflow-hidden border border-neutral-200/80 bg-surface/95 backdrop-blur-sm shadow-xl">
+        <div className="relative h-full rounded-2xl overflow-hidden shadow-xl" style={{ 
+          backgroundColor: '#FBFBFB', 
+          border: '1px solid rgba(196, 217, 255, 0.3)',
+          backdropFilter: 'blur(8px)'
+        }}>
           {/* Multiple layered gradients for depth */}
-          <div className="absolute inset-0 bg-gradient-to-br from-primary-50/40 via-transparent to-accent-50/30 pointer-events-none"></div>
-          <div className="absolute inset-0 bg-gradient-to-tr from-neutral-50/20 via-primary-50/10 to-accent-100/20 pointer-events-none"></div>
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary-100/20 via-transparent to-transparent pointer-events-none"></div>
+          <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(135deg, rgba(232, 249, 255, 0.3) 0%, transparent 50%, rgba(197, 186, 255, 0.2) 100%)' }}></div>
+          <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(45deg, rgba(196, 217, 255, 0.2) 0%, transparent 50%, rgba(232, 249, 255, 0.1) 100%)' }}></div>
           
           {/* Subtle animated overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary-50/5 to-transparent translate-x-[-100%] animate-[slide-in-right_8s_ease-in-out_infinite] pointer-events-none"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent translate-x-[-100%] animate-[slide-in-right_8s_ease-in-out_infinite] pointer-events-none" style={{ 
+            background: 'linear-gradient(to right, transparent 0%, rgba(196, 217, 255, 0.1) 50%, transparent 100%)'
+          }}></div>
           <UnifiedCenterPanel
             activeCenterTab={activeCenterTab}
             onTabChange={setActiveCenterTab}
@@ -78,11 +83,14 @@ export function UnifiedClassroomContent({
       {/* Right rail - 15-20% width */}
       <div className="w-80 h-full relative">
         {/* Ambient glow for right rail */}
-        <div className="absolute -inset-2 bg-gradient-to-l from-accent-100/30 via-primary-50/20 to-transparent rounded-3xl blur-lg opacity-50"></div>
+        <div className="absolute -inset-2 rounded-3xl blur-lg opacity-50" style={{ background: 'linear-gradient(270deg, rgba(197, 186, 255, 0.3) 0%, rgba(232, 249, 255, 0.2) 50%, transparent 100%)' }}></div>
         
-        <div className="relative h-full rounded-2xl overflow-hidden border border-neutral-200/80 bg-surface/98 backdrop-blur-md shadow-lg">
-          <div className="absolute inset-0 bg-gradient-to-b from-accent-50/30 via-neutral-50/10 to-primary-50/20 pointer-events-none"></div>
-          <div className="absolute inset-0 bg-gradient-to-tl from-primary-100/10 via-transparent to-accent-50/15 pointer-events-none"></div>
+        <div className="relative h-full rounded-2xl overflow-hidden shadow-lg" style={{ 
+          backgroundColor: '#FBFBFB', 
+          border: '1px solid rgba(196, 217, 255, 0.3)',
+          backdropFilter: 'blur(12px)'
+        }}>
+          <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(197, 186, 255, 0.2) 0%, rgba(232, 249, 255, 0.1) 50%, rgba(196, 217, 255, 0.15) 100%)' }}></div>
           <RightRail
             localStream={enhancedClassroom?.localStream || null}
             remoteStream={null}
@@ -107,21 +115,42 @@ export function UnifiedClassroomContent({
           <div className="space-y-3">
             <Button 
               variant="outline" 
-              className="w-full justify-start border-neutral-200 text-primary-600 hover:bg-primary-50" 
+              className="w-full justify-start transition-colors duration-200" 
+              style={{ 
+                borderColor: '#C4D9FF', 
+                color: '#6366F1',
+                backgroundColor: 'transparent'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E8F9FF'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               onClick={() => awardPoints(10, 'Good answer')}
             >
               +10 Points - Good answer
             </Button>
             <Button 
               variant="outline" 
-              className="w-full justify-start border-neutral-200 text-primary-600 hover:bg-primary-50" 
+              className="w-full justify-start transition-colors duration-200" 
+              style={{ 
+                borderColor: '#C4D9FF', 
+                color: '#6366F1',
+                backgroundColor: 'transparent'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E8F9FF'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               onClick={() => awardPoints(25, 'Great effort')}
             >
               +25 Points - Great effort
             </Button>
             <Button 
               variant="outline" 
-              className="w-full justify-start border-neutral-200 text-primary-600 hover:bg-primary-50" 
+              className="w-full justify-start transition-colors duration-200" 
+              style={{ 
+                borderColor: '#C4D9FF', 
+                color: '#6366F1',
+                backgroundColor: 'transparent'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E8F9FF'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               onClick={() => awardPoints(50, 'Excellent work')}
             >
               +50 Points - Excellent work

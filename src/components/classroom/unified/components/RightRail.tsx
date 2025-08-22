@@ -34,15 +34,22 @@ export function RightRail({
   const bottomIsCameraOff = isTeacher ? false : isCameraOff;
 
   return (
-    <div className="h-full bg-gradient-to-b from-neutral-50/80 to-primary-50/60 border-l border-neutral-200/80 flex flex-col backdrop-blur-sm relative">
+    <div className="h-full flex flex-col backdrop-blur-sm relative" style={{ 
+      background: 'linear-gradient(180deg, rgba(232, 249, 255, 0.6) 0%, rgba(196, 217, 255, 0.4) 100%)',
+      borderLeft: '1px solid rgba(196, 217, 255, 0.5)'
+    }}>
       {/* Decorative side accent */}
-      <div className="absolute left-0 top-1/4 w-1 h-1/2 bg-gradient-to-b from-primary-300/60 via-accent-300/40 to-primary-300/60 rounded-r-full"></div>
+      <div className="absolute left-0 top-1/4 w-1 h-1/2 rounded-r-full" style={{ background: 'linear-gradient(180deg, rgba(196, 217, 255, 0.8) 0%, rgba(197, 186, 255, 0.6) 50%, rgba(196, 217, 255, 0.8) 100%)' }}></div>
       
       {/* Teacher Video */}
-      <div className="p-3 border-b border-neutral-200/60 relative">
+      <div className="p-3 relative" style={{ borderBottom: '1px solid rgba(196, 217, 255, 0.4)' }}>
         <div className="aspect-video w-full relative">
           {/* Video section label */}
-          <div className="absolute -top-1 left-2 bg-primary-100/80 backdrop-blur-sm text-primary-700 text-xs px-2 py-0.5 rounded-md z-10 font-medium">
+          <div className="absolute -top-1 left-2 text-xs px-2 py-0.5 rounded-md z-10 font-medium" style={{ 
+            backgroundColor: 'rgba(232, 249, 255, 0.9)', 
+            backdropFilter: 'blur(4px)',
+            color: '#1E40AF'
+          }}>
             Teacher
           </div>
           <VideoTile
@@ -56,10 +63,14 @@ export function RightRail({
       </div>
 
       {/* Student Video */}
-      <div className="p-3 border-b border-neutral-200/60 relative">
+      <div className="p-3 relative" style={{ borderBottom: '1px solid rgba(196, 217, 255, 0.4)' }}>
         <div className="aspect-video w-full relative">
           {/* Video section label */}
-          <div className="absolute -top-1 left-2 bg-accent-100/80 backdrop-blur-sm text-accent-700 text-xs px-2 py-0.5 rounded-md z-10 font-medium">
+          <div className="absolute -top-1 left-2 text-xs px-2 py-0.5 rounded-md z-10 font-medium" style={{ 
+            backgroundColor: 'rgba(197, 186, 255, 0.9)', 
+            backdropFilter: 'blur(4px)',
+            color: '#7C3AED'
+          }}>
             Student
           </div>
           <VideoTile
@@ -76,14 +87,14 @@ export function RightRail({
       <div className="flex-1 p-4 space-y-3 min-h-0 relative">
         {/* Section header */}
         <div className="flex items-center gap-2 mb-4">
-          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary-200/60 to-transparent"></div>
-          <span className="text-xs font-medium text-primary-600/80 uppercase tracking-wider">Tools</span>
-          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary-200/60 to-transparent"></div>
+          <div className="h-px flex-1" style={{ background: 'linear-gradient(to right, transparent 0%, rgba(196, 217, 255, 0.6) 50%, transparent 100%)' }}></div>
+          <span className="text-xs font-medium uppercase tracking-wider" style={{ color: '#4F46E5' }}>Tools</span>
+          <div className="h-px flex-1" style={{ background: 'linear-gradient(to right, transparent 0%, rgba(196, 217, 255, 0.6) 50%, transparent 100%)' }}></div>
         </div>
         
         {/* Floating decoration */}
-        <div className="absolute top-8 right-6 w-1 h-1 bg-primary-300/40 rounded-full animate-pulse-subtle"></div>
-        <div className="absolute bottom-12 left-6 w-0.5 h-0.5 bg-accent-300/50 rounded-full animate-pulse-subtle animation-delay-500"></div>
+        <div className="absolute top-8 right-6 w-1 h-1 rounded-full animate-pulse-subtle" style={{ backgroundColor: 'rgba(196, 217, 255, 0.6)' }}></div>
+        <div className="absolute bottom-12 left-6 w-0.5 h-0.5 rounded-full animate-pulse-subtle animation-delay-500" style={{ backgroundColor: 'rgba(197, 186, 255, 0.7)' }}></div>
         
         <ToolButton
           icon={<Gift className="h-4 w-4" />}
