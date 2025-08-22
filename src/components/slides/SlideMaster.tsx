@@ -10,7 +10,7 @@ export interface SlideMasterProps {
   slide: Slide;
   currentSlide: number;
   totalSlides: number;
-  theme?: 'mist-blue' | 'sage-sand' | 'default' | 'pastel-sky';
+  
   isTeacher?: boolean;
   onNext?: () => void;
   onPrevious?: () => void;
@@ -40,7 +40,7 @@ export function SlideMaster({
   slide,
   currentSlide,
   totalSlides,
-  theme = 'default',
+  
   isTeacher = false,
   onNext,
   onPrevious,
@@ -148,13 +148,7 @@ export function SlideMaster({
   };
 
   return (
-    <div 
-      className={cn(
-        "h-full flex flex-col bg-bg text-text relative",
-        theme !== 'default' && `data-theme-${theme}`
-      )}
-      data-theme={theme}
-    >
+    <div className="h-full flex flex-col bg-background text-foreground relative">
       {/* Header */}
       <div className="bg-surface border-b border-border px-6 py-4">
         <div className="flex items-center justify-between max-w-4xl mx-auto">

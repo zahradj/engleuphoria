@@ -2,7 +2,7 @@ import React, { useState, useCallback } from "react";
 import { SlideMaster } from "@/components/slides/SlideMaster";
 import { LessonSlides, Slide, ActivityResult } from "@/types/slides";
 import { lessonSlidesService } from "@/services/lessonSlidesService";
-import { useTheme } from "@/hooks/useTheme";
+
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -30,7 +30,7 @@ export function LessonSlideViewer({
   const [isCorrect, setIsCorrect] = useState(false);
   const [startTime, setStartTime] = useState(Date.now());
   const [attempts, setAttempts] = useState(0);
-  const { theme } = useTheme();
+  
 
   // Convert legacy slides to new format if needed
   const convertedSlides = convertLegacySlidesToNew(slides, title);
@@ -169,7 +169,6 @@ export function LessonSlideViewer({
         slide={currentSlideData}
         currentSlide={currentSlide}
         totalSlides={lessonSlides.slides.length}
-        theme={lessonSlides.theme || theme}
         isTeacher={isTeacher}
         onNext={handleNext}
         onPrevious={handlePrevious}

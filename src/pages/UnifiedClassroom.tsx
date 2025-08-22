@@ -14,7 +14,7 @@ import { CelebrationOverlay } from "@/components/classroom/rewards/CelebrationOv
 import { useRewardNotifications } from "@/hooks/classroom/useRewardNotifications";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useConnectionRecovery } from "@/hooks/enhanced-classroom/useConnectionRecovery";
-import { ThemeSelector } from "@/components/ui/theme-selector";
+
 
 function UnifiedClassroomInner() {
   console.log("UnifiedClassroom component is rendering");
@@ -135,10 +135,6 @@ function UnifiedClassroomInner() {
     return (
       <MediaProvider roomId={finalRoomId}>
         <div className="min-h-screen overflow-hidden">
-          {/* Theme Selector in top-right corner */}
-          <div className="absolute top-4 right-4 z-50">
-            <ThemeSelector />
-          </div>
           
           {isMobile ? (
             <MobileClassroomLayout
