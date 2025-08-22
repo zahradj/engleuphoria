@@ -173,6 +173,7 @@ export function LessonSlideViewer({
         onNext={handleNext}
         onPrevious={handlePrevious}
         onOptionSelect={handleOptionSelect}
+        onActivityResult={handleActivityResult}
         selectedOptions={selectedOptions}
         showFeedback={showFeedback}
         isCorrect={isCorrect}

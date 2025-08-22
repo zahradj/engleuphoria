@@ -977,24 +977,17 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
                 <div className="h-full flex flex-col">
                   <div className="p-4 border-b flex items-center justify-between">
                     <h2 className="text-xl font-semibold">{currentLessonTitle}</h2>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => regenerateSlides()}
-                        disabled={isGeneratingSlides}
-                      >
-                        {isGeneratingSlides ? (
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        ) : null}
-                        Regenerate Slides
-                      </Button>
+                    <div className="text-sm text-muted-foreground">
+                      {currentLessonSlides?.total_slides || 0} interactive slides
                     </div>
                   </div>
                   <div className="flex-1">
                     <LessonSlideViewer 
                       slides={currentLessonSlides} 
                       title={currentLessonTitle}
+                      lessonId={selectedContent?.id}
+                      studentId={currentUser?.id}
+                      isTeacher={isTeacher}
                     />
                   </div>
                 </div>
