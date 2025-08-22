@@ -81,9 +81,18 @@ export function LessonSlideViewer({
 
     setSelectedOptions(newSelectedOptions);
 
-    // Check if answer is correct
-    const correctAnswers = Array.isArray(slide.correct) ? slide.correct : [slide.correct];
-    const isAnswerCorrect = correctAnswers.length === newSelectedOptions.length &&
+    // Check if answer is correct - support both slide.correct and option.isCorrect
+    let correctAnswers: string[] = [];
+    
+    if (slide.correct) {
+      correctAnswers = Array.isArray(slide.correct) ? slide.correct : [slide.correct];
+    } else if (slide.options) {
+      // Fallback: derive correct answers from options marked as correct
+      correctAnswers = slide.options.filter(opt => opt.isCorrect).map(opt => opt.id);
+    }
+    
+    const isAnswerCorrect = correctAnswers.length > 0 && 
+      correctAnswers.length === newSelectedOptions.length &&
       correctAnswers.every(answer => newSelectedOptions.includes(answer));
 
     setIsCorrect(isAnswerCorrect);

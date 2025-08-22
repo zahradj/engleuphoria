@@ -150,7 +150,7 @@ export function SlideMaster({
   return (
     <div 
       className={cn(
-        "min-h-screen bg-bg text-text",
+        "h-full flex flex-col bg-bg text-text relative",
         theme !== 'default' && `data-theme-${theme}`
       )}
       data-theme={theme}
@@ -186,8 +186,31 @@ export function SlideMaster({
         </div>
       </div>
 
+      {/* Floating Navigation Arrows */}
+      {onPrevious && currentSlide > 0 && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onPrevious}
+          className="absolute left-4 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-surface/80 backdrop-blur-sm border border-border hover:bg-surface shadow-lg mobile-touch-target"
+        >
+          <ChevronLeft className="h-6 w-6" />
+        </Button>
+      )}
+      
+      {onNext && currentSlide < totalSlides - 1 && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onNext}
+          className="absolute right-4 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-surface/80 backdrop-blur-sm border border-border hover:bg-surface shadow-lg mobile-touch-target"
+        >
+          <ChevronRight className="h-6 w-6" />
+        </Button>
+      )}
+
       {/* Main Content */}
-      <div className="flex-1 px-6 py-8">
+      <div className="flex-1 min-h-0 overflow-auto px-6 py-8">
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Prompt Area */}
           <div className="text-center space-y-4">
@@ -244,19 +267,9 @@ export function SlideMaster({
         </div>
       </div>
 
-      {/* Navigation Bar */}
-      <div className="bg-surface border-t border-border px-6 py-4">
-        <div className="flex items-center justify-between max-w-4xl mx-auto">
-          <Button
-            variant="outline"
-            onClick={onPrevious}
-            disabled={currentSlide === 0}
-            className="mobile-touch-target"
-          >
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            Previous
-          </Button>
-
+      {/* Slide Progress Indicators - Now at bottom */}
+      <div className="bg-surface/90 backdrop-blur-sm border-t border-border px-6 py-3">
+        <div className="flex justify-center max-w-4xl mx-auto">
           <div className="flex gap-2">
             {Array.from({ length: totalSlides }, (_, i) => (
               <div
@@ -272,15 +285,6 @@ export function SlideMaster({
               />
             ))}
           </div>
-
-          <Button
-            onClick={onNext}
-            disabled={currentSlide >= totalSlides - 1}
-            className="mobile-touch-target"
-          >
-            Next
-            <ChevronRight className="h-4 w-4 ml-2" />
-          </Button>
         </div>
       </div>
 

@@ -162,16 +162,29 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
       {
         id: "slide-11",
         type: "accuracy_mcq",
-        prompt: "Fill in the Blanks",
-        instructions: "Complete the sentences using the new vocabulary words.",
-        accessibility: { screenReaderText: "Fill in the blanks exercise", highContrast: false, largeText: false }
+        prompt: "Quick Knowledge Check",
+        instructions: "Choose the correct answer to test your understanding.",
+        options: [
+          { id: "opt-a", text: "This is the correct answer", isCorrect: true },
+          { id: "opt-b", text: "This is incorrect", isCorrect: false },
+          { id: "opt-c", text: "This is also incorrect", isCorrect: false },
+          { id: "opt-d", text: "This is wrong too", isCorrect: false }
+        ],
+        correct: "opt-a",
+        accessibility: { screenReaderText: "Multiple choice comprehension check", highContrast: false, largeText: false }
       },
       {
         id: "slide-12",
         type: "picture_choice",
-        prompt: "Match Words & Meanings",
-        instructions: "Match each word with its correct meaning or picture.",
-        accessibility: { screenReaderText: "Vocabulary matching activity", highContrast: false, largeText: false }
+        prompt: "Picture Match",
+        instructions: "Select the picture that matches the word or sentence.",
+        options: [
+          { id: "pic-a", text: "Picture A", isCorrect: true },
+          { id: "pic-b", text: "Picture B", isCorrect: false },
+          { id: "pic-c", text: "Picture C", isCorrect: false }
+        ],
+        correct: "pic-a",
+        accessibility: { screenReaderText: "Picture matching activity", highContrast: false, largeText: false }
       },
       {
         id: "slide-13",
@@ -190,9 +203,15 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
       {
         id: "slide-15",
         type: "labeling",
-        prompt: "Drag & Drop",
-        instructions: "Drag the words to complete the sentences correctly.",
-        accessibility: { screenReaderText: "Drag and drop exercise", highContrast: false, largeText: false }
+        prompt: "Label the Items",
+        instructions: "Click on each item and choose the correct label.",
+        options: [
+          { id: "label-a", text: "Correct Label", isCorrect: true },
+          { id: "label-b", text: "Wrong Label", isCorrect: false },
+          { id: "label-c", text: "Another Wrong Label", isCorrect: false }
+        ],
+        correct: "label-a",
+        accessibility: { screenReaderText: "Interactive labeling activity", highContrast: false, largeText: false }
       },
       
       // Gamified Activities (3-4 slides)
@@ -261,6 +280,13 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
         type: "exit_check",
         prompt: "Final Review Quiz",
         instructions: "Quick multiple choice questions to check your understanding.",
+        options: [
+          { id: "quiz-a", text: "The right answer for today's lesson", isCorrect: true },
+          { id: "quiz-b", text: "An incorrect option", isCorrect: false },
+          { id: "quiz-c", text: "Another wrong answer", isCorrect: false },
+          { id: "quiz-d", text: "This is also wrong", isCorrect: false }
+        ],
+        correct: "quiz-a",
         accessibility: { screenReaderText: "Final comprehension check", highContrast: false, largeText: false }
       },
       {
