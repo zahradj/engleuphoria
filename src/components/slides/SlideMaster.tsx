@@ -146,6 +146,15 @@ export function SlideMaster({
   };
 
   const renderInteractiveActivity = () => {
+    console.log('🎮 Rendering interactive activity for slide type:', slide.type);
+    console.log('🎮 Activity data check:', {
+      matchPairs: slide.matchPairs?.length || 0,
+      dragDropItems: slide.dragDropItems?.length || 0,
+      dragDropTargets: slide.dragDropTargets?.length || 0,
+      clozeText: !!slide.clozeText,
+      clozeGaps: slide.clozeGaps?.length || 0
+    });
+    
     if (!onActivityResult) return null;
 
     switch (slide.type) {

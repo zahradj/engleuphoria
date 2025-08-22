@@ -31,10 +31,18 @@ export function LessonSlideViewer({
   const [startTime, setStartTime] = useState(Date.now());
   const [attempts, setAttempts] = useState(0);
   
+  console.log('🔍 LessonSlideViewer received slides:', slides);
+  console.log('🔍 Slides type:', typeof slides, Array.isArray(slides));
 
   // Convert legacy slides to new format if needed
   const convertedSlides = convertLegacySlidesToNew(slides, title);
   const lessonSlides: LessonSlides | null = convertedSlides;
+  
+  console.log('🔍 Converted slides:', lessonSlides);
+  console.log('🔍 Current slide index:', currentSlide);
+  if (lessonSlides?.slides?.[currentSlide]) {
+    console.log('🔍 Current slide data:', lessonSlides.slides[currentSlide]);
+  }
 
   const handleNext = useCallback(() => {
     if (lessonSlides && currentSlide < lessonSlides.slides.length - 1) {

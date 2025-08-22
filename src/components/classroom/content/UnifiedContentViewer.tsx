@@ -424,21 +424,33 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
             variant: "destructive"
           });
           
-          // Create universal deck template
-          lesson.slides_content = createUniversalDeck(lesson);
+          // Create universal interactive deck template
+          const { createUniversalInteractiveDeck } = await import('@/data/sampleSlides');
+          lesson.slides_content = createUniversalInteractiveDeck(lesson);
         } finally {
           setIsGeneratingSlides(false);
         }
       } else if (needsGeneration || needsUpgrade) {
         // Skip generation and use universal deck
-        console.log('📋 Creating universal deck for:', lesson.title);
-        lesson.slides_content = createUniversalDeck(lesson);
+        console.log('📋 Creating universal interactive deck for:', lesson.title);
+        const { createUniversalInteractiveDeck } = await import('@/data/sampleSlides');
+        lesson.slides_content = createUniversalInteractiveDeck(lesson);
+      }
+
+      
+      // If no lesson slides exist, use sample interactive slides as fallback
+      if (!lesson.slides_content || !lesson.slides_content.slides || lesson.slides_content.slides.length === 0) {
+        console.log('📚 Loading sample interactive slides as fallback');
+        const { sampleInteractiveSlides } = await import('@/data/sampleSlides');
+        lesson.slides_content = sampleInteractiveSlides;
       }
 
       // Set the lesson slides for React component
       setCurrentLessonSlides(lesson.slides_content);
       setCurrentLessonTitle(lesson.title);
       setActiveTab('lesson-viewer');
+      
+      console.log('✅ Lesson loaded with slides:', lesson.slides_content);
       
     } catch (error) {
       console.error('Error loading lesson:', error);
@@ -977,8 +989,22 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
                 <div className="h-full flex flex-col">
                   <div className="p-4 border-b flex items-center justify-between">
                     <h2 className="text-xl font-semibold">{currentLessonTitle}</h2>
-                    <div className="text-sm text-muted-foreground">
-                      {currentLessonSlides?.total_slides || 0} interactive slides
+                    <div className="flex items-center gap-3">
+                      <div className="text-sm text-muted-foreground">
+                        {currentLessonSlides?.total_slides || 0} interactive slides
+                      </div>
+                      <Button
+                        onClick={async () => {
+                          const { sampleInteractiveSlides } = await import('@/data/sampleSlides');
+                          setCurrentLessonSlides(sampleInteractiveSlides);
+                          setCurrentLessonTitle('Interactive Demo Lesson');
+                          console.log('🎮 Loaded sample interactive slides:', sampleInteractiveSlides);
+                        }}
+                        variant="outline"
+                        size="sm"
+                      >
+                        Load Demo Slides
+                      </Button>
                     </div>
                   </div>
                   <div className="flex-1">
