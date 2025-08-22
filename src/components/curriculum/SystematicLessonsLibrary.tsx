@@ -99,11 +99,13 @@ export function SystematicLessonsLibrary({ onContentUpdate, onLoadLesson }: Syst
   });
 
   const lessonsWithSlides = filteredLessons.filter(lesson => 
-    lesson.slides_content && Object.keys(lesson.slides_content).length > 0
+    lesson.slides_content && 
+    (lesson.slides_content.slides?.length > 0 || lesson.slides_content.total_slides > 0)
   );
 
   const lessonsWithoutSlides = filteredLessons.filter(lesson => 
-    !lesson.slides_content || Object.keys(lesson.slides_content).length === 0
+    !lesson.slides_content || 
+    (!lesson.slides_content.slides?.length && !lesson.slides_content.total_slides)
   );
 
   if (isLoading) {
@@ -221,8 +223,10 @@ export function SystematicLessonsLibrary({ onContentUpdate, onLoadLesson }: Syst
       {/* Lessons Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredLessons.map((lesson) => {
-          const hasSlides = lesson.slides_content && Object.keys(lesson.slides_content).length > 0;
-          const slideCount = hasSlides ? lesson.slides_content?.slides?.length || 22 : 0;
+          const hasSlides = lesson.slides_content && 
+            (lesson.slides_content.slides?.length > 0 || lesson.slides_content.total_slides > 0);
+          const slideCount = hasSlides ? 
+            (lesson.slides_content?.slides?.length || lesson.slides_content?.total_slides || 22) : 0;
 
           return (
             <Card key={lesson.id} className={`transition-all duration-200 hover:shadow-lg ${

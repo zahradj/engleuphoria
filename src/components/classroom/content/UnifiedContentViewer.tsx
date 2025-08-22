@@ -346,11 +346,13 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
       setEmbeddedContent(prev => prev.filter(content => content.originalType !== 'systematic_lesson'));
 
       // Check if lesson needs slides generation or upgrade
-      const needsGeneration = !lesson.slides_content || 
-                             !lesson.slides_content?.slides || 
-                             lesson.slides_content.slides.length === 0;
+      const hasValidSlides = lesson.slides_content && 
+                            (lesson.slides_content.slides?.length > 0 || lesson.slides_content.total_slides > 0);
+      
+      const needsGeneration = !hasValidSlides;
 
-      const needsUpgrade = lesson.slides_content?.slides && 
+      const needsUpgrade = hasValidSlides && 
+                          lesson.slides_content?.slides && 
                           (lesson.slides_content.slides.length < 20 || 
                            lesson.slides_content.version !== '2.0');
       
