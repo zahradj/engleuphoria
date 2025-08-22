@@ -192,74 +192,78 @@ export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
           <RecentActivityFeed />
           
           {/* All Lessons Section */}
-          <div className="rounded-xl border p-6" style={{ backgroundColor: '#FBFBFB', borderColor: '#C5BAFF' }}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">All Lessons</h3>
-              <button 
-                onClick={() => navigate('/teacher-dashboard?tab=history')}
-                className="text-sm text-primary hover:text-primary/80 font-medium"
-              >
-                View All →
-              </button>
-            </div>
-            
-            {loadingLessons ? (
-              <div className="space-y-3">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-border">
-                    <div className="space-y-2 flex-1">
-                      <div className="h-4 bg-muted rounded animate-pulse w-32"></div>
-                      <div className="h-3 bg-muted rounded animate-pulse w-24"></div>
+          <div className="rounded-xl border border-border/50 p-6 bg-card shadow-lg hover:shadow-xl transition-all duration-300 relative overflow-hidden">
+            {/* Gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">All Lessons</h3>
+                <button 
+                  onClick={() => navigate('/teacher-dashboard?tab=history')}
+                  className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
+                >
+                  View All →
+                </button>
+              </div>
+              
+              {loadingLessons ? (
+                <div className="space-y-3">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-border/30 bg-surface-2">
+                      <div className="space-y-2 flex-1">
+                        <div className="h-4 bg-muted rounded animate-pulse w-32"></div>
+                        <div className="h-3 bg-muted rounded animate-pulse w-24"></div>
+                      </div>
+                      <div className="h-8 bg-muted rounded animate-pulse w-20"></div>
                     </div>
-                    <div className="h-8 bg-muted rounded animate-pulse w-20"></div>
-                  </div>
-                ))}
-              </div>
-            ) : recentLessons.length === 0 ? (
-              <div className="text-center py-6 text-muted-foreground">
-                No lessons found
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {recentLessons.slice(0, 5).map((lesson) => (
-                  <div key={lesson.id} className="flex items-center justify-between p-3 rounded-lg border transition-colors" style={{ borderColor: '#C4D9FF' }} onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E8F9FF'} onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}>
-                    <div className="flex-1">
-                      <div className="font-medium text-sm">{lesson.title}</div>
-                      <div className="text-xs text-muted-foreground space-x-2">
-                        <span>{format(new Date(lesson.scheduled_at), 'MMM dd, HH:mm')}</span>
-                        <span>•</span>
-                        <span>{lesson.student?.full_name || 'Unknown Student'}</span>
-                        <span>•</span>
-                        <span>{lesson.duration} min</span>
+                  ))}
+                </div>
+              ) : recentLessons.length === 0 ? (
+                <div className="text-center py-6 text-text-muted">
+                  No lessons found
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {recentLessons.slice(0, 5).map((lesson) => (
+                    <div key={lesson.id} className="flex items-center justify-between p-3 rounded-lg border border-border/30 bg-surface hover:bg-surface-2 transition-all duration-200 hover:shadow-md">
+                      <div className="flex-1">
+                        <div className="font-medium text-sm text-foreground">{lesson.title}</div>
+                        <div className="text-xs text-text-muted space-x-2">
+                          <span>{format(new Date(lesson.scheduled_at), 'MMM dd, HH:mm')}</span>
+                          <span>•</span>
+                          <span>{lesson.student?.full_name || 'Unknown Student'}</span>
+                          <span>•</span>
+                          <span>{lesson.duration} min</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+                          lesson.status === 'completed' ? 'bg-success-soft text-success' :
+                          lesson.status === 'scheduled' ? 'bg-info-soft text-info' :
+                          'bg-muted text-text-muted'
+                        }`}>
+                          {lesson.status}
+                        </span>
+                        {lesson.status === 'scheduled' && lesson.room_link && (
+                          <button 
+                            onClick={() => {
+                              const url = new URL(lesson.room_link);
+                              url.searchParams.set('role', 'teacher');
+                              url.searchParams.set('name', teacherName);
+                              url.searchParams.set('userId', user?.id || 'teacher-1');
+                              window.open(url.toString(), '_blank');
+                            }}
+                            className="px-3 py-1 text-xs bg-gradient-to-r from-primary to-accent text-white rounded-md hover:opacity-90 transition-opacity"
+                          >
+                            Join
+                          </button>
+                        )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        lesson.status === 'completed' ? 'bg-green-100 text-green-800' :
-                        lesson.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {lesson.status}
-                      </span>
-                      {lesson.status === 'scheduled' && lesson.room_link && (
-                        <button 
-                          onClick={() => {
-                            const url = new URL(lesson.room_link);
-                            url.searchParams.set('role', 'teacher');
-                            url.searchParams.set('name', teacherName);
-                            url.searchParams.set('userId', user?.id || 'teacher-1');
-                            window.open(url.toString(), '_blank');
-                          }}
-                          className="px-3 py-1 text-xs bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
-                        >
-                          Join
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

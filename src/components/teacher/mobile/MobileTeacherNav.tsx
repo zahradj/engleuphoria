@@ -58,17 +58,17 @@ export function MobileTeacherNav({ activeTab, setActiveTab, onLogout, teacherNam
   };
 
   return (
-    <div className="flex items-center justify-between p-4 border-b md:hidden" style={{ backgroundColor: '#C4D9FF', borderColor: '#C5BAFF' }}>
+    <div className="flex items-center justify-between p-4 border-b md:hidden bg-gradient-to-r from-surface-2 to-muted border-border/50">
       {/* Logo and Teacher Info */}
       <div className="flex items-center gap-3">
-        <div className="w-8 h-8 bg-gradient-to-r from-teal-500 to-indigo-500 rounded-full flex items-center justify-center">
+        <div className="w-8 h-8 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center shadow-lg">
           <GraduationCap className="h-4 w-4 text-white" />
         </div>
         <div>
-          <h1 className="font-bold text-sm bg-gradient-to-r from-teal-600 to-indigo-600 bg-clip-text text-transparent">
+          <h1 className="font-bold text-sm bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             Engleuphoria
           </h1>
-          <p className="text-xs text-gray-600">{teacherName}</p>
+          <p className="text-xs text-text-muted">{teacherName}</p>
         </div>
       </div>
 
