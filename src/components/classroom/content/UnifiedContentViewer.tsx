@@ -583,10 +583,10 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
   };
 
   const regenerateWithAI = async () => {
-    if (!selectedContent?.id && !currentLessonTitle) {
+    if (!currentLessonSlides && !currentLessonTitle) {
       toast({
-        title: "No Lesson Selected",
-        description: "Please select a lesson from the content library first.",
+        title: "No Lesson Loaded",
+        description: "Please load a lesson first to regenerate slides.",
         variant: "destructive"
       });
       return;
@@ -599,63 +599,54 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
     });
 
     try {
-      // Use selectedContent.id if available, otherwise create a mock lesson for AI generation
-      let contentId = selectedContent?.id;
-      
-      if (!contentId) {
-        // Create a temporary lesson context for AI generation
-        const mockLesson = {
-          id: 'temp-' + Date.now(),
-          title: currentLessonTitle || 'English Lesson',
-          topic: 'English Communication',
-          cefr_level: 'A1',
-          duration_minutes: 30,
-          learning_objectives: [
-            'Students can use basic greetings appropriately',
-            'Students can introduce themselves confidently', 
-            'Students can engage in simple conversations'
-          ],
-          vocabulary_focus: ['hello', 'hi', 'good morning', 'my name is', 'nice to meet you'],
-          grammar_focus: ['Simple present tense', 'Question formation', 'Basic sentence structure']
-        };
-        
-        // Save temporary lesson for AI processing
-        const { data: tempLesson, error: saveError } = await supabase
-          .from('systematic_lessons')
-          .insert(mockLesson)
-          .select()
-          .single();
-          
-        if (saveError) throw saveError;
-        contentId = tempLesson.id;
-      }
+      // Create lesson data for AI generation based on current context
+      const lessonData = {
+        title: currentLessonTitle || selectedContent?.title || 'English Communication Lesson',
+        topic: selectedContent?.topic || 'English Communication Skills',
+        cefr_level: 'A1', // Default level, could be made configurable
+        duration_minutes: 30,
+        target_age: 'Young learners (7-12 years old)',
+        learning_objectives: [
+          'Students can use basic vocabulary appropriately',
+          'Students can engage in simple conversations', 
+          'Students can practice key grammar structures'
+        ],
+        vocabulary_focus: ['hello', 'goodbye', 'please', 'thank you', 'how are you'],
+        grammar_focus: ['Simple present tense', 'Question formation', 'Basic sentence structure']
+      };
 
+      // Call the AI slide generator directly with lesson data
       const { data, error } = await supabase.functions.invoke('ai-slide-generator', {
         body: { 
           action: 'generate_full_deck',
-          content_id: contentId,
+          lesson_data: lessonData, // Pass lesson data directly
           slide_count: 25,
           structure: 'ppp'
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw new Error(error.message || 'Failed to call AI generator');
+      }
       
       if (data?.success) {
+        console.log('✅ AI generation successful:', data);
         setCurrentLessonSlides(data.slides);
-        setCurrentLessonTitle(data.slides?.metadata?.title || currentLessonTitle);
+        setCurrentLessonTitle(lessonData.title);
         toast({
           title: "AI Slides Generated! 🎉",
           description: `Created ${data.slides?.total_slides || 25} pedagogically structured slides using PPP methodology.`,
         });
       } else {
+        console.error('AI generation failed:', data);
         throw new Error(data?.error || 'Failed to generate slides');
       }
     } catch (error) {
       console.error('Failed to regenerate with AI:', error);
       toast({
         title: "AI Generation Failed",
-        description: error.message || "Failed to generate slides",
+        description: error.message || "Failed to generate slides. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -1161,7 +1152,7 @@ export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: Un
                       </div>
                       <Button
                         onClick={regenerateWithAI}
-                        disabled={isRegeneratingWithAI || !selectedContent?.id}
+                        disabled={isRegeneratingWithAI}
                         variant="default"
                         size="sm"
                         className="gap-2"

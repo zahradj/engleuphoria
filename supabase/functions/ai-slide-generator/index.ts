@@ -23,7 +23,7 @@ serve(async (req) => {
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const body = await req.json();
-    const { action = 'generate_single', content_id, slide_index, regenerate = false, batch_generate = false, slide_count = 22, structure } = body;
+    const { action = 'generate_single', content_id, lesson_data, slide_index, regenerate = false, batch_generate = false, slide_count = 22, structure } = body;
 
     console.log('AI Slide Generator called with:', { action, content_id, slide_index, regenerate, batch_generate });
 
@@ -35,7 +35,7 @@ serve(async (req) => {
       case 'generate_single':
         return await generateSingleSlide(supabase, content_id, slide_index);
       case 'generate_full_deck':
-        return await generateFullDeck(supabase, content_id, slide_count, structure);
+        return await generateFullDeck(supabase, content_id, slide_count, structure, lesson_data);
       case 'regenerate_slide':
         return await regenerateSlide(supabase, content_id, slide_index);
       default:
@@ -148,23 +148,46 @@ async function generateSingleSlide(supabase: any, contentId: string, slideIndex:
   });
 }
 
-async function generateFullDeck(supabase: any, contentId: string, slideCount: number = 22, structure?: string) {
-  if (!contentId) {
-    throw new Error('Content ID is required for full deck generation');
-  }
+async function generateFullDeck(supabase: any, contentId: string, slideCount: number = 22, structure?: string, lessonData?: any) {
+  // If lessonData is provided, use it directly instead of fetching from database
+  let lesson;
+  
+  if (lessonData) {
+    console.log('Using provided lesson data for AI generation:', lessonData.title);
+    lesson = lessonData;
+  } else if (!contentId) {
+    throw new Error('Content ID is required for full deck generation when lesson data is not provided');
+  } else {
+    // Get lesson content from database
+    const { data: lessonFromDb, error: fetchError } = await supabase
+      .from('lessons_content')
+      .select('*')
+      .eq('id', contentId)
+      .single();
 
-  // Get lesson content
-  const { data: lesson, error: fetchError } = await supabase
-    .from('lessons_content')
-    .select('*')
-    .eq('id', contentId)
-    .single();
-
-  if (fetchError || !lesson) {
-    throw new Error(`Failed to fetch lesson: ${fetchError?.message || 'Lesson not found'}`);
+    if (fetchError || !lessonFromDb) {
+      throw new Error(`Failed to fetch lesson: ${fetchError?.message || 'Lesson not found'}`);
+    }
+    lesson = lessonFromDb;
   }
 
   const slidesContent = await generateSlidesForLesson(supabase, lesson, slideCount, structure);
+
+  // Only update database if we have a valid contentId and no lesson data was provided directly
+  if (contentId && !lessonData) {
+    const { error: updateError } = await supabase
+      .from('lessons_content')
+      .update({ 
+        slides_content: slidesContent,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', contentId);
+
+    if (updateError) {
+      console.warn('Failed to update lesson with slides:', updateError.message);
+      // Don't throw error, just log warning since slides are still generated
+    }
+  }
 
   return new Response(JSON.stringify({
     success: true,
@@ -407,17 +430,20 @@ Create the lesson slides now:`;
   // Generate images for slides that need them
   await generateImagesForSlides(slidesData.slides);
 
-  // Update lesson with generated slides
-  const { error: updateError } = await supabase
-    .from('lessons_content')
-    .update({ 
-      slides_content: slidesData,
-      updated_at: new Date().toISOString()
-    })
-    .eq('id', lesson.id);
+  // Only update lesson with generated slides if it's from database
+  if (lesson.id && !lesson.title) { // Check if this is a database lesson
+    const { error: updateError } = await supabase
+      .from('lessons_content')
+      .update({ 
+        slides_content: slidesData,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', lesson.id);
 
-  if (updateError) {
-    throw new Error(`Failed to update lesson with slides: ${updateError.message}`);
+    if (updateError) {
+      console.warn('Failed to update lesson with slides:', updateError.message);
+      // Don't throw error, just log warning since slides are still generated
+    }
   }
 
   return slidesData;
