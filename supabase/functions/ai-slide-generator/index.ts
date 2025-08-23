@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { generateSlidesWithMasterTemplate, enrichSlidesWithMedia } from './master-template.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -171,7 +172,22 @@ async function generateFullDeck(supabase: any, contentId: string, slideCount: nu
     lesson = lessonFromDb;
   }
 
-  const slidesContent = await generateSlidesForLesson(supabase, lesson, slideCount, structure);
+  const { custom_prompt = false, enrich_media = false } = lessonData || {};
+  
+  let slidesContent;
+  
+  if (custom_prompt) {
+    // Use the master prompt template
+    slidesContent = await generateSlidesWithMasterTemplate(supabase, lesson, slideCount);
+  } else {
+    // Use existing generation logic
+    slidesContent = await generateSlidesForLesson(supabase, lesson, slideCount, structure);
+  }
+
+  // Generate and store real images if requested
+  if (enrich_media) {
+    await enrichSlidesWithMedia(supabase, slidesContent.slides);
+  }
 
   // Only update database if we have a valid contentId and no lesson data was provided directly
   if (contentId && !lessonData) {
@@ -378,7 +394,7 @@ Create the lesson slides now:`;
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-5-2025-08-07',
+      model: 'gpt-5-mini-2025-08-07', // Use mini model for cost efficiency
       messages: [
         { role: 'system', content: 'You are an expert ESL curriculum designer specializing in PPP methodology (Presentation, Practice, Production). Create comprehensive, engaging lesson slides with clear instructions and interactive elements. Always respond with valid JSON only.' },
         { role: 'user', content: prompt }
