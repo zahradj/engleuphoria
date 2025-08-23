@@ -10,7 +10,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 // Lazy load components to improve initial load time
 import { MinimalStudentHeader } from "@/components/student/MinimalStudentHeader";
 import { StudentSidebar } from "@/components/student/StudentSidebar";
-import { DashboardTab } from "@/components/student/DashboardTab";
+import { CleanStudentDashboard } from "@/components/student/CleanStudentDashboard";
 import { TeachersTab } from "@/components/student/TeachersTab";
 import { UpcomingClassesTab } from "@/components/student/UpcomingClassesTab";
 import { HomeworkTab } from "@/components/student/HomeworkTab";
@@ -104,7 +104,7 @@ const StudentDashboard = () => {
 
   const renderActiveTab = () => {
     const tabComponents = {
-      dashboard: () => <DashboardTab studentName={studentName} studentId={studentId} hasProfile={hasProfile} studentProfile={studentProfile} />,
+      dashboard: () => <CleanStudentDashboard studentName={studentName} studentProfile={studentProfile} />,
       "learning-path": () => <LearningPathTab />,
       teachers: () => <TeachersTab />,
       "upcoming-classes": () => <UpcomingClassesTab />,
@@ -139,7 +139,7 @@ const StudentDashboard = () => {
   // Show loading state
   if (authLoading || !isInitialized) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#B2B0E8' }}>
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <LoadingSpinner size="lg" message="Loading your dashboard..." />
       </div>
     );
@@ -148,7 +148,7 @@ const StudentDashboard = () => {
   return (
     <ErrorBoundary>
       <SidebarProvider defaultOpen={false}>
-        <div className="flex min-h-screen w-full" style={{ backgroundColor: '#B2B0E8' }}>
+        <div className="flex min-h-screen w-full bg-background">
           <StudentSidebar 
             activeTab={activeTab} 
             setActiveTab={setActiveTab}
@@ -163,8 +163,8 @@ const StudentDashboard = () => {
               hasProfile={hasProfile}
               studentProfile={studentProfile}
             />
-            <main className="flex-1 overflow-y-auto p-6" style={{ backgroundColor: '#B2B0E8' }}>
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <main className="flex-1 overflow-y-auto p-6 bg-background">
+              <div className="bg-card rounded-xl shadow-sm border border-border p-6">
                 <SidebarTrigger />
                 <QuickActions />
                 {renderActiveTab()}

@@ -80,10 +80,6 @@ export default {
 				'text-muted': 'hsl(var(--text-muted))',
 				'text-subtle': 'hsl(var(--text-subtle))',
 				
-				// Dashboard tokens
-				'dashboard-bg': 'hsl(var(--dashboard-bg))',
-				'dashboard-surface': 'hsl(var(--dashboard-surface))',
-				'dashboard-border': 'hsl(var(--dashboard-border))',
 				
 				// State colors
 				success: {
@@ -232,9 +228,6 @@ export default {
 			backgroundImage: {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
 				'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
-				// Blended dashboard backgrounds
-				'dashboard-blend': 'linear-gradient(135deg, #E8F5E9, #E3F2FD, #F3E5F5)',
-				'dashboard-neutral': 'linear-gradient(135deg, #FAFAFA, #F5F5F5, #F0F0F0)',
 			},
 		}
 	},
