@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,8 +11,8 @@ import {
   Volume2, 
   VolumeX, 
   Maximize, 
-  RotateCcw, // Changed from RotateClockwise
-  Scissors, // Changed from Cut
+  RotateCcw,
+  Scissors,
   Download,
   FileText,
   Image,
@@ -45,21 +46,29 @@ interface ContentProps {
 }
 
 interface UnifiedContentViewerProps {
-  content: ContentProps;
+  content?: ContentProps;
   isAnnotationMode?: boolean;
-  onAnnotationToggle: () => void;
+  onAnnotationToggle?: () => void;
   currentPage?: number;
   totalPages?: number;
   onPageChange?: (page: number) => void;
+  isTeacher?: boolean;
+  studentName?: string;
 }
 
 export function UnifiedContentViewer({ 
-  content, 
+  content = {
+    title: "Interactive Whiteboard",
+    description: "Collaborative whiteboard for teaching",
+    type: "whiteboard"
+  },
   isAnnotationMode = false, 
-  onAnnotationToggle,
+  onAnnotationToggle = () => {},
   currentPage = 1,
   totalPages = 1,
-  onPageChange
+  onPageChange,
+  isTeacher = false,
+  studentName = "Student"
 }: UnifiedContentViewerProps) {
   const { languageText } = useLanguage();
   const [currentTime, setCurrentTime] = useState(0);
@@ -71,7 +80,7 @@ export function UnifiedContentViewer({
   const [zoom, setZoom] = useState(100);
   
   // Annotation states
-  const [annotationTool, setAnnotationTool] = useState<"pencil" | "eraser" | "highlighter">("pencil"); // Fixed tool type
+  const [annotationTool, setAnnotationTool] = useState<"pencil" | "eraser" | "highlighter">("pencil");
   const [annotationColor, setAnnotationColor] = useState("#9B87F5");
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -292,10 +301,10 @@ export function UnifiedContentViewer({
       <div className="flex-1 relative">
         <WhiteboardCanvas
           pageId="unified-viewer"
-          activeTool={annotationTool} // Now matches the expected type
+          activeTool={annotationTool}
           color={annotationColor}
           isCollaborative={true}
-          canvasRef={(el) => { // Fixed canvas ref callback function
+          canvasRef={(el) => {
             if (el && canvasRef.current !== el) {
               canvasRef.current = el;
             }
@@ -308,18 +317,16 @@ export function UnifiedContentViewer({
   return (
     <div className="h-full flex flex-col">
       <div className="flex items-center justify-between p-4 border-b bg-white">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            {getContentIcon()}
-            <div>
-              <h3 className="font-semibold text-gray-900">{content.title}</h3>
-              <p className="text-sm text-gray-600">{content.description}</p>
-            </div>
+        <div className="flex items-center gap-2">
+          {getContentIcon()}
+          <div>
+            <h3 className="font-semibold text-gray-900">{content.title}</h3>
+            <p className="text-sm text-gray-600">{content.description}</p>
           </div>
-          <Badge variant="secondary" className="ml-auto">
-            {content.type}
-          </Badge>
         </div>
+        <Badge variant="secondary" className="ml-auto">
+          {content.type}
+        </Badge>
         
         <div className="flex items-center gap-2">
           <Button
