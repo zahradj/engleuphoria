@@ -168,22 +168,6 @@ export function EnhancedContentLibrary({
         localStorage.setItem('contentLibraryActiveTab', value);
       }} className="h-full flex flex-col">
         <div className="flex-shrink-0 p-4 border-b bg-gradient-to-r from-blue-50 to-purple-50">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <Library className="w-5 h-5 text-primary" />
-                Enhanced Content Library
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Complete A-Z curriculum, AI-generated content, and course materials
-              </p>
-            </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="bg-primary/10">
-              {contentStats.total} items
-            </Badge>
-          </div>
-          </div>
 
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="systematic" className="flex items-center gap-2">
