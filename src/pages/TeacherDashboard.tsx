@@ -121,7 +121,7 @@ const TeacherDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-dashboard-bg">
+    <div className="min-h-screen" style={{ backgroundColor: '#B2B0E8' }}>
       {/* Mobile Navigation */}
       <div className="md:hidden">
         <MobileTeacherNav 
@@ -130,15 +130,17 @@ const TeacherDashboard = () => {
           onLogout={signOut}
           teacherName={teacherName}
         />
-        <main className="p-4 bg-dashboard-bg">
-          {renderTabContent()}
+        <main className="p-4" style={{ backgroundColor: '#B2B0E8' }}>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            {renderTabContent()}
+          </div>
         </main>
       </div>
 
-      {/* Desktop Layout with Clean Workspace Mode */}
+      {/* Desktop Layout */}
       <div className="hidden md:block">
         <SidebarProvider defaultOpen={false}>
-          <div className="flex min-h-screen w-full bg-dashboard-bg">
+          <div className="flex min-h-screen w-full" style={{ backgroundColor: '#B2B0E8' }}>
             <EnhancedTeacherSidebar 
               activeTab={activeTab} 
               setActiveTab={handleTabChange}
@@ -147,9 +149,11 @@ const TeacherDashboard = () => {
             
             <SidebarInset className="flex-1">
               <CleanWorkspaceHeader teacherName={teacherName} />
-              <main className="flex-1 overflow-y-auto p-6 bg-dashboard-bg">
-                <QuickActions />
-                {renderTabContent()}
+              <main className="flex-1 overflow-y-auto p-6" style={{ backgroundColor: '#B2B0E8' }}>
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                  <QuickActions />
+                  {renderTabContent()}
+                </div>
               </main>
             </SidebarInset>
           </div>

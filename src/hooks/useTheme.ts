@@ -2,10 +2,8 @@ import { useEffect } from 'react';
 
 export function useTheme() {
   useEffect(() => {
-    const root = document.documentElement;
-    // Use professional theme for clean dashboards
-    root.setAttribute('data-theme', 'professional');
+    // No theme system - using direct colors
   }, []);
 
-  return { theme: 'professional', setTheme: () => {} };
+  return { theme: 'default', setTheme: () => {} };
 }
