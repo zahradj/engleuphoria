@@ -1,22 +1,131 @@
-import React, { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { EnhancedWhiteboardCanvas } from "@/components/classroom/whiteboard/EnhancedWhiteboardCanvas";
-import { EnhancedWhiteboardToolbar } from "@/components/classroom/whiteboard/EnhancedWhiteboardToolbar";
-import { EnhancedContentLibrary } from "./EnhancedContentLibrary";
-import { EnhancedUploadDialog } from "./EnhancedUploadDialog";
-import { LessonSlideViewer } from "./LessonSlideViewer";
-import { useEnhancedContentManager } from "./useEnhancedContentManager";
-import { ContentItem } from "./types";
-import { SoundButton } from "@/components/ui/sound-button";
-import { TeacherAssignmentPanel } from "../assignment/TeacherAssignmentPanel";
-import { StudentAssignmentPanel } from "../assignment/StudentAssignmentPanel";
-import { Upload, Plus, BookOpen, PenTool, Gamepad2, Loader2, Wand2 } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { createGreetingsDeck, createGreetingsPPPRequest } from "@/utils/createGreetingsDeck";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { toast } from "sonner";
+import { 
+  Play, 
+  Pause, 
+  RotateCcw, 
+  Volume2, 
+  VolumeX, 
+  Maximize2, 
+  Download, 
+  FileText, 
+  Image, 
+  Video, 
+  Music, 
+  Plus,
+  Trash2,
+  Edit3,
+  Save,
+  X,
+  Upload,
+  Eye,
+  Clock,
+  BookOpen,
+  Sparkles,
+  Palette,
+  Users,
+  Link,
+  Mic,
+  MicOff,
+  Camera,
+  CameraOff,
+  PhoneOff,
+  MessageSquare,
+  Award,
+  Zap,
+  Star,
+  Gift,
+  Target,
+  Trophy,
+  Crown,
+  ThumbsUp,
+  Smile,
+  Heart,
+  CheckCircle,
+  Activity,
+  TrendingUp,
+  Calendar,
+  MapPin,
+  Globe,
+  Settings,
+  HelpCircle,
+  Search,
+  Filter,
+  SortAsc,
+  Grid,
+  List,
+  Bookmark,
+  Share2,
+  ExternalLink,
+  ArrowLeft,
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  MoreHorizontal,
+  PenTool,
+  Type,
+  Square,
+  Circle,
+  Triangle,
+  Eraser,
+  Highlighter,
+  Move,
+  ZoomIn,
+  ZoomOut,
+  RotateClockwise,
+  FlipHorizontal,
+  FlipVertical,
+  Copy,
+  Cut,
+  Clipboard,
+  Undo,
+  Redo,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  Bold,
+  Italic,
+  Underline,
+  Strikethrough,
+  Lock,
+  Unlock,
+  Layers,
+  MoreVertical
+} from "lucide-react";
+import { EnhancedContentLibrary } from "./EnhancedContentLibrary";
+import { WhiteboardCanvas } from "../whiteboard/WhiteboardCanvas";
 
-interface EmbeddedContent {
+interface UnifiedContentViewerProps {
+  isTeacher: boolean;
+  studentName: string;
+}
+
+interface ContentItem {
+  id: string;
+  title: string;
+  type: 'pdf' | 'video' | 'audio' | 'image' | 'text' | 'url';
+  url?: string;
+  content?: string;
+  thumbnail?: string;
+  duration?: number;
+  size?: number;
+  uploadedAt: string;
+  tags?: string[];
+  level?: string;
+}
+
+interface EmbeddedGame {
   id: string;
   title: string;
   url: string;
@@ -24,1289 +133,730 @@ interface EmbeddedContent {
   y: number;
   width: number;
   height: number;
-  fileType?: string;
-  originalType?: string;
+  isBlocked?: boolean;
 }
 
-interface UnifiedContentViewerProps {
-  isTeacher: boolean;
-  studentName: string;
-  currentUser?: {
-    id: string;
-    role: 'teacher' | 'student';
-    name: string;
-  };
+interface ToolSettings {
+  strokeWidth: number;
+  opacity: number;
+  fontSize: number;
+  fontFamily: string;
 }
 
-export function UnifiedContentViewer({ isTeacher, studentName, currentUser }: UnifiedContentViewerProps) {
-  const [activeTab, setActiveTab] = useState(() => {
-    // Default to Content Library for teachers to see lessons immediately
-    return isTeacher ? "content" : "whiteboard";
+interface MediaPlayerState {
+  isPlaying: boolean;
+  currentTime: number;
+  duration: number;
+  volume: number;
+  isMuted: boolean;
+  isFullscreen: boolean;
+}
+
+interface StudentProgress {
+  xp: number;
+  level: number;
+  badges: string[];
+  streak: number;
+  completedActivities: number;
+  totalTimeSpent: number;
+}
+
+export function UnifiedContentViewer({ isTeacher, studentName }: UnifiedContentViewerProps) {
+  const [activeTab, setActiveTab] = useState("whiteboard");
+  const [contentItems, setContentItems] = useState<ContentItem[]>([]);
+  const [selectedContent, setSelectedContent] = useState<ContentItem | null>(null);
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+  const [newContentTitle, setNewContentTitle] = useState("");
+  const [newContentType, setNewContentType] = useState<ContentItem['type']>('text');
+  const [newContentUrl, setNewContentUrl] = useState("");
+  const [newContentText, setNewContentText] = useState("");
+  const [newContentLevel, setNewContentLevel] = useState("");
+  const [newContentTags, setNewContentTags] = useState("");
+  const [activeTool, setActiveTool] = useState<"pencil" | "eraser" | "text" | "highlighter" | "shape" | "select" | "move">("pencil");
+  const [color, setColor] = useState("#000000");
+  const [toolSettings, setToolSettings] = useState<ToolSettings>({
+    strokeWidth: 2,
+    opacity: 1,
+    fontSize: 16,
+    fontFamily: 'Arial'
   });
-  const [activeTool, setActiveTool] = useState<"pencil" | "eraser" | "text" | "highlighter" | "shape" | "move">("pencil");
-  const [color, setColor] = useState("#9B87F5");
-  const [strokeWidth, setStrokeWidth] = useState(3);
-  const [activeShape, setActiveShape] = useState<"rectangle" | "circle">("rectangle");
-  const [embeddedContent, setEmbeddedContent] = useState<EmbeddedContent[]>([]);
-  const [currentLessonSlides, setCurrentLessonSlides] = useState<any>(null);
-  const [currentLessonTitle, setCurrentLessonTitle] = useState("");
-  const [isGeneratingSlides, setIsGeneratingSlides] = useState(false);
-  const [isRegeneratingWithAI, setIsRegeneratingWithAI] = useState(false);
-  const [isGeneratingGreetingsPPP, setIsGeneratingGreetingsPPP] = useState(false);
-  const { toast } = useToast();
+  const [activeShape, setActiveShape] = useState<"rectangle" | "circle" | "triangle">("rectangle");
+  const [embeddedGames, setEmbeddedGames] = useState<Record<string, EmbeddedGame[]>>({});
+  const [activeWhiteboardTab, setActiveWhiteboardTab] = useState("page1");
   
-  // Debug embedded content changes
-  React.useEffect(() => {
-    console.log('📋 EmbeddedContent state updated:', embeddedContent);
-  }, [embeddedContent]);
+  const [mediaPlayerState, setMediaPlayerState] = useState<MediaPlayerState>({
+    isPlaying: false,
+    currentTime: 0,
+    duration: 0,
+    volume: 1,
+    isMuted: false,
+    isFullscreen: false
+  });
 
-  // Auto-load lesson from URL parameter
-  React.useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const lessonId = urlParams.get('lesson');
-    const skipGen = urlParams.get('skipGen');
-    
-    if (lessonId) {
-      console.log('🔄 Auto-loading lesson from URL:', lessonId);
-      setActiveTab('whiteboard');
-      loadLessonById(lessonId, skipGen === '1');
-    }
-  }, []);
+  const [studentProgress, setStudentProgress] = useState<StudentProgress>({
+    xp: 450,
+    level: 3,
+    badges: ['First Steps', 'Quick Learner'],
+    streak: 7,
+    completedActivities: 12,
+    totalTimeSpent: 180
+  });
 
-  const createUniversalDeck = (lesson: any) => {
-    const level = lesson.cefr_level || lesson.level_info?.cefr_level || 'A1';
-    const title = lesson.title || 'English Lesson';
-    const objectives = lesson.learning_objectives || lesson.lesson_objectives || [
-      'Use basic vocabulary and phrases',
-      'Practice listening and speaking skills',
-      'Engage in simple conversations'
-    ];
-    const vocabulary = lesson.vocabulary_focus || ['hello', 'goodbye', 'please', 'thank you'];
-    const grammar = lesson.grammar_focus || ['Simple present tense', 'Basic sentence structure'];
-    
-    const slides = [
-      // Warm-up (2-3 slides)
-      {
-        id: "slide-1",
-        type: "warmup",
-        prompt: `Welcome to ${title}!`,
-        instructions: "Let's start with a fun warm-up activity. Say hello to everyone and share how you're feeling today.",
-        accessibility: { screenReaderText: `Welcome slide for ${title}`, highContrast: false, largeText: false }
-      },
-      {
-        id: "slide-2", 
-        type: "warmup",
-        prompt: "Quick Review",
-        instructions: "Think about what you learned in the previous lesson. Share one thing you remember.",
-        accessibility: { screenReaderText: "Quick review of previous lesson", highContrast: false, largeText: false }
-      },
-      
-      // Introduction (2 slides)
-      {
-        id: "slide-3",
-        type: "vocabulary_preview", 
-        prompt: `Today's Topic: ${title}`,
-        instructions: `Learning Objectives: ${objectives.slice(0, 3).join(', ')}`,
-        accessibility: { screenReaderText: "Today's lesson objectives", highContrast: false, largeText: false }
-      },
-      {
-        id: "slide-4",
-        type: "target_language",
-        prompt: "Key Words Preview",
-        instructions: `We'll learn these important words: ${vocabulary.slice(0, 6).join(', ')}`,
-        accessibility: { screenReaderText: "Preview of key vocabulary", highContrast: false, largeText: false }
-      },
-      
-      // Presentation / Input (5-6 slides)
-      {
-        id: "slide-5",
-        type: "vocabulary_preview",
-        prompt: "Vocabulary Focus",
-        instructions: `New words: ${vocabulary.join(', ')}. Listen and repeat each word.`,
-        accessibility: { screenReaderText: "Vocabulary presentation", highContrast: false, largeText: false }
-      },
-      {
-        id: "slide-6",
-        type: "grammar_focus", 
-        prompt: "Grammar Patterns",
-        instructions: `Today's grammar: ${grammar.join(', ')}. Let's see some examples.`,
-        accessibility: { screenReaderText: "Grammar pattern introduction", highContrast: false, largeText: false }
-      },
-      {
-        id: "slide-7",
-        type: "listening_comprehension",
-        prompt: "Listen and Learn",
-        instructions: "Listen to the examples and pay attention to pronunciation and intonation.",
-        accessibility: { screenReaderText: "Listening comprehension activity", highContrast: false, largeText: false }
-      },
-      {
-        id: "slide-8",
-        type: "sentence_builder",
-        prompt: "Example Sentences",
-        instructions: "Look at these example sentences using our new vocabulary and grammar.",
-        accessibility: { screenReaderText: "Example sentences", highContrast: false, largeText: false }
-      },
-      {
-        id: "slide-9",
-        type: "pronunciation_shadow",
-        prompt: "Pronunciation Practice", 
-        instructions: "Repeat after me. Focus on clear pronunciation and natural rhythm.",
-        accessibility: { screenReaderText: "Pronunciation practice", highContrast: false, largeText: false }
-      },
-      {
-        id: "slide-10",
-        type: "micro_input",
-        prompt: "Context Examples",
-        instructions: "See how these words and phrases are used in real conversations.",
-        accessibility: { screenReaderText: "Contextual examples", highContrast: false, largeText: false }
-      },
-      
-      // Guided Practice (4-5 slides)
-      {
-        id: "slide-11",
-        type: "accuracy_mcq",
-        prompt: "Quick Knowledge Check",
-        instructions: "Choose the correct answer to test your understanding.",
-        options: [
-          { id: "opt-a", text: "This is the correct answer", isCorrect: true },
-          { id: "opt-b", text: "This is incorrect", isCorrect: false },
-          { id: "opt-c", text: "This is also incorrect", isCorrect: false },
-          { id: "opt-d", text: "This is wrong too", isCorrect: false }
-        ],
-        correct: "opt-a",
-        accessibility: { screenReaderText: "Multiple choice comprehension check", highContrast: false, largeText: false }
-      },
-      {
-        id: "slide-12",
-        type: "picture_choice",
-        prompt: "Picture Match",
-        instructions: "Select the picture that matches the word or sentence.",
-        options: [
-          { id: "pic-a", text: "Picture A", isCorrect: true },
-          { id: "pic-b", text: "Picture B", isCorrect: false },
-          { id: "pic-c", text: "Picture C", isCorrect: false }
-        ],
-        correct: "pic-a",
-        accessibility: { screenReaderText: "Picture matching activity", highContrast: false, largeText: false }
-      },
-      {
-        id: "slide-13",
-        type: "transform", 
-        prompt: "Sentence Building",
-        instructions: "Use the words to create your own sentences.",
-        accessibility: { screenReaderText: "Sentence building exercise", highContrast: false, largeText: false }
-      },
-      {
-        id: "slide-14",
-        type: "error_fix",
-        prompt: "Fix the Mistakes",
-        instructions: "Can you find and correct the errors in these sentences?",
-        accessibility: { screenReaderText: "Error correction activity", highContrast: false, largeText: false }
-      },
-      {
-        id: "slide-15",
-        type: "labeling",
-        prompt: "Label the Items",
-        instructions: "Click on each item and choose the correct label.",
-        options: [
-          { id: "label-a", text: "Correct Label", isCorrect: true },
-          { id: "label-b", text: "Wrong Label", isCorrect: false },
-          { id: "label-c", text: "Another Wrong Label", isCorrect: false }
-        ],
-        correct: "label-a",
-        accessibility: { screenReaderText: "Interactive labeling activity", highContrast: false, largeText: false }
-      },
-      
-      // Gamified Activities (3-4 slides)
-      {
-        id: "slide-16",
-        type: "match",
-        prompt: 'Match Words with Pictures',
-        instructions: 'Connect each word with its matching picture.',
-        matchPairs: [
-          {
-            id: 'pair-1',
-            left: vocabulary[0] || 'Hello',
-            right: 'Greeting gesture',
-            leftImage: 'https://images.unsplash.com/photo-1607990281513-2c110a25bd8c?w=200'
-          },
-          {
-            id: 'pair-2', 
-            left: vocabulary[1] || 'Goodbye',
-            right: 'Waving hand',
-            leftImage: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=200'
-          },
-          {
-            id: 'pair-3',
-            left: vocabulary[2] || 'Please',
-            right: 'Polite request',
-            leftImage: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=200'
-          },
-          {
-            id: 'pair-4',
-            left: vocabulary[3] || 'Thank you',
-            right: 'Grateful expression',
-            leftImage: 'https://images.unsplash.com/photo-1607990281513-2c110a25bd8c?w=200'
-          }
-        ],
-        timeLimit: 120,
-        accessibility: { screenReaderText: "Match vocabulary words with their meanings", highContrast: false, largeText: false }
-      },
-      {
-        id: "slide-17",
-        type: "drag_drop",
-        prompt: 'Sort Items by Category',
-        instructions: 'Drag each item to the correct category.',
-        dragDropItems: [
-          { id: 'apple', text: 'Apple', targetId: 'food' },
-          { id: 'car', text: 'Car', targetId: 'transport' },
-          { id: 'book', text: 'Book', targetId: 'school' },
-          { id: 'orange', text: 'Orange', targetId: 'food' }
-        ],
-        dragDropTargets: [
-          {
-            id: 'food',
-            text: 'Food',
-            acceptsItemIds: ['apple', 'orange'],
-            image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=120'
-          },
-          {
-            id: 'transport',
-            text: 'Transport', 
-            acceptsItemIds: ['car'],
-            image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=120'
-          },
-          {
-            id: 'school',
-            text: 'School',
-            acceptsItemIds: ['book'],
-            image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=120'
-          }
-        ],
-        timeLimit: 180,
-        accessibility: { screenReaderText: "Sort items into categories activity", highContrast: false, largeText: false }
-      },
-      {
-        id: "slide-18",
-        type: "cloze",
-        prompt: 'Complete the Sentences',
-        instructions: 'Fill in the missing words to complete each sentence.',
-        clozeText: 'My name [gap1] John. I [gap2] from England. I [gap3] English and Spanish. Nice to [gap4] you!',
-        clozeGaps: [
-          {
-            id: 'gap1',
-            correctAnswers: ['is'],
-            options: ['is', 'are', 'am', 'be']
-          },
-          {
-            id: 'gap2', 
-            correctAnswers: ['am', 'come'],
-            options: ['am', 'is', 'are', 'come']
-          },
-          {
-            id: 'gap3',
-            correctAnswers: ['speak'],
-            options: ['speak', 'speaks', 'speaking', 'spoken']
-          },
-          {
-            id: 'gap4',
-            correctAnswers: ['meet'],
-            options: ['meet', 'see', 'know', 'find']
-          }
-        ],
-        timeLimit: 300,
-        accessibility: { screenReaderText: "Fill in the blanks sentence completion activity", highContrast: false, largeText: false }
-      },
-      {
-        id: "slide-19",
-        type: "fluency_sprint",
-        prompt: "Speed Speaking",
-        instructions: "How quickly can you use all the new words in sentences?",
-        accessibility: { screenReaderText: "Fluency speed practice", highContrast: false, largeText: false }
-      },
-      
-      // Communication Practice (3-4 slides)
-      {
-        id: "slide-20",
-        type: "communicative_task",
-        prompt: "Pair Work Practice",
-        instructions: "Work with a partner to practice the new language in conversation.",
-        accessibility: { screenReaderText: "Pair work communication practice", highContrast: false, largeText: false }
-      },
-      {
-        id: "slide-21",
-        type: "picture_description",
-        prompt: "Ask and Answer",
-        instructions: "Take turns asking and answering questions using today's vocabulary.",
-        accessibility: { screenReaderText: "Question and answer practice", highContrast: false, largeText: false }
-      },
-      {
-        id: "slide-22",
-        type: "roleplay_setup",
-        prompt: "Mini Role-play Scenario",
-        instructions: "Act out this scenario using everything you've learned today.",
-        accessibility: { screenReaderText: "Role-play scenario practice", highContrast: false, largeText: false }
-      },
-      
-      // Review & Wrap-up (2-3 slides)
-      {
-        id: "slide-26",
-        type: "review_consolidation",
-        prompt: "Today's Key Points",
-        instructions: `Let's review: Vocabulary (${vocabulary.slice(0, 3).join(', ')}) and Grammar (${grammar[0] || 'sentence patterns'})`,
-        accessibility: { screenReaderText: "Lesson review and key points", highContrast: false, largeText: false }
-      },
-      {
-        id: "slide-27",
-        type: "exit_check",
-        prompt: "Final Review Quiz",
-        instructions: "Quick multiple choice questions to check your understanding.",
-        options: [
-          { id: "quiz-a", text: "The right answer for today's lesson", isCorrect: true },
-          { id: "quiz-b", text: "An incorrect option", isCorrect: false },
-          { id: "quiz-c", text: "Another wrong answer", isCorrect: false },
-          { id: "quiz-d", text: "This is also wrong", isCorrect: false }
-        ],
-        correct: "quiz-a",
-        accessibility: { screenReaderText: "Final comprehension check", highContrast: false, largeText: false }
-      },
-      {
-        id: "slide-28",
-        type: "review_consolidation",
-        prompt: "Homework & Reflection",
-        instructions: "Practice using today's vocabulary in real conversations. Think about how you can use these words this week!",
-        media: {
-          type: 'image',
-          url: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400',
-          alt: 'Celebration',
-          imagePrompt: 'Celebration with confetti and happy people learning'
-        },
-        accessibility: { screenReaderText: "Homework assignment and reflection", highContrast: false, largeText: false }
-      }
-    ];
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const mediaRef = useRef<HTMLVideoElement | HTMLAudioElement>(null);
 
-    return {
-      version: "2.0",
-      theme: "mist-blue",
-      slides: slides,
-      durationMin: lesson.duration_minutes || 30,
-      total_slides: slides.length,
-      metadata: {
-        CEFR: level,
-        module: lesson.module_number || 1,
-        lesson: lesson.lesson_number || 1,
-        targets: objectives,
-        weights: { accuracy: 60, fluency: 40 }
-      },
-      generated_at: new Date().toISOString(),
-      generated_by: 'universal-template'
-    };
-  };
-
-  const loadLessonById = async (lessonId: string, skipGeneration = false) => {
-    try {
-      console.log('🔄 Loading lesson:', lessonId);
-      
-      // Try multiple sources for lesson content
-      let lesson = null;
-      
-      // 1. Try localStorage first (for immediate access)
-      const storedLesson = localStorage.getItem('currentLessonContent');
-      if (storedLesson) {
-        try {
-          lesson = JSON.parse(storedLesson);
-          console.log('📚 Found lesson in localStorage:', lesson.title);
-        } catch (e) {
-          console.warn('Failed to parse stored lesson:', e);
-        }
-      }
-      
-      // 2. Try lessons_content table if not in localStorage
-      if (!lesson) {
-        const { data: lessonsData, error: lessonsError } = await supabase
-          .from('lessons_content')
-          .select('*')
-          .eq('id', lessonId)
-          .single();
-          
-        if (lessonsData && !lessonsError) {
-          lesson = lessonsData;
-          console.log('📚 Found lesson in lessons_content:', lesson.title);
-        }
-      }
-      
-      // 3. Try systematic_lessons table as fallback
-      if (!lesson) {
-        try {
-          const { curriculumService } = await import('@/services/curriculumService');
-          lesson = await curriculumService.getSystematicLessonById(lessonId);
-          if (lesson) {
-            console.log('📚 Found lesson in systematic_lessons:', lesson.title);
-          }
-        } catch (e) {
-          console.warn('Failed to load from systematic_lessons:', e);
-        }
-      }
-      
-      if (!lesson) {
-        console.error('Lesson not found in any source:', lessonId);
-        return;
-      }
-
-      console.log('📚 Lesson data:', lesson);
-
-      // Clear any existing lesson content first
-      setEmbeddedContent(prev => prev.filter(content => content.originalType !== 'systematic_lesson'));
-
-      // Check if lesson needs slides generation or upgrade
-      const hasValidSlides = lesson.slides_content && 
-                            (lesson.slides_content.slides?.length > 0 || lesson.slides_content.total_slides > 0);
-      
-      const needsGeneration = !hasValidSlides;
-
-      const needsUpgrade = hasValidSlides && 
-                          lesson.slides_content?.slides && 
-                          (lesson.slides_content.slides.length < 20 || 
-                           lesson.slides_content.version !== '2.0');
-      
-      if ((needsGeneration || needsUpgrade) && !skipGeneration) {
-        console.log('🎨 Generating/upgrading lesson slides:', lesson.title);
-        setIsGeneratingSlides(true);
-        
-        // Show generating toast
-        toast({
-          title: "Generating Slides",
-          description: "Creating interactive lesson slides with OpenAI...",
-        });
-        
-        try {
-          const { data, error } = await supabase.functions.invoke('ai-slide-generator', {
-            body: { 
-              content_id: lessonId, 
-              content_type: 'systematic_lesson',
-              generate_20_slides: true
-            }
-          });
-
-          if (error) {
-            throw error;
-          }
-          
-          if (data?.success) {
-            toast({
-              title: "Slides Generated! 🎉",
-              description: `Created ${data.slides?.total_slides || 22} interactive slides.`,
-            });
-            
-            // Update lesson with new slides
-            lesson.slides_content = data.slides;
-          } else {
-            throw new Error(data?.error || 'Failed to generate slides');
-          }
-        } catch (error) {
-          console.error('Failed to generate/upgrade slides:', error);
-          toast({
-            title: "Generation Failed",
-            description: "Using fallback template. You can retry slide generation later.",
-            variant: "destructive"
-          });
-          
-          // Create universal interactive deck template
-          const { createUniversalInteractiveDeck } = await import('@/data/sampleSlides');
-          lesson.slides_content = createUniversalInteractiveDeck(lesson);
-        } finally {
-          setIsGeneratingSlides(false);
-        }
-      } else if (needsGeneration || needsUpgrade) {
-        // Skip generation and use universal deck
-        console.log('📋 Creating universal interactive deck for:', lesson.title);
-        const { createUniversalInteractiveDeck } = await import('@/data/sampleSlides');
-        lesson.slides_content = createUniversalInteractiveDeck(lesson);
-      }
-
-      
-      // If no lesson slides exist, use sample interactive slides as fallback
-      if (!lesson.slides_content || !lesson.slides_content.slides || lesson.slides_content.slides.length === 0) {
-        console.log('📚 Loading sample interactive slides as fallback');
-        const { sampleInteractiveSlides } = await import('@/data/sampleSlides');
-        lesson.slides_content = sampleInteractiveSlides;
-      }
-
-      // Set the lesson slides for React component
-      setCurrentLessonSlides(lesson.slides_content);
-      setCurrentLessonTitle(lesson.title);
-      setActiveTab('lesson-viewer');
-      
-      console.log('✅ Lesson loaded with slides:', lesson.slides_content);
-      
-    } catch (error) {
-      console.error('Error loading lesson:', error);
-      setIsGeneratingSlides(false);
+  const handleSelectContent = (content: ContentItem) => {
+    setSelectedContent(content);
+    if (content.type === 'video' || content.type === 'audio') {
+      setMediaPlayerState(prev => ({ ...prev, isPlaying: false, currentTime: 0 }));
     }
   };
 
-  const regenerateSlides = async (lessonId?: string) => {
-    if (!lessonId && !currentLessonSlides) return;
-    
-    setIsGeneratingSlides(true);
-    toast({
-      title: "Regenerating Slides",
-      description: "Creating new interactive slides with OpenAI...",
-    });
+  const handleAddContent = () => {
+    if (!newContentTitle) return;
 
-    try {
-      const { data, error } = await supabase.functions.invoke('ai-slide-generator', {
-        body: { 
-          content_id: lessonId, 
-          content_type: 'systematic_lesson',
-          generate_20_slides: true
-        }
-      });
-
-      if (error) throw error;
-      
-      if (data?.success) {
-        setCurrentLessonSlides(data.slides);
-        toast({
-          title: "Slides Regenerated! 🎉",
-          description: `Created ${data.slides?.total_slides || 22} new interactive slides.`,
-        });
-      }
-    } catch (error) {
-      console.error('Failed to regenerate slides:', error);
-      toast({
-        title: "Regeneration Failed",
-        description: error.message,
-        variant: "destructive"
-      });
-    } finally {
-      setIsGeneratingSlides(false);
-    }
-  };
-
-  const regenerateWithAI = async () => {
-    if (!currentLessonSlides && !currentLessonTitle) {
-      toast({
-        title: "No Lesson Loaded",
-        description: "Please load a lesson first to regenerate slides.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    setIsRegeneratingWithAI(true);
-    toast({
-      title: "Regenerating with AI (PPP)",
-      description: "Creating pedagogically structured slides using Presentation, Practice, Production methodology...",
-    });
-
-    try {
-      // Create lesson data for AI generation based on current context
-      const lessonData = {
-        title: currentLessonTitle || selectedContent?.title || 'English Communication Lesson',
-        topic: selectedContent?.topic || 'English Communication Skills',
-        cefr_level: 'A1', // Default level, could be made configurable
-        duration_minutes: 30,
-        target_age: 'Young learners (7-12 years old)',
-        learning_objectives: [
-          'Students can use basic vocabulary appropriately',
-          'Students can engage in simple conversations', 
-          'Students can practice key grammar structures'
-        ],
-        vocabulary_focus: ['hello', 'goodbye', 'please', 'thank you', 'how are you'],
-        grammar_focus: ['Simple present tense', 'Question formation', 'Basic sentence structure']
-      };
-
-      // Call the AI slide generator directly with lesson data
-      const { data, error } = await supabase.functions.invoke('ai-slide-generator', {
-        body: { 
-          action: 'generate_full_deck',
-          lesson_data: lessonData, // Pass lesson data directly
-          slide_count: 25,
-          structure: 'ppp'
-        }
-      });
-
-      if (error) {
-        console.error('Supabase function error:', error);
-        throw new Error(error.message || 'Failed to call AI generator');
-      }
-      
-      if (data?.success) {
-        console.log('✅ AI generation successful:', data);
-        setCurrentLessonSlides(data.slides);
-        setCurrentLessonTitle(lessonData.title);
-        toast({
-          title: "AI Slides Generated! 🎉",
-          description: `Created ${data.slides?.total_slides || 25} pedagogically structured slides using PPP methodology.`,
-        });
-      } else {
-        console.error('AI generation failed:', data);
-        throw new Error(data?.error || 'Failed to generate slides');
-      }
-    } catch (error) {
-      console.error('Failed to regenerate with AI:', error);
-      toast({
-        title: "AI Generation Failed",
-        description: error.message || "Failed to generate slides. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsRegeneratingWithAI(false);
-    }
-  };
-
-  const loadGreetingsDeck = () => {
-    const greetingsDeck = createGreetingsDeck();
-    setCurrentLessonSlides(greetingsDeck);
-    setCurrentLessonTitle("Greetings and Introductions");
-    setActiveTab('lesson-viewer');
-    
-    toast({
-      title: "Greetings Lesson Loaded! 👋",
-      description: "Ready-to-use interactive greetings lesson with 6 engaging slides.",
-    });
-  };
-
-  const generateGreetingsPPP = async () => {
-    setIsGeneratingGreetingsPPP(true);
-    toast({
-      title: "Generating Greetings PPP Deck",
-      description: "Creating 25 pedagogically structured slides for greetings and introductions...",
-    });
-
-    try {
-      const requestData = createGreetingsPPPRequest();
-      
-      const { data, error } = await supabase.functions.invoke('ai-slide-generator', {
-        body: requestData
-      });
-
-      if (error) {
-        console.error('Supabase function error:', error);
-        throw new Error(error.message || 'Failed to call AI generator');
-      }
-      
-      if (data?.success) {
-        console.log('✅ Greetings PPP generation successful:', data);
-        setCurrentLessonSlides(data.slides);
-        setCurrentLessonTitle("Greetings and Introductions (PPP)");
-        setActiveTab('lesson-viewer');
-        toast({
-          title: "Greetings PPP Generated! 🎉",
-          description: `Created ${data.slides?.total_slides || 25} structured slides using PPP methodology.`,
-        });
-      } else {
-        console.error('PPP generation failed:', data);
-        throw new Error(data?.error || 'Failed to generate PPP slides');
-      }
-    } catch (error) {
-      console.error('Failed to generate Greetings PPP:', error);
-      
-      // Fallback to basic greetings deck
-      loadGreetingsDeck();
-      toast({
-        title: "AI Generation Failed",
-        description: "Loaded basic greetings lesson instead. You can try AI generation again later.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsGeneratingGreetingsPPP(false);
-    }
-  };
-
-  const generateLessonSlidesHTML = (lesson: any) => {
-    if (lesson.slides_content?.slides) {
-      // Create self-contained HTML with embedded slide viewer
-      const slidesData = lesson.slides_content;
-      return `
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>${lesson.title} - Interactive Slides</title>
-          <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { 
-              font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-              height: 100vh;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            }
-            .slides-viewer {
-              width: 95vw;
-              max-width: 1400px;
-              height: 90vh;
-              background: white;
-              border-radius: 20px;
-              box-shadow: 0 25px 50px rgba(0,0,0,0.2);
-              display: flex;
-              flex-direction: column;
-              overflow: hidden;
-            }
-            .slide-header {
-              background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-              color: white;
-              padding: 20px 30px;
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-            }
-            .slide-title {
-              font-size: 1.8em;
-              font-weight: 700;
-            }
-            .slide-nav {
-              display: flex;
-              gap: 15px;
-              align-items: center;
-            }
-            .nav-button {
-              background: rgba(255,255,255,0.2);
-              border: none;
-              color: white;
-              padding: 10px 20px;
-              border-radius: 8px;
-              cursor: pointer;
-              font-weight: 500;
-              transition: all 0.3s ease;
-            }
-            .nav-button:hover {
-              background: rgba(255,255,255,0.3);
-              transform: translateY(-2px);
-            }
-            .nav-button:disabled {
-              opacity: 0.5;
-              cursor: not-allowed;
-              transform: none;
-            }
-            .slide-content {
-              flex: 1;
-              padding: 40px;
-              overflow-y: auto;
-              display: flex;
-              flex-direction: column;
-              justify-content: center;
-            }
-            .current-slide {
-              text-align: center;
-              animation: slideIn 0.5s ease-out;
-            }
-            @keyframes slideIn {
-              from { opacity: 0; transform: translateX(20px); }
-              to { opacity: 1; transform: translateX(0); }
-            }
-            .slide-number {
-              font-size: 1.5em;
-              font-weight: 600;
-              color: #2563eb;
-              margin-bottom: 20px;
-            }
-            .slide-activity-type {
-              background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-              color: white;
-              padding: 8px 20px;
-              border-radius: 20px;
-              font-size: 0.9em;
-              font-weight: 500;
-              display: inline-block;
-              margin-bottom: 25px;
-              text-transform: capitalize;
-            }
-            .slide-text {
-              font-size: 1.3em;
-              line-height: 1.6;
-              color: #1e293b;
-              margin-bottom: 30px;
-              max-width: 800px;
-              margin-left: auto;
-              margin-right: auto;
-            }
-            .interactive-elements {
-              display: flex;
-              flex-wrap: wrap;
-              gap: 15px;
-              justify-content: center;
-              margin: 20px 0;
-            }
-            .interactive-element {
-              background: #f1f5f9;
-              border: 2px solid #e2e8f0;
-              padding: 15px 25px;
-              border-radius: 12px;
-              font-weight: 500;
-              color: #475569;
-              transition: all 0.3s ease;
-              cursor: pointer;
-            }
-            .interactive-element:hover {
-              background: #e2e8f0;
-              border-color: #2563eb;
-              color: #2563eb;
-              transform: translateY(-2px);
-            }
-            .teacher-notes {
-              background: #fef3c7;
-              border-left: 4px solid #f59e0b;
-              padding: 20px;
-              margin-top: 30px;
-              border-radius: 8px;
-              font-style: italic;
-              color: #92400e;
-            }
-            .progress-bar {
-              background: #e2e8f0;
-              height: 6px;
-              border-radius: 3px;
-              overflow: hidden;
-              margin-top: 10px;
-            }
-            .progress-fill {
-              height: 100%;
-              background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-              transition: width 0.5s ease;
-            }
-            .gamification-info {
-              background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-              border: 1px solid #0ea5e9;
-              padding: 20px;
-              border-radius: 12px;
-              margin-top: 20px;
-              text-align: left;
-            }
-            .points-badge {
-              background: #dc2626;
-              color: white;
-              padding: 5px 12px;
-              border-radius: 15px;
-              font-size: 0.8em;
-              font-weight: 600;
-              margin-right: 10px;
-            }
-            .badges {
-              display: flex;
-              gap: 10px;
-              margin-top: 10px;
-              flex-wrap: wrap;
-            }
-            .badge {
-              background: #fbbf24;
-              color: #92400e;
-              padding: 5px 12px;
-              border-radius: 15px;
-              font-size: 0.8em;
-              font-weight: 500;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="slides-viewer">
-            <div class="slide-header">
-              <h1 class="slide-title">${lesson.title}</h1>
-              <div class="slide-nav">
-                <span id="slide-counter">1 / ${slidesData.slides.length}</span>
-                <button class="nav-button" onclick="previousSlide()" id="prev-btn">Previous</button>
-                <button class="nav-button" onclick="nextSlide()" id="next-btn">Next</button>
-              </div>
-            </div>
-            <div class="slide-content">
-              <div id="current-slide" class="current-slide"></div>
-              <div class="progress-bar">
-                <div class="progress-fill" id="progress-fill" style="width: ${100/slidesData.slides.length}%"></div>
-              </div>
-            </div>
-          </div>
-
-          <script>
-            const slidesData = ${JSON.stringify(slidesData)};
-            let currentSlideIndex = 0;
-
-            function updateSlide() {
-              const slide = slidesData.slides[currentSlideIndex];
-              if (!slide) return;
-
-              const slideHtml = \`
-                <div class="slide-number">Slide \${currentSlideIndex + 1} of \${slidesData.slides.length}</div>
-                <div class="slide-activity-type">\${slide.type.replace('_', ' ')}</div>
-                <h2 style="font-size: 2.2em; margin-bottom: 20px; color: #1e293b;">\${slide.prompt || 'Lesson Content'}</h2>
-                <div class="slide-text">\${slide.instructions || slide.prompt || 'Interactive learning content'}</div>
-                
-                \${slide.options && slide.options.length > 0 ? \`
-                  <div class="interactive-elements">
-                    \${slide.options.map(option => \`<div class="interactive-element">\${option.text}</div>\`).join('')}
-                  </div>
-                \` : ''}
-              \`;
-
-              document.getElementById('current-slide').innerHTML = slideHtml;
-              document.getElementById('slide-counter').textContent = \`\${currentSlideIndex + 1} / \${slidesData.slides.length}\`;
-              document.getElementById('progress-fill').style.width = \`\${((currentSlideIndex + 1) / slidesData.slides.length) * 100}%\`;
-              
-              // Update navigation buttons
-              document.getElementById('prev-btn').disabled = currentSlideIndex === 0;
-              document.getElementById('next-btn').disabled = currentSlideIndex === slidesData.slides.length - 1;
-            }
-
-            function nextSlide() {
-              if (currentSlideIndex < slidesData.slides.length - 1) {
-                currentSlideIndex++;
-                updateSlide();
-              }
-            }
-
-            function previousSlide() {
-              if (currentSlideIndex > 0) {
-                currentSlideIndex--;
-                updateSlide();
-              }
-            }
-
-            // Keyboard navigation
-            document.addEventListener('keydown', (e) => {
-              if (e.key === 'ArrowRight' || e.key === ' ') {
-                e.preventDefault();
-                nextSlide();
-              } else if (e.key === 'ArrowLeft') {
-                e.preventDefault();
-                previousSlide();
-              }
-            });
-
-            // Initialize first slide
-            updateSlide();
-          </script>
-        </body>
-        </html>
-      `;
-    }
-    
-    // Fallback to HTML content
-    return generateLessonHTML(lesson);
-  };
-
-  const generateLessonHTML = (lesson: any) => {
-    return `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <title>${lesson.title}</title>
-        <style>
-          body { font-family: Inter, sans-serif; margin: 0; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-          .lesson-container { max-width: 900px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; }
-          .lesson-header { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; padding: 30px; text-align: center; }
-          .lesson-title { font-size: 2.5em; font-weight: 700; margin: 0; }
-          .lesson-content { padding: 40px; }
-          .section { margin-bottom: 30px; background: #fafbfc; padding: 20px; border-radius: 15px; }
-          .section-title { font-size: 1.5em; font-weight: 600; color: #1e293b; margin-bottom: 15px; }
-        </style>
-      </head>
-      <body>
-        <div class="lesson-container">
-          <div class="lesson-header">
-            <h1 class="lesson-title">${lesson.title}</h1>
-            <p>Interactive English Lesson • CEFR Level ${lesson.level_info?.cefr_level || 'B1'}</p>
-          </div>
-          <div class="lesson-content">
-            <div class="section">
-              <h2 class="section-title">📋 Lesson Overview</h2>
-              <p><strong>Topic:</strong> ${lesson.topic}</p>
-              <p><strong>Grammar Focus:</strong> ${lesson.grammar_focus}</p>
-              <p><strong>Duration:</strong> ${lesson.estimated_duration} minutes</p>
-            </div>
-            <div class="section">
-              <h2 class="section-title">🎯 Learning Objectives</h2>
-              <ul>
-                ${(lesson.lesson_objectives || []).map((obj: string) => `<li>${obj}</li>`).join('')}
-              </ul>
-            </div>
-            <div class="section">
-              <h2 class="section-title">💬 Communication Outcome</h2>
-              <p>${lesson.communication_outcome}</p>
-            </div>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
-  };
-  
-  const initialContent: any[] = [];
-  
-  const {
-    contentItems,
-    selectedContent,
-    setSelectedContent,
-    isUploadDialogOpen,
-    openUploadDialog,
-    closeUploadDialog,
-    handleEnhancedUpload,
-    previewFile,
-    openPreview,
-    closePreview,
-    handleFileDelete,
-    handleFileDownload
-  } = useEnhancedContentManager(initialContent, studentName, isTeacher);
-
-  const handleAddToWhiteboard = async (content: ContentItem) => {
-    if (content.type === "lesson" || content.type === "curriculum") {
-      // Auto-generate slides if needed
-      await loadLessonById(content.id);
-      return;
-    }
-
-    // Handle file-based content
-    const blob = new Blob([content.content || ''], { type: getContentType(content.fileType) });
-    const url = URL.createObjectURL(blob);
-    
-    const newEmbeddedContent: EmbeddedContent = {
-      id: content.id,
-      title: content.title,
-      url,
-      x: Math.random() * 200,
-      y: Math.random() * 200,
-      width: 400,
-      height: 300,
-      fileType: content.fileType,
-      originalType: content.type
+    const newContent: ContentItem = {
+      id: Date.now().toString(),
+      title: newContentTitle,
+      type: newContentType,
+      url: newContentUrl || undefined,
+      content: newContentText || undefined,
+      uploadedAt: new Date().toISOString(),
+      level: newContentLevel || undefined,
+      tags: newContentTags ? newContentTags.split(',').map(tag => tag.trim()) : undefined
     };
 
-    setEmbeddedContent(prev => [...prev, newEmbeddedContent]);
-    setActiveTab("whiteboard");
-  };
-
-  const getContentType = (fileType: string | undefined): string => {
-    if (!fileType) return 'text/plain';
+    setContentItems(prev => [newContent, ...prev]);
+    setNewContentTitle("");
+    setNewContentUrl("");
+    setNewContentText("");
+    setNewContentLevel("");
+    setNewContentTags("");
+    setIsUploadDialogOpen(false);
     
-    const typeMap: { [key: string]: string } = {
-      'pdf': 'application/pdf',
-      'jpg': 'image/jpeg',
-      'jpeg': 'image/jpeg',
-      'png': 'image/png',
-      'gif': 'image/gif',
-      'mp4': 'video/mp4',
-      'webm': 'video/webm',
-      'mp3': 'audio/mpeg',
-      'wav': 'audio/wav',
-      'html': 'text/html',
-      'txt': 'text/plain',
-      'json': 'application/json'
-    };
-
-    return typeMap[fileType.toLowerCase()] || 'application/octet-stream';
+    toast.success("Content added successfully!");
   };
 
-  const handleUpdateEmbeddedContent = (id: string, updates: Partial<EmbeddedContent>) => {
-    setEmbeddedContent(prev => 
-      prev.map(content => 
-        content.id === id ? { ...content, ...updates } : content
-      )
-    );
+  const handleDeleteContent = (content: ContentItem) => {
+    setContentItems(prev => prev.filter(item => item.id !== content.id));
+    if (selectedContent?.id === content.id) {
+      setSelectedContent(null);
+    }
+    toast.success("Content removed");
   };
 
-  const handleRemoveEmbeddedContent = (id: string) => {
-    setEmbeddedContent(prev => prev.filter(content => content.id !== id));
+  const handlePreviewContent = (content: ContentItem) => {
+    setSelectedContent(content);
+    setActiveTab("content");
   };
 
-  const addContentToWhiteboard = (content: any) => {
-    console.log('🎯 Adding content to whiteboard:', content);
-    handleAddToWhiteboard(content);
+  const handleAddToWhiteboard = (content: ContentItem) => {
+    // Logic to add content to whiteboard
+    toast.success(`${content.title} added to whiteboard`);
   };
 
   const handleLoadLesson = (lessonId: string) => {
-    console.log('📚 Loading lesson in current tab:', lessonId);
-    setActiveTab('lesson-viewer');
-    loadLessonById(lessonId, true); // Always skip generation for direct lesson loading
+    // Logic to load a specific lesson
+    console.log("Loading lesson:", lessonId);
+    setActiveTab("content");
+  };
+
+  const awardPoints = (points: number, reason?: string) => {
+    setStudentProgress(prev => ({
+      ...prev,
+      xp: prev.xp + points
+    }));
+    
+    toast.success(`+${points} XP${reason ? ` - ${reason}` : ''}!`);
+  };
+
+  const clearCanvas = () => {
+    if (canvasRef.current) {
+      const ctx = canvasRef.current.getContext('2d');
+      if (ctx) {
+        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+      }
+    }
+  };
+
+  const downloadCanvas = () => {
+    if (canvasRef.current) {
+      const link = document.createElement('a');
+      link.download = 'whiteboard.png';
+      link.href = canvasRef.current.toDataURL();
+      link.click();
+    }
+  };
+
+  const toggleMediaPlayback = () => {
+    if (mediaRef.current) {
+      if (mediaPlayerState.isPlaying) {
+        mediaRef.current.pause();
+      } else {
+        mediaRef.current.play();
+      }
+      setMediaPlayerState(prev => ({ ...prev, isPlaying: !prev.isPlaying }));
+    }
+  };
+
+  const handleMediaTimeUpdate = () => {
+    if (mediaRef.current) {
+      setMediaPlayerState(prev => ({
+        ...prev,
+        currentTime: mediaRef.current!.currentTime,
+        duration: mediaRef.current!.duration || 0
+      }));
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const currentUser = {
+    id: isTeacher ? 'teacher-1' : 'student-1',
+    role: isTeacher ? 'teacher' as const : 'student' as const,
+    name: isTeacher ? 'Teacher' : studentName
   };
 
   return (
-    <div className="h-full" style={{ backgroundColor: '#FBFBFB' }}>
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-        <TabsList className="grid w-full grid-cols-4" style={{ 
-          backgroundColor: 'rgba(232, 249, 255, 0.6)', 
-          border: '1px solid rgba(196, 217, 255, 0.4)'
-        }}>
-          <TabsTrigger 
-            value="whiteboard" 
-            className="flex items-center gap-2 transition-all duration-300"
-            style={{ color: '#4F46E5' }}
-          >
-            <PenTool size={16} />
-            Whiteboard
-          </TabsTrigger>
-          <TabsTrigger 
-            value="content" 
-            className="flex items-center gap-2 transition-all duration-300"
-            style={{ color: '#4F46E5' }}
-          >
-            <Upload size={16} />
-            Content Library
-          </TabsTrigger>
-          <TabsTrigger 
-            value="lesson-viewer" 
-            className="flex items-center gap-2 transition-all duration-300"
-            style={{ color: '#4F46E5' }}
-          >
-            <BookOpen size={16} />
-            Lesson
-            {isGeneratingSlides && <Loader2 className="h-4 w-4 animate-spin ml-1" />}
-          </TabsTrigger>
-          <TabsTrigger 
-            value="assignments" 
-            className="flex items-center gap-2 transition-all duration-300"
-            style={{ color: '#4F46E5' }}
-          >
-            <Gamepad2 size={16} />
-            Assignments
-          </TabsTrigger>
-        </TabsList>
-
-        <div className="flex-1 overflow-hidden">
-          <TabsContent value="whiteboard" className="h-full m-0">
-            <div className="h-full relative">
-              <EnhancedWhiteboardToolbar
-                activeTool={activeTool}
-                setActiveTool={setActiveTool}
-                color={color}
-                setColor={setColor}
-                strokeWidth={strokeWidth}
-                setStrokeWidth={setStrokeWidth}
-                activeShape={activeShape}
-                setActiveShape={setActiveShape}
-              />
-              <div className="h-full pt-16">
-                <EnhancedWhiteboardCanvas
-                  activeTool={activeTool}
-                  color={color}
-                  strokeWidth={strokeWidth}
-                  embeddedContent={embeddedContent}
-                  onRemoveEmbeddedContent={handleRemoveEmbeddedContent}
-                />
+    <div className="h-full flex flex-col bg-white">
+      {/* Header */}
+      <div className="flex-shrink-0 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border-b">
+        <div className="flex items-center justify-between">
+          {/* Student Progress (visible to both teacher and student) */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-white font-bold text-sm">
+                {studentProgress.level}
+              </div>
+              <div>
+                <p className="text-sm font-medium">{studentName}</p>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>{studentProgress.xp} XP</span>
+                  <Separator orientation="vertical" className="h-3" />
+                  <span>{studentProgress.streak} day streak</span>
+                </div>
               </div>
             </div>
-          </TabsContent>
 
-          <TabsContent value="content" className="h-full m-0">
-            <div className="h-full">
-              <EnhancedContentLibrary
-                contentItems={contentItems}
-                selectedContent={selectedContent}
-                onSelectContent={setSelectedContent}
-                onAddToWhiteboard={addContentToWhiteboard}
-                onLoadLesson={handleLoadLesson}
-                currentUser={currentUser || { id: 'default', role: isTeacher ? 'teacher' : 'student', name: studentName }}
-              />
+            {/* Quick Stats */}
+            <div className="flex items-center gap-3 text-xs">
+              <Badge variant="secondary" className="bg-green-100 text-green-700">
+                <Trophy size={10} className="mr-1" />
+                {studentProgress.badges.length} badges
+              </Badge>
+              <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                <Target size={10} className="mr-1" />
+                {studentProgress.completedActivities} activities
+              </Badge>
             </div>
-          </TabsContent>
+          </div>
 
-          <TabsContent value="lesson-viewer" className="h-full m-0">
-            <div className="h-full">
-              {currentLessonSlides ? (
-                <div className="h-full flex flex-col">
-                  <div className="p-4 border-b flex items-center justify-between">
-                    <h2 className="text-xl font-semibold">{currentLessonTitle}</h2>
-                    <div className="flex items-center gap-3">
-                      <div className="text-sm text-muted-foreground">
-                        {currentLessonSlides?.total_slides || 0} interactive slides
+          {/* Teacher Controls */}
+          {isTeacher && (
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => awardPoints(10, 'Good work')}
+                className="text-xs"
+              >
+                <Award size={12} className="mr-1" />
+                Award +10 XP
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setIsUploadDialogOpen(true)}
+                className="text-xs"
+              >
+                <Plus size={12} className="mr-1" />
+                Add Content
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 min-h-0">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+          <TabsList className="grid grid-cols-3 mx-4 mt-4">
+            <TabsTrigger value="whiteboard" className="flex items-center gap-2">
+              <Palette size={16} />
+              Whiteboard
+            </TabsTrigger>
+            <TabsTrigger value="content" className="flex items-center gap-2">
+              <BookOpen size={16} />
+              Content
+            </TabsTrigger>
+            <TabsTrigger value="library" className="flex items-center gap-2">
+              <Sparkles size={16} />
+              Library
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Whiteboard Tab */}
+          <TabsContent value="whiteboard" className="flex-1 min-h-0 mt-4">
+            <div className="h-full px-4 pb-4">
+              <Card className="h-full">
+                <CardContent className="p-0 h-full flex flex-col">
+                  {/* Whiteboard Toolbar */}
+                  <div className="flex items-center justify-between p-3 border-b bg-muted/20">
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1 bg-background rounded-md p-1">
+                        <Button
+                          size="sm"
+                          variant={activeTool === "pencil" ? "default" : "ghost"}
+                          onClick={() => setActiveTool("pencil")}
+                          className="h-8 w-8 p-0"
+                        >
+                          <PenTool size={14} />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={activeTool === "eraser" ? "default" : "ghost"}
+                          onClick={() => setActiveTool("eraser")}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Eraser size={14} />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={activeTool === "text" ? "default" : "ghost"}
+                          onClick={() => setActiveTool("text")}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Type size={14} />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={activeTool === "highlighter" ? "default" : "ghost"}
+                          onClick={() => setActiveTool("highlighter")}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Highlighter size={14} />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant={activeTool === "shape" ? "default" : "ghost"}
+                          onClick={() => setActiveTool("shape")}
+                          className="h-8 w-8 p-0"
+                        >
+                          <Square size={14} />
+                        </Button>
                       </div>
-                      <Button
-                        onClick={loadGreetingsDeck}
-                        variant="outline"
-                        size="sm"
-                        className="gap-2"
-                      >
-                        <Wand2 className="h-4 w-4" />
-                        Load Greetings (Quick)
+
+                      <Separator orientation="vertical" className="h-6" />
+
+                      <input
+                        type="color"
+                        value={color}
+                        onChange={(e) => setColor(e.target.value)}
+                        className="w-8 h-8 rounded border cursor-pointer"
+                      />
+
+                      <Select value={toolSettings.strokeWidth.toString()} onValueChange={(value) => setToolSettings(prev => ({ ...prev, strokeWidth: parseInt(value) }))}>
+                        <SelectTrigger className="w-16 h-8">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">1px</SelectItem>
+                          <SelectItem value="2">2px</SelectItem>
+                          <SelectItem value="4">4px</SelectItem>
+                          <SelectItem value="8">8px</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" variant="outline" onClick={clearCanvas}>
+                        <Trash2 size={14} className="mr-1" />
+                        Clear
                       </Button>
-                      <Button
-                        onClick={generateGreetingsPPP}
-                        disabled={isGeneratingGreetingsPPP}
-                        variant="default"
-                        size="sm"
-                        className="gap-2"
-                      >
-                        {isGeneratingGreetingsPPP ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Wand2 className="h-4 w-4" />
-                        )}
-                        {isGeneratingGreetingsPPP ? 'Generating...' : 'Generate Greetings (PPP, 25 slides)'}
-                      </Button>
-                      <Button
-                        onClick={regenerateWithAI}
-                        disabled={isRegeneratingWithAI}
-                        variant="secondary"
-                        size="sm"
-                        className="gap-2"
-                      >
-                        {isRegeneratingWithAI ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <BookOpen className="h-4 w-4" />
-                        )}
-                        {isRegeneratingWithAI ? 'Generating...' : 'Regenerate with AI (PPP)'}
-                      </Button>
-                      <Button
-                        onClick={async () => {
-                          const { sampleInteractiveSlides } = await import('@/data/sampleSlides');
-                          setCurrentLessonSlides(sampleInteractiveSlides);
-                          setCurrentLessonTitle('Interactive Demo Lesson');
-                          console.log('🎮 Loaded sample interactive slides:', sampleInteractiveSlides);
-                        }}
-                        variant="outline"
-                        size="sm"
-                      >
-                        Load Demo Slides
+                      <Button size="sm" variant="outline" onClick={downloadCanvas}>
+                        <Download size={14} className="mr-1" />
+                        Save
                       </Button>
                     </div>
                   </div>
-                  <div className="flex-1">
-                    <LessonSlideViewer 
-                      slides={currentLessonSlides} 
-                      title={currentLessonTitle}
-                      lessonId={selectedContent?.id}
-                      studentId={currentUser?.id}
-                      isTeacher={isTeacher}
+
+                  {/* Whiteboard Canvas */}
+                  <div className="flex-1 relative bg-white">
+                    <WhiteboardCanvas 
+                      pageId={activeWhiteboardTab}
+                      activeTool={activeTool}
+                      color={color}
+                      isCollaborative={true}
+                      canvasRef={canvasRef}
                     />
+                    
+                    {/* Render embedded games */}
+                    {embeddedGames[activeWhiteboardTab]?.map((game) => (
+                      <div
+                        key={game.id}
+                        className="absolute border-2 border-blue-300 rounded-lg overflow-hidden bg-white shadow-lg"
+                        style={{
+                          left: game.x,
+                          top: game.y,
+                          width: game.width,
+                          height: game.height
+                        }}
+                      >
+                        <div className="flex items-center justify-between p-2 bg-blue-50 border-b text-xs">
+                          <span className="font-medium truncate">{game.title}</span>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              setEmbeddedGames(prev => ({
+                                ...prev,
+                                [activeWhiteboardTab]: prev[activeWhiteboardTab]?.filter(g => g.id !== game.id) || []
+                              }));
+                            }}
+                            className="h-5 w-5 p-0 hover:bg-red-100"
+                          >
+                            <X size={10} />
+                          </Button>
+                        </div>
+                        {game.isBlocked ? (
+                          <div className="h-full flex items-center justify-center bg-gray-50 text-gray-500 text-sm">
+                            Content blocked by browser
+                          </div>
+                        ) : (
+                          <iframe
+                            src={game.url}
+                            className="w-full h-full border-0"
+                            onError={() => {
+                              setEmbeddedGames(prev => ({
+                                ...prev,
+                                [activeWhiteboardTab]: prev[activeWhiteboardTab]?.map(g => 
+                                  g.id === game.id ? { ...g, isBlocked: true } : g
+                                ) || []
+                              }));
+                            }}
+                          />
+                        )}
+                      </div>
+                    ))}
                   </div>
-                </div>
+
+                  {/* Whiteboard Tabs */}
+                  <div className="flex items-center justify-center p-2 border-t bg-muted/20">
+                    <div className="flex items-center gap-1">
+                      {['page1', 'page2', 'page3'].map((pageId) => (
+                        <Button
+                          key={pageId}
+                          size="sm"
+                          variant={activeWhiteboardTab === pageId ? "default" : "ghost"}
+                          onClick={() => setActiveWhiteboardTab(pageId)}
+                          className="h-8 px-3 text-xs"
+                        >
+                          Page {pageId.slice(-1)}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Content Tab */}
+          <TabsContent value="content" className="flex-1 min-h-0 mt-4">
+            <div className="h-full px-4 pb-4">
+              {selectedContent ? (
+                <Card className="h-full">
+                  <CardContent className="p-0 h-full flex flex-col">
+                    {/* Content Header */}
+                    <div className="flex items-center justify-between p-4 border-b">
+                      <div className="flex items-center gap-3">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setSelectedContent(null)}
+                        >
+                          <ArrowLeft size={16} />
+                        </Button>
+                        <div>
+                          <h3 className="font-semibold">{selectedContent.title}</h3>
+                          <p className="text-sm text-muted-foreground capitalize">
+                            {selectedContent.type} • {selectedContent.level}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        {isTeacher && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDeleteContent(selectedContent)}
+                          >
+                            <Trash2 size={14} className="mr-1" />
+                            Delete
+                          </Button>
+                        )}
+                        <Button size="sm" variant="outline">
+                          <Download size={14} className="mr-1" />
+                          Download
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Content Display */}
+                    <div className="flex-1 p-4 overflow-auto">
+                      {selectedContent.type === 'video' && selectedContent.url && (
+                        <div className="space-y-4">
+                          <video
+                            ref={mediaRef as React.RefObject<HTMLVideoElement>}
+                            src={selectedContent.url}
+                            className="w-full rounded-lg"
+                            onTimeUpdate={handleMediaTimeUpdate}
+                            onLoadedMetadata={handleMediaTimeUpdate}
+                          />
+                          
+                          <div className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={toggleMediaPlayback}
+                              className="h-8 w-8 p-0"
+                            >
+                              {mediaPlayerState.isPlaying ? <Pause size={16} /> : <Play size={16} />}
+                            </Button>
+                            
+                            <div className="flex-1">
+                              <div className="w-full bg-gray-200 rounded-full h-1">
+                                <div 
+                                  className="bg-blue-600 h-1 rounded-full transition-all"
+                                  style={{ 
+                                    width: `${mediaPlayerState.duration > 0 ? (mediaPlayerState.currentTime / mediaPlayerState.duration) * 100 : 0}%` 
+                                  }}
+                                />
+                              </div>
+                            </div>
+                            
+                            <span className="text-xs text-muted-foreground">
+                              {formatTime(mediaPlayerState.currentTime)} / {formatTime(mediaPlayerState.duration)}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedContent.type === 'audio' && selectedContent.url && (
+                        <div className="space-y-4">
+                          <div className="p-8 bg-gradient-to-br from-purple-100 to-blue-100 rounded-lg text-center">
+                            <Music size={48} className="mx-auto mb-4 text-purple-600" />
+                            <h4 className="font-medium">{selectedContent.title}</h4>
+                          </div>
+                          
+                          <audio
+                            ref={mediaRef as React.RefObject<HTMLAudioElement>}
+                            src={selectedContent.url}
+                            onTimeUpdate={handleMediaTimeUpdate}
+                            onLoadedMetadata={handleMediaTimeUpdate}
+                          />
+                          
+                          <div className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={toggleMediaPlayback}
+                              className="h-8 w-8 p-0"
+                            >
+                              {mediaPlayerState.isPlaying ? <Pause size={16} /> : <Play size={16} />}
+                            </Button>
+                            
+                            <div className="flex-1">
+                              <div className="w-full bg-gray-200 rounded-full h-1">
+                                <div 
+                                  className="bg-blue-600 h-1 rounded-full transition-all"
+                                  style={{ 
+                                    width: `${mediaPlayerState.duration > 0 ? (mediaPlayerState.currentTime / mediaPlayerState.duration) * 100 : 0}%` 
+                                  }}
+                                />
+                              </div>
+                            </div>
+                            
+                            <span className="text-xs text-muted-foreground">
+                              {formatTime(mediaPlayerState.currentTime)} / {formatTime(mediaPlayerState.duration)}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedContent.type === 'image' && selectedContent.url && (
+                        <div className="text-center">
+                          <img 
+                            src={selectedContent.url} 
+                            alt={selectedContent.title}
+                            className="max-w-full max-h-96 mx-auto rounded-lg shadow-md"
+                          />
+                        </div>
+                      )}
+
+                      {selectedContent.type === 'text' && selectedContent.content && (
+                        <div className="prose max-w-none">
+                          <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                            {selectedContent.content}
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedContent.type === 'url' && selectedContent.url && (
+                        <div className="h-full">
+                          <iframe 
+                            src={selectedContent.url}
+                            className="w-full h-full border-0 rounded-lg"
+                            title={selectedContent.title}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
               ) : (
                 <div className="h-full flex items-center justify-center">
                   <div className="text-center">
-                    <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-medium mb-2">No Lesson Selected</h3>
+                    <BookOpen size={48} className="mx-auto mb-4 text-muted-foreground" />
+                    <h3 className="text-lg font-medium mb-2">No Content Selected</h3>
                     <p className="text-muted-foreground mb-4">
-                      Select a lesson from the Content Library to view interactive slides
+                      Choose content from the library or upload new materials
                     </p>
+                    {isTeacher && (
+                      <Button onClick={() => setIsUploadDialogOpen(true)}>
+                        <Plus size={16} className="mr-2" />
+                        Add Content
+                      </Button>
+                    )}
                   </div>
                 </div>
               )}
             </div>
           </TabsContent>
 
-          <TabsContent value="assignments" className="h-full m-0">
-            <div className="h-full">
-              {isTeacher ? (
-                <TeacherAssignmentPanel />
-              ) : (
-                <StudentAssignmentPanel studentName={studentName} />
-              )}
+          {/* Library Tab */}
+          <TabsContent value="library" className="flex-1 min-h-0 mt-4">
+            <div className="h-full px-4 pb-4">
+              <EnhancedContentLibrary
+                contentItems={contentItems}
+                selectedContent={selectedContent}
+                onSelectContent={handleSelectContent}
+                onPreviewFile={handlePreviewContent}
+                onDeleteFile={handleDeleteContent}
+                onAddToWhiteboard={handleAddToWhiteboard}
+                onLoadLesson={handleLoadLesson}
+                currentUser={currentUser}
+              />
             </div>
           </TabsContent>
-        </div>
-      </Tabs>
+        </Tabs>
+      </div>
 
-      <EnhancedUploadDialog
-        isOpen={isUploadDialogOpen}
-        onClose={closeUploadDialog}
-        onUpload={handleEnhancedUpload}
-      />
+      {/* Upload Dialog */}
+      <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add New Content</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="title">Title</Label>
+              <Input
+                id="title"
+                value={newContentTitle}
+                onChange={(e) => setNewContentTitle(e.target.value)}
+                placeholder="Enter content title..."
+              />
+            </div>
 
-      <SoundButton>
-        🔊
-      </SoundButton>
+            <div>
+              <Label htmlFor="type">Type</Label>
+              <Select value={newContentType} onValueChange={(value: ContentItem['type']) => setNewContentType(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="text">Text</SelectItem>
+                  <SelectItem value="url">Website/URL</SelectItem>
+                  <SelectItem value="video">Video</SelectItem>
+                  <SelectItem value="audio">Audio</SelectItem>
+                  <SelectItem value="image">Image</SelectItem>
+                  <SelectItem value="pdf">PDF</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {newContentType !== 'text' && (
+              <div>
+                <Label htmlFor="url">URL</Label>
+                <Input
+                  id="url"
+                  value={newContentUrl}
+                  onChange={(e) => setNewContentUrl(e.target.value)}
+                  placeholder="Enter URL..."
+                />
+              </div>
+            )}
+
+            {newContentType === 'text' && (
+              <div>
+                <Label htmlFor="content">Content</Label>
+                <Textarea
+                  id="content"
+                  value={newContentText}
+                  onChange={(e) => setNewContentText(e.target.value)}
+                  placeholder="Enter text content..."
+                  rows={4}
+                />
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="level">Level (optional)</Label>
+                <Select value={newContentLevel} onValueChange={setNewContentLevel}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select level..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="A1">A1 - Beginner</SelectItem>
+                    <SelectItem value="A2">A2 - Elementary</SelectItem>
+                    <SelectItem value="B1">B1 - Intermediate</SelectItem>
+                    <SelectItem value="B2">B2 - Upper-Intermediate</SelectItem>
+                    <SelectItem value="C1">C1 - Advanced</SelectItem>
+                    <SelectItem value="C2">C2 - Proficient</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="tags">Tags (optional)</Label>
+                <Input
+                  id="tags"
+                  value={newContentTags}
+                  onChange={(e) => setNewContentTags(e.target.value)}
+                  placeholder="grammar, vocabulary..."
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsUploadDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleAddContent}>
+                Add Content
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
