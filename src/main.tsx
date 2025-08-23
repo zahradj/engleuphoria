@@ -24,7 +24,13 @@ const setDocLangDir = (lng: string) => {
   document.documentElement.dir = lng === 'ar' ? 'rtl' : 'ltr';
 };
 setDocLangDir(i18n.language);
+
 i18n.on('languageChanged', setDocLangDir);
+
+// Apply professional theme globally for dashboards
+if (typeof document !== 'undefined') {
+  document.documentElement.setAttribute('data-theme', 'professional');
+}
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

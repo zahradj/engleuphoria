@@ -80,6 +80,11 @@ export default {
 				'text-muted': 'hsl(var(--text-muted))',
 				'text-subtle': 'hsl(var(--text-subtle))',
 				
+				// Dashboard tokens
+				'dashboard-bg': 'hsl(var(--dashboard-bg))',
+				'dashboard-surface': 'hsl(var(--dashboard-surface))',
+				'dashboard-border': 'hsl(var(--dashboard-border))',
+				
 				// State colors
 				success: {
 					DEFAULT: 'hsl(var(--success))',
