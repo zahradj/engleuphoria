@@ -3,9 +3,9 @@ import { useEffect } from 'react';
 export function useTheme() {
   useEffect(() => {
     const root = document.documentElement;
-    // Always use pastel-sky theme
-    root.setAttribute('data-theme', 'pastel-sky');
+    // Use professional theme for clean dashboards
+    root.setAttribute('data-theme', 'professional');
   }, []);
 
-  return { theme: 'pastel-sky', setTheme: () => {} };
+  return { theme: 'professional', setTheme: () => {} };
 }

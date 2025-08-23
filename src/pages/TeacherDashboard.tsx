@@ -121,7 +121,7 @@ const TeacherDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-dashboard-bg">
       {/* Mobile Navigation */}
       <div className="md:hidden">
         <MobileTeacherNav 
@@ -130,7 +130,7 @@ const TeacherDashboard = () => {
           onLogout={signOut}
           teacherName={teacherName}
         />
-        <main className="p-4 bg-gradient-to-br from-surface via-surface-2 to-muted">
+        <main className="p-4 bg-dashboard-bg">
           {renderTabContent()}
         </main>
       </div>
@@ -138,7 +138,7 @@ const TeacherDashboard = () => {
       {/* Desktop Layout with Clean Workspace Mode */}
       <div className="hidden md:block">
         <SidebarProvider defaultOpen={false}>
-          <div className="flex min-h-screen w-full bg-background">
+          <div className="flex min-h-screen w-full bg-dashboard-bg">
             <EnhancedTeacherSidebar 
               activeTab={activeTab} 
               setActiveTab={handleTabChange}
@@ -147,13 +147,9 @@ const TeacherDashboard = () => {
             
             <SidebarInset className="flex-1">
               <CleanWorkspaceHeader teacherName={teacherName} />
-              <main className="flex-1 overflow-y-auto p-6 bg-gradient-to-br from-surface via-surface-2 to-muted relative">
-                {/* Subtle gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
-                <div className="relative z-10">
-                  <QuickActions />
-                  {renderTabContent()}
-                </div>
+              <main className="flex-1 overflow-y-auto p-6 bg-dashboard-bg">
+                <QuickActions />
+                {renderTabContent()}
               </main>
             </SidebarInset>
           </div>

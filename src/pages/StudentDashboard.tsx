@@ -139,7 +139,7 @@ const StudentDashboard = () => {
   // Show loading state
   if (authLoading || !isInitialized) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FBFBFB' }}>
+      <div className="min-h-screen flex items-center justify-center bg-dashboard-bg">
         <LoadingSpinner size="lg" message="Loading your dashboard..." />
       </div>
     );
@@ -148,7 +148,7 @@ const StudentDashboard = () => {
   return (
     <ErrorBoundary>
       <SidebarProvider defaultOpen={false}>
-        <div className="flex min-h-screen w-full" style={{ backgroundColor: '#FBFBFB' }}>
+        <div className="flex min-h-screen w-full bg-dashboard-bg">
           <StudentSidebar 
             activeTab={activeTab} 
             setActiveTab={setActiveTab}
@@ -163,7 +163,7 @@ const StudentDashboard = () => {
               hasProfile={hasProfile}
               studentProfile={studentProfile}
             />
-            <main className="flex-1 overflow-y-auto p-6" style={{ backgroundColor: '#E8F9FF' }}>
+            <main className="flex-1 overflow-y-auto p-6 bg-dashboard-bg">
               <SidebarTrigger />
               <QuickActions />
               {renderActiveTab()}

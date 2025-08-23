@@ -1,0 +1,109 @@
+/* Professional Theme for Clean, Modern Dashboards */
+
+[data-theme="professional"] {
+  /* Primary - Professional Blue */
+  --primary-50: 214 100% 97%;    /* #F0F6FF */
+  --primary-100: 214 95% 93%;    /* #E1EFFF */
+  --primary-200: 214 96% 87%;    /* #C3DFFF */
+  --primary-300: 214 94% 77%;    /* #96C7FF */
+  --primary-400: 214 91% 64%;    /* #60A5FA */
+  --primary-500: 214 88% 51%;    /* #3B82F6 */
+  --primary-600: 214 93% 40%;    /* #1D4ED8 */
+  --primary-700: 214 96% 32%;    /* #1E40AF */
+  --primary-800: 214 93% 25%;    /* #1E3A8A */
+  --primary-900: 214 88% 17%;    /* #172554 */
+
+  /* Accent - Professional Teal */
+  --accent-50: 166 76% 97%;      /* #F0FDFA */
+  --accent-100: 167 85% 89%;     /* #CCFBF1 */
+  --accent-200: 168 84% 78%;     /* #99F6E4 */
+  --accent-300: 171 77% 64%;     /* #5EEAD4 */
+  --accent-400: 172 66% 50%;     /* #2DD4BF */
+  --accent-500: 173 80% 40%;     /* #14B8A6 */
+  --accent-600: 175 84% 32%;     /* #0D9488 */
+  --accent-700: 175 77% 26%;     /* #0F766E */
+  --accent-800: 176 69% 22%;     /* #115E59 */
+  --accent-900: 176 61% 19%;     /* #134E4A */
+
+  /* Neutral - Professional Slate */
+  --neutral-50: 210 40% 98%;     /* #F8FAFC */
+  --neutral-100: 210 40% 96%;    /* #F1F5F9 */
+  --neutral-200: 214 32% 91%;    /* #E2E8F0 */
+  --neutral-300: 213 27% 84%;    /* #CBD5E1 */
+  --neutral-400: 215 20% 65%;    /* #94A3B8 */
+  --neutral-500: 215 16% 47%;    /* #64748B */
+  --neutral-600: 215 19% 35%;    /* #475569 */
+  --neutral-700: 215 25% 27%;    /* #334155 */
+  --neutral-800: 217 33% 17%;    /* #1E293B */
+  --neutral-900: 222 84% 5%;     /* #0F172A */
+
+  /* Surface tokens - Clean backgrounds */
+  --bg: var(--neutral-50);
+  --surface: 0 0% 100%;          /* Pure white cards */
+  --surface-2: var(--neutral-100); /* Subtle elevation */
+  --border: var(--neutral-200);
+  --muted: var(--neutral-100);
+  --text: var(--neutral-900);
+  --text-muted: var(--neutral-600);
+  --text-subtle: var(--neutral-500);
+
+  /* State colors - Professional palette */
+  --success: 142 71% 45%;        /* #10B981 */
+  --success-soft: 142 76% 94%;   /* #ECFDF5 */
+  --success-on: 0 0% 100%;
+
+  --info: 198 93% 60%;           /* #0EA5E9 */
+  --info-soft: 204 94% 94%;      /* #F0F9FF */
+  --info-on: 0 0% 100%;
+
+  --warning: 45 93% 58%;         /* #F59E0B */
+  --warning-soft: 48 100% 96%;   /* #FFFBEB */
+  --warning-on: 0 0% 100%;
+
+  --error: 0 84% 60%;            /* #EF4444 */
+  --error-soft: 0 93% 94%;       /* #FEF2F2 */
+  --error-on: 0 0% 100%;
+
+  /* Focus ring */
+  --focus-ring: var(--primary-600);
+
+  /* Dashboard specific */
+  --dashboard-bg: var(--neutral-50);
+  --dashboard-surface: var(--surface);
+  --dashboard-border: var(--neutral-200);
+  --dashboard-shadow: 0 1px 3px 0 hsl(var(--neutral-900) / 0.1), 0 1px 2px -1px hsl(var(--neutral-900) / 0.1);
+  --dashboard-shadow-lg: 0 10px 15px -3px hsl(var(--neutral-900) / 0.1), 0 4px 6px -4px hsl(var(--neutral-900) / 0.1);
+  
+  /* Chart palette */
+  --chart-1: var(--primary-500);
+  --chart-2: var(--accent-500);
+  --chart-3: var(--primary-400);
+  --chart-4: var(--accent-400);
+  --chart-5: var(--primary-300);
+  --chart-6: var(--accent-300);
+}
+
+[data-theme="professional"].dark {
+  /* Dark mode adjustments */
+  --bg: var(--neutral-900);
+  --surface: var(--neutral-800);
+  --surface-2: var(--neutral-700);
+  --border: var(--neutral-700);
+  --muted: var(--neutral-800);
+  --text: var(--neutral-50);
+  --text-muted: var(--neutral-400);
+  --text-subtle: var(--neutral-500);
+
+  /* Dashboard dark mode */
+  --dashboard-bg: var(--neutral-900);
+  --dashboard-surface: var(--neutral-800);
+  --dashboard-border: var(--neutral-700);
+  --dashboard-shadow: 0 1px 3px 0 hsl(0 0% 0% / 0.3), 0 1px 2px -1px hsl(0 0% 0% / 0.3);
+  --dashboard-shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.3), 0 4px 6px -4px hsl(0 0% 0% / 0.3);
+
+  /* Adjusted state colors for dark mode */
+  --success: 142 71% 55%;
+  --info: 198 93% 70%;
+  --warning: 45 93% 68%;
+  --error: 0 84% 70%;
+}
