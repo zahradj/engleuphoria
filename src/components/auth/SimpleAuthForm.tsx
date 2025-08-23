@@ -48,6 +48,43 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const createAdminAccount = async () => {
+    setLoading(true);
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { data, error } = await supabase.functions.invoke('admin-create', {
+        body: {
+          fullName: 'fatima zahra djaanine',
+          email: 'f.zahra.djaanine@engleuphoria.com',
+          password: 'ENGLEUPHORIA_ADMIN_2024',
+          secretKey: 'ADMIN_SECRET_KEY_2024' // Using a fixed secret for demo
+        }
+      });
+
+      if (error) {
+        toast({
+          title: "Admin Creation Failed",
+          description: error.message || "Failed to create admin account.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Admin Account Created",
+          description: "Admin account created successfully! You can now login.",
+        });
+      }
+    } catch (err) {
+      console.error('Admin creation error:', err);
+      toast({
+        title: "Creation Error",
+        description: "Failed to create admin account.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   React.useEffect(() => {
     if (user) {
       const dashboardMap: Record<string, string> = {
@@ -594,7 +631,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
 
                   <div className="text-center text-sm space-y-4">
                     {mode === 'login' && (
-                      <div>
+                      <div className="space-y-2">
                         <button
                           type="button"
                           onClick={() => setShowForgotPassword(true)}
@@ -602,6 +639,27 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
                         >
                           Forgot password?
                         </button>
+                        <div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={createAdminAccount}
+                            disabled={loading}
+                            className="text-xs bg-gradient-to-r from-red-500 to-orange-500 text-white border-0 hover:shadow-lg hover:shadow-red-500/25"
+                          >
+                            {loading ? (
+                              <>
+                                <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                                Creating Admin...
+                              </>
+                            ) : (
+                              <>
+                                <Shield className="mr-2 h-3 w-3" />
+                                Create Admin Account
+                              </>
+                            )}
+                          </Button>
+                        </div>
                       </div>
                     )}
 
