@@ -11,13 +11,32 @@ interface AuthButtonsProps {
 export const AuthButtons = ({ onLogin, onSignUp }: AuthButtonsProps) => {
   const { t } = useTranslation();
 
+  const handleLoginClick = () => {
+    console.log('🔑 Login button clicked');
+    onLogin();
+  };
+
+  const handleSignUpClick = () => {
+    console.log('📝 Sign Up button clicked');
+    onSignUp();
+  };
+
   return (
     <>
-      <Button variant="ghost" onClick={onLogin}>
+      <Button 
+        variant="ghost" 
+        onClick={handleLoginClick}
+        className="pointer-events-auto relative z-10 cursor-pointer"
+        style={{ pointerEvents: 'auto' }}
+      >
         {t('logIn', { defaultValue: 'Log In' })}
       </Button>
       
-      <Button onClick={onSignUp} className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
+      <Button 
+        onClick={handleSignUpClick} 
+        className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 pointer-events-auto relative z-10 cursor-pointer"
+        style={{ pointerEvents: 'auto' }}
+      >
         {t('signUp', { defaultValue: 'Sign Up' })}
       </Button>
     </>

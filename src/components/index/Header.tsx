@@ -13,11 +13,13 @@ export const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleSignUp = () => {
+    console.log('🚀 Navigate to signup called');
     navigate("/signup");
     setIsMobileMenuOpen(false);
   };
 
   const handleLogin = () => {
+    console.log('🔐 Navigate to login called');
     navigate("/login");
     setIsMobileMenuOpen(false);
   };
