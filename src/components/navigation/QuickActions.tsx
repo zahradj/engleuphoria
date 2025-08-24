@@ -93,30 +93,7 @@ export const QuickActions: React.FC = memo(() => {
 
   const actions = getQuickActions();
 
-  if (actions.length === 0) return null;
-
-  return (
-    <Card className="mb-6">
-      <CardContent className="pt-6">
-        <h3 className="text-sm font-medium mb-3">Quick Actions</h3>
-        <div className="flex flex-wrap gap-2">
-          {actions.map((action, index) => (
-            <Button
-              key={index}
-              variant={action.variant || 'outline'}
-              size="sm"
-              onClick={action.action}
-              className="flex items-center gap-2"
-              aria-label={`${action.label} - Quick action`}
-            >
-              <action.icon className="h-4 w-4" aria-hidden="true" />
-              {action.label}
-            </Button>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
+  return null;
 });
 
 QuickActions.displayName = 'QuickActions';
