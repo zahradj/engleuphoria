@@ -42,27 +42,29 @@ export const MobileMenu = ({ isOpen, onClose, onLogin, onSignUp }: MobileMenuPro
         </Link>
         
         <div className="pt-4 border-t space-y-3">
-          <Button 
-            variant="outline" 
-            onClick={() => {
-              console.log('📱 Mobile login button clicked');
-              onLogin();
-            }}
-            className="w-full pointer-events-auto cursor-pointer"
-            style={{ pointerEvents: 'auto' }}
-          >
-            {t('logIn', { defaultValue: 'Log In' })}
-          </Button>
-          <Button 
-            onClick={() => {
-              console.log('📱 Mobile signup button clicked');
-              onSignUp();
-            }}
-            className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 pointer-events-auto cursor-pointer"
-            style={{ pointerEvents: 'auto' }}
-          >
-            {t('signUp', { defaultValue: 'Sign Up' })}
-          </Button>
+          <Link to="/login" onClick={onClose} className="block">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                console.log('📱 Mobile login button clicked');
+              }}
+              className="w-full pointer-events-auto cursor-pointer"
+              style={{ pointerEvents: 'auto' }}
+            >
+              {t('logIn', { defaultValue: 'Log In' })}
+            </Button>
+          </Link>
+          <Link to="/signup" onClick={onClose} className="block">
+            <Button 
+              onClick={() => {
+                console.log('📱 Mobile signup button clicked');
+              }}
+              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 pointer-events-auto cursor-pointer"
+              style={{ pointerEvents: 'auto' }}
+            >
+              {t('signUp', { defaultValue: 'Sign Up' })}
+            </Button>
+          </Link>
         </div>
       </div>
     </div>
