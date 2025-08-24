@@ -10,6 +10,7 @@ import { Testimonials } from "@/components/index/Testimonials";
 import { FAQ } from "@/components/index/FAQ";
 import { CallToAction } from "@/components/index/CallToAction";
 import { PricingSection } from "@/components/index/PricingSection";
+import { PlacementTestSection } from "@/components/index/PlacementTestSection";
 import { LoginForm } from "@/components/index/LoginForm";
 import { AvatarForm } from "@/components/index/AvatarForm";
 import { Footer } from "@/components/index/Footer";
@@ -56,6 +57,7 @@ const Index = () => {
             <Testimonials />
             <FAQ />
             <PricingSection />
+            <PlacementTestSection />
             <CallToAction onStartClick={handleStart} />
           </>
         )}

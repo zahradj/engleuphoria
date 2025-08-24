@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Logo } from '@/components/Logo';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -274,6 +275,9 @@ export default function PlacementTest() {
   if (!testStarted) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4">
+        <div className="absolute top-6 left-6">
+          <Logo size="medium" />
+        </div>
         <div className="max-w-2xl mx-auto pt-20">
           <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
             <CardHeader className="text-center space-y-4">
@@ -339,6 +343,9 @@ export default function PlacementTest() {
   if (testCompleted && result) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4">
+        <div className="absolute top-6 left-6">
+          <Logo size="medium" />
+        </div>
         <div className="max-w-2xl mx-auto pt-10">
           <Card className="shadow-xl border-0 bg-white/80 backdrop-blur-sm">
             <CardHeader className="text-center space-y-4">
@@ -413,6 +420,9 @@ export default function PlacementTest() {
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4">
+      <div className="absolute top-6 left-6">
+        <Logo size="medium" />
+      </div>
       <div className="max-w-4xl mx-auto pt-6">
         {/* Header */}
         <div className="mb-6">
