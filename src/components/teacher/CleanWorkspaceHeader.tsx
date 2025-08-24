@@ -3,6 +3,7 @@ import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SidebarTrigger, useSidebar } from "@/components/ui/sidebar";
 import { Badge } from "@/components/ui/badge";
+import { Logo } from "@/components/Logo";
 
 interface CleanWorkspaceHeaderProps {
   teacherName: string;
@@ -18,6 +19,8 @@ export const CleanWorkspaceHeader = ({ teacherName }: CleanWorkspaceHeaderProps)
           <Menu className="h-4 w-4 text-muted-foreground" />
           <span className="sr-only">Toggle Menu</span>
         </SidebarTrigger>
+        
+        <Logo size="small" className="mx-4" />
         
         <div className="flex-1">
           <h1 className="text-base font-semibold text-foreground">

@@ -23,8 +23,9 @@ import { WithdrawalsTab } from "@/components/teacher/WithdrawalsTab";
 import { QuickActions } from "@/components/navigation/QuickActions";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { DailyRoutinesSlides } from "@/components/classroom/lesson-slides/DailyRoutinesSlides";
+import { PlacementTestLibrary } from "@/components/classroom/content/PlacementTestLibrary";
 
-type TabType = 'dashboard' | 'profile' | 'calendar' | 'students' | 'reading-library' | 'history' | 'assignments' | 'resources' | 'messages' | 'earnings' | 'withdrawals' | 'reports' | 'settings' | 'slides';
+type TabType = 'dashboard' | 'profile' | 'calendar' | 'students' | 'reading-library' | 'history' | 'assignments' | 'resources' | 'messages' | 'earnings' | 'withdrawals' | 'reports' | 'settings' | 'slides' | 'placement-test';
 
 const TeacherDashboard = () => {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
@@ -68,6 +69,8 @@ const TeacherDashboard = () => {
           return <ProfileSetupTab teacherId={teacherId} />;
         case 'slides':
           return <DailyRoutinesSlides />;
+        case 'placement-test':
+          return <PlacementTestLibrary />;
         case 'calendar':
           return <EnhancedCalendarTab teacherId={teacherId} />;
         case 'students':

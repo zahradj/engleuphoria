@@ -34,6 +34,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/Logo";
 
 interface EnhancedTeacherSidebarProps {
   activeTab: string;
@@ -48,6 +49,7 @@ export const EnhancedTeacherSidebar = ({ activeTab, setActiveTab, onLogout }: En
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3, type: 'tab' },
     { id: 'profile', label: 'Profile', icon: User, type: 'tab' },
     { id: 'slides', label: 'Lesson Slides', icon: Presentation, type: 'tab' },
+    { id: 'placement-test', label: 'Placement Test', icon: GraduationCap, type: 'tab' },
     { id: 'calendar', label: 'Calendar', icon: Calendar, type: 'tab' },
     { id: 'students', label: 'Students', icon: Users, type: 'tab' },
     { id: 'reading-library', label: 'Reading Library', icon: Book, type: 'tab' },
@@ -76,9 +78,7 @@ export const EnhancedTeacherSidebar = ({ activeTab, setActiveTab, onLogout }: En
     >
       <SidebarHeader className="border-b border-border/40">
         <div className="flex items-center gap-2 px-4 py-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
-            <GraduationCap className="h-4 w-4 text-primary-foreground" />
-          </div>
+          <Logo size="small" />
           <div className="grid flex-1 text-left text-sm leading-tight">
             <span className="truncate font-semibold">Teacher Panel</span>
             <span className="truncate text-xs text-muted-foreground">Clean Workspace Mode</span>

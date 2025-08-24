@@ -37,6 +37,7 @@ export function MobileTeacherNav({ activeTab, setActiveTab, onLogout, teacherNam
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3, type: 'tab' },
     { id: 'ai-assistant', label: 'AI Curriculum', icon: Brain, type: 'tab' },
+    { id: 'placement-test', label: 'Placement Test', icon: GraduationCap, type: 'tab' },
     { id: 'calendar', label: 'Calendar', icon: Calendar, type: 'tab' },
     { id: 'students', label: 'Students', icon: Users, type: 'tab' },
     { id: 'reading-library', label: 'Reading Library', icon: Book, type: 'tab' },
