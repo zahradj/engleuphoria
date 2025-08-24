@@ -94,13 +94,24 @@ export const PlacementTestSection = () => {
                 </div>
               </div>
               
-              <Button 
-                size="lg" 
-                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
-                onClick={() => navigate('/placement-test')}
-              >
-                Start Placement Test
-              </Button>
+              <div className="space-y-3">
+                <Button 
+                  size="lg" 
+                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                  onClick={() => navigate('/placement-test')}
+                >
+                  Quick Placement Test
+                </Button>
+                
+                <Button 
+                  size="lg" 
+                  variant="outline"
+                  className="w-full border-2 border-purple-200 hover:bg-purple-50"
+                  onClick={() => navigate('/placement-test-2')}
+                >
+                  🚀 Full Adventure Test (A1→C2)
+                </Button>
+              </div>
               
               <p className="text-xs text-center text-muted-foreground">
                 No registration required • Completely free
