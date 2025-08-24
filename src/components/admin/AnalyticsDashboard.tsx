@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
+import { useAdminMetrics } from '@/hooks/admin/useAdminMetrics';
 import { 
   TrendingUp, 
   Users, 
@@ -16,11 +17,14 @@ import {
   Award,
   Activity,
   BarChart3,
-  PieChart
+  PieChart,
+  GraduationCap
 } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 
 export const AnalyticsDashboard = () => {
   const [timeRange, setTimeRange] = useState('week');
+  const { metrics, loading } = useAdminMetrics();
 
   const analytics = {
     userEngagement: {

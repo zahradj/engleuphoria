@@ -12,7 +12,7 @@ import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import StudentDashboard from "./pages/StudentDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
-import { AdminDashboard } from "./pages/AdminDashboard";
+import AdminDashboard from "../pages/AdminDashboard";
 import TeacherSignUp from "./pages/TeacherSignUp";
 import StudentSignUp from "./pages/StudentSignUp";
 import TeacherApplication from "./pages/TeacherApplication";

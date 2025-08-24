@@ -29,10 +29,12 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
     { id: "users", label: "Users", icon: Users },
     { id: "teachers", label: "Teachers", icon: Users },
     { id: "teacher-applications", label: "Teacher Applications", icon: FileText },
-    { id: "assignments", label: "Assignments", icon: File },
+    { id: "students", label: "Students", icon: Users },
     { id: "analytics", label: "Analytics", icon: TrendingUp },
-    { id: "moderation", label: "Moderation", icon: Mic },
-    { id: "reports", label: "Reports", icon: CreditCard },
+    { id: "library", label: "Library", icon: BookOpen },
+    { id: "payments", label: "Payments", icon: CreditCard },
+    { id: "generation", label: "Slide Generation", icon: FileText },
+    { id: "settings", label: "Settings", icon: Settings },
   ];
 
   return (

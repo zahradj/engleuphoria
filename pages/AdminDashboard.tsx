@@ -4,18 +4,21 @@ import { useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminHeader } from '@/components/admin/AdminHeader';
-import { AdminOverview } from '@/components/admin/AdminOverview';
+import { AdminOverviewTab } from '@/components/admin/AdminOverviewTab';
 import { UserManagement } from '@/components/admin/UserManagement';
-import { TeacherManagement } from '@/components/admin/TeacherManagement';
-import { TeacherAssignments } from '@/components/admin/TeacherAssignments';
+import { TeacherApplicationsTable } from '@/components/admin/TeacherApplicationsTable';
+import { ActiveTeachersTable } from '@/components/admin/ActiveTeachersTable';
+import { StudentManagement } from '@/components/admin/StudentManagement';
 import { AnalyticsDashboard } from '@/components/admin/AnalyticsDashboard';
-import { ContentModeration } from '@/components/admin/ContentModeration';
-import { ReportsGeneration } from '@/components/admin/ReportsGeneration';
+import { LibraryManager } from '@/components/admin/LibraryManager';
+import { PaymentsPanel } from '@/components/admin/PaymentsPanel';
+import { SettingsPanel } from '@/components/admin/SettingsPanel';
+import { SlideGenerationTab } from '@/components/admin/SlideGenerationTab';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
 
-type AdminTab = 'overview' | 'users' | 'teachers' | 'assignments' | 'analytics' | 'moderation' | 'reports';
+type AdminTab = 'overview' | 'users' | 'teachers' | 'teacher-applications' | 'students' | 'analytics' | 'library' | 'payments' | 'settings' | 'generation';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -51,21 +54,27 @@ const AdminDashboard = () => {
   const renderActiveTab = () => {
     switch (activeTab) {
       case 'overview':
-        return <AdminOverview />;
+        return <AdminOverviewTab />;
       case 'users':
         return <UserManagement />;
       case 'teachers':
-        return <TeacherManagement />;
-      case 'assignments':
-        return <TeacherAssignments />;
+        return <ActiveTeachersTable />;
+      case 'teacher-applications':
+        return <TeacherApplicationsTable />;
+      case 'students':
+        return <StudentManagement />;
       case 'analytics':
         return <AnalyticsDashboard />;
-      case 'moderation':
-        return <ContentModeration />;
-      case 'reports':
-        return <ReportsGeneration />;
+      case 'library':
+        return <LibraryManager />;
+      case 'payments':
+        return <PaymentsPanel />;
+      case 'settings':
+        return <SettingsPanel />;
+      case 'generation':
+        return <SlideGenerationTab />;
       default:
-        return <AdminOverview />;
+        return <AdminOverviewTab />;
     }
   };
 
@@ -87,7 +96,6 @@ const AdminDashboard = () => {
           <AdminSidebar 
             activeTab={activeTab} 
             onTabChange={handleTabChange}
-            permissions={permissions}
           />
         </div>
 
