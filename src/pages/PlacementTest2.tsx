@@ -223,10 +223,28 @@ export default function PlacementTest2() {
   };
 
   const handleOptionSelect = (optionId: string) => {
+    const slide = placementTest2.slides[currentSlide];
     setSelectedOptions(prev => ({
       ...prev,
-      [placementTest2.slides[currentSlide].id]: optionId
+      [slide.id]: optionId
     }));
+
+    // For MCQ slides, automatically trigger activity result
+    if (slide.type === 'accuracy_mcq' && slide.options) {
+      const selectedOption = slide.options.find(opt => opt.id === optionId);
+      const isCorrect = selectedOption?.isCorrect || false;
+      
+      const result: ActivityResult = {
+        itemId: slide.id,
+        correct: isCorrect,
+        timeMs: 0,
+        attempts: 1,
+        tags: [slide.type],
+        cefr: 'unknown'
+      };
+      
+      handleActivityResult(result);
+    }
   };
 
   const handleActivityResult = (result: ActivityResult) => {
@@ -508,9 +526,9 @@ export default function PlacementTest2() {
           onPrevious={handlePrevious}
           onOptionSelect={handleOptionSelect}
           onActivityResult={handleActivityResult}
+          selectedOptions={selectedOptions[slide.id] ? [selectedOptions[slide.id]] : []}
           showFeedback={showFeedback}
           isCorrect={isCorrect}
-          selectedOptions={selectedOptions[slide.id] ? [selectedOptions[slide.id]] : []}
         />
       </div>
     </div>

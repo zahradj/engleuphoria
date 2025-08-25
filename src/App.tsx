@@ -2,7 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ImprovedProtectedRoute } from "@/components/auth/ImprovedProtectedRoute";
 import { LanguageProvider } from "@/contexts/LanguageContext";
@@ -12,7 +13,7 @@ import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import StudentDashboard from "./pages/StudentDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
-import AdminDashboard from "../pages/AdminDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import TeacherSignUp from "./pages/TeacherSignUp";
 import StudentSignUp from "./pages/StudentSignUp";
 import TeacherApplication from "./pages/TeacherApplication";
@@ -36,6 +37,21 @@ import PlacementTest2 from "./pages/PlacementTest2";
 import LessonViewer from "./pages/LessonViewer";
 
 const queryClient = new QueryClient();
+
+const NotFoundPage = () => {
+  const navigate = useNavigate();
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-foreground mb-4">404</h1>
+        <p className="text-muted-foreground mb-6">Page not found</p>
+        <Button onClick={() => navigate('/')} className="bg-gradient-to-r from-primary to-secondary">
+          Go Home
+        </Button>
+      </div>
+    </div>
+  );
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -102,6 +118,9 @@ const App = () => (
                   <OneOnOneClassroomNew />
                 </ImprovedProtectedRoute>
               } />
+              
+              {/* 404 Not Found Route */}
+              <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </BrowserRouter>
           </TooltipProvider>
