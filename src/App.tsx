@@ -8,6 +8,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ImprovedProtectedRoute } from "@/components/auth/ImprovedProtectedRoute";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { RoleThemeProvider } from "@/contexts/RoleThemeContext";
+import { AppErrorBoundary } from "@/components/common/AppErrorBoundary";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
@@ -36,6 +37,8 @@ import PlacementTest from "./pages/PlacementTest";
 import PlacementTest2 from "./pages/PlacementTest2";
 import LessonViewer from "./pages/LessonViewer";
 import A1GreetingsLesson from "./pages/A1GreetingsLesson";
+import CurriculumGeneration from "./pages/CurriculumGeneration";
+import ClassroomPrejoin from "./pages/ClassroomPrejoin";
 
 const queryClient = new QueryClient();
 
@@ -63,7 +66,8 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <Routes>
+            <AppErrorBoundary>
+              <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignUp />} />
@@ -73,6 +77,7 @@ const App = () => (
               <Route path="/student-application" element={<StudentApplication />} />
               <Route path="/media-test" element={<MediaTestPage />} />
               <Route path="/classroom" element={<UnifiedClassroom />} />
+              <Route path="/classroom-prejoin" element={<ClassroomPrejoin />} />
               <Route path="/discover-teachers" element={<DiscoverTeachers />} />
               <Route path="/teacher/:teacherId" element={<TeacherProfile />} />
               <Route path="/student/schedule" element={<StudentSchedule />} />
@@ -88,6 +93,7 @@ const App = () => (
               <Route path="/placement-test-2" element={<PlacementTest2 />} />
               <Route path="/lesson-viewer" element={<LessonViewer />} />
               <Route path="/a1-greetings-lesson" element={<A1GreetingsLesson />} />
+              <Route path="/curriculum-generation" element={<CurriculumGeneration />} />
 
               {/* Protected Routes */}
               <Route path="/student" element={
@@ -123,7 +129,8 @@ const App = () => (
               
               {/* 404 Not Found Route */}
               <Route path="*" element={<NotFoundPage />} />
-            </Routes>
+              </Routes>
+            </AppErrorBoundary>
           </BrowserRouter>
           </TooltipProvider>
         </RoleThemeProvider>

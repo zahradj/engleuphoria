@@ -1,24 +1,50 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, BookOpen, MessageCircle, Trophy, User } from 'lucide-react';
+import { Home, BookOpen, MessageCircle, Calendar, User, Users, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAutoHideTaskbar } from '@/hooks/useAutoHideTaskbar';
+import { useAuth } from '@/contexts/AuthContext';
 
-const navigationItems = [
-  { href: '/', icon: Home, label: 'Home' },
-  { href: '/ai-tutor', icon: MessageCircle, label: 'AI Tutor' },
-  { href: '/classroom', icon: BookOpen, label: 'Classroom' },
-  { href: '/gamification', icon: Trophy, label: 'Rewards' },
-  { href: '/profile', icon: User, label: 'Profile' },
-];
+const getNavigationItems = (userRole: string | null) => {
+  if (userRole === 'student') {
+    return [
+      { href: '/student', icon: Home, label: 'Dashboard' },
+      { href: '/student/speaking-practice', icon: MessageCircle, label: 'Speaking' },
+      { href: '/classroom', icon: BookOpen, label: 'Classroom' },
+      { href: '/student/schedule', icon: Calendar, label: 'Schedule' },
+      { href: '/student', icon: User, label: 'Profile' },
+    ];
+  }
+  
+  if (userRole === 'teacher') {
+    return [
+      { href: '/teacher', icon: Home, label: 'Dashboard' },
+      { href: '/teacher/schedule', icon: Calendar, label: 'Schedule' },
+      { href: '/classroom', icon: BookOpen, label: 'Classroom' },
+      { href: '/discover-teachers', icon: Users, label: 'Discover' },
+      { href: '/teacher', icon: User, label: 'Profile' },
+    ];
+  }
+  
+  // Default/guest navigation
+  return [
+    { href: '/', icon: Home, label: 'Home' },
+    { href: '/pricing', icon: Trophy, label: 'Pricing' },
+    { href: '/about', icon: Users, label: 'About' },
+    { href: '/login', icon: User, label: 'Login' },
+  ];
+};
 
 export const MobileNavigation: React.FC = () => {
   const location = useLocation();
+  const { user } = useAuth();
   const { isVisible, handleTaskbarHover } = useAutoHideTaskbar({
     enabled: true,
     hideDelay: 3000,
     hideOnCalendarInteraction: location.pathname.includes('/teacher')
   });
+
+  const navigationItems = getNavigationItems(user?.role || null);
 
   return (
     <nav 
