@@ -93,8 +93,8 @@ export const Features = () => {
                 {/* Enhanced icon with emoji */}
                 <div className="relative mx-auto w-20 h-20">
                   <div className={`absolute inset-0 rounded-3xl bg-gradient-to-r ${feature.gradient} shadow-xl group-hover:shadow-2xl transition-all duration-300 animate-pulse`}></div>
-                  <div className="relative w-full h-full rounded-3xl bg-gradient-to-r from-white/20 to-transparent flex items-center justify-center">
-                    <feature.icon className="h-10 w-10 text-white relative z-10" />
+                  <div className="relative w-full h-full rounded-3xl bg-gradient-to-r from-white/90 to-white/50 backdrop-blur-sm flex items-center justify-center">
+                    <feature.icon className="h-10 w-10 text-gray-800 relative z-10" />
                   </div>
                   {/* Floating emoji */}
                   <div className="absolute -top-2 -right-2 text-2xl animate-bounce" style={{animationDuration: `${3 + index}s`}}>
