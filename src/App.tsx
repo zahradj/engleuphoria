@@ -35,6 +35,7 @@ import NewPricingPage from "./pages/NewPricingPage";
 import PlacementTest from "./pages/PlacementTest";
 import PlacementTest2 from "./pages/PlacementTest2";
 import LessonViewer from "./pages/LessonViewer";
+import A1GreetingsLesson from "./pages/A1GreetingsLesson";
 
 const queryClient = new QueryClient();
 
@@ -86,6 +87,7 @@ const App = () => (
               <Route path="/placement-test" element={<PlacementTest />} />
               <Route path="/placement-test-2" element={<PlacementTest2 />} />
               <Route path="/lesson-viewer" element={<LessonViewer />} />
+              <Route path="/a1-greetings-lesson" element={<A1GreetingsLesson />} />
 
               {/* Protected Routes */}
               <Route path="/student" element={

@@ -5,6 +5,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import './styles/cefr-themes.css';
+
 @layer base {
   :root {
     /* Clean Professional Design System */
