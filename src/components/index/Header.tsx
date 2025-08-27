@@ -7,12 +7,9 @@ import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
 import { AuthButtons } from './header/AuthButtons';
 import { MobileMenu } from './header/MobileMenu';
 import { MobileMenuButton } from './header/MobileMenuButton';
-import { DashboardSwitcher } from '@/components/navigation/DashboardSwitcher';
-import { useAuth } from '@/contexts/AuthContext';
 
 export const Header = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleSignUp = () => {
@@ -38,11 +35,7 @@ export const Header = () => {
         {/* Desktop Actions */}
         <div className="hidden lg:flex items-center gap-4">
           <LanguageSwitcher />
-          {user ? (
-            <DashboardSwitcher />
-          ) : (
-            <AuthButtons onLogin={handleLogin} onSignUp={handleSignUp} />
-          )}
+          <AuthButtons onLogin={handleLogin} onSignUp={handleSignUp} />
         </div>
 
         {/* Mobile Menu Button */}
