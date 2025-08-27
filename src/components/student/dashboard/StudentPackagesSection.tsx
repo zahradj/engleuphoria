@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +15,7 @@ interface StudentPackagesSectionProps {
 export const StudentPackagesSection: React.FC<StudentPackagesSectionProps> = ({ 
   studentId 
 }) => {
+  const navigate = useNavigate();
   const [packages, setPackages] = useState<StudentPackagePurchase[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -79,7 +81,7 @@ export const StudentPackagesSection: React.FC<StudentPackagesSectionProps> = ({
             Purchase a lesson package to start booking with our teachers.
           </p>
           <Button 
-            onClick={() => window.location.href = '/pricing'}
+            onClick={() => navigate('/pricing')}
             className="bg-gradient-to-r from-student to-student-accent hover:from-student-dark hover:to-student text-white"
           >
             Purchase Package Now
@@ -152,7 +154,7 @@ export const StudentPackagesSection: React.FC<StudentPackagesSectionProps> = ({
               {pkg.lessons_remaining > 0 && (
                 <Button 
                   size="sm"
-                  onClick={() => window.location.href = '/book-lesson'}
+                  onClick={() => navigate('/student/book-lesson')}
                   className="bg-gradient-to-r from-student to-student-accent hover:from-student-dark hover:to-student text-white"
                 >
                   Book Lesson

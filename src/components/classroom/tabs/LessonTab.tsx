@@ -88,28 +88,28 @@ export function LessonTab({ quizQuestions, onQuizComplete }: LessonTabProps) {
             <CardContent>
               <ul className="space-y-2">
                 <li>
-                  <a href="#" className="text-sm hover:underline flex items-center">
+                  <Button variant="ghost" size="sm" className="h-auto p-0 text-sm hover:no-underline flex items-center">
                     <Download className="mr-2 h-4 w-4" />
                     Animal Vocabulary.pdf
-                  </a>
+                  </Button>
                 </li>
                 <li>
-                  <a href="#" className="text-sm hover:underline flex items-center">
+                  <Button variant="ghost" size="sm" className="h-auto p-0 text-sm hover:no-underline flex items-center">
                     <Download className="mr-2 h-4 w-4" />
                     Animal Sounds.mp3
-                  </a>
+                  </Button>
                 </li>
                 <li>
-                  <a href="#" className="text-sm hover:underline flex items-center">
+                  <Button variant="ghost" size="sm" className="h-auto p-0 text-sm hover:no-underline flex items-center">
                     <Download className="mr-2 h-4 w-4" />
                     Homework Assignment.docx
-                  </a>
+                  </Button>
                 </li>
                 <li>
-                  <a href="#" className="text-sm hover:underline flex items-center">
+                  <Button variant="ghost" size="sm" className="h-auto p-0 text-sm hover:no-underline flex items-center">
                     <Download className="mr-2 h-4 w-4" />
                     Animal Flashcards.zip
-                  </a>
+                  </Button>
                 </li>
               </ul>
             </CardContent>

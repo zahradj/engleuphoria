@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus, Calendar, User, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +15,7 @@ import { lessonService } from '@/services/lessonService';
 import { useToast } from '@/hooks/use-toast';
 
 const BookLesson = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { hasActivePackages, totalCredits, loading } = usePackageValidation(user?.id || null);
   const [showModal, setShowModal] = useState(false);
@@ -132,7 +134,7 @@ const BookLesson = () => {
                 Please purchase a lesson package to access the booking calendar and schedule lessons with our teachers.
               </p>
               <Button 
-                onClick={() => window.location.href = '/pricing'}
+                onClick={() => navigate('/pricing')}
                 className="bg-gradient-to-r from-student to-student-accent hover:from-student-dark hover:to-student text-white"
               >
                 Purchase Lesson Package

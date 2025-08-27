@@ -49,7 +49,9 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
   const { toast } = useToast();
 
   React.useEffect(() => {
-    if (user) {
+    // Only redirect if user is authenticated and form is in loading state  
+    if (user && !loading) {
+      console.log('User is authenticated, redirecting from auth form:', user.role);
       const dashboardMap: Record<string, string> = {
         student: '/student',
         teacher: '/teacher',
@@ -57,8 +59,10 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
       };
       const targetPath = dashboardMap[user.role] || '/student';
       navigate(targetPath, { replace: true });
+    } else if (user) {
+      console.log('User authenticated but still loading, waiting...');
     }
-  }, [user, navigate]);
+  }, [user, loading, navigate]);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
