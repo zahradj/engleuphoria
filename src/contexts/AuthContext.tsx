@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 
 interface AuthContextType {
   user: User | null;
@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isConfigured] = useState(isSupabaseConfigured());
+  const [isConfigured] = useState(true); // Always configured in Lovable projects
 
   // Function to fetch user data from database
   const fetchUserFromDatabase = async (userId: string): Promise<User | null> => {
@@ -81,7 +81,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           (event, session) => {
             if (!mounted) return;
             
-            console.log('Auth state changed:', event, !!session);
+            console.info('Auth state changed:', event, !!session);
             setSession(session);
             
             if (session?.user) {
@@ -147,14 +147,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     const cleanup = initializeAuth();
-    
-    // Shorter timeout to prevent long loading states
+     
+    // Reduce timeout to prevent long loading states
     const timeout = setTimeout(() => {
       if (mounted && loading) {
         console.warn('Auth initialization timeout');
         setLoading(false);
       }
-    }, 2000);
+    }, 1000); // Reduced from 2000ms to 1000ms
 
     return () => {
       mounted = false;

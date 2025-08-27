@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Users, GraduationCap, BookOpen, DollarSign, TrendingUp, AlertTriangle, Calendar, Star, Clock, Activity } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { AdminWelcomeSection } from './dashboard/AdminWelcomeSection';
 import { AdminStatsOverview } from './dashboard/AdminStatsOverview';
 import { AdminQuickActions } from './dashboard/AdminQuickActions';

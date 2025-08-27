@@ -3,7 +3,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { SpeakingScenario, ConversationMessage, MessageFeedback } from '@/types/speaking';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { speakingPracticeService } from '@/services/speakingPracticeService';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
+const isSupabaseConfigured = () => true; // Always configured in Lovable projects
 import { useToast } from '@/hooks/use-toast';
 import { SessionHeader } from './components/SessionHeader';
 import { AIAvatar } from './components/AIAvatar';

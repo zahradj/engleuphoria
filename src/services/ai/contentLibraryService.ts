@@ -1,6 +1,7 @@
 
 import { ContentLibraryItem, AIGeneratedContent } from './types';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
+const isSupabaseConfigured = () => true; // Always configured in Lovable projects
 
 export class ContentLibraryService {
   private contentLibrary: ContentLibraryItem[] = [];
