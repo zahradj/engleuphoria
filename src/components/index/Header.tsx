@@ -35,7 +35,7 @@ export const Header = () => {
         {/* Desktop Actions */}
         <div className="hidden lg:flex items-center gap-4">
           <LanguageSwitcher />
-          <AuthButtons onLogin={handleLogin} onSignUp={handleSignUp} />
+          <AuthButtons />
         </div>
 
         {/* Mobile Menu Button */}
@@ -51,8 +51,6 @@ export const Header = () => {
       <MobileMenu
         isOpen={isMobileMenuOpen}
         onClose={() => setIsMobileMenuOpen(false)}
-        onLogin={handleLogin}
-        onSignUp={handleSignUp}
       />
     </header>
   );

@@ -49,7 +49,8 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
   const { toast } = useToast();
 
   React.useEffect(() => {
-    // Only redirect if user is authenticated and form is in loading state  
+    // Only redirect if user is authenticated and not currently loading
+    // Also prevent redirect loops by checking current pathname
     if (user && !loading) {
       console.log('User is authenticated, redirecting from auth form:', user.role);
       const dashboardMap: Record<string, string> = {
@@ -58,7 +59,12 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
         admin: '/admin'
       };
       const targetPath = dashboardMap[user.role] || '/student';
-      navigate(targetPath, { replace: true });
+      
+      // Prevent redirect loops - only navigate if not already on target or auth pages
+      const currentPath = window.location.pathname;
+      if (currentPath !== targetPath && (currentPath === '/login' || currentPath === '/signup')) {
+        navigate(targetPath, { replace: true });
+      }
     } else if (user) {
       console.log('User authenticated but still loading, waiting...');
     }

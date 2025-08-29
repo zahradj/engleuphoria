@@ -7,11 +7,9 @@ import { useTranslation } from 'react-i18next';
 interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
-  onLogin: () => void;
-  onSignUp: () => void;
 }
 
-export const MobileMenu = ({ isOpen, onClose, onLogin, onSignUp }: MobileMenuProps) => {
+export const MobileMenu = ({ isOpen, onClose }: MobileMenuProps) => {
   const { t } = useTranslation();
 
   if (!isOpen) return null;
@@ -45,9 +43,6 @@ export const MobileMenu = ({ isOpen, onClose, onLogin, onSignUp }: MobileMenuPro
           <Link to="/login" onClick={onClose} className="block">
             <Button 
               variant="outline" 
-              onClick={() => {
-                console.log('📱 Mobile login button clicked');
-              }}
               className="w-full pointer-events-auto cursor-pointer"
               style={{ pointerEvents: 'auto' }}
             >
@@ -56,9 +51,6 @@ export const MobileMenu = ({ isOpen, onClose, onLogin, onSignUp }: MobileMenuPro
           </Link>
           <Link to="/signup" onClick={onClose} className="block">
             <Button 
-              onClick={() => {
-                console.log('📱 Mobile signup button clicked');
-              }}
               className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 pointer-events-auto cursor-pointer"
               style={{ pointerEvents: 'auto' }}
             >
