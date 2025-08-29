@@ -48,27 +48,12 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Do not auto-redirect away from auth pages; post-login navigation is handled on submit
   React.useEffect(() => {
-    // Only redirect if user is authenticated and not currently loading
-    // Also prevent redirect loops by checking current pathname
-    if (user && !loading) {
-      console.log('User is authenticated, redirecting from auth form:', user.role);
-      const dashboardMap: Record<string, string> = {
-        student: '/student',
-        teacher: '/teacher',
-        admin: '/admin'
-      };
-      const targetPath = dashboardMap[user.role] || '/student';
-      
-      // Prevent redirect loops - only navigate if not already on target or auth pages
-      const currentPath = window.location.pathname;
-      if (currentPath !== targetPath && (currentPath === '/login' || currentPath === '/signup')) {
-        navigate(targetPath, { replace: true });
-      }
-    } else if (user) {
-      console.log('User authenticated but still loading, waiting...');
+    if (error) {
+      console.warn('Auth error:', error);
     }
-  }, [user, loading, navigate]);
+  }, [error]);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -161,7 +146,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
             title: "Login Successful",
             description: "Welcome back!",
           });
-          // Navigation will happen automatically via useEffect
+          navigate('/dashboard', { replace: true });
         }
       } else {
         const { error } = await signUp(formData.email, formData.password, {
