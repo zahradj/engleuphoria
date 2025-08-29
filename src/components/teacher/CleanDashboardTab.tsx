@@ -127,22 +127,64 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {weeklyProgress.map((day, index) => (
-                <div key={index} className="flex items-center justify-between p-4 bg-surface-2 rounded-lg">
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm font-medium text-foreground w-8">{day.day}</span>
-                    <div className="flex-1 min-w-32">
-                      <Progress 
-                        value={(day.completed / day.classes) * 100} 
-                        className="h-2"
-                      />
-                    </div>
+              {/* Next Class with Countdown */}
+              <div className="p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h4 className="font-semibold text-foreground">Next Class: Beginner English A1</h4>
+                    <p className="text-sm text-muted-foreground">Student: Sarah Johnson</p>
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    {day.completed}/{day.classes} classes
+                  <div className="text-right">
+                    <div className="text-lg font-bold text-primary">15:30</div>
+                    <div className="text-xs text-muted-foreground">in 45 min</div>
                   </div>
                 </div>
-              ))}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Clock className="h-4 w-4" />
+                    <span>45 minutes</span>
+                    <Users className="h-4 w-4 ml-2" />
+                    <span>1 student</span>
+                  </div>
+                  <Button size="sm" className="bg-primary hover:bg-primary/90">
+                    Start Class
+                    <ArrowRight className="ml-1 h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Other Upcoming Lessons */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-surface-2 rounded-lg">
+                  <div>
+                    <h5 className="font-medium text-foreground text-sm">Conversation Practice</h5>
+                    <p className="text-xs text-muted-foreground">Mike Chen • 17:00</p>
+                  </div>
+                  <Badge variant="outline" className="text-xs">
+                    Ready
+                  </Badge>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 bg-surface-2 rounded-lg">
+                  <div>
+                    <h5 className="font-medium text-foreground text-sm">Grammar Fundamentals</h5>
+                    <p className="text-xs text-muted-foreground">Emma Wilson • 19:30</p>
+                  </div>
+                  <Badge variant="outline" className="text-xs">
+                    Scheduled
+                  </Badge>
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-surface-2 rounded-lg">
+                  <div>
+                    <h5 className="font-medium text-foreground text-sm">Advanced Speaking</h5>
+                    <p className="text-xs text-muted-foreground">David Kim • Tomorrow 10:00</p>
+                  </div>
+                  <Badge variant="outline" className="text-xs">
+                    Scheduled
+                  </Badge>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
