@@ -77,6 +77,26 @@ export class LessonSlidesService {
     }
   }
 
+  async fetchLessonSlidesFromLessonsContent(lessonId: string): Promise<LessonSlides | null> {
+    try {
+      const { data, error } = await supabase
+        .from('lessons_content')
+        .select('slides_content, title, topic, duration_minutes')
+        .eq('id', lessonId)
+        .eq('is_active', true)
+        .single();
+
+      if (error) throw error;
+      
+      if (!data?.slides_content) return null;
+
+      return data.slides_content as LessonSlides;
+    } catch (error) {
+      console.error('Error fetching lesson slides from lessons_content:', error);
+      return null;
+    }
+  }
+
   async updateLessonSlides(lessonId: string, slides: LessonSlides) {
     try {
       const { data, error } = await supabase

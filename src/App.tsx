@@ -39,6 +39,7 @@ import LessonViewer from "./pages/LessonViewer";
 import A1GreetingsLesson from "./pages/A1GreetingsLesson";
 import CurriculumGeneration from "./pages/CurriculumGeneration";
 import ClassroomPrejoin from "./pages/ClassroomPrejoin";
+import { SystematicSlidesAdmin } from "./pages/admin/SystematicSlidesAdmin";
 
 const queryClient = new QueryClient();
 
@@ -94,6 +95,7 @@ const App = () => (
               <Route path="/lesson-viewer" element={<LessonViewer />} />
               <Route path="/a1-greetings-lesson" element={<A1GreetingsLesson />} />
               <Route path="/curriculum-generation" element={<CurriculumGeneration />} />
+              <Route path="/admin/systematic-slides" element={<SystematicSlidesAdmin />} />
 
               {/* Protected Routes */}
               <Route path="/student" element={
