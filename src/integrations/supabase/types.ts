@@ -2287,6 +2287,7 @@ export type Database = {
       }
       lessons_content: {
         Row: {
+          canva_url: string | null
           cefr_level: string
           created_at: string | null
           created_by: string | null
@@ -2299,6 +2300,7 @@ export type Database = {
           lesson_number: number
           metadata: Json | null
           module_number: number
+          slide_order: number[] | null
           slides_content: Json
           title: string
           topic: string
@@ -2306,6 +2308,7 @@ export type Database = {
           vocabulary_focus: string[] | null
         }
         Insert: {
+          canva_url?: string | null
           cefr_level?: string
           created_at?: string | null
           created_by?: string | null
@@ -2318,6 +2321,7 @@ export type Database = {
           lesson_number?: number
           metadata?: Json | null
           module_number?: number
+          slide_order?: number[] | null
           slides_content?: Json
           title: string
           topic: string
@@ -2325,6 +2329,7 @@ export type Database = {
           vocabulary_focus?: string[] | null
         }
         Update: {
+          canva_url?: string | null
           cefr_level?: string
           created_at?: string | null
           created_by?: string | null
@@ -2337,6 +2342,7 @@ export type Database = {
           lesson_number?: number
           metadata?: Json | null
           module_number?: number
+          slide_order?: number[] | null
           slides_content?: Json
           title?: string
           topic?: string

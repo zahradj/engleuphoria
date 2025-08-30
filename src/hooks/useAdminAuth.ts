@@ -45,8 +45,8 @@ export const useAdminAuth = () => {
       });
 
       // Auto-set admin if accessing admin dashboard and no admin is set
-      if ((window.location.pathname === '/admin-dashboard' || window.location.pathname === '/admin') && userType !== 'admin') {
-        console.log('Auto-setting admin for demo purposes');
+      if (window.location.pathname.startsWith('/admin') && userType !== 'admin') {
+        console.log('Auto-setting admin for demo purposes (any /admin path)');
         localStorage.setItem('userType', 'admin');
         localStorage.setItem('adminName', 'Demo Admin');
         // Clear other user data
