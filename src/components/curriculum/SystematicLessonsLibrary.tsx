@@ -6,18 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  BookOpen, 
-  Play, 
-  Clock, 
-  Target, 
-  Search,
-  ChevronRight,
-  Users,
-  CheckCircle,
-  Presentation
-} from 'lucide-react';
-
+import { BookOpen, Play, Clock, Target, Search, ChevronRight, Users, CheckCircle, Presentation } from 'lucide-react';
 interface LessonContent {
   id: string;
   title: string;
@@ -34,33 +23,35 @@ interface LessonContent {
   created_at: string;
   updated_at: string;
 }
-
 interface SystematicLessonsLibraryProps {
   onContentUpdate?: () => void;
   onLoadLesson?: (lessonId: string) => void;
 }
-
-export function SystematicLessonsLibrary({ onContentUpdate, onLoadLesson }: SystematicLessonsLibraryProps) {
+export function SystematicLessonsLibrary({
+  onContentUpdate,
+  onLoadLesson
+}: SystematicLessonsLibraryProps) {
   const [lessons, setLessons] = useState<LessonContent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [levelFilter, setLevelFilter] = useState('all');
-  const { toast } = useToast();
-
+  const {
+    toast
+  } = useToast();
   useEffect(() => {
     fetchLessons();
   }, []);
-
   const fetchLessons = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
-        .from('lessons_content')
-        .select('*')
-        .eq('is_active', true)
-        .order('module_number', { ascending: true })
-        .order('lesson_number', { ascending: true });
-
+      const {
+        data,
+        error
+      } = await supabase.from('lessons_content').select('*').eq('is_active', true).order('module_number', {
+        ascending: true
+      }).order('lesson_number', {
+        ascending: true
+      });
       if (error) throw error;
       setLessons(data || []);
     } catch (error) {
@@ -74,12 +65,9 @@ export function SystematicLessonsLibrary({ onContentUpdate, onLoadLesson }: Syst
       setIsLoading(false);
     }
   };
-
-
   const openInClassroom = (lesson: LessonContent) => {
     // Always store lesson content in localStorage for immediate access
     localStorage.setItem('currentLessonContent', JSON.stringify(lesson));
-    
     if (onLoadLesson) {
       // Load lesson in current tab
       console.log('📚 Loading lesson in current classroom tab:', lesson.title);
@@ -89,50 +77,30 @@ export function SystematicLessonsLibrary({ onContentUpdate, onLoadLesson }: Syst
       window.open(`/oneonone-classroom-new?roomId=lesson-${lesson.id}&role=teacher&name=Teacher&userId=teacher-1&lessonMode=true&skipGen=1`, '_blank');
     }
   };
-
   const filteredLessons = lessons.filter(lesson => {
-    const matchesSearch = lesson.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         lesson.topic.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = lesson.title.toLowerCase().includes(searchTerm.toLowerCase()) || lesson.topic.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesLevel = levelFilter === 'all' || lesson.cefr_level === levelFilter;
-    
     return matchesSearch && matchesLevel;
   });
-
-  const lessonsWithSlides = filteredLessons.filter(lesson => 
-    lesson.slides_content && 
-    (lesson.slides_content.slides?.length > 0 || lesson.slides_content.total_slides > 0)
-  );
-
-  const lessonsWithoutSlides = filteredLessons.filter(lesson => 
-    !lesson.slides_content || 
-    (!lesson.slides_content.slides?.length && !lesson.slides_content.total_slides)
-  );
-
+  const lessonsWithSlides = filteredLessons.filter(lesson => lesson.slides_content && (lesson.slides_content.slides?.length > 0 || lesson.slides_content.total_slides > 0));
+  const lessonsWithoutSlides = filteredLessons.filter(lesson => !lesson.slides_content || !lesson.slides_content.slides?.length && !lesson.slides_content.total_slides);
   if (isLoading) {
-    return (
-      <div className="space-y-4">
-        {[1, 2, 3, 4].map(i => (
-          <Card key={i} className="animate-pulse">
+    return <div className="space-y-4">
+        {[1, 2, 3, 4].map(i => <Card key={i} className="animate-pulse">
             <CardContent className="py-8">
               <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
               <div className="h-3 bg-gray-100 rounded w-1/2"></div>
             </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
+          </Card>)}
+      </div>;
   }
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       
       {/* Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold mb-1">Systematic ESL Lessons</h2>
-          <p className="text-muted-foreground">
-            Structured curriculum lessons with interactive slides ready for classroom use.
-          </p>
+          
+          
         </div>
       </div>
 
@@ -143,12 +111,7 @@ export function SystematicLessonsLibrary({ onContentUpdate, onLoadLesson }: Syst
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search lessons by title or topic..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+                <Input placeholder="Search lessons by title or topic..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" />
               </div>
             </div>
             <div className="flex gap-2">
@@ -222,16 +185,10 @@ export function SystematicLessonsLibrary({ onContentUpdate, onLoadLesson }: Syst
 
       {/* Lessons Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredLessons.map((lesson) => {
-          const hasSlides = lesson.slides_content && 
-            (lesson.slides_content.slides?.length > 0 || lesson.slides_content.total_slides > 0);
-          const slideCount = hasSlides ? 
-            (lesson.slides_content?.slides?.length || lesson.slides_content?.total_slides || 22) : 0;
-
-          return (
-            <Card key={lesson.id} className={`transition-all duration-200 hover:shadow-lg ${
-              hasSlides ? 'border-green-200 bg-green-50/30' : 'border-orange-200 bg-orange-50/30'
-            }`}>
+        {filteredLessons.map(lesson => {
+        const hasSlides = lesson.slides_content && (lesson.slides_content.slides?.length > 0 || lesson.slides_content.total_slides > 0);
+        const slideCount = hasSlides ? lesson.slides_content?.slides?.length || lesson.slides_content?.total_slides || 22 : 0;
+        return <Card key={lesson.id} className={`transition-all duration-200 hover:shadow-lg ${hasSlides ? 'border-green-200 bg-green-50/30' : 'border-orange-200 bg-orange-50/30'}`}>
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div>
@@ -268,50 +225,37 @@ export function SystematicLessonsLibrary({ onContentUpdate, onLoadLesson }: Syst
                       {hasSlides ? `${slideCount} Slides Ready` : 'No Slides Yet'}
                     </span>
                   </div>
-                  {hasSlides && (
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                  )}
+                  {hasSlides && <CheckCircle className="h-4 w-4 text-green-600" />}
                 </div>
 
                 {/* Learning Objectives */}
-                {lesson.learning_objectives && lesson.learning_objectives.length > 0 && (
-                  <div>
+                {lesson.learning_objectives && lesson.learning_objectives.length > 0 && <div>
                     <div className="text-sm font-medium mb-2">Learning Objectives:</div>
                     <div className="space-y-1">
-                      {lesson.learning_objectives.slice(0, 2).map((objective, idx) => (
-                        <div key={idx} className="text-xs text-muted-foreground flex items-center gap-1">
+                      {lesson.learning_objectives.slice(0, 2).map((objective, idx) => <div key={idx} className="text-xs text-muted-foreground flex items-center gap-1">
                           <ChevronRight className="h-3 w-3" />
                           {objective}
-                        </div>
-                      ))}
-                      {lesson.learning_objectives.length > 2 && (
-                        <div className="text-xs text-muted-foreground">
+                        </div>)}
+                      {lesson.learning_objectives.length > 2 && <div className="text-xs text-muted-foreground">
                           +{lesson.learning_objectives.length - 2} more
-                        </div>
-                      )}
+                        </div>}
                     </div>
-                  </div>
-                )}
+                  </div>}
 
                  {/* Actions */}
                 <div className="space-y-2">
-                  <Button
-                    onClick={() => openInClassroom(lesson)}
-                    className="w-full"
-                  >
+                  <Button onClick={() => openInClassroom(lesson)} className="w-full">
                     <Play className="h-4 w-4 mr-2" />
                     Use Lesson
                   </Button>
                 </div>
               </CardContent>
-            </Card>
-          );
-        })}
+            </Card>;
+      })}
       </div>
 
       {/* Empty State */}
-      {lessons.length === 0 && !isLoading && (
-        <Card className="text-center py-12">
+      {lessons.length === 0 && !isLoading && <Card className="text-center py-12">
           <CardContent>
             <BookOpen className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-xl font-semibold mb-2">No Lessons Available</h3>
@@ -319,18 +263,14 @@ export function SystematicLessonsLibrary({ onContentUpdate, onLoadLesson }: Syst
               Your lesson library is empty. Please contact your administrator to add lessons to the curriculum.
             </p>
           </CardContent>
-        </Card>
-      )}
+        </Card>}
 
-      {filteredLessons.length === 0 && lessons.length > 0 && (
-        <Card>
+      {filteredLessons.length === 0 && lessons.length > 0 && <Card>
           <CardContent className="py-12 text-center space-y-4">
             <Search size={48} className="mx-auto mb-2 text-gray-300" />
             <h3 className="text-lg font-medium text-gray-600">No lessons found</h3>
             <p className="text-gray-500">Try adjusting your search filters to find lessons.</p>
           </CardContent>
-        </Card>
-      )}
-    </div>
-  );
+        </Card>}
+    </div>;
 }
