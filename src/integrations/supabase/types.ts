@@ -5097,6 +5097,22 @@ export type Database = {
         }
         Returns: boolean
       }
+      submit_teacher_application: {
+        Args: {
+          p_address?: string
+          p_certifications?: string[]
+          p_cover_letter?: string
+          p_cv_url?: string
+          p_education?: string
+          p_email: string
+          p_first_name: string
+          p_languages_spoken?: string[]
+          p_last_name: string
+          p_phone?: string
+          p_teaching_experience_years?: number
+        }
+        Returns: string
+      }
       update_learning_currency: {
         Args: {
           coins_to_add: number
