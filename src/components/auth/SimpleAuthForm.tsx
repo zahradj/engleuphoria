@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Eye, EyeOff, CheckCircle, XCircle, Mail, Lock, User, GraduationCap, BookOpen, Sparkles, Shield, Zap } from 'lucide-react';
 import { Logo } from '@/components/Logo';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SimpleAuthFormProps {
   mode: 'login' | 'signup';
@@ -134,7 +135,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
       }
 
       if (mode === 'login') {
-        const { error } = await signIn(formData.email, formData.password);
+        const { data, error } = await signIn(formData.email, formData.password);
         if (error) {
           toast({
             title: "Login Failed",
@@ -146,10 +147,35 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
             title: "Login Successful",
             description: "Welcome back!",
           });
-          // Use a small delay to ensure user data is loaded before redirect
-          setTimeout(() => {
-            navigate('/dashboard', { replace: true });
-          }, 100);
+
+          const roleFromMetadata = (data?.user?.user_metadata?.role as 'admin' | 'teacher' | 'student' | undefined) || undefined;
+          const routeMap: Record<string, string> = { admin: '/admin', teacher: '/teacher', student: '/student' };
+
+          if (roleFromMetadata && routeMap[roleFromMetadata]) {
+            navigate(routeMap[roleFromMetadata], { replace: true });
+          } else {
+            // Fallback: fetch role from public.users, then route accordingly
+            try {
+              const userId = data?.user?.id;
+              if (userId) {
+                const { data: dbUser } = await supabase
+                  .from('users')
+                  .select('role')
+                  .eq('id', userId)
+                  .maybeSingle();
+                const dbRole = dbUser?.role as 'admin' | 'teacher' | 'student' | undefined;
+                if (dbRole && routeMap[dbRole]) {
+                  navigate(routeMap[dbRole], { replace: true });
+                } else {
+                  navigate('/dashboard', { replace: true });
+                }
+              } else {
+                navigate('/dashboard', { replace: true });
+              }
+            } catch {
+              navigate('/dashboard', { replace: true });
+            }
+          }
         }
       } else {
         const { error } = await signUp(formData.email, formData.password, {
