@@ -146,7 +146,10 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
             title: "Login Successful",
             description: "Welcome back!",
           });
-          navigate('/dashboard', { replace: true });
+          // Use a small delay to ensure user data is loaded before redirect
+          setTimeout(() => {
+            navigate('/dashboard', { replace: true });
+          }, 100);
         }
       } else {
         const { error } = await signUp(formData.email, formData.password, {

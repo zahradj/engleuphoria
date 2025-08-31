@@ -89,17 +89,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               setTimeout(async () => {
                 if (!mounted) return;
                 
-                try {
-                  const dbUser = await fetchUserFromDatabase(session.user.id);
-                  if (mounted) {
-                    setUser(dbUser || createFallbackUser(session.user));
-                  }
-                } catch (error) {
-                  console.error('Error in deferred user fetch:', error);
-                  if (mounted) {
-                    setUser(createFallbackUser(session.user));
-                  }
+              try {
+                const dbUser = await fetchUserFromDatabase(session.user.id);
+                if (mounted) {
+                  const finalUser = dbUser || createFallbackUser(session.user);
+                  console.log('Setting user after auth state change:', finalUser);
+                  setUser(finalUser);
                 }
+              } catch (error) {
+                console.error('Error in deferred user fetch:', error);
+                if (mounted) {
+                  const fallbackUser = createFallbackUser(session.user);
+                  console.log('Setting fallback user after error:', fallbackUser);
+                  setUser(fallbackUser);
+                }
+              }
               }, 0);
             } else {
               setUser(null);
