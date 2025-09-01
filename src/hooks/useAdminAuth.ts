@@ -44,17 +44,7 @@ export const useAdminAuth = () => {
         user 
       });
 
-      // Auto-set admin if accessing admin dashboard and no admin is set
-      if (window.location.pathname.startsWith('/admin') && userType !== 'admin') {
-        console.log('Auto-setting admin for demo purposes (any /admin path)');
-        localStorage.setItem('userType', 'admin');
-        localStorage.setItem('adminName', 'Demo Admin');
-        // Clear other user data
-        localStorage.removeItem('teacherName');
-        localStorage.removeItem('studentName');
-        window.location.reload();
-        return;
-      }
+      // Removed auto-set admin demo logic to avoid false positives
 
       // Clear conflicting data if userType is admin but we have other user data
       if (userType === 'admin') {
@@ -68,13 +58,25 @@ export const useAdminAuth = () => {
         }
       }
 
-      // Determine admin status
-      const adminStatus = userType === 'admin' || (user && user.role === 'admin');
+      // Determine admin status (with whitelist + metadata + localStorage)
+      const specialAdminEmails = ['f.zahra.djaanine@engleuphoria.com'];
+      const email = (user as any)?.email as string | undefined;
+      const userRole = (user as any)?.role as string | undefined;
+      const metaRole = (user as any)?.user_metadata?.role as string | undefined;
+
+      const adminStatus = Boolean(
+        (email && specialAdminEmails.includes(email)) ||
+        userRole === 'admin' ||
+        metaRole === 'admin' ||
+        userType === 'admin'
+      );
       
       console.log('Admin status determined:', {
         adminStatus,
+        fromWhitelist: email ? specialAdminEmails.includes(email) : false,
         fromUserType: userType === 'admin',
-        fromUserRole: user && user.role === 'admin'
+        fromUserRole: userRole === 'admin',
+        fromMetaRole: metaRole === 'admin'
       });
       
       // Convert to boolean explicitly

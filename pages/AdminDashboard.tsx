@@ -16,22 +16,28 @@ import { SettingsPanel } from '@/components/admin/SettingsPanel';
 import { SlideGenerationTab } from '@/components/admin/SlideGenerationTab';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Loader2 } from 'lucide-react';
 
 type AdminTab = 'overview' | 'users' | 'teachers' | 'teacher-applications' | 'students' | 'analytics' | 'library' | 'payments' | 'settings' | 'generation';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { isAdmin, permissions } = useAdminAuth();
+  const { isAdmin, isLoading, permissions } = useAdminAuth();
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  // Redirect if not admin
-  React.useEffect(() => {
-    if (!isAdmin) {
-      navigate('/');
-    }
-  }, [isAdmin, navigate]);
+  // Do not redirect here; let route guards handle access
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3" />
+          <p className="text-gray-600">Checking admin access...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAdmin) {
     return (
