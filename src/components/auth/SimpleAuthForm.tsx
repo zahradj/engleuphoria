@@ -136,7 +136,6 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
 
       if (mode === 'login') {
         const { data, error } = await signIn(formData.email, formData.password);
-        console.log('🔐 Login attempt result:', { data: data?.user?.id, error });
         
         if (error) {
           toast({
@@ -150,49 +149,11 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
             description: "Welcome back!",
           });
 
-          const roleFromMetadata = (data?.user?.user_metadata?.role as 'admin' | 'teacher' | 'student' | undefined) || undefined;
-          console.log('👤 Role from metadata:', roleFromMetadata);
-          console.log('🔍 Full user metadata:', data?.user?.user_metadata);
-          console.log('🔍 Raw user metadata:', data?.user?.raw_user_meta_data);
-          
-          const routeMap: Record<string, string> = { admin: '/admin', teacher: '/teacher', student: '/student' };
-
-          if (roleFromMetadata && routeMap[roleFromMetadata]) {
-            console.log('🎯 Navigating via metadata to:', routeMap[roleFromMetadata]);
-            navigate(routeMap[roleFromMetadata], { replace: true });
-          } else {
-            // Fallback: fetch role from public.users, then route accordingly
-            console.log('🔄 Fetching role from database...');
-            try {
-              const userId = data?.user?.id;
-              if (userId) {
-                const { data: dbUser, error: dbError } = await supabase
-                  .from('users')
-                  .select('role')
-                  .eq('id', userId)
-                  .maybeSingle();
-                
-                console.log('📊 Database query result:', { dbUser, dbError });
-                
-                const dbRole = dbUser?.role as 'admin' | 'teacher' | 'student' | undefined;
-                console.log('🎭 Database role:', dbRole);
-                
-                if (dbRole && routeMap[dbRole]) {
-                  console.log('🎯 Navigating via database to:', routeMap[dbRole]);
-                  navigate(routeMap[dbRole], { replace: true });
-                } else {
-                  console.log('🎯 Fallback navigation to /dashboard');
-                  navigate('/dashboard', { replace: true });
-                }
-              } else {
-                console.log('❌ No user ID found, navigating to /dashboard');
-                navigate('/dashboard', { replace: true });
-              }
-            } catch (fetchError) {
-              console.error('💥 Error fetching role:', fetchError);
-              navigate('/dashboard', { replace: true });
-            }
-          }
+          // Simply navigate to dashboard and let the ProtectedRoute handle the role-based redirection
+          // Add a small delay to ensure the auth context has updated
+          setTimeout(() => {
+            navigate('/dashboard', { replace: true });
+          }, 100);
         }
       } else {
         const { error } = await signUp(formData.email, formData.password, {

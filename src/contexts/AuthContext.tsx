@@ -47,11 +47,36 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   // Function to create fallback user from auth metadata
-  const createFallbackUser = (authUser: any): User => {
+  const createFallbackUser = async (authUser: any): Promise<User> => {
+    // Check localStorage for demo admin first
+    const storedUserType = localStorage.getItem('userType');
+    let role = authUser.user_metadata?.role || 'student';
+    
+    if (storedUserType === 'admin') {
+      role = 'admin';
+      console.log('🎭 Setting admin role from localStorage');
+    }
+    
+    // Try to get role from database
+    try {
+      const { data: dbUser } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', authUser.id)
+        .maybeSingle();
+      
+      if (dbUser?.role) {
+        role = dbUser.role;
+        console.log('🎭 Found role in database:', role);
+      }
+    } catch (error) {
+      console.warn('Could not fetch role from database:', error);
+    }
+    
     return {
       id: authUser.id,
       email: authUser.email || '',
-      role: authUser.user_metadata?.role || 'student',
+      role: role,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       user_metadata: authUser.user_metadata || {}
@@ -92,14 +117,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               try {
                 const dbUser = await fetchUserFromDatabase(session.user.id);
                 if (mounted) {
-                  const finalUser = dbUser || createFallbackUser(session.user);
+                  const finalUser = dbUser || await createFallbackUser(session.user);
                   console.log('Setting user after auth state change:', finalUser);
                   setUser(finalUser);
                 }
               } catch (error) {
                 console.error('Error in deferred user fetch:', error);
                 if (mounted) {
-                  const fallbackUser = createFallbackUser(session.user);
+                  const fallbackUser = await createFallbackUser(session.user);
                   console.log('Setting fallback user after error:', fallbackUser);
                   setUser(fallbackUser);
                 }
@@ -124,10 +149,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           if (initialSession?.user) {
             try {
               const dbUser = await fetchUserFromDatabase(initialSession.user.id);
-              setUser(dbUser || createFallbackUser(initialSession.user));
+              setUser(dbUser || await createFallbackUser(initialSession.user));
             } catch (error) {
               console.error('Error fetching initial user:', error);
-              setUser(createFallbackUser(initialSession.user));
+              setUser(await createFallbackUser(initialSession.user));
             }
           } else {
             setUser(null);
