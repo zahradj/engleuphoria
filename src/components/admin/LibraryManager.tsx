@@ -29,6 +29,10 @@ export const LibraryManager = () => {
   const [lessons, setLessons] = useState<LessonContent[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editingLesson, setEditingLesson] = useState<LessonContent | null>(null);
+  const [isViewOpen, setIsViewOpen] = useState(false);
+  const [viewingLesson, setViewingLesson] = useState<LessonContent | null>(null);
   const [newLesson, setNewLesson] = useState({
     title: '',
     topic: '',
@@ -130,6 +134,66 @@ export const LibraryManager = () => {
       console.error('Error deleting lesson:', error);
       toast.error('Failed to delete lesson');
     }
+  };
+
+  const openEditDialog = (lesson: LessonContent) => {
+    setEditingLesson(lesson);
+    setNewLesson({
+      title: lesson.title,
+      topic: lesson.topic,
+      cefr_level: lesson.cefr_level,
+      difficulty_level: lesson.difficulty_level,
+      module_number: lesson.module_number,
+      lesson_number: lesson.lesson_number,
+      duration_minutes: lesson.duration_minutes,
+      learning_objectives: lesson.learning_objectives?.join(', ') || '',
+    });
+    setIsEditOpen(true);
+  };
+
+  const updateLesson = async () => {
+    if (!editingLesson) return;
+
+    try {
+      const { error } = await supabase
+        .from('lessons_content')
+        .update({
+          title: newLesson.title,
+          topic: newLesson.topic,
+          cefr_level: newLesson.cefr_level,
+          difficulty_level: newLesson.difficulty_level,
+          module_number: newLesson.module_number,
+          lesson_number: newLesson.lesson_number,
+          duration_minutes: newLesson.duration_minutes,
+          learning_objectives: newLesson.learning_objectives.split(',').map(obj => obj.trim()),
+        })
+        .eq('id', editingLesson.id);
+
+      if (error) throw error;
+      
+      toast.success('Lesson updated successfully');
+      setIsEditOpen(false);
+      setEditingLesson(null);
+      setNewLesson({
+        title: '',
+        topic: '',
+        cefr_level: 'A1',
+        difficulty_level: 'beginner',
+        module_number: 1,
+        lesson_number: 1,
+        duration_minutes: 60,
+        learning_objectives: '',
+      });
+      fetchLessons();
+    } catch (error) {
+      console.error('Error updating lesson:', error);
+      toast.error('Failed to update lesson');
+    }
+  };
+
+  const openViewDialog = (lesson: LessonContent) => {
+    setViewingLesson(lesson);
+    setIsViewOpen(true);
   };
 
   useEffect(() => {
@@ -307,10 +371,10 @@ export const LibraryManager = () => {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center gap-2 justify-end">
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" onClick={() => openViewDialog(lesson)}>
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" onClick={() => openEditDialog(lesson)}>
                             <Edit className="h-4 w-4" />
                           </Button>
                           <Button
@@ -337,6 +401,194 @@ export const LibraryManager = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Edit Dialog */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Lesson</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Title</label>
+                <Input
+                  value={newLesson.title}
+                  onChange={(e) => setNewLesson({...newLesson, title: e.target.value})}
+                  placeholder="Lesson title"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Topic</label>
+                <Input
+                  value={newLesson.topic}
+                  onChange={(e) => setNewLesson({...newLesson, topic: e.target.value})}
+                  placeholder="Lesson topic"
+                />
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="text-sm font-medium">CEFR Level</label>
+                <Select value={newLesson.cefr_level} onValueChange={(value) => setNewLesson({...newLesson, cefr_level: value})}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="A1">A1</SelectItem>
+                    <SelectItem value="A2">A2</SelectItem>
+                    <SelectItem value="B1">B1</SelectItem>
+                    <SelectItem value="B2">B2</SelectItem>
+                    <SelectItem value="C1">C1</SelectItem>
+                    <SelectItem value="C2">C2</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Difficulty</label>
+                <Select value={newLesson.difficulty_level} onValueChange={(value) => setNewLesson({...newLesson, difficulty_level: value})}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="beginner">Beginner</SelectItem>
+                    <SelectItem value="intermediate">Intermediate</SelectItem>
+                    <SelectItem value="advanced">Advanced</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Duration (min)</label>
+                <Input
+                  type="number"
+                  value={newLesson.duration_minutes}
+                  onChange={(e) => setNewLesson({...newLesson, duration_minutes: parseInt(e.target.value) || 60})}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Module Number</label>
+                <Input
+                  type="number"
+                  value={newLesson.module_number}
+                  onChange={(e) => setNewLesson({...newLesson, module_number: parseInt(e.target.value) || 1})}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Lesson Number</label>
+                <Input
+                  type="number"
+                  value={newLesson.lesson_number}
+                  onChange={(e) => setNewLesson({...newLesson, lesson_number: parseInt(e.target.value) || 1})}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Learning Objectives (comma-separated)</label>
+              <Textarea
+                value={newLesson.learning_objectives}
+                onChange={(e) => setNewLesson({...newLesson, learning_objectives: e.target.value})}
+                placeholder="Objective 1, Objective 2, Objective 3"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setIsEditOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={updateLesson} disabled={!newLesson.title || !newLesson.topic}>
+                Update Lesson
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* View Dialog */}
+      <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>View Lesson Details</DialogTitle>
+          </DialogHeader>
+          {viewingLesson && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Title</label>
+                  <p className="text-sm font-medium">{viewingLesson.title}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Topic</label>
+                  <p className="text-sm">{viewingLesson.topic}</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">CEFR Level</label>
+                  <Badge variant="outline">{viewingLesson.cefr_level}</Badge>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Difficulty</label>
+                  <p className="text-sm capitalize">{viewingLesson.difficulty_level}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Duration</label>
+                  <p className="text-sm">{viewingLesson.duration_minutes} minutes</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Module</label>
+                  <p className="text-sm">{viewingLesson.module_number}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-muted-foreground">Lesson</label>
+                  <p className="text-sm">{viewingLesson.lesson_number}</p>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Status</label>
+                <Badge variant={viewingLesson.is_active ? "default" : "secondary"} className="ml-2">
+                  {viewingLesson.is_active ? "Active" : "Inactive"}
+                </Badge>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Learning Objectives</label>
+                <div className="mt-1">
+                  {viewingLesson.learning_objectives && viewingLesson.learning_objectives.length > 0 ? (
+                    <ul className="list-disc list-inside text-sm space-y-1">
+                      {viewingLesson.learning_objectives.map((objective, index) => (
+                        <li key={index}>{objective}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No learning objectives defined</p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Created</label>
+                <p className="text-sm">{new Date(viewingLesson.created_at).toLocaleString()}</p>
+              </div>
+
+              <div className="flex justify-end">
+                <Button variant="outline" onClick={() => setIsViewOpen(false)}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
