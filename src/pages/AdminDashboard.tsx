@@ -22,16 +22,29 @@ type AdminTab = 'overview' | 'users' | 'teachers' | 'teacher-applications' | 'st
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { isAdmin, permissions } = useAdminAuth();
+  const { isAdmin, isLoading, permissions } = useAdminAuth();
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  // Redirect if not admin
+  // Redirect if not admin (after loading completes)
   React.useEffect(() => {
-    if (!isAdmin) {
+    if (!isLoading && !isAdmin) {
       navigate('/');
     }
-  }, [isAdmin, navigate]);
+  }, [isAdmin, isLoading, navigate]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card>
+          <CardContent className="p-6">
+            <h1 className="text-xl font-bold">Loading...</h1>
+            <p className="text-gray-600 mt-2">Verifying admin permissions.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (!isAdmin) {
     return (
