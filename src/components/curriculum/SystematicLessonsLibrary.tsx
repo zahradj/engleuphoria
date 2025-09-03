@@ -4,9 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { BookOpen, Play, Clock, Target, Search, ChevronRight, Users, CheckCircle, Presentation } from 'lucide-react';
+import { BookOpen, Play, Clock, Target, Search, ChevronRight, Users, CheckCircle, Presentation, Settings, Layers } from 'lucide-react';
+import { SlideDeckManager } from './SlideDeckManager';
+import { LessonSlides } from '@/types/slides';
 interface LessonContent {
   id: string;
   title: string;
@@ -35,6 +38,8 @@ export function SystematicLessonsLibrary({
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [levelFilter, setLevelFilter] = useState('all');
+  const [selectedLessonForManagement, setSelectedLessonForManagement] = useState<LessonContent | null>(null);
+  const [isManageDialogOpen, setIsManageDialogOpen] = useState(false);
   const {
     toast
   } = useToast();
@@ -76,6 +81,28 @@ export function SystematicLessonsLibrary({
       // Fallback to opening new window
       window.open(`/oneonone-classroom-new?roomId=lesson-${lesson.id}&role=teacher&name=Teacher&userId=teacher-1&lessonMode=true&skipGen=1`, '_blank');
     }
+  };
+
+  const openSlideManager = (lesson: LessonContent) => {
+    setSelectedLessonForManagement(lesson);
+    setIsManageDialogOpen(true);
+  };
+
+  const handleSlidesUpdate = (updatedSlides: LessonSlides) => {
+    // Update the lesson in the local state
+    setLessons(prev => prev.map(lesson => 
+      lesson.id === selectedLessonForManagement?.id 
+        ? { ...lesson, slides_content: updatedSlides }
+        : lesson
+    ));
+    
+    // Notify parent component
+    onContentUpdate?.();
+    
+    toast({
+      title: "Slides Updated",
+      description: "Lesson slides have been updated successfully"
+    });
   };
   const filteredLessons = lessons.filter(lesson => {
     const matchesSearch = lesson.title.toLowerCase().includes(searchTerm.toLowerCase()) || lesson.topic.toLowerCase().includes(searchTerm.toLowerCase());
@@ -248,6 +275,15 @@ export function SystematicLessonsLibrary({
                     <Play className="h-4 w-4 mr-2" />
                     Use Lesson
                   </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    onClick={() => openSlideManager(lesson)} 
+                    className="w-full"
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    Manage Slides
+                  </Button>
                 </div>
               </CardContent>
             </Card>;
@@ -272,5 +308,25 @@ export function SystematicLessonsLibrary({
             <p className="text-gray-500">Try adjusting your search filters to find lessons.</p>
           </CardContent>
         </Card>}
+
+      {/* Slide Management Dialog */}
+      <Dialog open={isManageDialogOpen} onOpenChange={setIsManageDialogOpen}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Layers className="h-5 w-5" />
+              Manage Slides: {selectedLessonForManagement?.title}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedLessonForManagement && (
+            <SlideDeckManager
+              lessonId={selectedLessonForManagement.id}
+              initialSlides={selectedLessonForManagement.slides_content}
+              onSlidesUpdate={handleSlidesUpdate}
+              isTeacher={true}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>;
 }

@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { ChevronLeft, ChevronRight, Volume2, CheckCircle, XCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Volume2, CheckCircle, XCircle, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Media, Option, Slide, LessonSlides } from '@/types/slides';
 import { MatchPairs } from './interactive/MatchPairs';
@@ -95,6 +95,43 @@ export function SlideMaster({
       })}
       </div>;
   };
+  const renderCanvaContent = () => {
+    if (slide.type === 'canva_embed' && slide.canvaEmbedUrl) {
+      return (
+        <div className="w-full max-w-4xl mx-auto">
+          <iframe
+            src={slide.canvaEmbedUrl}
+            allowFullScreen
+            className="w-full h-96 rounded-lg border"
+            title="Canva Design"
+          />
+        </div>
+      );
+    }
+    
+    if (slide.type === 'canva_link' && slide.canvaViewUrl) {
+      return (
+        <div className="text-center space-y-4">
+          <div className="p-6 border-2 border-dashed border-primary-300 rounded-lg bg-primary-50">
+            <ExternalLink className="h-12 w-12 mx-auto mb-4 text-primary-600" />
+            <p className="text-sm text-muted-foreground mb-4">
+              Click the button below to open the Canva design
+            </p>
+            <Button
+              onClick={() => window.open(slide.canvaViewUrl, '_blank')}
+              className="inline-flex items-center gap-2"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Open in Canva
+            </Button>
+          </div>
+        </div>
+      );
+    }
+    
+    return null;
+  };
+
   const renderInteractiveActivity = () => {
     console.log('🎮 Rendering interactive activity for slide type:', slide.type);
     console.log('🎮 Activity data check:', {
@@ -104,6 +141,12 @@ export function SlideMaster({
       clozeText: !!slide.clozeText,
       clozeGaps: slide.clozeGaps?.length || 0
     });
+    
+    // Handle Canva slides
+    if (slide.type === 'canva_embed' || slide.type === 'canva_link') {
+      return renderCanvaContent();
+    }
+    
     if (!onActivityResult) return null;
     switch (slide.type) {
       case 'match':
@@ -189,7 +232,7 @@ export function SlideMaster({
           {renderInteractiveActivity()}
 
           {/* Options Grid - only show for non-interactive slides */}
-          {slide.options && !['match', 'drag_drop', 'cloze'].includes(slide.type) && <div className="max-w-2xl mx-auto">
+          {slide.options && !['match', 'drag_drop', 'cloze', 'canva_embed', 'canva_link'].includes(slide.type) && <div className="max-w-2xl mx-auto">
               {renderOptions()}
             </div>}
 

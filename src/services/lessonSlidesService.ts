@@ -99,16 +99,63 @@ export class LessonSlidesService {
 
   async updateLessonSlides(lessonId: string, slides: LessonSlides) {
     try {
-      const { data, error } = await supabase
-        .from('systematic_lessons')
-        .update({ slides_content: slides })
+      // Try to update in lessons_content table first (new structure)
+      const { data: lessonsContentData, error: lessonsContentError } = await supabase
+        .from('lessons_content')
+        .update({ 
+          slides_content: slides,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', lessonId)
-        .not('status', 'eq', 'archived');
+        .eq('is_active', true);
 
-      if (error) throw error;
-      return { success: true, data };
+      if (lessonsContentError) {
+        console.log('Lessons content update failed, trying systematic_lessons:', lessonsContentError);
+        
+        // Fallback to systematic_lessons table
+        const { data, error } = await supabase
+          .from('systematic_lessons')
+          .update({ slides_content: slides })
+          .eq('id', lessonId)
+          .not('status', 'eq', 'archived');
+
+        if (error) throw error;
+        return { success: true, data };
+      }
+
+      return { success: true, data: lessonsContentData };
     } catch (error) {
       console.error('Error updating lesson slides:', error);
+      return { success: false, error };
+    }
+  }
+
+  async reorderSlides(lessonId: string, slideOrder: string[]) {
+    try {
+      const lessonData = await this.fetchLessonSlidesFromLessonsContent(lessonId);
+      if (!lessonData) {
+        throw new Error('Lesson not found');
+      }
+
+      // Reorder slides based on the new order
+      const reorderedSlides = slideOrder.map((slideId, index) => {
+        const slide = lessonData.slides.find(s => s.id === slideId);
+        if (slide) {
+          return { ...slide, orderIndex: index };
+        }
+        return null;
+      }).filter(Boolean);
+
+      const updatedLessonData = {
+        ...lessonData,
+        slides: reorderedSlides,
+        slideOrder,
+        lastModified: new Date().toISOString()
+      };
+
+      return await this.updateLessonSlides(lessonId, updatedLessonData);
+    } catch (error) {
+      console.error('Error reordering slides:', error);
       return { success: false, error };
     }
   }

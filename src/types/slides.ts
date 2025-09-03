@@ -61,6 +61,14 @@ export interface Slide {
   dragDropTargets?: DragDropTarget[];
   clozeText?: string;
   clozeGaps?: ClozeGap[];
+  // Canva integration
+  canvaDesignId?: string;
+  canvaEmbedUrl?: string;
+  canvaViewUrl?: string;
+  // Slide ordering and management
+  orderIndex?: number;
+  isLocked?: boolean;
+  duration?: number;
 }
 
 export type SlideType = 
@@ -88,7 +96,9 @@ export type SlideType =
   | 'tpr_phonics'
   | 'match'
   | 'drag_drop'
-  | 'cloze';
+  | 'cloze'
+  | 'canva_embed'
+  | 'canva_link';
 
 export interface LessonSlides {
   version: '2.0';
@@ -105,6 +115,14 @@ export interface LessonSlides {
       accuracy: number;
       fluency: number;
     };
+  };
+  // Enhanced slide management
+  slideOrder?: string[];
+  lastModified?: string;
+  canvaIntegration?: {
+    projectId?: string;
+    sharedUrl?: string;
+    editUrl?: string;
   };
 }
 
