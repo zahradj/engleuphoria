@@ -69,6 +69,19 @@ export interface Slide {
   orderIndex?: number;
   isLocked?: boolean;
   duration?: number;
+  // Game mechanics
+  gameConfig?: {
+    theme: 'space' | 'ocean' | 'forest' | 'playground' | 'fantasy';
+    difficulty: 'easy' | 'medium' | 'hard';
+    targetScore?: number;
+    lives?: number;
+    timeBonus?: boolean;
+    powerUps?: boolean;
+    soundEffects?: boolean;
+    backgroundMusic?: boolean;
+  };
+  vocabulary?: string[];
+  gameWords?: string[];
 }
 
 export type SlideType = 
@@ -98,7 +111,14 @@ export type SlideType =
   | 'drag_drop'
   | 'cloze'
   | 'canva_embed'
-  | 'canva_link';
+  | 'canva_link'
+  // Interactive Game Types
+  | 'fast_match'
+  | 'memory_flip'
+  | 'spelling_race'
+  | 'word_rain'
+  | 'bubble_pop'
+  | 'treasure_hunt';
 
 export interface LessonSlides {
   version: '2.0';

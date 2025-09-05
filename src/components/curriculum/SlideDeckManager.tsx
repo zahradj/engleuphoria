@@ -39,17 +39,27 @@ interface SlideDeckManagerProps {
   isTeacher?: boolean;
 }
 
-const slideTypeOptions: { value: SlideType; label: string; icon: React.ReactNode }[] = [
-  { value: 'warmup', label: 'Warm-up', icon: <Play className="h-4 w-4" /> },
-  { value: 'vocabulary_preview', label: 'Vocabulary Preview', icon: <FileText className="h-4 w-4" /> },
-  { value: 'target_language', label: 'Target Language', icon: <FileText className="h-4 w-4" /> },
-  { value: 'listening_comprehension', label: 'Listening', icon: <Play className="h-4 w-4" /> },
-  { value: 'grammar_focus', label: 'Grammar Focus', icon: <FileText className="h-4 w-4" /> },
-  { value: 'match', label: 'Matching Activity', icon: <Shuffle className="h-4 w-4" /> },
-  { value: 'drag_drop', label: 'Drag & Drop', icon: <Shuffle className="h-4 w-4" /> },
-  { value: 'cloze', label: 'Fill in the Blanks', icon: <FileText className="h-4 w-4" /> },
-  { value: 'canva_embed', label: 'Canva Embed', icon: <Image className="h-4 w-4" /> },
-  { value: 'canva_link', label: 'Canva Link', icon: <ExternalLink className="h-4 w-4" /> },
+const slideTypeOptions: { value: SlideType; label: string; icon: React.ReactNode; category: string }[] = [
+  // Traditional Slides
+  { value: 'warmup', label: 'Warm-up', icon: <Play className="h-4 w-4" />, category: 'traditional' },
+  { value: 'vocabulary_preview', label: 'Vocabulary Preview', icon: <FileText className="h-4 w-4" />, category: 'traditional' },
+  { value: 'target_language', label: 'Target Language', icon: <FileText className="h-4 w-4" />, category: 'traditional' },
+  { value: 'listening_comprehension', label: 'Listening', icon: <Play className="h-4 w-4" />, category: 'traditional' },
+  { value: 'grammar_focus', label: 'Grammar Focus', icon: <FileText className="h-4 w-4" />, category: 'traditional' },
+  
+  // Interactive Activities
+  { value: 'match', label: 'Matching Activity', icon: <Shuffle className="h-4 w-4" />, category: 'interactive' },
+  { value: 'drag_drop', label: 'Drag & Drop', icon: <Shuffle className="h-4 w-4" />, category: 'interactive' },
+  { value: 'cloze', label: 'Fill in the Blanks', icon: <FileText className="h-4 w-4" />, category: 'interactive' },
+  
+  // Game-Based Learning
+  { value: 'fast_match', label: 'Fast Match Game', icon: <Wand2 className="h-4 w-4" />, category: 'games' },
+  { value: 'memory_flip', label: 'Memory Flip Cards', icon: <Wand2 className="h-4 w-4" />, category: 'games' },
+  { value: 'spelling_race', label: 'Spelling Race', icon: <Wand2 className="h-4 w-4" />, category: 'games' },
+  
+  // External Content
+  { value: 'canva_embed', label: 'Canva Embed', icon: <Image className="h-4 w-4" />, category: 'external' },
+  { value: 'canva_link', label: 'Canva Link', icon: <ExternalLink className="h-4 w-4" />, category: 'external' },
 ];
 
 export function SlideDeckManager({ 
@@ -255,18 +265,78 @@ export function SlideDeckManager({
                 <DialogHeader>
                   <DialogTitle>Add New Slide</DialogTitle>
                 </DialogHeader>
-                <div className="grid grid-cols-2 gap-2 mt-4">
-                  {slideTypeOptions.map((option) => (
-                    <Button
-                      key={option.value}
-                      variant="outline"
-                      onClick={() => addNewSlide(option.value)}
-                      className="h-auto p-3 flex-col gap-2"
-                    >
-                      {option.icon}
-                      <span className="text-xs">{option.label}</span>
-                    </Button>
-                  ))}
+                <div className="space-y-4 mt-4">
+                  {/* Traditional Slides */}
+                  <div>
+                    <h4 className="font-medium mb-2">Traditional Slides</h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      {slideTypeOptions.filter(opt => opt.category === 'traditional').map((option) => (
+                        <Button
+                          key={option.value}
+                          variant="outline"
+                          onClick={() => addNewSlide(option.value)}
+                          className="h-auto p-3 flex-col gap-2"
+                        >
+                          {option.icon}
+                          <span className="text-xs">{option.label}</span>
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Interactive Activities */}
+                  <div>
+                    <h4 className="font-medium mb-2">Interactive Activities</h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      {slideTypeOptions.filter(opt => opt.category === 'interactive').map((option) => (
+                        <Button
+                          key={option.value}
+                          variant="outline"
+                          onClick={() => addNewSlide(option.value)}
+                          className="h-auto p-3 flex-col gap-2"
+                        >
+                          {option.icon}
+                          <span className="text-xs">{option.label}</span>
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Game-Based Learning */}
+                  <div>
+                    <h4 className="font-medium mb-2 text-primary">🎮 Game-Based Learning</h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      {slideTypeOptions.filter(opt => opt.category === 'games').map((option) => (
+                        <Button
+                          key={option.value}
+                          variant="outline"
+                          onClick={() => addNewSlide(option.value)}
+                          className="h-auto p-3 flex-col gap-2 border-primary/50 hover:border-primary"
+                        >
+                          {option.icon}
+                          <span className="text-xs">{option.label}</span>
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* External Content */}
+                  <div>
+                    <h4 className="font-medium mb-2">External Content</h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      {slideTypeOptions.filter(opt => opt.category === 'external').map((option) => (
+                        <Button
+                          key={option.value}
+                          variant="outline"
+                          onClick={() => addNewSlide(option.value)}
+                          className="h-auto p-3 flex-col gap-2"
+                        >
+                          {option.icon}
+                          <span className="text-xs">{option.label}</span>
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </DialogContent>
             </Dialog>

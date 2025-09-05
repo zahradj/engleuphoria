@@ -8,6 +8,9 @@ import { Media, Option, Slide, LessonSlides } from '@/types/slides';
 import { MatchPairs } from './interactive/MatchPairs';
 import { DragDropMatch } from './interactive/DragDropMatch';
 import { ClozeActivity } from './interactive/ClozeActivity';
+import { FastMatchGame } from './game/FastMatchGame';
+import { MemoryFlipGame } from './game/MemoryFlipGame';
+import { SpellingRaceGame } from './game/SpellingRaceGame';
 export interface SlideMasterProps {
   slide: Slide;
   currentSlide: number;
@@ -139,7 +142,9 @@ export function SlideMaster({
       dragDropItems: slide.dragDropItems?.length || 0,
       dragDropTargets: slide.dragDropTargets?.length || 0,
       clozeText: !!slide.clozeText,
-      clozeGaps: slide.clozeGaps?.length || 0
+      clozeGaps: slide.clozeGaps?.length || 0,
+      gameWords: slide.gameWords?.length || 0,
+      vocabulary: slide.vocabulary?.length || 0
     });
     
     // Handle Canva slides
@@ -148,7 +153,50 @@ export function SlideMaster({
     }
     
     if (!onActivityResult) return null;
+    
+    const handleGameComplete = (correct: boolean, attempts: number, score?: number) => {
+      onActivityResult({
+        itemId: slide.id,
+        correct,
+        timeMs: Date.now() - timeElapsed * 1000,
+        attempts,
+        tags: [slide.type],
+        cefr: level,
+        accuracyPercent: score ? Math.min((score / 100) * 100, 100) : (correct ? 100 : 0)
+      });
+    };
+    
     switch (slide.type) {
+      // Game-based slides
+      case 'fast_match':
+        if (!slide.matchPairs || slide.matchPairs.length === 0) return null;
+        return <FastMatchGame 
+          matchPairs={slide.matchPairs} 
+          onComplete={handleGameComplete}
+          theme={slide.gameConfig?.theme || 'playground'}
+          timeLimit={slide.timeLimit || 60}
+        />;
+        
+      case 'memory_flip':
+        if (!slide.matchPairs || slide.matchPairs.length === 0) return null;
+        return <MemoryFlipGame 
+          matchPairs={slide.matchPairs} 
+          onComplete={handleGameComplete}
+          theme={slide.gameConfig?.theme || 'playground'}
+          timeLimit={slide.timeLimit || 90}
+        />;
+        
+      case 'spelling_race':
+        const words = slide.gameWords || slide.vocabulary || [];
+        if (words.length === 0) return null;
+        return <SpellingRaceGame 
+          words={words} 
+          onComplete={handleGameComplete}
+          theme={slide.gameConfig?.theme || 'playground'}
+          timeLimit={slide.timeLimit || 120}
+        />;
+      
+      // Traditional interactive slides
       case 'match':
         if (!slide.matchPairs || slide.matchPairs.length === 0) return null;
         return <MatchPairs pairs={slide.matchPairs} onComplete={(correct, attempts) => {
@@ -162,6 +210,7 @@ export function SlideMaster({
             accuracyPercent: correct ? 100 : 0
           });
         }} showFeedback={showFeedback} />;
+        
       case 'drag_drop':
         if (!slide.dragDropItems || !slide.dragDropTargets) return null;
         return <DragDropMatch items={slide.dragDropItems} targets={slide.dragDropTargets} onComplete={(correct, attempts) => {
@@ -175,6 +224,7 @@ export function SlideMaster({
             accuracyPercent: correct ? 100 : 0
           });
         }} showFeedback={showFeedback} />;
+        
       case 'cloze':
         if (!slide.clozeText || !slide.clozeGaps) return null;
         return <ClozeActivity text={slide.clozeText} gaps={slide.clozeGaps} onComplete={(correct, attempts) => {
@@ -188,6 +238,7 @@ export function SlideMaster({
             accuracyPercent: correct ? 100 : 0
           });
         }} showFeedback={showFeedback} />;
+        
       default:
         return null;
     }
@@ -232,7 +283,7 @@ export function SlideMaster({
           {renderInteractiveActivity()}
 
           {/* Options Grid - only show for non-interactive slides */}
-          {slide.options && !['match', 'drag_drop', 'cloze', 'canva_embed', 'canva_link'].includes(slide.type) && <div className="max-w-2xl mx-auto">
+          {slide.options && !['match', 'drag_drop', 'cloze', 'canva_embed', 'canva_link', 'fast_match', 'memory_flip', 'spelling_race', 'word_rain', 'bubble_pop', 'treasure_hunt'].includes(slide.type) && <div className="max-w-2xl mx-auto">
               {renderOptions()}
             </div>}
 
