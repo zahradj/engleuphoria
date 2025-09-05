@@ -8,8 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
-import { BookOpen, Plus, Edit, Trash2, Eye } from 'lucide-react';
+import { BookOpen, Plus, Edit, Trash2, Eye, Presentation } from 'lucide-react';
 import { toast } from 'sonner';
+import { SlideDeckManager } from '@/components/curriculum/SlideDeckManager';
 
 interface LessonContent {
   id: string;
@@ -33,6 +34,8 @@ export const LibraryManager = () => {
   const [editingLesson, setEditingLesson] = useState<LessonContent | null>(null);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [viewingLesson, setViewingLesson] = useState<LessonContent | null>(null);
+  const [isSlideDeckOpen, setIsSlideDeckOpen] = useState(false);
+  const [managingLessonId, setManagingLessonId] = useState<string | null>(null);
   const [newLesson, setNewLesson] = useState({
     title: '',
     topic: '',
@@ -194,6 +197,11 @@ export const LibraryManager = () => {
   const openViewDialog = (lesson: LessonContent) => {
     setViewingLesson(lesson);
     setIsViewOpen(true);
+  };
+
+  const openSlideDeckManager = (lessonId: string) => {
+    setManagingLessonId(lessonId);
+    setIsSlideDeckOpen(true);
   };
 
   useEffect(() => {
@@ -373,6 +381,9 @@ export const LibraryManager = () => {
                         <div className="flex items-center gap-2 justify-end">
                           <Button variant="outline" size="sm" onClick={() => openViewDialog(lesson)}>
                             <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => openSlideDeckManager(lesson.id)}>
+                            <Presentation className="h-4 w-4" />
                           </Button>
                           <Button variant="outline" size="sm" onClick={() => openEditDialog(lesson)}>
                             <Edit className="h-4 w-4" />
@@ -586,6 +597,20 @@ export const LibraryManager = () => {
                 </Button>
               </div>
             </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Slide Deck Manager Dialog */}
+      <Dialog open={isSlideDeckOpen} onOpenChange={setIsSlideDeckOpen}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Manage Lesson Slides</DialogTitle>
+          </DialogHeader>
+          {managingLessonId && (
+            <SlideDeckManager 
+              lessonId={managingLessonId}
+            />
           )}
         </DialogContent>
       </Dialog>

@@ -14,11 +14,12 @@ import { LibraryManager } from '@/components/admin/LibraryManager';
 import { PaymentsPanel } from '@/components/admin/PaymentsPanel';
 import { SettingsPanel } from '@/components/admin/SettingsPanel';
 import { SlideGenerationTab } from '@/components/admin/SlideGenerationTab';
+import { SystematicLessonsLibrary } from '@/components/curriculum/SystematicLessonsLibrary';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
 
-type AdminTab = 'overview' | 'users' | 'teachers' | 'teacher-applications' | 'students' | 'analytics' | 'library' | 'payments' | 'settings' | 'generation';
+type AdminTab = 'overview' | 'users' | 'teachers' | 'teacher-applications' | 'students' | 'analytics' | 'library' | 'curriculum' | 'payments' | 'settings' | 'generation';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -80,6 +81,8 @@ const AdminDashboard = () => {
         return <AnalyticsDashboard />;
       case 'library':
         return <LibraryManager />;
+      case 'curriculum':
+        return <SystematicLessonsLibrary />;
       case 'payments':
         return <PaymentsPanel />;
       case 'settings':
