@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
-import { BookOpen, Plus, Edit, Trash2, Eye, Presentation } from 'lucide-react';
+import { BookOpen, Plus, Edit, Trash2, Eye, Monitor } from 'lucide-react';
 import { toast } from 'sonner';
 import { SlideDeckManager } from '@/components/curriculum/SlideDeckManager';
 
@@ -383,7 +383,7 @@ export const LibraryManager = () => {
                             <Eye className="h-4 w-4" />
                           </Button>
                           <Button variant="outline" size="sm" onClick={() => openSlideDeckManager(lesson.id)}>
-                            <Presentation className="h-4 w-4" />
+                            <Monitor className="h-4 w-4" />
                           </Button>
                           <Button variant="outline" size="sm" onClick={() => openEditDialog(lesson)}>
                             <Edit className="h-4 w-4" />
