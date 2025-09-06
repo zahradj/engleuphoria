@@ -117,18 +117,24 @@ export function SlideDeckManager({
         total_slides: updatedSlides.length
       };
 
-      await lessonSlidesService.updateLessonSlides(lessonId, updatedLessonData);
-      setLessonData(updatedLessonData);
-      onSlidesUpdate?.(updatedLessonData);
+      const result = await lessonSlidesService.updateLessonSlides(lessonId, updatedLessonData);
       
-      toast({
-        title: "Slides Updated",
-        description: "Slide order and content saved successfully"
-      });
+      if (result.success) {
+        setLessonData(updatedLessonData);
+        onSlidesUpdate?.(updatedLessonData);
+        
+        toast({
+          title: "Slides Updated",
+          description: "Slide order and content saved successfully"
+        });
+      } else {
+        throw new Error(result.error || 'Failed to save slides');
+      }
     } catch (error) {
+      console.error('Error saving slides:', error);
       toast({
         title: "Error",
-        description: "Failed to save slide changes",
+        description: "Failed to save slide changes. Please try again.",
         variant: "destructive"
       });
     }
@@ -153,6 +159,7 @@ export function SlideDeckManager({
 
     const updatedSlides = [...slides, newSlide];
     setSlides(updatedSlides);
+    saveSlides(updatedSlides);
     setSelectedSlide(newSlide);
     setIsEditDialogOpen(true);
   };
