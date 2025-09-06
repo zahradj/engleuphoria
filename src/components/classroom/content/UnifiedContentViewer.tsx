@@ -1287,8 +1287,6 @@ export function UnifiedContentViewer({
 
       <EnhancedUploadDialog isOpen={isUploadDialogOpen} onClose={closeUploadDialog} onUpload={handleEnhancedUpload} />
 
-      <SoundButton>
-        🔊
-      </SoundButton>
+      
     </div>;
 }
