@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
-import { GraduationCap, Star, DollarSign, Calendar, Eye } from 'lucide-react';
+import { GraduationCap, Star, DollarSign, Calendar, Eye, Search, Filter } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Teacher {
@@ -23,6 +25,9 @@ interface Teacher {
 export const ActiveTeachersTable = () => {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [specializationFilter, setSpecializationFilter] = useState('all');
 
   const fetchTeachers = async () => {
     try {
@@ -87,6 +92,24 @@ export const ActiveTeachersTable = () => {
     fetchTeachers();
   }, []);
 
+  const filteredTeachers = teachers.filter(teacher => {
+    const matchesSearch = teacher.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         teacher.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || 
+                         (statusFilter === 'active' && teacher.can_teach) ||
+                         (statusFilter === 'inactive' && !teacher.can_teach);
+    const matchesSpecialization = specializationFilter === 'all' || 
+                                 teacher.specializations.some(spec => 
+                                   spec.toLowerCase().includes(specializationFilter.toLowerCase())
+                                 );
+    return matchesSearch && matchesStatus && matchesSpecialization;
+  });
+
+  const getAllSpecializations = () => {
+    const allSpecs = teachers.flatMap(teacher => teacher.specializations);
+    return [...new Set(allSpecs)];
+  };
+
   if (loading) {
     return (
       <Card>
@@ -101,10 +124,45 @@ export const ActiveTeachersTable = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl font-semibold flex items-center gap-2">
-            <GraduationCap className="h-5 w-5" />
-            Active Teachers
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-xl font-semibold flex items-center gap-2">
+              <GraduationCap className="h-5 w-5" />
+              Active Teachers
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search teachers..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9 w-64"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[120px]">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={specializationFilter} onValueChange={setSpecializationFilter}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Specialization" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Specializations</SelectItem>
+                  {getAllSpecializations().map((spec) => (
+                    <SelectItem key={spec} value={spec}>{spec}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
@@ -120,15 +178,15 @@ export const ActiveTeachersTable = () => {
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
-                {teachers.length === 0 ? (
+               <TableBody>
+                {filteredTeachers.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                       No teachers found
                     </TableCell>
                   </TableRow>
-                ) : (
-                  teachers.map((teacher) => (
+                  ) : (
+                  filteredTeachers.map((teacher) => (
                     <TableRow key={teacher.id}>
                       <TableCell>
                         <div>

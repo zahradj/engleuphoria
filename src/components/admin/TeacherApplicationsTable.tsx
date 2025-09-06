@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { supabase } from '@/integrations/supabase/client';
-import { CheckCircle, XCircle, Eye, Clock, Mail } from 'lucide-react';
+import { CheckCircle, XCircle, Eye, Clock, Mail, Search, Filter } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface TeacherApplication {
@@ -21,6 +23,8 @@ interface TeacherApplication {
 export const TeacherApplicationsTable = () => {
   const [applications, setApplications] = useState<TeacherApplication[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   const fetchApplications = async () => {
     try {
@@ -60,6 +64,14 @@ export const TeacherApplicationsTable = () => {
     fetchApplications();
   }, []);
 
+  const filteredApplications = applications.filter(app => {
+    const matchesSearch = app.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         app.last_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         app.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || app.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
   const getStatusBadge = (status: string) => {
     const statusConfig = {
       pending: { variant: 'secondary' as const, label: 'Pending', icon: Clock },
@@ -92,10 +104,35 @@ export const TeacherApplicationsTable = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl font-semibold flex items-center gap-2">
-            <Mail className="h-5 w-5" />
-            Teacher Applications
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-xl font-semibold flex items-center gap-2">
+              <Mail className="h-5 w-5" />
+              Teacher Applications
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search applications..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9 w-64"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[140px]">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="approved">Approved</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
@@ -110,15 +147,15 @@ export const TeacherApplicationsTable = () => {
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
-                {applications.length === 0 ? (
+               <TableBody>
+                {filteredApplications.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                       No applications found
                     </TableCell>
                   </TableRow>
-                ) : (
-                  applications.map((application) => (
+                  ) : (
+                  filteredApplications.map((application) => (
                     <TableRow key={application.id}>
                       <TableCell className="font-medium">
                         {application.first_name} {application.last_name}
