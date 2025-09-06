@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
-import { BookOpen, Plus, Edit, Trash2, Eye, Monitor } from 'lucide-react';
+import { BookOpen, Plus, Edit, Trash2, Eye, Monitor, Search, Filter } from 'lucide-react';
 import { toast } from 'sonner';
 import { SlideDeckManager } from '@/components/curriculum/SlideDeckManager';
 
@@ -29,6 +29,9 @@ interface LessonContent {
 export const LibraryManager = () => {
   const [lessons, setLessons] = useState<LessonContent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [levelFilter, setLevelFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingLesson, setEditingLesson] = useState<LessonContent | null>(null);
@@ -208,6 +211,16 @@ export const LibraryManager = () => {
     fetchLessons();
   }, []);
 
+  const filteredLessons = lessons.filter(lesson => {
+    const matchesSearch = lesson.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         lesson.topic.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesLevel = levelFilter === 'all' || lesson.cefr_level === levelFilter;
+    const matchesStatus = statusFilter === 'all' || 
+                         (statusFilter === 'active' && lesson.is_active) ||
+                         (statusFilter === 'inactive' && !lesson.is_active);
+    return matchesSearch && matchesLevel && matchesStatus;
+  });
+
   if (loading) {
     return (
       <div className="text-center text-muted-foreground">Loading library...</div>
@@ -223,13 +236,48 @@ export const LibraryManager = () => {
               <BookOpen className="h-5 w-5" />
               Classroom Library
             </CardTitle>
-            <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Lesson
-                </Button>
-              </DialogTrigger>
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search lessons..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9 w-64"
+                />
+              </div>
+              <Select value={levelFilter} onValueChange={setLevelFilter}>
+                <SelectTrigger className="w-[120px]">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Levels</SelectItem>
+                  <SelectItem value="A1">A1</SelectItem>
+                  <SelectItem value="A2">A2</SelectItem>
+                  <SelectItem value="B1">B1</SelectItem>
+                  <SelectItem value="B2">B2</SelectItem>
+                  <SelectItem value="C1">C1</SelectItem>
+                  <SelectItem value="C2">C2</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+              <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Lesson
+                  </Button>
+                </DialogTrigger>
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
                   <DialogTitle>Create New Lesson</DialogTitle>
@@ -332,7 +380,8 @@ export const LibraryManager = () => {
                   </div>
                 </div>
               </DialogContent>
-            </Dialog>
+              </Dialog>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -350,15 +399,15 @@ export const LibraryManager = () => {
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
-                {lessons.length === 0 ? (
+               <TableBody>
+                {filteredLessons.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                       No lessons found
                     </TableCell>
                   </TableRow>
-                ) : (
-                  lessons.map((lesson) => (
+                  ) : (
+                  filteredLessons.map((lesson) => (
                     <TableRow key={lesson.id}>
                       <TableCell className="font-medium">
                         {lesson.module_number}.{lesson.lesson_number}
