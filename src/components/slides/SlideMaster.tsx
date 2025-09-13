@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { Media, Option, Slide, LessonSlides } from '@/types/slides';
 import { MatchPairs } from './interactive/MatchPairs';
 import { DragDropMatch } from './interactive/DragDropMatch';
+import { WordPairDragDrop } from './interactive/WordPairDragDrop';
 import { ClozeActivity } from './interactive/ClozeActivity';
 import { FastMatchGame } from './game/FastMatchGame';
 import { MemoryFlipGame } from './game/MemoryFlipGame';
@@ -210,6 +211,27 @@ export function SlideMaster({
             accuracyPercent: correct ? 100 : 0
           });
         }} showFeedback={showFeedback} />;
+
+      case 'quiz_match_pairs':
+        if (!slide.matchPairs || slide.matchPairs.length === 0) return null;
+        return <WordPairDragDrop 
+          pairs={slide.matchPairs} 
+          onComplete={(correct, attempts) => {
+            onActivityResult({
+              itemId: slide.id,
+              correct,
+              timeMs: Date.now() - timeElapsed * 1000,
+              attempts,
+              tags: [slide.type],
+              cefr: level,
+              accuracyPercent: correct ? 100 : 0
+            });
+          }} 
+          showFeedback={showFeedback}
+          currentSection={currentSlide + 1}
+          totalSections={totalSlides}
+          sectionTitle={slide.prompt || "Word Pairs"}
+        />;
         
       case 'drag_drop':
         if (!slide.dragDropItems || !slide.dragDropTargets) return null;
@@ -283,7 +305,7 @@ export function SlideMaster({
           {renderInteractiveActivity()}
 
           {/* Options Grid - only show for non-interactive slides */}
-          {slide.options && !['match', 'drag_drop', 'cloze', 'canva_embed', 'canva_link', 'fast_match', 'memory_flip', 'spelling_race', 'word_rain', 'bubble_pop', 'treasure_hunt'].includes(slide.type) && <div className="max-w-2xl mx-auto">
+          {slide.options && !['match', 'drag_drop', 'cloze', 'canva_embed', 'canva_link', 'fast_match', 'memory_flip', 'spelling_race', 'word_rain', 'bubble_pop', 'treasure_hunt', 'quiz_match_pairs', 'quiz_multiple_choice', 'quiz_drag_drop'].includes(slide.type) && <div className="max-w-2xl mx-auto">
               {renderOptions()}
             </div>}
 

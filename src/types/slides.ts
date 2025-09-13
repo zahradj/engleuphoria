@@ -118,7 +118,11 @@ export type SlideType =
   | 'spelling_race'
   | 'word_rain'
   | 'bubble_pop'
-  | 'treasure_hunt';
+  | 'treasure_hunt'
+  // Quiz Types
+  | 'quiz_match_pairs'
+  | 'quiz_multiple_choice'
+  | 'quiz_drag_drop';
 
 export interface LessonSlides {
   version: '2.0';
