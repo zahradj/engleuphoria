@@ -5097,6 +5097,10 @@ export type Database = {
         Args: { org_uuid: string }
         Returns: Json
       }
+      get_security_status: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_student_curriculum_analytics: {
         Args: { p_curriculum_id: string; p_student_id: string }
         Returns: Json
