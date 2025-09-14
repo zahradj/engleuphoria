@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Shield, AlertTriangle, Check, X } from 'lucide-react';
+import { Shield, AlertTriangle, Check, X, Activity } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { getCSPHeader, getSecurityHeaders } from '@/utils/security';
+import { SecurityMonitor } from '@/components/security/SecurityMonitor';
 
 interface SecurityCheck {
   name: string;
@@ -134,6 +135,19 @@ export function SecurityPanel() {
               </Button>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Real-time Security Monitoring */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="h-5 w-5" />
+            Security Monitoring
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <SecurityMonitor />
         </CardContent>
       </Card>
 
