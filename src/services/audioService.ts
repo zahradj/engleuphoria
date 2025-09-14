@@ -1,5 +1,3 @@
-// Audio Service for Reward Sounds and Voice Effects
-
 class AudioService {
   private context: AudioContext | null = null;
   private celebrationSounds: { [key: string]: HTMLAudioElement } = {};
@@ -14,161 +12,199 @@ class AudioService {
     this.elevenLabsApiKey = localStorage.getItem('elevenlabs_api_key');
   }
 
-  private initializeAudioContext() {
-    try {
-      this.context = new (window.AudioContext || (window as any).webkitAudioContext)();
-    } catch (error) {
-      console.warn('Web Audio API not supported', error);
+  private async initializeAudioContext() {
+    if (!this.context) {
+      try {
+        this.context = new (window.AudioContext || (window as any).webkitAudioContext)();
+        
+        // Unlock audio context on user interaction
+        const unlockAudio = () => {
+          if (this.context && this.context.state === 'suspended') {
+            this.context.resume();
+          }
+          document.removeEventListener('click', unlockAudio);
+          document.removeEventListener('touchstart', unlockAudio);
+        };
+        
+        document.addEventListener('click', unlockAudio);
+        document.addEventListener('touchstart', unlockAudio);
+      } catch (error) {
+        console.warn('Could not initialize audio context:', error);
+      }
     }
   }
 
   private preloadSounds() {
-    // Create clapping sound programmatically
-    this.generateClappingSound();
+    // Preload celebration sounds
+    this.celebrationSounds.success = new Audio('/success.mp3');
+    this.celebrationSounds.achievement = new Audio('/achievement.mp3');
+    this.celebrationSounds.levelUp = new Audio('/level-up.mp3');
+    
+    // Set volume for preloaded sounds
+    Object.values(this.celebrationSounds).forEach(sound => {
+      sound.volume = 0.3;
+      sound.preload = 'auto';
+    });
   }
 
-  private generateClappingSound() {
-    if (!this.context) return;
+  toggleMute() {
+    this.isMuted = !this.isMuted;
+    return this.isMuted;
+  }
 
-    // Create a realistic clapping sound using multiple noise bursts
-    const createClap = () => {
-      const bufferSize = this.context!.sampleRate * 0.1; // 100ms
-      const buffer = this.context!.createBuffer(2, bufferSize, this.context!.sampleRate);
+  isMutedState() {
+    return this.isMuted;
+  }
+
+  private generateTone(frequency: number, duration: number, type: OscillatorType = 'sine'): AudioBuffer | null {
+    if (!this.context) return null;
+
+    const sampleRate = this.context.sampleRate;
+    const samples = Math.floor(sampleRate * duration);
+    const buffer = this.context.createBuffer(1, samples, sampleRate);
+    const channelData = buffer.getChannelData(0);
+
+    for (let i = 0; i < samples; i++) {
+      const t = i / sampleRate;
+      let value = 0;
       
-      for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
-        const channelData = buffer.getChannelData(channel);
-        for (let i = 0; i < bufferSize; i++) {
-          // Create envelope for realistic clap sound
-          const envelope = Math.exp(-i / (bufferSize * 0.1)) * Math.exp(-Math.pow(i - bufferSize * 0.02, 2) / (2 * Math.pow(bufferSize * 0.01, 2)));
-          channelData[i] = (Math.random() * 2 - 1) * envelope * 0.3;
-        }
+      switch (type) {
+        case 'sine':
+          value = Math.sin(2 * Math.PI * frequency * t);
+          break;
+        case 'square':
+          value = Math.sign(Math.sin(2 * Math.PI * frequency * t));
+          break;
+        case 'sawtooth':
+          value = 2 * ((frequency * t) % 1) - 1;
+          break;
+        case 'triangle':
+          value = 2 * Math.abs(2 * ((frequency * t) % 1) - 1) - 1;
+          break;
       }
-      return buffer;
-    };
-
-    // Store clap sound buffer for later use
-    this.clapBuffer = createClap();
-  }
-
-  // Generate cheerful chime sound for low points
-  private generateChimeSound(): AudioBuffer | null {
-    if (!this.context) return null;
-
-    const bufferSize = this.context.sampleRate * 0.5; // 500ms
-    const buffer = this.context.createBuffer(2, bufferSize, this.context.sampleRate);
-    
-    for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
-      const channelData = buffer.getChannelData(channel);
-      for (let i = 0; i < bufferSize; i++) {
-        const t = i / this.context.sampleRate;
-        // Create a pleasant chime with harmonics
-        let sample = 0;
-        sample += Math.sin(2 * Math.PI * 523.25 * t) * Math.exp(-t * 3); // C5
-        sample += Math.sin(2 * Math.PI * 659.25 * t) * Math.exp(-t * 3) * 0.7; // E5
-        sample += Math.sin(2 * Math.PI * 783.99 * t) * Math.exp(-t * 3) * 0.5; // G5
-        channelData[i] = sample * 0.3;
-      }
+      
+      // Apply envelope for smoother sound
+      const envelope = Math.exp(-t * 3);
+      channelData[i] = value * envelope * 0.3;
     }
-    return buffer;
-  }
 
-  // Generate success fanfare for medium points
-  private generateFanfareSound(): AudioBuffer | null {
-    if (!this.context) return null;
-
-    const bufferSize = this.context.sampleRate * 1.0; // 1 second
-    const buffer = this.context.createBuffer(2, bufferSize, this.context.sampleRate);
-    
-    for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
-      const channelData = buffer.getChannelData(channel);
-      for (let i = 0; i < bufferSize; i++) {
-        const t = i / this.context.sampleRate;
-        // Create triumphant fanfare
-        let sample = 0;
-        if (t < 0.3) {
-          sample += Math.sin(2 * Math.PI * 261.63 * t) * Math.exp(-t * 2); // C4
-          sample += Math.sin(2 * Math.PI * 329.63 * t) * Math.exp(-t * 2) * 0.8; // E4
-        } else if (t < 0.6) {
-          sample += Math.sin(2 * Math.PI * 329.63 * t) * Math.exp(-(t-0.3) * 2); // E4
-          sample += Math.sin(2 * Math.PI * 392.00 * t) * Math.exp(-(t-0.3) * 2) * 0.8; // G4
-        } else {
-          sample += Math.sin(2 * Math.PI * 523.25 * t) * Math.exp(-(t-0.6) * 2); // C5
-          sample += Math.sin(2 * Math.PI * 659.25 * t) * Math.exp(-(t-0.6) * 2) * 0.8; // E5
-        }
-        channelData[i] = sample * 0.4;
-      }
-    }
-    return buffer;
-  }
-
-  // Generate epic victory sound for high points
-  private generateVictorySound(): AudioBuffer | null {
-    if (!this.context) return null;
-
-    const bufferSize = this.context.sampleRate * 1.5; // 1.5 seconds
-    const buffer = this.context.createBuffer(2, bufferSize, this.context.sampleRate);
-    
-    for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
-      const channelData = buffer.getChannelData(channel);
-      for (let i = 0; i < bufferSize; i++) {
-        const t = i / this.context.sampleRate;
-        // Create epic victory sound with ascending notes
-        let sample = 0;
-        const envelope = Math.exp(-t * 1.5);
-        
-        // Multiple harmonious tones
-        sample += Math.sin(2 * Math.PI * 261.63 * t) * envelope; // C4
-        sample += Math.sin(2 * Math.PI * 329.63 * t) * envelope * 0.8; // E4
-        sample += Math.sin(2 * Math.PI * 392.00 * t) * envelope * 0.6; // G4
-        sample += Math.sin(2 * Math.PI * 523.25 * t) * envelope * 0.4; // C5
-        
-        // Add sparkle effect
-        if (Math.random() < 0.1) {
-          sample += Math.sin(2 * Math.PI * 1046.50 * t) * envelope * 0.3; // C6
-        }
-        
-        channelData[i] = sample * 0.3;
-      }
-    }
     return buffer;
   }
 
   private playCustomSound(buffer: AudioBuffer | null, volume: number = 0.5) {
     if (!this.context || !buffer || this.isMuted) return;
 
-    const source = this.context.createBufferSource();
-    const gainNode = this.context.createGain();
-    
-    source.buffer = buffer;
-    source.connect(gainNode);
-    gainNode.connect(this.context.destination);
-    gainNode.gain.value = volume;
-    
-    source.start();
+    try {
+      const source = this.context.createBufferSource();
+      const gainNode = this.context.createGain();
+      
+      source.buffer = buffer;
+      gainNode.gain.value = volume;
+      
+      source.connect(gainNode);
+      gainNode.connect(this.context.destination);
+      
+      source.start();
+    } catch (error) {
+      console.warn('Could not play custom sound:', error);
+    }
   }
 
-  private playClappingSound(intensity: number = 1) {
-    if (!this.context || !this.clapBuffer || this.isMuted) return;
+  private generateVictorySound(): AudioBuffer | null {
+    if (!this.context) return null;
 
-    const numClaps = Math.min(Math.max(Math.floor(intensity / 10), 1), 5);
+    const sampleRate = this.context.sampleRate;
+    const duration = 1.2;
+    const samples = Math.floor(sampleRate * duration);
+    const buffer = this.context.createBuffer(1, samples, sampleRate);
+    const channelData = buffer.getChannelData(0);
+
+    for (let i = 0; i < samples; i++) {
+      const t = i / sampleRate;
+      const progress = t / duration;
+      
+      // Ascending melody with harmonics
+      const freq1 = 440 * (1 + progress * 0.5);
+      const freq2 = 880 * (1 + progress * 0.3);
+      const freq3 = 1320 * (1 + progress * 0.2);
+      
+      const wave1 = Math.sin(2 * Math.PI * freq1 * t) * 0.4;
+      const wave2 = Math.sin(2 * Math.PI * freq2 * t) * 0.3;
+      const wave3 = Math.sin(2 * Math.PI * freq3 * t) * 0.2;
+      
+      const envelope = Math.exp(-t * 1.5) * (1 - progress * 0.5);
+      channelData[i] = (wave1 + wave2 + wave3) * envelope;
+    }
+
+    return buffer;
+  }
+
+  private generateSuccessChime(): AudioBuffer | null {
+    if (!this.context) return null;
+
+    const sampleRate = this.context.sampleRate;
+    const duration = 0.8;
+    const samples = Math.floor(sampleRate * duration);
+    const buffer = this.context.createBuffer(1, samples, sampleRate);
+    const channelData = buffer.getChannelData(0);
+
+    // Pleasant C major chord progression
+    const frequencies = [261.63, 329.63, 392.00]; // C, E, G
+
+    for (let i = 0; i < samples; i++) {
+      const t = i / sampleRate;
+      let value = 0;
+      
+      frequencies.forEach((freq, index) => {
+        value += Math.sin(2 * Math.PI * freq * t) * (0.3 / frequencies.length);
+      });
+      
+      // Bell-like envelope
+      const envelope = Math.exp(-t * 4);
+      channelData[i] = value * envelope;
+    }
+
+    return buffer;
+  }
+
+  private async generateClappingBuffer(): Promise<AudioBuffer | null> {
+    if (!this.context || this.clapBuffer) return this.clapBuffer;
+
+    try {
+      const sampleRate = this.context.sampleRate;
+      const duration = 0.1;
+      const samples = Math.floor(sampleRate * duration);
+      const buffer = this.context.createBuffer(1, samples, sampleRate);
+      const channelData = buffer.getChannelData(0);
+
+      // Generate noise-based clap sound
+      for (let i = 0; i < samples; i++) {
+        const t = i / sampleRate;
+        const noise = (Math.random() * 2 - 1);
+        const envelope = Math.exp(-t * 40);
+        channelData[i] = noise * envelope * 0.5;
+      }
+
+      this.clapBuffer = buffer;
+      return buffer;
+    } catch (error) {
+      console.warn('Could not generate clapping buffer:', error);
+      return null;
+    }
+  }
+
+  private async playClappingSound(intensity: number = 1) {
+    if (this.isMuted) return;
+
+    const clapBuffer = await this.generateClappingBuffer();
+    if (!clapBuffer) return;
+
+    const numberOfClaps = Math.min(Math.max(Math.floor(intensity / 10), 1), 5);
     
-    for (let i = 0; i < numClaps; i++) {
+    for (let i = 0; i < numberOfClaps; i++) {
       setTimeout(() => {
-        if (!this.context || !this.clapBuffer) return;
-
-        const source = this.context.createBufferSource();
-        const gainNode = this.context.createGain();
-        
-        source.buffer = this.clapBuffer;
-        source.connect(gainNode);
-        gainNode.connect(this.context.destination);
-        
-        // Vary the volume and pitch slightly for each clap
-        gainNode.gain.value = 0.4 + Math.random() * 0.3;
-        source.playbackRate.value = 0.9 + Math.random() * 0.2;
-        
-        source.start();
-      }, i * 150); // Stagger claps by 150ms
+        this.playCustomSound(clapBuffer, 0.4);
+      }, i * 150);
     }
   }
 
@@ -184,42 +220,31 @@ class AudioService {
     return localStorage.getItem('elevenlabs_api_key');
   }
 
-  // Generate exciting voice messages using ElevenLabs
+  // Generate exciting voice messages using secure edge function
   async generateVoiceMessage(text: string, points: number): Promise<void> {
-    const apiKey = this.getElevenLabsApiKey();
-    if (!apiKey) {
-      console.log('ElevenLabs API key not set, skipping voice message');
-      return;
-    }
-
+    if (this.isMuted) return;
+    
     try {
-      // Use enthusiastic voice for rewards - using voice ID instead of name
-      const voiceId = '9BWtsMINqrJLrRacOk9x'; // Aria voice ID
-      const model = 'eleven_turbo_v2_5'; // Fast, multilingual model
-
-      const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-        method: 'POST',
-        headers: {
-          'Accept': 'audio/mpeg',
-          'Content-Type': 'application/json',
-          'xi-api-key': apiKey
-        },
-        body: JSON.stringify({
-          text: text,
-          model_id: model,
-          voice_settings: {
-            stability: 0.3,
-            similarity_boost: 0.8,
-            style: 0.8,
-            use_speaker_boost: true
-          }
-        })
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      const { data, error } = await supabase.functions.invoke('generate-speech', {
+        body: { text, voiceId: '9BWtsMINqrJLrRacOk9x' }
       });
 
-      if (response.ok) {
-        const audioBlob = await response.blob();
+      if (error) {
+        console.error('Failed to generate voice message:', error);
+        return;
+      }
+
+      // Convert response to audio buffer and play
+      if (data) {
+        const audioBlob = new Blob([data], { type: 'audio/mpeg' });
         const audioUrl = URL.createObjectURL(audioBlob);
         const audio = new Audio(audioUrl);
+        
+        audio.onended = () => {
+          URL.revokeObjectURL(audioUrl);
+        };
         
         // Play with slight delay after clapping
         setTimeout(() => {
@@ -243,80 +268,64 @@ class AudioService {
       this.playCustomSound(this.generateVictorySound(), 0.6);
       setTimeout(() => this.playClappingSound(points), 200);
     } else if (points >= 25) {
-      // Fanfare sound + moderate clapping
-      this.playCustomSound(this.generateFanfareSound(), 0.5);
+      // Success chime + moderate clapping
+      this.playCustomSound(this.generateSuccessChime(), 0.5);
       setTimeout(() => this.playClappingSound(points), 300);
     } else if (points >= 10) {
-      // Cheerful chime + light clapping
-      this.playCustomSound(this.generateChimeSound(), 0.4);
+      // Pleasant ding + light clapping
+      this.playCustomSound(this.generateTone(523.25, 0.5), 0.4); // C5 note
       setTimeout(() => this.playClappingSound(points), 200);
     } else {
-      // Simple clapping for small rewards
-      this.playClappingSound(points);
-    }
-    
-    // Generate appropriate voice message based on points
-    let message = '';
-    if (points >= 50) {
-      const messages = [
-        'Outstanding work! You\'re absolutely brilliant!',
-        'Incredible! You\'re on fire today!',
-        'Phenomenal achievement! Keep it up!',
-        'Wow! That was amazing work!'
-      ];
-      message = messages[Math.floor(Math.random() * messages.length)];
-    } else if (points >= 25) {
-      const messages = [
-        'Excellent work! Well done!',
-        'Great job! You\'re doing fantastic!',
-        'Wonderful! Keep up the great work!',
-        'Superb effort! I\'m impressed!'
-      ];
-      message = messages[Math.floor(Math.random() * messages.length)];
-    } else if (points >= 10) {
-      const messages = [
-        'Good work! Nice job!',
-        'Well done! Keep it up!',
-        'Great effort! You\'re improving!',
-        'Nice! That\'s the way to do it!'
-      ];
-      message = messages[Math.floor(Math.random() * messages.length)];
-    } else {
-      const messages = [
-        'Good job! Every step counts!',
-        'Nice work! Keep trying!',
-        'Well done! You\'re learning!',
-        'Good effort! Practice makes perfect!'
-      ];
-      message = messages[Math.floor(Math.random() * messages.length)];
+      // Simple positive tone
+      this.playCustomSound(this.generateTone(440, 0.3), 0.3); // A4 note
     }
 
-    // Play voice message with delay to layer with sound effects
-    setTimeout(() => {
-      this.generateVoiceMessage(message, points);
-    }, 600);
+    // Generate voice message for big achievements
+    if (points >= 20) {
+      const messages = [
+        "Outstanding work!",
+        "Fantastic job!",
+        "You're amazing!",
+        "Brilliant performance!",
+        "Excellent progress!",
+        "Keep up the great work!",
+        "You're doing wonderfully!"
+      ];
+      
+      const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+      setTimeout(() => {
+        this.generateVoiceMessage(randomMessage, points);
+      }, 800);
+    }
   }
 
-  // Play celebration sound for milestones with enhanced effects
-  async playCelebrationSound() {
+  playCorrectAnswerSound() {
     if (this.isMuted) return;
-    
-    // Epic celebration with multiple layered sounds
-    this.playCustomSound(this.generateVictorySound(), 0.7);
-    setTimeout(() => this.playClappingSound(100), 300);
-    setTimeout(() => this.playCustomSound(this.generateChimeSound(), 0.4), 800);
-    
-    const celebrationMessages = [
-      'Congratulations! You\'ve reached a new milestone!',
-      'Amazing achievement! You\'ve unlocked a new level!',
-      'Fantastic! This is outstanding progress!',
-      'Brilliant! You\'ve earned something special!'
-    ];
-    
-    const message = celebrationMessages[Math.floor(Math.random() * celebrationMessages.length)];
+    this.playCustomSound(this.generateTone(659.25, 0.2), 0.3); // E5 note
+  }
+
+  playIncorrectAnswerSound() {
+    if (this.isMuted) return;
+    this.playCustomSound(this.generateTone(220, 0.5, 'sawtooth'), 0.2); // A3 note, sawtooth wave
+  }
+
+  playLevelUpSound() {
+    if (this.isMuted) return;
+    // Ascending melody
+    const notes = [523.25, 587.33, 659.25, 783.99]; // C5, D5, E5, G5
+    notes.forEach((freq, index) => {
+      setTimeout(() => {
+        this.playCustomSound(this.generateTone(freq, 0.3), 0.4);
+      }, index * 100);
+    });
+  }
+
+  playNotificationSound() {
+    if (this.isMuted) return;
+    this.playCustomSound(this.generateTone(800, 0.1), 0.2);
     setTimeout(() => {
-      this.generateVoiceMessage(message, 100);
-    }, 1000);
+      this.playCustomSound(this.generateTone(1000, 0.1), 0.2);
+    }, 100);
   }
 
   // Check if API key is set
@@ -324,45 +333,84 @@ class AudioService {
     return !!this.getElevenLabsApiKey();
   }
 
-  // Legacy methods for backward compatibility
-  get isSoundMuted(): boolean {
-    return this.isMuted;
+  // Play generic celebration sound
+  playCelebration() {
+    if (this.isMuted) return;
+    
+    if (this.celebrationSounds.success) {
+      this.celebrationSounds.success.currentTime = 0;
+      this.celebrationSounds.success.play().catch(console.warn);
+    } else {
+      // Fallback to generated sound
+      this.playCustomSound(this.generateVictorySound(), 0.5);
+    }
   }
 
-  setMuted(muted: boolean) {
-    this.isMuted = muted;
+  // Play achievement unlock sound
+  playAchievementUnlock() {
+    if (this.isMuted) return;
+    
+    if (this.celebrationSounds.achievement) {
+      this.celebrationSounds.achievement.currentTime = 0;
+      this.celebrationSounds.achievement.play().catch(console.warn);
+    } else {
+      // Fallback to generated sound
+      this.playLevelUpSound();
+    }
+  }
+
+  // Background ambient sound for focus
+  async playFocusAmbient() {
+    if (this.isMuted || !this.context) return;
+
+    // Generate subtle brown noise for concentration
+    const duration = 30; // 30 seconds
+    const sampleRate = this.context.sampleRate;
+    const samples = Math.floor(sampleRate * duration);
+    const buffer = this.context.createBuffer(1, samples, sampleRate);
+    const channelData = buffer.getChannelData(0);
+
+    let brownNoise = 0;
+    for (let i = 0; i < samples; i++) {
+      const white = Math.random() * 2 - 1;
+      brownNoise = (brownNoise + (0.02 * white)) / 1.02;
+      channelData[i] = brownNoise * 0.1; // Very quiet
+    }
+
+    this.playCustomSound(buffer, 0.05);
+  }
+
+  // Text-to-speech for pronunciation help
+  playPronunciation(text: string) {
+    if (this.isMuted) return;
+    // Use the secure edge function for pronunciation
+    this.generateVoiceMessage(text, 5);
+  }
+
+  // Compatibility methods for existing code
+  playCelebrationSound() {
+    this.playCelebration();
+  }
+
+  playSuccessSound() {
+    this.playCorrectAnswerSound();
+  }
+
+  playErrorSound() {
+    this.playIncorrectAnswerSound();
   }
 
   playButtonClick() {
     if (this.isMuted) return;
-    this.playCustomSound(this.generateChimeSound(), 0.2);
+    this.playCustomSound(this.generateTone(800, 0.05), 0.1);
   }
 
-  playSuccessSound() {
-    if (this.isMuted) return;
-    this.playCustomSound(this.generateFanfareSound(), 0.3);
+  isSoundMuted() {
+    return this.isMutedState();
   }
 
-  playErrorSound() {
-    if (this.isMuted) return;
-    // Play a different sound for errors (lower pitch)
-    if (this.context) {
-      const errorBuffer = this.context.createBuffer(2, this.context.sampleRate * 0.3, this.context.sampleRate);
-      for (let channel = 0; channel < errorBuffer.numberOfChannels; channel++) {
-        const channelData = errorBuffer.getChannelData(channel);
-        for (let i = 0; i < channelData.length; i++) {
-          const t = i / this.context.sampleRate;
-          channelData[i] = Math.sin(2 * Math.PI * 220 * t) * Math.exp(-t * 5) * 0.3; // Low A note
-        }
-      }
-      this.playCustomSound(errorBuffer, 0.4);
-    }
-  }
-
-  playPronunciation(text: string) {
-    if (this.isMuted) return;
-    // Use ElevenLabs to pronounce the text
-    this.generateVoiceMessage(text, 5);
+  setMuted(muted: boolean) {
+    this.isMuted = muted;
   }
 }
 
