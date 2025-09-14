@@ -2,6 +2,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+import { sanitizeText, rateLimiter } from '@/utils/security';
+import { toast } from 'sonner';
 
 interface AuthContextType {
   user: User | null;
@@ -12,6 +14,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<any>;
   signOut: () => Promise<any>;
   resetPassword: (email: string) => Promise<any>;
+  updateUserProfile: (updates: { full_name?: string; role?: string }) => Promise<{ error: any }>;
   refreshUser: () => void;
   error: string | null;
 }
@@ -199,24 +202,46 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return { data: null, error: new Error('Supabase not configured. Please check your environment setup.') };
     }
 
+    // Rate limiting check
+    const clientKey = `signup_${email}`;
+    if (!rateLimiter.isAllowed(clientKey, 3, 60000)) {
+      const error = new Error('Too many signup attempts. Please try again later.');
+      setError(error.message);
+      toast.error(error.message);
+      return { data: null, error };
+    }
+
     try {
       setError(null);
+      
+      // Input sanitization
+      const sanitizedEmail = sanitizeText(email);
+      const sanitizedUserData = {
+        ...userData,
+        role: userData.role ? sanitizeText(userData.role) : 'student'
+      };
+      
       const redirectUrl = `${window.location.origin}/`;
       
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: sanitizedEmail,
         password,
         options: {
           emailRedirectTo: redirectUrl,
-          data: {
-            role: userData.role
-          }
+          data: sanitizedUserData
         }
       });
 
+      if (error) {
+        setError(error.message);
+        toast.error(error.message);
+      }
+
       return { data, error };
-    } catch (error) {
-      setError('Sign up failed');
+    } catch (error: any) {
+      const errorMessage = 'Sign up failed';
+      setError(errorMessage);
+      toast.error(errorMessage);
       return { data: null, error };
     }
   };
@@ -226,15 +251,39 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return { data: null, error: new Error('Supabase not configured. Please check your environment setup.') };
     }
 
+    // Rate limiting check
+    const clientKey = `signin_${email}`;
+    if (!rateLimiter.isAllowed(clientKey, 5, 300000)) {
+      const error = new Error('Too many login attempts. Please try again later.');
+      setError(error.message);
+      toast.error(error.message);
+      return { data: null, error };
+    }
+
     try {
       setError(null);
+      
+      // Input sanitization
+      const sanitizedEmail = sanitizeText(email);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: sanitizedEmail,
         password,
       });
+      
+      if (error) {
+        setError(error.message);
+        toast.error(error.message);
+      } else {
+        // Reset rate limiter on successful login
+        rateLimiter.reset(clientKey);
+      }
+      
       return { data, error };
-    } catch (error) {
-      setError('Sign in failed');
+    } catch (error: any) {
+      const errorMessage = 'Sign in failed';
+      setError(errorMessage);
+      toast.error(errorMessage);
       return { data: null, error };
     }
   };
@@ -244,16 +293,67 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return { data: null, error: new Error('Supabase not configured. Please check your environment setup.') };
     }
 
+    // Rate limiting check
+    const clientKey = `reset_${email}`;
+    if (!rateLimiter.isAllowed(clientKey, 3, 600000)) {
+      const error = new Error('Too many password reset attempts. Please try again later.');
+      setError(error.message);
+      toast.error(error.message);
+      return { data: null, error };
+    }
+
     try {
       setError(null);
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      
+      // Input sanitization
+      const sanitizedEmail = sanitizeText(email);
+      
+      const { error } = await supabase.auth.resetPasswordForEmail(sanitizedEmail, {
         redirectTo: `${window.location.origin}/reset-password`
       });
       
+      if (error) {
+        setError(error.message);
+        toast.error(error.message);
+      }
+      
       return { data: null, error };
-    } catch (error) {
-      setError('Password reset failed');
+    } catch (error: any) {
+      const errorMessage = 'Password reset failed';
+      setError(errorMessage);
+      toast.error(errorMessage);
       return { data: null, error };
+    }
+  };
+
+  const updateUserProfile = async (updates: { full_name?: string; role?: string }) => {
+    if (!user) {
+      return { error: { message: 'User not authenticated' } };
+    }
+
+    try {
+      // Sanitize inputs
+      const sanitizedUpdates = {
+        ...updates,
+        full_name: updates.full_name ? sanitizeText(updates.full_name) : undefined
+      };
+
+      const { error } = await supabase
+        .from('users')
+        .update(sanitizedUpdates)
+        .eq('id', user.id);
+
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success('Profile updated successfully');
+      }
+
+      return { error };
+    } catch (error: any) {
+      const errorMessage = 'Failed to update profile';
+      toast.error(errorMessage);
+      return { error: { message: errorMessage } };
     }
   };
 
@@ -309,6 +409,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       signIn,
       signOut,
       resetPassword,
+      updateUserProfile,
       refreshUser,
       error
     }}>
