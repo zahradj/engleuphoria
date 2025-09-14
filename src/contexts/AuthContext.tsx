@@ -288,6 +288,37 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const updateUserProfile = async (updates: { full_name?: string; role?: string }) => {
+    if (!user) {
+      return { error: { message: 'User not authenticated' } };
+    }
+
+    try {
+      // Sanitize inputs
+      const sanitizedUpdates = {
+        ...updates,
+        full_name: updates.full_name ? sanitizeText(updates.full_name) : undefined
+      };
+
+      const { error } = await supabase
+        .from('users')
+        .update(sanitizedUpdates)
+        .eq('id', user.id);
+
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success('Profile updated successfully');
+      }
+
+      return { error };
+    } catch (error: any) {
+      const errorMessage = 'Failed to update profile';
+      toast.error(errorMessage);
+      return { error: { message: errorMessage } };
+    }
+  };
+
   const resetPassword = async (email: string) => {
     if (!isConfigured) {
       return { data: null, error: new Error('Supabase not configured. Please check your environment setup.') };
@@ -323,37 +354,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setError(errorMessage);
       toast.error(errorMessage);
       return { data: null, error };
-    }
-  };
-
-  const updateUserProfile = async (updates: { full_name?: string; role?: string }) => {
-    if (!user) {
-      return { error: { message: 'User not authenticated' } };
-    }
-
-    try {
-      // Sanitize inputs
-      const sanitizedUpdates = {
-        ...updates,
-        full_name: updates.full_name ? sanitizeText(updates.full_name) : undefined
-      };
-
-      const { error } = await supabase
-        .from('users')
-        .update(sanitizedUpdates)
-        .eq('id', user.id);
-
-      if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success('Profile updated successfully');
-      }
-
-      return { error };
-    } catch (error: any) {
-      const errorMessage = 'Failed to update profile';
-      toast.error(errorMessage);
-      return { error: { message: errorMessage } };
     }
   };
 
