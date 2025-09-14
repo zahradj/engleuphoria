@@ -5236,6 +5236,10 @@ export type Database = {
         Args: { teacher_uuid: string }
         Returns: undefined
       }
+      verify_admin_access: {
+        Args: { required_permission?: string }
+        Returns: boolean
+      }
     }
     Enums: {
       community_category:
