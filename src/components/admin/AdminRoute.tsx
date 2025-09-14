@@ -1,17 +1,28 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { Loader2 } from 'lucide-react';
 
 interface AdminRouteProps {
   children: React.ReactNode;
 }
 
 export const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
-  // For now, allow access for testing purposes
-  // In production, you would check if user is admin
-  const isAdmin = true; // TODO: Replace with actual admin check
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  // Check if user is authenticated and has admin role
+  const isAdmin = user?.role === 'admin';
   
   if (!isAdmin) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
   
   return <>{children}</>;

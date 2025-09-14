@@ -10,8 +10,8 @@ class AudioService {
   constructor() {
     this.initializeAudioContext();
     this.preloadSounds();
-    // Set the provided ElevenLabs API key
-    this.setElevenLabsApiKey('sk_50fa5e5369db33401e858f3367d312afaea9670409fe8e73');
+    // Load API key from localStorage if available
+    this.elevenLabsApiKey = localStorage.getItem('elevenlabs_api_key');
   }
 
   private initializeAudioContext() {
