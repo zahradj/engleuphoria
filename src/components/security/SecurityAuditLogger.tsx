@@ -11,7 +11,11 @@ interface SecurityEvent {
 }
 
 interface SecurityAuditContextType {
-  logSecurityEvent: (event: SecurityEvent) => Promise<void>;
+  logSecurityEvent: (action: string, params: {
+    resource: string;
+    resourceId?: string;
+    metadata?: Record<string, any>;
+  }) => Promise<void>;
   logAuthEvent: (action: string, metadata?: Record<string, any>) => Promise<void>;
   logDataAccess: (table: string, operation: string, recordId?: string) => Promise<void>;
   logSuspiciousActivity: (description: string, metadata?: Record<string, any>) => Promise<void>;
@@ -34,7 +38,11 @@ interface SecurityAuditProviderProps {
 export const SecurityAuditProvider: React.FC<SecurityAuditProviderProps> = ({ children }) => {
   const { user } = useAuth();
 
-  const logSecurityEvent = useCallback(async (event: SecurityEvent) => {
+  const logSecurityEvent = useCallback(async (action: string, params: {
+    resource: string;
+    resourceId?: string;
+    metadata?: Record<string, any>;
+  }) => {
     try {
       // Get client information
       const clientInfo = {
@@ -48,9 +56,9 @@ export const SecurityAuditProvider: React.FC<SecurityAuditProviderProps> = ({ ch
 
       // Combine metadata with client info
       const enhancedMetadata = {
-        ...event.metadata,
+        ...params.metadata,
         clientInfo,
-        severity: event.severity || 'low',
+        severity: params.metadata?.severity || 'low',
         userId: user?.id || 'anonymous'
       };
 
@@ -59,9 +67,9 @@ export const SecurityAuditProvider: React.FC<SecurityAuditProviderProps> = ({ ch
         .from('security_audit_logs')
         .insert({
           user_id: user?.id || null,
-          action: event.action,
-          resource_type: event.resourceType,
-          resource_id: event.resourceId || null,
+          action,
+          resource_type: params.resource,
+          resource_id: params.resourceId || null,
           metadata: enhancedMetadata
         });
 
@@ -70,8 +78,8 @@ export const SecurityAuditProvider: React.FC<SecurityAuditProviderProps> = ({ ch
       }
 
       // For critical events, also log to console for immediate visibility
-      if (event.severity === 'critical') {
-        console.warn('CRITICAL SECURITY EVENT:', event);
+      if (params.metadata?.severity === 'critical') {
+        console.warn('CRITICAL SECURITY EVENT:', { action, ...params });
       }
     } catch (error) {
       console.error('Error logging security event:', error);
@@ -79,14 +87,13 @@ export const SecurityAuditProvider: React.FC<SecurityAuditProviderProps> = ({ ch
   }, [user?.id]);
 
   const logAuthEvent = useCallback(async (action: string, metadata?: Record<string, any>) => {
-    await logSecurityEvent({
-      action: `auth_${action}`,
-      resourceType: 'authentication',
+    await logSecurityEvent(`auth_${action}`, {
+      resource: 'authentication',
       metadata: {
         ...metadata,
-        authAction: action
-      },
-      severity: action.includes('failed') || action.includes('blocked') ? 'high' : 'medium'
+        authAction: action,
+        severity: action.includes('failed') || action.includes('blocked') ? 'high' : 'medium'
+      }
     });
   }, [logSecurityEvent]);
 
@@ -104,15 +111,14 @@ export const SecurityAuditProvider: React.FC<SecurityAuditProviderProps> = ({ ch
 
     if (sensitiveActions.includes(operation.toUpperCase()) && 
         sensitiveTables.includes(table)) {
-      await logSecurityEvent({
-        action: `data_${operation.toLowerCase()}`,
-        resourceType: table,
+      await logSecurityEvent(`data_${operation.toLowerCase()}`, {
+        resource: table,
         resourceId: recordId,
         metadata: {
           operation,
-          table
-        },
-        severity: operation === 'DELETE' ? 'high' : 'low'
+          table,
+          severity: operation === 'DELETE' ? 'high' : 'low'
+        }
       });
     }
   }, [logSecurityEvent]);
@@ -121,14 +127,13 @@ export const SecurityAuditProvider: React.FC<SecurityAuditProviderProps> = ({ ch
     description: string, 
     metadata?: Record<string, any>
   ) => {
-    await logSecurityEvent({
-      action: 'suspicious_activity',
-      resourceType: 'security',
+    await logSecurityEvent('suspicious_activity', {
+      resource: 'security',
       metadata: {
         description,
-        ...metadata
-      },
-      severity: 'critical'
+        ...metadata,
+        severity: 'critical'
+      }
     });
   }, [logSecurityEvent]);
 
@@ -162,14 +167,13 @@ export const withSecurityLogging = <P extends object>(
       ];
 
       if (sensitiveComponents.includes(componentName)) {
-        logSecurityEvent({
-          action: 'component_access',
-          resourceType: 'ui_component',
+        logSecurityEvent('component_access', {
+          resource: 'ui_component',
           metadata: {
             componentName,
-            accessTime: new Date().toISOString()
-          },
-          severity: 'low'
+            accessTime: new Date().toISOString(),
+            severity: 'low'
+          }
         });
       }
     }, [logSecurityEvent]);
