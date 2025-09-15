@@ -149,7 +149,7 @@ export function UnifiedCenterPanel({
         </div>
 
         <div className="flex-1 min-h-0 overflow-hidden">
-          <TabsContent value="lesson" className="h-full m-0 p-4 overflow-y-auto">
+          <TabsContent value="lesson" className="h-full m-0 overflow-hidden">
             <UnifiedContentViewer 
               isTeacher={isTeacher}
               studentName={currentUser.name}
