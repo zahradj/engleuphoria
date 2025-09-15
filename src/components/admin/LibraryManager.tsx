@@ -149,7 +149,7 @@ export const LibraryManager = () => {
       const { error } = await supabase
         .from('lessons_content')
         .delete()
-        .neq('id', ''); // This deletes all rows
+        .not('id', 'is', null); // Delete all rows where id is not null (i.e., all rows)
 
       if (error) throw error;
       
