@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { BookOpen, Plus, Edit, Trash2, Eye, Monitor, Search, Filter } from 'lucide-react';
 import { toast } from 'sonner';
 import { SlideDeckManager } from '@/components/curriculum/SlideDeckManager';
+import { ImportLessonsButton } from './ImportLessonsButton';
 interface LessonContent {
   id: string;
   title: string;
@@ -252,6 +253,8 @@ export const LibraryManager = () => {
                   <SelectItem value="inactive">Inactive</SelectItem>
                 </SelectContent>
               </Select>
+              
+              <ImportLessonsButton onImportComplete={fetchLessons} />
               
               <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
                 <DialogTrigger asChild>
