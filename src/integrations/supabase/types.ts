@@ -5097,6 +5097,14 @@ export type Database = {
         Args: { org_uuid: string }
         Returns: Json
       }
+      get_security_dashboard: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_security_metrics: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_security_status: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -5148,6 +5156,15 @@ export type Database = {
           student_name: string
           title: string
         }[]
+      }
+      handle_security_incident: {
+        Args: {
+          affected_user_id?: string
+          description?: string
+          incident_type: string
+          severity?: string
+        }
+        Returns: string
       }
       is_admin: {
         Args: Record<PropertyKey, never>
@@ -5239,6 +5256,15 @@ export type Database = {
       update_teacher_performance_metrics: {
         Args: { teacher_uuid: string }
         Returns: undefined
+      }
+      validate_security_config: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          check_name: string
+          details: string
+          risk_level: string
+          status: string
+        }[]
       }
       verify_admin_access: {
         Args: { required_permission?: string }
