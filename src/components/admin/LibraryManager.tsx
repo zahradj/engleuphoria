@@ -11,7 +11,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { BookOpen, Plus, Edit, Trash2, Eye, Monitor, Search, Filter } from 'lucide-react';
 import { toast } from 'sonner';
 import { SlideDeckManager } from '@/components/curriculum/SlideDeckManager';
-
 interface LessonContent {
   id: string;
   title: string;
@@ -25,7 +24,6 @@ interface LessonContent {
   created_at: string;
   learning_objectives?: string[];
 }
-
 export const LibraryManager = () => {
   const [lessons, setLessons] = useState<LessonContent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,17 +45,18 @@ export const LibraryManager = () => {
     module_number: 1,
     lesson_number: 1,
     duration_minutes: 60,
-    learning_objectives: '',
+    learning_objectives: ''
   });
-
   const fetchLessons = async () => {
     try {
-      const { data, error } = await supabase
-        .from('lessons_content')
-        .select('*')
-        .order('module_number', { ascending: true })
-        .order('lesson_number', { ascending: true });
-
+      const {
+        data,
+        error
+      } = await supabase.from('lessons_content').select('*').order('module_number', {
+        ascending: true
+      }).order('lesson_number', {
+        ascending: true
+      });
       if (error) throw error;
       setLessons(data || []);
     } catch (error) {
@@ -67,26 +66,23 @@ export const LibraryManager = () => {
       setLoading(false);
     }
   };
-
   const createLesson = async () => {
     try {
-      const { error } = await supabase
-        .from('lessons_content')
-        .insert({
-          title: newLesson.title,
-          topic: newLesson.topic,
-          cefr_level: newLesson.cefr_level,
-          difficulty_level: newLesson.difficulty_level,
-          module_number: newLesson.module_number,
-          lesson_number: newLesson.lesson_number,
-          duration_minutes: newLesson.duration_minutes,
-          learning_objectives: newLesson.learning_objectives.split(',').map(obj => obj.trim()),
-          slides_content: {},
-          is_active: true,
-        });
-
+      const {
+        error
+      } = await supabase.from('lessons_content').insert({
+        title: newLesson.title,
+        topic: newLesson.topic,
+        cefr_level: newLesson.cefr_level,
+        difficulty_level: newLesson.difficulty_level,
+        module_number: newLesson.module_number,
+        lesson_number: newLesson.lesson_number,
+        duration_minutes: newLesson.duration_minutes,
+        learning_objectives: newLesson.learning_objectives.split(',').map(obj => obj.trim()),
+        slides_content: {},
+        is_active: true
+      });
       if (error) throw error;
-      
       toast.success('Lesson created successfully');
       setIsCreateOpen(false);
       setNewLesson({
@@ -97,7 +93,7 @@ export const LibraryManager = () => {
         module_number: 1,
         lesson_number: 1,
         duration_minutes: 60,
-        learning_objectives: '',
+        learning_objectives: ''
       });
       fetchLessons();
     } catch (error) {
@@ -105,16 +101,14 @@ export const LibraryManager = () => {
       toast.error('Failed to create lesson');
     }
   };
-
   const toggleLessonStatus = async (id: string, currentStatus: boolean) => {
     try {
-      const { error } = await supabase
-        .from('lessons_content')
-        .update({ is_active: !currentStatus })
-        .eq('id', id);
-
+      const {
+        error
+      } = await supabase.from('lessons_content').update({
+        is_active: !currentStatus
+      }).eq('id', id);
       if (error) throw error;
-      
       toast.success(`Lesson ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
       fetchLessons();
     } catch (error) {
@@ -122,18 +116,13 @@ export const LibraryManager = () => {
       toast.error('Failed to update lesson');
     }
   };
-
   const deleteLesson = async (id: string) => {
     if (!confirm('Are you sure you want to delete this lesson?')) return;
-
     try {
-      const { error } = await supabase
-        .from('lessons_content')
-        .delete()
-        .eq('id', id);
-
+      const {
+        error
+      } = await supabase.from('lessons_content').delete().eq('id', id);
       if (error) throw error;
-      
       toast.success('Lesson deleted successfully');
       fetchLessons();
     } catch (error) {
@@ -141,18 +130,14 @@ export const LibraryManager = () => {
       toast.error('Failed to delete lesson');
     }
   };
-
   const deleteAllLessons = async () => {
     if (!confirm('Are you sure you want to delete ALL lessons from the Classroom Library? This action cannot be undone.')) return;
-
     try {
-      const { error } = await supabase
-        .from('lessons_content')
-        .delete()
-        .not('id', 'is', null); // Delete all rows where id is not null (i.e., all rows)
+      const {
+        error
+      } = await supabase.from('lessons_content').delete().not('id', 'is', null); // Delete all rows where id is not null (i.e., all rows)
 
       if (error) throw error;
-      
       toast.success('All lessons deleted successfully');
       fetchLessons();
     } catch (error) {
@@ -160,7 +145,6 @@ export const LibraryManager = () => {
       toast.error('Failed to delete all lessons');
     }
   };
-
   const openEditDialog = (lesson: LessonContent) => {
     setEditingLesson(lesson);
     setNewLesson({
@@ -171,31 +155,26 @@ export const LibraryManager = () => {
       module_number: lesson.module_number,
       lesson_number: lesson.lesson_number,
       duration_minutes: lesson.duration_minutes,
-      learning_objectives: lesson.learning_objectives?.join(', ') || '',
+      learning_objectives: lesson.learning_objectives?.join(', ') || ''
     });
     setIsEditOpen(true);
   };
-
   const updateLesson = async () => {
     if (!editingLesson) return;
-
     try {
-      const { error } = await supabase
-        .from('lessons_content')
-        .update({
-          title: newLesson.title,
-          topic: newLesson.topic,
-          cefr_level: newLesson.cefr_level,
-          difficulty_level: newLesson.difficulty_level,
-          module_number: newLesson.module_number,
-          lesson_number: newLesson.lesson_number,
-          duration_minutes: newLesson.duration_minutes,
-          learning_objectives: newLesson.learning_objectives.split(',').map(obj => obj.trim()),
-        })
-        .eq('id', editingLesson.id);
-
+      const {
+        error
+      } = await supabase.from('lessons_content').update({
+        title: newLesson.title,
+        topic: newLesson.topic,
+        cefr_level: newLesson.cefr_level,
+        difficulty_level: newLesson.difficulty_level,
+        module_number: newLesson.module_number,
+        lesson_number: newLesson.lesson_number,
+        duration_minutes: newLesson.duration_minutes,
+        learning_objectives: newLesson.learning_objectives.split(',').map(obj => obj.trim())
+      }).eq('id', editingLesson.id);
       if (error) throw error;
-      
       toast.success('Lesson updated successfully');
       setIsEditOpen(false);
       setEditingLesson(null);
@@ -207,7 +186,7 @@ export const LibraryManager = () => {
         module_number: 1,
         lesson_number: 1,
         duration_minutes: 60,
-        learning_objectives: '',
+        learning_objectives: ''
       });
       fetchLessons();
     } catch (error) {
@@ -215,39 +194,27 @@ export const LibraryManager = () => {
       toast.error('Failed to update lesson');
     }
   };
-
   const openViewDialog = (lesson: LessonContent) => {
     setViewingLesson(lesson);
     setIsViewOpen(true);
   };
-
   const openSlideDeckManager = (lessonId: string) => {
     setManagingLessonId(lessonId);
     setIsSlideDeckOpen(true);
   };
-
   useEffect(() => {
     fetchLessons();
   }, []);
-
   const filteredLessons = lessons.filter(lesson => {
-    const matchesSearch = lesson.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         lesson.topic.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = lesson.title.toLowerCase().includes(searchTerm.toLowerCase()) || lesson.topic.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesLevel = levelFilter === 'all' || lesson.cefr_level === levelFilter;
-    const matchesStatus = statusFilter === 'all' || 
-                         (statusFilter === 'active' && lesson.is_active) ||
-                         (statusFilter === 'inactive' && !lesson.is_active);
+    const matchesStatus = statusFilter === 'all' || statusFilter === 'active' && lesson.is_active || statusFilter === 'inactive' && !lesson.is_active;
     return matchesSearch && matchesLevel && matchesStatus;
   });
-
   if (loading) {
-    return (
-      <div className="text-center text-muted-foreground">Loading library...</div>
-    );
+    return <div className="text-center text-muted-foreground">Loading library...</div>;
   }
-
-  return (
-    <div className="space-y-6">
+  return <div className="space-y-6">
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -258,12 +225,7 @@ export const LibraryManager = () => {
             <div className="flex items-center gap-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search lessons..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9 w-64"
-                />
+                <Input placeholder="Search lessons..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-9 w-64" />
               </div>
               <Select value={levelFilter} onValueChange={setLevelFilter}>
                 <SelectTrigger className="w-[120px]">
@@ -290,14 +252,7 @@ export const LibraryManager = () => {
                   <SelectItem value="inactive">Inactive</SelectItem>
                 </SelectContent>
               </Select>
-              <Button 
-                variant="destructive" 
-                onClick={deleteAllLessons}
-                disabled={lessons.length === 0}
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete All
-              </Button>
+              
               <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
                 <DialogTrigger asChild>
                   <Button>
@@ -313,26 +268,27 @@ export const LibraryManager = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-medium">Title</label>
-                      <Input
-                        value={newLesson.title}
-                        onChange={(e) => setNewLesson({...newLesson, title: e.target.value})}
-                        placeholder="Lesson title"
-                      />
+                      <Input value={newLesson.title} onChange={e => setNewLesson({
+                        ...newLesson,
+                        title: e.target.value
+                      })} placeholder="Lesson title" />
                     </div>
                     <div>
                       <label className="text-sm font-medium">Topic</label>
-                      <Input
-                        value={newLesson.topic}
-                        onChange={(e) => setNewLesson({...newLesson, topic: e.target.value})}
-                        placeholder="Lesson topic"
-                      />
+                      <Input value={newLesson.topic} onChange={e => setNewLesson({
+                        ...newLesson,
+                        topic: e.target.value
+                      })} placeholder="Lesson topic" />
                     </div>
                   </div>
                   
                   <div className="grid grid-cols-3 gap-4">
                     <div>
                       <label className="text-sm font-medium">CEFR Level</label>
-                      <Select value={newLesson.cefr_level} onValueChange={(value) => setNewLesson({...newLesson, cefr_level: value})}>
+                      <Select value={newLesson.cefr_level} onValueChange={value => setNewLesson({
+                        ...newLesson,
+                        cefr_level: value
+                      })}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -348,7 +304,10 @@ export const LibraryManager = () => {
                     </div>
                     <div>
                       <label className="text-sm font-medium">Difficulty</label>
-                      <Select value={newLesson.difficulty_level} onValueChange={(value) => setNewLesson({...newLesson, difficulty_level: value})}>
+                      <Select value={newLesson.difficulty_level} onValueChange={value => setNewLesson({
+                        ...newLesson,
+                        difficulty_level: value
+                      })}>
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -361,40 +320,36 @@ export const LibraryManager = () => {
                     </div>
                     <div>
                       <label className="text-sm font-medium">Duration (min)</label>
-                      <Input
-                        type="number"
-                        value={newLesson.duration_minutes}
-                        onChange={(e) => setNewLesson({...newLesson, duration_minutes: parseInt(e.target.value) || 60})}
-                      />
+                      <Input type="number" value={newLesson.duration_minutes} onChange={e => setNewLesson({
+                        ...newLesson,
+                        duration_minutes: parseInt(e.target.value) || 60
+                      })} />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-medium">Module Number</label>
-                      <Input
-                        type="number"
-                        value={newLesson.module_number}
-                        onChange={(e) => setNewLesson({...newLesson, module_number: parseInt(e.target.value) || 1})}
-                      />
+                      <Input type="number" value={newLesson.module_number} onChange={e => setNewLesson({
+                        ...newLesson,
+                        module_number: parseInt(e.target.value) || 1
+                      })} />
                     </div>
                     <div>
                       <label className="text-sm font-medium">Lesson Number</label>
-                      <Input
-                        type="number"
-                        value={newLesson.lesson_number}
-                        onChange={(e) => setNewLesson({...newLesson, lesson_number: parseInt(e.target.value) || 1})}
-                      />
+                      <Input type="number" value={newLesson.lesson_number} onChange={e => setNewLesson({
+                        ...newLesson,
+                        lesson_number: parseInt(e.target.value) || 1
+                      })} />
                     </div>
                   </div>
 
                   <div>
                     <label className="text-sm font-medium">Learning Objectives (comma-separated)</label>
-                    <Textarea
-                      value={newLesson.learning_objectives}
-                      onChange={(e) => setNewLesson({...newLesson, learning_objectives: e.target.value})}
-                      placeholder="Objective 1, Objective 2, Objective 3"
-                    />
+                    <Textarea value={newLesson.learning_objectives} onChange={e => setNewLesson({
+                      ...newLesson,
+                      learning_objectives: e.target.value
+                    })} placeholder="Objective 1, Objective 2, Objective 3" />
                   </div>
 
                   <div className="flex justify-end gap-2">
@@ -427,15 +382,11 @@ export const LibraryManager = () => {
                 </TableRow>
               </TableHeader>
                <TableBody>
-                {filteredLessons.length === 0 ? (
-                  <TableRow>
+                {filteredLessons.length === 0 ? <TableRow>
                     <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                       No lessons found
                     </TableCell>
-                  </TableRow>
-                  ) : (
-                  filteredLessons.map((lesson) => (
-                    <TableRow key={lesson.id}>
+                  </TableRow> : filteredLessons.map(lesson => <TableRow key={lesson.id}>
                       <TableCell className="font-medium">
                         {lesson.module_number}.{lesson.lesson_number}
                       </TableCell>
@@ -464,25 +415,15 @@ export const LibraryManager = () => {
                           <Button variant="outline" size="sm" onClick={() => openEditDialog(lesson)}>
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button
-                            variant={lesson.is_active ? "secondary" : "default"}
-                            size="sm"
-                            onClick={() => toggleLessonStatus(lesson.id, lesson.is_active)}
-                          >
+                          <Button variant={lesson.is_active ? "secondary" : "default"} size="sm" onClick={() => toggleLessonStatus(lesson.id, lesson.is_active)}>
                             {lesson.is_active ? "Deactivate" : "Activate"}
                           </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => deleteLesson(lesson.id)}
-                          >
+                          <Button variant="destructive" size="sm" onClick={() => deleteLesson(lesson.id)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>
-                    </TableRow>
-                  ))
-                )}
+                    </TableRow>)}
               </TableBody>
             </Table>
           </div>
@@ -499,26 +440,27 @@ export const LibraryManager = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">Title</label>
-                <Input
-                  value={newLesson.title}
-                  onChange={(e) => setNewLesson({...newLesson, title: e.target.value})}
-                  placeholder="Lesson title"
-                />
+                <Input value={newLesson.title} onChange={e => setNewLesson({
+                ...newLesson,
+                title: e.target.value
+              })} placeholder="Lesson title" />
               </div>
               <div>
                 <label className="text-sm font-medium">Topic</label>
-                <Input
-                  value={newLesson.topic}
-                  onChange={(e) => setNewLesson({...newLesson, topic: e.target.value})}
-                  placeholder="Lesson topic"
-                />
+                <Input value={newLesson.topic} onChange={e => setNewLesson({
+                ...newLesson,
+                topic: e.target.value
+              })} placeholder="Lesson topic" />
               </div>
             </div>
             
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="text-sm font-medium">CEFR Level</label>
-                <Select value={newLesson.cefr_level} onValueChange={(value) => setNewLesson({...newLesson, cefr_level: value})}>
+                <Select value={newLesson.cefr_level} onValueChange={value => setNewLesson({
+                ...newLesson,
+                cefr_level: value
+              })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -534,7 +476,10 @@ export const LibraryManager = () => {
               </div>
               <div>
                 <label className="text-sm font-medium">Difficulty</label>
-                <Select value={newLesson.difficulty_level} onValueChange={(value) => setNewLesson({...newLesson, difficulty_level: value})}>
+                <Select value={newLesson.difficulty_level} onValueChange={value => setNewLesson({
+                ...newLesson,
+                difficulty_level: value
+              })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -547,40 +492,36 @@ export const LibraryManager = () => {
               </div>
               <div>
                 <label className="text-sm font-medium">Duration (min)</label>
-                <Input
-                  type="number"
-                  value={newLesson.duration_minutes}
-                  onChange={(e) => setNewLesson({...newLesson, duration_minutes: parseInt(e.target.value) || 60})}
-                />
+                <Input type="number" value={newLesson.duration_minutes} onChange={e => setNewLesson({
+                ...newLesson,
+                duration_minutes: parseInt(e.target.value) || 60
+              })} />
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">Module Number</label>
-                <Input
-                  type="number"
-                  value={newLesson.module_number}
-                  onChange={(e) => setNewLesson({...newLesson, module_number: parseInt(e.target.value) || 1})}
-                />
+                <Input type="number" value={newLesson.module_number} onChange={e => setNewLesson({
+                ...newLesson,
+                module_number: parseInt(e.target.value) || 1
+              })} />
               </div>
               <div>
                 <label className="text-sm font-medium">Lesson Number</label>
-                <Input
-                  type="number"
-                  value={newLesson.lesson_number}
-                  onChange={(e) => setNewLesson({...newLesson, lesson_number: parseInt(e.target.value) || 1})}
-                />
+                <Input type="number" value={newLesson.lesson_number} onChange={e => setNewLesson({
+                ...newLesson,
+                lesson_number: parseInt(e.target.value) || 1
+              })} />
               </div>
             </div>
 
             <div>
               <label className="text-sm font-medium">Learning Objectives (comma-separated)</label>
-              <Textarea
-                value={newLesson.learning_objectives}
-                onChange={(e) => setNewLesson({...newLesson, learning_objectives: e.target.value})}
-                placeholder="Objective 1, Objective 2, Objective 3"
-              />
+              <Textarea value={newLesson.learning_objectives} onChange={e => setNewLesson({
+              ...newLesson,
+              learning_objectives: e.target.value
+            })} placeholder="Objective 1, Objective 2, Objective 3" />
             </div>
 
             <div className="flex justify-end gap-2">
@@ -601,8 +542,7 @@ export const LibraryManager = () => {
           <DialogHeader>
             <DialogTitle>View Lesson Details</DialogTitle>
           </DialogHeader>
-          {viewingLesson && (
-            <div className="space-y-4">
+          {viewingLesson && <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Title</label>
@@ -650,15 +590,9 @@ export const LibraryManager = () => {
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Learning Objectives</label>
                 <div className="mt-1">
-                  {viewingLesson.learning_objectives && viewingLesson.learning_objectives.length > 0 ? (
-                    <ul className="list-disc list-inside text-sm space-y-1">
-                      {viewingLesson.learning_objectives.map((objective, index) => (
-                        <li key={index}>{objective}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">No learning objectives defined</p>
-                  )}
+                  {viewingLesson.learning_objectives && viewingLesson.learning_objectives.length > 0 ? <ul className="list-disc list-inside text-sm space-y-1">
+                      {viewingLesson.learning_objectives.map((objective, index) => <li key={index}>{objective}</li>)}
+                    </ul> : <p className="text-sm text-muted-foreground">No learning objectives defined</p>}
                 </div>
               </div>
 
@@ -672,8 +606,7 @@ export const LibraryManager = () => {
                   Close
                 </Button>
               </div>
-            </div>
-          )}
+            </div>}
         </DialogContent>
       </Dialog>
 
@@ -683,13 +616,8 @@ export const LibraryManager = () => {
           <DialogHeader>
             <DialogTitle>Manage Lesson Slides</DialogTitle>
           </DialogHeader>
-          {managingLessonId && (
-            <SlideDeckManager 
-              lessonId={managingLessonId}
-            />
-          )}
+          {managingLessonId && <SlideDeckManager lessonId={managingLessonId} />}
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>;
 };
