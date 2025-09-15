@@ -1204,32 +1204,17 @@ export function UnifiedContentViewer({
     backgroundColor: '#FBFBFB'
   }}>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-        <TabsList className="flex flex-col w-16 h-fit absolute left-4 top-4 z-10 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border" style={{
-        backgroundColor: 'rgba(232, 249, 255, 0.9)',
-        border: '1px solid rgba(196, 217, 255, 0.4)'
-      }}>
-          <TabsTrigger value="whiteboard" className="flex items-center justify-center p-3 transition-all duration-300" style={{
-          color: '#4F46E5'
-        }}>
-            <PenTool size={20} />
-          </TabsTrigger>
-          <TabsTrigger value="content" className="flex items-center justify-center p-3 transition-all duration-300" style={{
-          color: '#4F46E5'
-        }}>
-            <Upload size={20} />
-          </TabsTrigger>
-          <TabsTrigger value="lesson-viewer" className="flex items-center justify-center p-3 transition-all duration-300" style={{
-          color: '#4F46E5'
-        }}>
-            <BookOpen size={20} />
-            {isGeneratingSlides && <Loader2 className="h-4 w-4 animate-spin absolute -top-1 -right-1" />}
-          </TabsTrigger>
-          <TabsTrigger value="assignments" className="flex items-center justify-center p-3 transition-all duration-300" style={{
-          color: '#4F46E5'
-        }}>
-            <Gamepad2 size={20} />
-          </TabsTrigger>
-        </TabsList>
+        <button 
+          className="flex items-center gap-2 px-4 py-2 absolute right-4 top-4 z-10 bg-red-500 hover:bg-red-600 text-white rounded-lg shadow-lg border transition-all duration-300"
+          onClick={() => {
+            // Add finish class logic here
+            if (window.confirm('Are you sure you want to finish the class?')) {
+              window.location.href = '/dashboard';
+            }
+          }}
+        >
+          <span>Finish Class</span>
+        </button>
 
         <div className="flex-1 overflow-hidden">
           <TabsContent value="whiteboard" className="h-full m-0">
