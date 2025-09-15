@@ -1204,34 +1204,30 @@ export function UnifiedContentViewer({
     backgroundColor: '#FBFBFB'
   }}>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-        <TabsList className="grid w-full grid-cols-4" style={{
-        backgroundColor: 'rgba(232, 249, 255, 0.6)',
+        <TabsList className="flex flex-col w-16 h-fit absolute left-4 top-4 z-10 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg border" style={{
+        backgroundColor: 'rgba(232, 249, 255, 0.9)',
         border: '1px solid rgba(196, 217, 255, 0.4)'
       }}>
-          <TabsTrigger value="whiteboard" className="flex items-center gap-2 transition-all duration-300" style={{
+          <TabsTrigger value="whiteboard" className="flex items-center justify-center p-3 transition-all duration-300" style={{
           color: '#4F46E5'
         }}>
-            <PenTool size={16} />
-            Whiteboard
+            <PenTool size={20} />
           </TabsTrigger>
-          <TabsTrigger value="content" className="flex items-center gap-2 transition-all duration-300" style={{
+          <TabsTrigger value="content" className="flex items-center justify-center p-3 transition-all duration-300" style={{
           color: '#4F46E5'
         }}>
-            <Upload size={16} />
-            Content Library
+            <Upload size={20} />
           </TabsTrigger>
-          <TabsTrigger value="lesson-viewer" className="flex items-center gap-2 transition-all duration-300" style={{
+          <TabsTrigger value="lesson-viewer" className="flex items-center justify-center p-3 transition-all duration-300" style={{
           color: '#4F46E5'
         }}>
-            <BookOpen size={16} />
-            Lesson
-            {isGeneratingSlides && <Loader2 className="h-4 w-4 animate-spin ml-1" />}
+            <BookOpen size={20} />
+            {isGeneratingSlides && <Loader2 className="h-4 w-4 animate-spin absolute -top-1 -right-1" />}
           </TabsTrigger>
-          <TabsTrigger value="assignments" className="flex items-center gap-2 transition-all duration-300" style={{
+          <TabsTrigger value="assignments" className="flex items-center justify-center p-3 transition-all duration-300" style={{
           color: '#4F46E5'
         }}>
-            <Gamepad2 size={16} />
-            Assignments
+            <Gamepad2 size={20} />
           </TabsTrigger>
         </TabsList>
 
