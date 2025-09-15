@@ -142,6 +142,25 @@ export const LibraryManager = () => {
     }
   };
 
+  const deleteAllLessons = async () => {
+    if (!confirm('Are you sure you want to delete ALL lessons from the Classroom Library? This action cannot be undone.')) return;
+
+    try {
+      const { error } = await supabase
+        .from('lessons_content')
+        .delete()
+        .neq('id', ''); // This deletes all rows
+
+      if (error) throw error;
+      
+      toast.success('All lessons deleted successfully');
+      fetchLessons();
+    } catch (error) {
+      console.error('Error deleting all lessons:', error);
+      toast.error('Failed to delete all lessons');
+    }
+  };
+
   const openEditDialog = (lesson: LessonContent) => {
     setEditingLesson(lesson);
     setNewLesson({
@@ -271,6 +290,14 @@ export const LibraryManager = () => {
                   <SelectItem value="inactive">Inactive</SelectItem>
                 </SelectContent>
               </Select>
+              <Button 
+                variant="destructive" 
+                onClick={deleteAllLessons}
+                disabled={lessons.length === 0}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete All
+              </Button>
               <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
                 <DialogTrigger asChild>
                   <Button>
