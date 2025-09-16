@@ -452,7 +452,7 @@ export function SlideMaster({
           </div>
         </div>
         {/* Bottom Navigation Controls */}
-        <div className="bg-surface/80 backdrop-blur-sm border-t border-border px-6 py-3 relative z-10">
+        <div className="bg-surface/80 backdrop-blur-sm border-t border-border px-6 py-3 relative z-50">
           <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
             <Button
               variant="outline"

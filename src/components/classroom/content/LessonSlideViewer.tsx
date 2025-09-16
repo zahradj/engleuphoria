@@ -45,15 +45,17 @@ export function LessonSlideViewer({
   }
 
   const handleNext = useCallback(() => {
+    console.info('➡️ handleNext called', { currentSlide, total: lessonSlides?.slides.length });
     if (lessonSlides && currentSlide < lessonSlides.slides.length - 1) {
-      setCurrentSlide(currentSlide + 1);
+      setCurrentSlide((prev) => prev + 1);
       resetSlideState();
     }
   }, [currentSlide, lessonSlides]);
 
   const handlePrevious = useCallback(() => {
+    console.info('⬅️ handlePrevious called', { currentSlide });
     if (currentSlide > 0) {
-      setCurrentSlide(currentSlide - 1);
+      setCurrentSlide((prev) => prev - 1);
       resetSlideState();
     }
   }, [currentSlide]);
