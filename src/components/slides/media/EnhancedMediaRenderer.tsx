@@ -23,7 +23,7 @@ export function EnhancedMediaRenderer({
   media,
   slideContent,
   className,
-  autoGenerate = true,
+  autoGenerate = false,
   imageStyle = 'educational'
 }: EnhancedMediaRendererProps) {
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);

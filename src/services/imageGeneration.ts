@@ -45,19 +45,12 @@ class ImageGenerationService {
       const stylePrompt = this.getStylePrompt(options.style || 'educational');
       const fullPrompt = `${options.prompt}, ${stylePrompt}, high quality illustration`;
 
-      const { data, error } = await supabase.functions.invoke('ai-image-generator', {
-        body: { 
-          prompt: fullPrompt,
-          aspectRatio: options.aspectRatio || '1:1',
-          quality: options.quality || 'medium',
-          background: options.background || 'white'
-        }
-      });
-
-      if (error) throw error;
-
+      // For now, return a placeholder until the edge function is created
+      // TODO: Implement Supabase edge function for AI image generation
+      console.log('AI Image generation requested:', fullPrompt);
+      
       const result: GeneratedImage = {
-        url: data.imageUrl,
+        url: `https://via.placeholder.com/600x400/e3e3e3/666666?text=${encodeURIComponent(options.prompt.slice(0, 20))}`,
         prompt: options.prompt,
         style: options.style || 'educational',
         cached: false

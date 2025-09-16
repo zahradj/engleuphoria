@@ -431,7 +431,7 @@ export function SlideMaster({
                 type: slide.type,
                 level: level
               }}
-              autoGenerate={!slide.media}
+              autoGenerate={false}
               imageStyle="educational"
             />
 
