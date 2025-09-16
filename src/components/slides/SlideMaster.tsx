@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ChevronLeft, ChevronRight, Volume2, CheckCircle, XCircle, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Media, Option, Slide, LessonSlides } from '@/types/slides';
+import { useA11y } from '@/utils/accessibility';
 import { MatchPairs } from './interactive/MatchPairs';
 import { DragDropMatch } from './interactive/DragDropMatch';
 import { WordPairDragDrop } from './interactive/WordPairDragDrop';
@@ -55,7 +56,14 @@ export function SlideMaster({
   timeElapsed = 0,
   level = 'A1'
 }: SlideMasterProps) {
+  const { announce } = useA11y();
   const progress = (currentSlide + 1) / totalSlides * 100;
+
+  // Announce slide changes to screen readers
+  useEffect(() => {
+    const slideAnnouncement = `Slide ${currentSlide + 1} of ${totalSlides}. ${slide.prompt}${slide.instructions ? '. ' + slide.instructions : ''}`;
+    announce(slideAnnouncement, 'polite');
+  }, [currentSlide, slide.prompt, slide.instructions, totalSlides, announce]);
   const renderMedia = () => {
     if (!slide.media) return null;
     const {
@@ -66,15 +74,32 @@ export function SlideMaster({
     } = slide.media;
     switch (type) {
       case 'image':
-        return <img src={url} alt={alt || 'Lesson image'} className="max-w-full max-h-64 object-contain rounded-lg shadow-sm" />;
+        return <img 
+          src={url} 
+          alt={alt || slide.accessibility?.screenReaderText || 'Lesson image'} 
+          className="max-w-full max-h-64 object-contain rounded-lg shadow-sm"
+          role="img"
+        />;
       case 'video':
-        return <video src={url} controls autoPlay={autoplay} className="max-w-full max-h-64 rounded-lg shadow-sm">
-            Your browser does not support the video tag.
-          </video>;
+        return <video 
+          src={url} 
+          controls 
+          autoPlay={autoplay} 
+          className="max-w-full max-h-64 rounded-lg shadow-sm"
+          aria-label={alt || slide.accessibility?.screenReaderText || 'Lesson video'}
+        >
+          Your browser does not support the video tag.
+        </video>;
       case 'audio':
         return <div className="flex items-center gap-3 p-4 bg-surface-2 rounded-lg">
-            <Volume2 className="h-6 w-6 text-primary-600" />
-            <audio src={url} controls autoPlay={autoplay} className="flex-1">
+            <Volume2 className="h-6 w-6 text-primary-600" aria-hidden="true" />
+            <audio 
+              src={url} 
+              controls 
+              autoPlay={autoplay} 
+              className="flex-1"
+              aria-label={alt || slide.accessibility?.screenReaderText || 'Lesson audio'}
+            >
               Your browser does not support the audio tag.
             </audio>
           </div>;
@@ -88,12 +113,32 @@ export function SlideMaster({
         {slide.options.map(option => {
         const isSelected = selectedOptions.includes(option.id);
         const showCorrectness = showFeedback && option.isCorrect !== undefined;
-        return <Button key={option.id} variant={isSelected ? "default" : "outline"} size="lg" className={cn("min-h-[60px] p-4 text-left justify-start relative mobile-touch-target", "transition-all duration-200 text-wrap hover-scale", showCorrectness && option.isCorrect && "bg-success-soft border-success text-success-on", showCorrectness && !option.isCorrect && isSelected && "bg-error-soft border-error text-error-on", "focus:ring-2 focus:ring-focus-ring focus:ring-offset-2")} onClick={() => onOptionSelect?.(option.id)} disabled={showFeedback}>
-              {option.image && <img src={option.image} alt="" className="w-12 h-12 object-cover rounded mr-3 flex-shrink-0" />}
+        return <Button 
+          key={option.id} 
+          variant={isSelected ? "default" : "outline"} 
+          size="lg" 
+          className={cn(
+            "min-h-[60px] p-4 text-left justify-start relative mobile-touch-target", 
+            "transition-all duration-200 text-wrap hover-scale", 
+            showCorrectness && option.isCorrect && "bg-success-soft border-success text-success-on", 
+            showCorrectness && !option.isCorrect && isSelected && "bg-error-soft border-error text-error-on", 
+            "focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
+          )} 
+          onClick={() => onOptionSelect?.(option.id)} 
+          disabled={showFeedback}
+          aria-label={`Option: ${option.text}${isSelected ? ', selected' : ''}${showCorrectness ? (option.isCorrect ? ', correct answer' : isSelected ? ', incorrect' : '') : ''}`}
+          role="button"
+        >
+              {option.image && <img src={option.image} alt={`Image for ${option.text}`} className="w-12 h-12 object-cover rounded mr-3 flex-shrink-0" />}
               <span className="flex-1">{option.text}</span>
               
               {showCorrectness && <div className="absolute top-2 right-2">
-                  {option.isCorrect ? <CheckCircle className="h-5 w-5 text-success" /> : isSelected ? <XCircle className="h-5 w-5 text-error" /> : null}
+                  {option.isCorrect ? 
+                    <CheckCircle className="h-5 w-5 text-success" aria-label="Correct answer" /> : 
+                    isSelected ? 
+                    <XCircle className="h-5 w-5 text-error" aria-label="Incorrect answer" /> : 
+                    null
+                  }
                 </div>}
             </Button>;
       })}
@@ -270,17 +315,33 @@ export function SlideMaster({
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
-  return <div className="h-full flex flex-col bg-background text-foreground relative animate-fade-in">
+  return <div 
+    className="h-full flex flex-col bg-background text-foreground relative animate-fade-in"
+    role="main"
+    aria-label={`Lesson slide ${currentSlide + 1} of ${totalSlides}`}
+  >
       {/* Header */}
       
 
       {/* Floating Navigation Arrows */}
-      {onPrevious && currentSlide > 0 && <Button variant="ghost" size="icon" onClick={onPrevious} className="absolute left-4 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-surface/80 backdrop-blur-sm border border-border hover:bg-surface shadow-lg mobile-touch-target">
-          <ChevronLeft className="h-6 w-6" />
+      {onPrevious && currentSlide > 0 && <Button 
+        variant="ghost" 
+        size="icon" 
+        onClick={onPrevious} 
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-surface/80 backdrop-blur-sm border border-border hover:bg-surface shadow-lg mobile-touch-target"
+        aria-label="Previous slide"
+      >
+          <ChevronLeft className="h-6 w-6" aria-hidden="true" />
         </Button>}
       
-      {onNext && currentSlide < totalSlides - 1 && <Button variant="ghost" size="icon" onClick={onNext} className="absolute right-4 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-surface/80 backdrop-blur-sm border border-border hover:bg-surface shadow-lg mobile-touch-target">
-          <ChevronRight className="h-6 w-6" />
+      {onNext && currentSlide < totalSlides - 1 && <Button 
+        variant="ghost" 
+        size="icon" 
+        onClick={onNext} 
+        className="absolute right-4 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-surface/80 backdrop-blur-sm border border-border hover:bg-surface shadow-lg mobile-touch-target"
+        aria-label="Next slide"
+      >
+          <ChevronRight className="h-6 w-6" aria-hidden="true" />
         </Button>}
 
       {/* Main Content */}
@@ -288,10 +349,16 @@ export function SlideMaster({
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Prompt Area */}
           <div className="text-center space-y-4 animate-scale-in">
-            <h1 className="text-2xl sm:text-3xl font-bold text-text">
+            <h1 
+              className="text-2xl sm:text-3xl font-bold text-text"
+              id="slide-title"
+            >
               {slide.prompt}
             </h1>
-            {slide.instructions && <p className="text-lg text-text-muted max-w-2xl mx-auto">
+            {slide.instructions && <p 
+              className="text-lg text-text-muted max-w-2xl mx-auto"
+              id="slide-instructions"
+            >
                 {slide.instructions}
               </p>}
           </div>
@@ -335,9 +402,19 @@ export function SlideMaster({
         </div>
       </div>
 
-      {/* Accessibility Support */}
-      {slide.accessibility?.screenReaderText && <div className="sr-only">
+      {/* Enhanced Accessibility Support */}
+      <div className="sr-only" role="status" aria-live="polite" id="slide-status">
+        Slide {currentSlide + 1} of {totalSlides}
+      </div>
+      
+      {slide.accessibility?.screenReaderText && <div className="sr-only" id="slide-accessibility-text">
           {slide.accessibility.screenReaderText}
         </div>}
+        
+      {showFeedback && (
+        <div className="sr-only" role="alert" aria-live="assertive">
+          {isCorrect ? "Correct answer! Well done." : "Incorrect answer. Please try again."}
+        </div>
+      )}
     </div>;
 }
