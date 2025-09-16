@@ -78,15 +78,16 @@ export function SlideMaster({
 
   // Track slide direction for transitions
   const handleNext = () => {
+    console.info('➡️ Next clicked');
     setSlideDirection('next');
     onNext?.();
   };
 
   const handlePrevious = () => {
+    console.info('⬅️ Previous clicked');
     setSlideDirection('previous');
     onPrevious?.();
   };
-
   // Announce slide changes to screen readers
   useEffect(() => {
     const slideAnnouncement = `Slide ${currentSlide + 1} of ${totalSlides}. ${slide.prompt}${slide.instructions ? '. ' + slide.instructions : ''}`;
@@ -448,6 +449,28 @@ export function SlideMaster({
                 </div>
               </AnimatedElement>
             )}
+          </div>
+        </div>
+        {/* Bottom Navigation Controls */}
+        <div className="bg-surface/80 backdrop-blur-sm border-t border-border px-6 py-3 relative z-10">
+          <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
+            <Button
+              variant="outline"
+              onClick={handlePrevious}
+              disabled={currentSlide === 0}
+              aria-label="Previous slide"
+            >
+              <ChevronLeft className="h-4 w-4 mr-2" /> Previous
+            </Button>
+            <div className="flex-1" />
+            <Button
+              variant="default"
+              onClick={handleNext}
+              disabled={currentSlide >= totalSlides - 1}
+              aria-label="Next slide"
+            >
+              Next <ChevronRight className="h-4 w-4 ml-2" />
+            </Button>
           </div>
         </div>
 

@@ -42,7 +42,7 @@ export function InteractiveFeedback({
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.8 }}
           transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm pointer-events-none"
         >
           {/* Confetti Animation */}
           {isCorrect && showConfetti && (
@@ -81,7 +81,7 @@ export function InteractiveFeedback({
             exit={{ y: 50, opacity: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
             className={cn(
-              "relative p-8 rounded-2xl shadow-2xl border-2 text-center max-w-md mx-4",
+              "relative p-8 rounded-2xl shadow-2xl border-2 text-center max-w-md mx-4 pointer-events-auto",
               isCorrect 
                 ? "bg-success-soft border-success text-success-foreground" 
                 : "bg-error-soft border-error text-error-foreground"
