@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -13,6 +13,12 @@ import { ClozeActivity } from './interactive/ClozeActivity';
 import { FastMatchGame } from './game/FastMatchGame';
 import { MemoryFlipGame } from './game/MemoryFlipGame';
 import { SpellingRaceGame } from './game/SpellingRaceGame';
+import { SlideTransition } from './animations/SlideTransition';
+import { AnimatedElement, StaggeredList } from './animations/SlideElements';
+import { EnhancedMediaRenderer } from './media/EnhancedMediaRenderer';
+import { AnimatedBackground } from './background/AnimatedBackground';
+import { InteractiveFeedback } from './interactive/InteractiveFeedback';
+import { motion } from 'framer-motion';
 export interface SlideMasterProps {
   slide: Slide;
   currentSlide: number;
@@ -58,91 +64,114 @@ export function SlideMaster({
 }: SlideMasterProps) {
   const { announce } = useA11y();
   const progress = (currentSlide + 1) / totalSlides * 100;
+  const [showInteractiveFeedback, setShowInteractiveFeedback] = useState(false);
+  const [slideDirection, setSlideDirection] = useState<'next' | 'previous'>('next');
+
+  // Handle feedback display
+  useEffect(() => {
+    if (showFeedback) {
+      setShowInteractiveFeedback(true);
+      const timer = setTimeout(() => setShowInteractiveFeedback(false), 2500);
+      return () => clearTimeout(timer);
+    }
+  }, [showFeedback]);
+
+  // Track slide direction for transitions
+  const handleNext = () => {
+    setSlideDirection('next');
+    onNext?.();
+  };
+
+  const handlePrevious = () => {
+    setSlideDirection('previous');
+    onPrevious?.();
+  };
 
   // Announce slide changes to screen readers
   useEffect(() => {
     const slideAnnouncement = `Slide ${currentSlide + 1} of ${totalSlides}. ${slide.prompt}${slide.instructions ? '. ' + slide.instructions : ''}`;
     announce(slideAnnouncement, 'polite');
   }, [currentSlide, slide.prompt, slide.instructions, totalSlides, announce]);
-  const renderMedia = () => {
-    if (!slide.media) return null;
-    const {
-      type,
-      url,
-      alt,
-      autoplay
-    } = slide.media;
-    switch (type) {
-      case 'image':
-        return <img 
-          src={url} 
-          alt={alt || slide.accessibility?.screenReaderText || 'Lesson image'} 
-          className="max-w-full max-h-64 object-contain rounded-lg shadow-sm"
-          role="img"
-        />;
-      case 'video':
-        return <video 
-          src={url} 
-          controls 
-          autoPlay={autoplay} 
-          className="max-w-full max-h-64 rounded-lg shadow-sm"
-          aria-label={alt || slide.accessibility?.screenReaderText || 'Lesson video'}
-        >
-          Your browser does not support the video tag.
-        </video>;
-      case 'audio':
-        return <div className="flex items-center gap-3 p-4 bg-surface-2 rounded-lg">
-            <Volume2 className="h-6 w-6 text-primary-600" aria-hidden="true" />
-            <audio 
-              src={url} 
-              controls 
-              autoPlay={autoplay} 
-              className="flex-1"
-              aria-label={alt || slide.accessibility?.screenReaderText || 'Lesson audio'}
-            >
-              Your browser does not support the audio tag.
-            </audio>
-          </div>;
-      default:
-        return null;
+  const getSlideTheme = () => {
+    switch (slide.type) {
+      case 'vocabulary_preview':
+      case 'target_language': return 'ocean';
+      case 'grammar_focus':
+      case 'sentence_builder': return 'forest';
+      case 'picture_description':
+      case 'picture_choice': return 'sunset';
+      case 'listening_comprehension':
+      case 'pronunciation_shadow': return 'space';
+      default: return 'default';
     }
   };
   const renderOptions = () => {
     if (!slide.options) return null;
-    return <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 animate-enter">
-        {slide.options.map(option => {
-        const isSelected = selectedOptions.includes(option.id);
-        const showCorrectness = showFeedback && option.isCorrect !== undefined;
-        return <Button 
-          key={option.id} 
-          variant={isSelected ? "default" : "outline"} 
-          size="lg" 
-          className={cn(
-            "min-h-[60px] p-4 text-left justify-start relative mobile-touch-target", 
-            "transition-all duration-200 text-wrap hover-scale", 
-            showCorrectness && option.isCorrect && "bg-success-soft border-success text-success-on", 
-            showCorrectness && !option.isCorrect && isSelected && "bg-error-soft border-error text-error-on", 
-            "focus:ring-2 focus:ring-focus-ring focus:ring-offset-2"
-          )} 
-          onClick={() => onOptionSelect?.(option.id)} 
-          disabled={showFeedback}
-          aria-label={`Option: ${option.text}${isSelected ? ', selected' : ''}${showCorrectness ? (option.isCorrect ? ', correct answer' : isSelected ? ', incorrect' : '') : ''}`}
-          role="button"
+    
+    const optionElements = slide.options.map((option, index) => {
+      const isSelected = selectedOptions.includes(option.id);
+      const showCorrectness = showFeedback && option.isCorrect !== undefined;
+      
+      return (
+        <motion.div
+          key={option.id}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          transition={{ duration: 0.2 }}
         >
-              {option.image && <img src={option.image} alt={`Image for ${option.text}`} className="w-12 h-12 object-cover rounded mr-3 flex-shrink-0" />}
-              <span className="flex-1">{option.text}</span>
-              
-              {showCorrectness && <div className="absolute top-2 right-2">
-                  {option.isCorrect ? 
-                    <CheckCircle className="h-5 w-5 text-success" aria-label="Correct answer" /> : 
-                    isSelected ? 
-                    <XCircle className="h-5 w-5 text-error" aria-label="Incorrect answer" /> : 
-                    null
-                  }
-                </div>}
-            </Button>;
-      })}
-      </div>;
+          <Button 
+            variant={isSelected ? "default" : "outline"} 
+            size="lg" 
+            className={cn(
+              "min-h-[60px] p-4 text-left justify-start relative mobile-touch-target w-full", 
+              "transition-all duration-300 text-wrap", 
+              showCorrectness && option.isCorrect && "bg-success-soft border-success text-success-on", 
+              showCorrectness && !option.isCorrect && isSelected && "bg-error-soft border-error text-error-on", 
+              "focus:ring-2 focus:ring-focus-ring focus:ring-offset-2",
+              "backdrop-blur-sm bg-surface/80 border-border/60"
+            )} 
+            onClick={() => onOptionSelect?.(option.id)} 
+            disabled={showFeedback}
+            aria-label={`Option: ${option.text}${isSelected ? ', selected' : ''}${showCorrectness ? (option.isCorrect ? ', correct answer' : isSelected ? ', incorrect' : '') : ''}`}
+            role="button"
+          >
+            {option.image && (
+              <motion.img 
+                src={option.image} 
+                alt={`Image for ${option.text}`} 
+                className="w-12 h-12 object-cover rounded mr-3 flex-shrink-0"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: index * 0.1 }}
+              />
+            )}
+            <span className="flex-1">{option.text}</span>
+            
+            {showCorrectness && (
+              <motion.div 
+                className="absolute top-2 right-2"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2, type: "spring", bounce: 0.6 }}
+              >
+                {option.isCorrect ? 
+                  <CheckCircle className="h-5 w-5 text-success" aria-label="Correct answer" /> : 
+                  isSelected ? 
+                  <XCircle className="h-5 w-5 text-error" aria-label="Incorrect answer" /> : 
+                  null
+                }
+              </motion.div>
+            )}
+          </Button>
+        </motion.div>
+      );
+    });
+
+    return (
+      <StaggeredList staggerDelay={0.1} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {optionElements}
+      </StaggeredList>
+    );
   };
   const renderCanvaContent = () => {
     if (slide.type === 'canva_embed' && slide.canvaEmbedUrl) {
@@ -315,106 +344,163 @@ export function SlideMaster({
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
-  return <div 
-    className="h-full flex flex-col bg-background text-foreground relative animate-fade-in"
-    role="main"
-    aria-label={`Lesson slide ${currentSlide + 1} of ${totalSlides}`}
-  >
-      {/* Header */}
-      
-
-      {/* Floating Navigation Arrows */}
-      {onPrevious && currentSlide > 0 && <Button 
-        variant="ghost" 
-        size="icon" 
-        onClick={onPrevious} 
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-surface/80 backdrop-blur-sm border border-border hover:bg-surface shadow-lg mobile-touch-target"
-        aria-label="Previous slide"
+  return (
+    <SlideTransition 
+      slideKey={currentSlide} 
+      direction={slideDirection}
+      transitionType="fade"
+      className="h-full"
+    >
+      <div 
+        className="h-full flex flex-col bg-background text-foreground relative"
+        role="main"
+        aria-label={`Lesson slide ${currentSlide + 1} of ${totalSlides}`}
       >
-          <ChevronLeft className="h-6 w-6" aria-hidden="true" />
-        </Button>}
-      
-      {onNext && currentSlide < totalSlides - 1 && <Button 
-        variant="ghost" 
-        size="icon" 
-        onClick={onNext} 
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-surface/80 backdrop-blur-sm border border-border hover:bg-surface shadow-lg mobile-touch-target"
-        aria-label="Next slide"
-      >
-          <ChevronRight className="h-6 w-6" aria-hidden="true" />
-        </Button>}
+        {/* Animated Background */}
+        <AnimatedBackground 
+          theme={getSlideTheme()} 
+          intensity="low" 
+          className="opacity-60"
+        />
 
-      {/* Main Content */}
-      <div className="flex-1 min-h-0 overflow-auto px-6 py-8">
-        <div className="max-w-4xl mx-auto space-y-8">
-          {/* Prompt Area */}
-          <div className="text-center space-y-4 animate-scale-in">
-            <h1 
-              className="text-2xl sm:text-3xl font-bold text-text"
-              id="slide-title"
+        {/* Floating Navigation Arrows */}
+        {onPrevious && currentSlide > 0 && (
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={handlePrevious} 
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-surface/80 backdrop-blur-sm border border-border hover:bg-surface shadow-lg mobile-touch-target transition-all duration-300 hover:scale-110"
+              aria-label="Previous slide"
             >
-              {slide.prompt}
-            </h1>
-            {slide.instructions && <p 
-              className="text-lg text-text-muted max-w-2xl mx-auto"
-              id="slide-instructions"
-            >
-                {slide.instructions}
-              </p>}
-          </div>
-
-          {/* Media Zone */}
-          {slide.media && <div className="flex justify-center animate-fade-in">
-              {renderMedia()}
-            </div>}
-
-          {/* Interactive Activities */}
-          {renderInteractiveActivity()}
-
-          {/* Options Grid - only show for non-interactive slides */}
-          {slide.options && !['match', 'drag_drop', 'cloze', 'canva_embed', 'canva_link', 'fast_match', 'memory_flip', 'spelling_race', 'word_rain', 'bubble_pop', 'treasure_hunt', 'quiz_match_pairs', 'quiz_multiple_choice', 'quiz_drag_drop'].includes(slide.type) && <div className="max-w-2xl mx-auto">
-              {renderOptions()}
-            </div>}
-
-          {/* Feedback Panel */}
-          {showFeedback && <div className={cn("p-6 rounded-lg border-2 text-center space-y-3 animate-scale-in", isCorrect ? "bg-success-soft border-success text-success-on" : "bg-error-soft border-error text-error-on")}>
-              <div className="flex items-center justify-center gap-2">
-                {isCorrect ? <CheckCircle className="h-6 w-6" /> : <XCircle className="h-6 w-6" />}
-                <span className="text-lg font-semibold">
-                  {isCorrect ? "Excellent!" : "Try again!"}
-                </span>
-              </div>
-              <p className="text-sm opacity-90">
-                {isCorrect ? "Great job! You got it right." : "Don't worry, keep practicing and you'll improve!"}
-              </p>
-            </div>}
-        </div>
-      </div>
-
-      {/* Slide Progress Indicators - Now at bottom */}
-      <div className="bg-surface/90 backdrop-blur-sm border-t border-border px-6 py-3">
-        <div className="flex justify-center max-w-4xl mx-auto">
-          <div className="flex gap-2">
-            {Array.from({
-            length: totalSlides
-          }, (_, i) => <div key={i} className={cn("w-2 h-2 rounded-full transition-colors", i === currentSlide ? "bg-primary-500" : i < currentSlide ? "bg-primary-300" : "bg-neutral-300")} />)}
-          </div>
-        </div>
-      </div>
-
-      {/* Enhanced Accessibility Support */}
-      <div className="sr-only" role="status" aria-live="polite" id="slide-status">
-        Slide {currentSlide + 1} of {totalSlides}
-      </div>
-      
-      {slide.accessibility?.screenReaderText && <div className="sr-only" id="slide-accessibility-text">
-          {slide.accessibility.screenReaderText}
-        </div>}
+              <ChevronLeft className="h-6 w-6" aria-hidden="true" />
+            </Button>
+          </motion.div>
+        )}
         
-      {showFeedback && (
-        <div className="sr-only" role="alert" aria-live="assertive">
-          {isCorrect ? "Correct answer! Well done." : "Incorrect answer. Please try again."}
+        {onNext && currentSlide < totalSlides - 1 && (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={handleNext} 
+              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 h-12 w-12 rounded-full bg-surface/80 backdrop-blur-sm border border-border hover:bg-surface shadow-lg mobile-touch-target transition-all duration-300 hover:scale-110"
+              aria-label="Next slide"
+            >
+              <ChevronRight className="h-6 w-6" aria-hidden="true" />
+            </Button>
+          </motion.div>
+        )}
+
+        {/* Main Content */}
+        <div className="flex-1 min-h-0 overflow-auto px-6 py-8 relative z-10">
+          <div className="max-w-4xl mx-auto space-y-8">
+            {/* Prompt Area */}
+            <AnimatedElement animationType="slideDown" delay={0.1}>
+              <div className="text-center space-y-4">
+                <h1 
+                  className="text-2xl sm:text-3xl font-bold text-text"
+                  id="slide-title"
+                >
+                  {slide.prompt}
+                </h1>
+                {slide.instructions && (
+                  <p 
+                    className="text-lg text-text-muted max-w-2xl mx-auto"
+                    id="slide-instructions"
+                  >
+                    {slide.instructions}
+                  </p>
+                )}
+              </div>
+            </AnimatedElement>
+
+            {/* Enhanced Media Zone */}
+            <EnhancedMediaRenderer 
+              media={slide.media}
+              slideContent={{
+                prompt: slide.prompt,
+                type: slide.type,
+                level: level
+              }}
+              autoGenerate={!slide.media}
+              imageStyle="educational"
+            />
+
+            {/* Interactive Activities */}
+            <AnimatedElement animationType="scaleIn" delay={0.4}>
+              {renderInteractiveActivity()}
+            </AnimatedElement>
+
+            {/* Options Grid - only show for non-interactive slides */}
+            {slide.options && !['match', 'drag_drop', 'cloze', 'canva_embed', 'canva_link', 'fast_match', 'memory_flip', 'spelling_race', 'word_rain', 'bubble_pop', 'treasure_hunt', 'quiz_match_pairs', 'quiz_multiple_choice', 'quiz_drag_drop'].includes(slide.type) && (
+              <AnimatedElement animationType="fadeIn" delay={0.5}>
+                <div className="max-w-2xl mx-auto">
+                  {renderOptions()}
+                </div>
+              </AnimatedElement>
+            )}
+          </div>
         </div>
-      )}
-    </div>;
+
+        {/* Enhanced Progress Indicators */}
+        <motion.div 
+          className="bg-surface/90 backdrop-blur-sm border-t border-border px-6 py-3 relative z-10"
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.6 }}
+        >
+          <div className="flex justify-center max-w-4xl mx-auto">
+            <div className="flex gap-2">
+              {Array.from({ length: totalSlides }, (_, i) => (
+                <motion.div 
+                  key={i} 
+                  className={cn(
+                    "w-2 h-2 rounded-full transition-all duration-300",
+                    i === currentSlide ? "bg-primary-500 scale-125" : 
+                    i < currentSlide ? "bg-primary-300" : "bg-neutral-300"
+                  )}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: i === currentSlide ? 1.25 : 1 }}
+                  transition={{ delay: 0.7 + (i * 0.05) }}
+                />
+              ))}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Interactive Feedback Overlay */}
+        <InteractiveFeedback
+          isVisible={showInteractiveFeedback}
+          isCorrect={isCorrect || false}
+          showConfetti={isCorrect}
+        />
+
+        {/* Enhanced Accessibility Support */}
+        <div className="sr-only" role="status" aria-live="polite" id="slide-status">
+          Slide {currentSlide + 1} of {totalSlides}
+        </div>
+        
+        {slide.accessibility?.screenReaderText && (
+          <div className="sr-only" id="slide-accessibility-text">
+            {slide.accessibility.screenReaderText}
+          </div>
+        )}
+          
+        {showFeedback && (
+          <div className="sr-only" role="alert" aria-live="assertive">
+            {isCorrect ? "Correct answer! Well done." : "Incorrect answer. Please try again."}
+          </div>
+        )}
+      </div>
+    </SlideTransition>
+  );
 }
