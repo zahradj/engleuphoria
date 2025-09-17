@@ -11,6 +11,7 @@ import { BookOpen, Play, Clock, Target, Search, ChevronRight, Users, CheckCircle
 import { SlideDeckManager } from './SlideDeckManager';
 import { LessonSlides } from '@/types/slides';
 import { generateSampleLessons, generateCustomLessons } from '@/utils/bulkLessonGenerator';
+import { generatePreStartersProgram1ToDatabase } from '@/utils/preStartersGenerator';
 interface LessonContent {
   id: string;
   title: string;
@@ -132,6 +133,29 @@ export function SystematicLessonsLibrary({
     }
   };
 
+  const handleGeneratePreStarters = async () => {
+    setIsGenerating(true);
+    try {
+      const result = await generatePreStartersProgram1ToDatabase();
+      
+      toast({
+        title: "Pre-Starters Program Created! 🌟",
+        description: `Successfully generated ${result.summary.successful} lessons for "${result.program.title}"`
+      });
+      
+      fetchLessons();
+    } catch (error) {
+      console.error('Error generating pre-starters program:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Failed to generate pre-starters program. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const handleGenerateCustomLessons = async () => {
     setIsGenerating(true);
     try {
@@ -182,6 +206,10 @@ export function SystematicLessonsLibrary({
           <p className="text-muted-foreground">Manage and generate interactive ESL lessons with slides</p>
         </div>
         <div className="flex gap-2">
+          <Button onClick={handleGeneratePreStarters} disabled={isGenerating} variant="default">
+            <Wand2 className="h-4 w-4 mr-2" />
+            {isGenerating ? 'Creating...' : 'Create Pre-Starters Program 1'}
+          </Button>
           <Button onClick={handleGenerateSampleLessons} disabled={isGenerating} variant="outline">
             <Wand2 className="h-4 w-4 mr-2" />
             {isGenerating ? 'Generating...' : 'Generate Sample Lessons'}
