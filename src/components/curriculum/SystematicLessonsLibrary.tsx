@@ -7,9 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { BookOpen, Play, Clock, Target, Search, ChevronRight, Users, CheckCircle, Presentation, Settings, Layers } from 'lucide-react';
+import { BookOpen, Play, Clock, Target, Search, ChevronRight, Users, CheckCircle, Presentation, Settings, Layers, Plus, Wand2 } from 'lucide-react';
 import { SlideDeckManager } from './SlideDeckManager';
 import { LessonSlides } from '@/types/slides';
+import { generateSampleLessons, generateCustomLessons } from '@/utils/bulkLessonGenerator';
 interface LessonContent {
   id: string;
   title: string;
@@ -40,6 +41,7 @@ export function SystematicLessonsLibrary({
   const [levelFilter, setLevelFilter] = useState('all');
   const [selectedLessonForManagement, setSelectedLessonForManagement] = useState<LessonContent | null>(null);
   const [isManageDialogOpen, setIsManageDialogOpen] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const {
     toast
   } = useToast();
@@ -104,6 +106,56 @@ export function SystematicLessonsLibrary({
       description: "Lesson slides have been updated successfully"
     });
   };
+
+  const handleGenerateSampleLessons = async () => {
+    setIsGenerating(true);
+    try {
+      const results = await generateSampleLessons();
+      const successCount = results.filter(r => r.success).length;
+      
+      toast({
+        title: "Lessons Generated!",
+        description: `Successfully generated ${successCount} sample lessons based on the reference format`
+      });
+      
+      // Refresh the lessons list
+      fetchLessons();
+    } catch (error) {
+      console.error('Error generating lessons:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Failed to generate sample lessons. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleGenerateCustomLessons = async () => {
+    setIsGenerating(true);
+    try {
+      const customTopics = ['food', 'numbers', 'shapes', 'emotions'];
+      const results = await generateCustomLessons(customTopics, 'A1', 2);
+      const successCount = results.filter(r => r.success).length;
+      
+      toast({
+        title: "Custom Lessons Generated!",
+        description: `Successfully generated ${successCount} custom lessons with interactive activities`
+      });
+      
+      fetchLessons();
+    } catch (error) {
+      console.error('Error generating custom lessons:', error);
+      toast({
+        title: "Generation Failed",
+        description: "Failed to generate custom lessons. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
   const filteredLessons = lessons.filter(lesson => {
     const matchesSearch = lesson.title.toLowerCase().includes(searchTerm.toLowerCase()) || lesson.topic.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesLevel = levelFilter === 'all' || lesson.cefr_level === levelFilter;
@@ -126,8 +178,18 @@ export function SystematicLessonsLibrary({
       {/* Header */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
         <div>
-          
-          
+          <h1 className="text-2xl font-bold">Systematic Lessons Library</h1>
+          <p className="text-muted-foreground">Manage and generate interactive ESL lessons with slides</p>
+        </div>
+        <div className="flex gap-2">
+          <Button onClick={handleGenerateSampleLessons} disabled={isGenerating} variant="outline">
+            <Wand2 className="h-4 w-4 mr-2" />
+            {isGenerating ? 'Generating...' : 'Generate Sample Lessons'}
+          </Button>
+          <Button onClick={handleGenerateCustomLessons} disabled={isGenerating}>
+            <Plus className="h-4 w-4 mr-2" />
+            {isGenerating ? 'Creating...' : 'Create Custom Lessons'}
+          </Button>
         </div>
       </div>
 

@@ -48,7 +48,8 @@ export function LessonSlideViewer({
     console.info('➡️ handleNext called', { currentSlide, total: lessonSlides?.slides.length });
     if (lessonSlides && currentSlide < lessonSlides.slides.length - 1) {
       setCurrentSlide((prev) => prev + 1);
-      resetSlideState();
+      setSelectedOptions([]);
+      setShowFeedback(false);
     }
   }, [currentSlide, lessonSlides]);
 
@@ -56,7 +57,8 @@ export function LessonSlideViewer({
     console.info('⬅️ handlePrevious called', { currentSlide });
     if (currentSlide > 0) {
       setCurrentSlide((prev) => prev - 1);
-      resetSlideState();
+      setSelectedOptions([]);
+      setShowFeedback(false);
     }
   }, [currentSlide]);
 
