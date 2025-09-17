@@ -12,6 +12,7 @@ import { SlideDeckManager } from './SlideDeckManager';
 import { LessonSlides } from '@/types/slides';
 import { generateSampleLessons, generateCustomLessons } from '@/utils/bulkLessonGenerator';
 import { generatePreStartersProgram1ToDatabase } from '@/utils/preStartersGenerator';
+import { ExternalLessonIntegrator } from './ExternalLessonIntegrator';
 interface LessonContent {
   id: string;
   title: string;
@@ -246,6 +247,19 @@ export function SystematicLessonsLibrary({
               </Select>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* External Lesson Integration */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Layers className="h-5 w-5" />
+            Import External Lessons
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ExternalLessonIntegrator onLessonImported={fetchLessons} />
         </CardContent>
       </Card>
 
