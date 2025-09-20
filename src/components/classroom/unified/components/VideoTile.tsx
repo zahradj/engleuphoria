@@ -45,10 +45,10 @@ export function VideoTile({ stream, hasVideo, isTeacher, userLabel, isCameraOff 
             </div>
             
             <div className="text-center relative z-10">
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2 shadow-lg group-hover:scale-110 transition-all duration-300 ${
+              <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2 shadow-2xl group-hover:scale-110 transition-all duration-300 ring-4 ring-opacity-30 ${
                 isTeacher 
-                  ? 'bg-gradient-to-br from-primary-500 to-primary-600 border-2 border-primary-300' 
-                  : 'bg-gradient-to-br from-accent-500 to-accent-600 border-2 border-accent-300'
+                  ? 'bg-gradient-to-br from-primary-400 via-primary-500 to-primary-700 border-2 border-primary-200 ring-primary-300 shadow-primary-500/50' 
+                  : 'bg-gradient-to-br from-accent-400 via-accent-500 to-accent-700 border-2 border-accent-200 ring-accent-300 shadow-accent-500/50'
               }`}>
                 <span className="text-lg font-bold text-white animate-pulse-subtle">
                   {isTeacher ? 'T' : 'S'}
