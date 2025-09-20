@@ -28,6 +28,11 @@ export const EnhancedTeacherSidebar = ({
     icon: User,
     type: 'tab'
   }, {
+    id: 'library',
+    label: 'Library',
+    icon: BookOpen,
+    type: 'tab'
+  }, {
     id: 'slides',
     label: 'Lesson Slides',
     icon: Presentation,
