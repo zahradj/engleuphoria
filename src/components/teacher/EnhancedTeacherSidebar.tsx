@@ -100,10 +100,7 @@ export const EnhancedTeacherSidebar = ({
               if (item.type === 'page') {
                 return <SidebarMenuItem key={item.id}>
                       <SidebarMenuButton asChild>
-                        <Link to={item.path} onClick={() => setOpen(false)} className="flex items-center gap-2">
-                          <item.icon className="h-4 w-4" />
-                          
-                        </Link>
+                        
                       </SidebarMenuButton>
                     </SidebarMenuItem>;
               }
