@@ -86,40 +86,34 @@ export function SystematicLessonsLibrary({
       window.open(`/oneonone-classroom-new?roomId=lesson-${lesson.id}&role=teacher&name=Teacher&userId=teacher-1&lessonMode=true&skipGen=1`, '_blank');
     }
   };
-
   const openSlideManager = (lesson: LessonContent) => {
     setSelectedLessonForManagement(lesson);
     setIsManageDialogOpen(true);
   };
-
   const handleSlidesUpdate = (updatedSlides: LessonSlides) => {
     // Update the lesson in the local state
-    setLessons(prev => prev.map(lesson => 
-      lesson.id === selectedLessonForManagement?.id 
-        ? { ...lesson, slides_content: updatedSlides }
-        : lesson
-    ));
-    
+    setLessons(prev => prev.map(lesson => lesson.id === selectedLessonForManagement?.id ? {
+      ...lesson,
+      slides_content: updatedSlides
+    } : lesson));
+
     // Notify parent component
     onContentUpdate?.();
-    
     toast({
       title: "Slides Updated",
       description: "Lesson slides have been updated successfully"
     });
   };
-
   const handleGenerateSampleLessons = async () => {
     setIsGenerating(true);
     try {
       const results = await generateSampleLessons();
       const successCount = results.filter(r => r.success).length;
-      
       toast({
         title: "Lessons Generated!",
         description: `Successfully generated ${successCount} sample lessons based on the reference format`
       });
-      
+
       // Refresh the lessons list
       fetchLessons();
     } catch (error) {
@@ -133,17 +127,14 @@ export function SystematicLessonsLibrary({
       setIsGenerating(false);
     }
   };
-
   const handleGeneratePreStarters = async () => {
     setIsGenerating(true);
     try {
       const result = await generatePreStartersProgram1ToDatabase();
-      
       toast({
         title: "Pre-Starters Program Created! 🌟",
         description: `Successfully generated ${result.summary.successful} lessons for "${result.program.title}"`
       });
-      
       fetchLessons();
     } catch (error) {
       console.error('Error generating pre-starters program:', error);
@@ -156,19 +147,16 @@ export function SystematicLessonsLibrary({
       setIsGenerating(false);
     }
   };
-
   const handleGenerateCustomLessons = async () => {
     setIsGenerating(true);
     try {
       const customTopics = ['food', 'numbers', 'shapes', 'emotions'];
       const results = await generateCustomLessons(customTopics, 'A1', 2);
       const successCount = results.filter(r => r.success).length;
-      
       toast({
         title: "Custom Lessons Generated!",
         description: `Successfully generated ${successCount} custom lessons with interactive activities`
       });
-      
       fetchLessons();
     } catch (error) {
       console.error('Error generating custom lessons:', error);
@@ -206,20 +194,7 @@ export function SystematicLessonsLibrary({
           <h1 className="text-2xl font-bold">Systematic Lessons Library</h1>
           <p className="text-muted-foreground">Manage and generate interactive ESL lessons with slides</p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={handleGeneratePreStarters} disabled={isGenerating} variant="default">
-            <Wand2 className="h-4 w-4 mr-2" />
-            {isGenerating ? 'Creating...' : 'Create Pre-Starters Program 1'}
-          </Button>
-          <Button onClick={handleGenerateSampleLessons} disabled={isGenerating} variant="outline">
-            <Wand2 className="h-4 w-4 mr-2" />
-            {isGenerating ? 'Generating...' : 'Generate Sample Lessons'}
-          </Button>
-          <Button onClick={handleGenerateCustomLessons} disabled={isGenerating}>
-            <Plus className="h-4 w-4 mr-2" />
-            {isGenerating ? 'Creating...' : 'Create Custom Lessons'}
-          </Button>
-        </div>
+        
       </div>
 
       {/* Filters */}
@@ -380,11 +355,7 @@ export function SystematicLessonsLibrary({
                     Use Lesson
                   </Button>
                   
-                  <Button 
-                    variant="outline" 
-                    onClick={() => openSlideManager(lesson)} 
-                    className="w-full"
-                  >
+                  <Button variant="outline" onClick={() => openSlideManager(lesson)} className="w-full">
                     <Settings className="h-4 w-4 mr-2" />
                     Manage Slides
                   </Button>
@@ -422,14 +393,7 @@ export function SystematicLessonsLibrary({
               Manage Slides: {selectedLessonForManagement?.title}
             </DialogTitle>
           </DialogHeader>
-          {selectedLessonForManagement && (
-            <SlideDeckManager
-              lessonId={selectedLessonForManagement.id}
-              initialSlides={selectedLessonForManagement.slides_content}
-              onSlidesUpdate={handleSlidesUpdate}
-              isTeacher={true}
-            />
-          )}
+          {selectedLessonForManagement && <SlideDeckManager lessonId={selectedLessonForManagement.id} initialSlides={selectedLessonForManagement.slides_content} onSlidesUpdate={handleSlidesUpdate} isTeacher={true} />}
         </DialogContent>
       </Dialog>
     </div>;
