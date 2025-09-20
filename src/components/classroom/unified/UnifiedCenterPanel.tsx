@@ -37,14 +37,11 @@ export function UnifiedCenterPanel({
   const isTeacher = currentUser.role === 'teacher';
 
   return (
-    <Card className="h-full shadow-lg flex flex-col relative overflow-hidden" style={{ 
-      backgroundColor: '#FBFBFB', 
-      border: '1px solid rgba(196, 217, 255, 0.4)',
-      backdropFilter: 'blur(8px)'
-    }}>
-      {/* Decorative background elements */}
-      <div className="absolute top-0 right-0 w-32 h-32 rounded-bl-full" style={{ background: 'linear-gradient(225deg, rgba(232, 249, 255, 0.3) 0%, rgba(197, 186, 255, 0.1) 50%, transparent 100%)' }}></div>
-      <div className="absolute bottom-0 left-0 w-24 h-24 rounded-tr-full" style={{ background: 'linear-gradient(45deg, rgba(197, 186, 255, 0.3) 0%, rgba(232, 249, 255, 0.1) 50%, transparent 100%)' }}></div>
+    <Card className="h-full shadow-xl flex flex-col relative overflow-hidden bg-surface/80 backdrop-blur-xl border border-primary-100">
+      {/* Modern decorative background elements */}
+      <div className="absolute top-0 right-0 w-40 h-40 rounded-bl-full bg-gradient-to-bl from-primary-100/30 via-accent-100/20 to-transparent animate-pulse-subtle"></div>
+      <div className="absolute bottom-0 left-0 w-32 h-32 rounded-tr-full bg-gradient-to-tr from-accent-100/25 via-primary-100/15 to-transparent animate-float"></div>
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-gradient-radial from-primary-50/20 to-transparent opacity-50 animate-rotate-slow"></div>
       
       <Tabs value={activeCenterTab} onValueChange={onTabChange} className="h-full flex flex-col relative z-10">
         <div className="p-4 pb-0 flex-shrink-0">
@@ -56,25 +53,7 @@ export function UnifiedCenterPanel({
                 size="sm"
                 onClick={onStartLesson}
                 disabled={sessionStatus === 'started'}
-                className="flex items-center gap-2 transition-colors duration-200"
-                style={sessionStatus === 'started' 
-                  ? { backgroundColor: '#4F46E5', color: 'white' }
-                  : { 
-                      borderColor: '#C4D9FF', 
-                      color: '#4F46E5',
-                      backgroundColor: 'transparent'
-                    }
-                }
-                onMouseEnter={(e) => {
-                  if (sessionStatus !== 'started') {
-                    e.currentTarget.style.backgroundColor = '#E8F9FF';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (sessionStatus !== 'started') {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                  }
-                }}
+                className="flex items-center gap-2 transition-all duration-300 hover:scale-105 hover:shadow-lg bg-gradient-to-r from-success to-success-soft border-success text-white shadow-md"
               >
                 <Play size={14} />
                 Start Lesson
@@ -84,25 +63,7 @@ export function UnifiedCenterPanel({
                 size="sm"
                 onClick={onEndLesson}
                 disabled={sessionStatus !== 'started'}
-                className="flex items-center gap-2 transition-colors duration-200"
-                style={sessionStatus === 'ended' 
-                  ? { backgroundColor: '#4F46E5', color: 'white' }
-                  : { 
-                      borderColor: '#C4D9FF', 
-                      color: '#4F46E5',
-                      backgroundColor: 'transparent'
-                    }
-                }
-                onMouseEnter={(e) => {
-                  if (sessionStatus !== 'ended' && sessionStatus === 'started') {
-                    e.currentTarget.style.backgroundColor = '#E8F9FF';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (sessionStatus !== 'ended' && sessionStatus === 'started') {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                  }
-                }}
+                className="flex items-center gap-2 transition-all duration-300 hover:scale-105 hover:shadow-lg bg-gradient-to-r from-primary-600 to-primary-500 border-primary-600 text-white shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <CheckCircle size={14} />
                 Finish Lesson
@@ -112,35 +73,17 @@ export function UnifiedCenterPanel({
             <ActivityCountdownTimer className="ml-auto" />
           </div>
           
-          <TabsList className="grid w-full grid-cols-2 mb-4 shadow-sm" style={{ 
-            backgroundColor: 'rgba(232, 249, 255, 0.6)', 
-            border: '1px solid rgba(196, 217, 255, 0.4)',
-            backdropFilter: 'blur(4px)'
-          }}>
+          <TabsList className="grid w-full grid-cols-2 mb-4 shadow-lg bg-surface-2/80 backdrop-blur-lg border border-primary-200">
             <TabsTrigger 
               value="lesson" 
-              className="flex items-center gap-2 transition-all duration-300 data-[state=active]:shadow-md"
-              style={{
-                color: '#4F46E5'
-              }}
-              data-active-style={{
-                backgroundColor: '#4F46E5',
-                color: 'white'
-              }}
+              className="flex items-center gap-2 transition-all duration-300 data-[state=active]:bg-primary-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-primary-50 text-primary-700 font-medium"
             >
               <BookOpen size={16} />
               <span className="hidden sm:inline">Lesson</span>
             </TabsTrigger>
             <TabsTrigger 
               value="activities" 
-              className="flex items-center gap-2 transition-all duration-300 data-[state=active]:shadow-md"
-              style={{
-                color: '#4F46E5'
-              }}
-              data-active-style={{
-                backgroundColor: '#4F46E5',
-                color: 'white'
-              }}
+              className="flex items-center gap-2 transition-all duration-300 data-[state=active]:bg-primary-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-primary-50 text-primary-700 font-medium"
             >
               <Gamepad2 size={16} />
               <span className="hidden sm:inline">Activities</span>
