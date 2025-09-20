@@ -15,6 +15,7 @@ import { QuickActionsCard } from "./dashboard/QuickActionsCard";
 import { TeacherStatsOverview } from "./dashboard/TeacherStatsOverview";
 import { RecentActivityFeed } from "./dashboard/RecentActivityFeed";
 import { AddStudentModal } from "./dashboard/AddStudentModal";
+import { HelloAdventuresQuickAccess } from "./dashboard/HelloAdventuresQuickAccess";
 
 interface DashboardTabProps {
   teacherName: string;
@@ -188,6 +189,8 @@ export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
             onAddStudent={handleAddStudent}
             onViewEarnings={handleViewEarnings}
           />
+
+          <HelloAdventuresQuickAccess />
           
           <RecentActivityFeed />
           

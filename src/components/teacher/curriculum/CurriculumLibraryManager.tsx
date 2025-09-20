@@ -5,7 +5,8 @@ import { CurriculumUploadSection } from "./CurriculumUploadSection";
 import { CurriculumBrowser } from "./CurriculumBrowser";
 import { CurriculumCollections } from "./CurriculumCollections";
 import { CurriculumAnalytics } from "./CurriculumAnalytics";
-import { Upload, Search, FolderOpen, BarChart3 } from "lucide-react";
+import { FeaturedExternalLessons } from "../features/FeaturedExternalLessons";
+import { Upload, Search, FolderOpen, BarChart3, Sparkles } from "lucide-react";
 
 export function CurriculumLibraryManager() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -25,7 +26,7 @@ export function CurriculumLibraryManager() {
       </div>
 
       <Tabs defaultValue="upload" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="upload" className="flex items-center gap-2">
             <Upload size={16} />
             Upload Content
@@ -33,6 +34,10 @@ export function CurriculumLibraryManager() {
           <TabsTrigger value="browse" className="flex items-center gap-2">
             <Search size={16} />
             Browse Library
+          </TabsTrigger>
+          <TabsTrigger value="featured" className="flex items-center gap-2">
+            <Sparkles size={16} />
+            Featured Lessons
           </TabsTrigger>
           <TabsTrigger value="collections" className="flex items-center gap-2">
             <FolderOpen size={16} />
@@ -50,6 +55,10 @@ export function CurriculumLibraryManager() {
 
         <TabsContent value="browse" className="mt-6">
           <CurriculumBrowser refreshTrigger={refreshTrigger} />
+        </TabsContent>
+
+        <TabsContent value="featured" className="mt-6">
+          <FeaturedExternalLessons onImportLesson={handleUploadComplete} />
         </TabsContent>
 
         <TabsContent value="collections" className="mt-6">

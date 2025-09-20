@@ -1,12 +1,15 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Search, Star, Download, Eye, Filter } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Upload, Search, Star, Download, Eye, Filter, Sparkles, Globe } from "lucide-react";
+import { FeaturedExternalLessons } from "./features/FeaturedExternalLessons";
 
 export const ResourceLibraryTab = () => {
+  const [activeTab, setActiveTab] = useState("library");
   const resources = [
     {
       id: 1,
@@ -66,12 +69,28 @@ export const ResourceLibraryTab = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">Resource Library</h1>
-        <Button className="bg-teal-500 hover:bg-teal-600">
+        <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+          Resource Library
+        </h1>
+        <Button className="bg-gradient-to-r from-primary to-accent hover:opacity-90">
           <Upload className="h-4 w-4 mr-2" />
           Upload Material
         </Button>
       </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="library" className="flex items-center gap-2">
+            <Star className="h-4 w-4" />
+            My Library
+          </TabsTrigger>
+          <TabsTrigger value="featured" className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4" />
+            Featured Lessons
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="library" className="space-y-6 mt-6">
 
       {/* Search and Filters */}
       <div className="flex gap-4">
@@ -167,6 +186,12 @@ export const ResourceLibraryTab = () => {
           </div>
         </div>
       </div>
+        </TabsContent>
+
+        <TabsContent value="featured" className="mt-6">
+          <FeaturedExternalLessons />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
