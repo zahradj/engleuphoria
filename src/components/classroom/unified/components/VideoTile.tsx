@@ -54,7 +54,7 @@ export function VideoTile({ stream, hasVideo, isTeacher, userLabel, isCameraOff 
                   {isTeacher ? 'T' : 'S'}
                 </span>
               </div>
-              <p className="text-sm font-semibold group-hover:text-primary-700 transition-colors duration-200 text-primary-600">{userLabel}</p>
+              <p className="text-sm font-semibold group-hover:text-primary-700 transition-colors duration-200 text-primary-600">Student</p>
             </div>
           </div>
         )}
