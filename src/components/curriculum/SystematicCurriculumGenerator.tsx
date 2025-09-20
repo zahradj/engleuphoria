@@ -3,9 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Brain, BookOpen, Users, Clock, Trophy, Zap } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Brain, BookOpen, Users, Clock, Trophy, Zap, Sparkles, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { HelloAdventuresMigrator } from '@/components/teacher/curriculum/HelloAdventuresMigrator';
 
 const CEFR_STATS = {
   'Pre-A1': { lessons: 35, modules: 7, color: 'bg-blue-500' },
@@ -128,6 +130,35 @@ export default function SystematicCurriculumGenerator() {
           Each lesson includes 20-25 slides covering all core skills: grammar, reading, writing, listening, and speaking.
         </p>
       </div>
+
+      {/* Hello Adventures Integration Alert */}
+      <Alert className="border-purple-200 bg-purple-50">
+        <Sparkles className="h-4 w-4 text-purple-600" />
+        <AlertDescription className="text-purple-800">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-semibold">Ready to enhance your curriculum?</p>
+              <p className="text-sm mt-1">
+                Import Hello Adventures lessons as a foundation for your Pre-A1 level content before generating the full systematic curriculum.
+              </p>
+            </div>
+            <CheckCircle className="w-5 h-5 text-purple-600 flex-shrink-0 ml-4" />
+          </div>
+        </AlertDescription>
+      </Alert>
+
+      {/* Hello Adventures Quick Integration */}
+      <Card className="border-purple-200">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-purple-700">
+            <Sparkles className="w-5 h-5" />
+            Hello Adventures Foundation
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <HelloAdventuresMigrator />
+        </CardContent>
+      </Card>
 
       {/* Stats Overview */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
