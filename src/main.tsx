@@ -5,17 +5,24 @@ import App from './App.tsx'
 import './index.css'
 import i18n from '@/lib/i18n';
 
-// Register service worker for PWA functionality
+// Register service worker only in production; unregister in dev to avoid HMR issues
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then((registration) => {
-        console.log('SW registered: ', registration);
-      })
-      .catch((registrationError) => {
-        console.log('SW registration failed: ', registrationError);
-      });
-  });
+  if (import.meta.env && import.meta.env.PROD) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then((registration) => {
+          console.log('SW registered: ', registration);
+        })
+        .catch((registrationError) => {
+          console.log('SW registration failed: ', registrationError);
+        });
+    });
+  } else {
+    // In development, ensure no SW controls the page (prevents Vite HMR token errors)
+    navigator.serviceWorker.getRegistrations()
+      .then((regs) => regs.forEach((r) => r.unregister()))
+      .catch((e) => console.log('SW unregister failed:', e));
+  }
 }
 
 // Initialize document language and direction based on i18n

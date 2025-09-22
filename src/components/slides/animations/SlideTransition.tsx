@@ -73,7 +73,7 @@ export function SlideTransition({
     ? { duration: 0 }
     : { 
         duration: 0.3,
-        ease: [0.4, 0, 0.2, 1] // Custom easing
+        ease: 'easeInOut' as const
       };
 
   const activeVariants = prefersReducedMotion ? variants.none : variants[transitionType];
