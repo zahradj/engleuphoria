@@ -14,6 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
+        'nunito': ['Nunito', 'system-ui', 'sans-serif'],
         'fredoka': ['Fredoka', 'Comic Neue', 'Comic Sans MS', 'cursive'],
         'comic': ['Comic Neue', 'Comic Sans MS', 'cursive'],
       },
