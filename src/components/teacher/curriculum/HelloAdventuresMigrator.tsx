@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Sparkles, Download, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import { Sparkles, Download, CheckCircle, AlertCircle, RefreshCw, ExternalLink, Archive } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { helloAdventuresMigrationService } from '@/services/helloAdventuresMigrationService';
 
@@ -194,6 +194,66 @@ export function HelloAdventuresMigrator() {
                 <li>• Pre-A1 systematic progression</li>
                 <li>• Young learner friendly content</li>
               </ul>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Source Files */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Archive className="w-5 h-5" />
+            Hello Adventures Source Files
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <p className="text-muted-foreground">
+              The complete Hello Adventures project files have been uploaded to the library for reference and development.
+            </p>
+            
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="flex items-center gap-3">
+                <Archive className="w-8 h-8 text-blue-500" />
+                <div>
+                  <h4 className="font-semibold">hello-a-names-adventures-main.zip</h4>
+                  <p className="text-sm text-muted-foreground">Complete project source code and assets</p>
+                </div>
+              </div>
+              <Button variant="outline" size="sm" asChild>
+                <a 
+                  href="/assets/hello-a-names-adventures-main.zip" 
+                  download
+                  className="flex items-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Download
+                </a>
+              </Button>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <h5 className="font-semibold mb-2">What's Included:</h5>
+                <ul className="space-y-1 text-muted-foreground">
+                  <li>• Complete React project structure</li>
+                  <li>• Interactive lesson components</li>
+                  <li>• Character assets and animations</li>
+                  <li>• Audio and visual resources</li>
+                  <li>• Development documentation</li>
+                </ul>
+              </div>
+              <div>
+                <h5 className="font-semibold mb-2">Use Cases:</h5>
+                <ul className="space-y-1 text-muted-foreground">
+                  <li>• Reference for lesson development</li>
+                  <li>• Customize existing content</li>
+                  <li>• Extract specific assets</li>
+                  <li>• Understand implementation patterns</li>
+                  <li>• Build upon existing activities</li>
+                </ul>
+              </div>
             </div>
           </div>
         </CardContent>
