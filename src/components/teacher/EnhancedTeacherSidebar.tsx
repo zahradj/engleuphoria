@@ -58,6 +58,12 @@ export const EnhancedTeacherSidebar = ({
     icon: Book,
     type: 'tab'
   }, {
+    id: 'github-library',
+    label: 'Library',
+    icon: FolderOpen,
+    type: 'page',
+    path: 'https://github.com/zahradj/hello-a-names-adventures.git'
+  }, {
     id: 'curriculum',
     label: 'Curriculum Library',
     icon: FolderOpen,
@@ -103,10 +109,14 @@ export const EnhancedTeacherSidebar = ({
             <SidebarMenu>
               {menuItems.map(item => {
               if (item.type === 'page') {
+                const href = item.id === 'curriculum' 
+                  ? "https://lovable.dev/projects/3ad1c0d6-0d3d-47a9-b320-b09d2745911e"
+                  : item.path;
+                  
                 return <SidebarMenuItem key={item.id}>
                       <SidebarMenuButton asChild>
                         <a 
-                          href="https://lovable.dev/projects/3ad1c0d6-0d3d-47a9-b320-b09d2745911e" 
+                          href={href}
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="flex items-center gap-2"
