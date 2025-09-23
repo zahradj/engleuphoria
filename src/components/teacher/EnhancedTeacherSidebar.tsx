@@ -112,16 +112,7 @@ export const EnhancedTeacherSidebar = ({
                 const href = item.id === 'curriculum' ? "https://lovable.dev/projects/3ad1c0d6-0d3d-47a9-b320-b09d2745911e" : item.path;
                 return <SidebarMenuItem key={item.id}>
                       <SidebarMenuButton asChild>
-                        <Link 
-                          to={href} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2"
-                        >
-                          <item.icon className="h-4 w-4" />
-                          <span>{item.label}</span>
-                          <ArrowUpRight className="h-3 w-3 ml-auto" />
-                        </Link>
+                        
                       </SidebarMenuButton>
                     </SidebarMenuItem>;
               }
