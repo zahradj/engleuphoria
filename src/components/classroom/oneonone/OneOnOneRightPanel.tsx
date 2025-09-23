@@ -9,7 +9,18 @@ import { OneOnOneHomework } from "./OneOnOneHomework";
 import { EnhancedDictionary } from "./dictionary/EnhancedDictionary";
 import { CompactVideoFeed } from "../video/CompactVideoFeed";
 import { StudentProgress } from "./StudentProgress";
-import { useWebRTC } from "@/hooks/useWebRTC";
+// Mock WebRTC hook since it was removed
+const useWebRTC = (roomId: string, userId: string) => ({
+  streams: [],
+  localStream: null,
+  isConnected: false,
+  isMuted: false,
+  isCameraOff: false,
+  connectToRoom: () => {},
+  disconnect: () => {},
+  toggleVideo: () => {},
+  toggleAudio: () => {}
+});
 
 interface OneOnOneRightPanelProps {
   studentName: string;

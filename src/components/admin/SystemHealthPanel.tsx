@@ -4,7 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { performanceMonitor } from '@/lib/monitoring';
+// Mock performance monitor since monitoring module was removed
+const performanceMonitor = {
+  startTimer: (name: string) => {},
+  endTimer: (name: string) => {}
+};
 
 interface HealthMetric {
   name: string;
