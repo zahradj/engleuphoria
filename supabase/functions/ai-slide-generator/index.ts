@@ -176,7 +176,10 @@ async function generateFullDeck(supabase: any, contentId: string, slideCount: nu
   
   let slidesContent;
   
-  if (custom_prompt) {
+  if (custom_prompt && typeof custom_prompt === 'string') {
+    // Use custom prompt for specialized lessons like Family & Phonics
+    slidesContent = await generateSlidesWithCustomPrompt(supabase, lesson, custom_prompt, slideCount);
+  } else if (custom_prompt) {
     // Use the master prompt template
     slidesContent = await generateSlidesWithMasterTemplate(supabase, lesson, slideCount);
   } else {
@@ -461,6 +464,113 @@ Create the lesson slides now:`;
       // Don't throw error, just log warning since slides are still generated
     }
   }
+
+  return slidesData;
+}
+
+async function generateSlidesWithCustomPrompt(supabase: any, lesson: any, customPrompt: string, slideCount: number = 22) {
+  console.log('Generating slides with custom prompt for:', lesson.title);
+
+  if (!openAIApiKey) {
+    throw new Error('OpenAI API key is not configured. Please set the OPENAI_API_KEY environment variable.');
+  }
+
+  const prompt = `${customPrompt}
+
+LESSON DETAILS:
+Title: ${lesson.title || 'Custom ESL Lesson'}
+Topic: ${lesson.topic || 'English Communication'}
+CEFR Level: ${lesson.cefr_level || 'Pre-Starter'}
+Duration: ${lesson.duration_minutes || 30} minutes
+Learning Objectives: ${JSON.stringify(lesson.learning_objectives || [])}
+Vocabulary Focus: ${JSON.stringify(lesson.vocabulary_focus || [])}
+Grammar Focus: ${JSON.stringify(lesson.grammar_focus || [])}
+
+TECHNICAL REQUIREMENTS:
+- Create exactly ${slideCount} slides in valid JSON format
+- Each slide must have: id, type, prompt, instructions
+- Use appropriate slide types: warmup, vocabulary_preview, match, drag_drop, cloze, accuracy_mcq, pronunciation_shadow, etc.
+- Include media objects with imagePrompt for visual content
+- Make slides age-appropriate and engaging
+- Follow gamification elements specified in the prompt
+
+RESPOND WITH VALID JSON ONLY in this format:
+{
+  "version": "2.0",
+  "theme": "kid-friendly", 
+  "slides": [...array of ${slideCount} slide objects...],
+  "durationMin": ${lesson.duration_minutes || 30},
+  "total_slides": ${slideCount},
+  "metadata": {
+    "CEFR": "${lesson.cefr_level || 'Pre-Starter'}",
+    "module": ${lesson.module_number || 1},
+    "lesson": ${lesson.lesson_number || 1},
+    "targets": ${JSON.stringify(lesson.learning_objectives || [])},
+    "phonics_focus": "${lesson.metadata?.phonics_focus || ''}",
+    "custom_generated": true
+  }
+}`;
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${openAIApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-5-mini-2025-08-07',
+      messages: [
+        { 
+          role: 'system', 
+          content: 'You are an expert ESL curriculum designer specializing in young learner education (ages 4-7). Create comprehensive, engaging lesson slides with interactive elements, gamification, and age-appropriate content. Always respond with valid JSON only.' 
+        },
+        { role: 'user', content: prompt }
+      ],
+      max_completion_tokens: 6000,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.text();
+    throw new Error(`OpenAI API error: ${response.status} - ${errorData}`);
+  }
+
+  const data = await response.json();
+  let slidesData;
+
+  try {
+    const content = data.choices[0].message.content;
+    slidesData = JSON.parse(content);
+  } catch (parseError) {
+    console.error('Failed to parse OpenAI response:', data.choices[0].message.content);
+    throw new Error('Failed to parse lesson slides from AI response');
+  }
+
+  // Validate slide count
+  if (!slidesData.slides || slidesData.slides.length !== slideCount) {
+    console.warn(`Expected ${slideCount} slides, got ${slidesData.slides?.length || 0}`);
+    
+    // If we got fewer slides, create additional basic slides
+    while (slidesData.slides && slidesData.slides.length < slideCount) {
+      const slideNum = slidesData.slides.length + 1;
+      slidesData.slides.push({
+        id: `slide-${slideNum}`,
+        type: 'review_consolidation',
+        prompt: `Review slide ${slideNum}`,
+        instructions: 'Review what we learned today',
+        media: {
+          type: 'image',
+          imagePrompt: 'Happy children learning English',
+          alt: 'Review activity'
+        }
+      });
+    }
+    
+    slidesData.total_slides = slideCount;
+  }
+
+  // Generate images for slides that need them
+  await generateImagesForSlides(slidesData.slides);
 
   return slidesData;
 }
