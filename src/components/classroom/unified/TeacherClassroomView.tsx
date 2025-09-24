@@ -126,7 +126,7 @@ export function TeacherClassroomView({
             
             {/* Enhanced Main visual content - Question Words */}
             <div className="w-full h-full flex items-center justify-center relative">
-              <div className="grid grid-cols-3 gap-8 w-full max-w-none place-items-center animate-fade-in">
+              <div className="grid grid-cols-3 gap-8 w-full max-w-4xl place-items-center animate-fade-in mx-auto">
                 {/* Who circle - Enhanced */}
                 <div className="relative group">
                   <div className="w-40 h-40 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-2xl transform rotate-[-5deg] transition-all duration-500 group-hover:rotate-0 group-hover:scale-110">
