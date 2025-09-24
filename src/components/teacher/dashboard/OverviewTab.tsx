@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { StatsCard } from "./StatsCard";
 import { ActivityItem } from "./ActivityItem";
 import { ClassCard } from "./ClassCard";
+import { WelcomeSection } from "./WelcomeSection";
 import { Calendar, Users, FileText, PlusCircle, CheckCircle, LineChart } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
@@ -57,8 +58,19 @@ export const OverviewTab = ({
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {/* Stats Overview */}
+    <div className="space-y-8">
+      {/* Welcome Section */}
+      <WelcomeSection 
+        teacherName="Teacher"
+        onJoinClassroom={() => onStartScheduledClass("Next Class")}
+        weeklyEarnings={2847}
+        todaysClasses={upcomingClasses.filter(c => c.status === "ready").length}
+        totalStudents={upcomingClasses.reduce((total, c) => total + c.students, 0)}
+        rating="4.8"
+      />
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Stats Overview */}
       <StatsCard 
         title={languageText.upcomingClasses}
         value={upcomingClasses.filter(c => c.status === "ready").length.toString()}
@@ -160,6 +172,7 @@ export const OverviewTab = ({
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 };

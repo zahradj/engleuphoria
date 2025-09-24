@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { EnhancedTeacherSidebar } from "@/components/teacher/EnhancedTeacherSidebar";
 import { CleanWorkspaceHeader } from "@/components/teacher/CleanWorkspaceHeader";
 import { MobileTeacherNav } from "@/components/teacher/mobile/MobileTeacherNav";
-import { CleanDashboardTab } from "@/components/teacher/CleanDashboardTab";
+import { TeacherDashboardContent } from "@/components/teacher/dashboard/TeacherDashboardContent";
 import { EnhancedCalendarTab } from "@/components/teacher/EnhancedCalendarTab";
 import { StudentsTab } from "@/components/teacher/StudentsTab";
 import { LessonHistoryTab } from "@/components/teacher/LessonHistoryTab";
@@ -64,7 +64,28 @@ const TeacherDashboard = () => {
     const content = (() => {
       switch (activeTab) {
         case 'dashboard':
-          return <CleanDashboardTab teacherName={teacherName} />;
+          return <TeacherDashboardContent 
+            lessonPlans={[]}
+            handlers={{
+              handleCreateLessonPlan: () => setActiveTab('resources'),
+              handleScheduleClass: () => setActiveTab('calendar'),
+              handleViewProgress: () => setActiveTab('reports'),
+              handleStartScheduledClass: (className: string) => {
+                window.open(`/classroom/teacher?class=${encodeURIComponent(className)}`, '_blank');
+              },
+              handleViewClassDetails: (className: string) => {
+                setActiveTab('calendar');
+              },
+              handleUploadMaterial: () => setActiveTab('resources'),
+              handleViewLessonPlan: (planId: string) => setActiveTab('resources'),
+              handleUseMaterial: (materialName: string) => {
+                window.open(`/classroom/teacher?material=${encodeURIComponent(materialName)}`, '_blank');
+              },
+              handleFilter: () => console.log('Filter students'),
+              handleAddStudent: () => console.log('Add student'),
+              handleViewStudentDetails: (studentName: string) => console.log('View student:', studentName)
+            }}
+          />;
         case 'profile':
           return <ProfileSetupTab teacherId={teacherId} />;
         case 'slides':
@@ -94,7 +115,28 @@ const TeacherDashboard = () => {
         case 'settings':
           return <SettingsTab teacherName={teacherName} />;
         default:
-          return <CleanDashboardTab teacherName={teacherName} />;
+          return <TeacherDashboardContent 
+            lessonPlans={[]}
+            handlers={{
+              handleCreateLessonPlan: () => setActiveTab('resources'),
+              handleScheduleClass: () => setActiveTab('calendar'),
+              handleViewProgress: () => setActiveTab('reports'),
+              handleStartScheduledClass: (className: string) => {
+                window.open(`/classroom/teacher?class=${encodeURIComponent(className)}`, '_blank');
+              },
+              handleViewClassDetails: (className: string) => {
+                setActiveTab('calendar');
+              },
+              handleUploadMaterial: () => setActiveTab('resources'),
+              handleViewLessonPlan: (planId: string) => setActiveTab('resources'),
+              handleUseMaterial: (materialName: string) => {
+                window.open(`/classroom/teacher?material=${encodeURIComponent(materialName)}`, '_blank');
+              },
+              handleFilter: () => console.log('Filter students'),
+              handleAddStudent: () => console.log('Add student'),
+              handleViewStudentDetails: (studentName: string) => console.log('View student:', studentName)
+            }}
+          />;
       }
     })();
 
