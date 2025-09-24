@@ -152,15 +152,11 @@ export function InteractiveLessonsLibrary() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Content Library</h2>
+          <h2 className="text-2xl font-bold">Lesson Library</h2>
           <p className="text-muted-foreground">
-            Systematic ESL curriculum and AI-generated lessons with interactive slides
+            Browse and access systematic ESL curriculum lessons with interactive slides
           </p>
         </div>
-        <Button onClick={() => setShowGenerator(true)} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Generate New Lesson
-        </Button>
       </div>
 
       {/* Filters */}
@@ -244,12 +240,6 @@ export function InteractiveLessonsLibrary() {
                 }
               </p>
             </div>
-            {lessons.length === 0 && (
-              <Button onClick={() => setShowGenerator(true)} className="mt-4">
-                <Plus className="h-4 w-4 mr-2" />
-                Generate First Lesson
-              </Button>
-            )}
           </div>
         </Card>
       ) : (
@@ -346,12 +336,6 @@ export function InteractiveLessonsLibrary() {
         </div>
       )}
 
-      {/* Generator Modal */}
-      <LessonGeneratorModal
-        isOpen={showGenerator}
-        onClose={() => setShowGenerator(false)}
-        onLessonGenerated={fetchLessons}
-      />
     </div>
   );
 }
