@@ -42,10 +42,10 @@ export function RightRail({
       <div className="absolute left-0 top-1/4 w-1 h-1/2 rounded-r-full" style={{ background: 'linear-gradient(180deg, rgba(196, 217, 255, 0.8) 0%, rgba(197, 186, 255, 0.6) 50%, rgba(196, 217, 255, 0.8) 100%)' }}></div>
       
       {/* Teacher Video */}
-      <div className="p-3 relative" style={{ borderBottom: '1px solid rgba(196, 217, 255, 0.4)' }}>
-        <div className="aspect-video w-full relative">
+      <div className="p-6 pb-4 relative" style={{ borderBottom: '1px solid rgba(196, 217, 255, 0.4)' }}>
+        <div className="w-full relative" style={{ aspectRatio: '4/3' }}>
           {/* Video section label */}
-          <div className="absolute -top-1 left-2 text-xs px-2 py-0.5 rounded-md z-10 font-medium" style={{ 
+          <div className="absolute -top-1 left-2 text-xs px-3 py-1 rounded-md z-10 font-medium" style={{ 
             backgroundColor: 'rgba(232, 249, 255, 0.9)', 
             backdropFilter: 'blur(4px)',
             color: '#1E40AF'
@@ -63,10 +63,10 @@ export function RightRail({
       </div>
 
       {/* Student Video */}
-      <div className="p-3 relative" style={{ borderBottom: '1px solid rgba(196, 217, 255, 0.4)' }}>
-        <div className="aspect-video w-full relative">
+      <div className="p-6 pt-4 pb-4 relative" style={{ borderBottom: '1px solid rgba(196, 217, 255, 0.4)' }}>
+        <div className="w-full relative" style={{ aspectRatio: '4/3' }}>
           {/* Video section label */}
-          <div className="absolute -top-1 left-2 text-xs px-2 py-0.5 rounded-md z-10 font-medium" style={{ 
+          <div className="absolute -top-1 left-2 text-xs px-3 py-1 rounded-md z-10 font-medium" style={{ 
             backgroundColor: 'rgba(197, 186, 255, 0.9)', 
             backdropFilter: 'blur(4px)',
             color: '#7C3AED'
@@ -84,7 +84,7 @@ export function RightRail({
       </div>
 
       {/* Tool Buttons */}
-      <div className="flex-1 p-4 space-y-3 min-h-0 relative">
+      <div className="flex-1 p-4 space-y-2 min-h-0 relative flex flex-col justify-center">
         {/* Section header */}
         <div className="flex items-center gap-2 mb-4">
           <div className="h-px flex-1" style={{ background: 'linear-gradient(to right, transparent 0%, rgba(196, 217, 255, 0.6) 50%, transparent 100%)' }}></div>
