@@ -14,7 +14,6 @@ import { CleanStudentDashboard } from "@/components/student/CleanStudentDashboar
 import { TeachersTab } from "@/components/student/TeachersTab";
 import { UpcomingClassesTab } from "@/components/student/UpcomingClassesTab";
 import { HomeworkTab } from "@/components/student/HomeworkTab";
-import { MaterialsLibraryTab } from "@/components/student/MaterialsLibraryTab";
 import { ProgressTrackerTab } from "@/components/student/ProgressTrackerTab";
 import { SpeakingPracticeTab } from "@/components/student/speaking/SpeakingPracticeTab";
 import { EnhancedBillingTab } from "@/components/student/EnhancedBillingTab";
@@ -109,7 +108,6 @@ const StudentDashboard = () => {
       teachers: () => <TeachersTab />,
       "upcoming-classes": () => <UpcomingClassesTab />,
       homework: () => <HomeworkTab />,
-      materials: () => <MaterialsLibraryTab />,
       progress: () => <ProgressTrackerTab />,
       speaking: () => <SpeakingPracticeTab />,
       billing: () => <EnhancedBillingTab />,

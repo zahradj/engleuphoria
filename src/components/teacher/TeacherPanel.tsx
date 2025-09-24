@@ -8,7 +8,6 @@ import { EnhancedCalendarTab } from "./EnhancedCalendarTab";
 import { StudentsTab } from "./StudentsTab";
 import { LessonHistoryTab } from "./LessonHistoryTab";
 import { AssignmentsTab } from "./AssignmentsTab";
-import { ResourceLibraryTab } from "./ResourceLibraryTab";
 import { MessagesTab } from "./MessagesTab";
 import { EarningsTab } from "./EarningsTab";
 import { ReportsTab } from "./ReportsTab";
@@ -49,8 +48,6 @@ export const TeacherPanel = ({
         return <LessonHistoryTab />;
       case "assignments":
         return <AssignmentsTab />;
-      case "resources":
-        return <ResourceLibraryTab />;
       case "messages":
         return <MessagesTab />;
       case "earnings":

@@ -11,7 +11,6 @@ import { EnhancedCalendarTab } from "@/components/teacher/EnhancedCalendarTab";
 import { StudentsTab } from "@/components/teacher/StudentsTab";
 import { LessonHistoryTab } from "@/components/teacher/LessonHistoryTab";
 import { AssignmentsTab } from "@/components/teacher/AssignmentsTab";
-import { ResourceLibraryTab } from "@/components/teacher/ResourceLibraryTab";
 import { ReadingLibraryTab } from "@/components/teacher/ReadingLibraryTab";
 import { MessagesTab } from "@/components/teacher/MessagesTab";
 import { EarningsTab } from "@/components/teacher/EarningsTab";
@@ -102,8 +101,6 @@ const TeacherDashboard = () => {
           return <LessonHistoryTab />;
         case 'assignments':
           return <AssignmentsTab />;
-        case 'resources':
-          return <ResourceLibraryTab />;
         case 'messages':
           return <MessagesTab />;
         case 'earnings':
