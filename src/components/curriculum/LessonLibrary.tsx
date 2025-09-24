@@ -9,11 +9,9 @@ import { curriculumLevels, CurriculumLevel } from '@/data/curriculum/levels';
 import { LevelBrowser } from './LevelBrowser';
 import { LessonViewer } from './LessonViewer';
 
-interface LessonLibraryProps {
-  onCreateLesson?: (level: string, module: number, lesson: number) => void;
-}
+interface LessonLibraryProps {}
 
-export const LessonLibrary: React.FC<LessonLibraryProps> = ({ onCreateLesson }) => {
+export const LessonLibrary: React.FC<LessonLibraryProps> = () => {
   const [selectedLevel, setSelectedLevel] = useState<CurriculumLevel | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [cefrFilter, setCefrFilter] = useState('all');
@@ -63,7 +61,6 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = ({ onCreateLesson }) 
         level={selectedLevel}
         onBack={handleBackToOverview}
         onLessonSelect={handleLessonSelect}
-        onCreateLesson={onCreateLesson}
       />
     );
   }
