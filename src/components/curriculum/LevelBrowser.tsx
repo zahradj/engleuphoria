@@ -6,6 +6,8 @@ import { ArrowLeft, BookOpen, Plus, Play, Clock, Target } from 'lucide-react';
 import { CurriculumLevel } from '@/data/curriculum/levels';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { LessonPlayer } from '@/components/lessons/LessonPlayer';
+import { lesson1_1 } from '@/data/curriculum/starters/module1/lesson1';
 
 interface LevelBrowserProps {
   level: CurriculumLevel;
@@ -34,6 +36,7 @@ export const LevelBrowser: React.FC<LevelBrowserProps> = ({
 }) => {
   const [lessons, setLessons] = useState<LessonContent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showLocalLesson, setShowLocalLesson] = useState(false);
 
   useEffect(() => {
     fetchLessons();
@@ -74,9 +77,18 @@ export const LevelBrowser: React.FC<LevelBrowserProps> = ({
     }
   };
 
+  if (showLocalLesson) {
+    return (
+      <LessonPlayer 
+        lessonData={lesson1_1}
+        onComplete={() => setShowLocalLesson(false)}
+        onExit={() => setShowLocalLesson(false)}
+      />
+    );
+  }
+
   return (
     <div className="space-y-6">
-      {/* Header */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -137,10 +149,41 @@ export const LevelBrowser: React.FC<LevelBrowserProps> = ({
                 </CardHeader>
                 <CardContent>
                   {moduleLessons.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <p>No lessons created yet for this module.</p>
-                      <p className="text-sm">Click "Add Lesson" to create the first lesson.</p>
-                    </div>
+                    level.cefrLevel === 'A1' && moduleNumber === 1 ? (
+                      <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => setShowLocalLesson(true)}>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <Badge variant="outline">Lesson 1</Badge>
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <Clock className="h-3 w-3" />
+                              30min
+                            </div>
+                          </div>
+                          <h4 className="font-semibold mb-1">Greetings & Self-Introduction</h4>
+                          <p className="text-sm text-muted-foreground mb-3">All About Me</p>
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
+                              <Target className="h-3 w-3" />
+                              Objectives:
+                            </div>
+                            <ul className="text-xs text-muted-foreground space-y-1">
+                              <li className="flex items-start gap-1"><span className="mt-1">•</span><span>Hello, Hi, Goodbye</span></li>
+                              <li className="flex items-start gap-1"><span className="mt-1">•</span><span>My name is..., What's your name?</span></li>
+                              <li className="flex items-start gap-1"><span className="mt-1">•</span><span>Nice to meet you, Phonics Aa</span></li>
+                            </ul>
+                          </div>
+                          <Button className="w-full mt-3" variant="outline" size="sm">
+                            <Play className="h-4 w-4 mr-2" />
+                            Start Lesson
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <p>No lessons created yet for this module.</p>
+                        <p className="text-sm">Click "Add Lesson" to create the first lesson.</p>
+                      </div>
+                    )
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {moduleLessons.map((lesson) => (
