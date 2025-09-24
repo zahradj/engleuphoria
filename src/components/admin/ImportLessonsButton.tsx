@@ -3,9 +3,6 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Upload } from 'lucide-react';
-import { unit1Lesson1GreetingsNames } from '@/data/lessons/unit1-lesson1-greetings-names';
-import { unit1Lesson2YesNoThankYou } from '@/data/lessons/unit1-lesson2-yes-no-thank-you';
-import { unit1Lesson3ReviewRoleplay } from '@/data/lessons/unit1-lesson3-review-roleplay';
 
 interface ImportLessonsButtonProps {
   onImportComplete: () => void;
@@ -25,43 +22,31 @@ export const ImportLessonsButton: React.FC<ImportLessonsButtonProps> = ({ onImpo
         return;
       }
 
+      // For now, we'll create a placeholder lesson to test the import functionality
       const lessonsData = [
         {
-          title: 'Greetings & Names',
-          topic: 'Basic Greetings and Introductions',
-          cefr_level: 'A1',
+          title: 'Pre-Starter Lesson 1',
+          topic: 'Basic Introductions',
+          cefr_level: 'Pre-A1',
           difficulty_level: 'beginner',
-          module_number: unit1Lesson1GreetingsNames.metadata.module,
-          lesson_number: unit1Lesson1GreetingsNames.metadata.lesson,
-          duration_minutes: unit1Lesson1GreetingsNames.durationMin ?? 30,
-          learning_objectives: unit1Lesson1GreetingsNames.metadata.targets,
-          slides_content: unit1Lesson1GreetingsNames,
-          is_active: true,
-          created_by: user.id
-        },
-        {
-          title: 'Yes, No, Thank You',
-          topic: 'Basic Responses and Politeness',
-          cefr_level: 'A1',
-          difficulty_level: 'beginner',
-          module_number: unit1Lesson2YesNoThankYou.metadata.module,
-          lesson_number: unit1Lesson2YesNoThankYou.metadata.lesson,
-          duration_minutes: unit1Lesson2YesNoThankYou.durationMin ?? 30,
-          learning_objectives: unit1Lesson2YesNoThankYou.metadata.targets,
-          slides_content: unit1Lesson2YesNoThankYou,
-          is_active: true,
-          created_by: user.id
-        },
-        {
-          title: 'Review Role-Play',
-          topic: 'Unit 1 Review and Practice',
-          cefr_level: 'A1',
-          difficulty_level: 'beginner',
-          module_number: unit1Lesson3ReviewRoleplay.metadata.module,
-          lesson_number: unit1Lesson3ReviewRoleplay.metadata.lesson,
-          duration_minutes: unit1Lesson3ReviewRoleplay.durationMin ?? 30,
-          learning_objectives: unit1Lesson3ReviewRoleplay.metadata.targets,
-          slides_content: unit1Lesson3ReviewRoleplay,
+          module_number: 1,
+          lesson_number: 1,
+          duration_minutes: 30,
+          learning_objectives: ['Say hello and goodbye', 'Introduce yourself', 'Listen to simple greetings'],
+          slides_content: {
+            version: '2.0',
+            theme: 'pre-starter',
+            slides: [],
+            durationMin: 30,
+            total_slides: 20,
+            metadata: {
+              CEFR: 'Pre-A1',
+              module: 1,
+              lesson: 1,
+              targets: ['Say hello and goodbye', 'Introduce yourself', 'Listen to simple greetings'],
+              weights: { accuracy: 0.6, fluency: 0.4 }
+            }
+          },
           is_active: true,
           created_by: user.id
         }
@@ -73,7 +58,7 @@ export const ImportLessonsButton: React.FC<ImportLessonsButtonProps> = ({ onImpo
 
       if (error) throw error;
 
-      toast.success('All Unit 1 lessons imported successfully!');
+      toast.success('Sample lesson imported successfully!');
       onImportComplete();
     } catch (error) {
       console.error('Error importing lessons:', error);
@@ -90,7 +75,7 @@ export const ImportLessonsButton: React.FC<ImportLessonsButtonProps> = ({ onImpo
       className="gap-2"
     >
       <Upload className="h-4 w-4" />
-      {importing ? 'Importing...' : 'Import Unit 1 Lessons'}
+      {importing ? 'Importing...' : 'Import Sample Lesson'}
     </Button>
   );
 };
