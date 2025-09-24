@@ -90,8 +90,8 @@ export function TeacherClassroomView({
         </Card>
       </div>
       {/* Main Content Area */}
-      <div className="flex-1 pr-72 pl-2 py-2 z-10 relative">
-        <Card className="h-full bg-white/95 backdrop-blur-sm shadow-2xl rounded-3xl overflow-hidden mr-1 border border-blue-200/30 transition-all duration-500 hover:shadow-3xl">
+      <div className="flex-1 pr-[288px] pl-2 py-2 z-10 relative">
+        <Card className="h-full bg-white/95 backdrop-blur-sm shadow-2xl rounded-3xl overflow-hidden border border-blue-200/30 transition-all duration-500 hover:shadow-3xl">
           {/* Lesson Content - Enhanced Question Words Visual */}
           <div className="h-full px-1 py-2 pr-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 relative flex items-center justify-center overflow-hidden">
             {/* Enhanced floating number indicator */}
@@ -217,7 +217,7 @@ export function TeacherClassroomView({
       </div>
       
       {/* Enhanced Right Sidebar - Videos and Slides */}
-      <div className="fixed top-0 right-0 w-72 h-screen p-3 space-y-4 bg-transparent z-10">
+      <div className="fixed top-0 right-0 w-72 h-screen p-2 space-y-3 bg-transparent z-10">
         {/* Enhanced Video Panels */}
         <Card className="p-4 bg-white/95 backdrop-blur-sm shadow-xl rounded-2xl border border-blue-200/30 animate-fade-in">
           {/* Enhanced Teacher Video */}
