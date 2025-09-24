@@ -40,7 +40,7 @@ export function TeacherClassroomView({
   ];
 
   return (
-    <div className="h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex relative">
+    <div className="h-screen flex relative">
       {/* Main Content Area */}
       <div className="flex-1 pr-0 pl-4 py-4">
         <Card className="h-full bg-white shadow-2xl rounded-3xl overflow-hidden mr-80">
