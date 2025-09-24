@@ -28,11 +28,6 @@ export const EnhancedTeacherSidebar = ({
     icon: User,
     type: 'tab'
   }, {
-    id: 'library',
-    label: 'Library',
-    icon: BookOpen,
-    type: 'tab'
-  }, {
     id: 'slides',
     label: 'Lesson Slides',
     icon: Presentation,
@@ -57,18 +52,6 @@ export const EnhancedTeacherSidebar = ({
     label: 'Reading Library',
     icon: Book,
     type: 'tab'
-  }, {
-    id: 'github-library',
-    label: 'Library',
-    icon: FolderOpen,
-    type: 'page',
-    path: 'https://github.com/zahradj/hello-a-names-adventures.git'
-  }, {
-    id: 'curriculum',
-    label: 'Curriculum Library',
-    icon: FolderOpen,
-    type: 'page',
-    path: '/curriculum-library'
   }, {
     id: 'earnings',
     label: 'Earnings',
@@ -107,31 +90,14 @@ export const EnhancedTeacherSidebar = ({
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map(item => {
-              if (item.type === 'page') {
-                const href = item.id === 'curriculum' ? "https://lovable.dev/projects/3ad1c0d6-0d3d-47a9-b320-b09d2745911e" : item.path;
-                return <SidebarMenuItem key={item.id}>
-                      <SidebarMenuButton asChild>
-                        <Link 
-                          to={href!} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-2"
-                        >
-                          <item.icon className="h-4 w-4" />
-                          <span>{item.label}</span>
-                          <ArrowUpRight className="h-3 w-3 ml-auto" />
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>;
-              }
-              return <SidebarMenuItem key={item.id}>
-                    <SidebarMenuButton onClick={() => handleTabClick(item.id)} isActive={activeTab === item.id} className="flex items-center gap-2">
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.label}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>;
-            })}
+              {menuItems.map(item => (
+                <SidebarMenuItem key={item.id}>
+                  <SidebarMenuButton onClick={() => handleTabClick(item.id)} isActive={activeTab === item.id} className="flex items-center gap-2">
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.label}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
