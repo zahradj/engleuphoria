@@ -156,7 +156,7 @@ export function TeacherClassroomView({
           </div>
         </Card>
       </div>
-
+      
       {/* Right Sidebar - Videos and Slides */}
       <div className="w-80 p-4 space-y-4">
         {/* Video Panels */}
