@@ -40,9 +40,9 @@ export function TeacherClassroomView({
   ];
 
   return (
-    <div className="h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex">
+    <div className="h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex relative">
       {/* Main Content Area */}
-      <div className="flex-1 p-4">
+      <div className="flex-1 pr-80 p-4">
         <Card className="h-full bg-white shadow-2xl rounded-3xl overflow-hidden">
           {/* Lesson Content - Question Words Visual */}
           <div className="h-full p-8 bg-gradient-to-br from-blue-50 via-white to-purple-50 relative">
@@ -157,8 +157,8 @@ export function TeacherClassroomView({
         </Card>
       </div>
       
-      {/* Right Sidebar - Videos and Slides */}
-      <div className="w-80 p-4 space-y-4">
+      {/* Right Sidebar - Videos and Slides - Fixed to right edge */}
+      <div className="fixed top-0 right-0 w-80 h-screen p-4 space-y-4 bg-transparent z-10">
         {/* Video Panels */}
         <Card className="p-4 bg-white shadow-xl rounded-2xl">
           {/* Teacher Video */}
