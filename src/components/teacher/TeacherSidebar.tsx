@@ -36,7 +36,7 @@ export const TeacherSidebar = ({ activeTab, setActiveTab, onLogout }: TeacherSid
     { id: 'calendar', label: 'Calendar', icon: Calendar, type: 'tab' },
     { id: 'students', label: 'Students', icon: Users, type: 'tab' },
     { id: 'reading-library', label: 'Reading Library', icon: Book, type: 'tab' },
-    { id: 'curriculum', label: 'Curriculum Library', icon: FolderOpen, type: 'page', path: '/curriculum-library' },
+    
     { id: 'history', label: 'Lesson History', icon: Clock, type: 'tab' },
     { id: 'assignments', label: 'Assignments', icon: FileText, type: 'tab' },
     { id: 'resources', label: 'Resources', icon: BookOpen, type: 'tab' },
@@ -55,33 +55,17 @@ export const TeacherSidebar = ({ activeTab, setActiveTab, onLogout }: TeacherSid
       </div>
       
       <div className="flex-1 p-4 space-y-1">
-        {menuItems.map((item) => {
-          if (item.type === 'page') {
-            return (
-              <Link key={item.id} to={item.path}>
-                <Button
-                  variant="ghost"
-                  className="justify-start w-full"
-                >
-                  <item.icon className="mr-2 h-4 w-4" />
-                  {item.label}
-                </Button>
-              </Link>
-            );
-          }
-          
-          return (
-            <Button
-              key={item.id}
-              variant={activeTab === item.id ? "secondary" : "ghost"}
-              className="justify-start w-full"
-              onClick={() => setActiveTab(item.id)}
-            >
-              <item.icon className="mr-2 h-4 w-4" />
-              {item.label}
-            </Button>
-          );
-        })}
+        {menuItems.map((item) => (
+          <Button
+            key={item.id}
+            variant={activeTab === item.id ? "secondary" : "ghost"}
+            className="justify-start w-full"
+            onClick={() => setActiveTab(item.id)}
+          >
+            <item.icon className="mr-2 h-4 w-4" />
+            {item.label}
+          </Button>
+        ))}
       </div>
       
       <div className="p-4 border-t dark:border-gray-700">

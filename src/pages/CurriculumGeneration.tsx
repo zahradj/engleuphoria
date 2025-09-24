@@ -53,7 +53,7 @@ const CurriculumGeneration = () => {
       duration: '30 min',
       activities: ['Interactive Dialogues', 'Vocabulary Cards', 'Speaking Practice', 'Mini Quiz'],
       available: true,
-      route: '/a1-greetings-lesson'
+      route: ''
     },
     {
       title: 'A1 M1 L2: Numbers & Age',

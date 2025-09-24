@@ -89,12 +89,12 @@ const App = () => (
               <Route path="/for-parents" element={<ForParents />} />
               <Route path="/for-teachers" element={<ForTeachers />} />
               <Route path="/about" element={<AboutUs />} />
-              <Route path="/curriculum-library" element={<CurriculumLibrary />} />
+              
               <Route path="/pricing" element={<NewPricingPage />} />
               <Route path="/placement-test" element={<PlacementTest />} />
               <Route path="/placement-test-2" element={<PlacementTest2 />} />
               <Route path="/lesson-viewer" element={<LessonViewer />} />
-              <Route path="/a1-greetings-lesson" element={<A1GreetingsLesson />} />
+              
               <Route path="/curriculum-generation" element={<CurriculumGeneration />} />
               <Route path="/admin/systematic-slides" element={<SystematicSlidesAdmin />} />
               <Route path="/adventures" element={<AdventuresPage />} />

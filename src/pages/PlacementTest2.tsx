@@ -461,7 +461,7 @@ export default function PlacementTest2() {
                   Take Again
                 </Button>
                 <Button 
-                  onClick={() => navigate('/curriculum-library')}
+                  onClick={() => navigate('/student')}
                   className="flex-1 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90"
                 >
                   Start Learning <ChevronRight className="h-4 w-4 ml-1" />

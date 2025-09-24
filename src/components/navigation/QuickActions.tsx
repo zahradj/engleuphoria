@@ -60,12 +60,6 @@ export const QuickActions: React.FC = memo(() => {
             action: () => navigate('/teacher'),
             variant: 'outline'
           },
-          {
-            icon: BookOpen,
-            label: 'Materials',
-            action: () => navigate('/teacher/materials'),
-            variant: 'outline'
-          },
           ...baseActions
         ];
 

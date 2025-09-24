@@ -34,7 +34,7 @@ const SiteMap = () => {
 
   const teacherRoutes = [
     { path: '/teacher', label: 'Teacher Dashboard', icon: Home },
-    { path: '/teacher/materials', label: 'Materials Library', icon: BookOpen },
+    
     { path: '/teacher/lesson-scheduler', label: 'Lesson Scheduler', icon: Calendar },
     { path: '/teacher/lesson-plan-creator', label: 'Lesson Plan Creator', icon: BookOpen },
     { path: '/teacher/student-management', label: 'Student Management', icon: User },
@@ -47,7 +47,7 @@ const SiteMap = () => {
   const sharedRoutes = [
     { path: '/classroom', label: 'Virtual Classroom', icon: BookOpen },
     { path: '/whiteboard', label: 'Whiteboard', icon: BookOpen },
-    { path: '/curriculum-library', label: 'Curriculum Library', icon: BookOpen },
+    
   ];
 
   const RouteSection = ({ title, routes, show = true }: {

@@ -41,7 +41,7 @@ export function MobileTeacherNav({ activeTab, setActiveTab, onLogout, teacherNam
     { id: 'calendar', label: 'Calendar', icon: Calendar, type: 'tab' },
     { id: 'students', label: 'Students', icon: Users, type: 'tab' },
     { id: 'reading-library', label: 'Reading Library', icon: Book, type: 'tab' },
-    { id: 'curriculum', label: 'Curriculum Library', icon: FolderOpen, type: 'page', path: '/curriculum-library' },
+    
     { id: 'history', label: 'Lesson History', icon: Clock, type: 'tab' },
     { id: 'assignments', label: 'Assignments', icon: FileText, type: 'tab' },
     { id: 'resources', label: 'Resources', icon: BookOpen, type: 'tab' },
@@ -101,20 +101,6 @@ export function MobileTeacherNav({ activeTab, setActiveTab, onLogout, teacherNam
             <div className="flex-1 p-4 space-y-2 overflow-y-auto">
               {menuItems.map((item) => {
                 const Icon = item.icon;
-                
-                if (item.type === 'page') {
-                  return (
-                    <Link key={item.id} to={item.path} onClick={() => setIsOpen(false)}>
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start h-12 text-left"
-                      >
-                        <Icon className="mr-3 h-4 w-4" />
-                        {item.label}
-                      </Button>
-                    </Link>
-                  );
-                }
                 
                 return (
                   <Button
