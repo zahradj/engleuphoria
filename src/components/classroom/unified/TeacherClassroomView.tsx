@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { VideoTile } from "./components/VideoTile";
-import { ChevronLeft, ChevronRight, List, Grid, Play, Pause, Clock, Volume2, VolumeX, Camera, CameraOff, Mic, MicOff } from "lucide-react";
+import { ESLWhiteboard } from "@/components/classroom/ESLWhiteboard";
+import { ChevronLeft, ChevronRight, List, Grid, Play, Pause, Clock, Volume2, VolumeX, Camera, CameraOff, Mic, MicOff, FileText, PenTool } from "lucide-react";
 
 interface TeacherClassroomViewProps {
   currentUser: {
@@ -23,6 +25,7 @@ export function TeacherClassroomView({
   const [currentSlide, setCurrentSlide] = useState(7);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [isPresenting, setIsPresenting] = useState(false);
+  const [activeContentTab, setActiveContentTab] = useState("slides");
   const [videoControls, setVideoControls] = useState({
     teacherMuted: false,
     teacherCameraOff: false,
@@ -90,9 +93,25 @@ export function TeacherClassroomView({
         </Card>
       </div>
       
-      {/* Main Content Area - Slides */}
+      {/* Main Content Area with Tabs */}
       <div className="z-10 relative w-full h-full">
         <Card className="w-full h-full bg-white/95 backdrop-blur-sm shadow-2xl rounded-3xl md:rounded-r-none overflow-hidden border border-blue-200/30 transition-all duration-500 hover:shadow-3xl">
+          <Tabs value={activeContentTab} onValueChange={setActiveContentTab} className="w-full h-full flex flex-col">
+            <div className="px-6 pt-6 pb-2 border-b border-gray-100">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="slides" className="flex items-center gap-2">
+                  <FileText size={16} />
+                  <span>Slides</span>
+                </TabsTrigger>
+                <TabsTrigger value="whiteboard" className="flex items-center gap-2">
+                  <PenTool size={16} />
+                  <span>Whiteboard</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
+            
+            <TabsContent value="slides" className="flex-1 m-0 overflow-y-auto">
+              <div className="h-full flex items-center justify-center px-6 py-8 bg-gradient-to-br from-blue-50 via-white to-purple-50 relative overflow-y-auto">
           {/* Lesson Content - Enhanced Question Words Visual */}
           <div className="h-full px-6 py-8 bg-gradient-to-br from-blue-50 via-white to-purple-50 relative flex items-center justify-center overflow-hidden">
             {/* Enhanced floating number indicator */}
@@ -213,7 +232,16 @@ export function TeacherClassroomView({
                 <ChevronRight className="w-6 h-6" />
               </Button>
             </div>
-          </div>
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="whiteboard" className="flex-1 m-0">
+              <div className="h-full">
+                <ESLWhiteboard className="h-full" isCollaborative={true} />
+              </div>
+            </TabsContent>
+          </Tabs>
         </Card>
       </div>
       

@@ -132,11 +132,6 @@ export function UnifiedClassroomContent({
           </ToolRailOverlay>
         )}
 
-        {selectedLeftTool === 'whiteboard' && (
-          <ToolRailOverlay title="Interactive Whiteboard" onClose={() => setSelectedLeftTool("")}>
-            <Whiteboard className="h-96" />
-          </ToolRailOverlay>
-        )}
 
         {selectedLeftTool === 'awards' && (
           <ToolRailOverlay title="Give Awards" onClose={() => setSelectedLeftTool("")}>
@@ -225,11 +220,6 @@ export function UnifiedClassroomContent({
         </ToolRailOverlay>
       )}
 
-      {selectedLeftTool === 'whiteboard' && (
-        <ToolRailOverlay title="Interactive Whiteboard" onClose={() => setSelectedLeftTool("")}>
-          <Whiteboard className="h-96" />
-        </ToolRailOverlay>
-      )}
 
       {selectedLeftTool === 'chat' && (
         <ToolRailOverlay title="Classroom Chat" onClose={() => setSelectedLeftTool("")}>

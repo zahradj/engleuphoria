@@ -2,8 +2,10 @@ import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { VideoTile } from "./components/VideoTile";
-import { ThumbsUp, Clock, Star } from "lucide-react";
+import { ESLWhiteboard } from "@/components/classroom/ESLWhiteboard";
+import { ThumbsUp, Clock, Star, FileText, PenTool } from "lucide-react";
 
 interface StudentClassroomViewProps {
   currentUser: {
@@ -23,6 +25,7 @@ export function StudentClassroomView({
   studentXP
 }: StudentClassroomViewProps) {
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
+  const [activeContentTab, setActiveContentTab] = useState("slides");
   
   const formatTime = (seconds: number): string => {
     const m = Math.floor(seconds / 60);
@@ -85,7 +88,22 @@ export function StudentClassroomView({
       {/* Main Content Area */}
       <div className="w-full h-full p-2 md:p-4">
         <Card className="w-full h-full bg-white shadow-2xl rounded-3xl md:rounded-r-none overflow-hidden">
-          <div className="h-full p-8 bg-gradient-to-br from-blue-50 via-white to-purple-50 relative">
+          <Tabs value={activeContentTab} onValueChange={setActiveContentTab} className="w-full h-full flex flex-col">
+            <div className="px-8 pt-6 pb-2 border-b border-gray-100">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="slides" className="flex items-center gap-2">
+                  <FileText size={16} />
+                  <span>Lesson</span>
+                </TabsTrigger>
+                <TabsTrigger value="whiteboard" className="flex items-center gap-2">
+                  <PenTool size={16} />
+                  <span>Whiteboard</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
+            
+            <TabsContent value="slides" className="flex-1 m-0 overflow-y-auto">
+              <div className="h-full p-8 bg-gradient-to-br from-blue-50 via-white to-purple-50 relative overflow-y-auto">
             
             {/* Main Exercise Content */}
             <div className="flex items-center justify-center h-full">
@@ -146,13 +164,21 @@ export function StudentClassroomView({
               </div>
             </div>
 
-            {/* Progress bar at bottom */}
-            <div className="absolute bottom-6 left-8 right-8">
-              <div className="w-full bg-gray-200 rounded-full h-3 shadow-inner">
-                <div className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full shadow-sm" style={{ width: '65%' }}></div>
+                {/* Progress bar at bottom */}
+                <div className="absolute bottom-6 left-8 right-8">
+                  <div className="w-full bg-gray-200 rounded-full h-3 shadow-inner">
+                    <div className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full shadow-sm" style={{ width: '65%' }}></div>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            </TabsContent>
+            
+            <TabsContent value="whiteboard" className="flex-1 m-0">
+              <div className="h-full">
+                <ESLWhiteboard className="h-full" isCollaborative={true} />
+              </div>
+            </TabsContent>
+          </Tabs>
         </Card>
       </div>
 

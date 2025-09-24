@@ -4,7 +4,6 @@ import { Card } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
   Link, 
-  PenTool, 
   Award, 
   MessageCircle, 
   Book,
@@ -22,7 +21,6 @@ export function LeftSidebar({ onToolSelect, selectedTool }: LeftSidebarProps) {
 
   const tools = [
     { id: 'embed', icon: Link, label: 'Embed Link', color: '#3B82F6', description: 'Share external content' },
-    { id: 'whiteboard', icon: PenTool, label: 'Whiteboard', color: '#10B981', description: 'Interactive drawing' },
     { id: 'awards', icon: Award, label: 'Give Awards', color: '#F59E0B', description: 'Reward students' },
     { id: 'chat', icon: MessageCircle, label: 'Chat', color: '#8B5CF6', description: 'Real-time messaging' },
     { id: 'dictionary', icon: Book, label: 'Dictionary', color: '#EF4444', description: 'Word definitions' }
