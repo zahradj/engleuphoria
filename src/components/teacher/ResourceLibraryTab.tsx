@@ -7,9 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Upload, Search, Star, Download, Eye, Filter, Sparkles, Globe } from "lucide-react";
 import { FeaturedExternalLessons } from "./features/FeaturedExternalLessons";
+import { SystematicLessonsLibrary } from '@/components/curriculum/SystematicLessonsLibrary';
+import { FamilyPhonicsLessonGenerator } from '@/components/curriculum/FamilyPhonicsLessonGenerator';
 
 export const ResourceLibraryTab = () => {
-  const [activeTab, setActiveTab] = useState("library");
+  const [activeTab, setActiveTab] = useState("lessons");
   const resources = [
     {
       id: 1,
@@ -79,16 +81,36 @@ export const ResourceLibraryTab = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="lessons" className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4" />
+            Interactive Lessons
+          </TabsTrigger>
           <TabsTrigger value="library" className="flex items-center gap-2">
             <Star className="h-4 w-4" />
             My Library
           </TabsTrigger>
           <TabsTrigger value="featured" className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4" />
+            <Globe className="h-4 w-4" />
             Featured Lessons
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="lessons" className="space-y-6 mt-6">
+          <div className="space-y-6">
+            {/* Family & Phonics Generator */}
+            <FamilyPhonicsLessonGenerator onLessonGenerated={() => {
+              // Refresh could be handled here if needed
+              console.log('Lesson generated successfully');
+            }} />
+            
+            {/* All Lessons Library */}
+            <SystematicLessonsLibrary onLoadLesson={(lessonId) => {
+              console.log('Loading lesson:', lessonId);
+              // Could implement lesson loading logic here
+            }} />
+          </div>
+        </TabsContent>
 
         <TabsContent value="library" className="space-y-6 mt-6">
 
