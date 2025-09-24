@@ -1,7 +1,8 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Users, Star, ArrowRight } from 'lucide-react';
+import { Calendar, Users, Star, ArrowRight, Video } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface WelcomeSectionProps {
   teacherName: string;
@@ -22,6 +23,12 @@ export const WelcomeSection = ({
   rating = "4.8",
   onStartClass 
 }: WelcomeSectionProps) => {
+  const navigate = useNavigate();
+  
+  const handleEnterClassroom = () => {
+    const teacherId = `teacher-${Date.now()}`;
+    navigate(`/classroom?role=teacher&name=${encodeURIComponent(teacherName)}&userId=${teacherId}&roomId=unified-classroom-1`);
+  };
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good morning';
@@ -70,6 +77,15 @@ export const WelcomeSection = ({
           <Button 
             size="lg" 
             className="bg-primary hover:bg-primary/90 text-primary-foreground px-6"
+            onClick={handleEnterClassroom}
+          >
+            <Video className="mr-2 h-5 w-5" />
+            Enter Classroom
+          </Button>
+          <Button 
+            variant="outline"
+            size="lg" 
+            className="px-6"
             onClick={onJoinClassroom}
           >
             Start Teaching

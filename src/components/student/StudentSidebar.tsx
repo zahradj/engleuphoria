@@ -15,9 +15,10 @@ import {
   Map,
   Sparkles,
   Search,
-  LogOut
+  LogOut,
+  Video
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -44,9 +45,17 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
   hasProfile = false,
   onLogout 
 }) => {
+  const navigate = useNavigate();
+  
+  const handleEnterClassroom = () => {
+    const studentId = `student-${Date.now()}`;
+    const studentName = localStorage.getItem('studentName') || 'Student';
+    navigate(`/classroom?role=student&name=${encodeURIComponent(studentName)}&userId=${studentId}&roomId=unified-classroom-1`);
+  };
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     ...(hasProfile ? [{ id: 'learning-path', label: 'My Learning Path', icon: Map, badge: 'New' }] : []),
+    { id: 'classroom', label: 'Join Classroom', icon: Video, action: handleEnterClassroom, badge: 'Live' },
     { id: 'teachers', label: 'My Teachers', icon: Users },
     { id: 'upcoming-classes', label: 'Classes', icon: Calendar },
     { id: 'homework', label: 'Homework', icon: ClipboardList },
@@ -72,19 +81,25 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
                   <SidebarMenuItem key={item.id}>
                     <SidebarMenuButton 
                       isActive={isActive}
-                      onClick={() => setActiveTab(item.id)}
+                      onClick={() => item.action ? item.action() : setActiveTab(item.id)}
                     >
                       <Icon className="h-4 w-4" />
                       {!isCollapsed && (
                         <>
                           <span>{item.label}</span>
                           {item.badge && (
-                            <Badge variant="secondary" className="ml-auto text-xs">
+                            <Badge 
+                              variant={item.id === 'classroom' ? 'default' : 'secondary'} 
+                              className={`ml-auto text-xs ${item.id === 'classroom' ? 'bg-green-500 text-white animate-pulse' : ''}`}
+                            >
                               {item.badge}
                             </Badge>
                           )}
                           {item.id === 'learning-path' && (
                             <Sparkles className="ml-2 h-3 w-3 text-emerald-500" />
+                          )}
+                          {item.id === 'classroom' && (
+                            <Video className="ml-2 h-3 w-3 text-green-500" />
                           )}
                         </>
                       )}
