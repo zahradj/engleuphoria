@@ -2,65 +2,25 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BookOpen, Search, Filter, Plus, Play } from 'lucide-react';
-import { curriculumLevels, CurriculumLevel } from '@/data/curriculum/levels';
-import { LevelBrowser } from './LevelBrowser';
-import { LessonViewer } from './LessonViewer';
+import { BookOpen, Play, Clock, Target } from 'lucide-react';
+import { LessonPlayer } from '@/components/lessons/LessonPlayer';
+import { lesson1_1 } from '@/data/curriculum/starters/module1/lesson1';
 
 interface LessonLibraryProps {}
 
 export const LessonLibrary: React.FC<LessonLibraryProps> = () => {
-  const [selectedLevel, setSelectedLevel] = useState<CurriculumLevel | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [cefrFilter, setCefrFilter] = useState('all');
-  const [viewMode, setViewMode] = useState<'overview' | 'level' | 'lesson'>('overview');
-  const [selectedLesson, setSelectedLesson] = useState<any>(null);
+  const [showLocalLesson, setShowLocalLesson] = useState(false);
 
-  const filteredLevels = curriculumLevels.filter(level => {
-    const matchesSearch = level.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         level.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCefr = cefrFilter === 'all' || level.cefrLevel === cefrFilter;
-    return matchesSearch && matchesCefr;
-  });
-
-  const handleLevelSelect = (level: CurriculumLevel) => {
-    setSelectedLevel(level);
-    setViewMode('level');
+  const handleStartLesson = () => {
+    setShowLocalLesson(true);
   };
 
-  const handleLessonSelect = (lesson: any) => {
-    setSelectedLesson(lesson);
-    setViewMode('lesson');
-  };
-
-  const handleBackToOverview = () => {
-    setViewMode('overview');
-    setSelectedLevel(null);
-    setSelectedLesson(null);
-  };
-
-  const handleBackToLevel = () => {
-    setViewMode('level');
-    setSelectedLesson(null);
-  };
-
-  if (viewMode === 'lesson' && selectedLesson) {
+  if (showLocalLesson) {
     return (
-      <LessonViewer
-        lesson={selectedLesson}
-        onBack={handleBackToLevel}
-      />
-    );
-  }
-
-  if (viewMode === 'level' && selectedLevel) {
-    return (
-      <LevelBrowser
-        level={selectedLevel}
-        onBack={handleBackToOverview}
-        onLessonSelect={handleLessonSelect}
+      <LessonPlayer 
+        lessonData={lesson1_1}
+        onComplete={() => setShowLocalLesson(false)}
+        onExit={() => setShowLocalLesson(false)}
       />
     );
   }
@@ -70,87 +30,78 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = () => {
       {/* Header */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <BookOpen className="h-5 w-5" />
-              Systematic English Curriculum Library
-            </CardTitle>
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search levels..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9 w-64"
-                />
-              </div>
-              <Select value={cefrFilter} onValueChange={setCefrFilter}>
-                <SelectTrigger className="w-[140px]">
-                  <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="CEFR Level" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Levels</SelectItem>
-                  <SelectItem value="Pre-A1">Pre-A1</SelectItem>
-                  <SelectItem value="A1">A1</SelectItem>
-                  <SelectItem value="A2">A2</SelectItem>
-                  <SelectItem value="B1">B1</SelectItem>
-                  <SelectItem value="B1+">B1+</SelectItem>
-                  <SelectItem value="B2">B2</SelectItem>
-                  <SelectItem value="C1">C1</SelectItem>
-                  <SelectItem value="C2">C2</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          <CardTitle className="flex items-center gap-2">
+            <BookOpen className="h-5 w-5" />
+            English Curriculum Library
+          </CardTitle>
         </CardHeader>
       </Card>
 
-      {/* Curriculum Levels Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {filteredLevels.map((level) => (
-          <Card key={level.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => handleLevelSelect(level)}>
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="text-2xl">{level.icon}</div>
-                <Badge className={level.color}>{level.cefrLevel}</Badge>
-              </div>
-              <CardTitle className="text-lg">{level.name}</CardTitle>
-              <p className="text-sm text-muted-foreground">{level.ageGroup}</p>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm mb-4">{level.description}</p>
-              <div className="space-y-2 text-xs text-muted-foreground">
-                <div className="flex justify-between">
-                  <span>Modules:</span>
-                  <span>{level.modules}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Lessons per Module:</span>
-                  <span>{level.lessonsPerModule}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Total Hours:</span>
-                  <span>{level.estimatedHours}h</span>
-                </div>
-              </div>
-              <Button className="w-full mt-4" variant="outline" size="sm">
-                <Play className="h-4 w-4 mr-2" />
-                Explore Level
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {/* Module 1 - Direct Display */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-xl">Module 1 - Basic Greetings</CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">Learn fundamental greetings and introductions</p>
+            </div>
+            <Badge variant="secondary">A1</Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4">
+            {/* Lesson 1.1 Card */}
+            <Card className="hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Badge variant="outline">Lesson 1.1</Badge>
+                      <Badge variant="secondary">A1</Badge>
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">Greetings & Self-Introduction</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Learn basic greetings like "Hello", "Hi", "Good morning" and how to introduce yourself with name and age.
+                    </p>
+                    
+                    <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground mb-4">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        <span>{lesson1_1.durationMin} minutes</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Target className="h-3 w-3" />
+                        <span>{lesson1_1.total_slides} slides</span>
+                      </div>
+                    </div>
 
-      {filteredLevels.length === 0 && (
-        <Card>
-          <CardContent className="text-center py-8">
-            <p className="text-muted-foreground">No curriculum levels found matching your search criteria.</p>
-          </CardContent>
-        </Card>
-      )}
+                    <div className="mb-4">
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Learning Objectives:</p>
+                      <ul className="text-xs text-muted-foreground space-y-1">
+                        {lesson1_1.metadata.targets.map((target, index) => (
+                          <li key={index} className="flex items-center gap-1">
+                            <span className="w-1 h-1 bg-muted-foreground rounded-full"></span>
+                            {target}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+                
+                <Button 
+                  onClick={handleStartLesson} 
+                  className="w-full"
+                  size="lg"
+                >
+                  <Play className="h-4 w-4 mr-2" />
+                  Start Lesson
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
