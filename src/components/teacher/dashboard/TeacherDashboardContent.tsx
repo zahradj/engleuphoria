@@ -5,7 +5,8 @@ import { OverviewTab } from "./OverviewTab";
 import { LessonsTab } from "./LessonsTab";
 import { StudentsTab } from "./StudentsTab";
 import { ScheduleTab } from "./ScheduleTab";
-import { BookOpen, Users, Calendar, BarChart3 } from "lucide-react";
+import { ResourceLibraryTab } from "../ResourceLibraryTab";
+import { BookOpen, Users, Calendar, BarChart3, Library } from "lucide-react";
 
 interface TeacherDashboardContentProps {
   lessonPlans: any[];
@@ -30,7 +31,7 @@ export const TeacherDashboardContent = ({ lessonPlans, handlers }: TeacherDashbo
   return (
     <main className="flex-1 container max-w-7xl mx-auto px-4 py-8">
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 h-14 bg-white/80 backdrop-blur-sm shadow-lg border border-white/20 rounded-xl p-1">
+        <TabsList className="grid w-full grid-cols-5 h-14 bg-white/80 backdrop-blur-sm shadow-lg border border-white/20 rounded-xl p-1">
           <TabsTrigger 
             value="overview" 
             className="flex items-center gap-2 text-sm font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-blue-500 data-[state=active]:text-white rounded-lg transition-all"
@@ -58,6 +59,13 @@ export const TeacherDashboardContent = ({ lessonPlans, handlers }: TeacherDashbo
           >
             <Calendar className="h-4 w-4" />
             {languageText.schedule}
+          </TabsTrigger>
+          <TabsTrigger 
+            value="resources" 
+            className="flex items-center gap-2 text-sm font-medium data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-blue-500 data-[state=active]:text-white rounded-lg transition-all"
+          >
+            <Library className="h-4 w-4" />
+            Resources
           </TabsTrigger>
         </TabsList>
         
@@ -95,6 +103,10 @@ export const TeacherDashboardContent = ({ lessonPlans, handlers }: TeacherDashbo
               onScheduleClass={handlers.handleScheduleClass}
               onStartScheduledClass={handlers.handleStartScheduledClass}
             />
+          </TabsContent>
+          
+          <TabsContent value="resources" className="animate-fade-in">
+            <ResourceLibraryTab />
           </TabsContent>
         </div>
       </Tabs>
