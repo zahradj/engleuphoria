@@ -57,14 +57,14 @@ export function TeacherClassroomView({
   }, [isPresenting, totalSlides]);
 
   return (
-    <div className="h-screen flex relative bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <div className="h-screen grid grid-cols-[1fr_28rem] gap-4 p-4 relative bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* Background Enhancement */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-blue-100/30 pointer-events-none" />
       <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-br from-blue-200/20 to-transparent rounded-full blur-3xl animate-pulse" />
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-br from-indigo-200/20 to-transparent rounded-full blur-3xl animate-pulse animation-delay-1000" />
       
       {/* Enhanced Status Bar */}
-      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20">
+      <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-20">
         <Card className="px-4 py-2 bg-white/90 backdrop-blur-sm border border-blue-200/50 shadow-lg">
           <div className="flex items-center gap-4 text-sm">
             <div className="flex items-center gap-2">
@@ -89,11 +89,12 @@ export function TeacherClassroomView({
           </div>
         </Card>
       </div>
-      {/* Main Content Area */}
-      <div className="flex-1 pr-[288px] pl-2 py-2 z-10 relative">
+      
+      {/* Main Content Area - Slides */}
+      <div className="z-10 relative">
         <Card className="h-full bg-white/95 backdrop-blur-sm shadow-2xl rounded-3xl overflow-hidden border border-blue-200/30 transition-all duration-500 hover:shadow-3xl">
           {/* Lesson Content - Enhanced Question Words Visual */}
-          <div className="h-full px-1 py-2 pr-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 relative flex items-center justify-center overflow-hidden">
+          <div className="h-full px-6 py-8 bg-gradient-to-br from-blue-50 via-white to-purple-50 relative flex items-center justify-center overflow-hidden">
             {/* Enhanced floating number indicator */}
             <div className="absolute top-6 left-6 w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full flex items-center justify-center text-xl font-bold shadow-xl transform hover:scale-110 transition-all duration-300 animate-fade-in">
               <span className="animate-pulse">{currentSlide}</span>
@@ -106,7 +107,7 @@ export function TeacherClassroomView({
             
             {/* Enhanced Main visual content - Question Words */}
             <div className="w-full h-full flex items-center justify-center relative">
-              <div className="grid grid-cols-3 gap-8 max-w-5xl animate-fade-in">
+              <div className="grid grid-cols-3 gap-8 w-full place-items-center animate-fade-in">
                 {/* Who circle - Enhanced */}
                 <div className="relative group">
                   <div className="w-40 h-40 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-2xl transform rotate-[-5deg] transition-all duration-500 group-hover:rotate-0 group-hover:scale-110">
@@ -216,37 +217,37 @@ export function TeacherClassroomView({
         </Card>
       </div>
       
-      {/* Enhanced Right Sidebar - Videos and Slides */}
-      <div className="fixed top-0 right-0 w-72 h-screen p-2 space-y-3 bg-transparent z-10">
+      {/* Video and Slides Column */}
+      <div className="h-full flex flex-col gap-4 z-10">
         {/* Enhanced Video Panels */}
-        <Card className="p-4 bg-white/95 backdrop-blur-sm shadow-xl rounded-2xl border border-blue-200/30 animate-fade-in">
+        <Card className="p-6 bg-white/95 backdrop-blur-sm shadow-xl rounded-2xl border border-blue-200/30 animate-fade-in">
           {/* Enhanced Teacher Video */}
-          <div className="mb-4 relative group">
-            <div className="flex items-center justify-between mb-2">
+          <div className="mb-6 relative group">
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium text-gray-600">Teacher</span>
+                <span className="text-base font-medium text-gray-700">Teacher</span>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                   onClick={() => setVideoControls(prev => ({ ...prev, teacherMuted: !prev.teacherMuted }))}
                 >
-                  {videoControls.teacherMuted ? <VolumeX size={12} /> : <Volume2 size={12} />}
+                  {videoControls.teacherMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                   onClick={() => setVideoControls(prev => ({ ...prev, teacherCameraOff: !prev.teacherCameraOff }))}
                 >
-                  {videoControls.teacherCameraOff ? <CameraOff size={12} /> : <Camera size={12} />}
+                  {videoControls.teacherCameraOff ? <CameraOff size={16} /> : <Camera size={16} />}
                 </Button>
               </div>
             </div>
-            <div className="aspect-video bg-gray-900 rounded-xl overflow-hidden relative border-2 border-green-500/30 transition-all duration-300 hover:border-green-500/60">
+            <div className="aspect-[16/9] w-full bg-gray-900 rounded-xl overflow-hidden relative border-2 border-green-500/30 transition-all duration-300 hover:border-green-500/60">
               <VideoTile
                 stream={enhancedClassroom?.localStream || null}
                 hasVideo={!!enhancedClassroom?.localStream}
@@ -254,19 +255,19 @@ export function TeacherClassroomView({
                 userLabel={currentUser.name}
                 isCameraOff={enhancedClassroom?.isCameraOff || videoControls.teacherCameraOff}
               />
-              <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
+              <div className="absolute top-3 right-3 bg-black/70 text-white text-sm px-3 py-1 rounded backdrop-blur-sm">
                 {formatTime(classTime)}
               </div>
               {/* Enhanced video status indicators */}
-              <div className="absolute bottom-2 left-2 flex gap-1">
+              <div className="absolute bottom-3 left-3 flex gap-2">
                 {videoControls.teacherMuted && (
-                  <div className="bg-red-500 text-white p-1 rounded-full">
-                    <MicOff size={10} />
+                  <div className="bg-red-500 text-white p-2 rounded-full">
+                    <MicOff size={14} />
                   </div>
                 )}
                 {videoControls.teacherCameraOff && (
-                  <div className="bg-gray-500 text-white p-1 rounded-full">
-                    <CameraOff size={10} />
+                  <div className="bg-gray-500 text-white p-2 rounded-full">
+                    <CameraOff size={14} />
                   </div>
                 )}
               </div>
@@ -275,31 +276,31 @@ export function TeacherClassroomView({
 
           {/* Enhanced Student Video */}
           <div className="relative group">
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium text-gray-600">Student</span>
+                <span className="text-base font-medium text-gray-700">Student</span>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                   onClick={() => setVideoControls(prev => ({ ...prev, studentMuted: !prev.studentMuted }))}
                 >
-                  {videoControls.studentMuted ? <VolumeX size={12} /> : <Volume2 size={12} />}
+                  {videoControls.studentMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                   onClick={() => setVideoControls(prev => ({ ...prev, studentCameraOff: !prev.studentCameraOff }))}
                 >
-                  {videoControls.studentCameraOff ? <CameraOff size={12} /> : <Camera size={12} />}
+                  {videoControls.studentCameraOff ? <CameraOff size={16} /> : <Camera size={16} />}
                 </Button>
               </div>
             </div>
-            <div className="aspect-video bg-gray-100 rounded-xl overflow-hidden border-2 border-blue-500/30 transition-all duration-300 hover:border-blue-500/60 relative">
+            <div className="aspect-[16/9] w-full bg-gray-100 rounded-xl overflow-hidden border-2 border-blue-500/30 transition-all duration-300 hover:border-blue-500/60 relative">
               <VideoTile
                 stream={null}
                 hasVideo={false}
@@ -308,15 +309,15 @@ export function TeacherClassroomView({
                 isCameraOff={videoControls.studentCameraOff}
               />
               {/* Student video status indicators */}
-              <div className="absolute bottom-2 left-2 flex gap-1">
+              <div className="absolute bottom-3 left-3 flex gap-2">
                 {videoControls.studentMuted && (
-                  <div className="bg-red-500 text-white p-1 rounded-full">
-                    <MicOff size={10} />
+                  <div className="bg-red-500 text-white p-2 rounded-full">
+                    <MicOff size={14} />
                   </div>
                 )}
                 {videoControls.studentCameraOff && (
-                  <div className="bg-gray-500 text-white p-1 rounded-full">
-                    <CameraOff size={10} />
+                  <div className="bg-gray-500 text-white p-2 rounded-full">
+                    <CameraOff size={14} />
                   </div>
                 )}
               </div>
