@@ -67,7 +67,7 @@ export function TeacherClassroomView({
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-br from-indigo-200/20 to-transparent rounded-full blur-3xl animate-pulse animation-delay-1000" />
       
       {/* Enhanced Status Bar */}
-      <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-20">
+      <div className="absolute top-8 right-8 z-20">
         <Card className="px-4 py-2 bg-white/90 backdrop-blur-sm border border-blue-200/50 shadow-lg">
           <div className="flex items-center gap-4 text-sm">
             <div className="flex items-center gap-2">
