@@ -125,7 +125,7 @@ export function TeacherClassroomView({
             </div>
             
             {/* Enhanced Main visual content - Question Words */}
-            <div className="w-full h-full flex items-center justify-center relative">
+            <div className="w-full h-full flex items-start justify-center relative pt-8">
               <div className="grid grid-cols-3 gap-8 w-full max-w-4xl place-items-center animate-fade-in mx-auto">
                 {/* Who circle - Enhanced */}
                 <div className="relative group">
