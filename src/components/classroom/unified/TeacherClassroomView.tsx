@@ -45,14 +45,14 @@ export function TeacherClassroomView({
       <div className="flex-1 pr-0 pl-4 py-4">
         <Card className="h-full bg-white shadow-2xl rounded-3xl overflow-hidden mr-80">
           {/* Lesson Content - Question Words Visual */}
-          <div className="h-full p-8 bg-gradient-to-br from-blue-50 via-white to-purple-50 relative">
+          <div className="h-full p-4 pr-8 bg-gradient-to-br from-blue-50 via-white to-purple-50 relative flex items-center justify-center">
             {/* Floating number indicator */}
             <div className="absolute top-6 left-6 w-12 h-12 bg-purple-500 text-white rounded-full flex items-center justify-center text-xl font-bold shadow-lg">
               1
             </div>
             
             {/* Main visual content - Question Words */}
-            <div className="flex items-center justify-center h-full">
+            <div className="w-full max-w-5xl">
               <div className="grid grid-cols-3 gap-8 max-w-4xl">
                 {/* Who circle */}
                 <div className="relative">
