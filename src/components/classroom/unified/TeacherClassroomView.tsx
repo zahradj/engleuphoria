@@ -60,7 +60,7 @@ export function TeacherClassroomView({
   }, [isPresenting, totalSlides]);
 
   return (
-    <div className="h-screen w-full grid grid-cols-[minmax(0,1fr)_minmax(24rem,36rem)] gap-0 p-0 md:gap-2 md:px-2 relative bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <div className="min-h-screen w-full grid grid-cols-[minmax(0,1fr)_minmax(24rem,36rem)] gap-0 p-0 md:gap-2 md:px-2 relative bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* Background Enhancement */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-blue-100/30 pointer-events-none" />
       <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-br from-blue-200/20 to-transparent rounded-full blur-3xl animate-pulse" />
@@ -94,8 +94,8 @@ export function TeacherClassroomView({
       </div>
       
       {/* Main Content Area with Tabs */}
-      <div className="z-10 relative w-full h-full">
-        <Card className="w-full h-full bg-white/95 backdrop-blur-sm shadow-2xl rounded-3xl md:rounded-r-none overflow-hidden border border-blue-200/30 transition-all duration-500 hover:shadow-3xl">
+      <div className="z-10 relative w-full min-h-full">
+        <Card className="w-full min-h-full bg-white/95 backdrop-blur-sm shadow-2xl rounded-3xl md:rounded-r-none border border-blue-200/30 transition-all duration-500 hover:shadow-3xl">
           <Tabs value={activeContentTab} onValueChange={setActiveContentTab} className="w-full h-full flex flex-col">
             <div className="px-6 pt-6 pb-2 border-b border-gray-100">
               <TabsList className="grid w-full grid-cols-2">
