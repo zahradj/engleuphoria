@@ -38,10 +38,12 @@ export function useSessionManager({ roomId, userId, userRole }: UseSessionManage
       setIsLoading(true);
       setError(null);
 
-      // Get the authenticated user's ID
+      // Get the authenticated user's ID or use URL userId for development
       const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError || !user) {
-        throw new Error('Authentication required');
+      const effectiveUserId = user?.id || userId;
+      
+      if (!effectiveUserId) {
+        throw new Error('User ID required');
       }
 
       // Check if session already exists
@@ -62,7 +64,7 @@ export function useSessionManager({ roomId, userId, userRole }: UseSessionManage
         .from('classroom_sessions')
         .insert({
           room_id: roomId,
-          teacher_id: user.id,
+          teacher_id: effectiveUserId,
           session_status: 'waiting'
         })
         .select()

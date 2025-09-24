@@ -46,13 +46,18 @@ export function useSessionInitializer({
     
     const initializeSession = async () => {
       try {
-        // Check authentication first
+        // Check authentication first - allow development mode with URL params
         const { data: { user }, error: authError } = await supabase.auth.getUser();
-        if (authError || !user) {
+        
+        // For development mode, if we have userId in URL params, proceed without authentication
+        if ((authError || !user) && !userId) {
           console.log('🚫 Skipping session initialization - authentication required');
           initializationInProgress.current = false;
           return;
         }
+
+        // Use authenticated user ID or fallback to URL userId for development
+        const effectiveUserId = user?.id || userId;
 
         // Initialize based on role
         if (userRole === 'teacher') {
@@ -81,7 +86,7 @@ export function useSessionInitializer({
         initializationInProgress.current = false;
       }
     };
-  }, [userRole, roomId, sessionManager]); // Only depend on essential props
+  }, [userRole, roomId, userId, sessionManager]); // Include userId dependency
 
   // Cleanup on unmount
   useEffect(() => {

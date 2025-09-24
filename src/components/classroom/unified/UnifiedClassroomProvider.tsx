@@ -97,9 +97,9 @@ export function UnifiedClassroomProvider({ children }: { children: React.ReactNo
         }
 
         console.log('🏫 Classroom user initialized:', {
-          id: currentUser.id,
-          name: currentUser.name,
-          role: currentUser.role,
+          id: userId || user?.id || currentUser.id,
+          name: name || user?.user_metadata?.full_name || currentUser.name,
+          role: role,
           roomId
         });
 
