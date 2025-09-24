@@ -10,17 +10,19 @@ import {
   TextCursor, 
   Square, 
   Circle as CircleIcon, 
-  Highlighter 
+  Highlighter,
+  Link
 } from "lucide-react";
 
 interface WhiteboardToolbarProps {
-  activeTool: "pencil" | "eraser" | "text" | "highlighter" | "shape";
-  setActiveTool: (tool: "pencil" | "eraser" | "text" | "highlighter" | "shape") => void;
+  activeTool: "pencil" | "eraser" | "text" | "highlighter" | "shape" | "embed";
+  setActiveTool: (tool: "pencil" | "eraser" | "text" | "highlighter" | "shape" | "embed") => void;
   activeShape: "rectangle" | "circle";
   color: string;
   setColor: (color: string) => void;
   clearCanvas: () => void;
   downloadCanvas: () => void;
+  onEmbedLink?: () => void;
 }
 
 export function WhiteboardToolbar({
@@ -30,7 +32,8 @@ export function WhiteboardToolbar({
   color,
   setColor,
   clearCanvas,
-  downloadCanvas
+  downloadCanvas,
+  onEmbedLink
 }: WhiteboardToolbarProps) {
   const { languageText } = useLanguage();
   const colors = ["#9B87F5", "#14B8A6", "#F97316", "#FACC15", "#000000"];
@@ -75,6 +78,18 @@ export function WhiteboardToolbar({
             <CircleIcon size={16} className="mr-1" />
           }
           {languageText.shapes}
+        </Button>
+        
+        <Button
+          variant={activeTool === "embed" ? "default" : "outline"}
+          size="sm"
+          onClick={() => {
+            setActiveTool("embed");
+            onEmbedLink?.();
+          }}
+        >
+          <Link size={16} className="mr-1" />
+          Embed Link
         </Button>
         
         <Button

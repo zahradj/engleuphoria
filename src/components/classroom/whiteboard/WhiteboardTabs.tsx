@@ -10,7 +10,7 @@ interface WhiteboardTabsProps {
   setActiveTab: (value: string) => void;
   addNewPage: () => void;
   canvasRefs: React.MutableRefObject<Record<string, HTMLCanvasElement | null>>;
-  activeTool: "pencil" | "eraser" | "text" | "highlighter" | "shape";
+  activeTool: "pencil" | "eraser" | "text" | "highlighter" | "shape" | "embed";
   color: string;
   isCollaborative?: boolean;
 }

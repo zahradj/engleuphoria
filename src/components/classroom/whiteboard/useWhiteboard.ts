@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 
 export function useWhiteboard(initialPageCount = 3, initialTab = "page1") {
   const [activeTab, setActiveTab] = useState(initialTab);
-  const [activeTool, setActiveTool] = useState<"pencil" | "eraser" | "text" | "highlighter" | "shape">("pencil");
+  const [activeTool, setActiveTool] = useState<"pencil" | "eraser" | "text" | "highlighter" | "shape" | "embed">("pencil");
   const [activeShape, setActiveShape] = useState<"rectangle" | "circle">("rectangle");
   const [color, setColor] = useState("#9B87F5"); // Default purple color
   const [pageCount, setPageCount] = useState(initialPageCount);

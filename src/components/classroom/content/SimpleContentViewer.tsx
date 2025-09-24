@@ -12,7 +12,7 @@ interface SimpleContentViewerProps {
 
 export function SimpleContentViewer({ mode, isTeacher, studentName }: SimpleContentViewerProps) {
   const [activeTab, setActiveTab] = useState("whiteboard");
-  const [activeTool, setActiveTool] = useState<"pencil" | "eraser" | "text" | "highlighter" | "shape">("pencil");
+  const [activeTool, setActiveTool] = useState<"pencil" | "eraser" | "text" | "highlighter" | "shape" | "embed">("pencil");
   const [color, setColor] = useState("#9B87F5");
 
   const clearCanvas = () => {

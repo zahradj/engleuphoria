@@ -5,7 +5,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 
 interface WhiteboardCanvasProps {
   pageId: string;
-  activeTool: "pencil" | "eraser" | "text" | "highlighter" | "shape";
+  activeTool: "pencil" | "eraser" | "text" | "highlighter" | "shape" | "embed";
   color: string;
   isCollaborative?: boolean;
   canvasRef: (el: HTMLCanvasElement | null) => void;
@@ -51,6 +51,9 @@ export function WhiteboardCanvas({
         return;
       case "shape":
         // Handle shape drawing (in a real app, would start shape at click position)
+        return;
+      case "embed":
+        // Handle embed link placement
         return;
     }
     
