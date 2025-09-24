@@ -42,8 +42,8 @@ export function TeacherClassroomView({
   return (
     <div className="h-screen flex relative">
       {/* Main Content Area */}
-      <div className="flex-1 pr-0 pl-4 py-4">
-        <Card className="h-full bg-white shadow-2xl rounded-3xl overflow-hidden mr-80">
+      <div className="flex-1 pr-80 pl-4 py-4">
+        <Card className="h-full bg-white shadow-2xl rounded-3xl overflow-hidden mr-4">
           {/* Lesson Content - Question Words Visual */}
           <div className="h-full p-2 pr-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 relative flex items-center justify-center">
             {/* Floating number indicator */}
