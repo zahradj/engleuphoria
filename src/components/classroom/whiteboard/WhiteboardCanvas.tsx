@@ -53,7 +53,7 @@ export function WhiteboardCanvas({
         // Handle shape drawing (in a real app, would start shape at click position)
         return;
       case "embed":
-        // Handle embed link placement
+        // Handle embed link placement - this will be handled by the parent component
         return;
     }
     

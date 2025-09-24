@@ -1,10 +1,9 @@
-
 import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { WhiteboardToolbar } from "./whiteboard/WhiteboardToolbar";
 import { WhiteboardTabs } from "./whiteboard/WhiteboardTabs";
 import { EmbedLinkDialog } from "./whiteboard/EmbedLinkDialog";
-import { EmbeddedLink } from "./whiteboard/EmbeddedLink";
+import { EmbeddedContent } from "./whiteboard/EmbeddedContent";
 import { useWhiteboard } from "./whiteboard/useWhiteboard";
 
 interface ESLWhiteboardProps {
@@ -16,12 +15,15 @@ export function ESLWhiteboard({ className = "", isCollaborative = true }: ESLWhi
   const { languageText } = useLanguage();
   const [isEmbedDialogOpen, setIsEmbedDialogOpen] = useState(false);
   const [embedClickPosition, setEmbedClickPosition] = useState<{ x: number; y: number } | undefined>();
-  const [embeddedLinks, setEmbeddedLinks] = useState<Record<string, Array<{
+  const [embeddedContent, setEmbeddedContent] = useState<Record<string, Array<{
     id: string;
     title: string;
     url: string;
+    type: 'youtube' | 'vimeo' | 'webpage' | 'docs' | 'other';
     x: number;
     y: number;
+    width?: number;
+    height?: number;
   }>>>({});
   
   const {
@@ -44,33 +46,36 @@ export function ESLWhiteboard({ className = "", isCollaborative = true }: ESLWhi
     setIsEmbedDialogOpen(true);
   };
 
-  const handleEmbedSubmit = (data: { url: string; title: string; x: number; y: number }) => {
-    const newLink = {
-      id: `link-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+  const handleEmbedSubmit = (data: { url: string; title: string; type: string; x: number; y: number }) => {
+    const newContent = {
+      id: `content-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       title: data.title,
       url: data.url,
+      type: data.type as 'youtube' | 'vimeo' | 'webpage' | 'docs' | 'other',
       x: data.x,
-      y: data.y
+      y: data.y,
+      width: data.type === 'youtube' || data.type === 'vimeo' ? 320 : 300,
+      height: data.type === 'youtube' || data.type === 'vimeo' ? 180 : 200
     };
 
-    setEmbeddedLinks(prev => ({
+    setEmbeddedContent(prev => ({
       ...prev,
-      [activeTab]: [...(prev[activeTab] || []), newLink]
+      [activeTab]: [...(prev[activeTab] || []), newContent]
     }));
   };
 
-  const handleRemoveLink = (linkId: string) => {
-    setEmbeddedLinks(prev => ({
+  const handleRemoveContent = (contentId: string) => {
+    setEmbeddedContent(prev => ({
       ...prev,
-      [activeTab]: (prev[activeTab] || []).filter(link => link.id !== linkId)
+      [activeTab]: (prev[activeTab] || []).filter(content => content.id !== contentId)
     }));
   };
 
-  const handleMoveLink = (linkId: string, x: number, y: number) => {
-    setEmbeddedLinks(prev => ({
+  const handleMoveContent = (contentId: string, x: number, y: number) => {
+    setEmbeddedContent(prev => ({
       ...prev,
-      [activeTab]: (prev[activeTab] || []).map(link => 
-        link.id === linkId ? { ...link, x, y } : link
+      [activeTab]: (prev[activeTab] || []).map(content => 
+        content.id === contentId ? { ...content, x, y } : content
       )
     }));
   };
@@ -101,13 +106,13 @@ export function ESLWhiteboard({ className = "", isCollaborative = true }: ESLWhi
             isCollaborative={isCollaborative}
           />
           
-          {/* Embedded Links Overlay */}
-          {embeddedLinks[activeTab]?.map((link) => (
-            <EmbeddedLink
-              key={link.id}
-              link={link}
-              onRemove={handleRemoveLink}
-              onMove={handleMoveLink}
+          {/* Embedded Content Overlay */}
+          {embeddedContent[activeTab]?.map((content) => (
+            <EmbeddedContent
+              key={content.id}
+              content={content}
+              onRemove={handleRemoveContent}
+              onMove={handleMoveContent}
             />
           ))}
         </div>
