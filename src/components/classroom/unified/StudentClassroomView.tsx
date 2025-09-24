@@ -59,7 +59,7 @@ export function StudentClassroomView({
   };
 
   return (
-    <div className="h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex">
+    <div className="h-screen w-full grid grid-cols-[minmax(0,1fr)_minmax(22rem,32rem)] gap-0 p-0 md:gap-2 md:px-2 bg-gradient-to-br from-blue-50 to-purple-50">
       {/* Header */}
       <div className="absolute top-4 left-4 z-10">
         <Badge variant="secondary" className="text-blue-600 bg-blue-50">
@@ -83,8 +83,8 @@ export function StudentClassroomView({
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 p-4">
-        <Card className="h-full bg-white shadow-2xl rounded-3xl overflow-hidden">
+      <div className="w-full h-full p-2 md:p-4">
+        <Card className="w-full h-full bg-white shadow-2xl rounded-3xl md:rounded-r-none overflow-hidden">
           <div className="h-full p-8 bg-gradient-to-br from-blue-50 via-white to-purple-50 relative">
             
             {/* Main Exercise Content */}
@@ -157,8 +157,8 @@ export function StudentClassroomView({
       </div>
 
       {/* Right Sidebar - Videos */}
-      <div className="w-80 p-4">
-        <Card className="h-full p-4 bg-white shadow-xl rounded-2xl flex flex-col">
+      <div className="w-full h-full p-2 md:p-4">
+        <Card className="w-full h-full p-3 md:p-4 bg-white shadow-xl rounded-2xl md:rounded-l-none flex flex-col">
           {/* Student Video - Top */}
           <div className="mb-4">
             <div className="flex items-center gap-2 mb-2">

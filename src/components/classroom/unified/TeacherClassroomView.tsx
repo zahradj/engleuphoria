@@ -57,7 +57,7 @@ export function TeacherClassroomView({
   }, [isPresenting, totalSlides]);
 
   return (
-    <div className="h-screen grid grid-cols-[1fr_28rem] gap-4 p-4 relative bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <div className="h-screen w-full grid grid-cols-[minmax(0,1fr)_minmax(24rem,36rem)] gap-0 p-0 md:gap-2 md:px-2 relative bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* Background Enhancement */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-blue-100/30 pointer-events-none" />
       <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-br from-blue-200/20 to-transparent rounded-full blur-3xl animate-pulse" />
@@ -91,8 +91,8 @@ export function TeacherClassroomView({
       </div>
       
       {/* Main Content Area - Slides */}
-      <div className="z-10 relative">
-        <Card className="h-full bg-white/95 backdrop-blur-sm shadow-2xl rounded-3xl overflow-hidden border border-blue-200/30 transition-all duration-500 hover:shadow-3xl">
+      <div className="z-10 relative w-full h-full">
+        <Card className="w-full h-full bg-white/95 backdrop-blur-sm shadow-2xl rounded-3xl md:rounded-r-none overflow-hidden border border-blue-200/30 transition-all duration-500 hover:shadow-3xl">
           {/* Lesson Content - Enhanced Question Words Visual */}
           <div className="h-full px-6 py-8 bg-gradient-to-br from-blue-50 via-white to-purple-50 relative flex items-center justify-center overflow-hidden">
             {/* Enhanced floating number indicator */}
@@ -107,7 +107,7 @@ export function TeacherClassroomView({
             
             {/* Enhanced Main visual content - Question Words */}
             <div className="w-full h-full flex items-center justify-center relative">
-              <div className="grid grid-cols-3 gap-8 w-full place-items-center animate-fade-in">
+              <div className="grid grid-cols-3 gap-8 w-full max-w-none place-items-center animate-fade-in">
                 {/* Who circle - Enhanced */}
                 <div className="relative group">
                   <div className="w-40 h-40 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-2xl transform rotate-[-5deg] transition-all duration-500 group-hover:rotate-0 group-hover:scale-110">
@@ -218,9 +218,9 @@ export function TeacherClassroomView({
       </div>
       
       {/* Video and Slides Column */}
-      <div className="h-full flex flex-col gap-4 z-10">
+      <div className="h-full flex flex-col gap-2 md:gap-4 z-10 p-2 md:p-0">
         {/* Enhanced Video Panels */}
-        <Card className="p-6 bg-white/95 backdrop-blur-sm shadow-xl rounded-2xl border border-blue-200/30 animate-fade-in">
+        <Card className="p-4 md:p-6 bg-white/95 backdrop-blur-sm shadow-xl rounded-2xl md:rounded-l-none border border-blue-200/30 animate-fade-in">
           {/* Enhanced Teacher Video */}
           <div className="mb-6 relative group">
             <div className="flex items-center justify-between mb-3">
@@ -326,7 +326,7 @@ export function TeacherClassroomView({
         </Card>
 
         {/* Enhanced Slides Panel */}
-        <Card className="flex-1 p-4 bg-white/95 backdrop-blur-sm shadow-xl rounded-2xl border border-blue-200/30">
+        <Card className="flex-1 p-3 md:p-4 bg-white/95 backdrop-blur-sm shadow-xl rounded-2xl md:rounded-l-none border border-blue-200/30">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-gray-800 flex items-center gap-2">
               <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
