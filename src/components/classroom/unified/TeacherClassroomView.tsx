@@ -43,9 +43,9 @@ export function TeacherClassroomView({
     <div className="h-screen bg-gradient-to-br from-blue-50 to-purple-50 flex relative">
       {/* Main Content Area */}
       <div className="flex-1 pr-4 p-4">
-        <Card className="h-full bg-white shadow-2xl rounded-3xl overflow-hidden">
+        <Card className="h-full bg-white shadow-2xl rounded-3xl overflow-hidden mr-5">
           {/* Lesson Content - Question Words Visual */}
-          <div className="h-full p-8 bg-gradient-to-br from-blue-50 via-white to-purple-50 relative mr-80">
+          <div className="h-full p-8 bg-gradient-to-br from-blue-50 via-white to-purple-50 relative">
             {/* Floating number indicator */}
             <div className="absolute top-6 left-6 w-12 h-12 bg-purple-500 text-white rounded-full flex items-center justify-center text-xl font-bold shadow-lg">
               1
