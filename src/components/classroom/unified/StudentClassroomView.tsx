@@ -6,7 +6,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { VideoTile } from "./components/VideoTile";
 import { ESLWhiteboard } from "@/components/classroom/ESLWhiteboard";
 import { ThumbsUp, Clock, Star, FileText, PenTool } from "lucide-react";
-
 interface StudentClassroomViewProps {
   currentUser: {
     id: string;
@@ -17,7 +16,6 @@ interface StudentClassroomViewProps {
   classTime: number;
   studentXP: number;
 }
-
 export function StudentClassroomView({
   currentUser,
   enhancedClassroom,
@@ -26,28 +24,37 @@ export function StudentClassroomView({
 }: StudentClassroomViewProps) {
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, string>>({});
   const [activeContentTab, setActiveContentTab] = useState("slides");
-  
   const formatTime = (seconds: number): string => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
-
   const pronouns = ["I", "He", "She", "It", "You", "We", "They"];
-  const exercises = [
-    { id: 1, answer: "played" },
-    { id: 2, answer: "play___" },
-    { id: 3, answer: "play___" },
-    { id: 4, answer: "play___" },
-    { id: 5, answer: "play___" },
-    { id: 6, answer: "play___" },
-    { id: 7, answer: "play" }
-  ];
-
+  const exercises = [{
+    id: 1,
+    answer: "played"
+  }, {
+    id: 2,
+    answer: "play___"
+  }, {
+    id: 3,
+    answer: "play___"
+  }, {
+    id: 4,
+    answer: "play___"
+  }, {
+    id: 5,
+    answer: "play___"
+  }, {
+    id: 6,
+    answer: "play___"
+  }, {
+    id: 7,
+    answer: "play"
+  }];
   const handleDragStart = (e: React.DragEvent, pronoun: string) => {
     e.dataTransfer.setData("text/plain", pronoun);
   };
-
   const handleDrop = (e: React.DragEvent, exerciseId: number) => {
     e.preventDefault();
     const pronoun = e.dataTransfer.getData("text/plain");
@@ -56,27 +63,18 @@ export function StudentClassroomView({
       [exerciseId]: pronoun
     }));
   };
-
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
   };
-
-  return (
-    <div className="h-screen w-full bg-gradient-to-br from-blue-50 to-purple-50 relative">
+  return <div className="h-screen w-full bg-gradient-to-br from-blue-50 to-purple-50 relative">
       {/* Clean header with time and XP only */}
       <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10">
-        <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg">
-          <Clock className="w-4 h-4 text-blue-600" />
-          <span className="font-medium text-blue-600">{formatTime(classTime)}</span>
-        </div>
+        
       </div>
 
       {/* XP Display - Top Right */}
       <div className="absolute top-4 right-4 z-10">
-        <div className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2">
-          <Star className="w-5 h-5" />
-          <span className="font-bold">{studentXP} XP</span>
-        </div>
+        
       </div>
 
       {/* Two-column layout: Material + Teacher */}
@@ -105,32 +103,16 @@ export function StudentClassroomView({
                     
                     {/* Pronoun Cards - Left Side */}
                     <div className="flex flex-col gap-3 w-48 float-left mr-8">
-                      {pronouns.map((pronoun) => (
-                        <div
-                          key={pronoun}
-                          draggable
-                          onDragStart={(e) => handleDragStart(e, pronoun)}
-                          className="bg-gradient-to-r from-green-400 to-green-500 text-white p-4 rounded-xl text-center font-bold text-lg cursor-move shadow-lg hover:shadow-xl transition-shadow border-2 border-green-600"
-                        >
+                      {pronouns.map(pronoun => <div key={pronoun} draggable onDragStart={e => handleDragStart(e, pronoun)} className="bg-gradient-to-r from-green-400 to-green-500 text-white p-4 rounded-xl text-center font-bold text-lg cursor-move shadow-lg hover:shadow-xl transition-shadow border-2 border-green-600">
                           {pronoun}
-                        </div>
-                      ))}
+                        </div>)}
                     </div>
 
                     {/* Exercise Area - Center */}
                     <div className="flex-1 space-y-4">
-                      {exercises.map((exercise) => (
-                        <div key={exercise.id} className="flex items-center gap-4">
+                      {exercises.map(exercise => <div key={exercise.id} className="flex items-center gap-4">
                           {/* Drop zone for pronoun */}
-                          <div
-                            onDrop={(e) => handleDrop(e, exercise.id)}
-                            onDragOver={handleDragOver}
-                            className={`w-32 h-12 border-2 border-dashed rounded-xl flex items-center justify-center font-bold text-lg transition-colors ${
-                              selectedAnswers[exercise.id] 
-                                ? 'bg-green-100 border-green-400 text-green-800' 
-                                : 'border-gray-300 bg-gray-50 text-gray-400'
-                            }`}
-                          >
+                          <div onDrop={e => handleDrop(e, exercise.id)} onDragOver={handleDragOver} className={`w-32 h-12 border-2 border-dashed rounded-xl flex items-center justify-center font-bold text-lg transition-colors ${selectedAnswers[exercise.id] ? 'bg-green-100 border-green-400 text-green-800' : 'border-gray-300 bg-gray-50 text-gray-400'}`}>
                             {selectedAnswers[exercise.id] || "Drop here"}
                           </div>
 
@@ -138,8 +120,7 @@ export function StudentClassroomView({
                           <div className="bg-gradient-to-r from-purple-400 to-pink-500 text-white p-4 rounded-xl font-bold text-lg shadow-lg min-w-32 text-center border-2 border-purple-600">
                             {exercise.answer}
                           </div>
-                        </div>
-                      ))}
+                        </div>)}
 
                       {/* Completion word */}
                       <div className="flex justify-center mt-8">
@@ -161,7 +142,9 @@ export function StudentClassroomView({
                 {/* Progress bar at bottom */}
                 <div className="absolute bottom-6 left-8 right-8">
                   <div className="w-full bg-gray-200 rounded-full h-3 shadow-inner">
-                    <div className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full shadow-sm" style={{ width: '65%' }}></div>
+                    <div className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full shadow-sm" style={{
+                    width: '65%'
+                  }}></div>
                   </div>
                 </div>
               </div>
@@ -183,17 +166,10 @@ export function StudentClassroomView({
           </div>
           
           <div className="flex-1 bg-gray-100 rounded-xl overflow-hidden">
-            <VideoTile
-              stream={enhancedClassroom?.remoteStreams?.[0] || null}
-              hasVideo={!!enhancedClassroom?.remoteStreams?.[0]}
-              isTeacher={true}
-              userLabel="Teacher"
-              isCameraOff={false}
-            />
+            <VideoTile stream={enhancedClassroom?.remoteStreams?.[0] || null} hasVideo={!!enhancedClassroom?.remoteStreams?.[0]} isTeacher={true} userLabel="Teacher" isCameraOff={false} />
           </div>
         </Card>
 
       </div>
-    </div>
-  );
+    </div>;
 }
