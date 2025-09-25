@@ -56,7 +56,6 @@ serve(async (req) => {
         n: 1,
         size: aspectRatio === '16:9' ? '1792x1024' : aspectRatio === '4:3' ? '1024x1536' : '1024x1024',
         quality: 'high',
-        style: 'natural',
         output_format: 'png'
       }),
     });

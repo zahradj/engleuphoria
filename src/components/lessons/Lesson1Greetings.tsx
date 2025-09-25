@@ -27,8 +27,10 @@ interface LessonSlide {
   content: React.ReactNode;
 }
 
+import LessonIntro from './LessonIntro';
+
 const Lesson1Greetings: React.FC = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const [currentSlide, setCurrentSlide] = useState(-1); // Start with intro
   const [score, setScore] = useState(0);
   const [studentName, setStudentName] = useState('');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
@@ -927,6 +929,11 @@ const Lesson1Greetings: React.FC = () => {
     slides[slides.length - 1] // The badge slide
   ];
 
+  // Show intro screen first
+  if (currentSlide === -1) {
+    return <LessonIntro onStart={() => setCurrentSlide(0)} />;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4">
       <div className="max-w-6xl mx-auto">
@@ -980,9 +987,9 @@ const Lesson1Greetings: React.FC = () => {
           </Button>
 
           <div className="flex items-center space-x-4">
-            <Button onClick={() => setCurrentSlide(0)} variant="outline" size="sm">
+            <Button onClick={() => setCurrentSlide(-1)} variant="outline" size="sm">
               <RotateCcw className="w-4 h-4 mr-2" />
-              Restart
+              Back to Intro
             </Button>
             <span className="text-sm text-gray-500">
               {allSlides[currentSlide]?.title}
