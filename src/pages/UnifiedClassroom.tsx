@@ -14,6 +14,8 @@ import { CelebrationOverlay } from "@/components/classroom/rewards/CelebrationOv
 import { useRewardNotifications } from "@/hooks/classroom/useRewardNotifications";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useConnectionRecovery } from "@/hooks/enhanced-classroom/useConnectionRecovery";
+import { AnimatedBackground } from "@/components/AnimatedBackground";
+import { JoyfulClassroomHeader } from "@/components/classroom/JoyfulClassroomHeader";
 
 
 function UnifiedClassroomInner() {
@@ -134,12 +136,22 @@ function UnifiedClassroomInner() {
   try {
     return (
       <MediaProvider roomId={finalRoomId}>
-        <div className="min-h-screen overflow-hidden">
+        <div className="min-h-screen overflow-hidden relative">
+          {/* Joyful Animated Background */}
+          <AnimatedBackground />
+          
+          {/* Joyful Header */}
+          <JoyfulClassroomHeader 
+            classTime={classTime}
+            studentCount={enhancedClassroom.participants.length}
+            studentXP={studentXP}
+            studentLevel={studentLevel}
+          />
           
           {isMobile ? (
             <MobileClassroomLayout
               currentUser={currentUser}
-              classTime={classTime}
+              classTime={classTime || 0}
               videoContent={mobileVideoContent}
               chatContent={<div className="p-4 text-center text-gray-500">Chat coming soon</div>}
               whiteboardContent={<div className="p-4 text-center text-gray-500">Whiteboard coming soon</div>}

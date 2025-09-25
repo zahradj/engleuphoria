@@ -9,15 +9,29 @@ export function AnimatedBackground({ className }: AnimatedBackgroundProps) {
   return (
     <>
       <div className={cn("absolute -z-10 inset-0 overflow-hidden", className)}>
-        {/* Large background blobs - reduced opacity */}
-        <div className="absolute -z-10 top-1/4 left-1/4 w-[110%] h-[110%] bg-purple/10 rounded-full blur-3xl animate-pulse-subtle opacity-50"></div>
-        <div className="absolute -z-10 bottom-1/3 right-1/4 w-[90%] h-[90%] bg-teal/10 rounded-full blur-3xl animate-pulse-subtle opacity-45 animation-delay-300"></div>
-        <div className="absolute -z-10 top-1/2 left-1/2 w-[80%] h-[80%] bg-orange/5 rounded-full blur-3xl animate-pulse-subtle opacity-40 animation-delay-700"></div>
+        {/* Joyful background gradients */}
+        <div className="absolute -z-10 top-1/4 left-1/4 w-[120%] h-[120%] opacity-30 rounded-full blur-3xl animate-gentle-pulse"
+             style={{ background: 'var(--gradient-cool)' }}></div>
+        <div className="absolute -z-10 bottom-1/3 right-1/4 w-[100%] h-[100%] opacity-25 rounded-full blur-3xl animate-gentle-pulse"
+             style={{ background: 'var(--gradient-warm)', animationDelay: '1s' }}></div>
+        <div className="absolute -z-10 top-1/2 left-1/2 w-[90%] h-[90%] opacity-20 rounded-full blur-3xl animate-gentle-pulse"
+             style={{ background: 'var(--gradient-success)', animationDelay: '2s' }}></div>
         
-        {/* Additional animated elements - reduced opacity */}
-        <div className="absolute top-20 right-[10%] w-24 h-24 bg-yellow-light/20 rounded-full blur-xl animate-float"></div>
-        <div className="absolute bottom-32 left-[15%] w-16 h-16 bg-purple-light/30 rounded-full blur-lg animate-float animation-delay-500"></div>
+        {/* Floating educational elements */}
+        <div className="absolute top-20 right-[10%] w-16 h-16 rounded-full blur-sm animate-float-slow opacity-40"
+             style={{ background: 'hsl(var(--joy-yellow))' }}></div>
+        <div className="absolute bottom-32 left-[15%] w-12 h-12 rounded-full blur-sm animate-float-delayed opacity-35"
+             style={{ background: 'hsl(var(--joy-purple))' }}></div>
+        <div className="absolute top-1/3 right-[30%] w-8 h-8 rounded-full blur-sm animate-sparkle opacity-50"
+             style={{ background: 'hsl(var(--joy-pink))' }}></div>
+        <div className="absolute bottom-1/4 left-[40%] w-6 h-6 rounded-full blur-sm animate-sparkle opacity-45"
+             style={{ background: 'hsl(var(--joy-teal))', animationDelay: '0.5s' }}></div>
         
+        {/* Educational symbols floating */}
+        <div className="absolute top-16 left-[20%] text-4xl opacity-20 animate-float-slow">📚</div>
+        <div className="absolute bottom-20 right-[25%] text-3xl opacity-15 animate-float-delayed">⭐</div>
+        <div className="absolute top-1/2 left-[10%] text-2xl opacity-10 animate-sparkle">🎓</div>
+        <div className="absolute bottom-1/3 left-[60%] text-3xl opacity-15 animate-float-slow">🌟</div>
       </div>
     </>
   );
