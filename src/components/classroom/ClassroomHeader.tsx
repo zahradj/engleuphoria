@@ -9,12 +9,12 @@ interface ClassroomHeaderProps {
 
 export function ClassroomHeader({ title, teacher, time }: ClassroomHeaderProps) {
   return (
-    <div className="mb-6 p-4 bg-gradient-to-r from-surface via-surface-2 to-surface rounded-2xl border border-primary-200 shadow-lg">
-      <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-accent-500 bg-clip-text text-transparent mb-2">
+    <div className="mb-6 p-4 bg-gradient-to-r from-[hsl(var(--classroom-primary))] via-[hsl(var(--classroom-secondary))] to-[hsl(var(--classroom-accent))] rounded-2xl border border-classroom-border shadow-lg">
+      <h1 className="text-3xl font-bold text-white mb-2">
         {title}
       </h1>
-      <div className="flex items-center gap-3 text-text-muted">
-        <span className="px-3 py-1 bg-primary-100 rounded-full text-primary-700 font-medium text-sm">
+      <div className="flex items-center gap-3 text-white/90">
+        <span className="px-3 py-1 bg-white/20 rounded-full text-white font-medium text-sm backdrop-blur-sm">
           {teacher}
         </span>
         <span className="text-sm">•</span>

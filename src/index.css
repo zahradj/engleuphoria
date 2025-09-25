@@ -22,15 +22,16 @@
     --primary-800: 220 60% 35%;   /* #08529E */
     --primary-900: 220 55% 28%;   /* #063E7A */
 
-    /* Harmonious Joyful Classroom Colors */
-    --classroom-primary: 120 25% 55%;     /* #7FB069 - Sage green */
-    --classroom-secondary: 15 100% 82%;   /* #FFB5A7 - Warm peach */
-    --classroom-accent: 270 45% 80%;      /* #C8B6E2 - Soft lavender */
-    --classroom-background: 45 50% 98%;   /* #FEFCF8 - Warm cream */
-    --classroom-neutral: 195 30% 92%;     /* #E8F1F2 - Light gray-blue */
-    --classroom-success: 140 45% 60%;     /* #4CAF50 - Gentle green */
-    --classroom-card: 0 0% 100%;          /* #FFFFFF - Pure white */
-    --classroom-border: 195 25% 88%;      /* #DDE7E9 - Soft border */
+    /* Enhanced Classroom Colors - User Specified Palette */
+    --classroom-primary: 261 31% 70%;     /* #9991D4 - Purple */
+    --classroom-secondary: 331 20% 80%;   /* #D4C4CB - Muted Pink */
+    --classroom-accent: 90 100% 89%;      /* #D5FFC3 - Mint Green */
+    --classroom-background: 0 0% 100%;    /* #FFFFFF - Pure White */
+    --classroom-neutral: 210 17% 98%;     /* #F8F9FA - Soft Gray */
+    --classroom-success: 90 100% 89%;     /* #D5FFC3 - Same as accent for success */
+    --classroom-card: 0 0% 100%;          /* #FFFFFF - White Card */
+    --classroom-border: 210 11% 93%;      /* #E9ECEF - Border Gray */
+    --classroom-text: 217 33% 25%;        /* #2D3748 - Dark text */
 
     /* Neutral System - Clean Grays */
     --neutral-50: 0 0% 98%;       /* #FAFAFA */

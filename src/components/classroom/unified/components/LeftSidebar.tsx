@@ -30,26 +30,22 @@ export function LeftSidebar({ onToolSelect, selectedTool }: LeftSidebarProps) {
     <TooltipProvider>
       <Card 
         className={`
-          h-full bg-white/95 backdrop-blur-sm border-r-2 border-primary-200/40 
+          h-full bg-classroom-card backdrop-blur-sm border-r-2 border-[hsl(var(--classroom-border))]
           transition-all duration-500 ease-in-out relative overflow-hidden
           shadow-xl hover:shadow-2xl
           ${isCollapsed ? 'w-16' : 'w-20'}
         `}
-        style={{
-          background: 'linear-gradient(180deg, hsl(var(--classroom-background) / 0.95) 0%, hsl(var(--classroom-card) / 0.9) 100%)',
-          borderImage: 'linear-gradient(180deg, hsl(var(--classroom-primary) / 0.3) 0%, hsl(var(--classroom-accent) / 0.2) 100%) 1'
-        }}
       >
         {/* Enhanced ambient glow effect */}
         <div 
-          className="absolute inset-0 opacity-30 pointer-events-none transition-opacity duration-500"
+          className="absolute inset-0 opacity-20 pointer-events-none transition-opacity duration-500"
           style={{ 
             background: 'linear-gradient(180deg, hsl(var(--classroom-primary) / 0.1) 0%, hsl(var(--classroom-accent) / 0.05) 100%)' 
           }}
         />
 
         {/* Animated gradient border */}
-        <div className="absolute inset-0 bg-gradient-to-b from-classroom-primary/15 via-transparent to-classroom-accent/15 opacity-0 hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[hsl(var(--classroom-primary)/0.15)] via-transparent to-[hsl(var(--classroom-accent)/0.15)] opacity-0 hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
         {/* Enhanced collapse toggle */}
         <div className="absolute top-4 right-2 z-10">
@@ -57,7 +53,7 @@ export function LeftSidebar({ onToolSelect, selectedTool }: LeftSidebarProps) {
             variant="ghost"
             size="sm"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="h-6 w-6 p-0 rounded-full hover:bg-classroom-primary/10 transition-all duration-300 hover:scale-110"
+            className="h-6 w-6 p-0 rounded-full hover:bg-[hsl(var(--classroom-primary)/0.1)] transition-all duration-300 hover:scale-110"
           >
             {isCollapsed ? (
               <ChevronRight size={12} style={{ color: 'hsl(var(--classroom-primary))' }} />
@@ -102,7 +98,7 @@ export function LeftSidebar({ onToolSelect, selectedTool }: LeftSidebarProps) {
                         style={{
                         background: isSelected 
                           ? `linear-gradient(135deg, ${tool.color}20, ${tool.color}10)`
-                          : 'linear-gradient(135deg, hsl(var(--classroom-background) / 0.8), hsl(var(--classroom-card) / 0.6))',
+                          : 'hsl(var(--classroom-background))',
                         borderColor: isSelected 
                           ? tool.color 
                           : 'hsl(var(--classroom-border))'
@@ -116,7 +112,7 @@ export function LeftSidebar({ onToolSelect, selectedTool }: LeftSidebarProps) {
                       }}
                       onMouseLeave={(e) => {
                         if (!isSelected) {
-                          e.currentTarget.style.background = 'linear-gradient(135deg, hsl(var(--classroom-background) / 0.8), hsl(var(--classroom-card) / 0.6))';
+                          e.currentTarget.style.background = 'hsl(var(--classroom-background))';
                           e.currentTarget.style.borderColor = 'hsl(var(--classroom-border))';
                           e.currentTarget.style.transform = 'scale(1)';
                         }
@@ -174,7 +170,7 @@ export function LeftSidebar({ onToolSelect, selectedTool }: LeftSidebarProps) {
                 </TooltipTrigger>
                 <TooltipContent 
                   side="right" 
-                  className="bg-classroom-card/98 backdrop-blur-sm border border-classroom-border shadow-xl rounded-xl p-3 animate-fade-in"
+                  className="bg-classroom-card backdrop-blur-sm border border-classroom-border shadow-xl rounded-xl p-3 animate-fade-in"
                   sideOffset={12}
                 >
                   <div className="flex flex-col gap-1">
@@ -192,9 +188,9 @@ export function LeftSidebar({ onToolSelect, selectedTool }: LeftSidebarProps) {
         </div>
 
         {/* Enhanced decorative elements */}
-        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-10 h-0.5 rounded-full bg-gradient-to-r from-transparent via-classroom-primary/60 to-transparent animate-pulse" />
-        <div className="absolute top-12 left-1 w-0.5 h-12 rounded-full bg-gradient-to-b from-classroom-primary/60 to-transparent" />
-        <div className="absolute bottom-20 right-1 w-0.5 h-8 rounded-full bg-gradient-to-t from-classroom-accent/40 to-transparent" />
+        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-10 h-0.5 rounded-full bg-gradient-to-r from-transparent via-[hsl(var(--classroom-primary)/0.6)] to-transparent animate-pulse" />
+        <div className="absolute top-12 left-1 w-0.5 h-12 rounded-full bg-gradient-to-b from-[hsl(var(--classroom-primary)/0.6)] to-transparent" />
+        <div className="absolute bottom-20 right-1 w-0.5 h-8 rounded-full bg-gradient-to-t from-[hsl(var(--classroom-accent)/0.4)] to-transparent" />
       </Card>
     </TooltipProvider>
   );

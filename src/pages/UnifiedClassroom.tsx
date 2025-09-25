@@ -139,12 +139,9 @@ function UnifiedClassroomInner() {
   try {
     return (
       <MediaProvider roomId={finalRoomId}>
-        <div className="min-h-screen overflow-hidden relative">
-          {/* Joyful Animated Background */}
-          <AnimatedBackground />
-          
+        <div className="min-h-screen overflow-hidden relative bg-classroom-background">
           {/* Harmonious Header - Fixed positioning */}
-          <div className="fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-classroom-primary/90 via-classroom-accent/90 to-classroom-secondary/90 backdrop-blur-md border-b border-classroom-border/50 shadow-lg">
+          <div className="fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-[hsl(var(--classroom-primary))] via-[hsl(var(--classroom-accent))] to-[hsl(var(--classroom-secondary))] backdrop-blur-md border-b border-classroom-border shadow-lg">
             <JoyfulClassroomHeader 
               classTime={classTime}
               studentCount={enhancedClassroom.participants.length}
