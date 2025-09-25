@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +21,7 @@ import {
 import { CURRICULUM_STRUCTURE, CEFRLevel, Unit, LessonContent } from "@/data/curriculum/curriculumStructure";
 
 export const LibraryTab = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedLevels, setExpandedLevels] = useState<string[]>([]);
   const [expandedUnits, setExpandedUnits] = useState<string[]>([]);
@@ -72,8 +75,14 @@ export const LibraryTab = () => {
   };
 
   const startLesson = (lesson: LessonContent) => {
-    // TODO: Implement lesson player navigation
-    console.log('Starting lesson:', lesson.title);
+    // Navigate to specific lesson if it's our Unit 0 Lesson 1
+    if (lesson.id === 'ps-u0-l1') {
+      navigate('/lessons/unit-0/lesson-1');
+      toast.success(`Starting lesson: ${lesson.title}`);
+    } else {
+      // For other lessons, show a message that they're coming soon
+      toast.info(`${lesson.title} - Coming soon! This lesson is being developed.`);
+    }
   };
 
   return (
