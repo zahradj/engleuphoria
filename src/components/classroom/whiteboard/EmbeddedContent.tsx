@@ -158,7 +158,7 @@ export function EmbeddedContent({ content, onRemove, onMove, onResize }: Embedde
       </div>
       
       {/* Content */}
-      <div className="p-2">
+      <div className="p-6">
         {canEmbed ? (
           <iframe
             src={getEmbedUrl(content.url, content.type)}
