@@ -26,434 +26,476 @@ export interface CEFRLevel {
 export const CURRICULUM_STRUCTURE: CEFRLevel[] = [
   {
     level: 'Pre-Starter',
-    title: 'Pre-Starter (Pre-A1)',
-    description: 'Absolute beginner level for children/adults with zero English',
+    title: 'Level 1 – Pre-Starter (Pre-A1/A1) Foundations',
+    description: 'Duration: ~10 units × 4 lessons each (≈ 40 lessons, 30 min each) | Method: Presentation → Practice → Production → Review',
     units: [
       {
         id: 'pre-starter-unit-1',
-        title: 'First Words',
-        description: 'Basic vocabulary and simple greetings',
+        title: 'Unit 1 – Family & Friends',
+        description: 'Introduction to family members and basic relationships',
         lessons: [
           {
             id: 'ps-u1-l1',
-            title: 'Hello and Goodbye',
+            title: 'This is my brother / sister',
             duration: 30,
-            objectives: ['Greet people', 'Say goodbye', 'Recognize basic words'],
-            vocabulary: ['hello', 'goodbye', 'yes', 'no', 'please', 'thank you'],
-            grammar: ['Simple greetings'],
-            skills: ['Listening', 'Speaking'],
-            description: 'First introduction to English greetings and polite words'
+            objectives: ['Use "to be" with family members', 'Introduce family basics', 'Practice family vocabulary'],
+            vocabulary: ['brother', 'sister', 'family', 'this is'],
+            grammar: ['to be + family basics'],
+            skills: ['Speaking', 'Listening', 'Vocabulary'],
+            description: 'Introduction to family members using "to be" verb and basic family vocabulary'
           },
           {
             id: 'ps-u1-l2',
-            title: 'Numbers 1-10',
+            title: 'Mother, father, grandparents',
             duration: 30,
-            objectives: ['Count to 10', 'Recognize number words', 'Use numbers in simple contexts'],
-            vocabulary: ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'],
-            grammar: ['Number formation'],
-            skills: ['Listening', 'Speaking'],
-            description: 'Learning basic numbers and how to count'
+            objectives: ['Expand family vocabulary', 'Learn plurals', 'Practice family introductions'],
+            vocabulary: ['mother', 'father', 'grandparents', 'grandmother', 'grandfather'],
+            grammar: ['Plurals with family members'],
+            skills: ['Speaking', 'Listening', 'Grammar'],
+            description: 'Extended family vocabulary with plural forms and family relationships'
           },
           {
             id: 'ps-u1-l3',
-            title: 'Colors',
+            title: 'I have got / I haven\'t got a brother',
             duration: 30,
-            objectives: ['Name basic colors', 'Describe objects by color', 'Follow color instructions'],
-            vocabulary: ['red', 'blue', 'yellow', 'green', 'black', 'white', 'pink', 'orange'],
-            grammar: ['Basic adjectives'],
-            skills: ['Listening', 'Speaking', 'Visual recognition'],
-            description: 'Introduction to basic colors and their names'
+            objectives: ['Use "have got" structure', 'Make positive and negative sentences', 'Talk about family members'],
+            vocabulary: ['have got', 'haven\'t got', 'a', 'an'],
+            grammar: ['have got affirmative and negative'],
+            skills: ['Speaking', 'Grammar', 'Sentence construction'],
+            description: 'Introduction to "have got" for possession with family context'
           },
           {
             id: 'ps-u1-l4',
-            title: 'My Name',
+            title: 'Review Game – My Family Tree',
             duration: 30,
-            objectives: ['Say your name', 'Ask for names', 'Introduce yourself'],
-            vocabulary: ['name', 'my', 'your', 'I am', 'you are'],
-            grammar: ['Personal pronouns', 'Be verb (simple)'],
-            skills: ['Speaking', 'Listening'],
-            description: 'Learning to introduce yourself and ask for names'
-          },
-          {
-            id: 'ps-u1-l5',
-            title: 'Animals',
-            duration: 30,
-            objectives: ['Name common animals', 'Make animal sounds', 'Recognize animal pictures'],
-            vocabulary: ['cat', 'dog', 'bird', 'fish', 'elephant', 'lion', 'cow', 'pig'],
-            grammar: ['This is a...'],
-            skills: ['Listening', 'Speaking', 'Visual recognition'],
-            description: 'Introduction to common animals and their names'
-          },
-          {
-            id: 'ps-u1-l6',
-            title: 'Family',
-            duration: 30,
-            objectives: ['Name family members', 'Point to family in pictures', 'Talk about your family'],
-            vocabulary: ['mother', 'father', 'sister', 'brother', 'baby', 'grandma', 'grandpa'],
-            grammar: ['This is my...'],
-            skills: ['Speaking', 'Listening'],
-            description: 'Learning family member names and relationships'
-          },
-          {
-            id: 'ps-u1-l7',
-            title: 'Body Parts',
-            duration: 30,
-            objectives: ['Name body parts', 'Point to body parts', 'Follow body movement instructions'],
-            vocabulary: ['head', 'eyes', 'nose', 'mouth', 'hands', 'feet', 'ears', 'hair'],
-            grammar: ['I have...', 'You have...'],
-            skills: ['Listening', 'Speaking', 'Physical movement'],
-            description: 'Learning basic body parts and simple descriptions'
-          },
-          {
-            id: 'ps-u1-l8',
-            title: 'Food',
-            duration: 30,
-            objectives: ['Name basic foods', 'Express food likes/dislikes', 'Use food vocabulary'],
-            vocabulary: ['apple', 'banana', 'bread', 'milk', 'water', 'cake', 'rice', 'egg'],
-            grammar: ['I like...', 'I don\'t like...'],
-            skills: ['Speaking', 'Listening'],
-            description: 'Introduction to basic food vocabulary and preferences'
-          },
-          {
-            id: 'ps-u1-l9',
-            title: 'Toys and Objects',
-            duration: 30,
-            objectives: ['Name common toys', 'Describe objects', 'Use possessive words'],
-            vocabulary: ['ball', 'doll', 'car', 'book', 'pen', 'bag', 'chair', 'table'],
-            grammar: ['My...', 'Your...', 'It is...'],
-            skills: ['Speaking', 'Listening', 'Visual recognition'],
-            description: 'Learning names of everyday objects and toys'
-          },
-          {
-            id: 'ps-u1-l10',
-            title: 'Review and Games',
-            duration: 30,
-            objectives: ['Review all vocabulary', 'Play simple games', 'Demonstrate understanding'],
-            vocabulary: ['All previous vocabulary'],
-            grammar: ['All previous structures'],
-            skills: ['Speaking', 'Listening', 'Games'],
-            description: 'Fun review of all learned vocabulary through games and activities'
+            objectives: ['Review family vocabulary', 'Practice family introductions', 'Consolidate grammar'],
+            vocabulary: ['All unit vocabulary'],
+            grammar: ['to be + have got review'],
+            skills: ['Speaking', 'Listening', 'Games', 'Role-play'],
+            description: 'Interactive review through matching, role-play, and chant activities'
           }
         ]
       },
       {
         id: 'pre-starter-unit-2',
-        title: 'Simple Actions',
-        description: 'Basic verbs and action words',
+        title: 'Unit 2 – My Classroom',
+        description: 'Classroom objects and basic questions',
         lessons: [
           {
             id: 'ps-u2-l1',
-            title: 'Actions: Run, Jump, Walk',
+            title: 'This is a book / pen / bag',
             duration: 30,
-            objectives: ['Name basic actions', 'Perform actions', 'Follow action commands'],
-            vocabulary: ['run', 'jump', 'walk', 'sit', 'stand', 'stop', 'go', 'come'],
-            grammar: ['Simple imperatives'],
-            skills: ['Listening', 'Speaking', 'Physical movement'],
-            description: 'Learning basic action verbs through movement'
+            objectives: ['Name classroom objects', 'Use "this is" structure', 'Practice classroom vocabulary'],
+            vocabulary: ['book', 'pen', 'bag', 'desk', 'chair', 'board'],
+            grammar: ['to be with classroom objects'],
+            skills: ['Speaking', 'Listening', 'Vocabulary'],
+            description: 'Introduction to classroom objects using "this is" structure'
           },
           {
             id: 'ps-u2-l2',
-            title: 'I Can',
+            title: 'These are my pencils',
             duration: 30,
-            objectives: ['Express abilities', 'Use "can"', 'Talk about what you can do'],
-            vocabulary: ['can', 'swim', 'dance', 'sing', 'read', 'write', 'draw', 'play'],
-            grammar: ['I can...', 'Can you...?'],
-            skills: ['Speaking', 'Listening'],
-            description: 'Introduction to expressing abilities with "can"'
+            objectives: ['Use plural forms', 'Practice "these are"', 'Expand classroom vocabulary'],
+            vocabulary: ['pencils', 'books', 'bags', 'these are', 'my'],
+            grammar: ['Plurals + these are structure'],
+            skills: ['Speaking', 'Grammar', 'Vocabulary'],
+            description: 'Plural forms of classroom objects with "these are" structure'
           },
           {
             id: 'ps-u2-l3',
-            title: 'Feelings',
+            title: 'What\'s this? It\'s a …',
             duration: 30,
-            objectives: ['Express feelings', 'Recognize emotions', 'Ask about feelings'],
-            vocabulary: ['happy', 'sad', 'angry', 'tired', 'hungry', 'thirsty', 'hot', 'cold'],
-            grammar: ['I am...', 'Are you...?'],
-            skills: ['Speaking', 'Listening', 'Emotional expression'],
-            description: 'Learning to express and recognize basic emotions'
+            objectives: ['Ask and answer questions', 'Use "What\'s this?"', 'Practice classroom dialogue'],
+            vocabulary: ['What\'s this?', 'It\'s a', 'question', 'answer'],
+            grammar: ['Questions + answers with classroom objects'],
+            skills: ['Speaking', 'Listening', 'Question formation'],
+            description: 'Question and answer practice with classroom objects'
           },
           {
             id: 'ps-u2-l4',
-            title: 'Weather',
+            title: 'Review Quiz – Classroom Hunt',
             duration: 30,
-            objectives: ['Describe weather', 'Use weather words', 'Talk about what you see outside'],
-            vocabulary: ['sunny', 'rainy', 'cloudy', 'windy', 'snow', 'hot', 'cold', 'nice'],
-            grammar: ['It is...', 'The weather is...'],
-            skills: ['Speaking', 'Listening', 'Observation'],
-            description: 'Basic weather vocabulary and descriptions'
-          },
-          {
-            id: 'ps-u2-l5',
-            title: 'Clothes',
-            duration: 30,
-            objectives: ['Name clothing items', 'Describe what you wear', 'Talk about colors of clothes'],
-            vocabulary: ['shirt', 'pants', 'dress', 'shoes', 'hat', 'coat', 'socks', 'glasses'],
-            grammar: ['I wear...', 'This is a...'],
-            skills: ['Speaking', 'Listening', 'Visual recognition'],
-            description: 'Learning clothing vocabulary and descriptions'
-          },
-          {
-            id: 'ps-u2-l6',
-            title: 'At Home',
-            duration: 30,
-            objectives: ['Name rooms in house', 'Describe home activities', 'Use location words'],
-            vocabulary: ['house', 'room', 'kitchen', 'bedroom', 'bathroom', 'door', 'window', 'bed'],
-            grammar: ['In the...', 'This is the...'],
-            skills: ['Speaking', 'Listening'],
-            description: 'Basic home vocabulary and room names'
-          },
-          {
-            id: 'ps-u2-l7',
-            title: 'Transportation',
-            duration: 30,
-            objectives: ['Name vehicles', 'Talk about how you travel', 'Use movement verbs'],
-            vocabulary: ['car', 'bus', 'train', 'plane', 'bike', 'walk', 'ride', 'drive'],
-            grammar: ['I go by...', 'I take the...'],
-            skills: ['Speaking', 'Listening'],
-            description: 'Introduction to transportation vocabulary'
-          },
-          {
-            id: 'ps-u2-l8',
-            title: 'School Things',
-            duration: 30,
-            objectives: ['Name school objects', 'Talk about school activities', 'Use classroom language'],
-            vocabulary: ['school', 'teacher', 'student', 'book', 'pencil', 'paper', 'desk', 'board'],
-            grammar: ['At school...', 'In my bag...'],
-            skills: ['Speaking', 'Listening'],
-            description: 'Basic school vocabulary and classroom objects'
-          },
-          {
-            id: 'ps-u2-l9',
-            title: 'Big and Small',
-            duration: 30,
-            objectives: ['Describe size', 'Compare objects', 'Use descriptive words'],
-            vocabulary: ['big', 'small', 'long', 'short', 'tall', 'little', 'huge', 'tiny'],
-            grammar: ['It is big', 'This is small'],
-            skills: ['Speaking', 'Listening', 'Comparison'],
-            description: 'Learning size and comparison vocabulary'
-          },
-          {
-            id: 'ps-u2-l10',
-            title: 'Unit Review',
-            duration: 30,
-            objectives: ['Review all unit vocabulary', 'Practice conversations', 'Play review games'],
+            objectives: ['Review classroom vocabulary', 'Practice questions and answers', 'Play classroom games'],
             vocabulary: ['All unit vocabulary'],
-            grammar: ['All unit grammar'],
-            skills: ['Speaking', 'Listening', 'Games'],
-            description: 'Comprehensive review of unit vocabulary and structures'
+            grammar: ['All unit grammar structures'],
+            skills: ['Speaking', 'Listening', 'Games', 'Recognition'],
+            description: 'Interactive review with find & match activities and classroom bingo'
           }
         ]
       },
       {
         id: 'pre-starter-unit-3',
-        title: 'Daily Life',
-        description: 'Everyday activities and routines',
+        title: 'Unit 3 – My Colors & Numbers',
+        description: 'Colors, numbers, and basic counting',
         lessons: [
           {
             id: 'ps-u3-l1',
-            title: 'Morning Routine',
+            title: 'Colors chant',
             duration: 30,
-            objectives: ['Describe morning activities', 'Use time words', 'Talk about daily habits'],
-            vocabulary: ['wake up', 'get up', 'brush teeth', 'wash face', 'eat breakfast', 'morning', 'early', 'late'],
-            grammar: ['I wake up', 'In the morning'],
-            skills: ['Speaking', 'Listening', 'Sequencing'],
-            description: 'Learning morning routine vocabulary and activities'
+            objectives: ['Learn basic colors', 'Practice pronunciation', 'Use phonics focus'],
+            vocabulary: ['red', 'blue', 'green', 'yellow', 'black', 'white', 'pink', 'orange'],
+            grammar: ['Color adjectives'],
+            skills: ['Speaking', 'Listening', 'Phonics', 'Chanting'],
+            description: 'Introduction to colors through chants with phonics focus'
           },
           {
             id: 'ps-u3-l2',
-            title: 'At School',
+            title: 'Numbers 1–10',
             duration: 30,
-            objectives: ['Talk about school day', 'Use school vocabulary', 'Describe learning activities'],
-            vocabulary: ['learn', 'study', 'listen', 'speak', 'practice', 'homework', 'lesson', 'class'],
-            grammar: ['At school I...', 'We learn...'],
-            skills: ['Speaking', 'Listening'],
-            description: 'School activities and learning vocabulary'
+            objectives: ['Count to 10', 'Learn number words', 'Practice counting chants'],
+            vocabulary: ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'],
+            grammar: ['Numbers + plurals'],
+            skills: ['Speaking', 'Listening', 'Counting', 'Chanting'],
+            description: 'Numbers 1-10 with counting practice and musical chants'
           },
           {
             id: 'ps-u3-l3',
-            title: 'Playtime',
+            title: 'How many? I have got 3 books',
             duration: 30,
-            objectives: ['Talk about play activities', 'Use play vocabulary', 'Express enjoyment'],
-            vocabulary: ['play', 'fun', 'game', 'toy', 'friend', 'together', 'laugh', 'enjoy'],
-            grammar: ['I play with...', 'We have fun'],
-            skills: ['Speaking', 'Listening', 'Social interaction'],
-            description: 'Play and recreational activity vocabulary'
+            objectives: ['Use numbers in context', 'Ask "How many?"', 'Practice counting objects'],
+            vocabulary: ['How many?', 'I have got', 'numbers with objects'],
+            grammar: ['Numbers in context with have got'],
+            skills: ['Speaking', 'Grammar', 'Counting', 'Question formation'],
+            description: 'Using numbers in real contexts with "have got" structure'
           },
           {
             id: 'ps-u3-l4',
-            title: 'Meals',
+            title: 'Review Game – Rainbow Numbers Race',
             duration: 30,
-            objectives: ['Talk about meals', 'Use meal vocabulary', 'Express hunger and thirst'],
-            vocabulary: ['breakfast', 'lunch', 'dinner', 'hungry', 'thirsty', 'eat', 'drink', 'delicious'],
-            grammar: ['I eat...', 'For breakfast...'],
-            skills: ['Speaking', 'Listening'],
-            description: 'Meals and eating vocabulary'
-          },
-          {
-            id: 'ps-u3-l5',
-            title: 'Evening Activities',
-            duration: 30,
-            objectives: ['Describe evening routine', 'Use evening vocabulary', 'Talk about rest'],
-            vocabulary: ['evening', 'night', 'bath', 'story', 'sleep', 'tired', 'bed', 'dream'],
-            grammar: ['In the evening...', 'I go to bed'],
-            skills: ['Speaking', 'Listening'],
-            description: 'Evening routine and bedtime vocabulary'
-          },
-          {
-            id: 'ps-u3-l6',
-            title: 'Days of the Week',
-            duration: 30,
-            objectives: ['Name days of week', 'Talk about weekly activities', 'Use day vocabulary'],
-            vocabulary: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'today'],
-            grammar: ['Today is...', 'On Monday...'],
-            skills: ['Speaking', 'Listening', 'Time concepts'],
-            description: 'Days of the week and weekly routines'
-          },
-          {
-            id: 'ps-u3-l7',
-            title: 'Help at Home',
-            duration: 30,
-            objectives: ['Talk about helping', 'Use helping vocabulary', 'Express willingness to help'],
-            vocabulary: ['help', 'clean', 'tidy', 'put away', 'carry', 'good', 'helpful', 'kind'],
-            grammar: ['I help...', 'I can help'],
-            skills: ['Speaking', 'Listening', 'Responsibility'],
-            description: 'Helping and household responsibility vocabulary'
-          },
-          {
-            id: 'ps-u3-l8',
-            title: 'Special Days',
-            duration: 30,
-            objectives: ['Talk about celebrations', 'Use celebration vocabulary', 'Express excitement'],
-            vocabulary: ['birthday', 'party', 'present', 'cake', 'special', 'celebrate', 'happy', 'exciting'],
-            grammar: ['My birthday...', 'We celebrate...'],
-            skills: ['Speaking', 'Listening', 'Cultural awareness'],
-            description: 'Celebrations and special occasions vocabulary'
-          },
-          {
-            id: 'ps-u3-l9',
-            title: 'Being Polite',
-            duration: 30,
-            objectives: ['Use polite language', 'Show good manners', 'Be respectful'],
-            vocabulary: ['please', 'thank you', 'sorry', 'excuse me', 'polite', 'kind', 'nice', 'respect'],
-            grammar: ['Please...', 'Thank you for...'],
-            skills: ['Speaking', 'Listening', 'Social skills'],
-            description: 'Politeness and good manners vocabulary'
-          },
-          {
-            id: 'ps-u3-l10',
-            title: 'Final Review',
-            duration: 30,
-            objectives: ['Review all vocabulary', 'Practice conversations', 'Demonstrate progress'],
-            vocabulary: ['All course vocabulary'],
-            grammar: ['All course structures'],
-            skills: ['Speaking', 'Listening', 'Review'],
-            description: 'Final review of all Pre-Starter content'
+            objectives: ['Review colors and numbers', 'Practice counting', 'Play interactive games'],
+            vocabulary: ['All colors and numbers'],
+            grammar: ['All unit structures'],
+            skills: ['Speaking', 'Listening', 'Games', 'Recognition'],
+            description: 'Fun review combining colors and numbers through racing activities'
           }
         ]
       },
       {
         id: 'pre-starter-unit-4',
-        title: 'Fun and Games',
-        description: 'Entertainment and recreational activities',
+        title: 'Unit 4 – Daily Routines (Part 1)',
+        description: 'Basic daily activities and routines',
         lessons: [
           {
             id: 'ps-u4-l1',
-            title: 'Playground Fun',
+            title: 'I wake up / I go to school',
             duration: 30,
-            objectives: ['Name playground equipment', 'Talk about outdoor play', 'Use action verbs'],
-            vocabulary: ['playground', 'swing', 'slide', 'climb', 'run around', 'outside', 'fresh air', 'exercise'],
-            grammar: ['I like to...', 'Let\'s...'],
-            skills: ['Speaking', 'Listening', 'Physical activity'],
-            description: 'Playground vocabulary and outdoor activities'
+            objectives: ['Learn basic daily activities', 'Use simple present tense', 'Practice routine vocabulary'],
+            vocabulary: ['wake up', 'go to school', 'get up', 'eat breakfast'],
+            grammar: ['Simple present + daily activities'],
+            skills: ['Speaking', 'Listening', 'Grammar'],
+            description: 'Introduction to daily routines using simple present tense with pictures'
           },
           {
             id: 'ps-u4-l2',
-            title: 'Indoor Games',
+            title: 'Breakfast, lunch, dinner',
             duration: 30,
-            objectives: ['Name indoor activities', 'Talk about rainy day fun', 'Use game vocabulary'],
-            vocabulary: ['inside', 'puzzle', 'blocks', 'cards', 'board game', 'quiet', 'calm', 'concentrate'],
-            grammar: ['We can play...', 'This is...'],
-            skills: ['Speaking', 'Listening', 'Problem solving'],
-            description: 'Indoor games and quiet activities'
+            objectives: ['Learn meal times', 'Practice daily meals vocabulary', 'Use time expressions'],
+            vocabulary: ['breakfast', 'lunch', 'dinner', 'morning', 'afternoon', 'evening'],
+            grammar: ['Time expressions with meals'],
+            skills: ['Speaking', 'Listening', 'Time concepts'],
+            description: 'Daily meals vocabulary with time expressions and routines'
           },
           {
             id: 'ps-u4-l3',
-            title: 'Music and Dancing',
+            title: 'My day',
             duration: 30,
-            objectives: ['Talk about music', 'Move to rhythm', 'Express musical enjoyment'],
-            vocabulary: ['music', 'song', 'dance', 'rhythm', 'beat', 'loud', 'quiet', 'beautiful'],
-            grammar: ['I love...', 'The music is...'],
-            skills: ['Speaking', 'Listening', 'Rhythm', 'Movement'],
-            description: 'Music and dance vocabulary and activities'
+            objectives: ['Sequence daily activities', 'Practice simple writing', 'Describe your day'],
+            vocabulary: ['first', 'then', 'after', 'finally', 'my day'],
+            grammar: ['Sequencing with daily routines'],
+            skills: ['Speaking', 'Writing', 'Sequencing'],
+            description: 'Sequencing daily activities with simple writing practice'
           },
           {
             id: 'ps-u4-l4',
-            title: 'Art and Creativity',
+            title: 'Review – My Day Wheel',
             duration: 30,
-            objectives: ['Talk about art activities', 'Use art vocabulary', 'Express creativity'],
-            vocabulary: ['draw', 'paint', 'color', 'picture', 'beautiful', 'creative', 'artist', 'imagination'],
-            grammar: ['I can draw...', 'This picture is...'],
-            skills: ['Speaking', 'Listening', 'Creativity'],
-            description: 'Art and creative activity vocabulary'
+            objectives: ['Review daily routines', 'Practice acting out activities', 'Consolidate vocabulary'],
+            vocabulary: ['All unit vocabulary'],
+            grammar: ['All unit structures'],
+            skills: ['Speaking', 'Acting', 'Games', 'Movement'],
+            description: 'Interactive review with spinning wheel and acting out daily routines'
+          }
+        ]
+      },
+      {
+        id: 'pre-starter-unit-5',
+        title: 'Unit 5 – Daily Routines (Part 2)',
+        description: 'Evening routines and home activities',
+        lessons: [
+          {
+            id: 'ps-u5-l1',
+            title: 'I play / I watch TV',
+            duration: 30,
+            objectives: ['Learn home activities', 'Practice leisure vocabulary', 'Use activity verbs'],
+            vocabulary: ['play', 'watch TV', 'read', 'listen to music', 'draw'],
+            grammar: ['Simple present with activities'],
+            skills: ['Speaking', 'Listening', 'Vocabulary'],
+            description: 'Home and leisure activities vocabulary with simple present tense'
           },
           {
-            id: 'ps-u4-l5',
-            title: 'Sports and Exercise',
+            id: 'ps-u5-l2',
+            title: 'I go to bed / I sleep',
             duration: 30,
-            objectives: ['Name simple sports', 'Talk about exercise', 'Use movement vocabulary'],
-            vocabulary: ['sport', 'ball', 'kick', 'throw', 'catch', 'team', 'exercise', 'healthy'],
-            grammar: ['I can...', 'We play...'],
-            skills: ['Speaking', 'Listening', 'Physical coordination'],
-            description: 'Basic sports and exercise vocabulary'
+            objectives: ['Learn evening routines', 'Practice bedtime vocabulary', 'Use evening activities'],
+            vocabulary: ['go to bed', 'sleep', 'brush teeth', 'take a bath', 'say goodnight'],
+            grammar: ['Evening routines with simple present'],
+            skills: ['Speaking', 'Listening', 'Routines'],
+            description: 'Evening and bedtime routines with related vocabulary'
           },
           {
-            id: 'ps-u4-l6',
-            title: 'Nature Walk',
+            id: 'ps-u5-l3',
+            title: 'What do you do?',
             duration: 30,
-            objectives: ['Talk about nature', 'Describe outdoor observations', 'Use nature vocabulary'],
-            vocabulary: ['tree', 'flower', 'grass', 'sky', 'sun', 'cloud', 'nature', 'beautiful'],
-            grammar: ['I see...', 'Look at the...'],
-            skills: ['Speaking', 'Listening', 'Observation'],
-            description: 'Nature vocabulary and outdoor exploration'
+            objectives: ['Ask about daily routines', 'Answer routine questions', 'Practice dialogue'],
+            vocabulary: ['What do you do?', 'I...', 'Do you...?', 'Yes, I do / No, I don\'t'],
+            grammar: ['Questions about routines + short answers'],
+            skills: ['Speaking', 'Listening', 'Question formation', 'Dialogue'],
+            description: 'Question and answer practice about daily routines and activities'
           },
           {
-            id: 'ps-u4-l7',
-            title: 'Sharing and Taking Turns',
+            id: 'ps-u5-l4',
+            title: 'Review – Routine Bingo',
             duration: 30,
-            objectives: ['Practice sharing', 'Take turns politely', 'Use social vocabulary'],
-            vocabulary: ['share', 'turn', 'wait', 'patient', 'fair', 'together', 'kind', 'gentle'],
-            grammar: ['Your turn', 'Can I have...?'],
-            skills: ['Speaking', 'Listening', 'Social skills'],
-            description: 'Social skills and cooperation vocabulary'
+            objectives: ['Review all routine vocabulary', 'Practice guessing games', 'Act out activities'],
+            vocabulary: ['All routine vocabulary'],
+            grammar: ['All routine structures'],
+            skills: ['Speaking', 'Listening', 'Games', 'Acting'],
+            description: 'Interactive bingo game with guessing and acting out routine activities'
+          }
+        ]
+      },
+      {
+        id: 'pre-starter-unit-6',
+        title: 'Unit 6 – My World: Animals',
+        description: 'Animals, pets, and expressing likes/dislikes',
+        lessons: [
+          {
+            id: 'ps-u6-l1',
+            title: 'This is a cat / dog',
+            duration: 30,
+            objectives: ['Learn animal names', 'Practice animal vocabulary', 'Use "this is" with animals'],
+            vocabulary: ['cat', 'dog', 'bird', 'fish', 'rabbit', 'mouse', 'horse', 'cow'],
+            grammar: ['This is + animals'],
+            skills: ['Speaking', 'Listening', 'Vocabulary', 'Recognition'],
+            description: 'Introduction to common animals using "this is" structure'
           },
           {
-            id: 'ps-u4-l8',
-            title: 'Show and Tell',
+            id: 'ps-u6-l2',
+            title: 'I like / I don\'t like dogs',
             duration: 30,
-            objectives: ['Present something special', 'Listen to others', 'Ask simple questions'],
-            vocabulary: ['show', 'tell', 'special', 'interesting', 'question', 'answer', 'listen', 'watch'],
-            grammar: ['This is my...', 'I want to show...'],
-            skills: ['Speaking', 'Listening', 'Presentation'],
-            description: 'Presentation skills and sharing experiences'
+            objectives: ['Express likes and dislikes', 'Use like/don\'t like', 'Practice preferences'],
+            vocabulary: ['like', 'don\'t like', 'love', 'favourite'],
+            grammar: ['I like/don\'t like + animals'],
+            skills: ['Speaking', 'Grammar', 'Expression of opinion'],
+            description: 'Expressing preferences about animals using like/don\'t like'
           },
           {
-            id: 'ps-u4-l9',
-            title: 'Party Time',
+            id: 'ps-u6-l3',
+            title: 'My pet',
             duration: 30,
-            objectives: ['Talk about celebrations', 'Use party vocabulary', 'Express joy'],
-            vocabulary: ['party', 'celebrate', 'happy', 'fun', 'friends', 'together', 'special', 'memory'],
-            grammar: ['We are celebrating...', 'This is fun!'],
-            skills: ['Speaking', 'Listening', 'Social interaction'],
-            description: 'Celebration and party vocabulary'
+            objectives: ['Talk about pets', 'Create simple sentences', 'Practice mini-project'],
+            vocabulary: ['pet', 'my pet', 'name', 'cute', 'big', 'small'],
+            grammar: ['My pet is... / I have a pet'],
+            skills: ['Speaking', 'Writing', 'Project work'],
+            description: 'Mini-project about pets with simple sentence construction'
           },
           {
-            id: 'ps-u4-l10',
-            title: 'Graduation Day',
+            id: 'ps-u6-l4',
+            title: 'Review – Animal Safari Game',
             duration: 30,
-            objectives: ['Celebrate completion', 'Review progress', 'Look forward to next level'],
-            vocabulary: ['graduate', 'finish', 'complete', 'proud', 'learn', 'progress', 'next', 'ready'],
-            grammar: ['I finished...', 'I learned...'],
-            skills: ['Speaking', 'Listening', 'Reflection'],
-            description: 'Celebration of learning achievements and progress'
+            objectives: ['Review animal vocabulary', 'Practice animal sounds', 'Play guessing games'],
+            vocabulary: ['All animal vocabulary'],
+            grammar: ['All unit structures'],
+            skills: ['Speaking', 'Listening', 'Games', 'Sound effects'],
+            description: 'Interactive safari game with animal guessing and sound effects'
+          }
+        ]
+      },
+      {
+        id: 'pre-starter-unit-7',
+        title: 'Unit 7 – My Body & Clothes',
+        description: 'Body parts, clothing, and describing appearance',
+        lessons: [
+          {
+            id: 'ps-u7-l1',
+            title: 'Head, eyes, nose …',
+            duration: 30,
+            objectives: ['Learn body parts', 'Practice body vocabulary', 'Use body part chants'],
+            vocabulary: ['head', 'eyes', 'nose', 'mouth', 'ears', 'hands', 'feet', 'hair'],
+            grammar: ['Body parts with articles'],
+            skills: ['Speaking', 'Listening', 'Chanting', 'Physical recognition'],
+            description: 'Body parts vocabulary with chants and physical movements'
+          },
+          {
+            id: 'ps-u7-l2',
+            title: 'T-shirt, shoes, dress …',
+            duration: 30,
+            objectives: ['Learn clothing vocabulary', 'Practice clothes names', 'Use clothing basics'],
+            vocabulary: ['t-shirt', 'shoes', 'dress', 'trousers', 'socks', 'hat', 'coat', 'shirt'],
+            grammar: ['Clothing vocabulary with articles'],
+            skills: ['Speaking', 'Listening', 'Vocabulary', 'Recognition'],
+            description: 'Basic clothing vocabulary and clothing identification'
+          },
+          {
+            id: 'ps-u7-l3',
+            title: 'What are you wearing?',
+            duration: 30,
+            objectives: ['Ask about clothing', 'Describe what you\'re wearing', 'Practice clothing dialogue'],
+            vocabulary: ['What are you wearing?', 'I\'m wearing', 'wearing', 'today'],
+            grammar: ['Present continuous for clothing'],
+            skills: ['Speaking', 'Listening', 'Role-play', 'Description'],
+            description: 'Question and answer practice about clothing with role-play activities'
+          },
+          {
+            id: 'ps-u7-l4',
+            title: 'Review – Dress the Puppet',
+            duration: 30,
+            objectives: ['Review body parts and clothes', 'Practice dressing activities', 'Interactive dress-up'],
+            vocabulary: ['All body parts and clothing'],
+            grammar: ['All unit structures'],
+            skills: ['Speaking', 'Listening', 'Interactive play', 'Recognition'],
+            description: 'Interactive dress-up game combining body parts and clothing vocabulary'
+          }
+        ]
+      },
+      {
+        id: 'pre-starter-unit-8',
+        title: 'Unit 8 – My House & Things',
+        description: 'House rooms, furniture, and prepositions of place',
+        lessons: [
+          {
+            id: 'ps-u8-l1',
+            title: 'This is my room',
+            duration: 30,
+            objectives: ['Learn house vocabulary', 'Practice room names', 'Use house basics'],
+            vocabulary: ['room', 'bed', 'chair', 'table', 'door', 'window', 'house', 'my room'],
+            grammar: ['This is my... with house vocabulary'],
+            skills: ['Speaking', 'Listening', 'Vocabulary', 'Description'],
+            description: 'Introduction to house and room vocabulary using "this is my" structure'
+          },
+          {
+            id: 'ps-u8-l2',
+            title: 'In the kitchen / bathroom',
+            duration: 30,
+            objectives: ['Expand house vocabulary', 'Learn room-specific items', 'Practice house areas'],
+            vocabulary: ['kitchen', 'bathroom', 'living room', 'fridge', 'sink', 'toilet', 'sofa'],
+            grammar: ['In the... + room vocabulary'],
+            skills: ['Speaking', 'Listening', 'Vocabulary', 'Location'],
+            description: 'Expanding house vocabulary with specific rooms and their items'
+          },
+          {
+            id: 'ps-u8-l3',
+            title: 'Where is it? It\'s in the …',
+            duration: 30,
+            objectives: ['Learn prepositions of place', 'Ask about location', 'Practice where questions'],
+            vocabulary: ['Where is it?', 'It\'s in', 'on', 'under', 'next to', 'in front of'],
+            grammar: ['Prepositions of place with house items'],
+            skills: ['Speaking', 'Listening', 'Spatial awareness', 'Question formation'],
+            description: 'Prepositions of place for describing location of objects in the house'
+          },
+          {
+            id: 'ps-u8-l4',
+            title: 'Review – House Treasure Hunt',
+            duration: 30,
+            objectives: ['Review house vocabulary', 'Practice location descriptions', 'Play finding games'],
+            vocabulary: ['All house vocabulary and prepositions'],
+            grammar: ['All unit structures'],
+            skills: ['Speaking', 'Listening', 'Games', 'Problem solving'],
+            description: 'Interactive treasure hunt game to find objects around the house'
+          }
+        ]
+      },
+      {
+        id: 'pre-starter-unit-9',
+        title: 'Unit 9 – My Friends & Playtime',
+        description: 'Friends, sports, toys, and social interaction',
+        lessons: [
+          {
+            id: 'ps-u9-l1',
+            title: 'Hello, my friend',
+            duration: 30,
+            objectives: ['Review greetings', 'Practice friendship vocabulary', 'Connect family and friends'],
+            vocabulary: ['friend', 'hello', 'my friend', 'nice to meet you', 'goodbye'],
+            grammar: ['Greetings review + friend vocabulary'],
+            skills: ['Speaking', 'Listening', 'Social skills', 'Greetings'],
+            description: 'Review of greetings with introduction to friendship vocabulary'
+          },
+          {
+            id: 'ps-u9-l2',
+            title: 'We play football',
+            duration: 30,
+            objectives: ['Learn sports vocabulary', 'Practice toy names', 'Use "we" structure'],
+            vocabulary: ['football', 'basketball', 'tennis', 'ball', 'toy', 'game', 'play', 'we'],
+            grammar: ['We + activity verbs'],
+            skills: ['Speaking', 'Listening', 'Vocabulary', 'Group activities'],
+            description: 'Sports and toys vocabulary with "we" structure for group activities'
+          },
+          {
+            id: 'ps-u9-l3',
+            title: 'Pair-work game: "Find someone who …"',
+            duration: 30,
+            objectives: ['Practice pair work', 'Use finding activities', 'Practice social interaction'],
+            vocabulary: ['Find someone who...', 'Do you...?', 'Yes, I do', 'No, I don\'t'],
+            grammar: ['Questions + short answers in context'],
+            skills: ['Speaking', 'Listening', 'Social interaction', 'Pair work'],
+            description: 'Interactive pair work activity to practice questions and social skills'
+          },
+          {
+            id: 'ps-u9-l4',
+            title: 'Review – Friendship Quiz Show',
+            duration: 30,
+            objectives: ['Review all friendship vocabulary', 'Practice team work', 'Quiz challenge'],
+            vocabulary: ['All unit vocabulary'],
+            grammar: ['All unit structures'],
+            skills: ['Speaking', 'Listening', 'Team work', 'Competition'],
+            description: 'Team-based quiz show challenge reviewing friendship and play vocabulary'
+          }
+        ]
+      },
+      {
+        id: 'pre-starter-unit-10',
+        title: 'Unit 10 – Big Review: My English World',
+        description: 'Comprehensive review of all units with final project',
+        lessons: [
+          {
+            id: 'ps-u10-l1',
+            title: 'Review family, classroom, colors, numbers',
+            duration: 30,
+            objectives: ['Review Units 1-3', 'Consolidate early vocabulary', 'Practice basic structures'],
+            vocabulary: ['Family, classroom, colors, numbers vocabulary'],
+            grammar: ['to be, have got, this is, these are'],
+            skills: ['Speaking', 'Listening', 'Review', 'Consolidation'],
+            description: 'Comprehensive review of the first three units with consolidation activities'
+          },
+          {
+            id: 'ps-u10-l2',
+            title: 'Review routines, animals, clothes, house',
+            duration: 30,
+            objectives: ['Review Units 4-8', 'Consolidate middle vocabulary', 'Practice complex structures'],
+            vocabulary: ['Routines, animals, clothes, house vocabulary'],
+            grammar: ['Simple present, like/don\'t like, prepositions'],
+            skills: ['Speaking', 'Listening', 'Review', 'Integration'],
+            description: 'Comprehensive review of units 4-8 with integration of vocabulary and grammar'
+          },
+          {
+            id: 'ps-u10-l3',
+            title: 'Show & Tell project: "This is my world"',
+            duration: 30,
+            objectives: ['Present personal project', 'Use all learned vocabulary', 'Practice presentation skills'],
+            vocabulary: ['All course vocabulary'],
+            grammar: ['All course structures'],
+            skills: ['Speaking', 'Presentation', 'Creativity', 'Confidence'],
+            description: 'Student presentation project showcasing all learned English in personal context'
+          },
+          {
+            id: 'ps-u10-l4',
+            title: 'Final Review Game – My English Adventure',
+            duration: 30,
+            objectives: ['Complete course review', 'Celebrate achievements', 'Escape room challenge'],
+            vocabulary: ['All course vocabulary'],
+            grammar: ['All course structures'],
+            skills: ['Speaking', 'Listening', 'Problem solving', 'Teamwork'],
+            description: 'Escape room style final review game celebrating English learning journey'
           }
         ]
       }
