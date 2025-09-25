@@ -20,10 +20,10 @@ export function LeftSidebar({ onToolSelect, selectedTool }: LeftSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const tools = [
-    { id: 'embed', icon: Link, label: 'Embed Link', color: 'hsl(var(--joy-teal))', description: 'Share external content' },
-    { id: 'awards', icon: Award, label: 'Give Awards', color: 'hsl(var(--joy-orange))', description: 'Reward students' },
-    { id: 'chat', icon: MessageCircle, label: 'Chat', color: 'hsl(var(--joy-purple))', description: 'Real-time messaging' },
-    { id: 'library', icon: Library, label: 'Library', color: 'hsl(var(--joy-pink))', description: 'Access lessons library', href: '/teacher-dashboard' }
+    { id: 'embed', icon: Link, label: 'Embed Link', color: 'hsl(var(--classroom-primary))', description: 'Share external content' },
+    { id: 'awards', icon: Award, label: 'Give Awards', color: 'hsl(var(--classroom-secondary))', description: 'Reward students' },
+    { id: 'chat', icon: MessageCircle, label: 'Chat', color: 'hsl(var(--classroom-accent))', description: 'Real-time messaging' },
+    { id: 'library', icon: Library, label: 'Library', color: 'hsl(var(--classroom-success))', description: 'Access lessons library', href: '/teacher-dashboard' }
   ];
 
   return (
@@ -36,20 +36,20 @@ export function LeftSidebar({ onToolSelect, selectedTool }: LeftSidebarProps) {
           ${isCollapsed ? 'w-16' : 'w-20'}
         `}
         style={{
-          background: 'linear-gradient(180deg, rgba(255, 245, 255, 0.95) 0%, rgba(248, 250, 255, 0.9) 100%)',
-          borderImage: 'linear-gradient(180deg, rgba(255, 182, 193, 0.6) 0%, rgba(186, 85, 211, 0.4) 100%) 1'
+          background: 'linear-gradient(180deg, hsl(var(--classroom-background) / 0.95) 0%, hsl(var(--classroom-card) / 0.9) 100%)',
+          borderImage: 'linear-gradient(180deg, hsl(var(--classroom-primary) / 0.3) 0%, hsl(var(--classroom-accent) / 0.2) 100%) 1'
         }}
       >
         {/* Enhanced ambient glow effect */}
         <div 
           className="absolute inset-0 opacity-30 pointer-events-none transition-opacity duration-500"
           style={{ 
-            background: 'linear-gradient(180deg, rgba(255, 182, 193, 0.15) 0%, rgba(186, 85, 211, 0.08) 100%)' 
+            background: 'linear-gradient(180deg, hsl(var(--classroom-primary) / 0.1) 0%, hsl(var(--classroom-accent) / 0.05) 100%)' 
           }}
         />
 
         {/* Animated gradient border */}
-        <div className="absolute inset-0 bg-gradient-to-b from-pink-400/20 via-transparent to-purple-400/20 opacity-0 hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-classroom-primary/15 via-transparent to-classroom-accent/15 opacity-0 hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
         {/* Enhanced collapse toggle */}
         <div className="absolute top-4 right-2 z-10">
@@ -57,12 +57,12 @@ export function LeftSidebar({ onToolSelect, selectedTool }: LeftSidebarProps) {
             variant="ghost"
             size="sm"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="h-6 w-6 p-0 rounded-full hover:bg-pink-100/50 transition-all duration-300 hover:scale-110"
+            className="h-6 w-6 p-0 rounded-full hover:bg-classroom-primary/10 transition-all duration-300 hover:scale-110"
           >
             {isCollapsed ? (
-              <ChevronRight size={12} style={{ color: 'hsl(var(--joy-pink))' }} />
+              <ChevronRight size={12} style={{ color: 'hsl(var(--classroom-primary))' }} />
             ) : (
-              <ChevronLeft size={12} style={{ color: 'hsl(var(--joy-pink))' }} />
+              <ChevronLeft size={12} style={{ color: 'hsl(var(--classroom-primary))' }} />
             )}
           </Button>
         </div>
@@ -99,13 +99,13 @@ export function LeftSidebar({ onToolSelect, selectedTool }: LeftSidebarProps) {
                           : 'hover:shadow-lg hover:scale-105'
                         }
                       `}
-                      style={{
+                        style={{
                         background: isSelected 
                           ? `linear-gradient(135deg, ${tool.color}20, ${tool.color}10)`
-                          : 'linear-gradient(135deg, rgba(255, 245, 255, 0.6), rgba(248, 250, 255, 0.4))',
+                          : 'linear-gradient(135deg, hsl(var(--classroom-background) / 0.8), hsl(var(--classroom-card) / 0.6))',
                         borderColor: isSelected 
                           ? tool.color 
-                          : 'rgba(255, 182, 193, 0.3)'
+                          : 'hsl(var(--classroom-border))'
                       }}
                       onMouseEnter={(e) => {
                         if (!isSelected) {
@@ -116,8 +116,8 @@ export function LeftSidebar({ onToolSelect, selectedTool }: LeftSidebarProps) {
                       }}
                       onMouseLeave={(e) => {
                         if (!isSelected) {
-                          e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 245, 255, 0.6), rgba(248, 250, 255, 0.4))';
-                          e.currentTarget.style.borderColor = 'rgba(255, 182, 193, 0.3)';
+                          e.currentTarget.style.background = 'linear-gradient(135deg, hsl(var(--classroom-background) / 0.8), hsl(var(--classroom-card) / 0.6))';
+                          e.currentTarget.style.borderColor = 'hsl(var(--classroom-border))';
                           e.currentTarget.style.transform = 'scale(1)';
                         }
                       }}
@@ -174,7 +174,7 @@ export function LeftSidebar({ onToolSelect, selectedTool }: LeftSidebarProps) {
                 </TooltipTrigger>
                 <TooltipContent 
                   side="right" 
-                  className="bg-white/98 backdrop-blur-sm border border-pink-200/50 shadow-xl rounded-xl p-3 animate-fade-in"
+                  className="bg-classroom-card/98 backdrop-blur-sm border border-classroom-border shadow-xl rounded-xl p-3 animate-fade-in"
                   sideOffset={12}
                 >
                   <div className="flex flex-col gap-1">
@@ -192,9 +192,9 @@ export function LeftSidebar({ onToolSelect, selectedTool }: LeftSidebarProps) {
         </div>
 
         {/* Enhanced decorative elements */}
-        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-10 h-0.5 rounded-full bg-gradient-to-r from-transparent via-pink-400/60 to-transparent animate-pulse" />
-        <div className="absolute top-12 left-1 w-0.5 h-12 rounded-full bg-gradient-to-b from-pink-400/60 to-transparent" />
-        <div className="absolute bottom-20 right-1 w-0.5 h-8 rounded-full bg-gradient-to-t from-purple-400/40 to-transparent" />
+        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-10 h-0.5 rounded-full bg-gradient-to-r from-transparent via-classroom-primary/60 to-transparent animate-pulse" />
+        <div className="absolute top-12 left-1 w-0.5 h-12 rounded-full bg-gradient-to-b from-classroom-primary/60 to-transparent" />
+        <div className="absolute bottom-20 right-1 w-0.5 h-8 rounded-full bg-gradient-to-t from-classroom-accent/40 to-transparent" />
       </Card>
     </TooltipProvider>
   );

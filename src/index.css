@@ -22,15 +22,15 @@
     --primary-800: 220 60% 35%;   /* #08529E */
     --primary-900: 220 55% 28%;   /* #063E7A */
 
-    /* Joy Colors - Educational Fun */
-    --joy-yellow: 45 98% 65%;     /* #FFD93D */
-    --joy-orange: 25 95% 62%;     /* #FF8C42 */
-    --joy-green: 142 70% 55%;     /* #2ECC71 */
-    --joy-purple: 275 80% 70%;    /* #A855F7 */
-    --joy-pink: 330 85% 70%;      /* #F472B6 */
-    --joy-red: 10 85% 65%;        /* #F87171 */
-    --joy-teal: 172 66% 50%;      /* #14B8A6 */
-    --joy-indigo: 240 80% 70%;    /* #6366F1 */
+    /* Harmonious Joyful Classroom Colors */
+    --classroom-primary: 120 25% 55%;     /* #7FB069 - Sage green */
+    --classroom-secondary: 15 100% 82%;   /* #FFB5A7 - Warm peach */
+    --classroom-accent: 270 45% 80%;      /* #C8B6E2 - Soft lavender */
+    --classroom-background: 45 50% 98%;   /* #FEFCF8 - Warm cream */
+    --classroom-neutral: 195 30% 92%;     /* #E8F1F2 - Light gray-blue */
+    --classroom-success: 140 45% 60%;     /* #4CAF50 - Gentle green */
+    --classroom-card: 0 0% 100%;          /* #FFFFFF - Pure white */
+    --classroom-border: 195 25% 88%;      /* #DDE7E9 - Soft border */
 
     /* Neutral System - Clean Grays */
     --neutral-50: 0 0% 98%;       /* #FAFAFA */
