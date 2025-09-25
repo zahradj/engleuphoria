@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { LeftSidebar } from "./components/LeftSidebar";
 import { Whiteboard } from "@/components/Whiteboard";
 import { EnhancedDictionary } from "@/components/classroom/oneonone/dictionary/EnhancedDictionary";
+import { LibraryContent } from "./library/LibraryContent";
 
 interface ClassroomState {
   activeRightTab: string;
@@ -172,6 +173,17 @@ export function UnifiedClassroomContent({
             <EnhancedDictionary 
               onAddToVocab={(word, definition) => {
                 console.log('Adding to vocabulary:', { word, definition });
+              }}
+            />
+          </ToolRailOverlay>
+        )}
+
+        {selectedLeftTool === 'library' && (
+          <ToolRailOverlay title="Lesson Library" onClose={() => setSelectedLeftTool("")}>
+            <LibraryContent 
+              onLessonSelect={(lesson) => {
+                console.log('Selected lesson:', lesson);
+                // TODO: Implement lesson loading in Phase 5
               }}
             />
           </ToolRailOverlay>

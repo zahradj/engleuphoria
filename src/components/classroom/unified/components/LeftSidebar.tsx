@@ -23,7 +23,7 @@ export function LeftSidebar({ onToolSelect, selectedTool }: LeftSidebarProps) {
     { id: 'embed', icon: Link, label: 'Embed Link', color: 'hsl(var(--classroom-primary))', description: 'Share external content' },
     { id: 'awards', icon: Award, label: 'Give Awards', color: 'hsl(var(--classroom-secondary))', description: 'Reward students' },
     { id: 'chat', icon: MessageCircle, label: 'Chat', color: 'hsl(var(--classroom-accent))', description: 'Real-time messaging' },
-    { id: 'library', icon: Library, label: 'Library', color: 'hsl(var(--classroom-success))', description: 'Access lessons library', href: '/teacher-dashboard' }
+    { id: 'library', icon: Library, label: 'Library', color: 'hsl(var(--classroom-success))', description: 'Access lessons library' }
   ];
 
   return (
