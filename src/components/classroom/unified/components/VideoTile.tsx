@@ -23,7 +23,7 @@ export function VideoTile({ stream, hasVideo, isTeacher, userLabel, isCameraOff 
       <div className="absolute -inset-3 rounded-2xl blur-lg animate-rgb-neon-outer opacity-80"></div>
       <div className="absolute -inset-2 rounded-2xl blur-md animate-rgb-neon-mid opacity-60"></div>
       
-      <div className="relative w-full h-full rounded-xl overflow-hidden shadow-lg group-hover:shadow-xl transition-all duration-300 bg-white border-4 animate-rgb-neon-border flex items-center justify-center">
+      <div className="relative w-full h-full rounded-xl overflow-hidden shadow-lg group-hover:shadow-xl transition-all duration-300 bg-white border-2 animate-rgb-neon-border flex items-center justify-center">
         {/* Colorful gradient overlays for depth */}
         <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-primary-100/30 via-transparent to-accent-100/20"></div>
         <div className="absolute inset-0 pointer-events-none bg-gradient-radial from-transparent via-primary-50/10 to-transparent"></div>
