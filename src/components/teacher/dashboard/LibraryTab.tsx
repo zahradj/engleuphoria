@@ -1,66 +1,28 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { 
-  ChevronDown, 
-  ChevronRight, 
-  Search, 
-  BookOpen, 
-  Clock, 
-  Target, 
-  Users,
-  Play,
-  Star,
-  Filter
-} from "lucide-react";
+import { ChevronDown, ChevronRight, Search, BookOpen, Clock, Target, Users, Play, Star, Filter } from "lucide-react";
 import { CURRICULUM_STRUCTURE, CEFRLevel, Unit, LessonContent } from "@/data/curriculum/curriculumStructure";
-
 export const LibraryTab = () => {
-  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedLevels, setExpandedLevels] = useState<string[]>([]);
   const [expandedUnits, setExpandedUnits] = useState<string[]>([]);
   const [selectedLevel, setSelectedLevel] = useState<string>("all");
-
   const toggleLevel = (level: string) => {
-    setExpandedLevels(prev => 
-      prev.includes(level) 
-        ? prev.filter(l => l !== level)
-        : [...prev, level]
-    );
+    setExpandedLevels(prev => prev.includes(level) ? prev.filter(l => l !== level) : [...prev, level]);
   };
-
   const toggleUnit = (unitId: string) => {
-    setExpandedUnits(prev => 
-      prev.includes(unitId) 
-        ? prev.filter(u => u !== unitId)
-        : [...prev, unitId]
-    );
+    setExpandedUnits(prev => prev.includes(unitId) ? prev.filter(u => u !== unitId) : [...prev, unitId]);
   };
-
   const filteredLevels = CURRICULUM_STRUCTURE.filter(level => {
     if (selectedLevel !== "all" && level.level !== selectedLevel) return false;
     if (!searchTerm) return true;
-    
     const searchLower = searchTerm.toLowerCase();
-    return (
-      level.title.toLowerCase().includes(searchLower) ||
-      level.description.toLowerCase().includes(searchLower) ||
-      level.units.some(unit => 
-        unit.title.toLowerCase().includes(searchLower) ||
-        unit.lessons.some(lesson => 
-          lesson.title.toLowerCase().includes(searchLower) ||
-          lesson.description.toLowerCase().includes(searchLower)
-        )
-      )
-    );
+    return level.title.toLowerCase().includes(searchLower) || level.description.toLowerCase().includes(searchLower) || level.units.some(unit => unit.title.toLowerCase().includes(searchLower) || unit.lessons.some(lesson => lesson.title.toLowerCase().includes(searchLower) || lesson.description.toLowerCase().includes(searchLower)));
   });
-
   const getLevelColor = (level: string) => {
     const colors = {
       'Pre-Starter': 'bg-purple-100 text-purple-800 border-purple-200',
@@ -73,71 +35,40 @@ export const LibraryTab = () => {
     };
     return colors[level as keyof typeof colors] || 'bg-gray-100 text-gray-800 border-gray-200';
   };
-
   const startLesson = (lesson: LessonContent) => {
-    // Navigate to specific lesson if it's our Unit 0 Lesson 1
-    if (lesson.id === 'ps-u0-l1') {
-      navigate('/lessons/unit-0/lesson-1');
-      toast.success(`Starting lesson: ${lesson.title}`);
-    } else {
-      // For other lessons, show a message that they're coming soon
-      toast.info(`${lesson.title} - Coming soon! This lesson is being developed.`);
-    }
+    // TODO: Implement lesson player navigation
+    console.log('Starting lesson:', lesson.title);
   };
-
-  const goToClassroom = () => {
-    navigate('/oneonone-classroom-new');
-    toast.success('Opening classroom...');
-  };
-
-  return (
-    <div className="space-y-6">
-      {/* Header with Classroom Link */}
+  return <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Content Library</h2>
-          <p className="text-gray-600">Browse and manage your educational content</p>
+          <h2 className="text-2xl font-bold text-foreground">Lesson Library</h2>
+          <p className="text-muted-foreground">Browse lessons organized by CEFR levels</p>
         </div>
-        <Button 
-          onClick={goToClassroom}
-          className="bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white px-6 py-3"
-        >
-          <BookOpen className="mr-2 h-5 w-5" />
-          Go to Classroom
-        </Button>
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="flex items-center gap-1">
+            <BookOpen className="h-3 w-3" />
+            {CURRICULUM_STRUCTURE.reduce((total, level) => total + level.units.reduce((unitTotal, unit) => unitTotal + unit.lessons.length, 0), 0)} Total Lessons
+          </Badge>
+        </div>
       </div>
+
       {/* Search and Filters */}
       <Card>
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Search lessons, topics, or content..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+              
             </div>
             <div className="flex gap-2">
-              <Button
-                variant={selectedLevel === "all" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedLevel("all")}
-              >
+              <Button variant={selectedLevel === "all" ? "default" : "outline"} size="sm" onClick={() => setSelectedLevel("all")}>
                 All Levels
               </Button>
-              {CURRICULUM_STRUCTURE.map((level) => (
-                <Button
-                  key={level.level}
-                  variant={selectedLevel === level.level ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedLevel(level.level)}
-                  className="hidden sm:inline-flex"
-                >
+              {CURRICULUM_STRUCTURE.map(level => <Button key={level.level} variant={selectedLevel === level.level ? "default" : "outline"} size="sm" onClick={() => setSelectedLevel(level.level)} className="hidden sm:inline-flex">
                   {level.level}
-                </Button>
-              ))}
+                </Button>)}
             </div>
           </div>
         </CardContent>
@@ -145,21 +76,13 @@ export const LibraryTab = () => {
 
       {/* Curriculum Structure */}
       <div className="space-y-4">
-        {filteredLevels.map((level) => (
-          <Card key={level.level} className="overflow-hidden">
-            <Collapsible
-              open={expandedLevels.includes(level.level)}
-              onOpenChange={() => toggleLevel(level.level)}
-            >
+        {filteredLevels.map(level => <Card key={level.level} className="overflow-hidden">
+            <Collapsible open={expandedLevels.includes(level.level)} onOpenChange={() => toggleLevel(level.level)}>
               <CollapsibleTrigger asChild>
                 <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      {expandedLevels.includes(level.level) ? (
-                        <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                      ) : (
-                        <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                      )}
+                      {expandedLevels.includes(level.level) ? <ChevronDown className="h-5 w-5 text-muted-foreground" /> : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
                       <div>
                         <div className="flex items-center gap-3">
                           <CardTitle className="text-lg">{level.title}</CardTitle>
@@ -187,21 +110,13 @@ export const LibraryTab = () => {
               <CollapsibleContent>
                 <CardContent className="pt-0">
                   <div className="space-y-3">
-                    {level.units.map((unit) => (
-                      <Card key={unit.id} className="border-l-4 border-l-primary/20">
-                        <Collapsible
-                          open={expandedUnits.includes(unit.id)}
-                          onOpenChange={() => toggleUnit(unit.id)}
-                        >
+                    {level.units.map(unit => <Card key={unit.id} className="border-l-4 border-l-primary/20">
+                        <Collapsible open={expandedUnits.includes(unit.id)} onOpenChange={() => toggleUnit(unit.id)}>
                           <CollapsibleTrigger asChild>
                             <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors py-3">
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                  {expandedUnits.includes(unit.id) ? (
-                                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                                  ) : (
-                                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                                  )}
+                                  {expandedUnits.includes(unit.id) ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
                                   <div>
                                     <h4 className="font-semibold text-base">{unit.title}</h4>
                                     <p className="text-sm text-muted-foreground">{unit.description}</p>
@@ -218,8 +133,7 @@ export const LibraryTab = () => {
                           <CollapsibleContent>
                             <CardContent className="pt-0">
                               <div className="grid gap-3">
-                                {unit.lessons.map((lesson, index) => (
-                                  <Card key={lesson.id} className="border border-border/50 hover:border-border transition-colors">
+                                {unit.lessons.map((lesson, index) => <Card key={lesson.id} className="border border-border/50 hover:border-border transition-colors">
                                     <CardContent className="p-4">
                                       <div className="flex items-start justify-between">
                                         <div className="flex-1">
@@ -250,56 +164,42 @@ export const LibraryTab = () => {
                                           </div>
 
                                           <div className="space-y-2">
-                                            {lesson.objectives.length > 0 && (
-                                              <div>
+                                            {lesson.objectives.length > 0 && <div>
                                                 <p className="text-xs font-medium text-muted-foreground mb-1">Objectives:</p>
                                                 <div className="flex flex-wrap gap-1">
-                                                  {lesson.objectives.slice(0, 2).map((objective, idx) => (
-                                                    <Badge key={idx} variant="secondary" className="text-xs">
+                                                  {lesson.objectives.slice(0, 2).map((objective, idx) => <Badge key={idx} variant="secondary" className="text-xs">
                                                       {objective}
-                                                    </Badge>
-                                                  ))}
-                                                  {lesson.objectives.length > 2 && (
-                                                    <Badge variant="outline" className="text-xs">
+                                                    </Badge>)}
+                                                  {lesson.objectives.length > 2 && <Badge variant="outline" className="text-xs">
                                                       +{lesson.objectives.length - 2} more
-                                                    </Badge>
-                                                  )}
+                                                    </Badge>}
                                                 </div>
-                                              </div>
-                                            )}
+                                              </div>}
                                           </div>
                                         </div>
 
                                         <div className="ml-4">
-                                          <Button
-                                            onClick={() => startLesson(lesson)}
-                                            size="sm"
-                                            className="flex items-center gap-2"
-                                          >
+                                          <Button onClick={() => startLesson(lesson)} size="sm" className="flex items-center gap-2">
                                             <Play className="h-3 w-3" />
                                             Start Lesson
                                           </Button>
                                         </div>
                                       </div>
                                     </CardContent>
-                                  </Card>
-                                ))}
+                                  </Card>)}
                               </div>
                             </CardContent>
                           </CollapsibleContent>
                         </Collapsible>
-                      </Card>
-                    ))}
+                      </Card>)}
                   </div>
                 </CardContent>
               </CollapsibleContent>
             </Collapsible>
-          </Card>
-        ))}
+          </Card>)}
       </div>
 
-      {filteredLevels.length === 0 && (
-        <Card>
+      {filteredLevels.length === 0 && <Card>
           <CardContent className="py-12 text-center">
             <div className="flex flex-col items-center gap-4">
               <div className="p-4 bg-muted rounded-full">
@@ -310,15 +210,13 @@ export const LibraryTab = () => {
                 <p className="text-muted-foreground">Try adjusting your search terms or filters</p>
               </div>
               <Button variant="outline" onClick={() => {
-                setSearchTerm("");
-                setSelectedLevel("all");
-              }}>
+            setSearchTerm("");
+            setSelectedLevel("all");
+          }}>
                 Clear Filters
               </Button>
             </div>
           </CardContent>
-        </Card>
-      )}
-    </div>
-  );
+        </Card>}
+    </div>;
 };
