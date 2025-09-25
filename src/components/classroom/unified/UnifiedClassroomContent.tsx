@@ -180,62 +180,16 @@ export function UnifiedClassroomContent({
     );
   }
 
-  // Student view
+  // Simplified Student view - only material, teacher, and rewards
   return (
-    <div className="flex h-full">
-      {/* Left Sidebar */}
-      <LeftSidebar 
-        onToolSelect={handleLeftToolSelect}
-        selectedTool={selectedLeftTool}
+    <div className="h-full">
+      {/* Simplified Student View - No Sidebar, No Chat, No Tools */}
+      <StudentClassroomView
+        currentUser={currentUser}
+        enhancedClassroom={enhancedClassroom}
+        classTime={classTime}
+        studentXP={studentXP}
       />
-      
-      {/* Main Content Area */}
-      <div className="flex-1 flex">
-        <StudentClassroomView
-          currentUser={currentUser}
-          enhancedClassroom={enhancedClassroom}
-          classTime={classTime}
-          studentXP={studentXP}
-        />
-      </div>
-      
-      {/* Tool Overlays for Student */}
-      {openTool === 'chat' && (
-        <ToolRailOverlay title="Chat" onClose={() => setOpenTool(null)}>
-          <ClassroomChat teacherName={teacherName} studentName={studentName} />
-        </ToolRailOverlay>
-      )}
-
-      {/* Left Sidebar Tool Overlays for Student */}
-      {selectedLeftTool === 'embed' && (
-        <ToolRailOverlay title="Embed Link" onClose={() => setSelectedLeftTool("")}>
-          <div className="space-y-4">
-            <input 
-              type="url" 
-              placeholder="Enter link to embed..." 
-              className="w-full p-3 border rounded-lg"
-            />
-            <Button className="w-full">Embed Link</Button>
-          </div>
-        </ToolRailOverlay>
-      )}
-
-
-      {selectedLeftTool === 'chat' && (
-        <ToolRailOverlay title="Classroom Chat" onClose={() => setSelectedLeftTool("")}>
-          <ClassroomChat teacherName={teacherName} studentName={studentName} />
-        </ToolRailOverlay>
-      )}
-
-      {selectedLeftTool === 'dictionary' && (
-        <ToolRailOverlay title="Dictionary" onClose={() => setSelectedLeftTool("")}>
-          <EnhancedDictionary 
-            onAddToVocab={(word, definition) => {
-              console.log('Adding to vocabulary:', { word, definition });
-            }}
-          />
-        </ToolRailOverlay>
-      )}
     </div>
   );
 

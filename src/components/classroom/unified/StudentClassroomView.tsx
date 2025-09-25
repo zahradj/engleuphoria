@@ -62,32 +62,27 @@ export function StudentClassroomView({
   };
 
   return (
-    <div className="h-screen w-full grid grid-cols-[minmax(0,1fr)_minmax(22rem,32rem)] gap-0 p-0 md:gap-2 md:px-2 bg-gradient-to-br from-blue-50 to-purple-50">
-      {/* Header */}
-      <div className="absolute top-4 left-4 z-10">
-        <Badge variant="secondary" className="text-blue-600 bg-blue-50">
-          A
-        </Badge>
-      </div>
-
-      <div className="absolute top-4 center-4 z-10 left-1/2 transform -translate-x-1/2">
+    <div className="h-screen w-full bg-gradient-to-br from-blue-50 to-purple-50 relative">
+      {/* Clean header with time and XP only */}
+      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10">
         <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg">
           <Clock className="w-4 h-4 text-blue-600" />
           <span className="font-medium text-blue-600">{formatTime(classTime)}</span>
         </div>
       </div>
 
+      {/* XP Display - Top Right */}
       <div className="absolute top-4 right-4 z-10">
-        <div className="flex items-center gap-1">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <Star key={star} className="w-6 h-6 fill-yellow-400 text-yellow-400" />
-          ))}
+        <div className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2">
+          <Star className="w-5 h-5" />
+          <span className="font-bold">{studentXP} XP</span>
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="w-full h-full p-2 md:p-4">
-        <Card className="w-full h-full bg-white shadow-2xl rounded-3xl md:rounded-r-none overflow-hidden">
+      {/* Two-column layout: Material + Teacher */}
+      <div className="h-full grid grid-cols-[1fr_400px] gap-4 p-4 pt-20">{/* Added pt-20 for header space */}
+        {/* Left: Learning Material */}
+        <Card className="h-full bg-white shadow-2xl rounded-3xl overflow-hidden">
           <Tabs value={activeContentTab} onValueChange={setActiveContentTab} className="w-full h-full flex flex-col">
             <div className="px-8 pt-6 pb-2 border-b border-gray-100">
               <TabsList className="grid w-full grid-cols-2">
@@ -104,65 +99,64 @@ export function StudentClassroomView({
             
             <TabsContent value="slides" className="flex-1 m-0 overflow-y-auto">
               <div className="h-full p-8 bg-gradient-to-br from-blue-50 via-white to-purple-50 relative overflow-y-auto">
-            
-            {/* Main Exercise Content */}
-            <div className="flex items-center justify-center h-full">
-              <div className="max-w-4xl w-full">
-                
-                {/* Pronoun Cards - Left Side */}
-                <div className="flex flex-col gap-3 w-48 float-left mr-8">
-                  {pronouns.map((pronoun) => (
-                    <div
-                      key={pronoun}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, pronoun)}
-                      className="bg-gradient-to-r from-green-400 to-green-500 text-white p-4 rounded-xl text-center font-bold text-lg cursor-move shadow-lg hover:shadow-xl transition-shadow border-2 border-green-600"
-                    >
-                      {pronoun}
+                {/* Main Exercise Content */}
+                <div className="flex items-center justify-center h-full">
+                  <div className="max-w-4xl w-full">
+                    
+                    {/* Pronoun Cards - Left Side */}
+                    <div className="flex flex-col gap-3 w-48 float-left mr-8">
+                      {pronouns.map((pronoun) => (
+                        <div
+                          key={pronoun}
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, pronoun)}
+                          className="bg-gradient-to-r from-green-400 to-green-500 text-white p-4 rounded-xl text-center font-bold text-lg cursor-move shadow-lg hover:shadow-xl transition-shadow border-2 border-green-600"
+                        >
+                          {pronoun}
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
 
-                {/* Exercise Area - Center */}
-                <div className="flex-1 space-y-4">
-                  {exercises.map((exercise) => (
-                    <div key={exercise.id} className="flex items-center gap-4">
-                      {/* Drop zone for pronoun */}
-                      <div
-                        onDrop={(e) => handleDrop(e, exercise.id)}
-                        onDragOver={handleDragOver}
-                        className={`w-32 h-12 border-2 border-dashed rounded-xl flex items-center justify-center font-bold text-lg transition-colors ${
-                          selectedAnswers[exercise.id] 
-                            ? 'bg-green-100 border-green-400 text-green-800' 
-                            : 'border-gray-300 bg-gray-50 text-gray-400'
-                        }`}
-                      >
-                        {selectedAnswers[exercise.id] || "Drop here"}
-                      </div>
+                    {/* Exercise Area - Center */}
+                    <div className="flex-1 space-y-4">
+                      {exercises.map((exercise) => (
+                        <div key={exercise.id} className="flex items-center gap-4">
+                          {/* Drop zone for pronoun */}
+                          <div
+                            onDrop={(e) => handleDrop(e, exercise.id)}
+                            onDragOver={handleDragOver}
+                            className={`w-32 h-12 border-2 border-dashed rounded-xl flex items-center justify-center font-bold text-lg transition-colors ${
+                              selectedAnswers[exercise.id] 
+                                ? 'bg-green-100 border-green-400 text-green-800' 
+                                : 'border-gray-300 bg-gray-50 text-gray-400'
+                            }`}
+                          >
+                            {selectedAnswers[exercise.id] || "Drop here"}
+                          </div>
 
-                      {/* Exercise text */}
-                      <div className="bg-gradient-to-r from-purple-400 to-pink-500 text-white p-4 rounded-xl font-bold text-lg shadow-lg min-w-32 text-center border-2 border-purple-600">
-                        {exercise.answer}
+                          {/* Exercise text */}
+                          <div className="bg-gradient-to-r from-purple-400 to-pink-500 text-white p-4 rounded-xl font-bold text-lg shadow-lg min-w-32 text-center border-2 border-purple-600">
+                            {exercise.answer}
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* Completion word */}
+                      <div className="flex justify-center mt-8">
+                        <div className="bg-gradient-to-r from-orange-400 to-yellow-500 text-white p-6 rounded-xl font-bold text-2xl shadow-xl border-2 border-orange-600">
+                          yesterday.
+                        </div>
                       </div>
                     </div>
-                  ))}
 
-                  {/* Completion word */}
-                  <div className="flex justify-center mt-8">
-                    <div className="bg-gradient-to-r from-orange-400 to-yellow-500 text-white p-6 rounded-xl font-bold text-2xl shadow-xl border-2 border-orange-600">
-                      yesterday.
+                    {/* Feedback thumbs up */}
+                    <div className="absolute top-1/2 right-16 transform -translate-y-1/2">
+                      <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center shadow-xl animate-bounce">
+                        <ThumbsUp className="w-10 h-10 text-white" />
+                      </div>
                     </div>
                   </div>
                 </div>
-
-                {/* Feedback thumbs up */}
-                <div className="absolute top-1/2 right-16 transform -translate-y-1/2">
-                  <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center shadow-xl animate-bounce">
-                    <ThumbsUp className="w-10 h-10 text-white" />
-                  </div>
-                </div>
-              </div>
-            </div>
 
                 {/* Progress bar at bottom */}
                 <div className="absolute bottom-6 left-8 right-8">
@@ -180,65 +174,25 @@ export function StudentClassroomView({
             </TabsContent>
           </Tabs>
         </Card>
-      </div>
 
-      {/* Right Sidebar - Videos */}
-      <div className="w-full h-full p-2 md:p-4">
-        <Card className="w-full h-full p-3 md:p-4 bg-white shadow-xl rounded-2xl md:rounded-l-none flex flex-col">
-          {/* Student Video - Top */}
-          <div className="mb-4">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium text-gray-600">You</span>
-              <div className="ml-auto flex items-center gap-1">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              </div>
-            </div>
-            <div className="aspect-video bg-gray-900 rounded-xl overflow-hidden relative">
-              <VideoTile
-                stream={enhancedClassroom?.localStream || null}
-                hasVideo={!!enhancedClassroom?.localStream}
-                isTeacher={false}
-                userLabel={currentUser.name}
-                isCameraOff={enhancedClassroom?.isCameraOff || false}
-              />
-              <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
-                {formatTime(classTime)}
-              </div>
-            </div>
+        {/* Right: Teacher Video */}
+        <Card className="h-full bg-white shadow-xl rounded-2xl p-4 flex flex-col">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+            <span className="text-lg font-semibold text-gray-700">Teacher</span>
           </div>
-
-          {/* Teacher Video - Bottom */}
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
-              <span className="text-sm font-medium text-gray-600">Teacher</span>
-              <div className="ml-auto">
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              </div>
-            </div>
-            <div className="h-full bg-gray-100 rounded-xl overflow-hidden">
-              <VideoTile
-                stream={null}
-                hasVideo={false}
-                isTeacher={true}
-                userLabel="Teacher"
-                isCameraOff={false}
-              />
-            </div>
-          </div>
-
-          {/* XP Display */}
-          <div className="mt-4 p-3 bg-gradient-to-r from-yellow-50 to-orange-50 rounded-xl border border-yellow-200">
-            <div className="flex items-center gap-2">
-              <Star className="w-5 h-5 text-yellow-500" />
-              <span className="font-semibold text-yellow-700">{studentXP} XP</span>
-            </div>
+          
+          <div className="flex-1 bg-gray-100 rounded-xl overflow-hidden">
+            <VideoTile
+              stream={enhancedClassroom?.remoteStreams?.[0] || null}
+              hasVideo={!!enhancedClassroom?.remoteStreams?.[0]}
+              isTeacher={true}
+              userLabel="Teacher"
+              isCameraOff={false}
+            />
           </div>
         </Card>
+
       </div>
     </div>
   );
