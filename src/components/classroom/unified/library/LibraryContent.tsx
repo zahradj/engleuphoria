@@ -3,18 +3,23 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { BookOpen, Play, Users, Clock, Award } from 'lucide-react';
+import { BookOpen, Play, Users, Clock, Award, RotateCcw } from 'lucide-react';
 import { studentProgressService, StudentLessonProgress, LessonContent } from '@/services/studentProgressService';
+import { LessonRegistry, LessonCompletionData } from '@/services/lessonRegistry';
+import { LessonManager } from './LessonManager';
 
 interface LibraryContentProps {
   onLessonSelect?: (lesson: LessonContent) => void;
+  onAwardPoints?: (points: number, reason: string) => void;
 }
 
-export function LibraryContent({ onLessonSelect }: LibraryContentProps) {
+export function LibraryContent({ onLessonSelect, onAwardPoints }: LibraryContentProps) {
   const [studentProgress, setStudentProgress] = useState<StudentLessonProgress | null>(null);
   const [availableLessons, setAvailableLessons] = useState<LessonContent[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentLesson, setCurrentLesson] = useState<LessonContent | null>(null);
+  const [selectedLesson, setSelectedLesson] = useState<{moduleNumber: number, lessonNumber: number, title: string} | null>(null);
+  const [studentId, setStudentId] = useState<string>('demo-student-123');
 
   useEffect(() => {
     loadLibraryData();
@@ -64,6 +69,38 @@ export function LibraryContent({ onLessonSelect }: LibraryContentProps) {
       onLessonSelect(lesson);
     }
   };
+
+  const handleStartLesson = (moduleNumber: number, lessonNumber: number, title: string) => {
+    setSelectedLesson({ moduleNumber, lessonNumber, title });
+  };
+
+  const handleLessonComplete = (data: LessonCompletionData) => {
+    // Award XP points
+    const staticLesson = LessonRegistry.getLesson(data.moduleNumber, data.lessonNumber);
+    const xpReward = staticLesson?.xpReward || 15;
+    
+    onAwardPoints?.(xpReward, `Completed Module ${data.moduleNumber}, Lesson ${data.lessonNumber}`);
+    
+    // Refresh progress data
+    loadLibraryData();
+    setSelectedLesson(null);
+  };
+
+  // Extract student context from URL for teacher mode
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const userIdParam = urlParams.get('userId');
+    const explicitStudentId = urlParams.get('studentId');
+    
+    if (explicitStudentId) {
+      setStudentId(explicitStudentId);
+    } else if (userIdParam?.includes('teacher')) {
+      // Teacher viewing student progress - use demo student for now
+      setStudentId('demo-student-123');
+    } else {
+      setStudentId(userIdParam || 'demo-student-123');
+    }
+  }, []);
 
   if (loading) {
     return (
@@ -142,37 +179,62 @@ export function LibraryContent({ onLessonSelect }: LibraryContentProps) {
           </div>
         ) : (
           <div className="space-y-3 max-h-64 overflow-y-auto">
-            {availableLessons.map((lesson) => (
-              <div
-                key={lesson.id}
-                className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-medium text-sm">{lesson.title}</h4>
-                    <Badge variant="outline" className="text-xs">
-                      {lesson.cefr_level}
-                    </Badge>
+            {availableLessons.map((lesson) => {
+              const moduleNum = lesson.module_number || 1;
+              const lessonNum = lesson.lesson_number || 1;
+              const isStaticLesson = LessonRegistry.hasStaticLesson(moduleNum, lessonNum);
+              const staticMeta = LessonRegistry.getLesson(moduleNum, lessonNum);
+              
+              return (
+                <div
+                  key={lesson.id}
+                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h4 className="font-medium text-sm">{lesson.title}</h4>
+                      <Badge variant="outline" className="text-xs">
+                        {lesson.cefr_level}
+                      </Badge>
+                      {isStaticLesson && (
+                        <Badge variant="default" className="text-xs">Interactive</Badge>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-2">{lesson.topic}</p>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {staticMeta?.estimatedDuration || lesson.duration_minutes}m
+                      </span>
+                      <span>Module {moduleNum}</span>
+                      <span>Lesson {lessonNum}</span>
+                      {staticMeta && (
+                        <Badge variant="outline" className="text-xs">
+                          +{staticMeta.xpReward} XP
+                        </Badge>
+                      )}
+                    </div>
                   </div>
-                  <p className="text-xs text-muted-foreground mb-2">{lesson.topic}</p>
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {lesson.duration_minutes}m
-                    </span>
-                    <span>Module {lesson.module_number}</span>
-                    <span>Lesson {lesson.lesson_number}</span>
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleSelectLesson(lesson)}
+                    >
+                      <BookOpen className="h-3 w-3 mr-1" />
+                      View
+                    </Button>
+                    <Button 
+                      size="sm"
+                      onClick={() => handleStartLesson(moduleNum, lessonNum, lesson.title)}
+                    >
+                      <Play className="h-3 w-3 mr-1" />
+                      Start
+                    </Button>
                   </div>
                 </div>
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => handleSelectLesson(lesson)}
-                >
-                  Start
-                </Button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </Card>
@@ -199,6 +261,23 @@ export function LibraryContent({ onLessonSelect }: LibraryContentProps) {
           </Button>
         </div>
       </Card>
+
+      {/* Lesson Manager Modal */}
+      {selectedLesson && (
+        <LessonManager
+          isOpen={!!selectedLesson}
+          onClose={() => setSelectedLesson(null)}
+          moduleNumber={selectedLesson.moduleNumber}
+          lessonNumber={selectedLesson.lessonNumber}
+          lessonTitle={selectedLesson.title}
+          studentId={studentId}
+          onComplete={handleLessonComplete}
+          onFullscreen={(moduleNumber, lessonNumber) => {
+            // TODO: Integrate with UnifiedContentViewer for fullscreen mode
+            console.log('Fullscreen lesson requested:', moduleNumber, lessonNumber);
+          }}
+        />
+      )}
     </div>
   );
 }

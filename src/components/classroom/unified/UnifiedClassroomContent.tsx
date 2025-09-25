@@ -185,6 +185,7 @@ export function UnifiedClassroomContent({
                 console.log('Selected lesson:', lesson);
                 // TODO: Implement lesson loading in Phase 5
               }}
+              onAwardPoints={awardPoints}
             />
           </ToolRailOverlay>
         )}
