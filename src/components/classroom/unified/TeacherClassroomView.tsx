@@ -108,15 +108,58 @@ export function TeacherClassroomView({
       {/* Main Content Area with Tabs */}
       <div className="z-10 relative w-full min-h-full">
         <Card className="w-full min-h-full bg-white/95 backdrop-blur-sm shadow-2xl rounded-3xl md:rounded-r-none border border-blue-200/30 transition-all duration-500 hover:shadow-3xl">
-          <Tabs value="whiteboard" className="w-full h-full flex flex-col">
+          <Tabs value={activeContentTab} className="w-full h-full flex flex-col">
             <div className="px-6 pt-6 pb-2 border-b border-gray-100">
-              <TabsList className="grid w-full grid-cols-1">
-                <TabsTrigger value="whiteboard" className="flex items-center gap-2">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="slides" className="flex items-center gap-2" onClick={() => setActiveContentTab("slides")}>
+                  <FileText size={16} />
+                  <span>Slides</span>
+                </TabsTrigger>
+                <TabsTrigger value="whiteboard" className="flex items-center gap-2" onClick={() => setActiveContentTab("whiteboard")}>
                   <PenTool size={16} />
                   <span>Whiteboard</span>
                 </TabsTrigger>
               </TabsList>
             </div>
+            
+            <TabsContent value="slides" className="flex-1 m-0">
+              <div className="h-full p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-semibold text-gray-800">Lesson Slides</h3>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" onClick={() => setCurrentSlide(Math.max(1, currentSlide - 1))}>
+                      <ChevronLeft size={16} />
+                    </Button>
+                    <span className="text-sm text-gray-600">
+                      {currentSlide} / {totalSlides}
+                    </span>
+                    <Button variant="outline" size="sm" onClick={() => setCurrentSlide(Math.min(totalSlides, currentSlide + 1))}>
+                      <ChevronRight size={16} />
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="grid gap-3 h-full overflow-y-auto">
+                  {slides.map((slide) => (
+                    <Card key={slide.id} className={`p-4 cursor-pointer transition-all duration-200 ${
+                      slide.status === 'current' 
+                        ? 'border-primary bg-primary/5 shadow-md' 
+                        : 'border-gray-200 hover:border-primary/50 hover:shadow-sm'
+                    }`} onClick={() => setCurrentSlide(slide.id)}>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium text-gray-800">{slide.title}</h4>
+                          <p className="text-sm text-gray-600">{slide.content}</p>
+                        </div>
+                        <Badge variant={slide.status === 'current' ? 'default' : 'secondary'}>
+                          {slide.status}
+                        </Badge>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            </TabsContent>
             
             <TabsContent value="whiteboard" className="flex-1 m-0">
               <div className="h-full">

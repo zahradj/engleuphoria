@@ -69,19 +69,37 @@ export function JoyfulClassroomHeader({
         </div>
       </div>
 
-      {/* Center - Logo in purple bubble */}
+      {/* Center - 3D Logo Bubble */}
       <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
-        <div className={`relative flex items-center justify-center rounded-full animate-pulse ${isTeacher ? 'w-12 h-12' : 'w-16 h-16'}`}
-             style={{ background: '#9991D4' }}>
-          {/* Outer glow effect */}
-          <div className="absolute inset-0 rounded-full opacity-40 animate-pulse blur-md"
-               style={{ background: '#9991D4', animationDelay: '0.5s' }}></div>
+        <div className={`relative flex items-center justify-center rounded-full animate-3d-pump ${isTeacher ? 'w-12 h-12' : 'w-16 h-16'}`}
+             style={{ 
+               background: 'linear-gradient(145deg, #b8b0e6, #7a6fc2)',
+               boxShadow: '20px 20px 60px #6d63a8, -20px -20px 60px #c5bbf0, inset 5px 5px 10px #8a7fd6, inset -5px -5px 10px #a89edc'
+             }}>
+          {/* Multiple 3D shadow layers */}
+          <div className="absolute inset-0 rounded-full animate-3d-glow blur-lg"
+               style={{ 
+                 background: 'linear-gradient(145deg, #9991D4, #7069b8)',
+                 transform: 'scale(1.2)',
+                 opacity: '0.6'
+               }}></div>
+          <div className="absolute inset-0 rounded-full animate-3d-glow blur-md"
+               style={{ 
+                 background: 'linear-gradient(145deg, #c5bbf0, #9991D4)',
+                 transform: 'scale(1.1)',
+                 opacity: '0.4',
+                 animationDelay: '0.5s'
+               }}></div>
           
-          {/* Logo */}
+          {/* Logo with enhanced 3D effect */}
           <img 
             src={englePhoriaLogo} 
             alt="EnglEphoria Logo" 
-            className={`object-contain relative z-10 drop-shadow-sm ${isTeacher ? 'w-6 h-6' : 'w-10 h-10'}`}
+            className={`object-contain relative z-10 ${isTeacher ? 'w-6 h-6' : 'w-10 h-10'}`}
+            style={{
+              filter: 'drop-shadow(2px 2px 4px rgba(105, 97, 168, 0.8)) drop-shadow(-1px -1px 2px rgba(197, 187, 240, 0.6))',
+              transform: 'translateZ(20px)'
+            }}
           />
         </div>
       </div>

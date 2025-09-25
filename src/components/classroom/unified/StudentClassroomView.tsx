@@ -55,12 +55,12 @@ export function StudentClassroomView({
   const handleDragStart = (e: React.DragEvent, pronoun: string) => {
     e.dataTransfer.setData("text/plain", pronoun);
   };
-  const handleDrop = (e: React.DragEvent, exerciseId: number) => {
+  const handleDrop = (e: React.DragEvent, answer: string) => {
     e.preventDefault();
-    const pronoun = e.dataTransfer.getData("text/plain");
+    const question = e.dataTransfer.getData("text/plain");
     setSelectedAnswers(prev => ({
       ...prev,
-      [exerciseId]: pronoun
+      [answer]: question
     }));
   };
   const handleDragOver = (e: React.DragEvent) => {
@@ -81,15 +81,57 @@ export function StudentClassroomView({
       <div className="h-full grid grid-cols-[1fr_400px] gap-4 p-4 pt-4">{/* Content positioned directly under fixed header */}
         {/* Left: Learning Material */}
         <Card className="h-full bg-classroom-card shadow-xl rounded-3xl overflow-hidden border-2 border-[hsl(var(--classroom-primary)/0.3)]">
-          <Tabs value="whiteboard" className="w-full h-full flex flex-col">
+          <Tabs value={activeContentTab} className="w-full h-full flex flex-col">
             <div className="px-8 pt-6 pb-2 border-b border-classroom-border/60">
-              <TabsList className="grid w-full grid-cols-1">
-                <TabsTrigger value="whiteboard" className="flex items-center gap-2">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="slides" className="flex items-center gap-2" onClick={() => setActiveContentTab("slides")}>
+                  <FileText size={16} />
+                  <span>Slides</span>
+                </TabsTrigger>
+                <TabsTrigger value="whiteboard" className="flex items-center gap-2" onClick={() => setActiveContentTab("whiteboard")}>
                   <PenTool size={16} />
                   <span>Whiteboard</span>
                 </TabsTrigger>
               </TabsList>
             </div>
+            
+            <TabsContent value="slides" className="flex-1 m-0">
+              <div className="h-full p-8">
+                <Card className="h-full p-6 bg-gradient-to-br from-blue-50 to-indigo-100 border-2 border-blue-200">
+                  <h3 className="text-xl font-semibold mb-4 text-center text-gray-800">Current Lesson</h3>
+                  <div className="text-center">
+                    <h2 className="text-2xl font-bold text-primary mb-4">Question Words</h2>
+                    <p className="text-gray-600 mb-6">Learn how to ask questions using: What, Where, When, Who, Why, How</p>
+                    
+                    <div className="bg-white rounded-lg p-4 mb-6 shadow-sm">
+                      <h4 className="font-semibold mb-3 text-gray-800">Drag and Drop Exercise</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <h5 className="text-sm font-medium text-gray-700">Questions:</h5>
+                          {["What is your name?", "Where do you live?", "When is your birthday?"].map((question, i) => (
+                            <div key={i} className="p-2 bg-blue-100 rounded text-sm text-center cursor-move"
+                                 draggable
+                                 onDragStart={(e) => handleDragStart(e, question)}>
+                              {question}
+                            </div>
+                          ))}
+                        </div>
+                        <div className="space-y-2">
+                          <h5 className="text-sm font-medium text-gray-700">Answers:</h5>
+                          {["My name is...", "I live in...", "My birthday is..."].map((answer, i) => (
+                            <div key={i} className="p-2 border-2 border-dashed border-gray-300 rounded text-sm text-center min-h-[2.5rem] flex items-center justify-center"
+                                 onDrop={(e) => handleDrop(e, answer)}
+                                 onDragOver={handleDragOver}>
+                              {selectedAnswers[answer] || "Drop here"}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            </TabsContent>
             
             <TabsContent value="whiteboard" className="flex-1 m-0">
               <div className="h-full">
