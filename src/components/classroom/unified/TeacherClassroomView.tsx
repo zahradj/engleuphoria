@@ -6,7 +6,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { VideoTile } from "./components/VideoTile";
 import { ESLWhiteboard } from "@/components/classroom/ESLWhiteboard";
 import { ChevronLeft, ChevronRight, List, Grid, Play, Pause, Clock, Volume2, VolumeX, Camera, CameraOff, Mic, MicOff, FileText, PenTool } from "lucide-react";
-
 interface TeacherClassroomViewProps {
   currentUser: {
     id: string;
@@ -16,7 +15,6 @@ interface TeacherClassroomViewProps {
   enhancedClassroom?: any;
   classTime: number;
 }
-
 export function TeacherClassroomView({
   currentUser,
   enhancedClassroom,
@@ -33,21 +31,42 @@ export function TeacherClassroomView({
     studentCameraOff: false
   });
   const totalSlides = 45;
-
   const formatTime = (seconds: number): string => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
-
-  const slides = [
-    { id: 7, title: "Question words", content: "Current slide", status: "current" },
-    { id: 8, title: "Vocabulary Introduction", content: "Teacher instructions", status: "upcoming" },
-    { id: 9, title: "Practice Activity", content: "Memory game", status: "upcoming" },
-    { id: 10, title: "Question Formation", content: "Fill in blanks", status: "upcoming" },
-    { id: 11, title: "Speaking Practice", content: "Role play", status: "upcoming" },
-    { id: 12, title: "Review", content: "Summary", status: "upcoming" }
-  ];
+  const slides = [{
+    id: 7,
+    title: "Question words",
+    content: "Current slide",
+    status: "current"
+  }, {
+    id: 8,
+    title: "Vocabulary Introduction",
+    content: "Teacher instructions",
+    status: "upcoming"
+  }, {
+    id: 9,
+    title: "Practice Activity",
+    content: "Memory game",
+    status: "upcoming"
+  }, {
+    id: 10,
+    title: "Question Formation",
+    content: "Fill in blanks",
+    status: "upcoming"
+  }, {
+    id: 11,
+    title: "Speaking Practice",
+    content: "Role play",
+    status: "upcoming"
+  }, {
+    id: 12,
+    title: "Review",
+    content: "Summary",
+    status: "upcoming"
+  }];
 
   // Auto-advance slides effect
   useEffect(() => {
@@ -58,9 +77,7 @@ export function TeacherClassroomView({
       return () => clearInterval(interval);
     }
   }, [isPresenting, totalSlides]);
-
-  return (
-    <div className="min-h-screen w-full grid grid-cols-[minmax(0,1fr)_minmax(24rem,36rem)] gap-0 p-0 md:gap-2 md:px-2 relative bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+  return <div className="min-h-screen w-full grid grid-cols-[minmax(0,1fr)_minmax(24rem,36rem)] gap-0 p-0 md:gap-2 md:px-2 relative bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* Background Enhancement */}
       <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-blue-100/30 pointer-events-none" />
       <div className="absolute top-0 left-0 w-64 h-64 bg-gradient-to-br from-blue-200/20 to-transparent rounded-full blur-3xl animate-pulse" />
@@ -79,12 +96,7 @@ export function TeacherClassroomView({
               <span>{formatTime(classTime)}</span>
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                variant={isPresenting ? "default" : "outline"}
-                size="sm"
-                onClick={() => setIsPresenting(!isPresenting)}
-                className="h-7 px-3 text-xs"
-              >
+              <Button variant={isPresenting ? "default" : "outline"} size="sm" onClick={() => setIsPresenting(!isPresenting)} className="h-7 px-3 text-xs">
                 {isPresenting ? <Pause size={12} /> : <Play size={12} />}
                 {isPresenting ? 'Pause' : 'Present'}
               </Button>
@@ -127,47 +139,33 @@ export function TeacherClassroomView({
                 <span className="text-base font-medium text-gray-700">Teacher</span>
               </div>
               <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => setVideoControls(prev => ({ ...prev, teacherMuted: !prev.teacherMuted }))}
-                >
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => setVideoControls(prev => ({
+                ...prev,
+                teacherMuted: !prev.teacherMuted
+              }))}>
                   {videoControls.teacherMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => setVideoControls(prev => ({ ...prev, teacherCameraOff: !prev.teacherCameraOff }))}
-                >
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => setVideoControls(prev => ({
+                ...prev,
+                teacherCameraOff: !prev.teacherCameraOff
+              }))}>
                   {videoControls.teacherCameraOff ? <CameraOff size={16} /> : <Camera size={16} />}
                 </Button>
               </div>
             </div>
             <div className="aspect-[16/9] w-full bg-gray-900 rounded-xl overflow-hidden relative border-2 border-green-500/30 transition-all duration-300 hover:border-green-500/60">
-              <VideoTile
-                stream={enhancedClassroom?.localStream || null}
-                hasVideo={!!enhancedClassroom?.localStream}
-                isTeacher={true}
-                userLabel={currentUser.name}
-                isCameraOff={enhancedClassroom?.isCameraOff || videoControls.teacherCameraOff}
-              />
+              <VideoTile stream={enhancedClassroom?.localStream || null} hasVideo={!!enhancedClassroom?.localStream} isTeacher={true} userLabel={currentUser.name} isCameraOff={enhancedClassroom?.isCameraOff || videoControls.teacherCameraOff} />
               <div className="absolute top-3 right-3 bg-black/70 text-white text-sm px-3 py-1 rounded backdrop-blur-sm">
                 {formatTime(classTime)}
               </div>
               {/* Enhanced video status indicators */}
               <div className="absolute bottom-3 left-3 flex gap-2">
-                {videoControls.teacherMuted && (
-                  <div className="bg-red-500 text-white p-2 rounded-full">
+                {videoControls.teacherMuted && <div className="bg-red-500 text-white p-2 rounded-full">
                     <MicOff size={14} />
-                  </div>
-                )}
-                {videoControls.teacherCameraOff && (
-                  <div className="bg-gray-500 text-white p-2 rounded-full">
+                  </div>}
+                {videoControls.teacherCameraOff && <div className="bg-gray-500 text-white p-2 rounded-full">
                     <CameraOff size={14} />
-                  </div>
-                )}
+                  </div>}
               </div>
             </div>
           </div>
@@ -180,121 +178,37 @@ export function TeacherClassroomView({
                 <span className="text-base font-medium text-gray-700">Student</span>
               </div>
               <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => setVideoControls(prev => ({ ...prev, studentMuted: !prev.studentMuted }))}
-                >
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => setVideoControls(prev => ({
+                ...prev,
+                studentMuted: !prev.studentMuted
+              }))}>
                   {videoControls.studentMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => setVideoControls(prev => ({ ...prev, studentCameraOff: !prev.studentCameraOff }))}
-                >
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => setVideoControls(prev => ({
+                ...prev,
+                studentCameraOff: !prev.studentCameraOff
+              }))}>
                   {videoControls.studentCameraOff ? <CameraOff size={16} /> : <Camera size={16} />}
                 </Button>
               </div>
             </div>
             <div className="aspect-[16/9] w-full bg-gray-100 rounded-xl overflow-hidden border-2 border-blue-500/30 transition-all duration-300 hover:border-blue-500/60 relative">
-              <VideoTile
-                stream={null}
-                hasVideo={false}
-                isTeacher={false}
-                userLabel="Student"
-                isCameraOff={videoControls.studentCameraOff}
-              />
+              <VideoTile stream={null} hasVideo={false} isTeacher={false} userLabel="Student" isCameraOff={videoControls.studentCameraOff} />
               {/* Student video status indicators */}
               <div className="absolute bottom-3 left-3 flex gap-2">
-                {videoControls.studentMuted && (
-                  <div className="bg-red-500 text-white p-2 rounded-full">
+                {videoControls.studentMuted && <div className="bg-red-500 text-white p-2 rounded-full">
                     <MicOff size={14} />
-                  </div>
-                )}
-                {videoControls.studentCameraOff && (
-                  <div className="bg-gray-500 text-white p-2 rounded-full">
+                  </div>}
+                {videoControls.studentCameraOff && <div className="bg-gray-500 text-white p-2 rounded-full">
                     <CameraOff size={14} />
-                  </div>
-                )}
+                  </div>}
               </div>
             </div>
           </div>
         </Card>
 
         {/* Enhanced Slides Panel */}
-        <Card className="flex-1 p-3 md:p-4 bg-white/95 backdrop-blur-sm shadow-xl rounded-2xl md:rounded-l-none border border-blue-200/30">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-gray-800 flex items-center gap-2">
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-              Slides
-            </h3>
-            <div className="flex items-center gap-2">
-              <Button
-                variant={viewMode === 'list' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-              >
-                <List className="w-4 h-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'grid' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-              >
-                <Grid className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-
-          <div className="text-sm text-gray-600 mb-4">
-            <Badge variant="outline" className="text-green-600 border-green-600">
-              Current slide
-            </Badge>
-            <span className="ml-2">{currentSlide} / {totalSlides}</span>
-          </div>
-
-          <div className="space-y-3 max-h-96 overflow-y-auto">
-            {slides.map((slide) => (
-              <div
-                key={slide.id}
-                className={`p-3 rounded-lg border cursor-pointer transition-colors ${
-                  slide.id === currentSlide
-                    ? 'bg-blue-50 border-blue-200'
-                    : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
-                }`}
-                onClick={() => setCurrentSlide(slide.id)}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-16 h-12 bg-gradient-to-br from-purple-100 to-blue-100 rounded flex items-center justify-center text-xs font-medium">
-                    {slide.id}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm truncate">{slide.title}</div>
-                    <div className="text-xs text-gray-500 truncate">{slide.content}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-4 pt-4 border-t">
-            <div className="text-xs text-gray-500 mb-2">Vocabulary Introduction. Teacher: Say the words and have the student repeat. Focus on pronunciation. Do this several times.</div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="text-xs"
-              onClick={() => {
-                // Return to original state functionality
-                console.log('Return to original state');
-              }}
-            >
-              Return to original state
-            </Button>
-          </div>
-        </Card>
+        
       </div>
-    </div>
-  );
+    </div>;
 }
