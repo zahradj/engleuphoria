@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { VocabularyImage } from '@/components/ui/VocabularyImage';
 import { Volume2, ArrowLeft, ArrowRight, RotateCcw, Trophy, Star } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -101,7 +102,7 @@ const Lesson1Greetings: React.FC = () => {
           <p className="text-lg">Drag the right emoji for each greeting!</p>
           <div className="grid grid-cols-2 gap-8">
             <motion.div 
-              className="text-8xl cursor-pointer hover:scale-110 transition-transform"
+              className="w-32 h-32 cursor-pointer mx-auto"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => {
@@ -109,10 +110,15 @@ const Lesson1Greetings: React.FC = () => {
                 handleCorrectAnswer();
               }}
             >
-              😊
+              <VocabularyImage
+                prompt="happy smiling face illustration for greeting"
+                alt="Happy face for hello"
+                className="w-full h-full rounded-lg"
+                style="educational"
+              />
             </motion.div>
             <motion.div 
-              className="text-8xl cursor-pointer hover:scale-110 transition-transform"
+              className="w-32 h-32 cursor-pointer mx-auto"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => {
@@ -120,7 +126,12 @@ const Lesson1Greetings: React.FC = () => {
                 handleCorrectAnswer();
               }}
             >
-              😢
+              <VocabularyImage
+                prompt="sad face illustration for goodbye"
+                alt="Sad face for goodbye"
+                className="w-full h-full rounded-lg"
+                style="educational"
+              />
             </motion.div>
           </div>
           <div className="flex justify-center gap-8">
@@ -268,7 +279,14 @@ const Lesson1Greetings: React.FC = () => {
                 transition={{ delay: 0.5 }}
                 className="flex items-center space-x-4"
               >
-                <div className="text-4xl">👦</div>
+                <div className="w-12 h-12">
+                  <VocabularyImage
+                    prompt="friendly boy character illustration for English learning"
+                    alt="Boy character Ed"
+                    className="w-full h-full rounded-full"
+                    style="cartoon"
+                  />
+                </div>
                 <div className="bg-white p-4 rounded-lg shadow-md">
                   <p className="text-lg"><strong>Ed:</strong> Hello! My name is Ed.</p>
                 </div>
@@ -289,7 +307,14 @@ const Lesson1Greetings: React.FC = () => {
                 <div className="bg-pink-100 p-4 rounded-lg shadow-md">
                   <p className="text-lg"><strong>Anna:</strong> Hi, Ed. My name is Anna. Nice to meet you.</p>
                 </div>
-                <div className="text-4xl">👧</div>
+                <div className="w-12 h-12">
+                  <VocabularyImage
+                    prompt="friendly girl character illustration for English learning"
+                    alt="Girl character Anna"
+                    className="w-full h-full rounded-full"
+                    style="cartoon"
+                  />
+                </div>
               </motion.div>
               
               <motion.div 
@@ -298,7 +323,14 @@ const Lesson1Greetings: React.FC = () => {
                 transition={{ delay: 1.5 }}
                 className="flex items-center space-x-4"
               >
-                <div className="text-4xl">👦</div>
+                <div className="w-12 h-12">
+                  <VocabularyImage
+                    prompt="friendly boy character illustration for English learning"
+                    alt="Boy character Ed"
+                    className="w-full h-full rounded-full"
+                    style="cartoon"
+                  />
+                </div>
                 <div className="bg-white p-4 rounded-lg shadow-md">
                   <p className="text-lg"><strong>Ed:</strong> Nice to meet you too!</p>
                 </div>
@@ -442,9 +474,23 @@ const Lesson1Greetings: React.FC = () => {
             </div>
             <div className="space-y-4">
               <h3 className="text-xl font-bold">Actions</h3>
-              <div className="text-6xl mb-4">👋</div>
+              <div className="w-24 h-24 mx-auto mb-4">
+                <VocabularyImage
+                  prompt="hand waving hello gesture illustration"
+                  alt="Waving hand for hello"
+                  className="w-full h-full rounded-lg"
+                  style="educational"
+                />
+              </div>
               <div className="text-lg">Waving hand</div>
-              <div className="text-6xl mb-4">🚶‍♂️</div>
+              <div className="w-24 h-24 mx-auto mb-4">
+                <VocabularyImage
+                  prompt="person walking away goodbye illustration"
+                  alt="Person walking for goodbye"
+                  className="w-full h-full rounded-lg"
+                  style="educational"
+                />
+              </div>
               <div className="text-lg">Leaving</div>
             </div>
           </div>

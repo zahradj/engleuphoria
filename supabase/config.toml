@@ -65,3 +65,6 @@ verify_jwt = false
 
 [functions.generate-speech]
 verify_jwt = true
+
+[functions.ai-image-generation]
+verify_jwt = false

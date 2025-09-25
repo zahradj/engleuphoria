@@ -42,15 +42,31 @@ class ImageGenerationService {
     }
 
     try {
-      const stylePrompt = this.getStylePrompt(options.style || 'educational');
-      const fullPrompt = `${options.prompt}, ${stylePrompt}, high quality illustration`;
+      const fullPrompt = `${options.prompt}, educational illustration for English learning`;
 
-      // For now, return a placeholder until the edge function is created
-      // TODO: Implement Supabase edge function for AI image generation
-      console.log('AI Image generation requested:', fullPrompt);
+      console.log('Generating AI image with prompt:', fullPrompt);
       
+      // Call the Supabase edge function for AI image generation
+      const response = await supabase.functions.invoke('ai-image-generation', {
+        body: {
+          prompt: fullPrompt,
+          style: options.style || 'educational',
+          aspectRatio: options.aspectRatio || '1:1'
+        }
+      });
+
+      if (response.error) {
+        console.error('Edge function error:', response.error);
+        throw new Error(response.error.message || 'Failed to generate image');
+      }
+
+      if (!response.data?.imageUrl) {
+        console.error('No image URL in response:', response.data);
+        throw new Error('No image URL returned from API');
+      }
+
       const result: GeneratedImage = {
-        url: `https://via.placeholder.com/600x400/e3e3e3/666666?text=${encodeURIComponent(options.prompt.slice(0, 20))}`,
+        url: response.data.imageUrl,
         prompt: options.prompt,
         style: options.style || 'educational',
         cached: false
@@ -62,9 +78,9 @@ class ImageGenerationService {
       return result;
     } catch (error) {
       console.error('Image generation failed:', error);
-      // Return placeholder
+      // Return placeholder with better error handling
       return {
-        url: `https://via.placeholder.com/400x400/e3e3e3/666666?text=${encodeURIComponent(options.prompt)}`,
+        url: `https://via.placeholder.com/400x400/e3e3e3/666666?text=${encodeURIComponent(options.prompt.slice(0, 20))}`,
         prompt: options.prompt,
         style: options.style || 'educational',
         cached: false
