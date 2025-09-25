@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { VocabularyImage } from '@/components/ui/VocabularyImage';
+import AnimatedLogo from '@/components/ui/AnimatedLogo';
 import { Volume2, ArrowLeft, ArrowRight, RotateCcw, Trophy, Star, Play, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -35,6 +36,10 @@ const LessonIntro: React.FC<LessonIntroProps> = ({ onStart }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 relative overflow-hidden flex items-center justify-center">
+      {/* Animated Logo in top right */}
+      <div className="absolute top-8 right-8 z-20">
+        <AnimatedLogo size="lg" />
+      </div>
       {/* Animated background elements */}
       <div className="absolute inset-0">
         {[...Array(20)].map((_, i) => (

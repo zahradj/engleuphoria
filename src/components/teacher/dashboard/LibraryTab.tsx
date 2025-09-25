@@ -85,22 +85,27 @@ export const LibraryTab = () => {
     }
   };
 
+  const goToClassroom = () => {
+    navigate('/oneonone-classroom-new');
+    toast.success('Opening classroom...');
+  };
+
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header with Classroom Link */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Lesson Library</h2>
-          <p className="text-muted-foreground">Browse lessons organized by CEFR levels</p>
+          <h2 className="text-2xl font-bold text-gray-900">Content Library</h2>
+          <p className="text-gray-600">Browse and manage your educational content</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="flex items-center gap-1">
-            <BookOpen className="h-3 w-3" />
-            {CURRICULUM_STRUCTURE.reduce((total, level) => total + level.units.reduce((unitTotal, unit) => unitTotal + unit.lessons.length, 0), 0)} Total Lessons
-          </Badge>
-        </div>
+        <Button 
+          onClick={goToClassroom}
+          className="bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white px-6 py-3"
+        >
+          <BookOpen className="mr-2 h-5 w-5" />
+          Go to Classroom
+        </Button>
       </div>
-
       {/* Search and Filters */}
       <Card>
         <CardContent className="p-4">

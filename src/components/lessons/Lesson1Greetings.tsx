@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { VocabularyImage } from '@/components/ui/VocabularyImage';
+import AnimatedLogo from '@/components/ui/AnimatedLogo';
 import { Volume2, ArrowLeft, ArrowRight, RotateCcw, Trophy, Star } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -935,7 +936,12 @@ const Lesson1Greetings: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4 relative">
+      {/* Animated Logo in top right */}
+      <div className="fixed top-8 right-8 z-50">
+        <AnimatedLogo size="md" />
+      </div>
+      
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
