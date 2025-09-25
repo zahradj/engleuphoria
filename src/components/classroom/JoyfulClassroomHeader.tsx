@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Clock, Users, Star, Trophy, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import englePhoriaLogo from "@/assets/englephoria-logo.png";
+import { AnimatedXPCounter } from "./rewards/AnimatedXPCounter";
 
 interface JoyfulClassroomHeaderProps {
   classTime?: string | number;
@@ -20,6 +21,14 @@ export function JoyfulClassroomHeader({
 }: JoyfulClassroomHeaderProps) {
   const xpValue = typeof studentXP === 'string' ? parseInt(studentXP) || 0 : studentXP;
   const levelValue = typeof studentLevel === 'string' ? parseInt(studentLevel) || 1 : studentLevel;
+  const [previousXP, setPreviousXP] = useState(xpValue);
+
+  // Track XP changes for animation
+  useEffect(() => {
+    if (xpValue !== previousXP) {
+      setTimeout(() => setPreviousXP(xpValue), 100);
+    }
+  }, [xpValue, previousXP]);
   
   // Format time from number of seconds to MM:SS
   const formatTime = (time: string | number) => {
@@ -86,23 +95,15 @@ export function JoyfulClassroomHeader({
       </div>
 
       {/* Right side - Student progress */}
-      <div className="flex items-center gap-4 relative z-10">
-        {/* XP Display */}
-        <div className="flex items-center gap-2 px-4 py-2 rounded-xl shadow-soft"
+      <div className="flex items-center relative z-10">
+        <div className="px-4 py-2 rounded-xl shadow-soft"
              style={{ background: 'linear-gradient(135deg, hsl(var(--joy-yellow) / 0.1), hsl(var(--joy-orange) / 0.1))' }}>
-          <Star size={20} style={{ color: 'hsl(var(--joy-yellow))' }} className="animate-sparkle" />
-          <span className="font-bold text-foreground text-sm">
-            {xpValue} XP
-          </span>
-        </div>
-
-        {/* Level Display */}
-        <div className="flex items-center gap-2 px-4 py-2 rounded-xl shadow-soft"
-             style={{ background: 'linear-gradient(135deg, hsl(var(--joy-purple) / 0.1), hsl(var(--primary) / 0.1))' }}>
-          <Trophy size={20} style={{ color: 'hsl(var(--joy-purple))' }} className="animate-gentle-pulse" />
-          <span className="font-bold text-foreground text-sm">
-            Level {levelValue}
-          </span>
+          <AnimatedXPCounter 
+            currentXP={xpValue}
+            previousXP={previousXP}
+            level={levelValue}
+            className="text-foreground"
+          />
         </div>
       </div>
 

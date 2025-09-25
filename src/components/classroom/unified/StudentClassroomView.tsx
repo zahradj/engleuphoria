@@ -78,7 +78,7 @@ export function StudentClassroomView({
       </div>
 
       {/* Two-column layout: Material + Teacher */}
-      <div className="h-full grid grid-cols-[1fr_400px] gap-4 p-4 pt-20">{/* Added pt-20 for header space */}
+      <div className="h-full grid grid-cols-[1fr_400px] gap-4 p-4 pt-4">{/* Content positioned directly under fixed header */}
         {/* Left: Learning Material */}
         <Card className="h-full bg-white shadow-2xl rounded-3xl overflow-hidden">
           <Tabs value={activeContentTab} onValueChange={setActiveContentTab} className="w-full h-full flex flex-col">

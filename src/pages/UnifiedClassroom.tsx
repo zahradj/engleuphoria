@@ -11,6 +11,7 @@ import { UnifiedClassroomErrorBoundary } from "@/components/classroom/unified/Un
 import { MobileClassroomLayout } from "@/components/classroom/mobile/MobileClassroomLayout";
 import { MobileVideoPanel } from "@/components/classroom/mobile/MobileVideoPanel";
 import { CelebrationOverlay } from "@/components/classroom/rewards/CelebrationOverlay";
+import { FloatingNotification } from "@/components/classroom/rewards/FloatingNotification";
 import { useRewardNotifications } from "@/hooks/classroom/useRewardNotifications";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useConnectionRecovery } from "@/hooks/enhanced-classroom/useConnectionRecovery";
@@ -42,7 +43,9 @@ function UnifiedClassroomInner() {
   const { 
     showRewardNotification, 
     celebration, 
-    hideCelebration 
+    floatingNotification,
+    hideCelebration,
+    hideFloatingNotification
   } = useRewardNotifications();
 
   // Enhanced classroom with real-time features
@@ -140,13 +143,15 @@ function UnifiedClassroomInner() {
           {/* Joyful Animated Background */}
           <AnimatedBackground />
           
-          {/* Joyful Header */}
-          <JoyfulClassroomHeader 
-            classTime={classTime}
-            studentCount={enhancedClassroom.participants.length}
-            studentXP={studentXP}
-            studentLevel={studentLevel}
-          />
+          {/* Joyful Header - Fixed positioning */}
+          <div className="fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-primary/95 via-accent/95 to-secondary/95 backdrop-blur-md border-b border-white/20">
+            <JoyfulClassroomHeader 
+              classTime={classTime}
+              studentCount={enhancedClassroom.participants.length}
+              studentXP={studentXP}
+              studentLevel={studentLevel}
+            />
+          </div>
           
           {isMobile ? (
             <MobileClassroomLayout
@@ -158,33 +163,45 @@ function UnifiedClassroomInner() {
               studentsContent={<div className="p-4 text-center text-gray-500">Students panel coming soon</div>}
             />
           ) : (
-            <UnifiedClassroomLayout 
-              classTime={classTime} 
-              enhancedClassroom={enhancedClassroom}
-            >
-              <UnifiedClassroomContent 
-                classroomState={{
-                  activeRightTab,
-                  activeCenterTab,
-                  studentXP,
-                  showRewardPopup,
-                  setActiveRightTab,
-                  setActiveCenterTab,
-                  awardPoints: enhancedAwardPoints
-                }}
+            <div className="pt-20"> {/* Add top padding for fixed header */}
+              <UnifiedClassroomLayout 
+                classTime={classTime} 
                 enhancedClassroom={enhancedClassroom}
-                classTime={classTime}
-              />
-            </UnifiedClassroomLayout>
+              >
+                <UnifiedClassroomContent 
+                  classroomState={{
+                    activeRightTab,
+                    activeCenterTab,
+                    studentXP,
+                    showRewardPopup,
+                    setActiveRightTab,
+                    setActiveCenterTab,
+                    awardPoints: enhancedAwardPoints
+                  }}
+                  enhancedClassroom={enhancedClassroom}
+                  classTime={classTime}
+                />
+              </UnifiedClassroomLayout>
+            </div>
           )}
 
-          {/* Celebration Overlay - Full screen center */}
+          {/* Celebration Overlay - Full screen center for major rewards */}
           {celebration && (
             <CelebrationOverlay
               isVisible={celebration.isVisible}
               points={celebration.points}
               reason={celebration.reason}
               onComplete={hideCelebration}
+            />
+          )}
+
+          {/* Floating Notification - Top right for all rewards */}
+          {floatingNotification && (
+            <FloatingNotification
+              isVisible={floatingNotification.isVisible}
+              points={floatingNotification.points}
+              reason={floatingNotification.reason}
+              onComplete={hideFloatingNotification}
             />
           )}
         </div>
