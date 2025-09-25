@@ -1,6 +1,7 @@
 import React from "react";
 import { Clock, Users, Star, Trophy, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
+import englePhoriaLogo from "@/assets/englephoria-logo.png";
 
 interface JoyfulClassroomHeaderProps {
   classTime?: string | number;
@@ -62,15 +63,25 @@ export function JoyfulClassroomHeader({
         </div>
       </div>
 
-      {/* Center - Classroom title */}
-      <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent">
-          English Learning Studio
-        </h1>
-        <div className="flex items-center justify-center gap-1 mt-1">
-          <Heart size={12} style={{ color: 'hsl(var(--joy-pink))' }} className="animate-gentle-pulse" />
-          <span className="text-xs text-muted-foreground">Making learning joyful</span>
-          <Heart size={12} style={{ color: 'hsl(var(--joy-pink))' }} className="animate-gentle-pulse" />
+      {/* Center - Logo in purple bubble */}
+      <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
+        <div className="relative flex items-center justify-center w-16 h-16 rounded-full animate-gentle-pulse"
+             style={{ background: 'linear-gradient(135deg, hsl(var(--joy-purple)), hsl(var(--primary)))' }}>
+          {/* Outer glow effect */}
+          <div className="absolute inset-0 rounded-full opacity-30 animate-gentle-pulse blur-md"
+               style={{ background: 'hsl(var(--joy-purple))', animationDelay: '0.5s' }}></div>
+          
+          {/* Logo */}
+          <img 
+            src={englePhoriaLogo} 
+            alt="EnglEphoria Logo" 
+            className="w-10 h-10 object-contain relative z-10 drop-shadow-sm"
+          />
+          
+          {/* Sparkle effects */}
+          <div className="absolute -top-1 -right-1 text-xs animate-sparkle opacity-80">✨</div>
+          <div className="absolute -bottom-1 -left-1 text-xs animate-sparkle opacity-70" 
+               style={{ animationDelay: '0.3s' }}>⭐</div>
         </div>
       </div>
 
