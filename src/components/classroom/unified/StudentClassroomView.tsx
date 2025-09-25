@@ -66,7 +66,7 @@ export function StudentClassroomView({
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
   };
-  return <div className="h-screen w-full bg-gradient-to-br from-blue-50 to-purple-50 relative">
+  return <div className="h-screen w-full bg-gradient-to-br from-pink-50 via-purple-50 to-teal-50 relative">
       {/* Clean header with time and XP only */}
       <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10">
         
@@ -96,14 +96,14 @@ export function StudentClassroomView({
             </div>
             
             <TabsContent value="slides" className="flex-1 m-0 overflow-y-auto">
-              <div className="h-full p-8 bg-gradient-to-br from-blue-50 via-white to-purple-50 relative overflow-y-auto">
+              <div className="h-full p-8 bg-gradient-to-br from-pink-50 via-white to-teal-50 relative overflow-y-auto">
                 {/* Main Exercise Content */}
                 <div className="flex items-center justify-center h-full">
                   <div className="max-w-4xl w-full">
                     
                     {/* Pronoun Cards - Left Side */}
                     <div className="flex flex-col gap-3 w-48 float-left mr-8">
-                      {pronouns.map(pronoun => <div key={pronoun} draggable onDragStart={e => handleDragStart(e, pronoun)} className="bg-gradient-to-r from-green-400 to-green-500 text-white p-4 rounded-xl text-center font-bold text-lg cursor-move shadow-lg hover:shadow-xl transition-shadow border-2 border-green-600">
+                      {pronouns.map(pronoun => <div key={pronoun} draggable onDragStart={e => handleDragStart(e, pronoun)} className="bg-gradient-to-r from-teal-400 to-teal-500 text-white p-4 rounded-xl text-center font-bold text-lg cursor-move shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 border-teal-600">
                           {pronoun}
                         </div>)}
                     </div>
@@ -112,19 +112,19 @@ export function StudentClassroomView({
                     <div className="flex-1 space-y-4">
                       {exercises.map(exercise => <div key={exercise.id} className="flex items-center gap-4">
                           {/* Drop zone for pronoun */}
-                          <div onDrop={e => handleDrop(e, exercise.id)} onDragOver={handleDragOver} className={`w-32 h-12 border-2 border-dashed rounded-xl flex items-center justify-center font-bold text-lg transition-colors ${selectedAnswers[exercise.id] ? 'bg-green-100 border-green-400 text-green-800' : 'border-gray-300 bg-gray-50 text-gray-400'}`}>
+                          <div onDrop={e => handleDrop(e, exercise.id)} onDragOver={handleDragOver} className={`w-32 h-12 border-2 border-dashed rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-300 ${selectedAnswers[exercise.id] ? 'bg-teal-100 border-teal-400 text-teal-800 animate-pulse-subtle' : 'border-pink-300 bg-pink-50 text-pink-400 hover:border-pink-400'}`}>
                             {selectedAnswers[exercise.id] || "Drop here"}
                           </div>
 
                           {/* Exercise text */}
-                          <div className="bg-gradient-to-r from-purple-400 to-pink-500 text-white p-4 rounded-xl font-bold text-lg shadow-lg min-w-32 text-center border-2 border-purple-600">
+                          <div className="bg-gradient-to-r from-purple-400 to-pink-500 text-white p-4 rounded-xl font-bold text-lg shadow-lg min-w-32 text-center border-2 border-purple-600 hover:scale-105 transition-transform duration-300">
                             {exercise.answer}
                           </div>
                         </div>)}
 
                       {/* Completion word */}
                       <div className="flex justify-center mt-8">
-                        <div className="bg-gradient-to-r from-orange-400 to-yellow-500 text-white p-6 rounded-xl font-bold text-2xl shadow-xl border-2 border-orange-600">
+                        <div className="bg-gradient-to-r from-orange-400 to-yellow-500 text-white p-6 rounded-xl font-bold text-2xl shadow-xl border-2 border-orange-600 animate-bounce-gentle">
                           yesterday.
                         </div>
                       </div>
@@ -132,7 +132,7 @@ export function StudentClassroomView({
 
                     {/* Feedback thumbs up */}
                     <div className="absolute top-1/2 right-16 transform -translate-y-1/2">
-                      <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center shadow-xl animate-bounce">
+                      <div className="w-20 h-20 bg-gradient-to-r from-teal-500 to-green-500 rounded-full flex items-center justify-center shadow-xl animate-bounce border-4 border-white">
                         <ThumbsUp className="w-10 h-10 text-white" />
                       </div>
                     </div>
@@ -142,7 +142,7 @@ export function StudentClassroomView({
                 {/* Progress bar at bottom */}
                 <div className="absolute bottom-6 left-8 right-8">
                   <div className="w-full bg-gray-200 rounded-full h-3 shadow-inner">
-                    <div className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full shadow-sm" style={{
+                    <div className="bg-gradient-to-r from-pink-500 via-purple-500 to-teal-500 h-3 rounded-full shadow-sm animate-pulse-subtle" style={{
                     width: '65%'
                   }}></div>
                   </div>
@@ -161,11 +161,11 @@ export function StudentClassroomView({
         {/* Right: Teacher Video */}
         <Card className="h-full bg-white shadow-xl rounded-2xl p-4 flex flex-col">
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse"></div>
+            <div className="w-3 h-3 bg-pink-500 rounded-full animate-pulse"></div>
             <span className="text-lg font-semibold text-gray-700">Teacher</span>
           </div>
           
-          <div className="flex-1 bg-gray-100 rounded-xl overflow-hidden">
+          <div className="flex-1 bg-gradient-to-br from-pink-50 to-purple-50 rounded-xl overflow-hidden border-2 border-pink-200">
             <VideoTile stream={enhancedClassroom?.remoteStreams?.[0] || null} hasVideo={!!enhancedClassroom?.remoteStreams?.[0]} isTeacher={true} userLabel="Teacher" isCameraOff={false} />
           </div>
         </Card>

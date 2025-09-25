@@ -144,12 +144,13 @@ function UnifiedClassroomInner() {
           <AnimatedBackground />
           
           {/* Joyful Header - Fixed positioning */}
-          <div className="fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-primary/95 via-accent/95 to-secondary/95 backdrop-blur-md border-b border-white/20">
+          <div className="fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-joy-pink/95 via-joy-purple/95 to-joy-teal/95 backdrop-blur-md border-b border-white/20">
             <JoyfulClassroomHeader 
               classTime={classTime}
               studentCount={enhancedClassroom.participants.length}
               studentXP={studentXP}
               studentLevel={studentLevel}
+              userRole={currentUser.role}
             />
           </div>
           

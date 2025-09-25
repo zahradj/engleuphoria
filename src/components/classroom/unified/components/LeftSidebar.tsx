@@ -20,10 +20,10 @@ export function LeftSidebar({ onToolSelect, selectedTool }: LeftSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const tools = [
-    { id: 'embed', icon: Link, label: 'Embed Link', color: '#3B82F6', description: 'Share external content' },
-    { id: 'awards', icon: Award, label: 'Give Awards', color: '#F59E0B', description: 'Reward students' },
-    { id: 'chat', icon: MessageCircle, label: 'Chat', color: '#8B5CF6', description: 'Real-time messaging' },
-    { id: 'library', icon: Library, label: 'Library', color: '#10B981', description: 'Access learning resources' }
+    { id: 'embed', icon: Link, label: 'Embed Link', color: 'hsl(var(--joy-teal))', description: 'Share external content' },
+    { id: 'awards', icon: Award, label: 'Give Awards', color: 'hsl(var(--joy-orange))', description: 'Reward students' },
+    { id: 'chat', icon: MessageCircle, label: 'Chat', color: 'hsl(var(--joy-purple))', description: 'Real-time messaging' },
+    { id: 'library', icon: Library, label: 'Library', color: 'hsl(var(--joy-pink))', description: 'Access lessons library', href: '/teacher-dashboard' }
   ];
 
   return (
@@ -36,20 +36,20 @@ export function LeftSidebar({ onToolSelect, selectedTool }: LeftSidebarProps) {
           ${isCollapsed ? 'w-16' : 'w-20'}
         `}
         style={{
-          background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%)',
-          borderImage: 'linear-gradient(180deg, rgba(196, 217, 255, 0.6) 0%, rgba(197, 186, 255, 0.4) 100%) 1'
+          background: 'linear-gradient(180deg, rgba(255, 245, 255, 0.95) 0%, rgba(248, 250, 255, 0.9) 100%)',
+          borderImage: 'linear-gradient(180deg, rgba(255, 182, 193, 0.6) 0%, rgba(186, 85, 211, 0.4) 100%) 1'
         }}
       >
         {/* Enhanced ambient glow effect */}
         <div 
           className="absolute inset-0 opacity-30 pointer-events-none transition-opacity duration-500"
           style={{ 
-            background: 'linear-gradient(180deg, rgba(196, 217, 255, 0.15) 0%, rgba(197, 186, 255, 0.08) 100%)' 
+            background: 'linear-gradient(180deg, rgba(255, 182, 193, 0.15) 0%, rgba(186, 85, 211, 0.08) 100%)' 
           }}
         />
 
         {/* Animated gradient border */}
-        <div className="absolute inset-0 bg-gradient-to-b from-blue-400/20 via-transparent to-purple-400/20 opacity-0 hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-pink-400/20 via-transparent to-purple-400/20 opacity-0 hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
         {/* Enhanced collapse toggle */}
         <div className="absolute top-4 right-2 z-10">
@@ -57,12 +57,12 @@ export function LeftSidebar({ onToolSelect, selectedTool }: LeftSidebarProps) {
             variant="ghost"
             size="sm"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="h-6 w-6 p-0 rounded-full hover:bg-primary-100/50 transition-all duration-300 hover:scale-110"
+            className="h-6 w-6 p-0 rounded-full hover:bg-pink-100/50 transition-all duration-300 hover:scale-110"
           >
             {isCollapsed ? (
-              <ChevronRight size={12} className="text-primary-600" />
+              <ChevronRight size={12} style={{ color: 'hsl(var(--joy-pink))' }} />
             ) : (
-              <ChevronLeft size={12} className="text-primary-600" />
+              <ChevronLeft size={12} style={{ color: 'hsl(var(--joy-pink))' }} />
             )}
           </Button>
         </div>
@@ -102,26 +102,32 @@ export function LeftSidebar({ onToolSelect, selectedTool }: LeftSidebarProps) {
                       style={{
                         background: isSelected 
                           ? `linear-gradient(135deg, ${tool.color}20, ${tool.color}10)`
-                          : 'linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(248, 250, 252, 0.4))',
+                          : 'linear-gradient(135deg, rgba(255, 245, 255, 0.6), rgba(248, 250, 255, 0.4))',
                         borderColor: isSelected 
-                          ? `${tool.color}40` 
-                          : 'rgba(196, 217, 255, 0.3)'
+                          ? tool.color 
+                          : 'rgba(255, 182, 193, 0.3)'
                       }}
                       onMouseEnter={(e) => {
                         if (!isSelected) {
                           e.currentTarget.style.background = `linear-gradient(135deg, ${tool.color}25, ${tool.color}12)`;
-                          e.currentTarget.style.borderColor = `${tool.color}50`;
+                          e.currentTarget.style.borderColor = tool.color;
                           e.currentTarget.style.transform = 'scale(1.05)';
                         }
                       }}
                       onMouseLeave={(e) => {
                         if (!isSelected) {
-                          e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.6), rgba(248, 250, 252, 0.4))';
-                          e.currentTarget.style.borderColor = 'rgba(196, 217, 255, 0.3)';
+                          e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 245, 255, 0.6), rgba(248, 250, 255, 0.4))';
+                          e.currentTarget.style.borderColor = 'rgba(255, 182, 193, 0.3)';
                           e.currentTarget.style.transform = 'scale(1)';
                         }
                       }}
-                      onClick={() => onToolSelect(tool.id)}
+                      onClick={() => {
+                        if (tool.id === 'library' && tool.href) {
+                          window.open(tool.href, '_blank');
+                        } else {
+                          onToolSelect(tool.id);
+                        }
+                      }}
                     >
                       {/* Enhanced animated background shimmer */}
                       <div 
@@ -168,7 +174,7 @@ export function LeftSidebar({ onToolSelect, selectedTool }: LeftSidebarProps) {
                 </TooltipTrigger>
                 <TooltipContent 
                   side="right" 
-                  className="bg-white/98 backdrop-blur-sm border border-primary-200/50 shadow-xl rounded-xl p-3 animate-fade-in"
+                  className="bg-white/98 backdrop-blur-sm border border-pink-200/50 shadow-xl rounded-xl p-3 animate-fade-in"
                   sideOffset={12}
                 >
                   <div className="flex flex-col gap-1">
@@ -186,8 +192,8 @@ export function LeftSidebar({ onToolSelect, selectedTool }: LeftSidebarProps) {
         </div>
 
         {/* Enhanced decorative elements */}
-        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-10 h-0.5 rounded-full bg-gradient-to-r from-transparent via-primary-400/60 to-transparent animate-pulse" />
-        <div className="absolute top-12 left-1 w-0.5 h-12 rounded-full bg-gradient-to-b from-primary-400/60 to-transparent" />
+        <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 w-10 h-0.5 rounded-full bg-gradient-to-r from-transparent via-pink-400/60 to-transparent animate-pulse" />
+        <div className="absolute top-12 left-1 w-0.5 h-12 rounded-full bg-gradient-to-b from-pink-400/60 to-transparent" />
         <div className="absolute bottom-20 right-1 w-0.5 h-8 rounded-full bg-gradient-to-t from-purple-400/40 to-transparent" />
       </Card>
     </TooltipProvider>
