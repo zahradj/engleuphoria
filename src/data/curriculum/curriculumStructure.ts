@@ -16,24 +16,10 @@ export interface Unit {
   lessons: LessonContent[];
 }
 
-export interface IntroLesson {
-  id: string;
-  title: string;
-  description: string;
-  duration: number;
-  type: string;
-  objectives: string[];
-  vocabulary: string[];
-  grammar: string[];
-  skills: string[];
-  structure: string[];
-}
-
 export interface CEFRLevel {
   level: 'Pre-Starter' | 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
   title: string;
   description: string;
-  introLesson?: IntroLesson;
   units: Unit[];
 }
 
@@ -41,41 +27,45 @@ export const CURRICULUM_STRUCTURE: CEFRLevel[] = [
   {
     level: 'Pre-Starter',
     title: 'Level 1 – Pre-Starter (Pre-A1/A1) Foundations',
-    description: 'Duration: ~10 units × 4 lessons each (≈ 40 lessons, 30 min each) | Method: Presentation → Practice → Production → Review',
-    introLesson: {
-      id: "ps-lesson-0",
-      title: "Lesson 0 - Hello! First Greetings",
-      description: "Basic greetings and introductions - your first English lesson!",
-      duration: 30,
-      type: "introduction",
-      objectives: [
-        "Learn basic greetings (Hello, Hi, Good morning)",
-        "Practice saying 'My name is...'",
-        "Understand and respond to 'How are you?'",
-        "Learn polite expressions (Please, Thank you)"
-      ],
-      vocabulary: [
-        "Hello", "Hi", "Good morning", "Good afternoon", "Good evening",
-        "My name is...", "What's your name?",
-        "How are you?", "I'm fine, thank you",
-        "Please", "Thank you", "You're welcome",
-        "Goodbye", "See you later"
-      ],
-      grammar: [
-        "Basic greeting structures",
-        "'My name is...' introduction",
-        "Simple question and answer patterns"
-      ],
-      skills: ["Speaking (primary)", "Listening", "Basic interaction", "Classroom language"],
-      structure: [
-        "Warm-up: Welcome to English class",
-        "Presentation: Basic greeting words and phrases",
-        "Practice: Guided greeting dialogues", 
-        "Production: Student-to-student greeting practice",
-        "Wrap-up: Goodbye songs and next lesson preview"
-      ]
-    },
+    description: 'Duration: Unit 0 + 10 units × 4 lessons each (≈ 43 lessons, 30 min each) | Method: Presentation → Practice → Production → Review',
     units: [
+      {
+        id: 'pre-starter-unit-0',
+        title: 'Unit 0 – Getting Started with English',
+        description: 'Introduction to basic greetings, names, age, and feelings',
+        lessons: [
+          {
+            id: 'ps-u0-l1',
+            title: 'My name is ____. Nice to meet you!',
+            duration: 30,
+            objectives: ['Learn personal introductions', 'Practice basic greetings', 'Use "My name is..." structure', 'Learn polite expressions'],
+            vocabulary: ['Hello', 'Hi', 'My name is', 'What\'s your name?', 'Nice to meet you', 'Goodbye', 'See you later'],
+            grammar: ['"My name is..." introduction', 'Basic greeting structures', 'Simple question patterns'],
+            skills: ['Speaking', 'Listening', 'Basic interaction', 'Introductions'],
+            description: 'Basic introductions and greetings - the foundation of social interaction in English'
+          },
+          {
+            id: 'ps-u0-l2',
+            title: 'How old are you? Basic Numbers & How are you?',
+            duration: 30,
+            objectives: ['Learn numbers 1-10', 'Ask and answer about age', 'Practice "How are you?"', 'Use age expressions'],
+            vocabulary: ['How old are you?', 'I am', 'years old', 'numbers 1-10', 'How are you?', 'I\'m fine'],
+            grammar: ['"I am [number] years old"', '"How old are you?"', '"How are you?" responses'],
+            skills: ['Speaking', 'Listening', 'Counting', 'Age expressions'],
+            description: 'Introduction to age and basic wellbeing inquiries with numbers 1-10'
+          },
+          {
+            id: 'ps-u0-l3',
+            title: 'How are you? Basic Feelings',
+            duration: 30,
+            objectives: ['Express basic feelings', 'Respond to "How are you?"', 'Learn emotion vocabulary', 'Practice feeling expressions'],
+            vocabulary: ['good', 'great', 'bad', 'happy', 'sad', 'tired', 'fine', 'okay', 'I feel'],
+            grammar: ['"I feel..."', '"I\'m [feeling]"', 'Emotion expressions'],
+            skills: ['Speaking', 'Listening', 'Emotional expression', 'Social interaction'],
+            description: 'Basic emotions and feelings vocabulary to respond naturally to "How are you?"'
+          }
+        ]
+      },
       {
         id: 'pre-starter-unit-1',
         title: 'Unit 1 – Family & Friends',
