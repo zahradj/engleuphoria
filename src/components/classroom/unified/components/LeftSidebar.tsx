@@ -6,7 +6,7 @@ import {
   Link, 
   Award, 
   MessageCircle, 
-  Book,
+  Library,
   ChevronLeft,
   ChevronRight
 } from "lucide-react";
@@ -23,7 +23,7 @@ export function LeftSidebar({ onToolSelect, selectedTool }: LeftSidebarProps) {
     { id: 'embed', icon: Link, label: 'Embed Link', color: '#3B82F6', description: 'Share external content' },
     { id: 'awards', icon: Award, label: 'Give Awards', color: '#F59E0B', description: 'Reward students' },
     { id: 'chat', icon: MessageCircle, label: 'Chat', color: '#8B5CF6', description: 'Real-time messaging' },
-    { id: 'dictionary', icon: Book, label: 'Dictionary', color: '#EF4444', description: 'Word definitions' }
+    { id: 'library', icon: Library, label: 'Library', color: '#10B981', description: 'Access learning resources' }
   ];
 
   return (
