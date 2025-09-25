@@ -36,7 +36,7 @@ import NewPricingPage from "./pages/NewPricingPage";
 import PlacementTest from "./pages/PlacementTest";
 import PlacementTest2 from "./pages/PlacementTest2";
 import LessonViewer from "./pages/LessonViewer";
-import CurriculumGeneration from "./pages/CurriculumGeneration";
+
 import ClassroomPrejoin from "./pages/ClassroomPrejoin";
 import { SystematicSlidesAdmin } from "./pages/admin/SystematicSlidesAdmin";
 import { AdventuresPage } from "./pages/AdventuresPage";
