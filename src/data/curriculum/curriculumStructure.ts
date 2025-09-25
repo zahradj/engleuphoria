@@ -16,10 +16,24 @@ export interface Unit {
   lessons: LessonContent[];
 }
 
+export interface IntroLesson {
+  id: string;
+  title: string;
+  description: string;
+  duration: number;
+  type: string;
+  objectives: string[];
+  vocabulary: string[];
+  grammar: string[];
+  skills: string[];
+  structure: string[];
+}
+
 export interface CEFRLevel {
   level: 'Pre-Starter' | 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
   title: string;
   description: string;
+  introLesson?: IntroLesson;
   units: Unit[];
 }
 
@@ -28,6 +42,39 @@ export const CURRICULUM_STRUCTURE: CEFRLevel[] = [
     level: 'Pre-Starter',
     title: 'Level 1 – Pre-Starter (Pre-A1/A1) Foundations',
     description: 'Duration: ~10 units × 4 lessons each (≈ 40 lessons, 30 min each) | Method: Presentation → Practice → Production → Review',
+    introLesson: {
+      id: "ps-lesson-0",
+      title: "Lesson 0 - Hello! First Greetings",
+      description: "Basic greetings and introductions - your first English lesson!",
+      duration: 30,
+      type: "introduction",
+      objectives: [
+        "Learn basic greetings (Hello, Hi, Good morning)",
+        "Practice saying 'My name is...'",
+        "Understand and respond to 'How are you?'",
+        "Learn polite expressions (Please, Thank you)"
+      ],
+      vocabulary: [
+        "Hello", "Hi", "Good morning", "Good afternoon", "Good evening",
+        "My name is...", "What's your name?",
+        "How are you?", "I'm fine, thank you",
+        "Please", "Thank you", "You're welcome",
+        "Goodbye", "See you later"
+      ],
+      grammar: [
+        "Basic greeting structures",
+        "'My name is...' introduction",
+        "Simple question and answer patterns"
+      ],
+      skills: ["Speaking (primary)", "Listening", "Basic interaction", "Classroom language"],
+      structure: [
+        "Warm-up: Welcome to English class",
+        "Presentation: Basic greeting words and phrases",
+        "Practice: Guided greeting dialogues", 
+        "Production: Student-to-student greeting practice",
+        "Wrap-up: Goodbye songs and next lesson preview"
+      ]
+    },
     units: [
       {
         id: 'pre-starter-unit-1',
