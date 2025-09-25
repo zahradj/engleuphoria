@@ -118,11 +118,7 @@ export function LeftSidebar({ onToolSelect, selectedTool }: LeftSidebarProps) {
                         }
                       }}
                       onClick={() => {
-                        if (tool.id === 'library' && tool.href) {
-                          window.open(tool.href, '_blank');
-                        } else {
-                          onToolSelect(tool.id);
-                        }
+                        onToolSelect(tool.id);
                       }}
                     >
                       {/* Enhanced animated background shimmer */}

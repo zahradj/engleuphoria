@@ -81,74 +81,15 @@ export function StudentClassroomView({
       <div className="h-full grid grid-cols-[1fr_400px] gap-4 p-4 pt-4">{/* Content positioned directly under fixed header */}
         {/* Left: Learning Material */}
         <Card className="h-full bg-classroom-card shadow-xl rounded-3xl overflow-hidden border-2 border-[hsl(var(--classroom-primary)/0.3)]">
-          <Tabs value={activeContentTab} onValueChange={setActiveContentTab} className="w-full h-full flex flex-col">
+          <Tabs value="whiteboard" className="w-full h-full flex flex-col">
             <div className="px-8 pt-6 pb-2 border-b border-classroom-border/60">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="slides" className="flex items-center gap-2">
-                  <FileText size={16} />
-                  <span>Lesson</span>
-                </TabsTrigger>
+              <TabsList className="grid w-full grid-cols-1">
                 <TabsTrigger value="whiteboard" className="flex items-center gap-2">
                   <PenTool size={16} />
                   <span>Whiteboard</span>
                 </TabsTrigger>
               </TabsList>
             </div>
-            
-            <TabsContent value="slides" className="flex-1 m-0 overflow-y-auto">
-              <div className="h-full p-8 bg-classroom-background relative overflow-y-auto">
-                {/* Main Exercise Content */}
-                <div className="flex items-center justify-center h-full">
-                  <div className="max-w-4xl w-full">
-                    
-                    {/* Pronoun Cards - Left Side */}
-                    <div className="flex flex-col gap-3 w-48 float-left mr-8">
-                      {pronouns.map(pronoun => <div key={pronoun} draggable onDragStart={e => handleDragStart(e, pronoun)} className="bg-[hsl(var(--classroom-primary))] text-white p-4 rounded-xl text-center font-bold text-lg cursor-move shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 border-2 border-[hsl(var(--classroom-primary)/0.7)]">
-                          {pronoun}
-                        </div>)}
-                    </div>
-
-                    {/* Exercise Area - Center */}
-                    <div className="flex-1 space-y-4">
-                      {exercises.map(exercise => <div key={exercise.id} className="flex items-center gap-4">
-                          {/* Drop zone for pronoun */}
-                          <div onDrop={e => handleDrop(e, exercise.id)} onDragOver={handleDragOver} className={`w-32 h-12 border-2 border-dashed rounded-xl flex items-center justify-center font-bold text-lg transition-all duration-300 ${selectedAnswers[exercise.id] ? 'bg-[hsl(var(--classroom-primary)/0.1)] border-[hsl(var(--classroom-primary))] text-[hsl(var(--classroom-primary))] animate-pulse' : 'border-[hsl(var(--classroom-secondary)/0.6)] bg-[hsl(var(--classroom-secondary)/0.1)] text-[hsl(var(--classroom-secondary))] hover:border-[hsl(var(--classroom-secondary))]'}`}>
-                            {selectedAnswers[exercise.id] || "Drop here"}
-                          </div>
-
-                          {/* Exercise text */}
-                          <div className="bg-[hsl(var(--classroom-accent))] text-black p-4 rounded-xl font-bold text-lg shadow-lg min-w-32 text-center border-2 border-[hsl(var(--classroom-accent)/0.7)] hover:scale-105 transition-transform duration-300">
-                            {exercise.answer}
-                          </div>
-                        </div>)}
-
-                      {/* Completion word */}
-                      <div className="flex justify-center mt-8">
-                        <div className="bg-[hsl(var(--classroom-secondary))] text-black p-6 rounded-xl font-bold text-2xl shadow-xl border-2 border-[hsl(var(--classroom-secondary)/0.7)] animate-bounce">
-                          yesterday.
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Feedback thumbs up */}
-                    <div className="absolute top-1/2 right-16 transform -translate-y-1/2">
-                      <div className="w-20 h-20 bg-[hsl(var(--classroom-accent))] rounded-full flex items-center justify-center shadow-xl animate-bounce border-4 border-white">
-                        <ThumbsUp className="w-10 h-10 text-white" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Progress bar at bottom */}
-                <div className="absolute bottom-6 left-8 right-8">
-                  <div className="w-full bg-[hsl(var(--classroom-border))] rounded-full h-3 shadow-inner">
-                    <div className="bg-gradient-to-r from-[hsl(var(--classroom-primary))] via-[hsl(var(--classroom-accent))] to-[hsl(var(--classroom-secondary))] h-3 rounded-full shadow-sm animate-pulse" style={{
-                    width: '65%'
-                  }}></div>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
             
             <TabsContent value="whiteboard" className="flex-1 m-0">
               <div className="h-full">

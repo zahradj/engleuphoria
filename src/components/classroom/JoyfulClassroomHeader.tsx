@@ -42,19 +42,11 @@ export function JoyfulClassroomHeader({
   };
   return (
     <div className={cn(
-      "flex items-center justify-between border-b-2 border-border/50 relative overflow-hidden",
+      "flex items-center justify-between border-b-2 border-border/50 relative overflow-hidden bg-white",
       isTeacher ? "p-2" : "p-4", // Smaller padding for teachers
       className
-    )} style={{ background: 'linear-gradient(135deg, hsl(var(--joy-pink) / 0.1), hsl(var(--joy-purple) / 0.1), hsl(var(--joy-teal) / 0.1))' }}>
+    )}>
       
-      {/* Animated background elements - more joyful */}
-      <div className="absolute top-0 left-0 w-full h-full opacity-20 overflow-hidden pointer-events-none">
-        <div className="absolute top-1 left-4 text-lg animate-sparkle" style={{ color: 'hsl(var(--joy-yellow))' }}>🌟</div>
-        <div className="absolute top-2 right-8 text-md animate-float-slow" style={{ color: 'hsl(var(--joy-green))' }}>📚</div>
-        <div className="absolute bottom-1 left-12 text-sm animate-sparkle" style={{ animationDelay: '1s', color: 'hsl(var(--joy-orange))' }}>✨</div>
-        <div className="absolute bottom-1 right-4 text-md animate-float-delayed" style={{ color: 'hsl(var(--joy-purple))' }}>🎓</div>
-        <div className="absolute top-1/2 left-1/4 text-sm animate-sparkle" style={{ animationDelay: '2s', color: 'hsl(var(--joy-pink))' }}>💫</div>
-      </div>
 
       {/* Left side - Class info */}
       <div className="flex items-center gap-4 relative z-10">
@@ -77,13 +69,13 @@ export function JoyfulClassroomHeader({
         </div>
       </div>
 
-      {/* Center - Logo in joyful bubble */}
+      {/* Center - Logo in purple bubble */}
       <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
-        <div className={`relative flex items-center justify-center rounded-full animate-gentle-pulse ${isTeacher ? 'w-12 h-12' : 'w-16 h-16'}`}
-             style={{ background: 'linear-gradient(135deg, hsl(var(--joy-orange)), hsl(var(--joy-yellow)), hsl(var(--joy-pink)))' }}>
+        <div className={`relative flex items-center justify-center rounded-full animate-pulse ${isTeacher ? 'w-12 h-12' : 'w-16 h-16'}`}
+             style={{ background: '#9991D4' }}>
           {/* Outer glow effect */}
-          <div className="absolute inset-0 rounded-full opacity-40 animate-gentle-pulse blur-md"
-               style={{ background: 'hsl(var(--joy-orange))', animationDelay: '0.5s' }}></div>
+          <div className="absolute inset-0 rounded-full opacity-40 animate-pulse blur-md"
+               style={{ background: '#9991D4', animationDelay: '0.5s' }}></div>
           
           {/* Logo */}
           <img 
@@ -91,11 +83,6 @@ export function JoyfulClassroomHeader({
             alt="EnglEphoria Logo" 
             className={`object-contain relative z-10 drop-shadow-sm ${isTeacher ? 'w-6 h-6' : 'w-10 h-10'}`}
           />
-          
-          {/* Sparkle effects */}
-          <div className="absolute -top-1 -right-1 text-xs animate-sparkle opacity-90" style={{ color: 'hsl(var(--joy-yellow))' }}>✨</div>
-          <div className="absolute -bottom-1 -left-1 text-xs animate-sparkle opacity-80" 
-               style={{ animationDelay: '0.3s', color: 'hsl(var(--joy-pink))' }}>⭐</div>
         </div>
       </div>
 

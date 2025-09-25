@@ -96,145 +96,15 @@ export function TeacherClassroomView({
       {/* Main Content Area with Tabs */}
       <div className="z-10 relative w-full min-h-full">
         <Card className="w-full min-h-full bg-white/95 backdrop-blur-sm shadow-2xl rounded-3xl md:rounded-r-none border border-blue-200/30 transition-all duration-500 hover:shadow-3xl">
-          <Tabs value={activeContentTab} onValueChange={setActiveContentTab} className="w-full h-full flex flex-col">
+          <Tabs value="whiteboard" className="w-full h-full flex flex-col">
             <div className="px-6 pt-6 pb-2 border-b border-gray-100">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="slides" className="flex items-center gap-2">
-                  <FileText size={16} />
-                  <span>Slides</span>
-                </TabsTrigger>
+              <TabsList className="grid w-full grid-cols-1">
                 <TabsTrigger value="whiteboard" className="flex items-center gap-2">
                   <PenTool size={16} />
                   <span>Whiteboard</span>
                 </TabsTrigger>
               </TabsList>
             </div>
-            
-            <TabsContent value="slides" className="flex-1 m-0 overflow-y-auto">
-              <div className="h-full flex items-center justify-center px-6 py-8 bg-gradient-to-br from-blue-50 via-white to-purple-50 relative overflow-y-auto">
-          {/* Lesson Content - Enhanced Question Words Visual */}
-          <div className="h-full px-6 py-8 bg-gradient-to-br from-blue-50 via-white to-purple-50 relative flex items-center justify-center overflow-hidden">
-            {/* Enhanced floating number indicator */}
-            <div className="absolute top-6 left-6 w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-600 text-white rounded-full flex items-center justify-center text-xl font-bold shadow-xl transform hover:scale-110 transition-all duration-300 animate-fade-in">
-              <span className="animate-pulse">{currentSlide}</span>
-            </div>
-            
-            {/* Slide progress indicator */}
-            <div className="absolute top-6 right-6 bg-white/80 backdrop-blur-sm rounded-full px-3 py-1 shadow-lg">
-              <span className="text-sm font-medium text-gray-700">{currentSlide} / {totalSlides}</span>
-            </div>
-            
-            {/* Enhanced Main visual content - Question Words */}
-            <div className="w-full h-full flex items-start justify-center relative pt-8">
-              <div className="grid grid-cols-3 gap-8 w-full max-w-4xl place-items-center animate-fade-in mx-auto">
-                {/* Who circle - Enhanced */}
-                <div className="relative group">
-                  <div className="w-40 h-40 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-2xl transform rotate-[-5deg] transition-all duration-500 group-hover:rotate-0 group-hover:scale-110">
-                    <div className="text-center">
-                      <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-2 mx-auto shadow-lg">
-                        <div className="w-8 h-8 bg-green-600 rounded-full animate-pulse"></div>
-                      </div>
-                      <span className="text-2xl font-bold text-green-800">Who?</span>
-                    </div>
-                  </div>
-                  <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-purple-400 rounded-full animate-bounce"></div>
-                  <div className="absolute -top-1 -left-1 w-4 h-4 bg-yellow-400 rounded-full animate-ping"></div>
-                </div>
-
-                {/* Enhanced Question Words Center */}
-                <div className="flex items-center justify-center">
-                  <div className="w-48 h-48 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-2xl animate-pulse">
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-orange-800 mb-2 animate-bounce">Question</div>
-                      <div className="text-2xl font-bold text-orange-800">words</div>
-                      <div className="mt-2 flex justify-center space-x-1">
-                        <div className="w-2 h-2 bg-orange-800 rounded-full animate-ping"></div>
-                        <div className="w-2 h-2 bg-orange-800 rounded-full animate-ping animation-delay-200"></div>
-                        <div className="w-2 h-2 bg-orange-800 rounded-full animate-ping animation-delay-400"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* When circle */}
-                <div className="relative">
-                  <div className="w-40 h-40 bg-gradient-to-br from-blue-300 to-blue-400 rounded-full flex items-center justify-center shadow-xl transform rotate-[8deg]">
-                    <div className="text-center">
-                      <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-2 mx-auto">
-                        <Clock className="w-8 h-8 text-blue-600" />
-                      </div>
-                      <span className="text-2xl font-bold text-blue-800">When?</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* What circle */}
-                <div className="relative">
-                  <div className="w-40 h-40 bg-gradient-to-br from-red-300 to-pink-400 rounded-full flex items-center justify-center shadow-xl transform rotate-[15deg]">
-                    <div className="text-center">
-                      <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-2 mx-auto">
-                        <div className="w-8 h-8 bg-red-600 rounded-full"></div>
-                      </div>
-                      <span className="text-2xl font-bold text-red-800">What?</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Why circle */}
-                <div className="relative">
-                  <div className="w-40 h-40 bg-gradient-to-br from-pink-300 to-purple-400 rounded-full flex items-center justify-center shadow-xl transform rotate-[-10deg]">
-                    <div className="text-center">
-                      <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-2 mx-auto">
-                        <span className="text-2xl">❓</span>
-                      </div>
-                      <span className="text-2xl font-bold text-purple-800">Why?</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Where circle */}
-                <div className="relative">
-                  <div className="w-40 h-40 bg-gradient-to-br from-teal-300 to-cyan-400 rounded-full flex items-center justify-center shadow-xl transform rotate-[12deg]">
-                    <div className="text-center">
-                      <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-2 mx-auto">
-                        <div className="w-8 h-8 bg-teal-600 rounded-full"></div>
-                      </div>
-                      <span className="text-2xl font-bold text-teal-800">Where?</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Navigation arrows */}
-            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex items-center gap-4">
-              <Button
-                variant="outline"
-                size="icon"
-                className="w-12 h-12 rounded-full shadow-lg"
-                onClick={() => setCurrentSlide(Math.max(1, currentSlide - 1))}
-                disabled={currentSlide === 1}
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </Button>
-              
-              <span className="px-4 py-2 bg-white rounded-full shadow-lg font-medium">
-                {currentSlide} / {totalSlides}
-              </span>
-              
-              <Button
-                variant="outline"
-                size="icon"
-                className="w-12 h-12 rounded-full shadow-lg"
-                onClick={() => setCurrentSlide(Math.min(totalSlides, currentSlide + 1))}
-                disabled={currentSlide === totalSlides}
-              >
-                <ChevronRight className="w-6 h-6" />
-              </Button>
-            </div>
-                </div>
-              </div>
-            </TabsContent>
             
             <TabsContent value="whiteboard" className="flex-1 m-0">
               <div className="h-full">

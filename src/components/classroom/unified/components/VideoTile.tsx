@@ -19,10 +19,10 @@ export function VideoTile({ stream, hasVideo, isTeacher, userLabel, isCameraOff 
 
   return (
     <div className="w-full aspect-video bg-gray-100 group relative rounded-xl overflow-hidden">
-      {/* Vibrant ambient glow behind video tile */}
-      <div className="absolute -inset-2 rounded-2xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r from-primary-300/40 via-accent-300/30 to-success-300/25"></div>
+      {/* Purple glow behind video tile */}
+      <div className="absolute -inset-2 rounded-2xl blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: 'linear-gradient(45deg, #9991D4, #D4C4CB)' }}></div>
       
-      <div className="relative w-full h-full rounded-xl overflow-hidden shadow-lg group-hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-surface via-primary-50 to-accent-50 border border-primary-200 flex items-center justify-center">
+      <div className="relative w-full h-full rounded-xl overflow-hidden shadow-lg group-hover:shadow-xl transition-all duration-300 bg-white border-4 flex items-center justify-center" style={{ borderColor: '#9991D4' }}>
         {/* Colorful gradient overlays for depth */}
         <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-primary-100/30 via-transparent to-accent-100/20"></div>
         <div className="absolute inset-0 pointer-events-none bg-gradient-radial from-transparent via-primary-50/10 to-transparent"></div>
