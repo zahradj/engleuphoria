@@ -21,6 +21,12 @@ interface ClassroomState {
   setActiveRightTab: (tab: string) => void;
   setActiveCenterTab: (tab: string) => void;
   awardPoints: (points: number, reason?: string) => void;
+  activeLesson?: {
+    moduleNumber: number;
+    lessonNumber: number;
+    studentId: string;
+  } | null;
+  setActiveLesson?: (lesson: { moduleNumber: number; lessonNumber: number; studentId: string } | null) => void;
 }
 
 interface UnifiedClassroomContentProps {
@@ -45,7 +51,9 @@ export function UnifiedClassroomContent({
     studentXP,
     setActiveRightTab,
     setActiveCenterTab,
-    awardPoints
+    awardPoints,
+    activeLesson,
+    setActiveLesson
   } = classroomState;
 
   const [openTool, setOpenTool] = useState<RailTool | null>(null);
@@ -53,6 +61,26 @@ export function UnifiedClassroomContent({
 
   const handleLeftToolSelect = (tool: string) => {
     setSelectedLeftTool(tool === selectedLeftTool ? "" : tool);
+  };
+
+  const handleLibraryInteraction = (type: string, data: any) => {
+    if (type === 'lessonStart') {
+      console.log('Lesson started:', data);
+      // Set active lesson to display in slides area
+      setActiveLesson?.({
+        moduleNumber: data.moduleNumber,
+        lessonNumber: data.lessonNumber,
+        studentId: data.studentId || 'demo-student-123'
+      });
+    }
+  };
+
+  const handleLessonComplete = (moduleNumber: number, lessonNumber: number, studentId: string) => {
+    console.log('Lesson completed:', { moduleNumber, lessonNumber, studentId });
+    // Clear active lesson
+    setActiveLesson?.(null);
+    // Award points for lesson completion
+    awardPoints(25, `Module ${moduleNumber}, Lesson ${lessonNumber} completed!`);
   };
 
   // Render teacher or student view based on role
@@ -71,6 +99,8 @@ export function UnifiedClassroomContent({
             currentUser={currentUser}
             enhancedClassroom={enhancedClassroom}
             classTime={classTime}
+            activeLesson={activeLesson}
+            onLessonComplete={handleLessonComplete}
           />
         </div>
         
@@ -182,8 +212,7 @@ export function UnifiedClassroomContent({
           <ToolRailOverlay title="Lesson Library" onClose={() => setSelectedLeftTool("")}>
             <LibraryContent 
               onLessonSelect={(lesson) => {
-                console.log('Selected lesson:', lesson);
-                // TODO: Implement lesson loading in Phase 5
+                handleLibraryInteraction('lessonStart', lesson);
               }}
               onAwardPoints={awardPoints}
             />
