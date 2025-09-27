@@ -226,7 +226,7 @@ export function LibraryContent({ onLessonSelect, onAwardPoints }: LibraryContent
                     </Button>
                     <Button 
                       size="sm"
-                      onClick={() => handleStartLesson(moduleNum, lessonNum, lesson.title)}
+                      onClick={() => handleSelectLesson(lesson)}
                     >
                       <Play className="h-3 w-3 mr-1" />
                       Start

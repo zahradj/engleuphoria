@@ -71,6 +71,9 @@ export function UnifiedClassroomContent({
 
       console.log('Lesson started from library (normalized):', { moduleNumber, lessonNumber, studentId });
       setActiveLesson?.({ moduleNumber, lessonNumber, studentId });
+      // Ensure the lesson appears in the slides tab and close the library overlay
+      setActiveCenterTab('slides');
+      setSelectedLeftTool("");
     }
   };
 
@@ -230,6 +233,7 @@ export function UnifiedClassroomContent({
         enhancedClassroom={enhancedClassroom}
         classTime={classTime}
         studentXP={studentXP}
+        activeLesson={activeLesson}
       />
     </div>
   );

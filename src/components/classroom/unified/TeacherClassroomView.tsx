@@ -108,6 +108,13 @@ export function TeacherClassroomView({
     }
   }, [isPresenting, totalSlides]);
 
+  // Auto-switch to slides tab when lesson is active
+  useEffect(() => {
+    if (activeLesson) {
+      setActiveContentTab("slides");
+    }
+  }, [activeLesson]);
+
   return (
     <div className="min-h-screen w-full grid grid-cols-[minmax(0,1fr)_minmax(24rem,36rem)] gap-0 p-0 md:gap-3 md:px-3 relative bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* Enhanced Glassmorphism Background */}
