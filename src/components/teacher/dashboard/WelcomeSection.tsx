@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Users, Star, ArrowRight, Video } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
 interface WelcomeSectionProps {
   teacherName: string;
   onJoinClassroom: () => void;
@@ -13,18 +12,16 @@ interface WelcomeSectionProps {
   rating?: string;
   onStartClass?: () => void;
 }
-
-export const WelcomeSection = ({ 
-  teacherName, 
+export const WelcomeSection = ({
+  teacherName,
   onJoinClassroom,
   weeklyEarnings,
-  todaysClasses = 3, 
-  totalStudents = 24, 
+  todaysClasses = 3,
+  totalStudents = 24,
   rating = "4.8",
-  onStartClass 
+  onStartClass
 }: WelcomeSectionProps) => {
   const navigate = useNavigate();
-  
   const handleEnterClassroom = () => {
     const teacherId = `teacher-${Date.now()}`;
     navigate(`/classroom?role=teacher&name=${encodeURIComponent(teacherName)}&userId=${teacherId}&roomId=unified-classroom-1`);
@@ -35,9 +32,7 @@ export const WelcomeSection = ({
     if (hour < 18) return 'Good afternoon';
     return 'Good evening';
   };
-
-  return (
-    <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-background border border-primary/20 p-8">
+  return <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-background border border-primary/20 p-8">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
       <div className="absolute top-4 right-4">
         <div className="h-20 w-20 rounded-full bg-primary/10 animate-pulse" />
@@ -74,25 +69,12 @@ export const WelcomeSection = ({
         </div>
         
         <div className="flex flex-col sm:flex-row gap-3">
-          <Button 
-            size="lg" 
-            className="bg-primary hover:bg-primary/90 text-primary-foreground px-6"
-            onClick={handleEnterClassroom}
-          >
+          <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground px-6" onClick={handleEnterClassroom}>
             <Video className="mr-2 h-5 w-5" />
             Enter Classroom
           </Button>
-          <Button 
-            variant="outline"
-            size="lg" 
-            className="px-6"
-            onClick={onJoinClassroom}
-          >
-            Start Teaching
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
+          
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
