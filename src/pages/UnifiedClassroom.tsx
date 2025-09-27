@@ -1,5 +1,5 @@
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useEnhancedClassroom } from "@/hooks/useEnhancedClassroom";
 import { useOneOnOneClassroom } from "@/hooks/useOneOnOneClassroom";
 import { useToast } from "@/hooks/use-toast";
@@ -38,6 +38,8 @@ function UnifiedClassroomInner() {
     setActiveCenterTab,
     awardPoints
   } = classroomState;
+
+  const [activeLesson, setActiveLesson] = useState<{ moduleNumber: number; lessonNumber: number; studentId: string } | null>(null);
 
   // Add reward notifications for celebrations
   const { 
@@ -174,7 +176,9 @@ function UnifiedClassroomInner() {
                     showRewardPopup,
                     setActiveRightTab,
                     setActiveCenterTab,
-                    awardPoints: enhancedAwardPoints
+                    awardPoints: enhancedAwardPoints,
+                    activeLesson,
+                    setActiveLesson
                   }}
                   enhancedClassroom={enhancedClassroom}
                   classTime={classTime}

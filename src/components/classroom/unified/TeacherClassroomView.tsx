@@ -7,6 +7,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { VideoTile } from "./components/VideoTile";
 import { ESLWhiteboard } from "@/components/classroom/ESLWhiteboard";
 import { LessonRenderer } from "./library/LessonRenderer";
+import { AnnotationToolbar } from "@/components/classroom/teaching-material/AnnotationToolbar";
+import { AnnotationCanvas } from "@/components/classroom/teaching-material/AnnotationCanvas";
 import { ChevronLeft, ChevronRight, List, Grid, Play, Pause, Clock, Volume2, VolumeX, Camera, CameraOff, Mic, MicOff, FileText, PenTool, Sparkles } from "lucide-react";
 
 interface TeacherClassroomViewProps {
@@ -42,6 +44,18 @@ export function TeacherClassroomView({
     teacherCameraOff: false,
     studentMuted: false,
     studentCameraOff: false
+  });
+
+// Annotations
+  const [isAnnotationMode, setIsAnnotationMode] = useState(false);
+  const [annotationTool, setAnnotationTool] = useState<"pen" | "eraser" | "rectangle" | "circle">("pen");
+  const [annotationColor, setAnnotationColor] = useState<string>("#9B87F5");
+  const { canvasElement, clearCanvas: clearAnnotations, saveAnnotations, loadAnnotations } = AnnotationCanvas({
+    isAnnotationMode,
+    annotationTool,
+    color: annotationColor,
+    currentPage: 1,
+    totalPages: 1
   });
 
   const totalSlides = 45;
@@ -245,31 +259,57 @@ export function TeacherClassroomView({
                           <p className="text-sm text-slate-600">Interactive ESL Lesson</p>
                         </div>
                       </div>
-                      <motion.div
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg">
-                          Live Lesson
-                        </Badge>
-                      </motion.div>
+                      <div className="flex items-center gap-3">
+                        <Button 
+                          variant={isAnnotationMode ? "default" : "outline"} 
+                          size="sm" 
+                          onClick={() => setIsAnnotationMode(!isAnnotationMode)}
+                          className="bg-white/30 backdrop-blur-sm border-white/30"
+                        >
+                          {isAnnotationMode ? 'Stop Annotating' : 'Annotate'}
+                        </Button>
+                        <motion.div
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg">
+                            Live Lesson
+                          </Badge>
+                        </motion.div>
+                      </div>
                     </div>
                     
                     <motion.div 
-                      className="h-[calc(100%-6rem)] bg-white/30 backdrop-blur-sm rounded-2xl border border-white/20 shadow-xl overflow-hidden"
+                      className="relative h-[calc(100%-6rem)] bg-white/30 backdrop-blur-sm rounded-2xl border border-white/20 shadow-xl overflow-hidden"
                       initial={{ scale: 0.95 }}
                       animate={{ scale: 1 }}
                       transition={{ duration: 0.4, delay: 0.2 }}
                     >
-                      <LessonRenderer
-                        moduleNumber={activeLesson.moduleNumber}
-                        lessonNumber={activeLesson.lessonNumber}
-                        studentId={activeLesson.studentId}
-                        onComplete={(data) => {
-                          onLessonComplete?.(activeLesson.moduleNumber, activeLesson.lessonNumber, activeLesson.studentId);
-                        }}
-                        mode="fullscreen"
-                      />
+                      {isAnnotationMode && (
+                        <div className="absolute top-2 left-2 z-20">
+                          <AnnotationToolbar
+                            annotationTool={annotationTool}
+                            setAnnotationTool={setAnnotationTool}
+                            color={annotationColor}
+                            setColor={setAnnotationColor}
+                            onClearAnnotations={clearAnnotations}
+                            onSaveAnnotations={saveAnnotations}
+                            onLoadAnnotations={loadAnnotations}
+                          />
+                        </div>
+                      )}
+                      <div className="relative w-full h-full">
+                        <LessonRenderer
+                          moduleNumber={activeLesson.moduleNumber}
+                          lessonNumber={activeLesson.lessonNumber}
+                          studentId={activeLesson.studentId}
+                          onComplete={(data) => {
+                            onLessonComplete?.(activeLesson.moduleNumber, activeLesson.lessonNumber, activeLesson.studentId);
+                          }}
+                          mode="fullscreen"
+                        />
+                        {canvasElement}
+                      </div>
                     </motion.div>
                   </motion.div>
                 ) : (
