@@ -65,13 +65,19 @@ export function UnifiedClassroomContent({
 
   const handleLibraryInteraction = (type: string, data: any) => {
     if (type === 'lessonStart') {
-      console.log('Lesson started:', data);
+      console.log('Lesson started from library:', data);
+      console.log('Setting activeLesson to:', {
+        moduleNumber: data.moduleNumber,
+        lessonNumber: data.lessonNumber,
+        studentId: data.studentId || 'demo-student-123'
+      });
       // Set active lesson to display in slides area
       setActiveLesson?.({
         moduleNumber: data.moduleNumber,
         lessonNumber: data.lessonNumber,
         studentId: data.studentId || 'demo-student-123'
       });
+      console.log('activeLesson state after setting:', activeLesson);
     }
   };
 

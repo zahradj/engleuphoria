@@ -32,6 +32,7 @@ export function TeacherClassroomView({
   activeLesson,
   onLessonComplete
 }: TeacherClassroomViewProps) {
+  console.log('TeacherClassroomView activeLesson prop:', activeLesson);
   const [currentSlide, setCurrentSlide] = useState(7);
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [isPresenting, setIsPresenting] = useState(false);
@@ -276,6 +277,7 @@ export function TeacherClassroomView({
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6 }}
+                    className="h-full flex flex-col"
                   >
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-xl font-semibold text-slate-800">Lesson Slides</h3>

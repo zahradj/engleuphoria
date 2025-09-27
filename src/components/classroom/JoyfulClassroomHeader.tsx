@@ -31,12 +31,42 @@ export function JoyfulClassroomHeader({
     }
   }, [xpValue, previousXP]);
 
-  // Format time from number of seconds to MM:SS
-  const formatTime = (time: string | number) => {
-    if (typeof time === 'string') return time;
-    const minutes = Math.floor(time / 60);
-    const seconds = time % 60;
-    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  };
-  return;
+  return (
+    <div className={cn("px-4 py-3 bg-gradient-to-r from-primary/20 to-secondary/20", className)}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <img src={englePhoriaLogo} alt="EngLePhoria" className="h-8 w-8" />
+          <div className="flex items-center gap-6">
+            {typeof classTime === 'number' ? (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Clock size={16} />
+                <span>{Math.floor(classTime / 60)}:{(classTime % 60).toString().padStart(2, '0')}</span>
+              </div>
+            ) : classTime && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Clock size={16} />
+                <span>{classTime}</span>
+              </div>
+            )}
+            {isTeacher && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Users size={16} />
+                <span>{studentCount} students</span>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {!isTeacher && (
+          <div className="flex items-center gap-4">
+            <AnimatedXPCounter currentXP={xpValue} previousXP={previousXP} level={levelValue} />
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Trophy size={16} />
+              <span>Level {levelValue}</span>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
