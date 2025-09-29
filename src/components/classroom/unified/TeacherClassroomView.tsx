@@ -8,6 +8,7 @@ import { VideoTile } from "./components/VideoTile";
 import { ESLWhiteboard } from "@/components/classroom/ESLWhiteboard";
 import { LessonRenderer } from "./library/LessonRenderer";
 import { AnnotationToolbar } from "@/components/classroom/teaching-material/AnnotationToolbar";
+import { EnhancedVideoConference } from "@/components/classroom/video/EnhancedVideoConference";
 import { AnnotationCanvas } from "@/components/classroom/teaching-material/AnnotationCanvas";
 import { ChevronLeft, ChevronRight, List, Grid, Play, Pause, Clock, Volume2, VolumeX, Camera, CameraOff, Mic, MicOff, FileText, PenTool, Sparkles } from "lucide-react";
 

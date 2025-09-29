@@ -7,6 +7,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { VideoTile } from "./components/VideoTile";
 import { ESLWhiteboard } from "@/components/classroom/ESLWhiteboard";
 import { LessonRenderer } from "./library/LessonRenderer";
+import { EnhancedVideoConference } from "@/components/classroom/video/EnhancedVideoConference";
 import { ThumbsUp, Clock, Star, FileText, PenTool, Sparkles } from "lucide-react";
 interface StudentClassroomViewProps {
   currentUser: {

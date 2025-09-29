@@ -20,6 +20,7 @@ import StudentSignUp from "./pages/StudentSignUp";
 import TeacherApplication from "./pages/TeacherApplication";
 import StudentApplication from "./pages/StudentApplication";
 import OneOnOneClassroomNew from "./pages/OneOnOneClassroomNew";
+import ClassroomEntryPage from "./pages/ClassroomEntryPage";
 import MediaTestPage from "./pages/MediaTestPage";
 import UnifiedClassroom from "./pages/UnifiedClassroom";
 import { DiscoverTeachers } from "./pages/DiscoverTeachers";
@@ -78,7 +79,8 @@ const App = () => (
               <Route path="/teacher-application" element={<TeacherApplication />} />
               <Route path="/student-application" element={<StudentApplication />} />
               <Route path="/media-test" element={<MediaTestPage />} />
-              <Route path="/classroom" element={<UnifiedClassroom />} />
+              <Route path="/classroom" element={<ClassroomEntryPage />} />
+              <Route path="/classroom-direct" element={<UnifiedClassroom />} />
               <Route path="/classroom-prejoin" element={<ClassroomPrejoin />} />
               <Route path="/discover-teachers" element={<DiscoverTeachers />} />
               <Route path="/teacher/:teacherId" element={<TeacherProfile />} />

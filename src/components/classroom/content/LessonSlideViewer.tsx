@@ -47,18 +47,36 @@ export function LessonSlideViewer({
   const handleNext = useCallback(() => {
     console.info('➡️ handleNext called', { currentSlide, total: lessonSlides?.slides.length });
     if (lessonSlides && currentSlide < lessonSlides.slides.length - 1) {
-      setCurrentSlide((prev) => prev + 1);
+      const nextSlide = currentSlide + 1;
+      setCurrentSlide(nextSlide);
       setSelectedOptions([]);
       setShowFeedback(false);
+      resetSlideState();
+      
+      // Scroll to top for better UX
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      console.info(`📍 Advanced to slide ${nextSlide + 1}/${lessonSlides.slides.length}`);
+    } else {
+      console.info('📍 Cannot advance - already at last slide');
     }
   }, [currentSlide, lessonSlides]);
 
   const handlePrevious = useCallback(() => {
     console.info('⬅️ handlePrevious called', { currentSlide });
     if (currentSlide > 0) {
-      setCurrentSlide((prev) => prev - 1);
+      const prevSlide = currentSlide - 1;
+      setCurrentSlide(prevSlide);
       setSelectedOptions([]);
       setShowFeedback(false);
+      resetSlideState();
+      
+      // Scroll to top for better UX
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      console.info(`📍 Went back to slide ${prevSlide + 1}/${lessonSlides?.slides.length || 0}`);
+    } else {
+      console.info('📍 Cannot go back - already at first slide');
     }
   }, [currentSlide]);
 
@@ -126,12 +144,13 @@ export function LessonSlideViewer({
       handleActivityResult(result);
     }
 
-    // Auto-advance after feedback
+    // Auto-advance after feedback (reduced delay for better flow)
     setTimeout(() => {
       if (isAnswerCorrect && currentSlide < (lessonSlides?.slides.length || 0) - 1) {
+        console.info('🎯 Auto-advancing after correct answer');
         handleNext();
       }
-    }, 2000);
+    }, 1500);
   }, [showFeedback, selectedOptions, attempts, startTime, studentId, lessonId, currentSlide, lessonSlides, handleNext]);
 
   const handleActivityResult = async (result: ActivityResult) => {

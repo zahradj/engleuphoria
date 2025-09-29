@@ -78,15 +78,25 @@ export function SlideMaster({
 
   // Track slide direction for transitions
   const handleNext = () => {
-    console.info('➡️ Next clicked');
+    console.info('➡️ SlideMaster Next clicked');
     setSlideDirection('next');
-    onNext?.();
+    if (onNext) {
+      onNext();
+      console.info('🎯 SlideMaster called onNext callback');
+    } else {
+      console.warn('⚠️ SlideMaster onNext callback not provided');
+    }
   };
 
   const handlePrevious = () => {
-    console.info('⬅️ Previous clicked');
+    console.info('⬅️ SlideMaster Previous clicked');
     setSlideDirection('previous');
-    onPrevious?.();
+    if (onPrevious) {
+      onPrevious();
+      console.info('🎯 SlideMaster called onPrevious callback');
+    } else {
+      console.warn('⚠️ SlideMaster onPrevious callback not provided');
+    }
   };
   // Announce slide changes to screen readers
   useEffect(() => {

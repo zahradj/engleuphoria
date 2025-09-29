@@ -49,15 +49,27 @@ export class RealTimeVideoService extends VideoService {
     try {
       console.log('🎥 RealTime: Joining room...');
       
-      // Simulate WebSocket connection for signaling
-      const wsUrl = `wss://demo-signaling.lovable.app/room/${this.config.roomName}`;
-      console.log('🎥 RealTime: Connecting to signaling server...');
+      // Create a simulated participant (remote user) for demonstration
+      const remoteParticipant: ParticipantData = {
+        id: this.enhancedConfig.displayName === 'Teacher' ? 'student-demo' : 'teacher-demo',
+        displayName: this.enhancedConfig.displayName === 'Teacher' ? 'Student Demo' : 'Teacher Demo',
+        role: this.enhancedConfig.displayName === 'Teacher' ? 'student' : 'teacher',
+        isMuted: false,
+        isVideoOff: false,
+        isHandRaised: false,
+        joinTime: new Date()
+      };
       
-      // For demo purposes, simulate successful connection
+      // Add the remote participant
+      this.participants.set(remoteParticipant.id, remoteParticipant);
+      
+      // Simulate successful connection with slight delay for realism
       setTimeout(() => {
         this.connected = true;
         this.callbacks.onConnectionStatusChanged?.(true);
-        console.log('🎥 RealTime: Successfully connected to room');
+        this.callbacks.onParticipantJoined?.(remoteParticipant.id, remoteParticipant.displayName);
+        console.log('🎥 RealTime: Successfully connected to room with participants:', 
+          Array.from(this.participants.keys()));
       }, 1500);
       
     } catch (error) {
