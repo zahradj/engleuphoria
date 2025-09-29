@@ -26,10 +26,22 @@ export function MediaTestFlow({
   const [showFullTest, setShowFullTest] = useState(false);
   const [testCompleted, setTestCompleted] = useState(false);
 
+  const handleMediaTestComplete = () => {
+    setTestCompleted(true);
+    onComplete();
+  };
+
+  const handleGoBack = () => {
+    setShowFullTest(false);
+  };
+
   if (showFullTest) {
     return (
       <div className="min-h-screen">
-        <MediaTestPage />
+        <MediaTestPage 
+          onTestComplete={handleMediaTestComplete}
+          onGoBack={handleGoBack}
+        />
       </div>
     );
   }

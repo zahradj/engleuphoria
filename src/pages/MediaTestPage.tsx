@@ -3,6 +3,11 @@ import React, { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+
+interface MediaTestPageProps {
+  onTestComplete?: () => void;
+  onGoBack?: () => void;
+}
 import { useMediaAccess } from "@/hooks/useMediaAccess";
 import { useAudioMonitoring } from "@/hooks/useAudioMonitoring";
 import { VideoPreviewCard } from "@/components/media-test/VideoPreviewCard";
@@ -13,7 +18,7 @@ import { useMediaDevices } from "@/hooks/useMediaDevices";
 import { DeviceSelector } from "@/components/media-test/DeviceSelector";
 
 
-const MediaTestPage = () => {
+const MediaTestPage = ({ onTestComplete, onGoBack }: MediaTestPageProps = {}) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
@@ -107,13 +112,27 @@ const MediaTestPage = () => {
   const joinClassroom = () => {
     cleanup();
     stopAudioLevelMonitoring();
-    navigate(`/classroom?roomId=${roomId}&role=${role}&name=${encodeURIComponent(name)}&userId=${userId}`);
+    
+    if (onTestComplete) {
+      // Called from MediaTestFlow - use callback instead of navigation
+      onTestComplete();
+    } else {
+      // Direct access to MediaTestPage - navigate normally
+      navigate(`/classroom?roomId=${roomId}&role=${role}&name=${encodeURIComponent(name)}&userId=${userId}`);
+    }
   };
 
   const goBack = () => {
     cleanup();
     stopAudioLevelMonitoring();
-    navigate(-1);
+    
+    if (onGoBack) {
+      // Called from MediaTestFlow - use callback
+      onGoBack();
+    } else {
+      // Direct access to MediaTestPage - navigate back
+      navigate(-1);
+    }
   };
 
   useEffect(() => {
