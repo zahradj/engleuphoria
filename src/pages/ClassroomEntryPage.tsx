@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import { MediaTestFlow } from '@/components/classroom/MediaTestFlow';
 import { ClassroomAccessGuard } from '@/components/classroom/ClassroomAccessGuard';
 import { OneOnOneVideoSection } from '@/components/classroom/oneonone/OneOnOneVideoSection';
@@ -12,14 +13,19 @@ export default function ClassroomEntryPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState<EntryStep>('media-test');
+  const { user } = useAuth();
   
   const roomId = searchParams.get("roomId") || "unified-classroom-1";
-  const role = searchParams.get("role") || "student";
-  const name = searchParams.get("name") || "User";
-  const userId = searchParams.get("userId") || "user-1";
+  const roleParam = searchParams.get("role") || "student";
+  const nameParam = searchParams.get("name") || "User";
+  const userIdParam = searchParams.get("userId") || "user-1";
 
-  const isTeacher = role === "teacher";
-  const userRole = isTeacher ? "teacher" : "student";
+  const authedUserId = user?.id || userIdParam;
+  const authedName = (user as any)?.full_name || (user?.user_metadata as any)?.full_name || nameParam;
+  const authedRole = (user?.role as 'teacher' | 'student' | 'admin' | undefined) || (roleParam === 'teacher' ? 'teacher' : 'student');
+
+  const isTeacher = authedRole === 'teacher';
+  const userRole = isTeacher ? 'teacher' : 'student';
 
   const {
     studentXP,
@@ -28,7 +34,7 @@ export default function ClassroomEntryPage() {
   } = useOneOnOneClassroom();
 
   const handleAccessDenied = () => {
-    navigate("/teacher-dashboard");
+    navigate(isTeacher ? "/teacher" : "/student");
   };
 
   const handleMediaTestComplete = () => {
@@ -45,9 +51,9 @@ export default function ClassroomEntryPage() {
     return (
       <MediaTestFlow
         roomId={roomId}
-        role={role}
-        name={name}
-        userId={userId}
+        role={authedRole}
+        name={authedName}
+        userId={authedUserId}
         onComplete={handleMediaTestComplete}
         onSkip={handleSkipMediaTest}
       />
@@ -57,7 +63,7 @@ export default function ClassroomEntryPage() {
   return (
     <ClassroomAccessGuard
       roomId={roomId}
-      userId={userId}
+      userId={authedUserId}
       userRole={userRole}
       onAccessDenied={handleAccessDenied}
     >
@@ -66,8 +72,8 @@ export default function ClassroomEntryPage() {
           <div className="max-w-7xl mx-auto h-[calc(100vh-2rem)]">
             <OneOnOneVideoSection
               enhancedClassroom={null}
-              currentUserId={userId}
-              currentUserName={name}
+              currentUserId={authedUserId}
+              currentUserName={authedName}
               isTeacher={isTeacher}
               studentXP={studentXP}
               onAwardPoints={awardPoints}

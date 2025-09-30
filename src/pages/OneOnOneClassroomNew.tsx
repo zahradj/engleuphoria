@@ -1,6 +1,7 @@
 
 import React from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { ClassroomAccessGuard } from "@/components/classroom/ClassroomAccessGuard";
 import { OneOnOneVideoSection } from "@/components/classroom/oneonone/OneOnOneVideoSection";
 import { MediaProvider } from "@/components/classroom/oneonone/video/MediaContext";
@@ -9,13 +10,17 @@ import { useOneOnOneClassroom } from "@/hooks/useOneOnOneClassroom";
 export default function OneOnOneClassroomNew() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   
   const roomId = searchParams.get("roomId") || "unified-classroom-1";
-  const role = searchParams.get("role") || "student";
-  const name = searchParams.get("name") || "User";
-  const userId = searchParams.get("userId") || "user-1";
+  const roleParam = searchParams.get("role") || "student";
+  const nameParam = searchParams.get("name") || "User";
+  const userIdParam = searchParams.get("userId") || "user-1";
 
-  const isTeacher = role === "teacher";
+  const authedUserId = user?.id || userIdParam;
+  const authedName = (user as any)?.full_name || (user?.user_metadata as any)?.full_name || nameParam;
+  const authedRole = (user?.role as 'teacher' | 'student' | 'admin' | undefined) || (roleParam === 'teacher' ? 'teacher' : 'student');
+  const isTeacher = authedRole === "teacher";
   const userRole = isTeacher ? "teacher" : "student";
 
   const {
@@ -25,13 +30,13 @@ export default function OneOnOneClassroomNew() {
   } = useOneOnOneClassroom();
 
   const handleAccessDenied = () => {
-    navigate("/teacher-dashboard");
+    navigate(isTeacher ? "/teacher" : "/student");
   };
 
   return (
     <ClassroomAccessGuard
       roomId={roomId}
-      userId={userId}
+      userId={authedUserId}
       userRole={userRole}
       onAccessDenied={handleAccessDenied}
     >
@@ -40,8 +45,8 @@ export default function OneOnOneClassroomNew() {
           <div className="max-w-7xl mx-auto h-[calc(100vh-2rem)]">
             <OneOnOneVideoSection
               enhancedClassroom={null}
-              currentUserId={userId}
-              currentUserName={name}
+              currentUserId={authedUserId}
+              currentUserName={authedName}
               isTeacher={isTeacher}
               studentXP={studentXP}
               onAwardPoints={awardPoints}
