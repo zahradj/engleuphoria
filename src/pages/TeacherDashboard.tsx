@@ -24,6 +24,7 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { DailyRoutinesSlides } from "@/components/classroom/lesson-slides/DailyRoutinesSlides";
 import { PlacementTestLibrary } from "@/components/classroom/content/PlacementTestLibrary";
 import { LibraryTab } from "@/components/teacher/dashboard/LibraryTab";
+import { ResourcesTab } from "@/components/teacher/ResourcesTab";
 
 type TabType = 'dashboard' | 'profile' | 'library' | 'calendar' | 'students' | 'reading-library' | 'history' | 'assignments' | 'resources' | 'messages' | 'earnings' | 'withdrawals' | 'reports' | 'settings' | 'slides' | 'placement-test';
 
@@ -104,6 +105,8 @@ const TeacherDashboard = () => {
           return <LessonHistoryTab />;
         case 'assignments':
           return <AssignmentsTab />;
+        case 'resources':
+          return <ResourcesTab />;
         case 'messages':
           return <MessagesTab />;
         case 'earnings':
