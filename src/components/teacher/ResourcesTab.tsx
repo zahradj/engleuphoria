@@ -83,6 +83,49 @@ export const ResourcesTab = () => {
     }
   };
 
+  const handleOpenLesson = async (lesson: Lesson) => {
+    try {
+      // Try to find corresponding slides by matching title
+      const { data, error } = await supabase
+        .from('lessons_content')
+        .select('*')
+        .ilike('title', lesson.title)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching lesson content:', error);
+        toast({
+          title: 'Cannot open lesson',
+          description: 'Failed to load slides for this lesson.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (data?.slides_content && Object.keys(data.slides_content || {}).length > 0) {
+        localStorage.setItem('currentLesson', JSON.stringify({
+          lessonId: data.id,
+          title: data.title,
+          slides: data.slides_content,
+        }));
+        navigate('/lesson-viewer');
+      } else {
+        toast({
+          title: 'Slides unavailable',
+          description: 'This lesson does not have slides yet.',
+          variant: 'destructive',
+        });
+      }
+    } catch (e) {
+      console.error('Unexpected error opening lesson:', e);
+      toast({
+        title: 'Error',
+        description: 'Something went wrong while opening the lesson.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -153,17 +196,7 @@ export const ResourcesTab = () => {
                 <Card 
                   key={lesson.id} 
                   className="hover:shadow-lg transition-shadow cursor-pointer"
-                  onClick={() => {
-                    if (lesson.unit_id) {
-                      navigate(`/lessons/unit-${lesson.unit_id}/lesson-${lesson.sort_order}`);
-                    } else {
-                      toast({
-                        title: "Lesson not available",
-                        description: "This lesson is not yet configured",
-                        variant: "destructive"
-                      });
-                    }
-                  }}
+                  onClick={() => handleOpenLesson(lesson)}
                 >
                   <CardHeader>
                     <CardTitle className="text-lg">{lesson.title}</CardTitle>
