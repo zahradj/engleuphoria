@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, FileText, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface Unit {
   id: string;
@@ -27,6 +28,7 @@ export const ResourcesTab = () => {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchResources();
@@ -148,7 +150,21 @@ export const ResourcesTab = () => {
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {lessons.map((lesson) => (
-                <Card key={lesson.id} className="hover:shadow-lg transition-shadow">
+                <Card 
+                  key={lesson.id} 
+                  className="hover:shadow-lg transition-shadow cursor-pointer"
+                  onClick={() => {
+                    if (lesson.unit_id) {
+                      navigate(`/lessons/unit-${lesson.unit_id}/lesson-${lesson.sort_order}`);
+                    } else {
+                      toast({
+                        title: "Lesson not available",
+                        description: "This lesson is not yet configured",
+                        variant: "destructive"
+                      });
+                    }
+                  }}
+                >
                   <CardHeader>
                     <CardTitle className="text-lg">{lesson.title}</CardTitle>
                     <CardDescription>Order: {lesson.sort_order}</CardDescription>

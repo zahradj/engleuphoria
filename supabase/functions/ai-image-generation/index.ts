@@ -1,4 +1,3 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -22,11 +21,11 @@ serve(async (req) => {
       );
     }
 
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      console.error('OpenAI API key not found');
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    if (!lovableApiKey) {
+      console.error('Lovable API key not found');
       return new Response(
-        JSON.stringify({ error: 'OpenAI API key not configured' }),
+        JSON.stringify({ error: 'Lovable API key not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -42,27 +41,29 @@ serve(async (req) => {
 
     const enhancedPrompt = `${prompt}, ${stylePrompts[style as keyof typeof stylePrompts] || stylePrompts.educational}, high quality illustration for English language learning`;
 
-    console.log('Generating image with prompt:', enhancedPrompt);
+    console.log('Generating image with Gemini:', enhancedPrompt);
 
-    const response = await fetch('https://api.openai.com/v1/images/generations', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'Authorization': `Bearer ${lovableApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-image-1',
-        prompt: enhancedPrompt,
-        n: 1,
-        size: aspectRatio === '16:9' ? '1792x1024' : aspectRatio === '4:3' ? '1024x1536' : '1024x1024',
-        quality: 'high',
-        output_format: 'png'
+        model: 'google/gemini-2.5-flash-image-preview',
+        messages: [
+          {
+            role: 'user',
+            content: enhancedPrompt
+          }
+        ],
+        modalities: ['image', 'text']
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('OpenAI API error:', errorData);
+      console.error('Lovable AI error:', errorData);
       return new Response(
         JSON.stringify({ error: 'Failed to generate image', details: errorData }),
         { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -71,16 +72,17 @@ serve(async (req) => {
 
     const data = await response.json();
     
-    if (!data.data || !data.data[0] || !data.data[0].url) {
-      console.error('Invalid response from OpenAI:', data);
+    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    
+    if (!imageUrl) {
+      console.error('Invalid response from Gemini:', data);
       return new Response(
-        JSON.stringify({ error: 'Invalid response from OpenAI API' }),
+        JSON.stringify({ error: 'Invalid response from Lovable AI' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const imageUrl = data.data[0].url;
-    console.log('Image generated successfully:', imageUrl);
+    console.log('Image generated successfully with Gemini');
 
     return new Response(
       JSON.stringify({ 
