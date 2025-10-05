@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { Media } from '@/types/slides';
 import { imageGenerationService, ImageGenerationOptions } from '@/services/imageGeneration';
 import { AnimatedElement } from '../animations/SlideElements';
+import { supabase } from '@/integrations/supabase/client';
 
 interface EnhancedMediaRendererProps {
   media?: Media;
@@ -31,10 +32,40 @@ export function EnhancedMediaRenderer({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!media && autoGenerate && slideContent) {
+    if (media?.autoGenerate && media.alt && media.url === 'ai-generated') {
+      generateImageFromMedia();
+    } else if (!media && autoGenerate && slideContent) {
       generateContextualImage();
     }
   }, [media, autoGenerate, slideContent]);
+
+  const generateImageFromMedia = async () => {
+    if (!media?.alt) return;
+    
+    setIsGenerating(true);
+    setError(null);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-image-generation', {
+        body: {
+          prompt: media.alt,
+          style: imageStyle,
+          aspectRatio: '16:9'
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.imageUrl) {
+        setGeneratedImage(data.imageUrl);
+      }
+    } catch (err) {
+      console.error('Failed to generate image from media:', err);
+      setError('Failed to generate image');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const generateContextualImage = async () => {
     if (!slideContent) return;
@@ -63,6 +94,34 @@ export function EnhancedMediaRenderer({
   };
 
   const renderMedia = () => {
+    // Handle AI-generated images
+    if (isGenerating) {
+      return (
+        <div className="flex flex-col items-center justify-center p-8 bg-muted/30 rounded-xl">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+          <p className="text-sm text-muted-foreground">Generating image with AI...</p>
+        </div>
+      );
+    }
+
+    if (generatedImage) {
+      return (
+        <AnimatedElement animationType="scaleIn" delay={0.2}>
+          <div className="relative group overflow-hidden rounded-xl shadow-lg">
+            <motion.img
+              src={generatedImage}
+              alt={media?.alt || 'AI generated image'}
+              className="w-full max-h-80 object-cover transition-transform duration-300 group-hover:scale-105"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          </div>
+        </AnimatedElement>
+      );
+    }
+    
     if (media) {
       const { type, url, alt, autoplay } = media;
       

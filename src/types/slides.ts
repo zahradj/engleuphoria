@@ -4,6 +4,13 @@ export interface Media {
   alt?: string;
   autoplay?: boolean;
   imagePrompt?: string;
+  autoGenerate?: boolean;
+}
+
+export interface AudioConfig {
+  text: string;
+  autoGenerate?: boolean;
+  url?: string;
 }
 
 export interface Option {
@@ -47,6 +54,7 @@ export interface Slide {
   prompt: string;
   instructions?: string;
   media?: Media;
+  audio?: AudioConfig;
   options?: Option[];
   correct?: string | string[];
   timeLimit?: number;

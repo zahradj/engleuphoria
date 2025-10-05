@@ -24,8 +24,13 @@ export const placementTest2: LessonSlides = {
       instructions: 'Answer questions, earn badges, and discover your level.',
       media: {
         type: 'image',
-        url: '/placeholder.svg',
-        alt: 'Explorer character animation'
+        url: 'ai-generated',
+        alt: 'Cheerful explorer character with backpack, compass, and map, embarking on an adventure, colorful educational illustration',
+        autoGenerate: true
+      },
+      audio: {
+        text: 'Welcome to the English Adventure Test! Answer questions, earn badges, and discover your level.',
+        autoGenerate: true
       }
     },
     
@@ -56,14 +61,19 @@ export const placementTest2: LessonSlides = {
       prompt: 'Listen and choose the correct picture',
       instructions: 'Click play and select the picture that matches what you hear',
       media: {
-        type: 'audio',
-        url: 'https://example.com/audio/boy-seven.mp3',
-        alt: 'Audio: This is a boy. He is 7.'
+        type: 'image',
+        url: 'ai-generated',
+        alt: 'Three simple illustrations: a boy age 7, a girl, and a dog, educational style for children',
+        autoGenerate: true
+      },
+      audio: {
+        text: 'This is a boy. He is seven years old.',
+        autoGenerate: true
       },
       options: [
-        { id: 'boy', text: '👦', isCorrect: true },
-        { id: 'girl', text: '👧', isCorrect: false },
-        { id: 'dog', text: '🐶', isCorrect: false }
+        { id: 'boy', text: '👦 Boy', isCorrect: true },
+        { id: 'girl', text: '👧 Girl', isCorrect: false },
+        { id: 'dog', text: '🐶 Dog', isCorrect: false }
       ],
       correct: 'boy'
     },
@@ -74,9 +84,14 @@ export const placementTest2: LessonSlides = {
       type: 'listening_comprehension',
       prompt: 'Listen and choose what you hear',
       media: {
-        type: 'audio',
-        url: 'https://example.com/audio/girl-reading-tree.mp3',
-        alt: 'Audio: The girl is reading under the tree.'
+        type: 'image',
+        url: 'ai-generated',
+        alt: 'Girl reading a book under a tree, peaceful park scene, educational illustration',
+        autoGenerate: true
+      },
+      audio: {
+        text: 'The girl is reading under the tree.',
+        autoGenerate: true
       },
       options: [
         { id: 'running', text: 'Girl running', isCorrect: false },
@@ -92,9 +107,14 @@ export const placementTest2: LessonSlides = {
       type: 'listening_comprehension',
       prompt: 'Listen and choose the correct time',
       media: {
-        type: 'audio',
-        url: 'https://example.com/audio/train-time.mp3',
-        alt: 'Audio: What time is the train? - At 5:30.'
+        type: 'image',
+        url: 'ai-generated',
+        alt: 'Train station platform with clock showing different times, educational illustration',
+        autoGenerate: true
+      },
+      audio: {
+        text: 'What time is the train? The train arrives at five thirty.',
+        autoGenerate: true
       },
       options: [
         { id: 'three', text: '🕒 3:00', isCorrect: false },
@@ -110,6 +130,16 @@ export const placementTest2: LessonSlides = {
       type: 'accuracy_mcq',
       prompt: 'Read and answer the question',
       instructions: 'My name is Anna. I am 8.',
+      media: {
+        type: 'image',
+        url: 'ai-generated',
+        alt: 'Happy girl named Anna, age 8, smiling portrait, educational illustration',
+        autoGenerate: true
+      },
+      audio: {
+        text: 'My name is Anna. I am eight years old.',
+        autoGenerate: true
+      },
       options: [
         { id: 'six', text: '6', isCorrect: false },
         { id: 'eight', text: '8', isCorrect: true },
@@ -293,9 +323,14 @@ export const placementTest2: LessonSlides = {
       type: 'listening_comprehension',
       prompt: 'Listen to the lecture and answer',
       media: {
-        type: 'audio',
-        url: 'https://example.com/audio/social-media-teens.mp3',
-        alt: 'Audio: Lecture about social media and teenagers'
+        type: 'image',
+        url: 'ai-generated',
+        alt: 'Teenager using smartphone at night with moon visible, educational illustration about sleep patterns',
+        autoGenerate: true
+      },
+      audio: {
+        text: 'Recent studies show that social media usage among teenagers significantly affects their sleep patterns. The blue light from screens and constant notifications disrupt the natural sleep cycle.',
+        autoGenerate: true
       },
       options: [
         { id: 'addiction', text: 'It causes addiction', isCorrect: false },

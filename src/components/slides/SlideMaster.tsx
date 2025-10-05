@@ -16,6 +16,7 @@ import { SpellingRaceGame } from './game/SpellingRaceGame';
 import { SlideTransition } from './animations/SlideTransition';
 import { AnimatedElement, StaggeredList } from './animations/SlideElements';
 import { EnhancedMediaRenderer } from './media/EnhancedMediaRenderer';
+import { AudioPlayer } from './media/AudioPlayer';
 import { AnimatedBackground } from './background/AnimatedBackground';
 import { InteractiveFeedback } from './interactive/InteractiveFeedback';
 import { motion } from 'framer-motion';
@@ -445,6 +446,18 @@ export function SlideMaster({
               autoGenerate={false}
               imageStyle="educational"
             />
+
+            {/* Audio Player */}
+            {slide.audio && (
+              <AnimatedElement animationType="fadeIn" delay={0.3}>
+                <div className="flex justify-center">
+                  <AudioPlayer 
+                    audio={slide.audio}
+                    autoPlay={false}
+                  />
+                </div>
+              </AnimatedElement>
+            )}
 
             {/* Interactive Activities */}
             <AnimatedElement animationType="scaleIn" delay={0.4}>
