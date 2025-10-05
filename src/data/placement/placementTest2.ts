@@ -154,6 +154,16 @@ export const placementTest2: LessonSlides = {
       type: 'match',
       prompt: 'Read the story and match sentences to pictures',
       instructions: 'Tom wakes up at 7. He eats breakfast and goes to school at 8.',
+      media: {
+        type: 'image',
+        url: 'ai-generated',
+        alt: 'Boy named Tom waking up, eating breakfast, and going to school, daily routine sequence, educational illustration',
+        autoGenerate: true
+      },
+      audio: {
+        text: 'Tom wakes up at seven. He eats breakfast and goes to school at eight.',
+        autoGenerate: true
+      },
       matchPairs: [
         { id: 'wake', left: 'wakes up', right: '🛏️' },
         { id: 'eat', left: 'eats breakfast', right: '🍽️' },
@@ -167,6 +177,16 @@ export const placementTest2: LessonSlides = {
       type: 'accuracy_mcq',
       prompt: 'Read and answer the question',
       instructions: 'Maria loves swimming and cycling. She doesn\'t like basketball.',
+      media: {
+        type: 'image',
+        url: 'ai-generated',
+        alt: 'Girl named Maria swimming in pool and riding bicycle, sports activities illustration',
+        autoGenerate: true
+      },
+      audio: {
+        text: 'Maria loves swimming and cycling. She doesn\'t like basketball.',
+        autoGenerate: true
+      },
       options: [
         { id: 'swimming', text: 'Swimming', isCorrect: false },
         { id: 'cycling', text: 'Cycling', isCorrect: false },
@@ -181,6 +201,16 @@ export const placementTest2: LessonSlides = {
       type: 'accuracy_mcq',
       prompt: 'Read the article and answer',
       instructions: 'Recycling helps reduce waste in our environment. It saves natural resources and reduces pollution. Many cities now have recycling programs to help citizens dispose of materials properly.',
+      media: {
+        type: 'image',
+        url: 'ai-generated',
+        alt: 'Recycling bins with recycling symbol, people sorting waste, clean environment, educational illustration',
+        autoGenerate: true
+      },
+      audio: {
+        text: 'Recycling helps reduce waste in our environment. It saves natural resources and reduces pollution.',
+        autoGenerate: true
+      },
       options: [
         { id: 'saves-money', text: 'Saves money', isCorrect: false },
         { id: 'reduces-waste', text: 'Reduces waste and protects environment', isCorrect: true },
@@ -195,6 +225,16 @@ export const placementTest2: LessonSlides = {
       type: 'accuracy_mcq',
       prompt: 'Choose the correct word',
       instructions: 'I ___ a student.',
+      media: {
+        type: 'image',
+        url: 'ai-generated',
+        alt: 'Happy student with backpack and books, school setting, educational illustration',
+        autoGenerate: true
+      },
+      audio: {
+        text: 'I am a student.',
+        autoGenerate: true
+      },
       options: [
         { id: 'am', text: 'am', isCorrect: true },
         { id: 'is', text: 'is', isCorrect: false },
@@ -208,6 +248,16 @@ export const placementTest2: LessonSlides = {
       id: 'a1-vocabulary',
       type: 'match',
       prompt: 'Match words with pictures',
+      media: {
+        type: 'image',
+        url: 'ai-generated',
+        alt: 'School building, red apple, yellow school bus, simple vocabulary objects, educational illustration for children',
+        autoGenerate: true
+      },
+      audio: {
+        text: 'School, apple, bus. Match the words with the pictures.',
+        autoGenerate: true
+      },
       matchPairs: [
         { id: 'school', left: 'school', right: '🏫' },
         { id: 'apple', left: 'apple', right: '🍎' },
@@ -221,6 +271,16 @@ export const placementTest2: LessonSlides = {
       type: 'accuracy_mcq',
       prompt: 'Choose the correct past tense',
       instructions: 'Yesterday I ___ to school.',
+      media: {
+        type: 'image',
+        url: 'ai-generated',
+        alt: 'Student walking to school yesterday, past tense action, educational illustration',
+        autoGenerate: true
+      },
+      audio: {
+        text: 'Yesterday I went to school.',
+        autoGenerate: true
+      },
       options: [
         { id: 'go', text: 'go', isCorrect: false },
         { id: 'goes', text: 'goes', isCorrect: false },
@@ -234,6 +294,16 @@ export const placementTest2: LessonSlides = {
       id: 'b1-vocabulary',
       type: 'match',
       prompt: 'Match synonyms',
+      media: {
+        type: 'image',
+        url: 'ai-generated',
+        alt: 'Faces showing different emotions: happy person smiling, angry person frowning, big elephant next to small mouse, synonym pairs illustration',
+        autoGenerate: true
+      },
+      audio: {
+        text: 'Match the synonyms. Happy means glad. Angry means mad. Big means large.',
+        autoGenerate: true
+      },
       matchPairs: [
         { id: 'happy', left: 'happy', right: 'glad' },
         { id: 'angry', left: 'angry', right: 'mad' },
@@ -247,6 +317,16 @@ export const placementTest2: LessonSlides = {
       type: 'cloze',
       prompt: 'Complete the conditional sentence',
       clozeText: 'If I _____ (study), I will pass the exam.',
+      media: {
+        type: 'image',
+        url: 'ai-generated',
+        alt: 'Student studying at desk with books and passing exam with good grade, cause and effect illustration',
+        autoGenerate: true
+      },
+      audio: {
+        text: 'If I study, I will pass the exam.',
+        autoGenerate: true
+      },
       clozeGaps: [
         { id: 'gap1', correctAnswers: ['study'], options: ['study', 'studied', 'studying', 'will study'] }
       ]
@@ -258,6 +338,16 @@ export const placementTest2: LessonSlides = {
       type: 'accuracy_mcq',
       prompt: 'Choose the most appropriate word',
       instructions: 'The scientist presented a highly ___ report.',
+      media: {
+        type: 'image',
+        url: 'ai-generated',
+        alt: 'Professional scientist in lab coat presenting detailed scientific report with charts and data, academic setting illustration',
+        autoGenerate: true
+      },
+      audio: {
+        text: 'The scientist presented a highly precise report.',
+        autoGenerate: true
+      },
       options: [
         { id: 'precise', text: 'precise', isCorrect: true },
         { id: 'tiny', text: 'tiny', isCorrect: false },
@@ -309,6 +399,16 @@ export const placementTest2: LessonSlides = {
       type: 'accuracy_mcq',
       prompt: 'Read the academic text and answer',
       instructions: 'Climate change represents one of the most significant challenges facing humanity. Scientific evidence overwhelmingly demonstrates that rising global temperatures are primarily caused by human activities, particularly the emission of greenhouse gases from fossil fuel combustion.',
+      media: {
+        type: 'image',
+        url: 'ai-generated',
+        alt: 'Earth globe with thermometer showing rising temperature, factories emitting smoke, climate change concept illustration',
+        autoGenerate: true
+      },
+      audio: {
+        text: 'Climate change represents one of the most significant challenges facing humanity. Scientific evidence demonstrates that rising temperatures are caused by human activities.',
+        autoGenerate: true
+      },
       options: [
         { id: 'natural', text: 'Climate change is natural', isCorrect: false },
         { id: 'human-caused', text: 'Climate change is caused by human activity', isCorrect: true },
