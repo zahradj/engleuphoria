@@ -110,15 +110,14 @@ export function EnhancedMediaRenderer({
       return (
         <AnimatedElement animationType="scaleIn" delay={0.2}>
           <div className="relative group overflow-hidden rounded-xl shadow-lg">
-            <motion.img
-              src={generatedImage}
-              alt={media?.alt || 'AI generated image'}
-              className="w-full max-h-80 object-cover transition-transform duration-300 group-hover:scale-105"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <motion.img
+            src={generatedImage}
+            alt={media?.alt || 'AI generated image'}
+            className="w-full max-h-80 object-cover transition-transform duration-300 group-hover:scale-105"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          />
           </div>
         </AnimatedElement>
       );
@@ -141,7 +140,6 @@ export function EnhancedMediaRenderer({
                   transition={{ duration: 0.5 }}
                   loading="lazy"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               </div>
             </AnimatedElement>
           );
@@ -218,7 +216,6 @@ export function EnhancedMediaRenderer({
             <div className="absolute top-3 right-3 bg-success/90 text-white px-2 py-1 rounded-full text-xs font-medium">
               AI Generated
             </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </div>
         </AnimatedElement>
       );
