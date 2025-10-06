@@ -32,12 +32,14 @@ export function EnhancedMediaRenderer({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (generatedImage) return; // Don't regenerate if we already have an image
+    
     if (media?.autoGenerate && media.alt && media.url === 'ai-generated') {
       generateImageFromMedia();
     } else if (!media && autoGenerate && slideContent) {
       generateContextualImage();
     }
-  }, [media, autoGenerate, slideContent]);
+  }, [media?.autoGenerate, media?.alt, media?.url, autoGenerate, slideContent?.prompt]);
 
   const generateImageFromMedia = async () => {
     if (!media?.alt) return;
