@@ -33,6 +33,9 @@ export default function PlacementTest2() {
   const [timeElapsed, setTimeElapsed] = useState(0);
   const [results, setResults] = useState<ActivityResult[]>([]);
   const [cefrResult, setCefrResult] = useState<CEFRResult | null>(null);
+  const [selectedOptions, setSelectedOptions] = useState<{[key: string]: string}>({});
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
   
   const [badges, setBadges] = useState<Badge[]>([
     { id: 'listening', name: 'Listening Star', icon: Star, earned: false },
@@ -171,6 +174,8 @@ export default function PlacementTest2() {
     if (currentSlide < placementTest2.slides.length - 1) {
       const nextSlide = currentSlide + 1;
       setCurrentSlide(nextSlide);
+      setShowFeedback(false);
+      setIsCorrect(false);
       awardBadges(nextSlide);
     } else {
       const cefrResult = calculateCEFRLevel(results);
@@ -184,6 +189,55 @@ export default function PlacementTest2() {
     }
   };
 
+  const handleActivityResult = (result: ActivityResult) => {
+    const slideId = placementTest2.slides[currentSlide].id;
+    const slideType = placementTest2.slides[currentSlide].type;
+    
+    // Add contextual tags based on slide type and position
+    const tags: string[] = [slideType];
+    if (currentSlide >= 2 && currentSlide <= 4) tags.push('listening_skill');
+    if (currentSlide >= 5 && currentSlide <= 8) tags.push('reading_skill');
+    if (currentSlide >= 9 && currentSlide <= 14) tags.push('grammar_skill', 'vocabulary_skill');
+    if (currentSlide >= 15 && currentSlide <= 18) tags.push('writing_skill');
+    if (currentSlide >= 19) tags.push('advanced_skill');
+    
+    const newResult: ActivityResult = {
+      ...result,
+      itemId: slideId,
+      tags,
+      cefr: 'unknown'
+    };
+    
+    setResults(prev => [...prev, newResult]);
+    setShowFeedback(true);
+    setIsCorrect(result.correct);
+  };
+
+  const handleOptionSelect = (optionId: string) => {
+    const slide = placementTest2.slides[currentSlide];
+    setSelectedOptions(prev => ({
+      ...prev,
+      [slide.id]: optionId
+    }));
+
+    // For MCQ slides, automatically trigger activity result
+    if (slide.type === 'accuracy_mcq' && slide.options) {
+      const selectedOption = slide.options.find(opt => opt.id === optionId);
+      const isCorrect = selectedOption?.isCorrect || false;
+      
+      const result: ActivityResult = {
+        itemId: slide.id,
+        correct: isCorrect,
+        timeMs: 0,
+        attempts: 1,
+        tags: [slide.type],
+        cefr: 'unknown'
+      };
+      
+      handleActivityResult(result);
+    }
+  };
+
   const restartTest = () => {
     setCurrentSlide(0);
     setTestStarted(false);
@@ -191,6 +245,9 @@ export default function PlacementTest2() {
     setTimeElapsed(0);
     setResults([]);
     setCefrResult(null);
+    setSelectedOptions({});
+    setShowFeedback(false);
+    setIsCorrect(false);
     setBadges(prev => prev.map(badge => ({ ...badge, earned: false })));
   };
 
@@ -226,7 +283,12 @@ export default function PlacementTest2() {
       progress={progress}
       timeElapsed={timeElapsed}
       badges={badges}
+      selectedOptions={Object.keys(selectedOptions).map(key => selectedOptions[key])}
+      showFeedback={showFeedback}
+      isCorrect={isCorrect}
       onNext={handleNext}
+      onActivityResult={handleActivityResult}
+      onOptionSelect={handleOptionSelect}
     />
   );
 }

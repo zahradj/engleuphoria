@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { CheckCircle, XCircle, GripVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DragDropItem, DragDropTarget } from '@/types/slides';
+import { VocabularyImage } from '@/components/placement-test/VocabularyImage';
 
 interface DragDropMatchProps {
   items: DragDropItem[];

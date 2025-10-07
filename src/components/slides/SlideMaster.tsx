@@ -222,7 +222,7 @@ export function SlideMaster({
     return null;
   };
 
-  const renderInteractiveActivity = () => {
+  const renderInteractiveActivity = React.useCallback(() => {
     console.log('🎮 Rendering interactive activity for slide type:', slide.type);
     console.log('🎮 Activity data check:', {
       matchPairs: slide.matchPairs?.length || 0,
@@ -350,7 +350,7 @@ export function SlideMaster({
       default:
         return null;
     }
-  };
+  }, [slide, onActivityResult, showFeedback, timeElapsed, level, currentSlide, totalSlides]);
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;

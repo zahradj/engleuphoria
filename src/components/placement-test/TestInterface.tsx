@@ -20,8 +20,12 @@ interface TestInterfaceProps {
   progress: number;
   timeElapsed: number;
   badges: BadgeItem[];
+  selectedOptions?: string[];
+  showFeedback?: boolean;
+  isCorrect?: boolean;
   onNext: () => void;
-  onComplete?: () => void;
+  onActivityResult?: (result: any) => void;
+  onOptionSelect?: (optionId: string) => void;
 }
 
 export function TestInterface({
@@ -31,8 +35,12 @@ export function TestInterface({
   progress,
   timeElapsed,
   badges,
+  selectedOptions,
+  showFeedback,
+  isCorrect,
   onNext,
-  onComplete
+  onActivityResult,
+  onOptionSelect
 }: TestInterfaceProps) {
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -132,6 +140,11 @@ export function TestInterface({
               currentSlide={currentSlide}
               totalSlides={totalSlides}
               onNext={onNext}
+              onActivityResult={onActivityResult}
+              onOptionSelect={onOptionSelect}
+              selectedOptions={selectedOptions}
+              showFeedback={showFeedback}
+              isCorrect={isCorrect}
             />
           </motion.div>
         </AnimatePresence>
