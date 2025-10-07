@@ -5,6 +5,7 @@ export interface Media {
   autoplay?: boolean;
   imagePrompt?: string;
   autoGenerate?: boolean;
+  vocabWords?: string[];
 }
 
 export interface AudioConfig {

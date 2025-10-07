@@ -40,6 +40,13 @@ export const placementTest2: LessonSlides = {
       type: 'drag_drop',
       prompt: 'Practice: Match words with pictures',
       instructions: 'Drag each word to its matching picture',
+      media: {
+        type: 'image',
+        url: 'gemini-vocab',
+        alt: 'vocabulary items: dog, cat, sun, book',
+        autoGenerate: true,
+        vocabWords: ['dog', 'cat', 'sun', 'book']
+      },
       dragDropItems: [
         { id: 'dog', text: 'dog', targetId: 'dog-pic' },
         { id: 'cat', text: 'cat', targetId: 'cat-pic' },
@@ -250,9 +257,10 @@ export const placementTest2: LessonSlides = {
       prompt: 'Match words with pictures',
       media: {
         type: 'image',
-        url: 'ai-generated',
-        alt: 'School building, red apple, yellow school bus, simple vocabulary objects, educational illustration for children',
-        autoGenerate: true
+        url: 'gemini-vocab',
+        alt: 'vocabulary items: school, apple, bus',
+        autoGenerate: true,
+        vocabWords: ['school', 'apple', 'bus']
       },
       audio: {
         text: 'School, apple, bus. Match the words with the pictures.',
