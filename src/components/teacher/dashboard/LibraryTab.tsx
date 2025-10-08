@@ -1,16 +1,25 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronRight, Search, BookOpen, Clock, Target, Users, Play, Star, Filter } from "lucide-react";
+import { ChevronDown, ChevronRight, Search, BookOpen, Clock, Target, Users, Play, Eye } from "lucide-react";
 import { CURRICULUM_STRUCTURE, CEFRLevel, Unit, LessonContent } from "@/data/curriculum/curriculumStructure";
+import { SlidePreviewModal } from "@/components/teacher/preview/SlidePreviewModal";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
 export const LibraryTab = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedLevels, setExpandedLevels] = useState<string[]>([]);
   const [expandedUnits, setExpandedUnits] = useState<string[]>([]);
   const [selectedLevel, setSelectedLevel] = useState<string>("all");
+  const [previewLesson, setPreviewLesson] = useState<{ slides: any[], title: string } | null>(null);
+  const [isLoadingLesson, setIsLoadingLesson] = useState(false);
   const toggleLevel = (level: string) => {
     setExpandedLevels(prev => prev.includes(level) ? prev.filter(l => l !== level) : [...prev, level]);
   };
@@ -35,9 +44,78 @@ export const LibraryTab = () => {
     };
     return colors[level as keyof typeof colors] || 'bg-gray-100 text-gray-800 border-gray-200';
   };
-  const startLesson = (lesson: LessonContent) => {
-    // TODO: Implement lesson player navigation
-    console.log('Starting lesson:', lesson.title);
+  const startLesson = async (lesson: LessonContent) => {
+    setIsLoadingLesson(true);
+    try {
+      // Fetch lesson slides from database
+      const { data, error } = await supabase
+        .from('lessons_content')
+        .select('*')
+        .ilike('title', `%${lesson.title}%`)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (!data || !data.slides_content) {
+        toast({
+          title: "No Slides Found",
+          description: "This lesson doesn't have slides yet.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Store lesson data in localStorage for the viewer
+      localStorage.setItem('currentLesson', JSON.stringify({
+        lessonId: data.id,
+        title: data.title,
+        slides: data.slides_content,
+      }));
+
+      // Navigate to lesson viewer
+      navigate('/lesson-viewer');
+    } catch (error) {
+      console.error('Error loading lesson:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load lesson. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingLesson(false);
+    }
+  };
+
+  const previewSlides = async (lesson: LessonContent) => {
+    try {
+      const { data, error } = await supabase
+        .from('lessons_content')
+        .select('slides_content, title')
+        .ilike('title', `%${lesson.title}%`)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data?.slides_content?.slides) {
+        setPreviewLesson({
+          slides: data.slides_content.slides,
+          title: data.title,
+        });
+      } else {
+        toast({
+          title: "No Slides",
+          description: "This lesson doesn't have slides to preview.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error previewing slides:', error);
+      toast({
+        title: "Error",
+        description: "Failed to preview slides.",
+        variant: "destructive",
+      });
+    }
   };
   return <div className="space-y-6">
       {/* Header */}
@@ -178,10 +256,24 @@ export const LibraryTab = () => {
                                           </div>
                                         </div>
 
-                                        <div className="ml-4">
-                                          <Button onClick={() => startLesson(lesson)} size="sm" className="flex items-center gap-2">
+                                        <div className="ml-4 flex gap-2">
+                                          <Button 
+                                            onClick={() => previewSlides(lesson)} 
+                                            size="sm" 
+                                            variant="outline"
+                                            className="flex items-center gap-2"
+                                          >
+                                            <Eye className="h-3 w-3" />
+                                            Preview
+                                          </Button>
+                                          <Button 
+                                            onClick={() => startLesson(lesson)} 
+                                            size="sm" 
+                                            className="flex items-center gap-2"
+                                            disabled={isLoadingLesson}
+                                          >
                                             <Play className="h-3 w-3" />
-                                            Start Lesson
+                                            {isLoadingLesson ? 'Loading...' : 'Start'}
                                           </Button>
                                         </div>
                                       </div>
@@ -218,5 +310,15 @@ export const LibraryTab = () => {
             </div>
           </CardContent>
         </Card>}
+
+      {/* Preview Modal */}
+      {previewLesson && (
+        <SlidePreviewModal
+          open={!!previewLesson}
+          onOpenChange={(open) => !open && setPreviewLesson(null)}
+          slides={previewLesson.slides}
+          lessonTitle={previewLesson.title}
+        />
+      )}
     </div>;
 };

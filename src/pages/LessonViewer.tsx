@@ -21,7 +21,12 @@ export default function LessonViewer() {
     if (storedLesson) {
       try {
         const lesson = JSON.parse(storedLesson);
-        setLessonData(lesson);
+        // Validate lesson data structure
+        if (lesson && lesson.lessonId && lesson.title && lesson.slides) {
+          setLessonData(lesson);
+        } else {
+          console.error('Invalid lesson data structure');
+        }
       } catch (error) {
         console.error('Error parsing lesson data:', error);
       }

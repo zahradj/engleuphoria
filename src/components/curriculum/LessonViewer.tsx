@@ -1,8 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Play, Clock, Target, BookOpen, Users } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface LessonViewerProps {
   lesson: any;
@@ -10,9 +12,28 @@ interface LessonViewerProps {
 }
 
 export const LessonViewer: React.FC<LessonViewerProps> = ({ lesson, onBack }) => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
   const handleStartLesson = () => {
-    // TODO: Implement lesson startup logic
-    console.log('Starting lesson:', lesson.id);
+    if (!lesson.slides_content || !lesson.slides_content.slides) {
+      toast({
+        title: "No Slides Available",
+        description: "This lesson doesn't have slides yet.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Store lesson data in localStorage
+    localStorage.setItem('currentLesson', JSON.stringify({
+      lessonId: lesson.id,
+      title: lesson.title,
+      slides: lesson.slides_content,
+    }));
+
+    // Navigate to lesson viewer
+    navigate('/lesson-viewer');
   };
 
   return (
