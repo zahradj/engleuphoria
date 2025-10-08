@@ -1,6 +1,6 @@
 // Service Worker for caching and performance
 
-const CACHE_NAME = 'engleuphoria-v1';
+const CACHE_NAME = 'engleuphoria-v2';
 const urlsToCache = [
   '/',
   '/static/css/',
@@ -16,6 +16,22 @@ self.addEventListener('install', (event) => {
         return cache.addAll(urlsToCache);
       })
   );
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+  return self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {

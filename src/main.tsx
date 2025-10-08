@@ -4,6 +4,16 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import i18n from '@/lib/i18n';
+import { clearAllCaches } from '@/utils/productionCleanup';
+
+// Clear stale caches on app start
+const CACHE_VERSION = 'v2';
+const lastCacheVersion = localStorage.getItem('cache_version');
+if (lastCacheVersion !== CACHE_VERSION) {
+  clearAllCaches().then(() => {
+    localStorage.setItem('cache_version', CACHE_VERSION);
+  });
+}
 
 // Register service worker only in production; unregister in dev to avoid HMR issues
 if ('serviceWorker' in navigator) {

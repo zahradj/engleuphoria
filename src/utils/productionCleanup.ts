@@ -31,6 +31,31 @@ export const cleanupDevelopmentArtifacts = () => {
   }
 };
 
+// Clear all app caches and storage
+export const clearAllCaches = async () => {
+  try {
+    // Clear localStorage (except auth tokens)
+    const authKeys = ['supabase.auth.token', 'sb-auth-token'];
+    const keysToRemove = Object.keys(localStorage).filter(
+      key => !authKeys.some(authKey => key.includes(authKey))
+    );
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    
+    // Clear sessionStorage
+    sessionStorage.clear();
+    
+    // Clear all caches
+    if ('caches' in window) {
+      const cacheNames = await caches.keys();
+      await Promise.all(cacheNames.map(name => caches.delete(name)));
+    }
+    
+    console.log('All caches and storage cleared successfully');
+  } catch (error) {
+    console.error('Error clearing caches:', error);
+  }
+};
+
 // Production optimization
 export const optimizeForProduction = () => {
   if (import.meta.env.PROD) {
