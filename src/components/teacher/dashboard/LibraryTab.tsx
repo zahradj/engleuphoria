@@ -119,17 +119,15 @@ export const LibraryTab = () => {
   };
   return <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Lesson Library</h2>
-          <p className="text-muted-foreground">Browse lessons organized by CEFR levels</p>
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground">Lesson Library</h2>
+          <p className="text-sm text-muted-foreground">Browse lessons organized by CEFR levels</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="flex items-center gap-1">
-            <BookOpen className="h-3 w-3" />
-            {CURRICULUM_STRUCTURE.reduce((total, level) => total + level.units.reduce((unitTotal, unit) => unitTotal + unit.lessons.length, 0), 0)} Total Lessons
-          </Badge>
-        </div>
+        <Badge variant="outline" className="flex items-center gap-1 w-fit">
+          <BookOpen className="h-3 w-3" />
+          <span className="text-xs">{CURRICULUM_STRUCTURE.reduce((total, level) => total + level.units.reduce((unitTotal, unit) => unitTotal + unit.lessons.length, 0), 0)} Lessons</span>
+        </Badge>
       </div>
 
       {/* Search and Filters */}
@@ -138,13 +136,18 @@ export const LibraryTab = () => {
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              
+              <Input
+                placeholder="Search lessons..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
             </div>
-            <div className="flex gap-2">
-              <Button variant={selectedLevel === "all" ? "default" : "outline"} size="sm" onClick={() => setSelectedLevel("all")}>
-                All Levels
+            <div className="flex gap-2 overflow-x-auto">
+              <Button variant={selectedLevel === "all" ? "default" : "outline"} size="sm" onClick={() => setSelectedLevel("all")} className="whitespace-nowrap">
+                All
               </Button>
-              {CURRICULUM_STRUCTURE.map(level => <Button key={level.level} variant={selectedLevel === level.level ? "default" : "outline"} size="sm" onClick={() => setSelectedLevel(level.level)} className="hidden sm:inline-flex">
+              {CURRICULUM_STRUCTURE.map(level => <Button key={level.level} variant={selectedLevel === level.level ? "default" : "outline"} size="sm" onClick={() => setSelectedLevel(level.level)} className="whitespace-nowrap text-xs sm:text-sm">
                   {level.level}
                 </Button>)}
             </div>
@@ -158,27 +161,29 @@ export const LibraryTab = () => {
             <Collapsible open={expandedLevels.includes(level.level)} onOpenChange={() => toggleLevel(level.level)}>
               <CollapsibleTrigger asChild>
                 <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {expandedLevels.includes(level.level) ? <ChevronDown className="h-5 w-5 text-muted-foreground" /> : <ChevronRight className="h-5 w-5 text-muted-foreground" />}
-                      <div>
-                        <div className="flex items-center gap-3">
-                          <CardTitle className="text-lg">{level.title}</CardTitle>
-                          <Badge className={getLevelColor(level.level)}>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
+                      {expandedLevels.includes(level.level) ? <ChevronDown className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" /> : <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                          <CardTitle className="text-base sm:text-lg">{level.title}</CardTitle>
+                          <Badge className={`${getLevelColor(level.level)} w-fit`}>
                             {level.level}
                           </Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">{level.description}</p>
+                        <p className="text-xs sm:text-sm text-muted-foreground mt-1">{level.description}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground pl-7 sm:pl-0">
                       <div className="flex items-center gap-1">
-                        <BookOpen className="h-4 w-4" />
-                        {level.units.length} Units
+                        <BookOpen className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <span className="hidden sm:inline">{level.units.length} Units</span>
+                        <span className="sm:hidden">{level.units.length}U</span>
                       </div>
                       <div className="flex items-center gap-1">
-                        <Target className="h-4 w-4" />
-                        {level.units.reduce((total, unit) => total + unit.lessons.length, 0)} Lessons
+                        <Target className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <span className="hidden sm:inline">{level.units.reduce((total, unit) => total + unit.lessons.length, 0)} Lessons</span>
+                        <span className="sm:hidden">{level.units.reduce((total, unit) => total + unit.lessons.length, 0)}L</span>
                       </div>
                     </div>
                   </div>
@@ -192,17 +197,17 @@ export const LibraryTab = () => {
                         <Collapsible open={expandedUnits.includes(unit.id)} onOpenChange={() => toggleUnit(unit.id)}>
                           <CollapsibleTrigger asChild>
                             <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors py-3">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  {expandedUnits.includes(unit.id) ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
-                                  <div>
-                                    <h4 className="font-semibold text-base">{unit.title}</h4>
-                                    <p className="text-sm text-muted-foreground">{unit.description}</p>
+                              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                                <div className="flex items-start gap-2 flex-1 min-w-0">
+                                  {expandedUnits.includes(unit.id) ? <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" /> : <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />}
+                                  <div className="min-w-0 flex-1">
+                                    <h4 className="font-semibold text-sm sm:text-base">{unit.title}</h4>
+                                    <p className="text-xs sm:text-sm text-muted-foreground">{unit.description}</p>
                                   </div>
                                 </div>
-                                <Badge variant="secondary" className="flex items-center gap-1">
+                                <Badge variant="secondary" className="flex items-center gap-1 w-fit ml-6 sm:ml-0">
                                   <Users className="h-3 w-3" />
-                                  {unit.lessons.length} Lessons
+                                  <span className="text-xs">{unit.lessons.length}</span>
                                 </Badge>
                               </div>
                             </CardHeader>
@@ -211,69 +216,73 @@ export const LibraryTab = () => {
                           <CollapsibleContent>
                             <CardContent className="pt-0">
                               <div className="grid gap-3">
-                                {unit.lessons.map((lesson, index) => <Card key={lesson.id} className="border border-border/50 hover:border-border transition-colors">
-                                    <CardContent className="p-4">
-                                      <div className="flex items-start justify-between">
+                                 {unit.lessons.map((lesson, index) => <Card key={lesson.id} className="border border-border/50 hover:border-border transition-colors">
+                                    <CardContent className="p-3 sm:p-4">
+                                      <div className="flex flex-col gap-3">
                                         <div className="flex-1">
-                                          <div className="flex items-center gap-2 mb-2">
-                                            <Badge variant="outline" className="text-xs">
+                                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                                            <Badge variant="outline" className="text-xs w-fit">
                                               Lesson {index + 1}
                                             </Badge>
-                                            <h5 className="font-medium">{lesson.title}</h5>
+                                            <h5 className="font-medium text-sm sm:text-base">{lesson.title}</h5>
                                           </div>
                                           
-                                          <p className="text-sm text-muted-foreground mb-3">
+                                          <p className="text-xs sm:text-sm text-muted-foreground mb-3">
                                             {lesson.description}
                                           </p>
 
-                                          <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
+                                          <div className="flex items-center gap-3 sm:gap-4 text-xs text-muted-foreground mb-3 flex-wrap">
                                             <div className="flex items-center gap-1">
                                               <Clock className="h-3 w-3" />
-                                              {lesson.duration} min
+                                              {lesson.duration}m
                                             </div>
                                             <div className="flex items-center gap-1">
                                               <Target className="h-3 w-3" />
-                                              {lesson.skills.length} skills
+                                              {lesson.skills.length}
                                             </div>
                                             <div className="flex items-center gap-1">
                                               <BookOpen className="h-3 w-3" />
-                                              {lesson.vocabulary.length} vocabulary
+                                              {lesson.vocabulary.length}
                                             </div>
                                           </div>
 
-                                          <div className="space-y-2">
-                                            {lesson.objectives.length > 0 && <div>
-                                                <p className="text-xs font-medium text-muted-foreground mb-1">Objectives:</p>
-                                                <div className="flex flex-wrap gap-1">
-                                                  {lesson.objectives.slice(0, 2).map((objective, idx) => <Badge key={idx} variant="secondary" className="text-xs">
-                                                      {objective}
-                                                    </Badge>)}
-                                                  {lesson.objectives.length > 2 && <Badge variant="outline" className="text-xs">
-                                                      +{lesson.objectives.length - 2} more
-                                                    </Badge>}
-                                                </div>
-                                              </div>}
-                                          </div>
+                                          {lesson.objectives.length > 0 && (
+                                            <div className="mb-3">
+                                              <p className="text-xs font-medium text-muted-foreground mb-1">Objectives:</p>
+                                              <div className="flex flex-wrap gap-1">
+                                                {lesson.objectives.slice(0, 2).map((objective, idx) => (
+                                                  <Badge key={idx} variant="secondary" className="text-xs">
+                                                    {objective}
+                                                  </Badge>
+                                                ))}
+                                                {lesson.objectives.length > 2 && (
+                                                  <Badge variant="outline" className="text-xs">
+                                                    +{lesson.objectives.length - 2}
+                                                  </Badge>
+                                                )}
+                                              </div>
+                                            </div>
+                                          )}
                                         </div>
 
-                                        <div className="ml-4 flex gap-2">
+                                        <div className="flex gap-2">
                                           <Button 
                                             onClick={() => previewSlides(lesson)} 
                                             size="sm" 
                                             variant="outline"
-                                            className="flex items-center gap-2"
+                                            className="flex-1 sm:flex-none"
                                           >
-                                            <Eye className="h-3 w-3" />
-                                            Preview
+                                            <Eye className="h-3 w-3 sm:mr-1" />
+                                            <span className="hidden sm:inline">Preview</span>
                                           </Button>
                                           <Button 
                                             onClick={() => startLesson(lesson)} 
                                             size="sm" 
-                                            className="flex items-center gap-2"
+                                            className="flex-1 sm:flex-none"
                                             disabled={isLoadingLesson}
                                           >
-                                            <Play className="h-3 w-3" />
-                                            {isLoadingLesson ? 'Loading...' : 'Start'}
+                                            <Play className="h-3 w-3 sm:mr-1" />
+                                            <span>{isLoadingLesson ? 'Loading...' : 'Start'}</span>
                                           </Button>
                                         </div>
                                       </div>

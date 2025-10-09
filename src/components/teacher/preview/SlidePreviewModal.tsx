@@ -56,21 +56,21 @@ export const SlidePreviewModal: React.FC<SlidePreviewModalProps> = ({
     const prompt = slide.prompt || slide.question || slide.instruction || 'Slide Content';
     
     return (
-      <Card key={index} className="p-3 hover:border-primary/50 transition-colors">
-        <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+      <Card key={index} className="p-2 sm:p-3 hover:border-primary/50 transition-colors">
+        <div className="flex items-start gap-2 sm:gap-3">
+          <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary/10 flex items-center justify-center">
             <span className="text-xs font-mono font-semibold text-primary">
               {String(index + 1).padStart(2, '0')}
             </span>
           </div>
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <Badge variant="outline" className={`text-xs ${getSlideTypeColor(type)}`}>
-                <span className="mr-1">{getSlideIcon(type)}</span>
-                {type}
+            <div className="flex items-center gap-1 sm:gap-2 mb-1">
+              <Badge variant="outline" className={`text-[10px] sm:text-xs ${getSlideTypeColor(type)}`}>
+                <span className="mr-0.5 sm:mr-1">{getSlideIcon(type)}</span>
+                <span className="truncate">{type}</span>
               </Badge>
             </div>
-            <p className="text-sm text-foreground line-clamp-2">
+            <p className="text-xs sm:text-sm text-foreground line-clamp-2">
               {prompt}
             </p>
           </div>
@@ -81,19 +81,19 @@ export const SlidePreviewModal: React.FC<SlidePreviewModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh]">
+      <DialogContent className="max-w-4xl max-h-[85vh] w-[95vw] sm:w-full">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5" />
-            Slide Preview: {lessonTitle}
+          <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <BookOpen className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+            <span className="truncate">Slide Preview: {lessonTitle}</span>
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-xs sm:text-sm">
             Preview all {slides.length} slides in this lesson
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="h-[500px] pr-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <ScrollArea className="h-[60vh] sm:h-[500px] pr-2 sm:pr-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
             {slides.map((slide, index) => getSlidePreview(slide, index))}
           </div>
         </ScrollArea>
