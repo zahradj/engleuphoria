@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { Eye, EyeOff, User, Mail, Lock, CheckCircle, BookOpen } from "lucide-react";
 import { ProgressIndicator } from "@/components/navigation/ProgressIndicator";
 import { BackNavigation } from "@/components/navigation/BackNavigation";

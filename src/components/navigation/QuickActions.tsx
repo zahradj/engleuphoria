@@ -3,7 +3,7 @@ import { Plus, Calendar, MessageSquare, BookOpen, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface QuickAction {
   icon: React.ComponentType<{ className?: string }>;

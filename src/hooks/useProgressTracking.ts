@@ -2,7 +2,7 @@
 import { useState, useCallback } from 'react';
 import { progressAnalyticsService, Achievement, ProgressAnalyticsError } from '@/services/progressAnalyticsService';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { useErrorBoundary } from '@/hooks/useErrorBoundary';
 
 interface UseProgressTrackingReturn {

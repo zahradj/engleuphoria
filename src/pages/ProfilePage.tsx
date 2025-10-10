@@ -1,6 +1,6 @@
 import React from 'react';
 import { MobileAwarePage } from '@/components/mobile/MobileAwarePage';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { User, Mail, Calendar, Award } from 'lucide-react';

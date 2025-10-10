@@ -1,7 +1,7 @@
 import React from 'react';
 import { GamificationDashboard } from '@/components/gamification/GamificationDashboard';
 import { MobileAwarePage } from '@/components/mobile/MobileAwarePage';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const GamificationPage: React.FC = () => {
   const { user } = useAuth();

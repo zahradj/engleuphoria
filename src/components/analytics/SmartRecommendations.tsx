@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAdvancedAnalytics } from '@/hooks/useAdvancedAnalytics';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { Lightbulb, Clock, BookOpen, Calendar, Star, CheckCircle, X } from 'lucide-react';
 
 export const SmartRecommendations = () => {

@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useStudentHandlers } from "@/hooks/useStudentHandlers";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { HomeworkSubmissionModal } from "./HomeworkSubmissionModal";
 import { TeacherMessageModal } from "./TeacherMessageModal";
 import { StudentLessonTracker } from "@/components/dashboard/student/StudentLessonTracker";

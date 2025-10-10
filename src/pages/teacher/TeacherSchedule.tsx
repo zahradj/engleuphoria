@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BackNavigation } from '@/components/navigation/BackNavigation';
 import { NavigationBreadcrumb } from '@/components/navigation/Breadcrumb';
 import { ClassroomConnection } from '@/components/classroom/ClassroomConnection';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { lessonService } from '@/services/lessonService';
 import { useToast } from '@/hooks/use-toast';
 

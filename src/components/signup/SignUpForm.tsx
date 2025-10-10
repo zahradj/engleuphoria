@@ -10,7 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { Eye, EyeOff, User, Mail, Lock, CheckCircle, BookOpen, GraduationCap } from "lucide-react";
 import { ProgressIndicator } from "@/components/navigation/ProgressIndicator";
 import { BackNavigation } from "@/components/navigation/BackNavigation";

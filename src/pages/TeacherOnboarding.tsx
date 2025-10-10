@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from '@/contexts/AuthContext';
 import { TeacherOnboardingFlow } from '@/components/teacher/TeacherOnboardingFlow';
 import { Header } from '@/components/index/Header';
 import { Footer } from '@/components/index/Footer';
