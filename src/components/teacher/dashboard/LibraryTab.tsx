@@ -5,11 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronRight, Search, BookOpen, Clock, Target, Users, Play, Eye } from "lucide-react";
+import { ChevronDown, ChevronRight, Search, BookOpen, Clock, Target, Users, Play, Eye, Sparkles, Gamepad2, Zap, TrendingUp, Star } from "lucide-react";
 import { CURRICULUM_STRUCTURE, CEFRLevel, Unit, LessonContent } from "@/data/curriculum/curriculumStructure";
 import { SlidePreviewModal } from "@/components/teacher/preview/SlidePreviewModal";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import helloImage from "@/assets/lessons/unit-0-lesson-1/hello-greeting.png";
+import spidermanImage from "@/assets/lessons/unit-0-lesson-1/spiderman-intro.png";
 
 export const LibraryTab = () => {
   const navigate = useNavigate();
@@ -117,17 +119,40 @@ export const LibraryTab = () => {
       });
     }
   };
-  return <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-foreground">Lesson Library</h2>
-          <p className="text-sm text-muted-foreground">Browse lessons organized by CEFR levels</p>
+  return <div className="space-y-6 animate-fade-in">
+      {/* Enhanced Header */}
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/10 via-purple-500/5 to-pink-500/5 border border-border p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <BookOpen className="h-5 w-5 text-primary" />
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                Lesson Library
+              </h2>
+            </div>
+            <p className="text-sm text-muted-foreground flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-yellow-500" />
+              Professional curriculum organized by CEFR levels
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <Badge variant="outline" className="flex items-center gap-2 px-4 py-2 bg-background/50 backdrop-blur">
+              <BookOpen className="h-4 w-4 text-primary" />
+              <span className="font-semibold">{CURRICULUM_STRUCTURE.reduce((total, level) => total + level.units.reduce((unitTotal, unit) => unitTotal + unit.lessons.length, 0), 0)}</span>
+              <span className="text-muted-foreground">Total Lessons</span>
+            </Badge>
+            <Badge variant="outline" className="flex items-center gap-2 px-4 py-2 bg-background/50 backdrop-blur">
+              <TrendingUp className="h-4 w-4 text-green-600" />
+              <span className="text-xs">Updated Weekly</span>
+            </Badge>
+          </div>
         </div>
-        <Badge variant="outline" className="flex items-center gap-1 w-fit">
-          <BookOpen className="h-3 w-3" />
-          <span className="text-xs">{CURRICULUM_STRUCTURE.reduce((total, level) => total + level.units.reduce((unitTotal, unit) => unitTotal + unit.lessons.length, 0), 0)} Lessons</span>
-        </Badge>
+        
+        {/* Decorative elements */}
+        <div className="absolute -right-8 -top-8 w-32 h-32 bg-primary/5 rounded-full blur-3xl"></div>
+        <div className="absolute -left-8 -bottom-8 w-32 h-32 bg-purple-500/5 rounded-full blur-3xl"></div>
       </div>
 
       {/* Search and Filters */}
@@ -215,79 +240,148 @@ export const LibraryTab = () => {
 
                           <CollapsibleContent>
                             <CardContent className="pt-0">
-                              <div className="grid gap-3">
-                                 {unit.lessons.map((lesson, index) => <Card key={lesson.id} className="border border-border/50 hover:border-border transition-colors">
-                                    <CardContent className="p-3 sm:p-4">
-                                      <div className="flex flex-col gap-3">
-                                        <div className="flex-1">
-                                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-                                            <Badge variant="outline" className="text-xs w-fit">
-                                              Lesson {index + 1}
-                                            </Badge>
-                                            <h5 className="font-medium text-sm sm:text-base">{lesson.title}</h5>
-                                          </div>
-                                          
-                                          <p className="text-xs sm:text-sm text-muted-foreground mb-3">
-                                            {lesson.description}
-                                          </p>
+                              <div className="grid gap-4">
+                                 {unit.lessons.map((lesson, index) => {
+                                   // Determine if this is the new Unit 0 Lesson 1
+                                   const isNewLesson = unit.id === 'unit-0' && index === 0;
+                                   const lessonImage = isNewLesson ? helloImage : null;
+                                   
+                                   return (
+                                     <Card 
+                                       key={lesson.id} 
+                                       className="group border border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 overflow-hidden"
+                                     >
+                                       <CardContent className="p-0">
+                                         <div className="flex flex-col sm:flex-row gap-4">
+                                           {/* Thumbnail Section */}
+                                           {lessonImage && (
+                                             <div className="relative w-full sm:w-48 h-48 sm:h-auto bg-gradient-to-br from-primary/10 to-purple-500/10 overflow-hidden">
+                                               <img 
+                                                 src={lessonImage} 
+                                                 alt={lesson.title}
+                                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                               />
+                                               <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                                               <Badge className="absolute top-3 right-3 bg-primary/90 backdrop-blur">
+                                                 <Sparkles className="h-3 w-3 mr-1" />
+                                                 New
+                                               </Badge>
+                                             </div>
+                                           )}
+                                           
+                                           {/* Content Section */}
+                                           <div className="flex-1 p-4 sm:p-5">
+                                             <div className="flex flex-col h-full">
+                                               {/* Header */}
+                                               <div className="flex-1">
+                                                 <div className="flex flex-wrap items-center gap-2 mb-3">
+                                                   <Badge variant="outline" className="text-xs font-semibold">
+                                                     Lesson {index + 1}
+                                                   </Badge>
+                                                   
+                                                   {isNewLesson && (
+                                                     <>
+                                                       <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
+                                                         <Gamepad2 className="h-3 w-3 mr-1" />
+                                                         Gamified
+                                                       </Badge>
+                                                       <Badge className="bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0">
+                                                         <Zap className="h-3 w-3 mr-1" />
+                                                         Interactive
+                                                       </Badge>
+                                                       <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0">
+                                                         <Star className="h-3 w-3 mr-1" />
+                                                         Popular
+                                                       </Badge>
+                                                     </>
+                                                   )}
+                                                 </div>
+                                                 
+                                                 <h5 className="font-bold text-base sm:text-lg mb-2 group-hover:text-primary transition-colors">
+                                                   {lesson.title}
+                                                 </h5>
+                                                 
+                                                 <p className="text-xs sm:text-sm text-muted-foreground mb-4 line-clamp-2">
+                                                   {lesson.description}
+                                                 </p>
 
-                                          <div className="flex items-center gap-3 sm:gap-4 text-xs text-muted-foreground mb-3 flex-wrap">
-                                            <div className="flex items-center gap-1">
-                                              <Clock className="h-3 w-3" />
-                                              {lesson.duration}m
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                              <Target className="h-3 w-3" />
-                                              {lesson.skills.length}
-                                            </div>
-                                            <div className="flex items-center gap-1">
-                                              <BookOpen className="h-3 w-3" />
-                                              {lesson.vocabulary.length}
-                                            </div>
-                                          </div>
+                                                 {/* Stats Row */}
+                                                 <div className="flex items-center gap-4 text-xs text-muted-foreground mb-4 flex-wrap">
+                                                   <div className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded-md">
+                                                     <Clock className="h-3.5 w-3.5 text-primary" />
+                                                     <span className="font-medium">{lesson.duration}m</span>
+                                                   </div>
+                                                   <div className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded-md">
+                                                     <Target className="h-3.5 w-3.5 text-purple-600" />
+                                                     <span className="font-medium">{lesson.skills.length} skills</span>
+                                                   </div>
+                                                   <div className="flex items-center gap-1.5 bg-muted/50 px-2 py-1 rounded-md">
+                                                     <BookOpen className="h-3.5 w-3.5 text-green-600" />
+                                                     <span className="font-medium">{lesson.vocabulary.length} words</span>
+                                                   </div>
+                                                   {isNewLesson && (
+                                                     <div className="flex items-center gap-1.5 bg-gradient-to-r from-amber-500/10 to-orange-500/10 px-2 py-1 rounded-md border border-amber-500/20">
+                                                       <Zap className="h-3.5 w-3.5 text-amber-600" />
+                                                       <span className="font-medium text-amber-700 dark:text-amber-500">180 XP</span>
+                                                     </div>
+                                                   )}
+                                                 </div>
 
-                                          {lesson.objectives.length > 0 && (
-                                            <div className="mb-3">
-                                              <p className="text-xs font-medium text-muted-foreground mb-1">Objectives:</p>
-                                              <div className="flex flex-wrap gap-1">
-                                                {lesson.objectives.slice(0, 2).map((objective, idx) => (
-                                                  <Badge key={idx} variant="secondary" className="text-xs">
-                                                    {objective}
-                                                  </Badge>
-                                                ))}
-                                                {lesson.objectives.length > 2 && (
-                                                  <Badge variant="outline" className="text-xs">
-                                                    +{lesson.objectives.length - 2}
-                                                  </Badge>
-                                                )}
-                                              </div>
-                                            </div>
-                                          )}
-                                        </div>
+                                                 {/* Objectives */}
+                                                 {lesson.objectives.length > 0 && (
+                                                   <div className="mb-4">
+                                                     <p className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1">
+                                                       <Target className="h-3 w-3" />
+                                                       Learning Objectives:
+                                                     </p>
+                                                     <div className="flex flex-wrap gap-1.5">
+                                                       {lesson.objectives.slice(0, 3).map((objective, idx) => (
+                                                         <Badge 
+                                                           key={idx} 
+                                                           variant="secondary" 
+                                                           className="text-xs font-normal hover:bg-secondary/80 transition-colors"
+                                                         >
+                                                           {objective}
+                                                         </Badge>
+                                                       ))}
+                                                       {lesson.objectives.length > 3 && (
+                                                         <Badge variant="outline" className="text-xs">
+                                                           +{lesson.objectives.length - 3} more
+                                                         </Badge>
+                                                       )}
+                                                     </div>
+                                                   </div>
+                                                 )}
+                                               </div>
 
-                                        <div className="flex gap-2">
-                                          <Button 
-                                            onClick={() => previewSlides(lesson)} 
-                                            size="sm" 
-                                            variant="outline"
-                                            className="flex-1 sm:flex-none"
-                                          >
-                                            <Eye className="h-3 w-3 sm:mr-1" />
-                                            <span className="hidden sm:inline">Preview</span>
-                                          </Button>
-                                          <Button 
-                                            onClick={() => startLesson(lesson)} 
-                                            size="sm" 
-                                            className="flex-1 sm:flex-none"
-                                            disabled={isLoadingLesson}
-                                          >
-                                            <Play className="h-3 w-3 sm:mr-1" />
-                                            <span>{isLoadingLesson ? 'Loading...' : 'Start'}</span>
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    </CardContent>
-                                  </Card>)}
+                                               {/* Action Buttons */}
+                                               <div className="flex gap-2 mt-auto pt-2">
+                                                 <Button 
+                                                   onClick={() => previewSlides(lesson)} 
+                                                   size="sm" 
+                                                   variant="outline"
+                                                   className="flex-1 sm:flex-none hover:bg-muted"
+                                                 >
+                                                   <Eye className="h-3.5 w-3.5 mr-1.5" />
+                                                   <span>Preview</span>
+                                                 </Button>
+                                                 <Button 
+                                                   onClick={() => startLesson(lesson)} 
+                                                   size="sm" 
+                                                   className="flex-1 sm:flex-auto bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
+                                                   disabled={isLoadingLesson}
+                                                 >
+                                                   <Play className="h-3.5 w-3.5 mr-1.5" />
+                                                   <span className="font-semibold">{isLoadingLesson ? 'Loading...' : 'Start Lesson'}</span>
+                                                 </Button>
+                                               </div>
+                                             </div>
+                                           </div>
+                                         </div>
+                                       </CardContent>
+                                     </Card>
+                                   );
+                                 })}
                               </div>
                             </CardContent>
                           </CollapsibleContent>
