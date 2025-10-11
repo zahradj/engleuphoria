@@ -91,6 +91,11 @@ export interface Slide {
   };
   vocabulary?: string[];
   gameWords?: string[];
+  // Additional metadata and content
+  tags?: string[];
+  content?: string | string[];
+  interactiveElements?: any;
+  xpReward?: number;
 }
 
 export type SlideType = 
