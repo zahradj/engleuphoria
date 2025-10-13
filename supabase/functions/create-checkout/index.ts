@@ -27,8 +27,27 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const { planId, paymentType } = await req.json();
-    if (!planId) throw new Error("Plan ID is required");
+    // SECURITY: Input validation
+    const body = await req.json();
+    const { planId, paymentType } = body;
+    
+    // Validate planId
+    if (!planId || typeof planId !== 'string') {
+      throw new Error("Valid Plan ID is required");
+    }
+    
+    // Validate planId format (UUID)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(planId)) {
+      throw new Error("Invalid Plan ID format");
+    }
+    
+    // Validate paymentType if provided
+    if (paymentType && typeof paymentType !== 'string') {
+      throw new Error("Invalid payment type");
+    }
+    
+    logStep("Input validated", { planId, paymentType });
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("Authorization required");
@@ -42,7 +61,7 @@ serve(async (req) => {
     const user = userData.user;
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Get payment plan details
+    // Get payment plan details with validation
     const { data: plan, error: planError } = await supabaseClient
       .from('payment_plans')
       .select('*')
@@ -50,7 +69,24 @@ serve(async (req) => {
       .single();
 
     if (planError || !plan) throw new Error("Payment plan not found");
-    logStep("Payment plan found", { planName: plan.name, price: plan.price });
+    
+    // SECURITY: Validate plan data
+    if (!plan.price || typeof plan.price !== 'number' || plan.price <= 0) {
+      throw new Error("Invalid plan price");
+    }
+    if (!plan.currency || typeof plan.currency !== 'string') {
+      throw new Error("Invalid plan currency");
+    }
+    if (!plan.name || typeof plan.name !== 'string') {
+      throw new Error("Invalid plan name");
+    }
+    
+    // Validate price is reasonable (prevent manipulation)
+    if (plan.price > 10000) { // Max $10,000 or equivalent
+      throw new Error("Price exceeds maximum allowed");
+    }
+    
+    logStep("Payment plan validated", { planName: plan.name, price: plan.price });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2023-10-16",

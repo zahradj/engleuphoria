@@ -1,0 +1,9 @@
+// Add this to App.tsx initialization to clear insecure localStorage on app load
+
+import { clearInsecureRoleStorage } from '@/utils/roleValidation';
+
+// In App component's useEffect:
+useEffect(() => {
+  // SECURITY: Clear insecure localStorage role data on app initialization
+  clearInsecureRoleStorage();
+}, []);

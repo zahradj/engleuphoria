@@ -51,26 +51,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Function to create fallback user from auth metadata
   const createFallbackUser = async (authUser: any): Promise<User> => {
-    // Check localStorage for demo admin first
-    const storedUserType = localStorage.getItem('userType');
-    let role = authUser.user_metadata?.role || 'student';
+    let role = 'student'; // Default role
     
-    if (storedUserType === 'admin') {
-      role = 'admin';
-      console.log('🎭 Setting admin role from localStorage');
-    }
-    
-    // Try to get role from database
+    // SECURITY: Get role from user_roles table (server-side validation)
     try {
-      const { data: dbUser } = await supabase
-        .from('users')
+      const { data: userRole } = await supabase
+        .from('user_roles')
         .select('role')
-        .eq('id', authUser.id)
+        .eq('user_id', authUser.id)
         .maybeSingle();
       
-      if (dbUser?.role) {
-        role = dbUser.role;
-        console.log('🎭 Found role in database:', role);
+      if (userRole?.role) {
+        role = userRole.role;
+        console.log('🔒 Retrieved role from user_roles table:', role);
+      } else {
+        // Fallback to users table if user_roles doesn't have an entry
+        const { data: dbUser } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', authUser.id)
+          .maybeSingle();
+        
+        if (dbUser?.role) {
+          role = dbUser.role;
+          console.log('🔒 Retrieved role from users table:', role);
+        }
       }
     } catch (error) {
       console.warn('Could not fetch role from database:', error);

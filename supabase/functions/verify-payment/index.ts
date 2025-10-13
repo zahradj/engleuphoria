@@ -24,8 +24,23 @@ serve(async (req) => {
   );
 
   try {
-    const { sessionId } = await req.json();
-    if (!sessionId) throw new Error("Session ID is required");
+    // SECURITY: Input validation
+    const body = await req.json();
+    const { sessionId } = body;
+    
+    if (!sessionId || typeof sessionId !== 'string') {
+      throw new Error("Valid Session ID is required");
+    }
+    
+    // Validate sessionId format (Stripe checkout session format)
+    if (!sessionId.startsWith('cs_')) {
+      throw new Error("Invalid Session ID format");
+    }
+    
+    // Prevent excessively long sessionIds (potential DoS)
+    if (sessionId.length > 200) {
+      throw new Error("Session ID too long");
+    }
 
     logStep("Verifying payment", { sessionId });
 
@@ -52,11 +67,21 @@ serve(async (req) => {
       if (session.mode === 'subscription' && session.subscription) {
         const subscription = await stripe.subscriptions.retrieve(session.subscription as string);
         
+        // SECURITY: Validate metadata exists
+        if (!session.metadata?.user_id || !session.metadata?.plan_id) {
+          throw new Error("Missing required metadata");
+        }
+        
+        // SECURITY: Validate subscription data
+        if (!subscription.id || !subscription.status) {
+          throw new Error("Invalid subscription data");
+        }
+        
         const { error: subError } = await supabaseClient
           .from('subscriptions')
           .upsert({
-            user_id: session.metadata?.user_id,
-            plan_id: session.metadata?.plan_id,
+            user_id: session.metadata.user_id,
+            plan_id: session.metadata.plan_id,
             stripe_subscription_id: subscription.id,
             status: subscription.status,
             current_period_start: new Date(subscription.current_period_start * 1000).toISOString(),

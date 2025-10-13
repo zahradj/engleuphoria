@@ -60,14 +60,8 @@ export const ImprovedProtectedRoute: React.FC<ImprovedProtectedRouteProps> = ({
     return <Navigate to={redirectTo} replace />;
   }
 
-  // Derive an effective role from multiple sources to avoid false "access denied"
-  const email = (user as any)?.email as string | undefined;
-  const metaRole = (user as any)?.user_metadata?.role as string | undefined;
-  const storedUserType = typeof window !== 'undefined' ? localStorage.getItem('userType') : null;
-  const specialAdminEmails = ['f.zahra.djaanine@engleuphoria.com'];
-  const effectiveRole = specialAdminEmails.includes(email || '')
-    ? 'admin'
-    : ((user as any)?.role || metaRole || (storedUserType === 'admin' ? 'admin' : undefined));
+  // SECURITY: Use server-validated role only (from user_roles table via AuthContext)
+  const effectiveRole = (user as any)?.role || 'student';
 
   // Check role requirements using effectiveRole
   if (requiredRole && effectiveRole !== requiredRole) {
@@ -91,7 +85,7 @@ export const ImprovedProtectedRoute: React.FC<ImprovedProtectedRouteProps> = ({
               <AlertTriangle className="h-12 w-12 text-orange-500 mx-auto mb-4" />
               <h3 className="font-semibold text-lg text-gray-900 mb-2">Role Not Recognized</h3>
               <p className="text-gray-600 mb-4">
-                Your account role "{String((user as any)?.role || metaRole || 'unknown')}" is not recognized. Please contact support.
+                Your account role "{String((user as any)?.role || 'unknown')}" is not recognized. Please contact support.
               </p>
               <Button 
                 onClick={() => navigate('/')} 

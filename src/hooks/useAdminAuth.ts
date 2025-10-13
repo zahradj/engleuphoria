@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { validateUserRole } from '@/utils/roleValidation';
 
 export interface AdminPermissions {
   canManageUsers: boolean;
@@ -27,60 +28,41 @@ export const useAdminAuth = () => {
   });
 
   useEffect(() => {
-    const checkAdminStatus = () => {
-      console.log('=== Admin Auth Check Starting ===');
+    const checkAdminStatus = async () => {
+      console.log('=== Admin Auth Check Starting (Secure) ===');
       
-      // Get all localStorage values for debugging
-      const userType = localStorage.getItem('userType');
-      const adminName = localStorage.getItem('adminName');
-      const teacherName = localStorage.getItem('teacherName');
-      const studentName = localStorage.getItem('studentName');
-      
-      console.log('localStorage values:', { 
-        userType, 
-        adminName, 
-        teacherName, 
-        studentName,
-        user 
-      });
-
-      // Removed auto-set admin demo logic to avoid false positives
-
-      // Clear conflicting data if userType is admin but we have other user data
-      if (userType === 'admin') {
-        if (teacherName) {
-          console.log('Clearing conflicting teacher data');
-          localStorage.removeItem('teacherName');
-        }
-        if (studentName) {
-          console.log('Clearing conflicting student data');
-          localStorage.removeItem('studentName');
-        }
+      if (!user?.id) {
+        console.log('No user, setting non-admin status');
+        setIsAdmin(false);
+        setPermissions({
+          canManageUsers: false,
+          canManageTeachers: false,
+          canAssignTeachers: false,
+          canViewAnalytics: false,
+          canModerateContent: false,
+          canGenerateReports: false,
+          canAccessSystemSettings: false,
+        });
+        setIsLoading(false);
+        return;
       }
 
-      // Determine admin status (with whitelist + metadata + localStorage)
-      const specialAdminEmails = ['f.zahra.djaanine@engleuphoria.com'];
-      const email = (user as any)?.email as string | undefined;
+      // SECURITY: Validate role server-side only
+      const validatedRole = await validateUserRole(user.id);
       const userRole = (user as any)?.role as string | undefined;
-      const metaRole = (user as any)?.user_metadata?.role as string | undefined;
-
-      const adminStatus = Boolean(
-        (email && specialAdminEmails.includes(email)) ||
-        userRole === 'admin' ||
-        metaRole === 'admin' ||
-        userType === 'admin'
-      );
       
-      console.log('Admin status determined:', {
+      // Use server-validated role if available, otherwise use AuthContext role
+      const effectiveRole = validatedRole || userRole || 'student';
+      
+      const adminStatus = effectiveRole === 'admin';
+      
+      console.log('Admin status determined (secure):', {
         adminStatus,
-        fromWhitelist: email ? specialAdminEmails.includes(email) : false,
-        fromUserType: userType === 'admin',
-        fromUserRole: userRole === 'admin',
-        fromMetaRole: metaRole === 'admin'
+        effectiveRole,
+        userId: user.id
       });
       
-      // Convert to boolean explicitly
-      setIsAdmin(Boolean(adminStatus));
+      setIsAdmin(adminStatus);
 
       // Set permissions based on admin status
       if (adminStatus) {
@@ -111,23 +93,7 @@ export const useAdminAuth = () => {
       console.log('=== Admin Auth Check Complete ===');
     };
 
-    // Add a small delay to ensure localStorage is fully loaded
-    const timeoutId = setTimeout(checkAdminStatus, 100);
-
-    // Also listen for localStorage changes
-    const handleStorageChange = (e: StorageEvent) => {
-      console.log('Storage change detected:', e.key, e.newValue);
-      if (e.key === 'userType' || e.key === 'adminName') {
-        checkAdminStatus();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    
-    return () => {
-      clearTimeout(timeoutId);
-      window.removeEventListener('storage', handleStorageChange);
-    };
+    checkAdminStatus();
   }, [user]);
 
   return {
