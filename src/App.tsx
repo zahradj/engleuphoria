@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -5,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { clearInsecureRoleStorage } from "@/utils/roleValidation";
 import { ImprovedProtectedRoute } from "@/components/auth/ImprovedProtectedRoute";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { RoleThemeProvider } from "@/contexts/RoleThemeContext";
@@ -60,15 +62,21 @@ const NotFoundPage = () => {
   );
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <LanguageProvider>
-      <AuthProvider>
-        <RoleThemeProvider>
-          <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+const App = () => {
+  // Clear insecure localStorage role data on app initialization
+  useEffect(() => {
+    clearInsecureRoleStorage();
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <LanguageProvider>
+        <AuthProvider>
+          <RoleThemeProvider>
+            <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
             <AppErrorBoundary>
               <Routes>
               <Route path="/" element={<Index />} />
@@ -138,11 +146,12 @@ const App = () => (
               </Routes>
             </AppErrorBoundary>
           </BrowserRouter>
-          </TooltipProvider>
-        </RoleThemeProvider>
-      </AuthProvider>
-    </LanguageProvider>
-  </QueryClientProvider>
-);
+            </TooltipProvider>
+          </RoleThemeProvider>
+        </AuthProvider>
+      </LanguageProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
