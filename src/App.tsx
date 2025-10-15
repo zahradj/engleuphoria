@@ -44,6 +44,8 @@ import Lesson1GreetingsPage from "./pages/lessons/Lesson1GreetingsPage";
 import ClassroomPrejoin from "./pages/ClassroomPrejoin";
 import { SystematicSlidesAdmin } from "./pages/admin/SystematicSlidesAdmin";
 import { AdventuresPage } from "./pages/AdventuresPage";
+import { AssessmentTaker } from "./components/assessment/AssessmentTaker";
+import { AssessmentResults } from "./components/assessment/AssessmentResults";
 
 const queryClient = new QueryClient();
 
@@ -108,6 +110,18 @@ const App = () => {
               <Route path="/lessons/unit-0/lesson-1" element={<Lesson1GreetingsPage />} />
               <Route path="/admin/systematic-slides" element={<SystematicSlidesAdmin />} />
               <Route path="/adventures" element={<AdventuresPage />} />
+              
+              {/* Assessment Routes */}
+              <Route path="/assessment/:assessmentId" element={
+                <ImprovedProtectedRoute>
+                  <AssessmentTaker />
+                </ImprovedProtectedRoute>
+              } />
+              <Route path="/assessment-results/:submissionId" element={
+                <ImprovedProtectedRoute>
+                  <AssessmentResults />
+                </ImprovedProtectedRoute>
+              } />
 
               {/* Protected Routes */}
               <Route path="/student" element={

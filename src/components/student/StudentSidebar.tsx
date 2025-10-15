@@ -8,13 +8,9 @@ import {
   ClipboardList, 
   Library, 
   TrendingUp, 
-  Mic, 
-  CreditCard, 
   User, 
-  Settings,
   Map,
   Sparkles,
-  Search,
   LogOut,
   Video
 } from "lucide-react";
@@ -56,9 +52,11 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     ...(hasProfile ? [{ id: 'learning-path', label: 'My Learning Path', icon: Map, badge: 'New' }] : []),
     { id: 'classroom', label: 'Join Classroom', icon: Video, action: handleEnterClassroom, badge: 'Live' },
+    { id: 'assessments', label: 'Assessments', icon: ClipboardList },
+    { id: 'certificates', label: 'Certificates', icon: Library },
     { id: 'teachers', label: 'My Teachers', icon: Users },
     { id: 'upcoming-classes', label: 'Classes', icon: Calendar },
-    { id: 'homework', label: 'Homework', icon: ClipboardList },
+    { id: 'homework', label: 'Homework', icon: BookOpen },
     { id: 'progress', label: 'Progress', icon: TrendingUp },
     { id: 'profile', label: 'Profile', icon: User }
   ];

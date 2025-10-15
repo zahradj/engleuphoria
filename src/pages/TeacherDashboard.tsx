@@ -25,8 +25,9 @@ import { DailyRoutinesSlides } from "@/components/classroom/lesson-slides/DailyR
 import { PlacementTestLibrary } from "@/components/classroom/content/PlacementTestLibrary";
 import { LibraryTab } from "@/components/teacher/dashboard/LibraryTab";
 import { ResourcesTab } from "@/components/teacher/ResourcesTab";
+import { AssessmentsManagementTab } from "@/components/teacher/tabs/AssessmentsManagementTab";
 
-type TabType = 'dashboard' | 'profile' | 'library' | 'calendar' | 'students' | 'reading-library' | 'history' | 'assignments' | 'resources' | 'messages' | 'earnings' | 'withdrawals' | 'reports' | 'settings' | 'slides' | 'placement-test';
+type TabType = 'dashboard' | 'profile' | 'assessments' | 'library' | 'calendar' | 'students' | 'reading-library' | 'history' | 'assignments' | 'resources' | 'messages' | 'earnings' | 'withdrawals' | 'reports' | 'settings' | 'slides' | 'placement-test';
 
 const TeacherDashboard = () => {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
@@ -89,6 +90,8 @@ const TeacherDashboard = () => {
           />;
         case 'profile':
           return <ProfileSetupTab teacherId={teacherId} />;
+        case 'assessments':
+          return <AssessmentsManagementTab />;
         case 'library':
           return <LibraryTab />;
         case 'slides':
