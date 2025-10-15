@@ -6,39 +6,41 @@ export const SignUpHeader = () => {
   const navigate = useNavigate();
 
   return (
-    <header className="w-full bg-white/80 backdrop-blur-sm border-b border-purple-100 py-4 px-4 relative z-10">
+    <header className="w-full bg-gradient-to-r from-purple-50 via-pink-50 to-blue-50 backdrop-blur-sm border-b border-purple-200/50 py-4 px-4 relative z-10 shadow-sm">
       <div className="container max-w-7xl mx-auto flex items-center justify-between">
         {/* Logo */}
         <div 
-          className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+          className="flex items-center gap-3 cursor-pointer hover:scale-105 transition-transform duration-300"
           onClick={() => navigate('/')}
         >
-          <img 
-            src="/lovable-uploads/c9a29797-4fc4-4cb9-be41-bde9a8558663.png" 
-            alt="EnglEuphoria Logo" 
-            className="w-10 h-10"
-          />
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-            EnglEuphoria
+          <div className="relative">
+            <img 
+              src="/lovable-uploads/c9a29797-4fc4-4cb9-be41-bde9a8558663.png" 
+              alt="EnglEuphoria Logo" 
+              className="w-12 h-12 animate-bounce-slow"
+            />
+            <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-pulse" />
+          </div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 bg-clip-text text-transparent animate-gradient">
+            EnglEuphoria ✨
           </h1>
         </div>
 
         {/* Navigation */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <Button 
             variant="ghost" 
             onClick={() => navigate('/login')}
-            className="text-gray-600 hover:text-purple-600 transition-colors"
+            className="text-purple-600 hover:text-purple-700 hover:bg-purple-100/50 transition-all duration-300 font-medium"
           >
-            Already have an account?
+            Already have an account? 🎓
           </Button>
           
           <Button 
-            variant="outline" 
             onClick={() => navigate('/')}
-            className="border-purple-200 text-purple-600 hover:bg-purple-50"
+            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 border-0"
           >
-            Back to Home
+            🏠 Back to Home
           </Button>
         </div>
       </div>
