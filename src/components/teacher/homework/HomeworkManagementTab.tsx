@@ -6,6 +6,7 @@ import { BookOpen, Plus, Users, Clock } from "lucide-react";
 import { homeworkService, HomeworkAssignment } from "@/services/homeworkService";
 import { useAuth } from "@/contexts/AuthContext";
 import { CreateHomeworkDialog } from "./CreateHomeworkDialog";
+import { SubmissionReviewDialog } from "./SubmissionReviewDialog";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 
@@ -15,6 +16,8 @@ export const HomeworkManagementTab = () => {
   const [assignments, setAssignments] = useState<HomeworkAssignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
+  const [selectedAssignment, setSelectedAssignment] = useState<HomeworkAssignment | null>(null);
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
 
   useEffect(() => {
@@ -30,11 +33,13 @@ export const HomeworkManagementTab = () => {
     setLoading(false);
   };
 
-  // TODO: Fetch actual students from database
   const openCreateDialog = () => {
-    // For now, we'll need to select students manually
-    // This should be improved with a student selector
     setIsCreateDialogOpen(true);
+  };
+
+  const openReviewDialog = (assignment: HomeworkAssignment) => {
+    setSelectedAssignment(assignment);
+    setIsReviewDialogOpen(true);
   };
 
   if (loading) {
@@ -116,8 +121,12 @@ export const HomeworkManagementTab = () => {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
-                      View Submissions
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => openReviewDialog(assignment)}
+                    >
+                      Review Submissions
                     </Button>
                   </div>
                 </div>
@@ -133,6 +142,19 @@ export const HomeworkManagementTab = () => {
         onSuccess={loadAssignments}
         studentIds={selectedStudents}
       />
+
+      {selectedAssignment && (
+        <SubmissionReviewDialog
+          assignmentId={selectedAssignment.id}
+          assignmentTitle={selectedAssignment.title}
+          maxPoints={selectedAssignment.points}
+          open={isReviewDialogOpen}
+          onClose={() => {
+            setIsReviewDialogOpen(false);
+            setSelectedAssignment(null);
+          }}
+        />
+      )}
     </div>
   );
 };
