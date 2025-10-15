@@ -49,12 +49,10 @@ export function OneOnOneVideoSection({
   };
 
   return (
-    <div className="h-full flex flex-col gap-6">
-      <Card className="flex-1 p-0 border-0 glass-enhanced rounded-3xl overflow-hidden relative floating-animation video-panel-glow classroom-ambient rgb-background">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-accent/8 to-secondary/12 pointer-events-none animate-pulse"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-accent/10 via-primary/6 to-secondary/8 pointer-events-none"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-secondary/8 via-accent/10 to-primary/12 pointer-events-none animate-pulse"></div>
-        <div className="aspect-video relative flex items-center justify-center">
+    <div className="h-full flex flex-col lg:flex-row gap-4">
+      <Card className="flex-1 p-0 border border-border/40 bg-card/50 backdrop-blur-xl rounded-2xl overflow-hidden relative shadow-2xl">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 pointer-events-none"></div>
+        <div className="aspect-video relative flex items-center justify-center bg-muted/20">
           {!lessonStarted ? (
             <LessonStartPrompt isTeacher={isTeacher} onStartLesson={startLessonAndJoin} />
           ) : (
@@ -68,9 +66,9 @@ export function OneOnOneVideoSection({
               )}
               {lessonStarted && media.isConnected && (
                 <div className="absolute top-4 left-4 z-10">
-                  <span className="bg-gradient-to-r from-secondary to-secondary-foreground text-white shadow-xl flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-bold pulse-ring status-indicator">
-                    <div className="w-3 h-3 bg-white rounded-full animate-pulse shadow-lg"></div>
-                    LIVE SESSION
+                  <span className="bg-destructive text-destructive-foreground shadow-lg flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold">
+                    <div className="w-2 h-2 bg-destructive-foreground rounded-full animate-pulse"></div>
+                    LIVE
                   </span>
                 </div>
               )}
@@ -80,29 +78,32 @@ export function OneOnOneVideoSection({
         <XPProgressSection studentXP={studentXP} showRewardPopup={!!showRewardPopup} />
       </Card>
 
-      {/* Teaching Tools and Simple Progress - Only show for teachers */}
+      {/* Teaching Tools and Progress - Side Panel for Teachers */}
       {isTeacher && (
-        <div className="flex-shrink-0 space-y-5">
-          <div className="glass-subtle rounded-3xl p-6 animate-fade-in interactive-hover">
+        <div className="lg:w-80 flex-shrink-0 space-y-4 overflow-y-auto">
+          <Card className="p-4 bg-card/50 backdrop-blur-sm border-border/40">
             <QuickTeachingTools 
               currentUser={{
                 role: isTeacher ? 'teacher' : 'student',
                 name: currentUserName
               }}
             />
-          </div>
-          <div className="glass-subtle rounded-3xl p-6 animate-fade-in interactive-hover">
+          </Card>
+          <Card className="p-4 bg-card/50 backdrop-blur-sm border-border/40">
             <StudentProgress
               studentXP={studentXP}
-              studentName="Emma"
+              studentName="Student"
               showRewardPopup={showRewardPopup}
               onAwardPoints={onAwardPoints}
             />
-          </div>
+          </Card>
+          <Card className="p-4 bg-card/50 backdrop-blur-sm border-border/40">
+            <SessionLog logMessages={logMessages} />
+          </Card>
         </div>
       )}
 
-      <SessionLog logMessages={logMessages} />
+      {!isTeacher && <SessionLog logMessages={logMessages} />}
       <MediaErrorDisplay error={media.error} />
     </div>
   );

@@ -41,18 +41,39 @@ export default function OneOnOneClassroomNew() {
       onAccessDenied={handleAccessDenied}
     >
       <MediaProvider roomId={roomId}>
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4">
-          <div className="max-w-7xl mx-auto h-[calc(100vh-2rem)]">
-            <OneOnOneVideoSection
-              enhancedClassroom={null}
-              currentUserId={authedUserId}
-              currentUserName={authedName}
-              isTeacher={isTeacher}
-              studentXP={studentXP}
-              onAwardPoints={awardPoints}
-              showRewardPopup={showRewardPopup}
-              lessonStarted={false}
-            />
+        <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-accent/5">
+          <div className="container mx-auto px-4 py-6 h-screen flex flex-col gap-4">
+            {/* Header */}
+            <div className="flex items-center justify-between px-2">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-bold">
+                  {authedName.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h1 className="text-lg font-semibold text-foreground">{authedName}</h1>
+                  <p className="text-sm text-muted-foreground capitalize">{userRole} • Room: {roomId}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+            </div>
+
+            {/* Main Content */}
+            <div className="flex-1 min-h-0">
+              <OneOnOneVideoSection
+                enhancedClassroom={null}
+                currentUserId={authedUserId}
+                currentUserName={authedName}
+                isTeacher={isTeacher}
+                studentXP={studentXP}
+                onAwardPoints={awardPoints}
+                showRewardPopup={showRewardPopup}
+                lessonStarted={false}
+              />
+            </div>
           </div>
         </div>
       </MediaProvider>
