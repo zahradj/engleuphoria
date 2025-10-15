@@ -1,6 +1,6 @@
 // Service Worker for caching and performance
 
-const CACHE_NAME = 'engleuphoria-v2';
+const CACHE_NAME = 'engleuphoria-v3';
 const urlsToCache = [
   '/',
   '/static/css/',

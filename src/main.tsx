@@ -7,7 +7,7 @@ import i18n from '@/lib/i18n';
 import { clearAllCaches } from '@/utils/productionCleanup';
 
 // Clear stale caches on app start
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const lastCacheVersion = localStorage.getItem('cache_version');
 if (lastCacheVersion !== CACHE_VERSION) {
   clearAllCaches().then(() => {
