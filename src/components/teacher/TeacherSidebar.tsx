@@ -36,10 +36,10 @@ export const TeacherSidebar = ({ activeTab, setActiveTab, onLogout }: TeacherSid
     { id: 'calendar', label: 'Calendar', icon: Calendar, type: 'tab' },
     { id: 'students', label: 'Students', icon: Users, type: 'tab' },
     { id: 'reading-library', label: 'Reading Library', icon: Book, type: 'tab' },
-    
     { id: 'history', label: 'Lesson History', icon: Clock, type: 'tab' },
-    { id: 'assignments', label: 'Assignments', icon: FileText, type: 'tab' },
-    { id: 'resources', label: 'Resources', icon: BookOpen, type: 'tab' },
+    { id: 'homework', label: 'Homework', icon: FileText, type: 'tab' },
+    { id: 'assignments', label: 'Assignments', icon: BookOpen, type: 'tab' },
+    { id: 'resources', label: 'Resources', icon: FolderOpen, type: 'tab' },
     { id: 'messages', label: 'Messages', icon: MessageSquare, type: 'tab' },
     { id: 'earnings', label: 'Earnings', icon: DollarSign, type: 'tab' },
     { id: 'reports', label: 'Reports', icon: TrendingUp, type: 'tab' },

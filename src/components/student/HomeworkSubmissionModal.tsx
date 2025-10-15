@@ -23,31 +23,37 @@ export const HomeworkSubmissionModal = ({
 }: HomeworkSubmissionModalProps) => {
   const [textResponse, setTextResponse] = useState("");
   const [files, setFiles] = useState<File[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(event.target.files || []);
     setFiles([...files, ...selectedFiles]);
+    toast({
+      title: "📎 File Attached",
+      description: `${selectedFiles.length} file(s) added`,
+    });
   };
 
   const removeFile = (index: number) => {
     setFiles(files.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!textResponse.trim() && files.length === 0) {
       toast({
-        title: "No Content",
-        description: "Please add some text or upload a file.",
+        title: "❌ Submission Required",
+        description: "Please provide an answer or attach a file",
         variant: "destructive"
       });
       return;
     }
 
-    onSubmit({ text: textResponse, files });
+    setIsSubmitting(true);
+    await onSubmit({ text: textResponse, files });
+    setIsSubmitting(false);
     setTextResponse("");
     setFiles([]);
-    onClose();
   };
 
   return (
@@ -103,13 +109,12 @@ export const HomeworkSubmissionModal = ({
             </div>
           </div>
 
-          <div className="flex gap-2 pt-4">
-            <Button variant="outline" onClick={onClose} className="flex-1">
+          <div className="flex gap-2 pt-4 border-t">
+            <Button variant="outline" onClick={onClose} disabled={isSubmitting} className="flex-1">
               Cancel
             </Button>
-            <Button onClick={handleSubmit} className="flex-1 bg-green-500 hover:bg-green-600">
-              <Upload className="h-4 w-4 mr-2" />
-              Submit Homework
+            <Button onClick={handleSubmit} disabled={isSubmitting} className="flex-1">
+              {isSubmitting ? "Submitting..." : "📤 Submit Homework"}
             </Button>
           </div>
         </div>

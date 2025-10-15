@@ -17,6 +17,7 @@ import { ReadingLibraryTab } from "./ReadingLibraryTab";
 import { BackendTab } from "./BackendTab";
 import { EnhancedEnterpriseHub } from "../enterprise/enhanced/EnhancedEnterpriseHub";
 import CurriculumArchitect from "./CurriculumArchitect";
+import { HomeworkManagementTab } from "./homework/HomeworkManagementTab";
 
 interface TeacherPanelProps {
   teacherId?: string;
@@ -46,6 +47,8 @@ export const TeacherPanel = ({
         return <ReadingLibraryTab />;
       case "history":
         return <LessonHistoryTab />;
+      case "homework":
+        return <HomeworkManagementTab />;
       case "assignments":
         return <AssignmentsTab />;
       case "messages":
