@@ -67,10 +67,12 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
   const isCollapsed = state === "collapsed";
 
   return (
-    <Sidebar collapsible="offcanvas">
+    <Sidebar collapsible="offcanvas" className="border-r border-border/50 bg-card/50 backdrop-blur-sm">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3">
+            Navigation
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => {
@@ -82,24 +84,32 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
                     <SidebarMenuButton 
                       isActive={isActive}
                       onClick={() => item.action ? item.action() : setActiveTab(item.id)}
+                      className={`
+                        relative px-4 py-3 rounded-lg transition-all duration-200
+                        ${isActive 
+                          ? 'bg-primary/10 text-primary font-medium shadow-sm' 
+                          : 'text-muted-foreground hover:bg-surface-1 hover:text-foreground'
+                        }
+                      `}
                     >
-                      <Icon className="h-4 w-4" />
+                      <Icon className={`h-4 w-4 ${isActive ? 'text-primary' : ''}`} />
                       {!isCollapsed && (
                         <>
-                          <span>{item.label}</span>
+                          <span className="flex-1">{item.label}</span>
                           {item.badge && (
                             <Badge 
                               variant={item.id === 'classroom' ? 'default' : 'secondary'} 
-                              className={`ml-auto text-xs ${item.id === 'classroom' ? 'bg-green-500 text-white animate-pulse' : ''}`}
+                              className={`ml-auto text-xs ${
+                                item.id === 'classroom' 
+                                  ? 'bg-success/90 text-white animate-pulse border-0' 
+                                  : 'bg-accent/20 text-accent-foreground border-0'
+                              }`}
                             >
                               {item.badge}
                             </Badge>
                           )}
                           {item.id === 'learning-path' && (
-                            <Sparkles className="ml-2 h-3 w-3 text-emerald-500" />
-                          )}
-                          {item.id === 'classroom' && (
-                            <Video className="ml-2 h-3 w-3 text-green-500" />
+                            <Sparkles className="ml-2 h-3 w-3 text-success animate-pulse" />
                           )}
                         </>
                       )}
@@ -114,14 +124,14 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
         {/* Logout Section */}
         {onLogout && (
           <>
-            <SidebarSeparator />
+            <SidebarSeparator className="bg-border/50" />
             <SidebarGroup>
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
                     <SidebarMenuButton 
                       onClick={onLogout}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="px-4 py-3 rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10 transition-all duration-200"
                     >
                       <LogOut className="h-4 w-4" />
                       {!isCollapsed && <span>Logout</span>}

@@ -93,41 +93,42 @@ export const CleanStudentDashboard = ({ studentName, studentProfile }: CleanStud
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-500">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl p-6 border border-primary/20">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground mb-2">
+      <div className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-accent/5 to-primary/5 rounded-2xl p-6 md:p-8 border border-primary/20 shadow-lg">
+        <div className="absolute inset-0 bg-grid-white/5 [mask-image:linear-gradient(0deg,transparent,rgba(255,255,255,0.1))]"></div>
+        <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="flex-1">
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-3 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Welcome back, {studentName}!
             </h1>
-            <p className="text-muted-foreground mb-4">
-              You're doing great! Keep up your {streakDays}-day learning streak.
+            <p className="text-muted-foreground text-base mb-6">
+              You're doing great! Keep up your <span className="font-semibold text-success">{streakDays}-day</span> learning streak 🔥
             </p>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
-                  <Target className="h-4 w-4 text-primary" />
+            <div className="flex flex-wrap items-center gap-4 md:gap-6">
+              <div className="flex items-center gap-3 bg-card/60 backdrop-blur-sm rounded-xl px-4 py-3 border border-border/50">
+                <div className="w-10 h-10 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center">
+                  <Target className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-foreground">Level {currentLevel}</p>
+                  <p className="text-sm font-bold text-foreground">Level {currentLevel}</p>
                   <p className="text-xs text-muted-foreground">{progressPercentage}% Complete</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-warning/20 rounded-full flex items-center justify-center">
-                  <Award className="h-4 w-4 text-warning" />
+              <div className="flex items-center gap-3 bg-card/60 backdrop-blur-sm rounded-xl px-4 py-3 border border-border/50">
+                <div className="w-10 h-10 bg-gradient-to-br from-accent/20 to-warning/10 rounded-full flex items-center justify-center">
+                  <Award className="h-5 w-5 text-accent" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-foreground">{totalPoints} XP</p>
+                  <p className="text-sm font-bold text-foreground">{totalPoints} XP</p>
                   <p className="text-xs text-muted-foreground">Total Points</p>
                 </div>
               </div>
             </div>
           </div>
-          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+          <Button className="bg-gradient-to-r from-primary to-accent hover:opacity-90 text-white shadow-lg hover:shadow-xl transition-all duration-200 font-semibold px-6 py-6 rounded-xl">
             Continue Learning
-            <Play className="ml-2 h-4 w-4" />
+            <Play className="ml-2 h-5 w-5" />
           </Button>
         </div>
       </div>

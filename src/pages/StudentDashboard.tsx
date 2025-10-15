@@ -146,7 +146,7 @@ const StudentDashboard = () => {
   return (
     <ErrorBoundary>
       <SidebarProvider defaultOpen={false}>
-        <div className="flex min-h-screen w-full bg-background">
+        <div className="flex min-h-screen w-full bg-gradient-to-br from-background via-surface-1 to-surface-2">
           <StudentSidebar 
             activeTab={activeTab} 
             setActiveTab={setActiveTab}
@@ -161,9 +161,11 @@ const StudentDashboard = () => {
               hasProfile={hasProfile}
               studentProfile={studentProfile}
             />
-            <main className="flex-1 overflow-y-auto p-6 bg-background">
-              <div className="bg-card rounded-xl shadow-sm border border-border p-6">
-                <SidebarTrigger />
+            <main className="flex-1 overflow-y-auto p-4 md:p-6">
+              <div className="max-w-7xl mx-auto">
+                <div className="mb-4">
+                  <SidebarTrigger className="lg:hidden" />
+                </div>
                 <QuickActions />
                 {renderActiveTab()}
               </div>
