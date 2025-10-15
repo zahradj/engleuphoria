@@ -79,41 +79,64 @@ export const EnhancedTeacherSidebar = ({
     onLogout();
     setOpen(false);
   }, [onLogout, setOpen]);
-  return <Sidebar className="border-r bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60" collapsible="offcanvas">
-      <SidebarHeader className="border-b border-border/40">
-        <div className="flex items-center gap-2 px-4 py-3">
+  const { state } = useSidebar();
+  const isCollapsed = state === "collapsed";
+
+  return <Sidebar className="border-r border-border/50 bg-card/50 backdrop-blur-sm" collapsible="offcanvas">
+      <SidebarHeader className="border-b border-border/40 bg-gradient-to-b from-primary/5 to-transparent">
+        <div className="flex items-center gap-3 px-4 py-4">
           <Logo size="small" />
-          <div className="grid flex-1 text-left text-sm leading-tight">
-            <span className="truncate font-semibold">Teacher Panel</span>
-            <span className="truncate text-xs text-muted-foreground">Clean Workspace Mode</span>
-          </div>
+          {!isCollapsed && (
+            <div className="grid flex-1 text-left text-sm leading-tight">
+              <span className="truncate font-bold text-foreground">Teacher Panel</span>
+              <span className="truncate text-xs text-muted-foreground">Professional Workspace</span>
+            </div>
+          )}
         </div>
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3">
+            Navigation
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map(item => (
-                <SidebarMenuItem key={item.id}>
-                  <SidebarMenuButton onClick={() => handleTabClick(item.id)} isActive={activeTab === item.id} className="flex items-center gap-2">
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.label}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {menuItems.map(item => {
+                const isActive = activeTab === item.id;
+                return (
+                  <SidebarMenuItem key={item.id}>
+                    <SidebarMenuButton 
+                      onClick={() => handleTabClick(item.id)} 
+                      isActive={isActive}
+                      className={`
+                        relative px-4 py-3 rounded-lg transition-all duration-200
+                        ${isActive 
+                          ? 'bg-primary/10 text-primary font-medium shadow-sm' 
+                          : 'text-muted-foreground hover:bg-surface-1 hover:text-foreground'
+                        }
+                      `}
+                    >
+                      <item.icon className={`h-4 w-4 ${isActive ? 'text-primary' : ''}`} />
+                      {!isCollapsed && <span className="flex-1">{item.label}</span>}
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-border/40">
+      <SidebarFooter className="border-t border-border/50 bg-gradient-to-t from-destructive/5 to-transparent">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={handleLogout} className="w-full">
+            <SidebarMenuButton 
+              onClick={handleLogout} 
+              className="px-4 py-3 rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10 transition-all duration-200"
+            >
               <LogOut className="h-4 w-4" />
-              <span>Logout</span>
+              {!isCollapsed && <span>Logout</span>}
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
