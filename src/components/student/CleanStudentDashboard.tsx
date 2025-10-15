@@ -135,41 +135,57 @@ export const CleanStudentDashboard = ({ studentName, studentProfile }: CleanStud
         </div>
       </div>
 
+
       {/* Progress Overview */}
-      <Card className="border border-border bg-card shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-primary" />
-            Your Learning Progress
+      <Card className="border-3 border-blue-200 bg-gradient-to-br from-blue-50 to-purple-50 shadow-xl shadow-blue-200/50">
+        <CardHeader className="bg-gradient-to-r from-blue-400 to-purple-400 rounded-t-xl -m-6 mb-4 p-6">
+          <CardTitle className="text-xl font-extrabold text-white flex items-center gap-3">
+            <TrendingUp className="h-6 w-6 text-yellow-300 animate-bounce" />
+            Your Learning Progress 🚀
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-foreground">Level {currentLevel} Progress</span>
-                <span className="text-sm text-muted-foreground">{progressPercentage}%</span>
+            <div className="bg-white/80 rounded-2xl p-4 shadow-md">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-base font-bold text-purple-700">Level {currentLevel} Progress</span>
+                <span className="text-lg font-black text-pink-600">{progressPercentage}%</span>
               </div>
-              <Progress value={progressPercentage} className="h-3" />
+              <Progress value={progressPercentage} className="h-4 bg-purple-100 rounded-full" />
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {learningModules.map((module, index) => (
-                <div key={index} className="p-4 bg-surface-2 rounded-lg">
-                  <div className="flex items-start justify-between mb-3">
-                    <h4 className="font-medium text-foreground text-sm">{module.title}</h4>
+                <div key={index} className={`p-5 rounded-2xl shadow-lg border-3 transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
+                  module.status === 'completed' 
+                    ? 'bg-gradient-to-br from-green-400 to-teal-400 border-green-300' 
+                    : module.status === 'in-progress'
+                    ? 'bg-gradient-to-br from-yellow-300 to-orange-300 border-yellow-400'
+                    : 'bg-gradient-to-br from-gray-200 to-gray-300 border-gray-400'
+                }`}>
+                  <div className="flex items-start justify-between mb-4">
+                    <h4 className={`font-black text-sm ${
+                      module.status === 'completed' ? 'text-green-900' : 
+                      module.status === 'in-progress' ? 'text-orange-900' : 'text-gray-600'
+                    }`}>{module.title}</h4>
                     {module.status === 'completed' && (
-                      <CheckCircle className="h-4 w-4 text-success" />
+                      <CheckCircle className="h-6 w-6 text-green-700 animate-pulse" />
                     )}
                     {module.status === 'locked' && (
-                      <div className="w-4 h-4 bg-muted rounded-full"></div>
+                      <div className="w-6 h-6 bg-gray-400 rounded-full flex items-center justify-center">
+                        🔒
+                      </div>
                     )}
                   </div>
-                  <div className="space-y-2">
-                    <Progress value={module.progress} className="h-2" />
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">{module.lessons} lessons</span>
-                      <span className="text-muted-foreground">{module.progress}%</span>
+                  <div className="space-y-3">
+                    <Progress value={module.progress} className="h-3 bg-white/50 rounded-full" />
+                    <div className="flex items-center justify-between text-xs font-bold">
+                      <span className={module.status === 'completed' ? 'text-green-900' : module.status === 'in-progress' ? 'text-orange-900' : 'text-gray-600'}>
+                        {module.lessons} lessons
+                      </span>
+                      <span className={`text-sm ${module.status === 'completed' ? 'text-green-900' : module.status === 'in-progress' ? 'text-orange-900' : 'text-gray-600'}`}>
+                        {module.progress}%
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -182,38 +198,38 @@ export const CleanStudentDashboard = ({ studentName, studentProfile }: CleanStud
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-8 gap-6">
         {/* Upcoming Classes */}
-        <Card className="lg:col-span-5 border border-border bg-card shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-primary" />
-              Today's Classes
+        <Card className="lg:col-span-5 border-3 border-pink-200 bg-gradient-to-br from-pink-50 to-orange-50 shadow-xl shadow-pink-200/50">
+          <CardHeader className="bg-gradient-to-r from-pink-400 to-orange-400 rounded-t-xl -m-6 mb-4 p-6">
+            <CardTitle className="text-xl font-extrabold text-white flex items-center gap-3">
+              <Calendar className="h-6 w-6 text-yellow-300 animate-pulse" />
+              Today's Classes 📚
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {upcomingClasses.map((class_, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-surface-2 rounded-lg">
+              <div key={index} className="flex items-center justify-between p-5 bg-white rounded-2xl shadow-lg border-2 border-pink-200 hover:shadow-2xl hover:scale-105 transition-all duration-200">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                    <Users className="h-5 w-5 text-primary" />
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
+                    <Users className="h-8 w-8 text-white" />
                   </div>
                   <div>
-                    <h4 className="font-medium text-foreground">{class_.title}</h4>
-                    <p className="text-sm text-muted-foreground">with {class_.teacher}</p>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
+                    <h4 className="font-black text-purple-700 text-lg">{class_.title}</h4>
+                    <p className="text-base text-pink-600 font-semibold">with {class_.teacher}</p>
+                    <div className="flex items-center gap-3 text-sm text-purple-600 font-medium mt-2">
+                      <span className="flex items-center gap-1 bg-purple-100 px-3 py-1 rounded-full">
+                        <Clock className="h-4 w-4" />
                         {class_.time}
                       </span>
-                      <span>{class_.duration}</span>
-                      <Badge variant="outline" className="text-xs">
+                      <span className="bg-pink-100 px-3 py-1 rounded-full">{class_.duration}</span>
+                      <Badge variant="outline" className="text-sm bg-orange-100 text-orange-700 border-2 border-orange-300 font-bold">
                         {class_.type}
                       </Badge>
                     </div>
                   </div>
                 </div>
-                <Button size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                  Join
-                  <ArrowRight className="ml-2 h-3 w-3" />
+                <Button size="sm" className="bg-gradient-to-r from-green-400 to-teal-500 hover:from-green-500 hover:to-teal-600 text-white shadow-xl font-extrabold px-6 py-6 rounded-2xl text-base border-2 border-green-300">
+                  Join 🎉
+                  <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </div>
             ))}
@@ -221,30 +237,40 @@ export const CleanStudentDashboard = ({ studentName, studentProfile }: CleanStud
         </Card>
 
         {/* Assignments */}
-        <Card className="lg:col-span-3 border border-border bg-card shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
-              <BookOpen className="h-5 w-5 text-primary" />
-              Assignments
+        <Card className="lg:col-span-3 border-3 border-green-200 bg-gradient-to-br from-green-50 to-teal-50 shadow-xl shadow-green-200/50">
+          <CardHeader className="bg-gradient-to-r from-green-400 to-teal-400 rounded-t-xl -m-6 mb-4 p-6">
+            <CardTitle className="text-xl font-extrabold text-white flex items-center gap-3">
+              <BookOpen className="h-6 w-6 text-yellow-300 animate-bounce" />
+              Assignments ✏️
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {assignments.map((assignment, index) => (
-              <div key={index} className="p-3 bg-surface-2 rounded-lg">
-                <div className="flex items-start justify-between mb-2">
-                  <h4 className="font-medium text-foreground text-sm leading-tight">
+              <div key={index} className={`p-4 rounded-2xl shadow-lg border-2 hover:shadow-2xl hover:scale-105 transition-all duration-200 ${
+                assignment.status === 'completed' 
+                  ? 'bg-gradient-to-r from-green-100 to-teal-100 border-green-300' 
+                  : 'bg-white border-orange-200'
+              }`}>
+                <div className="flex items-start justify-between mb-3">
+                  <h4 className={`font-black text-sm leading-tight ${
+                    assignment.status === 'completed' ? 'text-green-700' : 'text-purple-700'
+                  }`}>
                     {assignment.title}
                   </h4>
                   {assignment.status === 'completed' && (
-                    <CheckCircle className="h-4 w-4 text-success flex-shrink-0" />
+                    <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0 animate-pulse" />
                   )}
                 </div>
-                <div className="flex items-center justify-between text-xs">
-                  <Badge variant="outline" className="text-xs">
+                <div className="flex items-center justify-between text-sm">
+                  <Badge variant="outline" className={`text-sm font-bold border-2 ${
+                    assignment.status === 'completed'
+                      ? 'bg-green-200 text-green-800 border-green-400'
+                      : 'bg-purple-100 text-purple-700 border-purple-300'
+                  }`}>
                     {assignment.subject}
                   </Badge>
-                  <span className={`text-xs ${
-                    assignment.status === 'completed' ? 'text-success' : 'text-muted-foreground'
+                  <span className={`text-sm font-bold ${
+                    assignment.status === 'completed' ? 'text-green-700' : 'text-orange-600'
                   }`}>
                     {assignment.dueDate}
                   </span>
