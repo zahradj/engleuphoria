@@ -84,42 +84,48 @@ export const LoginForm = () => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button size="lg" className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700">
-          Try Demo
+        <Button size="lg" className="bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 hover:from-purple-700 hover:via-pink-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 animate-pulse">
+          ✨ Try Demo
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 border-purple-200">
         <DialogHeader>
-          <DialogTitle>Demo Login</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-2xl bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 bg-clip-text text-transparent font-bold">
+            🎉 Demo Login
+          </DialogTitle>
+          <DialogDescription className="text-gray-600">
             Choose your role and enter your name to explore the platform
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div>
-            <label className="text-sm font-medium">Your Name</label>
+            <label className="text-sm font-medium text-purple-700">Your Name ✏️</label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter your name"
-              className="mt-1"
+              className="mt-1 border-purple-200 focus:border-purple-400 focus:ring-purple-400"
             />
           </div>
           <div>
-            <label className="text-sm font-medium">I am a...</label>
+            <label className="text-sm font-medium text-purple-700">I am a... 👤</label>
             <Select value={userType} onValueChange={setUserType}>
-              <SelectTrigger className="mt-1">
+              <SelectTrigger className="mt-1 border-purple-200 focus:border-purple-400 focus:ring-purple-400">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="student">Student</SelectItem>
-                <SelectItem value="teacher">Teacher</SelectItem>
-                <SelectItem value="admin">Administrator</SelectItem>
+              <SelectContent className="bg-white">
+                <SelectItem value="student">🎓 Student</SelectItem>
+                <SelectItem value="teacher">👨‍🏫 Teacher</SelectItem>
+                <SelectItem value="admin">⚙️ Administrator</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          <Button onClick={handleLogin} className="w-full" disabled={!name.trim()}>
-            Continue to Dashboard
+          <Button 
+            onClick={handleLogin} 
+            className="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 hover:from-purple-600 hover:via-pink-600 hover:to-blue-600 text-white shadow-md hover:shadow-lg transition-all duration-300" 
+            disabled={!name.trim()}
+          >
+            🚀 Continue to Dashboard
           </Button>
         </div>
       </DialogContent>
