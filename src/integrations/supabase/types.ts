@@ -1724,6 +1724,162 @@ export type Database = {
           },
         ]
       }
+      homework_assignment_students: {
+        Row: {
+          assignment_id: string
+          created_at: string
+          id: string
+          student_id: string
+        }
+        Insert: {
+          assignment_id: string
+          created_at?: string
+          id?: string
+          student_id: string
+        }
+        Update: {
+          assignment_id?: string
+          created_at?: string
+          id?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "homework_assignment_students_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "homework_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "homework_assignment_students_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      homework_assignments: {
+        Row: {
+          attachment_urls: string[] | null
+          created_at: string
+          description: string
+          due_date: string
+          id: string
+          instructions: string | null
+          lesson_id: string | null
+          points: number
+          status: string
+          teacher_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          attachment_urls?: string[] | null
+          created_at?: string
+          description: string
+          due_date: string
+          id?: string
+          instructions?: string | null
+          lesson_id?: string | null
+          points?: number
+          status?: string
+          teacher_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          attachment_urls?: string[] | null
+          created_at?: string
+          description?: string
+          due_date?: string
+          id?: string
+          instructions?: string | null
+          lesson_id?: string | null
+          points?: number
+          status?: string
+          teacher_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "homework_assignments_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "homework_assignments_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      homework_submissions: {
+        Row: {
+          assignment_id: string
+          attachment_urls: string[] | null
+          created_at: string
+          graded_at: string | null
+          id: string
+          points_earned: number | null
+          status: string
+          student_id: string
+          submitted_at: string | null
+          teacher_feedback: string | null
+          text_response: string | null
+          updated_at: string
+        }
+        Insert: {
+          assignment_id: string
+          attachment_urls?: string[] | null
+          created_at?: string
+          graded_at?: string | null
+          id?: string
+          points_earned?: number | null
+          status?: string
+          student_id: string
+          submitted_at?: string | null
+          teacher_feedback?: string | null
+          text_response?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assignment_id?: string
+          attachment_urls?: string[] | null
+          created_at?: string
+          graded_at?: string | null
+          id?: string
+          points_earned?: number | null
+          status?: string
+          student_id?: string
+          submitted_at?: string | null
+          teacher_feedback?: string | null
+          text_response?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "homework_submissions_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "homework_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "homework_submissions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integration_configs: {
         Row: {
           config_data: Json
