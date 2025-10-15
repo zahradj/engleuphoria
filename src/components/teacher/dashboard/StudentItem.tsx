@@ -10,22 +10,22 @@ interface StudentItemProps {
 }
 
 export const StudentItem = ({ name, level, lastClass, progress, onViewDetails }: StudentItemProps) => (
-  <div className="flex items-center justify-between py-3 border-b">
+  <div className="flex items-center justify-between py-3 border-b border-purple-200/50 dark:border-purple-700/50 hover:bg-gradient-to-r hover:from-purple-50/50 hover:via-pink-50/50 hover:to-blue-50/50 dark:hover:from-purple-950/30 dark:hover:via-pink-950/30 dark:hover:to-blue-950/30 px-2 rounded-lg transition-all">
     <div>
-      <h3 className="font-medium">{name}</h3>
+      <h3 className="font-medium text-purple-900 dark:text-purple-100">👤 {name}</h3>
       <div className="flex items-center gap-2 mt-1">
-        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">{level}</span>
-        <span className="text-xs text-muted-foreground">Last class: {lastClass}</span>
+        <span className="text-xs bg-gradient-to-r from-blue-100 to-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-200">{level}</span>
+        <span className="text-xs text-purple-600 dark:text-purple-400">📅 Last class: {lastClass}</span>
       </div>
     </div>
     <div className="flex items-center gap-4">
       <div className="flex items-center gap-2">
-        <span className="text-sm font-medium">{progress}%</span>
-        <div className="w-24 h-2 bg-muted rounded">
-          <div className="h-full bg-primary rounded" style={{ width: `${progress}%` }} />
+        <span className="text-sm font-medium text-purple-700 dark:text-purple-300">{progress}%</span>
+        <div className="w-24 h-2 bg-purple-100 dark:bg-purple-900/50 rounded border border-purple-200/50">
+          <div className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 rounded" style={{ width: `${progress}%` }} />
         </div>
       </div>
-      <Button variant="outline" size="sm" onClick={onViewDetails}>View Details</Button>
+      <Button variant="outline" size="sm" className="text-purple-600 border-purple-300 hover:bg-purple-100/50 dark:text-purple-400 dark:border-purple-700 dark:hover:bg-purple-900/30" onClick={onViewDetails}>View Details</Button>
     </div>
   </div>
 );
