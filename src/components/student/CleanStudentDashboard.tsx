@@ -95,40 +95,42 @@ export const CleanStudentDashboard = ({ studentName, studentProfile }: CleanStud
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       {/* Welcome Section */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-accent/5 to-primary/5 rounded-2xl p-6 md:p-8 border border-primary/20 shadow-lg">
-        <div className="absolute inset-0 bg-grid-white/5 [mask-image:linear-gradient(0deg,transparent,rgba(255,255,255,0.1))]"></div>
+      <div className="relative overflow-hidden bg-gradient-to-br from-purple-400 via-pink-400 to-orange-400 rounded-3xl p-6 md:p-8 border-4 border-white/30 shadow-2xl shadow-purple-500/50">
+        <div className="absolute inset-0 bg-white/10 [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]"></div>
+        <div className="absolute top-4 right-4 text-6xl opacity-20">🎉</div>
+        <div className="absolute bottom-4 left-4 text-5xl opacity-20">⭐</div>
         <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="flex-1">
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-3 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Welcome back, {studentName}!
+            <h1 className="text-3xl md:text-4xl font-black text-white mb-3 drop-shadow-lg">
+              Welcome back, {studentName}! 🎊
             </h1>
-            <p className="text-muted-foreground text-base mb-6">
-              You're doing great! Keep up your <span className="font-semibold text-success">{streakDays}-day</span> learning streak 🔥
+            <p className="text-white/95 text-base mb-6 font-semibold drop-shadow">
+              You're amazing! Keep up your <span className="text-yellow-300 font-extrabold text-xl">{streakDays}-day</span> learning streak 🔥
             </p>
             <div className="flex flex-wrap items-center gap-4 md:gap-6">
-              <div className="flex items-center gap-3 bg-card/60 backdrop-blur-sm rounded-xl px-4 py-3 border border-border/50">
-                <div className="w-10 h-10 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center">
-                  <Target className="h-5 w-5 text-primary" />
+              <div className="flex items-center gap-3 bg-white/90 backdrop-blur-sm rounded-2xl px-5 py-3 border-2 border-purple-300 shadow-xl">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+                  <Target className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-foreground">Level {currentLevel}</p>
-                  <p className="text-xs text-muted-foreground">{progressPercentage}% Complete</p>
+                  <p className="text-sm font-black text-purple-700">Level {currentLevel}</p>
+                  <p className="text-xs text-purple-600 font-semibold">{progressPercentage}% Complete</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 bg-card/60 backdrop-blur-sm rounded-xl px-4 py-3 border border-border/50">
-                <div className="w-10 h-10 bg-gradient-to-br from-accent/20 to-warning/10 rounded-full flex items-center justify-center">
-                  <Award className="h-5 w-5 text-accent" />
+              <div className="flex items-center gap-3 bg-white/90 backdrop-blur-sm rounded-2xl px-5 py-3 border-2 border-orange-300 shadow-xl">
+                <div className="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
+                  <Award className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-foreground">{totalPoints} XP</p>
-                  <p className="text-xs text-muted-foreground">Total Points</p>
+                  <p className="text-sm font-black text-orange-700">{totalPoints} XP</p>
+                  <p className="text-xs text-orange-600 font-semibold">Total Points</p>
                 </div>
               </div>
             </div>
           </div>
-          <Button className="bg-gradient-to-r from-primary to-accent hover:opacity-90 text-white shadow-lg hover:shadow-xl transition-all duration-200 font-semibold px-6 py-6 rounded-xl">
+          <Button className="bg-white text-purple-600 hover:bg-purple-50 shadow-2xl shadow-white/50 hover:shadow-white/70 transition-all duration-200 font-extrabold px-8 py-7 rounded-2xl text-lg border-4 border-purple-200">
             Continue Learning
-            <Play className="ml-2 h-5 w-5" />
+            <Play className="ml-2 h-6 w-6" />
           </Button>
         </div>
       </div>

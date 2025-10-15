@@ -25,26 +25,26 @@ export const MinimalStudentHeader: React.FC<MinimalStudentHeaderProps> = ({
     .slice(0, 2);
 
   return (
-    <div className="sticky top-0 z-10 border-b border-border/50 bg-card/80 backdrop-blur-lg shadow-sm">
+    <div className="sticky top-0 z-10 border-b-2 border-purple-200/50 bg-gradient-to-r from-purple-100/80 via-pink-100/80 to-blue-100/80 backdrop-blur-lg shadow-lg">
       <div className="flex items-center justify-between px-4 md:px-6 py-4">
         <div className="flex items-center gap-3">
-          <Avatar className="h-11 w-11 border-2 border-primary/20 shadow-sm">
-            <AvatarFallback className="bg-gradient-to-br from-primary/20 to-accent/20 text-primary font-bold text-sm">
+          <Avatar className="h-12 w-12 border-3 border-purple-400 shadow-lg shadow-purple-500/50 ring-2 ring-pink-300">
+            <AvatarFallback className="bg-gradient-to-br from-purple-400 to-pink-500 text-white font-bold text-base">
               {initials}
             </AvatarFallback>
           </Avatar>
           
           <div>
-            <h1 className="text-lg font-bold text-foreground">
+            <h1 className="text-xl font-extrabold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
               {studentName}
             </h1>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs text-muted-foreground font-medium">
+              <span className="text-xs text-purple-600 font-semibold">
                 ID: {studentId}
               </span>
               {hasProfile && studentProfile && (
-                <Badge variant="secondary" className="text-xs bg-accent/20 text-accent-foreground border-0 font-semibold">
-                  {studentProfile.points || 0} XP
+                <Badge variant="secondary" className="text-xs bg-gradient-to-r from-yellow-400 to-orange-400 text-purple-900 border-0 font-bold shadow-md">
+                  ⭐ {studentProfile.points || 0} XP
                 </Badge>
               )}
             </div>
@@ -54,10 +54,10 @@ export const MinimalStudentHeader: React.FC<MinimalStudentHeaderProps> = ({
         <Button 
           variant="ghost" 
           size="sm" 
-          className="text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors relative"
+          className="text-purple-600 hover:bg-purple-100 hover:text-purple-700 transition-colors relative rounded-xl shadow-md"
         >
-          <Bell className="h-4 w-4" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full"></span>
+          <Bell className="h-5 w-5" />
+          <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-pink-500 rounded-full animate-pulse"></span>
         </Button>
       </div>
     </div>

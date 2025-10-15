@@ -145,8 +145,8 @@ const StudentDashboard = () => {
 
   return (
     <ErrorBoundary>
-      <SidebarProvider defaultOpen={false}>
-        <div className="flex min-h-screen w-full bg-gradient-to-br from-background via-surface-1 to-surface-2">
+      <SidebarProvider defaultOpen={true}>
+        <div className="flex min-h-screen w-full bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
           <StudentSidebar 
             activeTab={activeTab} 
             setActiveTab={setActiveTab}
@@ -163,8 +163,8 @@ const StudentDashboard = () => {
             />
             <main className="flex-1 overflow-y-auto p-4 md:p-6">
               <div className="max-w-7xl mx-auto">
-                <div className="mb-4">
-                  <SidebarTrigger className="lg:hidden" />
+                <div className="mb-4 flex items-center justify-between">
+                  <SidebarTrigger className="lg:hidden bg-white/90 backdrop-blur-sm hover:bg-white shadow-md rounded-xl p-3 border-2 border-purple-200" />
                 </div>
                 <QuickActions />
                 {renderActiveTab()}
