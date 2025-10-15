@@ -1,4 +1,4 @@
-import React from 'react';
+import { Component, ReactNode, ErrorInfo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertTriangle, Home, RotateCcw } from 'lucide-react';
@@ -11,11 +11,11 @@ interface AppErrorBoundaryState {
 }
 
 interface AppErrorBoundaryProps {
-  children: React.ReactNode;
-  fallback?: React.ReactNode;
+  children: ReactNode;
+  fallback?: ReactNode;
 }
 
-export class AppErrorBoundary extends React.Component<AppErrorBoundaryProps, AppErrorBoundaryState> {
+export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorBoundaryState> {
   constructor(props: AppErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
@@ -25,7 +25,7 @@ export class AppErrorBoundary extends React.Component<AppErrorBoundaryProps, App
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('🚨 App Error Boundary caught an error:', error, errorInfo);
   }
 
@@ -46,7 +46,7 @@ interface ErrorFallbackProps {
   onReset: () => void;
 }
 
-const ErrorFallback: React.FC<ErrorFallbackProps> = ({ onReset }) => {
+const ErrorFallback = ({ onReset }: ErrorFallbackProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
 

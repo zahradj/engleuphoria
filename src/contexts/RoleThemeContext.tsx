@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect } from 'react';
+import { createContext, useContext, useEffect, ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface RoleThemeContextType {
@@ -17,7 +17,7 @@ export const useRoleTheme = () => {
   return context;
 };
 
-export const RoleThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const RoleThemeProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   
   useEffect(() => {
