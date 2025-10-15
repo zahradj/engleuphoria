@@ -68,3 +68,6 @@ verify_jwt = true
 
 [functions.ai-image-generation]
 verify_jwt = false
+
+[functions.send-lesson-reminders]
+verify_jwt = false
