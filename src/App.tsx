@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -65,11 +65,6 @@ const NotFoundPage = () => {
 };
 
 const App = () => {
-  // Clear insecure localStorage role data on app initialization
-  useEffect(() => {
-    clearInsecureRoleStorage();
-  }, []);
-
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>

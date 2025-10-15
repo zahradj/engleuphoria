@@ -5,6 +5,7 @@ import App from './App.tsx'
 import './index.css'
 import i18n from '@/lib/i18n';
 import { clearAllCaches } from '@/utils/productionCleanup';
+import { clearInsecureRoleStorage } from '@/utils/roleValidation';
 
 // Clear stale caches on app start
 const CACHE_VERSION = 'v4';
@@ -14,6 +15,9 @@ if (lastCacheVersion !== CACHE_VERSION) {
     localStorage.setItem('cache_version', CACHE_VERSION);
   });
 }
+
+// Clear insecure role data on app start
+clearInsecureRoleStorage();
 
 // Register service worker only in production; unregister in dev to avoid HMR issues
 if ('serviceWorker' in navigator) {
