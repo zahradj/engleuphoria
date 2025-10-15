@@ -162,152 +162,195 @@ export const BookLesson = () => {
   }
 
   return (
-    <div className="container mx-auto py-8 max-w-4xl">
-      <Button 
-        variant="ghost" 
-        onClick={() => navigate('/discover-teachers')}
-        className="mb-6"
-      >
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to Teachers
-      </Button>
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto py-8 px-4 max-w-6xl">
+        <Button 
+          variant="ghost" 
+          onClick={() => navigate('/discover-teachers')}
+          className="mb-6"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Teachers
+        </Button>
 
-      <div className="grid md:grid-cols-2 gap-8">
-        {/* Teacher Info */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-start gap-4">
-              <Avatar className="w-20 h-20">
-                <AvatarImage src={teacher.profile_image_url} />
-                <AvatarFallback>
-                  {teacher.full_name?.split(' ').map(n => n[0]).join('')}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <CardTitle className="text-xl">{teacher.full_name}</CardTitle>
-                <div className="flex items-center gap-1 mb-2">
-                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  <span className="font-medium">{teacher.rating.toFixed(1)}</span>
-                  <span className="text-muted-foreground">({teacher.total_reviews} reviews)</span>
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Teacher Info - Sidebar */}
+          <div className="lg:col-span-1">
+            <Card className="sticky top-4">
+              <CardHeader className="pb-4">
+                <div className="flex flex-col items-center text-center gap-4">
+                  <Avatar className="w-24 h-24 border-4 border-primary/10">
+                    <AvatarImage src={teacher.profile_image_url} />
+                    <AvatarFallback className="text-2xl bg-gradient-to-br from-primary to-secondary text-primary-foreground">
+                      {teacher.full_name?.split(' ').map(n => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="w-full">
+                    <CardTitle className="text-xl mb-1">{teacher.full_name}</CardTitle>
+                    <div className="flex items-center justify-center gap-1 mb-3">
+                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      <span className="font-semibold">{teacher.rating.toFixed(1)}</span>
+                      <span className="text-muted-foreground text-sm">({teacher.total_reviews})</span>
+                    </div>
+                    {teacher.accent && (
+                      <Badge variant="secondary" className="mb-2">
+                        <Globe className="w-3 h-3 mr-1" />
+                        {teacher.accent}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
-                {teacher.accent && (
-                  <Badge variant="secondary">
-                    <Globe className="w-3 h-3 mr-1" />
-                    {teacher.accent}
-                  </Badge>
+              </CardHeader>
+
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {teacher.bio}
+                </p>
+
+                {teacher.specializations.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold mb-2 text-sm">Specializations</h4>
+                    <div className="flex flex-wrap gap-1.5">
+                      {teacher.specializations.map((spec, index) => (
+                        <Badge key={index} variant="outline" className="text-xs">
+                          {spec}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
                 )}
-              </div>
-            </div>
-          </CardHeader>
 
-          <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              {teacher.bio}
-            </p>
-
-            {teacher.specializations.length > 0 && (
-              <div>
-                <h4 className="font-semibold mb-2">Specializations</h4>
-                <div className="flex flex-wrap gap-1">
-                  {teacher.specializations.map((spec, index) => (
-                    <Badge key={index} variant="outline">
-                      {spec}
-                    </Badge>
-                  ))}
+                <div className="space-y-2 text-sm pt-2 border-t border-border">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Experience</span>
+                    <div className="flex items-center gap-1 font-medium">
+                      <Clock className="w-3 h-3" />
+                      {teacher.years_experience} years
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Rate</span>
+                    <div className="font-semibold text-primary">
+                      {teacher.hourly_rate_dzd} DZD/hr
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
 
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-muted-foreground">Experience:</span>
-                <div className="flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  {teacher.years_experience} years
+                {teacher.languages_spoken.length > 0 && (
+                  <div className="pt-2 border-t border-border">
+                    <span className="text-sm text-muted-foreground">Languages:</span>
+                    <div className="text-sm font-medium mt-1">
+                      {teacher.languages_spoken.join(', ')}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Booking Form - Main Area */}
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader className="border-b border-border">
+                <CardTitle className="text-2xl">Schedule Your Lesson</CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Choose a convenient date and time for your lesson
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-6 pt-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-semibold mb-4 flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-primary" />
+                      Select Date
+                    </h4>
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={setSelectedDate}
+                      disabled={(date) => date < new Date() || date.getDay() === 0}
+                      className="rounded-lg border border-border"
+                    />
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold mb-4 flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-primary" />
+                      Available Times
+                    </h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      {availableTimeSlots.map((time) => (
+                        <Button
+                          key={time}
+                          variant={selectedTime === time ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setSelectedTime(time)}
+                          className="h-11"
+                        >
+                          {time}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div>
-                <span className="text-muted-foreground">Rate:</span>
-                <div className="font-semibold">
-                  {teacher.hourly_rate_dzd} DZD/hr
-                </div>
-              </div>
-            </div>
 
-            {teacher.languages_spoken.length > 0 && (
-              <div>
-                <span className="text-muted-foreground">Languages:</span>
-                <div className="text-sm">{teacher.languages_spoken.join(', ')}</div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                {selectedDate && selectedTime && (
+                  <div className="p-5 bg-muted/50 rounded-lg border border-border">
+                    <h4 className="font-semibold mb-3 flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-primary" />
+                      Lesson Summary
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Teacher</span>
+                        <span className="font-medium">{teacher.full_name}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Date</span>
+                        <span className="font-medium">{selectedDate.toLocaleDateString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Time</span>
+                        <span className="font-medium">{selectedTime}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Duration</span>
+                        <span className="font-medium">60 minutes</span>
+                      </div>
+                      <div className="flex justify-between pt-2 border-t border-border">
+                        <span className="text-muted-foreground font-semibold">Total Cost</span>
+                        <span className="font-bold text-lg text-primary">{teacher.hourly_rate_dzd} DZD</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
-        {/* Booking Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Book a Lesson</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div>
-              <h4 className="font-semibold mb-3">Select Date</h4>
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={setSelectedDate}
-                disabled={(date) => date < new Date() || date.getDay() === 0} // Disable past dates and Sundays
-                className="rounded-md border"
-              />
-            </div>
+                <Button
+                  className="w-full h-12 text-base"
+                  onClick={handleBookLesson}
+                  disabled={!selectedDate || !selectedTime || isBooking}
+                  size="lg"
+                >
+                  {isBooking ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                      Processing Booking...
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5" />
+                      Confirm Booking
+                    </div>
+                  )}
+                </Button>
 
-            <div>
-              <h4 className="font-semibold mb-3">Select Time</h4>
-              <div className="grid grid-cols-2 gap-2">
-                {availableTimeSlots.map((time) => (
-                  <Button
-                    key={time}
-                    variant={selectedTime === time ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedTime(time)}
-                  >
-                    {time}
-                  </Button>
-                ))}
-              </div>
-            </div>
-
-            {selectedDate && selectedTime && (
-              <div className="p-4 bg-muted rounded-lg">
-                <h4 className="font-semibold mb-2">Lesson Summary</h4>
-                <div className="space-y-1 text-sm">
-                  <div>Teacher: {teacher.full_name}</div>
-                  <div>Date: {selectedDate.toDateString()}</div>
-                  <div>Time: {selectedTime}</div>
-                  <div>Duration: 60 minutes</div>
-                  <div className="font-semibold">Cost: {teacher.hourly_rate_dzd} DZD</div>
-                </div>
-              </div>
-            )}
-
-            <Button
-              className="w-full"
-              onClick={handleBookLesson}
-              disabled={!selectedDate || !selectedTime || isBooking}
-            >
-              {isBooking ? (
-                <div className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Booking...
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4" />
-                  Book Lesson
-                </div>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
+                <p className="text-xs text-center text-muted-foreground">
+                  By booking, you agree to our terms of service and cancellation policy
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
