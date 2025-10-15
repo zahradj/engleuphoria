@@ -8,12 +8,10 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Eye, EyeOff, CheckCircle, XCircle, Mail, Lock, User, GraduationCap, BookOpen, Sparkles, Shield, Zap } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { supabase } from '@/integrations/supabase/client';
-
 interface SimpleAuthFormProps {
   mode: 'login' | 'signup';
   onModeChange?: (mode: 'login' | 'signup') => void;
 }
-
 interface FormData {
   fullName: string;
   email: string;
@@ -21,15 +19,23 @@ interface FormData {
   confirmPassword: string;
   role: 'student' | 'teacher' | 'admin';
 }
-
-const passwordRequirements = [
-  { test: (pwd: string) => pwd.length >= 6, text: "At least 6 characters" },
-  { test: (pwd: string) => /[A-Z]/.test(pwd), text: "One uppercase letter" },
-  { test: (pwd: string) => /[0-9]/.test(pwd), text: "One number" },
-  { test: (pwd: string) => /[!@#$%^&*]/.test(pwd), text: "One special character" }
-];
-
-export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChange }) => {
+const passwordRequirements = [{
+  test: (pwd: string) => pwd.length >= 6,
+  text: "At least 6 characters"
+}, {
+  test: (pwd: string) => /[A-Z]/.test(pwd),
+  text: "One uppercase letter"
+}, {
+  test: (pwd: string) => /[0-9]/.test(pwd),
+  text: "One number"
+}, {
+  test: (pwd: string) => /[!@#$%^&*]/.test(pwd),
+  text: "One special character"
+}];
+export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
+  mode,
+  onModeChange
+}) => {
   const [formData, setFormData] = useState<FormData>({
     fullName: '',
     email: '',
@@ -44,10 +50,18 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState('');
   const [resetLoading, setResetLoading] = useState(false);
-  
-  const { signIn, signUp, resetPassword, user, isConfigured, error } = useAuth();
+  const {
+    signIn,
+    signUp,
+    resetPassword,
+    user,
+    isConfigured,
+    error
+  } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
 
   // Do not auto-redirect away from auth pages; post-login navigation is handled on submit
   React.useEffect(() => {
@@ -55,7 +69,6 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
       console.warn('Auth error:', error);
     }
   }, [error]);
-
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email) {
@@ -69,38 +82,33 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
     setEmailError('');
     return true;
   };
-
   const getPasswordStrength = (): number => {
     return passwordRequirements.filter(req => req.test(formData.password)).length;
   };
-
   const validateForm = (): boolean => {
     if (!validateEmail(formData.email)) return false;
-
     if (mode === 'signup') {
       if (!formData.fullName.trim()) {
         toast({
           title: "Missing Information",
           description: "Please enter your full name.",
-          variant: "destructive",
+          variant: "destructive"
         });
         return false;
       }
-
       if (getPasswordStrength() < 3) {
         toast({
           title: "Password Too Weak",
           description: "Password must meet at least 3 security requirements.",
-          variant: "destructive",
+          variant: "destructive"
         });
         return false;
       }
-
       if (formData.password !== formData.confirmPassword) {
         toast({
           title: "Passwords Don't Match",
           description: "Please make sure both passwords are identical.",
-          variant: "destructive",
+          variant: "destructive"
         });
         return false;
       }
@@ -109,69 +117,69 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
         toast({
           title: "Invalid Password",
           description: "Password must be at least 6 characters long.",
-          variant: "destructive",
+          variant: "destructive"
         });
         return false;
       }
     }
-
     return true;
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
-
     setLoading(true);
-
     try {
       if (!isConfigured) {
         toast({
           title: "Authentication Error",
           description: "Supabase not configured. Please check your environment setup.",
-          variant: "destructive",
+          variant: "destructive"
         });
         return;
       }
-
       if (mode === 'login') {
-        const { data, error } = await signIn(formData.email, formData.password);
-        
+        const {
+          data,
+          error
+        } = await signIn(formData.email, formData.password);
         if (error) {
           toast({
             title: "Login Failed",
             description: error.message || "Invalid email or password.",
-            variant: "destructive",
+            variant: "destructive"
           });
         } else {
           toast({
             title: "Login Successful",
-            description: "Welcome back!",
+            description: "Welcome back!"
           });
 
           // Simply navigate to dashboard and let the ProtectedRoute handle the role-based redirection
           // Add a small delay to ensure the auth context has updated
           setTimeout(() => {
-            navigate('/dashboard', { replace: true });
+            navigate('/dashboard', {
+              replace: true
+            });
           }, 100);
         }
       } else {
-        const { error } = await signUp(formData.email, formData.password, {
+        const {
+          error
+        } = await signUp(formData.email, formData.password, {
           role: formData.role
         });
-
         if (error) {
           toast({
             title: "Sign Up Failed",
             description: error.message || "Failed to create account.",
-            variant: "destructive",
+            variant: "destructive"
           });
         } else {
           toast({
             title: "Account Created Successfully!",
-            description: "Please check your email to verify your account.",
+            description: "Please check your email to verify your account."
           });
-          
+
           // Navigate based on role
           if (formData.role === 'teacher') {
             navigate('/teacher-application');
@@ -187,44 +195,46 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
       toast({
         title: "Authentication Error",
         description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
-
   const handleInputChange = (field: keyof FormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
     if (field === 'email') {
       validateEmail(value);
     }
   };
-
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateEmail(resetEmail)) {
       toast({
         title: "Invalid Email",
         description: "Please enter a valid email address.",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
-
     setResetLoading(true);
     try {
-      const { error } = await resetPassword(resetEmail);
+      const {
+        error
+      } = await resetPassword(resetEmail);
       if (error) {
         toast({
           title: "Reset Failed",
           description: error.message || "Failed to send reset email.",
-          variant: "destructive",
+          variant: "destructive"
         });
       } else {
         toast({
           title: "Reset Email Sent",
-          description: "Check your email for password reset instructions.",
+          description: "Check your email for password reset instructions."
         });
         setShowForgotPassword(false);
         setResetEmail('');
@@ -233,27 +243,15 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
       toast({
         title: "Reset Error",
         description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setResetLoading(false);
     }
   };
-
-  const gradientClass = mode === 'login' 
-    ? 'from-purple-500 via-pink-500 to-orange-500' 
-    : formData.role === 'teacher' 
-      ? 'from-green-400 via-teal-400 to-blue-400'
-      : 'from-purple-400 via-pink-400 to-orange-400';
-
-  const backgroundGradient = mode === 'login'
-    ? 'from-purple-100 via-pink-100 to-orange-100'
-    : formData.role === 'teacher'
-      ? 'from-green-100 via-teal-100 to-blue-100'
-      : 'from-purple-100 via-pink-100 to-blue-100';
-
-  return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+  const gradientClass = mode === 'login' ? 'from-purple-500 via-pink-500 to-orange-500' : formData.role === 'teacher' ? 'from-green-400 via-teal-400 to-blue-400' : 'from-purple-400 via-pink-400 to-orange-400';
+  const backgroundGradient = mode === 'login' ? 'from-purple-100 via-pink-100 to-orange-100' : formData.role === 'teacher' ? 'from-green-100 via-teal-100 to-blue-100' : 'from-purple-100 via-pink-100 to-blue-100';
+  return <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
       {/* Playful background decorations */}
       <div className="absolute inset-0">
         {/* Large floating orbs */}
@@ -336,23 +334,14 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
       <div className="relative z-10 container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
         {/* Return Home Tab */}
         <div className="absolute top-6 left-6">
-          <Button
-            variant="outline"
-            onClick={() => navigate('/')}
-            className="bg-white/90 backdrop-blur-sm border-2 border-purple-300 text-purple-700 hover:bg-purple-50 hover:border-purple-400 hover:text-purple-800 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl px-8 py-3 font-bold text-base"
-          >
+          <Button variant="outline" onClick={() => navigate('/')} className="bg-white/90 backdrop-blur-sm border-2 border-purple-300 text-purple-700 hover:bg-purple-50 hover:border-purple-400 hover:text-purple-800 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl px-8 py-3 font-bold text-base">
             <span className="mr-2 text-2xl">🏠</span>
             Return Home
           </Button>
         </div>
 
         <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <h1 className="text-5xl font-black bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent mb-3 drop-shadow-lg animate-bounce">
-              {mode === 'login' ? 'Welcome Back! 🎉' : 'Join Us! ✨'}
-            </h1>
-            <p className="text-purple-700 text-lg font-bold drop-shadow">Transform your English learning experience</p>
-          </div>
+          
 
           <Card className="relative bg-white/95 backdrop-blur-xl border-4 border-purple-300 shadow-2xl overflow-hidden rounded-3xl">
             {/* Glowing border effect */}
@@ -365,21 +354,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
                   <div className={`relative w-24 h-24 rounded-full bg-gradient-to-r ${gradientClass} flex items-center justify-center shadow-2xl hover:scale-110 transition-transform duration-300 animate-bounce`}>
                     <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/40 to-transparent"></div>
                     <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-yellow-400/50 to-pink-400/50 blur-xl animate-pulse"></div>
-                    {mode === 'login' ? (
-                      <img 
-                        src="/lovable-uploads/349cfbe2-60a4-4dcc-a3b6-c410c4da02f3.png" 
-                        alt="Logo" 
-                        className="h-16 w-16 relative z-10 object-contain"
-                      />
-                    ) : formData.role === 'teacher' ? (
-                      <GraduationCap className="h-12 w-12 text-white relative z-10 drop-shadow-lg" />
-                    ) : (
-                      <img 
-                        src="/lovable-uploads/349cfbe2-60a4-4dcc-a3b6-c410c4da02f3.png" 
-                        alt="Logo" 
-                        className="h-16 w-16 relative z-10 object-contain"
-                      />
-                    )}
+                    {mode === 'login' ? <img src="/lovable-uploads/349cfbe2-60a4-4dcc-a3b6-c410c4da02f3.png" alt="Logo" className="h-16 w-16 relative z-10 object-contain" /> : formData.role === 'teacher' ? <GraduationCap className="h-12 w-12 text-white relative z-10 drop-shadow-lg" /> : <img src="/lovable-uploads/349cfbe2-60a4-4dcc-a3b6-c410c4da02f3.png" alt="Logo" className="h-16 w-16 relative z-10 object-contain" />}
                   </div>
                 </div>
                 
@@ -387,40 +362,25 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
                   {mode === 'login' ? 'Welcome Back! 🎊' : 'Join the Magic! ✨'}
                 </CardTitle>
                 <CardDescription className="text-purple-700 text-lg font-bold">
-                  {mode === 'login' 
-                    ? 'Ready to continue your amazing journey? 🚀'
-                    : 'Start your extraordinary English adventure today! 🌟'
-                  }
+                  {mode === 'login' ? 'Ready to continue your amazing journey? 🚀' : 'Start your extraordinary English adventure today! 🌟'}
                 </CardDescription>
               </CardHeader>
               
               <CardContent className="px-8 pb-8">
-                {error && (
-                  <div className="mb-6 p-4 bg-red-500/20 border border-red-500/40 rounded-lg backdrop-blur-sm">
+                {error && <div className="mb-6 p-4 bg-red-500/20 border border-red-500/40 rounded-lg backdrop-blur-sm">
                     <p className="text-sm text-red-700">{error}</p>
-                  </div>
-                )}
+                  </div>}
                 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  {mode === 'signup' && (
-                    <div className="space-y-2">
+                  {mode === 'signup' && <div className="space-y-2">
                     <label htmlFor="fullName" className="text-sm font-medium text-slate-800">
                       Full Name
                       </label>
                     <div className="relative group">
                       <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-600 group-focus-within:text-slate-800 transition-colors" />
-                        <Input
-                          id="fullName"
-                          value={formData.fullName}
-                          onChange={(e) => handleInputChange('fullName', e.target.value)}
-                          placeholder="Enter your full name"
-                          disabled={loading}
-                          required
-                          className="h-14 pl-12 bg-white/50 border-purple-200/60 text-slate-700 placeholder:text-slate-500 focus:bg-white/70 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all duration-300 rounded-xl shadow-sm hover:shadow-md"
-                        />
+                        <Input id="fullName" value={formData.fullName} onChange={e => handleInputChange('fullName', e.target.value)} placeholder="Enter your full name" disabled={loading} required className="h-14 pl-12 bg-white/50 border-purple-200/60 text-slate-700 placeholder:text-slate-500 focus:bg-white/70 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all duration-300 rounded-xl shadow-sm hover:shadow-md" />
                       </div>
-                    </div>
-                  )}
+                    </div>}
 
                   <div className="space-y-2">
                   <label htmlFor="email" className="text-sm font-medium text-slate-800">
@@ -428,39 +388,20 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
                     </label>
                   <div className="relative group">
                     <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-600 group-focus-within:text-slate-800 transition-colors" />
-                      <Input
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => handleInputChange('email', e.target.value)}
-                        placeholder="your.email@example.com"
-                        disabled={loading}
-                        required
-                        className={`h-14 pl-12 bg-white/50 border-purple-200/60 text-slate-700 placeholder:text-slate-500 focus:bg-white/70 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all duration-300 rounded-xl shadow-sm hover:shadow-md ${emailError ? 'border-red-400/80 focus:border-red-400' : ''}`}
-                      />
+                      <Input id="email" type="email" value={formData.email} onChange={e => handleInputChange('email', e.target.value)} placeholder="your.email@example.com" disabled={loading} required className={`h-14 pl-12 bg-white/50 border-purple-200/60 text-slate-700 placeholder:text-slate-500 focus:bg-white/70 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all duration-300 rounded-xl shadow-sm hover:shadow-md ${emailError ? 'border-red-400/80 focus:border-red-400' : ''}`} />
                     </div>
-                    {emailError && (
-                      <p className="text-sm text-red-700 animate-fade-in">{emailError}</p>
-                    )}
+                    {emailError && <p className="text-sm text-red-700 animate-fade-in">{emailError}</p>}
                   </div>
 
-                  {mode === 'signup' && (
-                    <div className="space-y-2">
+                  {mode === 'signup' && <div className="space-y-2">
                       <label htmlFor="role" className="text-sm font-medium text-slate-800">
                         I am a...
                       </label>
-                      <select
-                        id="role"
-                        value={formData.role}
-                        onChange={(e) => handleInputChange('role', e.target.value as 'student' | 'teacher' | 'admin')}
-                        className="w-full h-14 px-4 bg-white/50 border border-purple-200/60 text-slate-700 rounded-xl focus:bg-white/70 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all duration-300 shadow-sm hover:shadow-md"
-                        disabled={loading}
-                      >
+                      <select id="role" value={formData.role} onChange={e => handleInputChange('role', e.target.value as 'student' | 'teacher' | 'admin')} className="w-full h-14 px-4 bg-white/50 border border-purple-200/60 text-slate-700 rounded-xl focus:bg-white/70 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all duration-300 shadow-sm hover:shadow-md" disabled={loading}>
                         <option value="student" className="bg-white text-slate-800">Student - Learn & Grow</option>
                         <option value="teacher" className="bg-white text-slate-800">Teacher - Inspire & Educate</option>
                       </select>
-                    </div>
-                  )}
+                    </div>}
 
                   <div className="space-y-2">
                     <label htmlFor="password" className="text-sm font-medium text-slate-800">
@@ -468,202 +409,101 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
                     </label>
                     <div className="relative group">
                     <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-600 group-focus-within:text-slate-800 transition-colors" />
-                      <Input
-                        id="password"
-                        type={showPassword ? "text" : "password"}
-                        value={formData.password}
-                        onChange={(e) => handleInputChange('password', e.target.value)}
-                        placeholder={mode === 'login' ? "Enter your password" : "Create a secure password"}
-                        disabled={loading}
-                        required
-                      className="h-14 pl-12 pr-12 bg-white/50 border-purple-200/60 text-slate-700 placeholder:text-slate-500 focus:bg-white/70 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all duration-300 rounded-xl shadow-sm hover:shadow-md"
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 h-10 w-10 p-0 text-slate-500 hover:text-purple-600 hover:bg-purple-100/50 rounded-lg transition-all duration-200"
-                        disabled={loading}
-                      >
+                      <Input id="password" type={showPassword ? "text" : "password"} value={formData.password} onChange={e => handleInputChange('password', e.target.value)} placeholder={mode === 'login' ? "Enter your password" : "Create a secure password"} disabled={loading} required className="h-14 pl-12 pr-12 bg-white/50 border-purple-200/60 text-slate-700 placeholder:text-slate-500 focus:bg-white/70 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all duration-300 rounded-xl shadow-sm hover:shadow-md" />
+                      <Button type="button" variant="ghost" size="sm" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 transform -translate-y-1/2 h-10 w-10 p-0 text-slate-500 hover:text-purple-600 hover:bg-purple-100/50 rounded-lg transition-all duration-200" disabled={loading}>
                         {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                       </Button>
                     </div>
                     
-                    {mode === 'signup' && formData.password && (
-                      <div className="mt-4 p-4 bg-gradient-to-r from-purple-50/80 to-pink-50/80 rounded-xl backdrop-blur-sm border border-purple-200/40 shadow-sm">
+                    {mode === 'signup' && formData.password && <div className="mt-4 p-4 bg-gradient-to-r from-purple-50/80 to-pink-50/80 rounded-xl backdrop-blur-sm border border-purple-200/40 shadow-sm">
                         <div className="flex items-center justify-between mb-3">
                           <span className="text-sm font-medium text-slate-700 flex items-center gap-2">
                             <Shield className="h-4 w-4 text-purple-500" />
                             Password Strength
                           </span>
-                          <span className={`text-sm font-bold px-2 py-1 rounded-full ${
-                            getPasswordStrength() >= 3 ? 'bg-green-100 text-green-700' : 
-                            getPasswordStrength() >= 2 ? 'bg-yellow-100 text-yellow-700' : 
-                            'bg-red-100 text-red-700'
-                          }`}>
+                          <span className={`text-sm font-bold px-2 py-1 rounded-full ${getPasswordStrength() >= 3 ? 'bg-green-100 text-green-700' : getPasswordStrength() >= 2 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
                             {getPasswordStrength()}/4
                           </span>
                         </div>
                         <div className="flex gap-1 mb-3">
-                          {[1, 2, 3, 4].map((i) => (
-                            <div 
-                              key={i} 
-                              className={`flex-1 h-1 rounded-full transition-all duration-300 ${
-                                i <= getPasswordStrength() 
-                                ? `bg-gradient-to-r ${gradientClass}` 
-                                : 'bg-slate-300'
-                              }`}
-                            />
-                          ))}
+                          {[1, 2, 3, 4].map(i => <div key={i} className={`flex-1 h-1 rounded-full transition-all duration-300 ${i <= getPasswordStrength() ? `bg-gradient-to-r ${gradientClass}` : 'bg-slate-300'}`} />)}
                         </div>
                         <div className="space-y-1">
                           {passwordRequirements.map((req, index) => {
-                            const met = req.test(formData.password);
-                            return (
-                              <div key={index} className="flex items-center gap-2 text-xs">
-                                {met ? (
-                                  <CheckCircle className="h-3 w-3 text-green-600" />
-                                ) : (
-                                  <XCircle className="h-3 w-3 text-slate-400" />
-                                )}
+                        const met = req.test(formData.password);
+                        return <div key={index} className="flex items-center gap-2 text-xs">
+                                {met ? <CheckCircle className="h-3 w-3 text-green-600" /> : <XCircle className="h-3 w-3 text-slate-400" />}
                                 <span className={met ? 'text-green-700' : 'text-slate-600'}>
                                   {req.text}
                                 </span>
-                              </div>
-                            );
-                          })}
+                              </div>;
+                      })}
                         </div>
-                      </div>
-                    )}
+                      </div>}
                   </div>
 
-                  {mode === 'signup' && (
-                    <div className="space-y-2">
+                  {mode === 'signup' && <div className="space-y-2">
                       <label htmlFor="confirmPassword" className="text-sm font-medium text-slate-800">
                         Confirm Password
                       </label>
                       <div className="relative group">
                         <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-600 group-focus-within:text-slate-800 transition-colors" />
-                        <Input
-                          id="confirmPassword"
-                          type={showConfirmPassword ? "text" : "password"}
-                          value={formData.confirmPassword}
-                          onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                          placeholder="Confirm your password"
-                          disabled={loading}
-                          required
-                          className="h-12 pl-12 pr-12 bg-white/30 border-slate-400/50 text-slate-800 placeholder:text-slate-600 focus:bg-white/40 focus:border-slate-500 transition-all duration-200"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 text-slate-600 hover:text-slate-800 hover:bg-white/20"
-                          disabled={loading}
-                        >
+                        <Input id="confirmPassword" type={showConfirmPassword ? "text" : "password"} value={formData.confirmPassword} onChange={e => handleInputChange('confirmPassword', e.target.value)} placeholder="Confirm your password" disabled={loading} required className="h-12 pl-12 pr-12 bg-white/30 border-slate-400/50 text-slate-800 placeholder:text-slate-600 focus:bg-white/40 focus:border-slate-500 transition-all duration-200" />
+                        <Button type="button" variant="ghost" size="sm" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 text-slate-600 hover:text-slate-800 hover:bg-white/20" disabled={loading}>
                           {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </Button>
                       </div>
-                    </div>
-                  )}
+                    </div>}
 
-                  <Button 
-                    type="submit" 
-                    className={`w-full h-12 text-base font-semibold bg-gradient-to-r ${gradientClass} hover:shadow-lg hover:shadow-purple-500/25 transform hover:scale-105 transition-all duration-200 text-white border-0 relative overflow-hidden group`}
-                    disabled={loading}
-                  >
+                  <Button type="submit" className={`w-full h-12 text-base font-semibold bg-gradient-to-r ${gradientClass} hover:shadow-lg hover:shadow-purple-500/25 transform hover:scale-105 transition-all duration-200 text-white border-0 relative overflow-hidden group`} disabled={loading}>
                     <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
-                    {loading ? (
-                      <>
+                    {loading ? <>
                         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                         {mode === 'login' ? 'Signing you in...' : 'Creating your account...'}
-                      </>
-                    ) : (
-                      <>
-                        {mode === 'login' ? (
-                          <>
+                      </> : <>
+                        {mode === 'login' ? <>
                             <Shield className="mr-2 h-5 w-5" />
                             Sign In Securely
-                          </>
-                        ) : (
-                          <>
+                          </> : <>
                             <Sparkles className="mr-2 h-5 w-5" />
                             Start Your Journey
-                          </>
-                        )}
-                      </>
-                    )}
+                          </>}
+                      </>}
                   </Button>
 
                   <div className="text-center text-sm space-y-4">
-                    {mode === 'login' && (
-                      <div>
-                        <button
-                          type="button"
-                          onClick={() => setShowForgotPassword(true)}
-                          className="text-sm text-slate-600 hover:text-slate-800 transition-colors duration-200"
-                        >
+                    {mode === 'login' && <div>
+                        <button type="button" onClick={() => setShowForgotPassword(true)} className="text-sm text-slate-600 hover:text-slate-800 transition-colors duration-200">
                           Forgot password?
                         </button>
-                      </div>
-                    )}
+                      </div>}
 
                     <div>
                       <span className="text-slate-700">
                         {mode === 'login' ? "New to EnglEuphoria? " : "Already have an account? "}
                       </span>
-                      {onModeChange ? (
-                        <button
-                          type="button"
-                          onClick={() => onModeChange(mode === 'login' ? 'signup' : 'login')}
-                          className={`font-semibold bg-gradient-to-r ${gradientClass} bg-clip-text text-transparent hover:underline transition-all duration-200`}
-                        >
+                      {onModeChange ? <button type="button" onClick={() => onModeChange(mode === 'login' ? 'signup' : 'login')} className={`font-semibold bg-gradient-to-r ${gradientClass} bg-clip-text text-transparent hover:underline transition-all duration-200`}>
                           {mode === 'login' ? 'Create an account' : 'Sign in instead'}
-                        </button>
-                      ) : (
-                        <Link 
-                          to={mode === 'login' ? '/signup' : '/login'} 
-                          className={`font-semibold bg-gradient-to-r ${gradientClass} bg-clip-text text-transparent hover:underline transition-all duration-200`}
-                        >
+                        </button> : <Link to={mode === 'login' ? '/signup' : '/login'} className={`font-semibold bg-gradient-to-r ${gradientClass} bg-clip-text text-transparent hover:underline transition-all duration-200`}>
                           {mode === 'login' ? 'Create an account' : 'Sign in instead'}
-                        </Link>
-                      )}
+                        </Link>}
                     </div>
 
-                    {mode === 'signup' && (
-                      <div className="pt-4 border-t border-slate-300/40">
+                    {mode === 'signup' && <div className="pt-4 border-t border-slate-300/40">
                         <p className="text-xs text-slate-600 mb-3">Looking for specialized signup?</p>
                         <div className="flex gap-2">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => navigate('/teacher-signup')}
-                          className="flex-1 text-xs bg-white/20 border-slate-400/50 text-slate-700 hover:bg-white/30 hover:text-slate-800"
-                          >
+                          <Button type="button" variant="outline" size="sm" onClick={() => navigate('/teacher-signup')} className="flex-1 text-xs bg-white/20 border-slate-400/50 text-slate-700 hover:bg-white/30 hover:text-slate-800">
                             <GraduationCap className="mr-1 h-3 w-3" />
                             Teacher
                           </Button>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => navigate('/student-signup')}
-                            className="flex-1 text-xs bg-white/20 border-slate-400/50 text-slate-700 hover:bg-white/30 hover:text-slate-800"
-                          >
+                          <Button type="button" variant="outline" size="sm" onClick={() => navigate('/student-signup')} className="flex-1 text-xs bg-white/20 border-slate-400/50 text-slate-700 hover:bg-white/30 hover:text-slate-800">
                             <BookOpen className="mr-1 h-3 w-3" />
                             Student
                           </Button>
                         </div>
-                      </div>
-                    )}
+                      </div>}
 
-                    <Link 
-                      to="/" 
-                      className="text-xs text-slate-600 hover:text-slate-800 inline-flex items-center gap-1 transition-colors duration-200"
-                    >
+                    <Link to="/" className="text-xs text-slate-600 hover:text-slate-800 inline-flex items-center gap-1 transition-colors duration-200">
                       ← Back to home
                     </Link>
                   </div>
@@ -675,8 +515,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
       </div>
 
       {/* Forgot Password Modal */}
-      {showForgotPassword && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      {showForgotPassword && <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <Card className="w-full max-w-md bg-white/95 backdrop-blur-xl border-0 shadow-2xl rounded-2xl">
             <CardHeader className="text-center pb-6">
               <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
@@ -695,52 +534,27 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
                   </label>
                   <div className="relative group">
                     <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-600 group-focus-within:text-slate-800 transition-colors" />
-                    <Input
-                      id="resetEmail"
-                      type="email"
-                      value={resetEmail}
-                      onChange={(e) => setResetEmail(e.target.value)}
-                      placeholder="Enter your email address"
-                      disabled={resetLoading}
-                      required
-                      className="h-12 pl-12 bg-white/30 border-slate-400/50 text-slate-800 placeholder:text-slate-600 focus:bg-white/40 focus:border-slate-500 transition-all duration-200"
-                    />
+                    <Input id="resetEmail" type="email" value={resetEmail} onChange={e => setResetEmail(e.target.value)} placeholder="Enter your email address" disabled={resetLoading} required className="h-12 pl-12 bg-white/30 border-slate-400/50 text-slate-800 placeholder:text-slate-600 focus:bg-white/40 focus:border-slate-500 transition-all duration-200" />
                   </div>
                 </div>
 
                 <div className="flex gap-3 pt-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setShowForgotPassword(false);
-                      setResetEmail('');
-                    }}
-                    disabled={resetLoading}
-                    className="flex-1 bg-white/20 border-slate-400/50 text-slate-700 hover:bg-white/30"
-                  >
+                  <Button type="button" variant="outline" onClick={() => {
+                setShowForgotPassword(false);
+                setResetEmail('');
+              }} disabled={resetLoading} className="flex-1 bg-white/20 border-slate-400/50 text-slate-700 hover:bg-white/30">
                     Cancel
                   </Button>
-                  <Button
-                    type="submit"
-                    disabled={resetLoading}
-                    className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:shadow-lg hover:shadow-purple-500/25 text-white border-0"
-                  >
-                    {resetLoading ? (
-                      <>
+                  <Button type="submit" disabled={resetLoading} className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:shadow-lg hover:shadow-purple-500/25 text-white border-0">
+                    {resetLoading ? <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Sending...
-                      </>
-                    ) : (
-                      'Send Reset Link'
-                    )}
+                      </> : 'Send Reset Link'}
                   </Button>
                 </div>
               </form>
             </CardContent>
           </Card>
-        </div>
-      )}
-    </div>
-  );
+        </div>}
+    </div>;
 };
