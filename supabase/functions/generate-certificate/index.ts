@@ -24,190 +24,153 @@ serve(async (req) => {
 
     const { certificateId } = await req.json();
 
-    if (!certificateId) {
-      throw new Error('Certificate ID is required');
-    }
-
-    // Fetch certificate data
     const { data: certificate, error: certError } = await supabaseClient
       .from('certificates')
       .select(`
         *,
-        student:student_id(full_name, email),
-        teacher:teacher_id(full_name)
+        student:student_id (full_name, email),
+        teacher:teacher_id (full_name)
       `)
       .eq('id', certificateId)
       .single();
 
     if (certError) throw certError;
 
-    // Generate HTML for certificate (simplified version - you can enhance with better design)
-    const certificateHTML = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <style>
-          @page { size: A4 landscape; margin: 0; }
-          body { 
-            margin: 0; 
-            padding: 60px; 
-            font-family: 'Georgia', serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-          .certificate {
-            background: white;
-            padding: 80px;
-            border: 20px solid #FFD700;
-            box-shadow: 0 0 30px rgba(0,0,0,0.3);
-            text-align: center;
-            max-width: 1000px;
-            position: relative;
-          }
-          .certificate::before {
-            content: '';
-            position: absolute;
-            top: 40px;
-            left: 40px;
-            right: 40px;
-            bottom: 40px;
-            border: 2px solid #FFD700;
-            pointer-events: none;
-          }
-          h1 { 
-            color: #667eea; 
-            font-size: 48px; 
-            margin: 0 0 20px 0;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-          }
-          h2 { 
-            color: #333; 
-            font-size: 24px; 
-            margin: 0 0 40px 0;
-            font-weight: normal;
-          }
-          .student-name {
-            font-size: 42px;
-            color: #764ba2;
-            margin: 30px 0;
-            font-weight: bold;
-            text-transform: capitalize;
-          }
-          .description {
-            font-size: 18px;
-            color: #555;
-            margin: 30px 0;
-            line-height: 1.6;
-          }
-          .details {
-            margin: 40px 0;
-            font-size: 16px;
-            color: #666;
-          }
-          .signature-section {
-            margin-top: 60px;
-            display: flex;
-            justify-content: space-around;
-          }
-          .signature {
-            text-align: center;
-          }
-          .signature-line {
-            width: 200px;
-            border-top: 2px solid #333;
-            margin: 0 auto 10px;
-          }
-          .footer {
-            margin-top: 40px;
-            font-size: 12px;
-            color: #999;
-          }
-          .verification {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f0f0f0;
-            border-radius: 8px;
-            font-size: 14px;
-            color: #666;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="certificate">
-          <h1>Certificate of ${certificate.certificate_type}</h1>
-          <h2>This is to certify that</h2>
-          
-          <div class="student-name">${certificate.student?.full_name || 'Student'}</div>
-          
-          <div class="description">
-            ${certificate.description || `has successfully completed the requirements for ${certificate.title}`}
-          </div>
-
-          <div class="details">
-            ${certificate.cefr_level ? `<p><strong>CEFR Level:</strong> ${certificate.cefr_level}</p>` : ''}
-            ${certificate.score_achieved ? `<p><strong>Score Achieved:</strong> ${certificate.score_achieved}%</p>` : ''}
-            ${certificate.hours_completed ? `<p><strong>Hours Completed:</strong> ${certificate.hours_completed} hours</p>` : ''}
-            ${certificate.skills_demonstrated?.length ? `<p><strong>Skills Demonstrated:</strong> ${certificate.skills_demonstrated.join(', ')}</p>` : ''}
-          </div>
-
-          <div class="signature-section">
-            <div class="signature">
-              <div class="signature-line"></div>
-              <div><strong>${certificate.teacher?.full_name || 'Instructor'}</strong></div>
-              <div>Teacher</div>
-            </div>
-            <div class="signature">
-              <div class="signature-line"></div>
-              <div><strong>${new Date(certificate.issue_date).toLocaleDateString()}</strong></div>
-              <div>Date</div>
-            </div>
-          </div>
-
-          <div class="verification">
-            <strong>Certificate Number:</strong> ${certificate.certificate_number}<br>
-            <strong>Verification Code:</strong> ${certificate.verification_code}
-          </div>
-
-          <div class="footer">
-            EnglEuphoria Language Academy<br>
-            www.engleuphoria.com
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
-
-    // Return HTML for now - in production, you'd convert this to PDF using a service
-    // For actual PDF generation, you can use services like:
-    // - Browserless (https://www.browserless.io/)
-    // - PDFShift (https://pdfshift.io/)
-    // - Or deploy a headless Chrome instance
-
+    const html = generateCertificateHTML(certificate);
+    
     return new Response(
-      JSON.stringify({
-        html: certificateHTML,
-        certificate: certificate,
-        message: 'Certificate HTML generated successfully'
+      JSON.stringify({ 
+        html,
+        certificateNumber: certificate.certificate_number,
+        verificationCode: certificate.verification_code
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      },
+      }
     );
-
   } catch (error) {
     console.error('Error generating certificate:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500,
-      },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
     );
   }
 });
+
+function generateCertificateHTML(certificate: any): string {
+  const studentName = certificate.student?.full_name || 'Student';
+  const teacherName = certificate.teacher?.full_name || 'Instructor';
+  const issueDate = new Date(certificate.issue_date).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <style>
+        @page { size: A4 landscape; margin: 0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+          font-family: 'Georgia', serif;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          width: 297mm;
+          height: 210mm;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20mm;
+        }
+        .certificate {
+          background: white;
+          width: 100%;
+          height: 100%;
+          border: 3px solid #d4af37;
+          box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+          padding: 40px 60px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: space-between;
+          position: relative;
+        }
+        .certificate::before {
+          content: '';
+          position: absolute;
+          top: 15px;
+          left: 15px;
+          right: 15px;
+          bottom: 15px;
+          border: 1px solid #d4af37;
+        }
+        .header { text-align: center; z-index: 1; }
+        .logo { font-size: 36px; font-weight: bold; color: #667eea; margin-bottom: 10px; }
+        .cert-title { font-size: 48px; color: #333; letter-spacing: 4px; text-transform: uppercase; margin: 20px 0; }
+        .subtitle { font-size: 18px; color: #666; font-style: italic; }
+        .content { text-align: center; flex: 1; display: flex; flex-direction: column; justify-content: center; z-index: 1; max-width: 80%; }
+        .presented-to { font-size: 20px; color: #666; margin-bottom: 10px; }
+        .student-name { font-size: 42px; color: #333; font-weight: bold; margin: 15px 0; border-bottom: 2px solid #d4af37; padding-bottom: 10px; }
+        .description { font-size: 18px; color: #555; line-height: 1.6; margin: 20px 0; }
+        .cefr-badge { display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 10px 30px; border-radius: 25px; font-size: 24px; font-weight: bold; margin: 15px 0; }
+        .footer { display: flex; justify-content: space-between; width: 100%; z-index: 1; }
+        .signature-block { text-align: center; flex: 1; }
+        .signature-line { border-top: 2px solid #333; margin-top: 30px; padding-top: 8px; font-size: 14px; color: #666; }
+        .date { font-size: 16px; color: #555; margin-top: 5px; }
+        .cert-number { text-align: center; font-size: 12px; color: #999; margin-top: 15px; }
+        .verification { text-align: center; font-size: 11px; color: #aaa; margin-top: 5px; }
+        .skills { margin: 15px 0; font-size: 14px; color: #666; }
+        .skill-tag { display: inline-block; background: #f0f0f0; padding: 5px 12px; border-radius: 12px; margin: 3px; font-size: 13px; }
+      </style>
+    </head>
+    <body>
+      <div class="certificate">
+        <div class="header">
+          <div class="logo">EnglEuphoria</div>
+          <h1 class="cert-title">Certificate of Achievement</h1>
+          <p class="subtitle">This certifies that</p>
+        </div>
+        
+        <div class="content">
+          <p class="presented-to">This is proudly presented to</p>
+          <h2 class="student-name">${studentName}</h2>
+          
+          <p class="description">${certificate.description || 'Has successfully completed the English language program and demonstrated exceptional proficiency.'}</p>
+          
+          ${certificate.cefr_level ? `<div class="cefr-badge">CEFR Level ${certificate.cefr_level}</div>` : ''}
+          
+          ${certificate.score_achieved ? `<p class="description">Final Score: ${certificate.score_achieved}%</p>` : ''}
+          
+          ${certificate.hours_completed ? `<p class="description">${certificate.hours_completed} hours of instruction completed</p>` : ''}
+          
+          ${certificate.skills_demonstrated && certificate.skills_demonstrated.length > 0 ? `
+            <div class="skills">
+              <strong>Skills Mastered:</strong><br>
+              ${certificate.skills_demonstrated.map((skill: string) => `<span class="skill-tag">${skill}</span>`).join('')}
+            </div>
+          ` : ''}
+        </div>
+        
+        <div class="footer">
+          <div class="signature-block">
+            <div class="signature-line">${teacherName}</div>
+            <div class="date">Instructor</div>
+          </div>
+          <div class="signature-block">
+            <div class="signature-line">${issueDate}</div>
+            <div class="date">Date Issued</div>
+          </div>
+        </div>
+        
+        <div class="cert-number">Certificate No: ${certificate.certificate_number}</div>
+        <div class="verification">Verification Code: ${certificate.verification_code}</div>
+      </div>
+    </body>
+    </html>
+  `;
+}
