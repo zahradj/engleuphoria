@@ -669,6 +669,232 @@ export type Database = {
           },
         ]
       }
+      assessment_answers: {
+        Row: {
+          answer_audio_url: string | null
+          answer_text: string | null
+          created_at: string
+          feedback: string | null
+          graded_at: string | null
+          graded_by: string | null
+          id: string
+          is_correct: boolean | null
+          points_earned: number | null
+          question_id: string
+          submission_id: string
+          updated_at: string
+        }
+        Insert: {
+          answer_audio_url?: string | null
+          answer_text?: string | null
+          created_at?: string
+          feedback?: string | null
+          graded_at?: string | null
+          graded_by?: string | null
+          id?: string
+          is_correct?: boolean | null
+          points_earned?: number | null
+          question_id: string
+          submission_id: string
+          updated_at?: string
+        }
+        Update: {
+          answer_audio_url?: string | null
+          answer_text?: string | null
+          created_at?: string
+          feedback?: string | null
+          graded_at?: string | null
+          graded_by?: string | null
+          id?: string
+          is_correct?: boolean | null
+          points_earned?: number | null
+          question_id?: string
+          submission_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_answers_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessment_questions: {
+        Row: {
+          assessment_id: string
+          audio_url: string | null
+          correct_answer: string | null
+          created_at: string
+          id: string
+          metadata: Json | null
+          options: Json | null
+          points: number
+          question_order: number
+          question_text: string
+          question_type: string
+          rubric: string | null
+        }
+        Insert: {
+          assessment_id: string
+          audio_url?: string | null
+          correct_answer?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          options?: Json | null
+          points?: number
+          question_order: number
+          question_text: string
+          question_type: string
+          rubric?: string | null
+        }
+        Update: {
+          assessment_id?: string
+          audio_url?: string | null
+          correct_answer?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          options?: Json | null
+          points?: number
+          question_order?: number
+          question_text?: string
+          question_type?: string
+          rubric?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_questions_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "assessments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessment_submissions: {
+        Row: {
+          assessment_id: string
+          created_at: string
+          graded_at: string | null
+          id: string
+          metadata: Json | null
+          passed: boolean | null
+          percentage: number | null
+          started_at: string
+          status: string
+          student_id: string
+          submitted_at: string | null
+          time_taken_minutes: number | null
+          total_score: number | null
+          updated_at: string
+        }
+        Insert: {
+          assessment_id: string
+          created_at?: string
+          graded_at?: string | null
+          id?: string
+          metadata?: Json | null
+          passed?: boolean | null
+          percentage?: number | null
+          started_at?: string
+          status?: string
+          student_id: string
+          submitted_at?: string | null
+          time_taken_minutes?: number | null
+          total_score?: number | null
+          updated_at?: string
+        }
+        Update: {
+          assessment_id?: string
+          created_at?: string
+          graded_at?: string | null
+          id?: string
+          metadata?: Json | null
+          passed?: boolean | null
+          percentage?: number | null
+          started_at?: string
+          status?: string
+          student_id?: string
+          submitted_at?: string | null
+          time_taken_minutes?: number | null
+          total_score?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_submissions_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "assessments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessments: {
+        Row: {
+          assessment_type: string
+          cefr_level: string
+          created_at: string
+          description: string | null
+          due_date: string | null
+          duration_minutes: number | null
+          id: string
+          is_published: boolean | null
+          metadata: Json | null
+          passing_score: number
+          published_at: string | null
+          teacher_id: string
+          title: string
+          total_points: number
+          updated_at: string
+        }
+        Insert: {
+          assessment_type: string
+          cefr_level: string
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_published?: boolean | null
+          metadata?: Json | null
+          passing_score?: number
+          published_at?: string | null
+          teacher_id: string
+          title: string
+          total_points?: number
+          updated_at?: string
+        }
+        Update: {
+          assessment_type?: string
+          cefr_level?: string
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          duration_minutes?: number | null
+          id?: string
+          is_published?: boolean | null
+          metadata?: Json | null
+          passing_score?: number
+          published_at?: string | null
+          teacher_id?: string
+          title?: string
+          total_points?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -725,6 +951,102 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      certificate_templates: {
+        Row: {
+          created_at: string
+          description: string | null
+          design_config: Json
+          id: string
+          is_active: boolean | null
+          name: string
+          template_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          design_config?: Json
+          id?: string
+          is_active?: boolean | null
+          name: string
+          template_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          design_config?: Json
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          template_type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      certificates: {
+        Row: {
+          cefr_level: string | null
+          certificate_number: string
+          certificate_type: string
+          created_at: string
+          description: string | null
+          hours_completed: number | null
+          id: string
+          is_verified: boolean | null
+          issue_date: string
+          metadata: Json | null
+          pdf_url: string | null
+          score_achieved: number | null
+          skills_demonstrated: string[] | null
+          student_id: string
+          teacher_id: string | null
+          title: string
+          updated_at: string
+          verification_code: string
+        }
+        Insert: {
+          cefr_level?: string | null
+          certificate_number: string
+          certificate_type: string
+          created_at?: string
+          description?: string | null
+          hours_completed?: number | null
+          id?: string
+          is_verified?: boolean | null
+          issue_date?: string
+          metadata?: Json | null
+          pdf_url?: string | null
+          score_achieved?: number | null
+          skills_demonstrated?: string[] | null
+          student_id: string
+          teacher_id?: string | null
+          title: string
+          updated_at?: string
+          verification_code: string
+        }
+        Update: {
+          cefr_level?: string | null
+          certificate_number?: string
+          certificate_type?: string
+          created_at?: string
+          description?: string | null
+          hours_completed?: number | null
+          id?: string
+          is_verified?: boolean | null
+          issue_date?: string
+          metadata?: Json | null
+          pdf_url?: string | null
+          score_achieved?: number | null
+          skills_demonstrated?: string[] | null
+          student_id?: string
+          teacher_id?: string | null
+          title?: string
+          updated_at?: string
+          verification_code?: string
+        }
+        Relationships: []
       }
       chat_messages: {
         Row: {
