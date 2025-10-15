@@ -2669,6 +2669,159 @@ export type Database = {
           },
         ]
       }
+      parent_notification_preferences: {
+        Row: {
+          attendance_alerts: boolean | null
+          created_at: string
+          homework_notifications: boolean | null
+          id: string
+          lesson_reminders: boolean | null
+          parent_id: string
+          payment_reminders: boolean | null
+          progress_reports: boolean | null
+          teacher_messages: boolean | null
+          updated_at: string
+          weekly_summary: boolean | null
+        }
+        Insert: {
+          attendance_alerts?: boolean | null
+          created_at?: string
+          homework_notifications?: boolean | null
+          id?: string
+          lesson_reminders?: boolean | null
+          parent_id: string
+          payment_reminders?: boolean | null
+          progress_reports?: boolean | null
+          teacher_messages?: boolean | null
+          updated_at?: string
+          weekly_summary?: boolean | null
+        }
+        Update: {
+          attendance_alerts?: boolean | null
+          created_at?: string
+          homework_notifications?: boolean | null
+          id?: string
+          lesson_reminders?: boolean | null
+          parent_id?: string
+          payment_reminders?: boolean | null
+          progress_reports?: boolean | null
+          teacher_messages?: boolean | null
+          updated_at?: string
+          weekly_summary?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parent_notification_preferences_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: true
+            referencedRelation: "parent_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      parent_profiles: {
+        Row: {
+          created_at: string
+          emergency_contact: string | null
+          full_name: string
+          id: string
+          notifications_enabled: boolean | null
+          phone: string | null
+          preferred_contact_method: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emergency_contact?: string | null
+          full_name: string
+          id?: string
+          notifications_enabled?: boolean | null
+          phone?: string | null
+          preferred_contact_method?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emergency_contact?: string | null
+          full_name?: string
+          id?: string
+          notifications_enabled?: boolean | null
+          phone?: string | null
+          preferred_contact_method?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      parent_teacher_messages: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean | null
+          message: string
+          parent_email: string | null
+          parent_id: string
+          read_at: string | null
+          sender_type: string
+          student_id: string
+          subject: string
+          teacher_email: string | null
+          teacher_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message: string
+          parent_email?: string | null
+          parent_id: string
+          read_at?: string | null
+          sender_type: string
+          student_id: string
+          subject: string
+          teacher_email?: string | null
+          teacher_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          parent_email?: string | null
+          parent_id?: string
+          read_at?: string | null
+          sender_type?: string
+          student_id?: string
+          subject?: string
+          teacher_email?: string | null
+          teacher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parent_teacher_messages_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "parent_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "parent_teacher_messages_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parent_teacher_messages_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
@@ -3658,6 +3811,60 @@ export type Database = {
             columns: ["package_id"]
             isOneToOne: false
             referencedRelation: "lesson_packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_parent_relationships: {
+        Row: {
+          approved_at: string | null
+          can_book_lessons: boolean | null
+          can_communicate_teachers: boolean | null
+          can_view_progress: boolean | null
+          created_at: string
+          id: string
+          is_primary_contact: boolean | null
+          parent_id: string
+          relationship_type: string
+          student_id: string
+        }
+        Insert: {
+          approved_at?: string | null
+          can_book_lessons?: boolean | null
+          can_communicate_teachers?: boolean | null
+          can_view_progress?: boolean | null
+          created_at?: string
+          id?: string
+          is_primary_contact?: boolean | null
+          parent_id: string
+          relationship_type: string
+          student_id: string
+        }
+        Update: {
+          approved_at?: string | null
+          can_book_lessons?: boolean | null
+          can_communicate_teachers?: boolean | null
+          can_view_progress?: boolean | null
+          created_at?: string
+          id?: string
+          is_primary_contact?: boolean | null
+          parent_id?: string
+          relationship_type?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_parent_relationships_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "parent_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "student_parent_relationships_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -5115,6 +5322,10 @@ export type Database = {
       }
       get_student_lesson_stats: {
         Args: { student_uuid: string }
+        Returns: Json
+      }
+      get_student_progress_for_parent: {
+        Args: { p_parent_id: string; p_student_id: string }
         Returns: Json
       }
       get_student_success_prediction: {
