@@ -83,11 +83,11 @@ export function CurriculumPhaseManager({
         return (
           <div className="space-y-6">
             {/* Phase Overview */}
-            <Card>
+            <Card className="bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-purple-950/50 dark:via-pink-950/50 dark:to-blue-950/50 border-purple-200/50 dark:border-purple-700/50 shadow-md">
               <CardHeader>
-                <CardTitle>Curriculum Phase Overview</CardTitle>
-                <p className="text-sm text-gray-600">
-                  Systematic progression through enhanced English learning phases
+                <CardTitle className="bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 bg-clip-text text-transparent">📚 Curriculum Phase Overview</CardTitle>
+                <p className="text-sm text-purple-600 dark:text-purple-400">
+                  ✨ Systematic progression through enhanced English learning phases
                 </p>
               </CardHeader>
               <CardContent>
@@ -95,8 +95,8 @@ export function CurriculumPhaseManager({
                   {CURRICULUM_PHASES.map((phase) => (
                     <Card 
                       key={phase.id}
-                      className={`cursor-pointer transition-all hover:shadow-md ${
-                        phase.id === currentPhase ? 'ring-2 ring-blue-500' : ''
+                      className={`cursor-pointer transition-all hover:shadow-lg hover:scale-105 bg-white dark:bg-gray-900 ${
+                        phase.id === currentPhase ? 'ring-2 ring-purple-500 shadow-lg' : ''
                       }`}
                       onClick={() => onPhaseChange(phase.id)}
                     >
@@ -104,21 +104,21 @@ export function CurriculumPhaseManager({
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
                             <Badge className={getPhaseColor(phase.id, phase.id === currentPhase)}>
-                              Phase {phase.id}
+                              🎯 Phase {phase.id}
                             </Badge>
                             {phase.id === currentPhase && (
-                              <Badge variant="outline" className="text-xs">Current</Badge>
+                              <Badge variant="outline" className="text-xs bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 border-purple-300">⭐ Current</Badge>
                             )}
                           </div>
                           
                           <div>
-                            <h4 className="font-medium text-sm">{phase.name}</h4>
-                            <p className="text-xs text-gray-600 mt-1">{phase.description}</p>
+                            <h4 className="font-medium text-sm text-purple-900 dark:text-purple-100">{phase.name}</h4>
+                            <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">{phase.description}</p>
                           </div>
                           
-                          <div className="text-xs text-gray-500">
-                            <div>Duration: {phase.duration} weeks</div>
-                            <div>Focus: {phase.focus}</div>
+                          <div className="text-xs text-purple-500 dark:text-purple-400">
+                            <div>⏱️ Duration: {phase.duration} weeks</div>
+                            <div>🎯 Focus: {phase.focus}</div>
                           </div>
                           
                           <div className="flex flex-wrap gap-1">
@@ -142,34 +142,34 @@ export function CurriculumPhaseManager({
             </Card>
 
             {/* Current Phase Details */}
-            <Card>
+            <Card className="bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-purple-950/50 dark:via-pink-950/50 dark:to-blue-950/50 border-purple-200/50 dark:border-purple-700/50 shadow-md">
               <CardHeader>
-                <CardTitle>Current Phase: {getPhaseDescription(currentPhase)}</CardTitle>
+                <CardTitle className="bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 bg-clip-text text-transparent">🎯 Current Phase: {getPhaseDescription(currentPhase)}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">Week {studentData.weekProgress}</div>
-                      <div className="text-sm text-gray-600">Current Week</div>
+                      <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">📅 Week {studentData.weekProgress}</div>
+                      <div className="text-sm text-purple-600 dark:text-purple-400">Current Week</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">{studentData.skillsMastered.length}</div>
-                      <div className="text-sm text-gray-600">Skills Mastered</div>
+                      <div className="text-2xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">✅ {studentData.skillsMastered.length}</div>
+                      <div className="text-sm text-purple-600 dark:text-purple-400">Skills Mastered</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-600">{studentData.xpTotal}</div>
-                      <div className="text-sm text-gray-600">XP Earned</div>
+                      <div className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">⭐ {studentData.xpTotal}</div>
+                      <div className="text-sm text-purple-600 dark:text-purple-400">XP Earned</div>
                     </div>
                   </div>
                   
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <h4 className="font-medium text-blue-900 mb-2">Phase Objectives</h4>
-                    <ul className="text-sm text-blue-700 space-y-1">
+                  <div className="bg-gradient-to-r from-purple-100 via-pink-100 to-blue-100 dark:from-purple-900/50 dark:via-pink-900/50 dark:to-blue-900/50 p-4 rounded-lg border border-purple-200/50">
+                    <h4 className="font-medium text-purple-900 dark:text-purple-100 mb-2">🎯 Phase Objectives</h4>
+                    <ul className="text-sm text-purple-700 dark:text-purple-300 space-y-1">
                       {CURRICULUM_PHASES.find(p => p.id === currentPhase)?.skills.map((skill, index) => (
                         <li key={index} className="flex items-center gap-2">
                           <span className={`w-2 h-2 rounded-full ${
-                            studentData.skillsMastered.includes(skill) ? 'bg-green-500' : 'bg-gray-300'
+                            studentData.skillsMastered.includes(skill) ? 'bg-green-500' : 'bg-purple-300'
                           }`}></span>
                           {skill}
                         </li>
@@ -187,40 +187,40 @@ export function CurriculumPhaseManager({
   return (
     <div className="space-y-6">
       {/* Navigation Tabs */}
-      <Card>
+      <Card className="bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-purple-950/50 dark:via-pink-950/50 dark:to-blue-950/50 border-purple-200/50 dark:border-purple-700/50 shadow-md">
         <CardContent className="p-4">
           <div className="flex flex-wrap gap-2">
             <Button
               variant={activeTab === 'overview' ? 'default' : 'outline'}
               onClick={() => setActiveTab('overview')}
-              className="flex items-center gap-2"
+              className={activeTab === 'overview' ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 hover:from-purple-600 hover:via-pink-600 hover:to-blue-600 text-white shadow-md flex items-center gap-2' : 'text-purple-600 border-purple-300 hover:bg-purple-100/50 dark:text-purple-400 dark:border-purple-700 flex items-center gap-2'}
             >
               <BookOpen className="h-4 w-4" />
-              Overview
+              📚 Overview
             </Button>
             <Button
               variant={activeTab === 'sentences' ? 'default' : 'outline'}
               onClick={() => setActiveTab('sentences')}
-              className="flex items-center gap-2"
+              className={activeTab === 'sentences' ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 hover:from-purple-600 hover:via-pink-600 hover:to-blue-600 text-white shadow-md flex items-center gap-2' : 'text-purple-600 border-purple-300 hover:bg-purple-100/50 dark:text-purple-400 dark:border-purple-700 flex items-center gap-2'}
             >
               <Layers className="h-4 w-4" />
-              Sentence Building
+              🔤 Sentence Building
             </Button>
             <Button
               variant={activeTab === 'comprehension' ? 'default' : 'outline'}
               onClick={() => setActiveTab('comprehension')}
-              className="flex items-center gap-2"
+              className={activeTab === 'comprehension' ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 hover:from-purple-600 hover:via-pink-600 hover:to-blue-600 text-white shadow-md flex items-center gap-2' : 'text-purple-600 border-purple-300 hover:bg-purple-100/50 dark:text-purple-400 dark:border-purple-700 flex items-center gap-2'}
             >
               <Zap className="h-4 w-4" />
-              Comprehension
+              ⚡ Comprehension
             </Button>
             <Button
               variant={activeTab === 'progress' ? 'default' : 'outline'}
               onClick={() => setActiveTab('progress')}
-              className="flex items-center gap-2"
+              className={activeTab === 'progress' ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 hover:from-purple-600 hover:via-pink-600 hover:to-blue-600 text-white shadow-md flex items-center gap-2' : 'text-purple-600 border-purple-300 hover:bg-purple-100/50 dark:text-purple-400 dark:border-purple-700 flex items-center gap-2'}
             >
               <BarChart3 className="h-4 w-4" />
-              Progress
+              📊 Progress
             </Button>
           </div>
         </CardContent>

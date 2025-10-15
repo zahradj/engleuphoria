@@ -61,11 +61,11 @@ export function EnhancedProgressTracker({
   return (
     <div className="space-y-6">
       {/* Current Phase Overview */}
-      <Card>
+      <Card className="bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-purple-950/50 dark:via-pink-950/50 dark:to-blue-950/50 border-purple-200/50 dark:border-purple-700/50 shadow-md">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BookOpen className="h-5 w-5 text-blue-600" />
-            Enhanced Curriculum Progress
+          <CardTitle className="flex items-center gap-2 bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 bg-clip-text text-transparent">
+            <BookOpen className="h-5 w-5 text-purple-600" />
+            📚 Enhanced Curriculum Progress
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -82,16 +82,16 @@ export function EnhancedProgressTracker({
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{currentPhase}/4</div>
-                <div className="text-sm text-gray-600">Phases Completed</div>
+                <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-500 bg-clip-text text-transparent">🎯 {currentPhase}/4</div>
+                <div className="text-sm text-purple-600 dark:text-purple-400">Phases Completed</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">{weekProgress}</div>
-                <div className="text-sm text-gray-600">Weeks in Phase</div>
+                <div className="text-2xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">📅 {weekProgress}</div>
+                <div className="text-sm text-purple-600 dark:text-purple-400">Weeks in Phase</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">{skillsMastered.length}</div>
-                <div className="text-sm text-gray-600">Skills Mastered</div>
+                <div className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">✅ {skillsMastered.length}</div>
+                <div className="text-sm text-purple-600 dark:text-purple-400">Skills Mastered</div>
               </div>
             </div>
           </div>
@@ -99,11 +99,11 @@ export function EnhancedProgressTracker({
       </Card>
 
       {/* Sentence Building Progress */}
-      <Card>
+      <Card className="bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-purple-950/50 dark:via-pink-950/50 dark:to-blue-950/50 border-purple-200/50 dark:border-purple-700/50 shadow-md">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 bg-clip-text text-transparent">
             <Target className="h-5 w-5 text-green-600" />
-            Sentence Building Mastery
+            🎯 Sentence Building Mastery
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -123,12 +123,12 @@ export function EnhancedProgressTracker({
               <Progress value={(sentenceBuildingLevel / 4) * 100} className="h-2" />
             </div>
             
-            <div className="bg-green-50 p-3 rounded-lg">
-              <h4 className="font-medium text-green-900 mb-1">Next Milestone</h4>
-              <p className="text-sm text-green-700">
+            <div className="bg-gradient-to-r from-green-100 to-green-50 dark:from-green-900/50 dark:to-green-800/50 p-3 rounded-lg border border-green-200/50">
+              <h4 className="font-medium text-green-900 dark:text-green-100 mb-1">🎯 Next Milestone</h4>
+              <p className="text-sm text-green-700 dark:text-green-300">
                 {sentenceBuildingLevel < 4 
                   ? `Master ${getSentenceLevelDescription(sentenceBuildingLevel + 1)} patterns`
-                  : "All sentence building levels completed!"
+                  : "🎉 All sentence building levels completed!"
                 }
               </p>
             </div>
@@ -137,11 +137,11 @@ export function EnhancedProgressTracker({
       </Card>
 
       {/* Comprehension Speed */}
-      <Card>
+      <Card className="bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-purple-950/50 dark:via-pink-950/50 dark:to-blue-950/50 border-purple-200/50 dark:border-purple-700/50 shadow-md">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 bg-clip-text text-transparent">
             <Zap className="h-5 w-5 text-yellow-600" />
-            Rapid Comprehension Performance
+            ⚡ Rapid Comprehension Performance
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -171,11 +171,11 @@ export function EnhancedProgressTracker({
       </Card>
 
       {/* Skills Mastery */}
-      <Card>
+      <Card className="bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-purple-950/50 dark:via-pink-950/50 dark:to-blue-950/50 border-purple-200/50 dark:border-purple-700/50 shadow-md">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 bg-clip-text text-transparent">
             <Award className="h-5 w-5 text-orange-600" />
-            Skills Mastery Overview
+            🏆 Skills Mastery Overview
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -213,11 +213,11 @@ export function EnhancedProgressTracker({
       </Card>
 
       {/* Learning Analytics */}
-      <Card>
+      <Card className="bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-purple-950/50 dark:via-pink-950/50 dark:to-blue-950/50 border-purple-200/50 dark:border-purple-700/50 shadow-md">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-indigo-600" />
-            Learning Analytics
+          <CardTitle className="flex items-center gap-2 bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 bg-clip-text text-transparent">
+            <TrendingUp className="h-5 w-5 text-purple-600" />
+            📈 Learning Analytics
           </CardTitle>
         </CardHeader>
         <CardContent>
