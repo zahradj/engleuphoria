@@ -71,3 +71,6 @@ verify_jwt = false
 
 [functions.send-lesson-reminders]
 verify_jwt = false
+
+[functions.generate-certificate]
+verify_jwt = true
