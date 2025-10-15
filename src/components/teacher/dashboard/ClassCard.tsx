@@ -27,7 +27,7 @@ export const ClassCard = ({ title, time, students, buttonText, onButtonClick }: 
           <p className="text-sm text-purple-700 dark:text-purple-300">👥 {students} students</p>
         </div>
       </div>
-      <Button className="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 hover:from-purple-600 hover:via-pink-600 hover:to-blue-600 text-white shadow-md" size="sm" onClick={onButtonClick}>
+      <Button className="w-full bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 hover:from-purple-600 hover:via-indigo-600 hover:to-blue-600 text-white shadow-md" size="sm" onClick={onButtonClick}>
         {buttonText} ✨
       </Button>
     </CardContent>

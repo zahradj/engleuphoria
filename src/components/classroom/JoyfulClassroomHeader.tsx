@@ -32,7 +32,7 @@ export function JoyfulClassroomHeader({
   }, [xpValue, previousXP]);
 
   return (
-    <div className={cn("px-4 py-3 bg-gradient-to-r from-purple-100 via-pink-100 to-blue-100 dark:from-purple-900/50 dark:via-pink-900/50 dark:to-blue-900/50 border-b border-purple-200/50 dark:border-purple-700/50 shadow-sm", className)}>
+    <div className={cn("px-4 py-3 bg-gradient-to-r from-purple-100 via-indigo-100 to-blue-100 dark:from-purple-900/50 dark:via-indigo-900/50 dark:to-blue-900/50 border-b border-purple-200/50 dark:border-purple-700/50 shadow-sm", className)}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <img src={englePhoriaLogo} alt="EngLePhoria" className="h-8 w-8" />

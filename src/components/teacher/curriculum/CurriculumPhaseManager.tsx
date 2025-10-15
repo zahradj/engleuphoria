@@ -163,7 +163,7 @@ export function CurriculumPhaseManager({
                     </div>
                   </div>
                   
-                  <div className="bg-gradient-to-r from-purple-100 via-pink-100 to-blue-100 dark:from-purple-900/50 dark:via-pink-900/50 dark:to-blue-900/50 p-4 rounded-lg border border-purple-200/50">
+                  <div className="bg-gradient-to-r from-purple-100 via-indigo-100 to-blue-100 dark:from-purple-900/50 dark:via-indigo-900/50 dark:to-blue-900/50 p-4 rounded-lg border border-purple-200/50">
                     <h4 className="font-medium text-purple-900 dark:text-purple-100 mb-2">🎯 Phase Objectives</h4>
                     <ul className="text-sm text-purple-700 dark:text-purple-300 space-y-1">
                       {CURRICULUM_PHASES.find(p => p.id === currentPhase)?.skills.map((skill, index) => (
@@ -187,13 +187,13 @@ export function CurriculumPhaseManager({
   return (
     <div className="space-y-6">
       {/* Navigation Tabs */}
-      <Card className="bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 dark:from-purple-950/50 dark:via-pink-950/50 dark:to-blue-950/50 border-purple-200/50 dark:border-purple-700/50 shadow-md">
+      <Card className="bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50 dark:from-purple-950/50 dark:via-indigo-950/50 dark:to-blue-950/50 border-purple-200/50 dark:border-purple-700/50 shadow-md">
         <CardContent className="p-4">
           <div className="flex flex-wrap gap-2">
             <Button
               variant={activeTab === 'overview' ? 'default' : 'outline'}
               onClick={() => setActiveTab('overview')}
-              className={activeTab === 'overview' ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 hover:from-purple-600 hover:via-pink-600 hover:to-blue-600 text-white shadow-md flex items-center gap-2' : 'text-purple-600 border-purple-300 hover:bg-purple-100/50 dark:text-purple-400 dark:border-purple-700 flex items-center gap-2'}
+              className={activeTab === 'overview' ? 'bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 hover:from-purple-600 hover:via-indigo-600 hover:to-blue-600 text-white shadow-md flex items-center gap-2' : 'text-purple-600 border-purple-300 hover:bg-purple-100/50 dark:text-purple-400 dark:border-purple-700 flex items-center gap-2'}
             >
               <BookOpen className="h-4 w-4" />
               📚 Overview
@@ -201,7 +201,7 @@ export function CurriculumPhaseManager({
             <Button
               variant={activeTab === 'sentences' ? 'default' : 'outline'}
               onClick={() => setActiveTab('sentences')}
-              className={activeTab === 'sentences' ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 hover:from-purple-600 hover:via-pink-600 hover:to-blue-600 text-white shadow-md flex items-center gap-2' : 'text-purple-600 border-purple-300 hover:bg-purple-100/50 dark:text-purple-400 dark:border-purple-700 flex items-center gap-2'}
+              className={activeTab === 'sentences' ? 'bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 hover:from-purple-600 hover:via-indigo-600 hover:to-blue-600 text-white shadow-md flex items-center gap-2' : 'text-purple-600 border-purple-300 hover:bg-purple-100/50 dark:text-purple-400 dark:border-purple-700 flex items-center gap-2'}
             >
               <Layers className="h-4 w-4" />
               🔤 Sentence Building
@@ -209,7 +209,7 @@ export function CurriculumPhaseManager({
             <Button
               variant={activeTab === 'comprehension' ? 'default' : 'outline'}
               onClick={() => setActiveTab('comprehension')}
-              className={activeTab === 'comprehension' ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 hover:from-purple-600 hover:via-pink-600 hover:to-blue-600 text-white shadow-md flex items-center gap-2' : 'text-purple-600 border-purple-300 hover:bg-purple-100/50 dark:text-purple-400 dark:border-purple-700 flex items-center gap-2'}
+              className={activeTab === 'comprehension' ? 'bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 hover:from-purple-600 hover:via-indigo-600 hover:to-blue-600 text-white shadow-md flex items-center gap-2' : 'text-purple-600 border-purple-300 hover:bg-purple-100/50 dark:text-purple-400 dark:border-purple-700 flex items-center gap-2'}
             >
               <Zap className="h-4 w-4" />
               ⚡ Comprehension
@@ -217,7 +217,7 @@ export function CurriculumPhaseManager({
             <Button
               variant={activeTab === 'progress' ? 'default' : 'outline'}
               onClick={() => setActiveTab('progress')}
-              className={activeTab === 'progress' ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 hover:from-purple-600 hover:via-pink-600 hover:to-blue-600 text-white shadow-md flex items-center gap-2' : 'text-purple-600 border-purple-300 hover:bg-purple-100/50 dark:text-purple-400 dark:border-purple-700 flex items-center gap-2'}
+              className={activeTab === 'progress' ? 'bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 hover:from-purple-600 hover:via-indigo-600 hover:to-blue-600 text-white shadow-md flex items-center gap-2' : 'text-purple-600 border-purple-300 hover:bg-purple-100/50 dark:text-purple-400 dark:border-purple-700 flex items-center gap-2'}
             >
               <BarChart3 className="h-4 w-4" />
               📊 Progress

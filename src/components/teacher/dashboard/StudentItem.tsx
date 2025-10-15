@@ -10,7 +10,7 @@ interface StudentItemProps {
 }
 
 export const StudentItem = ({ name, level, lastClass, progress, onViewDetails }: StudentItemProps) => (
-  <div className="flex items-center justify-between py-3 border-b border-purple-200/50 dark:border-purple-700/50 hover:bg-gradient-to-r hover:from-purple-50/50 hover:via-pink-50/50 hover:to-blue-50/50 dark:hover:from-purple-950/30 dark:hover:via-pink-950/30 dark:hover:to-blue-950/30 px-2 rounded-lg transition-all">
+  <div className="flex items-center justify-between py-3 border-b border-purple-200/50 dark:border-purple-700/50 hover:bg-gradient-to-r hover:from-purple-50/50 hover:via-indigo-50/50 hover:to-blue-50/50 dark:hover:from-purple-950/30 dark:hover:via-indigo-950/30 dark:hover:to-blue-950/30 px-2 rounded-lg transition-all">
     <div>
       <h3 className="font-medium text-purple-900 dark:text-purple-100">👤 {name}</h3>
       <div className="flex items-center gap-2 mt-1">
@@ -22,7 +22,7 @@ export const StudentItem = ({ name, level, lastClass, progress, onViewDetails }:
       <div className="flex items-center gap-2">
         <span className="text-sm font-medium text-purple-700 dark:text-purple-300">{progress}%</span>
         <div className="w-24 h-2 bg-purple-100 dark:bg-purple-900/50 rounded border border-purple-200/50">
-          <div className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 rounded" style={{ width: `${progress}%` }} />
+          <div className="h-full bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 rounded" style={{ width: `${progress}%` }} />
         </div>
       </div>
       <Button variant="outline" size="sm" className="text-purple-600 border-purple-300 hover:bg-purple-100/50 dark:text-purple-400 dark:border-purple-700 dark:hover:bg-purple-900/30" onClick={onViewDetails}>View Details</Button>
