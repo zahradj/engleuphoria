@@ -241,16 +241,16 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
   };
 
   const gradientClass = mode === 'login' 
-    ? 'from-indigo-600 via-purple-600 to-blue-600' 
+    ? 'from-purple-500 via-pink-500 to-orange-500' 
     : formData.role === 'teacher' 
-      ? 'from-emerald-500 via-teal-500 to-blue-500'
-      : 'from-violet-500 via-purple-500 to-pink-500';
+      ? 'from-green-400 via-teal-400 to-blue-400'
+      : 'from-purple-400 via-pink-400 to-orange-400';
 
   const backgroundGradient = mode === 'login'
-    ? 'from-slate-900 via-purple-900 to-slate-900'
+    ? 'from-purple-100 via-pink-100 to-orange-100'
     : formData.role === 'teacher'
-      ? 'from-slate-900 via-emerald-900 to-slate-900'
-      : 'from-slate-900 via-violet-900 to-slate-900';
+      ? 'from-green-100 via-teal-100 to-blue-100'
+      : 'from-purple-100 via-pink-100 to-blue-100';
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
@@ -339,51 +339,54 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
           <Button
             variant="outline"
             onClick={() => navigate('/')}
-            className="bg-white/80 backdrop-blur-sm border-white/60 text-slate-700 hover:bg-white/90 hover:border-white/80 hover:text-slate-800 shadow-lg hover:shadow-xl transition-all duration-300 rounded-full px-6 py-2 font-medium"
+            className="bg-white/90 backdrop-blur-sm border-2 border-purple-300 text-purple-700 hover:bg-purple-50 hover:border-purple-400 hover:text-purple-800 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl px-8 py-3 font-bold text-base"
           >
-            <span className="mr-2">🏠</span>
+            <span className="mr-2 text-2xl">🏠</span>
             Return Home
           </Button>
         </div>
 
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <p className="text-white/70 text-sm">Transform your English learning experience</p>
+            <h1 className="text-5xl font-black bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent mb-3 drop-shadow-lg animate-bounce">
+              {mode === 'login' ? 'Welcome Back! 🎉' : 'Join Us! ✨'}
+            </h1>
+            <p className="text-purple-700 text-lg font-bold drop-shadow">Transform your English learning experience</p>
           </div>
 
-          <Card className="relative bg-white/90 backdrop-blur-xl border-0 shadow-2xl overflow-hidden rounded-3xl">
+          <Card className="relative bg-white/95 backdrop-blur-xl border-4 border-purple-300 shadow-2xl overflow-hidden rounded-3xl">
             {/* Glowing border effect */}
-            <div className={`absolute -inset-1 bg-gradient-to-r ${gradientClass} rounded-3xl blur-sm opacity-30`}></div>
+            <div className={`absolute -inset-2 bg-gradient-to-r ${gradientClass} rounded-3xl blur-lg opacity-40 animate-pulse`}></div>
             
-            <div className="relative bg-white/95 backdrop-blur-xl rounded-3xl border border-white/60 shadow-inner">
-              <CardHeader className="text-center pb-8 pt-10">
+            <div className="relative bg-white/98 backdrop-blur-xl rounded-3xl shadow-inner">
+              <CardHeader className="text-center pb-8 pt-10 bg-gradient-to-b from-purple-50 to-white">
                 {/* Fun floating icon */}
                 <div className="flex justify-center mb-8">
-                  <div className={`relative w-20 h-20 rounded-full bg-gradient-to-r ${gradientClass} flex items-center justify-center shadow-xl hover:scale-110 transition-transform duration-300`}>
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/30 to-transparent"></div>
-                    <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-yellow-300/40 to-pink-300/40 blur-md animate-pulse"></div>
+                  <div className={`relative w-24 h-24 rounded-full bg-gradient-to-r ${gradientClass} flex items-center justify-center shadow-2xl hover:scale-110 transition-transform duration-300 animate-bounce`}>
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/40 to-transparent"></div>
+                    <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-yellow-400/50 to-pink-400/50 blur-xl animate-pulse"></div>
                     {mode === 'login' ? (
                       <img 
                         src="/lovable-uploads/349cfbe2-60a4-4dcc-a3b6-c410c4da02f3.png" 
                         alt="Logo" 
-                        className="h-14 w-14 relative z-10 animate-bounce object-contain"
+                        className="h-16 w-16 relative z-10 object-contain"
                       />
                     ) : formData.role === 'teacher' ? (
-                      <GraduationCap className="h-10 w-10 text-white relative z-10" />
+                      <GraduationCap className="h-12 w-12 text-white relative z-10 drop-shadow-lg" />
                     ) : (
                       <img 
                         src="/lovable-uploads/349cfbe2-60a4-4dcc-a3b6-c410c4da02f3.png" 
                         alt="Logo" 
-                        className="h-14 w-14 relative z-10 animate-bounce object-contain"
+                        className="h-16 w-16 relative z-10 object-contain"
                       />
                     )}
                   </div>
                 </div>
                 
-                <CardTitle className="text-3xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-3">
-                  {mode === 'login' ? '🎉 Welcome Back!' : '✨ Join the Magic!'}
+                <CardTitle className="text-4xl font-black bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent mb-4 drop-shadow-sm">
+                  {mode === 'login' ? 'Welcome Back! 🎊' : 'Join the Magic! ✨'}
                 </CardTitle>
-                <CardDescription className="text-slate-600 text-lg font-medium">
+                <CardDescription className="text-purple-700 text-lg font-bold">
                   {mode === 'login' 
                     ? 'Ready to continue your amazing journey? 🚀'
                     : 'Start your extraordinary English adventure today! 🌟'
