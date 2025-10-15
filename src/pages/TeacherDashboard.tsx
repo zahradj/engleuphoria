@@ -169,9 +169,9 @@ const TeacherDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
       {/* Mobile Navigation */}
-      <div className="md:hidden bg-gradient-to-br from-background via-surface-1 to-surface-2 min-h-screen">
+      <div className="md:hidden min-h-screen">
         <MobileTeacherNav 
           activeTab={activeTab}
           setActiveTab={handleTabChange}
@@ -186,8 +186,8 @@ const TeacherDashboard = () => {
       {/* Desktop Layout */}
       <div className="hidden md:block">
         <SidebarProvider defaultOpen={false}>
-          <div className="flex min-h-screen w-full bg-gradient-to-br from-background via-surface-1 to-surface-2">
-            <EnhancedTeacherSidebar 
+          <div className="flex min-h-screen w-full">
+            <EnhancedTeacherSidebar
               activeTab={activeTab} 
               setActiveTab={handleTabChange}
               onLogout={signOut}

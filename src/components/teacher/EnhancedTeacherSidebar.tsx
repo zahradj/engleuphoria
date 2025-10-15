@@ -82,14 +82,17 @@ export const EnhancedTeacherSidebar = ({
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
 
-  return <Sidebar className="border-r border-border/50 bg-card/50 backdrop-blur-sm" collapsible="offcanvas">
-      <SidebarHeader className="border-b border-border/40 bg-gradient-to-b from-primary/5 to-transparent">
+  return <Sidebar className="border-r border-purple-200/50 bg-gradient-to-b from-purple-50 via-pink-50 to-blue-50 backdrop-blur-sm shadow-lg" collapsible="offcanvas">
+      <SidebarHeader className="border-b border-purple-200/50 bg-gradient-to-br from-purple-100/50 via-pink-100/50 to-blue-100/50">
         <div className="flex items-center gap-3 px-4 py-4">
-          <Logo size="small" />
+          <div className="relative">
+            <Logo size="small" />
+            <div className="absolute -top-1 -right-1 w-2 h-2 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-pulse" />
+          </div>
           {!isCollapsed && (
             <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-bold text-foreground">Teacher Panel</span>
-              <span className="truncate text-xs text-muted-foreground">Professional Workspace</span>
+              <span className="truncate font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 bg-clip-text text-transparent">👨‍🏫 Teacher Panel</span>
+              <span className="truncate text-xs text-purple-600/70 font-medium">Professional Workspace ✨</span>
             </div>
           )}
         </div>
@@ -97,8 +100,8 @@ export const EnhancedTeacherSidebar = ({
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3">
-            Navigation
+          <SidebarGroupLabel className="text-xs font-bold text-purple-600/80 uppercase tracking-wider px-4 py-3">
+            🎯 Navigation
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -112,13 +115,14 @@ export const EnhancedTeacherSidebar = ({
                       className={`
                         relative px-4 py-3 rounded-lg transition-all duration-200
                         ${isActive 
-                          ? 'bg-primary/10 text-primary font-medium shadow-sm' 
-                          : 'text-muted-foreground hover:bg-surface-1 hover:text-foreground'
+                          ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 text-white font-semibold shadow-md hover:shadow-lg' 
+                          : 'text-purple-600 hover:bg-purple-100/50 hover:text-purple-700'
                         }
                       `}
                     >
-                      <item.icon className={`h-4 w-4 ${isActive ? 'text-primary' : ''}`} />
+                      <item.icon className={`h-4 w-4 ${isActive ? 'text-white' : 'text-purple-500'}`} />
                       {!isCollapsed && <span className="flex-1">{item.label}</span>}
+                      {isActive && !isCollapsed && <span className="text-xs">✨</span>}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -128,12 +132,12 @@ export const EnhancedTeacherSidebar = ({
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-border/50 bg-gradient-to-t from-destructive/5 to-transparent">
+      <SidebarFooter className="border-t border-purple-200/50 bg-gradient-to-t from-red-50/50 to-transparent">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton 
               onClick={handleLogout} 
-              className="px-4 py-3 rounded-lg text-destructive hover:text-destructive hover:bg-destructive/10 transition-all duration-200"
+              className="px-4 py-3 rounded-lg text-red-600 hover:text-red-700 hover:bg-red-100/50 transition-all duration-200 font-medium"
             >
               <LogOut className="h-4 w-4" />
               {!isCollapsed && <span>Logout</span>}
