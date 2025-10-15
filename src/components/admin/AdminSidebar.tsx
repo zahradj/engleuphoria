@@ -39,8 +39,20 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
   ];
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 h-full overflow-y-auto">
+    <aside className="w-64 bg-card border-r border-border h-full overflow-y-auto">
       <div className="p-4">
+        <div className="mb-6 px-2">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-lg flex items-center justify-center">
+              <span className="text-primary-foreground font-bold">A</span>
+            </div>
+            <div>
+              <h2 className="font-bold text-foreground">Admin</h2>
+              <p className="text-xs text-muted-foreground">Control Panel</p>
+            </div>
+          </div>
+        </div>
+
         <div className="space-y-1">
           {menuItems.map((item) => {
             const Icon = item.icon;
@@ -52,8 +64,8 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
                 variant={isActive ? "default" : "ghost"}
                 className={`w-full justify-start ${
                   isActive 
-                    ? "bg-purple-600 text-white hover:bg-purple-700" 
-                    : "hover:bg-gray-100"
+                    ? "" 
+                    : ""
                 }`}
                 onClick={() => onTabChange(item.id)}
               >
@@ -64,10 +76,10 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
           })}
         </div>
         
-        <div className="mt-8 pt-4 border-t border-gray-200">
+        <div className="mt-8 pt-4 border-t border-border">
           <Button
             variant="ghost"
-            className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+            className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
             onClick={signOut}
           >
             <LogOut className="h-4 w-4 mr-3" />
