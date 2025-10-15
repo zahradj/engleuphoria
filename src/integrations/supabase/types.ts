@@ -2195,6 +2195,50 @@ export type Database = {
           },
         ]
       }
+      lesson_reminders: {
+        Row: {
+          created_at: string
+          email_status: string | null
+          error_message: string | null
+          id: string
+          lesson_id: string
+          recipient_id: string
+          recipient_type: string
+          reminder_type: string
+          sent_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          email_status?: string | null
+          error_message?: string | null
+          id?: string
+          lesson_id: string
+          recipient_id: string
+          recipient_type: string
+          reminder_type: string
+          sent_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          email_status?: string | null
+          error_message?: string | null
+          id?: string
+          lesson_id?: string
+          recipient_id?: string
+          recipient_type?: string
+          reminder_type?: string
+          sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_reminders_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lessons: {
         Row: {
           cancellation_reason: string | null
@@ -2485,6 +2529,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notification_templates: {
+        Row: {
+          body_html: string
+          body_text: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          subject: string | null
+          template_name: string
+          template_type: string
+          updated_at: string
+          variables: Json | null
+        }
+        Insert: {
+          body_html: string
+          body_text?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          subject?: string | null
+          template_name: string
+          template_type: string
+          updated_at?: string
+          variables?: Json | null
+        }
+        Update: {
+          body_html?: string
+          body_text?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          subject?: string | null
+          template_name?: string
+          template_type?: string
+          updated_at?: string
+          variables?: Json | null
+        }
+        Relationships: []
       }
       notifications: {
         Row: {
@@ -5304,6 +5387,22 @@ export type Database = {
         Args: { org_uuid: string }
         Returns: Json
       }
+      get_pending_reminders: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          lesson_date: string
+          lesson_id: string
+          lesson_title: string
+          recipient_email: string
+          recipient_name: string
+          recipient_type: string
+          reminder_id: string
+          reminder_type: string
+          room_link: string
+          student_name: string
+          teacher_name: string
+        }[]
+      }
       get_security_dashboard: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -5422,6 +5521,10 @@ export type Database = {
           p_user_id: string
         }
         Returns: boolean
+      }
+      schedule_lesson_reminders: {
+        Args: { p_lesson_id: string }
+        Returns: undefined
       }
       submit_teacher_application: {
         Args: {
