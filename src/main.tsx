@@ -7,7 +7,7 @@ import i18n from '@/lib/i18n';
 import { clearAllCaches } from '@/utils/productionCleanup';
 
 // Clear stale caches on app start
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 const lastCacheVersion = localStorage.getItem('cache_version');
 if (lastCacheVersion !== CACHE_VERSION) {
   clearAllCaches().then(() => {
@@ -18,10 +18,16 @@ if (lastCacheVersion !== CACHE_VERSION) {
 // Register service worker only in production; unregister in dev to avoid HMR issues
 if ('serviceWorker' in navigator) {
   if (import.meta.env && import.meta.env.PROD) {
+    // Reload when a new Service Worker takes control (ensures PWA/mobile updates)
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      window.location.reload();
+    });
+
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js')
         .then((registration) => {
           console.log('SW registered: ', registration);
+          registration.update?.();
         })
         .catch((registrationError) => {
           console.log('SW registration failed: ', registrationError);
