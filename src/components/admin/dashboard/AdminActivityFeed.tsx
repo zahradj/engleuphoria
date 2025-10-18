@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -30,7 +31,78 @@ interface AdminActivityFeedProps {
   loading?: boolean;
 }
 
+// Helper function to get relative time
+function getTimeAgo(date: Date): string {
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  if (diffInSeconds < 60) return 'Just now';
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`;
+  
+  return date.toLocaleDateString();
+}
+
 export const AdminActivityFeed = ({ activities, loading }: AdminActivityFeedProps) => {
+  const [realtimeActivities, setRealtimeActivities] = useState<ActivityItem[]>([]);
+
+  useEffect(() => {
+    // Fetch recent activities from admin_notifications
+    const fetchActivities = async () => {
+      const { data, error } = await supabase
+        .from('admin_notifications')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (data) {
+        const mappedActivities: ActivityItem[] = data.map(notification => ({
+          id: notification.id,
+          type: notification.notification_type === 'new_student' ? 'user' : 
+                notification.notification_type === 'lesson_booked' ? 'lesson' : 'system',
+          action: notification.title,
+          details: notification.message,
+          timestamp: getTimeAgo(new Date(notification.created_at)),
+          status: 'info' as const,
+        }));
+        setRealtimeActivities(mappedActivities);
+      }
+    };
+
+    fetchActivities();
+
+    // Subscribe to real-time updates
+    const channel = supabase
+      .channel('admin_activity_feed')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'admin_notifications'
+        },
+        (payload) => {
+          const newNotification = payload.new as any;
+          const newActivity: ActivityItem = {
+            id: newNotification.id,
+            type: newNotification.notification_type === 'new_student' ? 'user' : 
+                  newNotification.notification_type === 'lesson_booked' ? 'lesson' : 'system',
+            action: newNotification.title,
+            details: newNotification.message,
+            timestamp: 'Just now',
+            status: 'info',
+          };
+          setRealtimeActivities(prev => [newActivity, ...prev].slice(0, 20));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
   const getActivityIcon = (type: string) => {
     switch (type) {
       case 'user':
@@ -91,61 +163,7 @@ export const AdminActivityFeed = ({ activities, loading }: AdminActivityFeedProp
     }
   };
 
-  // Sample data if no activities provided
-  const sampleActivities: ActivityItem[] = [
-    {
-      id: '1',
-      type: 'user',
-      action: 'New user registration',
-      details: 'Sarah Johnson created a new account',
-      timestamp: '2 minutes ago',
-      status: 'success',
-      user: 'Sarah Johnson'
-    },
-    {
-      id: '2',
-      type: 'teacher',
-      action: 'Teacher application',
-      details: 'Michael Chen submitted teacher application',
-      timestamp: '15 minutes ago',
-      status: 'info',
-      user: 'Michael Chen'
-    },
-    {
-      id: '3',
-      type: 'lesson',
-      action: 'Lesson completed',
-      details: 'Advanced Grammar lesson completed by 15 students',
-      timestamp: '1 hour ago',
-      status: 'success'
-    },
-    {
-      id: '4',
-      type: 'security',
-      action: 'Security alert',
-      details: 'Multiple failed login attempts detected',
-      timestamp: '2 hours ago',
-      status: 'warning'
-    },
-    {
-      id: '5',
-      type: 'system',
-      action: 'System maintenance',
-      details: 'Database optimization completed successfully',
-      timestamp: '3 hours ago',
-      status: 'success'
-    },
-    {
-      id: '6',
-      type: 'content',
-      action: 'Content moderation',
-      details: 'Flagged content reviewed and approved',
-      timestamp: '4 hours ago',
-      status: 'info'
-    }
-  ];
-
-  const displayActivities = activities || sampleActivities;
+  const displayActivities = activities || realtimeActivities;
 
   if (loading) {
     return (
@@ -185,37 +203,41 @@ export const AdminActivityFeed = ({ activities, loading }: AdminActivityFeedProp
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {displayActivities.slice(0, 6).map((activity) => {
-            const ActivityIcon = getActivityIcon(activity.type);
-            const StatusIcon = getStatusIcon(activity.status);
-            
-            return (
-              <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getTypeColor(activity.type)}`}>
-                  <ActivityIcon className="w-4 h-4" />
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <p className="font-medium text-sm text-gray-900 truncate">
-                      {activity.action}
-                    </p>
-                    <StatusIcon className={`w-4 h-4 flex-shrink-0 ${activity.status === 'success' ? 'text-green-500' : activity.status === 'warning' ? 'text-yellow-500' : activity.status === 'error' ? 'text-red-500' : 'text-blue-500'}`} />
+          {displayActivities.length === 0 ? (
+            <p className="text-center text-text-muted py-8">No recent activity</p>
+          ) : (
+            displayActivities.slice(0, 6).map((activity) => {
+              const ActivityIcon = getActivityIcon(activity.type);
+              const StatusIcon = getStatusIcon(activity.status);
+              
+              return (
+                <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getTypeColor(activity.type)}`}>
+                    <ActivityIcon className="w-4 h-4" />
                   </div>
-                  <p className="text-sm text-gray-600 mb-2">{activity.details}</p>
-                  <div className="flex items-center gap-2">
-                    <Badge 
-                      variant="secondary" 
-                      className={`text-xs ${getStatusColor(activity.status)}`}
-                    >
-                      {activity.status}
-                    </Badge>
-                    <span className="text-xs text-gray-500">{activity.timestamp}</span>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="font-medium text-sm text-gray-900 truncate">
+                        {activity.action}
+                      </p>
+                      <StatusIcon className={`w-4 h-4 flex-shrink-0 ${activity.status === 'success' ? 'text-green-500' : activity.status === 'warning' ? 'text-yellow-500' : activity.status === 'error' ? 'text-red-500' : 'text-blue-500'}`} />
+                    </div>
+                    <p className="text-sm text-gray-600 mb-2">{activity.details}</p>
+                    <div className="flex items-center gap-2">
+                      <Badge 
+                        variant="secondary" 
+                        className={`text-xs ${getStatusColor(activity.status)}`}
+                      >
+                        {activity.status}
+                      </Badge>
+                      <span className="text-xs text-gray-500">{activity.timestamp}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
         
         <div className="mt-6 pt-4 border-t">

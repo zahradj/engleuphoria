@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,75 +24,131 @@ interface CleanStudentDashboardProps {
 }
 
 export const CleanStudentDashboard = ({ studentName, studentProfile }: CleanStudentDashboardProps) => {
+  const { user } = useAuth();
   const currentLevel = studentProfile?.current_level || 'A1';
   const progressPercentage = studentProfile?.progress_percentage || 45;
   const streakDays = studentProfile?.streak_days || 7;
   const totalPoints = studentProfile?.points || 1250;
 
-  const upcomingClasses = [
-    {
-      title: 'English Conversation',
-      teacher: 'Ms. Johnson',
-      time: '2:00 PM',
-      duration: '30 min',
-      type: 'Live Class'
-    },
-    {
-      title: 'Grammar Practice',
-      teacher: 'Mr. Smith',
-      time: '4:30 PM',
-      duration: '45 min',
-      type: 'Workshop'
-    }
-  ];
+  const [upcomingClasses, setUpcomingClasses] = useState<any[]>([]);
+  const [assignments, setAssignments] = useState<any[]>([]);
+  const [learningModules, setLearningModules] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const assignments = [
-    {
-      title: 'Writing Assignment: My Daily Routine',
-      subject: 'Writing',
-      dueDate: 'Tomorrow',
-      status: 'pending'
-    },
-    {
-      title: 'Vocabulary Quiz: Food & Drinks',
-      subject: 'Vocabulary',
-      dueDate: 'Friday',
-      status: 'pending'
-    },
-    {
-      title: 'Pronunciation Practice',
-      subject: 'Speaking',
-      dueDate: 'Completed',
-      status: 'completed'
-    }
-  ];
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      if (!user) return;
 
-  const learningModules = [
-    {
-      title: 'Basic Greetings',
-      progress: 100,
-      lessons: '8/8',
-      status: 'completed'
-    },
-    {
-      title: 'Daily Activities',
-      progress: 75,
-      lessons: '6/8',
-      status: 'in-progress'
-    },
-    {
-      title: 'Food & Dining',
-      progress: 25,
-      lessons: '2/8',
-      status: 'in-progress'
-    },
-    {
-      title: 'Travel & Transportation',
-      progress: 0,
-      lessons: '0/8',
-      status: 'locked'
-    }
-  ];
+      try {
+        // Fetch upcoming lessons
+        const { data: lessons } = await supabase
+          .from('lessons')
+          .select(`
+            id,
+            title,
+            scheduled_at,
+            duration,
+            room_link,
+            room_id,
+            teacher:users!lessons_teacher_id_fkey(full_name)
+          `)
+          .eq('student_id', user.id)
+          .eq('status', 'scheduled')
+          .gte('scheduled_at', new Date().toISOString())
+          .order('scheduled_at', { ascending: true })
+          .limit(5);
+
+        if (lessons) {
+          setUpcomingClasses(lessons.map(lesson => ({
+            title: lesson.title,
+            teacher: (lesson.teacher as any)?.full_name || 'Teacher',
+            time: new Date(lesson.scheduled_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+            duration: `${lesson.duration} min`,
+            type: 'Live Class'
+          })));
+        }
+
+        // Fetch homework assignments
+        const { data: homework } = await supabase
+          .from('homework')
+          .select(`
+            id,
+            title,
+            due_date,
+            status,
+            users!homework_teacher_id_fkey(full_name)
+          `)
+          .eq('student_id', user.id)
+          .in('status', ['assigned', 'in_progress'])
+          .order('due_date', { ascending: true })
+          .limit(5);
+
+        if (homework) {
+          setAssignments(homework.map(hw => ({
+            title: hw.title,
+            subject: 'Homework',
+            dueDate: new Date(hw.due_date).toLocaleDateString(),
+            status: hw.status,
+            statusColor: hw.status === 'assigned' ? 'yellow' : 'blue'
+          })));
+        }
+
+        // Fetch curriculum progress
+        const { data: progress } = await supabase
+          .from('student_curriculum_progress')
+          .select('current_week, current_lesson, completion_percentage, curriculum_id')
+          .eq('student_id', user.id)
+          .limit(3);
+
+        if (progress && progress.length > 0) {
+          setLearningModules(progress.map((p, idx) => ({
+            title: `Week ${p.current_week} - Lesson ${p.current_lesson}`,
+            level: currentLevel,
+            progress: p.completion_percentage,
+            lessons: `${Math.floor((p.completion_percentage / 100) * 8)}/8 lessons`,
+            color: p.completion_percentage === 100 ? 'mint-green' : p.completion_percentage > 0 ? 'sky-blue' : 'border'
+          })));
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [user, currentLevel]);
+
+  // Default fallback data if nothing is loaded yet
+  const defaultData = {
+    classes: upcomingClasses.length > 0 ? upcomingClasses : [
+      {
+        title: 'No upcoming classes',
+        teacher: '',
+        time: '',
+        duration: '',
+        type: 'Info'
+      }
+    ],
+    assignments: assignments.length > 0 ? assignments : [
+      {
+        title: 'No assignments',
+        subject: '',
+        dueDate: '',
+        status: 'info',
+        statusColor: 'gray'
+      }
+    ],
+    modules: learningModules.length > 0 ? learningModules : [
+      {
+        title: 'Start your learning journey',
+        level: currentLevel,
+        progress: 0,
+        lessons: '0/8',
+        color: 'border'
+      }
+    ]
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">

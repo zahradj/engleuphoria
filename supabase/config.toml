@@ -77,3 +77,6 @@ verify_jwt = true
 
 [functions.webrtc-signaling]
 verify_jwt = false
+
+[functions.notify-teacher-booking]
+verify_jwt = false

@@ -222,6 +222,50 @@ export type Database = {
           },
         ]
       }
+      admin_notifications: {
+        Row: {
+          admin_id: string | null
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          metadata: Json | null
+          notification_type: string
+          read_at: string | null
+          title: string
+        }
+        Insert: {
+          admin_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          metadata?: Json | null
+          notification_type: string
+          read_at?: string | null
+          title: string
+        }
+        Update: {
+          admin_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          metadata?: Json | null
+          notification_type?: string
+          read_at?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_notifications_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_secrets: {
         Row: {
           created_at: string | null
@@ -5809,7 +5853,18 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      admin_dashboard_stats: {
+        Row: {
+          lessons_booked_week: number | null
+          new_students_week: number | null
+          new_teachers_week: number | null
+          total_lessons_completed: number | null
+          total_students: number | null
+          total_teachers: number | null
+          upcoming_lessons: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       can_access_lesson: {
@@ -5822,6 +5877,15 @@ export type Database = {
       }
       check_teacher_penalties: {
         Args: { teacher_uuid: string }
+        Returns: undefined
+      }
+      create_admin_notification: {
+        Args: {
+          p_message: string
+          p_metadata?: Json
+          p_notification_type: string
+          p_title: string
+        }
         Returns: undefined
       }
       generate_adaptive_learning_path: {

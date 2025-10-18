@@ -9,6 +9,7 @@ import { AdminStatsOverview } from './dashboard/AdminStatsOverview';
 import { AdminQuickActions } from './dashboard/AdminQuickActions';
 import { AdminSystemHealth } from './dashboard/AdminSystemHealth';
 import { AdminActivityFeed } from './dashboard/AdminActivityFeed';
+import { RecentRegistrationsCard } from './dashboard/RecentRegistrationsCard';
 
 export const AdminOverview = () => {
   const [timeRange, setTimeRange] = useState('week');
@@ -223,8 +224,11 @@ export const AdminOverview = () => {
         />
       </div>
 
-      {/* Activity Feed */}
-      <AdminActivityFeed loading={loading} />
+      {/* Recent Registrations and Activity Feed */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <RecentRegistrationsCard />
+        <AdminActivityFeed loading={loading} />
+      </div>
     </div>
   );
 };
