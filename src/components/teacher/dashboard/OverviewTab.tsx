@@ -7,6 +7,10 @@ import { ClassCard } from "./ClassCard";
 import { WelcomeSection } from "./WelcomeSection";
 import { Calendar, Users, FileText, PlusCircle, CheckCircle, LineChart } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface OverviewTabProps {
   onCreateLessonPlan: () => void;
@@ -24,38 +28,93 @@ export const OverviewTab = ({
   onViewClassDetails 
 }: OverviewTabProps) => {
   const { languageText } = useLanguage();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [upcomingClasses, setUpcomingClasses] = useState<any[]>([]);
+  const [stats, setStats] = useState({ totalStudents: 0, lessonPlans: 0 });
+  const [loading, setLoading] = useState(true);
 
-  // Mock classes that teachers can start
-  const upcomingClasses = [
-    {
-      id: "class-1",
-      title: "Beginner English",
-      time: "Today, 10:00 AM",
-      students: 5,
-      status: "ready" as const
-    },
-    {
-      id: "class-2", 
-      title: "Intermediate Conversation",
-      time: "Today, 2:00 PM",
-      students: 3,
-      status: "ready" as const
-    },
-    {
-      id: "class-3",
-      title: "Vocabulary Practice", 
-      time: "Tomorrow, 11:00 AM",
-      students: 4,
-      status: "scheduled" as const
-    },
-    {
-      id: "class-4",
-      title: "Grammar Workshop",
-      time: "Today, 4:00 PM", 
-      students: 7,
-      status: "ready" as const
-    }
-  ];
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const fetchTeacherData = async () => {
+      try {
+        // Fetch upcoming lessons
+        const { data: lessons, error: lessonsError } = await supabase
+          .from('lessons')
+          .select(`
+            id,
+            title,
+            scheduled_at,
+            status,
+            student_id,
+            users!lessons_student_id_fkey(full_name)
+          `)
+          .eq('teacher_id', user.id)
+          .gte('scheduled_at', new Date().toISOString())
+          .order('scheduled_at', { ascending: true })
+          .limit(4);
+
+        if (lessonsError) throw lessonsError;
+
+        // Transform lessons data
+        const transformedLessons = lessons?.map(lesson => {
+          const scheduledDate = new Date(lesson.scheduled_at);
+          const now = new Date();
+          const isToday = scheduledDate.toDateString() === now.toDateString();
+          const isSoon = scheduledDate.getTime() - now.getTime() < 3600000; // Within 1 hour
+          
+          return {
+            id: lesson.id,
+            title: lesson.title,
+            time: isToday 
+              ? `Today, ${scheduledDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`
+              : scheduledDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }),
+            students: 1,
+            status: (isSoon || lesson.status === 'confirmed') ? 'ready' : 'scheduled' as const
+          };
+        }) || [];
+
+        setUpcomingClasses(transformedLessons);
+
+        // Fetch total unique students
+        const { data: studentData, error: studentError } = await supabase
+          .from('lessons')
+          .select('student_id')
+          .eq('teacher_id', user.id);
+
+        if (studentError) throw studentError;
+
+        const uniqueStudents = new Set(studentData?.map(l => l.student_id) || []);
+        setStats({ totalStudents: uniqueStudents.size, lessonPlans: 0 });
+        
+      } catch (error: any) {
+        console.error('Error fetching teacher data:', error);
+        toast({
+          title: "Error loading data",
+          description: error.message,
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTeacherData();
+
+    // Subscribe to real-time lesson updates
+    const channel = supabase
+      .channel('teacher-lessons')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'lessons', filter: `teacher_id=eq.${user.id}` },
+        () => fetchTeacherData()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, toast]);
 
   return (
     <div className="space-y-8">
@@ -78,12 +137,12 @@ export const OverviewTab = ({
       />
       <StatsCard 
         title={languageText.activeStudents}
-        value={upcomingClasses.reduce((total, c) => total + c.students, 0).toString()}
+        value={loading ? "..." : stats.totalStudents.toString()}
         icon={<Users className="h-5 w-5 text-blue-500" />}
       />
       <StatsCard 
         title={languageText.lessonPlans}
-        value="8"
+        value={loading ? "..." : stats.lessonPlans.toString()}
         icon={<FileText className="h-5 w-5 text-green-500" />}
       />
       

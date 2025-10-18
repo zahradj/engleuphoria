@@ -80,3 +80,6 @@ verify_jwt = false
 
 [functions.notify-teacher-booking]
 verify_jwt = false
+
+[functions.notify-admin-new-student]
+verify_jwt = false
