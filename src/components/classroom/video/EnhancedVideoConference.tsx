@@ -37,14 +37,28 @@ export function EnhancedVideoConference({
   });
 
   useEffect(() => {
-    if (videoService && isConnected) {
-      updateParticipants();
-      
-      // Join the room automatically
-      videoService.joinRoom().catch(err => {
-        console.error('Failed to join video room:', err);
-      });
-    }
+    const initializeVideo = async () => {
+      if (videoService && !isConnected) {
+        try {
+          console.log('🎥 Auto-initializing video service...');
+          await videoService.initialize();
+          
+          // Wait a bit for initialization
+          setTimeout(async () => {
+            try {
+              await videoService.joinRoom();
+              updateParticipants();
+            } catch (err) {
+              console.error('Failed to auto-join room:', err);
+            }
+          }, 1000);
+        } catch (err) {
+          console.error('Failed to initialize video:', err);
+        }
+      }
+    };
+
+    initializeVideo();
   }, [videoService, isConnected, updateParticipants]);
 
   const handleToggleMicrophone = async () => {

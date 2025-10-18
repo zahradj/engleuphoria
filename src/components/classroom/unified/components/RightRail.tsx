@@ -1,5 +1,6 @@
 import React from "react";
 import { VideoTile } from "./VideoTile";
+import { WebRTCVideoConference } from "@/components/classroom/video/WebRTCVideoConference";
 import { ToolButton } from "./ToolButton";
 import { Gift, Clock, MessageSquare, Languages } from "lucide-react";
 
