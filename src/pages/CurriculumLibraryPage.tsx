@@ -5,44 +5,36 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, BookOpen } from "lucide-react";
 import { ESLCurriculumManager } from "@/components/curriculum/ESLCurriculumManager";
+import { useAuth } from "@/contexts/AuthContext";
 
 const CurriculumLibraryPage = () => {
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
   const [userName, setUserName] = useState("");
-  const [userType, setUserType] = useState("");
 
   useEffect(() => {
-    const storedStudentName = localStorage.getItem("studentName");
-    const storedTeacherName = localStorage.getItem("teacherName");
-    const storedUserType = localStorage.getItem("userType");
-
-    if (!storedUserType || !["student", "teacher", "admin"].includes(storedUserType)) {
-      navigate("/login");
-      return;
-    }
-
-    setUserType(storedUserType);
+    // SECURITY: Use server-validated role from AuthContext
+    if (loading) return;
     
-    if (storedUserType === "student" && storedStudentName) {
-      setUserName(storedStudentName);
-    } else if (storedUserType === "teacher" && storedTeacherName) {
-      setUserName(storedTeacherName);
-    } else if (storedUserType === "admin") {
-      setUserName("Admin");
-    } else {
+    if (!user) {
       navigate("/login");
       return;
     }
-  }, [navigate]);
+
+    // Set display name from user data
+    setUserName(user.email?.split('@')[0] || "User");
+  }, [user, loading, navigate]);
 
   const getDashboardRoute = () => {
-    switch (userType) {
+    if (!user) return "/login";
+    
+    switch (user.role) {
       case "student":
         return "/student";
       case "teacher":
-        return "/teacher-dashboard";
+        return "/teacher";
       case "admin":
-        return "/admin-dashboard";
+        return "/admin";
       default:
         return "/login";
     }

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Define types for layout options
 export type LayoutType = "gallery" | "spotlight" | "sidebar" | "default" | "material" | "video";
@@ -20,36 +21,35 @@ export function useClassroomState() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { languageText } = useLanguage();
+  const { user, loading } = useAuth();
 
   useEffect(() => {
-    // Check for both teacher and student authentication
-    const teacherName = localStorage.getItem("teacherName");
-    const storedStudentName = localStorage.getItem("studentName");
-    const storedPoints = localStorage.getItem("points");
-    const userType = localStorage.getItem("userType");
-
-    console.log("useClassroomState - Auth check:", { teacherName, storedStudentName, userType });
-
-    // If no authentication found, redirect to login
-    if (!teacherName && !storedStudentName && !userType) {
-      console.log("No authentication found, redirecting to login");
+    // SECURITY: Use server-validated role from AuthContext
+    if (loading) return;
+    
+    if (!user) {
+      console.log("No authenticated user, redirecting to login");
       navigate("/login");
       return;
     }
 
-    // Set state based on user type
-    if (teacherName || userType === "teacher") {
+    console.log("useClassroomState - Auth check:", { userId: user.id, role: user.role });
+
+    // Set state based on server-validated user role
+    if (user.role === "teacher" || user.role === "admin") {
       console.log("Setting teacher view");
-      setStudentName(teacherName || "Teacher");
+      setStudentName(user.email?.split('@')[0] || "Teacher");
       setPoints(0); // Teachers don't have points
       setIsTeacherView(true);
     } else {
       console.log("Setting student view");
-      setStudentName(storedStudentName || "Student");
+      setStudentName(user.email?.split('@')[0] || "Student");
+      // Load points from a secure source if needed
+      const storedPoints = localStorage.getItem("points");
       setPoints(storedPoints ? parseInt(storedPoints) : 0);
       setIsTeacherView(false);
     }
-  }, [navigate]);
+  }, [user, loading, navigate]);
 
   const handleLayoutChange = (newLayout: LayoutType) => {
     setLayout(newLayout);

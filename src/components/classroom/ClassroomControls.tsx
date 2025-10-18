@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Mic, MicOff, Video, VideoOff, Hand, MessageCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -28,10 +29,10 @@ export function ClassroomControls({
 }: ClassroomControlsProps) {
   const navigate = useNavigate();
   const { languageText } = useLanguage();
+  const { user } = useAuth();
   
-  // Check if user is a teacher to determine correct dashboard path
-  const isTeacher = localStorage.getItem("teacherName") || localStorage.getItem("userType") === "teacher";
-  const dashboardPath = isTeacher ? "/teacher-dashboard" : "/dashboard";
+  // SECURITY: Use server-validated role from database
+  const dashboardPath = user?.role === 'teacher' ? '/teacher' : user?.role === 'admin' ? '/admin' : '/student';
   
   return (
     <div className="bg-white rounded-lg p-3 flex flex-wrap justify-center gap-2 shadow-sm">

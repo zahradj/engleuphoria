@@ -5650,6 +5650,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_subscriptions: {
         Row: {
           classes_used_this_month: number
@@ -5853,18 +5877,7 @@ export type Database = {
       }
     }
     Views: {
-      admin_dashboard_stats: {
-        Row: {
-          lessons_booked_week: number | null
-          new_students_week: number | null
-          new_teachers_week: number | null
-          total_lessons_completed: number | null
-          total_students: number | null
-          total_teachers: number | null
-          upcoming_lessons: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       can_access_lesson: {
@@ -5900,6 +5913,18 @@ export type Database = {
       generate_room_id: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_admin_dashboard_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          lessons_booked_week: number
+          new_students_week: number
+          new_teachers_week: number
+          total_lessons_completed: number
+          total_students: number
+          total_teachers: number
+          upcoming_lessons: number
+        }[]
       }
       get_approved_teachers: {
         Args: Record<PropertyKey, never>
@@ -6009,6 +6034,10 @@ export type Database = {
           title: string
         }[]
       }
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
       handle_security_incident: {
         Args: {
           affected_user_id?: string
@@ -6017,6 +6046,13 @@ export type Database = {
           severity?: string
         }
         Returns: string
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
       }
       is_admin: {
         Args: Record<PropertyKey, never>
@@ -6128,6 +6164,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_role: "student" | "teacher" | "admin"
       community_category:
         | "conversation_practice"
         | "business_english"
@@ -6266,6 +6303,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["student", "teacher", "admin"],
       community_category: [
         "conversation_practice",
         "business_english",
