@@ -57,7 +57,7 @@ export function useVideoServiceManager({
     const initService = async () => {
       try {
         console.log('🎥 Initializing RealTimeVideoService...');
-        const service = new RealTimeVideoService(serviceConfig, serviceCallbacks);
+        const service = new RealTimeVideoService();
 
         await service.initialize();
         

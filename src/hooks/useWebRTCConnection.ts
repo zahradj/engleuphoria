@@ -27,7 +27,8 @@ export const useWebRTCConnection = ({
     setIsConnecting(true);
     try {
       console.log(`🔗 Connecting to WebRTC room ${roomId}`);
-      await realTimeVideoService.joinVideoRoom(roomId, userId, localStream);
+      realTimeVideoService.setRoomConfig(roomId, userId, localStream);
+      await realTimeVideoService.joinRoom();
       setIsConnected(true);
       toast.success("Connected to video call");
     } catch (error) {
@@ -38,11 +39,11 @@ export const useWebRTCConnection = ({
     }
   }, [roomId, userId, localStream, enabled, isConnected, isConnecting]);
 
-  const disconnect = useCallback(() => {
+  const disconnect = useCallback(async () => {
     if (!isConnected) return;
 
     console.log('🔌 Disconnecting from WebRTC');
-    realTimeVideoService.leaveVideoRoom();
+    await realTimeVideoService.leaveRoom();
     setIsConnected(false);
     setParticipants([]);
   }, [isConnected]);

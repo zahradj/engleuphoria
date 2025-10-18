@@ -8,10 +8,24 @@ export interface VideoParticipant {
   audioLevel: number;
 }
 
-class RealTimeVideoService {
+export interface ParticipantData {
+  id: string;
+  displayName: string;
+  role: 'teacher' | 'student';
+  isMuted: boolean;
+  isVideoOff: boolean;
+  isHandRaised: boolean;
+  joinTime: Date;
+}
+
+export class RealTimeVideoService {
   private webrtcService: WebRTCVideoService;
   private participants = new Map<string, VideoParticipant>();
   private onParticipantsChangeCallback: ((participants: VideoParticipant[]) => void) | null = null;
+  private localStream: MediaStream | null = null;
+  private roomId: string | null = null;
+  private userId: string | null = null;
+  private connected = false;
 
   constructor() {
     this.webrtcService = new WebRTCVideoService();
@@ -19,6 +33,10 @@ class RealTimeVideoService {
     this.webrtcService.setOnParticipantsUpdate((remoteStreams) => {
       this.updateParticipantsFromStreams(remoteStreams);
     });
+  }
+
+  async initialize(): Promise<void> {
+    console.log('🎥 RealTimeVideoService initialized');
   }
 
   private updateParticipantsFromStreams(remoteStreams: Map<string, MediaStream>) {
@@ -39,19 +57,46 @@ class RealTimeVideoService {
     this.notifyParticipantsChange();
   }
 
-  async joinVideoRoom(roomId: string, userId: string, localStream: MediaStream): Promise<void> {
-    console.log(`🎥 Joining video room ${roomId} as ${userId}`);
-    await this.webrtcService.joinRoom(roomId, userId, localStream);
+  async joinRoom(): Promise<void> {
+    if (!this.roomId || !this.userId || !this.localStream) {
+      throw new Error('Room configuration not set. Call setRoomConfig first.');
+    }
+    console.log(`🎥 Joining video room ${this.roomId} as ${this.userId}`);
+    await this.webrtcService.joinRoom(this.roomId, this.userId, this.localStream);
+    this.connected = true;
   }
 
-  leaveVideoRoom(): void {
+  setRoomConfig(roomId: string, userId: string, localStream: MediaStream): void {
+    this.roomId = roomId;
+    this.userId = userId;
+    this.localStream = localStream;
+  }
+
+  async leaveRoom(): Promise<void> {
     console.log(`🚪 Leaving video room`);
     this.webrtcService.leaveRoom();
     this.participants.clear();
     this.notifyParticipantsChange();
+    this.connected = false;
+    if (this.localStream) {
+      this.localStream.getTracks().forEach(track => track.stop());
+      this.localStream = null;
+    }
   }
 
-  getParticipants(): VideoParticipant[] {
+  getParticipants(): ParticipantData[] {
+    return Array.from(this.participants.values()).map(p => ({
+      id: p.id,
+      displayName: p.name,
+      role: 'student' as const,
+      isMuted: false,
+      isVideoOff: false,
+      isHandRaised: false,
+      joinTime: new Date()
+    }));
+  }
+
+  getVideoParticipants(): VideoParticipant[] {
     return Array.from(this.participants.values());
   }
 
@@ -61,7 +106,7 @@ class RealTimeVideoService {
 
   private notifyParticipantsChange(): void {
     if (this.onParticipantsChangeCallback) {
-      this.onParticipantsChangeCallback(this.getParticipants());
+      this.onParticipantsChangeCallback(this.getVideoParticipants());
     }
   }
 
@@ -80,6 +125,72 @@ class RealTimeVideoService {
       participant.audioLevel = audioLevel;
       this.notifyParticipantsChange();
     }
+  }
+
+  async toggleMicrophone(): Promise<boolean> {
+    if (this.localStream) {
+      const audioTrack = this.localStream.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = !audioTrack.enabled;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  async toggleCamera(): Promise<boolean> {
+    if (this.localStream) {
+      const videoTrack = this.localStream.getVideoTracks()[0];
+      if (videoTrack) {
+        videoTrack.enabled = !videoTrack.enabled;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  getLocalStream(): MediaStream | null {
+    return this.localStream;
+  }
+
+  getRemoteStreams(): Map<string, MediaStream> {
+    return this.webrtcService.getRemoteStreams();
+  }
+
+  getConnectionQuality(): string {
+    return 'good';
+  }
+
+  isRecordingActive(): boolean {
+    return false;
+  }
+
+  async startRecording(): Promise<boolean> {
+    console.log('Recording not implemented in WebRTC service');
+    return false;
+  }
+
+  async stopRecording(): Promise<string | null> {
+    console.log('Recording not implemented in WebRTC service');
+    return null;
+  }
+
+  async raiseHand(): Promise<boolean> {
+    console.log('Raise hand not implemented in WebRTC service');
+    return false;
+  }
+
+  async startScreenShare(): Promise<boolean> {
+    console.log('Screen share not implemented in WebRTC service');
+    return false;
+  }
+
+  isConnected(): boolean {
+    return this.connected;
+  }
+
+  dispose(): void {
+    this.leaveRoom();
   }
 }
 
