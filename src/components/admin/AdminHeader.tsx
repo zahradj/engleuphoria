@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Bell, Search, UserCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { AdminNotificationCenter } from './AdminNotificationCenter';
 
 export const AdminHeader = () => {
   const { user, signOut } = useAuth();
@@ -21,9 +22,7 @@ export const AdminHeader = () => {
             Search
           </Button>
           
-          <Button variant="outline" size="sm" className="relative border-border" disabled>
-            <Bell className="w-4 h-4" />
-          </Button>
+          <AdminNotificationCenter />
           
           <div className="flex items-center gap-2">
             <UserCircle className="w-8 h-8 text-muted-foreground" />
