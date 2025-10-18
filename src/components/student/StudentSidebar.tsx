@@ -65,10 +65,10 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
   const isCollapsed = state === "collapsed";
 
   return (
-    <Sidebar collapsible="icon" className="border-r-2 border-purple-200/50 bg-gradient-to-b from-purple-100/90 via-pink-50/90 to-blue-50/90 backdrop-blur-md shadow-xl">
+    <Sidebar collapsible="icon" className="border-r border-border bg-white">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sm font-bold text-purple-700 uppercase tracking-wider px-4 py-4 bg-gradient-to-r from-purple-200/30 to-pink-200/30 rounded-lg mx-2 mt-2">
+          <SidebarGroupLabel className="text-sm font-medium text-text-muted uppercase tracking-wider px-4 py-4 bg-surface-soft mx-2 mt-2 rounded-lg">
             🎓 Student Hub
           </SidebarGroupLabel>
           <SidebarGroupContent className="mt-2">
@@ -83,31 +83,31 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
                       isActive={isActive}
                       onClick={() => item.action ? item.action() : setActiveTab(item.id)}
                       className={`
-                        relative px-4 py-3 mx-2 my-1 rounded-xl transition-all duration-200 font-medium
+                        relative px-4 py-3 mx-2 my-1 rounded-lg transition-all duration-200 font-medium
                         ${isActive 
-                          ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/50 scale-105' 
-                          : 'text-purple-700 hover:bg-white/70 hover:text-purple-900 hover:shadow-md'
+                          ? 'bg-lavender text-lavender-dark border border-lavender-dark' 
+                          : 'text-text-muted hover:bg-surface-soft hover:text-text'
                         }
                       `}
                     >
-                      <Icon className={`h-5 w-5 ${isActive ? 'text-white animate-bounce' : 'text-purple-600'}`} />
+                      <Icon className={`h-5 w-5 ${isActive ? 'text-lavender-dark' : 'text-text-subtle'}`} />
                       {!isCollapsed && (
                         <>
-                          <span className="flex-1 font-semibold">{item.label}</span>
+                          <span className="flex-1 font-medium">{item.label}</span>
                           {item.badge && (
                             <Badge 
                               variant={item.id === 'classroom' ? 'default' : 'secondary'} 
-                              className={`ml-auto text-xs font-bold ${
+                              className={`ml-auto text-xs font-medium ${
                                 item.id === 'classroom' 
-                                  ? 'bg-green-500 text-white animate-pulse border-0 shadow-lg shadow-green-500/50' 
-                                  : 'bg-yellow-400 text-purple-900 border-0 shadow-md'
+                                  ? 'bg-mint-green-dark text-white border-0' 
+                                  : 'bg-peach text-peach-dark border-0'
                               }`}
                             >
                               {item.badge}
                             </Badge>
                           )}
                           {item.id === 'learning-path' && (
-                            <Sparkles className="ml-2 h-4 w-4 text-yellow-500 animate-pulse" />
+                            <Sparkles className="ml-2 h-4 w-4 text-peach-dark" />
                           )}
                         </>
                       )}
@@ -122,14 +122,14 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
         {/* Logout Section */}
         {onLogout && (
           <>
-            <SidebarSeparator className="bg-purple-300/50 my-4" />
+            <SidebarSeparator className="bg-border my-4" />
             <SidebarGroup>
               <SidebarGroupContent>
                 <SidebarMenu>
                   <SidebarMenuItem>
                     <SidebarMenuButton 
                       onClick={onLogout}
-                      className="mx-2 px-4 py-3 rounded-xl text-red-600 hover:text-red-700 hover:bg-red-50 transition-all duration-200 font-semibold shadow-md hover:shadow-lg"
+                      className="mx-2 px-4 py-3 rounded-lg text-error hover:text-error hover:bg-error-bg transition-all duration-200 font-medium border border-transparent hover:border-error-border"
                     >
                       <LogOut className="h-5 w-5" />
                       {!isCollapsed && <span>Logout</span>}

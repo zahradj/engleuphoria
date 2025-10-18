@@ -7,220 +7,89 @@
 
 @layer base {
   :root {
-    /* Joyful Classroom Design System - Fun & Engaging */
+    /* Child-Friendly Minimalist Design System */
     
-    /* Primary Ramp - Vibrant Educational Blue */
-    --primary-50: 220 100% 98%;   /* #FAFCFF */
-    --primary-100: 220 95% 94%;   /* #E8F4FF */
-    --primary-200: 220 90% 87%;   /* #C4E1FF */
-    --primary-300: 220 85% 75%;   /* #8CC8FF */
-    --primary-400: 220 80% 65%;   /* #5AAFFF */
-    --primary-500: 220 75% 55%;   /* #2B96FF */
-    --primary-600: 220 70% 50%;   /* #0B7EE8 */
-    --primary-700: 220 65% 42%;   /* #0A66C2 */
-    --primary-800: 220 60% 35%;   /* #08529E */
-    --primary-900: 220 55% 28%;   /* #063E7A */
-
-    /* Enhanced Classroom Colors - User Specified Palette */
-    --classroom-primary: 261 31% 70%;     /* #9991D4 - Purple */
-    --classroom-secondary: 331 20% 80%;   /* #D4C4CB - Muted Pink */
-    --classroom-accent: 90 100% 89%;      /* #D5FFC3 - Mint Green */
-    --classroom-background: 0 0% 100%;    /* #FFFFFF - Pure White */
-    --classroom-neutral: 210 17% 98%;     /* #F8F9FA - Soft Gray */
-    --classroom-success: 90 100% 89%;     /* #D5FFC3 - Same as accent for success */
-    --classroom-card: 0 0% 100%;          /* #FFFFFF - White Card */
-    --classroom-border: 210 11% 93%;      /* #E9ECEF - Border Gray */
-    --classroom-text: 217 33% 25%;        /* #2D3748 - Dark text */
-
-    /* Neutral System - Clean Grays */
-    --neutral-50: 0 0% 98%;       /* #FAFAFA */
-    --neutral-100: 0 0% 96%;      /* #F5F5F5 */
-    --neutral-200: 0 0% 90%;      /* #E5E5E5 */
-    --neutral-300: 0 0% 83%;      /* #D4D4D4 */
-    --neutral-400: 0 0% 64%;      /* #A3A3A3 */
-    --neutral-500: 0 0% 45%;      /* #737373 */
-    --neutral-600: 0 0% 32%;      /* #525252 */
-    --neutral-700: 0 0% 25%;      /* #404040 */
-    --neutral-800: 0 0% 15%;      /* #262626 */
-    --neutral-900: 0 0% 9%;       /* #171717 */
-
-    /* Semantic Tokens - Joyful Classroom */
-    --background: 220 100% 99%;   /* #FEFEFF - Crisp white with blue hint */
-    --surface: 0 0% 100%;         /* Pure white */
-    --surface-2: 220 85% 97%;     /* #F0F8FF - Gentle blue surface */
-    --surface-3: 220 75% 94%;     /* #E0F2FF - Soft blue surface */
-    --border: 220 60% 90%;        /* #CCE7FF - Friendly blue border */
-    --text: 220 30% 15%;          /* #1E293B - Friendly dark text */
-    --text-muted: 220 20% 45%;    /* #64748B - Gentle muted text */
-    --text-subtle: 220 15% 60%;   /* #94A3B8 - Soft subtle text */
-
-    /* Gradients - Educational Magic */
-    --gradient-rainbow: linear-gradient(135deg, hsl(var(--joy-red)), hsl(var(--joy-orange)), hsl(var(--joy-yellow)), hsl(var(--joy-green)), hsl(var(--joy-teal)), hsl(var(--joy-purple)));
-    --gradient-warm: linear-gradient(135deg, hsl(var(--joy-orange)), hsl(var(--joy-yellow)), hsl(var(--joy-pink)));
-    --gradient-cool: linear-gradient(135deg, hsl(var(--primary-400)), hsl(var(--joy-teal)), hsl(var(--joy-purple)));
-    --gradient-success: linear-gradient(135deg, hsl(var(--joy-green)), hsl(var(--joy-teal)));
-    --gradient-celebration: linear-gradient(135deg, hsl(var(--joy-yellow)), hsl(var(--joy-orange)), hsl(var(--joy-pink)));
-    --gradient-card: linear-gradient(135deg, hsl(var(--surface)) 0%, hsl(var(--surface-2)) 100%);
-
-    /* Shadows - Playful Depth */
-    --shadow-soft: 0 2px 8px hsla(var(--primary-600) / 0.08);
-    --shadow-card: 0 4px 16px hsla(var(--primary-600) / 0.12);
-    --shadow-button: 0 2px 4px hsla(var(--primary-600) / 0.1);
-    --shadow-glow: 0 0 20px hsla(var(--joy-yellow) / 0.3);
-    --shadow-celebration: 0 8px 32px hsla(var(--joy-orange) / 0.2);
-
-    /* State Colors */
-    --success: 142 71% 45%;       /* #16A34A */
-    --success-soft: 142 76% 97%;  /* #F0FDF4 */
-    --success-on: 0 0% 100%;      /* White */
+    /* Soft Pastel Primary Colors */
+    --sky-blue-50: 210 100% 98%;
+    --sky-blue-100: 210 100% 95%;
+    --sky-blue-200: 210 100% 92%;
+    --sky-blue: 210 85% 88%;        /* Soft Sky Blue */
+    --sky-blue-dark: 210 85% 65%;
     
-    --info: 217 91% 60%;          /* #3B82F6 */
-    --info-soft: 214 95% 97%;     /* #EFF6FF */
-    --info-on: 0 0% 100%;         /* White */
+    --mint-green-50: 160 80% 98%;
+    --mint-green-100: 160 75% 95%;
+    --mint-green: 160 65% 88%;      /* Soft Mint Green */
+    --mint-green-dark: 160 70% 55%;
     
-    --warning: 38 92% 50%;        /* #EAB308 */
-    --warning-soft: 55 92% 95%;   /* #FEFCE8 */
-    --warning-on: 0 0% 100%;      /* White */
+    --lavender-50: 260 80% 98%;
+    --lavender-100: 260 70% 95%;
+    --lavender: 260 60% 92%;        /* Soft Lavender */
+    --lavender-dark: 260 55% 65%;
     
-    --error: 0 84% 60%;           /* #EF4444 */
-    --error-soft: 0 93% 97%;      /* #FEF2F2 */
-    --error-on: 0 0% 100%;        /* White */
-
+    --peach-50: 25 100% 98%;
+    --peach-100: 25 90% 95%;
+    --peach: 25 85% 88%;            /* Soft Peach */
+    --peach-dark: 25 80% 65%;
+    
+    /* Clean Neutral System */
+    --background: 0 0% 99%;          /* Almost white with warmth */
+    --surface: 0 0% 100%;            /* Pure white */
+    --surface-soft: 220 40% 98%;     /* Very soft blue tint */
+    --border: 220 20% 90%;           /* Soft blue-gray */
+    --border-light: 220 15% 95%;
+    
+    /* Text Colors - Friendly Dark */
+    --text: 220 30% 15%;             /* Dark blue-gray */
+    --text-muted: 220 15% 50%;       /* Medium gray */
+    --text-subtle: 220 10% 65%;      /* Light gray */
+    
+    /* Semantic Colors - Soft & Readable */
+    --success: 145 70% 35%;          /* Readable green */
+    --success-bg: 145 65% 88%;       /* Soft green background */
+    --success-border: 145 60% 75%;
+    
+    --warning: 40 75% 40%;           /* Readable orange */
+    --warning-bg: 40 85% 90%;        /* Soft yellow background */
+    --warning-border: 40 80% 75%;
+    
+    --error: 0 70% 45%;              /* Readable red */
+    --error-bg: 0 75% 92%;           /* Soft pink background */
+    --error-border: 0 70% 80%;
+    
+    --info: 210 75% 40%;             /* Readable blue */
+    --info-bg: 210 80% 90%;          /* Soft blue background */
+    --info-border: 210 75% 75%;
+    
+    /* Subtle Gradients - Two-tone only */
+    --gradient-sky: linear-gradient(135deg, hsl(var(--sky-blue)) 0%, hsl(var(--lavender)) 100%);
+    --gradient-mint: linear-gradient(135deg, hsl(var(--mint-green)) 0%, hsl(var(--sky-blue)) 100%);
+    --gradient-peach: linear-gradient(135deg, hsl(var(--peach)) 0%, hsl(var(--lavender)) 100%);
+    
+    /* Minimal Shadows */
+    --shadow-sm: 0 1px 3px hsla(var(--text) / 0.05);
+    --shadow-md: 0 4px 8px hsla(var(--text) / 0.08);
+    --shadow-card: 0 2px 12px hsla(var(--text) / 0.06);
+    
     /* Component Mappings */
     --foreground: var(--text);
     --card: var(--surface);
     --card-foreground: var(--text);
     --popover: var(--surface);
     --popover-foreground: var(--text);
-    --primary: var(--primary-600);
+    --primary: var(--sky-blue-dark);
     --primary-foreground: 0 0% 100%;
-    --secondary: var(--neutral-100);
-    --secondary-foreground: var(--neutral-800);
-    --muted: var(--neutral-100);
+    --secondary: var(--lavender);
+    --secondary-foreground: var(--text);
+    --muted: var(--surface-soft);
     --muted-foreground: var(--text-muted);
-    --accent: var(--primary-50);
-    --accent-foreground: var(--primary-700);
+    --accent: var(--mint-green);
+    --accent-foreground: var(--text);
     --destructive: var(--error);
-    --destructive-foreground: var(--error-on);
+    --destructive-foreground: 0 0% 100%;
     --input: var(--surface);
-    --ring: var(--primary-600);
-
-    /* Chart Palette */
-    --chart-1: var(--primary-500);
-    --chart-2: var(--accent-500);
-    --chart-3: var(--primary-400);
-    --chart-4: var(--accent-400);
-    --chart-5: var(--primary-300);
-    --chart-6: var(--accent-300);
-
-    /* Focus Ring */
-    --focus-ring: var(--primary-600);
+    --ring: var(--sky-blue-dark);
     
-    --radius: 0.75rem;
-  }
-
-  .dark {
-    /* Dark Mode */
-    --background: 0 0% 9%;        /* #171717 */
-    --surface: 0 0% 15%;          /* #262626 */
-    --surface-2: 0 0% 20%;        /* #333333 */
-    --border: 0 0% 25%;           /* #404040 */
-    --text: 0 0% 98%;             /* #FAFAFA */
-    --text-muted: 0 0% 64%;       /* #A3A3A3 */
-    --text-subtle: 0 0% 45%;      /* #737373 */
-
-    --foreground: var(--text);
-    --card: var(--surface);
-    --card-foreground: var(--text);
-    --popover: var(--surface);
-    --popover-foreground: var(--text);
-    --primary: var(--primary-400);
-    --primary-foreground: var(--neutral-900);
-    --secondary: 0 0% 20%;
-    --secondary-foreground: 0 0% 90%;
-    --muted: 0 0% 20%;
-    --muted-foreground: var(--text-muted);
-    --accent: var(--primary-900);
-    --accent-foreground: var(--primary-200);
-    --input: var(--surface);
-    --ring: var(--primary-400);
-  }
-
-  /* K-12 Themes for 1:1 Kids Program */
-  [data-theme="mist-blue"] {
-    /* Primary Ramp - Powder Blue */
-    --primary-50: 210 100% 98%;   /* #F6FAFF */
-    --primary-100: 210 90% 96%;   /* #EAF4FF */
-    --primary-200: 210 80% 92%;   /* #D1E8FF */
-    --primary-300: 210 75% 85%;   /* #A8D4FF */
-    --primary-400: 210 70% 75%;   /* #7DBFF0 */
-    --primary-500: 210 65% 66%;   /* #6BA8E5 */
-    --primary-600: 210 60% 58%;   /* #4E93D7 */
-    --primary-700: 210 55% 50%;   /* #3A7DBB */
-    --primary-800: 210 50% 42%;   /* #2F689E */
-    --primary-900: 210 45% 28%;   /* #1F4464 */
-
-    /* Accent Ramp - Soft Teal */
-    --accent-50: 170 50% 97%;     /* #F0FCFA */
-    --accent-100: 170 45% 93%;    /* #E0F9F5 */
-    --accent-200: 170 40% 85%;    /* #B8F0E8 */
-    --accent-300: 170 45% 75%;    /* #8DE5D6 */
-    --accent-400: 170 45% 65%;    /* #6AD9C8 */
-    --accent-500: 170 45% 58%;    /* #63C3B1 */
-    --accent-600: 170 45% 50%;    /* #4DAE9B */
-    --accent-700: 170 45% 42%;    /* #3E9186 */
-    --accent-800: 170 40% 35%;    /* #31726A */
-    --accent-900: 170 35% 28%;    /* #255951 */
-
-    /* Neutrals - Cool Blue-Gray */
-    --neutral-50: 220 20% 98%;    /* #FAFBFD */
-    --neutral-100: 220 18% 95%;   /* #F1F3F7 */
-    --neutral-200: 220 20% 90%;   /* #E5E9EF */
-    --neutral-300: 220 15% 82%;   /* #CDD3DC */
-    --neutral-400: 220 12% 65%;   /* #9BA3B0 */
-    --neutral-500: 220 10% 48%;   /* #72798A */
-    --neutral-600: 220 15% 38%;   /* #5C6675 */
-    --neutral-700: 220 20% 28%;   /* #46525F */
-    --neutral-800: 220 25% 20%;   /* #343E4A */
-    --neutral-900: 220 30% 12%;   /* #1F252E */
-
-    /* Surface tokens */
-    --bg: var(--neutral-50);
-    --surface: 0 0% 100%;
-    --surface-2: 220 20% 96%;     /* #F3F5F9 */
-    --border: var(--neutral-200);
-    --muted: 220 20% 94%;         /* #EEF1F6 */
-    --text: 220 30% 10%;          /* #1A1A1A */
-    --text-muted: var(--neutral-600);
-    --text-subtle: var(--neutral-500);
-
-    /* State colors - AA compliant */
-    --success: 145 65% 35%;       /* #2E7D5B */
-    --success-soft: 145 45% 92%;  /* #E8F4EF */
-    --success-on: 145 80% 15%;    /* #113326 */
-    
-    --info: 210 65% 45%;          /* #2C6EAA */
-    --info-soft: 210 60% 94%;     /* #E8F1FA */
-    --info-on: 210 75% 20%;       /* #0F2A40 */
-    
-    --warning: 40 65% 45%;        /* #916C2A */
-    --warning-soft: 40 70% 92%;   /* #FBF4E6 */
-    --warning-on: 40 80% 15%;     /* #2E230D */
-    
-    --error: 0 65% 50%;           /* #A64A4A */
-    --error-soft: 0 65% 93%;      /* #FBEAEA */
-    --error-on: 0 75% 20%;        /* #3A1515 */
-
-    /* Focus ring */
-    --focus-ring: var(--primary-600);
-    
-    /* Chart palette */
-    --chart-1: var(--primary-500);
-    --chart-2: var(--accent-500);
-    --chart-3: var(--primary-400);
-    --chart-4: var(--accent-400);
-    --chart-5: var(--primary-300);
-    --chart-6: var(--accent-300);
+    --radius: 1rem;
   }
 
   [data-theme="pastel-sky"] {
