@@ -1,4 +1,6 @@
 import { WebRTCVideoService } from './webrtcVideoService';
+import { ConnectionQualityMonitor, ConnectionQualityMetrics } from './connectionQualityMonitor';
+import { ReconnectionManager } from './reconnectionManager';
 
 export interface VideoParticipant {
   id: string;
@@ -26,13 +28,35 @@ export class RealTimeVideoService {
   private roomId: string | null = null;
   private userId: string | null = null;
   private connected = false;
+  private qualityMonitor: ConnectionQualityMonitor;
+  private reconnectionManager: ReconnectionManager;
+  private currentQuality: ConnectionQualityMetrics | null = null;
 
   constructor() {
     this.webrtcService = new WebRTCVideoService();
+    this.qualityMonitor = new ConnectionQualityMonitor();
+    this.reconnectionManager = new ReconnectionManager({
+      maxAttempts: 5,
+      initialDelay: 2000,
+      maxDelay: 30000,
+      backoffMultiplier: 2
+    });
     
     this.webrtcService.setOnParticipantsUpdate((remoteStreams) => {
       this.updateParticipantsFromStreams(remoteStreams);
     });
+
+    // Set up reconnection callback
+    this.reconnectionManager.setCallbacks(
+      async () => {
+        if (this.roomId && this.userId && this.localStream) {
+          await this.webrtcService.joinRoom(this.roomId, this.userId, this.localStream);
+        }
+      },
+      (status) => {
+        console.log(`🔄 Reconnection status: ${status}`);
+      }
+    );
   }
 
   async initialize(): Promise<void> {
@@ -158,7 +182,25 @@ export class RealTimeVideoService {
   }
 
   getConnectionQuality(): string {
-    return 'good';
+    if (!this.currentQuality) return 'unknown';
+    return this.currentQuality.quality;
+  }
+
+  getConnectionMetrics(): ConnectionQualityMetrics | null {
+    return this.currentQuality;
+  }
+
+  startQualityMonitoring(callback?: (metrics: ConnectionQualityMetrics) => void) {
+    this.qualityMonitor.startMonitoring((metrics) => {
+      this.currentQuality = metrics;
+      if (callback) {
+        callback(metrics);
+      }
+    });
+  }
+
+  stopQualityMonitoring() {
+    this.qualityMonitor.stopMonitoring();
   }
 
   isRecordingActive(): boolean {
@@ -191,6 +233,8 @@ export class RealTimeVideoService {
 
   dispose(): void {
     this.leaveRoom();
+    this.qualityMonitor.dispose();
+    this.reconnectionManager.dispose();
   }
 }
 

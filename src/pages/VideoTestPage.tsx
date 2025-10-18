@@ -7,6 +7,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { realTimeVideoService } from '@/services/video/realTimeVideoService';
 import { Video, VideoOff, Mic, MicOff, Phone, PhoneOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { ConnectionQualityIndicator } from '@/components/classroom/video/ConnectionQualityIndicator';
+import { ConnectionQualityMetrics } from '@/services/video/connectionQualityMonitor';
 
 export default function VideoTestPage() {
   const [searchParams] = useSearchParams();
@@ -21,6 +23,7 @@ export default function VideoTestPage() {
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [connectionQuality, setConnectionQuality] = useState<ConnectionQualityMetrics | null>(null);
 
   // Check authentication
   useEffect(() => {
@@ -89,6 +92,12 @@ export default function VideoTestPage() {
       realTimeVideoService.setRoomConfig(roomId, user.id, localStream);
       await realTimeVideoService.joinRoom();
       setIsConnected(true);
+      
+      // Start quality monitoring
+      realTimeVideoService.startQualityMonitoring((metrics) => {
+        setConnectionQuality(metrics);
+      });
+      
       toast({
         title: "Connected",
         description: "Successfully joined the video room"
@@ -105,9 +114,11 @@ export default function VideoTestPage() {
   };
 
   const handleLeaveRoom = async () => {
+    realTimeVideoService.stopQualityMonitoring();
     await realTimeVideoService.leaveRoom();
     setIsConnected(false);
     setParticipants([]);
+    setConnectionQuality(null);
     toast({
       title: "Disconnected",
       description: "Left the video room"
@@ -151,9 +162,14 @@ export default function VideoTestPage() {
                 <CardTitle>WebRTC Video Test</CardTitle>
                 <p className="text-sm text-muted-foreground mt-1">Room ID: {roomId}</p>
               </div>
-              <Badge variant={isConnected ? "default" : "secondary"}>
-                {isConnected ? "Connected" : "Disconnected"}
-              </Badge>
+              <div className="flex items-center gap-2">
+                {isConnected && connectionQuality && (
+                  <ConnectionQualityIndicator quality={connectionQuality} />
+                )}
+                <Badge variant={isConnected ? "default" : "secondary"}>
+                  {isConnected ? "Connected" : "Disconnected"}
+                </Badge>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -275,6 +291,17 @@ export default function VideoTestPage() {
               <p>Participants: {participants.length}</p>
               <p>Microphone: {isMuted ? '✗ Muted' : '✓ Active'}</p>
               <p>Camera: {isCameraOff ? '✗ Off' : '✓ Active'}</p>
+              {connectionQuality && (
+                <>
+                  <hr className="my-2" />
+                  <p className="font-bold">Connection Quality:</p>
+                  <p>Overall: {connectionQuality.quality}</p>
+                  <p>Latency: {connectionQuality.latency}ms</p>
+                  <p>Packet Loss: {connectionQuality.packetLoss.toFixed(2)}%</p>
+                  <p>Jitter: {connectionQuality.jitter}ms</p>
+                  <p>Bandwidth: {connectionQuality.bandwidth} KB/s</p>
+                </>
+              )}
             </div>
           </CardContent>
         </Card>
