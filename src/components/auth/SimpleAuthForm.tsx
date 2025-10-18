@@ -249,8 +249,8 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
       setResetLoading(false);
     }
   };
-  const gradientClass = 'from-purple-600 via-purple-500 to-purple-400';
-  const backgroundGradient = 'from-purple-50 via-purple-100 to-purple-200';
+  const gradientClass = 'from-blue-500 via-purple-500 to-pink-500';
+  const backgroundGradient = 'from-blue-50 via-purple-50 to-pink-50';
   return <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-50/40 via-purple-50/40 to-pink-50/40">
       {/* Playful background decorations */}
       <div className="absolute inset-0">
@@ -334,7 +334,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
       <div className="relative z-10 container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
         {/* Return Home Tab */}
         <div className="absolute top-6 left-6">
-          <Button variant="outline" onClick={() => navigate('/')} className="bg-white/90 backdrop-blur-sm border-2 border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300 hover:text-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl px-8 py-3 font-semibold text-base">
+          <Button variant="outline" onClick={() => navigate('/')} className="bg-white/90 backdrop-blur-sm border-2 border-purple-200 text-purple-600 hover:bg-gradient-to-r hover:from-blue-50 hover:via-purple-50 hover:to-pink-50 hover:border-pink-300 hover:text-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl px-8 py-3 font-semibold text-base">
             <span className="mr-2 text-2xl">🏠</span>
             Return Home
           </Button>
@@ -343,12 +343,12 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
         <div className="w-full max-w-md">
           
 
-          <Card className="relative bg-white/95 backdrop-blur-xl border-2 border-purple-200 shadow-xl overflow-hidden rounded-3xl">
+          <Card className="relative bg-white/95 backdrop-blur-xl border-2 border-purple-200/50 shadow-xl overflow-hidden rounded-3xl">
             {/* Glowing border effect */}
             <div className={`absolute -inset-2 bg-gradient-to-r ${gradientClass} rounded-3xl blur-lg opacity-20 animate-pulse`}></div>
             
             <div className="relative bg-white/98 backdrop-blur-xl rounded-3xl shadow-inner">
-              <CardHeader className="text-center pb-8 pt-10 bg-gradient-to-b from-purple-50/50 to-white">
+              <CardHeader className="text-center pb-8 pt-10 bg-gradient-to-b from-blue-50/50 via-purple-50/50 to-pink-50/50">
                 {/* Fun floating icon */}
                 <div className="flex justify-center mb-8">
                   <div className={`relative w-24 h-24 rounded-full bg-gradient-to-r ${gradientClass} flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-300 animate-bounce`}>
@@ -358,7 +358,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
                   </div>
                 </div>
                 
-                <CardTitle className="text-4xl font-black bg-gradient-to-r from-purple-600 via-purple-500 to-purple-400 bg-clip-text text-transparent mb-4 drop-shadow-sm">
+                <CardTitle className="text-4xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-4 drop-shadow-sm">
                   {mode === 'login' ? 'Welcome Back! 🎊' : 'Join the Magic! ✨'}
                 </CardTitle>
                 <CardDescription className="text-purple-600 text-lg font-semibold">

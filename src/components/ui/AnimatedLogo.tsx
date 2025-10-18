@@ -27,14 +27,14 @@ const AnimatedLogo: React.FC<AnimatedLogoProps> = ({ size = 'md', className = ''
         ease: "easeInOut"
       }}
     >
-      {/* Purple bubble background */}
+      {/* Colorful bubble background */}
       <motion.div
-        className={`${sizeClasses[size]} rounded-full bg-gradient-to-br from-purple-500 to-purple-700 shadow-lg flex items-center justify-center`}
+        className={`${sizeClasses[size]} rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 shadow-lg flex items-center justify-center`}
         animate={{
           boxShadow: [
-            "0 4px 20px rgba(147, 51, 234, 0.3)",
-            "0 8px 30px rgba(147, 51, 234, 0.5)",
-            "0 4px 20px rgba(147, 51, 234, 0.3)"
+            "0 4px 20px rgba(168, 85, 247, 0.3)",
+            "0 8px 30px rgba(168, 85, 247, 0.5)",
+            "0 4px 20px rgba(168, 85, 247, 0.3)"
           ]
         }}
         transition={{
@@ -53,7 +53,7 @@ const AnimatedLogo: React.FC<AnimatedLogoProps> = ({ size = 'md', className = ''
       
       {/* Pulse effect */}
       <motion.div
-        className={`absolute inset-0 ${sizeClasses[size]} rounded-full bg-purple-400 opacity-30`}
+        className={`absolute inset-0 ${sizeClasses[size]} rounded-full bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400 opacity-30`}
         animate={{
           scale: [1, 1.2, 1],
           opacity: [0.3, 0.1, 0.3]
