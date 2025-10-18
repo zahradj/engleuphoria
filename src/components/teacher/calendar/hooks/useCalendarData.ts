@@ -5,7 +5,7 @@ import { toast } from "@/hooks/use-toast";
 interface ScheduleSlot {
   id?: string;
   time: string;
-  duration: 30 | 60;
+  duration: 25 | 55;
   lessonType: 'free_slot' | 'direct_booking';
   isAvailable: boolean;
   studentId?: string;

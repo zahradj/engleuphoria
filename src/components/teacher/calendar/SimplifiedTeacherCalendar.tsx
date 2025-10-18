@@ -16,7 +16,7 @@ interface SimplifiedTeacherCalendarProps {
 
 export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalendarProps) => {
   const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
-  const selectedDuration = 30; // Fixed 30-minute slots
+  const selectedDuration: 25 | 55 = 25; // Fixed 25-minute slots
   const [showQuickCreator, setShowQuickCreator] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showSlotModal, setShowSlotModal] = useState(false);
@@ -86,13 +86,13 @@ export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalend
   };
 
   const handleQuickSlotCreation = (times: string[]) => {
-    const duration = 30;
+    const duration: 25 | 55 = 25;
     createBulkSlots([selectedDate], times, duration);
     setShowQuickCreator(false);
   };
 
   const handleCreateSingleSlot = () => {
-    createSlot(selectedDate, selectedTime, selectedDuration);
+    createSlot(selectedDate, selectedTime, 25);
     setShowSlotModal(false);
   };
 
@@ -117,7 +117,7 @@ export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalend
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Clock className="h-4 w-4" />
-                <span>30-minute slots</span>
+                <span>25-minute slots</span>
               </div>
 
               <Button
@@ -191,7 +191,7 @@ export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalend
             </div>
             
             <div className="text-sm text-muted-foreground">
-              <strong>Duration:</strong> 30 minutes
+              <strong>Duration:</strong> 25 minutes
             </div>
 
             <div className="flex gap-2">

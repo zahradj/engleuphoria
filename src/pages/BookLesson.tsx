@@ -44,6 +44,7 @@ export const BookLesson = () => {
   const [isBooking, setIsBooking] = useState(false);
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
+  const [selectedDuration, setSelectedDuration] = useState<25 | 55>(55);
 
   // Enhanced time slots based on common teaching hours
   const allTimeSlots = [
@@ -177,7 +178,7 @@ export const BookLesson = () => {
         teacher_id: teacher.user_id,
         student_id: user.id,
         scheduled_at: scheduledAt.toISOString(),
-        duration: 60,
+        duration: selectedDuration,
         cost: teacher.hourly_rate_eur,
         status: 'scheduled'
       };
@@ -402,12 +403,48 @@ export const BookLesson = () => {
                 </Alert>
 
                 <div className="grid md:grid-cols-2 gap-8">
-                  {/* Date Selection */}
-                  <div>
-                    <h4 className="font-semibold mb-4">
-                      Choose Date
-                    </h4>
-                    <Calendar
+                {/* Duration Selection */}
+                <div className="md:col-span-2 mb-4">
+                  <h4 className="font-semibold mb-3 flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-purple-600" />
+                    Select Lesson Duration
+                  </h4>
+                  <div className="flex gap-3">
+                    <Button
+                      type="button"
+                      variant={selectedDuration === 25 ? "default" : "outline"}
+                      onClick={() => setSelectedDuration(25)}
+                      className={`flex-1 h-20 flex flex-col items-center justify-center gap-2 ${
+                        selectedDuration === 25 ? 'bg-gradient-to-br from-blue-500 to-blue-600' : ''
+                      }`}
+                    >
+                      <Badge variant={selectedDuration === 25 ? "secondary" : "outline"} className="text-xs">
+                        Quick Session
+                      </Badge>
+                      <span className="text-lg font-bold">25 minutes</span>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={selectedDuration === 55 ? "default" : "outline"}
+                      onClick={() => setSelectedDuration(55)}
+                      className={`flex-1 h-20 flex flex-col items-center justify-center gap-2 ${
+                        selectedDuration === 55 ? 'bg-gradient-to-br from-purple-500 to-pink-500' : ''
+                      }`}
+                    >
+                      <Badge variant={selectedDuration === 55 ? "secondary" : "outline"} className="text-xs">
+                        Full Session
+                      </Badge>
+                      <span className="text-lg font-bold">55 minutes</span>
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Date Selection */}
+                <div>
+                  <h4 className="font-semibold mb-4">
+                    Choose Date
+                  </h4>
+                  <Calendar
                       mode="single"
                       selected={selectedDate}
                       onSelect={setSelectedDate}

@@ -4,7 +4,7 @@ import { Plus } from "lucide-react";
 interface ScheduleSlot {
   id?: string;
   time: string;
-  duration: 30 | 60;
+  duration: 25 | 55;
   lessonType: 'free_slot' | 'direct_booking';
   isAvailable: boolean;
   studentId?: string;
@@ -17,7 +17,7 @@ interface TimeSlotProps {
   time: string;
   date: Date;
   slot?: ScheduleSlot;
-  selectedDuration: 30 | 60;
+  selectedDuration: 25 | 55;
   onSlotClick: (time: string, date: Date, event: React.MouseEvent) => void;
 }
 

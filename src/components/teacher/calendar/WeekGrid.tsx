@@ -4,7 +4,7 @@ import { TimeSlot } from "./TimeSlot";
 interface ScheduleSlot {
   id?: string;
   time: string;
-  duration: 30 | 60;
+  duration: 25 | 55;
   lessonType: 'free_slot' | 'direct_booking';
   isAvailable: boolean;
   studentId?: string;
@@ -17,7 +17,7 @@ interface WeekGridProps {
   weekDays: Date[];
   timeSlots: string[];
   weeklySlots: { [key: string]: ScheduleSlot[] };
-  selectedDuration: 30 | 60;
+  selectedDuration: 25 | 55;
   onTimeSlotClick: (time: string, date: Date, event: React.MouseEvent) => void;
 }
 

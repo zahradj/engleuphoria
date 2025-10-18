@@ -10,7 +10,7 @@ import { CalendarLegend } from "./CalendarLegend";
 interface ScheduleSlot {
   id?: string;
   time: string;
-  duration: 30 | 60;
+  duration: 25 | 55;
   lessonType: 'free_slot' | 'direct_booking';
   isAvailable: boolean;
   studentId?: string;
@@ -26,7 +26,7 @@ interface WeeklyScheduleGridProps {
 export const WeeklyScheduleGrid = ({ teacherId }: WeeklyScheduleGridProps) => {
   const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
   const [weeklySlots, setWeeklySlots] = useState<{ [key: string]: ScheduleSlot[] }>({});
-  const selectedDuration = 30; // Fixed 30-minute slots
+  const selectedDuration: 25 | 55 = 25; // Fixed 25-minute slots
   const [isLoading, setIsLoading] = useState(false);
   const { handleCalendarInteraction } = useAutoHideTaskbar();
   const interactionTimeoutRef = useRef<NodeJS.Timeout>();
