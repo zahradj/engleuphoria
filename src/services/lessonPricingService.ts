@@ -4,7 +4,8 @@ import {
   StudentPackagePurchase, 
   LessonPayment, 
   TeacherPenalty,
-  LESSON_PRICING
+  LESSON_PRICING,
+  getLessonPricing
 } from '@/types/pricing';
 
 export const lessonPricingService = {
@@ -44,7 +45,12 @@ export const lessonPricingService = {
     return data || [];
   },
 
-  // Calculate lesson price based on duration
+  // Get pricing based on duration and region
+  getPricingForLesson(duration: 25 | 55, region: 'algeria' | 'international') {
+    return getLessonPricing(duration, region);
+  },
+
+  // Calculate lesson price based on duration (legacy method)
   calculateLessonPrice(): {
     studentPrice: number;
     teacherPayout: number;

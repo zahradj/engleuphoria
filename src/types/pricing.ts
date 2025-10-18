@@ -4,10 +4,11 @@ export interface LessonPackage {
   id: string;
   name: string;
   lesson_count: number;
-  duration_minutes: number;
+  duration_minutes: 25 | 55;
   total_price: number;
   savings_amount: number;
   is_active: boolean;
+  region?: 'algeria' | 'international';
   created_at?: string;
   updated_at?: string;
 }
@@ -26,10 +27,21 @@ export interface StudentPackagePurchase {
 
 // Lesson Pricing Types
 export interface LessonPricing {
-  duration_minutes: 30;
+  duration_minutes: 25 | 55;
   student_price: number;
   teacher_payout: number;
   platform_profit: number;
+}
+
+// Dual-duration pricing structure
+export interface DurationPricing {
+  duration_minutes: 25 | 55;
+  price_dzd: number;
+  price_eur: number;
+  teacher_payout_dzd: number;
+  teacher_payout_eur: number;
+  platform_profit_dzd: number;
+  platform_profit_eur: number;
 }
 
 export interface LessonPayment {
@@ -69,12 +81,49 @@ export interface TeacherAbsence {
   penalty_applied: boolean;
 }
 
-// Pricing Constants
+// Pricing Constants by Duration
+export const LESSON_PRICING_BY_DURATION: Record<25 | 55, DurationPricing> = {
+  25: {
+    duration_minutes: 25,
+    price_dzd: 1250,
+    price_eur: 7.50,
+    teacher_payout_dzd: 625,
+    teacher_payout_eur: 3.75,
+    platform_profit_dzd: 625,
+    platform_profit_eur: 3.75
+  },
+  55: {
+    duration_minutes: 55,
+    price_dzd: 2500,
+    price_eur: 15.00,
+    teacher_payout_dzd: 1250,
+    teacher_payout_eur: 7.50,
+    platform_profit_dzd: 1250,
+    platform_profit_eur: 7.50
+  }
+};
+
+// Helper function to get pricing
+export const getLessonPricing = (
+  duration: 25 | 55,
+  region: 'algeria' | 'international'
+) => {
+  const pricing = LESSON_PRICING_BY_DURATION[duration];
+  return {
+    duration: duration,
+    price: region === 'algeria' ? pricing.price_dzd : pricing.price_eur,
+    currency: region === 'algeria' ? 'DZD' : 'EUR',
+    teacher_payout: region === 'algeria' ? pricing.teacher_payout_dzd : pricing.teacher_payout_eur,
+    platform_profit: region === 'algeria' ? pricing.platform_profit_dzd : pricing.platform_profit_eur
+  };
+};
+
+// Legacy constant for backward compatibility
 export const LESSON_PRICING: LessonPricing = {
-  duration_minutes: 30,
-  student_price: 6.00,
-  teacher_payout: 3.00,
-  platform_profit: 3.00
+  duration_minutes: 55,
+  student_price: 15.00,
+  teacher_payout: 7.50,
+  platform_profit: 7.50
 };
 
 // Legacy subscription interface for backward compatibility

@@ -11,6 +11,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { lessonService } from '@/services/lessonService';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useLocationPricing } from '@/hooks/useLocationPricing';
+import { getLessonPricing } from '@/types/pricing';
+import { cn } from '@/lib/utils';
 
 interface Teacher {
   id: string;
@@ -45,6 +48,8 @@ export const BookLesson = () => {
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [selectedDuration, setSelectedDuration] = useState<25 | 55>(55);
+  const { selectedRegion } = useLocationPricing();
+  const currentPricing = getLessonPricing(selectedDuration, selectedRegion);
 
   // Enhanced time slots based on common teaching hours
   const allTimeSlots = [
@@ -398,46 +403,79 @@ export const BookLesson = () => {
                 <Alert>
                   <CheckCircle className="h-4 w-4" />
                   <AlertDescription>
-                    All lessons are 60 minutes long. You'll receive a confirmation email and calendar invite after booking.
+                    Lessons are available in 25-minute or 55-minute sessions. You'll receive a confirmation email and calendar invite after booking.
                   </AlertDescription>
                 </Alert>
 
-                <div className="grid md:grid-cols-2 gap-8">
-                {/* Duration Selection */}
+                {/* Duration Selection with Pricing */}
                 <div className="md:col-span-2 mb-4">
                   <h4 className="font-semibold mb-3 flex items-center gap-2">
                     <Clock className="w-5 h-5 text-purple-600" />
                     Select Lesson Duration
                   </h4>
-                  <div className="flex gap-3">
+                  <div className="grid grid-cols-2 gap-4 mb-4">
                     <Button
                       type="button"
                       variant={selectedDuration === 25 ? "default" : "outline"}
                       onClick={() => setSelectedDuration(25)}
-                      className={`flex-1 h-20 flex flex-col items-center justify-center gap-2 ${
-                        selectedDuration === 25 ? 'bg-gradient-to-br from-blue-500 to-blue-600' : ''
-                      }`}
+                      className={cn(
+                        "h-32 flex flex-col items-center justify-center gap-2 transition-all",
+                        selectedDuration === 25 
+                          ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg" 
+                          : "hover:border-blue-300"
+                      )}
                     >
-                      <Badge variant={selectedDuration === 25 ? "secondary" : "outline"} className="text-xs">
-                        Quick Session
-                      </Badge>
-                      <span className="text-lg font-bold">25 minutes</span>
+                      <Clock className="h-6 w-6" />
+                      <div className="flex flex-col items-center">
+                        <span className="font-bold text-lg">25 minutes</span>
+                        <span className="text-sm opacity-90 mt-1">
+                          {selectedRegion === 'algeria' ? '1,250 DZD' : '€7.50'}
+                        </span>
+                        <Badge variant="secondary" className="mt-1">Quick Session</Badge>
+                      </div>
                     </Button>
+                    
                     <Button
                       type="button"
                       variant={selectedDuration === 55 ? "default" : "outline"}
                       onClick={() => setSelectedDuration(55)}
-                      className={`flex-1 h-20 flex flex-col items-center justify-center gap-2 ${
-                        selectedDuration === 55 ? 'bg-gradient-to-br from-purple-500 to-pink-500' : ''
-                      }`}
+                      className={cn(
+                        "h-32 flex flex-col items-center justify-center gap-2 transition-all",
+                        selectedDuration === 55 
+                          ? "bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-lg" 
+                          : "hover:border-purple-300"
+                      )}
                     >
-                      <Badge variant={selectedDuration === 55 ? "secondary" : "outline"} className="text-xs">
-                        Full Session
-                      </Badge>
-                      <span className="text-lg font-bold">55 minutes</span>
+                      <Clock className="h-6 w-6" />
+                      <div className="flex flex-col items-center">
+                        <span className="font-bold text-lg">55 minutes</span>
+                        <span className="text-sm opacity-90 mt-1">
+                          {selectedRegion === 'algeria' ? '2,500 DZD' : '€15.00'}
+                        </span>
+                        <Badge variant="secondary" className="mt-1">Full Session</Badge>
+                      </div>
                     </Button>
                   </div>
+
+                  {/* Pricing Display */}
+                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
+                    <div>
+                      <p className="text-sm text-gray-600">Lesson Duration</p>
+                      <p className="text-lg font-bold text-gray-900">{selectedDuration} minutes</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-600">Price</p>
+                      <p className="text-lg font-bold text-purple-600">
+                        {currentPricing.currency === 'DZD' 
+                          ? `${currentPricing.price.toLocaleString()} DZD`
+                          : `€${currentPricing.price.toFixed(2)}`
+                        }
+                      </p>
+                    </div>
+                  </div>
                 </div>
+
+                <div className="grid md:grid-cols-2 gap-8">
 
                 {/* Date Selection */}
                 <div>
