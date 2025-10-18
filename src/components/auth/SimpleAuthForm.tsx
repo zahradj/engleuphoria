@@ -249,8 +249,8 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
       setResetLoading(false);
     }
   };
-  const gradientClass = 'from-blue-500 via-purple-500 to-pink-500';
-  const backgroundGradient = 'from-blue-50 via-purple-50 to-pink-50';
+  const gradientClass = 'from-blue-400 via-purple-400 to-pink-400';
+  const backgroundGradient = 'from-blue-50/30 via-purple-50/30 to-pink-50/30';
   return <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-50/40 via-purple-50/40 to-pink-50/40">
       {/* Playful background decorations */}
       <div className="absolute inset-0">
@@ -348,7 +348,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
             <div className={`absolute -inset-2 bg-gradient-to-r ${gradientClass} rounded-3xl blur-lg opacity-20 animate-pulse`}></div>
             
             <div className="relative bg-white/98 backdrop-blur-xl rounded-3xl shadow-inner">
-              <CardHeader className="text-center pb-8 pt-10 bg-gradient-to-b from-blue-50/50 via-purple-50/50 to-pink-50/50">
+              <CardHeader className="text-center pb-8 pt-10 bg-gradient-to-b from-purple-50/30 to-white/50">
                 {/* Fun floating icon */}
                 <div className="flex justify-center mb-8">
                   <div className={`relative w-24 h-24 rounded-full bg-gradient-to-r ${gradientClass} flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-300 animate-bounce`}>
@@ -358,7 +358,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
                   </div>
                 </div>
                 
-                <CardTitle className="text-4xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-4 drop-shadow-sm">
+                <CardTitle className="text-4xl font-black bg-gradient-to-r from-purple-600 to-purple-500 bg-clip-text text-transparent mb-4 drop-shadow-sm">
                   {mode === 'login' ? 'Welcome Back! 🎊' : 'Join the Magic! ✨'}
                 </CardTitle>
                 <CardDescription className="text-purple-600 text-lg font-semibold">
