@@ -7,6 +7,7 @@ import { Zap, Clock, Calendar, Plus } from "lucide-react";
 
 interface QuickSlotCreatorProps {
   selectedDate: Date;
+  selectedDuration: 25 | 55;
   onCreateSlots: (times: string[]) => void;
   isLoading?: boolean;
 }
@@ -19,9 +20,7 @@ const timePresets = {
   "Peak Hours": ["10:00", "11:00", "15:00", "16:00", "18:00", "19:00"]
 };
 
-export const QuickSlotCreator = ({ selectedDate, onCreateSlots, isLoading = false }: QuickSlotCreatorProps) => {
-  // Fixed 30-minute duration
-
+export const QuickSlotCreator = ({ selectedDate, selectedDuration, onCreateSlots, isLoading = false }: QuickSlotCreatorProps) => {
   const handlePresetClick = (preset: string) => {
     const times = timePresets[preset as keyof typeof timePresets];
     if (times) {
@@ -45,8 +44,9 @@ export const QuickSlotCreator = ({ selectedDate, onCreateSlots, isLoading = fals
         {/* Duration Info */}
         <div className="space-y-2">
           <label className="text-sm font-medium">Slot Duration</label>
-          <div className="text-sm text-muted-foreground p-2 border rounded">
-            30 minutes (standard lesson duration)
+          <div className="text-sm text-muted-foreground p-2 border rounded bg-primary/5 flex items-center gap-2">
+            <Clock className="h-4 w-4" />
+            <span><strong>{selectedDuration} minutes</strong> per slot</span>
           </div>
         </div>
 
@@ -77,7 +77,7 @@ export const QuickSlotCreator = ({ selectedDate, onCreateSlots, isLoading = fals
         <div className="pt-2 border-t border-border/50">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Clock className="h-3 w-3" />
-            <span>Creating 30-minute slots for quick booking</span>
+            <span>Creating {selectedDuration}-minute slots for selected time periods</span>
           </div>
         </div>
       </CardContent>

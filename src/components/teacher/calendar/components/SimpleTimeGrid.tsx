@@ -76,7 +76,12 @@ export const SimpleTimeGrid = ({
             <User className="h-3 w-3" />
             Booked
           </div>
-          <div className="text-xs opacity-80">{slot.duration}m</div>
+          <Badge 
+            variant={slot.duration === 55 ? "default" : "secondary"} 
+            className="text-xs mt-1"
+          >
+            {slot.duration}m
+          </Badge>
         </div>
       );
     }
@@ -87,7 +92,12 @@ export const SimpleTimeGrid = ({
           <Clock className="h-3 w-3" />
           Available
         </div>
-        <div className="text-xs opacity-80">{slot.duration}m</div>
+        <Badge 
+          variant={slot.duration === 55 ? "default" : "secondary"} 
+          className="text-xs mt-1"
+        >
+          {slot.duration}m
+        </Badge>
       </div>
     );
   };

@@ -16,7 +16,7 @@ interface SimplifiedTeacherCalendarProps {
 
 export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalendarProps) => {
   const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
-  const selectedDuration: 25 | 55 = 25; // Fixed 25-minute slots
+  const [selectedDuration, setSelectedDuration] = useState<25 | 55>(25);
   const [showQuickCreator, setShowQuickCreator] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showSlotModal, setShowSlotModal] = useState(false);
@@ -86,13 +86,12 @@ export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalend
   };
 
   const handleQuickSlotCreation = (times: string[]) => {
-    const duration: 25 | 55 = 25;
-    createBulkSlots([selectedDate], times, duration);
+    createBulkSlots([selectedDate], times, selectedDuration);
     setShowQuickCreator(false);
   };
 
   const handleCreateSingleSlot = () => {
-    createSlot(selectedDate, selectedTime, 25);
+    createSlot(selectedDate, selectedTime, selectedDuration);
     setShowSlotModal(false);
   };
 
@@ -115,9 +114,23 @@ export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalend
             </div>
             
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Clock className="h-4 w-4" />
-                <span>25-minute slots</span>
+              <div className="flex items-center gap-2 bg-muted rounded-lg p-1">
+                <Button
+                  variant={selectedDuration === 25 ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setSelectedDuration(25)}
+                  className="h-8 px-3"
+                >
+                  25 min
+                </Button>
+                <Button
+                  variant={selectedDuration === 55 ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setSelectedDuration(55)}
+                  className="h-8 px-3"
+                >
+                  55 min
+                </Button>
               </div>
 
               <Button
@@ -172,6 +185,7 @@ export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalend
           </DialogHeader>
           <QuickSlotCreator
             selectedDate={selectedDate}
+            selectedDuration={selectedDuration}
             onCreateSlots={handleQuickSlotCreation}
             isLoading={isActionsLoading}
           />
@@ -191,7 +205,7 @@ export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalend
             </div>
             
             <div className="text-sm text-muted-foreground">
-              <strong>Duration:</strong> 25 minutes
+              <strong>Duration:</strong> {selectedDuration} minutes
             </div>
 
             <div className="flex gap-2">

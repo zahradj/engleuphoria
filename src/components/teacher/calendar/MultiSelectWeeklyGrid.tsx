@@ -29,7 +29,7 @@ interface MultiSelectWeeklyGridProps {
 export const MultiSelectWeeklyGrid = ({ teacherId }: MultiSelectWeeklyGridProps) => {
   const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
   const [weeklySlots, setWeeklySlots] = useState<{ [key: string]: ScheduleSlot[] }>({});
-  const selectedDuration = 30; // Fixed 30-minute slots
+  const [selectedDuration, setSelectedDuration] = useState<25 | 55>(25);
   const [isLoading, setIsLoading] = useState(false);
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
   const [selectedSlots, setSelectedSlots] = useState<string[]>([]);
@@ -457,6 +457,7 @@ export const MultiSelectWeeklyGrid = ({ teacherId }: MultiSelectWeeklyGridProps)
       <BulkAvailabilityActions
         selectedDate={currentWeek}
         selectedSlots={selectedSlots}
+        selectedDuration={selectedDuration}
         onBulkOpen={handleBulkOpen}
         onBulkClose={handleBulkClose}
         onCopyFromPrevious={handleCopyFromPrevious}
