@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { EnhancedContentLibrary } from '@/components/classroom/content/EnhancedContentLibraryV2';
 
-export function AdventuresPage() {
+export default function AdventuresPage() {
   const navigate = useNavigate();
 
   return (

@@ -11,6 +11,8 @@ import { ImprovedProtectedRoute } from "@/components/auth/ImprovedProtectedRoute
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { RoleThemeProvider } from "@/contexts/RoleThemeContext";
 import { AppErrorBoundary } from "@/components/common/AppErrorBoundary";
+import { lazy, Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
@@ -21,11 +23,16 @@ import TeacherSignUp from "./pages/TeacherSignUp";
 import StudentSignUp from "./pages/StudentSignUp";
 import TeacherApplication from "./pages/TeacherApplication";
 import StudentApplication from "./pages/StudentApplication";
-import OneOnOneClassroomNew from "./pages/OneOnOneClassroomNew";
-import ClassroomEntryPage from "./pages/ClassroomEntryPage";
+
+// Lazy load heavy classroom components for better initial load performance
+const OneOnOneClassroomNew = lazy(() => import("./pages/OneOnOneClassroomNew"));
+const ClassroomEntryPage = lazy(() => import("./pages/ClassroomEntryPage"));
+const UnifiedClassroom = lazy(() => import("./pages/UnifiedClassroom"));
+const CurriculumLibrary = lazy(() => import("./pages/curriculum/CurriculumLibrary"));
+const AdventuresPage = lazy(() => import("./pages/AdventuresPage"));
+
 import MediaTestPage from "./pages/MediaTestPage";
 import VideoTestPage from "./pages/VideoTestPage";
-import UnifiedClassroom from "./pages/UnifiedClassroom";
 import { DiscoverTeachers } from "./pages/DiscoverTeachers";
 import { TeacherProfile } from "./pages/TeacherProfile";
 import { BookLesson } from "./pages/BookLesson";
@@ -35,7 +42,6 @@ import SpeakingPractice from "./pages/student/SpeakingPractice";
 import ForParents from "./pages/ForParents";
 import ForTeachers from "./pages/ForTeachers";  
 import AboutUs from "./pages/AboutUs";
-import CurriculumLibrary from "./pages/curriculum/CurriculumLibrary";
 import NewPricingPage from "./pages/NewPricingPage";
 import PlacementTest from "./pages/PlacementTest";
 import PlacementTest2 from "./pages/PlacementTest2";
@@ -44,11 +50,29 @@ import Lesson1GreetingsPage from "./pages/lessons/Lesson1GreetingsPage";
 
 import ClassroomPrejoin from "./pages/ClassroomPrejoin";
 import { SystematicSlidesAdmin } from "./pages/admin/SystematicSlidesAdmin";
-import { AdventuresPage } from "./pages/AdventuresPage";
 import { AssessmentTaker } from "./components/assessment/AssessmentTaker";
 import { AssessmentResults } from "./components/assessment/AssessmentResults";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes  
+      refetchOnWindowFocus: false,
+      retry: 2,
+    },
+  },
+});
+
+const LoadingFallback = () => (
+  <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="text-center space-y-4">
+      <Skeleton className="h-12 w-48 mx-auto" />
+      <Skeleton className="h-4 w-64 mx-auto" />
+      <Skeleton className="h-32 w-full max-w-md mx-auto" />
+    </div>
+  </div>
+);
 
 const NotFoundPage = () => {
   const navigate = useNavigate();
@@ -86,8 +110,16 @@ const App = () => {
               <Route path="/student-application" element={<StudentApplication />} />
               <Route path="/media-test" element={<MediaTestPage />} />
               <Route path="/video-test" element={<VideoTestPage />} />
-              <Route path="/classroom" element={<ClassroomEntryPage />} />
-              <Route path="/classroom-direct" element={<UnifiedClassroom />} />
+              <Route path="/classroom" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <ClassroomEntryPage />
+                </Suspense>
+              } />
+              <Route path="/classroom-direct" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <UnifiedClassroom />
+                </Suspense>
+              } />
               <Route path="/classroom-prejoin" element={<ClassroomPrejoin />} />
               <Route path="/discover-teachers" element={<DiscoverTeachers />} />
               <Route path="/teacher/:teacherId" element={<TeacherProfile />} />
@@ -98,7 +130,11 @@ const App = () => {
               <Route path="/for-parents" element={<ForParents />} />
               <Route path="/for-teachers" element={<ForTeachers />} />
               <Route path="/about" element={<AboutUs />} />
-              <Route path="/curriculum-library" element={<CurriculumLibrary />} />
+              <Route path="/curriculum-library" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <CurriculumLibrary />
+                </Suspense>
+              } />
               
               <Route path="/pricing" element={<NewPricingPage />} />
               <Route path="/placement-test" element={<PlacementTest />} />
@@ -106,7 +142,11 @@ const App = () => {
               <Route path="/lesson-viewer" element={<LessonViewer />} />
               <Route path="/lessons/unit-0/lesson-1" element={<Lesson1GreetingsPage />} />
               <Route path="/admin/systematic-slides" element={<SystematicSlidesAdmin />} />
-              <Route path="/adventures" element={<AdventuresPage />} />
+              <Route path="/adventures" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <AdventuresPage />
+                </Suspense>
+              } />
               
               {/* Assessment Routes */}
               <Route path="/assessment/:assessmentId" element={
@@ -148,7 +188,9 @@ const App = () => {
               
               <Route path="/oneonone-classroom-new" element={
                 <ImprovedProtectedRoute>
-                  <OneOnOneClassroomNew />
+                  <Suspense fallback={<LoadingFallback />}>
+                    <OneOnOneClassroomNew />
+                  </Suspense>
                 </ImprovedProtectedRoute>
               } />
               
