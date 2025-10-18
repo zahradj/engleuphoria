@@ -417,7 +417,7 @@ export const BookLesson = () => {
                         today.setHours(0, 0, 0, 0);
                         return date < today || date.getDay() === 0; // Disable past dates and Sundays
                       }}
-                      className="rounded-lg border-2 border-purple-100 shadow-sm"
+                      className="rounded-lg border-2 border-purple-100 shadow-sm pointer-events-auto"
                     />
                   </div>
 
