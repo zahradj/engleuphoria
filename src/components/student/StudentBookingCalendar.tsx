@@ -47,12 +47,63 @@ export const StudentBookingCalendar = ({
     return Array.from(dates).map(dateStr => new Date(dateStr));
   };
 
-  const handleBooking = (slot: TimeSlot) => {
-    onBookLesson(slot);
-    toast({
-      title: "Lesson Booked!",
-      description: `Your lesson with ${slot.teacherName} is confirmed for ${slot.startTime.toLocaleString()}`,
-    });
+  const handleBooking = async (slot: TimeSlot) => {
+    if (isLoading) return;
+    
+    try {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to book a lesson",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Create the lesson in the database
+      const { data: lesson, error: lessonError } = await supabase
+        .from('lessons')
+        .insert({
+          teacher_id: slot.teacherId,
+          student_id: user.id,
+          scheduled_at: slot.startTime.toISOString(),
+          duration: slot.duration,
+          title: `English Lesson with ${slot.teacherName}`,
+          status: 'scheduled'
+        })
+        .select()
+        .single();
+
+      if (lessonError) throw lessonError;
+
+      // Update the availability slot to mark it as booked
+      const { error: updateError } = await supabase
+        .from('teacher_availability')
+        .update({ 
+          is_booked: true,
+          lesson_id: lesson.id
+        })
+        .eq('id', slot.id);
+
+      if (updateError) throw updateError;
+
+      toast({
+        title: "Lesson Booked!",
+        description: `Your lesson with ${slot.teacherName} is confirmed for ${slot.startTime.toLocaleString()}`,
+      });
+      
+      onBookLesson(slot);
+    } catch (error) {
+      console.error('Error booking lesson:', error);
+      toast({
+        title: "Booking Failed",
+        description: "Failed to book lesson. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const formatTime = (date: Date) => {
