@@ -12,6 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Eye, EyeOff, User, Mail, Lock, CheckCircle, BookOpen } from "lucide-react";
 import { ProgressIndicator } from "@/components/navigation/ProgressIndicator";
 import { BackNavigation } from "@/components/navigation/BackNavigation";
+import { supabase } from "@/integrations/supabase/client";
 
 const formSchema = z.object({
   fullName: z.string().min(2, { message: "Full name must be at least 2 characters" }),
@@ -91,6 +92,21 @@ const StudentSignUp = () => {
         // Store additional student data in localStorage temporarily
         localStorage.setItem('studentAge', values.age.toString());
         localStorage.setItem('studentName', values.fullName);
+
+        // Send admin notification email (non-blocking)
+        supabase.functions.invoke('notify-admin-new-student', {
+          body: {
+            record: {
+              id: data.user.id,
+              email: values.email,
+              full_name: values.fullName,
+              role: 'student'
+            }
+          }
+        }).then(({ error }) => {
+          if (error) console.error('Failed to send admin notification:', error);
+          else console.log('Admin notification sent for new student');
+        });
         
         // Redirect to student application
         navigate("/student-application");

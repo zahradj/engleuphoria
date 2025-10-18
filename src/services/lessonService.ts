@@ -76,6 +76,14 @@ export const lessonService = {
       payment_processed: !!result.payment
     });
 
+    // Send teacher booking notification email (non-blocking)
+    supabase.functions.invoke('notify-teacher-booking', {
+      body: { record: result.lesson }
+    }).then(({ error }) => {
+      if (error) console.error('Failed to send teacher notification:', error);
+      else console.log('Teacher booking notification sent');
+    });
+
     return result.lesson;
   },
 
