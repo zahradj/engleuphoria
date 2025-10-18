@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from '@/components/ui/calendar';
-import { Star, Clock, Globe, ArrowLeft, CheckCircle, Video, Award, BookOpen, AlertCircle } from 'lucide-react';
+import { Star, Clock, Globe, ArrowLeft, CheckCircle, Video, Award, BookOpen, AlertCircle, CalendarIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -381,7 +381,7 @@ export const BookLesson = () => {
               <CardHeader className="border-b bg-gradient-to-r from-purple-50/50 to-pink-50/50">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                    <Calendar className="w-6 h-6 text-white" />
+                    <CalendarIcon className="w-6 h-6 text-white" />
                   </div>
                   <div>
                     <CardTitle className="text-2xl">Schedule Your Lesson</CardTitle>
@@ -404,8 +404,7 @@ export const BookLesson = () => {
                 <div className="grid md:grid-cols-2 gap-8">
                   {/* Date Selection */}
                   <div>
-                    <h4 className="font-semibold mb-4 flex items-center gap-2">
-                      <Calendar className="w-5 h-5 text-purple-600" />
+                    <h4 className="font-semibold mb-4">
                       Choose Date
                     </h4>
                     <Calendar
