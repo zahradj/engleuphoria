@@ -12,6 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Eye, EyeOff, User, Mail, Lock, CheckCircle, GraduationCap } from "lucide-react";
 import { ProgressIndicator } from "@/components/navigation/ProgressIndicator";
 import { BackNavigation } from "@/components/navigation/BackNavigation";
+import { supabase } from "@/integrations/supabase/client";
 
 const formSchema = z.object({
   fullName: z.string().min(2, { message: "Full name must be at least 2 characters" }),
@@ -82,6 +83,20 @@ const TeacherSignUp = () => {
           title: "🎓 Teacher Account Created!",
           description: "Welcome! Please complete your application to start teaching.",
           duration: 5000,
+        });
+        
+        // Send welcome email (non-blocking)
+        supabase.functions.invoke('send-user-emails', {
+          body: {
+            to: values.email,
+            type: 'teacher-welcome',
+            data: {
+              userName: values.fullName,
+              baseUrl: window.location.origin
+            }
+          }
+        }).then(({ error }) => {
+          if (error) console.error('Failed to send welcome email:', error);
         });
         
         // Redirect to teacher application

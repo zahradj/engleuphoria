@@ -93,6 +93,20 @@ const StudentSignUp = () => {
         localStorage.setItem('studentAge', values.age.toString());
         localStorage.setItem('studentName', values.fullName);
 
+        // Send welcome email (non-blocking)
+        supabase.functions.invoke('send-user-emails', {
+          body: {
+            to: values.email,
+            type: 'student-welcome',
+            data: {
+              userName: values.fullName,
+              baseUrl: window.location.origin
+            }
+          }
+        }).then(({ error }) => {
+          if (error) console.error('Failed to send welcome email:', error);
+        });
+
         // Send admin notification email (non-blocking)
         supabase.functions.invoke('notify-admin-new-student', {
           body: {
@@ -105,7 +119,6 @@ const StudentSignUp = () => {
           }
         }).then(({ error }) => {
           if (error) console.error('Failed to send admin notification:', error);
-          else console.log('Admin notification sent for new student');
         });
         
         // Redirect to student application
@@ -129,7 +142,7 @@ const StudentSignUp = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-purple-100 to-purple-200">
       <div className="container mx-auto px-4 py-8">
         <div className="w-full max-w-md mx-auto">
           <BackNavigation to="/signup" label="Back to Sign Up Options" className="mb-4" />
@@ -147,11 +160,11 @@ const StudentSignUp = () => {
           
             <div className="text-center mb-6">
               <div className="flex justify-center mb-4">
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center">
+                <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-purple-500 rounded-full flex items-center justify-center">
                   <BookOpen className="h-8 w-8 text-white" />
                 </div>
               </div>
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-500 bg-clip-text text-transparent">
                 Start Learning English
               </h2>
               <p className="text-muted-foreground">Create your student account and begin your learning journey</p>
@@ -298,7 +311,7 @@ const StudentSignUp = () => {
                 
                 <Button 
                   type="submit" 
-                  className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
+                  className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-700 hover:to-purple-600 transition-all duration-200"
                   disabled={isLoading}
                 >
                   {isLoading ? "Creating Account..." : 'Create Student Account'}
@@ -311,7 +324,7 @@ const StudentSignUp = () => {
                 Already have an account?{" "}
                 <Button 
                   variant="link" 
-                  className="p-0 h-auto font-semibold text-blue-600 hover:text-blue-700" 
+                  className="p-0 h-auto font-semibold text-purple-600 hover:text-purple-700" 
                   onClick={() => navigate('/login')}
                 >
                   Log In

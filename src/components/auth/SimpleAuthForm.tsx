@@ -249,8 +249,8 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
       setResetLoading(false);
     }
   };
-  const gradientClass = mode === 'login' ? 'from-purple-500 via-pink-500 to-orange-500' : formData.role === 'teacher' ? 'from-green-400 via-teal-400 to-blue-400' : 'from-purple-400 via-pink-400 to-orange-400';
-  const backgroundGradient = mode === 'login' ? 'from-purple-100 via-pink-100 to-orange-100' : formData.role === 'teacher' ? 'from-green-100 via-teal-100 to-blue-100' : 'from-purple-100 via-pink-100 to-blue-100';
+  const gradientClass = 'from-purple-600 via-purple-500 to-purple-400';
+  const backgroundGradient = 'from-purple-50 via-purple-100 to-purple-200';
   return <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-50/40 via-purple-50/40 to-pink-50/40">
       {/* Playful background decorations */}
       <div className="absolute inset-0">
@@ -358,7 +358,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
                   </div>
                 </div>
                 
-                <CardTitle className="text-4xl font-black bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 bg-clip-text text-transparent mb-4 drop-shadow-sm">
+                <CardTitle className="text-4xl font-black bg-gradient-to-r from-purple-600 via-purple-500 to-purple-400 bg-clip-text text-transparent mb-4 drop-shadow-sm">
                   {mode === 'login' ? 'Welcome Back! 🎊' : 'Join the Magic! ✨'}
                 </CardTitle>
                 <CardDescription className="text-purple-600 text-lg font-semibold">

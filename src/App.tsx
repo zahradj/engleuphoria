@@ -23,6 +23,8 @@ import TeacherSignUp from "./pages/TeacherSignUp";
 import StudentSignUp from "./pages/StudentSignUp";
 import TeacherApplication from "./pages/TeacherApplication";
 import StudentApplication from "./pages/StudentApplication";
+import EmailVerification from "./pages/EmailVerification";
+import ResetPassword from "./pages/ResetPassword";
 
 // Lazy load heavy classroom components for better initial load performance
 const OneOnOneClassroomNew = lazy(() => import("./pages/OneOnOneClassroomNew"));
@@ -108,6 +110,8 @@ const App = () => {
               <Route path="/student-signup" element={<StudentSignUp />} />
               <Route path="/teacher-application" element={<TeacherApplication />} />
               <Route path="/student-application" element={<StudentApplication />} />
+              <Route path="/email-verification" element={<EmailVerification />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/media-test" element={<MediaTestPage />} />
               <Route path="/video-test" element={<VideoTestPage />} />
               <Route path="/classroom" element={
