@@ -18,6 +18,7 @@ interface UseClassroomActionsProps {
   session: ClassroomSession | null;
   setSession: (session: ClassroomSession | null) => void;
   updateParticipants: () => void;
+  localStream?: MediaStream | null;
 }
 
 export function useClassroomActions({
@@ -29,7 +30,8 @@ export function useClassroomActions({
   userId,
   session,
   setSession,
-  updateParticipants
+  updateParticipants,
+  localStream
 }: UseClassroomActionsProps) {
   const { toast } = useToast();
 
@@ -41,6 +43,12 @@ export function useClassroomActions({
 
     try {
       console.log('🚀 Joining room...');
+      
+      // Configure RealTimeVideoService with room details and local stream
+      if ('setRoomConfig' in videoService && localStream) {
+        videoService.setRoomConfig(roomId, userId, localStream);
+      }
+      
       await videoService.joinRoom();
       updateParticipants();
       
@@ -59,7 +67,7 @@ export function useClassroomActions({
       });
       return false;
     }
-  }, [videoService, updateParticipants, toast]);
+  }, [videoService, roomId, userId, localStream, updateParticipants, toast]);
 
   const leaveRoom = useCallback(async () => {
     if (!videoService) {

@@ -37,6 +37,13 @@ export function useEnhancedMediaControls({
       setMediaError(null);
       console.log('📹 Local media stream initialized');
       
+      // Configure WebRTC service with room and stream
+      if (videoService && 'setRoomConfig' in videoService) {
+        // For RealTimeVideoService, we need to provide room configuration
+        // This will be done by the parent component when joining
+        console.log('📹 WebRTC service ready for configuration');
+      }
+      
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to access media devices';
       setMediaError(errorMessage);

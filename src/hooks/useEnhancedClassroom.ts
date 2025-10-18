@@ -71,7 +71,8 @@ export function useEnhancedClassroom({
     userId,
     session,
     setSession,
-    updateParticipants
+    updateParticipants,
+    localStream
   });
 
   return {
