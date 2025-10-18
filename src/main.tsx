@@ -4,13 +4,18 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import i18n from '@/lib/i18n';
-import { clearAllCaches } from '@/utils/productionCleanup';
+import { clearAllCaches, optimizeForProduction } from '@/utils/productionCleanup';
 import { clearInsecureRoleStorage } from '@/utils/roleValidation';
-import { optimizeForProduction } from '@/utils/productionCleanup';
+import { productionMonitor } from '@/utils/productionMonitor';
 
 // Optimize for production environment
 if (import.meta.env.PROD) {
   optimizeForProduction();
+}
+
+// Initialize performance monitoring
+if (typeof window !== 'undefined') {
+  console.log('📊 Production monitoring initialized. Use productionMonitor.getReport() in console.');
 }
 
 // Clear stale caches on app start

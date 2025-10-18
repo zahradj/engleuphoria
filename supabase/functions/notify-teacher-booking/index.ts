@@ -41,8 +41,8 @@ serve(async (req) => {
         scheduled_at,
         duration,
         room_link,
-        users!lessons_teacher_id_fkey(email, full_name),
-        users!lessons_student_id_fkey(full_name)
+        teacher:users!lessons_teacher_id_fkey(email, full_name),
+        student:users!lessons_student_id_fkey(full_name)
       `)
       .eq('id', lessonId)
       .single();
@@ -51,9 +51,9 @@ serve(async (req) => {
       throw new Error(`Failed to fetch lesson: ${lessonError?.message}`);
     }
 
-    const teacherEmail = lesson.users.email;
-    const teacherName = lesson.users.full_name;
-    const studentName = lesson.users.full_name;
+    const teacherEmail = lesson.teacher.email;
+    const teacherName = lesson.teacher.full_name;
+    const studentName = lesson.student.full_name;
     const scheduledDate = new Date(lesson.scheduled_at);
 
     const formattedDate = scheduledDate.toLocaleDateString("en-US", {

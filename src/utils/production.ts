@@ -1,7 +1,7 @@
 // Production utilities to replace development-only code
 
-export const isDevelopment = process.env.NODE_ENV === 'development';
-export const isProduction = process.env.NODE_ENV === 'production';
+export const isDevelopment = import.meta.env.DEV;
+export const isProduction = import.meta.env.PROD;
 
 // Safe console logging that only works in development
 export const devLog = {
