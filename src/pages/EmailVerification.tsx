@@ -81,7 +81,7 @@ const EmailVerification = () => {
   const content = getStatusContent();
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-purple-50/40 via-purple-100/30 to-purple-50/40">
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-gray-50 via-purple-50/20 to-gray-50">
       {/* Background decorations */}
       <div className="absolute inset-0">
         <div className="absolute top-20 left-20 w-80 h-80 bg-gradient-to-r from-purple-300/15 to-purple-400/15 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
@@ -94,7 +94,7 @@ const EmailVerification = () => {
             <div className="flex justify-center mb-4">
               {content.icon}
             </div>
-            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-purple-500 bg-clip-text text-transparent">
+            <CardTitle className="text-3xl font-bold text-gray-800">
               {content.title}
             </CardTitle>
           </CardHeader>
@@ -107,7 +107,7 @@ const EmailVerification = () => {
             {content.buttonText && content.buttonAction && (
               <Button 
                 onClick={content.buttonAction}
-                className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 transition-all duration-200"
+                className="w-full h-12 text-lg font-semibold bg-purple-500/90 hover:bg-purple-600/90 transition-all duration-200"
               >
                 {content.buttonText}
                 <ArrowRight className="ml-2 h-5 w-5" />

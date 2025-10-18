@@ -27,14 +27,14 @@ const AnimatedLogo: React.FC<AnimatedLogoProps> = ({ size = 'md', className = ''
         ease: "easeInOut"
       }}
     >
-      {/* Subtle purple bubble background */}
+      {/* Minimal purple bubble background */}
       <motion.div
-        className={`${sizeClasses[size]} rounded-full bg-gradient-to-br from-purple-500 to-purple-600 shadow-lg flex items-center justify-center`}
+        className={`${sizeClasses[size]} rounded-full bg-purple-500/80 shadow-md flex items-center justify-center`}
         animate={{
           boxShadow: [
-            "0 4px 20px rgba(147, 51, 234, 0.2)",
-            "0 8px 30px rgba(147, 51, 234, 0.3)",
-            "0 4px 20px rgba(147, 51, 234, 0.2)"
+            "0 4px 20px rgba(147, 51, 234, 0.15)",
+            "0 8px 30px rgba(147, 51, 234, 0.2)",
+            "0 4px 20px rgba(147, 51, 234, 0.15)"
           ]
         }}
         transition={{
@@ -51,12 +51,12 @@ const AnimatedLogo: React.FC<AnimatedLogoProps> = ({ size = 'md', className = ''
         />
       </motion.div>
       
-      {/* Subtle pulse effect */}
+      {/* Very subtle pulse effect */}
       <motion.div
-        className={`absolute inset-0 ${sizeClasses[size]} rounded-full bg-purple-400 opacity-20`}
+        className={`absolute inset-0 ${sizeClasses[size]} rounded-full bg-purple-400 opacity-10`}
         animate={{
           scale: [1, 1.2, 1],
-          opacity: [0.2, 0.05, 0.2]
+          opacity: [0.1, 0.02, 0.1]
         }}
         transition={{
           duration: 2,

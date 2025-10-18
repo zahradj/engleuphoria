@@ -142,7 +142,7 @@ const StudentSignUp = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50/50 via-purple-100/40 to-purple-50/50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-gray-50">
       <div className="container mx-auto px-4 py-8">
         <div className="w-full max-w-md mx-auto">
           <BackNavigation to="/signup" label="Back to Sign Up Options" className="mb-4" />
@@ -160,11 +160,11 @@ const StudentSignUp = () => {
           
             <div className="text-center mb-6">
               <div className="flex justify-center mb-4">
-                <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
+                <div className="w-16 h-16 bg-gradient-to-r from-purple-500/80 to-purple-600/80 rounded-full flex items-center justify-center">
                   <BookOpen className="h-8 w-8 text-white" />
                 </div>
               </div>
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-purple-500 bg-clip-text text-transparent">
+              <h2 className="text-2xl font-bold text-gray-800">
                 Start Learning English
               </h2>
               <p className="text-muted-foreground">Create your student account and begin your learning journey</p>
@@ -311,7 +311,7 @@ const StudentSignUp = () => {
                 
                 <Button 
                   type="submit" 
-                  className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 transition-all duration-200"
+                  className="w-full h-12 text-lg font-semibold bg-purple-500/90 hover:bg-purple-600/90 transition-all duration-200"
                   disabled={isLoading}
                 >
                   {isLoading ? "Creating Account..." : 'Create Student Account'}
