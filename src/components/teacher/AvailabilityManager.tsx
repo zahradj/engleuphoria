@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TeacherAvailability } from "./TeacherAvailability";
 import { SimplifiedTeacherCalendar } from "./calendar/SimplifiedTeacherCalendar";
 
 interface AvailabilityManagerProps {
@@ -10,10 +12,21 @@ export const AvailabilityManager = ({ teacherId }: AvailabilityManagerProps) => 
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-bold text-gray-800">Availability Management</h2>
-        <p className="text-gray-600">Easily manage your teaching schedule. Click slots to add/remove availability.</p>
+        <p className="text-gray-600">Create and manage your teaching schedule with ease.</p>
       </div>
       
-      <SimplifiedTeacherCalendar teacherId={teacherId} />
+      <Tabs defaultValue="create" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="create">Create Availability</TabsTrigger>
+          <TabsTrigger value="calendar">Calendar View</TabsTrigger>
+        </TabsList>
+        <TabsContent value="create">
+          <TeacherAvailability teacherId={teacherId} />
+        </TabsContent>
+        <TabsContent value="calendar">
+          <SimplifiedTeacherCalendar teacherId={teacherId} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
