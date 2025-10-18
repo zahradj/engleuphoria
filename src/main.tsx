@@ -6,6 +6,12 @@ import './index.css'
 import i18n from '@/lib/i18n';
 import { clearAllCaches } from '@/utils/productionCleanup';
 import { clearInsecureRoleStorage } from '@/utils/roleValidation';
+import { optimizeForProduction } from '@/utils/productionCleanup';
+
+// Optimize for production environment
+if (import.meta.env.PROD) {
+  optimizeForProduction();
+}
 
 // Clear stale caches on app start
 const CACHE_VERSION = 'v4';
