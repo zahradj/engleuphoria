@@ -14,11 +14,11 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = () => {
   const [selectedLesson, setSelectedLesson] = useState<any>(null);
 
   const handleStartLesson = (lessonData: any) => {
-    // Format lesson data for the viewer (store full LessonSlides object for compatibility)
+    // Format lesson data for the viewer (pass slides array, not the full object)
     const formattedLesson = {
       lessonId: lessonData.metadata?.lesson || 1,
       title: lessonData.metadata?.title || lessonData.metadata?.targets?.[0] || 'Lesson',
-      slides: lessonData // Pass the full object so the viewer can detect version and schema
+      slides: lessonData.slides // Pass the slides array directly
     };
 
     // Reset and store in localStorage, then open viewer in new tab

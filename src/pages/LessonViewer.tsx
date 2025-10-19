@@ -16,16 +16,35 @@ export default function LessonViewer() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Get lesson data from localStorage
+    // Get lesson data from localStorage and normalize shape
     const storedLesson = localStorage.getItem('currentLesson');
     if (storedLesson) {
       try {
         const lesson = JSON.parse(storedLesson);
-        // Validate lesson data structure
-        if (lesson && lesson.lessonId && lesson.title && lesson.slides) {
-          setLessonData(lesson);
+
+        // Normalize slides: accept Array, full LessonSlides object, or slides_content
+        let normalizedSlides: any = null;
+        const s = lesson?.slides;
+        if (Array.isArray(s)) {
+          normalizedSlides = s;
+        } else if (s && typeof s === 'object' && (Array.isArray(s.slides) || s.version)) {
+          normalizedSlides = s; // Full LessonSlides object
+        } else if (lesson?.slides_content && Array.isArray(lesson.slides_content.slides)) {
+          normalizedSlides = lesson.slides_content;
+        }
+
+        if (lesson && (lesson.lessonId || lesson.id) && lesson.title && normalizedSlides) {
+          const normalizedLesson: LessonData = {
+            lessonId: lesson.lessonId || lesson.id,
+            title: lesson.title,
+            slides: normalizedSlides,
+          };
+
+          // Persist normalized shape for consistency
+          localStorage.setItem('currentLesson', JSON.stringify(normalizedLesson));
+          setLessonData(normalizedLesson);
         } else {
-          console.error('Invalid lesson data structure');
+          console.error('Invalid lesson data structure', { lesson });
         }
       } catch (error) {
         console.error('Error parsing lesson data:', error);
