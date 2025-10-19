@@ -16,18 +16,24 @@ import vocabNice from '@/assets/lessons/unit-0-lesson-1-ultra/vocab-nice-animate
 import handWave from '@/assets/lessons/unit-0-lesson-1-ultra/animated-hand-wave.png';
 
 export const lesson0_1_ultraInteractive: LessonSlides = {
-  id: 'lesson-0-1-ultra',
-  unitId: 'unit-0',
-  title: 'My Name Is ___. Nice to Meet You! (Ultra Interactive)',
-  duration: 30,
+  version: '2.0',
   theme: 'default',
-  cefrLevel: 'Pre-A1',
-  learningTargets: [
-    'Greet people using Hello, Hi, and Goodbye',
-    'Introduce yourself using "My name is..."',
-    'Respond to introductions with "Nice to meet you"',
-    'Use basic pronouns I and You in context'
-  ],
+  durationMin: 30,
+  metadata: {
+    CEFR: 'Pre-A1',
+    module: 0,
+    lesson: 1,
+    targets: [
+      'Greet people using Hello, Hi, and Goodbye',
+      'Introduce yourself using "My name is..."',
+      'Respond to introductions with "Nice to meet you"',
+      'Use basic pronouns I and You in context'
+    ],
+    weights: {
+      accuracy: 0.6,
+      fluency: 0.4
+    }
+  },
   slides: [
     // PRESENTATION PHASE (Slides 1-9)
     {
@@ -67,11 +73,6 @@ export const lesson0_1_ultraInteractive: LessonSlides = {
         url: vocabHello,
         alt: 'Hello word with sun character'
       },
-      tprAction: {
-        action: 'wave',
-        description: 'Wave your hand to say hello',
-        visual: handWave
-      },
       audio: { url: '/audio/hello.mp3', text: 'Hello' },
       vocabulary: ['hello'],
       xpReward: 5,
@@ -86,11 +87,6 @@ export const lesson0_1_ultraInteractive: LessonSlides = {
         type: 'image',
         url: vocabHi,
         alt: 'Hi word with waving hands'
-      },
-      tprAction: {
-        action: 'wave_both',
-        description: 'Wave both hands energetically',
-        visual: handWave
       },
       audio: { url: '/audio/hi.mp3', text: 'Hi' },
       vocabulary: ['hi'],
@@ -107,11 +103,6 @@ export const lesson0_1_ultraInteractive: LessonSlides = {
         url: vocabGoodbye,
         alt: 'Goodbye word with waving hand'
       },
-      tprAction: {
-        action: 'wave_goodbye',
-        description: 'Wave your hand to say goodbye',
-        visual: handWave
-      },
       audio: { url: '/audio/goodbye.mp3', text: 'Goodbye' },
       vocabulary: ['goodbye'],
       xpReward: 5,
@@ -126,10 +117,6 @@ export const lesson0_1_ultraInteractive: LessonSlides = {
         type: 'image',
         url: vocabName,
         alt: 'Name word with name tag'
-      },
-      tprAction: {
-        action: 'point_name',
-        description: 'Point to yourself when saying your name'
       },
       audio: { url: '/audio/name.mp3', text: 'Name' },
       vocabulary: ['name'],
@@ -146,10 +133,6 @@ export const lesson0_1_ultraInteractive: LessonSlides = {
         url: vocabNice,
         alt: 'Nice word with thumbs up'
       },
-      tprAction: {
-        action: 'thumbs_up',
-        description: 'Show thumbs up for nice'
-      },
       audio: { url: '/audio/nice.mp3', text: 'Nice' },
       vocabulary: ['nice'],
       xpReward: 5,
@@ -159,13 +142,12 @@ export const lesson0_1_ultraInteractive: LessonSlides = {
       id: 'slide-8',
       type: 'target_language',
       prompt: 'My name is...',
-      instructions: 'This is how we introduce ourselves!',
+      instructions: 'This is how we introduce ourselves! Pattern: My name is ___.',
       media: {
         type: 'image',
         url: teacherAvatar,
         alt: 'Teacher showing introduction pattern'
       },
-      targetLanguage: 'My name is ___.',
       audio: { url: '/audio/pattern-intro.mp3', text: 'My name is' },
       xpReward: 10,
       tags: ['pattern', 'introduction']
@@ -174,8 +156,7 @@ export const lesson0_1_ultraInteractive: LessonSlides = {
       id: 'slide-9',
       type: 'target_language',
       prompt: 'Nice to meet you!',
-      instructions: 'This is what we say when meeting someone',
-      targetLanguage: 'Nice to meet you!',
+      instructions: 'This is what we say when meeting someone. Response: Nice to meet you!',
       audio: { url: '/audio/nice-to-meet.mp3', text: 'Nice to meet you!' },
       xpReward: 10,
       tags: ['pattern', 'response']
@@ -356,7 +337,6 @@ export const lesson0_1_ultraInteractive: LessonSlides = {
       id: 'slide-19',
       type: 'communicative_task',
       prompt: 'Free Conversation Practice',
-      instructions: 'Introduce yourself to everyone in the class!',
       instructions: 'Walk around and greet 3 classmates using everything you learned',
       xpReward: 30,
       tags: ['production', 'speaking', 'fluency']
@@ -368,7 +348,6 @@ export const lesson0_1_ultraInteractive: LessonSlides = {
       type: 'review_consolidation',
       prompt: 'Vocabulary Review',
       instructions: 'Let\'s review all the words we learned!',
-      instructions: 'Click each word to review!',
       xpReward: 15,
       tags: ['review', 'vocabulary']
     },
