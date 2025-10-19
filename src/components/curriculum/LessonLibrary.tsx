@@ -86,26 +86,26 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = () => {
                       <Badge className="bg-purple-500/10 text-purple-600 border-purple-500/20">🎮 Gamified</Badge>
                       <Badge className="bg-green-500/10 text-green-600 border-green-500/20">🎯 Interactive</Badge>
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">🌟 English Adventure: Greetings & Introductions</h3>
+                    <h3 className="text-lg font-semibold mb-2">🎮 Ultra-Interactive: Greetings & Introductions</h3>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Join Anna, Tom, Max, and Lily in a fun English adventure! Learn greetings with games, colorful characters, and interactive activities. 25 slides of pure joy!
+                      Experience the ULTIMATE interactive English lesson! Features beautiful Gemini-generated images, bubble pop games, character animations, and PPP methodology. NovaKid-inspired teaching!
                     </p>
                     
                     <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground mb-4">
                       <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        <span>{lesson0_1_enhanced.durationMin} minutes</span>
+                        <span>{lesson0_1_ultraInteractive.durationMin} minutes</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Target className="h-3 w-3" />
-                        <span>{lesson0_1_enhanced.total_slides} slides | 270 XP</span>
+                        <span>21 slides | 350 XP</span>
                       </div>
                     </div>
 
                     <div className="mb-4">
                       <p className="text-xs font-medium text-muted-foreground mb-2">🎯 What You'll Learn:</p>
                       <ul className="text-xs text-muted-foreground space-y-1">
-                        {lesson0_1_enhanced.metadata.targets.slice(0, 3).map((target, index) => (
+                        {lesson0_1_ultraInteractive.metadata.targets.slice(0, 3).map((target, index) => (
                           <li key={index} className="flex items-center gap-1">
                             <span className="w-1 h-1 bg-primary rounded-full"></span>
                             {target}
@@ -113,14 +113,14 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = () => {
                         ))}
                       </ul>
                       <p className="text-xs text-muted-foreground mt-2 italic">
-                        ✨ Features: Memory games, bubble pop, drag & drop, word rain + more!
+                        ✨ Features: Bubble pop, character intros, celebration screens, Gemini images!
                       </p>
                     </div>
                   </div>
                 </div>
                 
                 <Button 
-                  onClick={() => handleStartLesson(lesson0_1_enhanced)} 
+                  onClick={() => handleStartLesson(lesson0_1_ultraInteractive)} 
                   className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
                   size="lg"
                 >
