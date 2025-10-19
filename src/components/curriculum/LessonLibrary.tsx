@@ -92,18 +92,18 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = () => {
                     <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground mb-4">
                       <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        <span>{lesson0_1.durationMin} minutes</span>
+                        <span>{lesson0_1_new.durationMin} minutes</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Target className="h-3 w-3" />
-                        <span>{lesson0_1.total_slides} slides</span>
+                        <span>{lesson0_1_new.total_slides} slides</span>
                       </div>
                     </div>
 
                     <div className="mb-4">
                       <p className="text-xs font-medium text-muted-foreground mb-2">Learning Objectives:</p>
                       <ul className="text-xs text-muted-foreground space-y-1">
-                        {lesson0_1.metadata.targets.map((target, index) => (
+                        {lesson0_1_new.metadata.targets.map((target, index) => (
                           <li key={index} className="flex items-center gap-1">
                             <span className="w-1 h-1 bg-primary rounded-full"></span>
                             {target}
@@ -115,7 +115,7 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = () => {
                 </div>
                 
                 <Button 
-                  onClick={() => handleStartLesson(lesson0_1)} 
+                  onClick={() => handleStartLesson(lesson0_1_new)} 
                   className="w-full"
                   size="lg"
                 >

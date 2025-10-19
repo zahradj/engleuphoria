@@ -59,13 +59,13 @@ export default function LessonViewer() {
 
       // Final fallback: load the built-in Unit 0 Lesson 1 so teachers can demo immediately
       try {
-        const mod = await import('@/data/curriculum/unit-0/lesson-1');
-        const lesson0_1 = (mod as any).lesson0_1;
-        if (lesson0_1) {
+        const mod = await import('@/data/curriculum/unit-0/lesson-1-new');
+        const lesson0_1_new = (mod as any).lesson0_1_new;
+        if (lesson0_1_new) {
           const fallback: LessonData = {
             lessonId: 'unit-0-lesson-1',
             title: 'My name is ____. Nice to meet you!',
-            slides: lesson0_1, // Full LessonSlides object
+            slides: lesson0_1_new, // Full LessonSlides object
           };
           localStorage.setItem('currentLesson', JSON.stringify(fallback));
           setLessonData(fallback);
@@ -88,6 +88,23 @@ export default function LessonViewer() {
     navigate('/teacher');
   };
 
+  const handleLoadNew = async () => {
+    try {
+      const mod = await import('@/data/curriculum/unit-0/lesson-1-new');
+      const lesson0_1_new = (mod as any).lesson0_1_new;
+      if (lesson0_1_new) {
+        const updated: LessonData = {
+          lessonId: 'unit-0-lesson-1',
+          title: 'My name is ____. Nice to meet you!',
+          slides: lesson0_1_new,
+        };
+        localStorage.setItem('currentLesson', JSON.stringify(updated));
+        setLessonData(updated);
+      }
+    } catch (e) {
+      console.error('Failed to reload new lesson:', e);
+    }
+  };
   if (!lessonData) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -118,6 +135,9 @@ export default function LessonViewer() {
           <Button variant="outline" size="sm" onClick={handleBack}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Library
+          </Button>
+          <Button variant="secondary" size="sm" onClick={handleLoadNew}>
+            Load New Lesson
           </Button>
           <div>
             <h1 className="text-xl font-semibold">{lessonData.title}</h1>
