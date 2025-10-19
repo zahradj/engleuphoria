@@ -57,15 +57,15 @@ export default function LessonViewer() {
         }
       }
 
-      // Final fallback: load the built-in Unit 0 Lesson 1 so teachers can demo immediately
+      // Final fallback: load the enhanced lesson so teachers can demo immediately
       try {
-        const mod = await import('@/data/curriculum/unit-0/lesson-1-new');
-        const lesson0_1_new = (mod as any).lesson0_1_new;
-        if (lesson0_1_new) {
+        const mod = await import('@/data/curriculum/unit-0/lesson-1-enhanced');
+        const lesson0_1_enhanced = (mod as any).lesson0_1_enhanced;
+        if (lesson0_1_enhanced) {
           const fallback: LessonData = {
-            lessonId: 'unit-0-lesson-1',
-            title: 'My name is ____. Nice to meet you!',
-            slides: lesson0_1_new, // Full LessonSlides object
+            lessonId: 'unit-0-lesson-1-enhanced',
+            title: '🌟 English Adventure: Greetings & Introductions',
+            slides: lesson0_1_enhanced, // Full LessonSlides object
           };
           localStorage.setItem('currentLesson', JSON.stringify(fallback));
           setLessonData(fallback);
@@ -88,21 +88,21 @@ export default function LessonViewer() {
     navigate('/teacher');
   };
 
-  const handleLoadNew = async () => {
+  const handleLoadEnhanced = async () => {
     try {
-      const mod = await import('@/data/curriculum/unit-0/lesson-1-new');
-      const lesson0_1_new = (mod as any).lesson0_1_new;
-      if (lesson0_1_new) {
+      const mod = await import('@/data/curriculum/unit-0/lesson-1-enhanced');
+      const lesson0_1_enhanced = (mod as any).lesson0_1_enhanced;
+      if (lesson0_1_enhanced) {
         const updated: LessonData = {
-          lessonId: 'unit-0-lesson-1',
-          title: 'My name is ____. Nice to meet you!',
-          slides: lesson0_1_new,
+          lessonId: 'unit-0-lesson-1-enhanced',
+          title: '🌟 English Adventure: Greetings & Introductions',
+          slides: lesson0_1_enhanced,
         };
         localStorage.setItem('currentLesson', JSON.stringify(updated));
         setLessonData(updated);
       }
     } catch (e) {
-      console.error('Failed to reload new lesson:', e);
+      console.error('Failed to reload enhanced lesson:', e);
     }
   };
   if (!lessonData) {
@@ -136,8 +136,8 @@ export default function LessonViewer() {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Library
           </Button>
-          <Button variant="secondary" size="sm" onClick={handleLoadNew}>
-            Load New Lesson
+          <Button variant="secondary" size="sm" onClick={handleLoadEnhanced} className="bg-gradient-to-r from-primary/10 to-purple-500/10">
+            🎮 Reload Enhanced Lesson
           </Button>
           <div>
             <h1 className="text-xl font-semibold">{lessonData.title}</h1>

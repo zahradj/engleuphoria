@@ -7,6 +7,7 @@ import { LessonPlayer } from '@/components/lessons/LessonPlayer';
 import { lesson1_1 } from '@/data/curriculum/starters/module1/lesson1';
 import { lesson0_1 } from '@/data/curriculum/unit-0/lesson-1';
 import { lesson0_1_new } from '@/data/curriculum/unit-0/lesson-1-new';
+import { lesson0_1_enhanced } from '@/data/curriculum/unit-0/lesson-1-enhanced';
 
 interface LessonLibraryProps {}
 
@@ -84,43 +85,46 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = () => {
                       <Badge className="bg-purple-500/10 text-purple-600 border-purple-500/20">🎮 Gamified</Badge>
                       <Badge className="bg-green-500/10 text-green-600 border-green-500/20">🎯 Interactive</Badge>
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">My name is ____. Nice to meet you!</h3>
+                    <h3 className="text-lg font-semibold mb-2">🌟 English Adventure: Greetings & Introductions</h3>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Learn basic greetings like "Hello", "Hi", "Goodbye" and introduce yourself with "My name is...". Features fun characters like SpongeBob and Spider-Man!
+                      Join Anna, Tom, Max, and Lily in a fun English adventure! Learn greetings with games, colorful characters, and interactive activities. 25 slides of pure joy!
                     </p>
                     
                     <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground mb-4">
                       <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        <span>{lesson0_1_new.durationMin} minutes</span>
+                        <span>{lesson0_1_enhanced.durationMin} minutes</span>
                       </div>
                       <div className="flex items-center gap-1">
                         <Target className="h-3 w-3" />
-                        <span>{lesson0_1_new.total_slides} slides</span>
+                        <span>{lesson0_1_enhanced.total_slides} slides | 270 XP</span>
                       </div>
                     </div>
 
                     <div className="mb-4">
-                      <p className="text-xs font-medium text-muted-foreground mb-2">Learning Objectives:</p>
+                      <p className="text-xs font-medium text-muted-foreground mb-2">🎯 What You'll Learn:</p>
                       <ul className="text-xs text-muted-foreground space-y-1">
-                        {lesson0_1_new.metadata.targets.map((target, index) => (
+                        {lesson0_1_enhanced.metadata.targets.slice(0, 3).map((target, index) => (
                           <li key={index} className="flex items-center gap-1">
                             <span className="w-1 h-1 bg-primary rounded-full"></span>
                             {target}
                           </li>
                         ))}
                       </ul>
+                      <p className="text-xs text-muted-foreground mt-2 italic">
+                        ✨ Features: Memory games, bubble pop, drag & drop, word rain + more!
+                      </p>
                     </div>
                   </div>
                 </div>
                 
                 <Button 
-                  onClick={() => handleStartLesson(lesson0_1_new)} 
-                  className="w-full"
+                  onClick={() => handleStartLesson(lesson0_1_enhanced)} 
+                  className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90"
                   size="lg"
                 >
                   <Play className="h-4 w-4 mr-2" />
-                  Start Lesson
+                  🚀 Start Adventure!
                 </Button>
               </CardContent>
             </Card>
