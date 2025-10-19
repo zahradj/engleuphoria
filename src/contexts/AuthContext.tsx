@@ -53,7 +53,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const createFallbackUser = async (authUser: any): Promise<User> => {
     let role = 'student'; // Default role
     
-    // SECURITY: Get role from user_roles table (server-side validation)
+    // SECURITY: Get role ONLY from user_roles table (prevents privilege escalation)
+    // Never fallback to users.role column as it has been removed for security
     try {
       const { data: userRole } = await supabase
         .from('user_roles')
@@ -65,17 +66,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         role = userRole.role;
         console.log('🔒 Retrieved role from user_roles table:', role);
       } else {
-        // Fallback to users table if user_roles doesn't have an entry
-        const { data: dbUser } = await supabase
-          .from('users')
-          .select('role')
-          .eq('id', authUser.id)
-          .maybeSingle();
-        
-        if (dbUser?.role) {
-          role = dbUser.role;
-          console.log('🔒 Retrieved role from users table:', role);
-        }
+        console.warn('⚠️ No role found in user_roles table, defaulting to student');
       }
     } catch (error) {
       console.warn('Could not fetch role from database:', error);
