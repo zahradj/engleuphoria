@@ -14,8 +14,16 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = () => {
   const [selectedLesson, setSelectedLesson] = useState<any>(null);
 
   const handleStartLesson = (lessonData: any) => {
-    setSelectedLesson(lessonData);
-    setShowLocalLesson(true);
+    // Format lesson data for the viewer
+    const formattedLesson = {
+      lessonId: lessonData.metadata?.lesson || 1,
+      title: lessonData.metadata?.title || lessonData.metadata?.targets?.[0] || 'Lesson',
+      slides: lessonData.slides
+    };
+    
+    // Store in localStorage and open in new tab
+    localStorage.setItem('currentLesson', JSON.stringify(formattedLesson));
+    window.open('/lesson-viewer', '_blank');
   };
 
   if (showLocalLesson && selectedLesson) {
