@@ -95,3 +95,6 @@ verify_jwt = false
 
 [functions.ai-character-voices]
 verify_jwt = false
+
+[functions.ai-game-lesson-generator]
+verify_jwt = false
