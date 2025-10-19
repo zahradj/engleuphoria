@@ -57,22 +57,38 @@ export default function LessonViewer() {
         }
       }
 
-      // Final fallback: load the enhanced lesson so teachers can demo immediately
+      // Final fallback: try ultra-interactive first, then enhanced
       try {
-        const mod = await import('@/data/curriculum/unit-0/lesson-1-enhanced');
-        const lesson0_1_enhanced = (mod as any).lesson0_1_enhanced;
-        if (lesson0_1_enhanced) {
+        const mod = await import('@/data/curriculum/unit-0/lesson-1-ultra-interactive');
+        const lesson0_1_ultraInteractive = (mod as any).lesson0_1_ultraInteractive;
+        if (lesson0_1_ultraInteractive) {
           const fallback: LessonData = {
-            lessonId: 'unit-0-lesson-1-enhanced',
-            title: '🌟 English Adventure: Greetings & Introductions',
-            slides: lesson0_1_enhanced, // Full LessonSlides object
+            lessonId: 'lesson-0-1-ultra',
+            title: '🎮 Ultra-Interactive: Greetings & Introductions',
+            slides: lesson0_1_ultraInteractive, // Full LessonSlides object
           };
           localStorage.setItem('currentLesson', JSON.stringify(fallback));
           setLessonData(fallback);
           return;
         }
       } catch (e) {
-        console.error('Failed to load fallback lesson:', e);
+        console.error('Failed to load ultra-interactive lesson, trying enhanced:', e);
+        try {
+          const mod = await import('@/data/curriculum/unit-0/lesson-1-enhanced');
+          const lesson0_1_enhanced = (mod as any).lesson0_1_enhanced;
+          if (lesson0_1_enhanced) {
+            const fallback: LessonData = {
+              lessonId: 'unit-0-lesson-1-enhanced',
+              title: '🌟 English Adventure: Greetings & Introductions',
+              slides: lesson0_1_enhanced,
+            };
+            localStorage.setItem('currentLesson', JSON.stringify(fallback));
+            setLessonData(fallback);
+            return;
+          }
+        } catch (e2) {
+          console.error('Failed to load fallback lesson:', e2);
+        }
       }
 
       console.error('Invalid or missing lesson data');
@@ -103,6 +119,24 @@ export default function LessonViewer() {
       }
     } catch (e) {
       console.error('Failed to reload enhanced lesson:', e);
+    }
+  };
+
+  const handleLoadUltra = async () => {
+    try {
+      const mod = await import('@/data/curriculum/unit-0/lesson-1-ultra-interactive');
+      const lesson0_1_ultraInteractive = (mod as any).lesson0_1_ultraInteractive;
+      if (lesson0_1_ultraInteractive) {
+        const updated: LessonData = {
+          lessonId: 'lesson-0-1-ultra',
+          title: '🎮 Ultra-Interactive: Greetings & Introductions',
+          slides: lesson0_1_ultraInteractive,
+        };
+        localStorage.setItem('currentLesson', JSON.stringify(updated));
+        setLessonData(updated);
+      }
+    } catch (e) {
+      console.error('Failed to reload ultra-interactive lesson:', e);
     }
   };
   if (!lessonData) {
@@ -136,8 +170,11 @@ export default function LessonViewer() {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Library
           </Button>
-          <Button variant="secondary" size="sm" onClick={handleLoadEnhanced} className="bg-gradient-to-r from-primary/10 to-purple-500/10">
-            🎮 Reload Enhanced Lesson
+          <Button variant="default" size="sm" onClick={handleLoadUltra} className="bg-gradient-to-r from-primary to-purple-600">
+            🎮 Load Ultra-Interactive
+          </Button>
+          <Button variant="secondary" size="sm" onClick={handleLoadEnhanced}>
+            Load Enhanced
           </Button>
           <div>
             <h1 className="text-xl font-semibold">{lessonData.title}</h1>

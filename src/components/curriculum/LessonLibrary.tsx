@@ -17,11 +17,11 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = () => {
   const [selectedLesson, setSelectedLesson] = useState<any>(null);
 
   const handleStartLesson = (lessonData: any) => {
-    // Format lesson data for the viewer (pass slides array, not the full object)
+    // Format lesson data for the viewer - store the entire v2.0 lesson object
     const formattedLesson = {
-      lessonId: lessonData.metadata?.lesson || 1,
-      title: lessonData.metadata?.title || lessonData.metadata?.targets?.[0] || 'Lesson',
-      slides: lessonData.slides // Pass the slides array directly
+      lessonId: 'lesson-0-1-ultra',
+      title: '🎮 Ultra-Interactive: Greetings & Introductions',
+      slides: lessonData // Store the entire v2.0 lesson object
     };
 
     // Reset and store in localStorage, then open viewer in new tab
@@ -98,7 +98,7 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = () => {
                       </div>
                       <div className="flex items-center gap-1">
                         <Target className="h-3 w-3" />
-                        <span>21 slides | 350 XP</span>
+                        <span>{lesson0_1_ultraInteractive.slides.length} slides | 350 XP</span>
                       </div>
                     </div>
 

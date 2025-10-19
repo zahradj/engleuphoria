@@ -73,7 +73,7 @@ export const lesson0_1_ultraInteractive: LessonSlides = {
         url: vocabHello,
         alt: 'Hello word with sun character'
       },
-      audio: { url: '/audio/hello.mp3', text: 'Hello' },
+      audio: { text: 'Hello', autoGenerate: true },
       vocabulary: ['hello'],
       xpReward: 5,
       tags: ['vocabulary', 'tpr', 'greeting']
@@ -88,7 +88,7 @@ export const lesson0_1_ultraInteractive: LessonSlides = {
         url: vocabHi,
         alt: 'Hi word with waving hands'
       },
-      audio: { url: '/audio/hi.mp3', text: 'Hi' },
+      audio: { text: 'Hi', autoGenerate: true },
       vocabulary: ['hi'],
       xpReward: 5,
       tags: ['vocabulary', 'tpr', 'greeting']
@@ -103,7 +103,7 @@ export const lesson0_1_ultraInteractive: LessonSlides = {
         url: vocabGoodbye,
         alt: 'Goodbye word with waving hand'
       },
-      audio: { url: '/audio/goodbye.mp3', text: 'Goodbye' },
+      audio: { text: 'Goodbye', autoGenerate: true },
       vocabulary: ['goodbye'],
       xpReward: 5,
       tags: ['vocabulary', 'tpr', 'farewell']
@@ -118,7 +118,7 @@ export const lesson0_1_ultraInteractive: LessonSlides = {
         url: vocabName,
         alt: 'Name word with name tag'
       },
-      audio: { url: '/audio/name.mp3', text: 'Name' },
+      audio: { text: 'Name', autoGenerate: true },
       vocabulary: ['name'],
       xpReward: 5,
       tags: ['vocabulary', 'tpr', 'identity']
@@ -133,10 +133,40 @@ export const lesson0_1_ultraInteractive: LessonSlides = {
         url: vocabNice,
         alt: 'Nice word with thumbs up'
       },
-      audio: { url: '/audio/nice.mp3', text: 'Nice' },
+      audio: { text: 'Nice', autoGenerate: true },
       vocabulary: ['nice'],
       xpReward: 5,
       tags: ['vocabulary', 'tpr', 'emotion']
+    },
+    {
+      id: 'slide-7a',
+      type: 'vocabulary_preview',
+      prompt: 'Letter A – /æ/',
+      instructions: 'Say the sound: /æ/ like in "apple" 🍎',
+      media: {
+        type: 'image',
+        url: vocabHello,
+        alt: 'Letter A with apple'
+      },
+      audio: { text: 'a', autoGenerate: true },
+      vocabulary: ['a'],
+      xpReward: 5,
+      tags: ['vocabulary', 'phonics', 'letters']
+    },
+    {
+      id: 'slide-7b',
+      type: 'vocabulary_preview',
+      prompt: 'Letter B – /b/',
+      instructions: 'Say the sound: /b/ like in "ball" ⚽',
+      media: {
+        type: 'image',
+        url: vocabHi,
+        alt: 'Letter B with ball'
+      },
+      audio: { text: 'b', autoGenerate: true },
+      vocabulary: ['b'],
+      xpReward: 5,
+      tags: ['vocabulary', 'phonics', 'letters']
     },
     {
       id: 'slide-8',
