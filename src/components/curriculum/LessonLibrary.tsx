@@ -14,18 +14,22 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = () => {
   const [selectedLesson, setSelectedLesson] = useState<any>(null);
 
   const handleStartLesson = (lessonData: any) => {
-    // Format lesson data for the viewer
+    // Format lesson data for the viewer (store full LessonSlides object for compatibility)
     const formattedLesson = {
       lessonId: lessonData.metadata?.lesson || 1,
       title: lessonData.metadata?.title || lessonData.metadata?.targets?.[0] || 'Lesson',
-      slides: lessonData.slides
+      slides: lessonData // Pass the full object so the viewer can detect version and schema
     };
-    
-    // Store in localStorage and open in new tab
-    localStorage.setItem('currentLesson', JSON.stringify(formattedLesson));
-    window.open('/lesson-viewer', '_blank');
-  };
 
+    // Reset and store in localStorage, then open viewer in new tab
+    try {
+      localStorage.removeItem('currentLesson');
+      localStorage.setItem('currentLesson', JSON.stringify(formattedLesson));
+      window.open('/lesson-viewer', '_blank');
+    } catch (err) {
+      console.error('Failed to open lesson viewer:', err);
+    }
+  };
   if (showLocalLesson && selectedLesson) {
     return (
       <LessonPlayer 
