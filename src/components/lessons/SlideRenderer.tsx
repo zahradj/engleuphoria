@@ -15,6 +15,7 @@ import { PictureChoiceSlide } from './slides/PictureChoiceSlide';
 import { ClozeSlide } from './slides/ClozeSlide';
 import { ControlledPracticeSlide } from './slides/ControlledPracticeSlide';
 import { ExitCheckSlide } from './slides/ExitCheckSlide';
+import { AudioPlayer } from '@/components/slides/media/AudioPlayer';
 
 interface SlideRendererProps {
   slide: Slide;
@@ -75,6 +76,11 @@ export function SlideRenderer({ slide, onComplete, onNext }: SlideRendererProps)
   return (
     <div className="w-full h-full">
       {renderSlide()}
+      {slide.audio && (
+        <div className="container mx-auto px-4 mt-6 flex justify-center">
+          <AudioPlayer audio={slide.audio} />
+        </div>
+      )}
     </div>
   );
 }

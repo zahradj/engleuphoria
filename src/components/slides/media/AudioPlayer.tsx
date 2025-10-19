@@ -16,6 +16,7 @@ export function AudioPlayer({ audio, className, autoPlay = false }: AudioPlayerP
   const [isGenerating, setIsGenerating] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -24,25 +25,26 @@ export function AudioPlayer({ audio, className, autoPlay = false }: AudioPlayerP
     }
   }, [audio]);
 
-  useEffect(() => {
-    if (audioUrl && autoPlay && audioRef.current) {
+useEffect(() => {
+  if (autoPlay) {
+    if (audioUrl && audioRef.current) {
       audioRef.current.play();
       setIsPlaying(true);
+    } else if (!audioUrl && audio?.text) {
+      speak();
     }
-  }, [audioUrl, autoPlay]);
+  }
+// eslint-disable-next-line react-hooks/exhaustive-deps
+}, [audioUrl, autoPlay]);
 
   const generateAudio = async () => {
     if (!audio?.text) return;
-    
     setIsGenerating(true);
-    
     try {
       const { data, error } = await supabase.functions.invoke('text-to-speech', {
         body: { text: audio.text }
       });
-
       if (error) throw error;
-
       if (data?.audioContent) {
         const audioDataUrl = `data:audio/mp3;base64,${data.audioContent}`;
         setAudioUrl(audioDataUrl);
@@ -51,7 +53,7 @@ export function AudioPlayer({ audio, className, autoPlay = false }: AudioPlayerP
       console.error('Failed to generate audio:', err);
       toast({
         title: 'Audio generation failed',
-        description: 'Could not generate audio for this slide.',
+        description: 'Could not generate audio for this slide. Using device voice instead.',
         variant: 'destructive'
       });
     } finally {
@@ -59,17 +61,59 @@ export function AudioPlayer({ audio, className, autoPlay = false }: AudioPlayerP
     }
   };
 
-  const togglePlay = () => {
-    if (!audioRef.current) return;
+  const speak = () => {
+    if (!audio?.text) return;
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      toast({
+        title: 'Audio not available',
+        description: 'Text-to-speech is not supported in this browser.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+    const utter = new SpeechSynthesisUtterance(audio.text);
+    utter.onend = () => setIsPlaying(false);
+    utter.onerror = () => setIsPlaying(false);
+    utteranceRef.current = utter;
+    window.speechSynthesis.speak(utter);
+    setIsPlaying(true);
+  };
 
-    if (isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      audioRef.current.play();
-      setIsPlaying(true);
+  const stopSpeech = () => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+    utteranceRef.current = null;
+    setIsPlaying(false);
+  };
+
+  const togglePlay = () => {
+    if (audioUrl && audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        audioRef.current.play();
+        setIsPlaying(true);
+      }
+      return;
+    }
+    if (audio?.text) {
+      if (isPlaying) {
+        stopSpeech();
+      } else {
+        speak();
+      }
     }
   };
+
+  useEffect(() => {
+    return () => {
+      stopSpeech();
+    };
+  }, []);
 
   if (!audio) return null;
 
@@ -87,7 +131,7 @@ export function AudioPlayer({ audio, className, autoPlay = false }: AudioPlayerP
 
       <Button
         onClick={togglePlay}
-        disabled={isGenerating || !audioUrl}
+        disabled={isGenerating || !(audioUrl || audio?.text)}
         variant="outline"
         size="lg"
         className="gap-2"
