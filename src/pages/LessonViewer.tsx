@@ -16,40 +16,70 @@ export default function LessonViewer() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Get lesson data from localStorage and normalize shape
-    const storedLesson = localStorage.getItem('currentLesson');
-    if (storedLesson) {
-      try {
-        const lesson = JSON.parse(storedLesson);
+    const loadLesson = async () => {
+      // Try primary key
+      let stored = localStorage.getItem('currentLesson');
 
-        // Normalize slides: accept Array, full LessonSlides object, or slides_content
-        let normalizedSlides: any = null;
-        const s = lesson?.slides;
-        if (Array.isArray(s)) {
-          normalizedSlides = s;
-        } else if (s && typeof s === 'object' && (Array.isArray(s.slides) || s.version)) {
-          normalizedSlides = s; // Full LessonSlides object
-        } else if (lesson?.slides_content && Array.isArray(lesson.slides_content.slides)) {
-          normalizedSlides = lesson.slides_content;
-        }
-
-        if (lesson && (lesson.lessonId || lesson.id) && lesson.title && normalizedSlides) {
-          const normalizedLesson: LessonData = {
-            lessonId: lesson.lessonId || lesson.id,
-            title: lesson.title,
-            slides: normalizedSlides,
-          };
-
-          // Persist normalized shape for consistency
-          localStorage.setItem('currentLesson', JSON.stringify(normalizedLesson));
-          setLessonData(normalizedLesson);
-        } else {
-          console.error('Invalid lesson data structure', { lesson });
-        }
-      } catch (error) {
-        console.error('Error parsing lesson data:', error);
+      // Fallback to alternate key used elsewhere in the app
+      if (!stored) {
+        stored = localStorage.getItem('currentLessonContent');
       }
-    }
+
+      if (stored) {
+        try {
+          const lesson = JSON.parse(stored);
+
+          // Normalize slides: accept Array, full LessonSlides object, or slides_content
+          let normalizedSlides: any = null;
+          const s = lesson?.slides;
+          if (Array.isArray(s)) {
+            normalizedSlides = s;
+          } else if (s && typeof s === 'object' && (Array.isArray(s.slides) || s.version)) {
+            normalizedSlides = s; // Full LessonSlides object
+          } else if (lesson?.slides_content && Array.isArray(lesson.slides_content.slides)) {
+            normalizedSlides = lesson.slides_content;
+          }
+
+          if (lesson && (lesson.lessonId || lesson.id) && lesson.title && normalizedSlides) {
+            const normalizedLesson: LessonData = {
+              lessonId: lesson.lessonId || lesson.id,
+              title: lesson.title,
+              slides: normalizedSlides,
+            };
+
+            // Persist normalized shape for consistency
+            localStorage.setItem('currentLesson', JSON.stringify(normalizedLesson));
+            setLessonData(normalizedLesson);
+            return;
+          }
+        } catch (error) {
+          console.error('Error parsing lesson data:', error);
+        }
+      }
+
+      // Final fallback: load the built-in Unit 0 Lesson 1 so teachers can demo immediately
+      try {
+        const mod = await import('@/data/curriculum/unit-0/lesson-1');
+        const lesson0_1 = (mod as any).lesson0_1;
+        if (lesson0_1) {
+          const fallback: LessonData = {
+            lessonId: 'unit-0-lesson-1',
+            title: 'My name is ____. Nice to meet you!',
+            slides: lesson0_1, // Full LessonSlides object
+          };
+          localStorage.setItem('currentLesson', JSON.stringify(fallback));
+          setLessonData(fallback);
+          return;
+        }
+      } catch (e) {
+        console.error('Failed to load fallback lesson:', e);
+      }
+
+      console.error('Invalid or missing lesson data');
+    };
+
+    // Invoke loader
+    loadLesson();
   }, []);
 
   const handleBack = () => {
