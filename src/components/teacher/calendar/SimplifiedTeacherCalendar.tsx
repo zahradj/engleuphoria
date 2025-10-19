@@ -48,7 +48,11 @@ export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalend
 
   const weekDays = getWeekDays(currentWeek);
   const { weeklySlots, isLoading, reloadSlots } = useCalendarData(teacherId, weekDays);
-  const { createSlot, deleteSlot, createBulkSlots, isLoading: isActionsLoading } = useSlotActions(teacherId, reloadSlots);
+  const { createSlot, deleteSlot, createBulkSlots, copyWeekSlots, isLoading: isActionsLoading } = useSlotActions(teacherId, reloadSlots);
+
+  // Calculate slot count summary
+  const availableSlotCount = Object.values(weeklySlots).flat().filter(slot => slot.isAvailable && !slot.studentId).length;
+  const bookedSlotCount = Object.values(weeklySlots).flat().filter(slot => slot.studentId).length;
 
   const navigateWeek = (direction: 'prev' | 'next') => {
     const newWeek = new Date(currentWeek);
@@ -95,6 +99,12 @@ export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalend
     setShowSlotModal(false);
   };
 
+  const handleCopyWeek = () => {
+    const nextWeek = new Date(currentWeek);
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    copyWeekSlots(weekDays, nextWeek);
+  };
+
   return (
     <div className="space-y-6">
       {/* Instruction */}
@@ -108,9 +118,21 @@ export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalend
         <CardContent className="p-6">
           {/* Header */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-            <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-muted-foreground" />
-              <h2 className="text-xl font-semibold">Availability Calendar</h2>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-muted-foreground" />
+                <h2 className="text-xl font-semibold">Availability Calendar</h2>
+              </div>
+              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full bg-success" />
+                  {availableSlotCount} available
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="h-2 w-2 rounded-full bg-destructive" />
+                  {bookedSlotCount} booked
+                </span>
+              </div>
             </div>
             
             <div className="flex items-center gap-4">
@@ -143,6 +165,17 @@ export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalend
               >
                 <Plus className="h-4 w-4" />
                 Quick Creator
+              </Button>
+
+              <Button
+                variant="outline"
+                onClick={handleCopyWeek}
+                disabled={isActionsLoading || availableSlotCount === 0}
+                className="flex items-center gap-2"
+                title="Copy this week's available slots to next week"
+              >
+                <Calendar className="h-4 w-4" />
+                Copy Week
               </Button>
 
               <div className="flex items-center gap-2">
