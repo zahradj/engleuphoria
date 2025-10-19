@@ -8,6 +8,7 @@ import { lesson1_1 } from '@/data/curriculum/starters/module1/lesson1';
 import { lesson0_1 } from '@/data/curriculum/unit-0/lesson-1';
 import { lesson0_1_new } from '@/data/curriculum/unit-0/lesson-1-new';
 import { lesson0_1_enhanced } from '@/data/curriculum/unit-0/lesson-1-enhanced';
+import { lesson0_1_ultraInteractive } from '@/data/curriculum/unit-0/lesson-1-ultra-interactive';
 
 interface LessonLibraryProps {}
 

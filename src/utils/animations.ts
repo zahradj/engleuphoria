@@ -1,4 +1,33 @@
-// Animation utilities with motion preference support
+// Animation utilities with motion preference support and enhanced animations
+
+export const slideTransitions = {
+  fadeIn: {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -20 },
+    transition: { duration: 0.5, ease: 'easeOut' }
+  },
+  scaleIn: {
+    initial: { scale: 0.8, opacity: 0 },
+    animate: { scale: 1, opacity: 1 },
+    exit: { scale: 0.8, opacity: 0 },
+    transition: { duration: 0.3, ease: 'easeOut' }
+  },
+  slideRight: {
+    initial: { x: -100, opacity: 0 },
+    animate: { x: 0, opacity: 1 },
+    exit: { x: 100, opacity: 0 },
+    transition: { duration: 0.4, ease: 'easeOut' }
+  },
+  bounce: {
+    animate: { y: [0, -10, 0] },
+    transition: { duration: 2, repeat: Infinity, ease: 'easeInOut' }
+  },
+  pulse: {
+    animate: { scale: [1, 1.05, 1] },
+    transition: { duration: 1.5, repeat: Infinity, ease: 'easeInOut' }
+  }
+};
 
 export const getAnimationClass = (animationClass: string) => {
   // Check if user prefers reduced motion

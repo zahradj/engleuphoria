@@ -15,6 +15,9 @@ import { PictureChoiceSlide } from './slides/PictureChoiceSlide';
 import { ClozeSlide } from './slides/ClozeSlide';
 import { ControlledPracticeSlide } from './slides/ControlledPracticeSlide';
 import { ExitCheckSlide } from './slides/ExitCheckSlide';
+import { BubblePopSlide } from './slides/BubblePopSlide';
+import { CharacterIntroSlide } from './slides/CharacterIntroSlide';
+import { CelebrationSlide } from './slides/CelebrationSlide';
 import { AudioPlayer } from '@/components/slides/media/AudioPlayer';
 
 interface SlideRendererProps {
@@ -56,6 +59,14 @@ export function SlideRenderer({ slide, onComplete, onNext }: SlideRendererProps)
         return <ControlledPracticeSlide slide={slide} onComplete={onComplete} onNext={onNext} />;
       case 'exit_check':
         return <ExitCheckSlide slide={slide} onComplete={onComplete} onNext={onNext} />;
+      case 'bubble_pop':
+        return <BubblePopSlide slide={slide} onComplete={onComplete} onNext={onNext} />;
+      case 'character_introduction':
+        return <CharacterIntroSlide slide={slide} onComplete={onComplete} onNext={onNext} />;
+      case 'celebration':
+        return <CelebrationSlide slide={slide} onComplete={onComplete} onNext={onNext} />;
+      case 'spinning_wheel':
+        return <FastMatchSlide slide={slide} onComplete={onComplete} onNext={onNext} />;
       default:
         return (
           <div className="p-8 text-center">

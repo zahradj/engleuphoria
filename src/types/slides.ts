@@ -133,6 +133,9 @@ export type SlideType =
   | 'word_rain'
   | 'bubble_pop'
   | 'treasure_hunt'
+  | 'spinning_wheel'
+  | 'character_introduction'
+  | 'celebration'
   // Quiz Types
   | 'quiz_match_pairs'
   | 'quiz_multiple_choice'
