@@ -6,6 +6,7 @@ import { BookOpen, Play, Clock, Target } from 'lucide-react';
 import { LessonPlayer } from '@/components/lessons/LessonPlayer';
 import { lesson1_1 } from '@/data/curriculum/starters/module1/lesson1';
 import { lesson0_1 } from '@/data/curriculum/unit-0/lesson-1';
+import { lesson0_1_new } from '@/data/curriculum/unit-0/lesson-1-new';
 
 interface LessonLibraryProps {}
 
