@@ -1,5 +1,5 @@
 export interface GameLessonSlide {
-  slide_type: 'text_input' | 'feelings_match' | 'listen_repeat' | 'character_introduction' | 'celebration' | 'vocabulary_preview' | 'picture_choice' | 'pronunciation_shadow';
+  slide_type: 'text_input' | 'feelings_match' | 'listen_repeat' | 'character_introduction' | 'celebration' | 'vocabulary_preview' | 'picture_choice' | 'pronunciation_shadow' | 'quiz';
   prompt?: string;
   instructions?: string;
   phrases?: string[];
@@ -13,6 +13,9 @@ export interface GameLessonSlide {
   finalScore?: boolean;
   nextLesson?: string;
   onNameSubmit?: (name: string) => void;
+  // Quiz specific
+  options?: string[];
+  correctAnswer?: string;
 }
 
 export interface GameLessonData {

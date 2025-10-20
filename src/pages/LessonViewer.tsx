@@ -158,6 +158,24 @@ export default function LessonViewer() {
     }
   };
 
+  const handleLoadGreetingsEnhanced = async () => {
+    try {
+      const mod = await import('@/data/curriculum/unit-0/lesson-1-greetings-enhanced');
+      const lesson1GreetingsEnhanced = (mod as any).lesson1GreetingsEnhanced;
+      if (lesson1GreetingsEnhanced) {
+        const updated: LessonData = {
+          lessonId: 'unit-0-lesson-1-greetings',
+          title: '👋 Complete Greetings Lesson: Hello! My Name is...',
+          slides: lesson1GreetingsEnhanced,
+        };
+        localStorage.setItem('currentLesson', JSON.stringify(updated));
+        setLessonData(updated);
+      }
+    } catch (e) {
+      console.error('Failed to load greetings enhanced lesson:', e);
+    }
+  };
+
   const handleLoadNumbers = async () => {
     try {
       const mod = await import('@/data/curriculum/unit-0/lesson-2-numbers');
@@ -314,8 +332,11 @@ export default function LessonViewer() {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Library
           </Button>
-          <Button variant="default" size="sm" onClick={handleLoadGameIntro} className="bg-gradient-to-r from-green-500 to-blue-500">
-            🎮 Greetings
+          <Button variant="default" size="sm" onClick={handleLoadGreetingsEnhanced} className="bg-gradient-to-r from-green-500 to-blue-500">
+            👋 Greetings (Full)
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleLoadGameIntro}>
+            🎮 Greetings (Quick)
           </Button>
           <Button variant="default" size="sm" onClick={handleLoadNumbers} className="bg-gradient-to-r from-purple-500 to-pink-500">
             🔢 Numbers
