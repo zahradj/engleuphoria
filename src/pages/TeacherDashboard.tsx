@@ -21,13 +21,9 @@ import { ProfileCompleteGuard } from "@/components/teacher/ProfileCompleteGuard"
 import { WithdrawalsTab } from "@/components/teacher/WithdrawalsTab";
 import { QuickActions } from "@/components/navigation/QuickActions";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-import { DailyRoutinesSlides } from "@/components/classroom/lesson-slides/DailyRoutinesSlides";
-import { PlacementTestLibrary } from "@/components/classroom/content/PlacementTestLibrary";
-import { LibraryTab } from "@/components/teacher/dashboard/LibraryTab";
-import { ResourcesTab } from "@/components/teacher/ResourcesTab";
 import { AssessmentsManagementTab } from "@/components/teacher/tabs/AssessmentsManagementTab";
 
-type TabType = 'dashboard' | 'profile' | 'assessments' | 'library' | 'calendar' | 'students' | 'reading-library' | 'history' | 'assignments' | 'resources' | 'messages' | 'earnings' | 'withdrawals' | 'reports' | 'settings' | 'slides' | 'placement-test';
+type TabType = 'dashboard' | 'profile' | 'assessments' | 'calendar' | 'students' | 'reading-library' | 'history' | 'assignments' | 'messages' | 'earnings' | 'withdrawals' | 'reports' | 'settings';
 
 const TeacherDashboard = () => {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
@@ -69,7 +65,7 @@ const TeacherDashboard = () => {
           return <TeacherDashboardContent 
             lessonPlans={[]}
             handlers={{
-              handleCreateLessonPlan: () => setActiveTab('resources'),
+              handleCreateLessonPlan: () => setActiveTab('calendar'),
               handleScheduleClass: () => setActiveTab('calendar'),
               handleViewProgress: () => setActiveTab('reports'),
               handleStartScheduledClass: (className: string) => {
@@ -78,8 +74,8 @@ const TeacherDashboard = () => {
               handleViewClassDetails: (className: string) => {
                 setActiveTab('calendar');
               },
-              handleUploadMaterial: () => setActiveTab('resources'),
-              handleViewLessonPlan: (planId: string) => setActiveTab('resources'),
+              handleUploadMaterial: () => setActiveTab('calendar'),
+              handleViewLessonPlan: (planId: string) => setActiveTab('calendar'),
               handleUseMaterial: (materialName: string) => {
                 window.open(`/classroom/teacher?material=${encodeURIComponent(materialName)}`, '_blank');
               },
@@ -92,12 +88,6 @@ const TeacherDashboard = () => {
           return <ProfileSetupTab teacherId={teacherId} />;
         case 'assessments':
           return <AssessmentsManagementTab />;
-        case 'library':
-          return <LibraryTab />;
-        case 'slides':
-          return <DailyRoutinesSlides />;
-        case 'placement-test':
-          return <PlacementTestLibrary />;
         case 'calendar':
           return <EnhancedCalendarTab teacherId={teacherId} />;
         case 'students':
@@ -108,8 +98,6 @@ const TeacherDashboard = () => {
           return <LessonHistoryTab />;
         case 'assignments':
           return <AssignmentsTab />;
-        case 'resources':
-          return <ResourcesTab />;
         case 'messages':
           return <MessagesTab />;
         case 'earnings':
@@ -124,7 +112,7 @@ const TeacherDashboard = () => {
           return <TeacherDashboardContent 
             lessonPlans={[]}
             handlers={{
-              handleCreateLessonPlan: () => setActiveTab('resources'),
+              handleCreateLessonPlan: () => setActiveTab('calendar'),
               handleScheduleClass: () => setActiveTab('calendar'),
               handleViewProgress: () => setActiveTab('reports'),
               handleStartScheduledClass: (className: string) => {
@@ -133,8 +121,8 @@ const TeacherDashboard = () => {
               handleViewClassDetails: (className: string) => {
                 setActiveTab('calendar');
               },
-              handleUploadMaterial: () => setActiveTab('resources'),
-              handleViewLessonPlan: (planId: string) => setActiveTab('resources'),
+              handleUploadMaterial: () => setActiveTab('calendar'),
+              handleViewLessonPlan: (planId: string) => setActiveTab('calendar'),
               handleUseMaterial: (materialName: string) => {
                 window.open(`/classroom/teacher?material=${encodeURIComponent(materialName)}`, '_blank');
               },

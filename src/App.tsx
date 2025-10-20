@@ -18,7 +18,6 @@ import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import StudentDashboard from "./pages/StudentDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
-import AdminDashboard from "./pages/AdminDashboard";
 import TeacherSignUp from "./pages/TeacherSignUp";
 import StudentSignUp from "./pages/StudentSignUp";
 import TeacherApplication from "./pages/TeacherApplication";
@@ -29,8 +28,6 @@ import ResetPassword from "./pages/ResetPassword";
 // Lazy load heavy classroom components for better initial load performance
 const OneOnOneClassroomNew = lazy(() => import("./pages/OneOnOneClassroomNew"));
 const ClassroomEntryPage = lazy(() => import("./pages/ClassroomEntryPage"));
-const UnifiedClassroom = lazy(() => import("./pages/UnifiedClassroom"));
-const CurriculumLibrary = lazy(() => import("./pages/curriculum/CurriculumLibrary"));
 const AdventuresPage = lazy(() => import("./pages/AdventuresPage"));
 
 import MediaTestPage from "./pages/MediaTestPage";
@@ -46,8 +43,6 @@ import ForTeachers from "./pages/ForTeachers";
 import AboutUs from "./pages/AboutUs";
 import NewPricingPage from "./pages/NewPricingPage";
 import PlacementTest from "./pages/PlacementTest";
-import PlacementTest2 from "./pages/PlacementTest2";
-import LessonViewer from "./pages/LessonViewer";
 import Lesson1GreetingsPage from "./pages/lessons/Lesson1GreetingsPage";
 
 import ClassroomPrejoin from "./pages/ClassroomPrejoin";
@@ -119,11 +114,6 @@ const App = () => {
                   <ClassroomEntryPage />
                 </Suspense>
               } />
-              <Route path="/classroom-direct" element={
-                <Suspense fallback={<LoadingFallback />}>
-                  <UnifiedClassroom />
-                </Suspense>
-              } />
               <Route path="/classroom-prejoin" element={<ClassroomPrejoin />} />
               <Route path="/discover-teachers" element={<DiscoverTeachers />} />
               <Route path="/teacher/:teacherId" element={<TeacherProfile />} />
@@ -134,16 +124,8 @@ const App = () => {
               <Route path="/for-parents" element={<ForParents />} />
               <Route path="/for-teachers" element={<ForTeachers />} />
               <Route path="/about" element={<AboutUs />} />
-              <Route path="/curriculum-library" element={
-                <Suspense fallback={<LoadingFallback />}>
-                  <CurriculumLibrary />
-                </Suspense>
-              } />
-              
               <Route path="/pricing" element={<NewPricingPage />} />
               <Route path="/placement-test" element={<PlacementTest />} />
-              <Route path="/placement-test-2" element={<PlacementTest2 />} />
-              <Route path="/lesson-viewer" element={<LessonViewer />} />
               <Route path="/lessons/unit-0/lesson-1" element={<Lesson1GreetingsPage />} />
               <Route path="/admin/systematic-slides" element={<SystematicSlidesAdmin />} />
               <Route path="/adventures" element={
@@ -179,7 +161,9 @@ const App = () => {
               
               <Route path="/admin" element={
                 <ImprovedProtectedRoute requiredRole="admin">
-                  <AdminDashboard />
+                  <div className="min-h-screen flex items-center justify-center">
+                    <p className="text-muted-foreground">Admin dashboard coming soon</p>
+                  </div>
                 </ImprovedProtectedRoute>
               } />
               
