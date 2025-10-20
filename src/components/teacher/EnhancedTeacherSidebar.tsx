@@ -28,7 +28,7 @@ export const EnhancedTeacherSidebar = ({
     icon: User,
     type: 'tab'
   }, {
-    id: 'library',
+    id: 'english-journey',
     label: 'Library',
     icon: BookOpen,
     type: 'tab'
