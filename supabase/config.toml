@@ -101,3 +101,9 @@ verify_jwt = false
 
 [functions.ai-game-lesson-generator]
 verify_jwt = false
+
+[functions.generate-lesson-image]
+verify_jwt = false
+
+[functions.generate-lesson-audio]
+verify_jwt = false
