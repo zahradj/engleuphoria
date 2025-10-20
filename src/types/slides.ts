@@ -150,6 +150,9 @@ export type SlideType =
   | 'text_input'
   | 'feelings_match'
   | 'listen_repeat'
+  | 'memory_cards'
+  | 'whack_a_mole'
+  | 'typing_race'
   // Quiz Types
   | 'quiz_match_pairs'
   | 'quiz_multiple_choice'

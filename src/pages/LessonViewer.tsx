@@ -193,6 +193,96 @@ export default function LessonViewer() {
       console.error('Failed to load colors lesson:', e);
     }
   };
+
+  const handleLoadLesson4 = async () => {
+    try {
+      const mod = await import('@/data/curriculum/unit-0/lesson-4-colors');
+      const lesson4Colors = (mod as any).lesson4Colors;
+      if (lesson4Colors) {
+        const updated: LessonData = {
+          lessonId: 'unit-0-lesson-4',
+          title: '🎨 Colors Adventure: Rainbow Island',
+          slides: lesson4Colors,
+        };
+        localStorage.setItem('currentLesson', JSON.stringify(updated));
+        setLessonData(updated);
+      }
+    } catch (e) {
+      console.error('Failed to load lesson 4:', e);
+    }
+  };
+
+  const handleLoadLesson5 = async () => {
+    try {
+      const mod = await import('@/data/curriculum/unit-0/lesson-5-family');
+      const lesson5Family = (mod as any).lesson5Family;
+      if (lesson5Family) {
+        const updated: LessonData = {
+          lessonId: 'unit-0-lesson-5',
+          title: '👨‍👩‍👧‍👦 Family: Photo Album Story',
+          slides: lesson5Family,
+        };
+        localStorage.setItem('currentLesson', JSON.stringify(updated));
+        setLessonData(updated);
+      }
+    } catch (e) {
+      console.error('Failed to load lesson 5:', e);
+    }
+  };
+
+  const handleLoadLesson6 = async () => {
+    try {
+      const mod = await import('@/data/curriculum/unit-0/lesson-6-animals');
+      const lesson6Animals = (mod as any).lesson6Animals;
+      if (lesson6Animals) {
+        const updated: LessonData = {
+          lessonId: 'unit-0-lesson-6',
+          title: '🦁 Animals: Zoo Adventure',
+          slides: lesson6Animals,
+        };
+        localStorage.setItem('currentLesson', JSON.stringify(updated));
+        setLessonData(updated);
+      }
+    } catch (e) {
+      console.error('Failed to load lesson 6:', e);
+    }
+  };
+
+  const handleLoadLesson7 = async () => {
+    try {
+      const mod = await import('@/data/curriculum/unit-0/lesson-7-food');
+      const lesson7Food = (mod as any).lesson7Food;
+      if (lesson7Food) {
+        const updated: LessonData = {
+          lessonId: 'unit-0-lesson-7',
+          title: '🍕 Food: Restaurant Kitchen',
+          slides: lesson7Food,
+        };
+        localStorage.setItem('currentLesson', JSON.stringify(updated));
+        setLessonData(updated);
+      }
+    } catch (e) {
+      console.error('Failed to load lesson 7:', e);
+    }
+  };
+
+  const handleLoadLesson8 = async () => {
+    try {
+      const mod = await import('@/data/curriculum/unit-0/lesson-8-routines');
+      const lesson8Routines = (mod as any).lesson8Routines;
+      if (lesson8Routines) {
+        const updated: LessonData = {
+          lessonId: 'unit-0-lesson-8',
+          title: '⏰ Daily Routines: A Day in the Life',
+          slides: lesson8Routines,
+        };
+        localStorage.setItem('currentLesson', JSON.stringify(updated));
+        setLessonData(updated);
+      }
+    } catch (e) {
+      console.error('Failed to load lesson 8:', e);
+    }
+  };
   if (!lessonData) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -238,6 +328,21 @@ export default function LessonViewer() {
           </Button>
           <Button variant="outline" size="sm" onClick={handleLoadEnhanced}>
             Enhanced
+          </Button>
+          <Button variant="default" size="sm" onClick={handleLoadLesson4} className="bg-gradient-to-r from-pink-500 to-red-500">
+            🎨 Colors Adventure
+          </Button>
+          <Button variant="default" size="sm" onClick={handleLoadLesson5} className="bg-gradient-to-r from-blue-400 to-purple-400">
+            👨‍👩‍👧‍👦 Family
+          </Button>
+          <Button variant="default" size="sm" onClick={handleLoadLesson6} className="bg-gradient-to-r from-yellow-500 to-orange-500">
+            🦁 Animals
+          </Button>
+          <Button variant="default" size="sm" onClick={handleLoadLesson7} className="bg-gradient-to-r from-red-400 to-pink-400">
+            🍕 Food
+          </Button>
+          <Button variant="default" size="sm" onClick={handleLoadLesson8} className="bg-gradient-to-r from-cyan-400 to-blue-400">
+            ⏰ Routines
           </Button>
           <div>
             <h1 className="text-xl font-semibold">{lessonData.title}</h1>
