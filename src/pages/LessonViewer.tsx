@@ -157,6 +157,42 @@ export default function LessonViewer() {
       console.error('Failed to reload game intro lesson:', e);
     }
   };
+
+  const handleLoadNumbers = async () => {
+    try {
+      const mod = await import('@/data/curriculum/unit-0/lesson-2-numbers');
+      const lesson2Numbers = (mod as any).lesson2Numbers;
+      if (lesson2Numbers) {
+        const updated: LessonData = {
+          lessonId: 'unit-0-lesson-2',
+          title: '🔢 Numbers: How old are you?',
+          slides: lesson2Numbers,
+        };
+        localStorage.setItem('currentLesson', JSON.stringify(updated));
+        setLessonData(updated);
+      }
+    } catch (e) {
+      console.error('Failed to load numbers lesson:', e);
+    }
+  };
+
+  const handleLoadColors = async () => {
+    try {
+      const mod = await import('@/data/curriculum/unit-0/lesson-3-colors');
+      const lesson3Colors = (mod as any).lesson3Colors;
+      if (lesson3Colors) {
+        const updated: LessonData = {
+          lessonId: 'unit-0-lesson-3',
+          title: '🌈 Colors: My favorite color',
+          slides: lesson3Colors,
+        };
+        localStorage.setItem('currentLesson', JSON.stringify(updated));
+        setLessonData(updated);
+      }
+    } catch (e) {
+      console.error('Failed to load colors lesson:', e);
+    }
+  };
   if (!lessonData) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -189,13 +225,19 @@ export default function LessonViewer() {
             Back to Library
           </Button>
           <Button variant="default" size="sm" onClick={handleLoadGameIntro} className="bg-gradient-to-r from-green-500 to-blue-500">
-            🎮 Load Game Lesson
+            🎮 Greetings
+          </Button>
+          <Button variant="default" size="sm" onClick={handleLoadNumbers} className="bg-gradient-to-r from-purple-500 to-pink-500">
+            🔢 Numbers
+          </Button>
+          <Button variant="default" size="sm" onClick={handleLoadColors} className="bg-gradient-to-r from-orange-500 to-yellow-500">
+            🌈 Colors
           </Button>
           <Button variant="secondary" size="sm" onClick={handleLoadUltra}>
-            Load Ultra-Interactive
+            Ultra-Interactive
           </Button>
           <Button variant="outline" size="sm" onClick={handleLoadEnhanced}>
-            Load Enhanced
+            Enhanced
           </Button>
           <div>
             <h1 className="text-xl font-semibold">{lessonData.title}</h1>
