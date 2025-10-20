@@ -139,6 +139,24 @@ export default function LessonViewer() {
       console.error('Failed to reload ultra-interactive lesson:', e);
     }
   };
+
+  const handleLoadGameIntro = async () => {
+    try {
+      const mod = await import('@/data/curriculum/unit-0/lesson-1-game-intro');
+      const lesson1GameIntro = (mod as any).lesson1GameIntro;
+      if (lesson1GameIntro) {
+        const updated: LessonData = {
+          lessonId: 'unit-0-lesson-1-game',
+          title: '🎮 Game Lesson: My name is ____. Nice to meet you!',
+          slides: lesson1GameIntro,
+        };
+        localStorage.setItem('currentLesson', JSON.stringify(updated));
+        setLessonData(updated);
+      }
+    } catch (e) {
+      console.error('Failed to reload game intro lesson:', e);
+    }
+  };
   if (!lessonData) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -170,10 +188,13 @@ export default function LessonViewer() {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Library
           </Button>
-          <Button variant="default" size="sm" onClick={handleLoadUltra} className="bg-gradient-to-r from-primary to-purple-600">
-            🎮 Load Ultra-Interactive
+          <Button variant="default" size="sm" onClick={handleLoadGameIntro} className="bg-gradient-to-r from-green-500 to-blue-500">
+            🎮 Load Game Lesson
           </Button>
-          <Button variant="secondary" size="sm" onClick={handleLoadEnhanced}>
+          <Button variant="secondary" size="sm" onClick={handleLoadUltra}>
+            Load Ultra-Interactive
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleLoadEnhanced}>
             Load Enhanced
           </Button>
           <div>
