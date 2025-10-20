@@ -21,29 +21,75 @@ export default function LessonSlideViewerPage() {
   const moduleNumber = searchParams.get('module');
   const lessonNumber = searchParams.get('lesson');
 
+  const isValidUUID = (v?: string | null) =>
+    !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
+
+  const moduleNum = moduleNumber ? Number(moduleNumber) : NaN;
+  const lessonNum = lessonNumber ? Number(lessonNumber) : NaN;
+
   useEffect(() => {
     loadLessonData();
-  }, [contentId]);
+  }, [contentId, moduleNum, lessonNum]);
 
   const loadLessonData = async () => {
-    if (!contentId) {
-      toast({
-        title: "Error",
-        description: "No lesson content ID provided",
-        variant: "destructive",
-      });
-      navigate(-1);
-      return;
-    }
+    setLoading(true);
 
     try {
-      const { data, error } = await supabase
-        .from('lessons_content')
-        .select('*')
-        .eq('id', contentId)
-        .single();
+      let data: any = null;
+      let error: any = null;
+
+      if (isValidUUID(contentId)) {
+        const res = await supabase
+          .from('lessons_content')
+          .select('*')
+          .eq('id', contentId)
+          .maybeSingle();
+        data = res.data;
+        error = res.error;
+        console.log('[LessonViewer] Fetched by contentId', { contentId, found: !!data, error });
+      } else if (!Number.isNaN(moduleNum) && !Number.isNaN(lessonNum)) {
+        const res = await supabase
+          .from('lessons_content')
+          .select('*')
+          .eq('module_number', moduleNum)
+          .eq('lesson_number', lessonNum)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        data = res.data;
+        error = res.error;
+        console.log('[LessonViewer] Fetched by module/lesson', { moduleNum, lessonNum, found: !!data, error });
+      }
 
       if (error) throw error;
+
+      // Fallback: localStorage when no identifiers or no DB data
+      if (!data) {
+        const raw = localStorage.getItem('currentLesson');
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw);
+            if (parsed?.slides?.slides) {
+              setLessonData({
+                id: parsed.lessonId || 'local',
+                title: parsed.title || 'Lesson',
+                slides_content: parsed.slides,
+              });
+              return;
+            }
+          } catch {}
+        }
+
+        toast({
+          title: "No Lesson Found",
+          description: moduleNumber && lessonNumber
+            ? `No content for Module ${moduleNumber}, Lesson ${lessonNumber}.`
+            : "Missing lesson identifiers.",
+          variant: "destructive",
+        });
+        navigate(-1);
+        return;
+      }
 
       if (!data?.slides_content?.slides || data.slides_content.slides.length === 0) {
         toast({

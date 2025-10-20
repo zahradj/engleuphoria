@@ -16,18 +16,19 @@ export function UnitDetailView({ unit, onClose }: UnitDetailViewProps) {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleViewLesson = (lesson: any) => {
-    if (!lesson.contentId) {
-      toast({
-        title: "Content Not Available",
-        description: "This lesson doesn't have content yet.",
-        variant: "destructive",
-      });
-      return;
-    }
+  const isValidUUID = (v?: string) =>
+    !!v && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
 
-    // Navigate to lesson viewer with query params
-    navigate(`/lesson-viewer?contentId=${lesson.contentId}&module=1&lesson=${lesson.lessonNumber}`);
+  const handleViewLesson = (lesson: any) => {
+    const moduleParam = unit.unitNumber;
+
+    if (lesson.contentId && isValidUUID(lesson.contentId)) {
+      // Navigate with valid contentId and context
+      navigate(`/lesson-viewer?contentId=${lesson.contentId}&module=${moduleParam}&lesson=${lesson.lessonNumber}`);
+    } else {
+      // Fallback: resolve by module/lesson in the viewer
+      navigate(`/lesson-viewer?module=${moduleParam}&lesson=${lesson.lessonNumber}`);
+    }
   };
 
   return (
