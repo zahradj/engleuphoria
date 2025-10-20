@@ -57,37 +57,37 @@ export default function LessonViewer() {
         }
       }
 
-      // Final fallback: try ultra-interactive first, then enhanced
+      // Final fallback: try Perfect PPP greetings first, then enhanced
       try {
-        const mod = await import('@/data/curriculum/unit-0/lesson-1-ultra-interactive');
-        const lesson0_1_ultraInteractive = (mod as any).lesson0_1_ultraInteractive;
-        if (lesson0_1_ultraInteractive) {
+        const mod = await import('@/data/curriculum/unit-0/lesson-1-greetings-perfect');
+        const lesson1GreetingsPerfect = (mod as any).lesson1GreetingsPerfect;
+        if (lesson1GreetingsPerfect) {
           const fallback: LessonData = {
-            lessonId: 'lesson-0-1-ultra',
-            title: '🎮 Ultra-Interactive: Greetings & Introductions',
-            slides: lesson0_1_ultraInteractive, // Full LessonSlides object
+            lessonId: 'unit-0-lesson-1-perfect',
+            title: '🌟 Perfect Greetings (PPP): Hello! My Name is... ',
+            slides: lesson1GreetingsPerfect,
           };
           localStorage.setItem('currentLesson', JSON.stringify(fallback));
           setLessonData(fallback);
           return;
         }
       } catch (e) {
-        console.error('Failed to load ultra-interactive lesson, trying enhanced:', e);
+        console.error('Failed to load perfect greetings lesson, trying enhanced:', e);
         try {
-          const mod = await import('@/data/curriculum/unit-0/lesson-1-enhanced');
-          const lesson0_1_enhanced = (mod as any).lesson0_1_enhanced;
-          if (lesson0_1_enhanced) {
+          const mod = await import('@/data/curriculum/unit-0/lesson-1-greetings-enhanced');
+          const lesson1GreetingsEnhanced = (mod as any).lesson1GreetingsEnhanced;
+          if (lesson1GreetingsEnhanced) {
             const fallback: LessonData = {
-              lessonId: 'unit-0-lesson-1-enhanced',
-              title: '🌟 English Adventure: Greetings & Introductions',
-              slides: lesson0_1_enhanced,
+              lessonId: 'unit-0-lesson-1-greetings',
+              title: '👋 Complete Greetings Lesson: Hello! My Name is...',
+              slides: lesson1GreetingsEnhanced,
             };
             localStorage.setItem('currentLesson', JSON.stringify(fallback));
             setLessonData(fallback);
             return;
           }
         } catch (e2) {
-          console.error('Failed to load fallback lesson:', e2);
+          console.error('Failed to load fallback greetings lesson:', e2);
         }
       }
 
@@ -99,7 +99,6 @@ export default function LessonViewer() {
   }, []);
 
   const handleBack = () => {
-    // Clean up localStorage
     localStorage.removeItem('currentLesson');
     navigate('/teacher');
   };

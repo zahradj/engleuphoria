@@ -263,10 +263,57 @@ function convertLegacySlidesToNew(slides: any, title: string): LessonSlides | nu
   
   if (!slides) return null;
 
-  // Check if already in LessonSlides format (v2.0)
-  if (slides.version === '2.0' && slides.slides) {
-    console.log('✅ Already in v2.0 format');
+  // If it's already LessonSlides format (v2.0) AND uses Slide.type, keep as-is
+  if (slides.version === '2.0' && slides.slides && slides.slides.length && slides.slides[0]?.type) {
+    console.log('✅ Already in v2.0 LessonSlides format');
     return slides as LessonSlides;
+  }
+
+  // Handle GameLessonData v2.0 (theme: 'game' with slide_type)
+  if (slides.version === '2.0' && slides.slides && slides.theme === 'game' && slides.slides[0]?.slide_type) {
+    console.log('🔄 Converting from GameLessonData (v2.0 game) to LessonSlides');
+    const convertedSlides: Slide[] = slides.slides.map((gs: any, index: number) => {
+      // Map slide_type to Slide.type (most are identical)
+      const mappedType = gs.slide_type as Slide['type'];
+      const makeOptions = (opts?: any[]) =>
+        (opts || []).map((text: any, i: number) => ({ id: `opt-${i + 1}`, text: String(text) }));
+
+      return {
+        id: gs.id || `slide-${index + 1}`,
+        type: mappedType,
+        prompt: gs.prompt || gs.character?.dialogue || `Slide ${index + 1}`,
+        instructions: gs.instructions,
+        options: gs.options ? makeOptions(gs.options) : undefined,
+        // Support both MCQ and new quiz props
+        correct: undefined, // we use correctAnswer below for QuizSlide
+        correctAnswer: gs.correctAnswer,
+        phrases: gs.phrases,
+        character: gs.character,
+        stars: gs.stars,
+        confetti: gs.confetti,
+        finalScore: gs.finalScore,
+        nextLesson: gs.nextLesson,
+        // Extra game data passthrough
+        score: gs.score,
+        studentName: gs.studentName,
+        lessonTitle: gs.lessonTitle,
+        // Some custom activities (pairs for matching)
+        interactiveElements: undefined,
+        matchPairs: undefined,
+        // feelings_match pairs live on gs.pairs; pass through in interactiveElements for slide impls that use it
+        // or keep on the object so downstream components can read gs.pairs as needed
+        // @ts-ignore
+        pairs: gs.pairs,
+      } as unknown as Slide;
+    });
+
+    return {
+      version: '2.0',
+      theme: 'game',
+      slides: convertedSlides,
+      durationMin: slides.durationMin || 30,
+      metadata: slides.metadata || { CEFR: 'A1' },
+    } as unknown as LessonSlides;
   }
 
   // Handle LessonSlidesViewer format (different schema)
