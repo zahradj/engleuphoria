@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Volume2 } from 'lucide-react';
+import { Volume2, Loader2 } from 'lucide-react';
+import { useLessonAssets } from '@/hooks/useLessonAssets';
 
 interface VocabularySlideProps {
   slide: any;
@@ -11,7 +12,39 @@ interface VocabularySlideProps {
 
 export function VocabularySlide({ slide, slideNumber, onNext }: VocabularySlideProps) {
   const [currentWord, setCurrentWord] = useState(0);
+  const { generateImage, generateAudio, loading } = useLessonAssets();
+  const [wordImages, setWordImages] = useState<Map<number, string>>(new Map());
+  const [playingAudio, setPlayingAudio] = useState<number | null>(null);
+  
   const words = slide.words || slide.vocabulary || [];
+
+  // Generate images for all vocabulary words
+  useEffect(() => {
+    const loadImages = async () => {
+      for (let i = 0; i < words.length; i++) {
+        const word = words[i];
+        const imagePrompt = word.imagePrompt || `Simple, colorful illustration of ${word.word || word}, educational style for children`;
+        
+        const imageUrl = await generateImage(imagePrompt);
+        if (imageUrl) {
+          setWordImages(prev => new Map(prev).set(i, imageUrl));
+        }
+      }
+    };
+
+    if (words.length > 0) {
+      loadImages();
+    }
+  }, [words, generateImage]);
+
+  const handlePlayAudio = async (index: number) => {
+    const word = words[index];
+    const text = word.word || word;
+    
+    setPlayingAudio(index);
+    await generateAudio(text);
+    setPlayingAudio(null);
+  };
 
   return (
     <Card className="border-2 border-blue-500/20 shadow-xl">
@@ -27,26 +60,69 @@ export function VocabularySlide({ slide, slideNumber, onNext }: VocabularySlideP
         {words.length > 0 ? (
           <div className="space-y-4">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {words.map((word: any, index: number) => (
-                <Card 
-                  key={index}
-                  className={`cursor-pointer transition-all hover:shadow-lg ${
-                    currentWord === index ? 'ring-2 ring-primary' : ''
-                  }`}
-                  onClick={() => setCurrentWord(index)}
-                >
-                  <CardContent className="p-4 text-center">
-                    <div className="text-2xl mb-2">{word.image || '📝'}</div>
-                    <div className="font-semibold">{word.word || word}</div>
-                    {word.translation && (
-                      <div className="text-sm text-muted-foreground">{word.translation}</div>
-                    )}
-                    <Button size="sm" variant="ghost" className="mt-2">
-                      <Volume2 className="h-4 w-4" />
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+              {words.map((word: any, index: number) => {
+                const wordText = word.word || word;
+                const imageUrl = wordImages.get(index);
+                
+                return (
+                  <Card 
+                    key={index}
+                    className={`cursor-pointer transition-all hover:shadow-lg ${
+                      currentWord === index ? 'ring-2 ring-primary' : ''
+                    }`}
+                    onClick={() => setCurrentWord(index)}
+                  >
+                    <CardContent className="p-4 space-y-3">
+                      {/* Image */}
+                      <div className="aspect-square rounded-lg overflow-hidden bg-muted flex items-center justify-center">
+                        {!imageUrl && loading ? (
+                          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        ) : imageUrl ? (
+                          <img 
+                            src={imageUrl} 
+                            alt={wordText}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="text-4xl">{word.image || '📝'}</div>
+                        )}
+                      </div>
+                      
+                      {/* Word */}
+                      <div className="text-center">
+                        <div className="font-semibold text-lg">{wordText}</div>
+                        {word.translation && (
+                          <div className="text-sm text-muted-foreground">{word.translation}</div>
+                        )}
+                      </div>
+                      
+                      {/* Audio Button */}
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="w-full gap-2"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePlayAudio(index);
+                        }}
+                        disabled={playingAudio === index}
+                      >
+                        {playingAudio === index ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Playing...
+                          </>
+                        ) : (
+                          <>
+                            <Volume2 className="h-4 w-4" />
+                            Listen
+                          </>
+                        )}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
         ) : (
