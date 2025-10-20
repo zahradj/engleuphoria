@@ -61,11 +61,23 @@ export function CharacterDialogueSlide({ character, onNext }: CharacterDialogueS
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[500px] gap-8 p-8">
-      {/* Character Image */}
+      {/* Character Image with Bounce Animation */}
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.5 }}
+        animate={{ 
+          scale: 1, 
+          opacity: 1,
+          y: [0, -10, 0]
+        }}
+        transition={{ 
+          scale: { duration: 0.5 },
+          opacity: { duration: 0.5 },
+          y: { 
+            duration: 2,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }
+        }}
         className="relative"
       >
         {isLoading ? (

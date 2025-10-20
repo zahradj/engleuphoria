@@ -107,6 +107,13 @@ export interface Slide {
     dialogue: string;
     type?: string;
   };
+  // Quiz and new game features
+  correctAnswer?: string;
+  characterImage?: string;
+  characterGreeting?: string;
+  score?: number;
+  studentName?: string;
+  lessonTitle?: string;
 }
 
 export type SlideType = 
@@ -150,6 +157,9 @@ export type SlideType =
   | 'text_input'
   | 'feelings_match'
   | 'listen_repeat'
+  | 'quiz'
+  | 'drawing_canvas'
+  | 'dialogue_builder'
   | 'memory_cards'
   | 'whack_a_mole'
   | 'typing_race'

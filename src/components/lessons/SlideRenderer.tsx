@@ -22,6 +22,11 @@ import { TextInputSlide } from './slides/TextInputSlide';
 import { FeelingsMatchSlide } from './slides/FeelingsMatchSlide';
 import { ListenAndRepeatSlide } from './slides/ListenAndRepeatSlide';
 import { AudioPlayer } from '@/components/slides/media/AudioPlayer';
+import { QuizSlide } from '@/components/slides/game/QuizSlide';
+import { CharacterDialogueSlide } from '@/components/slides/game/CharacterDialogueSlide';
+import { DrawingCanvas } from '@/components/slides/game/DrawingCanvas';
+import { DialogueBuilder } from '@/components/slides/game/DialogueBuilder';
+import { CelebrationSlide as GameCelebrationSlide } from '@/components/slides/game/CelebrationSlide';
 
 interface SlideRendererProps {
   slide: Slide;
@@ -76,6 +81,39 @@ export function SlideRenderer({ slide, onComplete, onNext }: SlideRendererProps)
         return <FeelingsMatchSlide slide={slide} onComplete={onComplete} onNext={onNext} />;
       case 'listen_repeat':
         return <ListenAndRepeatSlide slide={slide} onComplete={onComplete} onNext={onNext} />;
+      case 'quiz':
+        return (
+          <QuizSlide
+            prompt={slide.prompt || ''}
+            options={(slide.options || []).map(opt => typeof opt === 'string' ? opt : opt.text)}
+            correctAnswer={slide.correctAnswer || ''}
+            onCorrect={(score) => onComplete?.()}
+            onNext={() => onNext?.()}
+          />
+        );
+      case 'drawing_canvas':
+        return (
+          <DrawingCanvas
+            prompt={slide.prompt}
+            onSave={(imageData) => {
+              localStorage.setItem('student_drawing', imageData);
+              onComplete?.();
+            }}
+          />
+        );
+      case 'dialogue_builder':
+        return (
+          <DialogueBuilder
+            characterName={slide.character?.name || 'Character'}
+            characterImage={slide.characterImage}
+            characterGreeting={slide.characterGreeting || 'Hello!'}
+            studentName={localStorage.getItem('esl_student_name') || 'Student'}
+            onComplete={() => {
+              onComplete?.();
+              onNext?.();
+            }}
+          />
+        );
       default:
         return (
           <div className="p-8 text-center">

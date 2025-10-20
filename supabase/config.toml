@@ -73,7 +73,10 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.generate-certificate]
-verify_jwt = true
+verify_jwt = false
+
+[functions.generate-character-image]
+verify_jwt = false
 
 [functions.webrtc-signaling]
 verify_jwt = false

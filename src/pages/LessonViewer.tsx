@@ -176,6 +176,24 @@ export default function LessonViewer() {
     }
   };
 
+  const handleLoadGreetingsPerfect = async () => {
+    try {
+      const mod = await import('@/data/curriculum/unit-0/lesson-1-greetings-perfect');
+      const lesson1GreetingsPerfect = (mod as any).lesson1GreetingsPerfect;
+      if (lesson1GreetingsPerfect) {
+        const updated: LessonData = {
+          lessonId: 'unit-0-lesson-1-perfect',
+          title: '🌟 Perfect Greetings (PPP Method): Hello! My Name is...',
+          slides: lesson1GreetingsPerfect,
+        };
+        localStorage.setItem('currentLesson', JSON.stringify(updated));
+        setLessonData(updated);
+      }
+    } catch (e) {
+      console.error('Failed to load perfect greetings lesson:', e);
+    }
+  };
+
   const handleLoadNumbers = async () => {
     try {
       const mod = await import('@/data/curriculum/unit-0/lesson-2-numbers');
@@ -332,8 +350,11 @@ export default function LessonViewer() {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Library
           </Button>
-          <Button variant="default" size="sm" onClick={handleLoadGreetingsEnhanced} className="bg-gradient-to-r from-green-500 to-blue-500">
-            👋 Greetings (Full)
+          <Button variant="default" size="sm" onClick={handleLoadGreetingsPerfect} className="bg-gradient-to-r from-green-500 to-blue-500">
+            🌟 Greetings Perfect (PPP)
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleLoadGreetingsEnhanced}>
+            👋 Greetings (Enhanced)
           </Button>
           <Button variant="outline" size="sm" onClick={handleLoadGameIntro}>
             🎮 Greetings (Quick)
