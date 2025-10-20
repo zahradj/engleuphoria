@@ -147,6 +147,9 @@ export type SlideType =
   | 'spinning_wheel'
   | 'character_introduction'
   | 'celebration'
+  | 'text_input'
+  | 'feelings_match'
+  | 'listen_repeat'
   // Quiz Types
   | 'quiz_match_pairs'
   | 'quiz_multiple_choice'
@@ -154,7 +157,7 @@ export type SlideType =
 
 export interface LessonSlides {
   version: '2.0';
-  theme: 'mist-blue' | 'sage-sand' | 'default';
+  theme: 'mist-blue' | 'sage-sand' | 'default' | 'game';
   slides: Slide[];
   durationMin: number;
   total_slides?: number;

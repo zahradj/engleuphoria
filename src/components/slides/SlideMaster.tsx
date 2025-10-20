@@ -47,6 +47,7 @@ export interface SlideMasterProps {
   isCorrect?: boolean;
   timeElapsed?: number;
   level?: string;
+  onNameSubmit?: (name: string) => void;
 }
 export function SlideMaster({
   slide,
@@ -61,7 +62,8 @@ export function SlideMaster({
   showFeedback = false,
   isCorrect,
   timeElapsed = 0,
-  level = 'A1'
+  level = 'A1',
+  onNameSubmit
 }: SlideMasterProps) {
   const { announce } = useA11y();
   const progress = (currentSlide + 1) / totalSlides * 100;

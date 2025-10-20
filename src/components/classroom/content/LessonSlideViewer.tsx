@@ -1,5 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { SlideMaster } from "@/components/slides/SlideMaster";
+import { SlideRenderer } from "@/components/lessons/SlideRenderer";
+import { LessonProgressBar } from "@/components/lessons/LessonProgressBar";
 import { LessonSlides, Slide, ActivityResult } from "@/types/slides";
 import { lessonSlidesService } from "@/services/lessonSlidesService";
 
@@ -212,27 +214,46 @@ export function LessonSlideViewer({
     }
   };
 
+  // Check if this is a game lesson with custom slide types
+  const isGameLesson = lessonSlides.theme === 'game' || 
+    ['text_input', 'feelings_match', 'listen_repeat'].includes(currentSlideData.type);
+
   return (
-    <div className={`${className} h-full`}>
-      <SlideMaster
-        slide={personalizedSlide}
+    <div className={`${className} h-full flex flex-col`}>
+      <LessonProgressBar
         currentSlide={currentSlide}
         totalSlides={lessonSlides.slides.length}
-        isTeacher={isTeacher}
-        onNext={() => {
-          handleSlideComplete();
-          handleNext();
-        }}
-        onPrevious={handlePrevious}
-        onOptionSelect={handleOptionSelect}
-        onActivityResult={handleActivityResult}
-        selectedOptions={selectedOptions}
-        showFeedback={showFeedback}
-        isCorrect={isCorrect}
-        timeElapsed={Math.floor((Date.now() - startTime) / 1000)}
-        level={lessonSlides.metadata.CEFR}
-        onNameSubmit={setStudentName}
+        stars={totalStars}
       />
+      {isGameLesson ? (
+        <SlideRenderer
+          slide={personalizedSlide}
+          onComplete={handleSlideComplete}
+          onNext={() => {
+            handleSlideComplete();
+            handleNext();
+          }}
+        />
+      ) : (
+        <SlideMaster
+          slide={personalizedSlide}
+          currentSlide={currentSlide}
+          totalSlides={lessonSlides.slides.length}
+          isTeacher={isTeacher}
+          onNext={() => {
+            handleSlideComplete();
+            handleNext();
+          }}
+          onPrevious={handlePrevious}
+          onOptionSelect={handleOptionSelect}
+          onActivityResult={handleActivityResult}
+          selectedOptions={selectedOptions}
+          showFeedback={showFeedback}
+          isCorrect={isCorrect}
+          timeElapsed={Math.floor((Date.now() - startTime) / 1000)}
+          level={lessonSlides.metadata.CEFR}
+        />
+      )}
     </div>
   );
 }
