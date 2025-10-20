@@ -12,6 +12,7 @@ import { StudentsTab } from "@/components/teacher/StudentsTab";
 import { LessonHistoryTab } from "@/components/teacher/LessonHistoryTab";
 import { AssignmentsTab } from "@/components/teacher/AssignmentsTab";
 import { ReadingLibraryTab } from "@/components/teacher/ReadingLibraryTab";
+import { EnglishJourneyLibrary } from "@/components/teacher/library/EnglishJourneyLibrary";
 import { MessagesTab } from "@/components/teacher/MessagesTab";
 import { EarningsTab } from "@/components/teacher/EarningsTab";
 import { ReportsTab } from "@/components/teacher/ReportsTab";
@@ -23,7 +24,7 @@ import { QuickActions } from "@/components/navigation/QuickActions";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AssessmentsManagementTab } from "@/components/teacher/tabs/AssessmentsManagementTab";
 
-type TabType = 'dashboard' | 'profile' | 'assessments' | 'calendar' | 'students' | 'reading-library' | 'history' | 'assignments' | 'messages' | 'earnings' | 'withdrawals' | 'reports' | 'settings';
+type TabType = 'dashboard' | 'profile' | 'assessments' | 'calendar' | 'students' | 'reading-library' | 'english-journey' | 'history' | 'assignments' | 'messages' | 'earnings' | 'withdrawals' | 'reports' | 'settings';
 
 const TeacherDashboard = () => {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
@@ -94,6 +95,8 @@ const TeacherDashboard = () => {
           return <StudentsTab />;
         case 'reading-library':
           return <ReadingLibraryTab />;
+        case 'english-journey':
+          return <EnglishJourneyLibrary />;
         case 'history':
           return <LessonHistoryTab />;
         case 'assignments':
