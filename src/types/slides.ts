@@ -96,6 +96,17 @@ export interface Slide {
   content?: string | string[];
   interactiveElements?: any;
   xpReward?: number;
+  // Game lesson features
+  stars?: number;
+  confetti?: boolean;
+  finalScore?: boolean;
+  nextLesson?: string;
+  phrases?: string[];
+  character?: {
+    name: string;
+    dialogue: string;
+    type?: string;
+  };
 }
 
 export type SlideType = 

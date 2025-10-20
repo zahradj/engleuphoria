@@ -2,13 +2,16 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Play, Clock, Target } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { BookOpen, Play, Clock, Target, Wand2 } from 'lucide-react';
 import { LessonPlayer } from '@/components/lessons/LessonPlayer';
+import { GameLessonGenerator } from '@/components/curriculum/GameLessonGenerator';
 import { lesson1_1 } from '@/data/curriculum/starters/module1/lesson1';
 import { lesson0_1 } from '@/data/curriculum/unit-0/lesson-1';
 import { lesson0_1_new } from '@/data/curriculum/unit-0/lesson-1-new';
 import { lesson0_1_enhanced } from '@/data/curriculum/unit-0/lesson-1-enhanced';
 import { lesson0_1_ultraInteractive } from '@/data/curriculum/unit-0/lesson-1-ultra-interactive';
+import { lesson1GameIntro } from '@/data/curriculum/unit-0/lesson-1-game-intro';
 
 interface LessonLibraryProps {}
 
@@ -61,6 +64,21 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = () => {
         </CardHeader>
       </Card>
 
+      {/* Tabs for Library and AI Generator */}
+      <Tabs defaultValue="library" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="library">
+            <BookOpen className="h-4 w-4 mr-2" />
+            Lesson Library
+          </TabsTrigger>
+          <TabsTrigger value="generator">
+            <Wand2 className="h-4 w-4 mr-2" />
+            🎮 AI Game Generator
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="library" className="space-y-6 mt-6">
+
       {/* Unit 0 - Getting Started */}
       <Card>
         <CardHeader>
@@ -74,6 +92,61 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = () => {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4">
+            {/* NEW: Game-Based Lesson 0.1 */}
+            <Card className="hover:shadow-md transition-shadow border-purple-500/30 bg-gradient-to-br from-purple-50/50 to-blue-50/50">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2 flex-wrap">
+                      <Badge variant="outline">Lesson 0.1</Badge>
+                      <Badge variant="secondary">Pre-A1</Badge>
+                      <Badge className="bg-purple-500 text-white">🎮 Game Lesson</Badge>
+                      <Badge className="bg-green-500/10 text-green-600 border-green-500/20">🎯 AI Voice</Badge>
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">🎮 Game: My name is ___. Nice to meet you!</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Interactive pygame-style lesson with Panda teacher, text input, feelings matching game, listen & repeat activities, and quiz challenges! Features AI character voices!
+                    </p>
+                    
+                    <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground mb-4">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        <span>{lesson1GameIntro.durationMin} minutes</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Target className="h-3 w-3" />
+                        <span>{lesson1GameIntro.slides.length} slides | 5 ⭐</span>
+                      </div>
+                    </div>
+
+                    <div className="mb-4">
+                      <p className="text-xs font-medium text-muted-foreground mb-2">🎯 What You'll Learn:</p>
+                      <ul className="text-xs text-muted-foreground space-y-1">
+                        {lesson1GameIntro.metadata.targets.slice(0, 3).map((target, index) => (
+                          <li key={index} className="flex items-center gap-1">
+                            <span className="w-1 h-1 bg-purple-500 rounded-full"></span>
+                            {target}
+                          </li>
+                        ))}
+                      </ul>
+                      <p className="text-xs text-muted-foreground mt-2 italic">
+                        ✨ Game Features: Name input, feelings match, listen & repeat, quiz, star rewards!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <Button 
+                  onClick={() => handleStartLesson(lesson1GameIntro)} 
+                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                  size="lg"
+                >
+                  <Play className="h-4 w-4 mr-2" />
+                  🚀 Start Game Lesson!
+                </Button>
+              </CardContent>
+            </Card>
+
             {/* Lesson 0.1 Card */}
             <Card className="hover:shadow-md transition-shadow border-primary/20">
               <CardContent className="p-6">
@@ -198,6 +271,13 @@ export const LessonLibrary: React.FC<LessonLibraryProps> = () => {
           </div>
         </CardContent>
       </Card>
+
+        </TabsContent>
+
+        <TabsContent value="generator" className="mt-6">
+          <GameLessonGenerator />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

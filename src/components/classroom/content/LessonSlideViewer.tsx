@@ -30,6 +30,10 @@ export function LessonSlideViewer({
   const [isCorrect, setIsCorrect] = useState(false);
   const [startTime, setStartTime] = useState(Date.now());
   const [attempts, setAttempts] = useState(0);
+  const [studentName, setStudentName] = useState(
+    localStorage.getItem('esl_student_name') || 'Student'
+  );
+  const [totalStars, setTotalStars] = useState(0);
   
   console.log('🔍 LessonSlideViewer received slides:', slides);
   console.log('🔍 Slides type:', typeof slides, Array.isArray(slides));
@@ -194,14 +198,31 @@ export function LessonSlideViewer({
 
   const currentSlideData = lessonSlides.slides[currentSlide];
 
+  // Replace {studentName} in slide content
+  const personalizedSlide = {
+    ...currentSlideData,
+    prompt: currentSlideData.prompt?.replace('{studentName}', studentName),
+    instructions: currentSlideData.instructions?.replace('{studentName}', studentName),
+  };
+
+  // Handle star collection from celebration slides
+  const handleSlideComplete = () => {
+    if (currentSlideData.stars) {
+      setTotalStars(prev => Math.min(prev + currentSlideData.stars, 5));
+    }
+  };
+
   return (
     <div className={`${className} h-full`}>
       <SlideMaster
-        slide={currentSlideData}
+        slide={personalizedSlide}
         currentSlide={currentSlide}
         totalSlides={lessonSlides.slides.length}
         isTeacher={isTeacher}
-        onNext={handleNext}
+        onNext={() => {
+          handleSlideComplete();
+          handleNext();
+        }}
         onPrevious={handlePrevious}
         onOptionSelect={handleOptionSelect}
         onActivityResult={handleActivityResult}
@@ -210,6 +231,7 @@ export function LessonSlideViewer({
         isCorrect={isCorrect}
         timeElapsed={Math.floor((Date.now() - startTime) / 1000)}
         level={lessonSlides.metadata.CEFR}
+        onNameSubmit={setStudentName}
       />
     </div>
   );

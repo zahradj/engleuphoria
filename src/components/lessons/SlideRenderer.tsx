@@ -18,6 +18,9 @@ import { ExitCheckSlide } from './slides/ExitCheckSlide';
 import { BubblePopSlide } from './slides/BubblePopSlide';
 import { CharacterIntroSlide } from './slides/CharacterIntroSlide';
 import { CelebrationSlide } from './slides/CelebrationSlide';
+import { TextInputSlide } from './slides/TextInputSlide';
+import { FeelingsMatchSlide } from './slides/FeelingsMatchSlide';
+import { ListenAndRepeatSlide } from './slides/ListenAndRepeatSlide';
 import { AudioPlayer } from '@/components/slides/media/AudioPlayer';
 
 interface SlideRendererProps {
@@ -67,6 +70,12 @@ export function SlideRenderer({ slide, onComplete, onNext }: SlideRendererProps)
         return <CelebrationSlide slide={slide} onComplete={onComplete} onNext={onNext} />;
       case 'spinning_wheel':
         return <FastMatchSlide slide={slide} onComplete={onComplete} onNext={onNext} />;
+      case 'text_input':
+        return <TextInputSlide slide={slide} onComplete={onComplete} onNext={onNext} />;
+      case 'feelings_match':
+        return <FeelingsMatchSlide slide={slide} onComplete={onComplete} onNext={onNext} />;
+      case 'listen_repeat':
+        return <ListenAndRepeatSlide slide={slide} onComplete={onComplete} onNext={onNext} />;
       default:
         return (
           <div className="p-8 text-center">
