@@ -72,7 +72,7 @@ export function StreakCard({ streaks, onUpdateStreak }: StreakCardProps) {
             </div>
           </div>
 
-          {dailyStreak && !isToday(dailyStreak.last_activity_date) && (
+          {dailyStreak && !isToday(dailyStreak.last_activity_date || dailyStreak.lastActivityDate as any) && (
             <Button 
               onClick={() => onUpdateStreak('daily')}
               className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
@@ -81,7 +81,7 @@ export function StreakCard({ streaks, onUpdateStreak }: StreakCardProps) {
             </Button>
           )}
 
-          {dailyStreak && isToday(dailyStreak.last_activity_date) && (
+          {dailyStreak && isToday((dailyStreak.last_activity_date || dailyStreak.lastActivityDate) as any) && (
             <div className="bg-green-50 border border-green-200 rounded-lg p-3">
               <p className="text-sm text-green-700 flex items-center gap-1">
                 <Award className="h-4 w-4" />

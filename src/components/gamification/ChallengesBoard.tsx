@@ -74,7 +74,7 @@ export function ChallengesBoard({
 
   const renderChallengeCard = (challenge: LearningChallenge) => {
     const progress = getProgress(challenge.id);
-    const difficulty = getDifficultyBadge(challenge.difficulty_level);
+    const difficulty = getDifficultyBadge(challenge.difficulty_level || challenge.difficulty as any);
     const joined = isJoined(challenge.id);
 
     return (
