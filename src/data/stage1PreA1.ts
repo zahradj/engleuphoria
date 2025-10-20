@@ -10,6 +10,105 @@ export const STAGE_1_PRE_A1: Unit[] = [
     functionLanguage: ["Greetings", "Introductions", "Farewells"],
     goal: "Greet and introduce self",
     
+    lessons: [
+      {
+        id: "pre-a1-u1-l1",
+        lessonNumber: 1,
+        title: "Hello! My Name Is...",
+        topic: "Basic Greetings & Self-Introduction",
+        focus: "Learning to say hello, goodbye, and introduce yourself",
+        duration: 30,
+        xpReward: 250,
+        badge: "Hello Star 👋",
+        learningObjectives: [
+          "Greet others with 'Hello' and 'Hi'",
+          "Say 'My name is...' to introduce yourself",
+          "Respond to 'What's your name?'",
+          "Say 'Goodbye' and 'Bye-bye'"
+        ],
+        vocabularyIntroduced: ["hello", "hi", "goodbye", "bye-bye", "name"],
+        grammarPoint: "My name is [name]",
+        phonicsFocus: "Letter H sound",
+        contentId: "1-1"
+      },
+      {
+        id: "pre-a1-u1-l2",
+        lessonNumber: 2,
+        title: "Nice to Meet You!",
+        topic: "Meeting New Friends",
+        focus: "Polite greetings and responding to introductions",
+        duration: 30,
+        xpReward: 250,
+        badge: "Friendly Speaker 🤝",
+        learningObjectives: [
+          "Say 'Nice to meet you'",
+          "Respond to greetings appropriately",
+          "Practice polite social English",
+          "Use gestures with greetings (wave, handshake)"
+        ],
+        vocabularyIntroduced: ["nice", "meet", "you", "too", "friend"],
+        grammarPoint: "Nice to meet you / Nice to meet you too",
+        phonicsFocus: "Letter N sound"
+      },
+      {
+        id: "pre-a1-u1-l3",
+        lessonNumber: 3,
+        title: "Good Morning, Goodbye!",
+        topic: "Time-Based Greetings",
+        focus: "Using greetings at different times of day",
+        duration: 30,
+        xpReward: 250,
+        badge: "Time Greeter ☀️",
+        learningObjectives: [
+          "Say 'Good morning' in the morning",
+          "Say 'Good afternoon' after lunch",
+          "Say 'Good night' at bedtime",
+          "Understand when to use different greetings"
+        ],
+        vocabularyIntroduced: ["good", "morning", "afternoon", "night", "see you"],
+        grammarPoint: "Good [time of day]",
+        phonicsFocus: "Letter G sound"
+      },
+      {
+        id: "pre-a1-u1-l4",
+        lessonNumber: 4,
+        title: "What's Your Name?",
+        topic: "Asking and Answering Questions",
+        focus: "Question and answer practice for introductions",
+        duration: 35,
+        xpReward: 300,
+        badge: "Question Master ❓",
+        learningObjectives: [
+          "Ask 'What's your name?'",
+          "Answer with full sentences",
+          "Practice with multiple people",
+          "Use rising intonation for questions"
+        ],
+        vocabularyIntroduced: ["what", "your", "is", "teacher", "student"],
+        grammarPoint: "What's your name? / My name is...",
+        phonicsFocus: "Letter W sound"
+      },
+      {
+        id: "pre-a1-u1-l5",
+        lessonNumber: 5,
+        title: "Hello Friends! (Unit Review)",
+        topic: "Unit 1 Review & Assessment",
+        focus: "Consolidating all greetings and introductions",
+        duration: 35,
+        xpReward: 300,
+        badge: "Unit 1 Champion 🏆",
+        learningObjectives: [
+          "Use all greetings confidently",
+          "Introduce yourself in various situations",
+          "Meet and greet multiple people",
+          "Demonstrate understanding through games"
+        ],
+        vocabularyIntroduced: [],
+        grammarPoint: "Review: All Unit 1 structures",
+        phonicsFocus: "Review: Letters H, N, G, W"
+      }
+    ],
+    
     listening: {
       description: "Listen to greetings and respond appropriately",
       tasks: [

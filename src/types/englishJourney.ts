@@ -38,6 +38,7 @@ export interface Unit {
   estimatedDuration: number;
   materials: Material[];
   teacherNotes: string;
+  lessons?: UnitLesson[];
 }
 
 export interface ActivityDetail {
@@ -67,6 +68,22 @@ export interface Material {
   type: 'flashcard' | 'worksheet' | 'audio' | 'video' | 'interactive' | 'pdf';
   url?: string;
   downloadable: boolean;
+}
+
+export interface UnitLesson {
+  id: string;
+  lessonNumber: number;
+  title: string;
+  topic: string;
+  focus: string;
+  duration: number;
+  xpReward: number;
+  badge: string;
+  learningObjectives: string[];
+  vocabularyIntroduced: string[];
+  grammarPoint: string;
+  phonicsFocus?: string;
+  contentId?: string;
 }
 
 export interface StudentProgress {

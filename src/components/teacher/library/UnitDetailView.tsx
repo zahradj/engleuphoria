@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 
 interface UnitDetailViewProps {
   unit: Unit;
@@ -23,6 +24,51 @@ export function UnitDetailView({ unit, onClose }: UnitDetailViewProps) {
               <h3 className="font-semibold mb-2">🎯 Goal</h3>
               <p>{unit.goal}</p>
             </div>
+
+            {unit.lessons && unit.lessons.length > 0 && (
+              <>
+                <Separator />
+                <div>
+                  <h3 className="font-semibold mb-3">📚 Lessons in This Unit</h3>
+                  <div className="space-y-3">
+                    {unit.lessons.map((lesson) => (
+                      <div key={lesson.id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1">
+                            <h4 className="font-medium text-lg">
+                              Lesson {lesson.lessonNumber}: {lesson.title}
+                            </h4>
+                            <p className="text-sm text-muted-foreground">{lesson.topic}</p>
+                          </div>
+                          <Badge variant="secondary">{lesson.badge}</Badge>
+                        </div>
+                        
+                        <div className="space-y-2 text-sm">
+                          <p><strong>Focus:</strong> {lesson.focus}</p>
+                          <p><strong>Grammar:</strong> {lesson.grammarPoint}</p>
+                          {lesson.phonicsFocus && (
+                            <p><strong>Phonics:</strong> {lesson.phonicsFocus}</p>
+                          )}
+                          <div className="flex gap-4 text-xs text-muted-foreground">
+                            <span>⏱️ {lesson.duration} min</span>
+                            <span>💎 {lesson.xpReward} XP</span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-2 mt-3">
+                          <Button size="sm" variant="default" className="flex-1">
+                            View Lesson
+                          </Button>
+                          <Button size="sm" variant="outline" className="flex-1">
+                            Assign to Class
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
 
             <Separator />
 

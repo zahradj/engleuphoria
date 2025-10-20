@@ -25,6 +25,9 @@ export function UnitGrid({ units, onSelectUnit }: UnitGridProps) {
             
             <div className="text-sm space-y-1">
               <p><strong>Vocabulary:</strong> {unit.keyVocabulary.slice(0, 3).join(", ")}...</p>
+              {unit.lessons && unit.lessons.length > 0 && (
+                <p><strong>Lessons:</strong> 📚 {unit.lessons.length} lessons</p>
+              )}
               <p><strong>Duration:</strong> {unit.estimatedDuration} min | <strong>XP:</strong> 💎 {unit.xpReward}</p>
             </div>
             
