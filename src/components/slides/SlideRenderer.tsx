@@ -12,6 +12,34 @@ interface SlideRendererProps {
   onNext?: () => void;
 }
 
+function TeacherTipsPanel({ tips }: { tips?: string[] }) {
+  const [isOpen, setIsOpen] = React.useState(false);
+  
+  if (!tips || tips.length === 0) return null;
+  
+  return (
+    <div className="mt-4 border rounded-lg bg-muted/50">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between p-3 text-sm font-medium hover:bg-muted/70 transition-colors rounded-lg"
+      >
+        <span>💡 Teacher Tips ({tips.length})</span>
+        <span className="text-muted-foreground">{isOpen ? '▼' : '▶'}</span>
+      </button>
+      {isOpen && (
+        <div className="p-3 space-y-2 border-t">
+          {tips.map((tip, index) => (
+            <div key={index} className="flex gap-2 text-sm">
+              <span className="text-primary">•</span>
+              <span>{tip}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function SlideRenderer({ slide, slideNumber, onNext }: SlideRendererProps) {
   const renderSlideByType = () => {
     const type = slide.type?.toLowerCase();
@@ -47,6 +75,7 @@ export function SlideRenderer({ slide, slideNumber, onNext }: SlideRendererProps
   return (
     <div className="max-w-5xl mx-auto">
       {renderSlideByType()}
+      <TeacherTipsPanel tips={slide.teacherTips} />
     </div>
   );
 }

@@ -164,9 +164,19 @@ export default function LessonSlideViewerPage() {
                 Exit
               </Button>
               <div className="text-sm">
-                <div className="font-semibold">{lessonData.title}</div>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold">{lessonData.title}</span>
+                  {lessonData.slides_content?.metadata?.format === 'one-on-one' && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+                      👥 1-on-1 Lesson
+                    </span>
+                  )}
+                </div>
                 <div className="text-muted-foreground">
                   Module {moduleNumber} • Lesson {lessonNumber}
+                  {lessonData.slides_content?.durationMin && (
+                    <> • {lessonData.slides_content.durationMin} min</>
+                  )}
                 </div>
               </div>
             </div>
