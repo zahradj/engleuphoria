@@ -18,7 +18,27 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const prompt = `Generate a friendly, colorful cartoon character for a children's English learning app. Character: ${characterName}. ${characterDescription}. Style: Simple, cute, educational, bright colors, big eyes, welcoming smile, clean lines, white background.`;
+    console.log(`🎨 Generating image for ${characterName} using Gemini...`);
+
+    // Enhanced prompt for better Gemini image generation
+    const prompt = `Create a high-quality cartoon character illustration for a children's English learning app:
+
+CHARACTER: ${characterName}
+DESCRIPTION: ${characterDescription}
+
+STYLE REQUIREMENTS:
+- Simple, friendly cartoon style suitable for ages 4-7
+- Bright, vibrant colors with high contrast
+- Large, expressive eyes and warm, welcoming smile
+- Clean, smooth lines with no texture
+- Solid white or light pastel background
+- Character should be centered and facing forward
+- Full body view or upper body portrait
+- Professional children's book illustration quality
+
+AVOID: realistic details, scary features, dark colors, complex backgrounds
+
+Generate a single, clear image of this character.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -40,7 +60,16 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Image generation error:", response.status, errorText);
+      console.error("❌ Gemini image generation error:", response.status, errorText);
+      
+      // Handle rate limiting
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
       throw new Error(`Image generation failed: ${response.status}`);
     }
 
@@ -48,8 +77,11 @@ serve(async (req) => {
     const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
     if (!imageUrl) {
-      throw new Error("No image generated");
+      console.error("❌ No image URL in response:", JSON.stringify(data));
+      throw new Error("No image generated - check Gemini API response format");
     }
+
+    console.log(`✅ Image generated successfully for ${characterName}`);
 
     return new Response(
       JSON.stringify({ imageUrl }),

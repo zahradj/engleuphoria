@@ -26,18 +26,18 @@ export function CharacterDialogueSlide({ character, onNext }: CharacterDialogueS
     try {
       setIsLoading(true);
       
-      // Character descriptions
+      // Enhanced character descriptions for Gemini image generation
       const descriptions: Record<string, string> = {
-        'Anna': 'A cheerful girl character with brown hair and blue eyes, wearing a blue dress',
-        'Tom': 'A friendly boy character with blonde hair and green eyes, wearing a red t-shirt',
-        'Mia': 'An energetic girl character with black hair and brown eyes, wearing a purple dress',
-        'Leo': 'A happy boy character with red hair and freckles, wearing a green shirt',
-        'Teacher Zahra': 'A kind female teacher with glasses, wearing professional attire',
-        'Parrot Pete': 'A colorful cartoon parrot with bright feathers',
-        'Grandma Rose': 'A sweet elderly woman with gray hair and warm smile',
-        'Zookeeper Zara': 'A friendly female zookeeper in safari outfit',
-        'Chef Carlo': 'A cheerful chef with chef hat and apron',
-        'Clocky': 'A cute anthropomorphic clock character with a friendly face'
+        'Anna': 'A cheerful 7-year-old girl with shoulder-length brown hair, sparkling blue eyes, and a bright smile. Wearing a blue dress with white details. Happy, helpful personality.',
+        'Tom': 'A confident 7-year-old boy with short blonde hair, green eyes, and an athletic build. Wearing a red t-shirt and shorts. Sporty, friendly personality.',
+        'Mia': 'An energetic 7-year-old girl with long black hair in pigtails, bright brown eyes, and creative expression. Wearing a purple dress with art-themed accessories. Artistic, imaginative personality.',
+        'Leo': 'A curious 7-year-old boy with wavy red hair, freckles, and intelligent eyes. Wearing a green shirt with book motifs. Kind, thoughtful personality.',
+        'Teacher Zahra': 'A warm 30-year-old female teacher with dark hair in a bun, kind brown eyes, and stylish glasses. Wearing professional but colorful teaching attire. Patient, encouraging personality.',
+        'Parrot Pete': 'A vibrant cartoon parrot with rainbow-colored feathers, large expressive eyes, and a cheerful beak. Playful, talkative personality.',
+        'Grandma Rose': 'A sweet elderly woman around 65 with silver-white hair, warm wrinkled smile, and gentle eyes. Wearing a cozy cardigan. Loving, wise personality.',
+        'Zookeeper Zara': 'A friendly female zookeeper in her 20s with a ponytail, safari uniform with khaki colors, and adventurous spirit. Caring about animals.',
+        'Chef Carlo': 'A cheerful male chef with a traditional white chef hat, apron, and welcoming smile. Holding cooking utensils. Passionate about food.',
+        'Clocky': 'A cute anthropomorphic alarm clock character with a round friendly face, cartoon eyes, little arms and legs, and a cheerful expression. Helpful time-keeper.'
       };
 
       const { data, error } = await supabase.functions.invoke('generate-character-image', {
