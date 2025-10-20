@@ -22,9 +22,8 @@ import { WithdrawalsTab } from "@/components/teacher/WithdrawalsTab";
 import { QuickActions } from "@/components/navigation/QuickActions";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AssessmentsManagementTab } from "@/components/teacher/tabs/AssessmentsManagementTab";
-import { CurriculumLibraryManager } from "@/components/teacher/curriculum/CurriculumLibraryManager";
 
-type TabType = 'dashboard' | 'profile' | 'assessments' | 'calendar' | 'students' | 'reading-library' | 'library' | 'history' | 'assignments' | 'messages' | 'earnings' | 'withdrawals' | 'reports' | 'settings';
+type TabType = 'dashboard' | 'profile' | 'assessments' | 'calendar' | 'students' | 'reading-library' | 'history' | 'assignments' | 'messages' | 'earnings' | 'withdrawals' | 'reports' | 'settings';
 
 const TeacherDashboard = () => {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
@@ -95,8 +94,6 @@ const TeacherDashboard = () => {
           return <StudentsTab />;
         case 'reading-library':
           return <ReadingLibraryTab />;
-        case 'library':
-          return <CurriculumLibraryManager />;
         case 'history':
           return <LessonHistoryTab />;
         case 'assignments':
