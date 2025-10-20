@@ -44,6 +44,7 @@ import AboutUs from "./pages/AboutUs";
 import NewPricingPage from "./pages/NewPricingPage";
 import PlacementTest from "./pages/PlacementTest";
 import Lesson1GreetingsPage from "./pages/lessons/Lesson1GreetingsPage";
+import LessonSlideViewerPage from "./pages/LessonSlideViewerPage";
 
 import ClassroomPrejoin from "./pages/ClassroomPrejoin";
 import { SystematicSlidesAdmin } from "./pages/admin/SystematicSlidesAdmin";
@@ -127,6 +128,7 @@ const App = () => {
               <Route path="/pricing" element={<NewPricingPage />} />
               <Route path="/placement-test" element={<PlacementTest />} />
               <Route path="/lessons/unit-0/lesson-1" element={<Lesson1GreetingsPage />} />
+              <Route path="/lesson-viewer" element={<LessonSlideViewerPage />} />
               <Route path="/admin/systematic-slides" element={<SystematicSlidesAdmin />} />
               <Route path="/adventures" element={
                 <Suspense fallback={<LoadingFallback />}>

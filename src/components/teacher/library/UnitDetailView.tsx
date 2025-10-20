@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 interface UnitDetailViewProps {
   unit: Unit;
@@ -11,6 +13,23 @@ interface UnitDetailViewProps {
 }
 
 export function UnitDetailView({ unit, onClose }: UnitDetailViewProps) {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleViewLesson = (lesson: any) => {
+    if (!lesson.contentId) {
+      toast({
+        title: "Content Not Available",
+        description: "This lesson doesn't have content yet.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Navigate to lesson viewer with query params
+    navigate(`/lesson-viewer?contentId=${lesson.contentId}&module=1&lesson=${lesson.lessonNumber}`);
+  };
+
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh]">
@@ -56,7 +75,12 @@ export function UnitDetailView({ unit, onClose }: UnitDetailViewProps) {
                         </div>
                         
                         <div className="flex gap-2 mt-3">
-                          <Button size="sm" variant="default" className="flex-1">
+                          <Button 
+                            size="sm" 
+                            variant="default" 
+                            className="flex-1"
+                            onClick={() => handleViewLesson(lesson)}
+                          >
                             View Lesson
                           </Button>
                           <Button size="sm" variant="outline" className="flex-1">
