@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Trash2, AlertTriangle, Clock, Calendar, User, PlayCircle } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TimeSlot {
   id?: string;

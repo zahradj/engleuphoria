@@ -31,8 +31,16 @@ export const TimeSlotActionModal = ({
 }: TimeSlotActionModalProps) => {
   const [slotType, setSlotType] = useState<'single' | 'weekly'>('single');
   const [numWeeks, setNumWeeks] = useState<number>(4);
+  const [localDuration, setLocalDuration] = useState<25 | 55>(selectedDuration);
   const [isCreating, setIsCreating] = useState(false);
   const { toast } = useToast();
+
+  // Sync local duration with prop when modal opens
+  React.useEffect(() => {
+    if (isOpen) {
+      setLocalDuration(selectedDuration);
+    }
+  }, [isOpen, selectedDuration]);
 
   const formatTime12Hour = (time24: string) => {
     if (!time24 || typeof time24 !== 'string') {
@@ -83,13 +91,13 @@ export const TimeSlotActionModal = ({
         startDateTime.setHours(hours, minutes, 0, 0);
         
         const endDateTime = new Date(startDateTime);
-        endDateTime.setMinutes(endDateTime.getMinutes() + selectedDuration);
+        endDateTime.setMinutes(endDateTime.getMinutes() + localDuration);
 
         slots.push({
           teacher_id: teacherId,
           start_time: startDateTime.toISOString(),
           end_time: endDateTime.toISOString(),
-          duration: selectedDuration,
+          duration: localDuration,
           lesson_type: 'free_slot',
           is_available: true,
           is_booked: false
@@ -109,13 +117,13 @@ export const TimeSlotActionModal = ({
           startDateTime.setHours(hours, minutes, 0, 0);
           
           const endDateTime = new Date(startDateTime);
-          endDateTime.setMinutes(endDateTime.getMinutes() + selectedDuration);
+          endDateTime.setMinutes(endDateTime.getMinutes() + localDuration);
 
           slots.push({
             teacher_id: teacherId,
             start_time: startDateTime.toISOString(),
             end_time: endDateTime.toISOString(),
-            duration: selectedDuration,
+            duration: localDuration,
             lesson_type: 'free_slot',
             is_available: true,
             is_booked: false
@@ -174,17 +182,26 @@ export const TimeSlotActionModal = ({
         
         toast({
           title: "✅ Availability Created!",
-          description: `${typeText.charAt(0).toUpperCase() + typeText.slice(1)} created at ${formatTime12Hour(time)} for ${selectedDuration} minutes.`,
+          description: `${typeText.charAt(0).toUpperCase() + typeText.slice(1)} created at ${formatTime12Hour(time)} for ${localDuration} minutes.`,
         });
       }
 
       onSlotCreated();
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating slots:', error);
+      
+      // Enhanced error handling
+      const errorMessage = error?.message || "Failed to create availability slots.";
+      const isPermissionError = error?.code === '42501' || error?.code === 'PGRST301' || 
+                                error?.message?.toLowerCase().includes('permission') ||
+                                error?.message?.toLowerCase().includes('policy');
+      
       toast({
-        title: "Error",
-        description: "Failed to create availability slots. Please try again.",
+        title: isPermissionError ? "Permission Issue" : "Error",
+        description: isPermissionError 
+          ? "Please make sure you're logged in as a teacher." 
+          : `${errorMessage} Please try again.`,
         variant: "destructive"
       });
     } finally {
@@ -197,6 +214,7 @@ export const TimeSlotActionModal = ({
       onClose();
       setSlotType('single');
       setNumWeeks(4);
+      setLocalDuration(selectedDuration);
     }
   };
 
@@ -220,6 +238,31 @@ export const TimeSlotActionModal = ({
               <p className="text-sm font-medium">
                 You clicked: <span className="text-primary">{format(date, 'EEEE')}</span>, <span className="text-primary">{format(date, 'MMM d')}</span> at <span className="text-primary">{formatTime12Hour(time)}</span>
               </p>
+            </div>
+          </div>
+
+          {/* Duration Selector */}
+          <div>
+            <p className="text-sm font-medium mb-2">Lesson Duration</p>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={localDuration === 25 ? "default" : "outline"}
+                onClick={() => setLocalDuration(25)}
+                className="flex-1"
+              >
+                25 minutes
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={localDuration === 55 ? "default" : "outline"}
+                onClick={() => setLocalDuration(55)}
+                className="flex-1"
+              >
+                55 minutes
+              </Button>
             </div>
           </div>
 
@@ -281,8 +324,8 @@ export const TimeSlotActionModal = ({
             </div>
             <p className="text-sm text-success-foreground/80 mt-1">
               {slotType === 'single' 
-                ? `Single ${selectedDuration}-minute slot on ${format(date, 'MMM d')} at ${formatTime12Hour(time)}`
-                : `Weekly ${selectedDuration}-minute slots every ${format(date, 'EEEE')} at ${formatTime12Hour(time)} for ${numWeeks} week${numWeeks > 1 ? 's' : ''}`
+                ? `Single ${localDuration}-minute slot on ${format(date, 'MMM d')} at ${formatTime12Hour(time)}`
+                : `Weekly ${localDuration}-minute slots every ${format(date, 'EEEE')} at ${formatTime12Hour(time)} for ${numWeeks} week${numWeeks > 1 ? 's' : ''}`
               }
             </p>
           </div>

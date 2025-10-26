@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { Calendar, Clock } from "lucide-react";
 
 interface QuickSetupModalProps {
@@ -53,7 +53,7 @@ export const QuickSetupModal = ({ teacherId, onSlotsCreated, children }: QuickSe
 
     setIsCreating(true);
     try {
-      const slots = [];
+      let slots = [];
       const today = new Date();
       const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
       
@@ -98,16 +98,55 @@ export const QuickSetupModal = ({ teacherId, onSlotsCreated, children }: QuickSe
         });
       }
 
-      const { error } = await supabase
-        .from('teacher_availability')
-        .insert(slots);
+      // Pre-filter duplicates
+      if (slots.length > 0) {
+        const startTimes = slots.map(s => s.start_time);
+        const { data: existingSlots, error: fetchError } = await supabase
+          .from('teacher_availability')
+          .select('start_time')
+          .eq('teacher_id', teacherId)
+          .in('start_time', startTimes);
 
-      if (error) throw error;
+        if (fetchError) {
+          console.warn('Could not check for duplicate slots:', fetchError);
+        } else if (existingSlots && existingSlots.length > 0) {
+          const existingStartTimes = new Set(existingSlots.map(s => s.start_time));
+          const originalCount = slots.length;
+          slots = slots.filter(s => !existingStartTimes.has(s.start_time));
+          const skippedCount = originalCount - slots.length;
 
-      toast({
-        title: "Slots Created",
-        description: `Successfully created ${slots.length} availability slots for the next 4 weeks.`,
-      });
+          if (slots.length === 0) {
+            toast({
+              title: "No New Slots",
+              description: "All selected times are already open for booking.",
+            });
+            setIsOpen(false);
+            onSlotsCreated();
+            setIsCreating(false);
+            return;
+          }
+
+          if (skippedCount > 0) {
+            toast({
+              title: "⚠️ Some Duplicates Skipped",
+              description: `${skippedCount} slot(s) already exist. Created ${slots.length} new slot(s).`,
+            });
+          }
+        }
+      }
+
+      if (slots.length > 0) {
+        const { error } = await supabase
+          .from('teacher_availability')
+          .insert(slots);
+
+        if (error) throw error;
+
+        toast({
+          title: "✅ Slots Created",
+          description: `Successfully created ${slots.length} availability slots for the next 4 weeks.`,
+        });
+      }
 
       setIsOpen(false);
       onSlotsCreated();
@@ -118,11 +157,19 @@ export const QuickSetupModal = ({ teacherId, onSlotsCreated, children }: QuickSe
       setEndTime("17:00");
       setDuration(25);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating bulk slots:', error);
+      
+      const errorMessage = error?.message || "Failed to create slots.";
+      const isPermissionError = error?.code === '42501' || error?.code === 'PGRST301' || 
+                                error?.message?.toLowerCase().includes('permission') ||
+                                error?.message?.toLowerCase().includes('policy');
+      
       toast({
-        title: "Error",
-        description: "Failed to create slots. Please try again.",
+        title: isPermissionError ? "Permission Issue" : "Error",
+        description: isPermissionError 
+          ? "Please make sure you're logged in as a teacher." 
+          : `${errorMessage} Please try again.`,
         variant: "destructive"
       });
     } finally {

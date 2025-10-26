@@ -650,7 +650,7 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
                 </p>
               </div>
               
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 flex-wrap">
                 <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as 'month' | 'week' | 'day')}>
                   <TabsList className="grid grid-cols-3 bg-background/80 border border-primary/20">
                     <TabsTrigger value="month" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
@@ -664,6 +664,40 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>
+
+                {/* Duration Selector */}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground font-medium">Duration:</span>
+                  <div className="flex border border-primary/20 rounded-md overflow-hidden bg-background/80">
+                    <Button
+                      size="sm"
+                      variant={selectedDuration === 25 ? "default" : "ghost"}
+                      onClick={() => setSelectedDuration(25)}
+                      className={`rounded-none px-4 ${selectedDuration === 25 ? 'bg-primary text-primary-foreground' : ''}`}
+                    >
+                      25 min
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={selectedDuration === 55 ? "default" : "ghost"}
+                      onClick={() => setSelectedDuration(55)}
+                      className={`rounded-none px-4 ${selectedDuration === 55 ? 'bg-primary text-primary-foreground' : ''}`}
+                    >
+                      55 min
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Quick Availability Button */}
+                <QuickSetupModal teacherId={teacherId} onSlotsCreated={loadCalendarData}>
+                  <Button 
+                    variant="secondary"
+                    className="shadow-md hover:shadow-lg transition-all duration-300"
+                  >
+                    <Calendar className="h-4 w-4 mr-2" />
+                    Quick Availability
+                  </Button>
+                </QuickSetupModal>
                 
                 <Button 
                   onClick={() => setShowScheduleModal(true)}
