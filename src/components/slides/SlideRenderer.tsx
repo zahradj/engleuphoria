@@ -4,6 +4,7 @@ import { WarmupSlide } from './types/WarmupSlide';
 import { VocabularySlide } from './types/VocabularySlide';
 import { GrammarSlide } from './types/GrammarSlide';
 import { InteractiveSlide } from './types/InteractiveSlide';
+import { ControlledPracticeSlide } from './types/ControlledPracticeSlide';
 import { DefaultSlide } from './types/DefaultSlide';
 import { SlideTheme } from './SlideTheme';
 import { motion } from 'framer-motion';
@@ -68,6 +69,10 @@ export function SlideRenderer({ slide, slideNumber, onNext }: SlideRendererProps
       case 'quiz':
       case 'accuracy_mcq':
         return <InteractiveSlide slide={slide} slideNumber={slideNumber} onNext={onNext} />;
+      
+      case 'controlled_practice':
+      case 'point_and_say':
+        return <ControlledPracticeSlide slide={slide} slideNumber={slideNumber} onNext={onNext} />;
       
       default:
         return <DefaultSlide slide={slide} slideNumber={slideNumber} onNext={onNext} />;

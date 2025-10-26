@@ -14,7 +14,7 @@ const themeStyles = {
   listening_comprehension: 'bg-gradient-to-br from-purple-50 via-pink-50 to-purple-100',
   sentence_builder: 'bg-gradient-to-br from-green-50 via-emerald-50 to-green-100',
   grammar_focus: 'bg-gradient-to-br from-green-50 via-teal-50 to-green-100',
-  controlled_practice: 'bg-gradient-to-br from-cyan-50 via-blue-50 to-cyan-100',
+  controlled_practice: 'bg-gradient-to-br from-green-50 via-emerald-50 to-teal-100',
   communicative_task: 'bg-gradient-to-br from-indigo-50 via-purple-50 to-indigo-100',
   match: 'bg-gradient-to-br from-pink-50 via-rose-50 to-pink-100',
   drag_drop: 'bg-gradient-to-br from-purple-50 via-fuchsia-50 to-purple-100',
