@@ -662,7 +662,7 @@ export type Database = {
           event_data: Json | null
           event_type: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           organization_id: string | null
           page_url: string | null
           referrer: string | null
@@ -675,7 +675,7 @@ export type Database = {
           event_data?: Json | null
           event_type: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           organization_id?: string | null
           page_url?: string | null
           referrer?: string | null
@@ -688,7 +688,7 @@ export type Database = {
           event_data?: Json | null
           event_type?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           organization_id?: string | null
           page_url?: string | null
           referrer?: string | null
@@ -944,7 +944,7 @@ export type Database = {
           action: string
           created_at: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           new_values: Json | null
           old_values: Json | null
           organization_id: string | null
@@ -957,7 +957,7 @@ export type Database = {
           action: string
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_values?: Json | null
           old_values?: Json | null
           organization_id?: string | null
@@ -970,7 +970,7 @@ export type Database = {
           action?: string
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_values?: Json | null
           old_values?: Json | null
           organization_id?: string | null
@@ -3699,7 +3699,7 @@ export type Database = {
           action: string
           created_at: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           metadata: Json | null
           resource_id: string | null
           resource_type: string
@@ -3710,7 +3710,7 @@ export type Database = {
           action: string
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           resource_id?: string | null
           resource_type: string
@@ -3721,7 +3721,7 @@ export type Database = {
           action?: string
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           resource_id?: string | null
           resource_type?: string
@@ -3735,7 +3735,7 @@ export type Database = {
           action: string
           created_at: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           record_id: string | null
           table_name: string
           user_agent: string | null
@@ -3745,7 +3745,7 @@ export type Database = {
           action: string
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           record_id?: string | null
           table_name: string
           user_agent?: string | null
@@ -3755,7 +3755,7 @@ export type Database = {
           action?: string
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           record_id?: string | null
           table_name?: string
           user_agent?: string | null
@@ -5910,12 +5910,9 @@ export type Database = {
         }
         Returns: string
       }
-      generate_room_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      generate_room_id: { Args: never; Returns: string }
       get_admin_dashboard_stats: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           lessons_booked_week: number
           new_students_week: number
@@ -5927,7 +5924,7 @@ export type Database = {
         }[]
       }
       get_approved_teachers: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           accent: string
           bio: string
@@ -5946,16 +5943,10 @@ export type Database = {
           years_experience: number
         }[]
       }
-      get_current_user_role: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_organization_analytics: {
-        Args: { org_uuid: string }
-        Returns: Json
-      }
+      get_current_user_role: { Args: never; Returns: string }
+      get_organization_analytics: { Args: { org_uuid: string }; Returns: Json }
       get_pending_reminders: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           lesson_date: string
           lesson_id: string
@@ -5970,18 +5961,9 @@ export type Database = {
           teacher_name: string
         }[]
       }
-      get_security_dashboard: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      get_security_metrics: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      get_security_status: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      get_security_dashboard: { Args: never; Returns: Json }
+      get_security_metrics: { Args: never; Returns: Json }
+      get_security_status: { Args: never; Returns: Json }
       get_student_curriculum_analytics: {
         Args: { p_curriculum_id: string; p_student_id: string }
         Returns: Json
@@ -6054,18 +6036,9 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_user_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_user_teacher: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      is_admin: { Args: never; Returns: boolean }
+      is_user_admin: { Args: never; Returns: boolean }
+      is_user_teacher: { Args: never; Returns: boolean }
       log_security_event: {
         Args: {
           p_action: string
@@ -6087,10 +6060,7 @@ export type Database = {
         Args: { reward_uuid: string; student_uuid: string }
         Returns: Json
       }
-      reset_monthly_class_usage: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      reset_monthly_class_usage: { Args: never; Returns: undefined }
       save_placement_test_result: {
         Args: {
           p_cefr_level: string
@@ -6150,7 +6120,7 @@ export type Database = {
         Returns: undefined
       }
       validate_security_config: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           check_name: string
           details: string
