@@ -5,6 +5,8 @@ import { VocabularySlide } from './types/VocabularySlide';
 import { GrammarSlide } from './types/GrammarSlide';
 import { InteractiveSlide } from './types/InteractiveSlide';
 import { DefaultSlide } from './types/DefaultSlide';
+import { SlideTheme } from './SlideTheme';
+import { motion } from 'framer-motion';
 
 interface SlideRendererProps {
   slide: any;
@@ -41,7 +43,7 @@ function TeacherTipsPanel({ tips }: { tips?: string[] }) {
 }
 
 export function SlideRenderer({ slide, slideNumber, onNext }: SlideRendererProps) {
-  const renderSlideByType = () => {
+  const renderSlideContent = () => {
     const type = slide.type?.toLowerCase();
 
     switch (type) {
@@ -73,9 +75,18 @@ export function SlideRenderer({ slide, slideNumber, onNext }: SlideRendererProps
   };
 
   return (
-    <div className="max-w-5xl mx-auto">
-      {renderSlideByType()}
-      <TeacherTipsPanel tips={slide.teacherTips} />
-    </div>
+    <SlideTheme type={slide.type}>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="max-w-5xl mx-auto"
+      >
+        {renderSlideContent()}
+        {slide.teacherTips && slide.teacherTips.length > 0 && (
+          <TeacherTipsPanel tips={slide.teacherTips} />
+        )}
+      </motion.div>
+    </SlideTheme>
   );
 }

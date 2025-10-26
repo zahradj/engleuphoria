@@ -3,10 +3,14 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card } from '@/components/ui/card';
-import { ArrowLeft, ArrowRight, Home } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Home, Volume2, VolumeX, Clock, Users } from 'lucide-react';
 import { SlideRenderer } from '@/components/slides/SlideRenderer';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { ProgressBar } from '@/components/gamification/ProgressBar';
+import { ConfettiEffect } from '@/components/gamification/ConfettiEffect';
+import { AchievementPopup } from '@/components/gamification/AchievementPopup';
+import { soundEffectsService } from '@/services/soundEffectsService';
 
 export default function LessonSlideViewerPage() {
   const navigate = useNavigate();
@@ -16,6 +20,14 @@ export default function LessonSlideViewerPage() {
   const [lessonData, setLessonData] = useState<any>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [totalXP, setTotalXP] = useState(0);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [achievement, setAchievement] = useState<{ show: boolean; message: string; type: 'success' | 'perfect' | 'streak' | 'complete' }>({
+    show: false,
+    message: '',
+    type: 'success'
+  });
+  const [isMuted, setIsMuted] = useState(false);
 
   const contentId = searchParams.get('contentId');
   const moduleNumber = searchParams.get('module');
@@ -115,10 +127,38 @@ export default function LessonSlideViewerPage() {
     }
   };
 
+  useEffect(() => {
+    soundEffectsService.setMuted(isMuted);
+  }, [isMuted]);
+
   const handleNext = () => {
     if (lessonData && currentSlide < lessonData.slides_content.slides.length - 1) {
+      soundEffectsService.playPageTurn();
       setCurrentSlide(currentSlide + 1);
-    } else {
+      
+      // Award XP for completing a slide
+      const xpEarned = lessonData.slides_content.slides[currentSlide].xpReward || 10;
+      setTotalXP(prev => prev + xpEarned);
+      
+      // Show achievements at milestones
+      if ((currentSlide + 1) % 5 === 0) {
+        soundEffectsService.playStarEarned();
+        setShowConfetti(true);
+        setAchievement({
+          show: true,
+          message: '🎉 Milestone Reached!',
+          type: 'complete'
+        });
+      }
+    } else if (lessonData && currentSlide === lessonData.slides_content.slides.length - 1) {
+      // Lesson complete!
+      soundEffectsService.playLevelComplete();
+      setShowConfetti(true);
+      setAchievement({
+        show: true,
+        message: '🏆 Lesson Complete!',
+        type: 'perfect'
+      });
       toast({
         title: "Lesson Complete! 🎉",
         description: "You've completed this lesson!",
@@ -128,6 +168,7 @@ export default function LessonSlideViewerPage() {
 
   const handlePrevious = () => {
     if (currentSlide > 0) {
+      soundEffectsService.playPageTurn();
       setCurrentSlide(currentSlide - 1);
     }
   };
@@ -153,38 +194,60 @@ export default function LessonSlideViewerPage() {
   const progress = ((currentSlide + 1) / slides.length) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+      <ConfettiEffect trigger={showConfetti} onComplete={() => setShowConfetti(false)} />
+      <AchievementPopup
+        show={achievement.show}
+        message={achievement.message}
+        type={achievement.type}
+        onClose={() => setAchievement(prev => ({ ...prev, show: false }))}
+      />
+      
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+      <div className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-primary/10 shadow-lg">
         <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="sm" onClick={handleExit}>
+              <Button variant="ghost" size="sm" onClick={handleExit} className="hover:scale-105 transition-transform">
                 <Home className="h-4 w-4 mr-2" />
                 Exit
               </Button>
               <div className="text-sm">
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold">{lessonData.title}</span>
+                  <span className="font-bold text-lg">{lessonData.title}</span>
                   {lessonData.slides_content?.metadata?.format === 'one-on-one' && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
-                      👥 1-on-1 Lesson
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-md">
+                      <Users className="w-3 h-3 mr-1" />
+                      1-on-1
+                    </span>
+                  )}
+                  {lessonData.slides_content?.durationMin && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                      <Clock className="w-3 h-3 mr-1" />
+                      {lessonData.slides_content.durationMin} min
                     </span>
                   )}
                 </div>
-                <div className="text-muted-foreground">
+                <div className="text-muted-foreground font-medium">
                   Module {moduleNumber} • Lesson {lessonNumber}
-                  {lessonData.slides_content?.durationMin && (
-                    <> • {lessonData.slides_content.durationMin} min</>
-                  )}
                 </div>
               </div>
             </div>
-            <div className="text-sm text-muted-foreground">
-              Slide {currentSlide + 1} of {slides.length}
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsMuted(!isMuted)}
+              className="gap-2 hover:scale-105 transition-transform"
+            >
+              {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+              {isMuted ? 'Unmute' : 'Mute'}
+            </Button>
           </div>
-          <Progress value={progress} className="h-2" />
+          <ProgressBar
+            current={currentSlide + 1}
+            total={slides.length}
+            xp={totalXP}
+          />
         </div>
       </div>
 
@@ -198,29 +261,33 @@ export default function LessonSlideViewerPage() {
       </div>
 
       {/* Navigation Footer */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t">
+      <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-primary/10 shadow-lg">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Button
               variant="outline"
               onClick={handlePrevious}
               disabled={currentSlide === 0}
+              className="shadow-md hover:scale-105 transition-transform disabled:opacity-40"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Previous
             </Button>
             
-            <div className="flex gap-1">
+            <div className="flex gap-2">
               {slides.map((_: any, index: number) => (
                 <button
                   key={index}
-                  onClick={() => setCurrentSlide(index)}
-                  className={`w-2 h-2 rounded-full transition-colors ${
+                  onClick={() => {
+                    soundEffectsService.playButtonClick();
+                    setCurrentSlide(index);
+                  }}
+                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
                     index === currentSlide 
-                      ? 'bg-primary' 
+                      ? 'bg-gradient-to-r from-blue-500 to-purple-500 scale-125 shadow-lg' 
                       : index < currentSlide 
-                      ? 'bg-primary/40' 
-                      : 'bg-muted'
+                      ? 'bg-green-400 shadow-md' 
+                      : 'bg-gray-300'
                   }`}
                   aria-label={`Go to slide ${index + 1}`}
                 />
@@ -230,8 +297,9 @@ export default function LessonSlideViewerPage() {
             <Button
               onClick={handleNext}
               disabled={currentSlide === slides.length - 1}
+              className="shadow-md hover:scale-105 transition-transform disabled:opacity-40 font-bold"
             >
-              {currentSlide === slides.length - 1 ? 'Complete' : 'Next'}
+              {currentSlide === slides.length - 1 ? '🎉 Complete' : 'Next'}
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           </div>
