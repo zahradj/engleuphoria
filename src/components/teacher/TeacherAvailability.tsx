@@ -96,6 +96,7 @@ export const TeacherAvailability = ({ teacherId }: TeacherAvailabilityProps) => 
             start_time: startTime.toISOString(),
             end_time: endTime.toISOString(),
             duration: parseInt(duration),
+            lesson_type: 'free_slot',
             is_available: true,
             is_booked: false
           });
