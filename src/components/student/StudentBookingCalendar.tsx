@@ -3,8 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
-import { Clock, User, CheckCircle } from "lucide-react";
+import { Clock, User, CheckCircle, Calendar as CalendarIcon, RefreshCcw, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 interface TimeSlot {
   id: string;
@@ -29,6 +30,7 @@ export const StudentBookingCalendar = ({
 }: StudentBookingCalendarProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   // Get slots for selected date
   const getSlotsForDate = (date: Date) => {
@@ -112,6 +114,32 @@ export const StudentBookingCalendar = ({
 
   const availableDates = getDatesWithSlots();
   const selectedDateSlots = selectedDate ? getSlotsForDate(selectedDate) : [];
+  
+  // Show empty state if no slots available at all
+  if (availableSlots.length === 0) {
+    return (
+      <Card>
+        <CardContent className="text-center py-12 space-y-4">
+          <CalendarIcon className="w-16 h-16 mx-auto text-muted-foreground" />
+          <div>
+            <h2 className="text-xl font-semibold mb-2">No Available Slots Yet</h2>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              Teachers are still setting up their availability. Please check back soon or contact your teacher directly.
+            </p>
+          </div>
+          <div className="flex gap-2 justify-center flex-wrap">
+            <Button onClick={() => window.location.reload()}>
+              <RefreshCcw className="w-4 h-4 mr-2" />
+              Refresh
+            </Button>
+            <Button variant="outline" onClick={() => navigate('/student')}>
+              Back to Dashboard
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -173,15 +201,21 @@ export const StudentBookingCalendar = ({
         </CardHeader>
         <CardContent>
           {!selectedDate ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Calendar className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>Select a date to see available times</p>
+            <div className="text-center py-8 text-muted-foreground space-y-2">
+              <CalendarIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
+              <p className="font-medium">Select a date to see available times</p>
+              <p className="text-sm">Dates with available slots are highlighted</p>
             </div>
           ) : selectedDateSlots.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
+            <div className="text-center py-8 text-muted-foreground space-y-3">
               <Clock className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>No available lessons for this date</p>
-              <p className="text-sm mt-2">Try selecting another date</p>
+              <div>
+                <p className="font-medium">No available lessons for this date</p>
+                <p className="text-sm mt-2">Try selecting another highlighted date</p>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => setSelectedDate(undefined)}>
+                View All Dates
+              </Button>
             </div>
           ) : (
             <div className="space-y-3">

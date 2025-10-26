@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, ChevronLeft, ChevronRight, Clock, User, PlayCircle } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, Clock, User, PlayCircle, Calendar as CalendarIcon, Sparkles, Info, RefreshCcw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, eachDayOfInterval, isSameDay, addDays, startOfDay, endOfDay } from "date-fns";
@@ -53,9 +53,15 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
   const [selectedSlotDate, setSelectedSlotDate] = useState<Date>(new Date());
   const [selectedSlotTime, setSelectedSlotTime] = useState<string>('');
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
+  const [showQuickSetupModal, setShowQuickSetupModal] = useState(false);
   
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  // Calculate slot counts
+  const totalSlots = Object.values(daySlots).flat();
+  const availableCount = totalSlots.filter(s => s.slotType === 'available').length;
+  const bookedCount = totalSlots.filter(s => s.slotType === 'booked' || s.slotType === 'lesson').length;
 
   // Time slots from 6 AM to 10 PM in 30-minute intervals
   const timeSlots = Array.from({ length: 32 }, (_, i) => {
@@ -410,8 +416,75 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
           </div>
         </div>
         
-        {/* Calendar Grid */}
-        <div className="overflow-hidden rounded-xl border border-primary/20 bg-background/50 backdrop-blur-sm">
+              {/* Empty State */}
+              {!isLoading && totalSlots.length === 0 && (
+                <Card className="border-2 border-dashed border-primary/30 bg-primary/5">
+                  <CardContent className="p-8 text-center space-y-4">
+                    <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
+                      <CalendarIcon className="w-8 h-8 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold mb-2">Welcome to Your Calendar! 📅</h3>
+                      <p className="text-muted-foreground max-w-md mx-auto">
+                        Your calendar is empty. Let's get you started by creating your first availability slots.
+                      </p>
+                    </div>
+                    <div className="flex gap-3 justify-center flex-wrap">
+                      <QuickSetupModal teacherId={teacherId} onSlotsCreated={loadCalendarData}>
+                        <Button size="lg">
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          Quick Setup (Recommended)
+                        </Button>
+                      </QuickSetupModal>
+                      <Button size="lg" variant="outline" onClick={loadCalendarData}>
+                        <RefreshCcw className="w-4 h-4 mr-2" />
+                        Refresh
+                      </Button>
+                    </div>
+                    <div className="pt-4 border-t max-w-lg mx-auto">
+                      <p className="text-sm text-muted-foreground text-left">
+                        <strong>💡 Quick Tip:</strong> Use "Quick Setup" to create multiple slots at once. 
+                        Choose your available days and times, and we'll create slots for the next 4 weeks automatically!
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {/* Slot Count Summary */}
+              {!isLoading && totalSlots.length > 0 && (
+                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border mb-4">
+                  <div className="flex gap-4 flex-wrap">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-secondary"></div>
+                      <span className="text-sm">
+                        <strong>{availableCount}</strong> Available
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-primary"></div>
+                      <span className="text-sm">
+                        <strong>{bookedCount}</strong> Booked
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-border"></div>
+                      <span className="text-sm">
+                        <strong>{totalSlots.length}</strong> Total
+                      </span>
+                    </div>
+                  </div>
+                  {availableCount < 10 && availableCount > 0 && (
+                    <Badge variant="outline" className="text-amber-600 border-amber-600 whitespace-nowrap">
+                      ⚠️ Consider adding more slots
+                    </Badge>
+                  )}
+                </div>
+              )}
+
+              {/* Calendar Grid */}
+              {totalSlots.length > 0 && (
+                <div className="overflow-hidden rounded-xl border border-primary/20 bg-background/50 backdrop-blur-sm">
           <div className="overflow-x-auto">
             <div className="min-w-[800px]">
               {/* Header Row */}
@@ -460,6 +533,7 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
             </div>
           </div>
         </div>
+              )}
       </div>
     );
   };
@@ -688,22 +762,24 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
                   </div>
                 </div>
 
-                {/* Quick Availability Button */}
+                {/* Quick Availability Button - More Prominent */}
                 <QuickSetupModal teacherId={teacherId} onSlotsCreated={loadCalendarData}>
                   <Button 
-                    variant="secondary"
-                    className="shadow-md hover:shadow-lg transition-all duration-300"
+                    size="lg"
+                    className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                   >
-                    <Calendar className="h-4 w-4 mr-2" />
+                    <Sparkles className="h-4 w-4 mr-2" />
                     Quick Availability
                   </Button>
                 </QuickSetupModal>
                 
                 <Button 
                   onClick={() => setShowScheduleModal(true)}
-                  className="bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-600/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 group"
+                  variant="outline"
+                  size="lg"
+                  className="shadow-md hover:shadow-lg transition-all duration-300"
                 >
-                  <Plus className="h-4 w-4 mr-2 group-hover:rotate-90 transition-transform duration-300" />
+                  <Plus className="h-4 w-4 mr-2" />
                   Schedule Lesson
                 </Button>
               </div>

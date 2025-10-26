@@ -1,5 +1,5 @@
-
 import { EnhancedCalendarTab } from "../EnhancedCalendarTab";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ScheduleTabProps {
   onScheduleClass: () => void;
@@ -7,8 +7,16 @@ interface ScheduleTabProps {
 }
 
 export const ScheduleTab = ({ onScheduleClass, onStartScheduledClass }: ScheduleTabProps) => {
-  // Get teacher ID from localStorage or context
-  const teacherId = "teacher-1"; // In real app, this would come from auth context
+  const { user } = useAuth();
+  const teacherId = user?.id || "";
+  
+  if (!teacherId) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <p className="text-muted-foreground">Please log in to access your calendar</p>
+      </div>
+    );
+  }
   
   return <EnhancedCalendarTab teacherId={teacherId} />;
 };

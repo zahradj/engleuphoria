@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -6,7 +6,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Calendar, Clock } from "lucide-react";
+import { Calendar, Clock, Info } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 interface QuickSetupModalProps {
   teacherId: string;
@@ -21,6 +22,7 @@ export const QuickSetupModal = ({ teacherId, onSlotsCreated, children }: QuickSe
   const [endTime, setEndTime] = useState("17:00");
   const [duration, setDuration] = useState<25 | 55>(25);
   const [isCreating, setIsCreating] = useState(false);
+  const [estimatedSlots, setEstimatedSlots] = useState(0);
   const { toast } = useToast();
 
   const daysOfWeek = [
@@ -40,6 +42,56 @@ export const QuickSetupModal = ({ teacherId, onSlotsCreated, children }: QuickSe
         : [...prev, dayId]
     );
   };
+  
+  const applyPreset = (preset: string) => {
+    switch (preset) {
+      case 'weekday-morning':
+        setSelectedDays([1, 2, 3, 4, 5]);
+        setStartTime("08:00");
+        setEndTime("12:00");
+        break;
+      case 'weekday-evening':
+        setSelectedDays([1, 2, 3, 4, 5]);
+        setStartTime("17:00");
+        setEndTime("21:00");
+        break;
+      case 'weekend':
+        setSelectedDays([6, 0]);
+        setStartTime("09:00");
+        setEndTime("18:00");
+        break;
+      case 'business-hours':
+        setSelectedDays([1, 2, 3, 4, 5]);
+        setStartTime("09:00");
+        setEndTime("17:00");
+        break;
+    }
+  };
+  
+  // Calculate estimated slots
+  useEffect(() => {
+    if (selectedDays.length === 0) {
+      setEstimatedSlots(0);
+      return;
+    }
+    
+    const [startHour, startMin] = startTime.split(':').map(Number);
+    const [endHour, endMin] = endTime.split(':').map(Number);
+    const startMinutes = startHour * 60 + startMin;
+    const endMinutes = endHour * 60 + endMin;
+    const totalMinutes = endMinutes - startMinutes;
+    
+    if (totalMinutes <= 0) {
+      setEstimatedSlots(0);
+      return;
+    }
+    
+    // Calculate slots per day (30-minute intervals, accounting for duration)
+    const slotsPerDay = Math.floor(totalMinutes / 30);
+    // 4 weeks * selected days * slots per day
+    const total = 4 * selectedDays.length * slotsPerDay;
+    setEstimatedSlots(total);
+  }, [selectedDays, startTime, endTime, duration]);
 
   const createBulkSlots = async () => {
     if (selectedDays.length === 0) {
@@ -250,6 +302,44 @@ export const QuickSetupModal = ({ teacherId, onSlotsCreated, children }: QuickSe
           </div>
 
           <div>
+            <Label className="text-sm font-medium">Quick Presets</Label>
+            <div className="grid grid-cols-2 gap-2 mt-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => applyPreset('weekday-morning')}
+              >
+                🌅 Weekday Mornings
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => applyPreset('weekday-evening')}
+              >
+                🌆 Weekday Evenings
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => applyPreset('weekend')}
+              >
+                🎉 Weekends
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => applyPreset('business-hours')}
+              >
+                💼 Business Hours
+              </Button>
+            </div>
+          </div>
+          
+          <div>
             <Label className="text-sm font-medium">Lesson Duration</Label>
             <Select value={duration.toString()} onValueChange={(value) => setDuration(Number(value) as 25 | 55)}>
               <SelectTrigger>
@@ -261,6 +351,30 @@ export const QuickSetupModal = ({ teacherId, onSlotsCreated, children }: QuickSe
               </SelectContent>
             </Select>
           </div>
+          
+          {/* Preview Section */}
+          {estimatedSlots > 0 && (
+            <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+              <div className="flex items-center gap-2 mb-2">
+                <Info className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium">Preview</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                This will create approximately <strong className="text-primary">{estimatedSlots}</strong> slot{estimatedSlots !== 1 ? 's' : ''} 
+                {' '}across <strong>{selectedDays.length}</strong> day{selectedDays.length !== 1 ? 's' : ''} for the next 4 weeks.
+              </p>
+              <div className="mt-2 flex gap-2 flex-wrap">
+                {selectedDays.map(dayId => {
+                  const day = daysOfWeek.find(d => d.id === dayId);
+                  return day ? (
+                    <Badge key={dayId} variant="secondary" className="text-xs">
+                      {day.label}
+                    </Badge>
+                  ) : null;
+                })}
+              </div>
+            </div>
+          )}
 
           <div className="pt-4 border-t">
             <div className="flex gap-2">
