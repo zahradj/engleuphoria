@@ -15,6 +15,8 @@ import { QuickSetupModal } from "./QuickSetupModal";
 import { TimeSlotActionModal } from "./TimeSlotActionModal";
 import { SlotManagementModal } from "./SlotManagementModal";
 import { InstructionPrompt } from "@/components/shared/InstructionPrompt";
+import { CalendarDiagnostics } from "./CalendarDiagnostics";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface UnifiedTeacherCalendarProps {
   teacherId: string;
@@ -57,6 +59,29 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
   
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  // CRITICAL: Authentication Guard
+  useEffect(() => {
+    if (!teacherId || teacherId === '') {
+      toast({
+        title: "❌ Authentication Required",
+        description: "You must be logged in as a teacher to manage your calendar.",
+        variant: "destructive"
+      });
+      navigate('/login');
+    }
+  }, [teacherId, navigate, toast]);
+
+  // Debug logging for authentication
+  useEffect(() => {
+    console.log('🔍 Calendar Auth Debug:', {
+      teacherId,
+      userFromAuth: user?.id,
+      userRole: user?.role,
+      idsMatch: user?.id === teacherId
+    });
+  }, [teacherId, user]);
   
   // Calculate slot counts
   const totalSlots = Object.values(daySlots).flat();
@@ -853,6 +878,11 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
           onSlotDeleted={loadCalendarData}
           onJoinLesson={handleJoinLesson}
         />
+        
+        {/* Diagnostics Panel (Development Mode) */}
+        {process.env.NODE_ENV === 'development' && (
+          <CalendarDiagnostics teacherId={teacherId} />
+        )}
       </div>
     </div>
   );

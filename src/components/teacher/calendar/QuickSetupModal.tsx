@@ -103,6 +103,53 @@ export const QuickSetupModal = ({ teacherId, onSlotsCreated, children }: QuickSe
       return;
     }
 
+    // SECURITY: Pre-flight authentication check
+    if (!teacherId || teacherId === '') {
+      toast({
+        title: "⚠️ Authentication Error",
+        description: "Invalid teacher ID. Please log out and log back in.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Verify current user session
+    const { data: { session: currentSession } } = await supabase.auth.getSession();
+    if (!currentSession?.user?.id) {
+      toast({
+        title: "⚠️ Session Expired",
+        description: "Your session has expired. Please log in again.",
+        variant: "destructive"
+      });
+      setIsOpen(false);
+      return;
+    }
+
+    if (currentSession.user.id !== teacherId) {
+      toast({
+        title: "⚠️ ID Mismatch",
+        description: `Session mismatch detected. Please refresh the page and try again.`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Verify teacher role
+    const { data: roleData } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', teacherId)
+      .maybeSingle();
+
+    if (!roleData || roleData.role !== 'teacher') {
+      toast({
+        title: "⚠️ Permission Denied",
+        description: `You must have a teacher role. Current role: ${roleData?.role || 'none'}`,
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsCreating(true);
     try {
       let slots = [];
@@ -210,19 +257,39 @@ export const QuickSetupModal = ({ teacherId, onSlotsCreated, children }: QuickSe
       setDuration(25);
       
     } catch (error: any) {
-      console.error('Error creating bulk slots:', error);
+      console.error('❌ Bulk slot creation failed:', error);
       
-      const errorMessage = error?.message || "Failed to create slots.";
-      const isPermissionError = error?.code === '42501' || error?.code === 'PGRST301' || 
-                                error?.message?.toLowerCase().includes('permission') ||
-                                error?.message?.toLowerCase().includes('policy');
+      let errorTitle = "Error Creating Slots";
+      let errorDescription = "Failed to create availability slots.";
+      
+      // Detailed error categorization
+      if (error?.code === '42501' || error?.code === 'PGRST301') {
+        errorTitle = "🔒 Permission Denied";
+        errorDescription = `Database rejected your request. This usually means:
+
+1. You're not logged in as a teacher
+2. Your session expired  
+3. Role mismatch in database
+
+Please log out and log back in.`;
+      } else if (error?.message?.includes('duplicate')) {
+        errorTitle = "⚠️ Duplicate Slots";
+        errorDescription = "Some of these time slots already exist.";
+      } else if (error?.message?.includes('foreign key')) {
+        errorTitle = "❌ Invalid Teacher ID";
+        errorDescription = `Your teacher ID is not valid in the database. Please contact support.`;
+      } else if (error?.message?.includes('violates check constraint')) {
+        errorTitle = "⚠️ Validation Error";
+        errorDescription = error.message;
+      } else if (error?.message) {
+        errorDescription = error.message;
+      }
       
       toast({
-        title: isPermissionError ? "Permission Issue" : "Error",
-        description: isPermissionError 
-          ? "Please make sure you're logged in as a teacher." 
-          : `${errorMessage} Please try again.`,
-        variant: "destructive"
+        title: errorTitle,
+        description: errorDescription,
+        variant: "destructive",
+        duration: 7000
       });
     } finally {
       setIsCreating(false);
