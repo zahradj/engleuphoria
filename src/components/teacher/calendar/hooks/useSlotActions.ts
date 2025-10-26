@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
 interface ScheduleSlot {
@@ -200,6 +200,7 @@ export const useSlotActions = (
           start_time: targetDate.toISOString(),
           end_time: endTime.toISOString(),
           duration: slot.duration,
+          lesson_type: 'free_slot',
           is_available: true,
           is_booked: false
         };

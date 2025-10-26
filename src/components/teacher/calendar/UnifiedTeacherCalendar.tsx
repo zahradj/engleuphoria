@@ -8,7 +8,7 @@ import { Plus, ChevronLeft, ChevronRight, Clock, User, PlayCircle } from "lucide
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks, eachDayOfInterval, isSameDay, addDays, startOfDay, endOfDay } from "date-fns";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { lessonService, ScheduledLesson } from "@/services/lessonService";
 import { ScheduleLessonModal } from "../ScheduleLessonModal";
 import { QuickSetupModal } from "./QuickSetupModal";
@@ -43,7 +43,7 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
   const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState(true);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
-  const [selectedDuration, setSelectedDuration] = useState<30 | 60>(30);
+  const [selectedDuration, setSelectedDuration] = useState<25 | 55>(25);
   const [lessons, setLessons] = useState<ScheduledLesson[]>([]);
   const [daySlots, setDaySlots] = useState<DaySlots>({});
   

@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Clock, Calendar, Repeat, CalendarPlus, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TimeSlotActionModalProps {
   isOpen: boolean;
@@ -15,7 +16,7 @@ interface TimeSlotActionModalProps {
   date: Date;
   time: string;
   teacherId: string;
-  selectedDuration: 30 | 60;
+  selectedDuration: 25 | 55;
   onSlotCreated: () => void;
 }
 
@@ -29,6 +30,7 @@ export const TimeSlotActionModal = ({
   onSlotCreated
 }: TimeSlotActionModalProps) => {
   const [slotType, setSlotType] = useState<'single' | 'weekly'>('single');
+  const [numWeeks, setNumWeeks] = useState<number>(4);
   const [isCreating, setIsCreating] = useState(false);
   const { toast } = useToast();
 
@@ -73,7 +75,7 @@ export const TimeSlotActionModal = ({
         throw new Error('Invalid time values');
       }
       
-      const slots = [];
+      let slots = [];
 
       if (slotType === 'single') {
         // Create single slot
@@ -93,11 +95,10 @@ export const TimeSlotActionModal = ({
           is_booked: false
         });
       } else {
-        // Create weekly recurring slots for next 4 weeks
-        const dayOfWeek = date.getDay();
+        // Create weekly recurring slots for the specified number of weeks
         const today = new Date();
         
-        for (let week = 0; week < 4; week++) {
+        for (let week = 0; week < numWeeks; week++) {
           const slotDate = new Date(date);
           slotDate.setDate(date.getDate() + (week * 7));
           
@@ -122,21 +123,60 @@ export const TimeSlotActionModal = ({
         }
       }
 
-      const { error } = await supabase
-        .from('teacher_availability')
-        .insert(slots);
+      // Pre-filter duplicates: check existing slots to prevent insert errors
+      if (slots.length > 0) {
+        const startTimes = slots.map(s => s.start_time);
+        const { data: existingSlots, error: fetchError } = await supabase
+          .from('teacher_availability')
+          .select('start_time')
+          .eq('teacher_id', teacherId)
+          .in('start_time', startTimes);
 
-      if (error) {
-        throw error;
+        if (fetchError) {
+          console.warn('Could not check for duplicate slots:', fetchError);
+        } else if (existingSlots && existingSlots.length > 0) {
+          const existingStartTimes = new Set(existingSlots.map(s => s.start_time));
+          const originalCount = slots.length;
+          slots = slots.filter(s => !existingStartTimes.has(s.start_time));
+          const skippedCount = originalCount - slots.length;
+
+          if (slots.length === 0) {
+            toast({
+              title: "No New Slots",
+              description: "All selected times are already open for booking.",
+            });
+            onSlotCreated();
+            onClose();
+            setIsCreating(false);
+            return;
+          }
+
+          if (skippedCount > 0) {
+            toast({
+              title: "⚠️ Some Duplicates Skipped",
+              description: `${skippedCount} slot(s) already exist. Created ${slots.length} new slot(s).`,
+            });
+          }
+        }
       }
 
-      const slotCount = slots.length;
-      const typeText = slotType === 'single' ? 'slot' : `weekly slots (${slotCount} total)`;
-      
-      toast({
-        title: "✅ Availability Created!",
-        description: `${typeText.charAt(0).toUpperCase() + typeText.slice(1)} created at ${formatTime12Hour(time)} for ${selectedDuration} minutes.`,
-      });
+      if (slots.length > 0) {
+        const { error } = await supabase
+          .from('teacher_availability')
+          .insert(slots);
+
+        if (error) {
+          throw error;
+        }
+
+        const slotCount = slots.length;
+        const typeText = slotType === 'single' ? 'slot' : `weekly slots (${slotCount} total)`;
+        
+        toast({
+          title: "✅ Availability Created!",
+          description: `${typeText.charAt(0).toUpperCase() + typeText.slice(1)} created at ${formatTime12Hour(time)} for ${selectedDuration} minutes.`,
+        });
+      }
 
       onSlotCreated();
       onClose();
@@ -156,6 +196,7 @@ export const TimeSlotActionModal = ({
     if (!isCreating) {
       onClose();
       setSlotType('single');
+      setNumWeeks(4);
     }
   };
 
@@ -202,14 +243,30 @@ export const TimeSlotActionModal = ({
                 
                 <div className="flex items-start space-x-3 p-3 rounded-lg border border-border hover:border-primary/50 transition-colors">
                   <RadioGroupItem value="weekly" id="weekly" className="mt-1" />
-                  <div className="space-y-1 flex-1">
+                  <div className="space-y-2 flex-1">
                     <Label htmlFor="weekly" className="flex items-center gap-2 font-medium cursor-pointer">
                       <Repeat className="h-4 w-4" />
                       🔁 Create Weekly Slot
                     </Label>
                     <p className="text-xs text-muted-foreground">
-                      Repeat this slot every week (next 4 weeks)
+                      Repeat this slot every week
                     </p>
+                    {slotType === 'weekly' && (
+                      <div className="mt-2">
+                        <Label htmlFor="numWeeks" className="text-xs text-muted-foreground">Number of weeks:</Label>
+                        <Select value={numWeeks.toString()} onValueChange={(val) => setNumWeeks(parseInt(val))}>
+                          <SelectTrigger id="numWeeks" className="w-full mt-1">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1">1 week</SelectItem>
+                            <SelectItem value="4">4 weeks</SelectItem>
+                            <SelectItem value="8">8 weeks</SelectItem>
+                            <SelectItem value="12">12 weeks</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -225,7 +282,7 @@ export const TimeSlotActionModal = ({
             <p className="text-sm text-success-foreground/80 mt-1">
               {slotType === 'single' 
                 ? `Single ${selectedDuration}-minute slot on ${format(date, 'MMM d')} at ${formatTime12Hour(time)}`
-                : `Weekly ${selectedDuration}-minute slots every ${format(date, 'EEEE')} at ${formatTime12Hour(time)} for 4 weeks`
+                : `Weekly ${selectedDuration}-minute slots every ${format(date, 'EEEE')} at ${formatTime12Hour(time)} for ${numWeeks} week${numWeeks > 1 ? 's' : ''}`
               }
             </p>
           </div>
