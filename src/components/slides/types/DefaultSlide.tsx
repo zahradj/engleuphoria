@@ -1,6 +1,11 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
+import { ImageLoader } from '../ImageLoader';
+import { useLessonAssets } from '@/hooks/useLessonAssets';
+import { soundEffectsService } from '@/services/soundEffectsService';
+import { BookOpen } from 'lucide-react';
 
 interface DefaultSlideProps {
   slide: any;
@@ -9,49 +14,86 @@ interface DefaultSlideProps {
 }
 
 export function DefaultSlide({ slide, slideNumber, onNext }: DefaultSlideProps) {
+  const { generateImage } = useLessonAssets();
+  
   return (
-    <Card className="border-2 shadow-xl">
-      <CardHeader className="bg-gradient-to-r from-muted/50 to-muted/30">
-        <div className="text-xs text-muted-foreground mb-2">Slide {slideNumber}</div>
-        <CardTitle className="text-2xl">
+    <Card className="border-2 shadow-xl backdrop-blur-sm">
+      <CardHeader className="bg-gradient-to-r from-slate-100 to-gray-100">
+        <div className="flex items-center gap-2 mb-2">
+          <BookOpen className="h-5 w-5 text-slate-600" />
+          <div className="text-xs text-muted-foreground font-medium">Slide {slideNumber}</div>
+        </div>
+        <CardTitle className="text-3xl font-bold text-slate-800">
           {slide.title || slide.prompt || `Slide ${slideNumber}`}
         </CardTitle>
       </CardHeader>
       <CardContent className="p-8 space-y-6">
         {slide.instructions && (
-          <div className="bg-muted/50 rounded-lg p-4">
-            <p className="text-sm font-medium">{slide.instructions}</p>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-slate-50 rounded-xl p-4 border-2 border-slate-200"
+          >
+            <p className="text-sm font-medium text-slate-700">💡 {slide.instructions}</p>
+          </motion.div>
         )}
 
         {slide.content && (
-          <div className="prose prose-sm max-w-none">
-            <p className="text-base leading-relaxed">{slide.content}</p>
-          </div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="prose prose-lg max-w-none"
+          >
+            <p className="text-base leading-relaxed text-slate-700">{slide.content}</p>
+          </motion.div>
         )}
 
         {slide.media?.imagePrompt && (
-          <div className="flex justify-center">
-            <div className="w-full max-w-md aspect-video bg-muted rounded-lg flex items-center justify-center border-2 border-dashed">
-              <p className="text-sm text-muted-foreground px-4 text-center">
-                {slide.media.imagePrompt}
-              </p>
-            </div>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.3 }}
+            className="flex justify-center"
+          >
+            <ImageLoader
+              prompt={slide.media.imagePrompt}
+              alt={slide.title || 'Slide image'}
+              className="w-full max-w-2xl aspect-video"
+              generateImage={generateImage}
+            />
+          </motion.div>
         )}
 
-        {!slide.content && !slide.instructions && (
-          <div className="text-center py-8 text-muted-foreground">
-            <p>Slide content will appear here</p>
-          </div>
+        {!slide.content && !slide.instructions && !slide.media?.imagePrompt && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-12 text-muted-foreground"
+          >
+            <BookOpen className="h-16 w-16 mx-auto mb-4 opacity-30" />
+            <p className="text-lg">Slide content will appear here</p>
+          </motion.div>
         )}
 
         {onNext && (
-          <div className="flex justify-center pt-4">
-            <Button size="lg" onClick={onNext}>
-              Continue
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="flex justify-center pt-4"
+          >
+            <Button 
+              size="lg" 
+              onClick={() => {
+                soundEffectsService.playButtonClick();
+                onNext();
+              }}
+              className="bg-gradient-to-r from-slate-600 to-gray-600 hover:from-slate-700 hover:to-gray-700 shadow-lg text-lg px-8"
+            >
+              Continue ➡️
             </Button>
-          </div>
+          </motion.div>
         )}
       </CardContent>
     </Card>
