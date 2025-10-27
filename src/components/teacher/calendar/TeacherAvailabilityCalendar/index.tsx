@@ -246,6 +246,26 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
   const handleCreateSlots = async () => {
     if (selectedSlots.length === 0) return;
     
+    // Pre-flight authentication check
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({
+        title: "Authentication Error",
+        description: "You must be logged in to create availability slots.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (user.id !== teacherId) {
+      toast({
+        title: "Permission Error",
+        description: "You can only create slots for your own calendar.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setIsLoading(true);
     try {
       const dates = [...new Set(selectedSlots.map(s => {
@@ -255,12 +275,23 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
 
       const times = [...new Set(selectedSlots.map(s => s.time))];
 
+      console.log('🔍 Creating slots:', {
+        teacherId,
+        userId: user.id,
+        selectedSlotsCount: selectedSlots.length,
+        duration,
+        dates: dates.map(d => d.toISOString()),
+        times
+      });
+
       await batchAvailabilityService.createBatchSlots(
         teacherId,
         dates,
         times,
         duration
       );
+
+      console.log('✅ Slots created successfully');
 
       toast({
         title: "✅ Success!",
@@ -270,11 +301,30 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
       setSelectedSlots([]);
       setShowConfirmDialog(false);
       loadWeeklyData();
-    } catch (error) {
-      console.error('Error creating slots:', error);
+    } catch (error: any) {
+      console.error('❌ Error creating slots:', error);
+      console.error('Error details:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      });
+      
+      let errorMessage = "Failed to create slots";
+      
+      if (error.code === '42501') {
+        errorMessage = "Permission denied. Please check your teacher account status.";
+      } else if (error.code === '23505') {
+        errorMessage = "Some slots already exist and were skipped.";
+      } else if (error.code === '23502') {
+        errorMessage = "Required data missing. Please try again.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
-        title: "Error",
-        description: "Failed to create some slots. They may already exist.",
+        title: "Error Creating Slots",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
