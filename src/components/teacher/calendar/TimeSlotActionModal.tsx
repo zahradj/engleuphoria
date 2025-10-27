@@ -286,157 +286,99 @@ Please log out and log back in.`;
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-lg">
-            <Sparkles className="h-5 w-5 text-primary" />
-            🗓️ Click & Set Your Availability
-          </DialogTitle>
-        </DialogHeader>
-        
-        <div className="space-y-6">
-          {/* Header message */}
-          <div className="text-center space-y-2">
-            <p className="text-sm text-muted-foreground">
-              Just one click to control your schedule!
-            </p>
-            <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
-              <p className="text-sm font-medium">
-                You clicked: <span className="text-primary">{format(date, 'EEEE')}</span>, <span className="text-primary">{format(date, 'MMM d')}</span> at <span className="text-primary">{formatTime12Hour(time)}</span>
-              </p>
-            </div>
+        <div className="space-y-6 py-4">
+          {/* Date/Time Display */}
+          <div className="text-center">
+            <h3 className="text-2xl font-bold text-foreground">
+              {format(date, 'EEE, dd.MM yyyy')} {formatTime12Hour(time)}
+            </h3>
           </div>
 
-          {/* Duration Selector */}
-          <div>
-            <p className="text-sm font-medium mb-2">Lesson Duration</p>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                size="sm"
-                variant={localDuration === 25 ? "default" : "outline"}
-                onClick={() => setLocalDuration(25)}
-                className="flex-1"
-              >
-                25 minutes
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant={localDuration === 55 ? "default" : "outline"}
-                onClick={() => setLocalDuration(55)}
-                className="flex-1"
-              >
-                55 minutes
-              </Button>
-            </div>
+          {/* Duration Selector - Compact */}
+          <div className="flex justify-center gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant={localDuration === 25 ? "default" : "outline"}
+              onClick={() => setLocalDuration(25)}
+            >
+              25 min
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={localDuration === 55 ? "default" : "outline"}
+              onClick={() => setLocalDuration(55)}
+            >
+              55 min
+            </Button>
           </div>
 
-          {/* Options */}
-          <div>
-            <p className="text-sm font-medium mb-3">What would you like to do?</p>
-            <RadioGroup value={slotType} onValueChange={(value) => setSlotType(value as 'single' | 'weekly')}>
-              <div className="space-y-3">
-                <div className="flex items-start space-x-3 p-3 rounded-lg border border-border hover:border-primary/50 transition-colors">
-                  <RadioGroupItem value="single" id="single" className="mt-1" />
-                  <div className="space-y-1 flex-1">
-                    <Label htmlFor="single" className="flex items-center gap-2 font-medium cursor-pointer">
-                      <CalendarPlus className="h-4 w-4" />
-                      🔘 Create Single Slot
-                    </Label>
-                    <p className="text-xs text-muted-foreground">
-                      Open this time for booking once
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start space-x-3 p-3 rounded-lg border border-border hover:border-primary/50 transition-colors">
-                  <RadioGroupItem value="weekly" id="weekly" className="mt-1" />
-                  <div className="space-y-2 flex-1">
-                    <Label htmlFor="weekly" className="flex items-center gap-2 font-medium cursor-pointer">
-                      <Repeat className="h-4 w-4" />
-                      🔁 Create Weekly Slot
-                    </Label>
-                    <p className="text-xs text-muted-foreground">
-                      Repeat this slot every week
-                    </p>
-                    {slotType === 'weekly' && (
-                      <div className="mt-2">
-                        <Label htmlFor="numWeeks" className="text-xs text-muted-foreground">Number of weeks:</Label>
-                        <Select value={numWeeks.toString()} onValueChange={(val) => setNumWeeks(parseInt(val))}>
-                          <SelectTrigger id="numWeeks" className="w-full mt-1">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="1">1 week</SelectItem>
-                            <SelectItem value="4">4 weeks</SelectItem>
-                            <SelectItem value="8">8 weeks</SelectItem>
-                            <SelectItem value="12">12 weeks</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </RadioGroup>
-          </div>
-
-          {/* Preview */}
-          <div className="p-3 bg-success/10 rounded-lg border border-success/20">
-            <div className="flex items-center gap-2 text-success-foreground">
-              <Clock className="h-4 w-4" />
-              <span className="text-sm font-medium">Preview:</span>
-            </div>
-            <p className="text-sm text-success-foreground/80 mt-1">
-              {slotType === 'single' 
-                ? `Single ${localDuration}-minute slot on ${format(date, 'MMM d')} at ${formatTime12Hour(time)}`
-                : `Weekly ${localDuration}-minute slots every ${format(date, 'EEEE')} at ${formatTime12Hour(time)} for ${numWeeks} week${numWeeks > 1 ? 's' : ''}`
-              }
-            </p>
-          </div>
-
-          {/* Info tips */}
-          <div className="space-y-2 text-xs text-muted-foreground">
-            <p>✅ Your availability will instantly appear in the calendar.</p>
-            <p>❌ To remove a slot later, just click it again and choose Delete Slot.</p>
-          </div>
-
-          {/* Smart tip */}
-          <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
-            <div className="flex items-start gap-2">
-              <div className="text-primary">🧠</div>
-              <div>
-                <p className="text-sm font-medium text-primary">Smart Tip:</p>
-                <p className="text-xs text-primary/80">
-                  Students can only see and book the slots you open. Keep control of your time with a few quick clicks!
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex gap-3 pt-2">
+          {/* Main Action Buttons */}
+          <div className="space-y-3">
             <Button 
-              onClick={createSlots} 
+              onClick={() => {
+                setSlotType('single');
+                createSlots();
+              }} 
               disabled={isCreating}
-              className="flex-1"
+              className="w-full h-14 text-lg bg-primary hover:bg-primary/90"
               size="lg"
             >
-              {isCreating ? (
+              {isCreating && slotType === 'single' ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground mr-2"></div>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground mr-2"></div>
                   Creating...
                 </>
               ) : (
-                <>
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Create {slotType === 'single' ? 'Slot' : 'Weekly Slots'}
-                </>
+                'Create single slot'
               )}
             </Button>
-            <Button variant="outline" onClick={handleClose} disabled={isCreating}>
-              Cancel
+            
+            <Button 
+              onClick={() => {
+                setSlotType('weekly');
+                createSlots();
+              }} 
+              disabled={isCreating}
+              className="w-full h-14 text-lg bg-primary hover:bg-primary/90"
+              size="lg"
+            >
+              {isCreating && slotType === 'weekly' ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary-foreground mr-2"></div>
+                  Creating...
+                </>
+              ) : (
+                'Create weekly slot'
+              )}
             </Button>
+          </div>
+
+          {/* Weekly Options (shown when creating weekly) */}
+          {slotType === 'weekly' && !isCreating && (
+            <div className="space-y-2">
+              <Label className="text-sm text-muted-foreground">Repeat for:</Label>
+              <Select value={numWeeks.toString()} onValueChange={(val) => setNumWeeks(parseInt(val))}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1 week</SelectItem>
+                  <SelectItem value="4">4 weeks</SelectItem>
+                  <SelectItem value="8">8 weeks</SelectItem>
+                  <SelectItem value="12">12 weeks</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Bottom Notice */}
+          <div className="text-center pt-4 border-t">
+            <p className="text-sm text-primary flex items-center justify-center gap-2">
+              <Clock className="h-4 w-4" />
+              Just in time class
+            </p>
           </div>
         </div>
       </DialogContent>
