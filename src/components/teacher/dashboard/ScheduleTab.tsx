@@ -1,4 +1,4 @@
-import { EnhancedCalendarTab } from "../EnhancedCalendarTab";
+import { SimplifiedMultiSelectCalendar } from "../calendar/SimplifiedMultiSelectCalendar";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface ScheduleTabProps {
@@ -18,5 +18,5 @@ export const ScheduleTab = ({ onScheduleClass, onStartScheduledClass }: Schedule
     );
   }
   
-  return <EnhancedCalendarTab teacherId={teacherId} />;
+  return <SimplifiedMultiSelectCalendar teacherId={teacherId} />;
 };
