@@ -19,9 +19,11 @@ class BatchAvailabilityService {
     teacherId: string,
     dates: Date[],
     times: string[],
-    duration: 25 | 55
+    duration: number
   ): Promise<void> {
     const slots: BatchSlotData[] = [];
+
+    const normalizedDuration: 30 | 60 = (duration === 60 || duration === 55) ? 60 : 30;
 
     // Generate all slot combinations
     for (const date of dates) {
@@ -32,13 +34,13 @@ class BatchAvailabilityService {
         startDateTime.setHours(hours, minutes, 0, 0);
         
         const endDateTime = new Date(startDateTime);
-        endDateTime.setMinutes(endDateTime.getMinutes() + duration);
+        endDateTime.setMinutes(endDateTime.getMinutes() + normalizedDuration);
 
         slots.push({
           teacher_id: teacherId,
           start_time: startDateTime.toISOString(),
           end_time: endDateTime.toISOString(),
-          duration,
+          duration: normalizedDuration,
           lesson_type: 'free_slot',
           is_available: true,
           is_booked: false

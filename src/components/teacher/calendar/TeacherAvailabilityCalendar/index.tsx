@@ -38,7 +38,7 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
   const [selectedSlots, setSelectedSlots] = useState<SelectedSlot[]>([]);
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [duration, setDuration] = useState<25 | 55>(25);
+  const [duration, setDuration] = useState<30 | 60>(30);
   const [isLoading, setIsLoading] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const { toast } = useToast();
@@ -318,6 +318,8 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
         errorMessage = "Some slots already exist and were skipped.";
       } else if (error.code === '23502') {
         errorMessage = "Required data missing. Please try again.";
+      } else if (error.code === '23514') {
+        errorMessage = "Allowed durations are 30 or 60 minutes. Please switch the duration and try again.";
       } else if (error.message) {
         errorMessage = error.message;
       }
@@ -410,18 +412,18 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">Duration:</span>
             <Button
-              variant={duration === 25 ? "default" : "outline"}
+              variant={duration === 30 ? "default" : "outline"}
               size="sm"
-              onClick={() => setDuration(25)}
+              onClick={() => setDuration(30)}
             >
-              25 min
+              30 min
             </Button>
             <Button
-              variant={duration === 55 ? "default" : "outline"}
+              variant={duration === 60 ? "default" : "outline"}
               size="sm"
-              onClick={() => setDuration(55)}
+              onClick={() => setDuration(60)}
             >
-              55 min
+              60 min
             </Button>
           </div>
         </div>
