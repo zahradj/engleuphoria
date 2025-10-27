@@ -288,10 +288,16 @@ Please log out and log back in.`;
       <DialogContent className="max-w-md">
         <div className="space-y-6 py-4">
           {/* Date/Time Display */}
-          <div className="text-center">
+          <div className="text-center space-y-2">
             <h3 className="text-2xl font-bold text-foreground">
               {format(date, 'EEE, dd.MM yyyy')} {formatTime12Hour(time)}
             </h3>
+            <div className="bg-primary/5 border border-primary/20 rounded-lg px-4 py-2">
+              <p className="text-sm text-primary font-medium flex items-center justify-center gap-2">
+                <Sparkles className="h-4 w-4" />
+                <span>Visible to students immediately</span>
+              </p>
+            </div>
           </div>
 
           {/* Duration Selector - Compact */}

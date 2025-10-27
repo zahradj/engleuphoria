@@ -17,6 +17,8 @@ import { SlotManagementModal } from "./SlotManagementModal";
 import { InstructionPrompt } from "@/components/shared/InstructionPrompt";
 import { CalendarDiagnostics } from "./CalendarDiagnostics";
 import { useAuth } from "@/contexts/AuthContext";
+import { QuickAvailabilityToolbar } from "./QuickAvailabilityToolbar";
+import { SyncStatusBadge } from "./SyncStatusBadge";
 
 interface UnifiedTeacherCalendarProps {
   teacherId: string;
@@ -56,6 +58,7 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
   const [selectedSlotTime, setSelectedSlotTime] = useState<string>('');
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [showQuickSetupModal, setShowQuickSetupModal] = useState(false);
+  const [syncRefreshTrigger, setSyncRefreshTrigger] = useState(0);
   
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -83,10 +86,15 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
     });
   }, [teacherId, user]);
   
-  // Calculate slot counts
+  // Calculate slot counts - ONLY future slots
   const totalSlots = Object.values(daySlots).flat();
-  const availableCount = totalSlots.filter(s => s.slotType === 'available').length;
-  const bookedCount = totalSlots.filter(s => s.slotType === 'booked' || s.slotType === 'lesson').length;
+  const now = new Date();
+  const futureSlots = totalSlots.filter(slot => {
+    const slotDate = new Date(slot.time);
+    return slotDate >= now;
+  });
+  const availableCount = futureSlots.filter(s => s.slotType === 'available').length;
+  const bookedCount = futureSlots.filter(s => s.slotType === 'booked' || s.slotType === 'lesson').length;
 
   // Time slots from 6 AM to 10 PM in 30-minute intervals
   const timeSlots = Array.from({ length: 32 }, (_, i) => {
@@ -192,6 +200,9 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
       });
 
       setDaySlots(slotsMap);
+      
+      // Trigger sync status update
+      setSyncRefreshTrigger(prev => prev + 1);
     } catch (error) {
       console.error('Error loading calendar data:', error);
       toast({
@@ -209,6 +220,25 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
       loadCalendarData();
     }
   }, [teacherId, viewMode, selectedDate, currentWeek]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd/Ctrl + M - Open Quick Setup
+      if ((e.metaKey || e.ctrlKey) && e.key === 'm') {
+        e.preventDefault();
+        setShowQuickSetupModal(true);
+      }
+      // Cmd/Ctrl + R - Refresh calendar
+      if ((e.metaKey || e.ctrlKey) && e.key === 'r') {
+        e.preventDefault();
+        loadCalendarData();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [teacherId]);
 
   const getWeekDays = () => {
     const start = startOfWeek(currentWeek, { weekStartsOn: 1 });
@@ -440,9 +470,21 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
             </Button>
           </div>
         </div>
+
+        {/* Sync Status Badge */}
+        <SyncStatusBadge teacherId={teacherId} refreshTrigger={syncRefreshTrigger} />
+
+        {/* Quick Action Toolbar */}
+        <QuickAvailabilityToolbar
+          teacherId={teacherId}
+          currentWeek={getWeekDays()}
+          selectedDuration={selectedDuration}
+          onSlotsCreated={loadCalendarData}
+          onOpenQuickSetup={() => setShowQuickSetupModal(true)}
+        />
         
-              {/* Empty State */}
-              {!isLoading && totalSlots.length === 0 && (
+              {/* Empty State - only show if NO FUTURE slots */}
+              {!isLoading && futureSlots.length === 0 && (
                 <Card className="border-2 border-dashed border-primary/30 bg-primary/5">
                   <CardContent className="p-8 text-center space-y-4">
                     <div className="w-16 h-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center">
