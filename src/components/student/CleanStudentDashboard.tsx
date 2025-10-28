@@ -23,6 +23,8 @@ import { CurrentLessonCard } from './CurrentLessonCard';
 import { LessonManagementModal } from './LessonManagementModal';
 import { PlacementTestFlow } from '@/components/onboarding/PlacementTestFlow';
 import { PlacementTestProgress } from './PlacementTestProgress';
+import { CurriculumProgressCard } from './CurriculumProgressCard';
+import { ClassroomQuickJoin } from './ClassroomQuickJoin';
 import { useLessonProgress } from '@/hooks/useLessonProgress';
 import { useCancelReschedule } from '@/hooks/useCancelReschedule';
 import { useNavigate } from 'react-router-dom';
@@ -212,6 +214,9 @@ export const CleanStudentDashboard = ({ studentName, studentProfile }: CleanStud
       {/* Placement Test Progress */}
       <PlacementTestProgress />
 
+      {/* Curriculum Progress Card */}
+      <CurriculumProgressCard />
+
       {/* Current Lesson Card */}
       <CurrentLessonCard 
         lesson={lessonProgress.currentLesson}
@@ -333,8 +338,35 @@ export const CleanStudentDashboard = ({ studentName, studentProfile }: CleanStud
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6 space-y-4">
-            {upcomingClasses.map((class_, index) => (
-              <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 bg-surface-soft rounded-xl border border-border-light hover:shadow-md transition-all duration-200">
+            {upcomingClasses.map((class_, index) => {
+              // Calculate time-based access
+              const canJoin = () => {
+                if (!class_.scheduled_at) return false;
+                const lessonTime = new Date(class_.scheduled_at);
+                const now = new Date();
+                const minutesUntil = (lessonTime.getTime() - now.getTime()) / 60000;
+                return minutesUntil <= 15 && minutesUntil >= -60;
+              };
+
+              const getTimeStatus = () => {
+                if (!class_.scheduled_at) return '';
+                const lessonTime = new Date(class_.scheduled_at);
+                const now = new Date();
+                const minutesUntil = Math.ceil((lessonTime.getTime() - now.getTime()) / 60000);
+                
+                if (minutesUntil < 0) return `Started ${Math.abs(minutesUntil)} min ago`;
+                if (minutesUntil === 0) return 'Starting now!';
+                if (minutesUntil <= 15) return `Starts in ${minutesUntil} min`;
+                return '';
+              };
+
+              const isJoinable = canJoin();
+              const timeStatus = getTimeStatus();
+
+              return (
+                <div key={index} className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-5 bg-surface-soft rounded-xl border transition-all duration-200 hover:shadow-md ${
+                  isJoinable ? 'border-primary/50 shadow-primary/10' : 'border-border-light'
+                }`}>
                 <div className="flex items-center gap-4 flex-1 mb-4 sm:mb-0">
                   <div className="w-12 h-12 bg-lavender rounded-xl flex items-center justify-center flex-shrink-0">
                     <Users className="h-6 w-6 text-lavender-dark" />
@@ -347,6 +379,11 @@ export const CleanStudentDashboard = ({ studentName, studentProfile }: CleanStud
                         <Clock className="h-3 w-3" />
                         {class_.time}
                       </span>
+                      {timeStatus && (
+                        <span className="flex items-center gap-1 bg-primary/10 px-2 py-1 rounded-lg border border-primary/20 text-primary font-medium">
+                          • {timeStatus}
+                        </span>
+                      )}
                       <span className="bg-white px-2 py-1 rounded-lg border border-border">{class_.duration}</span>
                       <Badge variant="outline" className="text-xs bg-peach text-peach-dark border-peach-dark">
                         {class_.type}
@@ -386,16 +423,21 @@ export const CleanStudentDashboard = ({ studentName, studentProfile }: CleanStud
                   <Button 
                     size="sm" 
                     onClick={() => navigate(`/classroom?roomId=${class_.room_id}&role=student&name=${encodeURIComponent(studentName)}&userId=${user?.id}`)}
-                    className="bg-mint-green-dark hover:bg-mint-green-dark/90 text-white shadow-sm font-medium px-4 py-2 rounded-lg text-sm"
+                    className={`bg-mint-green-dark hover:bg-mint-green-dark/90 text-white shadow-sm font-medium px-4 py-2 rounded-lg text-sm ${isJoinable ? 'animate-pulse' : ''}`}
+                    disabled={!isJoinable}
                   >
-                    Join
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    {isJoinable ? 'Join Now' : 'Available 15 min before'}
+                    {isJoinable && <ArrowRight className="ml-2 h-4 w-4" />}
                   </Button>
                 </div>
               </div>
-            ))}
+            );
+            })}
           </CardContent>
         </Card>
+
+        {/* Classroom Quick Join Floating Button */}
+        <ClassroomQuickJoin upcomingLessons={upcomingClasses} />
 
         {/* Assignments */}
         <Card className="lg:col-span-3 border border-border bg-white shadow-card">

@@ -4315,6 +4315,54 @@ export type Database = {
           },
         ]
       }
+      student_curriculum_assignments: {
+        Row: {
+          assigned_at: string | null
+          created_at: string | null
+          current_lesson_number: number | null
+          id: string
+          lessons_completed: string[] | null
+          stage_id: number
+          stage_name: string
+          status: string | null
+          student_id: string
+          total_lessons_in_unit: number
+          unit_id: string
+          unit_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_at?: string | null
+          created_at?: string | null
+          current_lesson_number?: number | null
+          id?: string
+          lessons_completed?: string[] | null
+          stage_id: number
+          stage_name: string
+          status?: string | null
+          student_id: string
+          total_lessons_in_unit: number
+          unit_id: string
+          unit_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_at?: string | null
+          created_at?: string | null
+          current_lesson_number?: number | null
+          id?: string
+          lessons_completed?: string[] | null
+          stage_id?: number
+          stage_name?: string
+          status?: string | null
+          student_id?: string
+          total_lessons_in_unit?: number
+          unit_id?: string
+          unit_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       student_curriculum_progress: {
         Row: {
           completion_percentage: number | null

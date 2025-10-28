@@ -236,9 +236,13 @@ export default function PlacementTest2() {
             onConflict: 'user_id'
           });
 
+        // Auto-assign curriculum based on CEFR level
+        const { curriculumAssignmentService } = await import('@/services/curriculumAssignmentService');
+        await curriculumAssignmentService.assignInitialCurriculum(user.id, testResult.cefrLevel);
+
         toast({
-          title: "Test Completed!",
-          description: `Your CEFR level: ${testResult.cefrLevel}. Results saved successfully!`,
+          title: "Test Completed! 🎉",
+          description: `Your CEFR level: ${testResult.cefrLevel}. Your personalized curriculum has been assigned!`,
         });
       } catch (error) {
         console.error('Error saving test results:', error);
