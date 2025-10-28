@@ -9,6 +9,8 @@ export interface TimeSlot {
   isPast: boolean;
   duration?: number;
   studentName?: string;
+  studentId?: string;
+  studentLevel?: string;
   lessonTitle?: string;
 }
 

@@ -75,7 +75,16 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
 
       const { data, error } = await supabase
         .from('teacher_availability')
-        .select('*')
+        .select(`
+          *,
+          student:users!teacher_availability_student_id_fkey(
+            id,
+            full_name
+          ),
+          student_profile:student_profiles!student_profiles_user_id_fkey(
+            cefr_level
+          )
+        `)
         .eq('teacher_id', teacherId)
         .gte('start_time', startDate.toISOString())
         .lte('start_time', endDate.toISOString())
@@ -112,7 +121,9 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
             isBooked: slot.is_booked,
             isPast: isPastSlot(slotDate, time),
             duration: slot.duration,
-            studentName: slot.student_name,
+            studentName: (slot.student as any)?.full_name || slot.student_name,
+            studentId: slot.student_id,
+            studentLevel: (slot.student_profile as any)?.cefr_level,
             lessonTitle: slot.lesson_title
           });
         }
@@ -434,17 +445,25 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
 
     if (slot?.isBooked) {
       return (
-        <div className={`h-16 rounded-md border border-rose-300 dark:border-rose-700 bg-rose-50 dark:bg-rose-950/30 p-1.5 text-xs shadow-sm ${blockColor}`}>
-          <div className="flex items-center gap-1 mb-1">
-            <div className="w-2 h-2 rounded-full bg-rose-500"></div>
-            <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4 bg-rose-500/20">BOOKED</Badge>
+        <div className="h-16 rounded-md border-2 border-purple-300 dark:border-purple-700 bg-purple-100 dark:bg-purple-950/30 p-1.5 text-xs shadow-sm">
+          <div className="flex items-center gap-1 mb-0.5">
+            <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+            <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4 bg-purple-500/20 text-purple-700">BOOKED</Badge>
           </div>
           {slot.studentName && (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 mb-0.5">
               <User className="h-3 w-3 text-muted-foreground" />
-              <div className="text-[10px] font-medium truncate">{slot.studentName}</div>
+              <div className="text-[10px] font-semibold truncate text-foreground">{slot.studentName}</div>
             </div>
           )}
+          <div className="flex items-center gap-2 text-[9px] text-muted-foreground">
+            {slot.studentId && <span className="font-mono">ID: {slot.studentId.slice(0, 8)}</span>}
+            {slot.studentLevel && (
+              <Badge variant="outline" className="text-[8px] px-1 py-0 h-3.5 border-purple-400">
+                {slot.studentLevel}
+              </Badge>
+            )}
+          </div>
           {slot.lessonTitle && (
             <div className="text-[9px] text-muted-foreground truncate mt-0.5">{slot.lessonTitle}</div>
           )}
@@ -456,20 +475,20 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
       return (
         <button
           onClick={() => handleSlotClick(dateKey, time)}
-          className={`h-16 w-full rounded-md border-2 border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/30 p-1.5 text-xs hover:bg-emerald-100 dark:hover:bg-emerald-950/40 transition-all shadow-sm group relative ${blockColor}`}
+          className="h-16 w-full rounded-md border-2 border-yellow-400 dark:border-yellow-600 bg-yellow-100 dark:bg-yellow-950/30 p-1.5 text-xs hover:bg-yellow-200 dark:hover:bg-yellow-950/40 transition-all shadow-sm group relative"
         >
           <div className="flex items-center gap-1 mb-1">
-            <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-            <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 border-emerald-500/50 bg-emerald-500/10">OPEN</Badge>
+            <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+            <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 border-yellow-500/50 bg-yellow-500/10 text-yellow-700">OPEN</Badge>
           </div>
-          <div className="text-[10px] font-medium text-emerald-700 dark:text-emerald-300">{slot.duration} min</div>
+          <div className="text-[10px] font-medium text-yellow-700 dark:text-yellow-300">{slot.duration} min</div>
           <Trash2 className="h-3 w-3 absolute top-1 right-1 opacity-0 group-hover:opacity-100 text-destructive transition-opacity" />
         </button>
       );
     }
 
     if (past) {
-      return <div className={`h-16 rounded-md border border-muted/20 bg-muted/10 ${blockColor}`} />;
+      return <div className="h-16 rounded-md border border-muted/20 bg-muted/10" />;
     }
 
     return (
@@ -479,11 +498,11 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
         onMouseUp={handleSlotMouseUp}
         onClick={() => !isMultiSelectMode && toggleSlotSelection(dateKey, time)}
         disabled={!isMultiSelectMode && isSelected}
-        className={`h-16 w-full rounded-md border-2 transition-all ${
+        className={`h-16 w-full rounded-md border-2 transition-all bg-sky-50 dark:bg-sky-950/20 ${
           isSelected
             ? 'border-violet-400 dark:border-violet-600 bg-violet-50 dark:bg-violet-950/30 shadow-sm'
-            : 'border-dashed border-muted/30 hover:border-violet-300 dark:hover:border-violet-700 hover:bg-violet-50/50 dark:hover:bg-violet-950/20'
-        } ${isMultiSelectMode ? 'cursor-crosshair' : 'cursor-pointer'} ${blockColor}`}
+            : 'border-dashed border-sky-200 dark:border-sky-800 hover:border-violet-300 dark:hover:border-violet-700 hover:bg-violet-50/50 dark:hover:bg-violet-950/20'
+        } ${isMultiSelectMode ? 'cursor-crosshair' : 'cursor-pointer'}`}
       >
         {isSelected ? (
           <Check className="h-4 w-4 mx-auto text-violet-600 dark:text-violet-400" />
@@ -596,7 +615,7 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
       </Card>
 
       {/* Weekly Grid */}
-      <Card className="p-3 overflow-x-auto shadow-sm border-muted/30">
+      <Card className="p-3 overflow-x-auto shadow-sm border-muted/30 bg-sky-50 dark:bg-sky-950/10">
         {isLoading ? (
           <div className="flex items-center justify-center p-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
