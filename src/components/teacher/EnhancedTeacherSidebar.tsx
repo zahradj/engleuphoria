@@ -82,8 +82,8 @@ export const EnhancedTeacherSidebar = ({
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
 
-  return <Sidebar className="border-r border-teal-200/50 bg-gradient-to-b from-teal-50 via-emerald-50 to-cyan-50 backdrop-blur-sm shadow-lg" collapsible="offcanvas">
-      <SidebarHeader className="border-b border-teal-200/50 bg-gradient-to-br from-teal-100/50 via-emerald-100/50 to-cyan-100/50">
+  return <Sidebar className="border-r border-gray-200 bg-white backdrop-blur-sm shadow-lg" collapsible="offcanvas">
+      <SidebarHeader className="border-b border-gray-200 bg-gray-50">
         <div className="flex items-center gap-3 px-4 py-4">
           <div className="relative">
             <Logo size="small" />
@@ -91,8 +91,8 @@ export const EnhancedTeacherSidebar = ({
           </div>
           {!isCollapsed && (
             <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-bold bg-gradient-to-r from-teal-600 via-emerald-600 to-cyan-600 bg-clip-text text-transparent">👨‍🏫 Teacher Panel</span>
-              <span className="truncate text-xs text-teal-600/70 font-medium">Professional Workspace ✨</span>
+              <span className="truncate font-bold text-gray-900">👨‍🏫 Teacher Panel</span>
+              <span className="truncate text-xs text-gray-600 font-medium">Professional Workspace ✨</span>
             </div>
           )}
         </div>
@@ -100,7 +100,7 @@ export const EnhancedTeacherSidebar = ({
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-bold text-teal-600/80 uppercase tracking-wider px-4 py-3">
+          <SidebarGroupLabel className="text-xs font-bold text-gray-700 uppercase tracking-wider px-4 py-3">
             🎯 Navigation
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -115,12 +115,12 @@ export const EnhancedTeacherSidebar = ({
                       className={`
                         relative px-4 py-3 rounded-lg transition-all duration-200
                         ${isActive 
-                          ? 'bg-gradient-to-r from-teal-500 via-emerald-500 to-cyan-500 text-white font-semibold shadow-md hover:shadow-lg' 
-                          : 'text-teal-600 hover:bg-teal-100/50 hover:text-teal-700'
+                          ? 'bg-gray-900 text-white font-semibold shadow-md hover:shadow-lg' 
+                          : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
                         }
                       `}
                     >
-                      <item.icon className={`h-4 w-4 ${isActive ? 'text-white' : 'text-teal-500'}`} />
+                      <item.icon className={`h-4 w-4 ${isActive ? 'text-white' : 'text-gray-600'}`} />
                       {!isCollapsed && <span className="flex-1">{item.label}</span>}
                       {isActive && !isCollapsed && <span className="text-xs">✨</span>}
                     </SidebarMenuButton>
@@ -132,12 +132,12 @@ export const EnhancedTeacherSidebar = ({
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-teal-200/50 bg-gradient-to-t from-red-50/50 to-transparent">
+      <SidebarFooter className="border-t border-gray-200 bg-gray-50">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton 
               onClick={handleLogout} 
-              className="px-4 py-3 rounded-lg text-red-600 hover:text-red-700 hover:bg-red-100/50 transition-all duration-200 font-medium"
+              className="px-4 py-3 rounded-lg text-red-600 hover:text-red-700 hover:bg-red-100 transition-all duration-200 font-medium"
             >
               <LogOut className="h-4 w-4" />
               {!isCollapsed && <span>Logout</span>}
