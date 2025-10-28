@@ -114,7 +114,22 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
       data?.forEach(slot => {
         const slotDate = new Date(slot.start_time);
         const dateKey = formatDate(slotDate);
-        const time = slotDate.toTimeString().substring(0, 5);
+        
+        // CRITICAL FIX: Use UTC time to match database storage
+        const hours = slotDate.getUTCHours().toString().padStart(2, '0');
+        const minutes = slotDate.getUTCMinutes().toString().padStart(2, '0');
+        const time = `${hours}:${minutes}`;
+
+        console.log('🔍 Processing slot:', {
+          id: slot.id.slice(0, 8),
+          start_time: slot.start_time,
+          dateKey,
+          time,
+          duration: slot.duration,
+          is_available: slot.is_available,
+          is_booked: slot.is_booked,
+          inCurrentWeek: !!slotsMap[dateKey]
+        });
 
         if (slotsMap[dateKey]) {
           slotsMap[dateKey].push({
@@ -132,6 +147,8 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
             studentLevel: (slot.student as any)?.student_profiles?.[0]?.cefr_level,
             lessonTitle: slot.lesson_title
           });
+        } else {
+          console.warn('⚠️ Slot not in current week view:', dateKey);
         }
       });
 
@@ -448,6 +465,21 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
     const isSelected = isSlotSelected(slotKey);
     const past = isPastSlot(date, time);
     const blockColor = getTimeBlockColor(time);
+
+    // DEBUG: Log rendering for key time slots
+    if (time === '12:00' || time === '13:00' || time === '14:00') {
+      console.log('🎨 Rendering slot:', {
+        dateKey,
+        time,
+        foundSlot: !!slot,
+        slotDetails: slot ? {
+          isAvailable: slot.isAvailable,
+          isBooked: slot.isBooked,
+          isPast: slot.isPast,
+          duration: slot.duration
+        } : 'NO SLOT FOUND'
+      });
+    }
 
     if (slot?.isBooked) {
       return (
