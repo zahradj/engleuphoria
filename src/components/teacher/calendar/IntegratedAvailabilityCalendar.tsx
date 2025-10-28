@@ -76,18 +76,15 @@ export const IntegratedAvailabilityCalendar = ({ teacherId }: IntegratedAvailabi
       const endDateTime = new Date(startDateTime);
       endDateTime.setMinutes(endDateTime.getMinutes() + 30); // 30-minute slots
 
-      const { error } = await supabase
-        .from('teacher_availability')
-        .insert({
-          teacher_id: teacherId,
-          start_time: startDateTime.toISOString(),
-          end_time: endDateTime.toISOString(),
-          is_available: true,
-          is_booked: false,
-          price_per_hour: 350
-        });
-
-      if (error) throw error;
+      const { insertAvailabilitySlotsWithFallback } = await import("@/services/availabilityInsert");
+      await insertAvailabilitySlotsWithFallback(supabase as any, [{
+        teacher_id: teacherId,
+        start_time: startDateTime.toISOString(),
+        end_time: endDateTime.toISOString(),
+        is_available: true,
+        is_booked: false,
+        price_per_hour: 350
+      }] as any);
       
       toast({
         title: "Slot Opened",
@@ -277,11 +274,8 @@ export const IntegratedAvailabilityCalendar = ({ teacherId }: IntegratedAvailabi
         };
       });
 
-      const { error: insertError } = await supabase
-        .from('teacher_availability')
-        .insert(newSlots);
-
-      if (insertError) throw insertError;
+      const { insertAvailabilitySlotsWithFallback } = await import("@/services/availabilityInsert");
+      await insertAvailabilitySlotsWithFallback(supabase as any, newSlots as any);
       
       toast({
         title: "Slots Copied",

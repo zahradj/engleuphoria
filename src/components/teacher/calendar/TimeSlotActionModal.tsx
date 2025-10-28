@@ -215,13 +215,8 @@ export const TimeSlotActionModal = ({
       }
 
       if (slots.length > 0) {
-        const { error } = await supabase
-          .from('teacher_availability')
-          .insert(slots);
-
-        if (error) {
-          throw error;
-        }
+        const { insertAvailabilitySlotsWithFallback } = await import("@/services/availabilityInsert");
+        await insertAvailabilitySlotsWithFallback(supabase as any, slots);
 
         const slotCount = slots.length;
         const typeText = slotType === 'single' ? 'slot' : `weekly slots (${slotCount} total)`;

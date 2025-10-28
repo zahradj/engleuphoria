@@ -135,19 +135,16 @@ export const EnhancedHourlyCalendar = ({ teacherId }: EnhancedHourlyCalendarProp
         const [hours, minutes] = time.split(':').map(Number);
         const endTime = `${(hours + Math.floor((minutes + selectedDuration) / 60)).toString().padStart(2, '0')}:${((minutes + selectedDuration) % 60).toString().padStart(2, '0')}`;
 
-        const { error } = await supabase
-          .from('teacher_availability')
-          .insert({
-            teacher_id: teacherId,
-            date: dateStr,
-            start_time: startTime,
-            end_time: endTime,
-            duration: selectedDuration,
-            lesson_type: 'free_slot',
-            is_available: true
-          });
-
-        if (error) throw error;
+        const { insertAvailabilitySlotsWithFallback } = await import("@/services/availabilityInsert");
+        await insertAvailabilitySlotsWithFallback(supabase as any, [{
+          teacher_id: teacherId,
+          date: dateStr,
+          start_time: startTime,
+          end_time: endTime,
+          duration: selectedDuration,
+          lesson_type: 'free_slot',
+          is_available: true
+        }] as any);
         
         toast({
           title: "Success",

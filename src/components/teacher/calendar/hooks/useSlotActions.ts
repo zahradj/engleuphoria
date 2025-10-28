@@ -35,18 +35,15 @@ export const useSlotActions = (
       const endDateTime = new Date(startDateTime);
       endDateTime.setMinutes(endDateTime.getMinutes() + duration);
 
-      const { error } = await supabase
-        .from('teacher_availability')
-        .insert({
-          teacher_id: teacherId,
-          start_time: startDateTime.toISOString(),
-          end_time: endDateTime.toISOString(),
-          duration: duration,
-          lesson_type: 'free_slot',
-          is_available: true
-        });
-
-      if (error) throw error;
+      const { insertAvailabilitySlotsWithFallback } = await import("@/services/availabilityInsert");
+      await insertAvailabilitySlotsWithFallback(supabase as any, [{
+        teacher_id: teacherId,
+        start_time: startDateTime.toISOString(),
+        end_time: endDateTime.toISOString(),
+        duration: duration,
+        lesson_type: 'free_slot',
+        is_available: true
+      }]);
       
       toast({
         title: "✅ Slot Created",
@@ -125,11 +122,8 @@ export const useSlotActions = (
         }
       }
 
-      const { error } = await supabase
-        .from('teacher_availability')
-        .insert(slots);
-
-      if (error) throw error;
+      const { insertAvailabilitySlotsWithFallback } = await import("@/services/availabilityInsert");
+      await insertAvailabilitySlotsWithFallback(supabase as any, slots);
 
       toast({
         title: "✅ Bulk Slots Created",
@@ -206,11 +200,8 @@ export const useSlotActions = (
         };
       });
 
-      const { error: insertError } = await supabase
-        .from('teacher_availability')
-        .insert(targetSlots);
-
-      if (insertError) throw insertError;
+      const { insertAvailabilitySlotsWithFallback } = await import("@/services/availabilityInsert");
+      await insertAvailabilitySlotsWithFallback(supabase as any, targetSlots);
 
       toast({
         title: "✅ Week Copied",

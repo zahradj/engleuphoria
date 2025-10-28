@@ -103,11 +103,8 @@ export const TeacherAvailability = ({ teacherId }: TeacherAvailabilityProps) => 
         }
       }
 
-      const { error } = await supabase
-        .from('teacher_availability')
-        .insert(slotsToCreate);
-
-      if (error) throw error;
+      const { insertAvailabilitySlotsWithFallback } = await import("@/services/availabilityInsert");
+      await insertAvailabilitySlotsWithFallback(supabase as any, slotsToCreate);
 
       toast.success(`Created ${slotsToCreate.length} availability slots`);
       setSelectedDates([]);

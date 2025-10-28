@@ -196,18 +196,15 @@ export const MultiSelectWeeklyGrid = ({ teacherId }: MultiSelectWeeklyGridProps)
         const endDateTime = new Date(startDateTime);
         endDateTime.setMinutes(endDateTime.getMinutes() + selectedDuration);
 
-        const { error } = await supabase
-          .from('teacher_availability')
-          .insert({
-            teacher_id: teacherId,
-            start_time: startDateTime.toISOString(),
-            end_time: endDateTime.toISOString(),
-            duration: selectedDuration,
-            lesson_type: 'free_slot',
-            is_available: true
-          });
-
-        if (error) throw error;
+        const { insertAvailabilitySlotsWithFallback } = await import("@/services/availabilityInsert");
+        await insertAvailabilitySlotsWithFallback(supabase as any, [{
+          teacher_id: teacherId,
+          start_time: startDateTime.toISOString(),
+          end_time: endDateTime.toISOString(),
+          duration: selectedDuration,
+          lesson_type: 'free_slot',
+          is_available: true
+        }]);
         
         toast({
           title: "Success",
@@ -250,11 +247,8 @@ export const MultiSelectWeeklyGrid = ({ teacherId }: MultiSelectWeeklyGridProps)
         });
       }
 
-      const { error } = await supabase
-        .from('teacher_availability')
-        .insert(slots);
-
-      if (error) throw error;
+      const { insertAvailabilitySlotsWithFallback } = await import("@/services/availabilityInsert");
+      await insertAvailabilitySlotsWithFallback(supabase as any, slots);
 
       toast({
         title: "Success",
@@ -384,11 +378,21 @@ export const MultiSelectWeeklyGrid = ({ teacherId }: MultiSelectWeeklyGridProps)
           </div>
 
           {isMultiSelectMode && (
-            <div className="mb-4 p-3 bg-primary/10 rounded-lg border border-primary/20">
-              <div className="flex items-center gap-2 text-sm text-primary">
-                <MousePointer className="h-4 w-4" />
-                <span>Click multiple slots to select them, then use bulk actions below</span>
+            <div className="mb-4 space-y-2">
+              <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
+                <div className="flex items-center gap-2 text-sm text-primary">
+                  <MousePointer className="h-4 w-4" />
+                  <span>Click to select a slot, click again to unselect. Then use actions below.</span>
+                </div>
               </div>
+              {selectedSlots.length > 0 && (
+                <div className="flex items-center justify-between text-sm">
+                  <span>{selectedSlots.length} slot{selectedSlots.length>1?'s':''} selected</span>
+                  <Button variant="outline" size="sm" onClick={() => setSelectedSlots([])}>
+                    Clear selection
+                  </Button>
+                </div>
+              )}
             </div>
           )}
           

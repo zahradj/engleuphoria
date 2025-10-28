@@ -175,18 +175,15 @@ export const WeeklyScheduleGrid = ({ teacherId }: WeeklyScheduleGridProps) => {
         const endDateTime = new Date(startDateTime);
         endDateTime.setMinutes(endDateTime.getMinutes() + selectedDuration);
 
-        const { error } = await supabase
-          .from('teacher_availability')
-          .insert({
-            teacher_id: teacherId,
-            start_time: startDateTime.toISOString(),
-            end_time: endDateTime.toISOString(),
-            duration: selectedDuration,
-            lesson_type: 'free_slot',
-            is_available: true
-          });
-
-        if (error) throw error;
+        const { insertAvailabilitySlotsWithFallback } = await import("@/services/availabilityInsert");
+        await insertAvailabilitySlotsWithFallback(supabase as any, [{
+          teacher_id: teacherId,
+          start_time: startDateTime.toISOString(),
+          end_time: endDateTime.toISOString(),
+          duration: selectedDuration,
+          lesson_type: 'free_slot',
+          is_available: true
+        }]);
         
         toast({
           title: "Success",

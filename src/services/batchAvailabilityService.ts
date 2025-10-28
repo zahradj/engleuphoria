@@ -48,11 +48,14 @@ class BatchAvailabilityService {
       }
     }
 
-    // Single batch insert with conflict handling
-    const { data, error } = await supabase
-      .from('teacher_availability')
-      .insert(slots)
-      .select();
+    // Single batch insert with conflict handling (with duration fallback)
+    const { insertAvailabilitySlotsWithFallback } = await import("./availabilityInsert");
+    let error: any = null;
+    try {
+      await insertAvailabilitySlotsWithFallback(supabase as any, slots);
+    } catch (e) {
+      error = e;
+    }
 
     if (error) {
       // Check if it's a duplicate key error
@@ -78,19 +81,18 @@ class BatchAvailabilityService {
     let success = 0;
     let failed = 0;
 
-    for (const slot of slots) {
-      const { error } = await supabase
-        .from('teacher_availability')
-        .insert(slot);
+    const { insertAvailabilitySlotsWithFallback } = await import("./availabilityInsert");
 
-      if (error) {
-        if (error.code === '23505') {
+    for (const slot of slots) {
+      try {
+        await insertAvailabilitySlotsWithFallback(supabase as any, [slot]);
+        success++;
+      } catch (error: any) {
+        if (error?.code === '23505') {
           failed++; // Duplicate, skip
         } else {
           throw error; // Real error, throw it
         }
-      } else {
-        success++;
       }
     }
 

@@ -235,11 +235,8 @@ export const QuickSetupModal = ({ teacherId, onSlotsCreated, children }: QuickSe
       }
 
       if (slots.length > 0) {
-        const { error } = await supabase
-          .from('teacher_availability')
-          .insert(slots);
-
-        if (error) throw error;
+        const { insertAvailabilitySlotsWithFallback } = await import("@/services/availabilityInsert");
+        await insertAvailabilitySlotsWithFallback(supabase as any, slots);
 
         toast({
           title: "✅ Slots Created",
