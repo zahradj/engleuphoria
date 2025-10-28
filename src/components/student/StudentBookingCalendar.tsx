@@ -3,8 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
-import { Clock, User, CheckCircle, Calendar as CalendarIcon, RefreshCcw, MessageCircle } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Clock, User, CheckCircle, Calendar as CalendarIcon, RefreshCcw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 interface TimeSlot {
@@ -29,7 +28,6 @@ export const StudentBookingCalendar = ({
   isLoading = false 
 }: StudentBookingCalendarProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   // Get slots for selected date
@@ -47,65 +45,6 @@ export const StudentBookingCalendar = ({
       dates.add(new Date(slot.startTime).toDateString());
     });
     return Array.from(dates).map(dateStr => new Date(dateStr));
-  };
-
-  const handleBooking = async (slot: TimeSlot) => {
-    if (isLoading) return;
-    
-    try {
-      const { supabase } = await import("@/integrations/supabase/client");
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        toast({
-          title: "Authentication Required",
-          description: "Please log in to book a lesson",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Create the lesson in the database
-      const { data: lesson, error: lessonError } = await supabase
-        .from('lessons')
-        .insert({
-          teacher_id: slot.teacherId,
-          student_id: user.id,
-          scheduled_at: slot.startTime.toISOString(),
-          duration: slot.duration,
-          title: `English Lesson with ${slot.teacherName}`,
-          status: 'scheduled'
-        })
-        .select()
-        .single();
-
-      if (lessonError) throw lessonError;
-
-      // Update the availability slot to mark it as booked
-      const { error: updateError } = await supabase
-        .from('teacher_availability')
-        .update({ 
-          is_booked: true,
-          lesson_id: lesson.id
-        })
-        .eq('id', slot.id);
-
-      if (updateError) throw updateError;
-
-      toast({
-        title: "Lesson Booked!",
-        description: `Your lesson with ${slot.teacherName} is confirmed for ${slot.startTime.toLocaleString()}`,
-      });
-      
-      onBookLesson(slot);
-    } catch (error) {
-      console.error('Error booking lesson:', error);
-      toast({
-        title: "Booking Failed",
-        description: "Failed to book lesson. Please try again.",
-        variant: "destructive"
-      });
-    }
   };
 
   const formatTime = (date: Date) => {
@@ -239,7 +178,7 @@ export const StudentBookingCalendar = ({
                         </div>
                       </div>
                       <Button
-                        onClick={() => handleBooking(slot)}
+                        onClick={() => onBookLesson(slot)}
                         disabled={isLoading || !slot.isAvailable}
                         className="ml-4"
                       >

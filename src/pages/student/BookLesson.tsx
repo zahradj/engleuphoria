@@ -60,26 +60,54 @@ const BookLesson = () => {
 
     try {
       setIsBooking(true);
-      await lessonService.createLesson({
-        title: `Lesson with ${slot.teacherName}`,
-        teacher_id: slot.teacherId,
-        student_id: user.id,
-        scheduled_at: slot.startTime.toISOString(),
-        duration: slot.duration
+
+      // Get user's packages using the hook (need to fetch fresh data)
+      const { lessonPricingService } = await import('@/services/lessonPricingService');
+      const packages = await lessonPricingService.getStudentPackages(user.id);
+      
+      // Find matching package by duration
+      const matchingPackage = packages.find(
+        pkg => pkg.package.duration_minutes === slot.duration && pkg.lessons_remaining > 0
+      );
+
+      if (!matchingPackage) {
+        toast({
+          title: "No Matching Package",
+          description: `You need a ${slot.duration}-minute lesson package to book this slot. Please purchase one from the pricing page.`,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('📦 Using package:', {
+        packageId: matchingPackage.id,
+        duration: slot.duration,
+        creditsRemaining: matchingPackage.lessons_remaining
       });
+
+      await lessonService.createLesson(
+        {
+          title: `Lesson with ${slot.teacherName}`,
+          teacher_id: slot.teacherId,
+          student_id: user.id,
+          scheduled_at: slot.startTime.toISOString(),
+          duration: slot.duration
+        },
+        matchingPackage.id // Pass package ID for credit deduction
+      );
 
       toast({
         title: "Lesson Booked!",
-        description: `Your lesson with ${slot.teacherName} has been scheduled for ${slot.startTime.toLocaleString()}`
+        description: `Your lesson with ${slot.teacherName} has been scheduled for ${slot.startTime.toLocaleString()}. Credits remaining: ${matchingPackage.lessons_remaining - 1}`
       });
 
       // Reload available slots
       await loadAvailableSlots();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error booking lesson:', error);
       toast({
         title: "Booking Failed",
-        description: "Unable to book the lesson. Please try again.",
+        description: error.message || "Unable to book the lesson. Please try again.",
         variant: "destructive"
       });
     } finally {

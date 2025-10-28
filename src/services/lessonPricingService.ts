@@ -68,10 +68,16 @@ export const lessonPricingService = {
     teacherId: string,
     studentId: string,
     scheduledAt: string,
+    duration: number,
     packagePurchaseId?: string
   ): Promise<{ lesson: any; payment?: LessonPayment }> {
+    // Validate duration
+    if (duration !== 30 && duration !== 60) {
+      throw new Error('Invalid lesson duration. Must be 30 or 60 minutes.');
+    }
+
     const pricing = this.calculateLessonPrice();
-    const durationMinutes = 30;
+    const durationMinutes = duration;
     
     // If using a package, check and redeem credits
     if (packagePurchaseId) {
@@ -109,6 +115,25 @@ export const lessonPricingService = {
 
       if (lessonError) throw lessonError;
 
+      // Mark availability slot as booked
+      const { error: availError } = await supabase
+        .from('teacher_availability')
+        .update({ 
+          is_booked: true,
+          lesson_id: lesson.id 
+        })
+        .eq('teacher_id', teacherId)
+        .lte('start_time', scheduledAt)
+        .gte('end_time', scheduledAt)
+        .eq('duration', durationMinutes)
+        .eq('is_booked', false);
+        
+      if (availError) {
+        console.error('⚠️ Error updating availability slot:', availError);
+      } else {
+        console.log('✅ Availability slot marked as booked');
+      }
+
       // Redeem package credit
       await supabase
         .from('student_package_purchases')
@@ -122,6 +147,12 @@ export const lessonPricingService = {
           package_purchase_id: packagePurchaseId,
           lesson_id: lesson.id
         }]);
+
+      console.log('✅ Package credit deducted and lesson created:', {
+        lessonId: lesson.id,
+        duration: durationMinutes,
+        creditsRemaining: packageData.lessons_remaining - 1
+      });
 
       return { lesson };
     } else {
@@ -143,6 +174,25 @@ export const lessonPricingService = {
 
       if (lessonError) throw lessonError;
 
+      // Mark availability slot as booked
+      const { error: availError } = await supabase
+        .from('teacher_availability')
+        .update({ 
+          is_booked: true,
+          lesson_id: lesson.id 
+        })
+        .eq('teacher_id', teacherId)
+        .lte('start_time', scheduledAt)
+        .gte('end_time', scheduledAt)
+        .eq('duration', durationMinutes)
+        .eq('is_booked', false);
+        
+      if (availError) {
+        console.error('⚠️ Error updating availability slot:', availError);
+      } else {
+        console.log('✅ Availability slot marked as booked');
+      }
+
       // Create payment record
       const { data: payment, error: paymentError } = await supabase
         .from('lesson_payments')
@@ -158,6 +208,12 @@ export const lessonPricingService = {
         .single();
 
       if (paymentError) throw paymentError;
+
+      console.log('✅ Individual lesson payment processed:', {
+        lessonId: lesson.id,
+        duration: durationMinutes,
+        amount: pricing.studentPrice
+      });
 
       return { lesson, payment };
     }
