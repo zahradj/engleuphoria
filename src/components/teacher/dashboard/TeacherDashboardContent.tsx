@@ -1,13 +1,14 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { OverviewTab } from "./OverviewTab";
+import { CleanDashboardTab } from "../CleanDashboardTab";
 import { StudentsTab } from "./StudentsTab";
 import { ScheduleTab } from "./ScheduleTab";
 import { Users, Calendar, BarChart3 } from "lucide-react";
 
 interface TeacherDashboardContentProps {
   lessonPlans: any[];
+  teacherName?: string;
   handlers: {
     handleCreateLessonPlan: () => void;
     handleScheduleClass: () => void;
@@ -23,7 +24,7 @@ interface TeacherDashboardContentProps {
   };
 }
 
-export const TeacherDashboardContent = ({ lessonPlans, handlers }: TeacherDashboardContentProps) => {
+export const TeacherDashboardContent = ({ lessonPlans, teacherName = "Teacher", handlers }: TeacherDashboardContentProps) => {
   const { languageText } = useLanguage();
 
   return (
@@ -55,13 +56,7 @@ export const TeacherDashboardContent = ({ lessonPlans, handlers }: TeacherDashbo
         
         <div className="mt-8">
           <TabsContent value="overview" className="animate-fade-in">
-            <OverviewTab
-              onCreateLessonPlan={handlers.handleCreateLessonPlan}
-              onScheduleClass={handlers.handleScheduleClass}
-              onViewProgress={handlers.handleViewProgress}
-              onStartScheduledClass={handlers.handleStartScheduledClass}
-              onViewClassDetails={handlers.handleViewClassDetails}
-            />
+            <CleanDashboardTab teacherName={teacherName} />
           </TabsContent>
           
           <TabsContent value="students" className="animate-fade-in">
