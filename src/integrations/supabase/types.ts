@@ -4526,6 +4526,7 @@ export type Database = {
           cefr_level: string
           created_at: string
           emergency_contact: string | null
+          final_cefr_level: string | null
           gaps: string[] | null
           grade_level: string | null
           id: string
@@ -4533,6 +4534,9 @@ export type Database = {
           learning_style: string | null
           long_term_goal: string | null
           parent_email: string | null
+          placement_test_2_completed_at: string | null
+          placement_test_2_score: number | null
+          placement_test_2_total: number | null
           placement_test_completed_at: string | null
           placement_test_score: number | null
           placement_test_total: number | null
@@ -4549,6 +4553,7 @@ export type Database = {
           cefr_level?: string
           created_at?: string
           emergency_contact?: string | null
+          final_cefr_level?: string | null
           gaps?: string[] | null
           grade_level?: string | null
           id?: string
@@ -4556,6 +4561,9 @@ export type Database = {
           learning_style?: string | null
           long_term_goal?: string | null
           parent_email?: string | null
+          placement_test_2_completed_at?: string | null
+          placement_test_2_score?: number | null
+          placement_test_2_total?: number | null
           placement_test_completed_at?: string | null
           placement_test_score?: number | null
           placement_test_total?: number | null
@@ -4572,6 +4580,7 @@ export type Database = {
           cefr_level?: string
           created_at?: string
           emergency_contact?: string | null
+          final_cefr_level?: string | null
           gaps?: string[] | null
           grade_level?: string | null
           id?: string
@@ -4579,6 +4588,9 @@ export type Database = {
           learning_style?: string | null
           long_term_goal?: string | null
           parent_email?: string | null
+          placement_test_2_completed_at?: string | null
+          placement_test_2_score?: number | null
+          placement_test_2_total?: number | null
           placement_test_completed_at?: string | null
           placement_test_score?: number | null
           placement_test_total?: number | null

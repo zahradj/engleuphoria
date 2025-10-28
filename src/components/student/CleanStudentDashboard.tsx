@@ -22,6 +22,7 @@ import {
 import { CurrentLessonCard } from './CurrentLessonCard';
 import { LessonManagementModal } from './LessonManagementModal';
 import { PlacementTestFlow } from '@/components/onboarding/PlacementTestFlow';
+import { PlacementTestProgress } from './PlacementTestProgress';
 import { useLessonProgress } from '@/hooks/useLessonProgress';
 import { useCancelReschedule } from '@/hooks/useCancelReschedule';
 import { useNavigate } from 'react-router-dom';
@@ -207,6 +208,9 @@ export const CleanStudentDashboard = ({ studentName, studentProfile }: CleanStud
           }}
         />
       )}
+
+      {/* Placement Test Progress */}
+      <PlacementTestProgress />
 
       {/* Current Lesson Card */}
       <CurrentLessonCard 

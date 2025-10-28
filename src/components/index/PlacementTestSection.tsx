@@ -1,12 +1,38 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { GraduationCap, Clock, Target, Award } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { GraduationCap, Clock, Target, Award, Lock } from "lucide-react";
 
 export const PlacementTestSection = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [hasCompletedFirstTest, setHasCompletedFirstTest] = useState(false);
+
+  useEffect(() => {
+    const checkTestStatus = async () => {
+      if (!user) return;
+
+      try {
+        const { data } = await supabase
+          .from('student_profiles')
+          .select('placement_test_completed_at')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        setHasCompletedFirstTest(!!data?.placement_test_completed_at);
+      } catch (error) {
+        console.error('Error checking test status:', error);
+      }
+    };
+
+    checkTestStatus();
+  }, [user]);
 
   const features = [
     {
@@ -106,10 +132,37 @@ export const PlacementTestSection = () => {
                 <Button 
                   size="lg" 
                   variant="outline"
-                  className="w-full border-2 border-purple-200 hover:bg-purple-50"
-                  onClick={() => navigate('/placement-test-2')}
+                  className={`w-full border-2 ${
+                    !user || !hasCompletedFirstTest
+                      ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
+                      : 'border-purple-200 hover:bg-purple-50'
+                  }`}
+                  onClick={() => {
+                    if (!user) {
+                      toast({ 
+                        title: "Sign in Required",
+                        description: "Please sign in to access the advanced test"
+                      });
+                      navigate('/auth');
+                    } else if (!hasCompletedFirstTest) {
+                      toast({ 
+                        title: "Complete Quick Test First!",
+                        description: "Take the Quick Placement Test to unlock the advanced test"
+                      });
+                    } else {
+                      navigate('/placement-test-2');
+                    }
+                  }}
+                  disabled={!user || !hasCompletedFirstTest}
                 >
-                  🚀 Full Adventure Test (A1→C2)
+                  {!user || !hasCompletedFirstTest ? (
+                    <>
+                      <Lock className="mr-2 h-4 w-4" />
+                      🚀 Full Adventure Test (A1→C2)
+                    </>
+                  ) : (
+                    '🚀 Full Adventure Test (A1→C2)'
+                  )}
                 </Button>
               </div>
               

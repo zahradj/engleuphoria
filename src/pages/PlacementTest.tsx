@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -140,6 +142,7 @@ const questions: Question[] = [
 export default function PlacementTest() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<number[]>(new Array(questions.length).fill(-1));
   const [selectedAnswer, setSelectedAnswer] = useState<number>(-1);
@@ -248,15 +251,45 @@ export default function PlacementTest() {
     };
   };
 
-  const completeTest = () => {
+  const completeTest = async () => {
     const testResult = calculateResult();
     setResult(testResult);
     setTestCompleted(true);
     
-    toast({
-      title: "Test Completed!",
-      description: `Your level: ${testResult.level}`,
-    });
+    // Save to database
+    if (user?.id) {
+      try {
+        // Map level to CEFR
+        const cefrMapping: Record<string, string> = {
+          'Beginner': 'A1',
+          'Elementary': 'A2',
+          'Intermediate': 'B1'
+        };
+        
+        await supabase
+          .from('student_profiles')
+          .upsert({
+            user_id: user.id,
+            placement_test_score: testResult.score,
+            placement_test_total: testResult.totalPoints,
+            placement_test_completed_at: new Date().toISOString(),
+            cefr_level: cefrMapping[testResult.level] || 'A1'
+          }, {
+            onConflict: 'user_id'
+          });
+
+        toast({
+          title: "Test Completed!",
+          description: `Your level: ${testResult.level}. Advanced test now unlocked!`,
+        });
+      } catch (error) {
+        console.error('Error saving test results:', error);
+        toast({
+          title: "Test Completed!",
+          description: `Your level: ${testResult.level}`,
+        });
+      }
+    }
   };
 
   const restartTest = () => {
