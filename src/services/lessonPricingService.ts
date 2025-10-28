@@ -122,6 +122,7 @@ export const lessonPricingService = {
           teacher_id: teacherId,
           student_id: studentId,
           scheduled_at: scheduledAt,
+          duration: durationMinutes, // Set both duration fields
           duration_minutes: durationMinutes,
           lesson_price: 0, // No additional charge for package lessons
           title: `${durationMinutes}-minute English Lesson`,
@@ -180,6 +181,7 @@ export const lessonPricingService = {
           teacher_id: teacherId,
           student_id: studentId,
           scheduled_at: scheduledAt,
+          duration: durationMinutes, // Set both duration fields
           duration_minutes: durationMinutes,
           lesson_price: pricing.studentPrice,
           title: `${durationMinutes}-minute English Lesson`,

@@ -106,9 +106,22 @@ const BookLesson = () => {
       await loadAvailableSlots();
     } catch (error: any) {
       console.error('Error booking lesson:', error);
+      
+      // Provide user-friendly error messages
+      let errorMessage = "Unable to book the lesson. Please try again.";
+      const errorStr = String(error.message || "").toLowerCase();
+      
+      if (errorStr.includes('duration') || errorStr.includes('constraint') || errorStr.includes('violates')) {
+        errorMessage = "This time slot is no longer available. Please select a different time.";
+      } else if (errorStr.includes('package')) {
+        errorMessage = error.message;
+      } else if (errorStr.includes('credit')) {
+        errorMessage = "Insufficient credits. Please purchase a lesson package.";
+      }
+      
       toast({
         title: "Booking Failed",
-        description: error.message || "Unable to book the lesson. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
