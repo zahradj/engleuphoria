@@ -145,7 +145,7 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
   return (
     <div className="space-y-6">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl p-6 border border-primary/20">
+      <div className="bg-white rounded-xl p-6 border-l-4 border-primary shadow-sm">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-foreground mb-2">
@@ -167,15 +167,15 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {kpis.map((kpi, index) => (
-          <Card key={index} className="border border-border bg-card shadow-sm hover:shadow-md transition-shadow">
+          <Card key={index} className="border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div className="space-y-2">
-                  <p className="text-sm font-medium text-muted-foreground">{kpi.title}</p>
-                  <p className="text-3xl font-bold text-foreground">{kpi.value}</p>
+                  <p className="text-sm font-medium text-gray-600">{kpi.title}</p>
+                  <p className="text-3xl font-bold text-gray-900">{kpi.value}</p>
                 </div>
-                <div className="p-3 bg-primary/10 rounded-lg">
-                  <kpi.icon className={`h-6 w-6 ${kpi.color}`} />
+                <div className="p-3 bg-teal-50 rounded-lg">
+                  <kpi.icon className="h-6 w-6 text-primary" />
                 </div>
               </div>
             </CardContent>
@@ -186,9 +186,9 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-8 gap-6">
         {/* Weekly Schedule */}
-        <Card className="lg:col-span-5 border border-border bg-card shadow-sm">
+        <Card className="lg:col-span-5 border border-gray-200 bg-white shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
               <Calendar className="h-5 w-5 text-primary" />
               This Week's Schedule
             </CardTitle>
@@ -203,16 +203,16 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
                 </div>
               ) : upcomingLessons.length > 0 ? (
                 <>
-                  <div className="p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20">
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex-1">
-                        <h4 className="font-semibold text-foreground">Next Class: {upcomingLessons[0].title}</h4>
-                        <p className="text-sm text-muted-foreground">
+                        <h4 className="font-semibold text-gray-900">Next Class: {upcomingLessons[0].title}</h4>
+                        <p className="text-sm text-gray-600">
                           Student: {upcomingLessons[0].student_name} 
                           {upcomingLessons[0].student_cefr_level && ` (${upcomingLessons[0].student_cefr_level} Level)`}
                         </p>
                         {upcomingLessons[0].student_id && (
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-gray-500">
                             #{upcomingLessons[0].student_id.slice(-6).toUpperCase()}
                           </p>
                         )}
@@ -221,7 +221,7 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
                         <div className="text-lg font-bold text-primary">
                           {new Date(upcomingLessons[0].scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-xs text-gray-500">
                           {new Date(upcomingLessons[0].scheduled_at).toLocaleDateString()}
                         </div>
                       </div>
@@ -236,12 +236,12 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
                     )}
 
                     <div className="flex items-center justify-between mt-4">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
                         <Clock className="h-4 w-4" />
                         <span>{upcomingLessons[0].duration} minutes</span>
                         <Badge 
-                          variant="secondary" 
-                          className={upcomingLessons[0].duration === 25 ? "ml-2 bg-blue-500/10 text-blue-600 border-blue-500/20" : "ml-2 bg-purple-500/10 text-purple-600 border-purple-500/20"}
+                          variant="outline" 
+                          className="ml-2 border-gray-300 text-gray-700"
                         >
                           {upcomingLessons[0].duration} min
                         </Badge>
@@ -256,14 +256,14 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
                   {/* Other Upcoming Lessons */}
                   <div className="space-y-3">
                     {upcomingLessons.slice(1, 4).map((lesson, index) => (
-                      <div key={lesson.id} className="flex items-center justify-between p-3 bg-surface-2 rounded-lg">
+                      <div key={lesson.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100">
                         <div>
-                          <h5 className="font-medium text-foreground text-sm">{lesson.title}</h5>
-                          <p className="text-xs text-muted-foreground">
+                          <h5 className="font-medium text-gray-900 text-sm">{lesson.title}</h5>
+                          <p className="text-xs text-gray-600">
                             {lesson.student_name} • {new Date(lesson.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </p>
                         </div>
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-xs border-gray-300 text-gray-700">
                           {lesson.duration} min
                         </Badge>
                       </div>
@@ -281,9 +281,9 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
         </Card>
 
         {/* Today's Classes */}
-        <Card className="lg:col-span-3 border border-border bg-card shadow-sm">
+        <Card className="lg:col-span-3 border border-gray-200 bg-white shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
               <Clock className="h-5 w-5 text-primary" />
               Today's Classes
             </CardTitle>
@@ -295,19 +295,19 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
               </div>
             ) : todayLessons.length > 0 ? (
               todayLessons.map((lesson) => (
-                <div key={lesson.id} className="p-4 bg-surface-2 rounded-lg">
+                <div key={lesson.id} className="p-4 bg-gray-50 rounded-lg border border-gray-100">
                   <div className="flex items-start justify-between mb-2">
                     <div>
-                      <h4 className="font-medium text-foreground text-sm">{lesson.title}</h4>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <h4 className="font-medium text-gray-900 text-sm">{lesson.title}</h4>
+                      <p className="text-xs text-gray-600 mt-1">
                         {lesson.student_name} {lesson.student_cefr_level && `(${lesson.student_cefr_level})`}
                       </p>
                     </div>
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="text-xs border-gray-300 text-gray-700">
                       {new Date(lesson.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-4 text-xs text-gray-600">
                     <span className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
                       {lesson.duration} min
@@ -322,8 +322,8 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
               ))
             ) : (
               <div className="text-center py-8">
-                <Clock className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">No classes today</p>
+                <Clock className="h-10 w-10 text-gray-400 mx-auto mb-2" />
+                <p className="text-sm text-gray-600">No classes today</p>
               </div>
             )}
           </CardContent>
@@ -333,9 +333,9 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
       {/* Bottom Section */}
       <div className="grid grid-cols-1 lg:grid-cols-8 gap-6">
         {/* Recent Activity */}
-        <Card className="lg:col-span-5 border border-border bg-card shadow-sm">
+        <Card className="lg:col-span-5 border border-gray-200 bg-white shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
               <MessageSquare className="h-5 w-5 text-primary" />
               Recent Messages & Updates
             </CardTitle>
@@ -349,10 +349,10 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
                 'Parent feedback received for Emma Watson',
                 'System update: New collaboration tools available'
               ].map((message, index) => (
-                <div key={index} className="flex items-center gap-3 p-3 bg-surface-2 rounded-lg">
+                <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                   <div className="w-2 h-2 bg-primary rounded-full"></div>
-                  <span className="text-sm text-foreground flex-1">{message}</span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-sm text-gray-900 flex-1">{message}</span>
+                  <span className="text-xs text-gray-500">
                     {index + 1}h ago
                   </span>
                 </div>
@@ -362,27 +362,27 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
         </Card>
 
         {/* Performance Overview */}
-        <Card className="lg:col-span-3 border border-border bg-card shadow-sm">
+        <Card className="lg:col-span-3 border border-gray-200 bg-white shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
               <Award className="h-5 w-5 text-primary" />
               This Month
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Upcoming Lessons</span>
-              <span className="text-lg font-semibold text-foreground">{upcomingLessons.length}</span>
+              <span className="text-sm text-gray-600">Upcoming Lessons</span>
+              <span className="text-lg font-semibold text-gray-900">{upcomingLessons.length}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Student Progress</span>
+              <span className="text-sm text-gray-600">Student Progress</span>
               <span className="text-lg font-semibold text-success">+18%</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Satisfaction</span>
+              <span className="text-sm text-gray-600">Satisfaction</span>
               <span className="text-lg font-semibold text-warning">4.8★</span>
             </div>
-            <Button variant="outline" className="w-full mt-4 border-border hover:bg-primary/5 hover:border-primary/30">
+            <Button variant="outline" className="w-full mt-4 border-gray-300 hover:bg-gray-50">
               <BookOpen className="mr-2 h-4 w-4" />
               View Full Report
             </Button>

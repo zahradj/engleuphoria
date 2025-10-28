@@ -30,27 +30,27 @@ export const TeacherDashboardContent = ({ lessonPlans, teacherName = "Teacher", 
   return (
     <main className="flex-1 container max-w-7xl mx-auto px-4 py-8">
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 h-14 bg-gradient-to-r from-purple-100 via-pink-100 to-blue-100 backdrop-blur-sm shadow-lg border border-purple-200/50 rounded-xl p-1">
+        <TabsList className="grid w-full grid-cols-3 h-14 bg-white border border-gray-200 rounded-xl p-1 shadow-sm">
           <TabsTrigger 
             value="overview" 
-            className="flex items-center gap-2 text-sm font-medium text-purple-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:via-pink-500 data-[state=active]:to-blue-500 data-[state=active]:text-white rounded-lg transition-all data-[state=active]:shadow-md"
+            className="flex items-center gap-2 text-sm font-medium text-gray-600 data-[state=active]:text-primary data-[state=active]:bg-transparent rounded-lg transition-all data-[state=active]:border-b-2 data-[state=active]:border-primary"
           >
             <BarChart3 className="h-4 w-4" />
-            {languageText.overview} ✨
+            {languageText.overview}
           </TabsTrigger>
           <TabsTrigger 
             value="students" 
-            className="flex items-center gap-2 text-sm font-medium text-purple-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:via-pink-500 data-[state=active]:to-blue-500 data-[state=active]:text-white rounded-lg transition-all data-[state=active]:shadow-md"
+            className="flex items-center gap-2 text-sm font-medium text-gray-600 data-[state=active]:text-primary data-[state=active]:bg-transparent rounded-lg transition-all data-[state=active]:border-b-2 data-[state=active]:border-primary"
           >
             <Users className="h-4 w-4" />
-            {languageText.students} 🎓
+            {languageText.students}
           </TabsTrigger>
           <TabsTrigger 
             value="schedule" 
-            className="flex items-center gap-2 text-sm font-medium text-purple-600 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:via-pink-500 data-[state=active]:to-blue-500 data-[state=active]:text-white rounded-lg transition-all data-[state=active]:shadow-md"
+            className="flex items-center gap-2 text-sm font-medium text-gray-600 data-[state=active]:text-primary data-[state=active]:bg-transparent rounded-lg transition-all data-[state=active]:border-b-2 data-[state=active]:border-primary"
           >
             <Calendar className="h-4 w-4" />
-            {languageText.schedule} 📅
+            {languageText.schedule}
           </TabsTrigger>
         </TabsList>
         

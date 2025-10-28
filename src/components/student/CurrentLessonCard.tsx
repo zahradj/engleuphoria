@@ -76,28 +76,28 @@ export function CurrentLessonCard({ lesson, progress, loading }: CurrentLessonCa
   const xpReward = lesson.duration_minutes * 10;
 
   return (
-    <Card className="border border-border bg-white shadow-card overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-sky-blue via-lavender to-mint-green border-b border-border-light">
+    <Card className="border border-gray-200 bg-white shadow-sm overflow-hidden">
+      <CardHeader className="bg-primary border-b border-gray-200">
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
-              <Badge className="bg-white text-sky-blue-dark border-sky-blue">
+              <Badge className="bg-white/20 text-white border-white/30">
                 {lesson.cefr_level}
               </Badge>
-              <Badge variant="outline" className="bg-white/50">
+              <Badge variant="outline" className="bg-white/20 text-white border-white/30">
                 Lesson {lesson.lesson_number}
               </Badge>
             </div>
-            <CardTitle className="text-2xl font-bold text-text mb-1">
+            <CardTitle className="text-2xl font-bold text-white mb-1">
               {lesson.title}
             </CardTitle>
-            <p className="text-text-muted">{lesson.topic}</p>
+            <p className="text-white/90">{lesson.topic}</p>
           </div>
           <div className="flex flex-col items-end gap-2">
-            <div className="bg-white rounded-lg px-3 py-2 border border-border">
+            <div className="bg-white/20 rounded-lg px-3 py-2 border border-white/30">
               <div className="flex items-center gap-2">
-                <Award className="h-4 w-4 text-peach-dark" />
-                <span className="text-sm font-semibold text-text">{xpReward} XP</span>
+                <Award className="h-4 w-4 text-white" />
+                <span className="text-sm font-semibold text-white">{xpReward} XP</span>
               </div>
             </div>
           </div>
@@ -159,7 +159,7 @@ export function CurrentLessonCard({ lesson, progress, loading }: CurrentLessonCa
         {/* Action Button */}
         <Button 
           onClick={() => navigate(`/lesson/${lesson.id}`)}
-          className="w-full bg-gradient-to-r from-sky-blue-dark to-mint-green-dark text-white hover:opacity-90 shadow-lg py-6 text-base font-semibold"
+          className="w-full bg-accent text-white hover:bg-accent/90 shadow-sm py-6 text-base font-semibold"
         >
           Continue Learning
           <Play className="ml-2 h-5 w-5" />

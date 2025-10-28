@@ -7,89 +7,80 @@
 
 @layer base {
   :root {
-    /* Child-Friendly Minimalist Design System */
+    /* Elegant & Simple Design System - Refined Minimalism */
     
-    /* Soft Pastel Primary Colors */
-    --sky-blue-50: 210 100% 98%;
-    --sky-blue-100: 210 100% 95%;
-    --sky-blue-200: 210 100% 92%;
-    --sky-blue: 210 85% 88%;        /* Soft Sky Blue */
-    --sky-blue-dark: 210 85% 65%;
+    /* Primary: Soft Teal */
+    --primary: 188 94% 37%;           /* #0891B2 - Professional Teal */
+    --primary-foreground: 0 0% 100%;  /* White text */
+    --primary-light: 188 94% 47%;     /* Lighter teal for hover */
+    --primary-bg: 188 94% 95%;        /* Very light teal background */
     
-    --mint-green-50: 160 80% 98%;
-    --mint-green-100: 160 75% 95%;
-    --mint-green: 160 65% 88%;      /* Soft Mint Green */
-    --mint-green-dark: 160 70% 55%;
+    /* Accent: Warm Coral (use sparingly) */
+    --accent: 27 96% 53%;             /* #F97316 - Warm Coral */
+    --accent-foreground: 0 0% 100%;   /* White text */
+    --accent-light: 27 96% 63%;       /* Lighter coral for hover */
+    --accent-bg: 27 96% 95%;          /* Very light coral background */
     
-    --lavender-50: 260 80% 98%;
-    --lavender-100: 260 70% 95%;
-    --lavender: 260 60% 92%;        /* Soft Lavender */
-    --lavender-dark: 260 55% 65%;
+    /* Neutrals - Clean Grays */
+    --background: 0 0% 98%;           /* #FAFAFA - Off-white */
+    --foreground: 217 19% 17%;        /* #1F2937 - Dark gray text */
+    --surface: 0 0% 100%;             /* #FFFFFF - Pure white */
+    --surface-2: 220 13% 96%;         /* #F3F4F6 - Light gray */
     
-    --peach-50: 25 100% 98%;
-    --peach-100: 25 90% 95%;
-    --peach: 25 85% 88%;            /* Soft Peach */
-    --peach-dark: 25 80% 65%;
+    --border: 220 13% 91%;            /* #E5E7EB - Light gray border */
+    --border-light: 220 13% 95%;      /* Even lighter border */
     
-    /* Clean Neutral System */
-    --background: 0 0% 99%;          /* Almost white with warmth */
-    --surface: 0 0% 100%;            /* Pure white */
-    --surface-soft: 220 40% 98%;     /* Very soft blue tint */
-    --border: 220 20% 90%;           /* Soft blue-gray */
-    --border-light: 220 15% 95%;
+    --text: 217 19% 17%;              /* #1F2937 - Dark gray */
+    --text-muted: 220 9% 46%;         /* #6B7280 - Medium gray */
+    --text-subtle: 220 9% 65%;        /* Lighter gray */
     
-    /* Text Colors - Friendly Dark */
-    --text: 220 30% 15%;             /* Dark blue-gray */
-    --text-muted: 220 15% 50%;       /* Medium gray */
-    --text-subtle: 220 10% 65%;      /* Light gray */
+    /* Semantic Colors - Muted */
+    --success: 158 79% 39%;           /* #10B981 - Muted green */
+    --success-bg: 158 79% 95%;        /* Light green background */
+    --success-border: 158 79% 85%;    /* Green border */
+    --success-foreground: 0 0% 100%;  /* White text */
     
-    /* Semantic Colors - Soft & Readable */
-    --success: 145 70% 35%;          /* Readable green */
-    --success-bg: 145 65% 88%;       /* Soft green background */
-    --success-border: 145 60% 75%;
+    --warning: 43 96% 50%;            /* #F59E0B - Soft amber */
+    --warning-bg: 43 96% 95%;         /* Light amber background */
+    --warning-border: 43 96% 85%;     /* Amber border */
+    --warning-foreground: 0 0% 100%;  /* White text */
     
-    --warning: 40 75% 40%;           /* Readable orange */
-    --warning-bg: 40 85% 90%;        /* Soft yellow background */
-    --warning-border: 40 80% 75%;
+    --error: 0 72% 60%;               /* #EF4444 - Muted red */
+    --error-bg: 0 72% 95%;            /* Light red background */
+    --error-border: 0 72% 85%;        /* Red border */
     
-    --error: 0 70% 45%;              /* Readable red */
-    --error-bg: 0 75% 92%;           /* Soft pink background */
-    --error-border: 0 70% 80%;
+    --destructive: 0 72% 60%;
+    --destructive-foreground: 0 0% 100%;
     
-    --info: 210 75% 40%;             /* Readable blue */
-    --info-bg: 210 80% 90%;          /* Soft blue background */
-    --info-border: 210 75% 75%;
-    
-    /* Subtle Gradients - Two-tone only */
-    --gradient-sky: linear-gradient(135deg, hsl(var(--sky-blue)) 0%, hsl(var(--lavender)) 100%);
-    --gradient-mint: linear-gradient(135deg, hsl(var(--mint-green)) 0%, hsl(var(--sky-blue)) 100%);
-    --gradient-peach: linear-gradient(135deg, hsl(var(--peach)) 0%, hsl(var(--lavender)) 100%);
-    
-    /* Minimal Shadows */
-    --shadow-sm: 0 1px 3px hsla(var(--text) / 0.05);
-    --shadow-md: 0 4px 8px hsla(var(--text) / 0.08);
-    --shadow-card: 0 2px 12px hsla(var(--text) / 0.06);
+    /* Legacy color mappings for compatibility */
+    --sky-blue: 188 94% 90%;
+    --sky-blue-dark: 188 94% 37%;
+    --mint-green: 158 79% 90%;
+    --mint-green-dark: 158 79% 39%;
+    --lavender: 220 13% 96%;
+    --lavender-dark: 220 13% 70%;
+    --peach: 27 96% 90%;
+    --peach-dark: 27 96% 53%;
+    --surface-soft: 220 13% 96%;
     
     /* Component Mappings */
-    --foreground: var(--text);
     --card: var(--surface);
     --card-foreground: var(--text);
     --popover: var(--surface);
     --popover-foreground: var(--text);
-    --primary: var(--sky-blue-dark);
-    --primary-foreground: 0 0% 100%;
-    --secondary: var(--lavender);
+    --secondary: 220 13% 96%;         /* Light gray */
     --secondary-foreground: var(--text);
-    --muted: var(--surface-soft);
+    --muted: 220 13% 96%;
     --muted-foreground: var(--text-muted);
-    --accent: var(--mint-green);
-    --accent-foreground: var(--text);
-    --destructive: var(--error);
-    --destructive-foreground: 0 0% 100%;
     --input: var(--surface);
-    --ring: var(--sky-blue-dark);
+    --ring: var(--primary);
     
-    --radius: 1rem;
+    /* Minimal Shadows */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.08);
+    --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.06);
+    
+    --radius: 0.75rem;
   }
 
   [data-theme="pastel-sky"] {
