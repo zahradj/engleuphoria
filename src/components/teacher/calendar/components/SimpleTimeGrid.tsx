@@ -6,7 +6,7 @@ import { Plus, Clock, User } from "lucide-react";
 interface ScheduleSlot {
   id?: string;
   time: string;
-  duration: 25 | 55;
+  duration: 30 | 60;
   lessonType: 'free_slot' | 'direct_booking';
   isAvailable: boolean;
   studentId?: string;
@@ -76,12 +76,12 @@ export const SimpleTimeGrid = ({
             <User className="h-3 w-3" />
             Booked
           </div>
-          <Badge 
-            variant={slot.duration === 55 ? "default" : "secondary"} 
-            className="text-xs mt-1"
-          >
-            {slot.duration}m
-          </Badge>
+        <Badge 
+          variant={slot.duration === 60 ? "default" : "secondary"} 
+          className="text-xs mt-1"
+        >
+          {slot.duration}m
+        </Badge>
         </div>
       );
     }
@@ -93,7 +93,7 @@ export const SimpleTimeGrid = ({
           Available
         </div>
         <Badge 
-          variant={slot.duration === 55 ? "default" : "secondary"} 
+          variant={slot.duration === 60 ? "default" : "secondary"} 
           className="text-xs mt-1"
         >
           {slot.duration}m

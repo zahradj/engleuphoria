@@ -47,7 +47,7 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
   const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState(true);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
-  const [selectedDuration, setSelectedDuration] = useState<25 | 55>(25);
+  const [selectedDuration, setSelectedDuration] = useState<30 | 60>(30);
   const [lessons, setLessons] = useState<ScheduledLesson[]>([]);
   const [daySlots, setDaySlots] = useState<DaySlots>({});
   
@@ -812,19 +812,19 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
                   <div className="flex border border-primary/20 rounded-md overflow-hidden bg-background/80">
                     <Button
                       size="sm"
-                      variant={selectedDuration === 25 ? "default" : "ghost"}
-                      onClick={() => setSelectedDuration(25)}
-                      className={`rounded-none px-4 ${selectedDuration === 25 ? 'bg-primary text-primary-foreground' : ''}`}
+                      variant={selectedDuration === 30 ? "default" : "ghost"}
+                      onClick={() => setSelectedDuration(30)}
+                      className={`rounded-none px-4 ${selectedDuration === 30 ? 'bg-primary text-primary-foreground' : ''}`}
                     >
-                      25 min
+                      30 min
                     </Button>
                     <Button
                       size="sm"
-                      variant={selectedDuration === 55 ? "default" : "ghost"}
-                      onClick={() => setSelectedDuration(55)}
-                      className={`rounded-none px-4 ${selectedDuration === 55 ? 'bg-primary text-primary-foreground' : ''}`}
+                      variant={selectedDuration === 60 ? "default" : "ghost"}
+                      onClick={() => setSelectedDuration(60)}
+                      className={`rounded-none px-4 ${selectedDuration === 60 ? 'bg-primary text-primary-foreground' : ''}`}
                     >
-                      55 min
+                      60 min
                     </Button>
                   </div>
                 </div>

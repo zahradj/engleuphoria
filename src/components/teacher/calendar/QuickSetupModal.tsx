@@ -20,7 +20,7 @@ export const QuickSetupModal = ({ teacherId, onSlotsCreated, children }: QuickSe
   const [selectedDays, setSelectedDays] = useState<number[]>([]);
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("17:00");
-  const [duration, setDuration] = useState<25 | 55>(25);
+  const [duration, setDuration] = useState<30 | 60>(30);
   const [isCreating, setIsCreating] = useState(false);
   const [estimatedSlots, setEstimatedSlots] = useState(0);
   const { toast } = useToast();
@@ -254,7 +254,7 @@ export const QuickSetupModal = ({ teacherId, onSlotsCreated, children }: QuickSe
       setSelectedDays([]);
       setStartTime("09:00");
       setEndTime("17:00");
-      setDuration(25);
+      setDuration(30);
       
     } catch (error: any) {
       console.error('❌ Bulk slot creation failed:', error);
@@ -408,13 +408,13 @@ Please log out and log back in.`;
           
           <div>
             <Label className="text-sm font-medium">Lesson Duration</Label>
-            <Select value={duration.toString()} onValueChange={(value) => setDuration(Number(value) as 25 | 55)}>
+            <Select value={duration.toString()} onValueChange={(value) => setDuration(Number(value) as 30 | 60)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="25">25 minutes</SelectItem>
-                <SelectItem value="55">55 minutes</SelectItem>
+                <SelectItem value="30">30 minutes</SelectItem>
+                <SelectItem value="60">60 minutes</SelectItem>
               </SelectContent>
             </Select>
           </div>

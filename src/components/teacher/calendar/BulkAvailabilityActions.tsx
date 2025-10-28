@@ -7,7 +7,7 @@ import { Copy, X, Clock } from "lucide-react";
 interface BulkAvailabilityActionsProps {
   selectedDate: Date;
   selectedSlots: string[];
-  selectedDuration: 25 | 55;
+  selectedDuration: 30 | 60;
   onBulkOpen: (hours: string[]) => void;
   onBulkClose: () => void;
   onCopyFromPrevious: () => void;

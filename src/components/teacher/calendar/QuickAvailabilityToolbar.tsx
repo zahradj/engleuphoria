@@ -27,7 +27,7 @@ interface QuickAction {
 interface QuickAvailabilityToolbarProps {
   teacherId: string;
   currentWeek: Date[];
-  selectedDuration: 25 | 55;
+  selectedDuration: 30 | 60;
   onSlotsCreated: () => void;
   onOpenQuickSetup: () => void;
 }

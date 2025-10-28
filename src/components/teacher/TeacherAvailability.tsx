@@ -23,7 +23,7 @@ interface TimeSlot {
 export const TeacherAvailability = ({ teacherId }: TeacherAvailabilityProps) => {
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [timeSlots, setTimeSlots] = useState<string[]>([]);
-  const [duration, setDuration] = useState<"25" | "55">("55");
+  const [duration, setDuration] = useState<"30" | "60">("60");
   const [existingSlots, setExistingSlots] = useState<TimeSlot[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -180,13 +180,13 @@ export const TeacherAvailability = ({ teacherId }: TeacherAvailabilityProps) => 
             <div className="space-y-4">
               <div>
                 <h3 className="text-sm font-medium mb-2">Duration</h3>
-                <Select value={duration} onValueChange={(v) => setDuration(v as "25" | "55")}>
+                <Select value={duration} onValueChange={(v) => setDuration(v as "30" | "60")}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="25">25 minutes</SelectItem>
-                    <SelectItem value="55">55 minutes</SelectItem>
+                    <SelectItem value="30">30 minutes</SelectItem>
+                    <SelectItem value="60">60 minutes</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

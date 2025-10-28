@@ -7,7 +7,7 @@ import { Zap, Clock, Calendar, Plus } from "lucide-react";
 
 interface QuickSlotCreatorProps {
   selectedDate: Date;
-  selectedDuration: 25 | 55;
+  selectedDuration: 30 | 60;
   onCreateSlots: (times: string[]) => void;
   isLoading?: boolean;
 }

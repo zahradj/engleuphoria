@@ -16,7 +16,7 @@ interface TimeSlotActionModalProps {
   date: Date;
   time: string;
   teacherId: string;
-  selectedDuration: 25 | 55;
+  selectedDuration: 30 | 60;
   onSlotCreated: () => void;
 }
 
@@ -31,7 +31,7 @@ export const TimeSlotActionModal = ({
 }: TimeSlotActionModalProps) => {
   const [slotType, setSlotType] = useState<'single' | 'weekly'>('single');
   const [numWeeks, setNumWeeks] = useState<number>(4);
-  const [localDuration, setLocalDuration] = useState<25 | 55>(selectedDuration);
+  const [localDuration, setLocalDuration] = useState<30 | 60>(selectedDuration);
   const [isCreating, setIsCreating] = useState(false);
   const { toast } = useToast();
 
@@ -305,18 +305,18 @@ Please log out and log back in.`;
             <Button
               type="button"
               size="sm"
-              variant={localDuration === 25 ? "default" : "outline"}
-              onClick={() => setLocalDuration(25)}
+              variant={localDuration === 30 ? "default" : "outline"}
+              onClick={() => setLocalDuration(30)}
             >
-              25 min
+              30 min
             </Button>
             <Button
               type="button"
               size="sm"
-              variant={localDuration === 55 ? "default" : "outline"}
-              onClick={() => setLocalDuration(55)}
+              variant={localDuration === 60 ? "default" : "outline"}
+              onClick={() => setLocalDuration(60)}
             >
-              55 min
+              60 min
             </Button>
           </div>
 

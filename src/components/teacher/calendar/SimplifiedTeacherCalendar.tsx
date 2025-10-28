@@ -16,7 +16,7 @@ interface SimplifiedTeacherCalendarProps {
 
 export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalendarProps) => {
   const [currentWeek, setCurrentWeek] = useState<Date>(new Date());
-  const [selectedDuration, setSelectedDuration] = useState<25 | 55>(25);
+  const [selectedDuration, setSelectedDuration] = useState<30 | 60>(30);
   const [showQuickCreator, setShowQuickCreator] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showSlotModal, setShowSlotModal] = useState(false);
@@ -138,20 +138,20 @@ export const SimplifiedTeacherCalendar = ({ teacherId }: SimplifiedTeacherCalend
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2 bg-muted rounded-lg p-1">
                 <Button
-                  variant={selectedDuration === 25 ? "default" : "ghost"}
+                  variant={selectedDuration === 30 ? "default" : "ghost"}
                   size="sm"
-                  onClick={() => setSelectedDuration(25)}
+                  onClick={() => setSelectedDuration(30)}
                   className="h-8 px-3"
                 >
-                  25 min
+                  30 min
                 </Button>
                 <Button
-                  variant={selectedDuration === 55 ? "default" : "ghost"}
+                  variant={selectedDuration === 60 ? "default" : "ghost"}
                   size="sm"
-                  onClick={() => setSelectedDuration(55)}
+                  onClick={() => setSelectedDuration(60)}
                   className="h-8 px-3"
                 >
-                  55 min
+                  60 min
                 </Button>
               </div>
 

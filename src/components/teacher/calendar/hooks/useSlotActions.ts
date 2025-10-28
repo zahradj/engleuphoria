@@ -5,7 +5,7 @@ import { toast } from "@/hooks/use-toast";
 interface ScheduleSlot {
   id?: string;
   time: string;
-  duration: 25 | 55;
+  duration: 30 | 60;
   lessonType: 'free_slot' | 'direct_booking';
   isAvailable: boolean;
   studentId?: string;
@@ -23,7 +23,7 @@ export const useSlotActions = (
   const createSlot = async (
     date: Date, 
     time: string, 
-    duration: 25 | 55
+    duration: 30 | 60
   ) => {
     setIsLoading(true);
     try {
@@ -99,7 +99,7 @@ export const useSlotActions = (
   const createBulkSlots = async (
     dates: Date[], 
     times: string[], 
-    duration: 25 | 55
+    duration: 30 | 60
   ) => {
     setIsLoading(true);
     try {

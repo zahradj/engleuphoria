@@ -11,7 +11,7 @@ import { toast } from "@/hooks/use-toast";
 interface TimeSlot {
   id?: string;
   time: string;
-  duration: 25 | 55;
+  duration: 30 | 60;
   lessonType: 'free_slot' | 'direct_booking';
   isAvailable: boolean;
   studentId?: string;
@@ -26,7 +26,7 @@ interface EnhancedHourlyCalendarProps {
 export const EnhancedHourlyCalendar = ({ teacherId }: EnhancedHourlyCalendarProps) => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
-  const [selectedDuration, setSelectedDuration] = useState<25 | 55>(25);
+  const [selectedDuration, setSelectedDuration] = useState<30 | 60>(30);
   const [isLoading, setIsLoading] = useState(false);
 
   // Generate hourly time slots from 6 AM to 11 PM
@@ -78,7 +78,7 @@ export const EnhancedHourlyCalendar = ({ teacherId }: EnhancedHourlyCalendarProp
       const formattedSlots = allTimeSlots.map(time => 
         slotsMap.get(time) || {
           time,
-          duration: 25,
+          duration: 30,
           lessonType: 'free_slot',
           isAvailable: false
         }
@@ -228,14 +228,14 @@ export const EnhancedHourlyCalendar = ({ teacherId }: EnhancedHourlyCalendarProp
         <div className="flex items-center gap-4">
           <Select
             value={selectedDuration.toString()}
-            onValueChange={(value) => setSelectedDuration(Number(value) as 25 | 55)}
+            onValueChange={(value) => setSelectedDuration(Number(value) as 30 | 60)}
           >
             <SelectTrigger className="w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="25">25 minutes</SelectItem>
-              <SelectItem value="55">55 minutes</SelectItem>
+              <SelectItem value="30">30 minutes</SelectItem>
+              <SelectItem value="60">60 minutes</SelectItem>
             </SelectContent>
           </Select>
         </div>

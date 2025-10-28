@@ -47,7 +47,7 @@ const TIME_SLOTS = [
 export const SimplifiedMultiSelectCalendar: React.FC<SimplifiedMultiSelectCalendarProps> = ({ teacherId }) => {
   const { toast } = useToast();
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }));
-  const [selectedDuration, setSelectedDuration] = useState<25 | 55>(25);
+  const [selectedDuration, setSelectedDuration] = useState<30 | 60>(30);
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
   const [selectedSlots, setSelectedSlots] = useState<SelectedSlot[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -353,18 +353,18 @@ export const SimplifiedMultiSelectCalendar: React.FC<SimplifiedMultiSelectCalend
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium">Duration:</span>
             <Button
-              variant={selectedDuration === 25 ? "default" : "outline"}
+              variant={selectedDuration === 30 ? "default" : "outline"}
               size="sm"
-              onClick={() => setSelectedDuration(25)}
+              onClick={() => setSelectedDuration(30)}
             >
-              25 min
+              30 min
             </Button>
             <Button
-              variant={selectedDuration === 55 ? "default" : "outline"}
+              variant={selectedDuration === 60 ? "default" : "outline"}
               size="sm"
-              onClick={() => setSelectedDuration(55)}
+              onClick={() => setSelectedDuration(60)}
             >
-              55 min
+              60 min
             </Button>
           </div>
 
