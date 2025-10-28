@@ -83,7 +83,7 @@ export const useTeacherHandlers = () => {
       description: `Starting ${className}...`,
     });
     // Navigate to classroom with teacher role
-    navigate("/classroom?role=teacher&name=Teacher&userId=teacher-1");
+    navigate("/classroom?roomId=unified-classroom-1&role=teacher&name=Teacher&userId=teacher-1");
   };
 
   const handleViewClassDetails = (className: string) => {
