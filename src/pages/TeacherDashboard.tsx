@@ -70,7 +70,7 @@ const TeacherDashboard = () => {
               handleScheduleClass: () => setActiveTab('calendar'),
               handleViewProgress: () => setActiveTab('reports'),
               handleStartScheduledClass: (className: string) => {
-                window.open(`/classroom/teacher?class=${encodeURIComponent(className)}`, '_blank');
+                navigate(`/classroom?roomId=unified-classroom-1&role=teacher&name=${encodeURIComponent(teacherName)}&userId=${teacherId}`);
               },
               handleViewClassDetails: (className: string) => {
                 setActiveTab('calendar');
@@ -119,7 +119,7 @@ const TeacherDashboard = () => {
               handleScheduleClass: () => setActiveTab('calendar'),
               handleViewProgress: () => setActiveTab('reports'),
               handleStartScheduledClass: (className: string) => {
-                window.open(`/classroom/teacher?class=${encodeURIComponent(className)}`, '_blank');
+                navigate(`/classroom?roomId=unified-classroom-1&role=teacher&name=${encodeURIComponent(teacherName)}&userId=${teacherId}`);
               },
               handleViewClassDetails: (className: string) => {
                 setActiveTab('calendar');

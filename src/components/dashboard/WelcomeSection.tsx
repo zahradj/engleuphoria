@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface WelcomeSectionProps {
   studentName: string;
@@ -12,6 +13,10 @@ interface WelcomeSectionProps {
 export function WelcomeSection({ studentName }: WelcomeSectionProps) {
   const navigate = useNavigate();
   const { languageText } = useLanguage();
+  const { user } = useAuth();
+  
+  const userId = user?.id || 'student-1';
+  const name = (user as any)?.full_name || (user?.user_metadata as any)?.full_name || studentName;
 
   return (
     <Card className="bg-gradient-to-r from-purple-light/70 to-teal-light/70 border-none">
@@ -26,7 +31,7 @@ export function WelcomeSection({ studentName }: WelcomeSectionProps) {
             </p>
           </div>
           
-          <Button className="gap-2" onClick={() => navigate("/classroom/class-1")}>
+          <Button className="gap-2" onClick={() => navigate(`/classroom?roomId=unified-classroom-1&role=student&name=${encodeURIComponent(name)}&userId=${userId}`)}>
             {languageText.joinNextClass} <ArrowRight className="h-4 w-4" />
           </Button>
         </div>

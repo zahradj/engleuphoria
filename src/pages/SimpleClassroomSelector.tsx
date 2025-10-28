@@ -10,11 +10,11 @@ const SimpleClassroomSelector = () => {
   const navigate = useNavigate();
 
   const joinAsTeacher = () => {
-    navigate("/classroom/demo-room?role=teacher&name=Ms. Johnson&userId=teacher-1");
+    navigate("/classroom?roomId=demo-room&role=teacher&name=Ms. Johnson&userId=teacher-1");
   };
 
   const joinAsStudent = () => {
-    navigate("/classroom/demo-room?role=student&name=Emma Thompson&userId=student-1");
+    navigate("/classroom?roomId=demo-room&role=student&name=Emma Thompson&userId=student-1");
   };
 
   return (

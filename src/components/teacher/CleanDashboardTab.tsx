@@ -103,7 +103,7 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
           {todayLessons.length > 0 && (
             <StartClassButton 
               nextClass={todayLessons[0]} 
-              onClick={() => navigate('/classroom?role=teacher&name=' + encodeURIComponent(teacherName) + '&userId=' + user?.id)}
+              onClick={() => navigate(`/classroom?roomId=${todayLessons[0].room_id || 'unified-classroom-1'}&role=teacher&name=${encodeURIComponent(teacherName)}&userId=${user?.id}`)}
             />
           )}
         </div>
