@@ -466,18 +466,15 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
     const past = isPastSlot(date, time);
     const blockColor = getTimeBlockColor(time);
 
-    // DEBUG: Log rendering for key time slots
-    if (time === '12:00' || time === '13:00' || time === '14:00') {
-      console.log('🎨 Rendering slot:', {
+    // DEBUG: Log ALL slot rendering to find the open slots
+    if (slot) {
+      console.log('✅ FOUND SLOT:', {
         dateKey,
         time,
-        foundSlot: !!slot,
-        slotDetails: slot ? {
-          isAvailable: slot.isAvailable,
-          isBooked: slot.isBooked,
-          isPast: slot.isPast,
-          duration: slot.duration
-        } : 'NO SLOT FOUND'
+        isAvailable: slot.isAvailable,
+        isBooked: slot.isBooked,
+        isPast: slot.isPast,
+        duration: slot.duration
       });
     }
 
@@ -513,14 +510,15 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
       return (
         <button
           onClick={() => handleSlotClick(dateKey, time)}
-          className="h-16 w-full rounded-md border-2 border-yellow-400 dark:border-yellow-600 bg-yellow-100 dark:bg-yellow-950/30 p-1.5 text-xs hover:bg-yellow-200 dark:hover:bg-yellow-950/40 transition-all shadow-sm group relative"
+          className="h-16 w-full rounded-md border-4 border-green-500 bg-green-200 dark:bg-green-600 p-1.5 text-xs hover:bg-green-300 dark:hover:bg-green-500 transition-all shadow-lg group relative animate-pulse"
         >
           <div className="flex items-center gap-1 mb-1">
-            <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
-            <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 border-yellow-500/50 bg-yellow-500/10 text-yellow-700">OPEN</Badge>
+            <div className="w-3 h-3 rounded-full bg-green-600 dark:bg-green-300 animate-ping absolute"></div>
+            <div className="w-3 h-3 rounded-full bg-green-600 dark:bg-green-300"></div>
+            <Badge className="text-[10px] px-2 py-0.5 h-5 bg-green-600 text-white font-bold">✓ OPEN</Badge>
           </div>
-          <div className="text-[10px] font-medium text-yellow-700 dark:text-yellow-300">{slot.duration} min</div>
-          <Trash2 className="h-3 w-3 absolute top-1 right-1 opacity-0 group-hover:opacity-100 text-destructive transition-opacity" />
+          <div className="text-[11px] font-bold text-green-900 dark:text-green-100">{slot.duration} min</div>
+          <Trash2 className="h-4 w-4 absolute top-1 right-1 opacity-0 group-hover:opacity-100 text-red-600 transition-opacity" />
         </button>
       );
     }
