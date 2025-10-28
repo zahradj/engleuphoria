@@ -6,6 +6,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { batchAvailabilityService } from "@/services/batchAvailabilityService";
 import { ChevronLeft, ChevronRight, Plus, Trash2, Check, Clock } from "lucide-react";
+import { SlotTypeSelector } from "./SlotTypeSelector";
+import { RecurringSlotPanel } from "./RecurringSlotPanel";
 import { TimeSlot, SelectedSlot, WeeklySlots } from "./types";
 import { 
   generateTimeSlots, 
@@ -41,6 +43,8 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
   const [duration, setDuration] = useState<30 | 60>(30);
   const [isLoading, setIsLoading] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [slotType, setSlotType] = useState<'one-time' | 'weekly-recurring'>('one-time');
+  const [numberOfWeeks, setNumberOfWeeks] = useState(4);
   const { toast } = useToast();
 
   const timeSlots = generateTimeSlots();
@@ -288,39 +292,80 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
     
     setIsLoading(true);
     try {
-      const dates = [...new Set(selectedSlots.map(s => {
-        const date = weekDates.find(d => formatDate(d) === s.dateKey);
-        return date;
-      }))].filter(Boolean) as Date[];
+      if (slotType === 'weekly-recurring') {
+        // Weekly recurring mode - create slots for multiple weeks
+        const dayTimeMap = new Map<number, string[]>();
+        
+        selectedSlots.forEach(slot => {
+          const date = weekDates.find(d => formatDate(d) === slot.dateKey);
+          if (date) {
+            const dayOfWeek = date.getDay();
+            if (!dayTimeMap.has(dayOfWeek)) {
+              dayTimeMap.set(dayOfWeek, []);
+            }
+            if (!dayTimeMap.get(dayOfWeek)!.includes(slot.time)) {
+              dayTimeMap.get(dayOfWeek)!.push(slot.time);
+            }
+          }
+        });
 
-      const times = [...new Set(selectedSlots.map(s => s.time))];
+        console.log('🔍 Creating recurring slots:', {
+          teacherId,
+          userId: user.id,
+          numberOfWeeks,
+          duration,
+          dayTimeMap: Array.from(dayTimeMap.entries())
+        });
 
-      console.log('🔍 Creating slots:', {
-        teacherId,
-        userId: user.id,
-        selectedSlotsCount: selectedSlots.length,
-        duration,
-        dates: dates.map(d => d.toISOString()),
-        times
-      });
+        await batchAvailabilityService.createRecurringWeeklySlots(
+          teacherId,
+          dayTimeMap,
+          weekDates[0],
+          numberOfWeeks,
+          duration
+        );
 
-      await batchAvailabilityService.createBatchSlots(
-        teacherId,
-        dates,
-        times,
-        duration
-      );
+        const totalSlotsCreated = selectedSlots.length * numberOfWeeks;
+        toast({
+          title: "✅ Recurring Slots Created",
+          description: `${totalSlotsCreated} slots created for ${numberOfWeeks} weeks`
+        });
+      } else {
+        // One-time mode - existing behavior
+        const dates = [...new Set(selectedSlots.map(s => {
+          const date = weekDates.find(d => formatDate(d) === s.dateKey);
+          return date;
+        }))].filter(Boolean) as Date[];
+
+        const times = [...new Set(selectedSlots.map(s => s.time))];
+
+        console.log('🔍 Creating one-time slots:', {
+          teacherId,
+          userId: user.id,
+          selectedSlotsCount: selectedSlots.length,
+          duration,
+          dates: dates.map(d => d.toISOString()),
+          times
+        });
+
+        await batchAvailabilityService.createBatchSlots(
+          teacherId,
+          dates,
+          times,
+          duration
+        );
+
+        toast({
+          title: "✅ Slots Created",
+          description: `${selectedSlots.length} slots created`
+        });
+      }
 
       console.log('✅ Slots created successfully in database');
 
       // Clear state BEFORE reloading
       setSelectedSlots([]);
       setShowConfirmDialog(false);
-
-      toast({
-        title: "✅ Slots Created",
-        description: `${selectedSlots.length} slots created. Refreshing calendar...`
-      });
 
       // Wait 150ms to ensure database commit
       await new Promise(resolve => setTimeout(resolve, 150));
@@ -426,6 +471,20 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
 
   return (
     <div className="space-y-4" onMouseUp={handleSlotMouseUp}>
+      {/* Slot Type Selector */}
+      <div className="flex justify-center">
+        <SlotTypeSelector slotType={slotType} onTypeChange={setSlotType} />
+      </div>
+
+      {/* Recurring Slot Panel */}
+      {slotType === 'weekly-recurring' && (
+        <RecurringSlotPanel
+          numberOfWeeks={numberOfWeeks}
+          onWeeksChange={setNumberOfWeeks}
+          selectedSlots={selectedSlots}
+        />
+      )}
+
       {/* Navigation & Controls */}
       <Card className="p-4 space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-4">

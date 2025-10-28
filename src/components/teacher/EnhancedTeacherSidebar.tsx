@@ -82,8 +82,8 @@ export const EnhancedTeacherSidebar = ({
   const { state } = useSidebar();
   const isCollapsed = state === "collapsed";
 
-  return <Sidebar className="border-r border-purple-200/50 bg-gradient-to-b from-purple-50 via-pink-50 to-blue-50 backdrop-blur-sm shadow-lg" collapsible="offcanvas">
-      <SidebarHeader className="border-b border-purple-200/50 bg-gradient-to-br from-purple-100/50 via-pink-100/50 to-blue-100/50">
+  return <Sidebar className="border-r border-teal-200/50 bg-gradient-to-b from-teal-50 via-emerald-50 to-cyan-50 backdrop-blur-sm shadow-lg" collapsible="offcanvas">
+      <SidebarHeader className="border-b border-teal-200/50 bg-gradient-to-br from-teal-100/50 via-emerald-100/50 to-cyan-100/50">
         <div className="flex items-center gap-3 px-4 py-4">
           <div className="relative">
             <Logo size="small" />
@@ -91,8 +91,8 @@ export const EnhancedTeacherSidebar = ({
           </div>
           {!isCollapsed && (
             <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-blue-600 bg-clip-text text-transparent">👨‍🏫 Teacher Panel</span>
-              <span className="truncate text-xs text-purple-600/70 font-medium">Professional Workspace ✨</span>
+              <span className="truncate font-bold bg-gradient-to-r from-teal-600 via-emerald-600 to-cyan-600 bg-clip-text text-transparent">👨‍🏫 Teacher Panel</span>
+              <span className="truncate text-xs text-teal-600/70 font-medium">Professional Workspace ✨</span>
             </div>
           )}
         </div>
@@ -100,7 +100,7 @@ export const EnhancedTeacherSidebar = ({
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-xs font-bold text-purple-600/80 uppercase tracking-wider px-4 py-3">
+          <SidebarGroupLabel className="text-xs font-bold text-teal-600/80 uppercase tracking-wider px-4 py-3">
             🎯 Navigation
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -115,12 +115,12 @@ export const EnhancedTeacherSidebar = ({
                       className={`
                         relative px-4 py-3 rounded-lg transition-all duration-200
                         ${isActive 
-                          ? 'bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 text-white font-semibold shadow-md hover:shadow-lg' 
-                          : 'text-purple-600 hover:bg-purple-100/50 hover:text-purple-700'
+                          ? 'bg-gradient-to-r from-teal-500 via-emerald-500 to-cyan-500 text-white font-semibold shadow-md hover:shadow-lg' 
+                          : 'text-teal-600 hover:bg-teal-100/50 hover:text-teal-700'
                         }
                       `}
                     >
-                      <item.icon className={`h-4 w-4 ${isActive ? 'text-white' : 'text-purple-500'}`} />
+                      <item.icon className={`h-4 w-4 ${isActive ? 'text-white' : 'text-teal-500'}`} />
                       {!isCollapsed && <span className="flex-1">{item.label}</span>}
                       {isActive && !isCollapsed && <span className="text-xs">✨</span>}
                     </SidebarMenuButton>
@@ -132,7 +132,7 @@ export const EnhancedTeacherSidebar = ({
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-purple-200/50 bg-gradient-to-t from-red-50/50 to-transparent">
+      <SidebarFooter className="border-t border-teal-200/50 bg-gradient-to-t from-red-50/50 to-transparent">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton 

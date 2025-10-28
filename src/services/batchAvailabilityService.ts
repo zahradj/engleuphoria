@@ -154,6 +154,43 @@ class BatchAvailabilityService {
   }
 
   /**
+   * Creates recurring weekly slots across multiple weeks
+   * @param teacherId - The teacher's ID
+   * @param dayTimeMap - Map of day of week (0-6) to array of times
+   * @param startDate - The start date for the recurring pattern
+   * @param numberOfWeeks - How many weeks to create slots for
+   * @param duration - Duration of each slot (30 or 60 minutes)
+   */
+  async createRecurringWeeklySlots(
+    teacherId: string,
+    dayTimeMap: Map<number, string[]>,
+    startDate: Date,
+    numberOfWeeks: number,
+    duration: number
+  ): Promise<void> {
+    const allDates: Date[] = [];
+    
+    // Generate dates for all weeks
+    for (let week = 0; week < numberOfWeeks; week++) {
+      for (const [dayOfWeek, times] of dayTimeMap.entries()) {
+        const date = new Date(startDate);
+        date.setDate(date.getDate() + (week * 7) + (dayOfWeek - startDate.getDay()));
+        
+        // Only add if the date is in the future or today
+        if (date >= new Date(new Date().setHours(0, 0, 0, 0))) {
+          allDates.push(date);
+        }
+      }
+    }
+
+    // Collect all unique times
+    const allTimes = Array.from(new Set(Array.from(dayTimeMap.values()).flat()));
+
+    // Use existing batch creation logic
+    await this.createBatchSlots(teacherId, allDates, allTimes, duration);
+  }
+
+  /**
    * Deletes multiple slots in batch
    */
   async deleteBatchSlots(slotIds: string[]): Promise<void> {

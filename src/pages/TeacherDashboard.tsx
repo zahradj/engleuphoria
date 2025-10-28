@@ -165,7 +165,7 @@ const TeacherDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-emerald-50 to-cyan-50">
       {/* Mobile Navigation */}
       <div className="md:hidden min-h-screen">
         <MobileTeacherNav 
