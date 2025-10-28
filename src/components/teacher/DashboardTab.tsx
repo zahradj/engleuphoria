@@ -125,9 +125,9 @@ export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
     const diffMinutes = (scheduledTime.getTime() - now.getTime()) / (1000 * 60);
     
     let status: "upcoming" | "ready" | "live" = "upcoming";
-    if (diffMinutes <= 15 && diffMinutes >= -lesson.duration) {
-      status = diffMinutes <= 0 ? "live" : "ready";
-    }
+        if (diffMinutes <= 10 && diffMinutes >= -lesson.duration) {
+          status = diffMinutes <= 0 ? "live" : "ready";
+        }
     
     return {
       id: lesson.id,

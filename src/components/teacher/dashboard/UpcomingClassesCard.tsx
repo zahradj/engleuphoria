@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, Play, Eye, Users, DollarSign } from "lucide-react";
+import { useClassStartTiming } from "@/hooks/useClassStartTiming";
 
 interface ClassInfo {
   id: string;
@@ -106,26 +107,11 @@ export const UpcomingClassesCard = ({ classes, onJoinClass, onStartClass }: Upco
                   </div>
                 </div>
                 
-                <div className="flex flex-col gap-2 ml-4">
-                  {cls.status === "ready" || cls.status === "live" ? (
-                    <Button 
-                      size="sm" 
-                      className={cls.status === "live" 
-                        ? "bg-destructive hover:bg-destructive/90 text-white" 
-                        : "bg-secondary hover:bg-secondary/90 text-white"
-                      }
-                      onClick={() => onStartClass(cls.id)}
-                    >
-                      <Play className="h-4 w-4 mr-2" />
-                      {cls.status === "live" ? "Join Live" : "Start"}
-                    </Button>
-                  ) : (
-                    <Button size="sm" variant="outline" className="hover:bg-primary hover:text-primary-foreground">
-                      <Eye className="h-4 w-4 mr-2" />
-                      View Details
-                    </Button>
-                  )}
-                </div>
+                <ClassActionButton 
+                  classItem={cls}
+                  onJoinClass={onJoinClass}
+                  onStartClass={onStartClass}
+                />
               </div>
             </div>
           ))
@@ -134,3 +120,61 @@ export const UpcomingClassesCard = ({ classes, onJoinClass, onStartClass }: Upco
     </Card>
   );
 };
+
+function ClassActionButton({ 
+  classItem, 
+  onJoinClass, 
+  onStartClass 
+}: { 
+  classItem: ClassInfo;
+  onJoinClass: () => void;
+  onStartClass: (classId: string) => void;
+}) {
+  const timing = useClassStartTiming(classItem.time, 55); // Assuming 55 min lessons
+
+  if (classItem.status === "live") {
+    return (
+      <Button
+        onClick={onJoinClass}
+        size="sm"
+        className="bg-destructive hover:bg-destructive/90 text-white"
+      >
+        <Play className="h-4 w-4 mr-2" />
+        Join Live
+      </Button>
+    );
+  }
+
+  if (classItem.status === "ready" && timing.canStart) {
+    return (
+      <Button
+        onClick={() => onStartClass(classItem.id)}
+        size="sm"
+        className="bg-secondary hover:bg-secondary/90 text-white"
+      >
+        <Play className="h-4 w-4 mr-2" />
+        Start Class
+      </Button>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <Button 
+        size="sm"
+        variant="outline"
+        disabled={!timing.canStart}
+        className="cursor-not-allowed disabled:opacity-50"
+        onClick={() => timing.canStart && onStartClass(classItem.id)}
+      >
+        <Clock className="h-4 w-4 mr-2" />
+        Start Class
+      </Button>
+      {!timing.canStart && timing.minutesUntil > 0 && (
+        <span className="text-xs text-muted-foreground whitespace-nowrap">
+          {timing.statusMessage}
+        </span>
+      )}
+    </div>
+  );
+}

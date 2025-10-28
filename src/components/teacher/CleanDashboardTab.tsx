@@ -17,6 +17,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { lessonService } from '@/services/lessonService';
 import { useNavigate } from 'react-router-dom';
+import { useClassStartTiming } from '@/hooks/useClassStartTiming';
 
 interface CleanDashboardTabProps {
   teacherName: string;
@@ -100,13 +101,10 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
             </p>
           </div>
           {todayLessons.length > 0 && (
-            <Button 
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            <StartClassButton 
+              nextClass={todayLessons[0]} 
               onClick={() => navigate('/classroom?role=teacher&name=' + encodeURIComponent(teacherName) + '&userId=' + user?.id)}
-            >
-              Start Class
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
+            />
           )}
         </div>
       </div>
@@ -184,14 +182,10 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
                           {upcomingLessons[0].duration} min
                         </Badge>
                       </div>
-                      <Button 
-                        size="sm" 
-                        className="bg-primary hover:bg-primary/90"
+                      <StartClassButton 
+                        nextClass={upcomingLessons[0]} 
                         onClick={() => navigate(`/classroom?roomId=${upcomingLessons[0].room_id}&role=teacher&name=${encodeURIComponent(teacherName)}&userId=${user?.id}`)}
-                      >
-                        Start Class
-                        <ArrowRight className="ml-1 h-3 w-3" />
-                      </Button>
+                      />
                     </div>
                   </div>
 
@@ -334,3 +328,31 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
     </div>
   );
 };
+
+function StartClassButton({ nextClass, onClick }: { nextClass: any, onClick: () => void }) {
+  const timing = useClassStartTiming(
+    nextClass?.scheduled_at || new Date().toISOString(), 
+    nextClass?.duration || 55
+  );
+
+  if (!nextClass) return null;
+
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <Button
+        onClick={onClick}
+        disabled={!timing.canStart}
+        className="bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        Start Class
+        <ArrowRight className="ml-2 h-4 w-4" />
+      </Button>
+      {!timing.canStart && timing.minutesUntil > 0 && (
+        <span className="text-xs text-muted-foreground flex items-center gap-1">
+          <Clock className="h-3 w-3" />
+          {timing.statusMessage}
+        </span>
+      )}
+    </div>
+  );
+}
