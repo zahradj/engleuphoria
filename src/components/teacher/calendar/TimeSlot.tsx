@@ -23,27 +23,27 @@ interface TimeSlotProps {
 
 export const TimeSlot = ({ time, date, slot, selectedDuration, onSlotClick }: TimeSlotProps) => {
   const getSlotClassName = () => {
-    const baseClasses = "h-6 border border-border hover:bg-accent/50 cursor-pointer transition-all duration-200 rounded-sm relative overflow-hidden";
+    const baseClasses = "h-7 border-2 hover:scale-105 cursor-pointer transition-all duration-300 rounded-xl relative overflow-hidden shadow-sm";
     
     if (!slot || !slot.isAvailable) {
-      return `${baseClasses} bg-background`;
+      return `${baseClasses} bg-gradient-to-br from-background to-muted/20 border-border/30 hover:from-muted/30 hover:to-muted/40`;
     }
     
     if (slot.studentId) {
-      return `${baseClasses} bg-destructive/10 border-destructive/20 text-destructive hover:bg-destructive/20`;
+      return `${baseClasses} bg-gradient-to-br from-destructive/15 to-red-600/25 border-destructive/40 text-destructive shadow-lg shadow-destructive/20 hover:shadow-xl`;
     }
     
     if (slot.lessonType === 'direct_booking') {
-      return `${baseClasses} bg-warning/10 border-warning/20 text-warning hover:bg-warning/20`;
+      return `${baseClasses} bg-gradient-to-br from-warning/15 to-orange-600/25 border-warning/40 text-warning shadow-lg shadow-warning/20 hover:shadow-xl`;
     }
     
-    return `${baseClasses} bg-success/10 border-success/20 text-success hover:bg-success/20`;
+    return `${baseClasses} bg-gradient-to-br from-success/15 to-emerald-600/25 border-success/40 text-success shadow-lg shadow-success/20 hover:shadow-xl`;
   };
 
   const renderSlotContent = () => {
     if (!slot || !slot.isAvailable) {
       return (
-        <div className="flex items-center justify-center h-full opacity-40">
+        <div className="flex items-center justify-center h-full opacity-30 group-hover:opacity-60 transition-opacity">
           <Plus className="h-3 w-3" />
         </div>
       );
@@ -52,11 +52,11 @@ export const TimeSlot = ({ time, date, slot, selectedDuration, onSlotClick }: Ti
     if (slot.studentId && slot.studentName) {
       return (
         <div className="px-2 py-1 text-xs h-full flex flex-col justify-center">
-          <div className="font-semibold truncate">
+          <div className="font-bold truncate drop-shadow-sm">
             {slot.lessonCode || `#${slot.id?.slice(-6).toUpperCase()}`}
           </div>
-          <div className="text-xs opacity-80 truncate">{slot.studentName}</div>
-          <div className="absolute top-1 right-1 text-xs opacity-60">
+          <div className="text-xs opacity-90 truncate">{slot.studentName}</div>
+          <div className="absolute top-1 right-1 text-xs opacity-70 font-semibold">
             {slot.duration}m
           </div>
         </div>
@@ -65,8 +65,8 @@ export const TimeSlot = ({ time, date, slot, selectedDuration, onSlotClick }: Ti
 
     return (
       <div className="flex items-center justify-center h-full relative">
-        <Plus className="h-3 w-3 opacity-60" />
-        <div className="absolute top-1 right-1 text-xs opacity-60">
+        <Plus className="h-3 w-3 opacity-50 drop-shadow-sm" />
+        <div className="absolute top-1 right-1 text-xs opacity-70 font-semibold">
           {slot.duration}m
         </div>
       </div>
@@ -82,7 +82,7 @@ export const TimeSlot = ({ time, date, slot, selectedDuration, onSlotClick }: Ti
 
   return (
     <div
-      className={getSlotClassName()}
+      className={`${getSlotClassName()} group`}
       onClick={(e) => onSlotClick(time, date, e)}
       title={
         slot?.isAvailable 
@@ -91,6 +91,7 @@ export const TimeSlot = ({ time, date, slot, selectedDuration, onSlotClick }: Ti
       }
     >
       {renderSlotContent()}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
     </div>
   );
 };

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, ChevronRight, Calendar, Check, Plus, Sunrise, Sun, Moon, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Check, Plus, Sunrise, Sun, Moon, Trash2, MousePointer } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { format, addDays, startOfWeek, isSameDay, isPast, parseISO } from "date-fns";
 import { batchAvailabilityService } from "@/services/batchAvailabilityService";
@@ -258,35 +258,38 @@ export const SimplifiedMultiSelectCalendar: React.FC<SimplifiedMultiSelectCalend
     const isPastSlot = isPast(date) && !isSameDay(date, new Date());
     const state = getSlotState(date, time);
 
-    let bgColor = "bg-background hover:bg-muted/50";
-    let borderColor = "border-border";
-    let content = <Plus className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100" />;
+    let bgColor = "bg-gradient-to-br from-background to-muted/30 hover:from-muted/50 hover:to-muted/70";
+    let borderColor = "border-border/50";
+    let content = <Plus className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />;
     let cursor = "cursor-pointer";
+    let shadow = "";
 
     if (isPastSlot) {
-      bgColor = "bg-muted/30";
-      borderColor = "border-muted";
+      bgColor = "bg-muted/20";
+      borderColor = "border-muted/30";
       content = null;
       cursor = "cursor-not-allowed";
     } else if (state === 'booked') {
-      bgColor = "bg-blue-500/20";
-      borderColor = "border-blue-500";
+      bgColor = "bg-gradient-to-br from-blue-500/20 to-blue-600/30";
+      borderColor = "border-blue-500/50";
+      shadow = "shadow-lg shadow-blue-500/20";
       content = (
-        <div className="text-xs font-medium text-blue-700 dark:text-blue-300">
+        <div className="text-xs font-bold text-blue-700 dark:text-blue-300 tracking-wide">
           BOOKED
         </div>
       );
       cursor = "cursor-default";
     } else if (state === 'available') {
-      bgColor = "bg-green-500/20";
-      borderColor = "border-green-500";
+      bgColor = "bg-gradient-to-br from-green-500/20 to-emerald-600/30";
+      borderColor = "border-green-500/50";
+      shadow = "shadow-lg shadow-green-500/20";
       content = (
         <div className="flex items-center justify-between w-full gap-1">
-          <span className="text-xs font-medium text-green-700 dark:text-green-300">OPEN</span>
+          <span className="text-xs font-bold text-green-700 dark:text-green-300 tracking-wide">OPEN</span>
           <Button
             variant="ghost"
             size="icon"
-            className="h-5 w-5 hover:bg-destructive/20"
+            className="h-5 w-5 hover:bg-destructive/20 hover:scale-110 transition-transform"
             onClick={(e) => {
               e.stopPropagation();
               deleteSlot(slot!.id);
@@ -298,18 +301,19 @@ export const SimplifiedMultiSelectCalendar: React.FC<SimplifiedMultiSelectCalend
       );
       cursor = "cursor-default";
     } else if (isSelected && isMultiSelectMode) {
-      bgColor = "bg-primary/20";
+      bgColor = "bg-gradient-to-br from-primary/30 to-primary/40";
       borderColor = "border-primary";
-      content = <Check className="w-4 h-4 text-primary" />;
+      shadow = "shadow-lg shadow-primary/30";
+      content = <Check className="w-4 h-4 text-primary drop-shadow-sm" />;
     }
 
     return (
       <div
         key={`${dateStr}-${time}`}
         className={`
-          group relative h-12 border-2 rounded-md flex items-center justify-center
-          transition-all duration-150 select-none
-          ${bgColor} ${borderColor} ${cursor}
+          group relative h-14 border-2 rounded-xl flex items-center justify-center
+          transition-all duration-200 select-none hover:scale-[1.02]
+          ${bgColor} ${borderColor} ${cursor} ${shadow}
         `}
         onMouseDown={(e) => handleMouseDown(date, time, e)}
         onMouseEnter={() => handleMouseEnter(date, time)}
@@ -328,118 +332,185 @@ export const SimplifiedMultiSelectCalendar: React.FC<SimplifiedMultiSelectCalend
   return (
     <div className="space-y-6" onMouseUp={handleMouseUp}>
       {/* Control Bar */}
-      <Card className="p-4 space-y-4">
-        {/* Navigation */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={() => setWeekStart(addDays(weekStart, -7))}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" onClick={() => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}>
-              <Calendar className="h-4 w-4 mr-2" />
-              Today
-            </Button>
-            <Button variant="outline" size="icon" onClick={() => setWeekStart(addDays(weekStart, 7))}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-            <span className="text-sm font-medium ml-2">
-              {format(weekStart, 'MMM d')} - {format(addDays(weekStart, 6), 'MMM d, yyyy')}
-            </span>
+      <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-primary/5 via-background to-primary/5 shadow-xl">
+        <div className="absolute inset-0 bg-grid-white/5 [mask-image:linear-gradient(0deg,white,transparent)]" />
+        <div className="relative p-6 space-y-6">
+          {/* Navigation */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="outline" 
+                size="icon" 
+                onClick={() => setWeekStart(addDays(weekStart, -7))}
+                className="hover:scale-105 transition-transform shadow-sm"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}
+                className="hover:scale-105 transition-transform shadow-sm"
+              >
+                <Calendar className="h-4 w-4 mr-2" />
+                Today
+              </Button>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                onClick={() => setWeekStart(addDays(weekStart, 7))}
+                className="hover:scale-105 transition-transform shadow-sm"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              <span className="text-base font-semibold ml-2 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                {format(weekStart, 'MMM d')} - {format(addDays(weekStart, 6), 'MMM d, yyyy')}
+              </span>
+            </div>
           </div>
-        </div>
 
-        {/* Duration & Multi-Select */}
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">Duration:</span>
+          {/* Duration & Multi-Select */}
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-semibold text-muted-foreground">Duration:</span>
+              <div className="flex gap-2">
+                <Button
+                  variant={selectedDuration === 30 ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedDuration(30)}
+                  className={`transition-all ${selectedDuration === 30 ? 'shadow-lg shadow-primary/30' : 'hover:scale-105'}`}
+                >
+                  30 min
+                </Button>
+                <Button
+                  variant={selectedDuration === 60 ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedDuration(60)}
+                  className={`transition-all ${selectedDuration === 60 ? 'shadow-lg shadow-primary/30' : 'hover:scale-105'}`}
+                >
+                  60 min
+                </Button>
+              </div>
+            </div>
+
             <Button
-              variant={selectedDuration === 30 ? "default" : "outline"}
+              variant={isMultiSelectMode ? "default" : "outline"}
               size="sm"
-              onClick={() => setSelectedDuration(30)}
+              onClick={() => {
+                setIsMultiSelectMode(!isMultiSelectMode);
+                if (isMultiSelectMode) setSelectedSlots([]);
+              }}
+              className={`transition-all ${isMultiSelectMode ? 'shadow-lg shadow-primary/30' : 'hover:scale-105'}`}
             >
-              30 min
+              Multi-Select: {isMultiSelectMode ? "ON" : "OFF"}
             </Button>
+          </div>
+
+          {isMultiSelectMode && (
+            <div className="space-y-3">
+              <div className="p-4 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 rounded-xl border border-primary/20 shadow-sm">
+                <div className="flex items-center gap-2 text-sm font-medium text-primary">
+                  <MousePointer className="h-4 w-4" />
+                  <span>Click to select a slot, click again to unselect. Then use actions below.</span>
+                </div>
+              </div>
+              {selectedSlots.length > 0 && (
+                <div className="flex items-center justify-between p-3 bg-primary/5 rounded-lg border border-primary/10">
+                  <span className="text-sm font-semibold text-primary">
+                    {selectedSlots.length} slot{selectedSlots.length>1?'s':''} selected
+                  </span>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setSelectedSlots([])}
+                    className="hover:scale-105 transition-transform"
+                  >
+                    Clear selection
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Quick Actions */}
+          {isMultiSelectMode && (
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-sm font-semibold text-muted-foreground">Quick Select:</span>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => selectTimeRange(9, 12)}
+                className="hover:scale-105 transition-transform shadow-sm"
+              >
+                <Sunrise className="h-4 w-4 mr-2" />
+                Morning (9-12)
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => selectTimeRange(13, 17)}
+                className="hover:scale-105 transition-transform shadow-sm"
+              >
+                <Sun className="h-4 w-4 mr-2" />
+                Afternoon (13-17)
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => selectTimeRange(18, 21)}
+                className="hover:scale-105 transition-transform shadow-sm"
+              >
+                <Moon className="h-4 w-4 mr-2" />
+                Evening (18-21)
+              </Button>
+            </div>
+          )}
+
+          {/* Create Button */}
+          {selectedSlots.length > 0 && (
             <Button
-              variant={selectedDuration === 60 ? "default" : "outline"}
-              size="sm"
-              onClick={() => setSelectedDuration(60)}
+              className="w-full shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all hover:scale-[1.02]"
+              size="lg"
+              onClick={() => setShowConfirmDialog(true)}
+              disabled={isLoading}
             >
-              60 min
+              <Check className="h-5 w-5 mr-2" />
+              Create {selectedSlots.length} Selected Slot{selectedSlots.length > 1 ? 's' : ''}
             </Button>
-          </div>
-
-          <Button
-            variant={isMultiSelectMode ? "default" : "outline"}
-            size="sm"
-            onClick={() => {
-              setIsMultiSelectMode(!isMultiSelectMode);
-              if (isMultiSelectMode) setSelectedSlots([]);
-            }}
-          >
-            Multi-Select: {isMultiSelectMode ? "ON" : "OFF"}
-          </Button>
+          )}
         </div>
-
-        {/* Quick Actions */}
-        {isMultiSelectMode && (
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-medium">Quick Select:</span>
-            <Button variant="outline" size="sm" onClick={() => selectTimeRange(9, 12)}>
-              <Sunrise className="h-4 w-4 mr-1" />
-              Morning (9-12)
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => selectTimeRange(13, 17)}>
-              <Sun className="h-4 w-4 mr-1" />
-              Afternoon (13-17)
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => selectTimeRange(18, 21)}>
-              <Moon className="h-4 w-4 mr-1" />
-              Evening (18-21)
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setSelectedSlots([])}>
-              Clear Selection
-            </Button>
-          </div>
-        )}
-
-        {/* Create Button */}
-        {selectedSlots.length > 0 && (
-          <Button
-            className="w-full"
-            size="lg"
-            onClick={() => setShowConfirmDialog(true)}
-            disabled={isLoading}
-          >
-            <Check className="h-5 w-5 mr-2" />
-            Create {selectedSlots.length} Selected Slot{selectedSlots.length > 1 ? 's' : ''}
-          </Button>
-        )}
       </Card>
 
       {/* Calendar Grid */}
-      <Card className="p-4 overflow-x-auto">
-        <div className="min-w-[800px]">
-          {/* Header */}
-          <div className="grid grid-cols-8 gap-2 mb-2">
-            <div className="text-xs font-medium text-muted-foreground">Time</div>
-            {weekDays.map((day) => (
-              <div key={day.toISOString()} className="text-center">
-                <div className="text-xs font-medium">{format(day, 'EEE')}</div>
-                <div className={`text-sm ${isSameDay(day, new Date()) ? 'text-primary font-bold' : ''}`}>
-                  {format(day, 'd')}
+      <Card className="relative overflow-hidden border-0 shadow-2xl">
+        <div className="absolute inset-0 bg-gradient-to-br from-background via-primary/5 to-background" />
+        <div className="relative p-6 overflow-x-auto">
+          <div className="min-w-[800px]">
+            {/* Header */}
+            <div className="grid grid-cols-8 gap-3 mb-4">
+              <div className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Time</div>
+              {weekDays.map((day) => (
+                <div key={day.toISOString()} className="text-center">
+                  <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{format(day, 'EEE')}</div>
+                  <div className={`text-lg font-bold mt-1 ${
+                    isSameDay(day, new Date()) 
+                      ? 'text-primary drop-shadow-sm' 
+                      : 'text-foreground'
+                  }`}>
+                    {format(day, 'd')}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
 
-          {/* Time Slots */}
-          <div className="space-y-1">
-            {TIME_SLOTS.map((time) => (
-              <div key={time} className="grid grid-cols-8 gap-2">
-                <div className="text-xs text-muted-foreground py-2">{time}</div>
-                {weekDays.map((day) => renderSlot(day, time))}
-              </div>
-            ))}
+            {/* Time Slots */}
+            <div className="space-y-2">
+              {TIME_SLOTS.map((time) => (
+                <div key={time} className="grid grid-cols-8 gap-3">
+                  <div className="text-xs font-semibold text-muted-foreground py-3 flex items-center">{time}</div>
+                  {weekDays.map((day) => renderSlot(day, time))}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </Card>

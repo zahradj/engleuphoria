@@ -9,6 +9,7 @@ import { CalendarHeader } from "./CalendarHeader";
 import { CalendarLegend } from "./CalendarLegend";
 import { BulkAvailabilityActions } from "./BulkAvailabilityActions";
 import { CheckSquare, Square, MousePointer } from "lucide-react";
+import { isSameDay } from "date-fns";
 
 interface ScheduleSlot {
   id?: string;
@@ -329,27 +330,28 @@ export const MultiSelectWeeklyGrid = ({ teacherId }: MultiSelectWeeklyGridProps)
     const isSelected = selectedSlots.includes(slotKey);
     
     if (isSelected && isMultiSelectMode) {
-      return "bg-primary text-primary-foreground border-primary";
+      return "bg-gradient-to-br from-primary/30 to-primary/40 border-primary shadow-lg shadow-primary/30";
     }
     
     if (slot?.isAvailable) {
       return slot.duration === 60 
-        ? "bg-success text-success-foreground border-success"
-        : "bg-success/80 text-success-foreground border-success/80";
+        ? "bg-gradient-to-br from-success/20 to-emerald-600/30 border-success shadow-lg shadow-success/20"
+        : "bg-gradient-to-br from-success/15 to-emerald-500/25 border-success/80 shadow-md shadow-success/15";
     }
     
     if (slot?.studentId) {
-      return "bg-warning text-warning-foreground border-warning";
+      return "bg-gradient-to-br from-warning/20 to-orange-600/30 border-warning shadow-lg shadow-warning/20";
     }
     
-    return "bg-muted hover:bg-muted/80 border-border";
+    return "bg-gradient-to-br from-background to-muted/30 border-border/50 hover:from-muted/50 hover:to-muted/70";
   };
 
   return (
     <div className="space-y-6">
-      <Card className="w-full">
-        <CardContent className="p-6">
-          <div className="mb-4 flex items-center justify-between">
+      <Card className="w-full relative overflow-hidden border-0 bg-gradient-to-br from-primary/5 via-background to-primary/5 shadow-xl">
+        <div className="absolute inset-0 bg-grid-white/5 [mask-image:linear-gradient(0deg,white,transparent)]" />
+        <CardContent className="relative p-6">
+          <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
               <CalendarHeader
                 weekDays={weekDays}
@@ -361,7 +363,7 @@ export const MultiSelectWeeklyGrid = ({ teacherId }: MultiSelectWeeklyGridProps)
             <Toggle
               pressed={isMultiSelectMode}
               onPressedChange={setIsMultiSelectMode}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 transition-all hover:scale-105 data-[state=on]:shadow-lg data-[state=on]:shadow-primary/30"
             >
               {isMultiSelectMode ? (
                 <>
@@ -378,17 +380,24 @@ export const MultiSelectWeeklyGrid = ({ teacherId }: MultiSelectWeeklyGridProps)
           </div>
 
           {isMultiSelectMode && (
-            <div className="mb-4 space-y-2">
-              <div className="p-3 bg-primary/10 rounded-lg border border-primary/20">
-                <div className="flex items-center gap-2 text-sm text-primary">
+            <div className="mb-6 space-y-3">
+              <div className="p-4 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 rounded-xl border border-primary/20 shadow-sm">
+                <div className="flex items-center gap-2 text-sm font-medium text-primary">
                   <MousePointer className="h-4 w-4" />
                   <span>Click to select a slot, click again to unselect. Then use actions below.</span>
                 </div>
               </div>
               {selectedSlots.length > 0 && (
-                <div className="flex items-center justify-between text-sm">
-                  <span>{selectedSlots.length} slot{selectedSlots.length>1?'s':''} selected</span>
-                  <Button variant="outline" size="sm" onClick={() => setSelectedSlots([])}>
+                <div className="flex items-center justify-between p-3 bg-primary/5 rounded-lg border border-primary/10">
+                  <span className="text-sm font-semibold text-primary">
+                    {selectedSlots.length} slot{selectedSlots.length>1?'s':''} selected
+                  </span>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setSelectedSlots([])}
+                    className="hover:scale-105 transition-transform"
+                  >
                     Clear selection
                   </Button>
                 </div>
@@ -397,13 +406,17 @@ export const MultiSelectWeeklyGrid = ({ teacherId }: MultiSelectWeeklyGridProps)
           )}
           
           {/* Week Grid */}
-          <div className="grid grid-cols-8 gap-1 mb-6">
+          <div className="grid grid-cols-8 gap-2 mb-6 p-4 bg-gradient-to-br from-background to-muted/20 rounded-xl">
             {/* Header row */}
-            <div className="p-2 text-center font-medium text-sm">Time</div>
+            <div className="p-2 text-center font-bold text-xs text-muted-foreground uppercase tracking-wide">Time</div>
             {weekDays.map((day) => (
-              <div key={day.toISOString()} className="p-2 text-center font-medium text-sm">
-                <div>{day.toLocaleDateString('en-US', { weekday: 'short' })}</div>
-                <div className="text-xs text-muted-foreground">
+              <div key={day.toISOString()} className="p-2 text-center">
+                <div className="font-semibold text-xs uppercase tracking-wide text-muted-foreground">{day.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                <div className={`text-lg font-bold mt-1 ${
+                  isSameDay(day, new Date()) 
+                    ? 'text-primary drop-shadow-sm' 
+                    : 'text-foreground'
+                }`}>
                   {day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                 </div>
               </div>
@@ -412,7 +425,7 @@ export const MultiSelectWeeklyGrid = ({ teacherId }: MultiSelectWeeklyGridProps)
             {/* Time slots */}
             {timeSlots.map((time) => (
               <React.Fragment key={time}>
-                <div className="p-2 text-xs text-center text-muted-foreground font-medium">
+                <div className="p-2 text-xs text-center text-muted-foreground font-semibold">
                   {time}
                 </div>
                 {weekDays.map((day) => {
@@ -424,7 +437,7 @@ export const MultiSelectWeeklyGrid = ({ teacherId }: MultiSelectWeeklyGridProps)
                       key={`${day.toISOString()}-${time}`}
                       onClick={(e) => handleTimeSlotClick(time, day, e)}
                       className={`
-                        p-1 text-xs border rounded-md transition-all duration-200 hover:scale-105
+                        p-2 text-xs border-2 rounded-xl transition-all duration-200 hover:scale-105
                         ${getSlotStyle(time, day)}
                         ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                       `}
@@ -432,19 +445,19 @@ export const MultiSelectWeeklyGrid = ({ teacherId }: MultiSelectWeeklyGridProps)
                     >
                       {slot?.isAvailable ? (
                         <div className="space-y-1">
-                          <div className="font-medium">{slot.duration}min</div>
+                          <div className="font-bold tracking-wide">{slot.duration}min</div>
                           {slot.lessonCode && (
                             <div className="text-xs opacity-80">{slot.lessonCode}</div>
                           )}
                         </div>
                       ) : slot?.studentId ? (
                         <div className="space-y-1">
-                          <div className="font-medium">Booked</div>
+                          <div className="font-bold tracking-wide">Booked</div>
                           <div className="text-xs opacity-80">{slot.duration}min</div>
                         </div>
                       ) : (
-                        <div className="h-8 flex items-center justify-center">
-                          <div className="w-2 h-2 bg-current opacity-30 rounded-full"></div>
+                        <div className="h-10 flex items-center justify-center">
+                          <div className="w-2 h-2 bg-current opacity-20 rounded-full group-hover:opacity-40 transition-opacity"></div>
                         </div>
                       )}
                     </button>
