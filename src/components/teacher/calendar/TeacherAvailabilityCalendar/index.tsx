@@ -57,6 +57,11 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
   }, [weekDates, teacherId]);
 
   const loadWeeklyData = async () => {
+    console.log('🔄 Loading weekly data...', {
+      dateRange: `${weekDates[0]?.toISOString()} to ${weekDates[6]?.toISOString()}`,
+      teacherId
+    });
+    
     setIsLoading(true);
     try {
       const startDate = weekDates[0];
@@ -72,6 +77,12 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
         .order('start_time', { ascending: true });
 
       if (error) throw error;
+
+      console.log('📊 Fetched slots from database:', {
+        totalSlots: data?.length || 0,
+        availableSlots: data?.filter(s => s.is_available && !s.is_booked).length || 0,
+        bookedSlots: data?.filter(s => s.is_booked).length || 0
+      });
 
       const slotsMap: WeeklySlots = {};
       
@@ -102,9 +113,18 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
         }
       });
 
+      console.log('✅ Slots map constructed:', {
+        totalDays: Object.keys(slotsMap).length,
+        slotsPerDay: Object.entries(slotsMap).map(([date, slots]) => ({
+          date,
+          count: slots.length,
+          available: slots.filter(s => s.isAvailable).length
+        }))
+      });
+
       setWeeklySlots(slotsMap);
     } catch (error) {
-      console.error('Error loading weekly data:', error);
+      console.error('❌ Error loading weekly data:', error);
       toast({
         title: "Error",
         description: "Failed to load availability data",
@@ -291,16 +311,31 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
         duration
       );
 
-      console.log('✅ Slots created successfully');
+      console.log('✅ Slots created successfully in database');
 
-      toast({
-        title: "✅ Success!",
-        description: `Created ${selectedSlots.length} slots of ${duration} minutes`
-      });
-
+      // Clear state BEFORE reloading
       setSelectedSlots([]);
       setShowConfirmDialog(false);
-      loadWeeklyData();
+
+      toast({
+        title: "✅ Slots Created",
+        description: `${selectedSlots.length} slots created. Refreshing calendar...`
+      });
+
+      // Wait 150ms to ensure database commit
+      await new Promise(resolve => setTimeout(resolve, 150));
+
+      console.log('🔄 Reloading calendar data...');
+      
+      // Reload the calendar
+      await loadWeeklyData();
+
+      console.log('✨ Calendar refresh complete');
+
+      toast({
+        title: "Calendar Updated",
+        description: "Your availability is now visible"
+      });
     } catch (error: any) {
       console.error('❌ Error creating slots:', error);
       console.error('Error details:', {
