@@ -82,13 +82,15 @@ export const lessonPricingService = {
     });
     
     // Validate duration
-    if (durationNum !== 30 && durationNum !== 60) {
+    const allowedDurations = [25, 55];
+    if (!allowedDurations.includes(durationNum)) {
       console.error('❌ Invalid duration received:', { 
         duration, 
         type: typeof duration, 
-        coerced: durationNum 
+        coerced: durationNum,
+        allowed: allowedDurations
       });
-      throw new Error('Invalid lesson duration. Must be 30 or 60 minutes.');
+      throw new Error('Invalid lesson duration. Must be 25 or 55 minutes.');
     }
 
     const pricing = this.calculateLessonPrice();
