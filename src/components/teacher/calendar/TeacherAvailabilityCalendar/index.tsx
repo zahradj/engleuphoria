@@ -79,10 +79,8 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
           *,
           student:users!teacher_availability_student_id_fkey(
             id,
-            full_name
-          ),
-          student_profile:student_profiles!student_profiles_user_id_fkey(
-            cefr_level
+            full_name,
+            student_profiles(cefr_level)
           )
         `)
         .eq('teacher_id', teacherId)
@@ -90,7 +88,15 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
         .lte('start_time', endDate.toISOString())
         .order('start_time', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error loading calendar data:', error);
+        toast({
+          title: "Error Loading Calendar",
+          description: error.message || "Failed to load availability slots",
+          variant: "destructive"
+        });
+        throw error;
+      }
 
       console.log('📊 Fetched slots from database:', {
         totalSlots: data?.length || 0,
@@ -123,7 +129,7 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
             duration: slot.duration,
             studentName: (slot.student as any)?.full_name || slot.student_name,
             studentId: slot.student_id,
-            studentLevel: (slot.student_profile as any)?.cefr_level,
+            studentLevel: (slot.student as any)?.student_profiles?.[0]?.cefr_level,
             lessonTitle: slot.lesson_title
           });
         }
