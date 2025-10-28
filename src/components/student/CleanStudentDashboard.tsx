@@ -15,8 +15,16 @@ import {
   Target,
   TrendingUp,
   ArrowRight,
-  CheckCircle
+  CheckCircle,
+  XCircle,
+  RefreshCw
 } from 'lucide-react';
+import { CurrentLessonCard } from './CurrentLessonCard';
+import { LessonManagementModal } from './LessonManagementModal';
+import { PlacementTestFlow } from '@/components/onboarding/PlacementTestFlow';
+import { useLessonProgress } from '@/hooks/useLessonProgress';
+import { useCancelReschedule } from '@/hooks/useCancelReschedule';
+import { useNavigate } from 'react-router-dom';
 
 interface CleanStudentDashboardProps {
   studentName: string;
@@ -25,7 +33,8 @@ interface CleanStudentDashboardProps {
 
 export const CleanStudentDashboard = ({ studentName, studentProfile }: CleanStudentDashboardProps) => {
   const { user } = useAuth();
-  const currentLevel = studentProfile?.current_level || 'A1';
+  const navigate = useNavigate();
+  const currentLevel = studentProfile?.cefr_level || studentProfile?.current_level || 'A1';
   const progressPercentage = studentProfile?.progress_percentage || 45;
   const streakDays = studentProfile?.streak_days || 7;
   const totalPoints = studentProfile?.points || 1250;
@@ -34,13 +43,34 @@ export const CleanStudentDashboard = ({ studentName, studentProfile }: CleanStud
   const [assignments, setAssignments] = useState<any[]>([]);
   const [learningModules, setLearningModules] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showPlacementTest, setShowPlacementTest] = useState(false);
+  const [managementModal, setManagementModal] = useState<{
+    open: boolean;
+    mode: 'cancel' | 'reschedule';
+    lesson: any;
+  } | null>(null);
+
+  // Use lesson progress hook
+  const lessonProgress = useLessonProgress();
+  const { canCancel, canReschedule } = useCancelReschedule();
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       if (!user) return;
 
       try {
-        // Fetch upcoming lessons
+        // Check if placement test is needed
+        const { data: profile } = await supabase
+          .from('student_profiles')
+          .select('placement_test_completed_at')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (!profile?.placement_test_completed_at) {
+          setShowPlacementTest(true);
+        }
+
+        // Fetch upcoming lessons with enhanced data
         const { data: lessons } = await supabase
           .from('lessons')
           .select(`
@@ -50,6 +80,9 @@ export const CleanStudentDashboard = ({ studentName, studentProfile }: CleanStud
             duration,
             room_link,
             room_id,
+            lesson_price,
+            curriculum_lesson_id,
+            lesson_objectives,
             teacher:users!lessons_teacher_id_fkey(full_name)
           `)
           .eq('student_id', user.id)
@@ -60,11 +93,13 @@ export const CleanStudentDashboard = ({ studentName, studentProfile }: CleanStud
 
         if (lessons) {
           setUpcomingClasses(lessons.map(lesson => ({
-            title: lesson.title,
+            ...lesson,
             teacher: (lesson.teacher as any)?.full_name || 'Teacher',
             time: new Date(lesson.scheduled_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
             duration: `${lesson.duration} min`,
-            type: 'Live Class'
+            type: 'Live Class',
+            canCancel: canCancel(lesson.scheduled_at),
+            canReschedule: canReschedule(lesson.scheduled_at)
           })));
         }
 
@@ -117,7 +152,7 @@ export const CleanStudentDashboard = ({ studentName, studentProfile }: CleanStud
     };
 
     fetchDashboardData();
-  }, [user, currentLevel]);
+  }, [user, currentLevel, canCancel, canReschedule]);
 
   // Default fallback data if nothing is loaded yet
   const defaultData = {
@@ -152,6 +187,39 @@ export const CleanStudentDashboard = ({ studentName, studentProfile }: CleanStud
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
+      {/* Placement Test Modal */}
+      <PlacementTestFlow 
+        open={showPlacementTest}
+        onClose={() => setShowPlacementTest(false)}
+        studentName={studentName}
+      />
+
+      {/* Lesson Management Modal */}
+      {managementModal && (
+        <LessonManagementModal
+          open={managementModal.open}
+          onClose={() => setManagementModal(null)}
+          mode={managementModal.mode}
+          lesson={managementModal.lesson}
+          onSuccess={() => {
+            setManagementModal(null);
+            window.location.reload(); // Refresh dashboard
+          }}
+        />
+      )}
+
+      {/* Current Lesson Card */}
+      <CurrentLessonCard 
+        lesson={lessonProgress.currentLesson}
+        progress={{
+          currentWeek: learningModules[0]?.current_week || 1,
+          currentLesson: learningModules[0]?.current_lesson || 1,
+          totalLessons: 30,
+          completionPercentage: progressPercentage
+        }}
+        loading={lessonProgress.loading}
+      />
+
       {/* Welcome Section - Clean & Minimal */}
       <div className="relative overflow-hidden bg-gradient-to-br from-sky-blue via-lavender to-mint-green rounded-2xl p-8 border border-border-light shadow-card">
         <div className="relative flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
@@ -267,7 +335,7 @@ export const CleanStudentDashboard = ({ studentName, studentProfile }: CleanStud
                   <div className="w-12 h-12 bg-lavender rounded-xl flex items-center justify-center flex-shrink-0">
                     <Users className="h-6 w-6 text-lavender-dark" />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <h4 className="font-semibold text-text text-base">{class_.title}</h4>
                     <p className="text-sm text-text-muted">with {class_.teacher}</p>
                     <div className="flex items-center gap-2 text-sm text-text-subtle mt-2 flex-wrap">
@@ -282,10 +350,44 @@ export const CleanStudentDashboard = ({ studentName, studentProfile }: CleanStud
                     </div>
                   </div>
                 </div>
-                <Button size="sm" className="bg-mint-green-dark hover:bg-mint-green-dark/90 text-white shadow-sm font-medium px-4 py-5 rounded-lg text-sm transition-all duration-200">
-                  Join
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => setManagementModal({ 
+                      open: true, 
+                      mode: 'reschedule', 
+                      lesson: class_ 
+                    })}
+                    disabled={!class_.canReschedule}
+                    className="text-xs"
+                  >
+                    <RefreshCw className="mr-1 h-3 w-3" />
+                    Reschedule
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => setManagementModal({ 
+                      open: true, 
+                      mode: 'cancel', 
+                      lesson: class_ 
+                    })}
+                    disabled={!class_.canCancel}
+                    className="text-xs text-destructive hover:bg-destructive hover:text-white"
+                  >
+                    <XCircle className="mr-1 h-3 w-3" />
+                    Cancel
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    onClick={() => navigate(`/classroom?roomId=${class_.room_id}&role=student&name=${encodeURIComponent(studentName)}&userId=${user?.id}`)}
+                    className="bg-mint-green-dark hover:bg-mint-green-dark/90 text-white shadow-sm font-medium px-4 py-2 rounded-lg text-sm"
+                  >
+                    Join
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             ))}
           </CardContent>

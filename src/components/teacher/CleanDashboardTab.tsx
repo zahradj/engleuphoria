@@ -16,8 +16,11 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { lessonService } from '@/services/lessonService';
+import { lessonRecommendationService } from '@/services/lessonRecommendationService';
+import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { useClassStartTiming } from '@/hooks/useClassStartTiming';
+import { StudentLessonInfo } from './StudentLessonInfo';
 
 interface CleanDashboardTabProps {
   teacherName: string;
@@ -28,6 +31,8 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
   const navigate = useNavigate();
   const [upcomingLessons, setUpcomingLessons] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [studentInfo, setStudentInfo] = useState<Record<string, any>>({});
+  const [recommendedLessons, setRecommendedLessons] = useState<Record<string, any>>({});
 
   useEffect(() => {
     const fetchLessons = async () => {
@@ -37,6 +42,56 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
         setLoading(true);
         const lessons = await lessonService.getTeacherUpcomingLessons(user.id);
         setUpcomingLessons(lessons.slice(0, 5));
+
+        // Fetch student profiles and recommended lessons for each student
+        for (const lesson of lessons.slice(0, 5)) {
+          if (lesson.student_id) {
+            // Get student profile
+            const { data: profile } = await supabase
+              .from('student_profiles')
+              .select('*')
+              .eq('user_id', lesson.student_id)
+              .maybeSingle();
+
+            // Get student progress
+            const { data: progress } = await supabase
+              .from('student_curriculum_progress')
+              .select('*')
+              .eq('student_id', lesson.student_id)
+              .maybeSingle();
+
+            // Get recommended lesson
+            const nextLesson = await lessonRecommendationService.getNextLessonForStudent(lesson.student_id);
+
+            if (profile || progress) {
+              setStudentInfo(prev => ({
+                ...prev,
+                [lesson.student_id]: {
+                  name: lesson.student_name,
+                  cefr_level: profile?.cefr_level || lesson.student_cefr_level,
+                  current_week: progress?.current_week,
+                  current_lesson: progress?.current_lesson,
+                  completion_percentage: progress?.completion_percentage,
+                  learning_style: profile?.learning_style,
+                  strengths: profile?.strengths,
+                  gaps: profile?.gaps,
+                  last_lesson_completed: `Week ${progress?.current_week || 1}, Lesson ${progress?.current_lesson || 1}`
+                }
+              }));
+            }
+
+            if (nextLesson) {
+              setRecommendedLessons(prev => ({
+                ...prev,
+                [lesson.student_id]: {
+                  title: nextLesson.title,
+                  topic: nextLesson.topic,
+                  learning_objectives: nextLesson.learning_objectives || []
+                }
+              }));
+            }
+          }
+        }
       } catch (error) {
         console.error('Error fetching lessons:', error);
       } finally {
@@ -150,7 +205,7 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
                 <>
                   <div className="p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20">
                     <div className="flex items-center justify-between mb-3">
-                      <div>
+                      <div className="flex-1">
                         <h4 className="font-semibold text-foreground">Next Class: {upcomingLessons[0].title}</h4>
                         <p className="text-sm text-muted-foreground">
                           Student: {upcomingLessons[0].student_name} 
@@ -171,7 +226,16 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between">
+
+                    {/* Student Information */}
+                    {upcomingLessons[0].student_id && studentInfo[upcomingLessons[0].student_id] && (
+                      <StudentLessonInfo
+                        student={studentInfo[upcomingLessons[0].student_id]}
+                        recommendedLesson={recommendedLessons[upcomingLessons[0].student_id]}
+                      />
+                    )}
+
+                    <div className="flex items-center justify-between mt-4">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Clock className="h-4 w-4" />
                         <span>{upcomingLessons[0].duration} minutes</span>

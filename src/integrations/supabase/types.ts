@@ -2767,15 +2767,21 @@ export type Database = {
           completed_at: string | null
           cost: number | null
           created_at: string
+          curriculum_lesson_id: string | null
           duration: number
           duration_minutes: number | null
           feedback_required: boolean | null
           feedback_submitted: boolean | null
           id: string
+          lesson_objectives: Json | null
+          lesson_plan_notes: string | null
           lesson_price: number | null
           payment_status: string | null
           platform_profit_amount: number | null
+          prep_materials_sent: boolean | null
           quality_rating: number | null
+          reschedule_count: number | null
+          reschedule_history: Json | null
           room_id: string | null
           room_link: string | null
           scheduled_at: string
@@ -2791,15 +2797,21 @@ export type Database = {
           completed_at?: string | null
           cost?: number | null
           created_at?: string
+          curriculum_lesson_id?: string | null
           duration?: number
           duration_minutes?: number | null
           feedback_required?: boolean | null
           feedback_submitted?: boolean | null
           id?: string
+          lesson_objectives?: Json | null
+          lesson_plan_notes?: string | null
           lesson_price?: number | null
           payment_status?: string | null
           platform_profit_amount?: number | null
+          prep_materials_sent?: boolean | null
           quality_rating?: number | null
+          reschedule_count?: number | null
+          reschedule_history?: Json | null
           room_id?: string | null
           room_link?: string | null
           scheduled_at: string
@@ -2815,15 +2827,21 @@ export type Database = {
           completed_at?: string | null
           cost?: number | null
           created_at?: string
+          curriculum_lesson_id?: string | null
           duration?: number
           duration_minutes?: number | null
           feedback_required?: boolean | null
           feedback_submitted?: boolean | null
           id?: string
+          lesson_objectives?: Json | null
+          lesson_plan_notes?: string | null
           lesson_price?: number | null
           payment_status?: string | null
           platform_profit_amount?: number | null
+          prep_materials_sent?: boolean | null
           quality_rating?: number | null
+          reschedule_count?: number | null
+          reschedule_history?: Json | null
           room_id?: string | null
           room_link?: string | null
           scheduled_at?: string
@@ -2835,6 +2853,13 @@ export type Database = {
           title?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "lessons_curriculum_lesson_id_fkey"
+            columns: ["curriculum_lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons_content"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "lessons_student_id_fkey"
             columns: ["student_id"]
@@ -4295,12 +4320,16 @@ export type Database = {
           completion_percentage: number | null
           conversation_milestones_achieved: string[] | null
           current_lesson: number | null
+          current_lesson_id: string | null
           current_week: number | null
           curriculum_id: string
           grammar_patterns_learned: string[] | null
           id: string
           last_activity_at: string | null
           neuroscience_scores: Json | null
+          next_lesson_id: string | null
+          placement_test_completed: boolean | null
+          recommended_stage_id: number | null
           started_at: string | null
           student_id: string
           vocabulary_mastered: string[] | null
@@ -4309,12 +4338,16 @@ export type Database = {
           completion_percentage?: number | null
           conversation_milestones_achieved?: string[] | null
           current_lesson?: number | null
+          current_lesson_id?: string | null
           current_week?: number | null
           curriculum_id: string
           grammar_patterns_learned?: string[] | null
           id?: string
           last_activity_at?: string | null
           neuroscience_scores?: Json | null
+          next_lesson_id?: string | null
+          placement_test_completed?: boolean | null
+          recommended_stage_id?: number | null
           started_at?: string | null
           student_id: string
           vocabulary_mastered?: string[] | null
@@ -4323,17 +4356,28 @@ export type Database = {
           completion_percentage?: number | null
           conversation_milestones_achieved?: string[] | null
           current_lesson?: number | null
+          current_lesson_id?: string | null
           current_week?: number | null
           curriculum_id?: string
           grammar_patterns_learned?: string[] | null
           id?: string
           last_activity_at?: string | null
           neuroscience_scores?: Json | null
+          next_lesson_id?: string | null
+          placement_test_completed?: boolean | null
+          recommended_stage_id?: number | null
           started_at?: string | null
           student_id?: string
           vocabulary_mastered?: string[] | null
         }
         Relationships: [
+          {
+            foreignKeyName: "student_curriculum_progress_current_lesson_id_fkey"
+            columns: ["current_lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons_content"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "student_curriculum_progress_curriculum_id_fkey"
             columns: ["curriculum_id"]
@@ -6042,6 +6086,10 @@ export type Database = {
       is_admin: { Args: never; Returns: boolean }
       is_user_admin: { Args: never; Returns: boolean }
       is_user_teacher: { Args: never; Returns: boolean }
+      jsonb_array_append: {
+        Args: { new_value: Json; target: Json }
+        Returns: Json
+      }
       log_security_event: {
         Args: {
           p_action: string
