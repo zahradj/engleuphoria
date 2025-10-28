@@ -82,6 +82,7 @@ const BookLesson = () => {
       console.log('📦 Using package:', {
         packageId: matchingPackage.id,
         duration: slot.duration,
+        durationType: typeof slot.duration,
         creditsRemaining: matchingPackage.lessons_remaining
       });
 
@@ -91,7 +92,7 @@ const BookLesson = () => {
           teacher_id: slot.teacherId,
           student_id: user.id,
           scheduled_at: slot.startTime.toISOString(),
-          duration: slot.duration
+          duration: Number(slot.duration) // Explicit number conversion
         },
         matchingPackage.id // Pass package ID for credit deduction
       );

@@ -55,7 +55,7 @@ export const teacherAvailabilityService = {
       teacherName: (slot.users as any)?.full_name || 'Teacher',
       startTime: new Date(slot.start_time),
       endTime: new Date(slot.end_time),
-      duration: slot.duration,
+      duration: Number(slot.duration), // Explicit number conversion
       isAvailable: slot.is_available && !slot.is_booked
     }));
   },
@@ -94,7 +94,7 @@ export const teacherAvailabilityService = {
       teacherName: (slot.users as any)?.full_name || 'Teacher',
       startTime: new Date(slot.start_time),
       endTime: new Date(slot.end_time),
-      duration: slot.duration,
+      duration: Number(slot.duration), // Explicit number conversion
       isAvailable: slot.is_available && !slot.is_booked
     }));
   },

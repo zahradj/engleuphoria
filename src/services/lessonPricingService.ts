@@ -71,13 +71,28 @@ export const lessonPricingService = {
     duration: number,
     packagePurchaseId?: string
   ): Promise<{ lesson: any; payment?: LessonPayment }> {
+    // Coerce to number to handle any type mismatches
+    const durationNum = Number(duration);
+    
+    console.log('🔍 Duration validation:', { 
+      original: duration, 
+      type: typeof duration, 
+      coerced: durationNum,
+      typeAfter: typeof durationNum
+    });
+    
     // Validate duration
-    if (duration !== 30 && duration !== 60) {
+    if (durationNum !== 30 && durationNum !== 60) {
+      console.error('❌ Invalid duration received:', { 
+        duration, 
+        type: typeof duration, 
+        coerced: durationNum 
+      });
       throw new Error('Invalid lesson duration. Must be 30 or 60 minutes.');
     }
 
     const pricing = this.calculateLessonPrice();
-    const durationMinutes = duration;
+    const durationMinutes = durationNum;
     
     // If using a package, check and redeem credits
     if (packagePurchaseId) {
