@@ -19,6 +19,17 @@ export interface ScheduledLesson {
   payment_status?: string;
   cancellation_reason?: string;
   completed_at?: string;
+  // Enhanced student profile data
+  student_cefr_level?: string;
+  student_interests?: string[];
+  student_strengths?: string[];
+  student_gaps?: string[];
+  student_long_term_goal?: string;
+  student_learning_style?: string;
+  // Enhanced teacher profile data
+  teacher_bio?: string;
+  teacher_specializations?: string[];
+  teacher_rating?: number;
 }
 
 export interface CreateLessonData {

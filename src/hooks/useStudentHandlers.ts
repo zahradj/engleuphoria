@@ -11,7 +11,7 @@ export const useStudentHandlers = () => {
   };
 
   const handleJoinClass = () => {
-    navigate("/media-test?roomId=unified-classroom-1&role=student&name=Student&userId=student-1");
+    navigate("/classroom?roomId=unified-classroom-1&role=student&name=Student&userId=student-1");
   };
 
   const handleViewProgress = () => {

@@ -168,18 +168,22 @@ export const CalendarTab = () => {
                             className="bg-gradient-to-r from-teal-light to-purple-light border border-teal/40 rounded-lg p-2 mb-1 text-xs cursor-pointer hover:from-teal hover:to-purple hover:text-white transition-all duration-200 shadow-sm"
                             onClick={handleJoinClass}
                           >
-                            <div className="font-semibold text-teal-dark">{cls.title}</div>
-                            <div className="text-purple-dark">{cls.studentName}</div>
-                            <Badge 
-                              variant={cls.type === "group" ? "default" : "secondary"}
-                              className={`text-xs mt-1 ${
-                                cls.type === "group" 
-                                  ? "bg-purple text-white" 
-                                  : "bg-purple-light text-purple-dark"
-                              }`}
-                            >
-                              {cls.type}
-                            </Badge>
+                            <div className="font-mono font-semibold text-teal-dark">#{cls.studentId}</div>
+                            <div className="text-purple-dark font-medium">{cls.studentName}</div>
+                            <div className="flex gap-1 mt-1 flex-wrap">
+                              <Badge 
+                                variant="secondary"
+                                className={cls.duration === 25 ? "bg-blue-500/10 text-blue-600 border-blue-500/20 text-[10px]" : "bg-purple-500/10 text-purple-600 border-purple-500/20 text-[10px]"}
+                              >
+                                {cls.duration} min
+                              </Badge>
+                              <Badge 
+                                variant={cls.type === "group" ? "default" : "outline"}
+                                className="text-[10px]"
+                              >
+                                {cls.type}
+                              </Badge>
+                            </div>
                           </div>
                         ))}
                       </div>

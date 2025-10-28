@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,12 +14,37 @@ import {
   Award,
   ArrowRight
 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { lessonService } from '@/services/lessonService';
+import { useNavigate } from 'react-router-dom';
 
 interface CleanDashboardTabProps {
   teacherName: string;
 }
 
 export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [upcomingLessons, setUpcomingLessons] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLessons = async () => {
+      if (!user?.id) return;
+      
+      try {
+        setLoading(true);
+        const lessons = await lessonService.getTeacherUpcomingLessons(user.id);
+        setUpcomingLessons(lessons.slice(0, 5));
+      } catch (error) {
+        console.error('Error fetching lessons:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLessons();
+  }, [user?.id]);
   const kpis = [
     {
       title: 'Classes Today',
@@ -47,26 +72,11 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
     }
   ];
 
-  const upcomingClasses = [
-    {
-      title: 'Beginner English A1',
-      time: '10:00 AM',
-      students: 8,
-      duration: '55 min'
-    },
-    {
-      title: 'Conversation Practice',
-      time: '2:00 PM',
-      students: 12,
-      duration: '25 min'
-    },
-    {
-      title: 'Grammar Fundamentals',
-      time: '4:30 PM',
-      students: 6,
-      duration: '55 min'
-    }
-  ];
+  const todayLessons = upcomingLessons.filter(lesson => {
+    const lessonDate = new Date(lesson.scheduled_at);
+    const today = new Date();
+    return lessonDate.toDateString() === today.toDateString();
+  });
 
   const weeklyProgress = [
     { day: 'Mon', classes: 4, completed: 4 },
@@ -86,13 +96,18 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
               Good morning, {teacherName}! 
             </h1>
             <p className="text-muted-foreground">
-              You have 3 classes scheduled for today. Ready to inspire your students?
+              You have {todayLessons.length} classes scheduled for today. Ready to inspire your students?
             </p>
           </div>
-          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
-            Start Class
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+          {todayLessons.length > 0 && (
+            <Button 
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              onClick={() => navigate('/classroom?role=teacher&name=' + encodeURIComponent(teacherName) + '&userId=' + user?.id)}
+            >
+              Start Class
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
 
@@ -128,63 +143,81 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
           <CardContent>
             <div className="space-y-4">
               {/* Next Class with Countdown */}
-              <div className="p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20">
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <h4 className="font-semibold text-foreground">Next Class: Beginner English A1</h4>
-                    <p className="text-sm text-muted-foreground">Student: Sarah Johnson</p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-primary">15:30</div>
-                    <div className="text-xs text-muted-foreground">in 45 min</div>
-                  </div>
+              {loading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                  <p className="text-muted-foreground">Loading your schedule...</p>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Clock className="h-4 w-4" />
-                    <span>55 minutes</span>
-                    <Users className="h-4 w-4 ml-2" />
-                    <span>1 student</span>
+              ) : upcomingLessons.length > 0 ? (
+                <>
+                  <div className="p-4 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <h4 className="font-semibold text-foreground">Next Class: {upcomingLessons[0].title}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Student: {upcomingLessons[0].student_name} 
+                          {upcomingLessons[0].student_cefr_level && ` (${upcomingLessons[0].student_cefr_level} Level)`}
+                        </p>
+                        {upcomingLessons[0].student_id && (
+                          <p className="text-xs text-muted-foreground">
+                            #{upcomingLessons[0].student_id.slice(-6).toUpperCase()}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-primary">
+                          {new Date(upcomingLessons[0].scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {new Date(upcomingLessons[0].scheduled_at).toLocaleDateString()}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Clock className="h-4 w-4" />
+                        <span>{upcomingLessons[0].duration} minutes</span>
+                        <Badge 
+                          variant="secondary" 
+                          className={upcomingLessons[0].duration === 25 ? "ml-2 bg-blue-500/10 text-blue-600 border-blue-500/20" : "ml-2 bg-purple-500/10 text-purple-600 border-purple-500/20"}
+                        >
+                          {upcomingLessons[0].duration} min
+                        </Badge>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        className="bg-primary hover:bg-primary/90"
+                        onClick={() => navigate(`/classroom?roomId=${upcomingLessons[0].room_id}&role=teacher&name=${encodeURIComponent(teacherName)}&userId=${user?.id}`)}
+                      >
+                        Start Class
+                        <ArrowRight className="ml-1 h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
-                  <Button size="sm" className="bg-primary hover:bg-primary/90">
-                    Start Class
-                    <ArrowRight className="ml-1 h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
 
-              {/* Other Upcoming Lessons */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-surface-2 rounded-lg">
-                  <div>
-                    <h5 className="font-medium text-foreground text-sm">Conversation Practice</h5>
-                    <p className="text-xs text-muted-foreground">Mike Chen • 17:00</p>
+                  {/* Other Upcoming Lessons */}
+                  <div className="space-y-3">
+                    {upcomingLessons.slice(1, 4).map((lesson, index) => (
+                      <div key={lesson.id} className="flex items-center justify-between p-3 bg-surface-2 rounded-lg">
+                        <div>
+                          <h5 className="font-medium text-foreground text-sm">{lesson.title}</h5>
+                          <p className="text-xs text-muted-foreground">
+                            {lesson.student_name} • {new Date(lesson.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          {lesson.duration} min
+                        </Badge>
+                      </div>
+                    ))}
                   </div>
-                  <Badge variant="outline" className="text-xs">
-                    Ready
-                  </Badge>
+                </>
+              ) : (
+                <div className="text-center py-8">
+                  <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">No upcoming lessons scheduled</p>
                 </div>
-                
-                <div className="flex items-center justify-between p-3 bg-surface-2 rounded-lg">
-                  <div>
-                    <h5 className="font-medium text-foreground text-sm">Grammar Fundamentals</h5>
-                    <p className="text-xs text-muted-foreground">Emma Wilson • 19:30</p>
-                  </div>
-                  <Badge variant="outline" className="text-xs">
-                    Scheduled
-                  </Badge>
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-surface-2 rounded-lg">
-                  <div>
-                    <h5 className="font-medium text-foreground text-sm">Advanced Speaking</h5>
-                    <p className="text-xs text-muted-foreground">David Kim • Tomorrow 10:00</p>
-                  </div>
-                  <Badge variant="outline" className="text-xs">
-                    Scheduled
-                  </Badge>
-                </div>
-              </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -198,26 +231,43 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {upcomingClasses.map((class_, index) => (
-              <div key={index} className="p-4 bg-surface-2 rounded-lg">
-                <div className="flex items-start justify-between mb-2">
-                  <h4 className="font-medium text-foreground text-sm">{class_.title}</h4>
-                  <Badge variant="outline" className="text-xs">
-                    {class_.time}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Users className="h-3 w-3" />
-                    {class_.students}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    {class_.duration}
-                  </span>
-                </div>
+            {loading ? (
+              <div className="text-center py-4">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
               </div>
-            ))}
+            ) : todayLessons.length > 0 ? (
+              todayLessons.map((lesson) => (
+                <div key={lesson.id} className="p-4 bg-surface-2 rounded-lg">
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <h4 className="font-medium text-foreground text-sm">{lesson.title}</h4>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {lesson.student_name} {lesson.student_cefr_level && `(${lesson.student_cefr_level})`}
+                      </p>
+                    </div>
+                    <Badge variant="outline" className="text-xs">
+                      {new Date(lesson.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {lesson.duration} min
+                    </span>
+                    {lesson.student_id && (
+                      <span className="flex items-center gap-1">
+                        #{lesson.student_id.slice(-6).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <Clock className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">No classes today</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -263,8 +313,8 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Classes Taught</span>
-              <span className="text-lg font-semibold text-foreground">42</span>
+              <span className="text-sm text-muted-foreground">Upcoming Lessons</span>
+              <span className="text-lg font-semibold text-foreground">{upcomingLessons.length}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Student Progress</span>

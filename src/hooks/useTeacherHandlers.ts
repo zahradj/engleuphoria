@@ -23,7 +23,7 @@ export const useTeacherHandlers = () => {
   };
 
   const handleStartClass = () => {
-    navigate("/media-test?roomId=unified-classroom-1&role=teacher&name=Teacher&userId=teacher-1");
+    navigate("/classroom?roomId=unified-classroom-1&role=teacher&name=Teacher&userId=teacher-1");
   };
 
   const handleScheduleClass = () => {
@@ -94,7 +94,7 @@ export const useTeacherHandlers = () => {
   };
 
   const handleJoinClass = () => {
-    navigate("/media-test?roomId=unified-classroom-1&role=teacher&name=Teacher&userId=teacher-1");
+    navigate("/classroom?roomId=unified-classroom-1&role=teacher&name=Teacher&userId=teacher-1");
   };
 
   const handleCreateAssignment = () => {

@@ -52,7 +52,7 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
   const [selectedAssignment, setSelectedAssignment] = useState<string | null>(null);
 
   const handleJoinClassroom = () => {
-    navigate("/media-test?roomId=unified-classroom-1&role=student&name=" + encodeURIComponent(studentName) + "&userId=" + studentId);
+    navigate("/classroom?roomId=unified-classroom-1&role=student&name=" + encodeURIComponent(studentName) + "&userId=" + studentId);
   };
 
   const handleHomeworkSubmit = (submission: { text: string; files: File[] }) => {
@@ -165,23 +165,31 @@ export const DashboardTab = ({ studentName, studentId, hasProfile, studentProfil
                           <Clock className="h-4 w-4" />
                           {new Date(lesson.scheduled_at).toLocaleDateString()} at {new Date(lesson.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </p>
-                        <p className="text-sm text-primary mt-1">with {lesson.teacher_name || 'Teacher'}</p>
-                        <Badge variant="secondary" className="mt-1">
-                          {lesson.duration} minutes
-                        </Badge>
+                        <p className="text-sm text-primary font-medium mt-1">
+                          Lesson with Teacher {lesson.teacher_name || 'TBA'}
+                        </p>
+                        <div className="flex gap-2 mt-2">
+                          <Badge 
+                            variant="secondary" 
+                            className={lesson.duration === 25 ? "bg-blue-500/10 text-blue-600 border-blue-500/20" : "bg-purple-500/10 text-purple-600 border-purple-500/20"}
+                          >
+                            {lesson.duration} min
+                          </Badge>
+                          {lesson.student_id && (
+                            <Badge variant="outline" className="text-xs">
+                              #{lesson.student_id.slice(-6).toUpperCase()}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                       <div className="flex flex-col gap-2">
                         <Button 
                           size="sm" 
                           className="bg-gradient-to-r from-primary to-accent text-white hover:opacity-90"
                           onClick={() => {
-                            if (lesson.room_link) {
-                              // Navigate to the classroom with proper parameters
-                              const url = new URL(lesson.room_link);
-                              url.searchParams.set('role', 'student');
-                              url.searchParams.set('name', studentName);
-                              url.searchParams.set('userId', user?.id || '');
-                              window.open(url.toString(), '_blank');
+                            if (lesson.room_id) {
+                              // Navigate to the unified classroom with proper parameters
+                              navigate(`/classroom?roomId=${lesson.room_id}&role=student&name=${encodeURIComponent(studentName)}&userId=${user?.id || ''}`);
                             } else {
                               handleJoinClassroom();
                             }
