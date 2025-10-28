@@ -295,7 +295,7 @@ export const UnifiedTeacherCalendar = ({ teacherId }: UnifiedTeacherCalendarProp
         });
       } else if (lesson?.room_id) {
         // Fallback to building URL manually
-        const classroomUrl = `/oneonone-classroom-new?roomId=${lesson.room_id}&role=teacher&name=Teacher&userId=${teacherId}`;
+        const classroomUrl = `/classroom?roomId=${lesson.room_id}&role=teacher&name=Teacher&userId=${teacherId}`;
         window.open(classroomUrl, '_blank');
         
         toast({
