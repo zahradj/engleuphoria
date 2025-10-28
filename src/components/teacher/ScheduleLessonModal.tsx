@@ -36,7 +36,7 @@ export const ScheduleLessonModal = ({
   const [isScheduling, setIsScheduling] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState("10:00");
-  const [duration, setDuration] = useState(60);
+  const [duration, setDuration] = useState(55);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [students, setStudents] = useState<Student[]>([]);
@@ -137,11 +137,8 @@ export const ScheduleLessonModal = ({
   ];
 
   const durationOptions = [
-    { value: 30, label: "30 minutes" },
-    { value: 45, label: "45 minutes" },
-    { value: 60, label: "1 hour" },
-    { value: 90, label: "1.5 hours" },
-    { value: 120, label: "2 hours" }
+    { value: 25, label: "25 minutes" },
+    { value: 55, label: "55 minutes" }
   ];
 
   return (

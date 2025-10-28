@@ -52,19 +52,19 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
       title: 'Beginner English A1',
       time: '10:00 AM',
       students: 8,
-      duration: '45 min'
+      duration: '55 min'
     },
     {
       title: 'Conversation Practice',
       time: '2:00 PM',
       students: 12,
-      duration: '30 min'
+      duration: '25 min'
     },
     {
       title: 'Grammar Fundamentals',
       time: '4:30 PM',
       students: 6,
-      duration: '60 min'
+      duration: '55 min'
     }
   ];
 
@@ -142,7 +142,7 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Clock className="h-4 w-4" />
-                    <span>45 minutes</span>
+                    <span>55 minutes</span>
                     <Users className="h-4 w-4 ml-2" />
                     <span>1 student</span>
                   </div>

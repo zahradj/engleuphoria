@@ -37,7 +37,7 @@ export const CalendarTab = () => {
       title: "#421451 PL",
       studentName: "Zuzanna",
       time: "09:00",
-      duration: 60,
+      duration: 55,
       day: 0, // Monday
       type: "individual",
       studentId: "421451"
@@ -47,7 +47,7 @@ export const CalendarTab = () => {
       title: "#944665 FR",
       studentName: "Diakhite",
       time: "10:00",
-      duration: 30,
+      duration: 25,
       day: 0,
       type: "individual",
       studentId: "944665"
@@ -57,7 +57,7 @@ export const CalendarTab = () => {
       title: "#1443231 IL",
       studentName: "Omri",
       time: "12:00",
-      duration: 90,
+      duration: 55,
       day: 1, // Tuesday
       type: "individual",
       studentId: "1443231"
@@ -67,7 +67,7 @@ export const CalendarTab = () => {
       title: "#1334758 JP",
       studentName: "Touyama Koharu",
       time: "12:30",
-      duration: 60,
+      duration: 55,
       day: 1,
       type: "individual",
       studentId: "1334758"
@@ -77,7 +77,7 @@ export const CalendarTab = () => {
       title: "#982001 ARAB",
       studentName: "Mokhles Adri",
       time: "13:00",
-      duration: 30,
+      duration: 25,
       day: 2, // Wednesday
       type: "individual",
       studentId: "982001"
