@@ -39,10 +39,11 @@ export const formatWeekRange = (weekDates: Date[]): string => {
 
 export const isPastSlot = (date: Date, time: string): boolean => {
   const now = new Date();
-  const [hours, minutes] = time.split(':').map(Number);
-  const slotDateTime = new Date(date);
-  slotDateTime.setHours(hours, minutes, 0, 0);
-  return slotDateTime < now;
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const slotDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  
+  // Only block slots from past days, allow any time for today or future
+  return slotDate < today;
 };
 
 export const getDayName = (date: Date): string => {
