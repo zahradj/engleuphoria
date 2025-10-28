@@ -5,9 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { batchAvailabilityService } from "@/services/batchAvailabilityService";
-import { ChevronLeft, ChevronRight, Plus, Trash2, Check, Clock } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Trash2, Check, Clock, User } from "lucide-react";
 import { SlotTypeSelector } from "./SlotTypeSelector";
 import { RecurringSlotPanel } from "./RecurringSlotPanel";
+import { CalendarLegend } from "./CalendarLegend";
 import { TimeSlot, SelectedSlot, WeeklySlots } from "./types";
 import { 
   generateTimeSlots, 
@@ -414,18 +415,39 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
     }
   };
 
+  const getTimeBlockColor = (time: string): string => {
+    const hour = parseInt(time.split(':')[0]);
+    // Peak teaching hours (evening) - light orange/peach
+    if (hour >= 18 && hour < 22) return "bg-orange-50 dark:bg-orange-950/20";
+    // Weekend mornings - light blue
+    if (hour >= 7 && hour < 10) return "bg-blue-50 dark:bg-blue-950/20";
+    return "";
+  };
+
   const renderSlot = (date: Date, time: string) => {
     const dateKey = formatDate(date);
     const slotKey = `${dateKey}-${time}`;
     const slot = getSlotAtPosition(dateKey, time);
     const isSelected = isSlotSelected(slotKey);
     const past = isPastSlot(date, time);
+    const blockColor = getTimeBlockColor(time);
 
     if (slot?.isBooked) {
       return (
-        <div className="h-12 rounded border border-primary/30 bg-primary/10 p-1 text-xs">
-          <Badge variant="secondary" className="text-[10px] mb-0.5">BOOKED</Badge>
-          {slot.studentName && <div className="text-[10px] truncate">{slot.studentName}</div>}
+        <div className={`h-16 rounded-md border border-rose-300 dark:border-rose-700 bg-rose-50 dark:bg-rose-950/30 p-1.5 text-xs shadow-sm ${blockColor}`}>
+          <div className="flex items-center gap-1 mb-1">
+            <div className="w-2 h-2 rounded-full bg-rose-500"></div>
+            <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4 bg-rose-500/20">BOOKED</Badge>
+          </div>
+          {slot.studentName && (
+            <div className="flex items-center gap-1">
+              <User className="h-3 w-3 text-muted-foreground" />
+              <div className="text-[10px] font-medium truncate">{slot.studentName}</div>
+            </div>
+          )}
+          {slot.lessonTitle && (
+            <div className="text-[9px] text-muted-foreground truncate mt-0.5">{slot.lessonTitle}</div>
+          )}
         </div>
       );
     }
@@ -434,17 +456,20 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
       return (
         <button
           onClick={() => handleSlotClick(dateKey, time)}
-          className="h-12 w-full rounded border border-green-500/30 bg-green-500/10 p-1 text-xs hover:bg-green-500/20 transition-colors group"
+          className={`h-16 w-full rounded-md border-2 border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/30 p-1.5 text-xs hover:bg-emerald-100 dark:hover:bg-emerald-950/40 transition-all shadow-sm group relative ${blockColor}`}
         >
-          <Badge variant="outline" className="text-[10px] mb-0.5 border-green-500/50">OPEN</Badge>
-          <div className="text-[10px] text-muted-foreground">{slot.duration}min</div>
-          <Trash2 className="h-3 w-3 absolute top-1 right-1 opacity-0 group-hover:opacity-100 text-destructive" />
+          <div className="flex items-center gap-1 mb-1">
+            <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+            <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 border-emerald-500/50 bg-emerald-500/10">OPEN</Badge>
+          </div>
+          <div className="text-[10px] font-medium text-emerald-700 dark:text-emerald-300">{slot.duration} min</div>
+          <Trash2 className="h-3 w-3 absolute top-1 right-1 opacity-0 group-hover:opacity-100 text-destructive transition-opacity" />
         </button>
       );
     }
 
     if (past) {
-      return <div className="h-12 rounded border border-muted/20 bg-muted/5 opacity-50" />;
+      return <div className={`h-16 rounded-md border border-muted/20 bg-muted/10 ${blockColor}`} />;
     }
 
     return (
@@ -454,16 +479,16 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
         onMouseUp={handleSlotMouseUp}
         onClick={() => !isMultiSelectMode && toggleSlotSelection(dateKey, time)}
         disabled={!isMultiSelectMode && isSelected}
-        className={`h-12 w-full rounded border-2 border-dashed transition-all ${
+        className={`h-16 w-full rounded-md border-2 transition-all ${
           isSelected
-            ? 'border-primary bg-primary/20 hover:bg-primary/30'
-            : 'border-muted hover:border-primary/50 hover:bg-accent/50'
-        } ${isMultiSelectMode ? 'cursor-crosshair' : 'cursor-pointer'}`}
+            ? 'border-violet-400 dark:border-violet-600 bg-violet-50 dark:bg-violet-950/30 shadow-sm'
+            : 'border-dashed border-muted/30 hover:border-violet-300 dark:hover:border-violet-700 hover:bg-violet-50/50 dark:hover:bg-violet-950/20'
+        } ${isMultiSelectMode ? 'cursor-crosshair' : 'cursor-pointer'} ${blockColor}`}
       >
         {isSelected ? (
-          <Check className="h-4 w-4 mx-auto text-primary" />
+          <Check className="h-4 w-4 mx-auto text-violet-600 dark:text-violet-400" />
         ) : (
-          <Plus className="h-4 w-4 mx-auto opacity-0 hover:opacity-50 transition-opacity" />
+          <Plus className="h-4 w-4 mx-auto opacity-0 hover:opacity-40 transition-opacity text-muted-foreground" />
         )}
       </button>
     );
@@ -471,6 +496,9 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
 
   return (
     <div className="space-y-4" onMouseUp={handleSlotMouseUp}>
+      {/* Legend */}
+      <CalendarLegend />
+
       {/* Slot Type Selector */}
       <div className="flex justify-center">
         <SlotTypeSelector slotType={slotType} onTypeChange={setSlotType} />
@@ -486,20 +514,20 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
       )}
 
       {/* Navigation & Controls */}
-      <Card className="p-4 space-y-4">
+      <Card className="p-4 space-y-4 shadow-sm">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handlePreviousWeek}>
+            <Button variant="outline" size="icon" onClick={handlePreviousWeek} className="rounded-full bg-amber-500 hover:bg-amber-600 text-white border-0">
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <span className="font-semibold text-sm min-w-[200px] text-center">
+            <Button variant="outline" size="icon" onClick={handleNextWeek} className="rounded-full bg-amber-500 hover:bg-amber-600 text-white border-0">
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            <span className="font-bold text-base min-w-[220px] text-center px-4">
               {formatWeekRange(weekDates)}
             </span>
-            <Button variant="outline" size="sm" onClick={handleToday}>
+            <Button variant="outline" size="sm" onClick={handleToday} className="font-medium">
               Today
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleNextWeek}>
-              <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
 
@@ -568,27 +596,31 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
       </Card>
 
       {/* Weekly Grid */}
-      <Card className="p-4 overflow-x-auto">
+      <Card className="p-3 overflow-x-auto shadow-sm border-muted/30">
         {isLoading ? (
           <div className="flex items-center justify-center p-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
           </div>
         ) : (
-          <div className="min-w-[800px]">
-            <div className="grid grid-cols-8 gap-2 mb-2">
-              <div className="text-xs font-semibold text-muted-foreground">Time</div>
+          <div className="min-w-[900px]">
+            {/* Header Row */}
+            <div className="grid grid-cols-8 gap-2 mb-3 pb-2 border-b-2 border-border">
+              <div className="text-xs font-bold text-muted-foreground uppercase">Time</div>
               {weekDates.map(date => (
-                <div key={formatDate(date)} className="text-center">
-                  <div className="text-xs font-semibold">{getDayName(date)}</div>
-                  <div className="text-[10px] text-muted-foreground">{getDayDate(date)}</div>
+                <div key={formatDate(date)} className="text-center bg-muted/30 rounded-md p-2">
+                  <div className="text-sm font-bold text-foreground">{getDayName(date)}, {getDayDate(date).split(' ')[1]}</div>
+                  <div className="text-[10px] text-muted-foreground font-medium">{getDayDate(date).split(' ')[0]}</div>
                 </div>
               ))}
             </div>
 
-            <div className="space-y-1">
+            {/* Time Slots Grid */}
+            <div className="space-y-1.5">
               {timeSlots.map(time => (
                 <div key={time} className="grid grid-cols-8 gap-2">
-                  <div className="text-xs text-muted-foreground flex items-center">{time}</div>
+                  <div className="text-xs text-muted-foreground font-semibold flex items-center justify-end pr-2">
+                    {time}
+                  </div>
                   {weekDates.map(date => (
                     <div key={`${formatDate(date)}-${time}`} className="relative">
                       {renderSlot(date, time)}
