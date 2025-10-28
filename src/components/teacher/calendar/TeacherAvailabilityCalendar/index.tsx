@@ -115,6 +115,16 @@ export const TeacherAvailabilityCalendar = ({ teacherId }: TeacherAvailabilityCa
         const slotDate = new Date(slot.start_time);
         const dateKey = formatDate(slotDate);
         
+        // Validate duration - skip invalid slots
+        if (slot.duration !== 30 && slot.duration !== 60) {
+          console.warn('⚠️ INVALID DURATION - Skipping slot:', {
+            id: slot.id.slice(0, 8),
+            duration: slot.duration,
+            start_time: slot.start_time
+          });
+          return; // Skip this slot
+        }
+        
         // CRITICAL FIX: Use UTC time to match database storage
         const hours = slotDate.getUTCHours().toString().padStart(2, '0');
         const minutes = slotDate.getUTCMinutes().toString().padStart(2, '0');
