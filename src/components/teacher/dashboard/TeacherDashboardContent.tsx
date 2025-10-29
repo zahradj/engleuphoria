@@ -3,12 +3,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { CleanDashboardTab } from "../CleanDashboardTab";
 import { StudentsTab } from "./StudentsTab";
-import { ScheduleTab } from "./ScheduleTab";
+import { EnhancedCalendarTab } from "../EnhancedCalendarTab";
 import { Users, Calendar, BarChart3 } from "lucide-react";
 
 interface TeacherDashboardContentProps {
   lessonPlans: any[];
   teacherName?: string;
+  teacherId: string;
   handlers: {
     handleCreateLessonPlan: () => void;
     handleScheduleClass: () => void;
@@ -24,7 +25,7 @@ interface TeacherDashboardContentProps {
   };
 }
 
-export const TeacherDashboardContent = ({ lessonPlans, teacherName = "Teacher", handlers }: TeacherDashboardContentProps) => {
+export const TeacherDashboardContent = ({ lessonPlans, teacherName = "Teacher", teacherId, handlers }: TeacherDashboardContentProps) => {
   const { languageText } = useLanguage();
 
   return (
@@ -68,10 +69,7 @@ export const TeacherDashboardContent = ({ lessonPlans, teacherName = "Teacher", 
           </TabsContent>
           
           <TabsContent value="schedule" className="animate-fade-in">
-            <ScheduleTab
-              onScheduleClass={handlers.handleScheduleClass}
-              onStartScheduledClass={handlers.handleStartScheduledClass}
-            />
+            <EnhancedCalendarTab teacherId={teacherId} />
           </TabsContent>
         </div>
       </Tabs>

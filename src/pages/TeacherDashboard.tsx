@@ -66,6 +66,7 @@ const TeacherDashboard = () => {
           return <TeacherDashboardContent 
             lessonPlans={[]}
             teacherName={teacherName}
+            teacherId={teacherId}
             handlers={{
               handleCreateLessonPlan: () => setActiveTab('calendar'),
               handleScheduleClass: () => setActiveTab('calendar'),
@@ -116,6 +117,7 @@ const TeacherDashboard = () => {
           return <TeacherDashboardContent 
             lessonPlans={[]}
             teacherName={teacherName}
+            teacherId={teacherId}
             handlers={{
               handleCreateLessonPlan: () => setActiveTab('calendar'),
               handleScheduleClass: () => setActiveTab('calendar'),
