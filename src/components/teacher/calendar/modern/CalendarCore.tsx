@@ -53,11 +53,11 @@ export const CalendarCore: React.FC<CalendarCoreProps> = ({
       return (
         <div
           className={cn(
-            'h-12 border-2 border-purple-500 bg-purple-50 dark:bg-purple-950/20 rounded-md p-1',
-            'flex flex-col items-center justify-center text-xs cursor-not-allowed'
+            'h-20 border-2 border-purple-500 bg-purple-50 dark:bg-purple-950/20 rounded-md p-1',
+            'flex flex-col items-center justify-center text-sm cursor-not-allowed'
           )}
         >
-          <Lock className="w-3 h-3 text-purple-600 mb-0.5" />
+          <Lock className="w-4 h-4 text-purple-600 mb-0.5" />
           <span className="text-purple-700 dark:text-purple-400 font-medium truncate w-full text-center">
             {slot.studentName || 'Booked'}
           </span>
@@ -70,16 +70,16 @@ export const CalendarCore: React.FC<CalendarCoreProps> = ({
         <button
           onClick={() => onSlotClick(date, time)}
           className={cn(
-            'h-12 border-2 border-green-500 bg-green-50 dark:bg-green-950/20 rounded-md',
+            'h-20 border-2 border-green-500 bg-green-50 dark:bg-green-950/20 rounded-md',
             'hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors',
             'flex items-center justify-center relative group'
           )}
         >
-          <Check className="w-4 h-4 text-green-600" />
-          <span className="ml-1 text-xs font-bold text-green-700 dark:text-green-400">
+          <Check className="w-5 h-5 text-green-600" />
+          <span className="ml-1 text-sm font-bold text-green-700 dark:text-green-400">
             OPEN
           </span>
-          <span className="absolute -top-1 -right-1 bg-green-500 text-white text-[10px] px-1 rounded">
+          <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1 rounded">
             {slot.duration}m
           </span>
         </button>
@@ -88,7 +88,7 @@ export const CalendarCore: React.FC<CalendarCoreProps> = ({
 
     if (isPastSlot) {
       return (
-        <div className="h-12 bg-muted/30 rounded-md border border-border/50 cursor-not-allowed" />
+        <div className="h-20 bg-muted/30 rounded-md border border-border/50 cursor-not-allowed" />
       );
     }
 
@@ -96,18 +96,18 @@ export const CalendarCore: React.FC<CalendarCoreProps> = ({
       <button
         onClick={() => onSlotClick(date, time)}
         className={cn(
-          'h-12 border border-dashed border-border rounded-md',
+          'h-20 border border-dashed border-border rounded-md',
           'hover:border-primary hover:bg-primary/5 transition-colors',
           'flex items-center justify-center group'
         )}
       >
-        <Plus className="w-4 h-4 text-muted-foreground group-hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+        <Plus className="w-5 h-5 text-muted-foreground group-hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
       </button>
     );
   };
 
   return (
-    <Card className="p-4">
+    <Card className="p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
@@ -128,7 +128,7 @@ export const CalendarCore: React.FC<CalendarCoreProps> = ({
       </div>
 
       {/* Legend */}
-      <div className="flex items-center gap-4 mb-4 text-xs">
+      <div className="flex items-center gap-4 mb-4 text-sm">
         <div className="flex items-center gap-1">
           <div className="w-4 h-4 border-2 border-green-500 bg-green-50 dark:bg-green-950/20 rounded" />
           <span>Available</span>
@@ -150,7 +150,7 @@ export const CalendarCore: React.FC<CalendarCoreProps> = ({
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <div className="grid grid-cols-[80px_repeat(7,minmax(100px,1fr))] gap-2 min-w-[800px]">
+          <div className="grid grid-cols-[100px_repeat(7,minmax(140px,1fr))] gap-3 min-w-[900px]">
             {/* Header Row */}
             <div className="sticky left-0 bg-background z-10" />
             {weekDays.map((day, idx) => {
@@ -163,10 +163,10 @@ export const CalendarCore: React.FC<CalendarCoreProps> = ({
                     isToday && 'bg-primary/10 border-2 border-primary'
                   )}
                 >
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-sm text-muted-foreground">
                     {day.toLocaleDateString('en-US', { weekday: 'short' })}
                   </div>
-                  <div className="text-lg">
+                  <div className="text-xl">
                     {day.getDate()}
                   </div>
                 </div>
@@ -176,7 +176,7 @@ export const CalendarCore: React.FC<CalendarCoreProps> = ({
             {/* Time Slots */}
             {timeSlots.map((time) => (
               <React.Fragment key={time}>
-                <div className="sticky left-0 bg-background z-10 flex items-center justify-end pr-2 text-xs text-muted-foreground font-medium">
+                <div className="sticky left-0 bg-background z-10 flex items-center justify-end pr-2 py-1 text-sm text-muted-foreground font-medium">
                   {time}
                 </div>
                 {weekDays.map((day, dayIdx) => (
