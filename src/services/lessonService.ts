@@ -71,7 +71,11 @@ export const lessonService = {
   },
 
   // Create a new lesson with package credit deduction
-  async createLesson(lessonData: CreateLessonData, packagePurchaseId?: string): Promise<ScheduledLesson> {
+  async createLesson(
+    lessonData: CreateLessonData, 
+    packagePurchaseId?: string,
+    availabilitySlotId?: string
+  ): Promise<ScheduledLesson> {
     const { lessonPricingService } = await import('./lessonPricingService');
     
     // Use the lessonPricingService to handle both lesson creation and payment/credit deduction
@@ -80,7 +84,8 @@ export const lessonService = {
       lessonData.student_id,
       lessonData.scheduled_at,
       lessonData.duration, // Pass the actual duration
-      packagePurchaseId
+      packagePurchaseId,
+      availabilitySlotId
     );
 
     console.log('✅ Lesson created with payment/credit handling:', {

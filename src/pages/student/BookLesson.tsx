@@ -94,7 +94,8 @@ const BookLesson = () => {
           scheduled_at: slot.startTime.toISOString(),
           duration: Number(slot.duration) // Explicit number conversion
         },
-        matchingPackage.id // Pass package ID for credit deduction
+        matchingPackage.id, // Pass package ID for credit deduction
+        slot.id // Pass slot ID for precise availability update
       );
 
       toast({

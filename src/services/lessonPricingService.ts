@@ -69,7 +69,8 @@ export const lessonPricingService = {
     studentId: string,
     scheduledAt: string,
     duration: number,
-    packagePurchaseId?: string
+    packagePurchaseId?: string,
+    availabilitySlotId?: string
   ): Promise<{ lesson: any; payment?: LessonPayment }> {
     // Coerce to number to handle any type mismatches
     const durationNum = Number(duration);
@@ -134,19 +135,27 @@ export const lessonPricingService = {
       if (lessonError) throw lessonError;
 
       // CRITICAL FIX: Mark availability slot as booked with atomic update
-      const { data: updatedSlot, error: availError } = await supabase
+      const updateQuery = supabase
         .from('teacher_availability')
         .update({ 
           is_booked: true,
-          lesson_id: lesson.id,
-          booked_at: new Date().toISOString()
+          lesson_id: lesson.id
         })
-        .eq('teacher_id', teacherId)
-        .lte('start_time', scheduledAt)
-        .gte('end_time', scheduledAt)
-        .eq('duration', durationMinutes)
         .eq('is_booked', false)
-        .eq('is_available', true)
+        .eq('is_available', true);
+
+      // Use slot ID if provided (preferred), otherwise fall back to time window matching
+      if (availabilitySlotId) {
+        updateQuery.eq('id', availabilitySlotId);
+      } else {
+        updateQuery
+          .eq('teacher_id', teacherId)
+          .lte('start_time', scheduledAt)
+          .gte('end_time', scheduledAt)
+          .eq('duration', durationMinutes);
+      }
+
+      const { data: updatedSlot, error: availError } = await updateQuery
         .limit(1)
         .select()
         .single();
@@ -201,19 +210,27 @@ export const lessonPricingService = {
       if (lessonError) throw lessonError;
 
       // CRITICAL FIX: Mark availability slot as booked with atomic update
-      const { data: updatedSlot, error: availError } = await supabase
+      const updateQuery = supabase
         .from('teacher_availability')
         .update({ 
           is_booked: true,
-          lesson_id: lesson.id,
-          booked_at: new Date().toISOString()
+          lesson_id: lesson.id
         })
-        .eq('teacher_id', teacherId)
-        .lte('start_time', scheduledAt)
-        .gte('end_time', scheduledAt)
-        .eq('duration', durationMinutes)
         .eq('is_booked', false)
-        .eq('is_available', true)
+        .eq('is_available', true);
+
+      // Use slot ID if provided (preferred), otherwise fall back to time window matching
+      if (availabilitySlotId) {
+        updateQuery.eq('id', availabilitySlotId);
+      } else {
+        updateQuery
+          .eq('teacher_id', teacherId)
+          .lte('start_time', scheduledAt)
+          .gte('end_time', scheduledAt)
+          .eq('duration', durationMinutes);
+      }
+
+      const { data: updatedSlot, error: availError } = await updateQuery
         .limit(1)
         .select()
         .single();
