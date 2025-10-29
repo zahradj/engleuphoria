@@ -1,131 +1,131 @@
 
 import { SubscriptionPlan, LessonPackage } from '@/types/pricing';
 
-// New lesson packages based on the pricing policy (2500 DZD/€15 for 55min, 1250 DZD/€7.50 for 25min)
+// New lesson packages based on standardized pricing (30/60 minute lessons)
 export const lessonPackages: LessonPackage[] = [
-  // 25-minute packages (Algeria - DZD)
+  // 30-minute packages (Algeria - DZD)
   {
-    id: 'pkg-3x25-dzd',
-    name: '3 × 25-min lessons',
+    id: 'pkg-3x30-dzd',
+    name: '3 × 30-min lessons',
     lesson_count: 3,
-    duration_minutes: 25,
-    total_price: 3600,
+    duration_minutes: 30,
+    total_price: 4350,
     savings_amount: 150,
     is_active: true,
     region: 'algeria'
   },
   {
-    id: 'pkg-5x25-dzd',
-    name: '5 × 25-min lessons',
+    id: 'pkg-5x30-dzd',
+    name: '5 × 30-min lessons',
     lesson_count: 5,
-    duration_minutes: 25,
-    total_price: 6000,
+    duration_minutes: 30,
+    total_price: 7250,
     savings_amount: 250,
     is_active: true,
     region: 'algeria'
   },
   {
-    id: 'pkg-10x25-dzd',
-    name: '10 × 25-min lessons',
+    id: 'pkg-10x30-dzd',
+    name: '10 × 30-min lessons',
     lesson_count: 10,
-    duration_minutes: 25,
-    total_price: 12000,
+    duration_minutes: 30,
+    total_price: 14500,
     savings_amount: 500,
     is_active: true,
     region: 'algeria'
   },
   
-  // 55-minute packages (Algeria - DZD)
+  // 60-minute packages (Algeria - DZD)
   {
-    id: 'pkg-3x55-dzd',
-    name: '3 × 55-min lessons',
+    id: 'pkg-3x60-dzd',
+    name: '3 × 60-min lessons',
     lesson_count: 3,
-    duration_minutes: 55,
-    total_price: 7200,
+    duration_minutes: 60,
+    total_price: 7800,
     savings_amount: 300,
     is_active: true,
     region: 'algeria'
   },
   {
-    id: 'pkg-5x55-dzd',
-    name: '5 × 55-min lessons',
+    id: 'pkg-5x60-dzd',
+    name: '5 × 60-min lessons',
     lesson_count: 5,
-    duration_minutes: 55,
-    total_price: 12000,
+    duration_minutes: 60,
+    total_price: 13000,
     savings_amount: 500,
     is_active: true,
     region: 'algeria'
   },
   {
-    id: 'pkg-10x55-dzd',
-    name: '10 × 55-min lessons',
+    id: 'pkg-10x60-dzd',
+    name: '10 × 60-min lessons',
     lesson_count: 10,
-    duration_minutes: 55,
-    total_price: 24000,
+    duration_minutes: 60,
+    total_price: 26000,
     savings_amount: 1000,
     is_active: true,
     region: 'algeria'
   },
   
-  // 25-minute packages (International - EUR)
+  // 30-minute packages (International - EUR)
   {
-    id: 'pkg-3x25-eur',
-    name: '3 × 25-min lessons',
+    id: 'pkg-3x30-eur',
+    name: '3 × 30-min lessons',
     lesson_count: 3,
-    duration_minutes: 25,
-    total_price: 21.50,
+    duration_minutes: 30,
+    total_price: 26.00,
     savings_amount: 1.00,
     is_active: true,
     region: 'international'
   },
   {
-    id: 'pkg-5x25-eur',
-    name: '5 × 25-min lessons',
+    id: 'pkg-5x30-eur',
+    name: '5 × 30-min lessons',
     lesson_count: 5,
-    duration_minutes: 25,
-    total_price: 36.00,
+    duration_minutes: 30,
+    total_price: 43.50,
     savings_amount: 1.50,
     is_active: true,
     region: 'international'
   },
   {
-    id: 'pkg-10x25-eur',
-    name: '10 × 25-min lessons',
+    id: 'pkg-10x30-eur',
+    name: '10 × 30-min lessons',
     lesson_count: 10,
-    duration_minutes: 25,
-    total_price: 72.00,
+    duration_minutes: 30,
+    total_price: 87.00,
     savings_amount: 3.00,
     is_active: true,
     region: 'international'
   },
   
-  // 55-minute packages (International - EUR)
+  // 60-minute packages (International - EUR)
   {
-    id: 'pkg-3x55-eur',
-    name: '3 × 55-min lessons',
+    id: 'pkg-3x60-eur',
+    name: '3 × 60-min lessons',
     lesson_count: 3,
-    duration_minutes: 55,
-    total_price: 43.00,
+    duration_minutes: 60,
+    total_price: 46.00,
     savings_amount: 2.00,
     is_active: true,
     region: 'international'
   },
   {
-    id: 'pkg-5x55-eur',
-    name: '5 × 55-min lessons',
+    id: 'pkg-5x60-eur',
+    name: '5 × 60-min lessons',
     lesson_count: 5,
-    duration_minutes: 55,
-    total_price: 72.00,
+    duration_minutes: 60,
+    total_price: 77.00,
     savings_amount: 3.00,
     is_active: true,
     region: 'international'
   },
   {
-    id: 'pkg-10x55-eur',
-    name: '10 × 55-min lessons',
+    id: 'pkg-10x60-eur',
+    name: '10 × 60-min lessons',
     lesson_count: 10,
-    duration_minutes: 55,
-    total_price: 144.00,
+    duration_minutes: 60,
+    total_price: 154.00,
     savings_amount: 6.00,
     is_active: true,
     region: 'international'

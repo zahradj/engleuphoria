@@ -45,8 +45,8 @@ export const lessonPricingService = {
     return data || [];
   },
 
-  // Get pricing based on duration and region
-  getPricingForLesson(duration: 25 | 55, region: 'algeria' | 'international') {
+  // Get pricing based on duration and region (updated to 30/60 minutes)
+  getPricingForLesson(duration: 30 | 60, region: 'algeria' | 'international') {
     return getLessonPricing(duration, region);
   },
 
@@ -81,8 +81,8 @@ export const lessonPricingService = {
       typeAfter: typeof durationNum
     });
     
-    // Validate duration
-    const allowedDurations = [25, 55];
+    // Validate duration (updated to 30/60 minutes)
+    const allowedDurations = [30, 60];
     if (!allowedDurations.includes(durationNum)) {
       console.error('❌ Invalid duration received:', { 
         duration, 
@@ -90,7 +90,7 @@ export const lessonPricingService = {
         coerced: durationNum,
         allowed: allowedDurations
       });
-      throw new Error('Invalid lesson duration. Must be 25 or 55 minutes.');
+      throw new Error('Invalid lesson duration. Must be 30 or 60 minutes.');
     }
 
     const pricing = this.calculateLessonPrice();
@@ -133,24 +133,31 @@ export const lessonPricingService = {
 
       if (lessonError) throw lessonError;
 
-      // Mark availability slot as booked
-      const { error: availError } = await supabase
+      // CRITICAL FIX: Mark availability slot as booked with atomic update
+      const { data: updatedSlot, error: availError } = await supabase
         .from('teacher_availability')
         .update({ 
           is_booked: true,
-          lesson_id: lesson.id 
+          lesson_id: lesson.id,
+          booked_at: new Date().toISOString()
         })
         .eq('teacher_id', teacherId)
         .lte('start_time', scheduledAt)
         .gte('end_time', scheduledAt)
         .eq('duration', durationMinutes)
-        .eq('is_booked', false);
+        .eq('is_booked', false)
+        .eq('is_available', true)
+        .limit(1)
+        .select()
+        .single();
         
-      if (availError) {
-        console.error('⚠️ Error updating availability slot:', availError);
-      } else {
-        console.log('✅ Availability slot marked as booked');
+      if (availError || !updatedSlot) {
+        // Rollback lesson creation if slot update fails
+        await supabase.from('lessons').delete().eq('id', lesson.id);
+        throw new Error('This time slot is no longer available. Please refresh and select another slot.');
       }
+      
+      console.log('✅ Availability slot marked as booked:', updatedSlot.id);
 
       // Redeem package credit
       await supabase
@@ -193,24 +200,31 @@ export const lessonPricingService = {
 
       if (lessonError) throw lessonError;
 
-      // Mark availability slot as booked
-      const { error: availError } = await supabase
+      // CRITICAL FIX: Mark availability slot as booked with atomic update
+      const { data: updatedSlot, error: availError } = await supabase
         .from('teacher_availability')
         .update({ 
           is_booked: true,
-          lesson_id: lesson.id 
+          lesson_id: lesson.id,
+          booked_at: new Date().toISOString()
         })
         .eq('teacher_id', teacherId)
         .lte('start_time', scheduledAt)
         .gte('end_time', scheduledAt)
         .eq('duration', durationMinutes)
-        .eq('is_booked', false);
+        .eq('is_booked', false)
+        .eq('is_available', true)
+        .limit(1)
+        .select()
+        .single();
         
-      if (availError) {
-        console.error('⚠️ Error updating availability slot:', availError);
-      } else {
-        console.log('✅ Availability slot marked as booked');
+      if (availError || !updatedSlot) {
+        // Rollback lesson creation if slot update fails
+        await supabase.from('lessons').delete().eq('id', lesson.id);
+        throw new Error('This time slot is no longer available. Please refresh and select another slot.');
       }
+      
+      console.log('✅ Availability slot marked as booked:', updatedSlot.id);
 
       // Create payment record
       const { data: payment, error: paymentError } = await supabase

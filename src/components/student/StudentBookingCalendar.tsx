@@ -5,6 +5,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { Clock, User, CheckCircle, Calendar as CalendarIcon, RefreshCcw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TimeSlot {
   id: string;
@@ -28,11 +29,43 @@ export const StudentBookingCalendar = ({
   isLoading = false 
 }: StudentBookingCalendarProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const [localSlots, setLocalSlots] = useState<TimeSlot[]>(availableSlots);
   const navigate = useNavigate();
+
+  // Real-time subscription for availability changes
+  React.useEffect(() => {
+    const subscription = supabase
+      .channel('availability-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'teacher_availability',
+          filter: 'is_available=eq.true'
+        },
+        (payload) => {
+          console.log('📡 Availability changed:', payload);
+          // Refresh the calendar when availability changes
+          // The parent component should handle refetching
+          window.dispatchEvent(new CustomEvent('availability-changed'));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // Update local slots when prop changes
+  React.useEffect(() => {
+    setLocalSlots(availableSlots);
+  }, [availableSlots]);
 
   // Get slots for selected date
   const getSlotsForDate = (date: Date) => {
-    return availableSlots.filter(slot => {
+    return localSlots.filter(slot => {
       const slotDate = new Date(slot.startTime);
       return slotDate.toDateString() === date.toDateString();
     });
@@ -41,7 +74,7 @@ export const StudentBookingCalendar = ({
   // Get dates that have available slots
   const getDatesWithSlots = () => {
     const dates = new Set<string>();
-    availableSlots.forEach(slot => {
+    localSlots.forEach(slot => {
       dates.add(new Date(slot.startTime).toDateString());
     });
     return Array.from(dates).map(dateStr => new Date(dateStr));
@@ -55,7 +88,7 @@ export const StudentBookingCalendar = ({
   const selectedDateSlots = selectedDate ? getSlotsForDate(selectedDate) : [];
   
   // Show empty state if no slots available at all
-  if (availableSlots.length === 0) {
+  if (localSlots.length === 0) {
     return (
       <Card>
         <CardContent className="text-center py-12 space-y-4">

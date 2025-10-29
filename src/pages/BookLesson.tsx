@@ -47,7 +47,7 @@ export const BookLesson = () => {
   const [isBooking, setIsBooking] = useState(false);
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
-  const [selectedDuration, setSelectedDuration] = useState<25 | 55>(55);
+  const [selectedDuration, setSelectedDuration] = useState<30 | 60>(60);
   const { selectedRegion } = useLocationPricing();
   const currentPricing = getLessonPricing(selectedDuration, selectedRegion);
 
@@ -403,7 +403,7 @@ export const BookLesson = () => {
                 <Alert>
                   <CheckCircle className="h-4 w-4" />
                   <AlertDescription>
-                    Lessons are available in 25-minute or 55-minute sessions. You'll receive a confirmation email and calendar invite after booking.
+                    Lessons are available in 30-minute or 60-minute sessions. You'll receive a confirmation email and calendar invite after booking.
                   </AlertDescription>
                 </Alert>
 
@@ -416,20 +416,20 @@ export const BookLesson = () => {
                   <div className="grid grid-cols-2 gap-4 mb-4">
                     <Button
                       type="button"
-                      variant={selectedDuration === 25 ? "default" : "outline"}
-                      onClick={() => setSelectedDuration(25)}
+                      variant={selectedDuration === 30 ? "default" : "outline"}
+                      onClick={() => setSelectedDuration(30)}
                       className={cn(
                         "h-32 flex flex-col items-center justify-center gap-2 transition-all",
-                        selectedDuration === 25 
+                        selectedDuration === 30 
                           ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg" 
                           : "hover:border-blue-300"
                       )}
                     >
                       <Clock className="h-6 w-6" />
                       <div className="flex flex-col items-center">
-                        <span className="font-bold text-lg">25 minutes</span>
+                        <span className="font-bold text-lg">30 minutes</span>
                         <span className="text-sm opacity-90 mt-1">
-                          {selectedRegion === 'algeria' ? '1,250 DZD' : '€7.50'}
+                          {selectedRegion === 'algeria' ? '1,500 DZD' : '€9.00'}
                         </span>
                         <Badge variant="secondary" className="mt-1">Quick Session</Badge>
                       </div>
@@ -437,18 +437,18 @@ export const BookLesson = () => {
                     
                     <Button
                       type="button"
-                      variant={selectedDuration === 55 ? "default" : "outline"}
-                      onClick={() => setSelectedDuration(55)}
+                      variant={selectedDuration === 60 ? "default" : "outline"}
+                      onClick={() => setSelectedDuration(60)}
                       className={cn(
                         "h-32 flex flex-col items-center justify-center gap-2 transition-all",
-                        selectedDuration === 55 
+                        selectedDuration === 60 
                           ? "bg-gradient-to-br from-purple-500 to-purple-600 text-white shadow-lg" 
                           : "hover:border-purple-300"
                       )}
                     >
                       <Clock className="h-6 w-6" />
                       <div className="flex flex-col items-center">
-                        <span className="font-bold text-lg">55 minutes</span>
+                        <span className="font-bold text-lg">60 minutes</span>
                         <span className="text-sm opacity-90 mt-1">
                           {selectedRegion === 'algeria' ? '2,500 DZD' : '€15.00'}
                         </span>
