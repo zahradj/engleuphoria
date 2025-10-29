@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import type { AvailabilitySlot } from '@/components/teacher/calendar/modern/types';
@@ -68,10 +68,17 @@ export const useTeacherAvailability = (teacherId: string, weekDays: Date[]) => {
     }
   }, [teacherId, weekDays, toast]);
 
-  // Real-time subscription
+  // Store fetchSlots in a ref to avoid subscription recreation
+  const fetchSlotsRef = useRef(fetchSlots);
+  fetchSlotsRef.current = fetchSlots;
+
+  // Initial fetch when dependencies change
   useEffect(() => {
     fetchSlots();
+  }, [fetchSlots]);
 
+  // Real-time subscription - only recreate if teacherId changes
+  useEffect(() => {
     const channel = supabase
       .channel(`teacher-calendar-${teacherId}`)
       .on(
@@ -84,7 +91,7 @@ export const useTeacherAvailability = (teacherId: string, weekDays: Date[]) => {
         },
         (payload) => {
           console.log('Real-time update:', payload);
-          fetchSlots(); // Reload slots on any change
+          fetchSlotsRef.current(); // Use ref to avoid subscription recreation
         }
       )
       .subscribe();
@@ -92,7 +99,7 @@ export const useTeacherAvailability = (teacherId: string, weekDays: Date[]) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [teacherId, fetchSlots]);
+  }, [teacherId]);
 
   const createSlot = async (date: Date, time: string, duration: 30 | 60) => {
     try {

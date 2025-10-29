@@ -14,6 +14,7 @@ export const SyncStatusBadge = ({ teacherId, refreshTrigger }: SyncStatusBadgePr
   const [nextAvailable, setNextAvailable] = useState<Date | null>(null);
   const [lastSync, setLastSync] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState(false);
+  const [syncTimeAgo, setSyncTimeAgo] = useState("just now");
 
   const fetchSyncStatus = async () => {
     setIsLoading(true);
@@ -57,7 +58,21 @@ export const SyncStatusBadge = ({ teacherId, refreshTrigger }: SyncStatusBadgePr
 
   useEffect(() => {
     fetchSyncStatus();
-  }, [teacherId, refreshTrigger]);
+  }, [teacherId]);
+
+  // Update "time since sync" every 10 seconds
+  useEffect(() => {
+    const updateTimeSinceSync = () => {
+      const seconds = Math.floor((new Date().getTime() - lastSync.getTime()) / 1000);
+      if (seconds < 10) setSyncTimeAgo("just now");
+      else if (seconds < 60) setSyncTimeAgo(`${seconds}s ago`);
+      else setSyncTimeAgo(`${Math.floor(seconds / 60)}m ago`);
+    };
+
+    updateTimeSinceSync();
+    const interval = setInterval(updateTimeSinceSync, 10000);
+    return () => clearInterval(interval);
+  }, [lastSync]);
 
   const getStatusColor = () => {
     if (availableSlots === 0) return "bg-destructive/10 text-destructive border-destructive/20";
@@ -92,14 +107,6 @@ export const SyncStatusBadge = ({ teacherId, refreshTrigger }: SyncStatusBadgePr
     }
   };
 
-  const getTimeSinceSync = () => {
-    const seconds = Math.floor((new Date().getTime() - lastSync.getTime()) / 1000);
-    if (seconds < 10) return "just now";
-    if (seconds < 60) return `${seconds}s ago`;
-    const minutes = Math.floor(seconds / 60);
-    return `${minutes}m ago`;
-  };
-
   return (
     <div className="sticky top-0 z-20 flex flex-wrap items-center gap-3 p-4 bg-gradient-to-r from-background via-background/95 to-background rounded-xl border shadow-lg backdrop-blur-sm">
       <Badge variant="outline" className={`${getStatusColor()} px-4 py-2 text-sm font-semibold flex items-center gap-2`}>
@@ -125,7 +132,7 @@ export const SyncStatusBadge = ({ teacherId, refreshTrigger }: SyncStatusBadgePr
         <div className="h-4 w-px bg-border" />
         <div className="flex items-center gap-1 text-muted-foreground text-xs">
           <RefreshCw className="h-3 w-3" />
-          <span>Synced {getTimeSinceSync()}</span>
+          <span>Synced {syncTimeAgo}</span>
         </div>
       </div>
 

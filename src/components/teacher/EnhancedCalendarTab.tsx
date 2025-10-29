@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { CalendarCore } from "./calendar/modern/CalendarCore";
 import { SlotManager } from "./calendar/modern/SlotManager";
 import { SyncStatusBadge } from "./calendar/SyncStatusBadge";
@@ -15,7 +15,7 @@ export const EnhancedCalendarTab = ({ teacherId }: EnhancedCalendarTabProps) => 
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [showSlotManager, setShowSlotManager] = useState(false);
 
-  const weekDays = getWeekDays(currentWeek);
+  const weekDays = useMemo(() => getWeekDays(currentWeek), [currentWeek]);
   const { slots, isLoading, createSlot, deleteSlot } = useTeacherAvailability(teacherId, weekDays);
 
   const handleNavigateWeek = (direction: -1 | 1) => {

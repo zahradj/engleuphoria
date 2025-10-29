@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Calendar, Check, Lock, Plus } from 'lucide-react';
@@ -27,6 +27,7 @@ export const CalendarCore: React.FC<CalendarCoreProps> = ({
   onSlotClick,
 }) => {
   const timeSlots = generateTimeSlots();
+  const today = useMemo(() => new Date(), []);
 
   const getSlotForTimeAndDate = (time: string, date: Date): AvailabilitySlot | null => {
     const [hours, minutes] = time.split(':').map(Number);
@@ -71,7 +72,7 @@ export const CalendarCore: React.FC<CalendarCoreProps> = ({
           className={cn(
             'h-12 border-2 border-green-500 bg-green-50 dark:bg-green-950/20 rounded-md',
             'hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors',
-            'flex items-center justify-center relative group animate-pulse'
+            'flex items-center justify-center relative group'
           )}
         >
           <Check className="w-4 h-4 text-green-600" />
@@ -153,7 +154,7 @@ export const CalendarCore: React.FC<CalendarCoreProps> = ({
             {/* Header Row */}
             <div className="sticky left-0 bg-background z-10" />
             {weekDays.map((day, idx) => {
-              const isToday = isSameDay(day, new Date());
+              const isToday = isSameDay(day, today);
               return (
                 <div
                   key={idx}
