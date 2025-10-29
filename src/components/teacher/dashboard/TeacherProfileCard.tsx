@@ -4,49 +4,44 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Heart, MapPin } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-
 export const TeacherProfileCard = () => {
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const [profile, setProfile] = useState<any>(null);
-  const [earnings, setEarnings] = useState({ total: 0, count: 0 });
-  
+  const [earnings, setEarnings] = useState({
+    total: 0,
+    count: 0
+  });
   const teacherName = user?.user_metadata?.full_name || user?.email || "Teacher";
   const initials = teacherName.split(' ').map(n => n[0]).join('').toUpperCase();
-
   useEffect(() => {
     const fetchProfile = async () => {
       if (!user?.id) return;
-      
-      const { data } = await supabase
-        .from('teacher_profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      
+      const {
+        data
+      } = await supabase.from('teacher_profiles').select('*').eq('user_id', user.id).maybeSingle();
       setProfile(data);
 
       // Calculate earnings from completed lessons
-      const { data: lessons } = await supabase
-        .from('lessons')
-        .select('*')
-        .eq('teacher_id', user.id)
-        .eq('status', 'completed');
-      
+      const {
+        data: lessons
+      } = await supabase.from('lessons').select('*').eq('teacher_id', user.id).eq('status', 'completed');
       if (lessons) {
         const total = lessons.reduce((sum, lesson) => sum + (lesson.teacher_rate || 20), 0);
-        setEarnings({ total, count: lessons.length });
+        setEarnings({
+          total,
+          count: lessons.length
+        });
       }
     };
-
     fetchProfile();
   }, [user?.id]);
-
   const rate = profile?.hourly_rate || 20;
   const timezone = profile?.timezone || 'UTC';
   const accountHealth = 10; // Full health for now
 
-  return (
-    <Card className="border-0 shadow-lg overflow-hidden">
+  return <Card className="border-0 shadow-lg overflow-hidden">
       <div className="bg-gradient-to-br from-purple-600 via-indigo-600 to-purple-700 p-6 text-white">
         <div className="flex flex-col items-center text-center space-y-4">
           <Avatar className="h-24 w-24 border-4 border-white/20">
@@ -79,22 +74,8 @@ export const TeacherProfileCard = () => {
             </div>
           </div>
 
-          <div className="w-full pt-2 border-t border-white/20">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm text-white/80">Account health</span>
-              <span className="text-sm font-medium">{accountHealth}/10</span>
-            </div>
-            <div className="flex gap-1 justify-center">
-              {Array.from({ length: 10 }).map((_, i) => (
-                <Heart 
-                  key={i} 
-                  className={`h-4 w-4 ${i < accountHealth ? 'fill-white text-white' : 'text-white/30'}`}
-                />
-              ))}
-            </div>
-          </div>
+          
         </div>
       </div>
-    </Card>
-  );
+    </Card>;
 };
