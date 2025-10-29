@@ -9,6 +9,8 @@ export interface AvailabilitySlot {
   lessonId?: string;
   lessonTitle?: string;
   studentName?: string;
+  studentId?: string;
+  studentCefrLevel?: string;
 }
 
 export interface TimeSlot {

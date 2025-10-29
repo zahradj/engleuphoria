@@ -53,14 +53,26 @@ export const CalendarCore: React.FC<CalendarCoreProps> = ({
       return (
         <div
           className={cn(
-            'h-20 border-2 border-purple-500 bg-purple-50 dark:bg-purple-950/20 rounded-md p-1',
-            'flex flex-col items-center justify-center text-sm cursor-not-allowed'
+            'h-20 border-2 border-purple-500 bg-purple-50 dark:bg-purple-950/20 rounded-md p-2',
+            'flex flex-col items-start justify-center text-xs cursor-not-allowed overflow-hidden'
           )}
         >
-          <Lock className="w-4 h-4 text-purple-600 mb-0.5" />
-          <span className="text-purple-700 dark:text-purple-400 font-medium truncate w-full text-center">
-            {slot.studentName || 'Booked'}
-          </span>
+          <div className="flex items-center gap-1 w-full mb-0.5">
+            <Lock className="w-3 h-3 text-purple-600 flex-shrink-0" />
+            <span className="text-purple-700 dark:text-purple-400 font-bold truncate">
+              {slot.studentName || 'Booked'}
+            </span>
+          </div>
+          {slot.studentCefrLevel && (
+            <div className="text-purple-600 dark:text-purple-300 font-medium">
+              Level: {slot.studentCefrLevel}
+            </div>
+          )}
+          {slot.studentId && (
+            <div className="text-purple-500 dark:text-purple-400 text-[10px] truncate w-full">
+              ID: {slot.studentId.slice(0, 8)}...
+            </div>
+          )}
         </div>
       );
     }

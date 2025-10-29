@@ -32,7 +32,8 @@ export const useTeacherAvailability = (teacherId: string, weekDays: Date[]) => {
             id,
             title,
             student_id,
-            users:student_id (full_name)
+            users:student_id (full_name),
+            student_profiles:student_id (cefr_level)
           )
         `)
         .eq('teacher_id', teacherId)
@@ -53,6 +54,8 @@ export const useTeacherAvailability = (teacherId: string, weekDays: Date[]) => {
         lessonId: slot.lesson_id || undefined,
         lessonTitle: (slot.lessons as any)?.title,
         studentName: (slot.lessons as any)?.users?.full_name,
+        studentId: (slot.lessons as any)?.student_id,
+        studentCefrLevel: (slot.lessons as any)?.student_profiles?.cefr_level,
       }));
 
       setSlots(formattedSlots);

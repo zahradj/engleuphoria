@@ -160,13 +160,30 @@ export const lessonPricingService = {
         .select()
         .single();
         
-      if (availError || !updatedSlot) {
-        // Rollback lesson creation if slot update fails
+      // IMPROVED: Check if the error is a genuine failure or just a race condition
+      if (availError) {
+        // If the error is "PGRST116" (no rows), verify if our lesson was actually booked
+        const { data: checkSlot } = await supabase
+          .from('teacher_availability')
+          .select('is_booked, lesson_id')
+          .eq('id', availabilitySlotId || updatedSlot?.id)
+          .single();
+        
+        if (checkSlot?.lesson_id === lesson.id) {
+          // Success! Our lesson ID is on the slot, so booking succeeded
+          console.log('✅ Slot booking verified via check query');
+        } else {
+          // Genuine failure - rollback
+          await supabase.from('lessons').delete().eq('id', lesson.id);
+          throw new Error('This time slot is no longer available. Please refresh and select another slot.');
+        }
+      } else if (!updatedSlot) {
+        // Rollback if truly no slot updated
         await supabase.from('lessons').delete().eq('id', lesson.id);
         throw new Error('This time slot is no longer available. Please refresh and select another slot.');
+      } else {
+        console.log('✅ Availability slot marked as booked:', updatedSlot.id);
       }
-      
-      console.log('✅ Availability slot marked as booked:', updatedSlot.id);
 
       // Redeem package credit
       await supabase
@@ -235,13 +252,30 @@ export const lessonPricingService = {
         .select()
         .single();
         
-      if (availError || !updatedSlot) {
-        // Rollback lesson creation if slot update fails
+      // IMPROVED: Check if the error is a genuine failure or just a race condition
+      if (availError) {
+        // If the error is "PGRST116" (no rows), verify if our lesson was actually booked
+        const { data: checkSlot } = await supabase
+          .from('teacher_availability')
+          .select('is_booked, lesson_id')
+          .eq('id', availabilitySlotId || updatedSlot?.id)
+          .single();
+        
+        if (checkSlot?.lesson_id === lesson.id) {
+          // Success! Our lesson ID is on the slot, so booking succeeded
+          console.log('✅ Slot booking verified via check query');
+        } else {
+          // Genuine failure - rollback
+          await supabase.from('lessons').delete().eq('id', lesson.id);
+          throw new Error('This time slot is no longer available. Please refresh and select another slot.');
+        }
+      } else if (!updatedSlot) {
+        // Rollback if truly no slot updated
         await supabase.from('lessons').delete().eq('id', lesson.id);
         throw new Error('This time slot is no longer available. Please refresh and select another slot.');
+      } else {
+        console.log('✅ Availability slot marked as booked:', updatedSlot.id);
       }
-      
-      console.log('✅ Availability slot marked as booked:', updatedSlot.id);
 
       // Create payment record
       const { data: payment, error: paymentError } = await supabase
