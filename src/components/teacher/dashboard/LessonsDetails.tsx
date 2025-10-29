@@ -23,7 +23,7 @@ export const LessonsDetails = () => {
           *,
           student:users!lessons_student_id_fkey(
             email,
-            user_metadata
+            full_name
           )
         `)
         .eq('teacher_id', user.id)
@@ -38,7 +38,7 @@ export const LessonsDetails = () => {
           *,
           student:users!lessons_student_id_fkey(
             email,
-            user_metadata
+            full_name
           )
         `)
         .eq('teacher_id', user.id)
@@ -54,7 +54,7 @@ export const LessonsDetails = () => {
           *,
           student:users!lessons_student_id_fkey(
             email,
-            user_metadata
+            full_name
           )
         `)
         .eq('teacher_id', user.id)
@@ -75,7 +75,7 @@ export const LessonsDetails = () => {
     const lessonDate = new Date(lesson.scheduled_at);
     const timeStr = lessonDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
     const dateStr = lessonDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    const studentName = lesson.student_name || lesson.student?.user_metadata?.full_name || lesson.student?.email;
+    const studentName = lesson.student_name || lesson.student?.full_name || lesson.student?.email;
 
     return (
       <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">

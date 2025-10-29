@@ -113,6 +113,24 @@ export const useTeacherAvailability = (teacherId: string, weekDays: Date[]) => {
       const endTime = new Date(startTime);
       endTime.setMinutes(endTime.getMinutes() + duration);
 
+      // Check if slot already exists
+      const { data: existingSlot } = await supabase
+        .from('teacher_availability')
+        .select('id, is_booked')
+        .eq('teacher_id', teacherId)
+        .eq('start_time', startTime.toISOString())
+        .maybeSingle();
+
+      if (existingSlot) {
+        const status = existingSlot.is_booked ? 'booked' : 'available';
+        toast({
+          title: 'Slot already exists',
+          description: `This time slot is already ${status}`,
+          variant: 'default',
+        });
+        return false;
+      }
+
       const { error } = await supabase
         .from('teacher_availability')
         .insert({
@@ -134,11 +152,21 @@ export const useTeacherAvailability = (teacherId: string, weekDays: Date[]) => {
       return true;
     } catch (error: any) {
       console.error('Error creating slot:', error);
-      toast({
-        title: 'Failed to create slot',
-        description: error.message || 'Please try again',
-        variant: 'destructive',
-      });
+      
+      // Handle unique constraint violation
+      if (error.code === '23505') {
+        toast({
+          title: 'Slot already exists',
+          description: 'This time slot is already in your calendar',
+          variant: 'default',
+        });
+      } else {
+        toast({
+          title: 'Failed to create slot',
+          description: error.message || 'Please try again',
+          variant: 'destructive',
+        });
+      }
       return false;
     }
   };
@@ -172,6 +200,7 @@ export const useTeacherAvailability = (teacherId: string, weekDays: Date[]) => {
   const createBulkSlots = async (dates: Date[], times: string[], duration: 30 | 60) => {
     try {
       const slotsToCreate = [];
+      const skippedSlots = [];
 
       for (const date of dates) {
         for (const time of times) {
@@ -181,6 +210,19 @@ export const useTeacherAvailability = (teacherId: string, weekDays: Date[]) => {
           
           const endTime = new Date(startTime);
           endTime.setMinutes(endTime.getMinutes() + duration);
+
+          // Check if slot already exists
+          const { data: existingSlot } = await supabase
+            .from('teacher_availability')
+            .select('id')
+            .eq('teacher_id', teacherId)
+            .eq('start_time', startTime.toISOString())
+            .maybeSingle();
+
+          if (existingSlot) {
+            skippedSlots.push(`${date.toLocaleDateString()} ${time}`);
+            continue;
+          }
 
           slotsToCreate.push({
             teacher_id: teacherId,
@@ -193,15 +235,28 @@ export const useTeacherAvailability = (teacherId: string, weekDays: Date[]) => {
         }
       }
 
+      if (slotsToCreate.length === 0) {
+        toast({
+          title: 'No new slots',
+          description: 'All selected slots already exist in your calendar',
+          variant: 'default',
+        });
+        return false;
+      }
+
       const { error } = await supabase
         .from('teacher_availability')
         .insert(slotsToCreate);
 
       if (error) throw error;
 
+      const message = skippedSlots.length > 0
+        ? `Created ${slotsToCreate.length} slots. Skipped ${skippedSlots.length} duplicates.`
+        : `Created ${slotsToCreate.length} availability slots`;
+
       toast({
-        title: 'Bulk slots created',
-        description: `Created ${slotsToCreate.length} availability slots`,
+        title: 'Slots created',
+        description: message,
       });
 
       return true;
