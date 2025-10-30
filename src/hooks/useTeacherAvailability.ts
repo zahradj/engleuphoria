@@ -19,29 +19,16 @@ export const useTeacherAvailability = (teacherId: string, weekDays: Date[]) => {
 
       const { data, error } = await supabase
         .from('teacher_availability')
-        .select(`
-          id,
-          teacher_id,
-          start_time,
-          end_time,
-          duration,
-          is_available,
-          is_booked,
-          lesson_id,
-          lessons:lesson_id (
-            id,
-            title,
-            student_id,
-            users:student_id (full_name),
-            student_profiles:student_id (cefr_level)
-          )
-        `)
+        .select('id, teacher_id, start_time, end_time, duration, is_available, is_booked, student_id, lesson_id, lesson_title')
         .eq('teacher_id', teacherId)
         .gte('start_time', startDate)
         .lte('start_time', endDate.toISOString())
         .order('start_time', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('PostgREST error:', error);
+        throw error;
+      }
 
       const formattedSlots: AvailabilitySlot[] = (data || []).map(slot => ({
         id: slot.id,
@@ -52,10 +39,10 @@ export const useTeacherAvailability = (teacherId: string, weekDays: Date[]) => {
         isAvailable: slot.is_available,
         isBooked: slot.is_booked,
         lessonId: slot.lesson_id || undefined,
-        lessonTitle: (slot.lessons as any)?.title,
-        studentName: (slot.lessons as any)?.users?.full_name,
-        studentId: (slot.lessons as any)?.student_id,
-        studentCefrLevel: (slot.lessons as any)?.student_profiles?.cefr_level,
+        lessonTitle: slot.lesson_title || undefined,
+        studentName: undefined,
+        studentId: slot.student_id || undefined,
+        studentCefrLevel: undefined,
       }));
 
       setSlots(formattedSlots);
@@ -128,6 +115,7 @@ export const useTeacherAvailability = (teacherId: string, weekDays: Date[]) => {
           description: `This time slot is already ${status}`,
           variant: 'default',
         });
+        await fetchSlotsRef.current();
         return false;
       }
 

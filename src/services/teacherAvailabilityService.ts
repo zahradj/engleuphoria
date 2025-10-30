@@ -28,17 +28,7 @@ export const teacherAvailabilityService = {
   async getAvailableSlots(): Promise<AvailableTimeSlot[]> {
     const { data, error } = await supabase
       .from('teacher_availability')
-      .select(`
-        id,
-        teacher_id,
-        start_time,
-        end_time,
-        duration,
-        is_available,
-        is_booked,
-        lesson_id,
-        users!teacher_availability_teacher_id_fkey(full_name)
-      `)
+      .select('id, teacher_id, start_time, end_time, duration, is_available, is_booked')
       .eq('is_available', true)
       .eq('is_booked', false)
       .gte('start_time', new Date().toISOString())
@@ -49,13 +39,23 @@ export const teacherAvailabilityService = {
       throw error;
     }
 
-    return (data || []).map(slot => ({
+    if (!data || data.length === 0) return [];
+
+    const teacherIds = [...new Set(data.map(slot => slot.teacher_id))];
+    const { data: teachers } = await supabase
+      .from('users')
+      .select('id, full_name')
+      .in('id', teacherIds);
+
+    const teacherMap = new Map(teachers?.map(t => [t.id, t.full_name]) || []);
+
+    return data.map(slot => ({
       id: slot.id,
       teacherId: slot.teacher_id,
-      teacherName: (slot.users as any)?.full_name || 'Teacher',
+      teacherName: teacherMap.get(slot.teacher_id) || 'Teacher',
       startTime: new Date(slot.start_time),
       endTime: new Date(slot.end_time),
-      duration: Number(slot.duration), // Explicit number conversion
+      duration: Number(slot.duration),
       isAvailable: slot.is_available && !slot.is_booked
     }));
   },
@@ -66,17 +66,7 @@ export const teacherAvailabilityService = {
   async getTeacherAvailableSlots(teacherId: string): Promise<AvailableTimeSlot[]> {
     const { data, error } = await supabase
       .from('teacher_availability')
-      .select(`
-        id,
-        teacher_id,
-        start_time,
-        end_time,
-        duration,
-        is_available,
-        is_booked,
-        lesson_id,
-        users!teacher_availability_teacher_id_fkey(full_name)
-      `)
+      .select('id, teacher_id, start_time, end_time, duration, is_available, is_booked')
       .eq('teacher_id', teacherId)
       .eq('is_available', true)
       .eq('is_booked', false)
@@ -88,13 +78,23 @@ export const teacherAvailabilityService = {
       throw error;
     }
 
-    return (data || []).map(slot => ({
+    if (!data || data.length === 0) return [];
+
+    const { data: teacher } = await supabase
+      .from('users')
+      .select('full_name')
+      .eq('id', teacherId)
+      .single();
+
+    const teacherName = teacher?.full_name || 'Teacher';
+
+    return data.map(slot => ({
       id: slot.id,
       teacherId: slot.teacher_id,
-      teacherName: (slot.users as any)?.full_name || 'Teacher',
+      teacherName,
       startTime: new Date(slot.start_time),
       endTime: new Date(slot.end_time),
-      duration: Number(slot.duration), // Explicit number conversion
+      duration: Number(slot.duration),
       isAvailable: slot.is_available && !slot.is_booked
     }));
   },
