@@ -249,8 +249,8 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
       setResetLoading(false);
     }
   };
-  const gradientClass = 'from-purple-400/80 via-purple-400/70 to-purple-500/80';
-  const backgroundGradient = 'from-purple-50/20 via-purple-50/15 to-purple-100/20';
+  const gradientClass = 'from-primary/80 via-primary/70 to-accent/80';
+  const backgroundGradient = 'from-primary/10 via-primary/5 to-accent/10';
   return <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-50/40 via-purple-50/40 to-pink-50/40">
       {/* Playful background decorations */}
       <div className="absolute inset-0">
@@ -334,7 +334,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
       <div className="relative z-10 container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
         {/* Return Home Tab */}
         <div className="absolute top-6 left-6">
-          <Button variant="outline" onClick={() => navigate('/')} className="bg-white/90 backdrop-blur-sm border-2 border-purple-200 text-purple-600 hover:bg-gradient-to-r hover:from-blue-50 hover:via-purple-50 hover:to-pink-50 hover:border-pink-300 hover:text-purple-700 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl px-8 py-3 font-semibold text-base">
+          <Button variant="outline" onClick={() => navigate('/')} className="bg-surface/90 backdrop-blur-sm border-2 border-primary/30 text-primary hover:bg-primary hover:border-primary hover:text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl px-8 py-3 font-semibold text-base">
             <span className="mr-2 text-2xl">🏠</span>
             Return Home
           </Button>
@@ -343,12 +343,12 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
         <div className="w-full max-w-md">
           
 
-          <Card className="relative bg-white/95 backdrop-blur-xl border-2 border-gray-200/50 shadow-xl overflow-hidden rounded-3xl">
+          <Card className="relative bg-surface/95 backdrop-blur-xl border-2 border-primary/20 shadow-xl overflow-hidden rounded-3xl">
             {/* Glowing border effect */}
-            <div className={`absolute -inset-2 bg-gradient-to-r ${gradientClass} rounded-3xl blur-lg opacity-10 animate-pulse`}></div>
+            <div className={`absolute -inset-2 bg-gradient-to-r ${gradientClass} rounded-3xl blur-lg opacity-20 animate-pulse`}></div>
             
-            <div className="relative bg-white/98 backdrop-blur-xl rounded-3xl shadow-inner">
-              <CardHeader className="text-center pb-8 pt-10 bg-gradient-to-b from-purple-50/20 to-white/50">
+            <div className="relative bg-surface/98 backdrop-blur-xl rounded-3xl shadow-inner">
+              <CardHeader className="text-center pb-8 pt-10 bg-gradient-to-b from-primary/10 to-surface/50">
                 {/* Fun floating icon */}
                 <div className="flex justify-center mb-8">
                   <div className={`relative w-24 h-24 rounded-full bg-gradient-to-r ${gradientClass} flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-300 animate-bounce`}>
@@ -358,10 +358,10 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
                   </div>
                 </div>
                 
-                <CardTitle className="text-4xl font-black bg-gradient-to-r from-gray-800 to-gray-700 bg-clip-text text-transparent mb-4 drop-shadow-sm">
+                <CardTitle className="text-4xl font-black bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent mb-4 drop-shadow-sm">
                   {mode === 'login' ? 'Welcome Back! 🎊' : 'Join the Magic! ✨'}
                 </CardTitle>
-                <CardDescription className="text-purple-600 text-lg font-semibold">
+                <CardDescription className="text-primary text-lg font-semibold">
                   {mode === 'login' ? 'Ready to continue your amazing journey? 🚀' : 'Start your extraordinary English adventure today! 🌟'}
                 </CardDescription>
               </CardHeader>
