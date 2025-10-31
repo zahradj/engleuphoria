@@ -1,11 +1,12 @@
 import React from "react";
 import { GlassCard } from "@/components/ui/glass-card";
 import { GlassButton } from "@/components/ui/glass-button";
-import { MessageSquare, BookOpen, Trophy, Video, Mic, MicOff, VideoOff, ChevronRight } from "lucide-react";
+import { MessageSquare, BookOpen, Trophy, Video, Mic, MicOff, VideoOff, ChevronRight, Library } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ModernChatPanel } from "@/components/classroom/modern/ModernChatPanel";
 import { ModernDictionaryPanel } from "@/components/classroom/modern/ModernDictionaryPanel";
 import { ModernRewardsPanel } from "@/components/classroom/modern/ModernRewardsPanel";
+import { EnglishJourneyLibrary } from "@/components/teacher/library/EnglishJourneyLibrary";
 import { soundEffectsService } from "@/services/soundEffectsService";
 
 interface UnifiedRightSidebarProps {
@@ -168,7 +169,8 @@ export function UnifiedRightSidebar({
   const tabs = [
     { id: 'chat', label: 'Chat', icon: MessageSquare, badge: unreadChatCount },
     { id: 'dictionary', label: 'Dictionary', icon: BookOpen },
-    { id: 'rewards', label: 'Rewards', icon: Trophy }
+    { id: 'rewards', label: 'Rewards', icon: Trophy },
+    ...(isTeacher ? [{ id: 'library', label: 'Library', icon: Library }] : [])
   ];
 
   const handleTabClick = (tabId: string) => {
@@ -260,6 +262,11 @@ export function UnifiedRightSidebar({
               isTeacher={isTeacher}
               onAwardStar={onAwardStar}
             />
+          )}
+          {activeTab === 'library' && isTeacher && (
+            <div className="h-full overflow-y-auto p-4">
+              <EnglishJourneyLibrary />
+            </div>
           )}
         </div>
       </GlassCard>

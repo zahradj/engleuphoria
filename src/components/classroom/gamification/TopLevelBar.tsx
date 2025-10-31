@@ -49,8 +49,8 @@ export function TopLevelBar({
   }, [currentXP, previousXP, xpPerSegment, normalizedXP, maxXP]);
 
   return (
-    <div className="fixed top-16 left-0 right-0 z-50 h-6 bg-white/20 backdrop-blur-md neon-border-glow shadow-[0_0_20px_rgba(0,255,255,0.3)]">
-      <div className="container mx-auto h-full flex items-center gap-2 px-4">
+    <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 h-6 bg-white/20 backdrop-blur-md neon-border-glow shadow-[0_0_10px_rgba(0,255,255,0.15)] max-w-4xl w-full">
+      <div className="h-full flex items-center gap-2 px-4">
         {/* Level Badge */}
         <Badge className="bg-gradient-to-r from-[hsl(var(--neon-purple))] to-[hsl(var(--neon-pink))] text-white px-2 py-0.5 text-xs font-bold neon-glow-purple border border-white/20">
           Lv {level}
