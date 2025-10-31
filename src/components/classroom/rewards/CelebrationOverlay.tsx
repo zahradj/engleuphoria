@@ -59,8 +59,8 @@ export function CelebrationOverlay({
           {/* Background glow effect */}
           <div className={`absolute inset-0 rounded-full blur-3xl scale-150 animate-pulse ${
             isLevelUp 
-              ? 'bg-gradient-to-r from-purple-400/40 via-yellow-400/40 to-purple-600/40' 
-              : 'bg-gradient-to-r from-yellow-400/20 via-orange-500/20 to-red-500/20'
+              ? 'bg-gradient-to-r from-[hsl(var(--neon-pink))/40] via-[hsl(var(--neon-cyan))/40] to-[hsl(var(--neon-purple))/40]' 
+              : 'bg-gradient-to-r from-[hsl(var(--neon-yellow))/20] via-[hsl(var(--neon-orange))/20] to-[hsl(var(--neon-magenta))/20]'
           }`} />
           
           {/* Main celebration content */}

@@ -49,23 +49,23 @@ export function TopLevelBar({
   }, [currentXP, previousXP, xpPerSegment, normalizedXP, maxXP]);
 
   return (
-    <div className="fixed top-16 left-0 right-0 z-50 h-12 bg-gradient-to-r from-purple-500/10 via-blue-500/10 to-purple-500/10 backdrop-blur-md border-b border-white/10 shadow-lg">
-      <div className="container mx-auto h-full flex items-center gap-4 px-6">
+    <div className="fixed top-16 left-0 right-0 z-50 h-8 bg-black/80 backdrop-blur-sm neon-border-glow shadow-[0_0_20px_rgba(0,255,255,0.3)]">
+      <div className="container mx-auto h-full flex items-center gap-2 px-4">
         {/* Level Badge */}
-        <Badge className="bg-gradient-to-r from-purple-500 to-blue-600 text-white px-3 py-1 text-sm font-bold shadow-glow">
-          Level {level}
+        <Badge className="bg-gradient-to-r from-[hsl(var(--neon-purple))] to-[hsl(var(--neon-pink))] text-white px-2 py-0.5 text-xs font-bold neon-glow-purple border border-white/20">
+          Lv {level}
         </Badge>
         
         {/* Segmented Progress Bar */}
-        <div className="flex-1 flex gap-1.5 max-w-2xl">
+        <div className="flex-1 flex gap-1 max-w-2xl">
           {Array.from({ length: segments }).map((_, i) => (
             <div
               key={i}
-              className={`flex-1 h-5 rounded-full transition-all duration-300 ${
+              className={`flex-1 h-3 rounded-full transition-all duration-300 ${
                 i < filledSegments
-                  ? 'bg-gradient-to-r from-purple-400 via-blue-500 to-purple-600 shadow-[0_0_10px_rgba(168,85,247,0.8)]'
-                  : 'bg-gray-700/30'
-              } ${animatingSegments.includes(i) ? 'animate-pulse scale-110' : ''}`}
+                  ? 'bg-gradient-to-r from-[hsl(var(--neon-cyan))] via-[hsl(var(--neon-purple))] to-[hsl(var(--neon-magenta))] neon-glow-cyan'
+                  : 'bg-gray-900/50 border border-gray-700/50'
+              } ${animatingSegments.includes(i) ? 'animate-pulse scale-110 neon-glow-cyan' : ''}`}
               style={{
                 transform: animatingSegments.includes(i) ? 'scale(1.1)' : 'scale(1)',
               }}
@@ -74,14 +74,14 @@ export function TopLevelBar({
         </div>
         
         {/* XP Counter */}
-        <span className="text-sm font-bold text-white min-w-[80px]">
+        <span className="text-xs font-bold text-[hsl(var(--neon-cyan))] min-w-[70px] neon-text-glow">
           {normalizedXP}/{maxXP} XP
         </span>
         
         {/* Star Count */}
-        <div className="flex items-center gap-2 bg-purple-500/20 px-3 py-1 rounded-full border border-purple-500/30">
-          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-          <span className="text-sm font-bold text-white">×{starCount}</span>
+        <div className="flex items-center gap-1 bg-black/50 px-2 py-0.5 rounded-full border border-[hsl(var(--neon-yellow)/0.5)] shadow-[0_0_10px_hsl(var(--neon-yellow)/0.3)]">
+          <Star className="w-3 h-3 fill-[hsl(var(--neon-yellow))] text-[hsl(var(--neon-yellow))] drop-shadow-[0_0_5px_hsl(var(--neon-yellow))]" />
+          <span className="text-xs font-bold text-[hsl(var(--neon-yellow))]">×{starCount}</span>
         </div>
       </div>
     </div>
