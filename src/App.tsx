@@ -113,11 +113,9 @@ const App = () => {
               <Route path="/media-test" element={<MediaTestPage />} />
               <Route path="/video-test" element={<VideoTestPage />} />
               <Route path="/classroom" element={
-                <ImprovedProtectedRoute>
-                  <Suspense fallback={<LoadingFallback />}>
-                    <OneOnOneClassroomNew />
-                  </Suspense>
-                </ImprovedProtectedRoute>
+                <Suspense fallback={<LoadingFallback />}>
+                  <OneOnOneClassroomNew />
+                </Suspense>
               } />
               <Route path="/classroom-prejoin" element={<ClassroomPrejoin />} />
               <Route path="/discover-teachers" element={<DiscoverTeachers />} />

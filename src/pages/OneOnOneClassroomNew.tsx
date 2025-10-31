@@ -117,13 +117,7 @@ export default function OneOnOneClassroomNew() {
   };
 
   return (
-    <ClassroomAccessGuard
-      roomId={roomId}
-      userId={authedUserId}
-      userRole={userRole}
-      onAccessDenied={handleAccessDenied}
-    >
-      <MediaProvider roomId={roomId}>
+    <MediaProvider roomId={roomId}>
         <ModernClassroomLayout
           topBar={
             <ModernClassroomTopBar
@@ -275,6 +269,5 @@ export default function OneOnOneClassroomNew() {
           onClose={() => setShowKeyboardShortcuts(false)}
         />
       </MediaProvider>
-    </ClassroomAccessGuard>
   );
 }
