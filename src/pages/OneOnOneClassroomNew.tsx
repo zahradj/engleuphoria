@@ -1,16 +1,23 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { ClassroomAccessGuard } from "@/components/classroom/ClassroomAccessGuard";
-import { OneOnOneVideoSection } from "@/components/classroom/oneonone/OneOnOneVideoSection";
 import { MediaProvider } from "@/components/classroom/oneonone/video/MediaContext";
 import { useOneOnOneClassroom } from "@/hooks/useOneOnOneClassroom";
+import { useSessionTimer } from "@/hooks/classroom/useSessionTimer";
+import { useClassroomLayout } from "@/hooks/classroom/useClassroomLayout";
+import { ModernClassroomLayout } from "@/components/classroom/modern/ModernClassroomLayout";
+import { ModernClassroomTopBar } from "@/components/classroom/modern/ModernClassroomTopBar";
+import { QuickAccessToolbar } from "@/components/classroom/modern/QuickAccessToolbar";
+import { Whiteboard } from "@/components/Whiteboard";
+import { toast } from "sonner";
 
 export default function OneOnOneClassroomNew() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { formattedTime } = useSessionTimer();
   
   const roomId = searchParams.get("roomId") || "unified-classroom-1";
   const roleParam = searchParams.get("role") || "student";
@@ -29,8 +36,33 @@ export default function OneOnOneClassroomNew() {
     awardPoints
   } = useOneOnOneClassroom();
 
+  const {
+    activeView,
+    showLeftPanel,
+    showRightSidebar,
+    unreadChatCount,
+    setActiveView,
+    toggleLeftPanel,
+    toggleRightSidebar,
+    clearUnreadChat
+  } = useClassroomLayout();
+
+  const [connectionQuality] = useState<"excellent" | "good" | "poor">("excellent");
+
   const handleAccessDenied = () => {
     navigate(isTeacher ? "/teacher" : "/student");
+  };
+
+  const handleExit = () => {
+    if (confirm("Are you sure you want to leave the classroom?")) {
+      navigate(isTeacher ? "/teacher" : "/student");
+    }
+  };
+
+  const handleBack = () => {
+    if (confirm("Are you sure you want to leave the classroom?")) {
+      navigate(isTeacher ? "/teacher" : "/student");
+    }
   };
 
   return (
@@ -41,41 +73,80 @@ export default function OneOnOneClassroomNew() {
       onAccessDenied={handleAccessDenied}
     >
       <MediaProvider roomId={roomId}>
-        <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-accent/5">
-          <div className="container mx-auto px-4 py-6 h-screen flex flex-col gap-4">
-            {/* Header */}
-            <div className="flex items-center justify-between px-2">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-primary-foreground font-bold">
-                  {authedName.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <h1 className="text-lg font-semibold text-foreground">{authedName}</h1>
-                  <p className="text-sm text-muted-foreground capitalize">{userRole} • Room: {roomId}</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">
-                  {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </span>
+        <ModernClassroomLayout
+          topBar={
+            <ModernClassroomTopBar
+              onBack={handleBack}
+              lessonTitle="Interactive One-on-One Lesson"
+              roomCode={roomId}
+              sessionTime={formattedTime}
+              connectionQuality={connectionQuality}
+              onExitClick={handleExit}
+              onHelpClick={() => toast.info("Help documentation coming soon!")}
+              onSettingsClick={() => toast.info("Settings panel coming soon!")}
+            />
+          }
+          leftPanel={
+            <div className="h-full flex items-center justify-center text-muted-foreground">
+              <div className="text-center">
+                <p className="text-sm">Lesson Slides Panel</p>
+                <p className="text-xs mt-2">Coming in Phase 2</p>
               </div>
             </div>
-
-            {/* Main Content */}
-            <div className="flex-1 min-h-0">
-              <OneOnOneVideoSection
-                enhancedClassroom={null}
-                currentUserId={authedUserId}
-                currentUserName={authedName}
-                isTeacher={isTeacher}
-                studentXP={studentXP}
-                onAwardPoints={awardPoints}
-                showRewardPopup={showRewardPopup}
-                lessonStarted={false}
-              />
+          }
+          centerContent={
+            <div className="h-full flex flex-col">
+              <h2 className="text-lg font-semibold mb-4 text-foreground">Interactive Whiteboard</h2>
+              <div className="flex-1 overflow-hidden">
+                <Whiteboard className="h-full" />
+              </div>
             </div>
-          </div>
-        </div>
+          }
+          rightSidebar={
+            <div className="h-full flex items-center justify-center text-muted-foreground">
+              <div className="text-center">
+                <p className="text-sm">Chat / Dictionary / Rewards</p>
+                <p className="text-xs mt-2">Coming in Phases 4-6</p>
+              </div>
+            </div>
+          }
+          bottomToolbar={
+            <QuickAccessToolbar
+              onWhiteboardClick={() => {
+                setActiveView("whiteboard");
+                toast.success("Whiteboard activated");
+              }}
+              onSlidesClick={() => {
+                setActiveView("slides");
+                toast.info("Slides panel coming soon");
+              }}
+              onChatClick={() => {
+                setActiveView("chat");
+                clearUnreadChat();
+                toast.info("Chat panel coming soon");
+              }}
+              onDictionaryClick={() => {
+                setActiveView("dictionary");
+                toast.info("Dictionary panel coming soon");
+              }}
+              onRewardsClick={() => {
+                setActiveView("rewards");
+                toast.info("Rewards panel coming soon");
+              }}
+              onEmbedClick={() => {
+                setActiveView("embed");
+                toast.info("Embed feature coming soon");
+              }}
+              onSettingsClick={() => {
+                toast.info("Settings coming soon");
+              }}
+              unreadChatCount={unreadChatCount}
+              activeView={activeView}
+            />
+          }
+          showLeftPanel={showLeftPanel}
+          showRightSidebar={showRightSidebar}
+        />
       </MediaProvider>
     </ClassroomAccessGuard>
   );

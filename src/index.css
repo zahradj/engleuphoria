@@ -99,6 +99,29 @@
     --gradient-cool: linear-gradient(135deg, hsl(var(--soft-blue)), hsl(var(--primary)));
     --gradient-soft: linear-gradient(135deg, hsl(var(--surface-2)), hsl(var(--primary-bg)));
     
+    /* Classroom-Specific Colors */
+    --classroom-primary: 160 30% 55%;      /* Soft Sage Green */
+    --classroom-accent: 260 40% 65%;       /* Muted Lavender */
+    --classroom-reward: 45 95% 60%;        /* Warm Gold */
+    --classroom-success: 150 50% 55%;      /* Mint Green */
+    --classroom-focus: 200 50% 60%;        /* Sky Blue */
+    
+    /* Glassmorphism Effects */
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-bg-light: rgba(255, 255, 255, 0.15);
+    --glass-bg-strong: rgba(255, 255, 255, 0.25);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --glass-border-strong: rgba(255, 255, 255, 0.3);
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+    --glass-blur: blur(12px);
+    --glass-blur-strong: blur(20px);
+    
+    /* Neumorphism Effects */
+    --neu-light: rgba(255, 255, 255, 0.7);
+    --neu-dark: rgba(0, 0, 0, 0.1);
+    --neu-shadow: 12px 12px 24px var(--neu-dark), -12px -12px 24px var(--neu-light);
+    --neu-shadow-inset: inset 6px 6px 12px var(--neu-dark), inset -6px -6px 12px var(--neu-light);
+    
     --radius: 0.75rem;
   }
 
@@ -496,6 +519,56 @@
     .prevent-ios-zoom {
       font-size: 16px !important;
     }
+  }
+
+  /* Glassmorphism Utilities */
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+  }
+
+  .glass-light {
+    background: var(--glass-bg-light);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+  }
+
+  .glass-strong {
+    background: var(--glass-bg-strong);
+    backdrop-filter: var(--glass-blur-strong);
+    -webkit-backdrop-filter: var(--glass-blur-strong);
+    border: 1px solid var(--glass-border-strong);
+    box-shadow: var(--glass-shadow);
+  }
+
+  /* Neumorphism Utilities */
+  .neumorphic {
+    background: hsl(var(--surface-2));
+    box-shadow: var(--neu-shadow);
+    border-radius: 16px;
+  }
+
+  .neumorphic-inset {
+    background: hsl(var(--surface-2));
+    box-shadow: var(--neu-shadow-inset);
+    border-radius: 16px;
+  }
+
+  /* Classroom-specific utilities */
+  .glow-primary {
+    box-shadow: 0 0 20px hsla(var(--classroom-primary) / 0.3);
+  }
+
+  .glow-accent {
+    box-shadow: 0 0 20px hsla(var(--classroom-accent) / 0.3);
+  }
+
+  .glow-reward {
+    box-shadow: 0 0 25px hsla(var(--classroom-reward) / 0.4);
   }
 
   /* Better touch targets for mobile */
