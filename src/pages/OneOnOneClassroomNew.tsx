@@ -131,21 +131,21 @@ export default function OneOnOneClassroomNew() {
               onSettingsClick={() => toast.info("Settings panel coming soon!")}
             />
           }
-          leftPanel={
-            activeView === "slides" || showLeftPanel ? (
-              <ModernLessonSlidesPanel
-                slides={slides}
-                currentSlide={currentSlide}
-                onSlideChange={goToSlide}
-                isTeacher={isTeacher}
-                isFullScreen={isFullScreen}
-                onToggleFullScreen={toggleFullScreen}
-              />
-            ) : null
-          }
+          leftPanel={null}
           centerContent={
             <div className="h-full">
-              <EnhancedWhiteboard />
+              {activeView === "slides" ? (
+                <ModernLessonSlidesPanel
+                  slides={slides}
+                  currentSlide={currentSlide}
+                  onSlideChange={goToSlide}
+                  isTeacher={isTeacher}
+                  isFullScreen={isFullScreen}
+                  onToggleFullScreen={toggleFullScreen}
+                />
+              ) : (
+                <EnhancedWhiteboard />
+              )}
             </div>
           }
           rightSidebar={
@@ -157,6 +157,8 @@ export default function OneOnOneClassroomNew() {
                 badges={badges}
                 recentAchievements={recentAchievements}
                 starCount={starCount}
+                isTeacher={isTeacher}
+                onAwardStar={handleTestReward}
               />
             ) : activeView === "chat" ? (
               <ModernChatPanel

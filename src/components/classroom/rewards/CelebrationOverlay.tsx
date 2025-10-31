@@ -41,7 +41,7 @@ export function CelebrationOverlay({
     <>
       {/* Backdrop */}
       <div 
-        className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-40 transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-[100] transition-opacity duration-300 ${
           showContent ? 'opacity-100' : 'opacity-0'
         }`}
         onClick={onComplete}
@@ -49,7 +49,7 @@ export function CelebrationOverlay({
       
       {/* Celebration Content */}
       <div 
-        className={`fixed inset-0 flex items-center justify-center z-50 pointer-events-none transition-all duration-300 ${
+        className={`fixed inset-0 flex items-center justify-center z-[110] pointer-events-none transition-all duration-300 ${
           showContent ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
         }`}
       >

@@ -34,6 +34,8 @@ interface ModernRewardsPanelProps {
     iconType: "star" | "trophy" | "zap";
   }>;
   starCount?: number;
+  isTeacher?: boolean;
+  onAwardStar?: () => void;
 }
 
 export function ModernRewardsPanel({
@@ -42,7 +44,9 @@ export function ModernRewardsPanel({
   level = 1,
   badges = [],
   recentAchievements = [],
-  starCount = 0
+  starCount = 0,
+  isTeacher = false,
+  onAwardStar
 }: ModernRewardsPanelProps) {
   const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
   const [animateXP, setAnimateXP] = useState(false);
@@ -135,6 +139,18 @@ export function ModernRewardsPanel({
             <span className="text-xs text-muted-foreground ml-1">+{starCount - 10} more</span>
           )}
         </div>
+        
+        {/* Teacher Award Button */}
+        {isTeacher && onAwardStar && (
+          <GlassButton
+            variant="primary"
+            className="w-full mt-3 bg-gradient-to-r from-classroom-reward to-classroom-accent hover:scale-105 transition-transform"
+            onClick={onAwardStar}
+          >
+            <Star className="w-4 h-4 mr-2 fill-white" />
+            Award Star to Student
+          </GlassButton>
+        )}
       </GlassCard>
 
       {/* Badges Display */}

@@ -46,7 +46,7 @@ export function RewardToast({
   };
 
   return (
-    <div className="fixed bottom-24 right-6 z-50 animate-slide-in-right">
+    <div className="fixed bottom-24 right-6 z-[90] animate-slide-in-right">
       <GlassCard className={`p-4 min-w-[250px] bg-gradient-to-r ${colors[type]} shadow-glow`}>
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full glass flex items-center justify-center">
@@ -87,7 +87,7 @@ export function FloatingXP({ xp, position, onComplete }: FloatingXPProps) {
 
   return (
     <div
-      className="fixed z-50 pointer-events-none animate-fade-in"
+      className="fixed z-[90] pointer-events-none animate-fade-in"
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,

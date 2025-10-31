@@ -214,7 +214,7 @@ export function LevelUpAnimation({ show, level, onComplete }: LevelUpAnimationPr
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-md animate-fade-in">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-md animate-fade-in">
       <div className="text-center space-y-6 animate-scale-in">
         <div className="text-8xl font-bold text-transparent bg-gradient-to-r from-classroom-reward via-classroom-accent to-classroom-primary bg-clip-text animate-pulse">
           LEVEL UP!
@@ -265,7 +265,7 @@ export function BadgeReveal({ show, badge, onComplete }: BadgeRevealProps) {
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
       <div className="glass p-8 rounded-2xl text-center space-y-4 max-w-md animate-scale-in shadow-glow">
         <div className="text-7xl animate-bounce">{badge.icon}</div>
         <div className="space-y-2">
