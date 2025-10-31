@@ -47,8 +47,8 @@ export function ModernClassroomLayout({
         <div className="grid grid-cols-12 gap-4 p-4 overflow-hidden">
           {/* Left Panel - Slides */}
           {showLeftPanel && leftPanel && (
-            <div className="col-span-3 overflow-y-auto">
-              <GlassCard className="h-full p-4">
+            <div className="col-span-5 overflow-y-auto">
+              <GlassCard className="h-full p-3">
                 {leftPanel}
               </GlassCard>
             </div>
@@ -57,9 +57,9 @@ export function ModernClassroomLayout({
           {/* Center - Whiteboard */}
           <div className={cn(
             "overflow-hidden",
-            showLeftPanel && showRightSidebar && "col-span-6",
+            showLeftPanel && showRightSidebar && "col-span-4",
             !showLeftPanel && showRightSidebar && "col-span-9",
-            showLeftPanel && !showRightSidebar && "col-span-9",
+            showLeftPanel && !showRightSidebar && "col-span-7",
             !showLeftPanel && !showRightSidebar && "col-span-12"
           )}>
             <GlassCard variant="strong" className="h-full p-4">

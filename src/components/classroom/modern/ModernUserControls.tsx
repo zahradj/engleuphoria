@@ -69,8 +69,8 @@ function UserVideoFeed({
   const [isHovered, setIsHovered] = useState(false);
 
   const sizeClasses = {
-    large: "w-48 h-36",
-    small: "w-40 h-30"
+    large: "w-56 h-40",
+    small: "w-56 h-40"
   };
 
   const connectionIcons = {
@@ -210,7 +210,10 @@ export function ModernUserControls({
     <>
       {/* Normal view */}
       {!expandedUser && (
-        <div className="fixed top-20 right-6 z-40 flex flex-col gap-3 animate-fade-in">
+        <div className="fixed top-20 right-6 z-40 flex flex-col gap-3 p-3 bg-background/10 backdrop-blur-sm rounded-xl border border-border/30 animate-fade-in">
+          <div className="text-xs font-medium text-center text-muted-foreground mb-1 uppercase tracking-wide">
+            Live Session
+          </div>
           <UserVideoFeed
             name={teacher.name}
             role="teacher"
@@ -235,7 +238,7 @@ export function ModernUserControls({
             onToggleAudio={!isTeacher ? onToggleStudentAudio : undefined}
             onExpand={() => setExpandedUser("student")}
             canControl={!isTeacher}
-            size="small"
+            size="large"
           />
         </div>
       )}

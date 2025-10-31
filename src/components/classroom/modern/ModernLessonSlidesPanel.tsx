@@ -77,14 +77,14 @@ export function ModernLessonSlidesPanel({
   const currentSlideData = slides[currentSlide];
 
   return (
-    <GlassCard className={`h-full flex flex-col p-4 ${isFullScreen ? "fixed inset-0 z-50" : ""}`}>
+    <GlassCard className={`h-full flex flex-col p-2 ${isFullScreen ? "fixed inset-0 z-50" : ""}`}>
       {/* Header with controls */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="text-sm font-medium text-classroom-primary">
+      <div className="flex items-center justify-between mb-2">
+        <div className="text-xs font-semibold text-classroom-primary">
           Slide {currentSlide + 1} / {slides.length}
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">
+          <span className="text-[10px] text-muted-foreground">
             ← Prev | Next →
           </span>
           {onToggleFullScreen && (
@@ -94,14 +94,14 @@ export function ModernLessonSlidesPanel({
               onClick={onToggleFullScreen}
               title={isFullScreen ? "Exit Full Screen (ESC)" : "Full Screen (F11)"}
             >
-              {isFullScreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+              {isFullScreen ? <Minimize2 className="w-3 h-3" /> : <Maximize2 className="w-3 h-3" />}
             </GlassButton>
           )}
         </div>
       </div>
 
       {/* Progress bar */}
-      <div className="w-full h-2 bg-background/20 rounded-full mb-4 overflow-hidden">
+      <div className="w-full h-1.5 bg-background/20 rounded-full mb-2 overflow-hidden">
         <div
           className="h-full bg-gradient-to-r from-classroom-primary to-classroom-accent transition-all duration-500"
           style={{ width: `${progress}%` }}
@@ -120,8 +120,8 @@ export function ModernLessonSlidesPanel({
       </div>
 
       {/* Main slide display */}
-      <div className="flex-1 relative mb-4 bg-background/10 rounded-xl overflow-hidden animate-fade-in">
-        <div className="absolute inset-0 flex items-center justify-center p-8">
+      <div className="flex-1 relative mb-2 bg-background/10 rounded-lg overflow-hidden animate-fade-in min-h-[400px]">
+        <div className="absolute inset-0 flex items-center justify-center p-4">
           {currentSlideData?.imageUrl ? (
             <img
               src={currentSlideData.imageUrl}
@@ -129,11 +129,11 @@ export function ModernLessonSlidesPanel({
               className="max-w-full max-h-full object-contain"
             />
           ) : (
-            <div className="text-center space-y-4">
-              <h2 className="text-3xl font-bold text-foreground">
+            <div className="text-center space-y-3">
+              <h2 className="text-4xl font-bold text-foreground leading-tight">
                 {currentSlideData?.title}
               </h2>
-              <p className="text-lg text-muted-foreground max-w-2xl">
+              <p className="text-xl text-muted-foreground max-w-lg px-4 leading-relaxed">
                 {currentSlideData?.content}
               </p>
             </div>
@@ -163,34 +163,34 @@ export function ModernLessonSlidesPanel({
 
       {/* Slide notes (teacher only) */}
       {isTeacher && currentSlideData?.notes && (
-        <div className="mb-4">
+        <div className="mb-2">
           <GlassButton
             variant="default"
             size="sm"
             onClick={() => setShowNotes(!showNotes)}
-            className="w-full justify-between"
+            className="w-full justify-between text-xs"
           >
             <span>Teaching Notes</span>
-            {showNotes ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            {showNotes ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
           </GlassButton>
           {showNotes && (
-            <div className="mt-2 p-3 bg-classroom-accent/20 rounded-lg text-sm animate-accordion-down">
+            <div className="mt-1.5 p-2 bg-classroom-accent/20 rounded-md text-xs animate-accordion-down">
               {currentSlideData.notes}
             </div>
           )}
         </div>
       )}
 
-      {/* Thumbnail strip */}
-      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-classroom-primary/30 scrollbar-track-transparent">
+      {/* Thumbnail strip - More compact */}
+      <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-classroom-primary/30 scrollbar-track-transparent">
         {slides.map((slide, index) => (
           <button
             key={slide.id}
             onClick={() => onSlideChange(index)}
-            className={`flex-shrink-0 w-24 h-16 rounded-lg overflow-hidden transition-all duration-300 ${
+            className={`flex-shrink-0 w-16 h-12 rounded-md overflow-hidden transition-all duration-200 ${
               index === currentSlide
-                ? "ring-2 ring-classroom-primary shadow-glow scale-110"
-                : "opacity-60 hover:opacity-100 hover:scale-105"
+                ? "ring-2 ring-classroom-primary shadow-glow scale-105"
+                : "opacity-50 hover:opacity-100 hover:scale-100"
             }`}
           >
             {slide.imageUrl ? (
@@ -201,7 +201,7 @@ export function ModernLessonSlidesPanel({
                 loading="lazy"
               />
             ) : (
-              <div className="w-full h-full bg-background/20 flex items-center justify-center text-xs">
+              <div className="w-full h-full bg-background/20 flex items-center justify-center text-[10px] font-semibold">
                 {index + 1}
               </div>
             )}
