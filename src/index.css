@@ -209,8 +209,8 @@
   --card-foreground: 240 10% 3.9%;
   --popover: 0 0% 100%;
   --popover-foreground: 240 10% 3.9%;
-  --primary: 142 71% 45%;
-  --primary-foreground: 144 90% 98%;
+  --primary: 250 70% 60%;
+  --primary-foreground: 250 90% 98%;
   --secondary: 240 4.8% 95.9%;
   --secondary-foreground: 240 5.9% 10%;
   --muted: 240 4.8% 95.9%;
@@ -221,7 +221,7 @@
   --destructive-foreground: 0 0% 98%;
   --border: 240 5.9% 90%;
   --input: 240 5.9% 90%;
-  --ring: 142 71% 45%;
+  --ring: 250 70% 60%;
   --radius: 0.75rem;
   --chart-1: 220 70% 50%;
   --chart-2: 160 60% 45%;
@@ -230,11 +230,17 @@
   --chart-5: 340 75% 55%;
 
   /* Classroom-specific colors */
-  --classroom-primary: 160 30% 55%;
+  --classroom-primary: 260 60% 65%;
   --classroom-accent: 260 40% 65%;
   --classroom-reward: 45 95% 60%;
-  --classroom-success: 150 50% 55%;
-  --classroom-focus: 200 50% 60%;
+  --classroom-success: 220 70% 60%;
+  --classroom-focus: 220 60% 65%;
+  
+  /* Game-themed colors */
+  --game-purple: 270 70% 65%;
+  --game-blue: 220 80% 60%;
+  --game-violet: 280 65% 70%;
+  --game-cyan: 190 70% 55%;
 }
 
 .dark {
@@ -244,8 +250,8 @@
   --card-foreground: 0 0% 98%;
   --popover: 240 10% 3.9%;
   --popover-foreground: 0 0% 98%;
-  --primary: 142 71% 45%;
-  --primary-foreground: 144 90% 98%;
+  --primary: 250 70% 60%;
+  --primary-foreground: 250 90% 98%;
   --secondary: 240 3.7% 15.9%;
   --secondary-foreground: 0 0% 98%;
   --muted: 240 3.7% 15.9%;
@@ -256,7 +262,7 @@
   --destructive-foreground: 0 0% 98%;
   --border: 240 3.7% 15.9%;
   --input: 240 3.7% 15.9%;
-  --ring: 142 71% 45%;
+  --ring: 250 70% 60%;
   --chart-1: 220 70% 50%;
   --chart-2: 160 60% 45%;
   --chart-3: 30 80% 55%;

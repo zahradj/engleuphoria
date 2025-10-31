@@ -71,7 +71,7 @@ function VideoFeed({
   onToggleAudio: () => void
 }) {
   const gradientClass = role === 'teacher' 
-    ? 'from-purple-500/20 to-pink-500/20' 
+    ? 'from-purple-500/20 to-violet-600/20' 
     : 'from-blue-500/20 to-cyan-500/20';
   
   const borderColor = role === 'teacher'
@@ -90,8 +90,8 @@ function VideoFeed({
               </span>
             </div>
             <p className="text-sm font-medium text-white">{user.name}</p>
-            <Badge variant="secondary" className="mt-2 bg-green-500/20 text-green-100 border-green-500/50">
-              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse mr-1" />
+            <Badge variant="secondary" className="mt-2 bg-blue-500/20 text-blue-100 border-blue-500/50">
+              <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse mr-1" />
               LIVE
             </Badge>
           </div>

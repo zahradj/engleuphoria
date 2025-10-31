@@ -120,7 +120,7 @@ export const ClassroomConnection: React.FC<ClassroomConnectionProps> = ({
     if (isLive) {
       return <Badge className="bg-red-500 text-white">● LIVE</Badge>;
     } else if (canJoin) {
-      return <Badge className="bg-green-500 text-white">Ready to Join</Badge>;
+      return <Badge className="bg-blue-500 text-white">Ready to Join</Badge>;
     } else if (timeUntilClass === 'Class ended') {
       return <Badge variant="secondary">Ended</Badge>;
     } else {
@@ -183,7 +183,7 @@ export const ClassroomConnection: React.FC<ClassroomConnectionProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {isLive ? (
-                <CheckCircle className="h-5 w-5 text-green-500" />
+                <CheckCircle className="h-5 w-5 text-blue-500" />
               ) : canJoin ? (
                 <PlayCircle className="h-5 w-5 text-blue-500" />
               ) : (

@@ -108,7 +108,7 @@ export function ClassroomAccessGuard({
         <div className="bg-white border-b p-4">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <CheckCircle className="h-6 w-6 text-green-500" />
+              <CheckCircle className="h-6 w-6 text-blue-500" />
               <div>
                 <h2 className="font-semibold text-gray-900">{lesson.title}</h2>
                 <p className="text-sm text-gray-600">
@@ -117,7 +117,7 @@ export function ClassroomAccessGuard({
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-green-600 font-medium">● LIVE</span>
+              <span className="text-sm text-blue-600 font-medium">● LIVE</span>
               <span className="text-sm text-gray-500">Room: {roomId}</span>
             </div>
           </div>
