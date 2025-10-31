@@ -17,10 +17,12 @@ import { ModernRewardsPanel } from "@/components/classroom/modern/ModernRewardsP
 import { ModernChatPanel } from "@/components/classroom/modern/ModernChatPanel";
 import { ModernDictionaryPanel } from "@/components/classroom/modern/ModernDictionaryPanel";
 import { ModernLessonSlidesPanel } from "@/components/classroom/modern/ModernLessonSlidesPanel";
-import { ModernUserControls } from "@/components/classroom/modern/ModernUserControls";
 import { KeyboardShortcutsModal } from "@/components/classroom/modern/KeyboardShortcutsModal";
 import { EnhancedConfetti, LevelUpAnimation, BadgeReveal } from "@/components/classroom/modern/EnhancedConfetti";
 import { RewardToast } from "@/components/classroom/modern/RewardToast";
+import { CelebrationOverlay } from "@/components/classroom/rewards/CelebrationOverlay";
+import { UnifiedRightSidebar } from "@/components/classroom/unified/UnifiedRightSidebar";
+import { soundEffectsService } from "@/services/soundEffectsService";
 import { toast } from "sonner";
 
 export default function OneOnOneClassroomNew() {
@@ -43,7 +45,9 @@ export default function OneOnOneClassroomNew() {
   const {
     studentXP,
     showRewardPopup,
-    awardPoints
+    awardPoints,
+    celebration,
+    hideCelebration
   } = useOneOnOneClassroom();
 
   const {
@@ -98,6 +102,7 @@ export default function OneOnOneClassroomNew() {
     setShowConfetti(true);
     addXP(xpAmount, "Completed activity");
     addStars(1);
+    awardPoints(xpAmount, "Great work!");
   };
 
   const handleAccessDenied = () => {
@@ -149,70 +154,95 @@ export default function OneOnOneClassroomNew() {
             </div>
           }
           rightSidebar={
-            activeView === "rewards" ? (
-              <ModernRewardsPanel
-                currentXP={currentXP}
-                nextLevelXP={nextLevelXP}
-                level={level}
-                badges={badges}
-                recentAchievements={recentAchievements}
-                starCount={starCount}
-                isTeacher={isTeacher}
-                onAwardStar={handleTestReward}
-              />
-            ) : activeView === "chat" ? (
-              <ModernChatPanel
-                roomId={roomId}
-                currentUser={{
-                  id: authedUserId,
-                  name: authedName,
-                  role: authedRole === 'admin' ? 'teacher' : authedRole
-                }}
-              />
-            ) : activeView === "dictionary" ? (
-              <ModernDictionaryPanel
-                onAddToVocab={(word, definition) => {
-                  toast.success(`Added "${word}" to vocabulary`);
-                  addXP(5, "Added new word to vocabulary");
-                }}
-              />
-            ) : (
-              <div className="h-full flex items-center justify-center text-muted-foreground">
-                <div className="text-center">
-                  <p className="text-sm">No content selected</p>
-                  <p className="text-xs mt-2">Choose a tool from the bottom toolbar</p>
-                </div>
-              </div>
-            )
+            <UnifiedRightSidebar
+              teacher={{
+                id: isTeacher ? authedUserId : "teacher-id",
+                name: isTeacher ? authedName : "Teacher",
+                isVideoOn: teacherVideo.isVideoOn,
+                isAudioOn: teacherVideo.isAudioOn
+              }}
+              student={{
+                id: !isTeacher ? authedUserId : "student-id",
+                name: !isTeacher ? authedName : "Student",
+                isVideoOn: studentVideo.isVideoOn,
+                isAudioOn: studentVideo.isAudioOn
+              }}
+              connectionQuality={connectionQuality}
+              onToggleTeacherVideo={() => {
+                soundEffectsService.playButtonClick();
+                setTeacherVideo(prev => ({ ...prev, isVideoOn: !prev.isVideoOn }));
+              }}
+              onToggleTeacherAudio={() => {
+                soundEffectsService.playButtonClick();
+                setTeacherVideo(prev => ({ ...prev, isAudioOn: !prev.isAudioOn }));
+              }}
+              onToggleStudentVideo={() => {
+                soundEffectsService.playButtonClick();
+                setStudentVideo(prev => ({ ...prev, isVideoOn: !prev.isVideoOn }));
+              }}
+              onToggleStudentAudio={() => {
+                soundEffectsService.playButtonClick();
+                setStudentVideo(prev => ({ ...prev, isAudioOn: !prev.isAudioOn }));
+              }}
+              activeTab={activeView}
+              onTabChange={setActiveView}
+              roomId={roomId}
+              currentUser={{
+                id: authedUserId,
+                name: authedName,
+                role: authedRole === 'admin' ? 'teacher' : authedRole
+              }}
+              currentXP={currentXP}
+              nextLevelXP={nextLevelXP}
+              level={level}
+              badges={badges}
+              recentAchievements={recentAchievements}
+              starCount={starCount}
+              isTeacher={isTeacher}
+              onAwardStar={handleTestReward}
+              onAddToVocab={(word, definition) => {
+                soundEffectsService.playCorrect();
+                toast.success(`Added "${word}" to vocabulary`);
+                addXP(5, "Added new word to vocabulary");
+              }}
+              unreadChatCount={unreadChatCount}
+            />
           }
           bottomToolbar={
             <QuickAccessToolbar
               onWhiteboardClick={() => {
+                soundEffectsService.playButtonClick();
                 setActiveView("whiteboard");
                 toast.success("Whiteboard activated");
               }}
               onSlidesClick={() => {
+                soundEffectsService.playButtonClick();
                 setActiveView("slides");
                 toast.success("Lesson slides opened");
               }}
               onChatClick={() => {
+                soundEffectsService.playButtonClick();
                 setActiveView("chat");
                 clearUnreadChat();
                 toast.success("Chat opened");
               }}
               onDictionaryClick={() => {
+                soundEffectsService.playButtonClick();
                 setActiveView("dictionary");
                 toast.success("Dictionary opened");
               }}
               onRewardsClick={() => {
+                soundEffectsService.playButtonClick();
                 setActiveView("rewards");
                 toast.success("Rewards panel opened");
               }}
               onEmbedClick={() => {
+                soundEffectsService.playButtonClick();
                 setActiveView("embed");
                 toast.info("Embed feature coming soon");
               }}
               onSettingsClick={() => {
+                soundEffectsService.playButtonClick();
                 toast.info("Settings coming soon");
               }}
               unreadChatCount={unreadChatCount}
@@ -222,6 +252,17 @@ export default function OneOnOneClassroomNew() {
           showLeftPanel={showLeftPanel}
           showRightSidebar={showRightSidebar}
         />
+
+        {/* Center-Screen Celebration Overlay - Game-like! */}
+        {celebration && (
+          <CelebrationOverlay
+            isVisible={celebration.isVisible}
+            points={celebration.points}
+            reason={celebration.reason}
+            onComplete={hideCelebration}
+            duration={2500}
+          />
+        )}
 
         {/* Reward Animations */}
         <EnhancedConfetti trigger={showConfetti} pattern="burst" />
@@ -241,28 +282,6 @@ export default function OneOnOneClassroomNew() {
           xp={rewardXP}
           message="Great work!"
           onComplete={() => setShowRewardToast(false)}
-        />
-
-        {/* User Video Controls */}
-        <ModernUserControls
-          teacher={{
-            id: isTeacher ? authedUserId : "teacher-id",
-            name: isTeacher ? authedName : "Teacher",
-            isVideoOn: teacherVideo.isVideoOn,
-            isAudioOn: teacherVideo.isAudioOn
-          }}
-          student={{
-            id: !isTeacher ? authedUserId : "student-id",
-            name: !isTeacher ? authedName : "Student",
-            isVideoOn: studentVideo.isVideoOn,
-            isAudioOn: studentVideo.isAudioOn
-          }}
-          connectionQuality={connectionQuality}
-          onToggleTeacherVideo={() => setTeacherVideo(prev => ({ ...prev, isVideoOn: !prev.isVideoOn }))}
-          onToggleTeacherAudio={() => setTeacherVideo(prev => ({ ...prev, isAudioOn: !prev.isAudioOn }))}
-          onToggleStudentVideo={() => setStudentVideo(prev => ({ ...prev, isVideoOn: !prev.isVideoOn }))}
-          onToggleStudentAudio={() => setStudentVideo(prev => ({ ...prev, isAudioOn: !prev.isAudioOn }))}
-          isTeacher={isTeacher}
         />
 
         {/* Keyboard Shortcuts Modal */}

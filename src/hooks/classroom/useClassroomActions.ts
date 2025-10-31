@@ -1,6 +1,6 @@
-
 import { useToast } from "@/hooks/use-toast";
 import { audioService } from "@/services/audioService";
+import { soundEffectsService } from "@/services/soundEffectsService";
 
 interface UseClassroomActionsProps {
   isRecording: boolean;
@@ -31,8 +31,14 @@ export function useClassroomActions({
     setStudentXP(prev => prev + points);
     setShowRewardPopup(true);
     
-    // Play enhanced sound based on points
-    audioService.playRewardSound(points);
+    // Play game-like sound effects based on reward amount
+    if (points >= 40) {
+      soundEffectsService.playLevelComplete(); // Large rewards - victory fanfare
+    } else if (points >= 20) {
+      soundEffectsService.playCelebration(); // Medium rewards - celebration melody
+    } else {
+      soundEffectsService.playStarEarned(); // Small rewards - star chime
+    }
     
     // Show center-screen celebration
     if (onShowCelebration) {
