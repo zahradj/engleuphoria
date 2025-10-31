@@ -53,23 +53,23 @@ export const CalendarCore: React.FC<CalendarCoreProps> = ({
       return (
         <div
           className={cn(
-            'h-20 border-2 border-purple-500 bg-purple-50 dark:bg-purple-950/20 rounded-md p-2',
+            'h-20 border-2 border-accent bg-accent-bg rounded-md p-2',
             'flex flex-col items-start justify-center text-xs cursor-not-allowed overflow-hidden'
           )}
         >
           <div className="flex items-center gap-1 w-full mb-0.5">
-            <Lock className="w-3 h-3 text-purple-600 flex-shrink-0" />
-            <span className="text-purple-700 dark:text-purple-400 font-bold truncate">
+            <Lock className="w-3 h-3 text-accent flex-shrink-0" />
+            <span className="text-accent font-bold truncate">
               {slot.studentName || 'Booked'}
             </span>
           </div>
           {slot.studentCefrLevel && (
-            <div className="text-purple-600 dark:text-purple-300 font-medium">
+            <div className="text-accent font-medium">
               Level: {slot.studentCefrLevel}
             </div>
           )}
           {slot.studentId && (
-            <div className="text-purple-500 dark:text-purple-400 text-[10px] truncate w-full">
+            <div className="text-accent/80 text-[10px] truncate w-full">
               ID: {slot.studentId.slice(0, 8)}...
             </div>
           )}
@@ -82,16 +82,16 @@ export const CalendarCore: React.FC<CalendarCoreProps> = ({
         <button
           onClick={() => onSlotClick(date, time)}
           className={cn(
-            'h-20 border-2 border-green-500 bg-green-50 dark:bg-green-950/20 rounded-md',
-            'hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors',
+            'h-20 border-2 border-success bg-success-bg rounded-md',
+            'hover:bg-success-bg/60 transition-colors',
             'flex items-center justify-center relative group'
           )}
         >
-          <Check className="w-5 h-5 text-green-600" />
-          <span className="ml-1 text-sm font-bold text-green-700 dark:text-green-400">
+          <Check className="w-5 h-5 text-success" />
+          <span className="ml-1 text-sm font-bold text-success">
             OPEN
           </span>
-          <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1 rounded">
+          <span className="absolute -top-1 -right-1 bg-success text-success-foreground text-xs px-1 rounded">
             {slot.duration}m
           </span>
         </button>
@@ -142,11 +142,11 @@ export const CalendarCore: React.FC<CalendarCoreProps> = ({
       {/* Legend */}
       <div className="flex items-center gap-4 mb-4 text-sm">
         <div className="flex items-center gap-1">
-          <div className="w-4 h-4 border-2 border-green-500 bg-green-50 dark:bg-green-950/20 rounded" />
+          <div className="w-4 h-4 border-2 border-success bg-success-bg rounded" />
           <span>Available</span>
         </div>
         <div className="flex items-center gap-1">
-          <div className="w-4 h-4 border-2 border-purple-500 bg-purple-50 dark:bg-purple-950/20 rounded" />
+          <div className="w-4 h-4 border-2 border-accent bg-accent-bg rounded" />
           <span>Booked</span>
         </div>
         <div className="flex items-center gap-1">
