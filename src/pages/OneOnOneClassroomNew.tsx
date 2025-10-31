@@ -13,6 +13,7 @@ import { ModernClassroomTopBar } from "@/components/classroom/modern/ModernClass
 import { QuickAccessToolbar } from "@/components/classroom/modern/QuickAccessToolbar";
 import { EnhancedWhiteboard } from "@/components/classroom/modern/EnhancedWhiteboard";
 import { ModernRewardsPanel } from "@/components/classroom/modern/ModernRewardsPanel";
+import { ModernChatPanel } from "@/components/classroom/modern/ModernChatPanel";
 import { EnhancedConfetti, LevelUpAnimation, BadgeReveal } from "@/components/classroom/modern/EnhancedConfetti";
 import { RewardToast } from "@/components/classroom/modern/RewardToast";
 import { toast } from "sonner";
@@ -141,11 +142,20 @@ export default function OneOnOneClassroomNew() {
                 recentAchievements={recentAchievements}
                 starCount={starCount}
               />
+            ) : activeView === "chat" ? (
+              <ModernChatPanel
+                roomId={roomId}
+                currentUser={{
+                  id: authedUserId,
+                  name: authedName,
+                  role: authedRole === 'admin' ? 'teacher' : authedRole
+                }}
+              />
             ) : (
               <div className="h-full flex items-center justify-center text-muted-foreground">
                 <div className="text-center">
-                  <p className="text-sm">Chat / Dictionary</p>
-                  <p className="text-xs mt-2">Coming in Phases 5-6</p>
+                  <p className="text-sm">Dictionary</p>
+                  <p className="text-xs mt-2">Coming in Phase 6</p>
                 </div>
               </div>
             )
@@ -163,7 +173,7 @@ export default function OneOnOneClassroomNew() {
               onChatClick={() => {
                 setActiveView("chat");
                 clearUnreadChat();
-                toast.info("Chat panel coming soon");
+                toast.success("Chat opened");
               }}
               onDictionaryClick={() => {
                 setActiveView("dictionary");
