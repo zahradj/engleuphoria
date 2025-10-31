@@ -14,6 +14,7 @@ import { QuickAccessToolbar } from "@/components/classroom/modern/QuickAccessToo
 import { EnhancedWhiteboard } from "@/components/classroom/modern/EnhancedWhiteboard";
 import { ModernRewardsPanel } from "@/components/classroom/modern/ModernRewardsPanel";
 import { ModernChatPanel } from "@/components/classroom/modern/ModernChatPanel";
+import { ModernDictionaryPanel } from "@/components/classroom/modern/ModernDictionaryPanel";
 import { EnhancedConfetti, LevelUpAnimation, BadgeReveal } from "@/components/classroom/modern/EnhancedConfetti";
 import { RewardToast } from "@/components/classroom/modern/RewardToast";
 import { toast } from "sonner";
@@ -151,11 +152,18 @@ export default function OneOnOneClassroomNew() {
                   role: authedRole === 'admin' ? 'teacher' : authedRole
                 }}
               />
+            ) : activeView === "dictionary" ? (
+              <ModernDictionaryPanel
+                onAddToVocab={(word, definition) => {
+                  toast.success(`Added "${word}" to vocabulary`);
+                  addXP(5, "Added new word to vocabulary");
+                }}
+              />
             ) : (
               <div className="h-full flex items-center justify-center text-muted-foreground">
                 <div className="text-center">
-                  <p className="text-sm">Dictionary</p>
-                  <p className="text-xs mt-2">Coming in Phase 6</p>
+                  <p className="text-sm">No content selected</p>
+                  <p className="text-xs mt-2">Choose a tool from the bottom toolbar</p>
                 </div>
               </div>
             )
@@ -177,7 +185,7 @@ export default function OneOnOneClassroomNew() {
               }}
               onDictionaryClick={() => {
                 setActiveView("dictionary");
-                toast.info("Dictionary panel coming soon");
+                toast.success("Dictionary opened");
               }}
               onRewardsClick={() => {
                 setActiveView("rewards");
