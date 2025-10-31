@@ -8,6 +8,7 @@ import { useOneOnOneClassroom } from "@/hooks/useOneOnOneClassroom";
 import { useSessionTimer } from "@/hooks/classroom/useSessionTimer";
 import { useClassroomLayout } from "@/hooks/classroom/useClassroomLayout";
 import { useRewards } from "@/hooks/classroom/useRewards";
+import { useLessonSlides } from "@/hooks/classroom/useLessonSlides";
 import { ModernClassroomLayout } from "@/components/classroom/modern/ModernClassroomLayout";
 import { ModernClassroomTopBar } from "@/components/classroom/modern/ModernClassroomTopBar";
 import { QuickAccessToolbar } from "@/components/classroom/modern/QuickAccessToolbar";
@@ -15,6 +16,9 @@ import { EnhancedWhiteboard } from "@/components/classroom/modern/EnhancedWhiteb
 import { ModernRewardsPanel } from "@/components/classroom/modern/ModernRewardsPanel";
 import { ModernChatPanel } from "@/components/classroom/modern/ModernChatPanel";
 import { ModernDictionaryPanel } from "@/components/classroom/modern/ModernDictionaryPanel";
+import { ModernLessonSlidesPanel } from "@/components/classroom/modern/ModernLessonSlidesPanel";
+import { ModernUserControls } from "@/components/classroom/modern/ModernUserControls";
+import { KeyboardShortcutsModal } from "@/components/classroom/modern/KeyboardShortcutsModal";
 import { EnhancedConfetti, LevelUpAnimation, BadgeReveal } from "@/components/classroom/modern/EnhancedConfetti";
 import { RewardToast } from "@/components/classroom/modern/RewardToast";
 import { toast } from "sonner";
@@ -68,10 +72,23 @@ export default function OneOnOneClassroomNew() {
     earnBadge
   } = useRewards();
 
+  const {
+    slides,
+    currentSlide,
+    isFullScreen,
+    goToSlide,
+    toggleFullScreen
+  } = useLessonSlides();
+
   const [connectionQuality] = useState<"excellent" | "good" | "poor">("excellent");
   const [showRewardToast, setShowRewardToast] = useState(false);
   const [rewardXP, setRewardXP] = useState(0);
   const [showConfetti, setShowConfetti] = useState(false);
+
+  // Mock video states
+  const [teacherVideo, setTeacherVideo] = useState({ isVideoOn: true, isAudioOn: true });
+  const [studentVideo, setStudentVideo] = useState({ isVideoOn: true, isAudioOn: true });
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
 
   // Demo function to test rewards
   const handleTestReward = () => {
@@ -111,22 +128,26 @@ export default function OneOnOneClassroomNew() {
           topBar={
             <ModernClassroomTopBar
               onBack={handleBack}
-              lessonTitle="Interactive One-on-One Lesson"
+              lessonTitle={activeView === "slides" ? `Lesson Slides (${currentSlide + 1}/${slides.length})` : "Interactive One-on-One Lesson"}
               roomCode={roomId}
               sessionTime={formattedTime}
               connectionQuality={connectionQuality}
               onExitClick={handleExit}
-              onHelpClick={() => toast.info("Help documentation coming soon!")}
+              onHelpClick={() => setShowKeyboardShortcuts(true)}
               onSettingsClick={() => toast.info("Settings panel coming soon!")}
             />
           }
           leftPanel={
-            <div className="h-full flex items-center justify-center text-muted-foreground">
-              <div className="text-center">
-                <p className="text-sm">Lesson Slides Panel</p>
-                <p className="text-xs mt-2">Coming in Phase 2</p>
-              </div>
-            </div>
+            activeView === "slides" || showLeftPanel ? (
+              <ModernLessonSlidesPanel
+                slides={slides}
+                currentSlide={currentSlide}
+                onSlideChange={goToSlide}
+                isTeacher={isTeacher}
+                isFullScreen={isFullScreen}
+                onToggleFullScreen={toggleFullScreen}
+              />
+            ) : null
           }
           centerContent={
             <div className="h-full">
@@ -176,7 +197,7 @@ export default function OneOnOneClassroomNew() {
               }}
               onSlidesClick={() => {
                 setActiveView("slides");
-                toast.info("Slides panel coming soon");
+                toast.success("Lesson slides opened");
               }}
               onChatClick={() => {
                 setActiveView("chat");
@@ -224,6 +245,34 @@ export default function OneOnOneClassroomNew() {
           xp={rewardXP}
           message="Great work!"
           onComplete={() => setShowRewardToast(false)}
+        />
+
+        {/* User Video Controls */}
+        <ModernUserControls
+          teacher={{
+            id: isTeacher ? authedUserId : "teacher-id",
+            name: isTeacher ? authedName : "Teacher",
+            isVideoOn: teacherVideo.isVideoOn,
+            isAudioOn: teacherVideo.isAudioOn
+          }}
+          student={{
+            id: !isTeacher ? authedUserId : "student-id",
+            name: !isTeacher ? authedName : "Student",
+            isVideoOn: studentVideo.isVideoOn,
+            isAudioOn: studentVideo.isAudioOn
+          }}
+          connectionQuality={connectionQuality}
+          onToggleTeacherVideo={() => setTeacherVideo(prev => ({ ...prev, isVideoOn: !prev.isVideoOn }))}
+          onToggleTeacherAudio={() => setTeacherVideo(prev => ({ ...prev, isAudioOn: !prev.isAudioOn }))}
+          onToggleStudentVideo={() => setStudentVideo(prev => ({ ...prev, isVideoOn: !prev.isVideoOn }))}
+          onToggleStudentAudio={() => setStudentVideo(prev => ({ ...prev, isAudioOn: !prev.isAudioOn }))}
+          isTeacher={isTeacher}
+        />
+
+        {/* Keyboard Shortcuts Modal */}
+        <KeyboardShortcutsModal
+          isOpen={showKeyboardShortcuts}
+          onClose={() => setShowKeyboardShortcuts(false)}
         />
       </MediaProvider>
     </ClassroomAccessGuard>
