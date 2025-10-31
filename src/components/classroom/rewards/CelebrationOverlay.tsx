@@ -43,7 +43,7 @@ export function CelebrationOverlay({
     <>
       {/* Backdrop */}
       <div 
-        className={`fixed inset-0 bg-black/30 backdrop-blur-md z-[9999] transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-black/50 backdrop-blur-md z-[9999] transition-opacity duration-300 ${
           showContent ? 'opacity-100' : 'opacity-0'
         }`}
         onClick={onComplete}

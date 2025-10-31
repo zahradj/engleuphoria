@@ -49,7 +49,7 @@ export function TopLevelBar({
   }, [currentXP, previousXP, xpPerSegment, normalizedXP, maxXP]);
 
   return (
-    <div className="fixed top-16 left-0 right-0 z-50 h-8 bg-black/20 backdrop-blur-md neon-border-glow shadow-[0_0_20px_rgba(0,255,255,0.3)]">
+    <div className="fixed top-16 left-0 right-0 z-50 h-8 bg-black/50 backdrop-blur-md neon-border-glow shadow-[0_0_20px_rgba(0,255,255,0.3)]">
       <div className="container mx-auto h-full flex items-center gap-2 px-4">
         {/* Level Badge */}
         <Badge className="bg-gradient-to-r from-[hsl(var(--neon-purple))] to-[hsl(var(--neon-pink))] text-white px-2 py-0.5 text-xs font-bold neon-glow-purple border border-white/20">
@@ -64,7 +64,7 @@ export function TopLevelBar({
               className={`flex-1 h-3 rounded-full transition-all duration-300 ${
                 i < filledSegments
               ? 'bg-gradient-to-r from-[hsl(var(--neon-cyan))] via-[hsl(var(--neon-purple))] to-[hsl(var(--neon-magenta))] neon-glow-cyan'
-              : 'bg-gray-900/20 border border-gray-700/30'
+              : 'bg-gray-900/40 border border-gray-700/50'
               } ${animatingSegments.includes(i) ? 'animate-pulse scale-110 neon-glow-cyan' : ''}`}
               style={{
                 transform: animatingSegments.includes(i) ? 'scale(1.1)' : 'scale(1)',
@@ -79,7 +79,7 @@ export function TopLevelBar({
         </span>
         
         {/* Star Count */}
-        <div className="flex items-center gap-1 bg-black/20 px-2 py-0.5 rounded-full border border-[hsl(var(--neon-yellow)/0.5)] shadow-[0_0_10px_hsl(var(--neon-yellow)/0.3)]">
+        <div className="flex items-center gap-1 bg-black/40 px-2 py-0.5 rounded-full border border-[hsl(var(--neon-yellow)/0.5)] shadow-[0_0_10px_hsl(var(--neon-yellow)/0.3)]">
           <Star className="w-3 h-3 fill-[hsl(var(--neon-yellow))] text-[hsl(var(--neon-yellow))] drop-shadow-[0_0_5px_hsl(var(--neon-yellow))]" />
           <span className="text-xs font-bold text-[hsl(var(--neon-yellow))]">×{starCount}</span>
         </div>
