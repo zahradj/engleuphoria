@@ -33,7 +33,7 @@ export function GlassCard({
       className={cn(
         variantClasses[variant],
         roundedClasses[rounded],
-        "transition-all duration-300",
+        "transition-all duration-300 hover:shadow-lg",
         className
       )}
       {...props}

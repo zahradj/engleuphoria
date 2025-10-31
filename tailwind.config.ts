@@ -127,16 +127,24 @@ export default {
           "50%": { transform: "translateY(-5px)" }
         },
         "pulse-fun": {
-          "0%, 100%": { opacity: "1" },
-          "50%": { opacity: "0.8" }
+          "0%, 100%": { opacity: "1", transform: "scale(1)" },
+          "50%": { opacity: "0.85", transform: "scale(0.98)" }
         },
         "spin-slow": {
           "0%": { transform: "rotate(0deg)" },
           "100%": { transform: "rotate(360deg)" }
         },
         "float": {
-          "0%, 100%": { transform: "translateY(0px)" },
-          "50%": { transform: "translateY(-10px)" }
+          "0%, 100%": { transform: "translateY(0px) translateX(0px)" },
+          "50%": { transform: "translateY(-20px) translateX(10px)" }
+        },
+        "float-slow": {
+          "0%, 100%": { transform: "translateY(0px) translateX(0px)" },
+          "50%": { transform: "translateY(-15px) translateX(-8px)" }
+        },
+        "float-delayed": {
+          "0%, 100%": { transform: "translateY(0px) translateX(0px)" },
+          "50%": { transform: "translateY(-18px) translateX(5px)" }
         },
         "scale-in": {
           "0%": { transform: "scale(0.95)", opacity: "0" },
@@ -153,9 +161,11 @@ export default {
         "fade-in": "fade-in 0.5s ease-out",
         "slide-in": "slide-in 0.4s ease-out",
         "bounce-gentle": "bounce-gentle 2s infinite",
-        "pulse-fun": "pulse-fun 2s infinite",
+        "pulse-fun": "pulse-fun 3s ease-in-out infinite",
         "spin-slow": "spin-slow 3s linear infinite",
-        "float": "float 3s ease-in-out infinite",
+        "float": "float 4s ease-in-out infinite",
+        "float-slow": "float-slow 6s ease-in-out infinite",
+        "float-delayed": "float-delayed 5s ease-in-out infinite 1s",
         "scale-in": "scale-in 0.5s ease-out",
         "slide-up": "slide-up 0.6s ease-out",
       },

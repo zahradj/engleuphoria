@@ -80,8 +80,13 @@ function UserVideoFeed({
   };
 
   const roleColors = {
-    teacher: "from-classroom-accent/30 to-classroom-primary/30",
-    student: "from-classroom-success/30 to-classroom-accent/30"
+    teacher: "from-lesson-purple/40 via-lesson-pink/30 to-lesson-blue/40",
+    student: "from-lesson-teal/40 via-lesson-lime/30 to-lesson-green/40"
+  };
+
+  const roleBorderColors = {
+    teacher: "border-lesson-purple/50",
+    student: "border-lesson-teal/50"
   };
 
   return (
@@ -97,8 +102,8 @@ function UserVideoFeed({
       }}
     >
       <GlassCard 
-        className={`${sizeClasses[size]} relative overflow-hidden transition-all duration-300 ${
-          isHovered ? "scale-105 shadow-glow" : ""
+        className={`${sizeClasses[size]} relative overflow-hidden transition-all duration-300 border-2 ${roleBorderColors[role]} ${
+          isHovered ? "scale-105 shadow-glow border-opacity-80" : "border-opacity-40"
         }`}
       >
         {/* Video or placeholder */}
@@ -115,9 +120,14 @@ function UserVideoFeed({
             }}
           />
         ) : (
-          <div className={`w-full h-full bg-gradient-to-br ${roleColors[role]} flex items-center justify-center`}>
-            <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
-              <User className="w-8 h-8 text-white" />
+          <div className={`w-full h-full bg-gradient-to-br ${roleColors[role]} flex items-center justify-center relative overflow-hidden`}>
+            {/* Animated particles when camera off */}
+            <div className="absolute inset-0">
+              <div className="absolute top-10 left-10 w-20 h-20 bg-white/10 rounded-full blur-xl animate-float" />
+              <div className="absolute bottom-10 right-10 w-16 h-16 bg-white/10 rounded-full blur-xl animate-float-slow" />
+            </div>
+            <div className="w-20 h-20 rounded-full bg-white/30 backdrop-blur-sm flex items-center justify-center border-2 border-white/50 shadow-lg relative z-10">
+              <User className="w-10 h-10 text-white drop-shadow-lg" />
             </div>
           </div>
         )}
@@ -210,8 +220,8 @@ export function ModernUserControls({
     <>
       {/* Normal view */}
       {!expandedUser && (
-        <div className="fixed top-20 right-6 z-40 flex flex-col gap-3 p-3 bg-background/10 backdrop-blur-sm rounded-xl border border-border/30 animate-fade-in">
-          <div className="text-xs font-medium text-center text-muted-foreground mb-1 uppercase tracking-wide">
+        <div className="fixed top-20 left-6 z-30 flex flex-col gap-3 p-4 glass-strong rounded-2xl shadow-glow animate-fade-in border-2 border-primary/20">
+          <div className="text-xs font-bold text-center bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-1 uppercase tracking-wide">
             Live Session
           </div>
           <UserVideoFeed
