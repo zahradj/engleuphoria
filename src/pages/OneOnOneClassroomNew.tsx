@@ -12,6 +12,7 @@ import { useLessonSlides } from "@/hooks/classroom/useLessonSlides";
 import { ModernClassroomLayout } from "@/components/classroom/modern/ModernClassroomLayout";
 import { ModernClassroomTopBar } from "@/components/classroom/modern/ModernClassroomTopBar";
 import { QuickAccessToolbar } from "@/components/classroom/modern/QuickAccessToolbar";
+import { TopLevelBar } from "@/components/classroom/gamification/TopLevelBar";
 import { EnhancedWhiteboard } from "@/components/classroom/modern/EnhancedWhiteboard";
 import { ModernRewardsPanel } from "@/components/classroom/modern/ModernRewardsPanel";
 import { ModernChatPanel } from "@/components/classroom/modern/ModernChatPanel";
@@ -123,6 +124,14 @@ export default function OneOnOneClassroomNew() {
 
   return (
     <MediaProvider roomId={roomId}>
+        {/* Top Level Progress Bar */}
+        <TopLevelBar 
+          currentXP={studentXP}
+          maxXP={100}
+          level={Math.floor(studentXP / 100)}
+          starCount={starCount}
+        />
+
         <ModernClassroomLayout
           topBar={
             <ModernClassroomTopBar

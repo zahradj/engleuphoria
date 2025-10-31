@@ -9,7 +9,7 @@ class SoundEffectsService {
     }
   }
 
-  private playTone(frequency: number, duration: number, type: OscillatorType = 'sine') {
+  playTone(frequency: number, duration: number, type: OscillatorType = 'sine') {
     if (this.isMuted || !this.audioContext) return;
 
     const oscillator = this.audioContext.createOscillator();
@@ -85,6 +85,41 @@ class SoundEffectsService {
   playStarEarned() {
     this.playTone(1000, 0.1, 'sine');
     setTimeout(() => this.playTone(1200, 0.15, 'sine'), 100);
+  }
+
+  playLevelUpAnthem() {
+    if (this.isMuted || !this.audioContext) return;
+    
+    // "We Are the Champions" inspired victory anthem
+    const melody = [
+      { note: 523, duration: 0.3 },   // C
+      { note: 587, duration: 0.3 },   // D
+      { note: 659, duration: 0.4 },   // E
+      { note: 659, duration: 0.2 },   // E
+      { note: 698, duration: 0.3 },   // F
+      { note: 784, duration: 0.5 },   // G
+      { note: 880, duration: 0.4 },   // A
+      { note: 784, duration: 0.3 },   // G
+      { note: 1047, duration: 0.6 },  // C (high)
+    ];
+    
+    let time = 0;
+    melody.forEach(({ note, duration }) => {
+      setTimeout(() => {
+        this.playTone(note, duration, 'sine');
+        // Add bass harmony
+        this.playTone(note * 0.5, duration * 1.2, 'sine');
+      }, time * 1000);
+      time += duration;
+    });
+    
+    // Add triumphant final chord
+    setTimeout(() => {
+      this.playTone(523, 1.2, 'sine');  // C
+      this.playTone(659, 1.2, 'sine');  // E
+      this.playTone(784, 1.2, 'sine');  // G
+      this.playTone(1047, 1.2, 'sine'); // High C
+    }, time * 1000);
   }
 
   // Settings

@@ -144,10 +144,10 @@ export function ModernRewardsPanel({
         {isTeacher && onAwardStar && (
           <GlassButton
             variant="primary"
-            className="w-full mt-3 bg-gradient-to-r from-classroom-reward to-classroom-accent hover:scale-105 transition-transform"
+            className="w-full mt-3 bg-gradient-to-r from-classroom-reward to-classroom-accent hover:scale-110 active:scale-95 transition-all duration-200 hover:shadow-[0_0_20px_rgba(168,85,247,0.6)] animate-pulse"
             onClick={onAwardStar}
           >
-            <Star className="w-4 h-4 mr-2 fill-white" />
+            <Star className="w-4 h-4 mr-2 fill-white animate-bounce" />
             Award Star to Student
           </GlassButton>
         )}
