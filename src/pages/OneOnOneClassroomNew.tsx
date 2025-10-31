@@ -7,10 +7,14 @@ import { MediaProvider } from "@/components/classroom/oneonone/video/MediaContex
 import { useOneOnOneClassroom } from "@/hooks/useOneOnOneClassroom";
 import { useSessionTimer } from "@/hooks/classroom/useSessionTimer";
 import { useClassroomLayout } from "@/hooks/classroom/useClassroomLayout";
+import { useRewards } from "@/hooks/classroom/useRewards";
 import { ModernClassroomLayout } from "@/components/classroom/modern/ModernClassroomLayout";
 import { ModernClassroomTopBar } from "@/components/classroom/modern/ModernClassroomTopBar";
 import { QuickAccessToolbar } from "@/components/classroom/modern/QuickAccessToolbar";
 import { EnhancedWhiteboard } from "@/components/classroom/modern/EnhancedWhiteboard";
+import { ModernRewardsPanel } from "@/components/classroom/modern/ModernRewardsPanel";
+import { EnhancedConfetti, LevelUpAnimation, BadgeReveal } from "@/components/classroom/modern/EnhancedConfetti";
+import { RewardToast } from "@/components/classroom/modern/RewardToast";
 import { toast } from "sonner";
 
 export default function OneOnOneClassroomNew() {
@@ -47,7 +51,35 @@ export default function OneOnOneClassroomNew() {
     clearUnreadChat
   } = useClassroomLayout();
 
+  const {
+    currentXP,
+    level,
+    nextLevelXP,
+    starCount,
+    badges,
+    recentAchievements,
+    showLevelUp,
+    showBadgeReveal,
+    newBadge,
+    addXP,
+    addStars,
+    earnBadge
+  } = useRewards();
+
   const [connectionQuality] = useState<"excellent" | "good" | "poor">("excellent");
+  const [showRewardToast, setShowRewardToast] = useState(false);
+  const [rewardXP, setRewardXP] = useState(0);
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  // Demo function to test rewards
+  const handleTestReward = () => {
+    const xpAmount = 25;
+    setRewardXP(xpAmount);
+    setShowRewardToast(true);
+    setShowConfetti(true);
+    addXP(xpAmount, "Completed activity");
+    addStars(1);
+  };
 
   const handleAccessDenied = () => {
     navigate(isTeacher ? "/teacher" : "/student");
@@ -100,12 +132,23 @@ export default function OneOnOneClassroomNew() {
             </div>
           }
           rightSidebar={
-            <div className="h-full flex items-center justify-center text-muted-foreground">
-              <div className="text-center">
-                <p className="text-sm">Chat / Dictionary / Rewards</p>
-                <p className="text-xs mt-2">Coming in Phases 4-6</p>
+            activeView === "rewards" ? (
+              <ModernRewardsPanel
+                currentXP={currentXP}
+                nextLevelXP={nextLevelXP}
+                level={level}
+                badges={badges}
+                recentAchievements={recentAchievements}
+                starCount={starCount}
+              />
+            ) : (
+              <div className="h-full flex items-center justify-center text-muted-foreground">
+                <div className="text-center">
+                  <p className="text-sm">Chat / Dictionary</p>
+                  <p className="text-xs mt-2">Coming in Phases 5-6</p>
+                </div>
               </div>
-            </div>
+            )
           }
           bottomToolbar={
             <QuickAccessToolbar
@@ -128,7 +171,7 @@ export default function OneOnOneClassroomNew() {
               }}
               onRewardsClick={() => {
                 setActiveView("rewards");
-                toast.info("Rewards panel coming soon");
+                toast.success("Rewards panel opened");
               }}
               onEmbedClick={() => {
                 setActiveView("embed");
@@ -143,6 +186,26 @@ export default function OneOnOneClassroomNew() {
           }
           showLeftPanel={showLeftPanel}
           showRightSidebar={showRightSidebar}
+        />
+
+        {/* Reward Animations */}
+        <EnhancedConfetti trigger={showConfetti} pattern="burst" />
+        <LevelUpAnimation show={showLevelUp} level={level} />
+        {newBadge && (
+          <BadgeReveal
+            show={showBadgeReveal}
+            badge={{
+              icon: newBadge.icon,
+              name: newBadge.name,
+              description: newBadge.description
+            }}
+          />
+        )}
+        <RewardToast
+          show={showRewardToast}
+          xp={rewardXP}
+          message="Great work!"
+          onComplete={() => setShowRewardToast(false)}
         />
       </MediaProvider>
     </ClassroomAccessGuard>

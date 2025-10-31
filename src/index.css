@@ -781,4 +781,24 @@
       transform: translateY(-20px) scale(0.8);
     }
   }
+
+  /* Enhanced Reward Animations */
+  @keyframes floatUp {
+    0% {
+      opacity: 1;
+      transform: translate(-50%, -50%) translateY(0);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -50%) translateY(-100px);
+    }
+  }
+
+  .drop-shadow-glow {
+    filter: drop-shadow(0 0 10px currentColor);
+  }
+
+  .hover-scale-102:hover {
+    transform: scale(1.02);
+  }
 }
