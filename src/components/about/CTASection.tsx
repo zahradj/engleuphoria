@@ -7,10 +7,10 @@ export const CTASection = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="py-16 px-4 bg-white">
+    <section className="py-16 px-4 bg-surface">
       <div className="container max-w-4xl mx-auto text-center">
         <h2 className="text-3xl font-bold mb-4">Ready to Join Our Community?</h2>
-        <p className="text-lg text-gray-600 mb-8">
+        <p className="text-lg text-muted-foreground mb-8">
           Start your child's English learning journey with EnglEuphoria today. 
           Join thousands of families who trust us with their children's education.
         </p>
@@ -18,7 +18,7 @@ export const CTASection = () => {
           <Button 
             size="lg"
             onClick={() => navigate("/signup")}
-            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+            className="bg-gradient-to-r from-primary to-accent hover:from-primary-light hover:to-accent-light"
           >
             Start Free Trial
           </Button>

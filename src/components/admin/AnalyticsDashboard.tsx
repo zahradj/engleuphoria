@@ -105,54 +105,54 @@ export const AnalyticsDashboard = () => {
         <TabsContent value="overview" className="space-y-6">
           {/* Key Metrics Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+            <Card className="bg-gradient-to-r from-primary to-primary-light text-primary-foreground">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-blue-100">Daily Active Users</p>
+                    <p className="text-primary-foreground/90">Daily Active Users</p>
                     <p className="text-3xl font-bold">{analytics.userEngagement.dailyActiveUsers}</p>
-                    <p className="text-sm text-blue-100">+{analytics.userEngagement.growth}% vs last week</p>
+                    <p className="text-sm text-primary-foreground/90">+{analytics.userEngagement.growth}% vs last week</p>
                   </div>
-                  <Users className="h-10 w-10 text-blue-200" />
+                  <Users className="h-10 w-10 text-primary-foreground/80" />
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-r from-green-500 to-green-600 text-white">
+            <Card className="bg-gradient-to-r from-success to-success/80 text-success-foreground">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-green-100">Completion Rate</p>
+                    <p className="text-success-foreground/90">Completion Rate</p>
                     <p className="text-3xl font-bold">{analytics.learningMetrics.completionRate}%</p>
-                    <p className="text-sm text-green-100">Above industry average</p>
+                    <p className="text-sm text-success-foreground/90">Above industry average</p>
                   </div>
-                  <Target className="h-10 w-10 text-green-200" />
+                  <Target className="h-10 w-10 text-success-foreground/80" />
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
+            <Card className="bg-gradient-to-r from-accent to-accent-light text-accent-foreground">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-purple-100">Monthly Revenue</p>
+                    <p className="text-accent-foreground/90">Monthly Revenue</p>
                     <p className="text-3xl font-bold">{analytics.revenue.totalRevenue.toLocaleString()} DZD</p>
-                    <p className="text-sm text-purple-100">+18% vs last month</p>
+                    <p className="text-sm text-accent-foreground/90">+18% vs last month</p>
                   </div>
-                  <DollarSign className="h-10 w-10 text-purple-200" />
+                  <DollarSign className="h-10 w-10 text-accent-foreground/80" />
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
+            <Card className="bg-gradient-to-r from-warning to-warning/80 text-warning-foreground">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-orange-100">Teacher Rating</p>
+                    <p className="text-warning-foreground/90">Teacher Rating</p>
                     <p className="text-3xl font-bold">{analytics.teacherMetrics.avgRating}</p>
-                    <p className="text-sm text-orange-100">Out of 5.0 stars</p>
+                    <p className="text-sm text-warning-foreground/90">Out of 5.0 stars</p>
                   </div>
-                  <Star className="h-10 w-10 text-orange-200" />
+                  <Star className="h-10 w-10 text-warning-foreground/80" />
                 </div>
               </CardContent>
             </Card>
@@ -176,13 +176,13 @@ export const AnalyticsDashboard = () => {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <Progress value={(day.users / 600) * 100} className="flex-1" />
-                            <span className="text-xs text-gray-500 w-12">{day.users}</span>
+                            <span className="text-xs text-muted-foreground w-12">{day.users}</span>
                           </div>
                         </div>
                       </div>
                       <div className="text-right">
                         <p className="text-sm font-medium">{day.revenue.toLocaleString()} DZD</p>
-                        <p className="text-xs text-gray-500">{day.lessons} lessons</p>
+                        <p className="text-xs text-muted-foreground">{day.lessons} lessons</p>
                       </div>
                     </div>
                   ))}
@@ -200,14 +200,14 @@ export const AnalyticsDashboard = () => {
               <CardContent>
                 <div className="space-y-4">
                   {topPerformers.map((performer, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div key={index} className="flex items-center justify-between p-3 bg-surface-2 rounded-lg">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                        <div className="w-8 h-8 bg-gradient-to-r from-primary to-accent rounded-full flex items-center justify-center text-white text-sm font-bold">
                           {performer.name.split(' ').map(n => n[0]).join('')}
                         </div>
                         <div>
                           <p className="font-medium text-sm">{performer.name}</p>
-                          <p className="text-xs text-gray-600">{performer.metric}</p>
+                          <p className="text-xs text-muted-foreground">{performer.metric}</p>
                         </div>
                       </div>
                       <div className="text-right">

@@ -16,10 +16,10 @@ export const HeroSection = () => {
         <Badge variant="secondary" className="mb-4">
           {languageText.aboutUs || "About Us"}
         </Badge>
-        <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+        <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-accent to-primary-light bg-clip-text text-transparent">
           Making English Learning Joyful for Every Child
         </h1>
-        <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+        <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
           At EnglEuphoria, we're on a mission to transform how children learn English through 
           innovative technology, engaging content, and passionate educators from around the world.
         </p>
@@ -27,7 +27,7 @@ export const HeroSection = () => {
           <Button 
             size="lg" 
             onClick={() => navigate("/signup")}
-            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+            className="bg-gradient-to-r from-primary to-accent hover:from-primary-light hover:to-accent-light"
           >
             <GraduationCap className="mr-2 h-5 w-5" />
             Start Learning Today

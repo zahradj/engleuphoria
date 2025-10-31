@@ -10,7 +10,7 @@ export const AchievementsSection = () => {
   ];
 
   return (
-    <section className="py-16 px-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white">
+    <section className="py-16 px-4 bg-gradient-to-r from-primary to-accent text-primary-foreground">
       <div className="container max-w-6xl mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4">Our Impact</h2>

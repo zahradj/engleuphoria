@@ -7,78 +7,97 @@
 
 @layer base {
   :root {
-    /* Elegant & Simple Design System - Refined Minimalism */
+    /* Soft & Elegant Design System - Refined Minimalism */
     
-    /* Primary: Soft Teal */
-    --primary: 188 94% 37%;           /* #0891B2 - Professional Teal */
+    /* Primary: Soft Sage */
+    --primary: 160 30% 55%;           /* #6FB896 - Soft Sage Green */
     --primary-foreground: 0 0% 100%;  /* White text */
-    --primary-light: 188 94% 47%;     /* Lighter teal for hover */
-    --primary-bg: 188 94% 95%;        /* Very light teal background */
+    --primary-light: 160 35% 65%;     /* Lighter sage for hover */
+    --primary-bg: 160 30% 96%;        /* Very light sage background */
     
-    /* Accent: Warm Coral (use sparingly) */
-    --accent: 27 96% 53%;             /* #F97316 - Warm Coral */
+    /* Accent: Muted Lavender (use sparingly) */
+    --accent: 260 40% 65%;            /* #9D8AC7 - Soft Lavender */
     --accent-foreground: 0 0% 100%;   /* White text */
-    --accent-light: 27 96% 63%;       /* Lighter coral for hover */
-    --accent-bg: 27 96% 95%;          /* Very light coral background */
+    --accent-light: 260 45% 75%;      /* Lighter lavender for hover */
+    --accent-bg: 260 40% 96%;         /* Very light lavender background */
     
-    /* Neutrals - Clean Grays */
-    --background: 0 0% 98%;           /* #FAFAFA - Off-white */
-    --foreground: 217 19% 17%;        /* #1F2937 - Dark gray text */
+    /* Secondary: Warm Sand */
+    --secondary: 35 35% 88%;          /* #E9E0D5 - Warm Sand */
+    --secondary-foreground: 35 30% 25%; /* Dark sand text */
+    
+    /* Neutrals - Warm Grays */
+    --background: 30 15% 97%;         /* #F7F6F4 - Warm off-white */
+    --foreground: 30 20% 20%;         /* #3D3935 - Warm dark gray text */
     --surface: 0 0% 100%;             /* #FFFFFF - Pure white */
-    --surface-2: 220 13% 96%;         /* #F3F4F6 - Light gray */
+    --surface-2: 30 20% 95%;          /* #F2F0ED - Light warm gray */
     
-    --border: 220 13% 91%;            /* #E5E7EB - Light gray border */
-    --border-light: 220 13% 95%;      /* Even lighter border */
+    --border: 30 15% 90%;             /* #E8E6E3 - Light warm border */
+    --border-light: 30 15% 94%;       /* Even lighter border */
     
-    --text: 217 19% 17%;              /* #1F2937 - Dark gray */
-    --text-muted: 220 9% 46%;         /* #6B7280 - Medium gray */
-    --text-subtle: 220 9% 65%;        /* Lighter gray */
+    --text: 30 20% 20%;               /* #3D3935 - Warm dark gray */
+    --text-muted: 30 10% 50%;         /* #7F7A75 - Medium warm gray */
+    --text-subtle: 30 8% 65%;         /* Lighter warm gray */
     
-    /* Semantic Colors - Muted */
-    --success: 158 79% 39%;           /* #10B981 - Muted green */
-    --success-bg: 158 79% 95%;        /* Light green background */
-    --success-border: 158 79% 85%;    /* Green border */
+    /* Semantic Colors - Soft & Muted */
+    --success: 145 45% 50%;           /* #4CA976 - Soft green */
+    --success-bg: 145 45% 96%;        /* Light green background */
+    --success-border: 145 45% 88%;    /* Green border */
     --success-foreground: 0 0% 100%;  /* White text */
     
-    --warning: 43 96% 50%;            /* #F59E0B - Soft amber */
-    --warning-bg: 43 96% 95%;         /* Light amber background */
-    --warning-border: 43 96% 85%;     /* Amber border */
+    --warning: 40 60% 60%;            /* #D4A856 - Soft gold */
+    --warning-bg: 40 60% 96%;         /* Light gold background */
+    --warning-border: 40 60% 88%;     /* Gold border */
     --warning-foreground: 0 0% 100%;  /* White text */
     
-    --error: 0 72% 60%;               /* #EF4444 - Muted red */
-    --error-bg: 0 72% 95%;            /* Light red background */
-    --error-border: 0 72% 85%;        /* Red border */
+    --error: 0 55% 65%;               /* #D97979 - Soft red */
+    --error-bg: 0 55% 96%;            /* Light red background */
+    --error-border: 0 55% 88%;        /* Red border */
     
-    --destructive: 0 72% 60%;
+    --destructive: 0 55% 65%;
     --destructive-foreground: 0 0% 100%;
     
+    /* Soft Palette - Additional colors for variety */
+    --soft-blue: 210 50% 70%;         /* #7BAAD4 */
+    --soft-blue-bg: 210 50% 96%;
+    --soft-pink: 340 50% 75%;         /* #E5A5BE */
+    --soft-pink-bg: 340 50% 96%;
+    --soft-peach: 25 60% 75%;         /* #E5BBA5 */
+    --soft-peach-bg: 25 60% 96%;
+    
     /* Legacy color mappings for compatibility */
-    --sky-blue: 188 94% 90%;
-    --sky-blue-dark: 188 94% 37%;
-    --mint-green: 158 79% 90%;
-    --mint-green-dark: 158 79% 39%;
-    --lavender: 220 13% 96%;
-    --lavender-dark: 220 13% 70%;
-    --peach: 27 96% 90%;
-    --peach-dark: 27 96% 53%;
-    --surface-soft: 220 13% 96%;
+    --sky-blue: 210 50% 92%;
+    --sky-blue-dark: 210 50% 60%;
+    --mint-green: 145 45% 92%;
+    --mint-green-dark: 145 45% 50%;
+    --lavender: 260 40% 92%;
+    --lavender-dark: 260 40% 65%;
+    --peach: 25 60% 92%;
+    --peach-dark: 25 60% 70%;
+    --surface-soft: 30 20% 95%;
     
     /* Component Mappings */
     --card: var(--surface);
     --card-foreground: var(--text);
     --popover: var(--surface);
     --popover-foreground: var(--text);
-    --secondary: 220 13% 96%;         /* Light gray */
-    --secondary-foreground: var(--text);
-    --muted: 220 13% 96%;
     --muted-foreground: var(--text-muted);
     --input: var(--surface);
     --ring: var(--primary);
     
-    /* Minimal Shadows */
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.08);
-    --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.06);
+    /* Soft Shadows */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+    --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.05);
+    --shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.08);
+    --shadow-glow: 0 0 40px hsla(var(--primary) / 0.15);
+    
+    /* Soft Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-light)));
+    --gradient-accent: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--accent-light)));
+    --gradient-sage-lavender: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
+    --gradient-warm: linear-gradient(135deg, hsl(var(--soft-peach)), hsl(var(--accent)));
+    --gradient-cool: linear-gradient(135deg, hsl(var(--soft-blue)), hsl(var(--primary)));
+    --gradient-soft: linear-gradient(135deg, hsl(var(--surface-2)), hsl(var(--primary-bg)));
     
     --radius: 0.75rem;
   }

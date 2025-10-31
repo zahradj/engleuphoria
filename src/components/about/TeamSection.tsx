@@ -31,17 +31,17 @@ export const TeamSection = () => {
   ];
 
   return (
-    <section className="py-16 px-4 bg-white">
+    <section className="py-16 px-4 bg-surface">
       <div className="container max-w-6xl mx-auto">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold mb-4">Meet Our Team</h2>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-muted-foreground">
             Passionate educators and technologists dedicated to your child's success
           </p>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {teamMembers.map((member, index) => (
-            <Card key={index} className="text-center hover:shadow-lg transition-shadow">
+            <Card key={index} className="text-center hover:shadow-soft transition-shadow">
               <CardContent className="p-6">
                 <img 
                   src={member.image} 
@@ -49,8 +49,8 @@ export const TeamSection = () => {
                   className="w-24 h-24 rounded-full mx-auto mb-4 object-cover"
                 />
                 <h3 className="font-bold mb-1">{member.name}</h3>
-                <p className="text-purple-600 font-medium mb-2">{member.role}</p>
-                <p className="text-gray-600 text-sm">{member.description}</p>
+                <p className="text-accent font-medium mb-2">{member.role}</p>
+                <p className="text-muted-foreground text-sm">{member.description}</p>
               </CardContent>
             </Card>
           ))}

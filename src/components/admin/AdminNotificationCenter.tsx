@@ -124,13 +124,13 @@ export const AdminNotificationCenter = () => {
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'new_student':
-        return <UserPlus className="w-4 h-4 text-blue-500" />;
+        return <UserPlus className="w-4 h-4 text-primary" />;
       case 'lesson_booked':
-        return <BookOpen className="w-4 h-4 text-green-500" />;
+        return <BookOpen className="w-4 h-4 text-success" />;
       case 'system_alert':
-        return <AlertCircle className="w-4 h-4 text-orange-500" />;
+        return <AlertCircle className="w-4 h-4 text-warning" />;
       default:
-        return <Bell className="w-4 h-4 text-gray-500" />;
+        return <Bell className="w-4 h-4 text-muted-foreground" />;
     }
   };
 
@@ -178,7 +178,7 @@ export const AdminNotificationCenter = () => {
               <DropdownMenuItem
                 key={notification.id}
                 className={`flex items-start gap-3 p-3 cursor-pointer ${
-                  !notification.is_read ? 'bg-blue-50/50' : ''
+                  !notification.is_read ? 'bg-primary-bg' : ''
                 }`}
                 onClick={() => !notification.is_read && markAsRead(notification.id)}
               >
@@ -191,7 +191,7 @@ export const AdminNotificationCenter = () => {
                       {notification.title}
                     </p>
                     {!notification.is_read && (
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-1 flex-shrink-0" />
+                      <div className="w-2 h-2 bg-primary rounded-full mt-1 flex-shrink-0" />
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground line-clamp-2">

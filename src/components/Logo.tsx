@@ -35,7 +35,7 @@ export const Logo: React.FC<LogoProps> = ({
       onClick={handleClick} 
       className={`cursor-pointer transition-transform hover:scale-105 ${className}`}
     >
-      <h1 className={`${sizeClasses[size]} font-bold bg-gradient-to-r from-purple to-teal bg-clip-text text-transparent tracking-tight hover:tracking-normal transition-all duration-300`}>
+      <h1 className={`${sizeClasses[size]} font-bold bg-gradient-to-r from-primary via-accent to-primary-light bg-clip-text text-transparent tracking-tight hover:tracking-normal transition-all duration-300`}>
         Engleuphoria
       </h1>
     </div>

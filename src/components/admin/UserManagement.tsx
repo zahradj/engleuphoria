@@ -79,10 +79,10 @@ export const UserManagement = () => {
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'student': return 'bg-blue-100 text-blue-800';
-      case 'teacher': return 'bg-purple-100 text-purple-800';
-      case 'parent': return 'bg-orange-100 text-orange-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'student': return 'bg-primary-bg text-primary';
+      case 'teacher': return 'bg-accent-bg text-accent';
+      case 'parent': return 'bg-warning-bg text-warning';
+      default: return 'bg-surface-2 text-muted-foreground';
     }
   };
 

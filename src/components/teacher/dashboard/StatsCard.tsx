@@ -8,14 +8,14 @@ interface StatsCardProps {
 }
 
 export const StatsCard = ({ title, value, icon }: StatsCardProps) => (
-  <Card className="bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50 dark:from-purple-950/50 dark:via-indigo-950/50 dark:to-blue-950/50 border-purple-200/50 dark:border-purple-700/50 shadow-md hover:shadow-lg transition-shadow">
+  <Card className="bg-gradient-to-br from-primary-bg via-accent-bg to-surface-2 border-border shadow-card hover:shadow-soft transition-shadow">
     <CardContent className="p-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-purple-600 dark:text-purple-400 font-medium">{title}</p>
-          <p className="text-3xl font-bold mt-1 bg-gradient-to-r from-purple-600 via-indigo-500 to-blue-600 bg-clip-text text-transparent">{value}</p>
+          <p className="text-sm text-primary font-medium">{title}</p>
+          <p className="text-3xl font-bold mt-1 bg-gradient-to-r from-primary via-accent to-primary-light bg-clip-text text-transparent">{value}</p>
         </div>
-        <div className="bg-gradient-to-r from-purple-100 to-indigo-100 dark:from-purple-900/50 dark:to-indigo-900/50 p-3 rounded-full shadow-sm">
+        <div className="bg-gradient-to-r from-primary-bg to-accent-bg p-3 rounded-full shadow-sm">
           {icon}
         </div>
       </div>
