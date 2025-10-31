@@ -10,7 +10,7 @@ import { useClassroomLayout } from "@/hooks/classroom/useClassroomLayout";
 import { ModernClassroomLayout } from "@/components/classroom/modern/ModernClassroomLayout";
 import { ModernClassroomTopBar } from "@/components/classroom/modern/ModernClassroomTopBar";
 import { QuickAccessToolbar } from "@/components/classroom/modern/QuickAccessToolbar";
-import { Whiteboard } from "@/components/Whiteboard";
+import { EnhancedWhiteboard } from "@/components/classroom/modern/EnhancedWhiteboard";
 import { toast } from "sonner";
 
 export default function OneOnOneClassroomNew() {
@@ -95,11 +95,8 @@ export default function OneOnOneClassroomNew() {
             </div>
           }
           centerContent={
-            <div className="h-full flex flex-col">
-              <h2 className="text-lg font-semibold mb-4 text-foreground">Interactive Whiteboard</h2>
-              <div className="flex-1 overflow-hidden">
-                <Whiteboard className="h-full" />
-              </div>
+            <div className="h-full">
+              <EnhancedWhiteboard />
             </div>
           }
           rightSidebar={
