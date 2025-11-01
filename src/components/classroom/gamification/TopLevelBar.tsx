@@ -49,10 +49,10 @@ export function TopLevelBar({
   }, [currentXP, previousXP, xpPerSegment, normalizedXP, maxXP]);
 
   return (
-    <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 h-6 bg-white/20 backdrop-blur-md neon-border-glow shadow-[0_0_10px_rgba(0,255,255,0.15)] max-w-4xl w-full">
+    <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 h-6 bg-white/20 backdrop-blur-md border border-white/20 shadow-[0_0_10px_rgba(0,255,255,0.15)] max-w-4xl w-full">
       <div className="h-full flex items-center gap-2 px-4">
         {/* Level Badge */}
-        <Badge className="bg-gradient-to-r from-[hsl(var(--neon-purple))] to-[hsl(var(--neon-pink))] text-white px-2 py-0.5 text-xs font-bold neon-glow-purple border border-white/20">
+        <Badge className="bg-gradient-to-r from-[hsl(var(--neon-purple))] to-[hsl(var(--neon-pink))] text-white px-2 py-0.5 text-xs font-bold border border-white/20">
           Lv {level}
         </Badge>
         
@@ -63,9 +63,9 @@ export function TopLevelBar({
               key={i}
               className={`flex-1 h-2 rounded-full transition-all duration-300 ${
                 i < filledSegments
-              ? 'bg-gradient-to-r from-[hsl(var(--neon-cyan))] via-[hsl(var(--neon-purple))] to-[hsl(var(--neon-magenta))] neon-glow-cyan'
+              ? 'bg-gradient-to-r from-[hsl(var(--neon-cyan))] via-[hsl(var(--neon-purple))] to-[hsl(var(--neon-magenta))]'
               : 'bg-white/20 border border-white/30'
-              } ${animatingSegments.includes(i) ? 'animate-pulse scale-110 neon-glow-cyan' : ''}`}
+              } ${animatingSegments.includes(i) ? 'animate-pulse scale-110' : ''}`}
               style={{
                 transform: animatingSegments.includes(i) ? 'scale(1.1)' : 'scale(1)',
               }}
@@ -74,13 +74,13 @@ export function TopLevelBar({
         </div>
         
         {/* XP Counter */}
-        <span className="text-xs font-bold text-[hsl(var(--neon-cyan))] min-w-[70px] neon-text-glow">
+        <span className="text-xs font-bold text-[hsl(var(--neon-cyan))] min-w-[70px]">
           {normalizedXP}/{maxXP} XP
         </span>
         
         {/* Star Count */}
-        <div className="flex items-center gap-1 bg-white/20 px-2 py-0.5 rounded-full border border-[hsl(var(--neon-yellow)/0.5)] shadow-[0_0_10px_hsl(var(--neon-yellow)/0.3)]">
-          <Star className="w-3 h-3 fill-[hsl(var(--neon-yellow))] text-[hsl(var(--neon-yellow))] drop-shadow-[0_0_5px_hsl(var(--neon-yellow))]" />
+        <div className="flex items-center gap-1 bg-white/20 px-2 py-0.5 rounded-full border border-[hsl(var(--neon-yellow)/0.5)] shadow-[0_0_5px_hsl(var(--neon-yellow)/0.2)]">
+          <Star className="w-3 h-3 fill-[hsl(var(--neon-yellow))] text-[hsl(var(--neon-yellow))] drop-shadow-[0_0_2px_hsl(var(--neon-yellow)/0.5)]" />
           <span className="text-xs font-bold text-[hsl(var(--neon-yellow))]">×{starCount}</span>
         </div>
       </div>
