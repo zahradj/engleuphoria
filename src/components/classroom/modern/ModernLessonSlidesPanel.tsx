@@ -12,6 +12,19 @@ interface Slide {
   notes?: string;
 }
 
+interface LessonInfo {
+  title: string;
+  topic: string;
+  module_number: number;
+  lesson_number: number;
+  cefr_level: string;
+}
+
+interface ProgressInfo {
+  isResuming?: boolean;
+  current_slide_index?: number;
+}
+
 interface ModernLessonSlidesPanelProps {
   slides: Slide[];
   currentSlide: number;
@@ -19,6 +32,8 @@ interface ModernLessonSlidesPanelProps {
   isTeacher?: boolean;
   isFullScreen?: boolean;
   onToggleFullScreen?: () => void;
+  lessonData?: LessonInfo | null;
+  progress?: ProgressInfo | null;
 }
 
 export function ModernLessonSlidesPanel({
@@ -27,7 +42,9 @@ export function ModernLessonSlidesPanel({
   onSlideChange,
   isTeacher = false,
   isFullScreen = false,
-  onToggleFullScreen
+  onToggleFullScreen,
+  lessonData,
+  progress: lessonProgress
 }: ModernLessonSlidesPanelProps) {
   // const { t } = useLanguage();
   const [showNotes, setShowNotes] = useState(false);
@@ -60,7 +77,7 @@ export function ModernLessonSlidesPanel({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [currentSlide, slides.length, onSlideChange, isFullScreen, onToggleFullScreen]);
 
-  const progress = ((currentSlide + 1) / slides.length) * 100;
+  const progressPercentage = ((currentSlide + 1) / slides.length) * 100;
 
   const goToPrevious = useCallback(() => {
     if (currentSlide > 0) {
@@ -78,6 +95,21 @@ export function ModernLessonSlidesPanel({
 
   return (
     <GlassCard className={`h-full flex flex-col p-2 ${isFullScreen ? "fixed inset-0 z-50" : ""}`}>
+      {/* Lesson Info Banner */}
+      {lessonData && (
+        <div className="glass p-3 mb-3 rounded-lg border border-[hsl(var(--neon-cyan))]/20 animate-fade-in">
+          <h3 className="font-bold text-white text-sm">{lessonData.title}</h3>
+          <p className="text-xs text-white/70 mt-1">
+            Module {lessonData.module_number} • Lesson {lessonData.lesson_number} • {lessonData.cefr_level}
+          </p>
+          {lessonProgress?.isResuming && (
+            <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 rounded-md bg-[hsl(var(--neon-cyan))]/20 text-[hsl(var(--neon-cyan))] text-[10px] font-semibold">
+              📍 Resuming from Slide {(lessonProgress.current_slide_index || 0) + 1}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Header with controls */}
       <div className="flex items-center justify-between mb-2">
         <div className="text-xs font-semibold text-classroom-primary">
@@ -104,14 +136,14 @@ export function ModernLessonSlidesPanel({
       <div className="w-full h-1.5 bg-background/20 rounded-full mb-2 overflow-hidden">
         <div
           className="h-full bg-gradient-to-r from-classroom-primary to-classroom-accent transition-all duration-500"
-          style={{ width: `${progress}%` }}
+          style={{ width: `${progressPercentage}%` }}
         >
           {/* Milestone markers */}
           {[25, 50, 75, 100].map((milestone) => (
             <div
               key={milestone}
               className={`absolute h-3 w-3 rounded-full bg-classroom-reward transform -translate-y-0.5 ${
-                progress >= milestone ? "scale-100" : "scale-0"
+                progressPercentage >= milestone ? "scale-100" : "scale-0"
               } transition-transform duration-300`}
               style={{ left: `${milestone}%`, marginLeft: "-6px" }}
             />

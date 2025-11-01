@@ -2717,6 +2717,51 @@ export type Database = {
           },
         ]
       }
+      lesson_progress_tracking: {
+        Row: {
+          created_at: string | null
+          current_slide_index: number | null
+          id: string
+          last_accessed_at: string | null
+          lesson_content_id: string
+          slides_completed: number[] | null
+          started_at: string | null
+          status: string | null
+          student_id: string
+          total_slides: number | null
+          updated_at: string | null
+          xp_earned: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_slide_index?: number | null
+          id?: string
+          last_accessed_at?: string | null
+          lesson_content_id: string
+          slides_completed?: number[] | null
+          started_at?: string | null
+          status?: string | null
+          student_id: string
+          total_slides?: number | null
+          updated_at?: string | null
+          xp_earned?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          current_slide_index?: number | null
+          id?: string
+          last_accessed_at?: string | null
+          lesson_content_id?: string
+          slides_completed?: number[] | null
+          started_at?: string | null
+          status?: string | null
+          student_id?: string
+          total_slides?: number | null
+          updated_at?: string | null
+          xp_earned?: number | null
+        }
+        Relationships: []
+      }
       lesson_reminders: {
         Row: {
           created_at: string

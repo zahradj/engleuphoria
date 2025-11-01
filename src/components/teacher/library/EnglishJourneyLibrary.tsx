@@ -6,7 +6,11 @@ import { UnitDetailView } from "./UnitDetailView";
 import { englishJourneyService } from "@/services/englishJourneyService";
 import { Unit } from "@/types/englishJourney";
 
-export function EnglishJourneyLibrary() {
+interface EnglishJourneyLibraryProps {
+  onSelectLesson?: (lessonContentId: string) => void;
+}
+
+export function EnglishJourneyLibrary({ onSelectLesson }: EnglishJourneyLibraryProps = {}) {
   const [selectedStageId, setSelectedStageId] = useState<number>(1);
   const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
   

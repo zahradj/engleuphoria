@@ -36,6 +36,7 @@ export default function OneOnOneClassroomNew() {
   const roleParam = searchParams.get("role") || "student";
   const nameParam = searchParams.get("name") || "User";
   const userIdParam = searchParams.get("userId") || "user-1";
+  const lessonContentId = searchParams.get("lessonContentId");
 
   const authedUserId = user?.id || userIdParam;
   const authedName = (user as any)?.full_name || (user?.user_metadata as any)?.full_name || nameParam;
@@ -81,9 +82,13 @@ export default function OneOnOneClassroomNew() {
     slides,
     currentSlide,
     isFullScreen,
+    lessonData,
+    progress,
+    loading: lessonLoading,
+    xpEarned: lessonXP,
     goToSlide,
     toggleFullScreen
-  } = useLessonSlides();
+  } = useLessonSlides(authedUserId, lessonContentId || undefined);
 
   const [connectionQuality] = useState<"excellent" | "good" | "poor">("excellent");
   const [showRewardToast, setShowRewardToast] = useState(false);
@@ -136,7 +141,13 @@ export default function OneOnOneClassroomNew() {
           topBar={
             <ModernClassroomTopBar
               onBack={handleBack}
-              lessonTitle={activeView === "slides" ? `Lesson Slides (${currentSlide + 1}/${slides.length})` : "Interactive One-on-One Lesson"}
+              lessonTitle={
+                activeView === "slides" && lessonData
+                  ? `${lessonData.title} (${currentSlide + 1}/${slides.length})`
+                  : activeView === "slides"
+                  ? `Lesson Slides (${currentSlide + 1}/${slides.length})`
+                  : "Interactive One-on-One Lesson"
+              }
               roomCode={roomId}
               sessionTime={formattedTime}
               connectionQuality={connectionQuality}
@@ -149,14 +160,36 @@ export default function OneOnOneClassroomNew() {
           centerContent={
             <div className="h-full">
               {activeView === "slides" ? (
-                <ModernLessonSlidesPanel
-                  slides={slides}
-                  currentSlide={currentSlide}
-                  onSlideChange={goToSlide}
-                  isTeacher={isTeacher}
-                  isFullScreen={isFullScreen}
-                  onToggleFullScreen={toggleFullScreen}
-                />
+                lessonLoading ? (
+                  <div className="h-full flex items-center justify-center">
+                    <div className="text-center space-y-3">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-classroom-primary mx-auto" />
+                      <p className="text-sm text-muted-foreground">Loading lesson...</p>
+                    </div>
+                  </div>
+                ) : slides.length > 0 ? (
+                  <ModernLessonSlidesPanel
+                    slides={slides}
+                    currentSlide={currentSlide}
+                    onSlideChange={goToSlide}
+                    isTeacher={isTeacher}
+                    isFullScreen={isFullScreen}
+                    onToggleFullScreen={toggleFullScreen}
+                    lessonData={lessonData}
+                    progress={progress}
+                  />
+                ) : (
+                  <div className="h-full flex items-center justify-center">
+                    <div className="text-center space-y-3 max-w-md p-8">
+                      <h3 className="text-xl font-bold text-white">No Lesson Loaded</h3>
+                      <p className="text-sm text-white/70">
+                        {isTeacher 
+                          ? "Select a lesson from the Library tab to get started."
+                          : "Your teacher will load a lesson for you shortly."}
+                      </p>
+                    </div>
+                  </div>
+                )
               ) : (
                 <EnhancedWhiteboard />
               )}

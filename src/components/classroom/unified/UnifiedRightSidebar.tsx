@@ -265,7 +265,14 @@ export function UnifiedRightSidebar({
           )}
           {activeTab === 'library' && isTeacher && (
             <div className="h-full overflow-y-auto p-4">
-              <EnglishJourneyLibrary />
+              <EnglishJourneyLibrary 
+                onSelectLesson={(lessonContentId) => {
+                  // Switch to slides view when lesson is selected
+                  onTabChange('slides');
+                  // Reload with selected lesson
+                  window.location.href = `/classroom?lessonContentId=${lessonContentId}`;
+                }}
+              />
             </div>
           )}
         </div>

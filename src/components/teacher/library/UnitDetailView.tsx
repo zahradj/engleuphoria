@@ -84,8 +84,27 @@ export function UnitDetailView({ unit, onClose }: UnitDetailViewProps) {
                           >
                             View Lesson
                           </Button>
-                          <Button size="sm" variant="outline" className="flex-1">
-                            Assign to Class
+                          <Button 
+                            size="sm" 
+                            variant="secondary" 
+                            className="flex-1"
+                            onClick={() => {
+                              if (lesson.contentId && isValidUUID(lesson.contentId)) {
+                                navigate(`/classroom?lessonContentId=${lesson.contentId}`);
+                                toast({
+                                  title: "Launching in Classroom",
+                                  description: `Loading ${lesson.title}...`,
+                                });
+                              } else {
+                                toast({
+                                  title: "Content Not Ready",
+                                  description: "This lesson content is not available yet.",
+                                  variant: "destructive"
+                                });
+                              }
+                            }}
+                          >
+                            Launch in Classroom
                           </Button>
                         </div>
                       </div>
