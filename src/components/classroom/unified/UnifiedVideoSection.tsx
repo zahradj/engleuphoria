@@ -9,6 +9,8 @@ import { VideoPlayer } from "./components/VideoPlayer";
 import { VideoControls } from "./components/VideoControls";
 import { VideoStatusIndicators } from "./components/VideoStatusIndicators";
 import { VideoErrorDisplay } from "./components/VideoErrorDisplay";
+import { DualVideoLayout } from "./DualVideoLayout";
+import { useWebRTC } from "@/hooks/classroom/useWebRTC";
 
 interface UnifiedVideoSectionProps {
   currentUser: {
@@ -99,6 +101,17 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
   };
 
   const mediaState = getMediaState();
+  
+  const roomId = session?.room_id || media.roomId || 'default-room';
+  
+  // Initialize WebRTC for peer-to-peer video
+  const { remoteStream, isConnected: webrtcConnected } = useWebRTC({
+    roomId,
+    userId: properUserId,
+    localStream: mediaState.stream,
+    enabled: mediaState.isConnected,
+    isInitiator: isTeacher
+  });
 
   const handleStartSession = async () => {
     try {
@@ -194,34 +207,39 @@ export function UnifiedVideoSection({ currentUser }: UnifiedVideoSectionProps) {
             />
           ) : (
             <div className="w-full h-full relative">
-              <VideoPlayer
-                stream={mediaState.stream}
-                hasVideo={hasVideo}
+              <DualVideoLayout
+                teacherStream={isTeacher ? mediaState.stream : remoteStream}
+                studentStream={isTeacher ? remoteStream : mediaState.stream}
+                teacherName={isTeacher ? currentUser.name : "Teacher"}
+                studentName={isTeacher ? "Student" : currentUser.name}
+                teacherControls={{
+                  isMuted: isTeacher ? mediaState.isMuted : false,
+                  isCameraOff: isTeacher ? mediaState.isCameraOff : false,
+                }}
+                studentControls={{
+                  isMuted: isTeacher ? false : mediaState.isMuted,
+                  isCameraOff: isTeacher ? false : mediaState.isCameraOff,
+                }}
                 isTeacher={isTeacher}
-                userLabel={userLabel}
-                isCameraOff={mediaState.isCameraOff}
               />
 
-              <VideoStatusIndicators
-                isConnected={mediaState.isConnected}
-                sessionStatus={session?.session_status}
-                isTeacher={isTeacher}
-              />
+              <div className="absolute top-4 right-4 pointer-events-none z-20">
+                <VideoStatusIndicators
+                  isConnected={mediaState.isConnected}
+                  sessionStatus={session?.session_status}
+                  isTeacher={isTeacher}
+                />
+              </div>
 
-              <VideoControls
-                isMuted={mediaState.isMuted}
-                isCameraOff={mediaState.isCameraOff}
-                isTeacher={isTeacher}
-                onToggleMicrophone={mediaState.toggleMicrophone}
-                onToggleCamera={mediaState.toggleCamera}
-                onLeaveVideo={handleLeaveVideo}
-              />
-
-              {/* Name Label */}
-              <div className="absolute bottom-3 left-3">
-                <div className="bg-black/60 text-white px-3 py-1 rounded-lg text-sm font-medium">
-                  {userLabel}
-                </div>
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-auto z-20">
+                <VideoControls
+                  isMuted={mediaState.isMuted}
+                  isCameraOff={mediaState.isCameraOff}
+                  isTeacher={isTeacher}
+                  onToggleMicrophone={mediaState.toggleMicrophone}
+                  onToggleCamera={mediaState.toggleCamera}
+                  onLeaveVideo={handleLeaveVideo}
+                />
               </div>
             </div>
           )}

@@ -266,6 +266,8 @@ export default function PlacementTest() {
           'Intermediate': 'B1'
         };
         
+        const cefrLevel = cefrMapping[testResult.level] || 'A1';
+        
         await supabase
           .from('student_profiles')
           .upsert({
@@ -273,14 +275,18 @@ export default function PlacementTest() {
             placement_test_score: testResult.score,
             placement_test_total: testResult.totalPoints,
             placement_test_completed_at: new Date().toISOString(),
-            cefr_level: cefrMapping[testResult.level] || 'A1'
+            cefr_level: cefrLevel
           }, {
             onConflict: 'user_id'
           });
 
+        // Auto-assign curriculum based on CEFR level
+        const { curriculumAssignmentService } = await import('@/services/curriculumAssignmentService');
+        await curriculumAssignmentService.assignInitialCurriculum(user.id, cefrLevel);
+
         toast({
           title: "Test Completed!",
-          description: `Your level: ${testResult.level}. Advanced test now unlocked!`,
+          description: `Your level: ${testResult.level}. Your curriculum has been assigned!`,
         });
       } catch (error) {
         console.error('Error saving test results:', error);

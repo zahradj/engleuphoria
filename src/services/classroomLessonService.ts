@@ -60,7 +60,29 @@ class ClassroomLessonService {
     }
 
     // 2. Get current curriculum assignment
-    const assignment = await curriculumAssignmentService.getCurrentAssignment(studentId);
+    let assignment = await curriculumAssignmentService.getCurrentAssignment(studentId);
+    
+    // 3. If no assignment exists, check if student has CEFR level and auto-assign
+    if (!assignment) {
+      console.log("⚠️ No curriculum assignment found, checking for CEFR level...");
+      const { data: profile } = await supabase
+        .from('student_profiles')
+        .select('cefr_level, final_cefr_level')
+        .eq('user_id', studentId)
+        .single();
+      
+      const cefrLevel = profile?.final_cefr_level || profile?.cefr_level;
+      
+      if (cefrLevel) {
+        console.log(`✨ Auto-assigning curriculum for level ${cefrLevel}`);
+        await curriculumAssignmentService.assignInitialCurriculum(studentId, cefrLevel);
+        assignment = await curriculumAssignmentService.getCurrentAssignment(studentId);
+      } else {
+        console.log("❌ No CEFR level found - student needs placement test");
+        return null;
+      }
+    }
+    
     if (!assignment) {
       console.log("No curriculum assignment found - needs placement test");
       return null;
