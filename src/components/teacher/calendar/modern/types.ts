@@ -11,6 +11,9 @@ export interface AvailabilitySlot {
   studentName?: string;
   studentId?: string;
   studentCefrLevel?: string;
+  studentEmail?: string;
+  studentGradeLevel?: string;
+  studentFinalCefrLevel?: string;
 }
 
 export interface TimeSlot {
