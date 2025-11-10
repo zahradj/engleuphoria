@@ -289,13 +289,14 @@ export const TeacherTreeHealth = () => {
         {/* Tree Visualization with 2025 Animations */}
         <div 
           ref={treeContainerRef}
-          className={`tree-container relative tree-perspective overflow-visible rounded-lg p-4 border border-emerald-200`}
+          className={`tree-container relative tree-perspective overflow-visible rounded-lg p-8 border border-emerald-200`}
           data-health={getHealthLevel()}
           style={{
-            background: 'linear-gradient(to bottom, hsl(var(--sky-100) / 0.5), hsl(var(--emerald-100) / 0.5))'
+            background: 'linear-gradient(to bottom, hsl(var(--sky-100) / 0.5), hsl(var(--emerald-100) / 0.5))',
+            minHeight: '320px'
           }}
         >
-          <div className="flex justify-center items-end gap-1 h-32 relative">
+          <div className="flex justify-center items-end relative h-64">
             {/* Background sparkle particles for healthy trees */}
             {treeHealth.totalLeaves >= 8 && (
               <div className="absolute inset-0 pointer-events-none">
@@ -323,124 +324,176 @@ export const TeacherTreeHealth = () => {
               </div>
             )}
 
-            {/* Tree trunk with realistic shadow and sway */}
+            {/* Tree trunk - larger and more visible */}
             <motion.div 
-              className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-8 h-16 rounded-t-lg tree-shadow"
+              className="absolute bottom-0 left-1/2 transform -translate-x-1/2 tree-shadow trunk-sway z-10"
               style={{
-                background: 'linear-gradient(to bottom, hsl(var(--amber-700)), hsl(var(--amber-900)))',
-                boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 -10px 20px rgba(0,0,0,0.2)'
+                width: '48px',
+                height: '140px',
+                background: 'linear-gradient(to right, hsl(var(--amber-800)), hsl(var(--amber-700)), hsl(var(--amber-800)))',
+                borderRadius: '12px 12px 4px 4px',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset -4px 0 8px rgba(0,0,0,0.3), inset 4px 0 8px rgba(139, 69, 19, 0.3)'
               }}
               animate={windStrength === 'strong' ? {
                 rotate: [-0.5, 0.5, -0.5],
                 transition: { duration: 5, repeat: Infinity, ease: "easeInOut" }
               } : {}}
-            />
+            >
+              {/* Bark texture lines */}
+              <div className="absolute inset-0 flex flex-col justify-around px-2 opacity-40">
+                <div className="h-px bg-amber-950 rounded-full" />
+                <div className="h-px bg-amber-950 rounded-full w-3/4" />
+                <div className="h-px bg-amber-950 rounded-full" />
+                <div className="h-px bg-amber-950 rounded-full w-2/3" />
+              </div>
+            </motion.div>
             
-            {/* Leaves with 3D depth layers and wind effects */}
-            <div className="absolute top-4 left-1/2 transform -translate-x-1/2">
-              {/* Back layer */}
+            {/* Tree canopy - circular leaf arrangement */}
+            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 z-20" style={{ width: '200px', height: '160px' }}>
+              {/* Back layer - deeper leaves */}
               <motion.div 
-                className="absolute inset-0 grid grid-cols-5 gap-2 leaf-layer-back"
+                className="absolute inset-0 leaf-layer-back"
                 animate={windVariants[windStrength]}
                 transition={windStrength !== 'calm' ? windTransition[windStrength] : undefined}
               >
-                {[...Array(10)].map((_, i) => (
-                  i < treeHealth.totalLeaves && (
-                    <motion.div
-                      key={`back-${i}`}
-                      className={`text-xl ${getLeafColor(i)} opacity-40`}
-                      animate={{
-                        rotate: [-2, 2, -2],
-                        y: [-1, 1, -1],
-                      }}
-                      transition={{
-                        duration: 4,
-                        delay: i * 0.1,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }}
-                    >
-                      🍃
-                    </motion.div>
-                  )
-                ))}
+                <div className="relative w-full h-full">
+                  {[...Array(10)].map((_, i) => {
+                    const angle = (i * 36) * (Math.PI / 180);
+                    const radius = 60;
+                    const x = 100 + radius * Math.cos(angle);
+                    const y = 80 + radius * Math.sin(angle) * 0.6;
+                    
+                    return i < treeHealth.totalLeaves ? (
+                      <motion.div
+                        key={`back-${i}`}
+                        className={`absolute text-3xl ${getLeafColor(i)}`}
+                        style={{
+                          left: `${x}px`,
+                          top: `${y}px`,
+                          transform: 'translate(-50%, -50%)'
+                        }}
+                        animate={{
+                          rotate: [-2, 2, -2],
+                          y: [-1, 1, -1],
+                        }}
+                        transition={{
+                          duration: 4,
+                          delay: i * 0.1,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }}
+                      >
+                        🍃
+                      </motion.div>
+                    ) : null;
+                  })}
+                </div>
               </motion.div>
 
-              {/* Middle layer (main) */}
+              {/* Middle layer (main leaves) */}
               <motion.div 
-                className="grid grid-cols-5 gap-2 leaf-layer-middle"
+                className="absolute inset-0 leaf-layer-middle"
                 animate={windVariants[windStrength]}
                 transition={windStrength !== 'calm' ? windTransition[windStrength] : undefined}
               >
                 <AnimatePresence>
-                  {[...Array(10)].map((_, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ scale: 1, opacity: 1 }}
-                      animate={{ 
-                        scale: i < treeHealth.totalLeaves ? [1, 1.05, 1] : 0.8,
-                        opacity: i < treeHealth.totalLeaves ? 1 : 0.3,
-                      }}
-                      exit={{ scale: 0, opacity: 0 }}
-                      transition={{ 
-                        duration: 0.3, 
-                        delay: i * 0.05,
-                        scale: {
-                          duration: treeHealth.totalLeaves >= 8 ? 2 : 3,
-                          repeat: Infinity,
-                          ease: "easeInOut"
-                        }
-                      }}
-                      className={`text-2xl ${getLeafColor(i)} ${
-                        treeHealth.totalLeaves >= 8 ? 'bloom-pulse' : 
-                        treeHealth.totalLeaves < 4 ? 'wilt-droop' : ''
-                      }`}
-                    >
-                      {i < treeHealth.totalLeaves ? '🍃' : '🍂'}
-                    </motion.div>
-                  ))}
+                  <div className="relative w-full h-full">
+                    {[...Array(10)].map((_, i) => {
+                      const angle = (i * 36) * (Math.PI / 180);
+                      const radius = 70;
+                      const x = 100 + radius * Math.cos(angle);
+                      const y = 80 + radius * Math.sin(angle) * 0.6;
+                      
+                      return (
+                        <motion.div
+                          key={i}
+                          className={`absolute text-4xl ${getLeafColor(i)} ${
+                            treeHealth.totalLeaves >= 8 ? 'bloom-pulse' : 
+                            treeHealth.totalLeaves < 4 ? 'wilt-droop' : ''
+                          }`}
+                          style={{
+                            left: `${x}px`,
+                            top: `${y}px`,
+                            transform: 'translate(-50%, -50%)',
+                            filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))',
+                          }}
+                          initial={{ scale: 1, opacity: 1 }}
+                          animate={{ 
+                            scale: i < treeHealth.totalLeaves ? [1, 1.05, 1] : 0.8,
+                            opacity: i < treeHealth.totalLeaves ? 1 : 0.3,
+                          }}
+                          exit={{ scale: 0, opacity: 0 }}
+                          transition={{ 
+                            duration: 0.3, 
+                            delay: i * 0.05,
+                            scale: {
+                              duration: treeHealth.totalLeaves >= 8 ? 2 : 3,
+                              repeat: Infinity,
+                              ease: "easeInOut"
+                            }
+                          }}
+                        >
+                          {i < treeHealth.totalLeaves ? '🍃' : '🍂'}
+                        </motion.div>
+                      );
+                    })}
+                  </div>
                 </AnimatePresence>
               </motion.div>
 
-              {/* Front layer */}
+              {/* Front layer - closer leaves */}
               <motion.div 
-                className="absolute inset-0 grid grid-cols-5 gap-2 leaf-layer-front"
+                className="absolute inset-0 leaf-layer-front"
                 animate={windVariants[windStrength]}
                 transition={windStrength !== 'calm' ? windTransition[windStrength] : undefined}
               >
-                {[...Array(10)].map((_, i) => (
-                  i < treeHealth.totalLeaves && (
-                    <motion.div
-                      key={`front-${i}`}
-                      className={`text-lg ${getLeafColor(i)} opacity-70`}
-                      animate={{
-                        rotate: [2, -2, 2],
-                        y: [1, -1, 1],
-                      }}
-                      transition={{
-                        duration: 3.5,
-                        delay: i * 0.15,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }}
-                    >
-                      🍃
-                    </motion.div>
-                  )
-                ))}
+                <div className="relative w-full h-full">
+                  {[...Array(10)].map((_, i) => {
+                    const angle = (i * 36) * (Math.PI / 180);
+                    const radius = 80;
+                    const x = 100 + radius * Math.cos(angle);
+                    const y = 80 + radius * Math.sin(angle) * 0.6;
+                    
+                    return i < treeHealth.totalLeaves ? (
+                      <motion.div
+                        key={`front-${i}`}
+                        className={`absolute text-2xl ${getLeafColor(i)}`}
+                        style={{
+                          left: `${x}px`,
+                          top: `${y}px`,
+                          transform: 'translate(-50%, -50%)'
+                        }}
+                        animate={{
+                          rotate: [2, -2, 2],
+                          y: [1, -1, 1],
+                        }}
+                        transition={{
+                          duration: 3.5,
+                          delay: i * 0.15,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }}
+                      >
+                        🍃
+                      </motion.div>
+                    ) : null;
+                  })}
+                </div>
               </motion.div>
             </div>
 
-            {/* Falling leaves portal */}
-            {fallingLeaves.map(leaf => (
-              <FallingLeaf
-                key={leaf.id}
-                startPosition={leaf.startPos}
-                leafType={leaf.type}
-                onComplete={() => handleLeafLanded(leaf.id)}
-                delay={leaf.delay}
-              />
-            ))}
+            {/* Falling leaves portal - positioned over entire container */}
+            <div className="absolute inset-0 overflow-visible z-50 pointer-events-none">
+              {fallingLeaves.map(leaf => (
+                <FallingLeaf
+                  key={leaf.id}
+                  startPosition={leaf.startPos}
+                  leafType={leaf.type}
+                  onComplete={() => handleLeafLanded(leaf.id)}
+                  delay={leaf.delay}
+                />
+              ))}
+            </div>
           </div>
         </div>
 
