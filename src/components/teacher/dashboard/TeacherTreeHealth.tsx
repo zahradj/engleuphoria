@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -9,9 +9,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { TeacherTreeHealth as TreeHealthType, TREE_TIERS, SEASONAL_BADGES, TreeEvent } from '@/types/teacherTree';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
+import { FallingLeaf } from '../tree/FallingLeaf';
+import { useTreePhysics } from '@/hooks/useTreePhysics';
+import '@/styles/tree-animations.css';
 
 export const TeacherTreeHealth = () => {
   const { user } = useAuth();
+  const treeContainerRef = useRef<HTMLDivElement>(null);
+  const { fallingLeaves, triggerLeafFall, handleLeafLanded, getWindStrength } = useTreePhysics();
+  
   const [treeHealth, setTreeHealth] = useState<TreeHealthType>({
     totalLeaves: 10,
     maxLeaves: 10,
@@ -23,7 +29,7 @@ export const TeacherTreeHealth = () => {
     badges: [],
     weeklyStreak: 0,
   });
-  const [showLeafAnimation, setShowLeafAnimation] = useState(false);
+  const [previousLeaves, setPreviousLeaves] = useState(10);
 
   useEffect(() => {
     calculateTreeHealth();
@@ -127,26 +133,34 @@ export const TeacherTreeHealth = () => {
       return false;
     }).map(b => ({ ...b, earnedDate: new Date() }));
 
+    const newLeaves = Math.max(0, leaves);
+    
     setTreeHealth({
-      totalLeaves: Math.max(0, leaves),
+      totalLeaves: newLeaves,
       maxLeaves: 10,
-      sunlightPoints: Math.floor(leaves * 5),
-      monthlyBlooms: leaves === 10 ? 1 : 0,
+      sunlightPoints: Math.floor(newLeaves * 5),
+      monthlyBlooms: newLeaves === 10 ? 1 : 0,
       tier,
       tierName: tierInfo.name,
       recentEvents: events,
       badges: earnedBadges,
-      weeklyStreak: leaves >= 9 ? 1 : 0,
+      weeklyStreak: newLeaves >= 9 ? 1 : 0,
     });
 
-    if (events.length > 0) {
-      setShowLeafAnimation(true);
-      setTimeout(() => setShowLeafAnimation(false), 2000);
+    // Trigger falling leaf animation when leaves decrease
+    if (newLeaves < previousLeaves) {
+      const leavesLost = previousLeaves - newLeaves;
+      setTimeout(() => {
+        triggerLeafFall(leavesLost, treeContainerRef.current);
+      }, 500);
     }
+    
+    setPreviousLeaves(newLeaves);
   };
 
   const tierInfo = TREE_TIERS[treeHealth.tier];
   const healthPercentage = (treeHealth.totalLeaves / treeHealth.maxLeaves) * 100;
+  const windStrength = getWindStrength(treeHealth.tier);
 
   const getLeafColor = (index: number) => {
     if (index < treeHealth.totalLeaves) {
@@ -156,6 +170,41 @@ export const TeacherTreeHealth = () => {
              'text-orange-400';
     }
     return 'text-gray-300';
+  };
+
+  const getHealthLevel = () => {
+    if (treeHealth.totalLeaves >= 8) return 'high';
+    if (treeHealth.totalLeaves >= 4) return 'medium';
+    return 'low';
+  };
+
+  // Wind animation variants
+  const windVariants = {
+    calm: {
+      x: 0,
+      rotate: 0,
+    },
+    breeze: {
+      x: [-1, 1, -1],
+      rotate: [-1, 1, -1],
+    },
+    strong: {
+      x: [-2, 2, -2],
+      rotate: [-3, 3, -3],
+    }
+  };
+
+  const windTransition = {
+    breeze: {
+      duration: 3,
+      repeat: Infinity,
+      ease: [0.4, 0.0, 0.2, 1] as const
+    },
+    strong: {
+      duration: 2,
+      repeat: Infinity,
+      ease: [0.4, 0.0, 0.2, 1] as const
+    }
   };
 
   return (
@@ -237,32 +286,161 @@ export const TeacherTreeHealth = () => {
           </div>
         </div>
 
-        {/* Tree Visualization */}
-        <div className="relative bg-gradient-to-b from-sky-100/50 to-emerald-100/50 rounded-lg p-4 border border-emerald-200">
-          <div className="flex justify-center items-end gap-1 h-32">
-            {/* Tree trunk */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-8 h-16 bg-gradient-to-b from-amber-700 to-amber-900 rounded-t-lg" />
-            
-            {/* Leaves in circular pattern */}
-            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 grid grid-cols-5 gap-2">
-              <AnimatePresence>
-                {[...Array(10)].map((_, i) => (
+        {/* Tree Visualization with 2025 Animations */}
+        <div 
+          ref={treeContainerRef}
+          className={`tree-container relative tree-perspective overflow-visible rounded-lg p-4 border border-emerald-200`}
+          data-health={getHealthLevel()}
+          style={{
+            background: 'linear-gradient(to bottom, hsl(var(--sky-100) / 0.5), hsl(var(--emerald-100) / 0.5))'
+          }}
+        >
+          <div className="flex justify-center items-end gap-1 h-32 relative">
+            {/* Background sparkle particles for healthy trees */}
+            {treeHealth.totalLeaves >= 8 && (
+              <div className="absolute inset-0 pointer-events-none">
+                {[...Array(6)].map((_, i) => (
                   <motion.div
                     key={i}
-                    initial={{ scale: 1, opacity: 1 }}
-                    animate={{ 
-                      scale: i < treeHealth.totalLeaves ? [1, 1.1, 1] : 0.8,
-                      opacity: i < treeHealth.totalLeaves ? 1 : 0.3,
+                    className="absolute w-1 h-1 rounded-full"
+                    style={{
+                      left: `${30 + Math.random() * 40}%`,
+                      top: `${20 + Math.random() * 30}%`,
+                      background: 'hsl(var(--yellow-300))',
                     }}
-                    exit={{ scale: 0, opacity: 0, y: 20 }}
-                    transition={{ duration: 0.3, delay: i * 0.05 }}
-                    className={`text-2xl ${getLeafColor(i)}`}
-                  >
-                    {i < treeHealth.totalLeaves ? '🍃' : '🍂'}
-                  </motion.div>
+                    animate={{
+                      y: [0, -20, -40],
+                      opacity: [0, 0.6, 0],
+                      scale: [0, 1, 0],
+                    }}
+                    transition={{
+                      duration: 3,
+                      delay: i * 0.5,
+                      repeat: Infinity,
+                    }}
+                  />
                 ))}
-              </AnimatePresence>
+              </div>
+            )}
+
+            {/* Tree trunk with realistic shadow and sway */}
+            <motion.div 
+              className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-8 h-16 rounded-t-lg tree-shadow"
+              style={{
+                background: 'linear-gradient(to bottom, hsl(var(--amber-700)), hsl(var(--amber-900)))',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.3), inset 0 -10px 20px rgba(0,0,0,0.2)'
+              }}
+              animate={windStrength === 'strong' ? {
+                rotate: [-0.5, 0.5, -0.5],
+                transition: { duration: 5, repeat: Infinity, ease: "easeInOut" }
+              } : {}}
+            />
+            
+            {/* Leaves with 3D depth layers and wind effects */}
+            <div className="absolute top-4 left-1/2 transform -translate-x-1/2">
+              {/* Back layer */}
+              <motion.div 
+                className="absolute inset-0 grid grid-cols-5 gap-2 leaf-layer-back"
+                animate={windVariants[windStrength]}
+                transition={windStrength !== 'calm' ? windTransition[windStrength] : undefined}
+              >
+                {[...Array(10)].map((_, i) => (
+                  i < treeHealth.totalLeaves && (
+                    <motion.div
+                      key={`back-${i}`}
+                      className={`text-xl ${getLeafColor(i)} opacity-40`}
+                      animate={{
+                        rotate: [-2, 2, -2],
+                        y: [-1, 1, -1],
+                      }}
+                      transition={{
+                        duration: 4,
+                        delay: i * 0.1,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                    >
+                      🍃
+                    </motion.div>
+                  )
+                ))}
+              </motion.div>
+
+              {/* Middle layer (main) */}
+              <motion.div 
+                className="grid grid-cols-5 gap-2 leaf-layer-middle"
+                animate={windVariants[windStrength]}
+                transition={windStrength !== 'calm' ? windTransition[windStrength] : undefined}
+              >
+                <AnimatePresence>
+                  {[...Array(10)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ scale: 1, opacity: 1 }}
+                      animate={{ 
+                        scale: i < treeHealth.totalLeaves ? [1, 1.05, 1] : 0.8,
+                        opacity: i < treeHealth.totalLeaves ? 1 : 0.3,
+                      }}
+                      exit={{ scale: 0, opacity: 0 }}
+                      transition={{ 
+                        duration: 0.3, 
+                        delay: i * 0.05,
+                        scale: {
+                          duration: treeHealth.totalLeaves >= 8 ? 2 : 3,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }
+                      }}
+                      className={`text-2xl ${getLeafColor(i)} ${
+                        treeHealth.totalLeaves >= 8 ? 'bloom-pulse' : 
+                        treeHealth.totalLeaves < 4 ? 'wilt-droop' : ''
+                      }`}
+                    >
+                      {i < treeHealth.totalLeaves ? '🍃' : '🍂'}
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </motion.div>
+
+              {/* Front layer */}
+              <motion.div 
+                className="absolute inset-0 grid grid-cols-5 gap-2 leaf-layer-front"
+                animate={windVariants[windStrength]}
+                transition={windStrength !== 'calm' ? windTransition[windStrength] : undefined}
+              >
+                {[...Array(10)].map((_, i) => (
+                  i < treeHealth.totalLeaves && (
+                    <motion.div
+                      key={`front-${i}`}
+                      className={`text-lg ${getLeafColor(i)} opacity-70`}
+                      animate={{
+                        rotate: [2, -2, 2],
+                        y: [1, -1, 1],
+                      }}
+                      transition={{
+                        duration: 3.5,
+                        delay: i * 0.15,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                    >
+                      🍃
+                    </motion.div>
+                  )
+                ))}
+              </motion.div>
             </div>
+
+            {/* Falling leaves portal */}
+            {fallingLeaves.map(leaf => (
+              <FallingLeaf
+                key={leaf.id}
+                startPosition={leaf.startPos}
+                leafType={leaf.type}
+                onComplete={() => handleLeafLanded(leaf.id)}
+                delay={leaf.delay}
+              />
+            ))}
           </div>
         </div>
 
