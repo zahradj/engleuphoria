@@ -5,6 +5,7 @@ import { Star } from '../constellation/Star';
 import { FallingStar } from '../constellation/FallingStar';
 import { Starfield } from '../constellation/Starfield';
 import { ConstellationLines } from '../constellation/ConstellationLines';
+import { ConstellationDetailModal } from '../constellation/ConstellationDetailModal';
 import { useConstellationPhysics } from '@/hooks/useConstellationPhysics';
 import { CONSTELLATION_TIERS, INITIAL_STARS, type ConstellationStar, type FallingStarEvent } from '@/types/constellation';
 import { Sparkles } from 'lucide-react';
@@ -12,6 +13,7 @@ import { Sparkles } from 'lucide-react';
 export const TeacherPerformanceConstellation = () => {
   const [stars, setStars] = useState<ConstellationStar[]>(INITIAL_STARS);
   const [fallingStars, setFallingStars] = useState<FallingStarEvent[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 400, height: 300 });
   
@@ -68,8 +70,12 @@ export const TeacherPerformanceConstellation = () => {
   };
 
   return (
-    <Card className="p-6 bg-gradient-to-br from-background via-background/95 to-primary/5 border-primary/20 overflow-hidden">
-      <div className="space-y-4">
+    <>
+      <Card 
+        className="p-6 bg-gradient-to-br from-background via-background/95 to-primary/5 border-primary/20 overflow-hidden cursor-pointer hover:border-primary/40 transition-colors"
+        onClick={() => setIsModalOpen(true)}
+      >
+        <div className="space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -94,6 +100,7 @@ export const TeacherPerformanceConstellation = () => {
           ref={containerRef}
           className="relative w-full bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 rounded-xl overflow-hidden"
           style={{ minHeight: '320px' }}
+          onClick={(e) => e.stopPropagation()}
         >
           {/* Background starfield */}
           <Starfield density={40} />
@@ -160,7 +167,21 @@ export const TeacherPerformanceConstellation = () => {
             </div>
           ))}
         </div>
+
+        {/* Click hint */}
+        <div className="text-center text-xs text-muted-foreground">
+          Click to view detailed performance insights
+        </div>
       </div>
     </Card>
+
+      <ConstellationDetailModal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        stars={stars}
+        overallHealth={overallHealth}
+        tierName={currentTier.name}
+      />
+    </>
   );
 };
