@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { lessonService } from '@/services/lessonService';
 import { TeacherProfileCard } from './dashboard/TeacherProfileCard';
 import { TeacherLevel } from './dashboard/TeacherLevel';
-import { TeacherTreeHealth } from './dashboard/TeacherTreeHealth';
+import { TeacherPerformanceConstellation } from './dashboard/TeacherPerformanceConstellation';
 import { AssessmentWidget } from './dashboard/AssessmentWidget';
 import { NextLessonCard } from './dashboard/NextLessonCard';
 import { MonthlyStatistics } from './dashboard/MonthlyStatistics';
@@ -45,7 +45,7 @@ export const CleanDashboardTab = ({ teacherName }: CleanDashboardTabProps) => {
       <div className="lg:col-span-4 space-y-4">
         <TeacherProfileCard />
         <TeacherLevel />
-        <TeacherTreeHealth />
+        <TeacherPerformanceConstellation />
         <AssessmentWidget />
       </div>
 
