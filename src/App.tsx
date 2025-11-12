@@ -18,6 +18,7 @@ import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import StudentDashboard from "./pages/StudentDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
+import AdminDashboard from "./pages/AdminDashboard";
 import TeacherSignUp from "./pages/TeacherSignUp";
 import StudentSignUp from "./pages/StudentSignUp";
 import TeacherApplication from "./pages/TeacherApplication";
@@ -170,9 +171,7 @@ const App = () => {
               
               <Route path="/admin" element={
                 <ImprovedProtectedRoute requiredRole="admin">
-                  <div className="min-h-screen flex items-center justify-center">
-                    <p className="text-muted-foreground">Admin dashboard coming soon</p>
-                  </div>
+                  <AdminDashboard />
                 </ImprovedProtectedRoute>
               } />
               
