@@ -3,6 +3,15 @@ import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { AdminHeader } from '@/components/admin/AdminHeader';
 import { AdminOverview } from '@/components/admin/AdminOverview';
+import { UserManagement } from '@/components/admin/UserManagement';
+import { TeacherManagement } from '@/components/admin/TeacherManagement';
+import { TeacherApplicationsManagement } from '@/components/admin/TeacherApplicationsManagement';
+import { StudentManagement } from '@/components/admin/StudentManagement';
+import { AnalyticsDashboard } from '@/components/admin/AnalyticsDashboard';
+import { PaymentsPanel } from '@/components/admin/PaymentsPanel';
+import { SettingsPanel } from '@/components/admin/SettingsPanel';
+import { AdminLibraryManager } from '@/components/admin/AdminLibraryManager';
+import CurriculumArchitect from '@/components/teacher/CurriculumArchitect';
 import { Loader2, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -42,6 +51,24 @@ const AdminDashboard = () => {
     switch (activeTab) {
       case 'overview':
         return <AdminOverview />;
+      case 'users':
+        return <UserManagement />;
+      case 'teachers':
+        return <TeacherManagement />;
+      case 'teacher-applications':
+        return <TeacherApplicationsManagement />;
+      case 'students':
+        return <StudentManagement />;
+      case 'analytics':
+        return <AnalyticsDashboard />;
+      case 'library':
+        return <AdminLibraryManager />;
+      case 'curriculum':
+        return <CurriculumArchitect />;
+      case 'payments':
+        return <PaymentsPanel />;
+      case 'settings':
+        return <SettingsPanel />;
       default:
         return <AdminOverview />;
     }
