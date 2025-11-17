@@ -1,5 +1,5 @@
 import { ComponentType } from 'react';
-import Lesson1Greetings from '@/components/lessons/Lesson1Greetings';
+import Lesson1GreetingsEnhanced from '@/components/lessons/Lesson1GreetingsEnhanced';
 
 export interface LessonMetadata {
   component?: ComponentType<LessonComponentProps>;
@@ -27,12 +27,12 @@ export interface LessonCompletionData {
 export class LessonRegistry {
   private static lessons: Map<string, LessonMetadata> = new Map([
     ['1-1', {
-      component: Lesson1Greetings,
-      title: 'Basic Greetings and Introductions',
+      component: Lesson1GreetingsEnhanced,
+      title: 'Basic Greetings and Introductions - Enhanced',
       estimatedDuration: 30,
-      xpReward: 25,
+      xpReward: 500,
       completionDetection: 'slides',
-      totalSlides: 17
+      totalSlides: 31
     }]
   ]);
 
