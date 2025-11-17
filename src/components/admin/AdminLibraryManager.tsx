@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { Search, Filter, Download, Eye, Trash2, Star, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import type { Material } from '@/types/materialLibrary';
 
@@ -25,6 +26,7 @@ export const AdminLibraryManager = () => {
   const [creatorFilter, setCreatorFilter] = useState<string>('all');
   const [selectedMaterial, setSelectedMaterial] = useState<MaterialWithCreator | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [stats, setStats] = useState({
     totalMaterials: 0,
     totalDownloads: 0,
@@ -183,6 +185,85 @@ export const AdminLibraryManager = () => {
     setShowDetailModal(true);
   };
 
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredMaterials.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredMaterials.map(m => m.id)));
+    }
+  };
+
+  const toggleSelectMaterial = (id: string) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Delete ${selectedIds.size} material(s)?`)) return;
+    
+    try {
+      const { error } = await supabase
+        .from('adaptive_content')
+        .update({ is_active: false })
+        .in('id', Array.from(selectedIds));
+
+      if (error) throw error;
+
+      toast.success(`${selectedIds.size} material(s) deleted`);
+      setSelectedIds(new Set());
+      fetchMaterials();
+    } catch (error) {
+      console.error('Error deleting materials:', error);
+      toast.error('Failed to delete materials');
+    }
+  };
+
+  const handleBulkFeature = async () => {
+    if (selectedIds.size === 0) return;
+    
+    try {
+      const { error } = await supabase
+        .from('adaptive_content')
+        .update({ is_featured: true })
+        .in('id', Array.from(selectedIds));
+
+      if (error) throw error;
+
+      toast.success(`${selectedIds.size} material(s) featured`);
+      setSelectedIds(new Set());
+      fetchMaterials();
+    } catch (error) {
+      console.error('Error featuring materials:', error);
+      toast.error('Failed to feature materials');
+    }
+  };
+
+  const handleBulkApprove = async () => {
+    if (selectedIds.size === 0) return;
+    
+    try {
+      const { error } = await supabase
+        .from('adaptive_content')
+        .update({ is_public: true })
+        .in('id', Array.from(selectedIds));
+
+      if (error) throw error;
+
+      toast.success(`${selectedIds.size} material(s) approved`);
+      setSelectedIds(new Set());
+      fetchMaterials();
+    } catch (error) {
+      console.error('Error approving materials:', error);
+      toast.error('Failed to approve materials');
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -292,10 +373,59 @@ export const AdminLibraryManager = () => {
         </CardContent>
       </Card>
 
+      {/* Bulk Actions Bar */}
+      {selectedIds.size > 0 && (
+        <Card className="bg-primary/5 border-primary/20">
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">
+                {selectedIds.size} material(s) selected
+              </span>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleBulkApprove}
+                  className="gap-2"
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  Approve
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleBulkFeature}
+                  className="gap-2"
+                >
+                  <Star className="h-4 w-4" />
+                  Feature
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleBulkDelete}
+                  className="gap-2"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Materials List */}
       <Card>
         <CardHeader>
-          <CardTitle>Materials ({filteredMaterials.length})</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Materials ({filteredMaterials.length})</CardTitle>
+            <Checkbox
+              checked={selectedIds.size === filteredMaterials.length && filteredMaterials.length > 0}
+              onCheckedChange={toggleSelectAll}
+              aria-label="Select all materials"
+            />
+          </div>
         </CardHeader>
         <CardContent>
           {filteredMaterials.length === 0 ? (
@@ -307,9 +437,16 @@ export const AdminLibraryManager = () => {
               {filteredMaterials.map((material) => (
                 <div
                   key={material.id}
-                  className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent/50 transition-colors"
+                  className="flex items-start gap-4 p-4 border border-border rounded-lg hover:bg-accent/50 transition-colors"
                 >
-                  <div className="flex-1">
+                  <Checkbox
+                    checked={selectedIds.has(material.id)}
+                    onCheckedChange={() => toggleSelectMaterial(material.id)}
+                    aria-label={`Select ${material.title}`}
+                    className="mt-1"
+                  />
+                  <div className="flex-1 flex items-start justify-between gap-4">
+                    <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="font-semibold text-foreground">{material.title}</h3>
                       <Badge variant="outline">{material.type}</Badge>
@@ -355,6 +492,7 @@ export const AdminLibraryManager = () => {
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
+                  </div>
                   </div>
                 </div>
               ))}
