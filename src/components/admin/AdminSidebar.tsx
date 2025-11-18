@@ -31,7 +31,9 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
     { id: "teacher-applications", label: "Teacher Applications", icon: FileText },
     { id: "students", label: "Students", icon: Users },
     { id: "analytics", label: "Analytics", icon: TrendingUp },
-    { id: "library", label: "Library", icon: BookOpen },
+    { id: "curriculum-library", label: "Curriculum Library", icon: BookOpen },
+    { id: "english-journey", label: "English Journey", icon: BookOpen },
+    { id: "reading-library", label: "Reading Library", icon: BookOpen },
     { id: "curriculum", label: "Curriculum Manager", icon: File },
     { id: "payments", label: "Payments", icon: CreditCard },
     
