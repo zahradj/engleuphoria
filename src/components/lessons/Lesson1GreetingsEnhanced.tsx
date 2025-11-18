@@ -321,21 +321,18 @@ const Lesson1GreetingsEnhanced: React.FC = () => {
       xpReward: 50,
       content: (
         <MemoryCardGame
-          cardPairs={[
-            { id: 1, content: 'Hello', matched: false },
-            { id: 1, content: '👋', matched: false },
-            { id: 2, content: 'Hi', matched: false },
-            { id: 2, content: '😊', matched: false },
-            { id: 3, content: 'Goodbye', matched: false },
-            { id: 3, content: '👋', matched: false }
+          pairs={[
+            { word: 'Hello', emoji: '👋' },
+            { word: 'Hi', emoji: '😊' },
+            { word: 'Goodbye', emoji: '👋' }
           ]}
-          onComplete={(data) => {
-            if (data.won) {
+          onComplete={(score, perfect) => {
+            if (perfect) {
               handleCorrectAnswer(50);
-              setTimeout(nextSlide, 2000);
             } else {
-              handleIncorrectAnswer();
+              handleCorrectAnswer(30);
             }
+            setTimeout(nextSlide, 2000);
           }}
           timeLimit={60}
         />
@@ -823,15 +820,6 @@ const Lesson1GreetingsEnhanced: React.FC = () => {
   if (currentSlide === -1) {
     return (
       <LessonIntro
-        title="Hello, My Name Is..."
-        description="Learn basic greetings and how to introduce yourself! This enhanced 30-minute lesson features games, challenges, and speaking practice."
-        estimatedTime={30}
-        objectives={[
-          'Use Hello, Hi, and Goodbye correctly',
-          'Introduce yourself with "My name is..."',
-          'Understand when to use formal vs casual greetings',
-          'Practice speaking and pronunciation'
-        ]}
         onStart={() => setCurrentSlide(0)}
       />
     );
