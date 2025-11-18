@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { VocabularyImage } from '@/components/ui/VocabularyImage';
+// VocabularyImage removed - using static emojis instead to avoid AI generation costs
 import AnimatedLogo from '@/components/ui/AnimatedLogo';
 import { Volume2, ArrowLeft, ArrowRight, RotateCcw, Trophy, Star, Play, BookOpen } from 'lucide-react';
 import { toast } from 'sonner';
@@ -110,13 +110,9 @@ const LessonIntro: React.FC<LessonIntroProps> = ({ onStart }) => {
             transition={{ duration: 0.8, delay: 0.6 }}
             className="w-64 h-64 mx-auto"
           >
-            <VocabularyImage
-              prompt="friendly diverse group of people greeting each other and introducing themselves, educational illustration style"
-              alt="People greeting each other"
-              className="w-full h-full rounded-2xl shadow-2xl"
-              style="educational"
-              aspectRatio="1:1"
-            />
+            <div className="w-full h-full rounded-2xl shadow-2xl bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 flex items-center justify-center">
+              <span className="text-8xl">👋</span>
+            </div>
           </motion.div>
 
           {/* Learning objectives */}
