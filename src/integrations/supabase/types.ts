@@ -1949,6 +1949,197 @@ export type Database = {
         }
         Relationships: []
       }
+      early_learners_assets: {
+        Row: {
+          asset_type: string
+          asset_url: string
+          cache_key: string | null
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          prompt: string
+        }
+        Insert: {
+          asset_type: string
+          asset_url: string
+          cache_key?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          prompt: string
+        }
+        Update: {
+          asset_type?: string
+          asset_url?: string
+          cache_key?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          prompt?: string
+        }
+        Relationships: []
+      }
+      early_learners_lessons: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          difficulty_level: string | null
+          duration_minutes: number | null
+          id: string
+          learning_objectives: Json
+          lesson_number: number
+          phonics_focus: string
+          status: string | null
+          title: string
+          topic: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          difficulty_level?: string | null
+          duration_minutes?: number | null
+          id?: string
+          learning_objectives?: Json
+          lesson_number: number
+          phonics_focus: string
+          status?: string | null
+          title: string
+          topic: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          difficulty_level?: string | null
+          duration_minutes?: number | null
+          id?: string
+          learning_objectives?: Json
+          lesson_number?: number
+          phonics_focus?: string
+          status?: string | null
+          title?: string
+          topic?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      early_learners_progress: {
+        Row: {
+          attempts: number | null
+          badges_earned: Json | null
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          lesson_id: string
+          score: number | null
+          slide_id: string | null
+          stars_earned: number | null
+          student_id: string
+          time_spent_seconds: number | null
+        }
+        Insert: {
+          attempts?: number | null
+          badges_earned?: Json | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          lesson_id: string
+          score?: number | null
+          slide_id?: string | null
+          stars_earned?: number | null
+          student_id: string
+          time_spent_seconds?: number | null
+        }
+        Update: {
+          attempts?: number | null
+          badges_earned?: Json | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          lesson_id?: string
+          score?: number | null
+          slide_id?: string | null
+          stars_earned?: number | null
+          student_id?: string
+          time_spent_seconds?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "early_learners_progress_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "early_learners_lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "early_learners_progress_slide_id_fkey"
+            columns: ["slide_id"]
+            isOneToOne: false
+            referencedRelation: "early_learners_slides"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      early_learners_slides: {
+        Row: {
+          audio_text: string | null
+          audio_url: string | null
+          content: Json
+          created_at: string | null
+          gamification: Json | null
+          id: string
+          image_prompt: string | null
+          image_url: string | null
+          interactive_elements: Json | null
+          lesson_id: string
+          phonics_sounds: Json | null
+          slide_number: number
+          slide_type: string
+          title: string | null
+        }
+        Insert: {
+          audio_text?: string | null
+          audio_url?: string | null
+          content?: Json
+          created_at?: string | null
+          gamification?: Json | null
+          id?: string
+          image_prompt?: string | null
+          image_url?: string | null
+          interactive_elements?: Json | null
+          lesson_id: string
+          phonics_sounds?: Json | null
+          slide_number: number
+          slide_type: string
+          title?: string | null
+        }
+        Update: {
+          audio_text?: string | null
+          audio_url?: string | null
+          content?: Json
+          created_at?: string | null
+          gamification?: Json | null
+          id?: string
+          image_prompt?: string | null
+          image_url?: string | null
+          interactive_elements?: Json | null
+          lesson_id?: string
+          phonics_sounds?: Json | null
+          slide_number?: number
+          slide_type?: string
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "early_learners_slides_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "early_learners_lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feature_flags: {
         Row: {
           conditions: Json | null
