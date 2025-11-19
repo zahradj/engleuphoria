@@ -7,7 +7,6 @@ import { UserManagement } from '@/components/admin/UserManagement';
 import { TeacherManagement } from '@/components/admin/TeacherManagement';
 import { TeacherApplicationsManagement } from '@/components/admin/TeacherApplicationsManagement';
 import { StudentManagement } from '@/components/admin/StudentManagement';
-import { PhonicsLibraryManager } from '@/components/admin/PhonicsLibraryManager';
 import { AnalyticsDashboard } from '@/components/admin/AnalyticsDashboard';
 import { PaymentsPanel } from '@/components/admin/PaymentsPanel';
 import { SettingsPanel } from '@/components/admin/SettingsPanel';
@@ -58,8 +57,6 @@ const AdminDashboard = () => {
         return <TeacherApplicationsManagement />;
       case 'students':
         return <StudentManagement />;
-      case 'phonics-library':
-        return <PhonicsLibraryManager />;
       case 'analytics':
         return <AnalyticsDashboard />;
       case 'payments':

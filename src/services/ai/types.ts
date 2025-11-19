@@ -1,72 +1,14 @@
 
 export interface AIContentRequest {
-  type: 'worksheet' | 'activity' | 'lesson_plan' | 'quiz' | 'flashcards' | 'lesson' | 'phonics_lesson' | 'english_lesson';
+  type: 'worksheet' | 'activity' | 'lesson_plan' | 'quiz' | 'flashcards' | 'lesson';
   topic: string;
   level: 'beginner' | 'intermediate' | 'advanced';
   duration?: number;
   specificRequirements?: string;
   studentAge?: string;
-  ageGroup?: '5-7' | '8-12';
-  cefrLevel?: 'Pre-A1' | 'A1' | 'A1+' | 'A2' | 'A2+' | 'B1';
   learningObjectives?: string[];
   objectives?: string[];
   requirements?: string;
-  phonicsType?: 'letter_sounds' | 'blends' | 'digraphs' | 'short_vowels' | 'long_vowels';
-}
-
-export interface PhonicsLessonContent {
-  title: string;
-  objective: string;
-  ageGroup: string;
-  cefrLevel: string;
-  warmup: {
-    activity: string;
-    duration: number;
-    materials: string[];
-  };
-  mainActivity: {
-    type: 'drag-drop' | 'matching' | 'listening' | 'blending';
-    instructions: string;
-    exercises: Array<{
-      id: string;
-      prompt: string;
-      items: Array<{
-        id: string;
-        letter?: string;
-        word?: string;
-        image?: string;
-        imagePrompt?: string;
-        correctAnswer?: string;
-      }>;
-    }>;
-    duration: number;
-  };
-  practice: {
-    exercises: Array<{
-      type: 'tracing' | 'repetition' | 'identification';
-      content: string;
-      items: any[];
-    }>;
-    duration: number;
-  };
-  assessment: {
-    type: 'quiz' | 'interactive';
-    questions: Array<{
-      id: string;
-      question: string;
-      options: string[];
-      correctAnswer: string;
-      adaptiveHint: string;
-    }>;
-    passingScore: number;
-  };
-  rewards: {
-    badges: string[];
-    motivationalMessages: string[];
-  };
-  teacherNotes: string[];
-  vocabulary: string[];
-  imagePrompt: string;
 }
 
 export interface AIGeneratedContent {
@@ -134,7 +76,6 @@ export interface AIGeneratedContent {
     }>;
     correct?: string;
   }>;
-  phonicsLesson?: PhonicsLessonContent;
   metadata: {
     generatedAt: string;
     model?: string;
