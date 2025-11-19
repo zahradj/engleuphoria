@@ -10,11 +10,6 @@ import { StudentManagement } from '@/components/admin/StudentManagement';
 import { AnalyticsDashboard } from '@/components/admin/AnalyticsDashboard';
 import { PaymentsPanel } from '@/components/admin/PaymentsPanel';
 import { SettingsPanel } from '@/components/admin/SettingsPanel';
-import { AdminLibraryManager } from '@/components/admin/AdminLibraryManager';
-import CurriculumArchitect from '@/components/teacher/CurriculumArchitect';
-import { CurriculumLibraryManager } from '@/components/teacher/curriculum/CurriculumLibraryManager';
-import { EnglishJourneyLibrary } from '@/components/teacher/library/EnglishJourneyLibrary';
-import { ReadingLibraryTab } from '@/components/teacher/ReadingLibraryTab';
 import { Loader2, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -64,14 +59,6 @@ const AdminDashboard = () => {
         return <StudentManagement />;
       case 'analytics':
         return <AnalyticsDashboard />;
-      case 'curriculum-library':
-        return <CurriculumLibraryManager />;
-      case 'english-journey':
-        return <EnglishJourneyLibrary />;
-      case 'reading-library':
-        return <ReadingLibraryTab />;
-      case 'curriculum':
-        return <CurriculumArchitect />;
       case 'payments':
         return <PaymentsPanel />;
       case 'settings':

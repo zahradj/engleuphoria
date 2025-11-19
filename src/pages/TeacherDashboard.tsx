@@ -9,10 +9,7 @@ import { MobileTeacherNav } from "@/components/teacher/mobile/MobileTeacherNav";
 import { TeacherDashboardContent } from "@/components/teacher/dashboard/TeacherDashboardContent";
 import { EnhancedCalendarTab } from "@/components/teacher/EnhancedCalendarTab";
 import { StudentsTab } from "@/components/teacher/StudentsTab";
-import { LessonHistoryTab } from "@/components/teacher/LessonHistoryTab";
 import { AssignmentsTab } from "@/components/teacher/AssignmentsTab";
-import { ReadingLibraryTab } from "@/components/teacher/ReadingLibraryTab";
-import { EnglishJourneyLibrary } from "@/components/teacher/library/EnglishJourneyLibrary";
 import { MessagesTab } from "@/components/teacher/MessagesTab";
 import { EarningsTab } from "@/components/teacher/EarningsTab";
 import { ReportsTab } from "@/components/teacher/ReportsTab";
@@ -95,12 +92,6 @@ const TeacherDashboard = () => {
           return <EnhancedCalendarTab teacherId={teacherId} />;
         case 'students':
           return <StudentsTab />;
-        case 'reading-library':
-          return <ReadingLibraryTab />;
-        case 'english-journey':
-          return <EnglishJourneyLibrary />;
-        case 'history':
-          return <LessonHistoryTab />;
         case 'assignments':
           return <AssignmentsTab />;
         case 'messages':

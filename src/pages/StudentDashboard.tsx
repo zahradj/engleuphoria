@@ -13,8 +13,6 @@ import { StudentSidebar } from "@/components/student/StudentSidebar";
 import { CleanStudentDashboard } from "@/components/student/CleanStudentDashboard";
 import { TeachersTab } from "@/components/student/TeachersTab";
 import { UpcomingClassesTab } from "@/components/student/UpcomingClassesTab";
-import { HomeworkTab } from "@/components/student/HomeworkTab";
-import { ProgressTrackerTab } from "@/components/student/ProgressTrackerTab";
 import { SpeakingPracticeTab } from "@/components/student/speaking/SpeakingPracticeTab";
 import { EnhancedBillingTab } from "@/components/student/EnhancedBillingTab";
 import { ProfileTab } from "@/components/student/ProfileTab";
@@ -111,8 +109,6 @@ const StudentDashboard = () => {
       certificates: () => <CertificatesTab />,
       teachers: () => <TeachersTab />,
       "upcoming-classes": () => <UpcomingClassesTab />,
-      homework: () => <HomeworkTab />,
-      progress: () => <ProgressTrackerTab />,
       speaking: () => <SpeakingPracticeTab />,
       billing: () => <EnhancedBillingTab />,
       profile: () => <ProfileTab studentName={studentName} />,
