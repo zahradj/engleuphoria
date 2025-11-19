@@ -1,7 +1,7 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { CleanDashboardTab } from "../CleanDashboardTab";
+import { DashboardTab } from "../DashboardTab";
 import { StudentsTab } from "./StudentsTab";
 import { EnhancedCalendarTab } from "../EnhancedCalendarTab";
 import { Users, Calendar, BarChart3 } from "lucide-react";
@@ -57,7 +57,7 @@ export const TeacherDashboardContent = ({ lessonPlans, teacherName = "Teacher", 
         
         <div className="mt-8">
           <TabsContent value="overview" className="animate-fade-in">
-            <CleanDashboardTab teacherName={teacherName} />
+            <DashboardTab teacherName={teacherName} />
           </TabsContent>
           
           <TabsContent value="students" className="animate-fade-in">

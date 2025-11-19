@@ -27,7 +27,6 @@ import EmailVerification from "./pages/EmailVerification";
 import ResetPassword from "./pages/ResetPassword";
 
 // Lazy load heavy classroom components for better initial load performance
-const OneOnOneClassroomNew = lazy(() => import("./pages/OneOnOneClassroomNew"));
 const ClassroomEntryPage = lazy(() => import("./pages/ClassroomEntryPage"));
 const AdventuresPage = lazy(() => import("./pages/AdventuresPage"));
 
@@ -43,11 +42,7 @@ import ForParents from "./pages/ForParents";
 import ForTeachers from "./pages/ForTeachers";  
 import AboutUs from "./pages/AboutUs";
 import NewPricingPage from "./pages/NewPricingPage";
-import PlacementTest from "./pages/PlacementTest";
-import PlacementTest2 from "./pages/PlacementTest2";
 import { PlacementTest2Guard } from "./components/guards/PlacementTest2Guard";
-import Lesson1GreetingsPage from "./pages/lessons/Lesson1GreetingsPage";
-import LessonSlideViewerPage from "./pages/LessonSlideViewerPage";
 
 import ClassroomPrejoin from "./pages/ClassroomPrejoin";
 import { SystematicSlidesAdmin } from "./pages/admin/SystematicSlidesAdmin";
@@ -113,11 +108,6 @@ const App = () => {
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/media-test" element={<MediaTestPage />} />
               <Route path="/video-test" element={<VideoTestPage />} />
-              <Route path="/classroom" element={
-                <Suspense fallback={<LoadingFallback />}>
-                  <OneOnOneClassroomNew />
-                </Suspense>
-              } />
               <Route path="/classroom-prejoin" element={<ClassroomPrejoin />} />
               <Route path="/discover-teachers" element={<DiscoverTeachers />} />
               <Route path="/teacher/:teacherId" element={<TeacherProfile />} />
@@ -129,15 +119,6 @@ const App = () => {
               <Route path="/for-teachers" element={<ForTeachers />} />
               <Route path="/about" element={<AboutUs />} />
               <Route path="/pricing" element={<NewPricingPage />} />
-              <Route path="/placement-test" element={<PlacementTest />} />
-              <Route path="/placement-test-2" element={
-                <PlacementTest2Guard>
-                  <PlacementTest2 />
-                </PlacementTest2Guard>
-              } />
-              <Route path="/lessons/unit-0/lesson-1" element={<Lesson1GreetingsPage />} />
-              <Route path="/lesson-viewer" element={<LessonSlideViewerPage />} />
-              <Route path="/admin/systematic-slides" element={<SystematicSlidesAdmin />} />
               <Route path="/adventures" element={
                 <Suspense fallback={<LoadingFallback />}>
                   <AdventuresPage />
@@ -179,14 +160,6 @@ const App = () => {
               <Route path="/dashboard" element={
                 <ImprovedProtectedRoute>
                   <div>Redirecting...</div>
-                </ImprovedProtectedRoute>
-              } />
-              
-              <Route path="/oneonone-classroom-new" element={
-                <ImprovedProtectedRoute>
-                  <Suspense fallback={<LoadingFallback />}>
-                    <OneOnOneClassroomNew />
-                  </Suspense>
                 </ImprovedProtectedRoute>
               } />
               

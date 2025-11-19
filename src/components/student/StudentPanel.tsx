@@ -5,9 +5,6 @@ import { StudentSidebar } from "./StudentSidebar";
 import { DashboardTab } from "./DashboardTab";
 import { ProfileTab } from "./ProfileTab";
 import { EnhancedUpcomingClassesTab } from "./EnhancedUpcomingClassesTab";
-import { LessonHistoryTab } from "./LessonHistoryTab";
-import { HomeworkTab } from "./HomeworkTab";
-import { ProgressTrackerTab } from "./ProgressTrackerTab";
 import { ChatTab } from "./ChatTab";
 import { BillingTab } from "./BillingTab";
 import { CertificatesTab } from "./CertificatesTab";
@@ -37,12 +34,6 @@ export const StudentPanel = ({
         return <ProfileTab studentName={studentName} />;
       case "classes":
         return <EnhancedUpcomingClassesTab studentId={studentId} />;
-      case "history":
-        return <LessonHistoryTab />;
-      case "homework":
-        return <HomeworkTab />;
-      case "progress":
-        return <ProgressTrackerTab />;
       case "chat":
         return <ChatTab />;
       case "billing":

@@ -6,18 +6,8 @@ import { TeacherSidebar } from "./TeacherSidebar";
 import { DashboardTab } from "./DashboardTab";
 import { EnhancedCalendarTab } from "./EnhancedCalendarTab";
 import { StudentsTab } from "./StudentsTab";
-import { LessonHistoryTab } from "./LessonHistoryTab";
 import { AssignmentsTab } from "./AssignmentsTab";
 import { MessagesTab } from "./MessagesTab";
-import { EarningsTab } from "./EarningsTab";
-import { ReportsTab } from "./ReportsTab";
-import { SettingsTab } from "./SettingsTab";
-import { AIAssistantTab } from "./AIAssistantTab";
-import { ReadingLibraryTab } from "./ReadingLibraryTab";
-import { BackendTab } from "./BackendTab";
-import { EnhancedEnterpriseHub } from "../enterprise/enhanced/EnhancedEnterpriseHub";
-import CurriculumArchitect from "./CurriculumArchitect";
-import { HomeworkManagementTab } from "./homework/HomeworkManagementTab";
 
 interface TeacherPanelProps {
   teacherId?: string;
@@ -35,34 +25,14 @@ export const TeacherPanel = ({
     switch (activeTab) {
       case "dashboard":
         return <DashboardTab teacherName={teacherName} />;
-      case "ai-generator":
-        return <CurriculumArchitect />;
-      case "ai-assistant":
-        return <AIAssistantTab />;
       case "calendar":
         return <EnhancedCalendarTab teacherId={teacherId} />;
       case "students":
         return <StudentsTab />;
-      case "reading-library":
-        return <ReadingLibraryTab />;
-      case "history":
-        return <LessonHistoryTab />;
-      case "homework":
-        return <HomeworkManagementTab />;
       case "assignments":
         return <AssignmentsTab />;
       case "messages":
         return <MessagesTab />;
-      case "earnings":
-        return <EarningsTab />;
-      case "reports":
-        return <ReportsTab />;
-      case "settings":
-        return <SettingsTab teacherName={teacherName} />;
-      case "backend":
-        return <BackendTab />;
-      case "enterprise":
-        return <EnhancedEnterpriseHub />;
       default:
         return <DashboardTab teacherName={teacherName} />;
     }
