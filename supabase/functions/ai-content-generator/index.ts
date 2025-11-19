@@ -108,6 +108,196 @@ BULK CURRICULUM CONTEXT:
 
     // Generate comprehensive content with ChatGPT including worksheets, activities, images, and vocabulary
     switch (actualContentType) {
+      case 'phonics_lesson':
+        prompt = `You are an expert ESL educator, phonics specialist, and child development expert.
+
+TASK: Create a comprehensive, gamified, interactive phonics lesson for children aged ${studentAge || '5-7'}.
+
+LESSON REQUIREMENTS:
+- Topic: ${topic}
+- CEFR Level: ${actualLevel}
+- Duration: ${duration || 30} minutes
+- Learning Objectives: ${learningObjectives?.join(', ') || 'Not specified'}
+- Specific Requirements: ${specificRequirements || 'None'}
+
+${neuroscienceInstructions}
+
+RETURN A COMPREHENSIVE JSON OBJECT with this exact structure:
+
+{
+  "phonicsLesson": {
+    "title": "${topic}",
+    "objective": "Students will be able to...",
+    "ageGroup": "${studentAge || '5-7'}",
+    "cefrLevel": "${actualLevel}",
+    "warmup": {
+      "activity": "Playful icebreaker (song/chant/flashcards) introducing the phonics sound",
+      "duration": 5,
+      "materials": ["flashcards", "audio track", "props"]
+    },
+    "mainActivity": {
+      "type": "drag-drop",
+      "instructions": "Clear step-by-step instructions for students",
+      "exercises": [
+        {
+          "id": "ex1",
+          "prompt": "Match the letter to the picture",
+          "items": [
+            {"id": "1", "letter": "a", "word": "cat", "image": "cat", "imagePrompt": "cute cartoon cat with friendly expression"},
+            {"id": "2", "letter": "a", "word": "bat", "image": "bat", "imagePrompt": "friendly baseball bat with smile"}
+          ]
+        }
+      ],
+      "duration": 15
+    },
+    "practice": {
+      "exercises": [
+        {
+          "type": "tracing",
+          "content": "Trace the letter 'a' while saying the sound",
+          "items": []
+        },
+        {
+          "type": "repetition",
+          "content": "Repeat these words aloud: cat, bat, hat, mat",
+          "items": []
+        }
+      ],
+      "duration": 5
+    },
+    "assessment": {
+      "type": "quiz",
+      "questions": [
+        {
+          "id": "q1",
+          "question": "Which word has the /a/ sound?",
+          "options": ["cat", "dog", "fish", "bird"],
+          "correctAnswer": "cat",
+          "adaptiveHint": "Listen carefully to the middle sound"
+        }
+      ],
+      "passingScore": 70
+    },
+    "rewards": {
+      "badges": ["Phonics Star", "Sound Master", "Letter Champion"],
+      "motivationalMessages": ["Great job!", "You're amazing!", "Keep it up!", "Superstar!"]
+    },
+    "teacherNotes": [
+      "Encourage repetition and praise effort",
+      "Use gestures and movements",
+      "Allow time for individual practice",
+      "Provide extra support for struggling students"
+    ],
+    "vocabulary": ["cat", "bat", "hat", "mat", "sat", "pat", "rat", "fat"],
+    "imagePrompt": "Child-friendly, colorful educational illustration showing the letter 'a' prominently displayed with cartoon images of a cat, bat, hat, and mat. Include a happy child character pointing to the letters. Style: bright, engaging, suitable for ages 5-7, educational poster aesthetic"
+  }
+}
+
+CRITICAL REQUIREMENTS:
+- 100% accurate phonics content
+- Age-appropriate language for ${studentAge || '5-7'}
+- Interactive and gamified elements
+- Include adaptive hints for struggling students
+- Generate complete, ready-to-use content
+- NO placeholders or incomplete sections
+- Ensure all exercises are playful and engaging`;
+        break;
+
+      case 'english_lesson':
+        prompt = `You are an expert ESL educator and curriculum designer for children aged 8-12.
+
+TASK: Create a comprehensive, gamified, interactive English lesson for students aged ${studentAge || '8-12'}.
+
+LESSON REQUIREMENTS:
+- Topic: ${topic}
+- CEFR Level: ${actualLevel}
+- Duration: ${duration || 30} minutes
+- Learning Objectives: ${learningObjectives?.join(', ') || 'Not specified'}
+- Specific Requirements: ${specificRequirements || 'None'}
+
+${neuroscienceInstructions}
+
+RETURN A COMPREHENSIVE JSON OBJECT with this exact structure:
+
+{
+  "phonicsLesson": {
+    "title": "${topic}",
+    "objective": "Students will understand and use...",
+    "ageGroup": "${studentAge || '8-12'}",
+    "cefrLevel": "${actualLevel}",
+    "warmup": {
+      "activity": "Engaging starter activity, game, or story introduction",
+      "duration": 5,
+      "materials": ["whiteboard", "cards", "props"]
+    },
+    "mainActivity": {
+      "type": "interactive",
+      "instructions": "Clear instructions for the main learning activity",
+      "exercises": [
+        {
+          "id": "ex1",
+          "prompt": "Complete the sentences using the correct verb",
+          "items": [
+            {"id": "1", "word": "run", "correctAnswer": "running", "imagePrompt": "child running in a park"},
+            {"id": "2", "word": "jump", "correctAnswer": "jumping", "imagePrompt": "child jumping rope"}
+          ]
+        }
+      ],
+      "duration": 15
+    },
+    "practice": {
+      "exercises": [
+        {
+          "type": "sentence_building",
+          "content": "Create 3 sentences using today's vocabulary",
+          "items": []
+        },
+        {
+          "type": "role_play",
+          "content": "Act out a short dialogue using the target language",
+          "items": []
+        }
+      ],
+      "duration": 7
+    },
+    "assessment": {
+      "type": "interactive",
+      "questions": [
+        {
+          "id": "q1",
+          "question": "Choose the correct word to complete the sentence",
+          "options": ["run", "runs", "running", "ran"],
+          "correctAnswer": "runs",
+          "adaptiveHint": "Think about the subject of the sentence"
+        }
+      ],
+      "passingScore": 75
+    },
+    "rewards": {
+      "badges": ["Grammar Guru", "Vocabulary Master", "Sentence Builder"],
+      "motivationalMessages": ["Excellent work!", "You're doing great!", "Keep learning!", "Amazing effort!"]
+    },
+    "teacherNotes": [
+      "Encourage peer interaction",
+      "Provide real-world examples",
+      "Use visual aids and gestures",
+      "Allow time for independent practice"
+    ],
+    "vocabulary": ["run", "jump", "play", "read", "write", "speak", "listen", "think", "learn", "teach"],
+    "imagePrompt": "Educational illustration showing children performing various actions (running, jumping, reading, writing) in a colorful classroom or outdoor setting. Include speech bubbles with action words. Style: bright, engaging, suitable for ages 8-12, educational poster aesthetic"
+  }
+}
+
+CRITICAL REQUIREMENTS:
+- Age-appropriate for 8-12 year olds
+- Include 10-15 vocabulary words
+- Interactive, gamified activities
+- Progressive difficulty
+- Adaptive hints and challenges
+- Complete, ready-to-use content
+- NO placeholders`;
+        break;
+
       case 'lesson':
       case 'lesson_plan':
         prompt = `Create a comprehensive English lesson package for ${actualLevel} level students including worksheet, interactive activities, vocabulary list with image prompts, and lesson slides.
