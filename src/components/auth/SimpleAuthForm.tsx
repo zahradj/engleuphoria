@@ -251,7 +251,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
   };
   const gradientClass = 'from-primary/80 via-primary/70 to-accent/80';
   const backgroundGradient = 'from-primary/10 via-primary/5 to-accent/10';
-  return <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-50/40 via-purple-50/40 to-pink-50/40">
+  return <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-auth-bg/60 via-auth-bg/80 to-auth-bg">
       {/* Playful background decorations */}
       <div className="absolute inset-0">
         {/* Large floating orbs */}
