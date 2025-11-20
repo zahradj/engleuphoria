@@ -3135,6 +3135,39 @@ export type Database = {
           },
         ]
       }
+      learning_streaks: {
+        Row: {
+          created_at: string | null
+          current_streak: number | null
+          id: string
+          last_activity_date: string | null
+          longest_streak: number | null
+          streak_type: string | null
+          student_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_streak?: number | null
+          id?: string
+          last_activity_date?: string | null
+          longest_streak?: number | null
+          streak_type?: string | null
+          student_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current_streak?: number | null
+          id?: string
+          last_activity_date?: string | null
+          longest_streak?: number | null
+          streak_type?: string | null
+          student_id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       lesson_completions: {
         Row: {
           attention_optimization_score: number | null
@@ -5136,6 +5169,39 @@ export type Database = {
           },
         ]
       }
+      student_badges: {
+        Row: {
+          badge_description: string | null
+          badge_icon: string | null
+          badge_name: string
+          created_at: string | null
+          criteria_met: Json | null
+          id: string
+          student_id: string
+          unlocked_at: string | null
+        }
+        Insert: {
+          badge_description?: string | null
+          badge_icon?: string | null
+          badge_name: string
+          created_at?: string | null
+          criteria_met?: Json | null
+          id?: string
+          student_id: string
+          unlocked_at?: string | null
+        }
+        Update: {
+          badge_description?: string | null
+          badge_icon?: string | null
+          badge_name?: string
+          created_at?: string | null
+          criteria_met?: Json | null
+          id?: string
+          student_id?: string
+          unlocked_at?: string | null
+        }
+        Relationships: []
+      }
       student_challenge_progress: {
         Row: {
           challenge_id: string
@@ -5552,6 +5618,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      student_slide_progress: {
+        Row: {
+          accuracy_score: number | null
+          attempts: number | null
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          lesson_id: string
+          slide_id: string
+          student_id: string
+          time_spent_seconds: number | null
+          updated_at: string | null
+          xp_earned: number | null
+        }
+        Insert: {
+          accuracy_score?: number | null
+          attempts?: number | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          lesson_id: string
+          slide_id: string
+          student_id: string
+          time_spent_seconds?: number | null
+          updated_at?: string | null
+          xp_earned?: number | null
+        }
+        Update: {
+          accuracy_score?: number | null
+          attempts?: number | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          lesson_id?: string
+          slide_id?: string
+          student_id?: string
+          time_spent_seconds?: number | null
+          updated_at?: string | null
+          xp_earned?: number | null
+        }
+        Relationships: []
       }
       student_speaking_profiles: {
         Row: {
