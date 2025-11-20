@@ -123,7 +123,7 @@ export const MaterialLibrary = () => {
                     <DialogHeader>
                       <DialogTitle>Material Preview</DialogTitle>
                     </DialogHeader>
-                    <MaterialPreview material={material} />
+                    <MaterialPreview material={material} mode="lesson" />
                   </DialogContent>
                 </Dialog>
                 <Button

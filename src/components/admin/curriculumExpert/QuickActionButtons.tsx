@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Loader2, Sparkles, Mic, FileText, BookOpen, Gamepad2, Calendar, Clock, MessageSquare, BookMarked, GraduationCap, Users, Target } from 'lucide-react';
 import { useCurriculumExpert } from '@/hooks/useCurriculumExpert';
-import { AgeGroup, QuickActionButton } from '@/types/curriculumExpert';
+import { AgeGroup, QuickActionButton, ECAMode } from '@/types/curriculumExpert';
 
 const ICON_MAP: Record<string, any> = {
   Sparkles, Mic, FileText, BookOpen, Gamepad2, Calendar,
@@ -12,11 +12,12 @@ const ICON_MAP: Record<string, any> = {
 
 interface Props {
   ageGroup: AgeGroup;
+  mode?: ECAMode;
   onActionClick: (prompt: string) => void;
   isGenerating: boolean;
 }
 
-export const QuickActionButtons = ({ ageGroup, onActionClick, isGenerating }: Props) => {
+export const QuickActionButtons = ({ ageGroup, mode = 'lesson', onActionClick, isGenerating }: Props) => {
   const [quickActions, setQuickActions] = useState<QuickActionButton[]>([]);
   const { getQuickActions } = useCurriculumExpert();
 
