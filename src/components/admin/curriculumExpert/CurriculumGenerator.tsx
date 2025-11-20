@@ -27,6 +27,7 @@ export const CurriculumGenerator = () => {
 
   const handleQuickAction = async (prompt: string) => {
     await generateMaterial({
+      mode: 'lesson',
       prompt,
       ageGroup: selectedAgeGroup,
       cefrLevel,
@@ -41,6 +42,7 @@ export const CurriculumGenerator = () => {
     if (!customPrompt.trim()) return;
     
     await generateMaterial({
+      mode: 'lesson',
       prompt: customPrompt,
       ageGroup: selectedAgeGroup,
       cefrLevel,

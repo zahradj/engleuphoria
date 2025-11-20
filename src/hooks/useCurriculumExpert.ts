@@ -12,10 +12,16 @@ export function useCurriculumExpert() {
     try {
       setIsGenerating(true);
       
-      console.log('Calling curriculum-expert-agent with params:', params);
+      // Add mode with default 'lesson' for backward compatibility
+      const requestParams = {
+        mode: 'lesson' as const,
+        ...params
+      };
+      
+      console.log('Calling curriculum-expert-agent with params:', requestParams);
       
       const { data, error } = await supabase.functions.invoke('curriculum-expert-agent', {
-        body: params
+        body: requestParams
       });
 
       if (error) {
