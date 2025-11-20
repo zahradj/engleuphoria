@@ -826,6 +826,53 @@ export type Database = {
           },
         ]
       }
+      assessment_rubrics: {
+        Row: {
+          assessment_id: string | null
+          created_at: string | null
+          criteria: Json
+          description: string | null
+          id: string
+          max_score: number
+          rubric_data: Json | null
+          rubric_type: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assessment_id?: string | null
+          created_at?: string | null
+          criteria?: Json
+          description?: string | null
+          id?: string
+          max_score: number
+          rubric_data?: Json | null
+          rubric_type: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assessment_id?: string | null
+          created_at?: string | null
+          criteria?: Json
+          description?: string | null
+          id?: string
+          max_score?: number
+          rubric_data?: Json | null
+          rubric_type?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_rubrics_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "eca_assessments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assessment_submissions: {
         Row: {
           assessment_id: string
@@ -1922,6 +1969,77 @@ export type Database = {
           },
         ]
       }
+      curriculum_programs: {
+        Row: {
+          age_group: string
+          assessment_strategy: string | null
+          cefr_level: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          duration_weeks: number
+          id: string
+          is_published: boolean | null
+          is_template: boolean | null
+          learning_goals: string[] | null
+          materials_overview: string | null
+          program_data: Json | null
+          program_type: string
+          published_at: string | null
+          target_students: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          age_group: string
+          assessment_strategy?: string | null
+          cefr_level: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          duration_weeks?: number
+          id?: string
+          is_published?: boolean | null
+          is_template?: boolean | null
+          learning_goals?: string[] | null
+          materials_overview?: string | null
+          program_data?: Json | null
+          program_type: string
+          published_at?: string | null
+          target_students?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          age_group?: string
+          assessment_strategy?: string | null
+          cefr_level?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          duration_weeks?: number
+          id?: string
+          is_published?: boolean | null
+          is_template?: boolean | null
+          learning_goals?: string[] | null
+          materials_overview?: string | null
+          program_data?: Json | null
+          program_type?: string
+          published_at?: string | null
+          target_students?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curriculum_programs_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       curriculum_quick_actions: {
         Row: {
           age_group: string
@@ -1978,6 +2096,84 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      curriculum_units: {
+        Row: {
+          age_group: string
+          assessment_methods: string[] | null
+          cefr_level: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          duration_weeks: number
+          grammar_focus: string[] | null
+          id: string
+          is_published: boolean | null
+          learning_objectives: string[]
+          program_id: string | null
+          skills_focus: string[] | null
+          title: string
+          unit_data: Json | null
+          unit_number: number
+          updated_at: string | null
+          vocabulary_themes: string[] | null
+        }
+        Insert: {
+          age_group: string
+          assessment_methods?: string[] | null
+          cefr_level: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          duration_weeks?: number
+          grammar_focus?: string[] | null
+          id?: string
+          is_published?: boolean | null
+          learning_objectives: string[]
+          program_id?: string | null
+          skills_focus?: string[] | null
+          title: string
+          unit_data?: Json | null
+          unit_number: number
+          updated_at?: string | null
+          vocabulary_themes?: string[] | null
+        }
+        Update: {
+          age_group?: string
+          assessment_methods?: string[] | null
+          cefr_level?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          duration_weeks?: number
+          grammar_focus?: string[] | null
+          id?: string
+          is_published?: boolean | null
+          learning_objectives?: string[]
+          program_id?: string | null
+          skills_focus?: string[] | null
+          title?: string
+          unit_data?: Json | null
+          unit_number?: number
+          updated_at?: string | null
+          vocabulary_themes?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curriculum_units_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_units_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_programs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       early_learners_assets: {
         Row: {
@@ -2175,6 +2371,136 @@ export type Database = {
             columns: ["lesson_id"]
             isOneToOne: false
             referencedRelation: "early_learners_lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      eca_assessments: {
+        Row: {
+          age_group: string
+          assessment_data: Json | null
+          assessment_type: string
+          cefr_level: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          instructions: string | null
+          is_published: boolean | null
+          is_template: boolean | null
+          passing_score: number | null
+          questions: Json
+          skills_assessed: string[] | null
+          title: string
+          total_points: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          age_group: string
+          assessment_data?: Json | null
+          assessment_type: string
+          cefr_level: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          instructions?: string | null
+          is_published?: boolean | null
+          is_template?: boolean | null
+          passing_score?: number | null
+          questions?: Json
+          skills_assessed?: string[] | null
+          title: string
+          total_points?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          age_group?: string
+          assessment_data?: Json | null
+          assessment_type?: string
+          cefr_level?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          instructions?: string | null
+          is_published?: boolean | null
+          is_template?: boolean | null
+          passing_score?: number | null
+          questions?: Json
+          skills_assessed?: string[] | null
+          title?: string
+          total_points?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eca_assessments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      eca_templates: {
+        Row: {
+          age_group: string
+          category: string | null
+          cefr_level: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_featured: boolean | null
+          template_data: Json
+          template_name: string
+          template_type: string
+          updated_at: string | null
+          usage_count: number | null
+        }
+        Insert: {
+          age_group: string
+          category?: string | null
+          cefr_level: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          template_data?: Json
+          template_name: string
+          template_type: string
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Update: {
+          age_group?: string
+          category?: string | null
+          cefr_level?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_featured?: boolean | null
+          template_data?: Json
+          template_name?: string
+          template_type?: string
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eca_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -2728,6 +3054,83 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      learning_missions: {
+        Row: {
+          age_group: string
+          badge_reward: string | null
+          cefr_level: string
+          coin_reward: number | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          difficulty_level: number | null
+          duration_minutes: number | null
+          id: string
+          is_active: boolean | null
+          is_template: boolean | null
+          learning_objectives: string[] | null
+          mission_data: Json | null
+          mission_type: string
+          prerequisites: string[] | null
+          tasks: Json
+          title: string
+          updated_at: string | null
+          xp_reward: number | null
+        }
+        Insert: {
+          age_group: string
+          badge_reward?: string | null
+          cefr_level: string
+          coin_reward?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          difficulty_level?: number | null
+          duration_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_template?: boolean | null
+          learning_objectives?: string[] | null
+          mission_data?: Json | null
+          mission_type: string
+          prerequisites?: string[] | null
+          tasks?: Json
+          title: string
+          updated_at?: string | null
+          xp_reward?: number | null
+        }
+        Update: {
+          age_group?: string
+          badge_reward?: string | null
+          cefr_level?: string
+          coin_reward?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          difficulty_level?: number | null
+          duration_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_template?: boolean | null
+          learning_objectives?: string[] | null
+          mission_data?: Json | null
+          mission_type?: string
+          prerequisites?: string[] | null
+          tasks?: Json
+          title?: string
+          updated_at?: string | null
+          xp_reward?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_missions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       lesson_completions: {
         Row: {
@@ -3331,6 +3734,45 @@ export type Database = {
             columns: ["sender_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mission_lessons: {
+        Row: {
+          created_at: string | null
+          id: string
+          lesson_id: string | null
+          mission_id: string | null
+          task_order: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          lesson_id?: string | null
+          mission_id?: string | null
+          task_order: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          lesson_id?: string | null
+          mission_id?: string | null
+          task_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_lessons_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "systematic_lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_lessons_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "learning_missions"
             referencedColumns: ["id"]
           },
         ]
@@ -3990,6 +4432,77 @@ export type Database = {
           {
             foreignKeyName: "personalized_learning_paths_student_id_fkey"
             columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      resource_library: {
+        Row: {
+          age_group: string
+          cefr_level: string
+          content_data: Json | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          downloads_count: number | null
+          file_size: number | null
+          file_type: string | null
+          file_url: string | null
+          id: string
+          is_public: boolean | null
+          is_template: boolean | null
+          resource_type: string
+          skills: string[] | null
+          title: string
+          topics: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          age_group: string
+          cefr_level: string
+          content_data?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          downloads_count?: number | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          is_public?: boolean | null
+          is_template?: boolean | null
+          resource_type: string
+          skills?: string[] | null
+          title: string
+          topics?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          age_group?: string
+          cefr_level?: string
+          content_data?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          downloads_count?: number | null
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          is_public?: boolean | null
+          is_template?: boolean | null
+          resource_type?: string
+          skills?: string[] | null
+          title?: string
+          topics?: string[] | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resource_library_created_by_fkey"
+            columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -6051,6 +6564,45 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      unit_lessons: {
+        Row: {
+          created_at: string | null
+          id: string
+          lesson_id: string | null
+          lesson_order: number
+          unit_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          lesson_id?: string | null
+          lesson_order: number
+          unit_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          lesson_id?: string | null
+          lesson_order?: number
+          unit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unit_lessons_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "systematic_lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unit_lessons_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_units"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_community_stats: {
         Row: {
