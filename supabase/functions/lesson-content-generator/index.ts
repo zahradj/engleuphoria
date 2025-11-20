@@ -212,9 +212,40 @@ serve(async (req) => {
 
     // Step 7: Save to systematic_lessons
     console.log('Step 7: Saving to database...');
+    
+    // Get or create a curriculum level for this CEFR level
+    let curriculumLevelId = null;
+    const { data: existingLevel } = await supabaseClient
+      .from('curriculum_levels')
+      .select('id')
+      .eq('level_code', cefrLevel)
+      .maybeSingle();
+    
+    if (existingLevel) {
+      curriculumLevelId = existingLevel.id;
+    } else {
+      // Create a basic curriculum level if it doesn't exist
+      const { data: newLevel } = await supabaseClient
+        .from('curriculum_levels')
+        .insert({
+          level_code: cefrLevel,
+          level_name: `${cefrLevel} Level`,
+          age_group: ageGroup,
+          description: `Curriculum for ${cefrLevel} level students`
+        })
+        .select('id')
+        .single();
+      
+      if (newLevel) {
+        curriculumLevelId = newLevel.id;
+      }
+    }
+    
     const { data: savedLesson, error: saveError } = await supabaseClient
       .from('systematic_lessons')
       .insert({
+        curriculum_level_id: curriculumLevelId,
+        lesson_number: lessonPlan.lessonNumber || 1,
         title: lessonPlan.title,
         topic: lessonPlan.targetLanguage?.vocabulary?.join(', ') || 'General English',
         grammar_focus: lessonPlan.targetLanguage?.grammar?.join(', ') || '',
