@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Loader2, Sparkles, Mic, FileText, BookOpen, Gamepad2, Calendar, Clock, MessageSquare, BookMarked, GraduationCap, Users, Target } from 'lucide-react';
-import { useCurriculumExpert } from '@/hooks/useCurriculumExpert';
-import { AgeGroup, QuickActionButton, ECAMode } from '@/types/curriculumExpert';
+import { useECAQuickActions } from '@/hooks/useECAQuickActions';
+import { AgeGroup, ECAMode } from '@/types/curriculumExpert';
 
 const ICON_MAP: Record<string, any> = {
   Sparkles, Mic, FileText, BookOpen, Gamepad2, Calendar,
@@ -18,28 +19,51 @@ interface Props {
 }
 
 export const QuickActionButtons = ({ ageGroup, mode = 'lesson', onActionClick, isGenerating }: Props) => {
-  const [quickActions, setQuickActions] = useState<QuickActionButton[]>([]);
-  const { getQuickActions } = useCurriculumExpert();
+  const { quickActions, isLoading, fetchActions } = useECAQuickActions();
 
   useEffect(() => {
-    const loadActions = async () => {
-      const actions = await getQuickActions(ageGroup);
-      setQuickActions(actions);
-    };
-    loadActions();
-  }, [ageGroup, getQuickActions]);
+    fetchActions({ ageGroup, mode });
+  }, [ageGroup, mode, fetchActions]);
 
   const getIconComponent = (iconName: string) => {
     const IconComponent = ICON_MAP[iconName] || BookOpen;
     return <IconComponent className="h-5 w-5" />;
   };
 
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="py-12 flex justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (quickActions.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center">
+          <p className="text-muted-foreground">
+            No quick actions available for {mode} mode and ages {ageGroup}
+          </p>
+          <p className="text-sm text-muted-foreground mt-2">
+            Try a different mode or age group
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Quick Actions</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle>Quick Actions</CardTitle>
+          <Badge variant="secondary" className="capitalize">{mode} mode</Badge>
+        </div>
         <CardDescription>
-          Pre-configured prompts for ages {ageGroup}
+          Pre-configured {mode} prompts for ages {ageGroup}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -50,7 +74,7 @@ export const QuickActionButtons = ({ ageGroup, mode = 'lesson', onActionClick, i
               variant="outline"
               onClick={() => onActionClick(action.promptText)}
               disabled={isGenerating}
-              className="h-auto py-4 px-4 flex flex-col items-start gap-2"
+              className="h-auto py-4 px-4 flex flex-col items-start gap-2 hover:border-primary transition-colors"
             >
               <div className="flex items-center gap-2 w-full">
                 {getIconComponent(action.icon)}

@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { CurriculumMaterial, GenerationParams, QuickActionButton, GrammarProgression, VocabularyProgression } from '@/types/curriculumExpert';
+import { CurriculumMaterial, GenerationParams, QuickActionButton, GrammarProgression, VocabularyProgression, ECAMode } from '@/types/curriculumExpert';
 
 export function useCurriculumExpert() {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -120,20 +120,30 @@ export function useCurriculumExpert() {
     }));
   }, []);
 
-  const getQuickActions = useCallback(async (ageGroup?: string): Promise<QuickActionButton[]> => {
-    let query = supabase.from('curriculum_quick_actions').select('*').order('order_index');
+  const getQuickActions = useCallback(async (
+    ageGroup?: string,
+    mode?: ECAMode
+  ): Promise<QuickActionButton[]> => {
+    let query = supabase.from('curriculum_quick_actions').select('*');
     
     if (ageGroup) {
       query = query.eq('age_group', ageGroup);
     }
+    
+    if (mode) {
+      query = query.eq('mode', mode);
+    }
+    
+    query = query.order('order_index');
 
-    const { data, error } = await query;
+    const { data, error} = await query;
 
     if (error) throw error;
     
     return data.map(item => ({
       id: item.id,
       ageGroup: item.age_group as any,
+      mode: item.mode as ECAMode,
       buttonLabel: item.button_label,
       promptText: item.prompt_text,
       category: item.category as any,
