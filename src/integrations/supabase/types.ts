@@ -2047,6 +2047,7 @@ export type Database = {
           category: string
           icon: string | null
           id: string
+          mode: string
           order_index: number
           prompt_text: string
         }
@@ -2056,6 +2057,7 @@ export type Database = {
           category: string
           icon?: string | null
           id?: string
+          mode?: string
           order_index: number
           prompt_text: string
         }
@@ -2065,6 +2067,7 @@ export type Database = {
           category?: string
           icon?: string | null
           id?: string
+          mode?: string
           order_index?: number
           prompt_text?: string
         }
