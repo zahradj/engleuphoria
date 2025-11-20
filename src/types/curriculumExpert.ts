@@ -46,9 +46,10 @@ export interface CurriculumMaterial<T extends ECAContent = LessonContent> {
 export interface QuickActionButton {
   id: string;
   ageGroup: AgeGroup;
+  mode: ECAMode;
   buttonLabel: string;
   promptText: string;
-  category: Category;
+  category: string;
   orderIndex: number;
   icon: string;
 }
