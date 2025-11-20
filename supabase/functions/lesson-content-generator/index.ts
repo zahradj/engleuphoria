@@ -26,7 +26,7 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    // Step 1: Generate slide structure using Lovable AI
+    // Step 1: Generate slide structure using Lovable AI with structured output
     console.log('Step 1: Generating slide structure...');
     const slidePrompt = buildSlidePrompt(lessonPlan, ageGroup, cefrLevel);
     
@@ -41,14 +41,58 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: 'You are an expert ESL curriculum designer. Create comprehensive, engaging lesson slides with clear instructions and interactive elements. Always respond with valid JSON only.'
+            content: 'You are an expert ESL curriculum designer. Create comprehensive, engaging lesson slides with clear instructions and interactive elements.'
           },
           {
             role: 'user',
             content: slidePrompt
           }
         ],
-        max_tokens: 4000,
+        tools: [{
+          type: 'function',
+          function: {
+            name: 'generate_lesson_slides',
+            description: 'Generate interactive ESL lesson slides',
+            parameters: {
+              type: 'object',
+              properties: {
+                version: { type: 'string' },
+                theme: { type: 'string' },
+                durationMin: { type: 'number' },
+                metadata: {
+                  type: 'object',
+                  properties: {
+                    CEFR: { type: 'string' },
+                    module: { type: 'number' },
+                    lesson: { type: 'number' },
+                    targets: { type: 'array', items: { type: 'string' } },
+                    weights: { type: 'object' }
+                  }
+                },
+                slides: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'string' },
+                      type: { type: 'string' },
+                      prompt: { type: 'string' },
+                      instructions: { type: 'string' },
+                      content: { type: 'object' },
+                      media: { type: 'object' },
+                      audioText: { type: 'string' },
+                      interactionType: { type: 'string' },
+                      teacherTips: { type: 'array', items: { type: 'string' } }
+                    }
+                  }
+                }
+              },
+              required: ['version', 'theme', 'durationMin', 'metadata', 'slides']
+            }
+          }
+        }],
+        tool_choice: { type: 'function', function: { name: 'generate_lesson_slides' } },
+        max_tokens: 8000,
       }),
     });
 
@@ -59,28 +103,20 @@ serve(async (req) => {
     }
 
     const aiData = await aiResponse.json();
-    let generatedText = aiData.choices?.[0]?.message?.content || '';
     
-    // Clean and parse JSON
-    let cleanedText = generatedText.trim();
-    if (cleanedText.includes('```')) {
-      const match = cleanedText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-      if (match) {
-        cleanedText = match[1].trim();
-      }
-    }
-    
-    const jsonMatch = cleanedText.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      cleanedText = jsonMatch[0];
+    // Extract from tool call
+    const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
+    if (!toolCall) {
+      console.error('No tool call in response:', JSON.stringify(aiData, null, 2));
+      throw new Error('AI did not return structured output');
     }
 
     let slidesData;
     try {
-      slidesData = JSON.parse(cleanedText);
+      slidesData = JSON.parse(toolCall.function.arguments);
     } catch (parseError) {
       console.error('JSON parse error:', parseError);
-      console.error('Attempted to parse:', cleanedText.substring(0, 500));
+      console.error('Tool call arguments:', toolCall.function.arguments.substring(0, 500));
       throw new Error(`Failed to parse AI response: ${parseError.message}`);
     }
 
@@ -235,7 +271,7 @@ serve(async (req) => {
 });
 
 function buildSlidePrompt(lessonPlan: any, ageGroup: string, cefrLevel: string): string {
-  return `You are creating 20-25 interactive ESL slides from this lesson plan:
+  return `Create 20 interactive ESL slides from this lesson plan:
 
 **Lesson**: ${lessonPlan.title}
 **CEFR Level**: ${cefrLevel}
@@ -245,55 +281,42 @@ function buildSlidePrompt(lessonPlan: any, ageGroup: string, cefrLevel: string):
 **Vocabulary**: ${lessonPlan.targetLanguage?.vocabulary?.join(', ')}
 
 **Lesson Flow**:
-- Warm-up (5 min): ${lessonPlan.warmUp}
-- Presentation (10 min): ${lessonPlan.presentation}
-- Controlled Practice (10-15 min): ${lessonPlan.controlledPractice}
-- Freer Practice (15 min): ${lessonPlan.freerPractice}
-- Assessment (5 min): ${lessonPlan.assessment}
+- Warm-up: ${lessonPlan.warmUp}
+- Presentation: ${lessonPlan.presentation}
+- Practice: ${lessonPlan.controlledPractice}
+- Production: ${lessonPlan.freerPractice}
+- Assessment: ${lessonPlan.assessment}
 
-Create exactly 20-25 slides following this structure:
-1. Title slide (warmup type)
-2. Warm-up activity (2 slides) - based on: ${lessonPlan.warmUp}
-3. Vocabulary introduction (3 slides) - visual + practice
-4. Grammar presentation (3 slides) - based on: ${lessonPlan.targetLanguage?.grammar?.[0]}
-5. Listening activity (2 slides) - audio + comprehension
-6. Interactive practice (4 slides) - drag-drop, matching, quiz
-7. Speaking practice (2 slides) - controlled + free
-8. Reading activity (2 slides)
-9. Game/Review (2 slides) - gamified activity
-10. Wrap-up (1 slide) - summary + homework
+Generate exactly 20 slides:
+1. Title slide (warmup)
+2. Warm-up (2 slides)
+3. Vocabulary (3 slides with images)
+4. Grammar (3 slides)
+5. Listening (2 slides with audio)
+6. Interactive practice (4 slides: drag-drop, matching, quiz)
+7. Speaking (2 slides)
+8. Reading (2 slides)
+9. Review (1 slide)
 
-For EACH slide provide:
+Each slide must include:
 - id: "slide-{number}"
 - type: warmup|vocabulary_preview|grammar_focus|listening_comprehension|drag_drop|match|quiz|controlled_practice|communicative_task|review_consolidation
-- prompt: Clear title and main content
-- instructions: Step-by-step teacher + student instructions
-- content: Detailed slide content (questions, options, correct answers for interactive elements)
-- media: { type: "image", imagePrompt: "detailed AI image generation prompt suitable for children, colorful, educational, cartoon style", alt: "description" }
-- audioText: Text to be converted to speech for pronunciation/instructions (if applicable)
-- interactionType: drag_drop|multiple_choice|matching|fill_blank|speaking|listening (if interactive)
-- teacherTips: Array of facilitation tips
+- prompt: Clear title
+- instructions: Brief teacher/student instructions
+- content: Activity details (for interactive slides: questions, options, correctAnswer)
+- media: { type: "image", imagePrompt: "child-friendly, colorful, educational illustration", alt: "description" } (for visual slides)
+- audioText: Text for speech (for pronunciation/instructions)
+- interactionType: drag_drop|multiple_choice|matching|fill_blank|speaking|listening
+- teacherTips: ["tip1", "tip2"]
 
-**IMPORTANT**: 
-- Make slides age-appropriate for ${ageGroup}
-- Use simple language for ${cefrLevel} level
-- Include detailed imagePrompt for slides needing visuals (at least 15 slides should have images)
-- Include audioText for pronunciation practice and key instructions (at least 10 slides)
-- Make activities interactive and gamified
-- Ensure cultural sensitivity
+Make slides age-appropriate for ${ageGroup}, simple language for ${cefrLevel}.
+Include imagePrompt in at least 12 slides.
+Include audioText in at least 8 slides.
 
-Return ONLY valid JSON with this structure:
-{
-  "version": "2.0",
-  "theme": "mist-blue",
-  "durationMin": 45,
-  "metadata": {
-    "CEFR": "${cefrLevel}",
-    "module": 1,
-    "lesson": ${lessonPlan.lessonNumber || 1},
-    "targets": ${JSON.stringify(lessonPlan.objectives || [])},
-    "weights": { "accuracy": 60, "fluency": 40 }
-  },
-  "slides": [...]
-}`;
+Return structured data with:
+- version: "2.0"
+- theme: "mist-blue"
+- durationMin: 45
+- metadata: { CEFR: "${cefrLevel}", module: 1, lesson: ${lessonPlan.lessonNumber || 1}, targets: [...], weights: { accuracy: 60, fluency: 40 } }
+- slides: [20 slide objects]`;
 }
