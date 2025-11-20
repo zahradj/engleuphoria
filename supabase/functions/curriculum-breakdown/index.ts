@@ -129,15 +129,31 @@ Return ONLY valid JSON (no markdown, no code blocks) in this exact structure:
     const aiData = await aiResponse.json();
     const generatedText = aiData.choices?.[0]?.message?.content || '';
     
-    // Clean and parse JSON response
+    // Clean and parse JSON response with better error handling
     let cleanedText = generatedText.trim();
-    if (cleanedText.startsWith('```json')) {
-      cleanedText = cleanedText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-    } else if (cleanedText.startsWith('```')) {
-      cleanedText = cleanedText.replace(/```\n?/g, '');
+    
+    // Remove markdown code blocks
+    if (cleanedText.includes('```')) {
+      const match = cleanedText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+      if (match) {
+        cleanedText = match[1].trim();
+      }
     }
     
-    const unitDetails = JSON.parse(cleanedText);
+    // Try to find JSON object/array if there's extra text
+    const jsonMatch = cleanedText.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+    if (jsonMatch) {
+      cleanedText = jsonMatch[0];
+    }
+    
+    let unitDetails;
+    try {
+      unitDetails = JSON.parse(cleanedText);
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError);
+      console.error('Attempted to parse:', cleanedText.substring(0, 500));
+      throw new Error(`Failed to parse AI response: ${parseError.message}`);
+    }
     
     // Save to curriculum_units table
     const { data: savedUnit, error: saveError } = await supabaseClient
@@ -259,15 +275,37 @@ Ensure:
   const aiData = await aiResponse.json();
   const generatedText = aiData.choices?.[0]?.message?.content || '';
   
-  // Clean and parse JSON response
+  // Clean and parse JSON response with better error handling
   let cleanedText = generatedText.trim();
-  if (cleanedText.startsWith('```json')) {
-    cleanedText = cleanedText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-  } else if (cleanedText.startsWith('```')) {
-    cleanedText = cleanedText.replace(/```\n?/g, '');
+  
+  // Remove markdown code blocks
+  if (cleanedText.includes('```')) {
+    const match = cleanedText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (match) {
+      cleanedText = match[1].trim();
+    }
   }
   
-  const lessons = JSON.parse(cleanedText);
+  // Try to find JSON array if there's extra text
+  const jsonMatch = cleanedText.match(/\[[\s\S]*\]/);
+  if (jsonMatch) {
+    cleanedText = jsonMatch[0];
+  }
+  
+  let lessons;
+  try {
+    lessons = JSON.parse(cleanedText);
+    
+    // Ensure it's an array
+    if (!Array.isArray(lessons)) {
+      console.error('AI returned non-array:', lessons);
+      throw new Error('AI response is not an array');
+    }
+  } catch (parseError) {
+    console.error('JSON parse error:', parseError);
+    console.error('Attempted to parse:', cleanedText.substring(0, 500));
+    throw new Error(`Failed to parse AI response: ${parseError.message}`);
+  }
   
   console.log(`Generated ${lessons.length} lessons`);
   
