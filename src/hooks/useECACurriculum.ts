@@ -509,25 +509,206 @@ export function useECACurriculum() {
     }
   }, [toast]);
 
+  // Delete functions
+  const deleteLesson = useCallback(async (lessonId: string) => {
+    try {
+      setIsLoading(true);
+      const { error } = await supabase
+        .from('systematic_lessons')
+        .delete()
+        .eq('id', lessonId);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Lesson Deleted",
+        description: "Lesson has been permanently deleted.",
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Failed to delete lesson:', error);
+      toast({
+        title: "Deletion Failed",
+        description: "Failed to delete lesson.",
+        variant: "destructive"
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
+
+  const deleteUnit = useCallback(async (unitId: string) => {
+    try {
+      setIsLoading(true);
+      const { error } = await supabase
+        .from('curriculum_units')
+        .delete()
+        .eq('id', unitId);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Unit Deleted",
+        description: "Unit has been permanently deleted.",
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Failed to delete unit:', error);
+      toast({
+        title: "Deletion Failed",
+        description: "Failed to delete unit.",
+        variant: "destructive"
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
+
+  const deleteProgram = useCallback(async (programId: string) => {
+    try {
+      setIsLoading(true);
+      const { error } = await supabase
+        .from('curriculum_programs')
+        .delete()
+        .eq('id', programId);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Curriculum Deleted",
+        description: "Curriculum program has been permanently deleted.",
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Failed to delete program:', error);
+      toast({
+        title: "Deletion Failed",
+        description: "Failed to delete curriculum program.",
+        variant: "destructive"
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
+
+  const deleteAssessment = useCallback(async (assessmentId: string) => {
+    try {
+      setIsLoading(true);
+      const { error } = await supabase
+        .from('eca_assessments')
+        .delete()
+        .eq('id', assessmentId);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Assessment Deleted",
+        description: "Assessment has been permanently deleted.",
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Failed to delete assessment:', error);
+      toast({
+        title: "Deletion Failed",
+        description: "Failed to delete assessment.",
+        variant: "destructive"
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
+
+  const deleteMission = useCallback(async (missionId: string) => {
+    try {
+      setIsLoading(true);
+      const { error } = await supabase
+        .from('learning_missions')
+        .delete()
+        .eq('id', missionId);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Mission Deleted",
+        description: "Mission has been permanently deleted.",
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Failed to delete mission:', error);
+      toast({
+        title: "Deletion Failed",
+        description: "Failed to delete mission.",
+        variant: "destructive"
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
+
+  const deleteResource = useCallback(async (resourceId: string) => {
+    try {
+      setIsLoading(true);
+      const { error } = await supabase
+        .from('resource_library')
+        .delete()
+        .eq('id', resourceId);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Resource Deleted",
+        description: "Resource has been permanently deleted.",
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Failed to delete resource:', error);
+      toast({
+        title: "Deletion Failed",
+        description: "Failed to delete resource.",
+        variant: "destructive"
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
+
   return {
     isLoading,
     // Programs
     getPrograms,
     createProgram,
+    deleteProgram,
     // Units
     getUnits,
     createUnit,
+    deleteUnit,
     // Assessments
     getAssessments,
     createAssessment,
+    deleteAssessment,
     // Missions
     getMissions,
     createMission,
+    deleteMission,
     // Lessons
     getLessons,
+    deleteLesson,
     // Resources
     getResources,
     createResource,
+    deleteResource,
     // AI Generation
     generateUnitsFromCurriculum,
     generateLessonsForUnit,

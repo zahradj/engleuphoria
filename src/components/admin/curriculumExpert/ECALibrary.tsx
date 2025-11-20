@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Search, Download, Eye, BookOpen, Library, Target, FileText, Trophy, FolderOpen, Maximize2 } from 'lucide-react';
+import { Search, Download, Eye, BookOpen, Library, Target, FileText, Trophy, FolderOpen, Maximize2, Trash2 } from 'lucide-react';
 import { useECACurriculum } from '@/hooks/useECACurriculum';
 import { ECAMode } from '@/types/curriculumExpert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -12,6 +12,7 @@ import { MaterialPreview } from './MaterialPreview';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CurriculumDetailView } from './CurriculumDetailView';
 import { UnitDetailView } from './UnitDetailView';
+import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 
 interface ECALibraryItem {
   id: string;
@@ -56,6 +57,12 @@ export const ECALibrary = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [expandedCurriculum, setExpandedCurriculum] = useState<any>(null);
   const [expandedUnit, setExpandedUnit] = useState<any>(null);
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean;
+    itemId: string;
+    itemTitle: string;
+    itemMode: ECAMode;
+  } | null>(null);
   
   const { 
     getLessons, 
@@ -63,7 +70,14 @@ export const ECALibrary = () => {
     getPrograms, 
     getAssessments, 
     getMissions, 
-    getResources 
+    getResources,
+    deleteLesson,
+    deleteUnit,
+    deleteProgram,
+    deleteAssessment,
+    deleteMission,
+    deleteResource,
+    isLoading: hookLoading
   } = useECACurriculum();
 
   useEffect(() => {
@@ -129,6 +143,38 @@ export const ECALibrary = () => {
     link.download = `${item.title.replace(/\s+/g, '_')}.json`;
     link.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteDialog) return;
+    
+    try {
+      switch (deleteDialog.itemMode) {
+        case 'lesson':
+          await deleteLesson(deleteDialog.itemId);
+          break;
+        case 'unit':
+          await deleteUnit(deleteDialog.itemId);
+          break;
+        case 'curriculum':
+          await deleteProgram(deleteDialog.itemId);
+          break;
+        case 'assessment':
+          await deleteAssessment(deleteDialog.itemId);
+          break;
+        case 'mission':
+          await deleteMission(deleteDialog.itemId);
+          break;
+        case 'resource':
+          await deleteResource(deleteDialog.itemId);
+          break;
+      }
+      
+      await loadAllContent();
+      setDeleteDialog(null);
+    } catch (error) {
+      console.error('Delete failed:', error);
+    }
   };
 
   return (
@@ -268,6 +314,19 @@ export const ECALibrary = () => {
                 >
                   <Download className="h-4 w-4" />
                 </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setDeleteDialog({
+                    open: true,
+                    itemId: item.id,
+                    itemTitle: item.title,
+                    itemMode: item.mode
+                  })}
+                  className="text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -297,6 +356,17 @@ export const ECALibrary = () => {
           onOpenChange={(open) => !open && setExpandedUnit(null)}
           unit={expandedUnit}
           onLessonsGenerated={() => loadAllContent()}
+        />
+      )}
+
+      {deleteDialog && (
+        <DeleteConfirmDialog
+          open={deleteDialog.open}
+          onOpenChange={(open) => !open && setDeleteDialog(null)}
+          onConfirm={handleDelete}
+          itemTitle={deleteDialog.itemTitle}
+          itemType={deleteDialog.itemMode}
+          isDeleting={hookLoading}
         />
       )}
     </div>
