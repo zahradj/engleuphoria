@@ -150,7 +150,7 @@ export function useECAGenerator() {
               title: metadata.title,
               age_group: metadata.ageGroup,
               cefr_level: metadata.cefrLevel,
-              resource_data: content,
+              content_data: content,
               created_by: user?.id
             })
             .select()
