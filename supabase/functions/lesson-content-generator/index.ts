@@ -27,7 +27,7 @@ serve(async (req) => {
     }
 
     // Step 1: Generate slide structure using Lovable AI with structured output
-    console.log('Step 1: Generating slide structure...');
+    console.log('Step 1: Generating enhanced slide structure with gamification...');
     const slidePrompt = buildSlidePrompt(lessonPlan, ageGroup, cefrLevel);
     
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -52,7 +52,7 @@ serve(async (req) => {
           type: 'function',
           function: {
             name: 'generate_lesson_slides',
-            description: 'Generate interactive ESL lesson slides',
+            description: 'Generate enhanced interactive ESL lesson slides with gamification',
             parameters: {
               type: 'object',
               properties: {
@@ -82,7 +82,63 @@ serve(async (req) => {
                       media: { type: 'object' },
                       audioText: { type: 'string' },
                       interactionType: { type: 'string' },
-                      teacherTips: { type: 'array', items: { type: 'string' } }
+                      teacherTips: { type: 'array', items: { type: 'string' } },
+                      vocabularyDetails: {
+                        type: 'array',
+                        items: {
+                          type: 'object',
+                          properties: {
+                            word: { type: 'string' },
+                            definition: { type: 'string' },
+                            examples: { type: 'array', items: { type: 'string' } },
+                            pronunciation: { type: 'string' },
+                            partOfSpeech: { type: 'string' },
+                            collocations: { type: 'array', items: { type: 'string' } },
+                            usageContext: { type: 'string' }
+                          }
+                        }
+                      },
+                      gamification: {
+                        type: 'object',
+                        properties: {
+                          xpReward: { type: 'number' },
+                          badgeUnlock: { type: 'string' },
+                          achievementCriteria: { type: 'string' },
+                          feedbackPositive: { type: 'array', items: { type: 'string' } },
+                          feedbackCorrection: { type: 'array', items: { type: 'string' } },
+                          streakBonus: { type: 'boolean' }
+                        }
+                      },
+                      activityData: {
+                        type: 'object',
+                        properties: {
+                          gameType: { type: 'string' },
+                          difficulty: { type: 'string' },
+                          timeLimit: { type: 'number' },
+                          questions: {
+                            type: 'array',
+                            items: {
+                              type: 'object',
+                              properties: {
+                                question: { type: 'string' },
+                                options: { type: 'array', items: { type: 'string' } },
+                                correctAnswer: { type: 'string' },
+                                explanation: { type: 'string' },
+                                hint: { type: 'string' }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      soundEffects: {
+                        type: 'object',
+                        properties: {
+                          backgroundMusic: { type: 'string' },
+                          successSound: { type: 'boolean' },
+                          errorSound: { type: 'boolean' },
+                          transitionSound: { type: 'boolean' }
+                        }
+                      }
                     }
                   }
                 }
@@ -378,7 +434,7 @@ serve(async (req) => {
 });
 
 function buildSlidePrompt(lessonPlan: any, ageGroup: string, cefrLevel: string): string {
-  return `Create 20 interactive ESL slides from this lesson plan:
+  return `Create 25 highly engaging, interactive ESL slides with rich vocabulary, gamification, and multimedia from this lesson plan:
 
 **Lesson**: ${lessonPlan.title}
 **CEFR Level**: ${cefrLevel}
@@ -394,36 +450,113 @@ function buildSlidePrompt(lessonPlan: any, ageGroup: string, cefrLevel: string):
 - Production: ${lessonPlan.freerPractice}
 - Assessment: ${lessonPlan.assessment}
 
-Generate exactly 20 slides:
-1. Title slide (warmup)
-2. Warm-up (2 slides)
-3. Vocabulary (3 slides with images)
-4. Grammar (3 slides)
-5. Listening (2 slides with audio)
-6. Interactive practice (4 slides: drag-drop, matching, quiz)
-7. Speaking (2 slides)
-8. Reading (2 slides)
-9. Review (1 slide)
+Generate exactly 25 pedagogically sound slides following this flow:
+
+**Opening (Slides 1-2):**
+1. Animated title slide with engaging hook question/challenge
+2. Warm-up game or fun activity
+
+**Vocabulary Introduction (Slides 3-8):**
+3-8. Present 6 key vocabulary words with FULL DETAILS for each word:
+   - word: the target word
+   - definition: simple, age-appropriate explanation
+   - examples: 2-3 context sentences showing real usage
+   - pronunciation: phonetic guide or simple breakdown
+   - partOfSpeech: noun/verb/adjective etc
+   - collocations: common word combinations
+   - usageContext: when/where to use this word
+   - Include detailed imagePrompt for visual representation
+   - Include audioText for pronunciation
+
+**Grammar Presentation (Slides 9-12):**
+9-12. Grammar focus with pattern recognition, examples, and guided practice
+
+**Listening Practice (Slides 13-15):**
+13-15. Audio-based comprehension with story/dialogue and questions
+
+**Interactive Practice Games (Slides 16-20):**
+16. Memory matching game (flip cards)
+17. Sorting/categorization game
+18. Word builder puzzle
+19. Sentence scrambler
+20. Timed challenge
+
+**Assessment & Review (Slides 21-25):**
+21-23. Comprehensive quiz covering all content
+24. XP summary and badges earned
+25. Homework/extension activity and reflection
+
+**CRITICAL REQUIREMENTS FOR EACH SLIDE:**
+
+VOCABULARY SLIDES must include vocabularyDetails array:
+[{
+  word: string,
+  definition: string,
+  examples: [string, string, string],
+  pronunciation: string,
+  partOfSpeech: string,
+  collocations: [string, string],
+  usageContext: string
+}]
+
+GAMIFICATION for every slide:
+{
+  xpReward: 10-50 (based on difficulty),
+  badgeUnlock?: "Badge Name" (for milestone slides),
+  achievementCriteria?: "Complete X correctly",
+  feedbackPositive: ["Great job!", "Excellent work!", "Perfect!"],
+  feedbackCorrection: ["Try again!", "Think about...", "Remember..."],
+  streakBonus?: true (for consecutive correct answers)
+}
+
+INTERACTIVE SLIDES must include activityData:
+{
+  gameType: "memory_match|sorting|word_builder|sentence_scramble|timed_challenge|quiz",
+  difficulty: "easy|medium|hard",
+  timeLimit?: number (in seconds),
+  questions: [{
+    question: string,
+    options: string[],
+    correctAnswer: string,
+    explanation: string,
+    hint?: string
+  }]
+}
+
+SOUND EFFECTS for engaging experience:
+{
+  backgroundMusic?: "upbeat|calm|energetic",
+  successSound: true,
+  errorSound: true,
+  transitionSound: true
+}
 
 Each slide must include:
 - id: "slide-{number}"
-- type: warmup|vocabulary_preview|grammar_focus|listening_comprehension|drag_drop|match|quiz|controlled_practice|communicative_task|review_consolidation
-- prompt: Clear title
-- instructions: Brief teacher/student instructions
-- content: Activity details (for interactive slides: questions, options, correctAnswer)
-- media: { type: "image", imagePrompt: "child-friendly, colorful, educational illustration", alt: "description" } (for visual slides)
-- audioText: Text for speech (for pronunciation/instructions)
-- interactionType: drag_drop|multiple_choice|matching|fill_blank|speaking|listening
-- teacherTips: ["tip1", "tip2"]
+- type: warmup|vocabulary_preview|grammar_focus|listening_comprehension|interactive_game|quiz|review
+- prompt: Engaging title
+- instructions: Clear teacher/student instructions
+- content: Activity details
+- media: { type: "image", imagePrompt: "colorful, engaging, educational illustration for [specific content]", alt: "description" }
+- audioText: Text for speech synthesis
+- interactionType: memory_match|sorting|drag_drop|multiple_choice|word_build|sentence_scramble|timed_challenge
+- teacherTips: ["tip1", "tip2", "tip3"]
+- vocabularyDetails?: (for vocabulary slides)
+- gamification: (for ALL slides)
+- activityData?: (for interactive slides)
+- soundEffects?: (for engaging slides)
 
-Make slides age-appropriate for ${ageGroup}, simple language for ${cefrLevel}.
-Include imagePrompt in at least 12 slides.
-Include audioText in at least 8 slides.
+Make slides highly age-appropriate for ${ageGroup} with simple, clear language for ${cefrLevel}.
+Include imagePrompt in at least 20 slides.
+Include audioText in at least 15 slides.
+Include rich vocabularyDetails for all 6 vocabulary slides.
+Include gamification for ALL 25 slides.
+Include activityData for all 5 interactive game slides.
 
 Return structured data with:
-- version: "2.0"
-- theme: "mist-blue"
+- version: "3.0"
+- theme: "vibrant-learning"
 - durationMin: 45
 - metadata: { CEFR: "${cefrLevel}", module: 1, lesson: ${lessonPlan.lessonNumber || 1}, targets: [...], weights: { accuracy: 60, fluency: 40 } }
-- slides: [20 slide objects]`;
+- slides: [25 enhanced slide objects with full details]`;
 }
