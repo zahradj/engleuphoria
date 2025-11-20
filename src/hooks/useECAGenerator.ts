@@ -108,7 +108,7 @@ export function useECAGenerator() {
               title: metadata.title,
               age_group: metadata.ageGroup,
               cefr_level: metadata.cefrLevel,
-              program_type: 'generated',
+              program_type: 'custom',
               program_data: content,
               created_by: user?.id
             })
