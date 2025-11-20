@@ -214,19 +214,24 @@ serve(async (req) => {
     console.log('Step 7: Saving to database...');
     
     // Get or create a curriculum level for this CEFR level
+    console.log('Looking for curriculum level:', { cefrLevel, ageGroup });
     let curriculumLevelId = null;
-    const { data: existingLevel } = await supabaseClient
+    const { data: existingLevel, error: levelQueryError } = await supabaseClient
       .from('curriculum_levels')
       .select('id')
       .eq('cefr_level', cefrLevel)
       .eq('age_group', ageGroup)
       .maybeSingle();
     
+    console.log('Existing level query result:', { existingLevel, levelQueryError });
+    
     if (existingLevel) {
       curriculumLevelId = existingLevel.id;
+      console.log('Found existing level:', curriculumLevelId);
     } else {
       // Create a basic curriculum level if it doesn't exist
-      const { data: newLevel } = await supabaseClient
+      console.log('Creating new curriculum level...');
+      const { data: newLevel, error: createError } = await supabaseClient
         .from('curriculum_levels')
         .insert({
           name: `${cefrLevel} Level`,
@@ -238,10 +243,19 @@ serve(async (req) => {
         .select('id')
         .single();
       
+      console.log('Create level result:', { newLevel, createError });
+      
       if (newLevel) {
         curriculumLevelId = newLevel.id;
+        console.log('Created new level:', curriculumLevelId);
       }
     }
+    
+    if (!curriculumLevelId) {
+      throw new Error('Failed to get or create curriculum level');
+    }
+    
+    console.log('Final curriculum_level_id:', curriculumLevelId);
     
     const { data: savedLesson, error: saveError } = await supabaseClient
       .from('systematic_lessons')
