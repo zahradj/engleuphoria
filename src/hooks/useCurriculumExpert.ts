@@ -12,9 +12,8 @@ export function useCurriculumExpert() {
     try {
       setIsGenerating(true);
       
-      // Add mode with default 'lesson' for backward compatibility
+      // Pass params as-is, including mode
       const requestParams = {
-        mode: 'lesson' as const,
         ...params
       };
       
@@ -40,11 +39,11 @@ export function useCurriculumExpert() {
         title: data.title,
         age_group: data.ageGroup,
         cefr_level: data.cefrLevel,
-        material_type: 'lesson' as const,
-        duration_minutes: data.durationMinutes,
-        learning_objectives: data.learningObjectives,
-        target_language: data.targetLanguage,
-        content: data.content,
+        material_type: params.mode || 'lesson',
+        duration_minutes: data.durationMinutes || params.duration || 45,
+        learning_objectives: data.learningObjectives || [],
+        target_language: data.targetLanguage || { grammar: [], vocabulary: [] },
+        content: data.content || data,
         created_by: user?.id
       };
 
