@@ -216,19 +216,33 @@ serve(async (req) => {
       .from('systematic_lessons')
       .insert({
         title: lessonPlan.title,
-        age_group: ageGroup,
-        cefr_level: cefrLevel,
-        lesson_data: {
-          ...slidesData,
-          slides: enrichedSlides,
-          metadata: {
-            ...slidesData.metadata,
-            totalSlides: enrichedSlides.length,
-            imagesGenerated: Object.keys(imageResults).length,
-            audioGenerated: Object.keys(audioResults).length,
-            lessonPlan: lessonPlan
-          }
-        }
+        topic: lessonPlan.targetLanguage?.vocabulary?.join(', ') || 'General English',
+        grammar_focus: lessonPlan.targetLanguage?.grammar?.join(', ') || '',
+        vocabulary_set: lessonPlan.targetLanguage?.vocabulary || [],
+        communication_outcome: lessonPlan.objectives?.[0] || '',
+        lesson_objectives: lessonPlan.objectives || [],
+        slides_content: {
+          version: slidesData.version,
+          theme: slidesData.theme,
+          durationMin: slidesData.durationMin,
+          slides: enrichedSlides
+        },
+        activities: {
+          warmUp: lessonPlan.warmUp,
+          presentation: lessonPlan.presentation,
+          practice: lessonPlan.controlledPractice,
+          production: lessonPlan.freerPractice,
+          assessment: lessonPlan.assessment
+        },
+        gamified_elements: {
+          totalSlides: enrichedSlides.length,
+          interactiveSlides: enrichedSlides.filter((s: any) => s.interactionType).length,
+          imagesCount: Object.keys(imageResults).length,
+          audioCount: Object.keys(audioResults).length
+        },
+        difficulty_level: cefrLevel === 'Pre-A1' ? 1 : cefrLevel === 'A1' ? 2 : cefrLevel === 'A2' ? 3 : 4,
+        estimated_duration: 45,
+        status: 'active'
       })
       .select()
       .single();
