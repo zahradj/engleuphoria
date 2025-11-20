@@ -187,7 +187,7 @@ export const CurriculumGenerator = () => {
       </Card>
 
       {/* Preview */}
-      {generatedMaterial && <MaterialPreview material={generatedMaterial} />}
+      {generatedMaterial && <MaterialPreview material={generatedMaterial} mode="lesson" />}
     </div>
   );
 };
