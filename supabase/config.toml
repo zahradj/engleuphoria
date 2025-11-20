@@ -107,3 +107,9 @@ verify_jwt = false
 
 [functions.generate-lesson-audio]
 verify_jwt = false
+
+[functions.generate-early-learner-lesson]
+verify_jwt = true
+
+[functions.curriculum-expert-agent]
+verify_jwt = true

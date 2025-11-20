@@ -1922,6 +1922,36 @@ export type Database = {
           },
         ]
       }
+      curriculum_quick_actions: {
+        Row: {
+          age_group: string
+          button_label: string
+          category: string
+          icon: string | null
+          id: string
+          order_index: number
+          prompt_text: string
+        }
+        Insert: {
+          age_group: string
+          button_label: string
+          category: string
+          icon?: string | null
+          id?: string
+          order_index: number
+          prompt_text: string
+        }
+        Update: {
+          age_group?: string
+          button_label?: string
+          category?: string
+          icon?: string | null
+          id?: string
+          order_index?: number
+          prompt_text?: string
+        }
+        Relationships: []
+      }
       curriculum_skills: {
         Row: {
           category: string
@@ -2223,6 +2253,33 @@ export type Database = {
           neuroscientific_features?: string[]
           progression_map?: Json
           total_pages?: number
+        }
+        Relationships: []
+      }
+      grammar_progression: {
+        Row: {
+          age_range: string
+          cefr_level: string
+          created_at: string | null
+          examples: Json
+          grammar_points: Json
+          id: string
+        }
+        Insert: {
+          age_range: string
+          cefr_level: string
+          created_at?: string | null
+          examples: Json
+          grammar_points: Json
+          id?: string
+        }
+        Update: {
+          age_range?: string
+          cefr_level?: string
+          created_at?: string | null
+          examples?: Json
+          grammar_points?: Json
+          id?: string
         }
         Relationships: []
       }
@@ -6215,6 +6272,33 @@ export type Database = {
           name?: string
           purchased_count?: number
           rarity?: string
+        }
+        Relationships: []
+      }
+      vocabulary_progression: {
+        Row: {
+          age_range: string
+          cefr_level: string
+          created_at: string | null
+          id: string
+          themes: Json
+          word_lists: Json
+        }
+        Insert: {
+          age_range: string
+          cefr_level: string
+          created_at?: string | null
+          id?: string
+          themes: Json
+          word_lists: Json
+        }
+        Update: {
+          age_range?: string
+          cefr_level?: string
+          created_at?: string | null
+          id?: string
+          themes?: Json
+          word_lists?: Json
         }
         Relationships: []
       }
