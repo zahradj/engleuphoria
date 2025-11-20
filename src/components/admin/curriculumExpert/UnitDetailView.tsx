@@ -5,6 +5,7 @@ import { Loader2, Sparkles, BookText, Target, MessageSquare } from 'lucide-react
 import { useECACurriculum } from '@/hooks/useECACurriculum';
 import { useState } from 'react';
 import { LessonCard } from './LessonCard';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UnitDetailViewProps {
   open: boolean;
@@ -14,8 +15,9 @@ interface UnitDetailViewProps {
 }
 
 export const UnitDetailView = ({ open, onOpenChange, unit, onLessonsGenerated }: UnitDetailViewProps) => {
-  const { generateLessonsForUnit, isLoading } = useECACurriculum();
+  const { generateLessonsForUnit, generateLessonContent, isLoading } = useECACurriculum();
   const [localUnit, setLocalUnit] = useState(unit);
+  const [generatingLessonIndex, setGeneratingLessonIndex] = useState<number | null>(null);
 
   const handleGenerateLessons = async () => {
     try {
@@ -30,6 +32,29 @@ export const UnitDetailView = ({ open, onOpenChange, unit, onLessonsGenerated }:
       onLessonsGenerated?.();
     } catch (error) {
       console.error('Failed to generate lessons:', error);
+    }
+  };
+
+  const handleGenerateSlides = async (lessonIndex: number) => {
+    try {
+      setGeneratingLessonIndex(lessonIndex);
+      await generateLessonContent(unit.id, lessonIndex);
+      
+      // Refresh unit data to get updated lesson with lessonId
+      const { data: refreshedUnit } = await supabase
+        .from('curriculum_units')
+        .select('*')
+        .eq('id', unit.id)
+        .single();
+      
+      if (refreshedUnit) {
+        setLocalUnit(refreshedUnit);
+        onLessonsGenerated?.();
+      }
+    } catch (error) {
+      console.error('Failed to generate slides:', error);
+    } finally {
+      setGeneratingLessonIndex(null);
     }
   };
 
@@ -121,7 +146,13 @@ export const UnitDetailView = ({ open, onOpenChange, unit, onLessonsGenerated }:
             {lessons.length > 0 ? (
               <div className="space-y-3">
                 {lessons.map((lesson: any, idx: number) => (
-                  <LessonCard key={idx} lesson={lesson} />
+                  <LessonCard 
+                    key={idx} 
+                    lesson={lesson} 
+                    lessonIndex={idx}
+                    onGenerateSlides={handleGenerateSlides}
+                    isGenerating={generatingLessonIndex === idx}
+                  />
                 ))}
               </div>
             ) : (
