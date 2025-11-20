@@ -218,7 +218,8 @@ serve(async (req) => {
     const { data: existingLevel } = await supabaseClient
       .from('curriculum_levels')
       .select('id')
-      .eq('level_code', cefrLevel)
+      .eq('cefr_level', cefrLevel)
+      .eq('age_group', ageGroup)
       .maybeSingle();
     
     if (existingLevel) {
@@ -228,10 +229,11 @@ serve(async (req) => {
       const { data: newLevel } = await supabaseClient
         .from('curriculum_levels')
         .insert({
-          level_code: cefrLevel,
-          level_name: `${cefrLevel} Level`,
+          name: `${cefrLevel} Level`,
+          cefr_level: cefrLevel,
           age_group: ageGroup,
-          description: `Curriculum for ${cefrLevel} level students`
+          description: `Curriculum for ${cefrLevel} level students`,
+          level_order: 1
         })
         .select('id')
         .single();
