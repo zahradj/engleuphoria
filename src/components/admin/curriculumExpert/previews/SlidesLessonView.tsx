@@ -19,8 +19,8 @@ interface SlidesLessonViewProps {
     title: string;
     topic: string;
     grammar_focus: string;
-    vocabulary_set: string;
-    learning_objectives: string[];
+    vocabulary_set: string[];
+    lesson_objectives: string[];
     slides_content: {
       slides: Slide[];
       durationMin: number;
@@ -69,7 +69,7 @@ export const SlidesLessonView = ({ lesson }: SlidesLessonViewProps) => {
           <div>
             <h3 className="font-semibold mb-2">Learning Objectives</h3>
             <ul className="list-disc list-inside space-y-1 text-sm">
-              {lesson.learning_objectives?.map((obj, idx) => (
+              {lesson.lesson_objectives?.map((obj, idx) => (
                 <li key={idx}>{obj}</li>
               ))}
             </ul>
@@ -86,7 +86,7 @@ export const SlidesLessonView = ({ lesson }: SlidesLessonViewProps) => {
             <div>
               <h3 className="font-semibold text-sm mb-2">Vocabulary</h3>
               <div className="flex flex-wrap gap-1">
-                {lesson.vocabulary_set?.split(', ').map((word, idx) => (
+                {lesson.vocabulary_set?.map((word, idx) => (
                   <Badge key={idx} variant="secondary" className="text-xs">{word}</Badge>
                 ))}
               </div>
