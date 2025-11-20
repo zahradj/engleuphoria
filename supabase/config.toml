@@ -1,4 +1,3 @@
-
 project_id = "dcoxpyzoqjvmuuygvlme"
 
 [api]
@@ -17,6 +16,9 @@ jwt_expiry = 3600
 refresh_token_rotation_enabled = true
 security_update_password_require_reauthentication = true
 enable_signup = true
+
+[functions.curriculum-breakdown]
+verify_jwt = true
 
 [functions.ai-conversation]
 verify_jwt = true

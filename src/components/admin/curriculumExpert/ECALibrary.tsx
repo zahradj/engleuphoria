@@ -4,12 +4,14 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Search, Download, Eye, BookOpen, Library, Target, FileText, Trophy, FolderOpen } from 'lucide-react';
+import { Search, Download, Eye, BookOpen, Library, Target, FileText, Trophy, FolderOpen, Maximize2 } from 'lucide-react';
 import { useECACurriculum } from '@/hooks/useECACurriculum';
 import { ECAMode } from '@/types/curriculumExpert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { MaterialPreview } from './MaterialPreview';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CurriculumDetailView } from './CurriculumDetailView';
+import { UnitDetailView } from './UnitDetailView';
 
 interface ECALibraryItem {
   id: string;
@@ -28,6 +30,7 @@ interface ECALibraryItem {
   duration_minutes?: number;
   duration_weeks?: number;
   duration_months?: number;
+  rawData?: any;
 }
 
 const getModeIcon = (mode: ECAMode) => {
@@ -51,6 +54,8 @@ export const ECALibrary = () => {
   const [selectedMode, setSelectedMode] = useState<ECAMode | 'all'>('all');
   const [selectedAgeGroup, setSelectedAgeGroup] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(false);
+  const [expandedCurriculum, setExpandedCurriculum] = useState<any>(null);
+  const [expandedUnit, setExpandedUnit] = useState<any>(null);
   
   const { 
     getLessons, 
@@ -82,12 +87,12 @@ export const ECALibrary = () => {
       const [lessons, units, programs, assessments, missions, resources] = results;
 
       const allItems: ECALibraryItem[] = [
-        ...(lessons || []).map((l: any) => ({ ...l, mode: 'lesson' as const })),
-        ...(units || []).map((u: any) => ({ ...u, mode: 'unit' as const })),
-        ...(programs || []).map((p: any) => ({ ...p, mode: 'curriculum' as const })),
-        ...(assessments || []).map((a: any) => ({ ...a, mode: 'assessment' as const })),
-        ...(missions || []).map((m: any) => ({ ...m, mode: 'mission' as const })),
-        ...(resources || []).map((r: any) => ({ ...r, mode: 'resource' as const }))
+        ...(lessons || []).map((l: any) => ({ ...l, mode: 'lesson' as const, rawData: l })),
+        ...(units || []).map((u: any) => ({ ...u, mode: 'unit' as const, rawData: u })),
+        ...(programs || []).map((p: any) => ({ ...p, mode: 'curriculum' as const, rawData: p })),
+        ...(assessments || []).map((a: any) => ({ ...a, mode: 'assessment' as const, rawData: a })),
+        ...(missions || []).map((m: any) => ({ ...m, mode: 'mission' as const, rawData: m })),
+        ...(resources || []).map((r: any) => ({ ...r, mode: 'resource' as const, rawData: r }))
       ];
 
       setItems(allItems);
@@ -98,12 +103,25 @@ export const ECALibrary = () => {
     }
   };
 
-  const filteredItems = items.filter(item =>
-    item.title?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredItems = items.filter(item => {
+    const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
+  });
+
+  const getItemContent = (item: ECALibraryItem) => {
+    switch (item.mode) {
+      case 'lesson': return item.lesson_data || item.content;
+      case 'unit': return item.unit_data || item.content;
+      case 'curriculum': return item.program_data || item.content;
+      case 'assessment': return item.assessment_data || item.content;
+      case 'mission': return item.mission_data || item.content;
+      case 'resource': return item.resource_data || item.content;
+      default: return item.content;
+    }
+  };
 
   const exportItem = (item: ECALibraryItem) => {
-    const dataStr = JSON.stringify(item, null, 2);
+    const dataStr = JSON.stringify(getItemContent(item), null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
@@ -113,90 +131,83 @@ export const ECALibrary = () => {
     URL.revokeObjectURL(url);
   };
 
-  const getItemContent = (item: ECALibraryItem) => {
-    return item.program_data || item.unit_data || item.assessment_data || 
-           item.mission_data || item.resource_data || item.lesson_data || item.content || {};
-  };
-
-  const getDuration = (item: ECALibraryItem) => {
-    if (item.duration_minutes) return `${item.duration_minutes} min`;
-    if (item.duration_weeks) return `${item.duration_weeks} weeks`;
-    if (item.duration_months) return `${item.duration_months} months`;
-    return null;
-  };
-
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>ECA Library</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Tabs value={selectedMode} onValueChange={(v) => setSelectedMode(v as any)} className="w-full">
-            <TabsList className="grid grid-cols-7 w-full">
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="lesson">Lessons</TabsTrigger>
-              <TabsTrigger value="unit">Units</TabsTrigger>
-              <TabsTrigger value="curriculum">Curricula</TabsTrigger>
-              <TabsTrigger value="assessment">Assessments</TabsTrigger>
-              <TabsTrigger value="mission">Missions</TabsTrigger>
-              <TabsTrigger value="resource">Resources</TabsTrigger>
-            </TabsList>
-          </Tabs>
+      {/* Filters */}
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search materials..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        
+        <Tabs value={selectedMode} onValueChange={(v) => setSelectedMode(v as any)} className="w-full md:w-auto">
+          <TabsList>
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="lesson">Lessons</TabsTrigger>
+            <TabsTrigger value="unit">Units</TabsTrigger>
+            <TabsTrigger value="curriculum">Curricula</TabsTrigger>
+            <TabsTrigger value="assessment">Assessments</TabsTrigger>
+            <TabsTrigger value="mission">Missions</TabsTrigger>
+            <TabsTrigger value="resource">Resources</TabsTrigger>
+          </TabsList>
+        </Tabs>
 
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search library..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Select value={selectedAgeGroup} onValueChange={setSelectedAgeGroup}>
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="All age groups" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All age groups</SelectItem>
-                <SelectItem value="5-7">Ages 5-7</SelectItem>
-                <SelectItem value="8-11">Ages 8-11</SelectItem>
-                <SelectItem value="12-14">Ages 12-14</SelectItem>
-                <SelectItem value="15-17">Ages 15-17</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <Select value={selectedAgeGroup} onValueChange={setSelectedAgeGroup}>
+          <SelectTrigger className="w-full md:w-48">
+            <SelectValue placeholder="All Ages" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Ages</SelectItem>
+            <SelectItem value="5-7">5-7 years</SelectItem>
+            <SelectItem value="8-11">8-11 years</SelectItem>
+            <SelectItem value="12-14">12-14 years</SelectItem>
+            <SelectItem value="15-17">15-17 years</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-          <div className="text-sm text-muted-foreground">
-            {isLoading ? 'Loading...' : `${filteredItems.length} item(s) found`}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Results Count */}
+      <div className="text-sm text-muted-foreground">
+        {filteredItems.length} {filteredItems.length === 1 ? 'item' : 'items'} found
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Loading */}
+      {isLoading && (
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <p className="mt-4 text-muted-foreground">Loading materials...</p>
+        </div>
+      )}
+
+      {/* Items Grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filteredItems.map((item) => (
-          <Card key={item.id} className="hover:shadow-md transition-shadow">
+          <Card key={item.id} className="hover:shadow-lg transition-shadow">
             <CardHeader>
-              <div className="space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-semibold line-clamp-2 flex-1">{item.title}</h3>
-                  <Badge variant="outline">{item.cefr_level}</Badge>
-                </div>
-                <div className="flex gap-2 flex-wrap">
-                  <Badge variant="default" className="text-xs flex items-center gap-1">
-                    {getModeIcon(item.mode)}
-                    {getModeLabel(item.mode)}
-                  </Badge>
-                  <Badge variant="secondary" className="text-xs">
-                    Ages {item.age_group}
-                  </Badge>
-                  {getDuration(item) && (
-                    <Badge variant="secondary" className="text-xs">
-                      {getDuration(item)}
-                    </Badge>
-                  )}
-                </div>
+              <div className="flex items-center justify-between mb-2">
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  {getModeIcon(item.mode)}
+                  {getModeLabel(item.mode)}
+                </Badge>
+                <Badge variant="outline">{item.cefr_level}</Badge>
+              </div>
+              <CardTitle className="text-lg line-clamp-2">{item.title}</CardTitle>
+              <div className="flex gap-2 mt-2">
+                <Badge variant="outline" className="text-xs">{item.age_group}</Badge>
+                {item.duration_minutes && (
+                  <Badge variant="outline" className="text-xs">{item.duration_minutes} min</Badge>
+                )}
+                {item.duration_weeks && (
+                  <Badge variant="outline" className="text-xs">{item.duration_weeks} weeks</Badge>
+                )}
+                {item.duration_months && (
+                  <Badge variant="outline" className="text-xs">{item.duration_months} months</Badge>
+                )}
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -204,6 +215,23 @@ export const ECALibrary = () => {
                 Created {new Date(item.created_at).toLocaleDateString()}
               </div>
               <div className="flex gap-2">
+                {(item.mode === 'curriculum' || item.mode === 'unit') && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => {
+                      if (item.mode === 'curriculum') {
+                        setExpandedCurriculum({ id: item.id, ...item.rawData });
+                      } else if (item.mode === 'unit') {
+                        setExpandedUnit(item.rawData);
+                      }
+                    }}
+                  >
+                    <Maximize2 className="h-4 w-4 mr-2" />
+                    Expand
+                  </Button>
+                )}
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button variant="outline" size="sm" className="flex-1">
@@ -252,6 +280,24 @@ export const ECALibrary = () => {
             No items found. Generate your first ECA content to get started.
           </CardContent>
         </Card>
+      )}
+
+      {expandedCurriculum && (
+        <CurriculumDetailView
+          open={!!expandedCurriculum}
+          onOpenChange={(open) => !open && setExpandedCurriculum(null)}
+          curriculumId={expandedCurriculum.id}
+          curriculum={expandedCurriculum}
+        />
+      )}
+
+      {expandedUnit && (
+        <UnitDetailView
+          open={!!expandedUnit}
+          onOpenChange={(open) => !open && setExpandedUnit(null)}
+          unit={expandedUnit}
+          onLessonsGenerated={() => loadAllContent()}
+        />
       )}
     </div>
   );
