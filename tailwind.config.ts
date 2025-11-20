@@ -70,9 +70,6 @@ export default {
           teal: "hsl(var(--lesson-teal))",
           lime: "hsl(var(--lesson-lime))",
         },
-        auth: {
-          bg: "hsl(var(--auth-bg))",
-        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
