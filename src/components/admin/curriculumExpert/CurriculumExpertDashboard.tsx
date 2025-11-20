@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BookOpen, Library, TrendingUp, Calendar } from 'lucide-react';
 import { ECAGenerator } from './ECAGenerator';
-import { MaterialLibrary } from './MaterialLibrary';
+import { ECALibrary } from './ECALibrary';
 import { ProgressionGuide } from './ProgressionGuide';
 
 export const CurriculumExpertDashboard = () => {
@@ -38,7 +38,7 @@ export const CurriculumExpertDashboard = () => {
         </TabsContent>
 
         <TabsContent value="library" className="mt-6">
-          <MaterialLibrary />
+          <ECALibrary />
         </TabsContent>
 
         <TabsContent value="resources" className="mt-6">

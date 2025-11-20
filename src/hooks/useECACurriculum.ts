@@ -247,6 +247,34 @@ export function useECACurriculum() {
     }
   }, [toast]);
 
+  // Lessons
+  const getLessons = useCallback(async (filters?: {
+    ageGroup?: string;
+    cefrLevel?: string;
+  }) => {
+    try {
+      setIsLoading(true);
+      let query = supabase.from('systematic_lessons').select('*');
+      
+      if (filters?.ageGroup) {
+        query = query.eq('age_group', filters.ageGroup);
+      }
+      if (filters?.cefrLevel) {
+        query = query.eq('cefr_level', filters.cefrLevel);
+      }
+      
+      const { data, error } = await query.order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Failed to fetch lessons:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   // Resources
   const getResources = useCallback(async (filters?: {
     type?: string;
@@ -323,6 +351,8 @@ export function useECACurriculum() {
     // Missions
     getMissions,
     createMission,
+    // Lessons
+    getLessons,
     // Resources
     getResources,
     createResource
