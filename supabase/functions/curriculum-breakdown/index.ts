@@ -7,7 +7,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -103,31 +103,31 @@ Return ONLY valid JSON (no markdown, no code blocks) in this exact structure:
   "teacherNotes": "implementation guidance here"
 }`;
 
-    console.log('Calling Gemini API for unit:', unit.title);
+    console.log('Calling Lovable AI for unit:', unit.title);
     
-    const aiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 2048,
-          },
-        }),
-      }
-    );
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          { role: 'system', content: 'You are a curriculum expert. Always return valid JSON responses without markdown formatting.' },
+          { role: 'user', content: prompt }
+        ],
+      }),
+    });
     
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
-      console.error('Gemini API error:', errorText);
+      console.error('Lovable AI error:', errorText);
       throw new Error(`AI generation failed: ${aiResponse.statusText}`);
     }
     
     const aiData = await aiResponse.json();
-    const generatedText = aiData.candidates[0].content.parts[0].text;
+    const generatedText = aiData.choices?.[0]?.message?.content || '';
     
     // Clean and parse JSON response
     let cleanedText = generatedText.trim();
@@ -233,31 +233,31 @@ Ensure:
 - Activities are age-appropriate for ${unitInfo.ageGroup}
 - Each lesson is complete and ready to teach`;
 
-  console.log('Calling Gemini API for lessons');
+  console.log('Calling Lovable AI for lessons');
   
-  const aiResponse = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 4096,
-        },
-      }),
-    }
-  );
+  const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'google/gemini-2.5-flash',
+      messages: [
+        { role: 'system', content: 'You are a lesson planning expert. Always return valid JSON responses without markdown formatting.' },
+        { role: 'user', content: prompt }
+      ],
+    }),
+  });
   
   if (!aiResponse.ok) {
     const errorText = await aiResponse.text();
-    console.error('Gemini API error:', errorText);
+    console.error('Lovable AI error:', errorText);
     throw new Error(`AI generation failed: ${aiResponse.statusText}`);
   }
   
   const aiData = await aiResponse.json();
-  const generatedText = aiData.candidates[0].content.parts[0].text;
+  const generatedText = aiData.choices?.[0]?.message?.content || '';
   
   // Clean and parse JSON response
   let cleanedText = generatedText.trim();
