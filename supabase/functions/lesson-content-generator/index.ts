@@ -291,11 +291,23 @@ serve(async (req) => {
     
     console.log('Final curriculum_level_id:', curriculumLevelId);
     
+    // Get the next available lesson number for this curriculum level
+    const { data: maxLesson } = await supabaseClient
+      .from('systematic_lessons')
+      .select('lesson_number')
+      .eq('curriculum_level_id', curriculumLevelId)
+      .order('lesson_number', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    
+    const nextLessonNumber = (maxLesson?.lesson_number || 0) + 1;
+    console.log('Next lesson number:', nextLessonNumber);
+    
     const { data: savedLesson, error: saveError } = await supabaseClient
       .from('systematic_lessons')
       .insert({
         curriculum_level_id: curriculumLevelId,
-        lesson_number: lessonPlan.lessonNumber || 1,
+        lesson_number: nextLessonNumber,
         title: lessonPlan.title,
         topic: lessonPlan.targetLanguage?.vocabulary?.join(', ') || 'General English',
         grammar_focus: lessonPlan.targetLanguage?.grammar?.join(', ') || '',
