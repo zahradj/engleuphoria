@@ -42,14 +42,26 @@ export function useGenerateLesson() {
       const { data: savedLesson, error: saveError } = await supabase
         .from('early_learners_lessons')
         .insert({
-          title: data.title,
-          topic: data.topic,
-          phonics_focus: data.phonicsFocus,
-          lesson_number: data.lessonNumber,
-          difficulty_level: data.difficultyLevel,
-          learning_objectives: data.learningObjectives,
-          duration_minutes: data.durationMinutes,
-          slides: data.components ? [data] : null,
+          title: data.title || `Lesson ${params.lessonNumber}: ${params.topic}`,
+          topic: data.topic || params.topic,
+          phonics_focus: data.phonicsFocus || params.phonicsFocus,
+          lesson_number: data.lessonNumber || params.lessonNumber,
+          difficulty_level: data.difficultyLevel || params.difficultyLevel,
+          learning_objectives: data.learningObjectives || params.learningObjectives || [],
+          duration_minutes: data.durationMinutes || 30,
+          components: data.components || {},
+          multimedia_manifest: data.multimedia || {
+            totalImages: 0,
+            totalAudioFiles: 0,
+            images: [],
+            audioFiles: [],
+            generationProgress: 0
+          },
+          gamification: data.gamification || {
+            rewards: { starsPerActivity: 1, totalStarsAvailable: 0, badges: [] },
+            adaptiveFeatures: { difficultyAdjustment: true, hintsEnabled: true, encouragementMessages: [] },
+            celebrationAnimations: []
+          },
           status: 'draft'
         })
         .select()

@@ -1981,13 +1981,16 @@ export type Database = {
       }
       early_learners_lessons: {
         Row: {
+          components: Json | null
           created_at: string | null
           created_by: string | null
           difficulty_level: string | null
           duration_minutes: number | null
+          gamification: Json | null
           id: string
           learning_objectives: Json
           lesson_number: number
+          multimedia_manifest: Json | null
           phonics_focus: string
           status: string | null
           title: string
@@ -1995,13 +1998,16 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          components?: Json | null
           created_at?: string | null
           created_by?: string | null
           difficulty_level?: string | null
           duration_minutes?: number | null
+          gamification?: Json | null
           id?: string
           learning_objectives?: Json
           lesson_number: number
+          multimedia_manifest?: Json | null
           phonics_focus: string
           status?: string | null
           title: string
@@ -2009,13 +2015,16 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          components?: Json | null
           created_at?: string | null
           created_by?: string | null
           difficulty_level?: string | null
           duration_minutes?: number | null
+          gamification?: Json | null
           id?: string
           learning_objectives?: Json
           lesson_number?: number
+          multimedia_manifest?: Json | null
           phonics_focus?: string
           status?: string | null
           title?: string
@@ -3309,6 +3318,53 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      multimedia_generation_queue: {
+        Row: {
+          asset_purpose: string
+          asset_type: string
+          created_at: string | null
+          error_message: string | null
+          id: string
+          lesson_id: string
+          prompt: string
+          result_url: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          asset_purpose: string
+          asset_type: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          lesson_id: string
+          prompt: string
+          result_url?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          asset_purpose?: string
+          asset_type?: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          lesson_id?: string
+          prompt?: string
+          result_url?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "multimedia_generation_queue_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "early_learners_lessons"
             referencedColumns: ["id"]
           },
         ]
