@@ -237,6 +237,9 @@
   --classroom-focus: 220 60% 65%;
   --classroom-lavender: 260 80% 85%;
   
+  /* Auth page colors */
+  --auth-bg: 348 26% 83%;
+  
   /* Neon Colors - High saturation, cyberpunk aesthetic */
   --neon-pink: 330 100% 70%;
   --neon-cyan: 180 100% 50%;
