@@ -337,6 +337,102 @@ export function useECACurriculum() {
     }
   }, [toast]);
 
+  const generateUnitsFromCurriculum = useCallback(async (curriculumId: string) => {
+    try {
+      setIsLoading(true);
+      
+      const { data, error } = await supabase.functions.invoke('curriculum-breakdown', {
+        body: {
+          operation: 'generate-units',
+          curriculumId
+        }
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Units Generated",
+        description: `${data.units.length} units created successfully.`,
+      });
+      
+      return data.units;
+    } catch (error) {
+      console.error('Failed to generate units:', error);
+      toast({
+        title: "Generation Failed",
+        description: error instanceof Error ? error.message : "Failed to generate units",
+        variant: "destructive"
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
+
+  const generateLessonsForUnit = useCallback(async (unitId: string) => {
+    try {
+      setIsLoading(true);
+      
+      // Get unit info
+      const { data: unitData, error: fetchError } = await supabase
+        .from('curriculum_units')
+        .select('*')
+        .eq('id', unitId)
+        .single();
+        
+      if (fetchError) throw fetchError;
+      
+      // Generate lessons
+      const { data, error } = await supabase.functions.invoke('curriculum-breakdown', {
+        body: {
+          operation: 'generate-lessons',
+          unitInfo: {
+            id: unitData.id,
+            title: unitData.title,
+            ageGroup: unitData.age_group,
+            cefrLevel: unitData.cefr_level,
+            durationWeeks: unitData.duration_weeks,
+            grammarFocus: unitData.grammar_focus,
+            vocabularyThemes: unitData.vocabulary_themes,
+            objectives: unitData.learning_objectives
+          }
+        }
+      });
+      
+      if (error) throw error;
+      
+      // Update unit with generated lessons
+      const { error: updateError } = await supabase
+        .from('curriculum_units')
+        .update({
+          unit_data: {
+            ...unitData.unit_data,
+            lessons: data.lessons
+          }
+        })
+        .eq('id', unitId);
+        
+      if (updateError) throw updateError;
+      
+      toast({
+        title: "Lessons Generated",
+        description: `${data.lessons.length} lessons created for this unit.`,
+      });
+      
+      return data.lessons;
+    } catch (error) {
+      console.error('Failed to generate lessons:', error);
+      toast({
+        title: "Generation Failed",
+        description: error instanceof Error ? error.message : "Failed to generate lessons",
+        variant: "destructive"
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
+
   return {
     isLoading,
     // Programs
@@ -355,6 +451,9 @@ export function useECACurriculum() {
     getLessons,
     // Resources
     getResources,
-    createResource
+    createResource,
+    // AI Generation
+    generateUnitsFromCurriculum,
+    generateLessonsForUnit
   };
 }
