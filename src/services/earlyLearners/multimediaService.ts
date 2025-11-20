@@ -35,79 +35,89 @@ export class MultimediaGenerationService {
   }
 
   async generateImages(lessonId: string, prompts: Array<{id: string; prompt: string; purpose: string}>) {
-    const results = [];
-    
-    // Generate images in batches of 5
-    for (let i = 0; i < prompts.length; i += 5) {
-      const batch = prompts.slice(i, i + 5);
-      const batchResults = await Promise.all(
-        batch.map(async (item) => {
-          try {
-            const { data, error } = await supabase.functions.invoke('generate-lesson-image', {
-              body: { 
-                prompt: item.prompt,
-                lessonId,
-                assetId: item.id,
-                purpose: item.purpose
-              }
-            });
-            
-            if (error) throw error;
-            return { ...item, status: 'complete', url: data.imageUrl };
-          } catch (error: any) {
-            console.error(`Failed to generate image ${item.id}:`, error);
-            return { ...item, status: 'failed', error: error.message };
-          }
-        })
-      );
+    try {
+      // Prepare batch request
+      const imagePrompts = prompts.reduce((acc, item) => {
+        acc[item.id] = item.prompt;
+        return acc;
+      }, {} as Record<string, string>);
+
+      console.log(`Generating ${prompts.length} images in batch for lesson ${lessonId}`);
       
-      results.push(...batchResults);
+      const { data, error } = await supabase.functions.invoke('batch-generate-lesson-images', {
+        body: { 
+          lessonId,
+          imagePrompts
+        }
+      });
       
-      // Small delay between batches to avoid rate limits
-      if (i + 5 < prompts.length) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+      if (error) {
+        console.error('Batch image generation error:', error);
+        throw error;
       }
+      
+      // Map results back to expected format
+      const results = prompts.map(item => {
+        const url = data.results?.[item.id];
+        const errorMsg = data.errors?.[item.id];
+        
+        return {
+          ...item,
+          status: url ? 'complete' as const : 'failed' as const,
+          url: url || undefined,
+          error: errorMsg
+        };
+      });
+      
+      console.log(`Image generation complete: ${data.totalGenerated} succeeded, ${data.totalFailed} failed`);
+      return results;
+    } catch (error) {
+      console.error('Batch image generation failed:', error);
+      throw error;
     }
-    
-    return results;
   }
 
   async generateAudio(lessonId: string, scripts: Array<{id: string; text: string; type: string}>) {
-    const results = [];
-    
-    // Generate audio in batches of 5
-    for (let i = 0; i < scripts.length; i += 5) {
-      const batch = scripts.slice(i, i + 5);
-      const batchResults = await Promise.all(
-        batch.map(async (item) => {
-          try {
-            const { data, error } = await supabase.functions.invoke('generate-lesson-audio', {
-              body: { 
-                text: item.text,
-                type: item.type,
-                lessonId,
-                assetId: item.id
-              }
-            });
-            
-            if (error) throw error;
-            return { ...item, status: 'complete', url: data.audioUrl };
-          } catch (error: any) {
-            console.error(`Failed to generate audio ${item.id}:`, error);
-            return { ...item, status: 'failed', error: error.message };
-          }
-        })
-      );
+    try {
+      // Prepare batch request
+      const audioTexts = scripts.reduce((acc, item) => {
+        acc[item.id] = item.text;
+        return acc;
+      }, {} as Record<string, string>);
+
+      console.log(`Generating ${scripts.length} audio files in batch for lesson ${lessonId}`);
       
-      results.push(...batchResults);
+      const { data, error } = await supabase.functions.invoke('batch-generate-lesson-audio', {
+        body: { 
+          lessonId,
+          audioTexts
+        }
+      });
       
-      // Small delay between batches
-      if (i + 5 < scripts.length) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+      if (error) {
+        console.error('Batch audio generation error:', error);
+        throw error;
       }
+      
+      // Map results back to expected format
+      const results = scripts.map(item => {
+        const url = data.results?.[item.id];
+        const errorMsg = data.errors?.[item.id];
+        
+        return {
+          ...item,
+          status: url ? 'complete' as const : 'failed' as const,
+          url: url || undefined,
+          error: errorMsg
+        };
+      });
+      
+      console.log(`Audio generation complete: ${data.totalGenerated} succeeded, ${data.totalFailed} failed`);
+      return results;
+    } catch (error) {
+      console.error('Batch audio generation failed:', error);
+      throw error;
     }
-    
-    return results;
   }
 
   async getProgress(lessonId: string): Promise<GenerationProgress> {

@@ -48,17 +48,42 @@ export function LessonGenerator() {
       const imagePrompts = lesson.multimedia.images || [];
       const audioScripts = lesson.multimedia.audioFiles || [];
       
-      // Start generation
-      const results = await multimediaService.generateAllAssets(
+      if (imagePrompts.length === 0 && audioScripts.length === 0) {
+        console.warn('No multimedia assets to generate');
+        setStep('complete');
+        return;
+      }
+      
+      console.log(`Starting multimedia generation: ${imagePrompts.length} images, ${audioScripts.length} audio files`);
+      
+      // Start generation in background
+      const resultsPromise = multimediaService.generateAllAssets(
         lesson.id,
         imagePrompts,
         audioScripts
       );
       
+      // Poll progress every 2 seconds
+      const progressInterval = setInterval(async () => {
+        try {
+          const progress = await multimediaService.getProgress(lesson.id);
+          setMultimediaProgress(progress.progress);
+          console.log(`Multimedia progress: ${progress.progress}% (${progress.complete}/${progress.total})`);
+        } catch (err) {
+          console.error('Failed to fetch progress:', err);
+        }
+      }, 2000);
+      
+      // Wait for completion
+      await resultsPromise;
+      clearInterval(progressInterval);
+      
       setMultimediaProgress(100);
+      console.log('Multimedia generation complete');
       setStep('complete');
     } catch (error) {
       console.error('Multimedia generation failed:', error);
+      setStep('preview');
     } finally {
       setIsGeneratingMultimedia(false);
     }
