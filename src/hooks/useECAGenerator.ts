@@ -16,8 +16,12 @@ export function useECAGenerator() {
       
       console.log(`Generating ${params.mode}:`, params);
       
+      // Pass all params including mode to edge function
       const { data, error } = await supabase.functions.invoke('curriculum-expert-agent', {
-        body: params
+        body: {
+          mode: params.mode,
+          ...params
+        }
       });
 
       if (error) {
