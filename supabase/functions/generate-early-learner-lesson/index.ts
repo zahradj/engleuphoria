@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { generateEarlyLearnerPrompt } from '../_shared/lessonPromptTemplate.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -27,9 +28,13 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    const systemPrompt = `You are an expert ESL curriculum designer creating interactive lessons for ages 5-7. Generate a complete lesson with all 7 components (phonics, grammar, vocabulary, speaking, writing, reading, listening), detailed multimedia prompts, and gamification. Output ONLY valid JSON matching the specified structure.`;
-
-    const userPrompt = `Create lesson ${requestData.lessonNumber} about "${requestData.topic}" focusing on phonics: "${requestData.phonicsFocus}". Difficulty: ${requestData.difficultyLevel}. Include 30+ image prompts and 35+ audio scripts. Make it engaging, age-appropriate, and 100% accurate.`;
+    const fullPrompt = generateEarlyLearnerPrompt({
+      topic: requestData.topic,
+      phonicsFocus: requestData.phonicsFocus,
+      lessonNumber: requestData.lessonNumber,
+      difficultyLevel: requestData.difficultyLevel,
+      learningObjectives: requestData.learningObjectives
+    });
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -40,8 +45,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
+          { role: 'system', content: fullPrompt }
         ],
         temperature: 0.7,
         max_tokens: 8000
