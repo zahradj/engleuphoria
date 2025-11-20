@@ -215,44 +215,78 @@ serve(async (req) => {
     
     // Get or create a curriculum level for this CEFR level
     console.log('Looking for curriculum level:', { cefrLevel, ageGroup });
+    
+    // Map simple age ranges to database age group formats
+    const ageGroupMapping: Record<string, string> = {
+      '5-7': 'Young Learners (4-7 years)',
+      '8-11': 'Elementary (8-11 years)',
+      '12-14': 'Pre-Teen (10-13 years)',
+      '15-17': 'Teen (14-17 years)'
+    };
+    
+    const mappedAgeGroup = ageGroupMapping[ageGroup] || ageGroup;
+    console.log('Mapped age group:', { original: ageGroup, mapped: mappedAgeGroup });
+    
     let curriculumLevelId = null;
-    const { data: existingLevel, error: levelQueryError } = await supabaseClient
+    
+    // First, try to find by both CEFR level and age group
+    const { data: exactMatch } = await supabaseClient
       .from('curriculum_levels')
       .select('id')
       .eq('cefr_level', cefrLevel)
-      .eq('age_group', ageGroup)
+      .eq('age_group', mappedAgeGroup)
       .maybeSingle();
     
-    console.log('Existing level query result:', { existingLevel, levelQueryError });
-    
-    if (existingLevel) {
-      curriculumLevelId = existingLevel.id;
-      console.log('Found existing level:', curriculumLevelId);
+    if (exactMatch) {
+      curriculumLevelId = exactMatch.id;
+      console.log('Found exact match:', curriculumLevelId);
     } else {
-      // Create a basic curriculum level if it doesn't exist
-      console.log('Creating new curriculum level...');
-      const { data: newLevel, error: createError } = await supabaseClient
+      // Try to find by CEFR level only (fallback)
+      const { data: cefrMatch } = await supabaseClient
         .from('curriculum_levels')
-        .insert({
-          name: `${cefrLevel} Level`,
-          cefr_level: cefrLevel,
-          age_group: ageGroup,
-          description: `Curriculum for ${cefrLevel} level students`,
-          level_order: 1
-        })
         .select('id')
-        .single();
+        .eq('cefr_level', cefrLevel)
+        .limit(1)
+        .maybeSingle();
       
-      console.log('Create level result:', { newLevel, createError });
-      
-      if (newLevel) {
-        curriculumLevelId = newLevel.id;
-        console.log('Created new level:', curriculumLevelId);
+      if (cefrMatch) {
+        curriculumLevelId = cefrMatch.id;
+        console.log('Found CEFR match:', curriculumLevelId);
+      } else {
+        // Create new level if none exists
+        const { data: maxLevel } = await supabaseClient
+          .from('curriculum_levels')
+          .select('level_order')
+          .order('level_order', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        
+        const nextLevelOrder = (maxLevel?.level_order || 0) + 1;
+        console.log('Creating new curriculum level with level_order:', nextLevelOrder);
+        
+        const { data: newLevel, error: createError } = await supabaseClient
+          .from('curriculum_levels')
+          .insert({
+            name: `${cefrLevel} Level (${ageGroup})`,
+            cefr_level: cefrLevel,
+            age_group: mappedAgeGroup,
+            description: `Curriculum for ${cefrLevel} level students aged ${ageGroup}`,
+            level_order: nextLevelOrder
+          })
+          .select('id')
+          .single();
+        
+        if (newLevel) {
+          curriculumLevelId = newLevel.id;
+          console.log('Created new level:', curriculumLevelId);
+        } else {
+          console.error('Failed to create curriculum level:', createError);
+        }
       }
     }
     
     if (!curriculumLevelId) {
-      throw new Error('Failed to get or create curriculum level');
+      throw new Error(`Failed to get or create curriculum level for ${cefrLevel} (${ageGroup})`);
     }
     
     console.log('Final curriculum_level_id:', curriculumLevelId);
