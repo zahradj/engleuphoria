@@ -2,8 +2,12 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronUp, Clock, Target, Book, Lightbulb, Sparkles, CheckCircle, Loader2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Clock, Target, Book, Lightbulb, Sparkles, CheckCircle, Loader2, Eye } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { SlidesLessonView } from './previews/SlidesLessonView';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface LessonCardProps {
   lesson: any;
@@ -14,6 +18,37 @@ interface LessonCardProps {
 
 export const LessonCard = ({ lesson, lessonIndex, onGenerateSlides, isGenerating }: LessonCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [showSlidesDialog, setShowSlidesDialog] = useState(false);
+  const [slidesLesson, setSlidesLesson] = useState<any>(null);
+  const [loadingSlides, setLoadingSlides] = useState(false);
+  const { toast } = useToast();
+
+  const handleViewSlides = async () => {
+    if (!lesson.lessonId) return;
+    
+    setLoadingSlides(true);
+    try {
+      const { data, error } = await supabase
+        .from('systematic_lessons')
+        .select('*')
+        .eq('id', lesson.lessonId)
+        .single();
+      
+      if (error) throw error;
+      
+      setSlidesLesson(data);
+      setShowSlidesDialog(true);
+    } catch (error) {
+      console.error('Failed to load slides:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load lesson slides',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoadingSlides(false);
+    }
+  };
 
   return (
     <Card className="overflow-hidden">
@@ -166,37 +201,72 @@ export const LessonCard = ({ lesson, lessonIndex, onGenerateSlides, isGenerating
               </div>
             )}
 
-            {/* Generate Slides Button */}
+            {/* Action Buttons */}
             {onGenerateSlides && (
-              <div className="pt-4 border-t">
-                <Button
-                  onClick={() => onGenerateSlides(lessonIndex)}
-                  disabled={isGenerating || !!lesson.lessonId}
-                  className="w-full"
-                  variant={lesson.lessonId ? "outline" : "default"}
-                >
-                  {isGenerating ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Generating Slides...
-                    </>
-                  ) : lesson.lessonId ? (
-                    <>
+              <div className="pt-4 border-t space-y-2">
+                {lesson.lessonId ? (
+                  <>
+                    <Button
+                      onClick={handleViewSlides}
+                      disabled={loadingSlides}
+                      className="w-full"
+                      variant="default"
+                    >
+                      {loadingSlides ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Loading...
+                        </>
+                      ) : (
+                        <>
+                          <Eye className="mr-2 h-4 w-4" />
+                          View Generated Slides
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      disabled
+                      className="w-full"
+                      variant="outline"
+                    >
                       <CheckCircle className="mr-2 h-4 w-4" />
                       Slides Generated
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="mr-2 h-4 w-4" />
-                      Generate Slide Content
-                    </>
-                  )}
-                </Button>
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    onClick={() => onGenerateSlides(lessonIndex)}
+                    disabled={isGenerating}
+                    className="w-full"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Generating Slides...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        Generate Slide Content
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
             )}
           </div>
         </CollapsibleContent>
       </Collapsible>
+
+      {/* Slides View Dialog */}
+      <Dialog open={showSlidesDialog} onOpenChange={setShowSlidesDialog}>
+        <DialogContent className="max-w-4xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle>Lesson Slides</DialogTitle>
+          </DialogHeader>
+          {slidesLesson && <SlidesLessonView lesson={slidesLesson} />}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };
