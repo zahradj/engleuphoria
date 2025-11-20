@@ -2,14 +2,17 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronUp, Clock, Target, Book, Lightbulb } from 'lucide-react';
+import { ChevronDown, ChevronUp, Clock, Target, Book, Lightbulb, Sparkles, CheckCircle, Loader2 } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface LessonCardProps {
   lesson: any;
+  lessonIndex: number;
+  onGenerateSlides?: (lessonIndex: number) => Promise<void>;
+  isGenerating?: boolean;
 }
 
-export const LessonCard = ({ lesson }: LessonCardProps) => {
+export const LessonCard = ({ lesson, lessonIndex, onGenerateSlides, isGenerating }: LessonCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -160,6 +163,35 @@ export const LessonCard = ({ lesson }: LessonCardProps) => {
               <div>
                 <h5 className="font-semibold text-sm mb-1">Homework</h5>
                 <p className="text-sm text-muted-foreground">{lesson.homework}</p>
+              </div>
+            )}
+
+            {/* Generate Slides Button */}
+            {onGenerateSlides && (
+              <div className="pt-4 border-t">
+                <Button
+                  onClick={() => onGenerateSlides(lessonIndex)}
+                  disabled={isGenerating || !!lesson.lessonId}
+                  className="w-full"
+                  variant={lesson.lessonId ? "outline" : "default"}
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating Slides...
+                    </>
+                  ) : lesson.lessonId ? (
+                    <>
+                      <CheckCircle className="mr-2 h-4 w-4" />
+                      Slides Generated
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      Generate Slide Content
+                    </>
+                  )}
+                </Button>
               </div>
             )}
           </div>

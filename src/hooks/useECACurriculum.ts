@@ -433,6 +433,82 @@ export function useECACurriculum() {
     }
   }, [toast]);
 
+  const generateLessonContent = useCallback(async (
+    unitId: string,
+    lessonIndex: number
+  ) => {
+    try {
+      setIsLoading(true);
+      
+      // Get unit with lesson plans
+      const { data: unitData, error: fetchError } = await supabase
+        .from('curriculum_units')
+        .select('*')
+        .eq('id', unitId)
+        .single();
+      
+      if (fetchError) throw fetchError;
+      
+      const lessonPlan = unitData.unit_data?.lessons?.[lessonIndex];
+      
+      if (!lessonPlan) {
+        throw new Error('Lesson plan not found');
+      }
+      
+      toast({
+        title: "Generating Lesson Content",
+        description: "Creating 20-25 interactive slides with images and audio...",
+      });
+      
+      // Call edge function to generate slides + multimedia
+      const { data, error } = await supabase.functions.invoke('lesson-content-generator', {
+        body: {
+          unitId,
+          lessonIndex,
+          lessonPlan,
+          ageGroup: unitData.age_group,
+          cefrLevel: unitData.cefr_level
+        }
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Lesson Content Generated!",
+        description: `${data.totalSlides} slides created with ${data.imageCount} images and ${data.audioCount} audio files.`,
+      });
+      
+      // Update unit with lesson ID reference
+      const updatedLessons = [...(unitData.unit_data?.lessons || [])];
+      updatedLessons[lessonIndex] = {
+        ...updatedLessons[lessonIndex],
+        lessonId: data.lessonId
+      };
+      
+      await supabase
+        .from('curriculum_units')
+        .update({
+          unit_data: {
+            ...unitData.unit_data,
+            lessons: updatedLessons
+          }
+        })
+        .eq('id', unitId);
+      
+      return data.lessonId;
+    } catch (error) {
+      console.error('Failed to generate lesson content:', error);
+      toast({
+        title: "Generation Failed",
+        description: error instanceof Error ? error.message : "Failed to generate lesson content",
+        variant: "destructive"
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [toast]);
+
   return {
     isLoading,
     // Programs
@@ -454,6 +530,7 @@ export function useECACurriculum() {
     createResource,
     // AI Generation
     generateUnitsFromCurriculum,
-    generateLessonsForUnit
+    generateLessonsForUnit,
+    generateLessonContent
   };
 }
