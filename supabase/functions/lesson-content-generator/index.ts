@@ -30,158 +30,212 @@ serve(async (req) => {
     console.log('Step 1: Generating enhanced slide structure with gamification...');
     const slidePrompt = buildSlidePrompt(lessonPlan, ageGroup, cefrLevel);
     
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an expert ESL curriculum designer. Create comprehensive, engaging lesson slides with clear instructions and interactive elements.'
+    // Retry logic for provider errors
+    let aiData;
+    let lastError;
+    const maxRetries = 3;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`AI generation attempt ${attempt}/${maxRetries}...`);
+        
+        const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+            'Content-Type': 'application/json',
           },
-          {
-            role: 'user',
-            content: slidePrompt
-          }
-        ],
-        tools: [{
-          type: 'function',
-          function: {
-            name: 'generate_lesson_slides',
-            description: 'Generate enhanced interactive ESL lesson slides with gamification',
-            parameters: {
-              type: 'object',
-              properties: {
-                version: { type: 'string' },
-                theme: { type: 'string' },
-                durationMin: { type: 'number' },
-                metadata: {
+          body: JSON.stringify({
+            model: 'google/gemini-2.5-flash',
+            messages: [
+              {
+                role: 'system',
+                content: 'You are an expert ESL curriculum designer. Create comprehensive, engaging lesson slides with clear instructions and interactive elements.'
+              },
+              {
+                role: 'user',
+                content: slidePrompt
+              }
+            ],
+            tools: [{
+              type: 'function',
+              function: {
+                name: 'generate_lesson_slides',
+                description: 'Generate enhanced interactive ESL lesson slides with gamification',
+                parameters: {
                   type: 'object',
                   properties: {
-                    CEFR: { type: 'string' },
-                    module: { type: 'number' },
-                    lesson: { type: 'number' },
-                    targets: { type: 'array', items: { type: 'string' } },
-                    weights: { type: 'object' }
-                  }
-                },
-                slides: {
-                  type: 'array',
-                  items: {
-                    type: 'object',
-                    properties: {
-                      id: { type: 'string' },
-                      type: { type: 'string' },
-                      prompt: { type: 'string' },
-                      instructions: { type: 'string' },
-                      content: { type: 'object' },
-                      media: { type: 'object' },
-                      audioText: { type: 'string' },
-                      interactionType: { type: 'string' },
-                      teacherTips: { type: 'array', items: { type: 'string' } },
-                      vocabularyDetails: {
-                        type: 'array',
-                        items: {
-                          type: 'object',
-                          properties: {
-                            word: { type: 'string' },
-                            definition: { type: 'string' },
-                            examples: { type: 'array', items: { type: 'string' } },
-                            pronunciation: { type: 'string' },
-                            partOfSpeech: { type: 'string' },
-                            collocations: { type: 'array', items: { type: 'string' } },
-                            usageContext: { type: 'string' }
-                          }
-                        }
-                      },
-                      gamification: {
+                    version: { type: 'string' },
+                    theme: { type: 'string' },
+                    durationMin: { type: 'number' },
+                    metadata: {
+                      type: 'object',
+                      properties: {
+                        CEFR: { type: 'string' },
+                        module: { type: 'number' },
+                        lesson: { type: 'number' },
+                        targets: { type: 'array', items: { type: 'string' } },
+                        weights: { type: 'object' }
+                      }
+                    },
+                    slides: {
+                      type: 'array',
+                      items: {
                         type: 'object',
                         properties: {
-                          xpReward: { type: 'number' },
-                          badgeUnlock: { type: 'string' },
-                          achievementCriteria: { type: 'string' },
-                          feedbackPositive: { type: 'array', items: { type: 'string' } },
-                          feedbackCorrection: { type: 'array', items: { type: 'string' } },
-                          streakBonus: { type: 'boolean' }
-                        }
-                      },
-                      activityData: {
-                        type: 'object',
-                        properties: {
-                          gameType: { type: 'string' },
-                          difficulty: { type: 'string' },
-                          timeLimit: { type: 'number' },
-                          questions: {
+                          id: { type: 'string' },
+                          type: { type: 'string' },
+                          prompt: { type: 'string' },
+                          instructions: { type: 'string' },
+                          content: { type: 'object' },
+                          media: { type: 'object' },
+                          audioText: { type: 'string' },
+                          interactionType: { type: 'string' },
+                          teacherTips: { type: 'array', items: { type: 'string' } },
+                          vocabularyDetails: {
                             type: 'array',
                             items: {
                               type: 'object',
                               properties: {
-                                question: { type: 'string' },
-                                options: { type: 'array', items: { type: 'string' } },
-                                correctAnswer: { type: 'string' },
-                                explanation: { type: 'string' },
-                                hint: { type: 'string' }
+                                word: { type: 'string' },
+                                definition: { type: 'string' },
+                                examples: { type: 'array', items: { type: 'string' } },
+                                pronunciation: { type: 'string' },
+                                partOfSpeech: { type: 'string' },
+                                collocations: { type: 'array', items: { type: 'string' } },
+                                usageContext: { type: 'string' }
                               }
+                            }
+                          },
+                          gamification: {
+                            type: 'object',
+                            properties: {
+                              xpReward: { type: 'number' },
+                              badgeUnlock: { type: 'string' },
+                              achievementCriteria: { type: 'string' },
+                              feedbackPositive: { type: 'array', items: { type: 'string' } },
+                              feedbackCorrection: { type: 'array', items: { type: 'string' } },
+                              streakBonus: { type: 'boolean' }
+                            }
+                          },
+                          activityData: {
+                            type: 'object',
+                            properties: {
+                              gameType: { type: 'string' },
+                              difficulty: { type: 'string' },
+                              timeLimit: { type: 'number' },
+                              questions: {
+                                type: 'array',
+                                items: {
+                                  type: 'object',
+                                  properties: {
+                                    question: { type: 'string' },
+                                    options: { type: 'array', items: { type: 'string' } },
+                                    correctAnswer: { type: 'string' },
+                                    explanation: { type: 'string' },
+                                    hint: { type: 'string' }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          soundEffects: {
+                            type: 'object',
+                            properties: {
+                              backgroundMusic: { type: 'string' },
+                              successSound: { type: 'boolean' },
+                              errorSound: { type: 'boolean' },
+                              transitionSound: { type: 'boolean' }
                             }
                           }
                         }
-                      },
-                      soundEffects: {
+                      }
+                    },
+                    songs: {
+                      type: 'array',
+                      items: {
                         type: 'object',
                         properties: {
-                          backgroundMusic: { type: 'string' },
-                          successSound: { type: 'boolean' },
-                          errorSound: { type: 'boolean' },
-                          transitionSound: { type: 'boolean' }
+                          id: { type: 'string' },
+                          title: { type: 'string' },
+                          purpose: { type: 'string' },
+                          melody: { type: 'string' },
+                          lyrics: { type: 'string' },
+                          actions: { type: 'array', items: { type: 'string' } },
+                          audioScript: { type: 'string' },
+                          visualPrompt: { type: 'string' },
+                          repetitionStrategy: { type: 'string' }
                         }
                       }
                     }
-                  }
-                },
-                songs: {
-                  type: 'array',
-                  items: {
-                    type: 'object',
-                    properties: {
-                      id: { type: 'string' },
-                      title: { type: 'string' },
-                      purpose: { type: 'string' },
-                      melody: { type: 'string' },
-                      lyrics: { type: 'string' },
-                      actions: { type: 'array', items: { type: 'string' } },
-                      audioScript: { type: 'string' },
-                      visualPrompt: { type: 'string' },
-                      repetitionStrategy: { type: 'string' }
-                    }
-                  }
+                  },
+                  required: ['version', 'theme', 'durationMin', 'metadata', 'slides']
                 }
-              },
-              required: ['version', 'theme', 'durationMin', 'metadata', 'slides']
-            }
+              }
+            }],
+            tool_choice: { type: 'function', function: { name: 'generate_lesson_slides' } },
+            max_tokens: 8000,
+          }),
+        });
+
+        if (!aiResponse.ok) {
+          const errorText = await aiResponse.text();
+          console.error(`AI generation error (attempt ${attempt}):`, errorText);
+          
+          // Handle rate limiting
+          if (aiResponse.status === 429) {
+            throw new Error('Rate limit exceeded. Please try again in a few moments.');
           }
-        }],
-        tool_choice: { type: 'function', function: { name: 'generate_lesson_slides' } },
-        max_tokens: 8000,
-      }),
-    });
+          
+          throw new Error(`AI generation failed: ${aiResponse.statusText}`);
+        }
 
-    if (!aiResponse.ok) {
-      const errorText = await aiResponse.text();
-      console.error('AI generation error:', errorText);
-      throw new Error(`AI generation failed: ${aiResponse.statusText}`);
+        aiData = await aiResponse.json();
+        
+        // Check for provider errors in the response
+        if (aiData.error) {
+          console.error(`Provider error (attempt ${attempt}):`, JSON.stringify(aiData.error, null, 2));
+          throw new Error(`AI provider error: ${aiData.error.message || 'Unknown provider error'}`);
+        }
+        
+        // Extract from tool call
+        const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
+        if (!toolCall) {
+          console.error(`No tool call in response (attempt ${attempt}):`, JSON.stringify(aiData, null, 2));
+          throw new Error('AI did not return structured output');
+        }
+        
+        // Success! Break out of retry loop
+        console.log(`✓ AI generation successful on attempt ${attempt}`);
+        break;
+        
+      } catch (error) {
+        lastError = error;
+        console.error(`Attempt ${attempt} failed:`, error);
+        
+        // Don't retry on certain errors
+        if (error instanceof Error) {
+          if (error.message.includes('Rate limit') || error.message.includes('not configured')) {
+            throw error;
+          }
+        }
+        
+        // If this was the last attempt, throw the error
+        if (attempt === maxRetries) {
+          throw new Error(`Failed after ${maxRetries} attempts. Last error: ${lastError instanceof Error ? lastError.message : 'Unknown error'}`);
+        }
+        
+        // Wait before retrying (exponential backoff)
+        const waitTime = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
+        console.log(`Waiting ${waitTime}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+      }
     }
-
-    const aiData = await aiResponse.json();
     
-    // Extract from tool call
+    // Extract tool call after successful generation
     const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
     if (!toolCall) {
-      console.error('No tool call in response:', JSON.stringify(aiData, null, 2));
-      throw new Error('AI did not return structured output');
+      throw new Error('AI did not return structured output after successful generation');
     }
 
     let slidesData;
