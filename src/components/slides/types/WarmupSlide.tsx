@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Volume2, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { ImageLoader } from '../ImageLoader';
 import { useLessonAssets } from '@/hooks/useLessonAssets';
 import { soundEffectsService } from '@/services/soundEffectsService';
+import { Logo } from '@/components/Logo';
+import familyBackground from '@/assets/family-background.png';
 
 interface WarmupSlideProps {
   slide: any;
@@ -27,101 +28,95 @@ export function WarmupSlide({ slide, slideNumber, onNext }: WarmupSlideProps) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5 }}
+      className="relative w-full h-screen overflow-hidden"
+      style={{ 
+        backgroundImage: `url(${familyBackground})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center'
+      }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.8 }}
     >
-      <Card className="w-full border-4 border-white/60 shadow-2xl bg-white/80 backdrop-blur-sm">
-        <CardHeader className="text-center pb-4">
-          <motion.div
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            <CardTitle className="text-5xl font-bold bg-gradient-to-r from-orange-600 via-yellow-600 to-orange-600 bg-clip-text text-transparent">
-              🎵 {slide.prompt || slide.title || 'Welcome!'}
-            </CardTitle>
-          </motion.div>
-          <p className="text-sm text-muted-foreground mt-2">Slide {slideNumber}</p>
-        </CardHeader>
-        <CardContent className="space-y-6 p-8">
+      {/* Gradient overlay for text readability */}
+      <div className="absolute inset-0 bg-gradient-to-t from-orange-900/50 via-orange-600/30 to-yellow-400/20" />
+      
+      {/* Logo in top-left corner */}
+      <motion.div
+        className="absolute top-4 left-4 sm:top-8 sm:left-8 bg-white/95 rounded-2xl p-3 sm:p-4 shadow-2xl"
+        initial={{ x: -100, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ delay: 0.3, duration: 0.6 }}
+      >
+        <Logo size="medium" onClick={() => {}} />
+      </motion.div>
+
+      {/* Lesson Title - Center */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center px-4 sm:px-8">
+        <motion.h1
+          className="text-4xl sm:text-5xl lg:text-7xl font-bold text-white drop-shadow-[0_6px_12px_rgba(0,0,0,0.6)] text-center mb-4"
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.5, duration: 0.6 }}
+        >
+          {slide.prompt || slide.title || 'Welcome!'}
+        </motion.h1>
+        
+        {slide.content && (
           <motion.p
-            initial={{ opacity: 0, y: 10 }}
+            className="text-lg sm:text-xl lg:text-2xl text-white/95 drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] text-center max-w-3xl"
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-2xl text-center font-medium leading-relaxed"
+            transition={{ delay: 0.7, duration: 0.6 }}
           >
-            {slide.instructions}
+            {slide.content}
           </motion.p>
-          
-          {slide.media?.imagePrompt && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              <ImageLoader
-                prompt={slide.media.imagePrompt}
-                alt={slide.media.alt || 'Warmup activity'}
-                generateImage={generateImage}
-                className="aspect-video max-w-3xl mx-auto"
-              />
-            </motion.div>
-          )}
-          
-          {slide.content && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-              className="text-center text-lg leading-relaxed"
-            >
-              {slide.content}
-            </motion.div>
-          )}
-          
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="flex gap-4 justify-center pt-4"
-          >
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={handleListen}
-              disabled={audioPlaying}
-              className="text-lg font-semibold hover:scale-105 transition-transform shadow-lg"
-            >
-              {audioPlaying ? (
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              ) : (
-                <Volume2 className="mr-2 h-5 w-5" />
-              )}
-              {audioPlaying ? 'Playing...' : 'Listen 👂'}
-            </Button>
-          </motion.div>
-          
-          {onNext && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-              className="pt-2"
-            >
+        )}
+      </div>
+
+      {/* Interactive controls - Bottom overlay card */}
+      <motion.div
+        className="absolute bottom-0 left-0 right-0 p-4 sm:p-8"
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.9, duration: 0.6 }}
+      >
+        <Card className="bg-white/95 backdrop-blur-md shadow-2xl border-0 max-w-4xl mx-auto">
+          <CardContent className="p-4 sm:p-8 space-y-4 sm:space-y-6">
+            {slide.instructions && (
+              <p className="text-lg sm:text-xl text-center font-medium text-gray-800">
+                {slide.instructions}
+              </p>
+            )}
+            
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
               <Button
-                onClick={() => {
-                  soundEffectsService.playCorrect();
-                  onNext();
-                }}
-                className="w-full text-xl font-bold py-6 shadow-xl hover:scale-105 transition-transform"
+                variant="outline"
                 size="lg"
+                onClick={handleListen}
+                disabled={audioPlaying}
+                className="text-base sm:text-lg font-semibold"
               >
-                Let's Start! 🚀
+                {audioPlaying ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Volume2 className="mr-2 h-5 w-5" />}
+                {audioPlaying ? 'Playing...' : 'Listen 👂'}
               </Button>
-            </motion.div>
-          )}
-        </CardContent>
-      </Card>
+              
+              {onNext && (
+                <Button
+                  onClick={() => {
+                    soundEffectsService.playCorrect();
+                    onNext();
+                  }}
+                  className="text-lg sm:text-xl font-bold px-8 sm:px-12 py-4 sm:py-6"
+                  size="lg"
+                >
+                  Let's Start! 🚀
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
     </motion.div>
   );
 }
