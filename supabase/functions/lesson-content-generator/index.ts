@@ -174,7 +174,7 @@ serve(async (req) => {
               }
             }],
             tool_choice: { type: 'function', function: { name: 'generate_lesson_slides' } },
-            max_completion_tokens: 8000, // Updated for newer OpenAI models
+            max_completion_tokens: 16000, // Increased for complex lesson generation
           }),
         });
 
@@ -505,178 +505,80 @@ serve(async (req) => {
 });
 
 function buildSlidePrompt(lessonPlan: any, ageGroup: string, cefrLevel: string): string {
-  return `Create a COMPLETE, INTERACTIVE, GAMIFIED ESL lesson with songs and memory activities for ${ageGroup} students at ${cefrLevel} level.
+  return `Create interactive ESL lesson with songs & memory activities for ${ageGroup}, ${cefrLevel} level.
 
-**LESSON PARAMETERS:**
-- Title: ${lessonPlan.title}
-- Topic: ${lessonPlan.targetLanguage?.vocabulary?.join(', ')}
-- CEFR Level: ${cefrLevel}
-- Age Group: ${ageGroup}
-- Learning Objectives: ${lessonPlan.objectives?.join(', ')}
-- Grammar Focus: ${lessonPlan.targetLanguage?.grammar?.join(', ')}
-- Duration: 45 minutes
+LESSON: ${lessonPlan.title}
+VOCABULARY: ${lessonPlan.targetLanguage?.vocabulary?.join(', ')}
+GRAMMAR: ${lessonPlan.targetLanguage?.grammar?.join(', ')}
+OBJECTIVES: ${lessonPlan.objectives?.join('; ')}
 
-**CRITICAL REQUIREMENTS:**
-✓ 100% accurate, age-appropriate, error-free
-✓ Ready for immediate classroom use
-✓ All content must be concrete and specific (no placeholders)
-✓ Include detailed image prompts for every visual element
-✓ Include audio scripts for all pronunciation, instructions, and narration
-✓ MUST include 1-2 songs with complete lyrics, melody description, and actions
-✓ MUST include 5-8 cognitive memory activities for vocabulary retention
+STRUCTURE (25 slides):
 
-**7-STEP LESSON STRUCTURE (25 SLIDES TOTAL):**
+SLIDES 1-2: WARM-UP
+- Title + hook question
+- Warm-up activity (10 XP, imagePrompt, audioText)
 
-**STEP 1: WARM-UP (Slides 1-2)**
-1. Animated title slide with engaging hook question
-2. Warm-up activity to activate prior knowledge
-   - Include gamification (10 XP)
-   - imagePrompt for visual engagement
-   - audioText for instructions
+SLIDES 3-8: VOCABULARY (6 words)
+Each word needs:
+- vocabularyDetails: {word, definition (8 words max), examples: [2 sentences], pronunciation, partOfSpeech}
+- imagePrompt (colorful, simple)
+- audioText (pronunciation)
+- gamification: {xpReward: 15, feedbackPositive: ["Great!"], feedbackCorrection: ["Try again!"]}
 
-**STEP 2: VOCABULARY INTRODUCTION (Slides 3-8)**
-3-8. Present 6 key vocabulary words with FULL DETAILS:
-   vocabularyDetails: [{
-     word: target word,
-     definition: simple child-friendly explanation (max 8 words),
-     examples: [3 context sentences showing real usage],
-     pronunciation: phonetic guide,
-     partOfSpeech: noun/verb/adjective,
-     collocations: [2-3 common word combinations],
-     usageContext: when/where to use
-   }]
-   - Include colorful imagePrompt for each word
-   - Include audioText for pronunciation
-   - Gamification: 15 XP per word
+SLIDES 9-13: MEMORY ACTIVITIES
+9. Flashcard drill (type: memory_flashcard, 6 words, 20 XP, badgeUnlock: "Memory Master")
+10. Association game (type: memory_association, 6 pairs, 20 XP)
+11. Recall challenge (type: memory_recall, 6 questions, 25 XP, streakBonus: true)
+12. Mnemonic rhyme (type: memory_mnemonic, simple rhyme with 6 words, 15 XP)
+13. Repetition chant (type: memory_repetition, word→definition pattern, 15 XP)
 
-**STEP 3: COGNITIVE MEMORY ACTIVITIES (Slides 9-13)**
-9. **Flashcard Drill**: Visual + audio repetition for all 6 vocabulary words
-   - type: "memory_flashcard"
-   - activityData with all 6 words, images, audio
-   - Gamification: 20 XP, "Memory Master" badge
+SLIDES 14-18: PRACTICE
+14-15. Grammar (activityData with 4 questions, 20 XP each)
+16. Matching game (gameType: matching, 6 pairs, 25 XP, badgeUnlock: "Game Champion")
+17. Drag-drop (gameType: drag_drop, 5 sentences, 25 XP, streakBonus: true)
+18. Role-play (6-line dialogue, teacherTips, 30 XP)
 
-10. **Association Game**: Link words to images, actions, or sounds
-    - type: "memory_association"
-    - activityData with 6 pairs to match
-    - Gamification: 20 XP
-
-11. **Recall Challenge**: Students remember words from memory
-    - type: "memory_recall"
-    - Show image, student recalls word
-    - activityData with 6 questions
-    - Gamification: 25 XP, streak bonus
-
-12. **Mnemonic Song/Rhyme**: Short catchy phrase to remember vocabulary
-    - type: "memory_mnemonic"
-    - Include simple rhyme using all 6 words
-    - audioText for rhythm
-    - Gamification: 15 XP
-
-13. **Repetition Sequence**: Students repeat words in rhythm or chant
-    - type: "memory_repetition"
-    - Include pattern (word → definition → example)
-    - audioText for sequence
-    - Gamification: 15 XP
-
-**STEP 4: MAIN ACTIVITY / PRACTICE (Slides 14-18)**
-14-15. **Grammar Focus**: Pattern recognition, examples, guided practice
-    - Include ${lessonPlan.targetLanguage?.grammar?.join(', ')}
-    - activityData with 4-5 practice questions
-    - Gamification: 20 XP each
-
-16-17. **Interactive Games**:
-    - Slide 16: Matching game (word-to-image pairs)
-    - Slide 17: Drag-and-drop (sentence building)
-    - activityData with gameType, questions, hints
-    - Gamification: 25 XP each, "Game Champion" badge
-
-18. **Role-Play Dialogue**: Student pairs practice conversation
-    - Include complete 6-line dialogue using vocabulary
-    - teacherTips for facilitation
-    - Gamification: 30 XP
-
-**STEP 5: SONG ACTIVITY (Slides 19-20)**
-19-20. **ESL Song with Actions**:
-    Include in "songs" array:
-    {
-      id: "song-1",
-      title: "[Creative song title related to ${lessonPlan.title}]",
-      purpose: "Reinforce vocabulary: [list 6 words]",
-      melody: "Simple, catchy tune (describe rhythm/pattern, e.g., 'to the tune of Twinkle Twinkle')",
-      lyrics: "[Complete song lyrics, 2-3 verses, 30-60 seconds total, using ALL 6 vocabulary words]",
-      actions: ["Action 1 for line 1", "Action 2 for line 2", "Action 3 for line 3", ...],
-      audioScript: "[Complete narrated lyrics with rhythm markers]",
-      visualPrompt: "Bright, colorful illustration showing children performing song actions, cartoon style, joyful expressions",
-      repetitionStrategy: "Sing 3 times: first with teacher, second with students, third with actions"
-    }
-    - Slide 19: Introduce song, teach actions
-    - Slide 20: Sing-along with full lyrics and gestures
-    - Gamification: 35 XP, "Super Singer" badge
-
-**STEP 6: ASSESSMENT / COMPREHENSION CHECK (Slides 21-23)**
-21-23. **Comprehensive Quiz**: Multiple-choice, fill-in-blank, matching
-    - activityData with 8-10 questions covering:
-      * Vocabulary recognition
-      * Grammar application
-      * Song lyrics recall
-      * Memory activity review
-    - Include hints and explanations
-    - Gamification: 15 XP per question, "Quiz Master" badge
-
-**STEP 7: WRAP-UP (Slides 24-25)**
-24. **XP Summary & Badges Earned**:
-    - Show total XP (should be 400-500)
-    - Display all badges unlocked
-    - Celebration animation
-    - Gamification: 50 bonus XP for completion
-
-25. **Homework & Extension Activity**:
-    - Review song at home (with link/reference)
-    - Practice vocabulary with family
-    - Optional: Create own verse for song
-    - Reflection question
-
-**GAMIFICATION REQUIREMENTS (ALL 25 SLIDES):**
-Every slide MUST include gamification object:
+SLIDES 19-20: SONG
+Add to "songs" array:
 {
-  xpReward: 10-50 (based on difficulty and activity type),
-  badgeUnlock?: "Badge Name" (for milestones: slides 9, 13, 17, 20, 23, 24),
-  achievementCriteria?: "Complete activity correctly",
-  feedbackPositive: ["Amazing!", "You're a star!", "Fantastic work!", "Keep it up!"],
-  feedbackCorrection: ["Try again!", "Think about the word...", "Remember the song!", "Look at the picture again!"],
-  streakBonus?: true (for slides 11, 16, 17, 21-23)
+  id: "song-1",
+  title: "[Song about ${lessonPlan.title}]",
+  purpose: "Reinforce: [6 words]",
+  melody: "Simple tune (e.g., Twinkle Twinkle style)",
+  lyrics: "[2 verses, 40 seconds, use all 6 words]",
+  actions: ["[Action 1]", "[Action 2]", "[Action 3]", "[Action 4]"],
+  audioScript: "[Narrate lyrics with rhythm]",
+  visualPrompt: "Kids singing with actions, colorful, cartoon",
+  repetitionStrategy: "Sing 3x: teacher, students, with actions"
 }
+Slide 19: Teach song/actions (20 XP)
+Slide 20: Sing-along (35 XP, badgeUnlock: "Super Singer")
 
-**MULTIMEDIA REQUIREMENTS:**
-- imagePrompt: At least 22 slides with detailed, colorful, child-friendly illustrations
-- audioText: At least 18 slides with clear pronunciation, instructions, or narration
-- soundEffects: At least 15 slides with background music, success sounds, transitions
+SLIDES 21-23: ASSESSMENT
+Quiz with activityData containing 8 questions:
+- Multiple choice (4 questions)
+- Fill-in-blank (2 questions)
+- Matching (2 questions)
+Each: 15 XP, hints, explanations
+Slide 23: badgeUnlock: "Quiz Master"
 
-**SONGS ARRAY (MANDATORY - 1-2 songs):**
-Must include at least 1 complete song in separate "songs" array with:
-- Full lyrics (2-3 verses)
-- Melody description
-- 6-8 physical actions
-- Audio narration script
-- Visual prompt for illustration
-- Repetition strategy
+SLIDES 24-25: WRAP-UP
+24. XP summary (total 400-500 XP), badges earned, 50 bonus XP
+25. Homework: review song, practice with family
 
-**OUTPUT FORMAT:**
-Return structured data with:
+REQUIREMENTS:
+- All slides: gamification {xpReward, feedbackPositive: [2 phrases], feedbackCorrection: [2 phrases]}
+- 20+ slides: imagePrompt (brief, colorful, age-appropriate)
+- 15+ slides: audioText (pronunciation/instructions)
+- Songs array: 1 complete song with lyrics & actions
+
+Return:
 {
   version: "4.0",
   theme: "vibrant-learning",
   durationMin: 45,
-  metadata: {
-    CEFR: "${cefrLevel}",
-    module: 1,
-    lesson: ${lessonPlan.lessonNumber || 1},
-    targets: [${lessonPlan.objectives?.map((o: string) => `"${o}"`).join(', ')}],
-    weights: { accuracy: 60, fluency: 40 }
-  },
-  slides: [25 complete slide objects with ALL required fields],
-  songs: [1-2 complete song objects with lyrics, melody, actions, audio]
-}
-
-Make every slide production-ready, age-appropriate for ${ageGroup}, and engaging for ${cefrLevel} level students!`;
+  metadata: {CEFR: "${cefrLevel}", module: 1, lesson: ${lessonPlan.lessonNumber || 1}, targets: [...], weights: {accuracy: 60, fluency: 40}},
+  slides: [25 slides],
+  songs: [1 song]
+}`;
 }
