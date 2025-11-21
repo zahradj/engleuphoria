@@ -8,10 +8,20 @@ interface Slide {
   id: string;
   type: string;
   prompt: string;
+  content?: string;
   instructions?: string;
   audioText?: string;
   teacherTips?: string[];
   interactionType?: string;
+  vocabularyDetails?: Array<{
+    word: string;
+    definition: string;
+    examples?: string[];
+    pronunciation?: string;
+    partOfSpeech?: string;
+    collocations?: string[];
+    usageContext?: string;
+  }>;
 }
 
 interface SlidesLessonViewProps {
@@ -130,10 +140,55 @@ export const SlidesLessonView = ({ lesson }: SlidesLessonViewProps) => {
                       </div>
                     </div>
 
+                    {/* Main Content */}
+                    {slide.content && (
+                      <div className="bg-purple-50 dark:bg-purple-950/30 rounded-lg p-3">
+                        <p className="text-sm font-medium mb-1">📚 Additional Content</p>
+                        <div className="text-sm whitespace-pre-wrap">{slide.content}</div>
+                      </div>
+                    )}
+
+                    {/* Vocabulary Details */}
+                    {slide.vocabularyDetails && slide.vocabularyDetails.length > 0 && (
+                      <div className="bg-indigo-50 dark:bg-indigo-950/30 rounded-lg p-3">
+                        <p className="text-sm font-medium mb-2">📖 Vocabulary Details</p>
+                        <div className="space-y-3">
+                          {slide.vocabularyDetails.map((vocab, vIdx) => (
+                            <div key={vIdx} className="space-y-1">
+                              <p className="text-sm font-semibold">{vocab.word}</p>
+                              <p className="text-sm"><strong>Definition:</strong> {vocab.definition}</p>
+                              {vocab.pronunciation && (
+                                <p className="text-sm"><strong>Pronunciation:</strong> {vocab.pronunciation}</p>
+                              )}
+                              {vocab.partOfSpeech && (
+                                <p className="text-sm"><strong>Part of Speech:</strong> {vocab.partOfSpeech}</p>
+                              )}
+                              {vocab.examples && vocab.examples.length > 0 && (
+                                <div className="text-sm">
+                                  <strong>Examples:</strong>
+                                  <ul className="list-disc list-inside ml-2 mt-1">
+                                    {vocab.examples.map((ex, eIdx) => (
+                                      <li key={eIdx}>{ex}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              {vocab.collocations && vocab.collocations.length > 0 && (
+                                <p className="text-sm"><strong>Collocations:</strong> {vocab.collocations.join(', ')}</p>
+                              )}
+                              {vocab.usageContext && (
+                                <p className="text-sm"><strong>Usage:</strong> {vocab.usageContext}</p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Instructions */}
                     {slide.instructions && (
                       <div className="bg-blue-50 dark:bg-blue-950/30 rounded-lg p-3">
-                        <p className="text-sm font-medium mb-1">Instructions for Students</p>
+                        <p className="text-sm font-medium mb-1">👨‍🏫 Instructions for Students</p>
                         <p className="text-sm">{slide.instructions}</p>
                       </div>
                     )}
@@ -143,7 +198,7 @@ export const SlidesLessonView = ({ lesson }: SlidesLessonViewProps) => {
                       <div className="bg-green-50 dark:bg-green-950/30 rounded-lg p-3">
                         <div className="flex items-center gap-2 mb-1">
                           <Volume2 className="w-4 h-4" />
-                          <p className="text-sm font-medium">Audio Script</p>
+                          <p className="text-sm font-medium">🔊 Audio Script</p>
                         </div>
                         <p className="text-sm">{slide.audioText}</p>
                       </div>
