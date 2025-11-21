@@ -30,10 +30,10 @@ serve(async (req) => {
     console.log('Step 1: Generating enhanced slide structure with gamification...');
     const slidePrompt = buildSlidePrompt(lessonPlan, ageGroup, cefrLevel);
     
-    // Retry logic for provider errors
+    // Retry logic for provider errors - reduced to prevent timeout
     let aiData;
     let lastError;
-    const maxRetries = 3;
+    const maxRetries = 2; // Reduced from 3 to avoid edge function timeout
     
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
@@ -46,7 +46,7 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'google/gemini-2.5-flash',
+            model: 'openai/gpt-5-mini', // Switched to OpenAI for more reliability
             messages: [
               {
                 role: 'system',
@@ -174,7 +174,7 @@ serve(async (req) => {
               }
             }],
             tool_choice: { type: 'function', function: { name: 'generate_lesson_slides' } },
-            max_tokens: 8000,
+            max_completion_tokens: 8000, // Updated for newer OpenAI models
           }),
         });
 
@@ -225,8 +225,8 @@ serve(async (req) => {
           throw new Error(`Failed after ${maxRetries} attempts. Last error: ${lastError instanceof Error ? lastError.message : 'Unknown error'}`);
         }
         
-        // Wait before retrying (exponential backoff)
-        const waitTime = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
+        // Wait before retrying (fixed delay to prevent timeout)
+        const waitTime = 1000; // Fixed 1s delay instead of exponential backoff
         console.log(`Waiting ${waitTime}ms before retry...`);
         await new Promise(resolve => setTimeout(resolve, waitTime));
       }
