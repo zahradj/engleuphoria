@@ -85,9 +85,15 @@ serve(async (req) => {
                         properties: {
                           id: { type: 'string' },
                           type: { type: 'string' },
-                          prompt: { type: 'string' },
+                          prompt: { 
+                            type: 'string',
+                            description: 'MAIN STUDENT-FACING CONTENT with full details, examples, and learning material (100-250 words depending on slide type)'
+                          },
                           instructions: { type: 'string' },
-                          content: { type: 'object' },
+                          content: { 
+                            type: 'string',
+                            description: 'Additional detailed content (dialogue text, story, full explanations, practice prompts)'
+                          },
                           media: { type: 'object' },
                           audioText: { type: 'string' },
                           interactionType: { type: 'string' },
@@ -512,73 +518,116 @@ VOCABULARY: ${lessonPlan.targetLanguage?.vocabulary?.join(', ')}
 GRAMMAR: ${lessonPlan.targetLanguage?.grammar?.join(', ')}
 OBJECTIVES: ${lessonPlan.objectives?.join('; ')}
 
-STRUCTURE (25 slides):
+🎯 CRITICAL: SLIDE STRUCTURE - Every slide MUST include:
+- id: unique identifier
+- type: slide type
+- prompt: MAIN STUDENT-FACING CONTENT (NOT just a title! Include full questions, examples, scenarios, definitions - 100-250 words)
+- content: Additional detailed material (dialogue text, stories, full explanations)
+- instructions: Teacher facilitation guidance
+- audioText: Pronunciation/narration script
+- teacherTips: Teaching suggestions
+
+📚 CONTENT LENGTH REQUIREMENTS:
+- Vocabulary slides: prompt 120-180 words (definition + 2 examples + pronunciation guide + practice task)
+- Grammar slides: prompt 150-200 words (full explanation + 3 examples + rule/pattern + student task)
+- Story/dialogue slides: prompt 180-250 words (complete text with character descriptions)
+- Memory activity slides: prompt 100-150 words (complete instructions + all items listed)
+- Song slides: prompt 80-120 words (full lyrics embedded in slide)
+- Practice slides: prompt 100-150 words (clear instructions + example + practice prompts)
+
+✨ EXAMPLE VOCABULARY SLIDE:
+{
+  id: "slide-3",
+  type: "vocabulary_preview",
+  prompt: "🌟 New Word: HELLO\\n\\nDefinition: A friendly greeting word we use when we meet someone for the first time or when we see someone we know.\\n\\nExample 1: \\"Hello! How are you today?\\" (when meeting a friend)\\nExample 2: \\"I say hello to my teacher every morning.\\" (polite greeting)\\n\\nPronunciation: heh-LOH (say it with a smile!)\\n\\n🎯 Practice Task: Stand up and say hello to three different people in your classroom. Remember to smile and make eye contact!\\n\\nExtra Tip: In English, we can also say \\"Hi\\" as a shorter, more casual way to greet friends.",
+  content: "This is one of the most important words in English! We use 'hello' in many situations: when we answer the phone, when we enter a room, or when we meet new people. It's always polite to say hello with a friendly voice.",
+  instructions: "Show the flashcard with a big smile. Model the pronunciation 3 times slowly, then 3 times at normal speed. Have students repeat chorally, then individually. Encourage them to practice with gestures (waving hand).",
+  vocabularyDetails: [{
+    word: "hello",
+    definition: "A friendly greeting when meeting someone",
+    examples: [
+      "Hello! How are you?",
+      "I say hello to my teacher every morning.",
+      "We say hello when we answer the phone."
+    ],
+    pronunciation: "heh-LOH",
+    partOfSpeech: "interjection",
+    collocations: ["say hello", "hello everyone", "hello there"],
+    usageContext: "Used in formal and informal situations for greetings"
+  }],
+  media: {
+    type: "image",
+    imagePrompt: "Colorful cartoon child with big smile waving hello, bright classroom background, friendly atmosphere, educational illustration style"
+  },
+  audioText: "[Clear, enthusiastic voice] Hello! Let's say it together: Hello. [pause] Great job! One more time: Hello. [pause] Excellent!",
+  teacherTips: [
+    "Use exaggerated gestures (big wave) to make it memorable",
+    "Practice with different emotions: happy hello, shy hello, loud hello",
+    "Connect to students' native language greetings for comparison"
+  ],
+  gamification: {
+    xpReward: 15,
+    feedbackPositive: ["Great pronunciation!", "You said it perfectly!"],
+    feedbackCorrection: ["Try again with a smile!", "Let's practice one more time!"]
+  }
+}
+
+📋 STRUCTURE (25 slides):
 
 SLIDES 1-2: WARM-UP
-- Title + hook question
-- Warm-up activity (10 XP, imagePrompt, audioText)
+1. Title slide with hook question (prompt: 80-100 words describing the lesson topic with an engaging question)
+2. Warm-up activity (prompt: 100-120 words with full activity instructions, 10 XP)
 
 SLIDES 3-8: VOCABULARY (6 words)
-Each word needs:
-- vocabularyDetails: {word, definition (8 words max), examples: [2 sentences], pronunciation, partOfSpeech}
-- imagePrompt (colorful, simple)
-- audioText (pronunciation)
-- gamification: {xpReward: 15, feedbackPositive: ["Great!"], feedbackCorrection: ["Try again!"]}
+Each word slide MUST have:
+- prompt: 120-180 words (definition + 2-3 examples with context + pronunciation + practice task)
+- content: 40-60 words (additional usage tips, cultural notes)
+- vocabularyDetails: {word, definition, examples: [3 sentences], pronunciation, partOfSpeech, collocations, usageContext}
+- imagePrompt (colorful, simple, age-appropriate)
+- audioText (clear pronunciation with repetition)
+- gamification: {xpReward: 15, feedbackPositive: [2], feedbackCorrection: [2]}
 
-SLIDES 9-13: MEMORY ACTIVITIES
-9. Flashcard drill (type: memory_flashcard, 6 words, 20 XP, badgeUnlock: "Memory Master")
-10. Association game (type: memory_association, 6 pairs, 20 XP)
-11. Recall challenge (type: memory_recall, 6 questions, 25 XP, streakBonus: true)
-12. Mnemonic rhyme (type: memory_mnemonic, simple rhyme with 6 words, 15 XP)
-13. Repetition chant (type: memory_repetition, word→definition pattern, 15 XP)
+SLIDES 9-13: MEMORY ACTIVITIES (prompt must include ALL activity content/items)
+9. Flashcard drill (prompt: 120 words listing all 6 words with quick definitions, type: memory_flashcard, 20 XP, badgeUnlock: "Memory Master")
+10. Association game (prompt: 130 words with all 6 word-image pairs described, type: memory_association, 20 XP)
+11. Recall challenge (prompt: 140 words with all 6 questions written out, type: memory_recall, 25 XP, streakBonus: true)
+12. Mnemonic rhyme (prompt: 100 words with complete rhyme using all 6 words, type: memory_mnemonic, 15 XP)
+13. Repetition chant (prompt: 110 words with full chant pattern for all 6 words, type: memory_repetition, 15 XP)
 
 SLIDES 14-18: PRACTICE
-14-15. Grammar (activityData with 4 questions, 20 XP each)
-16. Matching game (gameType: matching, 6 pairs, 25 XP, badgeUnlock: "Game Champion")
-17. Drag-drop (gameType: drag_drop, 5 sentences, 25 XP, streakBonus: true)
-18. Role-play (6-line dialogue, teacherTips, 30 XP)
+14-15. Grammar (prompt: 150-200 words each with full explanation + examples + pattern, activityData with 4 questions, 20 XP each)
+16. Matching game (prompt: 120 words with all 6 pairs listed, gameType: matching, 25 XP, badgeUnlock: "Game Champion")
+17. Drag-drop (prompt: 130 words with all 5 sentences written out, gameType: drag_drop, 25 XP, streakBonus: true)
+18. Role-play (prompt: 180-220 words with full 6-line dialogue + character descriptions + scenario, teacherTips, 30 XP)
 
-SLIDES 19-20: SONG
-Add to "songs" array:
-{
-  id: "song-1",
-  title: "[Song about ${lessonPlan.title}]",
-  purpose: "Reinforce: [6 words]",
-  melody: "Simple tune (e.g., Twinkle Twinkle style)",
-  lyrics: "[2 verses, 40 seconds, use all 6 words]",
-  actions: ["[Action 1]", "[Action 2]", "[Action 3]", "[Action 4]"],
-  audioScript: "[Narrate lyrics with rhythm]",
-  visualPrompt: "Kids singing with actions, colorful, cartoon",
-  repetitionStrategy: "Sing 3x: teacher, students, with actions"
-}
-Slide 19: Teach song/actions (20 XP)
-Slide 20: Sing-along (35 XP, badgeUnlock: "Super Singer")
+SLIDES 19-20: SONG (FULL LYRICS IN PROMPT)
+Add to "songs" array: {id, title, purpose, melody, lyrics (FULL 2 verses), actions: [4], audioScript, visualPrompt, repetitionStrategy}
+19. Teach song (prompt: 100-150 words with full lyrics + actions described, 20 XP)
+20. Sing-along (prompt: 80-120 words with full lyrics repeated + encouragement, 35 XP, badgeUnlock: "Super Singer")
 
 SLIDES 21-23: ASSESSMENT
-Quiz with activityData containing 8 questions:
-- Multiple choice (4 questions)
-- Fill-in-blank (2 questions)
-- Matching (2 questions)
-Each: 15 XP, hints, explanations
+21-23. Quiz slides (prompt: 150-180 words each with questions written out, activityData with 8 total questions: 4 multiple choice, 2 fill-blank, 2 matching, each 15 XP with hints/explanations)
 Slide 23: badgeUnlock: "Quiz Master"
 
 SLIDES 24-25: WRAP-UP
-24. XP summary (total 400-500 XP), badges earned, 50 bonus XP
-25. Homework: review song, practice with family
+24. XP summary (prompt: 100-120 words celebrating learning + listing badges, 50 bonus XP)
+25. Homework (prompt: 80-100 words with clear homework tasks: review song, practice with family)
 
-REQUIREMENTS:
-- All slides: gamification {xpReward, feedbackPositive: [2 phrases], feedbackCorrection: [2 phrases]}
-- 20+ slides: imagePrompt (brief, colorful, age-appropriate)
-- 15+ slides: audioText (pronunciation/instructions)
-- Songs array: 1 complete song with lyrics & actions
+✅ FINAL REQUIREMENTS:
+- ALL slides: Rich prompt field with student-facing content (100-250 words)
+- ALL slides: gamification with xpReward + feedbackPositive (2) + feedbackCorrection (2)
+- 20+ slides: imagePrompt (brief, colorful)
+- 15+ slides: audioText (pronunciation/narration)
+- Songs array: 1 complete song with FULL lyrics
+- Total XP: 400-500 across all slides
 
-Return:
+Return JSON:
 {
   version: "4.0",
   theme: "vibrant-learning",
   durationMin: 45,
   metadata: {CEFR: "${cefrLevel}", module: 1, lesson: ${lessonPlan.lessonNumber || 1}, targets: [...], weights: {accuracy: 60, fluency: 40}},
-  slides: [25 slides],
-  songs: [1 song]
+  slides: [25 slides with RICH CONTENT in prompt field],
+  songs: [1 song with full lyrics]
 }`;
 }
