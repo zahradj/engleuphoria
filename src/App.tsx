@@ -48,6 +48,7 @@ import ClassroomPrejoin from "./pages/ClassroomPrejoin";
 import { SystematicSlidesAdmin } from "./pages/admin/SystematicSlidesAdmin";
 import { AssessmentTaker } from "./components/assessment/AssessmentTaker";
 import { AssessmentResults } from "./components/assessment/AssessmentResults";
+import LessonPreviewPage from "./pages/LessonPreviewPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -136,6 +137,9 @@ const App = () => {
                   <AssessmentResults />
                 </ImprovedProtectedRoute>
               } />
+              
+              {/* Lesson Preview - Full Screen Slides */}
+              <Route path="/lesson-preview/:lessonId" element={<LessonPreviewPage />} />
 
               {/* Protected Routes */}
               <Route path="/student" element={
