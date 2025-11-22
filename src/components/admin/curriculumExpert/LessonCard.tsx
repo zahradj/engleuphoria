@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronUp, Clock, Target, Book, Lightbulb, Sparkles, CheckCircle, Loader2, Eye } from 'lucide-react';
+import { ChevronDown, ChevronUp, Clock, Target, Book, Lightbulb, Sparkles, CheckCircle, Loader2, Eye, Maximize2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { SlidesLessonView } from './previews/SlidesLessonView';
@@ -22,6 +23,7 @@ export const LessonCard = ({ lesson, lessonIndex, onGenerateSlides, isGenerating
   const [slidesLesson, setSlidesLesson] = useState<any>(null);
   const [loadingSlides, setLoadingSlides] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleViewSlides = async () => {
     if (!lesson.lessonId) return;
@@ -206,24 +208,32 @@ export const LessonCard = ({ lesson, lessonIndex, onGenerateSlides, isGenerating
               <div className="pt-4 border-t space-y-2">
                 {lesson.lessonId ? (
                   <>
-                    <Button
-                      onClick={handleViewSlides}
-                      disabled={loadingSlides}
-                      className="w-full"
-                      variant="default"
-                    >
-                      {loadingSlides ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Loading...
-                        </>
-                      ) : (
-                        <>
-                          <Eye className="mr-2 h-4 w-4" />
-                          View Generated Slides
-                        </>
-                      )}
-                    </Button>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        onClick={handleViewSlides}
+                        disabled={loadingSlides}
+                        variant="outline"
+                      >
+                        {loadingSlides ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Loading...
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="mr-2 h-4 w-4" />
+                            Quick Preview
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        onClick={() => navigate(`/lesson-preview/${lesson.lessonId}`)}
+                        variant="default"
+                      >
+                        <Maximize2 className="mr-2 h-4 w-4" />
+                        Full Screen
+                      </Button>
+                    </div>
                     <Button
                       disabled
                       className="w-full"
