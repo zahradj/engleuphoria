@@ -45,7 +45,7 @@ export default function LessonPreviewPage() {
     fetchLesson();
   }, [lessonId, navigate, toast]);
 
-  const slides = lesson?.slides_content || [];
+  const slides = lesson?.slides_content?.slides || [];
   const totalSlides = slides.length;
 
   const {
