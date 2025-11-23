@@ -9,6 +9,7 @@ import { TeacherApplicationsManagement } from '@/components/admin/TeacherApplica
 import { StudentManagement } from '@/components/admin/StudentManagement';
 import { EarlyLearnersLibrary } from '@/components/admin/earlyLearners/EarlyLearnersLibrary';
 import { CurriculumExpertDashboard } from '@/components/admin/curriculumExpert/CurriculumExpertDashboard';
+import { LibraryTab } from '@/components/teacher/LibraryTab';
 import { AnalyticsDashboard } from '@/components/admin/AnalyticsDashboard';
 import { PaymentsPanel } from '@/components/admin/PaymentsPanel';
 import { SettingsPanel } from '@/components/admin/SettingsPanel';
@@ -63,6 +64,8 @@ const AdminDashboard = () => {
         return <EarlyLearnersLibrary />;
       case 'curriculum-expert':
         return <CurriculumExpertDashboard />;
+      case 'interactive-lessons':
+        return <LibraryTab />;
       case 'analytics':
         return <AnalyticsDashboard />;
       case 'payments':
