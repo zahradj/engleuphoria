@@ -62,7 +62,7 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'google/gemini-2.5-flash',
+            model: 'google/gemini-2.5-pro',
             messages: [{ role: 'user', content: prompt }],
             response_format: {
               type: 'json_schema',
@@ -113,7 +113,7 @@ serve(async (req) => {
                 }
               }
             },
-            max_completion_tokens: 8000
+            max_completion_tokens: 16000
           }),
         });
 
