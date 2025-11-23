@@ -16,7 +16,14 @@ export const MaterialPreview = ({ material, mode }: MaterialPreviewProps) => {
 
   switch (mode) {
     case 'lesson':
-      return <LessonPreview {...material} />;
+      return <LessonPreview 
+        content={material.content || {}}
+        title={material.title || ''}
+        ageGroup={material.ageGroup || ''}
+        cefrLevel={material.cefrLevel || ''}
+        objectives={material.objectives || material.learningObjectives || []}
+        targetLanguage={material.targetLanguage || { grammar: [], vocabulary: [] }}
+      />;
     case 'unit':
       return <UnitPreview content={material.content || material} />;
     case 'curriculum':

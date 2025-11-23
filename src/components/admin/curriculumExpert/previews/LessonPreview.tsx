@@ -5,22 +5,28 @@ import { LessonContent } from '@/types/curriculumExpert';
 import { Target, Lightbulb } from 'lucide-react';
 
 interface LessonPreviewProps {
-  content: LessonContent;
-  title: string;
-  ageGroup: string;
-  cefrLevel: string;
-  objectives: string[];
-  targetLanguage: { grammar: string[]; vocabulary: string[] };
+  content?: Partial<LessonContent>;
+  title?: string;
+  ageGroup?: string;
+  cefrLevel?: string;
+  objectives?: string[];
+  targetLanguage?: { grammar?: string[]; vocabulary?: string[] };
 }
 
 export const LessonPreview = ({
-  content,
-  title,
-  ageGroup,
-  cefrLevel,
-  objectives,
-  targetLanguage
+  content = {},
+  title = '',
+  ageGroup = '',
+  cefrLevel = '',
+  objectives = [],
+  targetLanguage = { grammar: [], vocabulary: [] }
 }: LessonPreviewProps) => {
+  const safeObjectives = Array.isArray(objectives) ? objectives : [];
+  const safeGrammar = Array.isArray(targetLanguage?.grammar) ? targetLanguage.grammar : [];
+  const safeVocabulary = Array.isArray(targetLanguage?.vocabulary) ? targetLanguage.vocabulary : [];
+  const safeFormativeAssessment = Array.isArray(content.formativeAssessment) ? content.formativeAssessment : [];
+  const safeEasier = Array.isArray(content.differentiation?.easier) ? content.differentiation.easier : [];
+  const safeHarder = Array.isArray(content.differentiation?.harder) ? content.differentiation.harder : [];
   return (
     <Card>
       <CardHeader>
@@ -44,7 +50,7 @@ export const LessonPreview = ({
             <span>Learning Objectives</span>
           </div>
           <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-            {objectives.map((obj, i) => (
+            {safeObjectives.map((obj, i) => (
               <li key={i}>{obj}</li>
             ))}
           </ul>
@@ -56,7 +62,7 @@ export const LessonPreview = ({
           <div className="space-y-2">
             <div className="font-semibold text-sm">Grammar</div>
             <div className="flex flex-wrap gap-2">
-              {targetLanguage.grammar.map((item, i) => (
+              {safeGrammar.map((item, i) => (
                 <Badge key={i} variant="secondary">{item}</Badge>
               ))}
             </div>
@@ -64,7 +70,7 @@ export const LessonPreview = ({
           <div className="space-y-2">
             <div className="font-semibold text-sm">Vocabulary</div>
             <div className="flex flex-wrap gap-2">
-              {targetLanguage.vocabulary.map((item, i) => (
+              {safeVocabulary.map((item, i) => (
                 <Badge key={i} variant="secondary">{item}</Badge>
               ))}
             </div>
@@ -83,7 +89,7 @@ export const LessonPreview = ({
           <div className="space-y-2">
             <div className="font-semibold">✅ Formative Assessment</div>
             <div className="space-y-2">
-              {content.formativeAssessment.map((item, i) => (
+              {safeFormativeAssessment.map((item, i) => (
                 <div key={i} className="bg-muted p-3 rounded-md text-sm">
                   <div className="font-medium">{i + 1}. {item.question}</div>
                   <div className="text-muted-foreground mt-1">Answer: {item.answer}</div>
@@ -96,7 +102,7 @@ export const LessonPreview = ({
             <div className="space-y-2">
               <div className="font-semibold text-sm">🟢 Easier</div>
               <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-                {content.differentiation.easier.map((item, i) => (
+                {safeEasier.map((item, i) => (
                   <li key={i}>{item}</li>
                 ))}
               </ul>
@@ -104,7 +110,7 @@ export const LessonPreview = ({
             <div className="space-y-2">
               <div className="font-semibold text-sm">🔴 Harder</div>
               <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
-                {content.differentiation.harder.map((item, i) => (
+                {safeHarder.map((item, i) => (
                   <li key={i}>{item}</li>
                 ))}
               </ul>
