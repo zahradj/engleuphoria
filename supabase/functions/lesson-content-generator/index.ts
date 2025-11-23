@@ -46,12 +46,8 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'openai/gpt-5-mini', // Switched to OpenAI for more reliability
+            model: 'google/gemini-2.5-flash', // Fast, efficient model for lesson generation
             messages: [
-              {
-                role: 'system',
-                content: 'You are an expert ESL curriculum designer. Create comprehensive, engaging lesson slides with clear instructions and interactive elements.'
-              },
               {
                 role: 'user',
                 content: slidePrompt
@@ -180,7 +176,7 @@ serve(async (req) => {
               }
             }],
             tool_choice: { type: 'function', function: { name: 'generate_lesson_slides' } },
-            max_completion_tokens: 6000, // Optimized for performance
+            max_completion_tokens: 4000, // Further optimized for faster response
           }),
         });
 
@@ -276,52 +272,10 @@ serve(async (req) => {
 
     console.log(`Extracted ${Object.keys(audioTexts).length} audio scripts`);
 
-    // Step 4: Save lesson first, then generate media in background
-    // Use slides as-is without waiting for media generation
+    // Step 4: Use slides without media generation to avoid timeouts
+    // Media can be generated later via separate batch jobs
     const enrichedSlides = slides;
-    
-    // Background task for media generation (non-blocking)
-    const generateMediaInBackground = async () => {
-      try {
-        const imageResults: any = {};
-        const audioResults: any = {};
-        
-        // Generate images
-        if (Object.keys(imagePrompts).length > 0) {
-          console.log('Background: Generating images...');
-          try {
-            const { data: imgData } = await supabaseClient.functions.invoke(
-              'batch-generate-lesson-images',
-              { body: { lessonId: `${unitId}-lesson-${lessonIndex}`, imagePrompts } }
-            );
-            Object.assign(imageResults, imgData?.results || {});
-          } catch (err) {
-            console.error('Background image generation failed:', err);
-          }
-        }
-        
-        // Generate audio
-        if (Object.keys(audioTexts).length > 0) {
-          console.log('Background: Generating audio...');
-          try {
-            const { data: audioData } = await supabaseClient.functions.invoke(
-              'batch-generate-lesson-audio',
-              { body: { lessonId: `${unitId}-lesson-${lessonIndex}`, audioTexts } }
-            );
-            Object.assign(audioResults, audioData?.results || {});
-          } catch (err) {
-            console.error('Background audio generation failed:', err);
-          }
-        }
-        
-        console.log('Background media generation complete');
-      } catch (err) {
-        console.error('Background media generation error:', err);
-      }
-    };
-    
-    // Start background task
-    EdgeRuntime.waitUntil(generateMediaInBackground());
+    console.log('Skipping media generation for performance - will be added via batch jobs');
 
     // Step 7: Save to systematic_lessons
     console.log('Step 7: Saving to database...');
@@ -553,58 +507,55 @@ OBJECTIVES: ${lessonPlan.objectives?.join('; ')}
   }
 }
 
-📋 STRUCTURE (18 slides for faster generation):
+📋 STRUCTURE (15 slides for optimal performance):
 
 SLIDES 1-2: WARM-UP
-1. Title slide with hook question (prompt: 50-70 words with engaging question)
-2. Warm-up activity (prompt: 60-80 words with activity instructions, 10 XP)
+1. Title slide (prompt: 40-50 words with hook question, 5 XP)
+2. Warm-up (prompt: 50-60 words with activity, 10 XP)
 
-SLIDES 3-6: VOCABULARY (4 words)
-Each word slide MUST have:
-- prompt: 60-100 words (definition + 1-2 examples + pronunciation)
-- vocabularyDetails: {word, definition, examples: [2 sentences], pronunciation, partOfSpeech}
-- imagePrompt (brief, colorful)
-- audioText (pronunciation)
-- gamification: {xpReward: 15, feedbackPositive: [2], feedbackCorrection: [2]}
+SLIDES 3-5: VOCABULARY (3 words)
+- prompt: 50-70 words (definition + example + pronunciation)
+- vocabularyDetails: {word, definition, examples: [1-2 sentences], pronunciation, partOfSpeech}
+- imagePrompt (brief)
+- gamification: {xpReward: 15, feedbackPositive: [1-2], feedbackCorrection: [1-2]}
 
-SLIDES 7-9: PRACTICE ACTIVITIES
-7. Flashcard drill (prompt: 60 words, type: memory_flashcard, 20 XP)
-8. Grammar practice (prompt: 80 words with rule + examples, activityData with 3 questions, 20 XP)
-9. Matching game (prompt: 70 words, gameType: matching, 25 XP)
+SLIDES 6-8: PRACTICE
+6. Flashcard drill (prompt: 40-50 words, 20 XP)
+7. Grammar (prompt: 60 words with rule + 2 examples, 20 XP)
+8. Matching game (prompt: 50 words, 25 XP)
 
-SLIDES 10-12: INTERACTIVE PRACTICE
-10. Drag-drop (prompt: 70 words, gameType: drag_drop, 25 XP)
-11. Role-play (prompt: 100 words with dialogue, 30 XP)
-12. Listening (prompt: 80 words, audioText with questions, 20 XP)
+SLIDES 9-11: INTERACTIVE
+9. Drag-drop (prompt: 50 words, 25 XP)
+10. Role-play (prompt: 70 words with short dialogue, 30 XP)
+11. Listening (prompt: 50 words, 20 XP)
 
-SLIDES 13-14: SONG
-Add to "songs" array: {id, title, purpose, lyrics (1 verse), actions: [3], audioScript}
-13. Teach song (prompt: 60 words with lyrics, 20 XP)
-14. Sing-along (prompt: 50 words, 35 XP, badgeUnlock: "Super Singer")
+SLIDE 12: SONG
+Add to "songs" array: {id, title, lyrics (1 short verse), actions: [2-3]}
+12. Song activity (prompt: 40-50 words with lyrics, 25 XP)
 
-SLIDES 15-16: ASSESSMENT
-15. Quiz (prompt: 80 words, activityData with 4 questions, 20 XP)
-16. Review (prompt: 70 words, 25 XP, badgeUnlock: "Quiz Master")
+SLIDES 13-14: ASSESSMENT
+13. Quiz (prompt: 50 words, activityData with 3 questions, 20 XP)
+14. Review (prompt: 40 words, 25 XP, badgeUnlock: "Quiz Master")
 
-SLIDES 17-18: WRAP-UP
-17. XP summary (prompt: 60 words celebrating learning, 50 bonus XP)
-18. Homework (prompt: 50 words with clear tasks)
+SLIDE 15: WRAP-UP
+15. Celebration + homework (prompt: 40-50 words, 50 bonus XP)
 
-✅ FINAL REQUIREMENTS:
-- ALL slides: Concise prompt field (50-100 words)
-- ALL slides: gamification with xpReward + feedbackPositive [2] + feedbackCorrection [2]
-- 12+ slides: imagePrompt (brief)
-- 10+ slides: audioText
-- Songs array: 1 song with concise lyrics
-- Total XP: 300-400 across all slides
+✅ REQUIREMENTS:
+- ALL slides: Concise prompt (40-70 words max)
+- ALL slides: gamification with xpReward
+- 10+ slides: imagePrompt (10-15 words)
+- Songs array: 1 short song
+- Total XP: 250-350
 
-Return JSON with 18 slides:
+You are an expert ESL curriculum designer. Create engaging lesson slides for ${ageGroup}, ${cefrLevel} level.
+
+Return JSON with exactly 15 slides:
 {
   version: "4.0",
   theme: "vibrant-learning",
   durationMin: 45,
-  metadata: {CEFR: "${cefrLevel}", module: 1, lesson: ${lessonPlan.lessonNumber || 1}, targets: [...], weights: {accuracy: 60, fluency: 40}},
-  slides: [18 optimized slides],
-  songs: [1 song]
+  metadata: {CEFR: "${cefrLevel}", module: 1, lesson: ${lessonPlan.lessonNumber || 1}, targets: ["vocabulary", "grammar"], weights: {accuracy: 60, fluency: 40}},
+  slides: [15 concise slides],
+  songs: [1 short song]
 }`;
 }
