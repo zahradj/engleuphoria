@@ -28,14 +28,19 @@ export const EnhancedTeacherSidebar = ({
     icon: User,
     type: 'tab'
   }, {
+    id: 'library',
+    label: 'Interactive Lessons',
+    icon: Presentation,
+    type: 'tab'
+  }, {
     id: 'english-journey',
-    label: 'Library',
+    label: 'Curriculum Library',
     icon: BookOpen,
     type: 'tab'
   }, {
     id: 'slides',
     label: 'Lesson Slides',
-    icon: Presentation,
+    icon: FolderOpen,
     type: 'tab'
   }, {
     id: 'placement-test',
