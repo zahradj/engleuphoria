@@ -251,11 +251,11 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
   };
   const gradientClass = 'from-primary/80 via-primary/70 to-accent/80';
   const backgroundGradient = 'from-primary/10 via-primary/5 to-accent/10';
-  return <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-50/40 via-purple-50/40 to-pink-50/40">
+  return <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-50/40 via-[#dfc7cc]/40 to-pink-50/40">
       {/* Playful background decorations */}
       <div className="absolute inset-0">
         {/* Large floating orbs */}
-        <div className="absolute top-20 left-20 w-80 h-80 bg-gradient-to-r from-purple-300/15 to-pink-300/15 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
+        <div className="absolute top-20 left-20 w-80 h-80 bg-gradient-to-r from-[#dfc7cc]/15 to-pink-300/15 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
         <div className="absolute top-40 right-20 w-72 h-72 bg-gradient-to-r from-blue-300/15 to-cyan-300/15 rounded-full mix-blend-multiply filter blur-2xl animate-float-delayed"></div>
         <div className="absolute -bottom-8 left-20 w-96 h-96 bg-gradient-to-r from-emerald-300/10 to-teal-300/10 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
         
@@ -273,7 +273,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
         <div className="absolute top-[10%] right-[35%] w-10 h-13 bg-gradient-to-b from-green-400/30 to-green-500/30 rounded-full animate-bounce delay-300 shadow-md">
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-400/30"></div>
         </div>
-        <div className="absolute top-[10%] right-[20%] w-13 h-16 bg-gradient-to-b from-purple-400/30 to-purple-500/30 rounded-full animate-float-slow shadow-md">
+        <div className="absolute top-[10%] right-[20%] w-13 h-16 bg-gradient-to-b from-[#dfc7cc]/30 to-[#dfc7cc]/40 rounded-full animate-float-slow shadow-md">
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-5 bg-gray-400/30"></div>
         </div>
         <div className="absolute top-[10%] right-[5%] w-11 h-14 bg-gradient-to-b from-pink-400/30 to-pink-500/30 rounded-full animate-bounce delay-700 shadow-md">
@@ -324,7 +324,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
         <div className="absolute top-1/4 left-1/4 w-3 h-3 bg-yellow-400/30 rounded-full animate-bounce shadow-sm"></div>
         <div className="absolute top-3/4 right-1/4 w-2 h-2 bg-pink-400/35 rounded-full animate-bounce delay-300 shadow-sm"></div>
         <div className="absolute top-1/2 left-3/4 w-2.5 h-2.5 bg-blue-400/30 rounded-full animate-bounce delay-700 shadow-sm"></div>
-        <div className="absolute top-1/6 right-1/3 w-1.5 h-1.5 bg-purple-400/40 rounded-full animate-bounce delay-1000"></div>
+        <div className="absolute top-1/6 right-1/3 w-1.5 h-1.5 bg-[#dfc7cc]/40 rounded-full animate-bounce delay-1000"></div>
         <div className="absolute bottom-1/4 left-1/3 w-3 h-3 bg-emerald-400/30 rounded-full animate-bounce delay-500 shadow-sm"></div>
         
         {/* Subtle gradient overlay */}
@@ -410,15 +410,15 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
                     <div className="relative group">
                     <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-600 group-focus-within:text-slate-800 transition-colors" />
                       <Input id="password" type={showPassword ? "text" : "password"} value={formData.password} onChange={e => handleInputChange('password', e.target.value)} placeholder={mode === 'login' ? "Enter your password" : "Create a secure password"} disabled={loading} required className="h-14 pl-12 pr-12 bg-[#dfc7cc] border-[#dfc7cc]/60 text-slate-700 placeholder:text-slate-500 focus:bg-[#dfc7cc]/90 focus:border-[#dfc7cc] focus:ring-2 focus:ring-[#dfc7cc]/50 transition-all duration-300 rounded-xl shadow-sm hover:shadow-md" />
-                      <Button type="button" variant="ghost" size="sm" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 transform -translate-y-1/2 h-10 w-10 p-0 text-slate-500 hover:text-purple-600 hover:bg-purple-100/50 rounded-lg transition-all duration-200" disabled={loading}>
+                      <Button type="button" variant="ghost" size="sm" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 transform -translate-y-1/2 h-10 w-10 p-0 text-slate-500 hover:text-[#dfc7cc] hover:bg-[#dfc7cc]/20 rounded-lg transition-all duration-200" disabled={loading}>
                         {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                       </Button>
                     </div>
                     
-                    {mode === 'signup' && formData.password && <div className="mt-4 p-4 bg-gradient-to-r from-purple-50/80 to-pink-50/80 rounded-xl backdrop-blur-sm border border-purple-200/40 shadow-sm">
+                    {mode === 'signup' && formData.password && <div className="mt-4 p-4 bg-gradient-to-r from-[#dfc7cc]/30 to-pink-50/80 rounded-xl backdrop-blur-sm border border-[#dfc7cc]/40 shadow-sm">
                         <div className="flex items-center justify-between mb-3">
                           <span className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                            <Shield className="h-4 w-4 text-purple-500" />
+                            <Shield className="h-4 w-4 text-[#dfc7cc]" />
                             Password Strength
                           </span>
                           <span className={`text-sm font-bold px-2 py-1 rounded-full ${getPasswordStrength() >= 3 ? 'bg-green-100 text-green-700' : getPasswordStrength() >= 2 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
@@ -455,7 +455,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
                       </div>
                     </div>}
 
-                  <Button type="submit" className={`w-full h-12 text-base font-semibold bg-gradient-to-r ${gradientClass} hover:shadow-lg hover:shadow-purple-500/25 transform hover:scale-105 transition-all duration-200 text-white border-0 relative overflow-hidden group`} disabled={loading}>
+                  <Button type="submit" className={`w-full h-12 text-base font-semibold bg-gradient-to-r ${gradientClass} hover:shadow-lg hover:shadow-[#dfc7cc]/25 transform hover:scale-105 transition-all duration-200 text-white border-0 relative overflow-hidden group`} disabled={loading}>
                     <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
                     {loading ? <>
                         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -518,7 +518,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
       {showForgotPassword && <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <Card className="w-full max-w-md bg-white/95 backdrop-blur-xl border-0 shadow-2xl rounded-2xl">
             <CardHeader className="text-center pb-6">
-              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-[#dfc7cc] to-blue-600 bg-clip-text text-transparent">
                 Reset Password
               </CardTitle>
               <CardDescription className="text-slate-600">
@@ -545,7 +545,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
               }} disabled={resetLoading} className="flex-1 bg-white/20 border-slate-400/50 text-slate-700 hover:bg-white/30">
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={resetLoading} className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:shadow-lg hover:shadow-purple-500/25 text-white border-0">
+                  <Button type="submit" disabled={resetLoading} className="flex-1 bg-gradient-to-r from-[#dfc7cc] to-blue-600 hover:shadow-lg hover:shadow-[#dfc7cc]/25 text-white border-0">
                     {resetLoading ? <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Sending...
