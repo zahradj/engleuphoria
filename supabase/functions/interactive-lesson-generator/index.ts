@@ -113,7 +113,7 @@ serve(async (req) => {
                 }
               }
             },
-            max_completion_tokens: 6000
+            max_completion_tokens: 8000
           }),
         });
 
@@ -149,7 +149,36 @@ serve(async (req) => {
       throw new Error('AI did not return content');
     }
 
-    const lessonData = JSON.parse(content);
+    console.log(`AI returned ${content.length} characters`);
+    
+    // Parse JSON with better error handling
+    let lessonData;
+    try {
+      lessonData = JSON.parse(content);
+    } catch (parseError) {
+      console.error('JSON Parse Error:', parseError);
+      console.error('Content preview (first 500 chars):', content.substring(0, 500));
+      console.error('Content preview (last 500 chars):', content.substring(content.length - 500));
+      
+      // Try to find and fix common JSON issues
+      let fixedContent = content
+        .replace(/,(\s*[}\]])/g, '$1')  // Remove trailing commas
+        .replace(/(['"])?([a-zA-Z0-9_]+)(['"])?:/g, '"$2":')  // Fix unquoted keys
+        .trim();
+      
+      // If content doesn't end with }, try to close it
+      if (!fixedContent.endsWith('}')) {
+        console.log('Attempting to close incomplete JSON...');
+        fixedContent += '}';
+      }
+      
+      try {
+        lessonData = JSON.parse(fixedContent);
+        console.log('Successfully parsed after fixing JSON');
+      } catch (fixError) {
+        throw new Error(`Failed to parse AI response as JSON: ${parseError.message}. Content length: ${content.length}`);
+      }
+    }
     console.log(`Generated ${lessonData.screens?.length || 0} screens`);
     
     // Validate lesson data
