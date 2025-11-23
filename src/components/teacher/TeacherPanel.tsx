@@ -8,6 +8,7 @@ import { EnhancedCalendarTab } from "./EnhancedCalendarTab";
 import { StudentsTab } from "./StudentsTab";
 import { AssignmentsTab } from "./AssignmentsTab";
 import { MessagesTab } from "./MessagesTab";
+import { LibraryTab } from "./LibraryTab";
 
 interface TeacherPanelProps {
   teacherId?: string;
@@ -33,6 +34,8 @@ export const TeacherPanel = ({
         return <AssignmentsTab />;
       case "messages":
         return <MessagesTab />;
+      case "reading-library":
+        return <LibraryTab />;
       default:
         return <DashboardTab teacherName={teacherName} />;
     }
