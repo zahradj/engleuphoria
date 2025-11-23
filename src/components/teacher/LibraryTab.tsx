@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, Plus, Search, Filter, Clock, Users, Star } from "lucide-react";
 import { LessonCreatorModal } from "./lesson-creator/LessonCreatorModal";
-import { useECATemplates } from "@/hooks/useECATemplates";
+import { useLibraryLessons } from "@/hooks/useLibraryLessons";
 import { AgeGroup, CEFRLevel } from "@/types/curriculumExpert";
 
 export const LibraryTab = () => {
@@ -14,20 +14,16 @@ export const LibraryTab = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLevel, setSelectedLevel] = useState<CEFRLevel | "all">("all");
   const [selectedAge, setSelectedAge] = useState<AgeGroup | "all">("all");
-  const { templates, isLoading, getTemplates } = useECATemplates();
+  const { lessons, isLoading, fetchLessons } = useLibraryLessons();
 
-  // Load templates on mount
-  useState(() => {
-    getTemplates();
-  });
-
-  const filteredTemplates = templates.filter((template) => {
-    const matchesSearch = template.templateName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         template.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesLevel = selectedLevel === "all" || template.cefrLevel === selectedLevel;
-    const matchesAge = selectedAge === "all" || template.ageGroup === selectedAge;
-    return matchesSearch && matchesLevel && matchesAge;
-  });
+  // Fetch with filters when they change
+  useEffect(() => {
+    fetchLessons({
+      cefrLevel: selectedLevel,
+      ageGroup: selectedAge,
+      searchQuery
+    });
+  }, [selectedLevel, selectedAge, searchQuery]);
 
   return (
     <div className="space-y-6">
@@ -108,7 +104,7 @@ export const LibraryTab = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
           <p className="text-muted-foreground mt-4">Loading lessons...</p>
         </div>
-      ) : filteredTemplates.length === 0 ? (
+      ) : lessons.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
             <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -126,18 +122,18 @@ export const LibraryTab = () => {
         </Card>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredTemplates.map((template) => (
-            <Card key={template.id} className="hover:shadow-lg transition-shadow">
+          {lessons.map((lesson) => (
+            <Card key={lesson.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <CardTitle className="text-lg mb-2">{template.templateName}</CardTitle>
+                    <CardTitle className="text-lg mb-2">{lesson.title}</CardTitle>
                     <CardDescription className="line-clamp-2">
-                      {template.description}
+                      {lesson.topic}
                     </CardDescription>
                   </div>
                   <Badge variant="secondary" className="ml-2">
-                    {template.templateType}
+                    {lesson.screens_data?.length || 0} screens
                   </Badge>
                 </div>
               </CardHeader>
@@ -146,15 +142,15 @@ export const LibraryTab = () => {
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Users className="h-4 w-4" />
-                      <span>{template.ageGroup}</span>
+                      <span>{lesson.age_group}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Star className="h-4 w-4" />
-                      <span>{template.cefrLevel}</span>
+                      <span>{lesson.cefr_level}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Clock className="h-4 w-4" />
-                      <span>30 min</span>
+                      <span>{lesson.duration_minutes} min</span>
                     </div>
                   </div>
                   
@@ -163,7 +159,7 @@ export const LibraryTab = () => {
                       Preview
                     </Button>
                     <Button className="flex-1" size="sm">
-                      Use Template
+                      Use Lesson
                     </Button>
                   </div>
                 </div>
@@ -177,6 +173,11 @@ export const LibraryTab = () => {
       <LessonCreatorModal 
         open={isCreatorOpen}
         onClose={() => setIsCreatorOpen(false)}
+        onLessonCreated={() => fetchLessons({
+          cefrLevel: selectedLevel,
+          ageGroup: selectedAge,
+          searchQuery
+        })}
       />
     </div>
   );

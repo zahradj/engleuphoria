@@ -7,10 +7,12 @@ import { StepObjectives } from "./StepObjectives";
 import { StepActivities } from "./StepActivities";
 import { StepPreview } from "./StepPreview";
 import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { useGenerateInteractiveLesson } from "@/hooks/useGenerateInteractiveLesson";
 
 interface LessonCreatorModalProps {
   open: boolean;
   onClose: () => void;
+  onLessonCreated?: () => void;
 }
 
 export interface LessonFormData {
@@ -33,8 +35,9 @@ export interface LessonFormData {
   generatedLesson: any;
 }
 
-export const LessonCreatorModal = ({ open, onClose }: LessonCreatorModalProps) => {
+export const LessonCreatorModal = ({ open, onClose, onLessonCreated }: LessonCreatorModalProps) => {
   const [currentStep, setCurrentStep] = useState(1);
+  const { generateLesson, isGenerating } = useGenerateInteractiveLesson();
   const [formData, setFormData] = useState<LessonFormData>({
     topic: "",
     cefrLevel: "A1",
@@ -74,18 +77,29 @@ export const LessonCreatorModal = ({ open, onClose }: LessonCreatorModalProps) =
     setFormData({ ...formData, isGenerating: true });
     
     try {
-      // TODO: Call edge function to generate lesson
-      // const result = await generateLesson(formData);
-      // setFormData({ ...formData, generatedLesson: result, isGenerating: false });
+      const lesson = await generateLesson({
+        topic: formData.topic,
+        cefrLevel: formData.cefrLevel,
+        ageGroup: formData.ageGroup,
+        duration: formData.duration,
+        vocabularyList: formData.vocabularyList,
+        grammarFocus: formData.grammarFocus,
+        learningObjectives: formData.learningObjectives,
+        selectedActivities: formData.selectedActivities
+      });
       
-      // Mock generation for now
+      setFormData({ 
+        ...formData, 
+        generatedLesson: lesson, 
+        isGenerating: false 
+      });
+
+      // Close modal and refresh library after short delay
       setTimeout(() => {
-        setFormData({ 
-          ...formData, 
-          generatedLesson: { title: "Sample Lesson" }, 
-          isGenerating: false 
-        });
-      }, 3000);
+        onLessonCreated?.();
+        onClose();
+      }, 2000);
+      
     } catch (error) {
       console.error("Failed to generate lesson:", error);
       setFormData({ ...formData, isGenerating: false });
@@ -168,11 +182,11 @@ export const LessonCreatorModal = ({ open, onClose }: LessonCreatorModalProps) =
           ) : (
             <Button
               onClick={handleGenerate}
-              disabled={formData.isGenerating || formData.generatedLesson}
+              disabled={isGenerating || formData.generatedLesson}
               className="bg-gradient-to-r from-primary to-secondary"
             >
               <Sparkles className="mr-2 h-4 w-4" />
-              {formData.isGenerating ? "Generating..." : "Generate Lesson"}
+              {isGenerating ? "Generating..." : "Generate Lesson"}
             </Button>
           )}
         </div>
