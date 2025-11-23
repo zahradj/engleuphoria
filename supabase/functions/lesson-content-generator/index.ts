@@ -46,7 +46,7 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'google/gemini-2.5-flash', // Fast, efficient model for lesson generation
+            model: 'google/gemini-2.5-pro', // More reliable for complex structured output
             messages: [
               {
                 role: 'user',
