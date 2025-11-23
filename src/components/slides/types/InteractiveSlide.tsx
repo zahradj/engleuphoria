@@ -6,6 +6,8 @@ import { useToast } from '@/hooks/use-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import { soundEffectsService } from '@/services/soundEffectsService';
 import { ConfettiEffect } from '@/components/gamification/ConfettiEffect';
+import { DragDropActivity } from '../activities/DragDropActivity';
+import { MatchingPairsActivity } from '../activities/MatchingPairsActivity';
 
 interface InteractiveSlideProps {
   slide: any;
@@ -18,6 +20,45 @@ export function InteractiveSlide({ slide, slideNumber, onNext }: InteractiveSlid
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+
+  // Detect activity type and render specialized component
+  if (slide.type === 'drag_drop' || slide.activityType === 'match_words_images') {
+    return (
+      <Card className="border-2 border-purple-500/20 shadow-xl backdrop-blur-sm">
+        <CardHeader className="bg-gradient-to-r from-purple-500/10 to-pink-500/10">
+          <div className="flex items-center gap-2 mb-2">
+            <Gamepad2 className="h-5 w-5 text-purple-500" />
+            <div className="text-xs text-muted-foreground font-medium">Slide {slideNumber} • 🎮 Drag & Drop</div>
+          </div>
+          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            {slide.prompt || 'Drag and Drop Activity'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-8">
+          <DragDropActivity slide={slide} onNext={onNext} />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (slide.type === 'matching_pairs' || slide.activityType === 'memory_game') {
+    return (
+      <Card className="border-2 border-purple-500/20 shadow-xl backdrop-blur-sm">
+        <CardHeader className="bg-gradient-to-r from-purple-500/10 to-pink-500/10">
+          <div className="flex items-center gap-2 mb-2">
+            <Gamepad2 className="h-5 w-5 text-purple-500" />
+            <div className="text-xs text-muted-foreground font-medium">Slide {slideNumber} • 🎮 Memory Game</div>
+          </div>
+          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+            {slide.prompt || 'Match the Pairs'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-8">
+          <MatchingPairsActivity slide={slide} onNext={onNext} />
+        </CardContent>
+      </Card>
+    );
+  }
 
   const handleCheck = () => {
     setShowResults(true);

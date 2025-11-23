@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Volume2, BookOpen, CheckCircle2, Sparkles, Lightbulb } from 'lucide-react';
+import { Volume2, BookOpen, CheckCircle2, Sparkles, Lightbulb, XCircle } from 'lucide-react';
 import { useLessonAssets } from '@/hooks/useLessonAssets';
 import { soundEffectsService } from '@/services/soundEffectsService';
 import { ImageLoader } from '../ImageLoader';
@@ -15,6 +16,8 @@ interface GrammarSlideProps {
 export function GrammarSlide({ slide, slideNumber, onNext }: GrammarSlideProps) {
   const [playingAudio, setPlayingAudio] = useState<string | null>(null);
   const [selectedExample, setSelectedExample] = useState<number | null>(null);
+  const [exerciseAnswers, setExerciseAnswers] = useState<Record<number, any>>({});
+  const [checkedExercises, setCheckedExercises] = useState<Set<number>>(new Set());
   const { generateAudio, generateImage } = useLessonAssets();
 
   const handlePlayExample = async (exampleText: string) => {
@@ -34,6 +37,24 @@ export function GrammarSlide({ slide, slideNumber, onNext }: GrammarSlideProps) 
   const handleExampleClick = (index: number) => {
     soundEffectsService.playButtonClick();
     setSelectedExample(selectedExample === index ? null : index);
+  };
+
+  const handleExerciseAnswer = (exerciseIndex: number, answer: any) => {
+    soundEffectsService.playButtonClick();
+    setExerciseAnswers({ ...exerciseAnswers, [exerciseIndex]: answer });
+  };
+
+  const handleCheckExercise = (exerciseIndex: number, exercise: any) => {
+    const userAnswer = exerciseAnswers[exerciseIndex];
+    const isCorrect = userAnswer === exercise.correctAnswer || userAnswer === exercise.correctAnswer.toString();
+    
+    if (isCorrect) {
+      soundEffectsService.playCorrect();
+    } else {
+      soundEffectsService.playIncorrect();
+    }
+    
+    setCheckedExercises(new Set(checkedExercises).add(exerciseIndex));
   };
 
   return (
@@ -234,18 +255,150 @@ export function GrammarSlide({ slide, slideNumber, onNext }: GrammarSlideProps) 
           </motion.div>
         )}
 
+        {/* Interactive Exercises */}
+        {slide.exercises && Array.isArray(slide.exercises) && slide.exercises.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            className="space-y-4"
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">✏️</span>
+              <h4 className="text-xl font-bold text-foreground">Practice Exercises:</h4>
+            </div>
+
+            {slide.exercises.map((exercise: any, exIndex: number) => {
+              const userAnswer = exerciseAnswers[exIndex];
+              const isChecked = checkedExercises.has(exIndex);
+              const isCorrect = isChecked && (userAnswer === exercise.correctAnswer || userAnswer === exercise.correctAnswer.toString());
+
+              return (
+                <motion.div
+                  key={exIndex}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.8 + exIndex * 0.1 }}
+                  className={`p-5 rounded-xl border-2 ${
+                    isChecked
+                      ? isCorrect
+                        ? 'border-green-500 bg-green-50 dark:bg-green-950/30'
+                        : 'border-red-500 bg-red-50 dark:bg-red-950/30'
+                      : 'border-border bg-card'
+                  }`}
+                >
+                  <div className="space-y-3">
+                    {/* Question */}
+                    <div className="flex items-start gap-2">
+                      <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
+                        {exIndex + 1}
+                      </span>
+                      <div className="flex-1">
+                        {exercise.type === 'fill_blank' && (
+                          <p className="text-lg font-medium">{exercise.sentence}</p>
+                        )}
+                        {exercise.type === 'multiple_choice' && (
+                          <p className="text-lg font-medium">{exercise.question}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Options */}
+                    {exercise.options && Array.isArray(exercise.options) && (
+                      <div className="space-y-2 ml-9">
+                        {exercise.options.map((option: any, optIndex: number) => {
+                          const optionValue = typeof option === 'string' ? option : option.text || option;
+                          const isSelected = userAnswer === optionValue || userAnswer === optIndex;
+                          
+                          return (
+                            <motion.button
+                              key={optIndex}
+                              whileHover={!isChecked ? { scale: 1.02 } : {}}
+                              whileTap={!isChecked ? { scale: 0.98 } : {}}
+                              onClick={() => !isChecked && handleExerciseAnswer(exIndex, optionValue)}
+                              disabled={isChecked}
+                              className={`w-full p-3 rounded-lg border-2 text-left transition-all ${
+                                isSelected
+                                  ? isChecked
+                                    ? isCorrect
+                                      ? 'border-green-500 bg-green-100 dark:bg-green-900/50'
+                                      : 'border-red-500 bg-red-100 dark:bg-red-900/50'
+                                    : 'border-primary bg-primary/10'
+                                  : 'border-border hover:border-primary/50'
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <span className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                                  isSelected ? 'border-primary bg-primary text-primary-foreground' : 'border-muted-foreground'
+                                }`}>
+                                  {isSelected && (isChecked ? (isCorrect ? '✓' : '✗') : '●')}
+                                </span>
+                                <span>{optionValue}</span>
+                              </div>
+                            </motion.button>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Check/Feedback */}
+                    {userAnswer && !isChecked && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="ml-9"
+                      >
+                        <Button
+                          size="sm"
+                          onClick={() => handleCheckExercise(exIndex, exercise)}
+                          className="bg-primary"
+                        >
+                          Check Answer
+                        </Button>
+                      </motion.div>
+                    )}
+
+                    {isChecked && exercise.feedback && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className={`ml-9 p-3 rounded-lg ${
+                          isCorrect 
+                            ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200' 
+                            : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
+                        }`}
+                      >
+                        <div className="flex items-start gap-2">
+                          {isCorrect ? (
+                            <CheckCircle2 className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                          ) : (
+                            <XCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                          )}
+                          <p className="text-sm">{exercise.feedback}</p>
+                        </div>
+                      </motion.div>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        )}
+
         {/* Practice Prompt */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-          className="p-5 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 rounded-xl border-2 border-green-200 dark:border-green-800"
-        >
-          <p className="text-lg font-semibold mb-2 text-foreground">🎯 Your Turn!</p>
-          <p className="text-sm text-muted-foreground">
-            Practice the pattern with your teacher. Take your time and don't worry about mistakes!
-          </p>
-        </motion.div>
+        {(!slide.exercises || slide.exercises.length === 0) && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            className="p-5 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 rounded-xl border-2 border-green-200 dark:border-green-800"
+          >
+            <p className="text-lg font-semibold mb-2 text-foreground">🎯 Your Turn!</p>
+            <p className="text-sm text-muted-foreground">
+              Practice the pattern with your teacher. Take your time and don't worry about mistakes!
+            </p>
+          </motion.div>
+        )}
 
         {/* Continue Button */}
         {onNext && (
