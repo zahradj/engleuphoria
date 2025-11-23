@@ -249,13 +249,13 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
       setResetLoading(false);
     }
   };
-  const gradientClass = 'from-primary/80 via-primary/70 to-accent/80';
+  const gradientClass = 'from-[#dfc7cc]/80 via-[#d4b5bd]/70 to-[#c7a8b3]/80';
   const backgroundGradient = 'from-primary/10 via-primary/5 to-accent/10';
-  return <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-blue-50/40 via-purple-50/40 to-pink-50/40">
+  return <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-rose-50/30 via-[#f0e4e8]/40 to-rose-100/30">
       {/* Playful background decorations */}
       <div className="absolute inset-0">
         {/* Large floating orbs */}
-        <div className="absolute top-20 left-20 w-80 h-80 bg-gradient-to-r from-purple-300/15 to-pink-300/15 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
+        <div className="absolute top-20 left-20 w-80 h-80 bg-gradient-to-r from-[#ead9de]/15 to-rose-300/15 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
         <div className="absolute top-40 right-20 w-72 h-72 bg-gradient-to-r from-blue-300/15 to-cyan-300/15 rounded-full mix-blend-multiply filter blur-2xl animate-float-delayed"></div>
         <div className="absolute -bottom-8 left-20 w-96 h-96 bg-gradient-to-r from-emerald-300/10 to-teal-300/10 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
         
@@ -273,7 +273,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
         <div className="absolute top-[10%] right-[35%] w-10 h-13 bg-gradient-to-b from-green-400/30 to-green-500/30 rounded-full animate-bounce delay-300 shadow-md">
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-400/30"></div>
         </div>
-        <div className="absolute top-[10%] right-[20%] w-13 h-16 bg-gradient-to-b from-purple-400/30 to-purple-500/30 rounded-full animate-float-slow shadow-md">
+        <div className="absolute top-[10%] right-[20%] w-13 h-16 bg-gradient-to-b from-[#d4b5bd]/30 to-[#c7a8b3]/30 rounded-full animate-float-slow shadow-md">
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-5 bg-gray-400/30"></div>
         </div>
         <div className="absolute top-[10%] right-[5%] w-11 h-14 bg-gradient-to-b from-pink-400/30 to-pink-500/30 rounded-full animate-bounce delay-700 shadow-md">
@@ -287,13 +287,13 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
         <div className="absolute top-[50%] left-[20%] w-9 h-12 bg-gradient-to-b from-teal-400/30 to-teal-500/30 rounded-full animate-bounce delay-500 shadow-md">
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-3 bg-gray-400/30"></div>
         </div>
-        <div className="absolute top-[50%] left-[35%] w-15 h-19 bg-gradient-to-b from-indigo-400/30 to-indigo-500/30 rounded-full animate-float-slow shadow-md">
+        <div className="absolute top-[50%] left-[35%] w-15 h-19 bg-gradient-to-b from-[#dfc7cc]/30 to-[#d4b5bd]/30 rounded-full animate-float-slow shadow-md">
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-6 bg-gray-400/30"></div>
         </div>
         <div className="absolute top-[50%] right-[35%] w-12 h-15 bg-gradient-to-b from-cyan-400/30 to-cyan-500/30 rounded-full animate-bounce delay-200 shadow-md">
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-5 bg-gray-400/30"></div>
         </div>
-        <div className="absolute top-[50%] right-[20%] w-17 h-21 bg-gradient-to-b from-violet-400/30 to-violet-500/30 rounded-full animate-float-delayed shadow-md">
+        <div className="absolute top-[50%] right-[20%] w-17 h-21 bg-gradient-to-b from-[#ead9de]/30 to-[#dfc7cc]/30 rounded-full animate-float-delayed shadow-md">
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-7 bg-gray-400/30"></div>
         </div>
         <div className="absolute top-[50%] right-[5%] w-8 h-11 bg-gradient-to-b from-rose-400/30 to-rose-500/30 rounded-full animate-bounce delay-800 shadow-md">
@@ -310,7 +310,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
         <div className="absolute bottom-[10%] left-[35%] w-10 h-13 bg-gradient-to-b from-emerald-400/30 to-emerald-500/30 rounded-full animate-float-delayed shadow-md">
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-400/30"></div>
         </div>
-        <div className="absolute bottom-[10%] right-[35%] w-16 h-19 bg-gradient-to-b from-fuchsia-400/30 to-fuchsia-500/30 rounded-full animate-bounce delay-600 shadow-md">
+        <div className="absolute bottom-[10%] right-[35%] w-16 h-19 bg-gradient-to-b from-rose-400/30 to-rose-500/30 rounded-full animate-bounce delay-600 shadow-md">
           <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-6 bg-gray-400/30"></div>
         </div>
         <div className="absolute bottom-[10%] right-[20%] w-13 h-16 bg-gradient-to-b from-sky-400/30 to-sky-500/30 rounded-full animate-float-slow shadow-md">
@@ -324,7 +324,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
         <div className="absolute top-1/4 left-1/4 w-3 h-3 bg-yellow-400/30 rounded-full animate-bounce shadow-sm"></div>
         <div className="absolute top-3/4 right-1/4 w-2 h-2 bg-pink-400/35 rounded-full animate-bounce delay-300 shadow-sm"></div>
         <div className="absolute top-1/2 left-3/4 w-2.5 h-2.5 bg-blue-400/30 rounded-full animate-bounce delay-700 shadow-sm"></div>
-        <div className="absolute top-1/6 right-1/3 w-1.5 h-1.5 bg-purple-400/40 rounded-full animate-bounce delay-1000"></div>
+        <div className="absolute top-1/6 right-1/3 w-1.5 h-1.5 bg-[#dfc7cc]/40 rounded-full animate-bounce delay-1000"></div>
         <div className="absolute bottom-1/4 left-1/3 w-3 h-3 bg-emerald-400/30 rounded-full animate-bounce delay-500 shadow-sm"></div>
         
         {/* Subtle gradient overlay */}
@@ -334,7 +334,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
       <div className="relative z-10 container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
         {/* Return Home Tab */}
         <div className="absolute top-6 left-6">
-          <Button variant="outline" onClick={() => navigate('/')} className="bg-surface/90 backdrop-blur-sm border-2 border-primary/30 text-primary hover:bg-primary hover:border-primary hover:text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl px-8 py-3 font-semibold text-base">
+          <Button variant="outline" onClick={() => navigate('/')} className="bg-surface/90 backdrop-blur-sm border-2 border-[#dfc7cc]/30 text-[#c7a8b3] hover:bg-[#dfc7cc] hover:border-[#c7a8b3] hover:text-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl px-8 py-3 font-semibold text-base">
             <span className="mr-2 text-2xl">🏠</span>
             Return Home
           </Button>
@@ -343,17 +343,17 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
         <div className="w-full max-w-md">
           
 
-          <Card className="relative bg-surface/95 backdrop-blur-xl border-2 border-primary/20 shadow-xl overflow-hidden rounded-3xl">
+          <Card className="relative bg-surface/95 backdrop-blur-xl border-2 border-[#ead9de]/40 shadow-xl overflow-hidden rounded-3xl">
             {/* Glowing border effect */}
             <div className={`absolute -inset-2 bg-gradient-to-r ${gradientClass} rounded-3xl blur-lg opacity-20 animate-pulse`}></div>
             
             <div className="relative bg-surface/98 backdrop-blur-xl rounded-3xl shadow-inner">
-              <CardHeader className="text-center pb-8 pt-10 bg-gradient-to-b from-primary/10 to-surface/50">
+              <CardHeader className="text-center pb-8 pt-10 bg-gradient-to-b from-[#f0e4e8]/10 to-surface/50">
                 {/* Fun floating icon */}
                 <div className="flex justify-center mb-8">
                   <div className={`relative w-24 h-24 rounded-full bg-gradient-to-r ${gradientClass} flex items-center justify-center shadow-lg hover:scale-110 transition-transform duration-300 animate-bounce`}>
                     <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/30 to-transparent"></div>
-                    <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-yellow-400/30 to-pink-400/30 blur-xl animate-pulse"></div>
+                    <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-rose-200/30 to-[#ead9de]/30 blur-xl animate-pulse"></div>
                     {mode === 'login' ? <img src="/lovable-uploads/349cfbe2-60a4-4dcc-a3b6-c410c4da02f3.png" alt="Logo" className="h-16 w-16 relative z-10 object-contain" /> : formData.role === 'teacher' ? <GraduationCap className="h-12 w-12 text-white relative z-10 drop-shadow-lg" /> : <img src="/lovable-uploads/349cfbe2-60a4-4dcc-a3b6-c410c4da02f3.png" alt="Logo" className="h-16 w-16 relative z-10 object-contain" />}
                   </div>
                 </div>
@@ -378,7 +378,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
                       </label>
                     <div className="relative group">
                       <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-600 group-focus-within:text-slate-800 transition-colors" />
-                        <Input id="fullName" value={formData.fullName} onChange={e => handleInputChange('fullName', e.target.value)} placeholder="Enter your full name" disabled={loading} required className="h-14 pl-12 bg-white/50 border-purple-200/60 text-slate-700 placeholder:text-slate-500 focus:bg-white/70 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all duration-300 rounded-xl shadow-sm hover:shadow-md" />
+                        <Input id="fullName" value={formData.fullName} onChange={e => handleInputChange('fullName', e.target.value)} placeholder="Enter your full name" disabled={loading} required className="h-14 pl-12 bg-white/50 border-[#ead9de]/60 text-slate-700 placeholder:text-slate-500 focus:bg-white/70 focus:border-[#dfc7cc] focus:ring-2 focus:ring-[#f0e4e8] transition-all duration-300 rounded-xl shadow-sm hover:shadow-md" />
                       </div>
                     </div>}
 
@@ -388,7 +388,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
                     </label>
                   <div className="relative group">
                     <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-600 group-focus-within:text-slate-800 transition-colors" />
-                      <Input id="email" type="email" value={formData.email} onChange={e => handleInputChange('email', e.target.value)} placeholder="your.email@example.com" disabled={loading} required className={`h-14 pl-12 bg-white/50 border-purple-200/60 text-slate-700 placeholder:text-slate-500 focus:bg-white/70 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all duration-300 rounded-xl shadow-sm hover:shadow-md ${emailError ? 'border-red-400/80 focus:border-red-400' : ''}`} />
+                      <Input id="email" type="email" value={formData.email} onChange={e => handleInputChange('email', e.target.value)} placeholder="your.email@example.com" disabled={loading} required className={`h-14 pl-12 bg-white/50 border-[#ead9de]/60 text-slate-700 placeholder:text-slate-500 focus:bg-white/70 focus:border-[#dfc7cc] focus:ring-2 focus:ring-[#f0e4e8] transition-all duration-300 rounded-xl shadow-sm hover:shadow-md ${emailError ? 'border-red-400/80 focus:border-red-400' : ''}`} />
                     </div>
                     {emailError && <p className="text-sm text-red-700 animate-fade-in">{emailError}</p>}
                   </div>
@@ -397,7 +397,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
                       <label htmlFor="role" className="text-sm font-medium text-slate-800">
                         I am a...
                       </label>
-                      <select id="role" value={formData.role} onChange={e => handleInputChange('role', e.target.value as 'student' | 'teacher' | 'admin')} className="w-full h-14 px-4 bg-white/50 border border-purple-200/60 text-slate-700 rounded-xl focus:bg-white/70 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all duration-300 shadow-sm hover:shadow-md" disabled={loading}>
+                      <select id="role" value={formData.role} onChange={e => handleInputChange('role', e.target.value as 'student' | 'teacher' | 'admin')} className="w-full h-14 px-4 bg-white/50 border border-[#ead9de]/60 text-slate-700 rounded-xl focus:bg-white/70 focus:border-[#dfc7cc] focus:ring-2 focus:ring-[#f0e4e8] transition-all duration-300 shadow-sm hover:shadow-md" disabled={loading}>
                         <option value="student" className="bg-white text-slate-800">Student - Learn & Grow</option>
                         <option value="teacher" className="bg-white text-slate-800">Teacher - Inspire & Educate</option>
                       </select>
@@ -409,16 +409,16 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
                     </label>
                     <div className="relative group">
                     <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-600 group-focus-within:text-slate-800 transition-colors" />
-                      <Input id="password" type={showPassword ? "text" : "password"} value={formData.password} onChange={e => handleInputChange('password', e.target.value)} placeholder={mode === 'login' ? "Enter your password" : "Create a secure password"} disabled={loading} required className="h-14 pl-12 pr-12 bg-white/50 border-purple-200/60 text-slate-700 placeholder:text-slate-500 focus:bg-white/70 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all duration-300 rounded-xl shadow-sm hover:shadow-md" />
-                      <Button type="button" variant="ghost" size="sm" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 transform -translate-y-1/2 h-10 w-10 p-0 text-slate-500 hover:text-purple-600 hover:bg-purple-100/50 rounded-lg transition-all duration-200" disabled={loading}>
+                      <Input id="password" type={showPassword ? "text" : "password"} value={formData.password} onChange={e => handleInputChange('password', e.target.value)} placeholder={mode === 'login' ? "Enter your password" : "Create a secure password"} disabled={loading} required className="h-14 pl-12 pr-12 bg-white/50 border-[#ead9de]/60 text-slate-700 placeholder:text-slate-500 focus:bg-white/70 focus:border-[#dfc7cc] focus:ring-2 focus:ring-[#f0e4e8] transition-all duration-300 rounded-xl shadow-sm hover:shadow-md" />
+                      <Button type="button" variant="ghost" size="sm" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 transform -translate-y-1/2 h-10 w-10 p-0 text-slate-500 hover:text-[#c7a8b3] hover:bg-[#f0e4e8]/50 rounded-lg transition-all duration-200" disabled={loading}>
                         {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                       </Button>
                     </div>
                     
-                    {mode === 'signup' && formData.password && <div className="mt-4 p-4 bg-gradient-to-r from-purple-50/80 to-pink-50/80 rounded-xl backdrop-blur-sm border border-purple-200/40 shadow-sm">
+                    {mode === 'signup' && formData.password && <div className="mt-4 p-4 bg-gradient-to-r from-[#f0e4e8]/80 to-rose-50/80 rounded-xl backdrop-blur-sm border border-[#ead9de]/40 shadow-sm">
                         <div className="flex items-center justify-between mb-3">
                           <span className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                            <Shield className="h-4 w-4 text-purple-500" />
+                            <Shield className="h-4 w-4 text-[#c7a8b3]" />
                             Password Strength
                           </span>
                           <span className={`text-sm font-bold px-2 py-1 rounded-full ${getPasswordStrength() >= 3 ? 'bg-green-100 text-green-700' : getPasswordStrength() >= 2 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
@@ -455,7 +455,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
                       </div>
                     </div>}
 
-                  <Button type="submit" className={`w-full h-12 text-base font-semibold bg-gradient-to-r ${gradientClass} hover:shadow-lg hover:shadow-purple-500/25 transform hover:scale-105 transition-all duration-200 text-white border-0 relative overflow-hidden group`} disabled={loading}>
+                  <Button type="submit" className={`w-full h-12 text-base font-semibold bg-gradient-to-r ${gradientClass} hover:shadow-lg hover:shadow-[#dfc7cc]/25 transform hover:scale-105 transition-all duration-200 text-white border-0 relative overflow-hidden group`} disabled={loading}>
                     <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
                     {loading ? <>
                         <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -518,7 +518,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
       {showForgotPassword && <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <Card className="w-full max-w-md bg-white/95 backdrop-blur-xl border-0 shadow-2xl rounded-2xl">
             <CardHeader className="text-center pb-6">
-              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-[#c7a8b3] to-[#d4b5bd] bg-clip-text text-transparent">
                 Reset Password
               </CardTitle>
               <CardDescription className="text-slate-600">
@@ -545,7 +545,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
               }} disabled={resetLoading} className="flex-1 bg-white/20 border-slate-400/50 text-slate-700 hover:bg-white/30">
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={resetLoading} className="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 hover:shadow-lg hover:shadow-purple-500/25 text-white border-0">
+                  <Button type="submit" disabled={resetLoading} className="flex-1 bg-gradient-to-r from-[#c7a8b3] to-[#d4b5bd] hover:shadow-lg hover:shadow-[#dfc7cc]/25 text-white border-0">
                     {resetLoading ? <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         Sending...
