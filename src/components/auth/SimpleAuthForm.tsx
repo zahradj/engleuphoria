@@ -397,7 +397,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
                       <label htmlFor="role" className="text-sm font-medium text-slate-800">
                         I am a...
                       </label>
-                      <select id="role" value={formData.role} onChange={e => handleInputChange('role', e.target.value as 'student' | 'teacher' | 'admin')} className="w-full h-14 px-4 bg-white/50 border border-purple-200/60 text-slate-700 rounded-xl focus:bg-white/70 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all duration-300 shadow-sm hover:shadow-md" disabled={loading}>
+                      <select id="role" value={formData.role} onChange={e => handleInputChange('role', e.target.value as 'student' | 'teacher' | 'admin')} className="w-full h-14 px-4 bg-[#dfc7cc] border border-purple-200/60 text-slate-700 rounded-xl focus:bg-[#dfc7cc]/90 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all duration-300 shadow-sm hover:shadow-md" disabled={loading}>
                         <option value="student" className="bg-white text-slate-800">Student - Learn & Grow</option>
                         <option value="teacher" className="bg-white text-slate-800">Teacher - Inspire & Educate</option>
                       </select>
