@@ -25,7 +25,7 @@ export function useECATemplates() {
         query = query.eq('cefr_level', filters.cefrLevel);
       }
       
-      const { data, error } = await query.order('use_count', { ascending: false });
+      const { data, error } = await query.order('usage_count', { ascending: false });
       
       if (error) throw error;
       
@@ -37,7 +37,7 @@ export function useECATemplates() {
         cefrLevel: item.cefr_level as CEFRLevel,
         description: item.description,
         templateStructure: item.template_structure,
-        useCount: item.use_count,
+        useCount: item.usage_count,
         createdAt: new Date(item.created_at)
       }));
       
@@ -57,7 +57,7 @@ export function useECATemplates() {
       if (template) {
         await supabase
           .from('eca_templates')
-          .update({ use_count: template.useCount + 1 })
+          .update({ usage_count: template.useCount + 1 })
           .eq('id', templateId);
       }
     } catch (error) {
