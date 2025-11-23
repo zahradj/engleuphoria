@@ -8,6 +8,8 @@ import { ControlledPracticeSlide } from './types/ControlledPracticeSlide';
 import { DefaultSlide } from './types/DefaultSlide';
 import { SlideTheme } from './SlideTheme';
 import { motion } from 'framer-motion';
+import { SpinningWheelActivity } from './activities/SpinningWheelActivity';
+import { SortingGame } from './activities/SortingGame';
 
 interface SlideRendererProps {
   slide: any;
@@ -73,6 +75,14 @@ export function SlideRenderer({ slide, slideNumber, onNext }: SlideRendererProps
       case 'controlled_practice':
       case 'point_and_say':
         return <ControlledPracticeSlide slide={slide} slideNumber={slideNumber} onNext={onNext} />;
+      
+      case 'spinning_wheel':
+      case 'spin':
+        return <SpinningWheelActivity slide={slide} slideNumber={slideNumber} onNext={onNext} />;
+      
+      case 'sorting':
+      case 'sort':
+        return <SortingGame slide={slide} slideNumber={slideNumber} onNext={onNext} />;
       
       default:
         return <DefaultSlide slide={slide} slideNumber={slideNumber} onNext={onNext} />;

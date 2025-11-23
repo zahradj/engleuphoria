@@ -1,26 +1,41 @@
-// Detailed AI prompt templates for rich interactive lesson content
+// Detailed AI prompt templates for NovaKid-style interactive lesson content
 
 export const DETAILED_LESSON_PROMPT = `
-You are an expert ESL curriculum designer creating classroom-ready lessons with COMPLETE, DETAILED content.
+You are an expert ESL curriculum designer creating NovaKid-style professional lessons with COMPLETE, DETAILED content.
 
-Create exactly 22-25 slides with this EXACT distribution:
-- 1 Title slide
-- 2 Warmup slides (engaging questions with visuals)
-- 4 Vocabulary slides (10 total words with FULL details)
-- 4 Grammar slides (2 grammar points, each with examples + exercises)
-- 3 Listening comprehension slides
-- 4-5 Interactive game slides (drag-drop, matching, quizzes)
-- 2 Controlled practice slides
-- 2 Speaking practice slides (role-play scenarios)
-- 1 Review consolidation slide
+CHARACTER CONSISTENCY:
+Use these character names consistently throughout the lesson: Otis, Alice, Max, Lily, Marco, Ruby, Philip, Ann, Mark, Jacob
+
+SLIDE STRUCTURE - Generate exactly 15-18 slides with this distribution:
+
+1. Title Slide (1 slide)
+2. Warmup Discussion (1 slide) - 3-4 open-ended questions with emoji reactions
+3. Vocabulary Introduction (2 slides) - 8-12 words with images and emoji reactions
+4. Vocabulary Games (2-3 slides):
+   - Speed challenge ("How fast can you name them all?")
+   - Sorting activity (categorize items)
+   - Speaking practice
+5. Grammar Introduction (1 slide) - Visual explanation with real examples
+6. Grammar Practice (2-3 slides):
+   - Fill-in-the-blank exercises
+   - Sentence builder
+7. Interactive Game (1-2 slides):
+   - Spinning wheel activity
+   - Story builder
+   - Grid selection
+8. Speaking Practice (1 slide) - Scaffolded prompts with character examples
+9. Review (1 slide) - Mixed exercises
 
 CRITICAL REQUIREMENTS:
-✓ NO PLACEHOLDERS - Every field must have real, complete content
-✓ All vocabulary words MUST include: word, IPA pronunciation, part of speech, definition, 3 example sentences, detailed image prompt, related words
-✓ All grammar slides MUST include: pattern, rule, 5-6 examples, 4 practice exercises with feedback
-✓ All interactive activities MUST include: complete data for games (items, correct answers, feedback)
-✓ All image prompts MUST be at least 25 words and highly detailed
-✓ All exercises MUST have correct answers and feedback messages
+- Use character names (Otis, Alice, Max, Lily, Marco, Ruby, Philip, Ann, Mark, Jacob) consistently
+- Include real-world references appropriate to the topic and age group
+- All vocabulary words MUST have imagePrompts AND emoji reactions (😊😱😴🤩😂😨)
+- All speaking activities MUST have audioTexts
+- Spinning wheel slides MUST include wheelSegments array with 6-8 segments
+- Sorting slides MUST include items array and categories array
+- All interactive activities MUST have complete game data
+- Total word count across all prompts: 600-900 words
+- Each slide prompt should be 40-70 words
 
 Return ONLY valid JSON with this structure:
 
@@ -33,292 +48,117 @@ Return ONLY valid JSON with this structure:
   "learning_objectives": ["objective 1", "objective 2", "objective 3"],
   "vocabulary_focus": ["word1", "word2", "word3"],
   "grammar_focus": ["grammar point 1", "grammar point 2"],
-  "duration_minutes": 60,
+  "duration_minutes": 30,
   "slides": [
     // Title Slide
     {
       "id": "slide-1",
       "type": "warmup",
-      "prompt": "Engaging lesson title",
-      "instructions": "Welcome message and lesson overview",
-      "media": {
-        "type": "image",
-        "imagePrompt": "Colorful, engaging illustration showing the lesson topic, cartoon style, educational, child-friendly, bright colors, clear focal point",
-        "alt": "Lesson introduction image"
-      }
+      "prompt": "Welcome to [Topic]!",
+      "instructions": "Today we'll learn about [topic]. Get ready for fun!",
+      "imagePrompt": "Colorful, engaging illustration showing the lesson topic, cartoon style, educational, child-friendly, bright colors"
     },
     
-    // Vocabulary Slides (4 slides with detailed words)
+    // Warmup Discussion Slide
+    {
+      "id": "slide-2",
+      "type": "warmup",
+      "prompt": "Let's Talk About [Topic]!",
+      "instructions": "Look at the pictures and answer the questions.",
+      "questions": [
+        "What do you see in the picture? 🤔",
+        "Do you like [topic]? Why? 😊",
+        "Tell me about your favorite [related item]! 🌟",
+        "Have you ever [related experience]? 🎉"
+      ],
+      "imagePrompt": "Bright, colorful illustration related to the topic with multiple elements to discuss"
+    },
+    
+    // Vocabulary Slides (2 slides with 4-6 words each)
     {
       "id": "slide-vocab-1",
-      "type": "vocabulary_preview",
-      "prompt": "New Vocabulary - Family Members",
-      "instructions": "Learn these new words. Click on each card to hear the pronunciation.",
+      "type": "vocabulary",
+      "prompt": "New Words - Part 1",
+      "instructions": "Let's learn some new words! Click each word to hear it.",
       "words": [
         {
-          "word": "mother",
-          "pronunciation": "/ˈmʌð.ɚ/",
-          "partOfSpeech": "noun",
-          "definition": "A woman who has a child",
-          "examples": [
-            "This is my mother.",
-            "My mother cooks delicious food.",
-            "I love my mother very much."
-          ],
-          "imagePrompt": "Warm, friendly cartoon illustration of a smiling mother with her child, wearing casual clothes, bright colors, educational style for children aged 6-10, simple shapes, clear facial features",
-          "relatedWords": ["mom", "mama", "parent", "mommy"]
-        },
-        {
-          "word": "father",
-          "pronunciation": "/ˈfɑː.ðɚ/",
-          "partOfSpeech": "noun",
-          "definition": "A man who has a child",
-          "examples": [
-            "This is my father.",
-            "My father goes to work every day.",
-            "I help my father wash the car."
-          ],
-          "imagePrompt": "Friendly cartoon illustration of a father figure with his child, wearing a shirt and casual pants, warm expression, educational style for children, bright colors, simple design",
-          "relatedWords": ["dad", "papa", "parent", "daddy"]
+          "word": "example",
+          "pronunciation": "/ɪɡˈzæm.pəl/",
+          "definition": "Short, simple definition",
+          "example": "Max likes to eat apples. 🍎",
+          "imagePrompt": "Clear, simple illustration of the word concept, cartoon style, bright colors",
+          "emoji": "😊"
         }
       ]
     },
     
-    // Grammar Slides (4 slides with exercises)
+    // Sorting Activity
+    {
+      "id": "slide-sort-1",
+      "type": "sorting",
+      "prompt": "Sort the Items!",
+      "instructions": "Drag each item to the correct box. Which category does it belong to?",
+      "categories": [
+        { "id": "cat-1", "name": "Category 1", "color": "#FF6B6B" },
+        { "id": "cat-2", "name": "Category 2", "color": "#4ECDC4" }
+      ],
+      "items": [
+        { "id": "item-1", "text": "apple", "category": "cat-1", "emoji": "🍎" },
+        { "id": "item-2", "text": "carrot", "category": "cat-2", "emoji": "🥕" }
+      ]
+    },
+    
+    // Spinning Wheel Activity
+    {
+      "id": "slide-wheel-1",
+      "type": "spinning_wheel",
+      "prompt": "Spin the Wheel!",
+      "instructions": "Click the button to spin! Answer the question you land on.",
+      "wheelSegments": [
+        { "id": "seg-1", "text": "What's your favorite food?", "color": "#FF6B6B" },
+        { "id": "seg-2", "text": "Describe Lily's pet", "color": "#4ECDC4" },
+        { "id": "seg-3", "text": "Tell us about Max's family", "color": "#45B7D1" },
+        { "id": "seg-4", "text": "What does Alice like to do?", "color": "#96CEB4" },
+        { "id": "seg-5", "text": "Where does Otis live?", "color": "#FFEAA7" },
+        { "id": "seg-6", "text": "What's Ruby's favorite color?", "color": "#DDA0DD" }
+      ]
+    },
+    
+    // Grammar Introduction
     {
       "id": "slide-grammar-1",
-      "type": "grammar_focus",
-      "prompt": "Grammar Focus: This is / These are",
-      "instructions": "We use 'This is' for one thing. We use 'These are' for more than one thing.",
-      "pattern": "This is + singular / These are + plural",
-      "rule": "Use 'This is' when talking about ONE person or thing. Use 'These are' when talking about TWO OR MORE people or things.",
+      "type": "grammar",
+      "prompt": "Grammar: [Pattern Name]",
+      "instructions": "Learn this important grammar pattern!",
+      "pattern": "Subject + verb + object",
+      "rule": "Clear, simple explanation of the grammar rule",
       "examples": [
-        {
-          "sentence": "This is my book.",
-          "highlight": ["This is"],
-          "explanation": "One book → This is"
-        },
-        {
-          "sentence": "These are my books.",
-          "highlight": ["These are"],
-          "explanation": "More than one book → These are"
-        },
-        {
-          "sentence": "This is my mother.",
-          "highlight": ["This is"],
-          "explanation": "One person → This is"
-        },
-        {
-          "sentence": "These are my parents.",
-          "highlight": ["These are"],
-          "explanation": "Two people → These are"
-        }
+        { "sentence": "Otis likes apples.", "highlight": ["likes"], "translation": "Translation if needed" },
+        { "sentence": "Alice plays soccer.", "highlight": ["plays"] }
       ],
       "exercises": [
         {
           "type": "fill_blank",
-          "sentence": "___ my pencil.",
-          "options": ["This is", "These are"],
-          "correctAnswer": "This is",
-          "feedback": "Perfect! 'This is' is correct because we have ONE pencil. Great job! 🎉"
-        },
-        {
-          "type": "fill_blank",
-          "sentence": "___ my friends.",
-          "options": ["This is", "These are"],
-          "correctAnswer": "These are",
-          "feedback": "Excellent! 'These are' is correct because we have MORE THAN ONE friend. Well done! ⭐"
-        },
-        {
-          "type": "multiple_choice",
-          "question": "Which sentence is CORRECT?",
-          "options": [
-            "This is my shoes.",
-            "These are my shoes.",
-            "This are my shoes.",
-            "These is my shoes."
-          ],
-          "correctAnswer": 1,
-          "feedback": "Yes! 'These are my shoes' is correct because 'shoes' is plural (more than one). Amazing! 🌟"
-        }
-      ],
-      "imagePrompt": "Educational diagram showing 'This is' with one object (single apple) and 'These are' with multiple objects (three apples), colorful, clear labels, cartoon style, simple illustration for children"
-    },
-    
-    // Interactive Game Slides (5 different activity types)
-    {
-      "id": "slide-game-1",
-      "type": "drag_drop",
-      "activityType": "match_words_images",
-      "prompt": "Match the Words to the Pictures",
-      "instructions": "Drag each word to the correct picture. Listen to the word if you need help!",
-      "items": [
-        {
-          "id": "item-1",
-          "text": "mother",
-          "audioText": "mother",
-          "targetZone": "zone-1"
-        },
-        {
-          "id": "item-2",
-          "text": "father",
-          "audioText": "father",
-          "targetZone": "zone-2"
-        },
-        {
-          "id": "item-3",
-          "text": "sister",
-          "audioText": "sister",
-          "targetZone": "zone-3"
-        },
-        {
-          "id": "item-4",
-          "text": "brother",
-          "audioText": "brother",
-          "targetZone": "zone-4"
-        }
-      ],
-      "zones": [
-        {
-          "id": "zone-1",
-          "imagePrompt": "Cartoon illustration of a mother character, friendly face, warm expression, educational style",
-          "acceptsItems": ["item-1"]
-        },
-        {
-          "id": "zone-2",
-          "imagePrompt": "Cartoon illustration of a father character, friendly face, casual clothes, educational style",
-          "acceptsItems": ["item-2"]
-        },
-        {
-          "id": "zone-3",
-          "imagePrompt": "Cartoon illustration of a sister character, young girl, friendly expression, educational style",
-          "acceptsItems": ["item-3"]
-        },
-        {
-          "id": "zone-4",
-          "imagePrompt": "Cartoon illustration of a brother character, young boy, friendly expression, educational style",
-          "acceptsItems": ["item-4"]
-        }
-      ],
-      "correctFeedback": "Fantastic! You matched all the words correctly! 🎉",
-      "incorrectFeedback": "Not quite! Try again. Listen to the words if you need help. 🎧"
-    },
-    {
-      "id": "slide-game-2",
-      "type": "matching_pairs",
-      "activityType": "memory_game",
-      "prompt": "Memory Game - Find the Matching Pairs",
-      "instructions": "Click on two cards to flip them. Find all the matching pairs!",
-      "pairs": [
-        {
-          "id": "pair-1",
-          "card1": { "text": "mother", "type": "word" },
-          "card2": { "imagePrompt": "Simple icon of a mother figure", "type": "image" }
-        },
-        {
-          "id": "pair-2",
-          "card1": { "text": "father", "type": "word" },
-          "card2": { "imagePrompt": "Simple icon of a father figure", "type": "image" }
-        },
-        {
-          "id": "pair-3",
-          "card1": { "text": "sister", "type": "word" },
-          "card2": { "imagePrompt": "Simple icon of a sister figure", "type": "image" }
-        },
-        {
-          "id": "pair-4",
-          "card1": { "text": "brother", "type": "word" },
-          "card2": { "imagePrompt": "Simple icon of a brother figure", "type": "image" }
-        }
-      ],
-      "successMessage": "Amazing! You found all the pairs! You're a memory master! 🏆"
-    },
-    {
-      "id": "slide-game-3",
-      "type": "multiple_choice_quiz",
-      "activityType": "quiz",
-      "prompt": "Family Quiz - Test Your Knowledge!",
-      "instructions": "Choose the correct answer for each question.",
-      "questions": [
-        {
-          "id": "q1",
-          "question": "What do we call a woman who has a child?",
-          "options": [
-            "Mother",
-            "Father",
-            "Sister",
-            "Brother"
-          ],
-          "correctAnswer": 0,
-          "feedback": "Correct! A mother is a woman who has a child. 🎉"
-        },
-        {
-          "id": "q2",
-          "question": "Which sentence is correct?",
-          "options": [
-            "This are my father.",
-            "This is my father.",
-            "These is my father.",
-            "These are my father."
-          ],
-          "correctAnswer": 1,
-          "feedback": "Yes! 'This is my father' is correct because we use 'This is' for one person. ⭐"
+          "sentence": "Max ___ pizza.",
+          "options": ["like", "likes"],
+          "correctAnswer": "likes",
+          "feedback": "Great job! 'Likes' is correct! 🎉"
         }
       ]
     },
+    
+    // Speaking Practice
     {
-      "id": "slide-game-4",
-      "type": "sentence_builder",
-      "activityType": "word_order",
-      "prompt": "Build the Sentences",
-      "instructions": "Drag the words to make correct sentences.",
-      "sentences": [
+      "id": "slide-speaking-1",
+      "type": "interactive",
+      "activityType": "speaking",
+      "prompt": "Let's Practice Speaking!",
+      "instructions": "Use these prompts to practice speaking. Record yourself!",
+      "prompts": [
         {
-          "id": "sent-1",
-          "words": ["This", "is", "my", "mother"],
-          "correctOrder": ["This", "is", "my", "mother"],
-          "translation": "This is my mother.",
-          "audioText": "This is my mother"
-        },
-        {
-          "id": "sent-2",
-          "words": ["These", "are", "my", "parents"],
-          "correctOrder": ["These", "are", "my", "parents"],
-          "translation": "These are my parents.",
-          "audioText": "These are my parents"
-        }
-      ],
-      "successFeedback": "Perfect sentences! You're doing great! 🌟"
-    },
-    {
-      "id": "slide-game-5",
-      "type": "listen_and_choose",
-      "activityType": "listening_game",
-      "prompt": "Listen and Choose",
-      "instructions": "Listen to the word and click on the correct picture.",
-      "items": [
-        {
-          "id": "listen-1",
-          "audioText": "mother",
-          "options": [
-            {
-              "id": "opt-1",
-              "imagePrompt": "Cartoon illustration of a mother",
-              "isCorrect": true
-            },
-            {
-              "id": "opt-2",
-              "imagePrompt": "Cartoon illustration of a father",
-              "isCorrect": false
-            },
-            {
-              "id": "opt-3",
-              "imagePrompt": "Cartoon illustration of a sister",
-              "isCorrect": false
-            }
-          ],
-          "correctFeedback": "That's right! You heard 'mother' and chose the correct picture! 👏",
-          "incorrectFeedback": "Not quite! Listen again and try to find the mother. 🎧"
+          "text": "Tell me about Lily's favorite food.",
+          "example": "Lily likes pizza. She eats it every Friday with her family.",
+          "audioText": "Tell me about Lily's favorite food"
         }
       ]
     }
@@ -326,12 +166,13 @@ Return ONLY valid JSON with this structure:
 }
 
 IMPORTANT VALIDATION RULES:
-1. Every vocabulary word MUST have all 7 fields filled (word, pronunciation, partOfSpeech, definition, examples[3], imagePrompt, relatedWords)
-2. Every grammar slide MUST have: pattern, rule, examples[5-6], exercises[4]
-3. Every exercise MUST have: type, question/sentence, options, correctAnswer, feedback
-4. Every image prompt MUST be minimum 25 words, highly descriptive
-5. Every interactive activity MUST have complete game data (no placeholders)
-6. All audio text fields must be filled for pronunciation activities
+1. Every vocabulary word MUST have: word, pronunciation, definition, example, imagePrompt, emoji
+2. Every grammar slide MUST have: pattern, rule, examples[3-4], exercises[2-3]
+3. Sorting activities MUST have: categories array, items array with correct category assignments
+4. Spinning wheel activities MUST have: wheelSegments array with 6-8 segments, each with id, text, color
+5. All character examples must use the consistent names: Otis, Alice, Max, Lily, Marco, Ruby, Philip, Ann, Mark, Jacob
+6. Include real-world references (actual movie titles, restaurant names, brands) when appropriate
+7. All image prompts MUST be at least 20 words
 
 Generate the complete lesson now with ALL fields fully populated.
 `;
@@ -341,6 +182,7 @@ export function assembleDetailedPrompt(params: {
   cefrLevel: string;
   moduleNumber: number;
   lessonNumber: number;
+  ageGroup: string;
   learningObjectives?: string[];
   customRequirements?: string;
 }): string {
@@ -349,10 +191,11 @@ export function assembleDetailedPrompt(params: {
 LESSON PARAMETERS:
 - Topic: ${params.topic}
 - CEFR Level: ${params.cefrLevel}
+- Age Group: ${params.ageGroup}
 - Module: ${params.moduleNumber}
 - Lesson: ${params.lessonNumber}
 - Learning Objectives: ${params.learningObjectives?.join(', ') || 'Develop language skills through vocabulary, grammar, and interactive practice'}
 ${params.customRequirements ? `- Custom Requirements: ${params.customRequirements}` : ''}
 
-Generate 22-25 complete slides following the exact structure and requirements above.`;
+Generate 15-18 complete NovaKid-style slides following the exact structure and requirements above. Remember to use character names consistently and include real-world references!`;
 }
