@@ -2873,6 +2873,72 @@ export type Database = {
           },
         ]
       }
+      interactive_lessons: {
+        Row: {
+          age_group: string
+          audio_manifest: Json
+          badges_available: string[]
+          cefr_level: string
+          created_at: string
+          created_by: string | null
+          duration_minutes: number
+          grammar_focus: string[]
+          id: string
+          learning_objectives: string[]
+          screens_data: Json
+          selected_activities: string[]
+          status: string
+          title: string
+          topic: string
+          total_xp: number
+          updated_at: string
+          usage_count: number
+          vocabulary_list: string[]
+        }
+        Insert: {
+          age_group: string
+          audio_manifest?: Json
+          badges_available?: string[]
+          cefr_level: string
+          created_at?: string
+          created_by?: string | null
+          duration_minutes?: number
+          grammar_focus?: string[]
+          id?: string
+          learning_objectives?: string[]
+          screens_data?: Json
+          selected_activities?: string[]
+          status?: string
+          title: string
+          topic: string
+          total_xp?: number
+          updated_at?: string
+          usage_count?: number
+          vocabulary_list?: string[]
+        }
+        Update: {
+          age_group?: string
+          audio_manifest?: Json
+          badges_available?: string[]
+          cefr_level?: string
+          created_at?: string
+          created_by?: string | null
+          duration_minutes?: number
+          grammar_focus?: string[]
+          id?: string
+          learning_objectives?: string[]
+          screens_data?: Json
+          selected_activities?: string[]
+          status?: string
+          title?: string
+          topic?: string
+          total_xp?: number
+          updated_at?: string
+          usage_count?: number
+          vocabulary_list?: string[]
+        }
+        Relationships: []
+      }
       leaderboard_entries: {
         Row: {
           additional_data: Json | null
