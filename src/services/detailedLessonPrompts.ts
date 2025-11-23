@@ -1,41 +1,89 @@
 // Detailed AI prompt templates for NovaKid-style interactive lesson content
 
 export const DETAILED_LESSON_PROMPT = `
-You are an expert ESL curriculum designer creating NovaKid-style professional lessons with COMPLETE, DETAILED content.
+You are an expert ESL curriculum designer, gamification architect, and interactive content creator building a comprehensive English-learning app.
 
 CHARACTER CONSISTENCY:
 Use these character names consistently throughout the lesson: Otis, Alice, Max, Lily, Marco, Ruby, Philip, Ann, Mark, Jacob
 
-SLIDE STRUCTURE - Generate exactly 15-18 slides with this distribution:
+SLIDE STRUCTURE - Generate exactly 20-25 slides with this distribution:
 
-1. Title Slide (1 slide)
+1. Character Welcome (1 slide) - Mascot introduction with lesson preview
 2. Warmup Discussion (1 slide) - 3-4 open-ended questions with emoji reactions
-3. Vocabulary Introduction (2 slides) - 8-12 words with images and emoji reactions
-4. Vocabulary Games (2-3 slides):
-   - Speed challenge ("How fast can you name them all?")
-   - Sorting activity (categorize items)
-   - Speaking practice
-5. Grammar Introduction (1 slide) - Visual explanation with real examples
-6. Grammar Practice (2-3 slides):
-   - Fill-in-the-blank exercises
-   - Sentence builder
-7. Interactive Game (1-2 slides):
-   - Spinning wheel activity
-   - Story builder
-   - Grid selection
-8. Speaking Practice (1 slide) - Scaffolded prompts with character examples
-9. Review (1 slide) - Mixed exercises
+3. Vocabulary Introduction (3 slides) - 8-12 words with images, pronunciation, emoji reactions
+4. Phonics Focus (1 slide) - Target sound with practice words, slow/normal pronunciation
+5. Vocabulary Games (2 slides):
+   - Speed challenge or matching game
+   - Sorting/categorization activity
+6. Grammar Introduction (1 slide) - Visual explanation with real examples using characters
+7. Grammar Practice (2 slides):
+   - Fill-in-the-blank exercises (3-4 questions)
+   - Sentence builder with word bank
+8. Dialogue Practice (2 slides) - Role-play with character responses, student choices
+9. Listening Comprehension (1-2 slides) - Short story with audio + comprehension questions
+10. Speaking Practice (1-2 slides) - Guided prompts with examples, mic simulation
+11. Interactive Game (2 slides):
+    - Spinning wheel activity
+    - Challenge/mixed skills
+12. End Quiz (2 slides) - 5-8 questions covering vocabulary, grammar, comprehension
+13. Review Summary (1 slide) - Key takeaways and lesson wrap-up
+14. Rewards Screen (1 slide) - XP earned, badges unlocked, celebration animation
 
 CRITICAL REQUIREMENTS:
 - Use character names (Otis, Alice, Max, Lily, Marco, Ruby, Philip, Ann, Mark, Jacob) consistently
 - Include real-world references appropriate to the topic and age group
 - All vocabulary words MUST have imagePrompts AND emoji reactions (😊😱😴🤩😂😨)
+- Dialogue slides MUST have dialogue array with character, text, options, correctOption
+- Listening slides MUST have storyText (80-100 words) and questions array (4-5 questions)
+- Speaking slides MUST have prompts array with text, example, hints
+- Phonics slides MUST have targetSound and practiceWords array (4-6 words)
+- Sentence builder MUST have wordBank array and correctSentences array
+- Quiz slides MUST have questions array with options and correctAnswer
+- Rewards slide MUST have xpReward number and badgesEarned array
 - All speaking activities MUST have audioTexts
 - Spinning wheel slides MUST include wheelSegments array with 6-8 segments
 - Sorting slides MUST include items array and categories array
-- All interactive activities MUST have complete game data
-- Total word count across all prompts: 600-900 words
+- Total word count across all prompts: 800-1200 words
 - Each slide prompt should be 40-70 words
+
+DIALOGUE SCRIPTS:
+Create realistic, age-appropriate conversations:
+- Use character names consistently
+- Include student response options (2-3 choices)
+- Mark correct response with correctOption index
+- Natural flow and context
+- Example: Otis asks "What's your favorite food?", student chooses from ["Pizza", "Homework", "Books"]
+
+LISTENING COMPREHENSION:
+Write engaging 80-100 word stories:
+- Use target vocabulary naturally
+- Include characters in narratives
+- Create clear beginning-middle-end
+- Add 4-5 comprehension questions (mix of recall, inference, vocabulary)
+- Include audioText for narration
+
+SPEAKING PRACTICE:
+Provide scaffolded speaking prompts:
+- Clear question or task
+- Model answer using characters
+- 2-3 helpful hints
+- Pronunciation guidance in audioText
+- Example: "Tell me about Max's family. Max has a mom, a dad, and a little sister..."
+
+PHONICS PATTERNS:
+Focus on sound-spelling relationships:
+- Target sound (e.g., /æ/ as in "cat")
+- 4-6 practice words containing the sound
+- Mouth position hint
+- Slow and normal pronunciation in audioText
+
+AUDIO MANIFEST:
+List ALL audio files needed in metadata.audioManifest:
+[
+  {id: "vocab-apple", text: "Apple. A-P-P-L-E. Apple. A round red fruit that grows on trees.", type: "vocabulary"},
+  {id: "story-family", text: "[full story narration]", type: "listening"},
+  {id: "prompt-speak-1", text: "Tell me about your family", type: "speaking"}
+]
 
 Return ONLY valid JSON with this structure:
 
@@ -168,11 +216,19 @@ Return ONLY valid JSON with this structure:
 IMPORTANT VALIDATION RULES:
 1. Every vocabulary word MUST have: word, pronunciation, definition, example, imagePrompt, emoji
 2. Every grammar slide MUST have: pattern, rule, examples[3-4], exercises[2-3]
-3. Sorting activities MUST have: categories array, items array with correct category assignments
-4. Spinning wheel activities MUST have: wheelSegments array with 6-8 segments, each with id, text, color
-5. All character examples must use the consistent names: Otis, Alice, Max, Lily, Marco, Ruby, Philip, Ann, Mark, Jacob
-6. Include real-world references (actual movie titles, restaurant names, brands) when appropriate
-7. All image prompts MUST be at least 20 words
+3. Dialogue slides MUST have: dialogue array with character, text, options, correctOption
+4. Listening slides MUST have: storyText (80-100 words), questions array (4-5 items)
+5. Speaking slides MUST have: prompts array with text, example, hints (3-4 prompts)
+6. Phonics slides MUST have: targetSound, practiceWords array (4-6 words)
+7. Sentence builder MUST have: wordBank array (8-10 words), correctSentences array (2-3 sentences)
+8. Quiz slides MUST have: questions array (5-8 questions with options, correctAnswer)
+9. Rewards slide MUST have: xpReward (number), badgesEarned array (2-4 badges)
+10. Sorting activities MUST have: categories array, items array with correct category assignments
+11. Spinning wheel activities MUST have: wheelSegments array with 6-8 segments, each with id, text, color
+12. All character examples must use the consistent names: Otis, Alice, Max, Lily, Marco, Ruby, Philip, Ann, Mark, Jacob
+13. Include real-world references (actual movie titles, restaurant names, brands) when appropriate
+14. All image prompts MUST be at least 20 words
+15. metadata MUST include audioManifest array with all audio files
 
 Generate the complete lesson now with ALL fields fully populated.
 `;
@@ -197,5 +253,5 @@ LESSON PARAMETERS:
 - Learning Objectives: ${params.learningObjectives?.join(', ') || 'Develop language skills through vocabulary, grammar, and interactive practice'}
 ${params.customRequirements ? `- Custom Requirements: ${params.customRequirements}` : ''}
 
-Generate 15-18 complete NovaKid-style slides following the exact structure and requirements above. Remember to use character names consistently and include real-world references!`;
+Generate 20-25 complete, interactive slides following the exact structure and requirements above. Remember to use character names consistently, include real-world references, and provide FULL data for all interactive components (dialogue arrays, questions, prompts, word banks, etc.)!`;
 }

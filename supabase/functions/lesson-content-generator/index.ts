@@ -70,7 +70,20 @@ serve(async (req) => {
                         CEFR: { type: 'string' },
                         module: { type: 'number' },
                         lesson: { type: 'number' },
-                        targets: { type: 'array', items: { type: 'string' } }
+                        targets: { type: 'array', items: { type: 'string' } },
+                        audioManifest: { 
+                          type: 'array', 
+                          items: { 
+                            type: 'object',
+                            properties: {
+                              id: { type: 'string' },
+                              text: { type: 'string' },
+                              type: { type: 'string' }
+                            },
+                            required: ['id', 'text', 'type'],
+                            additionalProperties: false
+                          }
+                        }
                       },
                       required: ['CEFR', 'module', 'lesson', 'targets'],
                       additionalProperties: false
@@ -85,7 +98,67 @@ serve(async (req) => {
                           prompt: { type: 'string' },
                           instructions: { type: 'string' },
                           audioText: { type: 'string' },
-                          imagePrompt: { type: 'string' }
+                          imagePrompt: { type: 'string' },
+                          dialogue: {
+                            type: 'array',
+                            items: {
+                              type: 'object',
+                              properties: {
+                                character: { type: 'string' },
+                                text: { type: 'string' },
+                                options: { type: 'array', items: { type: 'string' } },
+                                correctOption: { type: 'number' }
+                              },
+                              required: ['character', 'text'],
+                              additionalProperties: false
+                            }
+                          },
+                          questions: {
+                            type: 'array',
+                            items: {
+                              type: 'object',
+                              properties: {
+                                question: { type: 'string' },
+                                options: { type: 'array', items: { type: 'string' } },
+                                correctAnswer: { type: 'string' }
+                              },
+                              required: ['question'],
+                              additionalProperties: false
+                            }
+                          },
+                          prompts: {
+                            type: 'array',
+                            items: {
+                              type: 'object',
+                              properties: {
+                                text: { type: 'string' },
+                                example: { type: 'string' },
+                                hints: { type: 'array', items: { type: 'string' } }
+                              },
+                              required: ['text'],
+                              additionalProperties: false
+                            }
+                          },
+                          wordBank: { type: 'array', items: { type: 'string' } },
+                          correctSentences: { type: 'array', items: { type: 'string' } },
+                          targetSound: { type: 'string' },
+                          practiceWords: { type: 'array', items: { type: 'string' } },
+                          storyText: { type: 'string' },
+                          xpReward: { type: 'number' },
+                          badgesEarned: { type: 'array', items: { type: 'string' } },
+                          wheelSegments: {
+                            type: 'array',
+                            items: {
+                              type: 'object',
+                              properties: {
+                                id: { type: 'string' },
+                                text: { type: 'string' },
+                                color: { type: 'string' }
+                              },
+                              required: ['id', 'text', 'color'],
+                              additionalProperties: false
+                            }
+                          }
                         },
                         required: ['id', 'type', 'prompt', 'instructions'],
                         additionalProperties: false
@@ -367,7 +440,7 @@ serve(async (req) => {
 });
 
 function buildSlidePrompt(lessonPlan: any, ageGroup: string, cefrLevel: string): string {
-  return `You are an expert ESL curriculum designer creating NovaKid-style interactive lesson slides for ${ageGroup}, ${cefrLevel} level.
+  return `You are an expert ESL curriculum designer creating a comprehensive, gamified interactive lesson for ${ageGroup}, ${cefrLevel} level.
 
 LESSON DETAILS:
 - Title: ${lessonPlan.title}
@@ -375,43 +448,63 @@ LESSON DETAILS:
 - Grammar: ${lessonPlan.targetLanguage?.grammar?.join(', ')}
 - Objectives: ${lessonPlan.objectives?.join('; ')}
 
-REQUIRED OUTPUT: Create exactly 20-25 slides following this structure:
+CRITICAL: Generate exactly 20-25 slides with FULL DATA for all interactive components.
 
-SLIDES 1-2: WARM-UP
-1. Title slide: prompt with engaging hook question (50 words)
-2. Warm-up activity: discussion questions or movement activity (60 words)
+CHARACTER NAMES (use consistently): Otis, Alice, Max, Lily, Marco, Ruby, Philip, Ann, Mark
 
-SLIDES 3-7: VOCABULARY & PRACTICE
-3-5. Vocabulary slides: Each with definition, example, pronunciation (60 words each)
-     Include imagePrompt: "Bright colorful cartoon [word], child-friendly style, educational"
-6. Vocabulary game: Speed challenge or matching (50 words)
-7. Grammar introduction: Rule + 2 examples (70 words)
+📋 SLIDE DISTRIBUTION (20-25 total):
 
-SLIDES 8-12: INTERACTIVE ACTIVITIES
-8. Grammar practice: Fill-in-blank with 3 questions (60 words)
-9. Spinning wheel OR sorting activity (50 words)
-     For spinning wheel: Include wheelSegments: [{text, color}] with 6 segments
-     For sorting: Include sortItems: [{item, category}] with 6 items
-10. Story builder OR role-play: Short dialogue or mad-libs (80 words)
-11. Listening comprehension: Short story with questions (70 words)
-12. Speaking practice: Guided prompts with character examples (60 words)
+SLIDES 1-2: CHARACTER INTRO & WARM-UP
+1. type: "character_intro" - Mascot welcome with lesson preview (40 words)
+2. type: "warmup" - Engaging discussion with 3-4 emoji questions (50 words)
 
-SLIDES 13-15: REVIEW & WRAP-UP
-13. Review game: Quiz with 3-4 questions (50 words)
-14. Interactive review: Mixed practice activities (50 words)
-15. Celebration: Summary + homework assignment (50 words)
+SLIDES 3-7: VOCABULARY & PHONICS
+3-5. type: "vocabulary" - Target words with pronunciation, definition, example, imagePrompt (50 words each)
+6. type: "phonics" - Target sound focus with practiceWords array [4-6 words] and targetSound
+7. type: "vocabulary_game" - Matching or speed challenge (40 words)
 
-CHARACTER NAMES TO USE: Otis, Alice, Max, Lily, Marco, Ruby, Philip, Ann (use consistently in examples)
+SLIDES 8-10: GRAMMAR
+8. type: "grammar_intro" - Rule explanation with 3 examples (60 words)
+9. type: "grammar_practice" - Fill-in-blank with questions array (50 words)
+10. type: "sentence_builder" - Include wordBank array [8-10 words] and correctSentences array [2-3 sentences]
 
-EMOJI REACTIONS: Include these in vocabulary slides: 😊😱😴🤩😂😨
+SLIDES 11-13: DIALOGUE & LISTENING
+11. type: "dialogue_practice" - Include dialogue array with character, text, options, correctOption
+    Example: [{character: "Otis", text: "Hi! How are you?", options: ["I'm good", "I'm sad"], correctOption: 0}]
+12. type: "listening_comprehension" - Include storyText (80 words) and questions array (4 questions)
+13. type: "speaking_practice" - Include prompts array with text, example, hints
 
-Each slide must have:
-- id: "slide-1" through "slide-15"
-- type: (warmup, vocabulary, grammar, interactive, speaking, review, etc.)
-- prompt: Main student-facing content (40-80 words, full instructions and examples)
+SLIDES 14-16: INTERACTIVE GAMES
+14. type: "spinning_wheel" - Include wheelSegments array with 6 items [{id, text, color}]
+15. type: "sorting" OR "matching" - Categorization activity (50 words)
+16. type: "challenge" - Mixed skills activity (60 words)
+
+SLIDES 17-20: ASSESSMENT & REWARDS
+17-18. type: "end_quiz" - Include questions array (5-6 questions with options and correctAnswer)
+19. type: "review" - Lesson summary with key takeaways (50 words)
+20. type: "rewards" - Celebration with xpReward (number) and badgesEarned array
+
+🎯 REQUIRED FIELDS BY TYPE:
+- dialogue_practice: dialogue array (3-5 exchanges)
+- listening_comprehension: storyText (string), questions array
+- speaking_practice: prompts array (3-4 prompts with examples)
+- phonics: targetSound (string), practiceWords array
+- sentence_builder: wordBank array, correctSentences array
+- end_quiz: questions array (options, correctAnswer for each)
+- spinning_wheel: wheelSegments array (6 items)
+- rewards: xpReward (number), badgesEarned array
+
+🎨 EVERY SLIDE MUST HAVE:
+- id: "slide-1" through "slide-20" (or up to 25)
+- type: appropriate type from above
+- prompt: Student-facing content (40-60 words)
 - instructions: Teacher guidance (30-50 words)
-- audioText: Narration script (optional, 20-40 words)
-- imagePrompt: Image generation prompt (optional, 15-20 words)
+- audioText: Audio narration script (optional, 20-40 words)
+- imagePrompt: Image generation prompt (optional, 20+ words, "Bright colorful cartoon...")
 
-Return valid JSON matching the required schema with version, theme, durationMin, metadata, and slides array.`;
+🔊 AUDIO MANIFEST:
+In metadata, include audioManifest array with ALL audio files needed:
+[{id: "vocab-apple", text: "Apple. A round red fruit.", type: "vocabulary"}, ...]
+
+Return valid JSON with version: "2.0", theme: "mist-blue", durationMin: 45, metadata (CEFR, module, lesson, targets, audioManifest), and slides array.`;
 }
