@@ -88,9 +88,18 @@ export function VocabularySlide({ slide, slideNumber, onNext }: VocabularySlideP
                         )}
                       </div>
                       
-                      {/* Word */}
-                      <div className="text-center">
-                        <div className="font-semibold text-lg">{wordText}</div>
+                      {/* Word Details */}
+                      <div className="text-center space-y-1">
+                        <div className="font-bold text-lg">{wordText}</div>
+                        {word.pronunciation && (
+                          <div className="text-xs text-muted-foreground font-mono">{word.pronunciation}</div>
+                        )}
+                        {word.partOfSpeech && (
+                          <div className="text-xs text-primary italic">{word.partOfSpeech}</div>
+                        )}
+                        {word.definition && (
+                          <div className="text-sm text-muted-foreground mt-2">{word.definition}</div>
+                        )}
                         {word.translation && (
                           <div className="text-sm text-muted-foreground">{word.translation}</div>
                         )}
@@ -124,6 +133,54 @@ export function VocabularySlide({ slide, slideNumber, onNext }: VocabularySlideP
                 );
               })}
             </div>
+
+            {/* Detailed view for selected word */}
+            {words[currentWord] && (
+              <Card className="bg-muted/50 border-primary/20">
+                <CardContent className="p-6 space-y-4">
+                  <div className="text-center">
+                    <h3 className="text-2xl font-bold mb-2">{words[currentWord].word || words[currentWord]}</h3>
+                    {words[currentWord].pronunciation && (
+                      <p className="text-lg font-mono text-muted-foreground">{words[currentWord].pronunciation}</p>
+                    )}
+                  </div>
+                  
+                  {words[currentWord].definition && (
+                    <div>
+                      <h4 className="font-semibold text-sm text-primary mb-1">Definition:</h4>
+                      <p className="text-base">{words[currentWord].definition}</p>
+                    </div>
+                  )}
+                  
+                  {words[currentWord].examples && Array.isArray(words[currentWord].examples) && (
+                    <div>
+                      <h4 className="font-semibold text-sm text-primary mb-2">Examples:</h4>
+                      <ul className="space-y-2">
+                        {words[currentWord].examples.map((example: string, idx: number) => (
+                          <li key={idx} className="flex gap-2">
+                            <span className="text-primary">•</span>
+                            <span className="text-sm">{example}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {words[currentWord].relatedWords && words[currentWord].relatedWords.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-sm text-primary mb-2">Related Words:</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {words[currentWord].relatedWords.map((related: string, idx: number) => (
+                          <span key={idx} className="px-3 py-1 bg-primary/10 rounded-full text-sm">
+                            {related}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </div>
         ) : (
           <div className="text-center py-8">

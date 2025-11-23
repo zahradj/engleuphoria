@@ -21,34 +21,38 @@ serve(async (req) => {
 
     console.log('Generating lesson for:', { topic, cefrLevel, moduleNumber, lessonNumber });
 
-    const prompt = `Create an interactive ESL lesson with exactly 22 slides for ${cefrLevel} level students.
+    const prompt = `You are an expert ESL curriculum designer creating classroom-ready lessons with COMPLETE, DETAILED content.
 
-LESSON DETAILS:
+Create exactly 22-25 slides with this EXACT distribution:
+- 1 Title slide
+- 2 Warmup slides (engaging questions with visuals)
+- 4 Vocabulary slides (10 total words with FULL details: word, IPA pronunciation, part of speech, definition, 3 example sentences, detailed image prompt, related words)
+- 4 Grammar slides (2 grammar points, each with pattern, rule, 5-6 examples, 4 practice exercises with correct answers and feedback)
+- 3 Listening comprehension slides
+- 4-5 Interactive game slides (drag-drop, matching, quizzes with complete game data)
+- 2 Controlled practice slides
+- 2 Speaking practice slides (role-play scenarios)
+- 1 Review consolidation slide
+
+LESSON PARAMETERS:
 - Topic: ${topic}
 - CEFR Level: ${cefrLevel}
 - Module: ${moduleNumber}, Lesson: ${lessonNumber}
-- Learning Objectives: ${learningObjectives?.join(', ') || 'Practice vocabulary, grammar, and communication'}
+- Learning Objectives: ${learningObjectives?.join(', ') || 'Develop language skills through vocabulary, grammar, and interactive practice'}
 - Custom Requirements: ${customRequirements || 'None'}
 
-SLIDE STRUCTURE (exactly 22 slides):
-1. Title & Objectives
-2. Warm-up
-3-4. Vocabulary Introduction (2 slides)
-5-6. Grammar Concept (2 slides)
-7-8. Listening Activity (2 slides)
-9-12. Speaking Practice (4 slides with role-plays)
-13-15. Reading Activity (3 slides)
-16-17. Writing Task (2 slides)
-18-20. Gamified Review (3 slides)
-21. Wrap-up & Assessment
-22. Homework & Next Steps
-
-DESIGN REQUIREMENTS:
-- Use professional mist-blue theme (#f0f9ff background, #0369a1 primary)
-- Interactive elements: drag-and-drop, multiple choice, matching
-- Real-life scenarios and practical communication
-- Include vocabulary and grammar focus for each slide
-- Clear instructions for teachers
+CRITICAL REQUIREMENTS:
+✓ NO PLACEHOLDERS - Every field must have real, complete content
+✓ All vocabulary words MUST include: word, pronunciation (IPA format like "/ˈmʌð.ɚ/"), partOfSpeech (noun/verb/adjective/etc), definition (max 10 words), examples (array of 3 complete sentences), imagePrompt (detailed description 25+ words), relatedWords (array of 2-4 related terms)
+✓ All grammar slides MUST include: pattern (the structure), rule (clear explanation), examples (array of 5-6 sentences with optional highlight fields), exercises (array of 4 items with type, question/sentence, options, correctAnswer, feedback)
+✓ All interactive activities MUST include complete game data:
+  - drag_drop: items array (with id, text, audioText, targetZone), zones array (with id, imagePrompt, acceptsItems)
+  - matching_pairs: pairs array (with id, card1, card2 objects containing text or imagePrompt)
+  - multiple_choice_quiz: questions array (with id, question, options[4], correctAnswer index, feedback)
+  - sentence_builder: sentences array (with words, correctOrder, audioText)
+  - listen_and_choose: items array (with audioText, options with imagePrompt and isCorrect)
+✓ All image prompts MUST be minimum 25 words, highly descriptive (e.g., "Colorful, friendly cartoon illustration of a mother with her child, warm colors, educational style for children aged 6-10, clear facial features, simple shapes")
+✓ All exercises MUST have correctAnswer and feedback fields filled
 
 Return ONLY a valid JSON object with this structure:
 {
@@ -75,7 +79,16 @@ Return ONLY a valid JSON object with this structure:
   ]
 }
 
-Use these slide types: warmup, vocabulary_preview, target_language, listening_comprehension, sentence_builder, pronunciation_shadow, grammar_focus, accuracy_mcq, transform, error_fix, picture_description, controlled_practice, controlled_output, micro_input, roleplay_setup, communicative_task, fluency_sprint, review_consolidation, exit_check, picture_choice, labeling, tpr_phonics.`;
+Use these slide types: warmup, vocabulary_preview, target_language, listening_comprehension, sentence_builder, pronunciation_shadow, grammar_focus, accuracy_mcq, drag_drop, matching_pairs, multiple_choice_quiz, listen_and_choose, controlled_practice, communicative_task, review_consolidation.
+
+VALIDATION RULES:
+1. Every vocabulary word MUST have all 7 fields filled
+2. Every grammar slide MUST have: pattern, rule, examples[5-6], exercises[4]
+3. Every exercise MUST have: type, question/sentence, options, correctAnswer, feedback
+4. Every image prompt MUST be minimum 25 words
+5. Every interactive activity MUST have complete game data (no placeholders like "image here")
+
+Generate the complete lesson now with ALL fields fully populated.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -120,6 +133,29 @@ Use these slide types: warmup, vocabulary_preview, target_language, listening_co
     // Validate the lesson data structure
     if (!lessonData.slides || !Array.isArray(lessonData.slides)) {
       throw new Error('Invalid lesson structure: slides array missing');
+    }
+
+    // Perform detailed content validation
+    console.log('Validating lesson content...');
+    const hasVocabularyWords = lessonData.slides.some((s: any) => 
+      (s.type === 'vocabulary_preview' || s.type === 'vocabulary') && s.words && s.words.length > 0
+    );
+    const hasGrammarExercises = lessonData.slides.some((s: any) => 
+      (s.type === 'grammar_focus' || s.type === 'target_language') && s.exercises && s.exercises.length > 0
+    );
+    const hasInteractiveActivities = lessonData.slides.some((s: any) => 
+      ['drag_drop', 'matching_pairs', 'multiple_choice_quiz', 'sentence_builder'].includes(s.type)
+    );
+
+    console.log('Content validation:', {
+      totalSlides: lessonData.slides.length,
+      hasVocabularyWords,
+      hasGrammarExercises,
+      hasInteractiveActivities
+    });
+
+    if (lessonData.slides.length < 15) {
+      console.warn(`Warning: Only ${lessonData.slides.length} slides generated (recommended: 22-25)`);
     }
 
     // Store in Supabase
