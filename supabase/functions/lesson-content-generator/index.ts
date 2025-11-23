@@ -375,7 +375,7 @@ LESSON DETAILS:
 - Grammar: ${lessonPlan.targetLanguage?.grammar?.join(', ')}
 - Objectives: ${lessonPlan.objectives?.join('; ')}
 
-REQUIRED OUTPUT: Create exactly 15 slides following this structure:
+REQUIRED OUTPUT: Create exactly 20-25 slides following this structure:
 
 SLIDES 1-2: WARM-UP
 1. Title slide: prompt with engaging hook question (50 words)
