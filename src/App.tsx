@@ -49,6 +49,7 @@ import { SystematicSlidesAdmin } from "./pages/admin/SystematicSlidesAdmin";
 import { AssessmentTaker } from "./components/assessment/AssessmentTaker";
 import { AssessmentResults } from "./components/assessment/AssessmentResults";
 import LessonPreviewPage from "./pages/LessonPreviewPage";
+import InteractiveLessonPlayerPage from "./pages/InteractiveLessonPlayerPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -140,6 +141,13 @@ const App = () => {
               
               {/* Lesson Preview - Full Screen Slides */}
               <Route path="/lesson-preview/:lessonId" element={<LessonPreviewPage />} />
+              
+              {/* Interactive Lesson Player */}
+              <Route path="/interactive-lesson/:lessonId" element={
+                <Suspense fallback={<LoadingFallback />}>
+                  <InteractiveLessonPlayerPage />
+                </Suspense>
+              } />
 
               {/* Protected Routes */}
               <Route path="/student" element={
