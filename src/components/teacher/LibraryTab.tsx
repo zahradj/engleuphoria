@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Plus, Search, Filter, Clock, Users, Star } from "lucide-react";
+import { BookOpen, Plus, Search, Filter, Clock, Users, Star, Eye, Play } from "lucide-react";
 import { LessonCreatorModal } from "./lesson-creator/LessonCreatorModal";
 import { useLibraryLessons } from "@/hooks/useLibraryLessons";
 import { AgeGroup, CEFRLevel } from "@/types/curriculumExpert";
@@ -155,10 +155,21 @@ export const LibraryTab = () => {
                   </div>
                   
                   <div className="flex gap-2">
-                    <Button variant="outline" className="flex-1" size="sm">
+                    <Button 
+                      variant="outline" 
+                      className="flex-1" 
+                      size="sm"
+                      onClick={() => window.location.href = `/interactive-lesson/${lesson.id}?mode=preview`}
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
                       Preview
                     </Button>
-                    <Button className="flex-1" size="sm">
+                    <Button 
+                      className="flex-1" 
+                      size="sm"
+                      onClick={() => window.location.href = `/interactive-lesson/${lesson.id}?mode=classroom`}
+                    >
+                      <Play className="h-4 w-4 mr-1" />
                       Use Lesson
                     </Button>
                   </div>
