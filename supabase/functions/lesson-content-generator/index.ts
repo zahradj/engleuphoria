@@ -46,19 +46,19 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'google/gemini-2.5-pro', // More reliable for complex structured output
+            model: 'openai/gpt-5-mini', // Reliable for structured output
             messages: [
               {
                 role: 'user',
                 content: slidePrompt
               }
             ],
-            tools: [{
-              type: 'function',
-              function: {
-                name: 'generate_lesson_slides',
-                description: 'Generate enhanced interactive ESL lesson slides with gamification',
-                parameters: {
+            response_format: {
+              type: 'json_schema',
+              json_schema: {
+                name: 'lesson_slides',
+                strict: true,
+                schema: {
                   type: 'object',
                   properties: {
                     version: { type: 'string' },
@@ -70,9 +70,10 @@ serve(async (req) => {
                         CEFR: { type: 'string' },
                         module: { type: 'number' },
                         lesson: { type: 'number' },
-                        targets: { type: 'array', items: { type: 'string' } },
-                        weights: { type: 'object' }
-                      }
+                        targets: { type: 'array', items: { type: 'string' } }
+                      },
+                      required: ['CEFR', 'module', 'lesson', 'targets'],
+                      additionalProperties: false
                     },
                     slides: {
                       type: 'array',
@@ -81,102 +82,22 @@ serve(async (req) => {
                         properties: {
                           id: { type: 'string' },
                           type: { type: 'string' },
-                          prompt: { 
-                            type: 'string',
-                            description: 'MAIN STUDENT-FACING CONTENT with full details, examples, and learning material (100-250 words depending on slide type)'
-                          },
+                          prompt: { type: 'string' },
                           instructions: { type: 'string' },
-                          content: { 
-                            type: 'string',
-                            description: 'Additional detailed content (dialogue text, story, full explanations, practice prompts)'
-                          },
-                          media: { type: 'object' },
                           audioText: { type: 'string' },
-                          interactionType: { type: 'string' },
-                          teacherTips: { type: 'array', items: { type: 'string' } },
-                          vocabularyDetails: {
-                            type: 'array',
-                            items: {
-                              type: 'object',
-                              properties: {
-                                word: { type: 'string' },
-                                definition: { type: 'string' },
-                                examples: { type: 'array', items: { type: 'string' } },
-                                pronunciation: { type: 'string' },
-                                partOfSpeech: { type: 'string' },
-                                collocations: { type: 'array', items: { type: 'string' } },
-                                usageContext: { type: 'string' }
-                              }
-                            }
-                          },
-                          gamification: {
-                            type: 'object',
-                            properties: {
-                              xpReward: { type: 'number' },
-                              badgeUnlock: { type: 'string' },
-                              achievementCriteria: { type: 'string' },
-                              feedbackPositive: { type: 'array', items: { type: 'string' } },
-                              feedbackCorrection: { type: 'array', items: { type: 'string' } },
-                              streakBonus: { type: 'boolean' }
-                            }
-                          },
-                          activityData: {
-                            type: 'object',
-                            properties: {
-                              gameType: { type: 'string' },
-                              difficulty: { type: 'string' },
-                              timeLimit: { type: 'number' },
-                              questions: {
-                                type: 'array',
-                                items: {
-                                  type: 'object',
-                                  properties: {
-                                    question: { type: 'string' },
-                                    options: { type: 'array', items: { type: 'string' } },
-                                    correctAnswer: { type: 'string' },
-                                    explanation: { type: 'string' },
-                                    hint: { type: 'string' }
-                                  }
-                                }
-                              }
-                            }
-                          },
-                          soundEffects: {
-                            type: 'object',
-                            properties: {
-                              backgroundMusic: { type: 'string' },
-                              successSound: { type: 'boolean' },
-                              errorSound: { type: 'boolean' },
-                              transitionSound: { type: 'boolean' }
-                            }
-                          }
-                        }
-                      }
-                    },
-                    songs: {
-                      type: 'array',
-                      items: {
-                        type: 'object',
-                        properties: {
-                          id: { type: 'string' },
-                          title: { type: 'string' },
-                          purpose: { type: 'string' },
-                          melody: { type: 'string' },
-                          lyrics: { type: 'string' },
-                          actions: { type: 'array', items: { type: 'string' } },
-                          audioScript: { type: 'string' },
-                          visualPrompt: { type: 'string' },
-                          repetitionStrategy: { type: 'string' }
-                        }
+                          imagePrompt: { type: 'string' }
+                        },
+                        required: ['id', 'type', 'prompt', 'instructions'],
+                        additionalProperties: false
                       }
                     }
                   },
-                  required: ['version', 'theme', 'durationMin', 'metadata', 'slides']
+                  required: ['version', 'theme', 'durationMin', 'metadata', 'slides'],
+                  additionalProperties: false
                 }
               }
-            }],
-            tool_choice: { type: 'function', function: { name: 'generate_lesson_slides' } },
-            max_completion_tokens: 4000, // Further optimized for faster response
+            },
+            max_completion_tokens: 3000
           }),
         });
 
@@ -200,10 +121,10 @@ serve(async (req) => {
           throw new Error(`AI provider error: ${aiData.error.message || 'Unknown provider error'}`);
         }
         
-        // Extract from tool call
-        const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
-        if (!toolCall) {
-          console.error(`No tool call in response (attempt ${attempt}):`, JSON.stringify(aiData, null, 2));
+        // Extract from JSON response (using response_format instead of tools)
+        const content = aiData.choices?.[0]?.message?.content;
+        if (!content) {
+          console.error(`No content in response (attempt ${attempt}):`, JSON.stringify(aiData, null, 2));
           throw new Error('AI did not return structured output');
         }
         
@@ -234,18 +155,18 @@ serve(async (req) => {
       }
     }
     
-    // Extract tool call after successful generation
-    const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
-    if (!toolCall) {
+    // Extract content after successful generation
+    const content = aiData.choices?.[0]?.message?.content;
+    if (!content) {
       throw new Error('AI did not return structured output after successful generation');
     }
 
     let slidesData;
     try {
-      slidesData = JSON.parse(toolCall.function.arguments);
+      slidesData = JSON.parse(content);
     } catch (parseError) {
       console.error('JSON parse error:', parseError);
-      console.error('Tool call arguments:', toolCall.function.arguments.substring(0, 500));
+      console.error('Content:', content.substring(0, 500));
       throw new Error(`Failed to parse AI response: ${parseError.message}`);
     }
 
@@ -254,9 +175,9 @@ serve(async (req) => {
 
     // Step 2: Extract image prompts
     const imagePrompts = slides
-      .filter((slide: any) => slide.media?.imagePrompt)
+      .filter((slide: any) => slide.imagePrompt)
       .reduce((acc: any, slide: any, idx: number) => {
-        acc[`slide-${slide.id}`] = slide.media.imagePrompt;
+        acc[`slide-${slide.id}`] = slide.imagePrompt;
         return acc;
       }, {});
 
@@ -446,116 +367,51 @@ serve(async (req) => {
 });
 
 function buildSlidePrompt(lessonPlan: any, ageGroup: string, cefrLevel: string): string {
-  return `Create interactive ESL lesson with songs & memory activities for ${ageGroup}, ${cefrLevel} level.
+  return `You are an expert ESL curriculum designer creating NovaKid-style interactive lesson slides for ${ageGroup}, ${cefrLevel} level.
 
-LESSON: ${lessonPlan.title}
-VOCABULARY: ${lessonPlan.targetLanguage?.vocabulary?.join(', ')}
-GRAMMAR: ${lessonPlan.targetLanguage?.grammar?.join(', ')}
-OBJECTIVES: ${lessonPlan.objectives?.join('; ')}
+LESSON DETAILS:
+- Title: ${lessonPlan.title}
+- Vocabulary: ${lessonPlan.targetLanguage?.vocabulary?.join(', ')}
+- Grammar: ${lessonPlan.targetLanguage?.grammar?.join(', ')}
+- Objectives: ${lessonPlan.objectives?.join('; ')}
 
-🎯 CRITICAL: SLIDE STRUCTURE - Every slide MUST include:
-- id: unique identifier
-- type: slide type
-- prompt: MAIN STUDENT-FACING CONTENT (NOT just a title! Include full questions, examples, scenarios, definitions - 100-250 words)
-- content: Additional detailed material (dialogue text, stories, full explanations)
-- instructions: Teacher facilitation guidance
-- audioText: Pronunciation/narration script
-- teacherTips: Teaching suggestions
-
-📚 CONTENT LENGTH REQUIREMENTS (Keep concise for performance):
-- Vocabulary slides: prompt 60-100 words (definition + 1-2 examples + pronunciation)
-- Grammar slides: prompt 80-120 words (explanation + 2 examples + rule)
-- Story/dialogue slides: prompt 100-150 words (complete dialogue)
-- Memory activity slides: prompt 50-80 words (instructions + key items)
-- Song slides: prompt 40-60 words (lyrics summary)
-- Practice slides: prompt 60-90 words (clear instructions + example)
-
-✨ EXAMPLE VOCABULARY SLIDE:
-{
-  id: "slide-3",
-  type: "vocabulary_preview",
-  prompt: "🌟 New Word: HELLO\\n\\nDefinition: A friendly greeting word we use when we meet someone for the first time or when we see someone we know.\\n\\nExample 1: \\"Hello! How are you today?\\" (when meeting a friend)\\nExample 2: \\"I say hello to my teacher every morning.\\" (polite greeting)\\n\\nPronunciation: heh-LOH (say it with a smile!)\\n\\n🎯 Practice Task: Stand up and say hello to three different people in your classroom. Remember to smile and make eye contact!\\n\\nExtra Tip: In English, we can also say \\"Hi\\" as a shorter, more casual way to greet friends.",
-  content: "This is one of the most important words in English! We use 'hello' in many situations: when we answer the phone, when we enter a room, or when we meet new people. It's always polite to say hello with a friendly voice.",
-  instructions: "Show the flashcard with a big smile. Model the pronunciation 3 times slowly, then 3 times at normal speed. Have students repeat chorally, then individually. Encourage them to practice with gestures (waving hand).",
-  vocabularyDetails: [{
-    word: "hello",
-    definition: "A friendly greeting when meeting someone",
-    examples: [
-      "Hello! How are you?",
-      "I say hello to my teacher every morning.",
-      "We say hello when we answer the phone."
-    ],
-    pronunciation: "heh-LOH",
-    partOfSpeech: "interjection",
-    collocations: ["say hello", "hello everyone", "hello there"],
-    usageContext: "Used in formal and informal situations for greetings"
-  }],
-  media: {
-    type: "image",
-    imagePrompt: "Colorful cartoon child with big smile waving hello, bright classroom background, friendly atmosphere, educational illustration style"
-  },
-  audioText: "[Clear, enthusiastic voice] Hello! Let's say it together: Hello. [pause] Great job! One more time: Hello. [pause] Excellent!",
-  teacherTips: [
-    "Use exaggerated gestures (big wave) to make it memorable",
-    "Practice with different emotions: happy hello, shy hello, loud hello",
-    "Connect to students' native language greetings for comparison"
-  ],
-  gamification: {
-    xpReward: 15,
-    feedbackPositive: ["Great pronunciation!", "You said it perfectly!"],
-    feedbackCorrection: ["Try again with a smile!", "Let's practice one more time!"]
-  }
-}
-
-📋 STRUCTURE (15 slides for optimal performance):
+REQUIRED OUTPUT: Create exactly 15 slides following this structure:
 
 SLIDES 1-2: WARM-UP
-1. Title slide (prompt: 40-50 words with hook question, 5 XP)
-2. Warm-up (prompt: 50-60 words with activity, 10 XP)
+1. Title slide: prompt with engaging hook question (50 words)
+2. Warm-up activity: discussion questions or movement activity (60 words)
 
-SLIDES 3-5: VOCABULARY (3 words)
-- prompt: 50-70 words (definition + example + pronunciation)
-- vocabularyDetails: {word, definition, examples: [1-2 sentences], pronunciation, partOfSpeech}
-- imagePrompt (brief)
-- gamification: {xpReward: 15, feedbackPositive: [1-2], feedbackCorrection: [1-2]}
+SLIDES 3-7: VOCABULARY & PRACTICE
+3-5. Vocabulary slides: Each with definition, example, pronunciation (60 words each)
+     Include imagePrompt: "Bright colorful cartoon [word], child-friendly style, educational"
+6. Vocabulary game: Speed challenge or matching (50 words)
+7. Grammar introduction: Rule + 2 examples (70 words)
 
-SLIDES 6-8: PRACTICE
-6. Flashcard drill (prompt: 40-50 words, 20 XP)
-7. Grammar (prompt: 60 words with rule + 2 examples, 20 XP)
-8. Matching game (prompt: 50 words, 25 XP)
+SLIDES 8-12: INTERACTIVE ACTIVITIES
+8. Grammar practice: Fill-in-blank with 3 questions (60 words)
+9. Spinning wheel OR sorting activity (50 words)
+     For spinning wheel: Include wheelSegments: [{text, color}] with 6 segments
+     For sorting: Include sortItems: [{item, category}] with 6 items
+10. Story builder OR role-play: Short dialogue or mad-libs (80 words)
+11. Listening comprehension: Short story with questions (70 words)
+12. Speaking practice: Guided prompts with character examples (60 words)
 
-SLIDES 9-11: INTERACTIVE
-9. Drag-drop (prompt: 50 words, 25 XP)
-10. Role-play (prompt: 70 words with short dialogue, 30 XP)
-11. Listening (prompt: 50 words, 20 XP)
+SLIDES 13-15: REVIEW & WRAP-UP
+13. Review game: Quiz with 3-4 questions (50 words)
+14. Interactive review: Mixed practice activities (50 words)
+15. Celebration: Summary + homework assignment (50 words)
 
-SLIDE 12: SONG
-Add to "songs" array: {id, title, lyrics (1 short verse), actions: [2-3]}
-12. Song activity (prompt: 40-50 words with lyrics, 25 XP)
+CHARACTER NAMES TO USE: Otis, Alice, Max, Lily, Marco, Ruby, Philip, Ann (use consistently in examples)
 
-SLIDES 13-14: ASSESSMENT
-13. Quiz (prompt: 50 words, activityData with 3 questions, 20 XP)
-14. Review (prompt: 40 words, 25 XP, badgeUnlock: "Quiz Master")
+EMOJI REACTIONS: Include these in vocabulary slides: 😊😱😴🤩😂😨
 
-SLIDE 15: WRAP-UP
-15. Celebration + homework (prompt: 40-50 words, 50 bonus XP)
+Each slide must have:
+- id: "slide-1" through "slide-15"
+- type: (warmup, vocabulary, grammar, interactive, speaking, review, etc.)
+- prompt: Main student-facing content (40-80 words, full instructions and examples)
+- instructions: Teacher guidance (30-50 words)
+- audioText: Narration script (optional, 20-40 words)
+- imagePrompt: Image generation prompt (optional, 15-20 words)
 
-✅ REQUIREMENTS:
-- ALL slides: Concise prompt (40-70 words max)
-- ALL slides: gamification with xpReward
-- 10+ slides: imagePrompt (10-15 words)
-- Songs array: 1 short song
-- Total XP: 250-350
-
-You are an expert ESL curriculum designer. Create engaging lesson slides for ${ageGroup}, ${cefrLevel} level.
-
-Return JSON with exactly 15 slides:
-{
-  version: "4.0",
-  theme: "vibrant-learning",
-  durationMin: 45,
-  metadata: {CEFR: "${cefrLevel}", module: 1, lesson: ${lessonPlan.lessonNumber || 1}, targets: ["vocabulary", "grammar"], weights: {accuracy: 60, fluency: 40}},
-  slides: [15 concise slides],
-  songs: [1 short song]
-}`;
+Return valid JSON matching the required schema with version, theme, durationMin, metadata, and slides array.`;
 }
