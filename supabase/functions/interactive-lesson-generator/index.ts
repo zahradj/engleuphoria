@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
+import { generateInteractiveLessonPrompt } from '../_shared/interactiveLessonPromptTemplate.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -35,8 +36,8 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    // Build comprehensive prompt
-    const prompt = buildLessonPrompt({
+    // Build comprehensive prompt using new template
+    const prompt = generateInteractiveLessonPrompt({
       topic,
       cefrLevel,
       ageGroup,
@@ -112,7 +113,7 @@ serve(async (req) => {
                 }
               }
             },
-            max_completion_tokens: 4000
+            max_completion_tokens: 6000
           }),
         });
 
@@ -150,6 +151,22 @@ serve(async (req) => {
 
     const lessonData = JSON.parse(content);
     console.log(`Generated ${lessonData.screens?.length || 0} screens`);
+    
+    // Validate lesson data
+    if (!lessonData.screens || lessonData.screens.length !== 20) {
+      console.warn(`Expected 20 screens, got ${lessonData.screens?.length || 0}`);
+    }
+    
+    // Validate content structure for each screen
+    lessonData.screens.forEach((screen: any, index: number) => {
+      if (!screen.screenType || !screen.title || !screen.content) {
+        console.warn(`Screen ${index + 1} missing required fields:`, {
+          hasType: !!screen.screenType,
+          hasTitle: !!screen.title,
+          hasContent: !!screen.content
+        });
+      }
+    });
 
     // Save to database
     console.log('Saving lesson to database...');
@@ -209,108 +226,4 @@ serve(async (req) => {
   }
 });
 
-function buildLessonPrompt(params: any): string {
-  const activityList = params.selectedActivities.join(', ');
-  
-  return `You are an expert ESL curriculum designer. Create a complete interactive lesson with EXACTLY 20 screens.
-
-LESSON REQUIREMENTS:
-Topic: ${params.topic}
-CEFR Level: ${params.cefrLevel}
-Age Group: ${params.ageGroup}
-Duration: ${params.duration} minutes
-Vocabulary: ${params.vocabularyList.join(', ')}
-Grammar Focus: ${params.grammarFocus.join(', ') || 'None specified'}
-Learning Objectives: ${params.learningObjectives.join('; ')}
-Activity Types: ${activityList}
-
-SCREEN DISTRIBUTION (exactly 20 screens):
-1. Home Screen - Welcome with mascot
-2. Intro Screen - Learning objectives
-3-6. Vocabulary Screens (4 screens) - Word cards with images, audio placeholders, definitions, example sentences
-7-8. Grammar Screens (2 screens) - Grammar explanations with examples
-9-11. Interactive Game Screens (3 screens from: ${activityList})
-12. Dialogue Screen - Role-play conversation
-13. Speaking Practice Screen - Pronunciation practice
-14. Listening Comprehension Screen - Audio story with questions
-15. Reading Screen - Short story
-16. Sentence Builder Screen - Drag words to build sentences
-17-18. Quiz Screens (2 screens) - Multiple choice questions
-19. Badge/Reward Screen - Achievements unlocked
-20. Lesson Complete Screen - Summary and next steps
-
-SCREEN TYPES AND CONTENT FORMAT:
-
-For "vocabulary" screens:
-{
-  "screenType": "vocabulary",
-  "title": "Learn New Words",
-  "content": {
-    "words": [
-      {
-        "word": "family",
-        "ipa": "/ˈfæm.ə.li/",
-        "partOfSpeech": "noun",
-        "definition": "A group of people related by blood or marriage",
-        "examples": ["My family is very large.", "I love spending time with my family."],
-        "imagePrompt": "happy diverse family portrait",
-        "audioPlaceholder": "audio/vocab/family.mp3"
-      }
-    ]
-  }
-}
-
-For "matching" game screens:
-{
-  "screenType": "matching",
-  "title": "Match the Words",
-  "content": {
-    "pairs": [
-      { "word": "mother", "image": "woman with child", "correctMatch": 1 },
-      { "word": "father", "image": "man with child", "correctMatch": 2 }
-    ],
-    "instructions": "Drag the words to match the pictures"
-  }
-}
-
-For "dragdrop" screens:
-{
-  "screenType": "dragdrop",
-  "title": "Sort the Items",
-  "content": {
-    "categories": ["Family Members", "Friends"],
-    "items": ["mother", "father", "sister", "classmate", "neighbor"],
-    "correctAnswers": { "Family Members": ["mother", "father", "sister"], "Friends": ["classmate", "neighbor"] }
-  }
-}
-
-For "quiz" screens:
-{
-  "screenType": "quiz",
-  "title": "Quick Quiz",
-  "content": {
-    "questions": [
-      {
-        "question": "Who is your mother's daughter?",
-        "options": ["Sister", "Brother", "Cousin", "Aunt"],
-        "correctAnswer": "Sister",
-        "feedback": "Correct! Your mother's daughter is your sister."
-      }
-    ]
-  }
-}
-
-AUDIO MANIFEST:
-Create audioManifest array with:
-- All vocabulary pronunciations
-- Dialogue lines
-- Story narration
-- Example sentences
-Format: { "id": "vocab_family", "text": "family", "type": "vocabulary" }
-
-XP & BADGES:
-- Award 10-50 XP per screen based on difficulty
-- Badge examples: "Vocabulary Master", "Grammar Guru", "Conversation Star"
-
-Generate complete, ready-to-use lesson data with all 20 screens filled with real content.`;
-}
+// Old prompt function removed - now using generateInteractiveLessonPrompt from shared template
