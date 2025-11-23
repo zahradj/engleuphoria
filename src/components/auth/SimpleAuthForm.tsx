@@ -378,7 +378,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
                       </label>
                     <div className="relative group">
                       <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-600 group-focus-within:text-slate-800 transition-colors" />
-                        <Input id="fullName" value={formData.fullName} onChange={e => handleInputChange('fullName', e.target.value)} placeholder="Enter your full name" disabled={loading} required className="h-14 pl-12 bg-[#dfc7cc] border-purple-200/60 text-slate-700 placeholder:text-slate-500 focus:bg-[#dfc7cc]/90 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all duration-300 rounded-xl shadow-sm hover:shadow-md" />
+                        <Input id="fullName" value={formData.fullName} onChange={e => handleInputChange('fullName', e.target.value)} placeholder="Enter your full name" disabled={loading} required className="h-14 pl-12 bg-[#dfc7cc] border-[#dfc7cc]/60 text-slate-700 placeholder:text-slate-500 focus:bg-[#dfc7cc]/90 focus:border-[#dfc7cc] focus:ring-2 focus:ring-[#dfc7cc]/50 transition-all duration-300 rounded-xl shadow-sm hover:shadow-md" />
                       </div>
                     </div>}
 
@@ -388,7 +388,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
                     </label>
                   <div className="relative group">
                     <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-600 group-focus-within:text-slate-800 transition-colors" />
-                      <Input id="email" type="email" value={formData.email} onChange={e => handleInputChange('email', e.target.value)} placeholder="your.email@example.com" disabled={loading} required className={`h-14 pl-12 bg-[#dfc7cc] border-purple-200/60 text-slate-700 placeholder:text-slate-500 focus:bg-[#dfc7cc]/90 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all duration-300 rounded-xl shadow-sm hover:shadow-md ${emailError ? 'border-red-400/80 focus:border-red-400' : ''}`} />
+                      <Input id="email" type="email" value={formData.email} onChange={e => handleInputChange('email', e.target.value)} placeholder="your.email@example.com" disabled={loading} required className={`h-14 pl-12 bg-[#dfc7cc] border-[#dfc7cc]/60 text-slate-700 placeholder:text-slate-500 focus:bg-[#dfc7cc]/90 focus:border-[#dfc7cc] focus:ring-2 focus:ring-[#dfc7cc]/50 transition-all duration-300 rounded-xl shadow-sm hover:shadow-md ${emailError ? 'border-red-400/80 focus:border-red-400' : ''}`} />
                     </div>
                     {emailError && <p className="text-sm text-red-700 animate-fade-in">{emailError}</p>}
                   </div>
@@ -397,7 +397,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
                       <label htmlFor="role" className="text-sm font-medium text-slate-800">
                         I am a...
                       </label>
-                      <select id="role" value={formData.role} onChange={e => handleInputChange('role', e.target.value as 'student' | 'teacher' | 'admin')} className="w-full h-14 px-4 bg-[#dfc7cc] border border-purple-200/60 text-slate-700 rounded-xl focus:bg-[#dfc7cc]/90 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all duration-300 shadow-sm hover:shadow-md" disabled={loading}>
+                      <select id="role" value={formData.role} onChange={e => handleInputChange('role', e.target.value as 'student' | 'teacher' | 'admin')} className="w-full h-14 px-4 bg-[#dfc7cc] border border-[#dfc7cc]/60 text-slate-700 rounded-xl focus:bg-[#dfc7cc]/90 focus:border-[#dfc7cc] focus:ring-2 focus:ring-[#dfc7cc]/50 transition-all duration-300 shadow-sm hover:shadow-md" disabled={loading}>
                         <option value="student" className="bg-white text-slate-800">Student - Learn & Grow</option>
                         <option value="teacher" className="bg-white text-slate-800">Teacher - Inspire & Educate</option>
                       </select>
@@ -409,7 +409,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
                     </label>
                     <div className="relative group">
                     <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-600 group-focus-within:text-slate-800 transition-colors" />
-                      <Input id="password" type={showPassword ? "text" : "password"} value={formData.password} onChange={e => handleInputChange('password', e.target.value)} placeholder={mode === 'login' ? "Enter your password" : "Create a secure password"} disabled={loading} required className="h-14 pl-12 pr-12 bg-[#dfc7cc] border-purple-200/60 text-slate-700 placeholder:text-slate-500 focus:bg-[#dfc7cc]/90 focus:border-purple-400 focus:ring-2 focus:ring-purple-200 transition-all duration-300 rounded-xl shadow-sm hover:shadow-md" />
+                      <Input id="password" type={showPassword ? "text" : "password"} value={formData.password} onChange={e => handleInputChange('password', e.target.value)} placeholder={mode === 'login' ? "Enter your password" : "Create a secure password"} disabled={loading} required className="h-14 pl-12 pr-12 bg-[#dfc7cc] border-[#dfc7cc]/60 text-slate-700 placeholder:text-slate-500 focus:bg-[#dfc7cc]/90 focus:border-[#dfc7cc] focus:ring-2 focus:ring-[#dfc7cc]/50 transition-all duration-300 rounded-xl shadow-sm hover:shadow-md" />
                       <Button type="button" variant="ghost" size="sm" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 transform -translate-y-1/2 h-10 w-10 p-0 text-slate-500 hover:text-purple-600 hover:bg-purple-100/50 rounded-lg transition-all duration-200" disabled={loading}>
                         {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                       </Button>
