@@ -297,7 +297,7 @@ export const ECALibrary = () => {
                         cefrLevel: item.cefr_level as any,
                         materialType: 'lesson',
                         durationMinutes: item.duration_minutes || 30,
-                        learningObjectives: [],
+                        objectives: [],
                         targetLanguage: { grammar: [], vocabulary: [] },
                         content: getItemContent(item),
                         createdAt: new Date(item.created_at),
