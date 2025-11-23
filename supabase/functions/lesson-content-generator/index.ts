@@ -180,7 +180,7 @@ serve(async (req) => {
               }
             }],
             tool_choice: { type: 'function', function: { name: 'generate_lesson_slides' } },
-            max_completion_tokens: 16000, // Increased for complex lesson generation
+            max_completion_tokens: 6000, // Optimized for performance
           }),
         });
 
@@ -276,72 +276,52 @@ serve(async (req) => {
 
     console.log(`Extracted ${Object.keys(audioTexts).length} audio scripts`);
 
-    // Step 4: Generate images in batch (if any)
-    let imageResults: any = {};
-    if (Object.keys(imagePrompts).length > 0) {
-      console.log('Step 4: Generating images...');
+    // Step 4: Save lesson first, then generate media in background
+    // Use slides as-is without waiting for media generation
+    const enrichedSlides = slides;
+    
+    // Background task for media generation (non-blocking)
+    const generateMediaInBackground = async () => {
       try {
-        const { data: imgData, error: imgError } = await supabaseClient.functions.invoke(
-          'batch-generate-lesson-images',
-          {
-            body: {
-              lessonId: `${unitId}-lesson-${lessonIndex}`,
-              imagePrompts
-            }
+        const imageResults: any = {};
+        const audioResults: any = {};
+        
+        // Generate images
+        if (Object.keys(imagePrompts).length > 0) {
+          console.log('Background: Generating images...');
+          try {
+            const { data: imgData } = await supabaseClient.functions.invoke(
+              'batch-generate-lesson-images',
+              { body: { lessonId: `${unitId}-lesson-${lessonIndex}`, imagePrompts } }
+            );
+            Object.assign(imageResults, imgData?.results || {});
+          } catch (err) {
+            console.error('Background image generation failed:', err);
           }
-        );
-
-        if (imgError) {
-          console.error('Image generation error:', imgError);
-        } else {
-          imageResults = imgData?.results || {};
-          console.log(`Generated ${Object.keys(imageResults).length} images`);
         }
-      } catch (imgErr) {
-        console.error('Image generation failed:', imgErr);
-      }
-    }
-
-    // Step 5: Generate audio in batch (if any)
-    let audioResults: any = {};
-    if (Object.keys(audioTexts).length > 0) {
-      console.log('Step 5: Generating audio...');
-      try {
-        const { data: audioData, error: audioError } = await supabaseClient.functions.invoke(
-          'batch-generate-lesson-audio',
-          {
-            body: {
-              lessonId: `${unitId}-lesson-${lessonIndex}`,
-              audioTexts
-            }
+        
+        // Generate audio
+        if (Object.keys(audioTexts).length > 0) {
+          console.log('Background: Generating audio...');
+          try {
+            const { data: audioData } = await supabaseClient.functions.invoke(
+              'batch-generate-lesson-audio',
+              { body: { lessonId: `${unitId}-lesson-${lessonIndex}`, audioTexts } }
+            );
+            Object.assign(audioResults, audioData?.results || {});
+          } catch (err) {
+            console.error('Background audio generation failed:', err);
           }
-        );
-
-        if (audioError) {
-          console.error('Audio generation error:', audioError);
-        } else {
-          audioResults = audioData?.results || {};
-          console.log(`Generated ${Object.keys(audioResults).length} audio files`);
         }
-      } catch (audioErr) {
-        console.error('Audio generation failed:', audioErr);
+        
+        console.log('Background media generation complete');
+      } catch (err) {
+        console.error('Background media generation error:', err);
       }
-    }
-
-    // Step 6: Merge media URLs into slides
-    const enrichedSlides = slides.map((slide: any) => {
-      const slideImageKey = `slide-${slide.id}`;
-      const slideAudioKey = `audio-${slide.id}`;
-      
-      return {
-        ...slide,
-        media: slide.media ? {
-          ...slide.media,
-          url: imageResults[slideImageKey] || slide.media.url
-        } : undefined,
-        audioUrl: audioResults[slideAudioKey] || slide.audioUrl
-      };
-    });
+    };
+    
+    // Start background task
+    EdgeRuntime.waitUntil(generateMediaInBackground());
 
     // Step 7: Save to systematic_lessons
     console.log('Step 7: Saving to database...');
@@ -463,8 +443,8 @@ serve(async (req) => {
         gamified_elements: {
           totalSlides: enrichedSlides.length,
           interactiveSlides: enrichedSlides.filter((s: any) => s.interactionType).length,
-          imagesCount: Object.keys(imageResults).length,
-          audioCount: Object.keys(audioResults).length
+          imagesCount: Object.keys(imagePrompts).length,
+          audioCount: Object.keys(audioTexts).length
         },
         difficulty_level: cefrLevel === 'Pre-A1' ? 1 : cefrLevel === 'A1' ? 2 : cefrLevel === 'A2' ? 3 : 4,
         estimated_duration: 45,
@@ -485,9 +465,10 @@ serve(async (req) => {
         success: true,
         lessonId: savedLesson.id,
         totalSlides: enrichedSlides.length,
-        imageCount: Object.keys(imageResults).length,
-        audioCount: Object.keys(audioResults).length,
-        slides: enrichedSlides
+        imageCount: Object.keys(imagePrompts).length,
+        audioCount: Object.keys(audioTexts).length,
+        slides: enrichedSlides,
+        message: 'Lesson created. Media generation in progress...'
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -527,13 +508,13 @@ OBJECTIVES: ${lessonPlan.objectives?.join('; ')}
 - audioText: Pronunciation/narration script
 - teacherTips: Teaching suggestions
 
-📚 CONTENT LENGTH REQUIREMENTS:
-- Vocabulary slides: prompt 120-180 words (definition + 2 examples + pronunciation guide + practice task)
-- Grammar slides: prompt 150-200 words (full explanation + 3 examples + rule/pattern + student task)
-- Story/dialogue slides: prompt 180-250 words (complete text with character descriptions)
-- Memory activity slides: prompt 100-150 words (complete instructions + all items listed)
-- Song slides: prompt 80-120 words (full lyrics embedded in slide)
-- Practice slides: prompt 100-150 words (clear instructions + example + practice prompts)
+📚 CONTENT LENGTH REQUIREMENTS (Keep concise for performance):
+- Vocabulary slides: prompt 60-100 words (definition + 1-2 examples + pronunciation)
+- Grammar slides: prompt 80-120 words (explanation + 2 examples + rule)
+- Story/dialogue slides: prompt 100-150 words (complete dialogue)
+- Memory activity slides: prompt 50-80 words (instructions + key items)
+- Song slides: prompt 40-60 words (lyrics summary)
+- Practice slides: prompt 60-90 words (clear instructions + example)
 
 ✨ EXAMPLE VOCABULARY SLIDE:
 {
@@ -572,62 +553,58 @@ OBJECTIVES: ${lessonPlan.objectives?.join('; ')}
   }
 }
 
-📋 STRUCTURE (25 slides):
+📋 STRUCTURE (18 slides for faster generation):
 
 SLIDES 1-2: WARM-UP
-1. Title slide with hook question (prompt: 80-100 words describing the lesson topic with an engaging question)
-2. Warm-up activity (prompt: 100-120 words with full activity instructions, 10 XP)
+1. Title slide with hook question (prompt: 50-70 words with engaging question)
+2. Warm-up activity (prompt: 60-80 words with activity instructions, 10 XP)
 
-SLIDES 3-8: VOCABULARY (6 words)
+SLIDES 3-6: VOCABULARY (4 words)
 Each word slide MUST have:
-- prompt: 120-180 words (definition + 2-3 examples with context + pronunciation + practice task)
-- content: 40-60 words (additional usage tips, cultural notes)
-- vocabularyDetails: {word, definition, examples: [3 sentences], pronunciation, partOfSpeech, collocations, usageContext}
-- imagePrompt (colorful, simple, age-appropriate)
-- audioText (clear pronunciation with repetition)
+- prompt: 60-100 words (definition + 1-2 examples + pronunciation)
+- vocabularyDetails: {word, definition, examples: [2 sentences], pronunciation, partOfSpeech}
+- imagePrompt (brief, colorful)
+- audioText (pronunciation)
 - gamification: {xpReward: 15, feedbackPositive: [2], feedbackCorrection: [2]}
 
-SLIDES 9-13: MEMORY ACTIVITIES (prompt must include ALL activity content/items)
-9. Flashcard drill (prompt: 120 words listing all 6 words with quick definitions, type: memory_flashcard, 20 XP, badgeUnlock: "Memory Master")
-10. Association game (prompt: 130 words with all 6 word-image pairs described, type: memory_association, 20 XP)
-11. Recall challenge (prompt: 140 words with all 6 questions written out, type: memory_recall, 25 XP, streakBonus: true)
-12. Mnemonic rhyme (prompt: 100 words with complete rhyme using all 6 words, type: memory_mnemonic, 15 XP)
-13. Repetition chant (prompt: 110 words with full chant pattern for all 6 words, type: memory_repetition, 15 XP)
+SLIDES 7-9: PRACTICE ACTIVITIES
+7. Flashcard drill (prompt: 60 words, type: memory_flashcard, 20 XP)
+8. Grammar practice (prompt: 80 words with rule + examples, activityData with 3 questions, 20 XP)
+9. Matching game (prompt: 70 words, gameType: matching, 25 XP)
 
-SLIDES 14-18: PRACTICE
-14-15. Grammar (prompt: 150-200 words each with full explanation + examples + pattern, activityData with 4 questions, 20 XP each)
-16. Matching game (prompt: 120 words with all 6 pairs listed, gameType: matching, 25 XP, badgeUnlock: "Game Champion")
-17. Drag-drop (prompt: 130 words with all 5 sentences written out, gameType: drag_drop, 25 XP, streakBonus: true)
-18. Role-play (prompt: 180-220 words with full 6-line dialogue + character descriptions + scenario, teacherTips, 30 XP)
+SLIDES 10-12: INTERACTIVE PRACTICE
+10. Drag-drop (prompt: 70 words, gameType: drag_drop, 25 XP)
+11. Role-play (prompt: 100 words with dialogue, 30 XP)
+12. Listening (prompt: 80 words, audioText with questions, 20 XP)
 
-SLIDES 19-20: SONG (FULL LYRICS IN PROMPT)
-Add to "songs" array: {id, title, purpose, melody, lyrics (FULL 2 verses), actions: [4], audioScript, visualPrompt, repetitionStrategy}
-19. Teach song (prompt: 100-150 words with full lyrics + actions described, 20 XP)
-20. Sing-along (prompt: 80-120 words with full lyrics repeated + encouragement, 35 XP, badgeUnlock: "Super Singer")
+SLIDES 13-14: SONG
+Add to "songs" array: {id, title, purpose, lyrics (1 verse), actions: [3], audioScript}
+13. Teach song (prompt: 60 words with lyrics, 20 XP)
+14. Sing-along (prompt: 50 words, 35 XP, badgeUnlock: "Super Singer")
 
-SLIDES 21-23: ASSESSMENT
-21-23. Quiz slides (prompt: 150-180 words each with questions written out, activityData with 8 total questions: 4 multiple choice, 2 fill-blank, 2 matching, each 15 XP with hints/explanations)
-Slide 23: badgeUnlock: "Quiz Master"
+SLIDES 15-16: ASSESSMENT
+15. Quiz (prompt: 80 words, activityData with 4 questions, 20 XP)
+16. Review (prompt: 70 words, 25 XP, badgeUnlock: "Quiz Master")
 
-SLIDES 24-25: WRAP-UP
-24. XP summary (prompt: 100-120 words celebrating learning + listing badges, 50 bonus XP)
-25. Homework (prompt: 80-100 words with clear homework tasks: review song, practice with family)
+SLIDES 17-18: WRAP-UP
+17. XP summary (prompt: 60 words celebrating learning, 50 bonus XP)
+18. Homework (prompt: 50 words with clear tasks)
 
 ✅ FINAL REQUIREMENTS:
-- ALL slides: Rich prompt field with student-facing content (100-250 words)
-- ALL slides: gamification with xpReward + feedbackPositive (2) + feedbackCorrection (2)
-- 20+ slides: imagePrompt (brief, colorful)
-- 15+ slides: audioText (pronunciation/narration)
-- Songs array: 1 complete song with FULL lyrics
-- Total XP: 400-500 across all slides
+- ALL slides: Concise prompt field (50-100 words)
+- ALL slides: gamification with xpReward + feedbackPositive [2] + feedbackCorrection [2]
+- 12+ slides: imagePrompt (brief)
+- 10+ slides: audioText
+- Songs array: 1 song with concise lyrics
+- Total XP: 300-400 across all slides
 
-Return JSON:
+Return JSON with 18 slides:
 {
   version: "4.0",
   theme: "vibrant-learning",
   durationMin: 45,
   metadata: {CEFR: "${cefrLevel}", module: 1, lesson: ${lessonPlan.lessonNumber || 1}, targets: [...], weights: {accuracy: 60, fluency: 40}},
-  slides: [25 slides with RICH CONTENT in prompt field],
-  songs: [1 song with full lyrics]
+  slides: [18 optimized slides],
+  songs: [1 song]
 }`;
 }
