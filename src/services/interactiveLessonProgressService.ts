@@ -439,6 +439,41 @@ class InteractiveLessonProgressService {
       console.error('Error in markLessonRedo:', error);
     }
   }
+
+  /**
+   * Get recent student activity for teacher dashboard
+   */
+  async getRecentStudentActivity(teacherId: string, limit: number = 10): Promise<any[]> {
+    try {
+      const { data, error } = await supabase
+        .from('interactive_lesson_progress')
+        .select(`
+          *,
+          student:users!interactive_lesson_progress_student_id_fkey(
+            id,
+            full_name,
+            avatar_url
+          ),
+          lesson:interactive_lessons!interactive_lesson_progress_lesson_id_fkey(
+            id,
+            title,
+            cefr_level
+          )
+        `)
+        .order('updated_at', { ascending: false })
+        .limit(limit);
+
+      if (error) {
+        console.error('Error fetching recent activity:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error in getRecentStudentActivity:', error);
+      return [];
+    }
+  }
 }
 
 export const interactiveLessonProgressService = new InteractiveLessonProgressService();

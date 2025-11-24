@@ -25,7 +25,7 @@ export const TeacherPanel = ({
   const renderActiveTab = () => {
     switch (activeTab) {
       case "dashboard":
-        return <DashboardTab teacherName={teacherName} />;
+        return <DashboardTab teacherName={teacherName} teacherId={teacherId} />;
       case "calendar":
         return <EnhancedCalendarTab teacherId={teacherId} />;
       case "students":
@@ -37,7 +37,7 @@ export const TeacherPanel = ({
       case "reading-library":
         return <LibraryTab />;
       default:
-        return <DashboardTab teacherName={teacherName} />;
+        return <DashboardTab teacherName={teacherName} teacherId={teacherId} />;
     }
   };
 

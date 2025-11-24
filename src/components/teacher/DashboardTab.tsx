@@ -1,11 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Calendar, DollarSign } from "lucide-react";
+import { RecentActivityCard } from "./RecentActivityCard";
+import { useState } from "react";
+import { StudentDetailDialog } from "./StudentDetailDialog";
 
 interface DashboardTabProps {
   teacherName: string;
+  teacherId: string;
 }
 
-export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
+export const DashboardTab = ({ teacherName, teacherId }: DashboardTabProps) => {
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+
   return (
     <div className="space-y-6">
       <div>
@@ -47,6 +53,19 @@ export const DashboardTab = ({ teacherName }: DashboardTabProps) => {
           </CardContent>
         </Card>
       </div>
+
+      <RecentActivityCard
+        teacherId={teacherId}
+        onViewDetails={(studentId) => setSelectedStudentId(studentId)}
+      />
+
+      {selectedStudentId && (
+        <StudentDetailDialog
+          studentId={selectedStudentId}
+          studentName="Student"
+          onClose={() => setSelectedStudentId(null)}
+        />
+      )}
     </div>
   );
 };
