@@ -3,6 +3,13 @@
 ## Overview
 Every interactive lesson automatically tracks student progress per individual student ID. This enables auto-continuation, completion rules, and sequential progression through the curriculum.
 
+## Quick Links
+
+- [Testing Checklist](./TESTING_CHECKLIST.md) - Comprehensive testing scenarios
+- [Test Suite Documentation](../src/test/README.md) - Automated test coverage
+
+---
+
 ## Database Tables
 
 ### `interactive_lesson_progress`
@@ -120,41 +127,6 @@ Use `StudentLessonHistory` component:
 <StudentLessonHistory studentId="student-uuid" />
 ```
 
-#### Teacher Student Detail View
-Teachers can access comprehensive student progress through the Student Detail Dialog:
-
-**From Students Tab:**
-1. Navigate to Students tab in teacher dashboard
-2. Click "Progress" button on any student card
-3. View all lessons with expandable controls
-
-**From Classroom Mode:**
-1. Open lesson in classroom mode for a student
-2. Click floating "Student Controls" button (bottom-right)
-3. Access full student progress without leaving lesson
-
-**Features:**
-- **Lesson Progress Tab**: Shows all assigned lessons with:
-  - Progress rings and completion percentages
-  - Status badges (Completed, In Progress, Redo Required)
-  - Quick action buttons (Preview, Open for Student)
-  - Expandable "Advanced Controls" section with full ClassroomLessonControls
-  
-- **Overall Stats Tab**: Displays aggregate metrics:
-  - Total lessons completed
-  - Total XP earned
-  - Average completion rate
-  - Total study time
-  - Recent activity timeline
-
-**Managing Progress:**
-1. Expand any lesson's "Advanced Controls" section
-2. Use ClassroomLessonControls for:
-   - Continue from saved slide
-   - Restart lesson progress
-   - Mark as completed
-   - Mark as redo
-   - Manual override (slide/percentage)
 
 ## API Reference
 

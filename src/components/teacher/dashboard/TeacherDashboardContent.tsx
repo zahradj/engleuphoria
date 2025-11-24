@@ -57,7 +57,7 @@ export const TeacherDashboardContent = ({ lessonPlans, teacherName = "Teacher", 
         
         <div className="mt-8">
           <TabsContent value="overview" className="animate-fade-in">
-            <DashboardTab teacherName={teacherName} />
+            <DashboardTab teacherName={teacherName} teacherId={teacherId} />
           </TabsContent>
           
           <TabsContent value="students" className="animate-fade-in">
