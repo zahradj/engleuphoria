@@ -1,17 +1,23 @@
-
-import React from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Search, Filter, MessageCircle, Calendar, BarChart3, Loader2 } from "lucide-react";
 import { useTeacherStudents } from "@/hooks/useTeacherStudents";
+import { StudentDetailDialog } from "./StudentDetailDialog";
 import { format } from "date-fns";
 
 export const StudentsTab = () => {
   const { students, loading, error } = useTeacherStudents();
+  const [selectedStudent, setSelectedStudent] = useState<{
+    id: string;
+    name: string;
+    level?: string;
+  } | null>(null);
 
   return (
+    <>
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-800">My Students</h1>
@@ -90,7 +96,17 @@ export const StudentsTab = () => {
                       <Calendar className="h-4 w-4 mr-1" />
                       Schedule
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        setSelectedStudent({
+                          id: student.id,
+                          name: student.name,
+                          level: student.level,
+                        })
+                      }
+                    >
                       <BarChart3 className="h-4 w-4 mr-1" />
                       Progress
                     </Button>
@@ -120,6 +136,16 @@ export const StudentsTab = () => {
           ))
         )}
       </div>
+
+      {selectedStudent && (
+        <StudentDetailDialog
+          studentId={selectedStudent.id}
+          studentName={selectedStudent.name}
+          studentLevel={selectedStudent.level}
+          onClose={() => setSelectedStudent(null)}
+        />
+      )}
     </div>
+    </>
   );
 };
