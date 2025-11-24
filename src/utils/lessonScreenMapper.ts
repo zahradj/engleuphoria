@@ -76,6 +76,15 @@ export function mapScreenToSlide(screen: any, screenIndex: number) {
     slideNumber: screenIndex + 1
   };
 
+  // Handle warmup/home screens with object content
+  if (mappedType === 'warmup' && typeof mappedSlide.content === 'object') {
+    const content = mappedSlide.content as any;
+    // Ensure we have a displayable prompt
+    if (!mappedSlide.prompt) {
+      mappedSlide.prompt = content.welcomeMessage || content.previewText || mappedSlide.title;
+    }
+  }
+
   // Add fallback content for specific types
   if (mappedType === 'vocabulary' && mappedSlide.content.words) {
     mappedSlide.content.words = mappedSlide.content.words.map((word: any) => ({
