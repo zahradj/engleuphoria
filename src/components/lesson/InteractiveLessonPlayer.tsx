@@ -11,12 +11,14 @@ import { motion } from 'framer-motion';
 
 interface InteractiveLessonPlayerProps {
   lessonId: string;
+  studentId?: string;
   mode?: 'preview' | 'classroom' | 'student';
   onExit?: () => void;
 }
 
 export function InteractiveLessonPlayer({ 
   lessonId, 
+  studentId,
   mode = 'preview',
   onExit 
 }: InteractiveLessonPlayerProps) {
@@ -27,7 +29,8 @@ export function InteractiveLessonPlayer({
   const [starsEarned, setStarsEarned] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [showIntro, setShowIntro] = useState(true);
-  const { toast } = useToast();
+  const [progressInitialized, setProgressInitialized] = useState(false);
+  const { toast} = useToast();
 
   useEffect(() => {
     loadLesson();
@@ -57,13 +60,39 @@ export function InteractiveLessonPlayer({
       const mappedSlides = mapLessonScreens(data.screens_data || []);
       setSlides(mappedSlides);
       
-      // Check if lesson has custom intro screen
-      if (data.intro_screen_data?.url) {
-        setShowIntro(true);
-      } else if (data.intro_screen_data?.source === 'default') {
-        setShowIntro(true);
-      } else {
-        setShowIntro(false);
+      // Load progress if studentId is provided and mode is not preview
+      if (studentId && mode !== 'preview' && !progressInitialized) {
+        const { interactiveLessonProgressService } = await import('@/services/interactiveLessonProgressService');
+        let progress = await interactiveLessonProgressService.getStudentLessonProgress(studentId, lessonId);
+        
+        if (!progress) {
+          // Initialize progress if it doesn't exist
+          progress = await interactiveLessonProgressService.initializeLessonProgress(
+            studentId,
+            lessonId,
+            mappedSlides.length
+          );
+        }
+
+        if (progress && progress.current_slide_index > 0) {
+          setCurrentSlide(progress.current_slide_index);
+          setXpEarned(progress.xp_earned);
+          setStarsEarned(progress.stars_earned);
+          setShowIntro(false); // Skip intro if continuing
+        }
+        
+        setProgressInitialized(true);
+      }
+      
+      // Check if lesson has custom intro screen (only if not continuing)
+      if (currentSlide === 0) {
+        if (data.intro_screen_data?.url) {
+          setShowIntro(true);
+        } else if (data.intro_screen_data?.source === 'default') {
+          setShowIntro(true);
+        } else {
+          setShowIntro(false);
+        }
       }
     } catch (error) {
       console.error('Error loading lesson:', error);
@@ -77,18 +106,68 @@ export function InteractiveLessonPlayer({
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (showIntro) {
       setShowIntro(false);
       return;
     }
     
     if (currentSlide < slides.length - 1) {
-      setCurrentSlide(prev => prev + 1);
+      const nextSlide = currentSlide + 1;
+      setCurrentSlide(nextSlide);
       // Award XP for completing a slide
       const xpPerSlide = Math.floor((lesson?.total_xp || 100) / slides.length);
       setXpEarned(prev => prev + xpPerSlide);
+
+      // Save progress if studentId is provided
+      if (studentId && mode !== 'preview') {
+        const { interactiveLessonProgressService } = await import('@/services/interactiveLessonProgressService');
+        await interactiveLessonProgressService.updateSlideProgress(
+          studentId,
+          lessonId,
+          nextSlide,
+          xpPerSlide,
+          0
+        );
+      }
+    } else {
+      // Reached the end - complete the lesson
+      await handleLessonComplete();
     }
+  };
+
+  const handleLessonComplete = async () => {
+    if (studentId && mode !== 'preview') {
+      const { interactiveLessonProgressService } = await import('@/services/interactiveLessonProgressService');
+      const status = await interactiveLessonProgressService.completeLessonSession(
+        studentId,
+        lessonId,
+        {
+          totalSlides: slides.length,
+          completedSlides: currentSlide + 1,
+          xpEarned,
+          starsEarned
+        }
+      );
+
+      // Check if next lesson was unlocked
+      const nextLessonId = await interactiveLessonProgressService.unlockNextLesson(studentId, lessonId);
+      
+      if (nextLessonId && status === 'completed') {
+        toast({
+          title: "🎉 Great Job!",
+          description: "You've completed this lesson! Next lesson is now unlocked.",
+        });
+      } else if (status === 'redo_required') {
+        toast({
+          title: "Keep Practicing!",
+          description: "Complete at least 50% of the lesson to unlock the next one.",
+          variant: "destructive"
+        });
+      }
+    }
+    
+    if (onExit) onExit();
   };
 
   const handlePrevious = () => {

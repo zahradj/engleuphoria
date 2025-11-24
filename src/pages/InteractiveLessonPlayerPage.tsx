@@ -7,6 +7,7 @@ export default function InteractiveLessonPlayerPage() {
   const navigate = useNavigate();
   
   const mode = (searchParams.get('mode') as 'preview' | 'classroom' | 'student') || 'preview';
+  const studentId = searchParams.get('studentId') || undefined;
 
   if (!lessonId) {
     return (
@@ -22,8 +23,9 @@ export default function InteractiveLessonPlayerPage() {
   return (
     <InteractiveLessonPlayer
       lessonId={lessonId}
+      studentId={studentId}
       mode={mode}
-      onExit={() => navigate('/teacher')}
+      onExit={() => navigate(mode === 'student' ? '/student' : '/teacher')}
     />
   );
 }

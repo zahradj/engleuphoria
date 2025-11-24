@@ -2873,6 +2873,118 @@ export type Database = {
           },
         ]
       }
+      interactive_lesson_assignments: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          due_date: string | null
+          id: string
+          is_unlocked: boolean
+          lesson_id: string
+          notes: string | null
+          order_in_sequence: number | null
+          status: string
+          student_id: string
+          unlock_condition: Json | null
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          due_date?: string | null
+          id?: string
+          is_unlocked?: boolean
+          lesson_id: string
+          notes?: string | null
+          order_in_sequence?: number | null
+          status?: string
+          student_id: string
+          unlock_condition?: Json | null
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          due_date?: string | null
+          id?: string
+          is_unlocked?: boolean
+          lesson_id?: string
+          notes?: string | null
+          order_in_sequence?: number | null
+          status?: string
+          student_id?: string
+          unlock_condition?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interactive_lesson_assignments_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "interactive_lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interactive_lesson_progress: {
+        Row: {
+          completed_at: string | null
+          completed_slides: number
+          completion_percentage: number
+          current_slide_index: number
+          id: string
+          last_slide_completed: number | null
+          lesson_id: string
+          lesson_status: string
+          session_data: Json | null
+          stars_earned: number
+          started_at: string | null
+          student_id: string
+          total_slides: number
+          updated_at: string | null
+          xp_earned: number
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_slides?: number
+          completion_percentage?: number
+          current_slide_index?: number
+          id?: string
+          last_slide_completed?: number | null
+          lesson_id: string
+          lesson_status?: string
+          session_data?: Json | null
+          stars_earned?: number
+          started_at?: string | null
+          student_id: string
+          total_slides?: number
+          updated_at?: string | null
+          xp_earned?: number
+        }
+        Update: {
+          completed_at?: string | null
+          completed_slides?: number
+          completion_percentage?: number
+          current_slide_index?: number
+          id?: string
+          last_slide_completed?: number | null
+          lesson_id?: string
+          lesson_status?: string
+          session_data?: Json | null
+          stars_earned?: number
+          started_at?: string | null
+          student_id?: string
+          total_slides?: number
+          updated_at?: string | null
+          xp_earned?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interactive_lesson_progress_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "interactive_lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interactive_lessons: {
         Row: {
           age_group: string
