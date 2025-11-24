@@ -4,17 +4,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Plus, Search, Filter, Clock, Users, Star, Eye, Play } from "lucide-react";
+import { BookOpen, Plus, Search, Filter, Clock, Users, Star, Eye, Play, UserPlus } from "lucide-react";
 import { LessonCreatorModal } from "./lesson-creator/LessonCreatorModal";
 import { useLibraryLessons } from "@/hooks/useLibraryLessons";
 import { AgeGroup, CEFRLevel } from "@/types/curriculumExpert";
+import { interactiveLessonProgressService } from "@/services/interactiveLessonProgressService";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 export const LibraryTab = () => {
   const [isCreatorOpen, setIsCreatorOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLevel, setSelectedLevel] = useState<CEFRLevel | "all">("all");
   const [selectedAge, setSelectedAge] = useState<AgeGroup | "all">("all");
+  const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
+  const [students, setStudents] = useState<any[]>([]);
   const { lessons, isLoading, fetchLessons } = useLibraryLessons();
+  const { user } = useAuth();
+  const { toast } = useToast();
 
   // Fetch with filters when they change
   useEffect(() => {
@@ -24,6 +32,54 @@ export const LibraryTab = () => {
       searchQuery
     });
   }, [selectedLevel, selectedAge, searchQuery]);
+
+  // Fetch teacher's students
+  useEffect(() => {
+    const fetchStudents = async () => {
+      if (!user?.id) return;
+      
+      const { data } = await supabase
+        .from('lessons')
+        .select('student_id, student:users!lessons_student_id_fkey(id, email, user_metadata)')
+        .eq('teacher_id', user.id);
+      
+      if (data) {
+        const uniqueStudents = Array.from(
+          new Map(data.map((item: any) => [
+            item.student_id, 
+            { 
+              id: item.student_id, 
+              name: item.student?.[0]?.user_metadata?.full_name || item.student?.[0]?.email?.split('@')[0] || 'Student'
+            }
+          ])).values()
+        );
+        setStudents(uniqueStudents);
+      }
+    };
+    fetchStudents();
+  }, [user?.id]);
+
+  const handleAssignToStudent = async (lessonId: string, studentId: string) => {
+    try {
+      await interactiveLessonProgressService.assignLessonToStudent(
+        lessonId,
+        studentId,
+        user?.id || ''
+      );
+      
+      const studentName = students.find(s => s.id === studentId)?.name;
+      toast({
+        title: "Lesson Assigned!",
+        description: `Lesson has been assigned to ${studentName}`,
+      });
+    } catch (error) {
+      toast({
+        title: "Assignment Failed",
+        description: "Could not assign lesson. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -45,9 +101,31 @@ export const LibraryTab = () => {
         </Button>
       </div>
 
-      {/* Filters */}
+      {/* Student Selection & Filters */}
       <Card>
         <CardContent className="pt-6">
+          {/* Student Selector for Assignment */}
+          <div className="flex items-center gap-4 mb-4">
+            <Select value={selectedStudent || undefined} onValueChange={setSelectedStudent}>
+              <SelectTrigger className="w-64">
+                <SelectValue placeholder="Select student to assign..." />
+              </SelectTrigger>
+              <SelectContent>
+                {students.map(student => (
+                  <SelectItem key={student.id} value={student.id}>
+                    {student.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {selectedStudent && (
+              <Badge variant="secondary" className="bg-primary/10 text-primary">
+                Assigning to: {students.find(s => s.id === selectedStudent)?.name}
+              </Badge>
+            )}
+          </div>
+
+          {/* Filters */}
           <div className="grid gap-4 md:grid-cols-4">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -172,6 +250,19 @@ export const LibraryTab = () => {
                       <Play className="h-4 w-4 mr-1" />
                       Use Lesson
                     </Button>
+                    {selectedStudent && (
+                      <Button 
+                        size="sm" 
+                        variant="secondary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAssignToStudent(lesson.id, selectedStudent);
+                        }}
+                      >
+                        <UserPlus className="h-4 w-4 mr-1" />
+                        Assign
+                      </Button>
+                    )}
                   </div>
                 </div>
               </CardContent>

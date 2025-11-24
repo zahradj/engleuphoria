@@ -21,6 +21,7 @@ import { LearningPathTab } from "@/components/student/LearningPathTab";
 import { QuickActions } from "@/components/navigation/QuickActions";
 import { AssessmentsTab } from "@/components/student/tabs/AssessmentsTab";
 import { CertificatesTab } from "@/components/student/tabs/CertificatesTab";
+import { StudentLessonsLibrary } from "@/components/student/StudentLessonsLibrary";
 
 const StudentDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -103,8 +104,9 @@ const StudentDashboard = () => {
 
   const renderActiveTab = () => {
     const tabComponents = {
-      dashboard: () => <CleanStudentDashboard studentName={studentName} studentProfile={studentProfile} />,
+      dashboard: () => <CleanStudentDashboard studentName={studentName} studentProfile={studentProfile} studentId={user?.id || studentId} />,
       "learning-path": () => <LearningPathTab />,
+      lessons: () => <StudentLessonsLibrary studentId={user?.id || studentId} />,
       assessments: () => <AssessmentsTab />,
       certificates: () => <CertificatesTab />,
       teachers: () => <TeachersTab />,
