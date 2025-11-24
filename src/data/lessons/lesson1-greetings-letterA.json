@@ -1,0 +1,389 @@
+{
+  "id": "lesson-1-greetings-a",
+  "title": "Lesson 1: Greetings & Letter Aa",
+  "topic": "Greetings and the Letter A",
+  "cefr_level": "Pre-A1",
+  "age_group": "5-7 years",
+  "estimated_duration": 30,
+  "total_xp": 500,
+  "screens_data": [
+    {
+      "screenNumber": 1,
+      "screenType": "character_intro",
+      "title": "Welcome to Your First Lesson!",
+      "content": {
+        "characterName": "LearnBot",
+        "greeting": "Hi! I'm LearnBot, and I'm so excited to learn with you today!",
+        "characterImage": "🤖",
+        "message": "Today we're going to learn how to say hello and goodbye, and we'll discover the letter A!",
+        "funFact": "Did you know? The word 'hello' is used in over 100 languages around the world!"
+      },
+      "xpReward": 10
+    },
+    {
+      "screenNumber": 2,
+      "screenType": "learning_objectives",
+      "title": "What We'll Learn Today",
+      "content": {
+        "objectives": [
+          "Learn to say Hello, Goodbye, and Thank you",
+          "Meet new words: Friend and Please",
+          "Discover the letter A and its sound",
+          "Practice greeting people politely",
+          "Have fun with games and activities!"
+        ],
+        "estimatedTime": "30 minutes",
+        "totalXP": 500
+      },
+      "xpReward": 10
+    },
+    {
+      "screenNumber": 3,
+      "screenType": "vocabulary",
+      "title": "New Word: Hello",
+      "content": {
+        "word": "Hello",
+        "pronunciation": "/həˈloʊ/",
+        "partOfSpeech": "interjection",
+        "definition": "A greeting used when you meet someone or answer the phone",
+        "exampleSentences": [
+          "Hello! My name is Sarah.",
+          "I say hello to my teacher every morning.",
+          "Hello, how are you today?"
+        ],
+        "relatedWords": ["Hi", "Hey", "Greetings"],
+        "imagePrompt": "🖐️ A happy child waving hello with a big smile",
+        "audioPrompt": "audio('hello-pronunciation.mp3')"
+      },
+      "xpReward": 20
+    },
+    {
+      "screenNumber": 4,
+      "screenType": "vocabulary",
+      "title": "New Word: Goodbye",
+      "content": {
+        "word": "Goodbye",
+        "pronunciation": "/ˌɡʊdˈbaɪ/",
+        "partOfSpeech": "interjection",
+        "definition": "A polite way to say farewell when you leave someone",
+        "exampleSentences": [
+          "Goodbye! See you tomorrow!",
+          "I say goodbye to my friends after school.",
+          "Goodbye, have a nice day!"
+        ],
+        "relatedWords": ["Bye", "Farewell", "See you later"],
+        "imagePrompt": "👋 A child waving goodbye at the door",
+        "audioPrompt": "audio('goodbye-pronunciation.mp3')"
+      },
+      "xpReward": 20
+    },
+    {
+      "screenNumber": 5,
+      "screenType": "vocabulary",
+      "title": "New Word: Thank You",
+      "content": {
+        "word": "Thank you",
+        "pronunciation": "/θæŋk juː/",
+        "partOfSpeech": "phrase",
+        "definition": "A polite expression used to show gratitude or appreciation",
+        "exampleSentences": [
+          "Thank you for helping me!",
+          "Thank you for the nice present.",
+          "I always say thank you when someone is kind."
+        ],
+        "relatedWords": ["Thanks", "Grateful", "Appreciate"],
+        "imagePrompt": "❤️ A child saying thank you with hands together",
+        "audioPrompt": "audio('thank-you-pronunciation.mp3')"
+      },
+      "xpReward": 20
+    },
+    {
+      "screenNumber": 6,
+      "screenType": "phonics",
+      "title": "Meet the Letter Aa",
+      "content": {
+        "letter": "Aa",
+        "sound": "/æ/ as in apple",
+        "uppercase": "A",
+        "lowercase": "a",
+        "exampleWords": [
+          {"word": "Apple", "image": "🍎"},
+          {"word": "Ant", "image": "🐜"},
+          {"word": "Airplane", "image": "✈️"}
+        ],
+        "pronunciationGuide": "The letter A makes the 'ah' sound, like when you say 'ahh' at the doctor!",
+        "audioPrompts": {
+          "letterSound": "audio('letter-a-sound.mp3')",
+          "slow": "audio('letter-a-slow.mp3')",
+          "normal": "audio('letter-a-normal.mp3')",
+          "fast": "audio('letter-a-fast.mp3')"
+        }
+      },
+      "xpReward": 25
+    },
+    {
+      "screenNumber": 7,
+      "screenType": "tap_to_choose",
+      "title": "Choose the Correct Greeting",
+      "content": {
+        "instructions": "Tap the word we use to greet someone when we meet them",
+        "options": [
+          {"id": "1", "text": "Hello", "image": "🖐️", "isCorrect": true},
+          {"id": "2", "text": "Banana", "image": "🍌", "isCorrect": false},
+          {"id": "3", "text": "Cat", "image": "🐱", "isCorrect": false},
+          {"id": "4", "text": "Car", "image": "🚗", "isCorrect": false}
+        ],
+        "allowMultiple": false
+      },
+      "xpReward": 30
+    },
+    {
+      "screenNumber": 8,
+      "screenType": "tap_to_choose",
+      "title": "When Do We Say Goodbye?",
+      "content": {
+        "instructions": "Choose when we say goodbye",
+        "options": [
+          {"id": "1", "text": "When we meet", "image": "🤝", "isCorrect": false},
+          {"id": "2", "text": "When we leave", "image": "👋", "isCorrect": true},
+          {"id": "3", "text": "When we eat", "image": "🍽️", "isCorrect": false},
+          {"id": "4", "text": "When we sleep", "image": "😴", "isCorrect": false}
+        ],
+        "allowMultiple": false
+      },
+      "xpReward": 30
+    },
+    {
+      "screenNumber": 9,
+      "screenType": "drag_drop",
+      "title": "Match Greetings to Pictures",
+      "content": {
+        "instructions": "Drag the words to the matching pictures",
+        "items": [
+          {"id": "1", "type": "draggable", "content": "Hello", "matchId": "hello-pic"},
+          {"id": "2", "type": "draggable", "content": "Goodbye", "matchId": "goodbye-pic"},
+          {"id": "3", "type": "draggable", "content": "Thank you", "matchId": "thanks-pic"}
+        ],
+        "dropZones": [
+          {"id": "hello-pic", "image": "🖐️", "label": "Waving hello"},
+          {"id": "goodbye-pic", "image": "👋", "label": "Waving goodbye"},
+          {"id": "thanks-pic", "image": "❤️", "label": "Showing gratitude"}
+        ]
+      },
+      "xpReward": 40
+    },
+    {
+      "screenNumber": 10,
+      "screenType": "find_letter",
+      "title": "Find All the Letter A's",
+      "content": {
+        "instructions": "Find and tap all 5 letter A's in the grid",
+        "targetLetter": "A",
+        "gridLetters": ["A", "B", "C", "A", "D", "E", "F", "A", "G", "H", "I", "A", "J", "K", "L", "M", "N", "A", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "B", "C", "D", "E", "F", "G"],
+        "targetCount": 5
+      },
+      "xpReward": 35
+    },
+    {
+      "screenNumber": 11,
+      "screenType": "letter_tracing",
+      "title": "Trace the Letter A",
+      "content": {
+        "letter": "A",
+        "instructions": "Use your finger or mouse to trace the letter A"
+      },
+      "xpReward": 30
+    },
+    {
+      "screenNumber": 12,
+      "screenType": "matching_pairs",
+      "title": "Memory Game: Match the Words",
+      "content": {
+        "instructions": "Find matching pairs of greeting words",
+        "pairs": [
+          {"id": "pair1-1", "content": "Hello", "pairId": "hello"},
+          {"id": "pair1-2", "content": "Hello", "pairId": "hello"},
+          {"id": "pair2-1", "content": "Goodbye", "pairId": "goodbye"},
+          {"id": "pair2-2", "content": "Goodbye", "pairId": "goodbye"},
+          {"id": "pair3-1", "content": "Thank you", "pairId": "thanks"},
+          {"id": "pair3-2", "content": "Thank you", "pairId": "thanks"}
+        ]
+      },
+      "xpReward": 40
+    },
+    {
+      "screenNumber": 13,
+      "screenType": "dialogue_practice",
+      "title": "Dialogue Practice",
+      "content": {
+        "dialogueTitle": "Meeting a New Friend",
+        "characters": [
+          {"name": "Emma", "avatar": "👧"},
+          {"name": "James", "avatar": "👦"}
+        ],
+        "script": [
+          {"speaker": "Emma", "text": "Hello! My name is Emma. What's your name?"},
+          {"speaker": "James", "text": "Hello, Emma! I'm James. Nice to meet you!"},
+          {"speaker": "Emma", "text": "Nice to meet you too, James!"}
+        ],
+        "practicePrompt": "Now you try! Say: Hello! My name is [your name]. What's your name?"
+      },
+      "xpReward": 35
+    },
+    {
+      "screenNumber": 14,
+      "screenType": "tap_to_choose",
+      "title": "Choose the Best Reply",
+      "content": {
+        "instructions": "Someone says 'Hello! How are you?' What should you say?",
+        "options": [
+          {"id": "1", "text": "I'm fine, thank you!", "isCorrect": true},
+          {"id": "2", "text": "Banana", "isCorrect": false},
+          {"id": "3", "text": "Yesterday", "isCorrect": false},
+          {"id": "4", "text": "Blue", "isCorrect": false}
+        ],
+        "allowMultiple": false
+      },
+      "xpReward": 30
+    },
+    {
+      "screenNumber": 15,
+      "screenType": "speaking_practice",
+      "title": "Speaking Practice",
+      "content": {
+        "prompt": "Say this sentence out loud:",
+        "targetSentence": "Hello! My name is [your name]. Nice to meet you!",
+        "modelAudio": "audio('speaking-model-greeting.mp3')",
+        "pronunciationHints": [
+          "Say 'Hello' clearly with a smile",
+          "Say your name slowly and clearly",
+          "End with 'Nice to meet you!' in a friendly voice"
+        ]
+      },
+      "xpReward": 35
+    },
+    {
+      "screenNumber": 16,
+      "screenType": "listening_comprehension",
+      "title": "Listening Story",
+      "content": {
+        "storyTitle": "Emma's First Day",
+        "storyText": "Emma goes to a new school. She sees a boy. Emma says, 'Hello! I'm Emma.' The boy smiles and says, 'Hello, Emma! I'm Tom.' They become friends. At the end of the day, Emma says, 'Goodbye, Tom! See you tomorrow!' Tom says, 'Goodbye, Emma! Thank you for being my friend!'",
+        "audioPrompt": "audio('listening-story-emmas-first-day.mp3')",
+        "questions": [
+          {
+            "question": "What does Emma say when she meets the boy?",
+            "options": ["Hello", "Goodbye", "Thank you", "Banana"],
+            "correctAnswer": "Hello"
+          },
+          {
+            "question": "What is the boy's name?",
+            "options": ["James", "Tom", "Alex", "Sam"],
+            "correctAnswer": "Tom"
+          },
+          {
+            "question": "What does Emma say at the end of the day?",
+            "options": ["Hello", "Goodbye", "Please", "Apple"],
+            "correctAnswer": "Goodbye"
+          }
+        ]
+      },
+      "xpReward": 40
+    },
+    {
+      "screenNumber": 17,
+      "screenType": "drag_drop",
+      "title": "Match Pictures to Words",
+      "content": {
+        "instructions": "Drag the pictures to the correct words",
+        "items": [
+          {"id": "1", "type": "draggable", "content": "🍎", "matchId": "apple"},
+          {"id": "2", "type": "draggable", "content": "🐜", "matchId": "ant"},
+          {"id": "3", "type": "draggable", "content": "✈️", "matchId": "airplane"}
+        ],
+        "dropZones": [
+          {"id": "apple", "label": "Apple"},
+          {"id": "ant", "label": "Ant"},
+          {"id": "airplane", "label": "Airplane"}
+        ]
+      },
+      "xpReward": 35
+    },
+    {
+      "screenNumber": 18,
+      "screenType": "matching_pairs",
+      "title": "Match Uppercase and Lowercase",
+      "content": {
+        "instructions": "Match the uppercase and lowercase letters",
+        "pairs": [
+          {"id": "A-upper", "content": "A", "pairId": "letterA"},
+          {"id": "A-lower", "content": "a", "pairId": "letterA"},
+          {"id": "B-upper", "content": "B", "pairId": "letterB"},
+          {"id": "B-lower", "content": "b", "pairId": "letterB"},
+          {"id": "C-upper", "content": "C", "pairId": "letterC"},
+          {"id": "C-lower", "content": "c", "pairId": "letterC"}
+        ]
+      },
+      "xpReward": 35
+    },
+    {
+      "screenNumber": 19,
+      "screenType": "end_quiz",
+      "title": "Quick Review Quiz",
+      "content": {
+        "quizTitle": "Let's Review!",
+        "questions": [
+          {
+            "question": "What do we say when we meet someone?",
+            "options": ["Hello", "Goodbye", "Apple", "Cat"],
+            "correctAnswer": "Hello"
+          },
+          {
+            "question": "What do we say when we leave?",
+            "options": ["Hello", "Goodbye", "Please", "Airplane"],
+            "correctAnswer": "Goodbye"
+          },
+          {
+            "question": "What sound does the letter A make?",
+            "options": ["/æ/ as in apple", "/b/ as in ball", "/k/ as in cat", "/d/ as in dog"],
+            "correctAnswer": "/æ/ as in apple"
+          },
+          {
+            "question": "Which word starts with letter A?",
+            "options": ["Apple", "Banana", "Cat", "Dog"],
+            "correctAnswer": "Apple"
+          },
+          {
+            "question": "What do we say when someone helps us?",
+            "options": ["Thank you", "Hello", "Goodbye", "Please"],
+            "correctAnswer": "Thank you"
+          }
+        ],
+        "passingScore": 60
+      },
+      "xpReward": 50
+    },
+    {
+      "screenNumber": 20,
+      "screenType": "completion",
+      "title": "Lesson Complete!",
+      "content": {
+        "congratsMessage": "Fantastic job! You've completed your first lesson!",
+        "summaryStats": {
+          "totalXP": 500,
+          "wordsLearned": 5,
+          "activitiesCompleted": 15,
+          "timeSpent": "30 minutes"
+        },
+        "badgesEarned": [
+          {"name": "First Lesson", "icon": "🎓", "description": "Completed your very first lesson!"},
+          {"name": "Greeting Master", "icon": "👋", "description": "Learned how to greet people politely"},
+          {"name": "Letter A Champion", "icon": "🅰️", "description": "Mastered the letter A"}
+        ],
+        "nextLessonPreview": "Next lesson: Letter B & Family Members",
+        "encouragement": "You're doing amazing! Keep learning and having fun!"
+      },
+      "xpReward": 0
+    }
+  ]
+}

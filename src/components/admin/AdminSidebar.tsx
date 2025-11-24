@@ -15,7 +15,8 @@ import {
   File,
   LogOut,
   Baby,
-  GraduationCap
+  GraduationCap,
+  Database
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -35,6 +36,7 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
     { id: "early-learners", label: "Early Learners Library", icon: Baby },
     { id: "curriculum-expert", label: "Curriculum Expert", icon: GraduationCap },
     { id: "interactive-lessons", label: "Interactive Lessons", icon: BookOpen },
+    { id: "seed-lessons", label: "Seed Lessons", icon: Database },
     { id: "analytics", label: "Analytics", icon: TrendingUp },
     { id: "payments", label: "Payments", icon: CreditCard },
     { id: "settings", label: "Settings", icon: Settings },

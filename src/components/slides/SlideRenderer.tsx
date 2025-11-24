@@ -18,11 +18,16 @@ import { SlideTheme } from './SlideTheme';
 import { motion } from 'framer-motion';
 import { SpinningWheelActivity } from './activities/SpinningWheelActivity';
 import { SortingGame } from './activities/SortingGame';
+import { TapToChooseActivity } from './activities/TapToChooseActivity';
+import { LetterTracingActivity } from './activities/LetterTracingActivity';
+import { FindTheLetterActivity } from './activities/FindTheLetterActivity';
 
 interface SlideRendererProps {
   slide: any;
   slideNumber: number;
   onNext?: () => void;
+  studentId?: string;
+  lessonId?: string;
 }
 
 function TeacherTipsPanel({ tips }: { tips?: string[] }) {
@@ -53,9 +58,9 @@ function TeacherTipsPanel({ tips }: { tips?: string[] }) {
   );
 }
 
-export function SlideRenderer({ slide, slideNumber, onNext }: SlideRendererProps) {
+export function SlideRenderer({ slide, slideNumber, onNext, studentId, lessonId }: SlideRendererProps) {
   const renderSlideContent = () => {
-    const type = slide.type?.toLowerCase();
+    const type = slide.type?.toLowerCase() || slide.screenType?.toLowerCase();
 
     switch (type) {
       case 'character_intro':
@@ -118,6 +123,56 @@ export function SlideRenderer({ slide, slideNumber, onNext }: SlideRendererProps
       case 'sorting':
       case 'sort':
         return <SortingGame slide={slide} slideNumber={slideNumber} onNext={onNext} />;
+      
+      case 'tap_to_choose':
+        return (
+          <TapToChooseActivity
+            title={slide.content?.title || slide.title}
+            instructions={slide.content?.instructions || ''}
+            options={slide.content?.options || []}
+            allowMultiple={slide.content?.allowMultiple || false}
+            onComplete={(score, xp) => {
+              console.log('Activity complete:', score, xp);
+              setTimeout(() => onNext?.(), 2000);
+            }}
+            studentId={studentId}
+            lessonId={lessonId}
+          />
+        );
+      
+      case 'letter_tracing':
+        return (
+          <LetterTracingActivity
+            letter={slide.content?.letter || 'A'}
+            instructions={slide.content?.instructions || 'Trace the letter'}
+            onComplete={(xp) => {
+              console.log('Tracing complete:', xp);
+              setTimeout(() => onNext?.(), 1500);
+            }}
+            studentId={studentId}
+            lessonId={lessonId}
+          />
+        );
+      
+      case 'find_letter':
+        return (
+          <FindTheLetterActivity
+            targetLetter={slide.content?.targetLetter || 'A'}
+            gridLetters={slide.content?.gridLetters || []}
+            targetCount={slide.content?.targetCount || 5}
+            onComplete={(time, xp) => {
+              console.log('Find letter complete:', time, xp);
+              setTimeout(() => onNext?.(), 2000);
+            }}
+            studentId={studentId}
+            lessonId={lessonId}
+          />
+        );
+
+      case 'home':
+      case 'learning_objectives':
+      case 'completion':
+        return <DefaultSlide slide={slide} slideNumber={slideNumber} onNext={onNext} />;
       
       default:
         return <DefaultSlide slide={slide} slideNumber={slideNumber} onNext={onNext} />;
