@@ -2884,6 +2884,7 @@ export type Database = {
           duration_minutes: number
           grammar_focus: string[]
           id: string
+          intro_screen_data: Json | null
           learning_objectives: string[]
           screens_data: Json
           selected_activities: string[]
@@ -2905,6 +2906,7 @@ export type Database = {
           duration_minutes?: number
           grammar_focus?: string[]
           id?: string
+          intro_screen_data?: Json | null
           learning_objectives?: string[]
           screens_data?: Json
           selected_activities?: string[]
@@ -2926,6 +2928,7 @@ export type Database = {
           duration_minutes?: number
           grammar_focus?: string[]
           id?: string
+          intro_screen_data?: Json | null
           learning_objectives?: string[]
           screens_data?: Json
           selected_activities?: string[]

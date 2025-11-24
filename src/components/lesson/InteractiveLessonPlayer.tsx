@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { SlideRenderer } from '@/components/slides/SlideRenderer';
+import { IntroSlide } from './slides/IntroSlide';
 import { LessonProgressBar } from './LessonProgressBar';
 import { LessonNavigator } from './LessonNavigator';
 import { LoadingSpinner } from '@/components/ui/loading-states';
@@ -25,6 +26,7 @@ export function InteractiveLessonPlayer({
   const [xpEarned, setXpEarned] = useState(0);
   const [starsEarned, setStarsEarned] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [showIntro, setShowIntro] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -54,6 +56,15 @@ export function InteractiveLessonPlayer({
       setLesson(data);
       const mappedSlides = mapLessonScreens(data.screens_data || []);
       setSlides(mappedSlides);
+      
+      // Check if lesson has custom intro screen
+      if (data.intro_screen_data?.url) {
+        setShowIntro(true);
+      } else if (data.intro_screen_data?.source === 'default') {
+        setShowIntro(true);
+      } else {
+        setShowIntro(false);
+      }
     } catch (error) {
       console.error('Error loading lesson:', error);
       toast({
@@ -67,6 +78,11 @@ export function InteractiveLessonPlayer({
   };
 
   const handleNext = () => {
+    if (showIntro) {
+      setShowIntro(false);
+      return;
+    }
+    
     if (currentSlide < slides.length - 1) {
       setCurrentSlide(prev => prev + 1);
       // Award XP for completing a slide
@@ -122,19 +138,29 @@ export function InteractiveLessonPlayer({
 
       {/* Main Content */}
       <div className="pt-24 pb-24 px-4">
-        <motion.div
-          key={currentSlide}
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
-          transition={{ duration: 0.3 }}
-        >
-          <SlideRenderer
-            slide={slides[currentSlide]}
-            slideNumber={currentSlide + 1}
-            onNext={handleNext}
+        {showIntro ? (
+          <IntroSlide
+            title={lesson.title}
+            topic={lesson.topic || lesson.title}
+            ageGroup={lesson.age_group}
+            backgroundUrl={lesson.intro_screen_data?.url}
+            onStart={() => setShowIntro(false)}
           />
-        </motion.div>
+        ) : (
+          <motion.div
+            key={currentSlide}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            <SlideRenderer
+              slide={slides[currentSlide]}
+              slideNumber={currentSlide + 1}
+              onNext={handleNext}
+            />
+          </motion.div>
+        )}
       </div>
 
       {/* Navigation */}

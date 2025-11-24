@@ -2,7 +2,10 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
 import { LessonFormData } from "./LessonCreatorModal";
+import { IntroScreenManager } from "../IntroScreenManager";
+import { useState } from "react";
 
 interface StepBasicInfoProps {
   formData: LessonFormData;
@@ -10,6 +13,8 @@ interface StepBasicInfoProps {
 }
 
 export const StepBasicInfo = ({ formData, setFormData }: StepBasicInfoProps) => {
+  const [lessonId] = useState(() => crypto.randomUUID());
+
   return (
     <div className="space-y-6">
       <div>
@@ -82,6 +87,19 @@ export const StepBasicInfo = ({ formData, setFormData }: StepBasicInfoProps) => 
           </SelectContent>
         </Select>
       </div>
+
+      <Separator className="my-8" />
+
+      <IntroScreenManager
+        topic={formData.topic || "Lesson"}
+        ageGroup={formData.ageGroup}
+        cefrLevel={formData.cefrLevel}
+        lessonId={lessonId}
+        onScreenReady={(screenData) => {
+          setFormData({ ...formData, introScreen: screenData });
+        }}
+        currentScreen={formData.introScreen}
+      />
     </div>
   );
 };

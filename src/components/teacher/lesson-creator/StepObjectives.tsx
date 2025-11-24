@@ -3,15 +3,18 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { Plus, X } from "lucide-react";
 import { LessonFormData } from "./LessonCreatorModal";
+import { VocabularyImageUploader } from "../VocabularyImageUploader";
 
 interface StepObjectivesProps {
   formData: LessonFormData;
   setFormData: (data: LessonFormData) => void;
+  lessonId: string;
 }
 
-export const StepObjectives = ({ formData, setFormData }: StepObjectivesProps) => {
+export const StepObjectives = ({ formData, setFormData, lessonId }: StepObjectivesProps) => {
   const [vocabInput, setVocabInput] = useState("");
   const [grammarInput, setGrammarInput] = useState("");
   const [objectiveInput, setObjectiveInput] = useState("");
@@ -177,6 +180,44 @@ export const StepObjectives = ({ formData, setFormData }: StepObjectivesProps) =
           ))}
         </div>
       </div>
+
+      {formData.vocabularyList.length > 0 && (
+        <>
+          <Separator className="my-8" />
+          
+          <div>
+            <Label className="text-lg">Vocabulary Images</Label>
+            <p className="text-sm text-muted-foreground mt-1 mb-4">
+              Upload or generate images for your vocabulary words
+            </p>
+            
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {formData.vocabularyList.map((word) => (
+                <VocabularyImageUploader
+                  key={word}
+                  word={word}
+                  lessonId={lessonId}
+                  ageGroup={formData.ageGroup}
+                  cefrLevel={formData.cefrLevel}
+                  currentImageUrl={formData.vocabularyImages[word]?.url}
+                  onImageChange={(url) => {
+                    const updatedImages = { ...formData.vocabularyImages };
+                    if (url) {
+                      updatedImages[word] = {
+                        source: updatedImages[word]?.source || 'upload',
+                        url
+                      };
+                    } else {
+                      delete updatedImages[word];
+                    }
+                    setFormData({ ...formData, vocabularyImages: updatedImages });
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
