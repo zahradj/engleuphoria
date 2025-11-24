@@ -8,6 +8,18 @@ import { soundEffectsService } from '@/services/soundEffectsService';
 import { Logo } from '@/components/Logo';
 import familyBackground from '@/assets/family-background.png';
 
+interface WarmupContent {
+  welcomeMessage?: string;
+  previewText?: string;
+  estimatedTime?: string;
+  mascot?: {
+    name: string;
+    greeting: string;
+    imagePrompt: string;
+  };
+  instructions?: string;
+}
+
 interface WarmupSlideProps {
   slide: any;
   slideNumber: number;
@@ -18,8 +30,17 @@ export function WarmupSlide({ slide, slideNumber, onNext }: WarmupSlideProps) {
   const { generateImage, generateAudio } = useLessonAssets();
   const [audioPlaying, setAudioPlaying] = useState(false);
 
+  // Extract content from object or string
+  const content = typeof slide.content === 'object' 
+    ? (slide.content as WarmupContent)
+    : null;
+  
+  const welcomeText = content?.welcomeMessage || content?.previewText || 
+    (typeof slide.content === 'string' ? slide.content : '');
+  const instructions = content?.instructions || slide.instructions;
+
   const handleListen = async () => {
-    const text = slide.instructions || slide.prompt || slide.title || 'Welcome!';
+    const text = instructions || slide.prompt || slide.title || welcomeText || 'Welcome!';
     soundEffectsService.playButtonClick();
     setAudioPlaying(true);
     await generateAudio(text);
@@ -62,14 +83,14 @@ export function WarmupSlide({ slide, slideNumber, onNext }: WarmupSlideProps) {
           {slide.prompt || slide.title || 'Welcome!'}
         </motion.h1>
         
-        {slide.content && (
+        {welcomeText && (
           <motion.p
             className="text-lg sm:text-xl lg:text-2xl text-white/95 drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)] text-center max-w-3xl"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7, duration: 0.6 }}
           >
-            {slide.content}
+            {welcomeText}
           </motion.p>
         )}
       </div>
@@ -83,9 +104,9 @@ export function WarmupSlide({ slide, slideNumber, onNext }: WarmupSlideProps) {
       >
         <Card className="bg-white/95 backdrop-blur-md shadow-2xl border-0 max-w-4xl mx-auto">
           <CardContent className="p-4 sm:p-8 space-y-4 sm:space-y-6">
-            {slide.instructions && (
+            {instructions && (
               <p className="text-lg sm:text-xl text-center font-medium text-gray-800">
-                {slide.instructions}
+                {instructions}
               </p>
             )}
             

@@ -184,7 +184,9 @@ export function VocabularySlide({ slide, slideNumber, onNext }: VocabularySlideP
           </div>
         ) : (
           <div className="text-center py-8">
-            <p className="text-muted-foreground">{slide.content || 'Vocabulary content here'}</p>
+            <p className="text-muted-foreground">
+              {typeof slide.content === 'string' ? slide.content : 'Vocabulary content here'}
+            </p>
           </div>
         )}
 

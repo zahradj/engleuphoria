@@ -227,7 +227,7 @@ export function GrammarSlide({ slide, slideNumber, onNext }: GrammarSlideProps) 
         )}
 
         {/* Additional Content */}
-        {slide.content && (
+        {slide.content && typeof slide.content === 'string' && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
