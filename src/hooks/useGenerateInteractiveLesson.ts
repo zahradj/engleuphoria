@@ -2,6 +2,20 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+interface VocabularyImageData {
+  source: 'upload' | 'ai-generated' | 'none';
+  url?: string;
+  prompt?: string;
+  file?: File;
+}
+
+interface IntroScreenData {
+  source: 'upload' | 'ai-generated' | 'default';
+  url?: string;
+  file?: File;
+  prompt?: string;
+}
+
 interface GenerateLessonParams {
   topic: string;
   cefrLevel: string;
@@ -11,6 +25,8 @@ interface GenerateLessonParams {
   grammarFocus: string[];
   learningObjectives: string[];
   selectedActivities: string[];
+  vocabularyImages?: Record<string, VocabularyImageData>;
+  introScreen?: IntroScreenData;
 }
 
 export function useGenerateInteractiveLesson() {
@@ -21,8 +37,15 @@ export function useGenerateInteractiveLesson() {
     setIsGenerating(true);
 
     try {
+      // Prepare the request body with image data
+      const requestBody = {
+        ...params,
+        vocabularyImages: params.vocabularyImages || {},
+        introScreen: params.introScreen || { source: 'default' }
+      };
+
       const { data, error } = await supabase.functions.invoke('interactive-lesson-generator', {
-        body: params
+        body: requestBody
       });
 
       if (error) {

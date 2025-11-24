@@ -15,15 +15,31 @@ interface LessonCreatorModalProps {
   onLessonCreated?: () => void;
 }
 
+interface VocabularyImageData {
+  source: 'upload' | 'ai-generated' | 'none';
+  url?: string;
+  prompt?: string;
+  file?: File;
+}
+
+interface IntroScreenData {
+  source: 'upload' | 'ai-generated' | 'default';
+  url?: string;
+  file?: File;
+  prompt?: string;
+}
+
 export interface LessonFormData {
   // Step 1: Basic Info
   topic: string;
   cefrLevel: string;
   ageGroup: string;
   duration: number;
+  introScreen: IntroScreenData;
   
   // Step 2: Objectives
   vocabularyList: string[];
+  vocabularyImages: Record<string, VocabularyImageData>;
   grammarFocus: string[];
   learningObjectives: string[];
   
@@ -37,13 +53,16 @@ export interface LessonFormData {
 
 export const LessonCreatorModal = ({ open, onClose, onLessonCreated }: LessonCreatorModalProps) => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [lessonId] = useState(() => crypto.randomUUID());
   const { generateLesson, isGenerating } = useGenerateInteractiveLesson();
   const [formData, setFormData] = useState<LessonFormData>({
     topic: "",
     cefrLevel: "A1",
     ageGroup: "8-11",
     duration: 30,
+    introScreen: { source: 'ai-generated' },
     vocabularyList: [],
+    vocabularyImages: {},
     grammarFocus: [],
     learningObjectives: [],
     selectedActivities: [],
@@ -55,7 +74,7 @@ export const LessonCreatorModal = ({ open, onClose, onLessonCreated }: LessonCre
   const progress = (currentStep / totalSteps) * 100;
 
   const stepTitles = [
-    "Basic Information",
+    "Basic Info & Intro",
     "Learning Objectives",
     "Interactive Activities",
     "Preview & Generate"
@@ -85,7 +104,9 @@ export const LessonCreatorModal = ({ open, onClose, onLessonCreated }: LessonCre
         vocabularyList: formData.vocabularyList,
         grammarFocus: formData.grammarFocus,
         learningObjectives: formData.learningObjectives,
-        selectedActivities: formData.selectedActivities
+        selectedActivities: formData.selectedActivities,
+        vocabularyImages: formData.vocabularyImages,
+        introScreen: formData.introScreen
       });
       
       setFormData({ 
@@ -111,7 +132,11 @@ export const LessonCreatorModal = ({ open, onClose, onLessonCreated }: LessonCre
       case 1:
         return <StepBasicInfo formData={formData} setFormData={setFormData} />;
       case 2:
-        return <StepObjectives formData={formData} setFormData={setFormData} />;
+        return <StepObjectives 
+          formData={formData} 
+          setFormData={setFormData}
+          lessonId={lessonId}
+        />;
       case 3:
         return <StepActivities formData={formData} setFormData={setFormData} />;
       case 4:

@@ -20,8 +20,10 @@ serve(async (req) => {
       duration, 
       vocabularyList, 
       grammarFocus, 
-      learningObjectives,
-      selectedActivities 
+      learningObjectives, 
+      selectedActivities,
+      vocabularyImages,
+      introScreen
     } = await req.json();
     
     console.log('Generating interactive lesson:', { topic, cefrLevel, ageGroup });
@@ -200,6 +202,29 @@ serve(async (req) => {
     // Save to database
     console.log('Saving lesson to database...');
     
+    // Process vocabulary images and update screens_data
+    const processedScreens = lessonData.screens.map((screen: any) => {
+      if (screen.screenType === 'vocabulary' && vocabularyImages) {
+        // Add image URLs to vocabulary items
+        const updatedContent = { ...screen.content };
+        if (updatedContent.vocabulary && Array.isArray(updatedContent.vocabulary)) {
+          updatedContent.vocabulary = updatedContent.vocabulary.map((vocabItem: any) => {
+            const imageData = vocabularyImages[vocabItem.word];
+            if (imageData?.url) {
+              return {
+                ...vocabItem,
+                imageUrl: imageData.url,
+                imageSource: imageData.source
+              };
+            }
+            return vocabItem;
+          });
+        }
+        return { ...screen, content: updatedContent };
+      }
+      return screen;
+    });
+    
     const { data: savedLesson, error: saveError } = await supabaseClient
       .from('interactive_lessons')
       .insert({
@@ -212,7 +237,8 @@ serve(async (req) => {
         grammar_focus: grammarFocus,
         learning_objectives: learningObjectives,
         selected_activities: selectedActivities,
-        screens_data: lessonData.screens,
+        screens_data: processedScreens,
+        intro_screen_data: introScreen || { source: 'default' },
         audio_manifest: lessonData.audioManifest || [],
         total_xp: lessonData.totalXP || 0,
         badges_available: lessonData.badgesAvailable || [],
