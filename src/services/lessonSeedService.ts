@@ -37,11 +37,17 @@ export const lessonSeedService = {
           topic: lesson1Data.topic,
           cefr_level: lesson1Data.cefr_level,
           age_group: lesson1Data.age_group,
-          estimated_duration: lesson1Data.estimated_duration,
+          duration_minutes: lesson1Data.estimated_duration,
           total_xp: lesson1Data.total_xp,
-          total_screens: lesson1Data.screens_data.length,
           screens_data: lesson1Data.screens_data,
-          is_published: true
+          status: 'published',
+          learning_objectives: [
+            "Learn basic greetings (Hello, Goodbye, Thank you, Please)",
+            "Recognize and write the letter A/a",
+            "Practice polite expressions in conversations",
+            "Develop phonics awareness with letter sounds"
+          ],
+          vocabulary_list: ["Hello", "Goodbye", "Thank you", "Please", "Friend"]
         })
         .select()
         .single();
