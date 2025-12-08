@@ -254,81 +254,82 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
   return <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-rose-50/8 via-[#f0e4e8]/10 to-rose-100/8">
       {/* Playful background decorations */}
       <div className="absolute inset-0">
-        {/* Large floating orbs */}
-        <div className="absolute top-20 left-20 w-80 h-80 bg-gradient-to-r from-[#ead9de]/5 to-rose-300/5 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
-        <div className="absolute top-40 right-20 w-72 h-72 bg-gradient-to-r from-blue-300/15 to-cyan-300/15 rounded-full mix-blend-multiply filter blur-2xl animate-float-delayed"></div>
-        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-gradient-to-r from-emerald-300/10 to-teal-300/10 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
+        {/* Large floating orbs - MORE VIBRANT */}
+        <div className="absolute top-20 left-20 w-80 h-80 bg-gradient-to-r from-rose-300/25 to-pink-400/20 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
+        <div className="absolute top-40 right-20 w-72 h-72 bg-gradient-to-r from-blue-400/30 to-cyan-400/25 rounded-full mix-blend-multiply filter blur-2xl animate-float-delayed"></div>
+        <div className="absolute -bottom-8 left-20 w-96 h-96 bg-gradient-to-r from-emerald-400/20 to-teal-400/18 rounded-full mix-blend-multiply filter blur-3xl animate-float-slow"></div>
+        <div className="absolute top-1/3 right-1/3 w-64 h-64 bg-gradient-to-r from-yellow-300/20 to-amber-400/15 rounded-full mix-blend-multiply filter blur-2xl animate-float-delayed"></div>
         
-        {/* Evenly Distributed Balloons - Grid System */}
+        {/* Evenly Distributed Balloons - Grid System - MORE VISIBLE */}
         {/* Row 1 - Top 10% */}
-        <div className="absolute top-[10%] left-[5%] w-14 h-18 bg-gradient-to-b from-red-400/30 to-red-500/30 rounded-full animate-float-slow shadow-md">
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-6 bg-gray-400/30"></div>
+        <div className="absolute top-[10%] left-[5%] w-14 h-18 bg-gradient-to-b from-red-400/50 to-red-500/45 rounded-full animate-float-slow shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-6 bg-gray-400/40"></div>
         </div>
-        <div className="absolute top-[10%] left-[20%] w-12 h-15 bg-gradient-to-b from-blue-400/30 to-blue-500/30 rounded-full animate-bounce shadow-md">
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-5 bg-gray-400/30"></div>
+        <div className="absolute top-[10%] left-[20%] w-12 h-15 bg-gradient-to-b from-blue-400/50 to-blue-500/45 rounded-full animate-bounce shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-5 bg-gray-400/40"></div>
         </div>
-        <div className="absolute top-[10%] left-[35%] w-16 h-20 bg-gradient-to-b from-yellow-400/30 to-yellow-500/30 rounded-full animate-float-delayed shadow-md">
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-7 bg-gray-400/30"></div>
+        <div className="absolute top-[10%] left-[35%] w-16 h-20 bg-gradient-to-b from-yellow-400/55 to-yellow-500/50 rounded-full animate-float-delayed shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-7 bg-gray-400/40"></div>
         </div>
-        <div className="absolute top-[10%] right-[35%] w-10 h-13 bg-gradient-to-b from-green-400/30 to-green-500/30 rounded-full animate-bounce delay-300 shadow-md">
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-400/30"></div>
+        <div className="absolute top-[10%] right-[35%] w-10 h-13 bg-gradient-to-b from-green-400/50 to-green-500/45 rounded-full animate-bounce delay-300 shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-400/40"></div>
         </div>
-        <div className="absolute top-[10%] right-[20%] w-13 h-16 bg-gradient-to-b from-[#d4b5bd]/10 to-[#c7a8b3]/10 rounded-full animate-float-slow shadow-md">
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-5 bg-gray-400/30"></div>
+        <div className="absolute top-[10%] right-[20%] w-13 h-16 bg-gradient-to-b from-[#d4b5bd]/40 to-[#c7a8b3]/35 rounded-full animate-float-slow shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-5 bg-gray-400/40"></div>
         </div>
-        <div className="absolute top-[10%] right-[5%] w-11 h-14 bg-gradient-to-b from-pink-400/30 to-pink-500/30 rounded-full animate-bounce delay-700 shadow-md">
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-400/30"></div>
+        <div className="absolute top-[10%] right-[5%] w-11 h-14 bg-gradient-to-b from-pink-400/55 to-pink-500/50 rounded-full animate-bounce delay-700 shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-400/40"></div>
         </div>
 
         {/* Row 2 - Middle 50% */}
-        <div className="absolute top-[50%] left-[5%] w-18 h-22 bg-gradient-to-b from-orange-400/30 to-orange-500/30 rounded-full animate-float-delayed shadow-md">
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-8 bg-gray-400/30"></div>
+        <div className="absolute top-[50%] left-[5%] w-18 h-22 bg-gradient-to-b from-orange-400/50 to-orange-500/45 rounded-full animate-float-delayed shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-8 bg-gray-400/40"></div>
         </div>
-        <div className="absolute top-[50%] left-[20%] w-9 h-12 bg-gradient-to-b from-teal-400/30 to-teal-500/30 rounded-full animate-bounce delay-500 shadow-md">
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-3 bg-gray-400/30"></div>
+        <div className="absolute top-[50%] left-[20%] w-9 h-12 bg-gradient-to-b from-teal-400/50 to-teal-500/45 rounded-full animate-bounce delay-500 shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-3 bg-gray-400/40"></div>
         </div>
-        <div className="absolute top-[50%] left-[35%] w-15 h-19 bg-gradient-to-b from-[#dfc7cc]/10 to-[#d4b5bd]/10 rounded-full animate-float-slow shadow-md">
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-6 bg-gray-400/30"></div>
+        <div className="absolute top-[50%] left-[35%] w-15 h-19 bg-gradient-to-b from-[#dfc7cc]/40 to-[#d4b5bd]/35 rounded-full animate-float-slow shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-6 bg-gray-400/40"></div>
         </div>
-        <div className="absolute top-[50%] right-[35%] w-12 h-15 bg-gradient-to-b from-cyan-400/30 to-cyan-500/30 rounded-full animate-bounce delay-200 shadow-md">
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-5 bg-gray-400/30"></div>
+        <div className="absolute top-[50%] right-[35%] w-12 h-15 bg-gradient-to-b from-cyan-400/50 to-cyan-500/45 rounded-full animate-bounce delay-200 shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-5 bg-gray-400/40"></div>
         </div>
-        <div className="absolute top-[50%] right-[20%] w-17 h-21 bg-gradient-to-b from-[#ead9de]/10 to-[#dfc7cc]/10 rounded-full animate-float-delayed shadow-md">
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-7 bg-gray-400/30"></div>
+        <div className="absolute top-[50%] right-[20%] w-17 h-21 bg-gradient-to-b from-[#ead9de]/45 to-[#dfc7cc]/40 rounded-full animate-float-delayed shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-7 bg-gray-400/40"></div>
         </div>
-        <div className="absolute top-[50%] right-[5%] w-8 h-11 bg-gradient-to-b from-rose-400/30 to-rose-500/30 rounded-full animate-bounce delay-800 shadow-md">
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-3 bg-gray-400/30"></div>
+        <div className="absolute top-[50%] right-[5%] w-8 h-11 bg-gradient-to-b from-rose-400/50 to-rose-500/45 rounded-full animate-bounce delay-800 shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-3 bg-gray-400/40"></div>
         </div>
 
         {/* Row 3 - Bottom 90% */}
-        <div className="absolute bottom-[10%] left-[5%] w-20 h-24 bg-gradient-to-b from-lime-400/30 to-lime-500/30 rounded-full animate-float-slow shadow-md">
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-9 bg-gray-400/30"></div>
+        <div className="absolute bottom-[10%] left-[5%] w-20 h-24 bg-gradient-to-b from-lime-400/50 to-lime-500/45 rounded-full animate-float-slow shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-9 bg-gray-400/40"></div>
         </div>
-        <div className="absolute bottom-[10%] left-[20%] w-14 h-17 bg-gradient-to-b from-amber-400/30 to-amber-500/30 rounded-full animate-bounce delay-400 shadow-md">
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-5 bg-gray-400/30"></div>
+        <div className="absolute bottom-[10%] left-[20%] w-14 h-17 bg-gradient-to-b from-amber-400/55 to-amber-500/50 rounded-full animate-bounce delay-400 shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-5 bg-gray-400/40"></div>
         </div>
-        <div className="absolute bottom-[10%] left-[35%] w-10 h-13 bg-gradient-to-b from-emerald-400/30 to-emerald-500/30 rounded-full animate-float-delayed shadow-md">
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-400/30"></div>
+        <div className="absolute bottom-[10%] left-[35%] w-10 h-13 bg-gradient-to-b from-emerald-400/50 to-emerald-500/45 rounded-full animate-float-delayed shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-400/40"></div>
         </div>
-        <div className="absolute bottom-[10%] right-[35%] w-16 h-19 bg-gradient-to-b from-rose-400/30 to-rose-500/30 rounded-full animate-bounce delay-600 shadow-md">
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-6 bg-gray-400/30"></div>
+        <div className="absolute bottom-[10%] right-[35%] w-16 h-19 bg-gradient-to-b from-rose-400/55 to-rose-500/50 rounded-full animate-bounce delay-600 shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-6 bg-gray-400/40"></div>
         </div>
-        <div className="absolute bottom-[10%] right-[20%] w-13 h-16 bg-gradient-to-b from-sky-400/30 to-sky-500/30 rounded-full animate-float-slow shadow-md">
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-5 bg-gray-400/30"></div>
+        <div className="absolute bottom-[10%] right-[20%] w-13 h-16 bg-gradient-to-b from-sky-400/50 to-sky-500/45 rounded-full animate-float-slow shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-5 bg-gray-400/40"></div>
         </div>
-        <div className="absolute bottom-[10%] right-[5%] w-11 h-14 bg-gradient-to-b from-slate-400/30 to-slate-500/30 rounded-full animate-bounce delay-900 shadow-md">
-          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-400/30"></div>
+        <div className="absolute bottom-[10%] right-[5%] w-11 h-14 bg-gradient-to-b from-violet-400/50 to-violet-500/45 rounded-full animate-bounce delay-900 shadow-lg">
+          <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0.5 h-4 bg-gray-400/40"></div>
         </div>
         
-        {/* Sparkling dots */}
-        <div className="absolute top-1/4 left-1/4 w-3 h-3 bg-yellow-400/30 rounded-full animate-bounce shadow-sm"></div>
-        <div className="absolute top-3/4 right-1/4 w-2 h-2 bg-pink-400/35 rounded-full animate-bounce delay-300 shadow-sm"></div>
-        <div className="absolute top-1/2 left-3/4 w-2.5 h-2.5 bg-blue-400/30 rounded-full animate-bounce delay-700 shadow-sm"></div>
-        <div className="absolute top-1/6 right-1/3 w-1.5 h-1.5 bg-[#dfc7cc]/15 rounded-full animate-bounce delay-1000"></div>
-        <div className="absolute bottom-1/4 left-1/3 w-3 h-3 bg-emerald-400/30 rounded-full animate-bounce delay-500 shadow-sm"></div>
+        {/* Sparkling dots - MORE VISIBLE */}
+        <div className="absolute top-1/4 left-1/4 w-3 h-3 bg-yellow-400/50 rounded-full animate-bounce shadow-md"></div>
+        <div className="absolute top-3/4 right-1/4 w-2 h-2 bg-pink-400/55 rounded-full animate-bounce delay-300 shadow-md"></div>
+        <div className="absolute top-1/2 left-3/4 w-2.5 h-2.5 bg-blue-400/50 rounded-full animate-bounce delay-700 shadow-md"></div>
+        <div className="absolute top-1/6 right-1/3 w-1.5 h-1.5 bg-[#dfc7cc]/40 rounded-full animate-bounce delay-1000"></div>
+        <div className="absolute bottom-1/4 left-1/3 w-3 h-3 bg-emerald-400/50 rounded-full animate-bounce delay-500 shadow-md"></div>
         
         {/* Subtle gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/10 via-transparent to-white/20"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-white/5 via-transparent to-white/10"></div>
       </div>
 
       <div className="relative z-10 container mx-auto px-4 py-8 min-h-screen flex items-center justify-center">
@@ -343,11 +344,12 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
         <div className="w-full max-w-md">
           
 
-          <Card className="relative bg-surface/95 backdrop-blur-xl border-2 border-[#ead9de]/20 shadow-xl overflow-hidden rounded-3xl">
-            {/* Glowing border effect */}
-            <div className={`absolute -inset-2 bg-gradient-to-r ${gradientClass} rounded-3xl blur-lg opacity-10 animate-pulse`}></div>
+          <Card className="relative bg-white/80 backdrop-blur-xl border-2 border-[#ead9de]/30 overflow-hidden rounded-3xl shadow-[0_0_40px_rgba(223,199,204,0.3),0_0_80px_rgba(147,197,253,0.2),0_0_120px_rgba(167,243,208,0.15),0_20px_60px_rgba(0,0,0,0.1)]">
+            {/* Multi-color glowing border effect */}
+            <div className="absolute -inset-3 bg-gradient-to-r from-rose-400/30 via-blue-400/25 to-emerald-400/30 rounded-3xl blur-xl opacity-60 animate-pulse"></div>
+            <div className="absolute -inset-2 bg-gradient-to-r from-amber-300/20 via-pink-400/25 to-cyan-400/20 rounded-3xl blur-lg opacity-50 animate-pulse delay-500"></div>
             
-            <div className="relative bg-surface/98 backdrop-blur-xl rounded-3xl shadow-inner">
+            <div className="relative bg-white/90 backdrop-blur-xl rounded-3xl shadow-inner">
               <CardHeader className="text-center pb-8 pt-10 bg-gradient-to-b from-[#f0e4e8]/5 to-surface/50">
                 {/* Fun floating icon */}
                 <div className="flex justify-center mb-8">
