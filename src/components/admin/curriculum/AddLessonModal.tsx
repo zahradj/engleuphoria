@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Loader2, Sparkles, Save } from 'lucide-react';
+import { Loader2, Sparkles, Save, Wand2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -47,6 +47,32 @@ export const AddLessonModal: React.FC<AddLessonModalProps> = ({
   const [objectives, setObjectives] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isCreatingWelcome, setIsCreatingWelcome] = useState(false);
+
+  const handleQuickCreateWelcome = async () => {
+    setIsCreatingWelcome(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-welcome-lesson', {
+        body: {
+          userId: user?.id,
+          sequenceNumber: 1,
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.lesson) {
+        toast.success('Welcome lesson created! Check the lesson library.');
+        onSuccess();
+        onOpenChange(false);
+      }
+    } catch (error) {
+      console.error('Error creating welcome lesson:', error);
+      toast.error('Failed to create welcome lesson');
+    } finally {
+      setIsCreatingWelcome(false);
+    }
+  };
 
   const handleGenerateWithAI = async () => {
     if (!topic.trim()) {
@@ -139,7 +165,38 @@ export const AddLessonModal: React.FC<AddLessonModalProps> = ({
           <DialogTitle>Add New Lesson</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
+        {/* Quick Create Section */}
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 rounded-lg p-4 border border-amber-200 dark:border-amber-800">
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="font-medium text-amber-900 dark:text-amber-100">Quick Create: Welcome Lesson</h4>
+              <p className="text-sm text-amber-700 dark:text-amber-300">Pre-A1, ages 5-7, with Benny the Bear</p>
+            </div>
+            <Button
+              onClick={handleQuickCreateWelcome}
+              disabled={isCreatingWelcome}
+              className="bg-amber-500 hover:bg-amber-600 text-white"
+            >
+              {isCreatingWelcome ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Wand2 className="h-4 w-4 mr-2" />
+              )}
+              {isCreatingWelcome ? 'Creating...' : 'Create Now'}
+            </Button>
+          </div>
+        </div>
+
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">Or create custom</span>
+          </div>
+        </div>
+
+        <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>CEFR Level</Label>
