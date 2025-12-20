@@ -21,6 +21,9 @@ import { SortingGame } from './activities/SortingGame';
 import { TapToChooseActivity } from './activities/TapToChooseActivity';
 import { LetterTracingActivity } from './activities/LetterTracingActivity';
 import { FindTheLetterActivity } from './activities/FindTheLetterActivity';
+import { MagicBoxRevealSlide } from './types/MagicBoxRevealSlide';
+import { TPRInteractionSlide } from './types/TPRInteractionSlide';
+import { MoodSelectorSlide } from './types/MoodSelectorSlide';
 
 interface SlideRendererProps {
   slide: any;
@@ -168,6 +171,20 @@ export function SlideRenderer({ slide, slideNumber, onNext, studentId, lessonId 
             lessonId={lessonId}
           />
         );
+
+      case 'magic_box_reveal':
+      case 'magic_box':
+        return <MagicBoxRevealSlide slide={slide} slideNumber={slideNumber} onNext={onNext} />;
+      
+      case 'tpr_interaction':
+      case 'tpr':
+      case 'high_five':
+        return <TPRInteractionSlide slide={slide} slideNumber={slideNumber} onNext={onNext} />;
+      
+      case 'mood_selector':
+      case 'mood_check':
+      case 'feeling_check':
+        return <MoodSelectorSlide slide={slide} slideNumber={slideNumber} onNext={onNext} />;
 
       case 'home':
       case 'learning_objectives':
