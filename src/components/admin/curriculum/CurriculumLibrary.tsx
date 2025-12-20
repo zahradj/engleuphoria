@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Plus, Search, RefreshCw, Library } from 'lucide-react';
+import { Plus, Search, RefreshCw, Library, BookOpen, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { LevelFilter } from './LevelFilter';
@@ -10,6 +10,7 @@ import { AgeGroupTabs } from './AgeGroupTabs';
 import { LessonLibraryGrid } from './LessonLibraryGrid';
 import { AddLessonModal } from './AddLessonModal';
 import { LessonPreviewModal } from './LessonPreviewModal';
+import { lessonSeedService } from '@/services/lessonSeedService';
 
 interface Lesson {
   id: string;
@@ -33,6 +34,7 @@ export const CurriculumLibrary: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [previewLesson, setPreviewLesson] = useState<Lesson | null>(null);
   const [nextSequence, setNextSequence] = useState(1);
+  const [isSeedingLesson, setIsSeedingLesson] = useState(false);
 
   const fetchLessons = useCallback(async () => {
     setIsLoading(true);
@@ -78,9 +80,32 @@ export const CurriculumLibrary: React.FC = () => {
     window.open(`/admin?tab=interactive-lessons&edit=${lesson.id}`, '_blank');
   };
 
+  const handleSeedCambridgeLesson = async () => {
+    setIsSeedingLesson(true);
+    try {
+      const result = await lessonSeedService.seedLesson1();
+      if (result.success) {
+        toast.success(result.message);
+        fetchLessons();
+      } else {
+        toast.info(result.message);
+      }
+    } catch (error) {
+      console.error('Error seeding lesson:', error);
+      toast.error('Failed to seed Cambridge lesson');
+    } finally {
+      setIsSeedingLesson(false);
+    }
+  };
+
   const lessonCount = lessons.length;
   const publishedCount = lessons.filter(l => l.status === 'published').length;
   const draftCount = lessons.filter(l => l.status === 'draft').length;
+
+  // Check if Cambridge Lesson 1 exists
+  const hasCambridgeLesson1 = lessons.some(l => 
+    l.title.includes('Greetings & Letter Aa') || l.title.includes('Greetings & Letter A')
+  );
 
   return (
     <div className="space-y-6">
@@ -95,10 +120,27 @@ export const CurriculumLibrary: React.FC = () => {
             Manage and organize lessons by level and age group
           </p>
         </div>
-        <Button onClick={() => setIsAddModalOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Lesson
-        </Button>
+        <div className="flex gap-2">
+          {selectedLevel === 'Pre-A1' && selectedAgeGroup === '5-7' && !hasCambridgeLesson1 && (
+            <Button 
+              variant="outline" 
+              onClick={handleSeedCambridgeLesson}
+              disabled={isSeedingLesson}
+              className="border-blue-300 text-blue-700 hover:bg-blue-50"
+            >
+              {isSeedingLesson ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <BookOpen className="h-4 w-4 mr-2" />
+              )}
+              Add Cambridge Lesson 1
+            </Button>
+          )}
+          <Button onClick={() => setIsAddModalOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Lesson
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}

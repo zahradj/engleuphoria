@@ -36,11 +36,12 @@ export const lessonSeedService = {
           title: lesson1Data.title,
           topic: lesson1Data.topic,
           cefr_level: lesson1Data.cefr_level,
-          age_group: lesson1Data.age_group,
+          age_group: '5-7',
           duration_minutes: lesson1Data.estimated_duration,
           total_xp: lesson1Data.total_xp,
           screens_data: lesson1Data.screens_data,
           status: 'published',
+          sequence_number: 1,
           learning_objectives: [
             "Learn basic greetings (Hello, Goodbye, Thank you, Please)",
             "Recognize and write the letter A/a",
