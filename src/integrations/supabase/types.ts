@@ -2921,6 +2921,13 @@ export type Database = {
             referencedRelation: "interactive_lessons"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "interactive_lesson_assignments_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lesson_library_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       interactive_lesson_progress: {
@@ -2983,6 +2990,13 @@ export type Database = {
             referencedRelation: "interactive_lessons"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "interactive_lesson_progress_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lesson_library_view"
+            referencedColumns: ["id"]
+          },
         ]
       }
       interactive_lessons: {
@@ -3000,6 +3014,7 @@ export type Database = {
           learning_objectives: string[]
           screens_data: Json
           selected_activities: string[]
+          sequence_number: number | null
           status: string
           title: string
           topic: string
@@ -3022,6 +3037,7 @@ export type Database = {
           learning_objectives?: string[]
           screens_data?: Json
           selected_activities?: string[]
+          sequence_number?: number | null
           status?: string
           title: string
           topic: string
@@ -3044,6 +3060,7 @@ export type Database = {
           learning_objectives?: string[]
           screens_data?: Json
           selected_activities?: string[]
+          sequence_number?: number | null
           status?: string
           title?: string
           topic?: string
@@ -5685,12 +5702,18 @@ export type Database = {
         Row: {
           cefr_level: string
           created_at: string
+          date_of_birth: string | null
           emergency_contact: string | null
           final_cefr_level: string | null
           gaps: string[] | null
           grade_level: string | null
           id: string
           interests: string[] | null
+          last_completed_sequence_a1: number | null
+          last_completed_sequence_a2: number | null
+          last_completed_sequence_b1: number | null
+          last_completed_sequence_b2: number | null
+          last_completed_sequence_prea1: number | null
           learning_style: string | null
           long_term_goal: string | null
           parent_email: string | null
@@ -5712,12 +5735,18 @@ export type Database = {
         Insert: {
           cefr_level?: string
           created_at?: string
+          date_of_birth?: string | null
           emergency_contact?: string | null
           final_cefr_level?: string | null
           gaps?: string[] | null
           grade_level?: string | null
           id?: string
           interests?: string[] | null
+          last_completed_sequence_a1?: number | null
+          last_completed_sequence_a2?: number | null
+          last_completed_sequence_b1?: number | null
+          last_completed_sequence_b2?: number | null
+          last_completed_sequence_prea1?: number | null
           learning_style?: string | null
           long_term_goal?: string | null
           parent_email?: string | null
@@ -5739,12 +5768,18 @@ export type Database = {
         Update: {
           cefr_level?: string
           created_at?: string
+          date_of_birth?: string | null
           emergency_contact?: string | null
           final_cefr_level?: string | null
           gaps?: string[] | null
           grade_level?: string | null
           id?: string
           interests?: string[] | null
+          last_completed_sequence_a1?: number | null
+          last_completed_sequence_a2?: number | null
+          last_completed_sequence_b1?: number | null
+          last_completed_sequence_b2?: number | null
+          last_completed_sequence_prea1?: number | null
           learning_style?: string | null
           long_term_goal?: string | null
           parent_email?: string | null
@@ -7204,7 +7239,24 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      lesson_library_view: {
+        Row: {
+          age_group: string | null
+          cefr_level: string | null
+          created_at: string | null
+          creator_name: string | null
+          duration_minutes: number | null
+          id: string | null
+          learning_objectives: string[] | null
+          screens_data: Json | null
+          sequence_number: number | null
+          status: string | null
+          title: string | null
+          topic: string | null
+          updated_at: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       can_access_lesson: {
