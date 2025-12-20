@@ -121,3 +121,9 @@ verify_jwt = true
 
 [functions.interactive-lesson-generator]
 verify_jwt = true
+
+[functions.fetch-next-lesson]
+verify_jwt = false
+
+[functions.complete-lesson]
+verify_jwt = false
