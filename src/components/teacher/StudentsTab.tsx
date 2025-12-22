@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Search, Filter, MessageCircle, Calendar, BarChart3, Loader2 } from "lucide-react";
 import { useTeacherStudents } from "@/hooks/useTeacherStudents";
-import { StudentDetailDialog } from "./StudentDetailDialog";
+
 import { format } from "date-fns";
 
 export const StudentsTab = () => {

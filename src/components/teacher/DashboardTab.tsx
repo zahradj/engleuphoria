@@ -1,8 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Calendar, DollarSign } from "lucide-react";
-import { RecentActivityCard } from "./RecentActivityCard";
-import { useState } from "react";
-import { StudentDetailDialog } from "./StudentDetailDialog";
 
 interface DashboardTabProps {
   teacherName: string;
@@ -10,9 +7,6 @@ interface DashboardTabProps {
 }
 
 export const DashboardTab = ({ teacherName, teacherId }: DashboardTabProps) => {
-  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
-
-  return (
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold mb-2">Welcome, {teacherName}!</h2>

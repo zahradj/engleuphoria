@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,9 +19,8 @@ import { WithdrawalsTab } from "@/components/teacher/WithdrawalsTab";
 import { QuickActions } from "@/components/navigation/QuickActions";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AssessmentsManagementTab } from "@/components/teacher/tabs/AssessmentsManagementTab";
-import { LibraryTab } from "@/components/teacher/LibraryTab";
 
-type TabType = 'dashboard' | 'profile' | 'assessments' | 'calendar' | 'students' | 'library' | 'reading-library' | 'english-journey' | 'history' | 'assignments' | 'messages' | 'earnings' | 'withdrawals' | 'reports' | 'settings';
+type TabType = 'dashboard' | 'profile' | 'assessments' | 'calendar' | 'students' | 'assignments' | 'messages' | 'earnings' | 'withdrawals' | 'reports' | 'settings';
 
 const TeacherDashboard = () => {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
@@ -89,8 +87,6 @@ const TeacherDashboard = () => {
           return <ProfileSetupTab teacherId={teacherId} />;
         case 'assessments':
           return <AssessmentsManagementTab />;
-        case 'library':
-          return <LibraryTab />;
         case 'calendar':
           return <EnhancedCalendarTab teacherId={teacherId} />;
         case 'students':
