@@ -25,39 +25,29 @@ export const LevelNode: React.FC<LevelNodeProps> = ({
   onClick,
   theme = 'jungle',
 }) => {
-  // Theme-specific colors
-  const themeColors = {
+  // Theme-specific accent colors for icons and badges
+  const themeAccents = {
     jungle: {
-      completed: 'from-yellow-400 to-amber-500',
-      current: 'from-green-400 to-emerald-500',
-      locked: 'from-gray-400 to-gray-500',
-      glow: 'shadow-yellow-400/50',
+      completedBg: 'hsl(45, 100%, 50%)',
+      currentBg: 'hsl(145, 70%, 45%)',
+      completedText: 'text-amber-600',
+      currentText: 'text-emerald-600',
     },
     space: {
-      completed: 'from-purple-400 to-pink-500',
-      current: 'from-cyan-400 to-blue-500',
-      locked: 'from-gray-600 to-gray-700',
-      glow: 'shadow-purple-400/50',
+      completedBg: 'hsl(280, 70%, 60%)',
+      currentBg: 'hsl(200, 80%, 55%)',
+      completedText: 'text-purple-600',
+      currentText: 'text-cyan-600',
     },
     underwater: {
-      completed: 'from-teal-400 to-cyan-500',
-      current: 'from-blue-400 to-indigo-500',
-      locked: 'from-slate-500 to-slate-600',
-      glow: 'shadow-teal-400/50',
+      completedBg: 'hsl(175, 70%, 45%)',
+      currentBg: 'hsl(220, 70%, 55%)',
+      completedText: 'text-teal-600',
+      currentText: 'text-blue-600',
     },
   };
 
-  const colors = themeColors[theme];
-  
-  const getNodeStyle = () => {
-    if (isCompleted) {
-      return `bg-gradient-to-br ${colors.completed} ${colors.glow}`;
-    }
-    if (isCurrent) {
-      return `bg-gradient-to-br ${colors.current} animate-pulse-glow`;
-    }
-    return `bg-gradient-to-br ${colors.locked}`;
-  };
+  const accents = themeAccents[theme];
 
   const getIcon = () => {
     if (isCompleted) {
@@ -66,7 +56,21 @@ export const LevelNode: React.FC<LevelNodeProps> = ({
     if (isCurrent) {
       return <Play className="w-8 h-8 text-white fill-white drop-shadow-lg" />;
     }
-    return <Lock className="w-6 h-6 text-white/70" />;
+    return <Lock className="w-6 h-6 text-white/50" />;
+  };
+
+  // Glassmorphism base styles
+  const glassBase = "bg-white/30 backdrop-blur-md border-2 border-white/50 shadow-lg";
+  
+  // State-specific glass enhancements
+  const getGlassStyle = () => {
+    if (isCompleted) {
+      return `${glassBase} shadow-amber-400/30 hover:bg-white/40`;
+    }
+    if (isCurrent) {
+      return `${glassBase} shadow-emerald-400/40 ring-4 ring-white/60 ring-offset-2 ring-offset-transparent hover:bg-white/45`;
+    }
+    return `${glassBase} opacity-60`;
   };
 
   return (
@@ -75,8 +79,8 @@ export const LevelNode: React.FC<LevelNodeProps> = ({
       animate={{ scale: 1, opacity: 1 }}
       transition={{ 
         type: 'spring', 
-        stiffness: 200, 
-        damping: 15,
+        stiffness: 300, 
+        damping: 20,
         delay: number * 0.1 
       }}
       style={{
@@ -90,58 +94,86 @@ export const LevelNode: React.FC<LevelNodeProps> = ({
       <motion.button
         onClick={!isLocked ? onClick : undefined}
         whileHover={!isLocked ? { scale: 1.15 } : {}}
-        whileTap={!isLocked ? { scale: 0.95 } : {}}
+        whileTap={!isLocked ? { scale: 0.9 } : {}}
+        transition={{ type: 'spring', stiffness: 400, damping: 15 }}
         className={`
           relative w-20 h-20 md:w-24 md:h-24 rounded-full 
-          ${getNodeStyle()}
+          ${getGlassStyle()}
           flex items-center justify-center
-          shadow-lg transition-all duration-300
-          ${!isLocked ? 'cursor-pointer hover:shadow-2xl' : 'cursor-not-allowed'}
-          ${isCurrent ? 'ring-4 ring-white ring-offset-4 ring-offset-transparent' : ''}
+          transition-all duration-300
+          ${!isLocked ? 'cursor-pointer' : 'cursor-not-allowed'}
         `}
         disabled={isLocked}
       >
-        {/* Inner circle decoration */}
-        <div className="absolute inset-2 rounded-full bg-white/20 flex items-center justify-center">
+        {/* Inner glow effect */}
+        <div 
+          className="absolute inset-1 rounded-full flex items-center justify-center"
+          style={{
+            background: isCompleted 
+              ? `radial-gradient(circle, ${accents.completedBg}40 0%, transparent 70%)`
+              : isCurrent 
+                ? `radial-gradient(circle, ${accents.currentBg}40 0%, transparent 70%)`
+                : 'transparent'
+          }}
+        >
           {getIcon()}
         </div>
         
-        {/* Level number badge */}
-        <div className={`
-          absolute -top-2 -right-2 w-8 h-8 rounded-full 
-          flex items-center justify-center text-sm font-bold
-          ${isCompleted ? 'bg-white text-amber-600' : 
-            isCurrent ? 'bg-white text-emerald-600' : 
-            'bg-gray-300 text-gray-600'}
-          shadow-md
-        `}>
+        {/* Level number badge - glass style */}
+        <motion.div 
+          className={`
+            absolute -top-2 -right-2 w-8 h-8 rounded-full 
+            flex items-center justify-center text-sm font-bold
+            bg-white/80 backdrop-blur-sm shadow-md border border-white/60
+            ${isCompleted ? accents.completedText : 
+              isCurrent ? accents.currentText : 
+              'text-gray-500'}
+          `}
+          whileHover={{ scale: 1.1 }}
+          transition={{ type: 'spring', stiffness: 400 }}
+        >
           {number}
-        </div>
+        </motion.div>
         
-        {/* Current level indicator */}
+        {/* Current level floating indicator */}
         {isCurrent && (
           <motion.div
-            animate={{ y: [-5, 5, -5] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="absolute -top-10 left-1/2 -translate-x-1/2"
+            animate={{ y: [-8, 0, -8] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute -top-12 left-1/2 -translate-x-1/2"
           >
-            <div className="bg-white px-3 py-1 rounded-full shadow-lg text-sm font-bold text-emerald-600 whitespace-nowrap">
+            <div className="bg-white/90 backdrop-blur-sm px-4 py-1.5 rounded-full shadow-lg text-sm font-bold text-emerald-600 whitespace-nowrap border border-white/60">
               Play Now!
             </div>
-            <div className="w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-white mx-auto" />
+            <div className="w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-white/90 mx-auto" />
+          </motion.div>
+        )}
+
+        {/* Sparkle effect for completed */}
+        {isCompleted && (
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
+            className="absolute inset-0 pointer-events-none"
+          >
+            <div className="absolute top-1 right-2 w-2 h-2 rounded-full bg-yellow-300 blur-sm" />
+            <div className="absolute bottom-2 left-1 w-1.5 h-1.5 rounded-full bg-amber-300 blur-sm" />
           </motion.div>
         )}
       </motion.button>
       
-      {/* Title label */}
+      {/* Title label - glass style */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: number * 0.1 + 0.2 }}
         className={`
-          mt-2 text-center text-sm md:text-base font-bold
-          ${isLocked ? 'text-gray-400' : 'text-white drop-shadow-lg'}
-          max-w-[100px] truncate
+          mt-3 text-center text-sm md:text-base font-bold
+          px-3 py-1 rounded-full
+          ${isLocked 
+            ? 'text-white/50' 
+            : 'text-white bg-black/20 backdrop-blur-sm shadow-lg'}
+          max-w-[100px] truncate mx-auto
         `}
       >
         {isLocked ? '???' : title}
