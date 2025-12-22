@@ -8,7 +8,11 @@ import {
   TrendingUp, 
   CreditCard, 
   Settings,
-  LogOut
+  LogOut,
+  Library,
+  BookOpen,
+  Calendar,
+  GraduationCap
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -21,9 +25,12 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
   
   const menuItems = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
-    { id: "users", label: "Users", icon: Users },
-    { id: "teachers", label: "Teachers", icon: Users },
-    { id: "teacher-applications", label: "Teacher Applications", icon: FileText },
+    { id: "users", label: "User Manager", icon: Users },
+    { id: "library", label: "Library (The Core)", icon: Library },
+    { id: "curriculum", label: "Curriculum", icon: BookOpen },
+    { id: "schedule", label: "Schedule", icon: Calendar },
+    { id: "teachers", label: "Teachers", icon: GraduationCap },
+    { id: "teacher-applications", label: "Applications", icon: FileText },
     { id: "students", label: "Students", icon: Users },
     { id: "analytics", label: "Analytics", icon: TrendingUp },
     { id: "payments", label: "Payments", icon: CreditCard },
@@ -35,12 +42,12 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
       <div className="p-4">
         <div className="mb-6 px-2">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold">A</span>
+            <div className="w-10 h-10 bg-gradient-to-r from-primary to-primary/70 rounded-lg flex items-center justify-center">
+              <span className="text-primary-foreground font-bold">🎛️</span>
             </div>
             <div>
-              <h2 className="font-bold text-foreground">Admin</h2>
-              <p className="text-xs text-muted-foreground">Control Panel</p>
+              <h2 className="font-bold text-foreground">Control Tower</h2>
+              <p className="text-xs text-muted-foreground">Master Admin</p>
             </div>
           </div>
         </div>

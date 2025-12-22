@@ -11,6 +11,8 @@ import { ActiveTeachersTable } from '@/components/admin/ActiveTeachersTable';
 import { StudentManagement } from '@/components/admin/StudentManagement';
 import { AnalyticsDashboard } from '@/components/admin/AnalyticsDashboard';
 import { LibraryManager } from '@/components/admin/LibraryManager';
+import { CurriculumBuilder } from '@/components/admin/CurriculumBuilder';
+import { ScheduleManager } from '@/components/admin/ScheduleManager';
 import { PaymentsPanel } from '@/components/admin/PaymentsPanel';
 import { SettingsPanel } from '@/components/admin/SettingsPanel';
 import { SlideGenerationTab } from '@/components/admin/SlideGenerationTab';
@@ -18,15 +20,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Menu, X, Loader2 } from 'lucide-react';
 
-type AdminTab = 'overview' | 'users' | 'teachers' | 'teacher-applications' | 'students' | 'analytics' | 'library' | 'payments' | 'settings' | 'generation';
+type AdminTab = 'overview' | 'users' | 'teachers' | 'teacher-applications' | 'students' | 'analytics' | 'library' | 'curriculum' | 'schedule' | 'payments' | 'settings' | 'generation';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { isAdmin, isLoading, permissions } = useAdminAuth();
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-
-  // Do not redirect here; let route guards handle access
 
   if (isLoading) {
     return (
@@ -54,7 +54,7 @@ const AdminDashboard = () => {
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab as AdminTab);
-    setIsMobileSidebarOpen(false); // Close mobile sidebar when tab changes
+    setIsMobileSidebarOpen(false);
   };
 
   const renderActiveTab = () => {
@@ -73,6 +73,10 @@ const AdminDashboard = () => {
         return <AnalyticsDashboard />;
       case 'library':
         return <LibraryManager />;
+      case 'curriculum':
+        return <CurriculumBuilder />;
+      case 'schedule':
+        return <ScheduleManager />;
       case 'payments':
         return <PaymentsPanel />;
       case 'settings':
