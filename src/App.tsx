@@ -29,6 +29,7 @@ import ResetPassword from "./pages/ResetPassword";
 // Lazy load heavy classroom components for better initial load performance
 const ClassroomEntryPage = lazy(() => import("./pages/ClassroomEntryPage"));
 const AdventuresPage = lazy(() => import("./pages/AdventuresPage"));
+const DemoShowcase = lazy(() => import("./pages/DemoShowcase"));
 
 import MediaTestPage from "./pages/MediaTestPage";
 import VideoTestPage from "./pages/VideoTestPage";
@@ -108,6 +109,7 @@ const App = () => {
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/media-test" element={<MediaTestPage />} />
               <Route path="/video-test" element={<VideoTestPage />} />
+              <Route path="/demo" element={<Suspense fallback={<LoadingFallback />}><DemoShowcase /></Suspense>} />
               <Route path="/classroom-prejoin" element={<ClassroomPrejoin />} />
               <Route path="/discover-teachers" element={<DiscoverTeachers />} />
               <Route path="/teacher/:teacherId" element={<TeacherProfile />} />
