@@ -246,6 +246,22 @@
   --neon-purple: 270 100% 60%;
   --neon-yellow: 60 100% 50%;
   --neon-orange: 30 100% 55%;
+  
+  /* Kids Playground Theme Colors */
+  --kids-jungle-green: 120 60% 40%;
+  --kids-jungle-dark: 120 50% 25%;
+  --kids-sky-blue: 200 80% 70%;
+  --kids-sun-yellow: 45 100% 55%;
+  --kids-path-brown: 30 50% 40%;
+  --kids-gold: 45 100% 50%;
+  --kids-pink: 330 85% 65%;
+  --kids-purple: 280 70% 60%;
+  
+  /* Academy Neon Theme Colors */
+  --academy-bg-dark: 240 20% 8%;
+  --academy-card-dark: 240 15% 12%;
+  --academy-accent-purple: 270 80% 65%;
+  --academy-accent-cyan: 180 90% 50%;
 }
 
 .dark {
@@ -386,5 +402,47 @@
     0 0 5px currentColor,
     0 0 10px currentColor,
     0 0 15px currentColor;
+}
+
+/* Kids Playground Animations */
+@keyframes pulse-glow {
+  0%, 100% { 
+    box-shadow: 0 0 20px hsl(var(--kids-gold) / 0.6), 0 0 40px hsl(var(--kids-gold) / 0.3);
+    transform: scale(1);
+  }
+  50% { 
+    box-shadow: 0 0 30px hsl(var(--kids-gold) / 0.8), 0 0 60px hsl(var(--kids-gold) / 0.5);
+    transform: scale(1.05);
+  }
+}
+
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
+}
+
+@keyframes path-dash {
+  to { stroke-dashoffset: 0; }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.animate-float-gentle {
+  animation: float-gentle 3s ease-in-out infinite;
+}
+
+.animate-wiggle {
+  animation: wiggle 0.5s ease-in-out infinite;
+}
+
+.animate-path-dash {
+  animation: path-dash 2s ease-out forwards;
 }
 
