@@ -137,14 +137,6 @@ export const StudentsTab = () => {
         )}
       </div>
 
-      {selectedStudent && (
-        <StudentDetailDialog
-          studentId={selectedStudent.id}
-          studentName={selectedStudent.name}
-          studentLevel={selectedStudent.level}
-          onClose={() => setSelectedStudent(null)}
-        />
-      )}
     </div>
     </>
   );

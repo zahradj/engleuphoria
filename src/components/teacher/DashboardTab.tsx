@@ -7,6 +7,7 @@ interface DashboardTabProps {
 }
 
 export const DashboardTab = ({ teacherName, teacherId }: DashboardTabProps) => {
+  return (
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold mb-2">Welcome, {teacherName}!</h2>
@@ -47,19 +48,6 @@ export const DashboardTab = ({ teacherName, teacherId }: DashboardTabProps) => {
           </CardContent>
         </Card>
       </div>
-
-      <RecentActivityCard
-        teacherId={teacherId}
-        onViewDetails={(studentId) => setSelectedStudentId(studentId)}
-      />
-
-      {selectedStudentId && (
-        <StudentDetailDialog
-          studentId={selectedStudentId}
-          studentName="Student"
-          onClose={() => setSelectedStudentId(null)}
-        />
-      )}
     </div>
   );
 };

@@ -17,7 +17,6 @@ import { SpeakingPracticeTab } from "@/components/student/speaking/SpeakingPract
 import { EnhancedBillingTab } from "@/components/student/EnhancedBillingTab";
 import { ProfileTab } from "@/components/student/ProfileTab";
 import { SettingsTab } from "@/components/student/SettingsTab";
-import { LearningPathTab } from "@/components/student/LearningPathTab";
 import { QuickActions } from "@/components/navigation/QuickActions";
 import { AssessmentsTab } from "@/components/student/tabs/AssessmentsTab";
 import { CertificatesTab } from "@/components/student/tabs/CertificatesTab";
