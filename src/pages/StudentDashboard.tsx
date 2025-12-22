@@ -10,7 +10,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 // Lazy load components to improve initial load time
 import { MinimalStudentHeader } from "@/components/student/MinimalStudentHeader";
 import { StudentSidebar } from "@/components/student/StudentSidebar";
-import { CleanStudentDashboard } from "@/components/student/CleanStudentDashboard";
+import { LearningPathTab } from "@/components/student/LearningPathTab";
 import { TeachersTab } from "@/components/student/TeachersTab";
 import { UpcomingClassesTab } from "@/components/student/UpcomingClassesTab";
 import { SpeakingPracticeTab } from "@/components/student/speaking/SpeakingPracticeTab";
@@ -21,7 +21,7 @@ import { LearningPathTab } from "@/components/student/LearningPathTab";
 import { QuickActions } from "@/components/navigation/QuickActions";
 import { AssessmentsTab } from "@/components/student/tabs/AssessmentsTab";
 import { CertificatesTab } from "@/components/student/tabs/CertificatesTab";
-import { StudentLessonsLibrary } from "@/components/student/StudentLessonsLibrary";
+
 
 const StudentDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -104,9 +104,9 @@ const StudentDashboard = () => {
 
   const renderActiveTab = () => {
     const tabComponents = {
-      dashboard: () => <CleanStudentDashboard studentName={studentName} studentProfile={studentProfile} studentId={user?.id || studentId} />,
+      dashboard: () => <LearningPathTab />,
       "learning-path": () => <LearningPathTab />,
-      lessons: () => <StudentLessonsLibrary studentId={user?.id || studentId} />,
+      lessons: () => <LearningPathTab />,
       assessments: () => <AssessmentsTab />,
       certificates: () => <CertificatesTab />,
       teachers: () => <TeachersTab />,
