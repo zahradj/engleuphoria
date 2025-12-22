@@ -1850,7 +1850,9 @@ export type Database = {
           duration_minutes: number | null
           id: string
           is_published: boolean | null
+          level_id: string | null
           order_index: number | null
+          sequence_order: number | null
           target_system: string
           thumbnail_url: string | null
           title: string
@@ -1865,7 +1867,9 @@ export type Database = {
           duration_minutes?: number | null
           id?: string
           is_published?: boolean | null
+          level_id?: string | null
           order_index?: number | null
+          sequence_order?: number | null
           target_system: string
           thumbnail_url?: string | null
           title: string
@@ -1880,14 +1884,24 @@ export type Database = {
           duration_minutes?: number | null
           id?: string
           is_published?: boolean | null
+          level_id?: string | null
           order_index?: number | null
+          sequence_order?: number | null
           target_system?: string
           thumbnail_url?: string | null
           title?: string
           updated_at?: string | null
           xp_reward?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "curriculum_lessons_level_id_fkey"
+            columns: ["level_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_levels"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       curriculum_levels: {
         Row: {
@@ -1899,6 +1913,9 @@ export type Database = {
           id: string
           level_order: number
           name: string
+          sequence_order: number | null
+          thumbnail_url: string | null
+          track_id: string | null
           updated_at: string | null
           xp_required: number | null
         }
@@ -1911,6 +1928,9 @@ export type Database = {
           id?: string
           level_order: number
           name: string
+          sequence_order?: number | null
+          thumbnail_url?: string | null
+          track_id?: string | null
           updated_at?: string | null
           xp_required?: number | null
         }
@@ -1923,10 +1943,21 @@ export type Database = {
           id?: string
           level_order?: number
           name?: string
+          sequence_order?: number | null
+          thumbnail_url?: string | null
+          track_id?: string | null
           updated_at?: string | null
           xp_required?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "curriculum_levels_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "tracks"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       curriculum_materials: {
         Row: {
@@ -3529,6 +3560,48 @@ export type Database = {
           },
         ]
       }
+      lesson_materials: {
+        Row: {
+          asset_id: string
+          created_at: string | null
+          display_order: number | null
+          id: string
+          is_mandatory: boolean | null
+          lesson_id: string
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_mandatory?: boolean | null
+          lesson_id: string
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_mandatory?: boolean | null
+          lesson_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_materials_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "library_assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_materials_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lesson_packages: {
         Row: {
           created_at: string
@@ -3928,6 +4001,71 @@ export type Database = {
           vocabulary_focus?: string[] | null
         }
         Relationships: []
+      }
+      library_assets: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          duration_seconds: number | null
+          file_size_bytes: number | null
+          file_type: string
+          file_url: string
+          id: string
+          is_teacher_only: boolean | null
+          max_age: number | null
+          min_age: number | null
+          system_tag: string
+          tags: string[] | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          duration_seconds?: number | null
+          file_size_bytes?: number | null
+          file_type: string
+          file_url: string
+          id?: string
+          is_teacher_only?: boolean | null
+          max_age?: number | null
+          min_age?: number | null
+          system_tag: string
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          duration_seconds?: number | null
+          file_size_bytes?: number | null
+          file_type?: string
+          file_url?: string
+          id?: string
+          is_teacher_only?: boolean | null
+          max_age?: number | null
+          min_age?: number | null
+          system_tag?: string
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "library_assets_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       material_skills: {
         Row: {
@@ -5651,6 +5789,63 @@ export type Database = {
         }
         Relationships: []
       }
+      student_lesson_progress: {
+        Row: {
+          attempts: number | null
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          lesson_id: string
+          score: number | null
+          started_at: string | null
+          status: string
+          time_spent_seconds: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          attempts?: number | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          lesson_id: string
+          score?: number | null
+          started_at?: string | null
+          status?: string
+          time_spent_seconds?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          attempts?: number | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          lesson_id?: string
+          score?: number | null
+          started_at?: string | null
+          status?: string
+          time_spent_seconds?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_lesson_progress_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_lesson_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_package_purchases: {
         Row: {
           expires_at: string | null
@@ -6047,6 +6242,54 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      system_transitions: {
+        Row: {
+          from_system: string | null
+          id: string
+          metadata: Json | null
+          to_system: string
+          transition_date: string | null
+          trigger_reason: string
+          triggered_by: string | null
+          user_id: string
+        }
+        Insert: {
+          from_system?: string | null
+          id?: string
+          metadata?: Json | null
+          to_system: string
+          transition_date?: string | null
+          trigger_reason: string
+          triggered_by?: string | null
+          user_id: string
+        }
+        Update: {
+          from_system?: string | null
+          id?: string
+          metadata?: Json | null
+          to_system?: string
+          transition_date?: string | null
+          trigger_reason?: string
+          triggered_by?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_transitions_triggered_by_fkey"
+            columns: ["triggered_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "system_transitions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       systematic_lessons: {
         Row: {
@@ -6937,6 +7180,42 @@ export type Database = {
           status?: string
           teacher_id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      tracks: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          is_published: boolean | null
+          name: string
+          order_index: number | null
+          target_system: string
+          thumbnail_url: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_published?: boolean | null
+          name: string
+          order_index?: number | null
+          target_system: string
+          thumbnail_url?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_published?: boolean | null
+          name?: string
+          order_index?: number | null
+          target_system?: string
+          thumbnail_url?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }

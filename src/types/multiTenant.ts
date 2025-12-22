@@ -1,7 +1,43 @@
 export type SystemId = 'kids' | 'teen' | 'adult';
+export type SystemTag = SystemId | 'all';
+export type TriggerReason = 'age_limit_reached' | 'course_completed' | 'manual_override' | 'placement_test';
+export type ProgressStatus = 'not_started' | 'in_progress' | 'completed';
+export type CefrLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
+export type AssetFileType = 'pdf' | 'video' | 'audio' | 'interactive_quiz' | 'image' | 'document' | 'presentation';
 
+// Track - top level curriculum organization
+export interface Track {
+  id: string;
+  name: string;
+  target_system: SystemId;
+  description: string | null;
+  thumbnail_url: string | null;
+  order_index: number;
+  is_published: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// CurriculumLevel - levels within a track
+export interface CurriculumLevel {
+  id: string;
+  track_id: string | null;
+  name: string;
+  description: string | null;
+  sequence_order: number;
+  cefr_tag: CefrLevel | null;
+  xp_required: number;
+  thumbnail_url: string | null;
+  created_at: string;
+  updated_at: string;
+  // Joined data
+  track?: Track;
+}
+
+// CurriculumLesson - lessons within a level
 export interface CurriculumLesson {
   id: string;
+  level_id: string | null;
   title: string;
   description: string | null;
   target_system: SystemId;
@@ -11,9 +47,74 @@ export interface CurriculumLesson {
   content: Record<string, unknown>;
   xp_reward: number;
   order_index: number;
+  sequence_order: number;
   is_published: boolean;
   created_at: string;
   updated_at: string;
+  // Joined data
+  level?: CurriculumLevel;
+  materials?: LessonMaterial[];
+}
+
+// LibraryAsset - shared materials in the library
+export interface LibraryAsset {
+  id: string;
+  title: string;
+  description: string | null;
+  file_url: string;
+  file_type: AssetFileType;
+  thumbnail_url: string | null;
+  min_age: number | null;
+  max_age: number | null;
+  system_tag: SystemTag;
+  is_teacher_only: boolean;
+  tags: string[];
+  duration_seconds: number | null;
+  file_size_bytes: number | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// LessonMaterial - junction between lessons and assets
+export interface LessonMaterial {
+  id: string;
+  lesson_id: string;
+  asset_id: string;
+  is_mandatory: boolean;
+  display_order: number;
+  created_at: string;
+  // Joined data
+  asset?: LibraryAsset;
+}
+
+// StudentLessonProgress - tracks student progress on lessons
+export interface StudentLessonProgress {
+  id: string;
+  user_id: string;
+  lesson_id: string;
+  status: ProgressStatus;
+  score: number | null;
+  time_spent_seconds: number;
+  attempts: number;
+  started_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+  // Joined data
+  lesson?: CurriculumLesson;
+}
+
+// SystemTransition - audit log for system transitions
+export interface SystemTransition {
+  id: string;
+  user_id: string;
+  from_system: SystemId | null;
+  to_system: SystemId;
+  trigger_reason: TriggerReason;
+  triggered_by: string | null;
+  metadata: Record<string, unknown>;
+  transition_date: string;
 }
 
 export interface SystemTheme {
