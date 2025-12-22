@@ -6,3 +6,4 @@ export { LevelNode } from './LevelNode';
 export { WindingPath } from './WindingPath';
 export { FloatingBackpack } from './FloatingBackpack';
 export { GiantGoButton } from './GiantGoButton';
+export { MagicForestWorld } from './MagicForestWorld';
