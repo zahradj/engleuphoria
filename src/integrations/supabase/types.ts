@@ -1961,6 +1961,7 @@ export type Database = {
       }
       curriculum_materials: {
         Row: {
+          business_mode: boolean | null
           cefr_level: string
           created_at: string | null
           description: string | null
@@ -1984,9 +1985,11 @@ export type Database = {
           updated_at: string | null
           uploaded_by: string | null
           views: number | null
+          visibility: string | null
           xp_reward: number | null
         }
         Insert: {
+          business_mode?: boolean | null
           cefr_level: string
           created_at?: string | null
           description?: string | null
@@ -2010,9 +2013,11 @@ export type Database = {
           updated_at?: string | null
           uploaded_by?: string | null
           views?: number | null
+          visibility?: string | null
           xp_reward?: number | null
         }
         Update: {
+          business_mode?: boolean | null
           cefr_level?: string
           created_at?: string | null
           description?: string | null
@@ -2036,6 +2041,7 @@ export type Database = {
           updated_at?: string | null
           uploaded_by?: string | null
           views?: number | null
+          visibility?: string | null
           xp_reward?: number | null
         }
         Relationships: [
@@ -7393,6 +7399,8 @@ export type Database = {
         Row: {
           avatar_id: number | null
           created_at: string
+          current_level_id: string | null
+          current_system: string | null
           email: string
           full_name: string
           id: string
@@ -7406,6 +7414,8 @@ export type Database = {
         Insert: {
           avatar_id?: number | null
           created_at?: string
+          current_level_id?: string | null
+          current_system?: string | null
           email: string
           full_name: string
           id: string
@@ -7419,6 +7429,8 @@ export type Database = {
         Update: {
           avatar_id?: number | null
           created_at?: string
+          current_level_id?: string | null
+          current_system?: string | null
           email?: string
           full_name?: string
           id?: string
@@ -7430,6 +7442,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "users_current_level_id_fkey"
+            columns: ["current_level_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_levels"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "users_primary_organization_id_fkey"
             columns: ["primary_organization_id"]
