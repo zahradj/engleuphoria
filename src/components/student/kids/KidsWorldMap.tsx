@@ -7,7 +7,6 @@ import { LevelNode } from './LevelNode';
 import { WindingPath } from './WindingPath';
 import { FloatingBackpack } from './FloatingBackpack';
 import { GiantGoButton } from './GiantGoButton';
-import { FloatingClouds } from './FloatingClouds';
 
 export type ThemeType = 'jungle' | 'space' | 'underwater';
 
@@ -66,37 +65,29 @@ export const KidsWorldMap: React.FC<KidsWorldMapProps> = ({
 
   return (
     <div className="relative w-full h-screen overflow-hidden" style={{ fontFamily: "'Fredoka', cursive" }}>
-      {/* Theme Background - Layer 1 */}
+      {/* Theme Background */}
       <ThemeBackground />
       
-      {/* Floating Clouds - Layer 2 (dreamy atmosphere) */}
-      <FloatingClouds theme={selectedTheme} />
-
-      {/* Header - Glassmorphism style */}
+      {/* Header */}
       <motion.div 
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 200, damping: 20 }}
         className="absolute top-4 left-4 right-4 z-20 flex justify-between items-center"
       >
-        <motion.div 
-          whileHover={{ scale: 1.05 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-          className="bg-white/30 backdrop-blur-lg rounded-full px-5 py-2.5 shadow-xl border-2 border-white/50 flex items-center gap-2"
-        >
+        <div className="bg-white/90 backdrop-blur rounded-full px-4 py-2 shadow-lg flex items-center gap-2">
           <span className="text-2xl">👋</span>
-          <span className="font-bold text-white drop-shadow-md">Hi, {studentName}!</span>
-        </motion.div>
+          <span className="font-bold text-purple-700">Hi, {studentName}!</span>
+        </div>
       </motion.div>
 
-      {/* Winding Path - white dashed with glow */}
+      {/* Winding Path */}
       <WindingPath 
         points={levelPositions} 
         completedIndex={completedIndex >= 0 ? completedIndex : -1}
         theme={selectedTheme}
       />
 
-      {/* Level Nodes - Glassmorphism beads */}
+      {/* Level Nodes */}
       {levels.map((level, index) => (
         <LevelNode
           key={level.id}
@@ -112,7 +103,7 @@ export const KidsWorldMap: React.FC<KidsWorldMapProps> = ({
         />
       ))}
 
-      {/* Giant GO Button - bouncy springs */}
+      {/* Giant GO Button */}
       <GiantGoButton 
         onClick={onPlayNext}
         lessonTitle={currentLevel?.title || 'Next Lesson'}

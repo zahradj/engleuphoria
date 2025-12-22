@@ -19,22 +19,19 @@ export const WindingPath: React.FC<WindingPathProps> = ({
 }) => {
   const themeColors = {
     jungle: {
-      path: 'rgba(255, 255, 255, 0.4)',
-      completed: 'rgba(255, 255, 255, 0.9)',
-      glow: 'rgba(255, 255, 255, 0.6)',
-      stroke: 10,
-    },
-    space: {
-      path: 'rgba(200, 180, 255, 0.3)',
-      completed: 'rgba(180, 220, 255, 0.9)',
-      glow: 'rgba(180, 220, 255, 0.5)',
+      path: 'hsl(30, 50%, 40%)',
+      completed: 'hsl(45, 100%, 50%)',
       stroke: 8,
     },
+    space: {
+      path: 'hsl(270, 50%, 40%)',
+      completed: 'hsl(180, 100%, 50%)',
+      stroke: 6,
+    },
     underwater: {
-      path: 'rgba(150, 220, 255, 0.3)',
-      completed: 'rgba(200, 255, 255, 0.9)',
-      glow: 'rgba(200, 255, 255, 0.5)',
-      stroke: 10,
+      path: 'hsl(210, 50%, 35%)',
+      completed: 'hsl(180, 70%, 60%)',
+      stroke: 8,
     },
   };
 
@@ -81,43 +78,36 @@ export const WindingPath: React.FC<WindingPathProps> = ({
       preserveAspectRatio="xMidYMid slice"
     >
       <defs>
-        {/* Soft glow filter for path */}
+        {/* Glow filter */}
         <filter id="pathGlow" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="6" result="blur" />
+          <feGaussianBlur stdDeviation="4" result="blur" />
           <feMerge>
-            <feMergeNode in="blur" />
             <feMergeNode in="blur" />
             <feMergeNode in="SourceGraphic" />
           </feMerge>
         </filter>
         
-        {/* Extra soft glow for completed path */}
-        <filter id="completedGlow" x="-100%" y="-100%" width="300%" height="300%">
-          <feGaussianBlur stdDeviation="12" result="blur" />
-          <feMerge>
-            <feMergeNode in="blur" />
-            <feMergeNode in="blur" />
-            <feMergeNode in="SourceGraphic" />
-          </feMerge>
-        </filter>
+        {/* Animated dash pattern */}
+        <pattern id="dashPattern" patternUnits="userSpaceOnUse" width="20" height="20">
+          <circle cx="10" cy="10" r="3" fill={colors.path} opacity="0.5" />
+        </pattern>
       </defs>
       
-      {/* Background path - thick white dashed line */}
+      {/* Background path (full trail) */}
       <motion.path
         d={fullPath}
         fill="none"
         stroke={colors.path}
-        strokeWidth={colors.stroke + 6}
+        strokeWidth={colors.stroke + 4}
         strokeLinecap="round"
         strokeLinejoin="round"
-        strokeDasharray="20 15"
-        filter="url(#pathGlow)"
+        opacity={0.3}
         initial={{ pathLength: 0 }}
         animate={{ pathLength: 1 }}
         transition={{ duration: 2, ease: "easeOut" }}
       />
       
-      {/* Main path - dashed white line */}
+      {/* Dashed path overlay */}
       <motion.path
         d={fullPath}
         fill="none"
@@ -125,13 +115,14 @@ export const WindingPath: React.FC<WindingPathProps> = ({
         strokeWidth={colors.stroke}
         strokeLinecap="round"
         strokeLinejoin="round"
-        strokeDasharray="25 12"
+        strokeDasharray="15 10"
+        opacity={0.5}
         initial={{ pathLength: 0 }}
         animate={{ pathLength: 1 }}
         transition={{ duration: 2, ease: "easeOut" }}
       />
       
-      {/* Completed path - solid white with strong glow */}
+      {/* Completed path (golden/highlighted) */}
       {completedPath && (
         <motion.path
           d={completedPath}
@@ -140,29 +131,27 @@ export const WindingPath: React.FC<WindingPathProps> = ({
           strokeWidth={colors.stroke}
           strokeLinecap="round"
           strokeLinejoin="round"
-          filter="url(#completedGlow)"
+          filter="url(#pathGlow)"
           initial={{ pathLength: 0 }}
           animate={{ pathLength: 1 }}
           transition={{ duration: 1.5, ease: "easeOut", delay: 0.5 }}
         />
       )}
       
-      {/* Sparkle nodes along completed path */}
+      {/* Sparkle decorations along completed path */}
       {completedPoints.slice(0, -1).map((point, index) => (
         <motion.circle
           key={index}
           cx={point.x}
           cy={point.y}
-          r="8"
-          fill={colors.glow}
-          filter="url(#pathGlow)"
+          r="5"
+          fill={colors.completed}
           initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: [1, 1.3, 1], opacity: [0.6, 1, 0.6] }}
+          animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
           transition={{ 
-            duration: 2.5, 
+            duration: 2, 
             repeat: Infinity, 
-            delay: index * 0.3,
-            ease: 'easeInOut'
+            delay: index * 0.2 
           }}
         />
       ))}

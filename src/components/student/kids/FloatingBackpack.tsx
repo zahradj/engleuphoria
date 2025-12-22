@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Backpack, Map, X, Star, Award, Sparkles } from 'lucide-react';
+import { Backpack, Map, User, X, Star, Award, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface Badge {
@@ -36,75 +36,68 @@ export const FloatingBackpack: React.FC<FloatingBackpackProps> = ({
 
   return (
     <>
-      {/* Floating Backpack Menu - Glassmorphism */}
+      {/* Floating Backpack Menu */}
       <motion.div
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 200, damping: 20 }}
         className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50"
       >
-        <div className="flex items-center gap-4 bg-white/25 backdrop-blur-xl rounded-full px-6 py-3 shadow-2xl border-2 border-white/40">
+        <div className="flex items-center gap-4 bg-white/95 backdrop-blur-lg rounded-full px-6 py-3 shadow-2xl border-4 border-purple-300">
           {/* Backpack Button - Opens Inventory */}
           <motion.button
-            whileHover={{ scale: 1.15, rotate: -5 }}
+            whileHover={{ scale: 1.1, rotate: -5 }}
             whileTap={{ scale: 0.9 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 15 }}
             onClick={() => setIsInventoryOpen(true)}
-            className="relative w-16 h-16 rounded-full bg-gradient-to-br from-amber-400/90 to-orange-500/90 backdrop-blur-sm flex items-center justify-center shadow-lg border-2 border-white/50"
+            className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow"
           >
-            <Backpack className="w-8 h-8 text-white drop-shadow-md" />
+            <Backpack className="w-8 h-8 text-white" />
             {unlockedBadges.length > 0 && (
-              <span className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-md border border-white/50">
+              <span className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
                 {unlockedBadges.length}
               </span>
             )}
           </motion.button>
 
           {/* Divider */}
-          <div className="w-px h-10 bg-white/30" />
+          <div className="w-px h-10 bg-purple-200" />
 
           {/* Map Button */}
           <motion.button
-            whileHover={{ scale: 1.15, rotate: 5 }}
+            whileHover={{ scale: 1.1, rotate: 5 }}
             whileTap={{ scale: 0.9 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 15 }}
             onClick={onMapClick}
-            className="w-14 h-14 rounded-full bg-gradient-to-br from-teal-400/90 to-emerald-500/90 backdrop-blur-sm flex items-center justify-center shadow-lg border-2 border-white/50"
+            className="w-14 h-14 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow"
           >
-            <Map className="w-7 h-7 text-white drop-shadow-md" />
+            <Map className="w-7 h-7 text-white" />
           </motion.button>
 
           {/* Avatar Button */}
           <motion.button
-            whileHover={{ scale: 1.15, rotate: -5 }}
+            whileHover={{ scale: 1.1, rotate: -5 }}
             whileTap={{ scale: 0.9 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 15 }}
             onClick={onAvatarClick}
-            className="w-14 h-14 rounded-full bg-gradient-to-br from-pink-400/90 to-purple-500/90 backdrop-blur-sm flex items-center justify-center shadow-lg border-2 border-white/50 text-2xl"
+            className="w-14 h-14 rounded-full bg-gradient-to-br from-pink-400 to-purple-500 flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow text-2xl"
           >
             🦁
           </motion.button>
 
-          {/* Stars Counter - Glass style */}
-          <motion.div 
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: 'spring', stiffness: 400 }}
-            className="flex items-center gap-2 bg-yellow-400/30 backdrop-blur-sm rounded-full px-4 py-2 border border-yellow-300/50"
-          >
-            <Star className="w-6 h-6 text-yellow-300 fill-yellow-300 drop-shadow-md" />
-            <span className="text-lg font-bold text-white drop-shadow-md">{totalStars.toLocaleString()}</span>
-          </motion.div>
+          {/* Stars Counter */}
+          <div className="flex items-center gap-2 bg-yellow-100 rounded-full px-4 py-2">
+            <Star className="w-6 h-6 text-yellow-500 fill-yellow-500" />
+            <span className="text-lg font-bold text-yellow-700">{totalStars.toLocaleString()}</span>
+          </div>
         </div>
       </motion.div>
 
-      {/* Inventory Modal - Glassmorphism */}
+      {/* Inventory Modal */}
       <AnimatePresence>
         {isInventoryOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
             onClick={() => setIsInventoryOpen(false)}
           >
             <motion.div
@@ -113,12 +106,12 @@ export const FloatingBackpack: React.FC<FloatingBackpackProps> = ({
               exit={{ scale: 0.8, opacity: 0, y: 50 }}
               transition={{ type: 'spring', stiffness: 300, damping: 25 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-white/80 backdrop-blur-xl rounded-3xl p-6 max-w-md w-full shadow-2xl border-2 border-white/60"
+              className="bg-gradient-to-br from-purple-100 to-pink-100 rounded-3xl p-6 max-w-md w-full shadow-2xl border-4 border-white"
             >
               {/* Header */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg border-2 border-white/50">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
                     <Backpack className="w-6 h-6 text-white" />
                   </div>
                   <div>
@@ -132,7 +125,7 @@ export const FloatingBackpack: React.FC<FloatingBackpackProps> = ({
                   variant="ghost"
                   size="icon"
                   onClick={() => setIsInventoryOpen(false)}
-                  className="rounded-full hover:bg-purple-200/50"
+                  className="rounded-full hover:bg-purple-200"
                 >
                   <X className="w-6 h-6" />
                 </Button>
@@ -149,12 +142,11 @@ export const FloatingBackpack: React.FC<FloatingBackpackProps> = ({
                     <motion.div
                       key={badge.id}
                       whileHover={badge.unlocked ? { scale: 1.1, rotate: 5 } : {}}
-                      transition={{ type: 'spring', stiffness: 400, damping: 15 }}
                       className={`
                         flex flex-col items-center p-3 rounded-2xl transition-all
                         ${badge.unlocked 
-                          ? 'bg-gradient-to-br from-yellow-100/80 to-amber-200/80 backdrop-blur-sm cursor-pointer shadow-md border border-yellow-300/50' 
-                          : 'bg-gray-200/50 backdrop-blur-sm opacity-50 cursor-not-allowed'}
+                          ? 'bg-gradient-to-br from-yellow-100 to-amber-200 cursor-pointer hover:shadow-lg' 
+                          : 'bg-gray-200 opacity-50 cursor-not-allowed'}
                       `}
                     >
                       <span className="text-4xl mb-1">{badge.unlocked ? badge.emoji : '🔒'}</span>
@@ -166,8 +158,8 @@ export const FloatingBackpack: React.FC<FloatingBackpackProps> = ({
                 </div>
               </div>
 
-              {/* Stars Count - Glass style */}
-              <div className="bg-gradient-to-r from-yellow-200/80 to-amber-200/80 backdrop-blur-sm rounded-2xl p-4 flex items-center justify-between border border-yellow-300/50">
+              {/* Stars Count */}
+              <div className="bg-gradient-to-r from-yellow-200 to-amber-200 rounded-2xl p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Sparkles className="w-8 h-8 text-yellow-600" />
                   <div>
@@ -175,7 +167,7 @@ export const FloatingBackpack: React.FC<FloatingBackpackProps> = ({
                     <p className="text-2xl font-bold text-yellow-800">{totalStars.toLocaleString()} ⭐</p>
                   </div>
                 </div>
-                <Button className="bg-yellow-500 hover:bg-yellow-600 text-white rounded-full px-4 shadow-md">
+                <Button className="bg-yellow-500 hover:bg-yellow-600 text-white rounded-full px-4">
                   Shop
                 </Button>
               </div>
