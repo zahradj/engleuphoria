@@ -130,3 +130,6 @@ verify_jwt = false
 
 [functions.generate-welcome-lesson]
 verify_jwt = false
+
+[functions.get-dashboard]
+verify_jwt = true
