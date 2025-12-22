@@ -1856,6 +1856,7 @@ export type Database = {
           target_system: string
           thumbnail_url: string | null
           title: string
+          unit_id: string | null
           updated_at: string | null
           xp_reward: number | null
         }
@@ -1873,6 +1874,7 @@ export type Database = {
           target_system: string
           thumbnail_url?: string | null
           title: string
+          unit_id?: string | null
           updated_at?: string | null
           xp_reward?: number | null
         }
@@ -1890,6 +1892,7 @@ export type Database = {
           target_system?: string
           thumbnail_url?: string | null
           title?: string
+          unit_id?: string | null
           updated_at?: string | null
           xp_reward?: number | null
         }
@@ -1899,6 +1902,13 @@ export type Database = {
             columns: ["level_id"]
             isOneToOne: false
             referencedRelation: "curriculum_levels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_lessons_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_units"
             referencedColumns: ["id"]
           },
         ]
