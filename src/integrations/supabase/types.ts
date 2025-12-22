@@ -1841,6 +1841,54 @@ export type Database = {
         }
         Relationships: []
       }
+      curriculum_lessons: {
+        Row: {
+          content: Json | null
+          created_at: string | null
+          description: string | null
+          difficulty_level: string
+          duration_minutes: number | null
+          id: string
+          is_published: boolean | null
+          order_index: number | null
+          target_system: string
+          thumbnail_url: string | null
+          title: string
+          updated_at: string | null
+          xp_reward: number | null
+        }
+        Insert: {
+          content?: Json | null
+          created_at?: string | null
+          description?: string | null
+          difficulty_level: string
+          duration_minutes?: number | null
+          id?: string
+          is_published?: boolean | null
+          order_index?: number | null
+          target_system: string
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string | null
+          xp_reward?: number | null
+        }
+        Update: {
+          content?: Json | null
+          created_at?: string | null
+          description?: string | null
+          difficulty_level?: string
+          duration_minutes?: number | null
+          id?: string
+          is_published?: boolean | null
+          order_index?: number | null
+          target_system?: string
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string | null
+          xp_reward?: number | null
+        }
+        Relationships: []
+      }
       curriculum_levels: {
         Row: {
           age_group: string
