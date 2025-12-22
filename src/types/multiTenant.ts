@@ -23,10 +23,13 @@ export interface CurriculumLevel {
   id: string;
   track_id: string | null;
   name: string;
-  description: string | null;
+  description: string;
   sequence_order: number;
-  cefr_tag: CefrLevel | null;
-  xp_required: number;
+  level_order: number;
+  cefr_level: string;
+  age_group: string;
+  xp_required: number | null;
+  estimated_hours: number | null;
   thumbnail_url: string | null;
   created_at: string;
   updated_at: string;
