@@ -8,6 +8,9 @@ import { TeacherManagement } from '@/components/admin/TeacherManagement';
 import { TeacherApplicationsManagement } from '@/components/admin/TeacherApplicationsManagement';
 import { StudentManagement } from '@/components/admin/StudentManagement';
 import { AnalyticsDashboard } from '@/components/admin/AnalyticsDashboard';
+import { LibraryManager } from '@/components/admin/LibraryManager';
+import { CurriculumBuilder } from '@/components/admin/CurriculumBuilder';
+import { ScheduleManager } from '@/components/admin/ScheduleManager';
 import { PaymentsPanel } from '@/components/admin/PaymentsPanel';
 import { SettingsPanel } from '@/components/admin/SettingsPanel';
 import { Loader2, Menu, X } from 'lucide-react';
@@ -59,6 +62,12 @@ const AdminDashboard = () => {
         return <StudentManagement />;
       case 'analytics':
         return <AnalyticsDashboard />;
+      case 'library':
+        return <LibraryManager />;
+      case 'curriculum':
+        return <CurriculumBuilder />;
+      case 'schedule':
+        return <ScheduleManager />;
       case 'payments':
         return <PaymentsPanel />;
       case 'settings':
