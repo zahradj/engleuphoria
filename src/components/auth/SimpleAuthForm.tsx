@@ -180,6 +180,16 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
             description: "Please check your email to verify your account."
           });
 
+          // Send admin notification email (fire and forget)
+          supabase.functions.invoke('notify-admin-new-registration', {
+            body: {
+              name: formData.fullName,
+              email: formData.email,
+              role: formData.role,
+              registeredAt: new Date().toISOString()
+            }
+          }).catch(err => console.error('Failed to send admin notification:', err));
+
           // Navigate based on role
           if (formData.role === 'teacher') {
             navigate('/teacher-application');

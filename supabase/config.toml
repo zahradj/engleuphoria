@@ -89,6 +89,9 @@ verify_jwt = false
 [functions.notify-admin-new-student]
 verify_jwt = false
 
+[functions.notify-admin-new-registration]
+verify_jwt = false
+
 [functions.batch-generate-lesson-images]
 verify_jwt = false
 
