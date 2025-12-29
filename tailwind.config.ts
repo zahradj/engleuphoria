@@ -139,8 +139,10 @@ export default {
           "50%": { transform: "translateY(-20px) translateX(10px)" }
         },
         "float-slow": {
-          "0%, 100%": { transform: "translateY(0px) translateX(0px)" },
-          "50%": { transform: "translateY(-15px) translateX(-8px)" }
+          "0%, 100%": { transform: "translateY(0px)" },
+          "25%": { transform: "translateY(-12px)" },
+          "50%": { transform: "translateY(-20px)" },
+          "75%": { transform: "translateY(-10px)" }
         },
         "float-delayed": {
           "0%, 100%": { transform: "translateY(0px) translateX(0px)" },
@@ -164,7 +166,7 @@ export default {
         "pulse-fun": "pulse-fun 3s ease-in-out infinite",
         "spin-slow": "spin-slow 3s linear infinite",
         "float": "float 4s ease-in-out infinite",
-        "float-slow": "float-slow 6s ease-in-out infinite",
+        "float-slow": "float-slow 4s ease-in-out infinite",
         "float-delayed": "float-delayed 5s ease-in-out infinite 1s",
         "scale-in": "scale-in 0.5s ease-out",
         "slide-up": "slide-up 0.6s ease-out",
