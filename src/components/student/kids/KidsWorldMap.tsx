@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import confetti from 'canvas-confetti';
 import { JungleTheme } from './JungleTheme';
 import { SpaceTheme } from './SpaceTheme';
 import { UnderwaterTheme } from './UnderwaterTheme';
@@ -7,6 +8,7 @@ import { LevelNode } from './LevelNode';
 import { WindingPath } from './WindingPath';
 import { FloatingBackpack } from './FloatingBackpack';
 import { GiantGoButton } from './GiantGoButton';
+import { LessonPlayerModal } from './LessonPlayerModal';
 
 export type ThemeType = 'jungle' | 'space' | 'underwater';
 
@@ -20,44 +22,113 @@ interface Level {
 }
 
 interface KidsWorldMapProps {
-  levels?: Level[];
   theme?: ThemeType;
   totalStars?: number;
   studentName?: string;
-  onLevelClick?: (levelId: string) => void;
   onPlayNext?: () => void;
 }
 
 // Magic Forest Curriculum - Hardcoded Mock Data
-const MOCK_LESSONS: Level[] = [
-  { id: 1, number: 1, title: 'The Hello Song', type: 'video', status: 'completed', position: { x: 15, y: 70 } },
-  { id: 2, number: 2, title: 'Red vs Blue', type: 'game', status: 'current', position: { x: 30, y: 45 } },
+const INITIAL_LESSONS: Level[] = [
+  { id: 1, number: 1, title: 'The Hello Song', type: 'video', status: 'current', position: { x: 15, y: 70 } },
+  { id: 2, number: 2, title: 'Red vs Blue', type: 'game', status: 'locked', position: { x: 30, y: 45 } },
   { id: 3, number: 3, title: 'Counting 1-5', type: 'quiz', status: 'locked', position: { x: 50, y: 60 } },
   { id: 4, number: 4, title: 'Animal Friends', type: 'video', status: 'locked', position: { x: 70, y: 40 } },
   { id: 5, number: 5, title: 'My Family', type: 'game', status: 'locked', position: { x: 85, y: 55 } },
 ];
 
 export const KidsWorldMap: React.FC<KidsWorldMapProps> = ({
-  levels = MOCK_LESSONS,
   theme = 'jungle',
   totalStars = 1234,
   studentName = 'Explorer',
-  onLevelClick,
   onPlayNext,
 }) => {
   const [selectedTheme] = useState<ThemeType>(theme);
+  const [lessons, setLessons] = useState<Level[]>(INITIAL_LESSONS);
+  const [selectedLesson, setSelectedLesson] = useState<Level | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
-  const currentLevel = levels.find(l => l.status === 'current');
-  const completedIndex = levels.findIndex(l => l.status === 'current') - 1;
+  const currentLevel = lessons.find(l => l.status === 'current');
+  const completedIndex = lessons.findIndex(l => l.status === 'current') - 1;
 
   // Extract positions for the winding path
-  const levelPositions = levels.map(l => l.position);
+  const levelPositions = lessons.map(l => l.position);
 
   const ThemeBackground = {
     jungle: JungleTheme,
     space: SpaceTheme,
     underwater: UnderwaterTheme,
   }[selectedTheme];
+
+  const triggerConfetti = useCallback(() => {
+    // Big celebration confetti
+    const count = 200;
+    const defaults = {
+      origin: { y: 0.7 },
+      zIndex: 100,
+    };
+
+    function fire(particleRatio: number, opts: confetti.Options) {
+      confetti({
+        ...defaults,
+        ...opts,
+        particleCount: Math.floor(count * particleRatio),
+      });
+    }
+
+    fire(0.25, { spread: 26, startVelocity: 55 });
+    fire(0.2, { spread: 60 });
+    fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+    fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+    fire(0.1, { spread: 120, startVelocity: 45 });
+
+    // Stars
+    confetti({
+      particleCount: 50,
+      spread: 60,
+      origin: { y: 0.6 },
+      shapes: ['star'],
+      colors: ['#FFD700', '#FFA500', '#FF6347'],
+    });
+  }, []);
+
+  const handleLevelClick = useCallback((levelId: string) => {
+    const lesson = lessons.find(l => String(l.id) === levelId);
+    if (lesson && lesson.status !== 'locked') {
+      setSelectedLesson(lesson);
+      setIsModalOpen(true);
+    }
+  }, [lessons]);
+
+  const handleLessonComplete = useCallback((lessonId: number) => {
+    setLessons(prevLessons => {
+      const lessonIndex = prevLessons.findIndex(l => l.id === lessonId);
+      if (lessonIndex === -1) return prevLessons;
+
+      return prevLessons.map((lesson, index) => {
+        // Mark current lesson as completed
+        if (lesson.id === lessonId) {
+          return { ...lesson, status: 'completed' as const };
+        }
+        // Unlock next lesson
+        if (index === lessonIndex + 1 && lesson.status === 'locked') {
+          return { ...lesson, status: 'current' as const };
+        }
+        return lesson;
+      });
+    });
+
+    // Trigger confetti celebration!
+    triggerConfetti();
+  }, [triggerConfetti]);
+
+  const handlePlayNext = useCallback(() => {
+    if (currentLevel) {
+      setSelectedLesson(currentLevel);
+      setIsModalOpen(true);
+    }
+    onPlayNext?.();
+  }, [currentLevel, onPlayNext]);
 
   return (
     <div className="relative w-full h-screen overflow-hidden" style={{ fontFamily: "'Fredoka', cursive" }}>
@@ -84,7 +155,7 @@ export const KidsWorldMap: React.FC<KidsWorldMapProps> = ({
       />
 
       {/* Level Nodes */}
-      {levels.map((level) => (
+      {lessons.map((level) => (
         <LevelNode
           key={level.id}
           id={String(level.id)}
@@ -94,19 +165,27 @@ export const KidsWorldMap: React.FC<KidsWorldMapProps> = ({
           isCurrent={level.status === 'current'}
           isLocked={level.status === 'locked'}
           position={level.position}
-          onClick={() => onLevelClick?.(String(level.id))}
+          onClick={() => handleLevelClick(String(level.id))}
           theme={selectedTheme}
         />
       ))}
 
       {/* Giant GO Button */}
       <GiantGoButton 
-        onClick={onPlayNext}
+        onClick={handlePlayNext}
         lessonTitle={currentLevel?.title || 'Next Lesson'}
       />
 
       {/* Floating Backpack Menu */}
       <FloatingBackpack totalStars={totalStars} />
+
+      {/* Lesson Player Modal */}
+      <LessonPlayerModal
+        isOpen={isModalOpen}
+        lesson={selectedLesson}
+        onClose={() => setIsModalOpen(false)}
+        onComplete={handleLessonComplete}
+      />
     </div>
   );
 };
