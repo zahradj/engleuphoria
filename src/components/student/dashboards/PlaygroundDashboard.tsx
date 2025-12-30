@@ -27,8 +27,6 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
       studentName={studentName}
       totalStars={totalXp}
       theme={theme}
-      onLevelClick={handleLevelClick}
-      onPlayNext={handlePlayNext}
     />
   );
 };
