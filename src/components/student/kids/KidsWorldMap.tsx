@@ -12,13 +12,23 @@ import { LessonPlayerModal } from './LessonPlayerModal';
 
 export type ThemeType = 'jungle' | 'space' | 'underwater';
 
-interface Level {
+export interface LessonContent {
+  vocabulary: string[];
+  sentence: string;
+  videoUrl?: string;
+  quizQuestion: string;
+  quizOptions: string[];
+  quizAnswer: string;
+}
+
+export interface Level {
   id: number;
   number: number;
   title: string;
-  type: 'video' | 'quiz' | 'game';
+  type: 'video' | 'slide' | 'game';
   status: 'completed' | 'current' | 'locked';
   position: { x: number; y: number };
+  content: LessonContent;
 }
 
 interface KidsWorldMapProps {
@@ -28,13 +38,85 @@ interface KidsWorldMapProps {
   onPlayNext?: () => void;
 }
 
-// Magic Forest Curriculum - Hardcoded Mock Data
+// Magic Forest Curriculum - Real Educational Content for Ages 4-7
 const INITIAL_LESSONS: Level[] = [
-  { id: 1, number: 1, title: 'The Hello Song', type: 'video', status: 'current', position: { x: 15, y: 70 } },
-  { id: 2, number: 2, title: 'Red vs Blue', type: 'game', status: 'locked', position: { x: 30, y: 45 } },
-  { id: 3, number: 3, title: 'Counting 1-5', type: 'quiz', status: 'locked', position: { x: 50, y: 60 } },
-  { id: 4, number: 4, title: 'Animal Friends', type: 'video', status: 'locked', position: { x: 70, y: 40 } },
-  { id: 5, number: 5, title: 'My Family', type: 'game', status: 'locked', position: { x: 85, y: 55 } },
+  {
+    id: 1,
+    number: 1,
+    title: 'Hello, Pip!',
+    type: 'video',
+    status: 'current',
+    position: { x: 15, y: 70 },
+    content: {
+      vocabulary: ['Hello', 'Name', 'Bird'],
+      sentence: 'Hello! My name is Pip.',
+      videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+      quizQuestion: "What is the bird's name?",
+      quizOptions: ['Pip', 'Pop', 'Pap'],
+      quizAnswer: 'Pip',
+    },
+  },
+  {
+    id: 2,
+    number: 2,
+    title: 'The Red Balloon',
+    type: 'slide',
+    status: 'locked',
+    position: { x: 30, y: 45 },
+    content: {
+      vocabulary: ['Red', 'Balloon', 'Up'],
+      sentence: 'The balloon is red.',
+      quizQuestion: 'Touch the RED balloon.',
+      quizOptions: ['🔴', '🔵', '🟢'],
+      quizAnswer: '🔴',
+    },
+  },
+  {
+    id: 3,
+    number: 3,
+    title: 'Counting Berries',
+    type: 'game',
+    status: 'locked',
+    position: { x: 50, y: 60 },
+    content: {
+      vocabulary: ['One', 'Two', 'Three'],
+      sentence: 'I see three berries.',
+      quizQuestion: 'How many berries?',
+      quizOptions: ['1', '3', '5'],
+      quizAnswer: '3',
+    },
+  },
+  {
+    id: 4,
+    number: 4,
+    title: 'Animal Friends',
+    type: 'video',
+    status: 'locked',
+    position: { x: 70, y: 40 },
+    content: {
+      vocabulary: ['Cat', 'Dog', 'Friend'],
+      sentence: 'The cat and dog are friends.',
+      videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+      quizQuestion: 'Who are friends?',
+      quizOptions: ['Cat & Dog', 'Bird & Fish', 'Tree & Flower'],
+      quizAnswer: 'Cat & Dog',
+    },
+  },
+  {
+    id: 5,
+    number: 5,
+    title: 'My Family',
+    type: 'slide',
+    status: 'locked',
+    position: { x: 85, y: 55 },
+    content: {
+      vocabulary: ['Mom', 'Dad', 'Family'],
+      sentence: 'I love my family.',
+      quizQuestion: 'Who do you love?',
+      quizOptions: ['Family', 'Toys', 'Food'],
+      quizAnswer: 'Family',
+    },
+  },
 ];
 
 export const KidsWorldMap: React.FC<KidsWorldMapProps> = ({
@@ -61,7 +143,6 @@ export const KidsWorldMap: React.FC<KidsWorldMapProps> = ({
   }[selectedTheme];
 
   const triggerConfetti = useCallback(() => {
-    // Big celebration confetti
     const count = 200;
     const defaults = {
       origin: { y: 0.7 },
@@ -82,7 +163,6 @@ export const KidsWorldMap: React.FC<KidsWorldMapProps> = ({
     fire(0.1, { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
     fire(0.1, { spread: 120, startVelocity: 45 });
 
-    // Stars
     confetti({
       particleCount: 50,
       spread: 60,
@@ -106,11 +186,9 @@ export const KidsWorldMap: React.FC<KidsWorldMapProps> = ({
       if (lessonIndex === -1) return prevLessons;
 
       return prevLessons.map((lesson, index) => {
-        // Mark current lesson as completed
         if (lesson.id === lessonId) {
           return { ...lesson, status: 'completed' as const };
         }
-        // Unlock next lesson
         if (index === lessonIndex + 1 && lesson.status === 'locked') {
           return { ...lesson, status: 'current' as const };
         }
@@ -118,7 +196,6 @@ export const KidsWorldMap: React.FC<KidsWorldMapProps> = ({
       });
     });
 
-    // Trigger confetti celebration!
     triggerConfetti();
   }, [triggerConfetti]);
 
@@ -132,10 +209,8 @@ export const KidsWorldMap: React.FC<KidsWorldMapProps> = ({
 
   return (
     <div className="relative w-full h-screen overflow-hidden" style={{ fontFamily: "'Fredoka', cursive" }}>
-      {/* Theme Background */}
       <ThemeBackground />
       
-      {/* Header */}
       <motion.div 
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -147,14 +222,12 @@ export const KidsWorldMap: React.FC<KidsWorldMapProps> = ({
         </div>
       </motion.div>
 
-      {/* Winding Path */}
       <WindingPath 
         points={levelPositions} 
         completedIndex={completedIndex >= 0 ? completedIndex : -1}
         theme={selectedTheme}
       />
 
-      {/* Level Nodes */}
       {lessons.map((level) => (
         <LevelNode
           key={level.id}
@@ -170,16 +243,13 @@ export const KidsWorldMap: React.FC<KidsWorldMapProps> = ({
         />
       ))}
 
-      {/* Giant GO Button */}
       <GiantGoButton 
         onClick={handlePlayNext}
         lessonTitle={currentLevel?.title || 'Next Lesson'}
       />
 
-      {/* Floating Backpack Menu */}
       <FloatingBackpack totalStars={totalStars} />
 
-      {/* Lesson Player Modal */}
       <LessonPlayerModal
         isOpen={isModalOpen}
         lesson={selectedLesson}
