@@ -11,12 +11,12 @@ import { GiantGoButton } from './GiantGoButton';
 export type ThemeType = 'jungle' | 'space' | 'underwater';
 
 interface Level {
-  id: string;
+  id: number;
   number: number;
   title: string;
-  isCompleted: boolean;
-  isCurrent: boolean;
-  isLocked: boolean;
+  type: 'video' | 'quiz' | 'game';
+  status: 'completed' | 'current' | 'locked';
+  position: { x: number; y: number };
 }
 
 interface KidsWorldMapProps {
@@ -28,24 +28,17 @@ interface KidsWorldMapProps {
   onPlayNext?: () => void;
 }
 
-const defaultLevels: Level[] = [
-  { id: '1', number: 1, title: 'Hello!', isCompleted: true, isCurrent: false, isLocked: false },
-  { id: '2', number: 2, title: 'Colors', isCompleted: true, isCurrent: false, isLocked: false },
-  { id: '3', number: 3, title: 'Animals', isCompleted: false, isCurrent: true, isLocked: false },
-  { id: '4', number: 4, title: 'Numbers', isCompleted: false, isCurrent: false, isLocked: true },
-  { id: '5', number: 5, title: 'Family', isCompleted: false, isCurrent: false, isLocked: true },
-];
-
-const levelPositions = [
-  { x: 15, y: 70 },
-  { x: 30, y: 45 },
-  { x: 50, y: 60 },
-  { x: 70, y: 40 },
-  { x: 85, y: 55 },
+// Magic Forest Curriculum - Hardcoded Mock Data
+const MOCK_LESSONS: Level[] = [
+  { id: 1, number: 1, title: 'The Hello Song', type: 'video', status: 'completed', position: { x: 15, y: 70 } },
+  { id: 2, number: 2, title: 'Red vs Blue', type: 'game', status: 'current', position: { x: 30, y: 45 } },
+  { id: 3, number: 3, title: 'Counting 1-5', type: 'quiz', status: 'locked', position: { x: 50, y: 60 } },
+  { id: 4, number: 4, title: 'Animal Friends', type: 'video', status: 'locked', position: { x: 70, y: 40 } },
+  { id: 5, number: 5, title: 'My Family', type: 'game', status: 'locked', position: { x: 85, y: 55 } },
 ];
 
 export const KidsWorldMap: React.FC<KidsWorldMapProps> = ({
-  levels = defaultLevels,
+  levels = MOCK_LESSONS,
   theme = 'jungle',
   totalStars = 1234,
   studentName = 'Explorer',
@@ -54,8 +47,11 @@ export const KidsWorldMap: React.FC<KidsWorldMapProps> = ({
 }) => {
   const [selectedTheme] = useState<ThemeType>(theme);
   
-  const currentLevel = levels.find(l => l.isCurrent);
-  const completedIndex = levels.findIndex(l => l.isCurrent) - 1;
+  const currentLevel = levels.find(l => l.status === 'current');
+  const completedIndex = levels.findIndex(l => l.status === 'current') - 1;
+
+  // Extract positions for the winding path
+  const levelPositions = levels.map(l => l.position);
 
   const ThemeBackground = {
     jungle: JungleTheme,
@@ -88,17 +84,17 @@ export const KidsWorldMap: React.FC<KidsWorldMapProps> = ({
       />
 
       {/* Level Nodes */}
-      {levels.map((level, index) => (
+      {levels.map((level) => (
         <LevelNode
           key={level.id}
-          id={level.id}
+          id={String(level.id)}
           number={level.number}
           title={level.title}
-          isCompleted={level.isCompleted}
-          isCurrent={level.isCurrent}
-          isLocked={level.isLocked}
-          position={levelPositions[index]}
-          onClick={() => onLevelClick?.(level.id)}
+          isCompleted={level.status === 'completed'}
+          isCurrent={level.status === 'current'}
+          isLocked={level.status === 'locked'}
+          position={level.position}
+          onClick={() => onLevelClick?.(String(level.id))}
           theme={selectedTheme}
         />
       ))}
