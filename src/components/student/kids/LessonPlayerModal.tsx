@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2, Volume2, CheckCircle, Sparkles } from 'lucide-react';
+import { playSound } from '@/constants/soundEffects';
 import type { Level, LessonContent } from './KidsWorldMap';
 
 interface LessonPlayerModalProps {
@@ -18,12 +19,48 @@ export const LessonPlayerModal: React.FC<LessonPlayerModalProps> = ({
 }) => {
   const [isFinishing, setIsFinishing] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-  const [showResult, setShowResult] = useState(false);
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [wrongAttempts, setWrongAttempts] = useState<string[]>([]);
+  const [quizCompleted, setQuizCompleted] = useState(false);
+  const [shakingAnswer, setShakingAnswer] = useState<string | null>(null);
+
+  // Reset state when lesson changes or modal opens/closes
+  useEffect(() => {
+    if (isOpen && lesson) {
+      setSelectedAnswer(null);
+      setIsCorrect(null);
+      setWrongAttempts([]);
+      setQuizCompleted(false);
+      setShakingAnswer(null);
+    }
+  }, [isOpen, lesson?.id]);
 
   const handleAnswerSelect = (answer: string) => {
-    if (showResult) return;
+    if (quizCompleted || wrongAttempts.includes(answer)) return;
+    
     setSelectedAnswer(answer);
-    setShowResult(true);
+    
+    const correctAnswer = lesson?.content.quizAnswer;
+    
+    if (answer === correctAnswer) {
+      // Correct answer!
+      setIsCorrect(true);
+      setQuizCompleted(true);
+      playSound('correct', 0.7);
+    } else {
+      // Wrong answer - trigger shake
+      setIsCorrect(false);
+      setWrongAttempts(prev => [...prev, answer]);
+      setShakingAnswer(answer);
+      playSound('incorrect', 0.5);
+      
+      // Reset shake after animation
+      setTimeout(() => {
+        setShakingAnswer(null);
+        setIsCorrect(null);
+        setSelectedAnswer(null);
+      }, 500);
+    }
   };
 
   const handleFinish = () => {
@@ -34,14 +71,18 @@ export const LessonPlayerModal: React.FC<LessonPlayerModalProps> = ({
       onComplete(lesson.id);
       setIsFinishing(false);
       setSelectedAnswer(null);
-      setShowResult(false);
+      setIsCorrect(null);
+      setWrongAttempts([]);
+      setQuizCompleted(false);
       onClose();
     }, 300);
   };
 
   const handleClose = () => {
     setSelectedAnswer(null);
-    setShowResult(false);
+    setIsCorrect(null);
+    setWrongAttempts([]);
+    setQuizCompleted(false);
     onClose();
   };
 
@@ -192,7 +233,6 @@ export const LessonPlayerModal: React.FC<LessonPlayerModalProps> = ({
   const renderQuiz = () => {
     if (!lesson) return null;
     const { content } = lesson;
-    const isCorrect = selectedAnswer === content.quizAnswer;
 
     return (
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 space-y-4">
@@ -205,48 +245,71 @@ export const LessonPlayerModal: React.FC<LessonPlayerModalProps> = ({
         
         <div className="flex flex-wrap gap-3 justify-center">
           {content.quizOptions.map((option, index) => {
-            const isSelected = selectedAnswer === option;
-            const isCorrectAnswer = option === content.quizAnswer;
+            const isWrong = wrongAttempts.includes(option);
+            const isCorrectAnswer = option === content.quizAnswer && quizCompleted;
+            const isShaking = shakingAnswer === option;
+            const isDisabled = quizCompleted || isWrong;
             
-            let buttonStyle = 'bg-white border-2 border-indigo-200 hover:border-indigo-400 text-indigo-700';
+            let buttonStyle = 'bg-white border-2 border-indigo-200 hover:border-indigo-400 text-indigo-700 hover:scale-105';
             
-            if (showResult) {
-              if (isCorrectAnswer) {
-                buttonStyle = 'bg-green-500 border-2 border-green-600 text-white';
-              } else if (isSelected && !isCorrectAnswer) {
-                buttonStyle = 'bg-red-400 border-2 border-red-500 text-white';
-              } else {
-                buttonStyle = 'bg-gray-100 border-2 border-gray-200 text-gray-400';
-              }
+            if (isCorrectAnswer) {
+              buttonStyle = 'bg-green-500 border-2 border-green-600 text-white scale-105';
+            } else if (isWrong) {
+              buttonStyle = 'bg-red-400 border-2 border-red-500 text-white opacity-60 cursor-not-allowed';
+            }
+            
+            if (isDisabled && !isCorrectAnswer && !isWrong) {
+              buttonStyle = 'bg-gray-100 border-2 border-gray-200 text-gray-400 cursor-not-allowed';
             }
 
             return (
               <motion.button
                 key={option}
                 initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
+                animate={{ 
+                  opacity: 1, 
+                  y: 0,
+                  x: isShaking ? [-10, 10, -10, 10, 0] : 0
+                }}
+                transition={{ 
+                  delay: index * 0.1,
+                  x: { duration: 0.4 }
+                }}
                 onClick={() => handleAnswerSelect(option)}
-                disabled={showResult}
-                className={`px-6 py-3 rounded-xl font-bold text-lg shadow-md transition-all ${buttonStyle} ${!showResult ? 'hover:scale-105' : ''}`}
+                disabled={isDisabled}
+                className={`px-6 py-3 rounded-xl font-bold text-lg shadow-md transition-all ${buttonStyle}`}
               >
+                {isCorrectAnswer && <span className="mr-2">✓</span>}
+                {isWrong && <span className="mr-2">✗</span>}
                 {option}
               </motion.button>
             );
           })}
         </div>
 
-        {showResult && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className={`text-center p-4 rounded-xl ${isCorrect ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}
-          >
-            <p className="text-xl font-bold">
-              {isCorrect ? '🎉 Correct! Great job!' : `Good try! The answer is: ${content.quizAnswer}`}
-            </p>
-          </motion.div>
-        )}
+        {/* Feedback Messages */}
+        <AnimatePresence mode="wait">
+          {quizCompleted && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="text-center p-4 rounded-xl bg-green-100 text-green-700"
+            >
+              <p className="text-xl font-bold">🎉 Correct! Great job!</p>
+            </motion.div>
+          )}
+          {isCorrect === false && !quizCompleted && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="text-center p-4 rounded-xl bg-orange-100 text-orange-700"
+            >
+              <p className="text-xl font-bold">🤔 Try Again!</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     );
   };
@@ -302,28 +365,39 @@ export const LessonPlayerModal: React.FC<LessonPlayerModalProps> = ({
               {renderQuiz()}
             </div>
 
-            {/* Footer with Finish Button */}
-            <div className="p-6 bg-gray-50 border-t border-gray-100 flex-shrink-0">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleFinish}
-                disabled={isFinishing}
-                className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-xl font-bold rounded-2xl shadow-lg flex items-center justify-center gap-3 transition-all disabled:opacity-70"
-              >
-                {isFinishing ? (
-                  <>
-                    <Loader2 className="w-6 h-6 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="w-6 h-6" />
-                    I Finished!
-                  </>
-                )}
-              </motion.button>
-            </div>
+            {/* Footer with Finish Button - Only show when quiz is completed */}
+            <AnimatePresence>
+              {quizCompleted && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  className="p-6 bg-gray-50 border-t border-gray-100 flex-shrink-0"
+                >
+                  <motion.button
+                    initial={{ scale: 0.8 }}
+                    animate={{ scale: 1 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleFinish}
+                    disabled={isFinishing}
+                    className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-xl font-bold rounded-2xl shadow-lg flex items-center justify-center gap-3 transition-all disabled:opacity-70"
+                  >
+                    {isFinishing ? (
+                      <>
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="w-6 h-6" />
+                        I Finished! 🎉
+                      </>
+                    )}
+                  </motion.button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         </motion.div>
       )}
