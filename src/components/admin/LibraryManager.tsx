@@ -1,14 +1,13 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Library, Grid } from 'lucide-react';
+import { LayoutGrid, ListOrdered, Library, Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { SmartUploader } from './library/SmartUploader';
 import { TaggingMatrix, TaggingData } from './library/TaggingMatrix';
 import { CurriculumLinker } from './library/CurriculumLinker';
 import { AssetGrid } from './library/AssetGrid';
+import { UnifiedAssetManager } from './library/UnifiedAssetManager';
 import { toast } from 'sonner';
-
-type UploadStep = 'idle' | 'upload' | 'tagging' | 'linking';
 
 interface FileData {
   file: File;
@@ -16,7 +15,8 @@ interface FileData {
 }
 
 export const LibraryManager = () => {
-  const [uploadStep, setUploadStep] = useState<UploadStep>('idle');
+  const [viewMode, setViewMode] = useState<'unified' | 'wizard'>('unified');
+  const [uploadStep, setUploadStep] = useState<'idle' | 'upload' | 'tagging' | 'linking'>('idle');
   const [fileData, setFileData] = useState<FileData | null>(null);
   const [taggingData, setTaggingData] = useState<TaggingData | null>(null);
 
@@ -47,48 +47,73 @@ export const LibraryManager = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Library className="h-6 w-6" />
-            Library (The Core)
-          </h1>
-          <p className="text-muted-foreground">
-            Centralized asset management with smart tagging
-          </p>
+      {/* View Mode Toggle */}
+      <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'unified' | 'wizard')}>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <Library className="h-6 w-6" />
+              Content Library
+            </h1>
+            <p className="text-muted-foreground">
+              Upload, tag, and organize your curriculum assets
+            </p>
+          </div>
+          <TabsList>
+            <TabsTrigger value="unified" className="gap-2">
+              <LayoutGrid className="h-4 w-4" />
+              Split View
+            </TabsTrigger>
+            <TabsTrigger value="wizard" className="gap-2">
+              <ListOrdered className="h-4 w-4" />
+              Wizard
+            </TabsTrigger>
+          </TabsList>
         </div>
-        {uploadStep === 'idle' && (
-          <Button onClick={handleStartUpload}>
-            <Plus className="h-4 w-4 mr-2" />
-            Upload Asset
-          </Button>
-        )}
-      </div>
 
-      {uploadStep === 'upload' && (
-        <SmartUploader
-          onFileSelected={handleFileSelected}
-          onCancel={resetUpload}
-        />
-      )}
+        {/* Unified Split-Screen View */}
+        <TabsContent value="unified" className="mt-4">
+          <UnifiedAssetManager />
+        </TabsContent>
 
-      {uploadStep === 'tagging' && (
-        <TaggingMatrix
-          onTaggingComplete={handleTaggingComplete}
-          onBack={() => setUploadStep('upload')}
-        />
-      )}
+        {/* Original Wizard-Based View */}
+        <TabsContent value="wizard" className="mt-4">
+          <div className="space-y-6">
+            {uploadStep === 'idle' && (
+              <>
+                <Button onClick={handleStartUpload}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Upload Asset
+                </Button>
+                <AssetGrid />
+              </>
+            )}
 
-      {uploadStep === 'linking' && fileData && taggingData && (
-        <CurriculumLinker
-          fileData={fileData}
-          taggingData={taggingData}
-          onComplete={handleUploadComplete}
-          onBack={() => setUploadStep('tagging')}
-        />
-      )}
+            {uploadStep === 'upload' && (
+              <SmartUploader
+                onFileSelected={handleFileSelected}
+                onCancel={resetUpload}
+              />
+            )}
 
-      {uploadStep === 'idle' && <AssetGrid />}
+            {uploadStep === 'tagging' && (
+              <TaggingMatrix
+                onTaggingComplete={handleTaggingComplete}
+                onBack={() => setUploadStep('upload')}
+              />
+            )}
+
+            {uploadStep === 'linking' && fileData && taggingData && (
+              <CurriculumLinker
+                fileData={fileData}
+                taggingData={taggingData}
+                onComplete={handleUploadComplete}
+                onBack={() => setUploadStep('tagging')}
+              />
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
