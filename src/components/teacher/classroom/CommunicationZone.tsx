@@ -12,6 +12,8 @@ interface CommunicationZoneProps {
   onOpenTimer: () => void;
   onRollDice: () => void;
   onSendSticker: () => void;
+  studentCanDraw?: boolean;
+  onToggleStudentDrawing?: () => void;
 }
 
 export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
@@ -20,7 +22,9 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
   onGiveStar,
   onOpenTimer,
   onRollDice,
-  onSendSticker
+  onSendSticker,
+  studentCanDraw = false,
+  onToggleStudentDrawing
 }) => {
   const [chatMessages, setChatMessages] = useState<Array<{ sender: string; text: string }>>([
     { sender: 'system', text: 'Class session started' }
@@ -70,6 +74,8 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
           onOpenTimer={onOpenTimer}
           onRollDice={onRollDice}
           onSendSticker={onSendSticker}
+          studentCanDraw={studentCanDraw}
+          onToggleStudentDrawing={onToggleStudentDrawing}
         />
       </div>
 

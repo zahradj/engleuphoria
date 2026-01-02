@@ -1,6 +1,8 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useClassroomSync } from "@/hooks/useClassroomSync";
+import { useAuth } from "@/contexts/AuthContext";
 import { ClassroomTopBar } from "./ClassroomTopBar";
 import { CommunicationZone } from "./CommunicationZone";
 import { CenterStage } from "./CenterStage";
@@ -25,11 +27,12 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
 }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
   const [participantCount, setParticipantCount] = useState(2);
-  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [activeTool, setActiveTool] = useState('pointer');
+  const [activeColor, setActiveColor] = useState('#FF6B6B');
   const [rightSidebarCollapsed, setRightSidebarCollapsed] = useState(false);
   const [diceDialogOpen, setDiceDialogOpen] = useState(false);
   const [timerDialogOpen, setTimerDialogOpen] = useState(false);
@@ -51,13 +54,37 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     { id: '7', title: 'Great Job! Summary' },
   ];
 
-  const handleEndClass = useCallback(() => {
+  // Real-time classroom sync
+  const {
+    currentSlide,
+    studentCanDraw,
+    isConnected,
+    strokes,
+    updateSlide,
+    updateTool,
+    setStudentCanDraw,
+    endSession,
+    addStroke,
+    clearCanvas
+  } = useClassroomSync({
+    roomId: roomName,
+    userId: user?.id || 'teacher-default',
+    userName: teacherName,
+    role: 'teacher',
+    lessonData: {
+      title: lessonTitle,
+      slides: slides
+    }
+  });
+
+  const handleEndClass = useCallback(async () => {
+    await endSession();
     toast({
       title: "Class Ended",
       description: "The class session has been ended.",
     });
     navigate('/admin');
-  }, [navigate, toast]);
+  }, [navigate, toast, endSession]);
 
   const toggleMute = useCallback(() => {
     setIsMuted(prev => !prev);
@@ -90,20 +117,46 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     });
   }, [toast]);
 
-  const handlePrevSlide = useCallback(() => {
-    setCurrentSlideIndex(prev => Math.max(0, prev - 1));
-  }, []);
+  const handleToggleStudentDrawing = useCallback(async () => {
+    await setStudentCanDraw(!studentCanDraw);
+    toast({
+      title: studentCanDraw ? "Drawing Disabled" : "Drawing Enabled",
+      description: studentCanDraw 
+        ? "Students can no longer draw on the canvas" 
+        : "Students can now draw on the shared canvas!",
+      className: studentCanDraw ? "" : "bg-green-900 border-green-700",
+    });
+  }, [studentCanDraw, setStudentCanDraw, toast]);
 
-  const handleNextSlide = useCallback(() => {
-    setCurrentSlideIndex(prev => Math.min(slides.length - 1, prev + 1));
-  }, [slides.length]);
+  const handlePrevSlide = useCallback(async () => {
+    const newIndex = Math.max(0, currentSlide - 1);
+    await updateSlide(newIndex);
+  }, [currentSlide, updateSlide]);
 
-  const handleSlideSelect = useCallback((index: number) => {
-    setCurrentSlideIndex(index);
-  }, []);
+  const handleNextSlide = useCallback(async () => {
+    const newIndex = Math.min(slides.length - 1, currentSlide + 1);
+    await updateSlide(newIndex);
+  }, [currentSlide, slides.length, updateSlide]);
+
+  const handleSlideSelect = useCallback(async (index: number) => {
+    await updateSlide(index);
+  }, [updateSlide]);
+
+  const handleToolChange = useCallback(async (tool: string) => {
+    setActiveTool(tool);
+    await updateTool(tool);
+  }, [updateTool]);
+
+  const handleClearCanvas = useCallback(async () => {
+    await clearCanvas();
+    toast({
+      title: "Canvas Cleared",
+      description: "The whiteboard has been cleared.",
+    });
+  }, [clearCanvas, toast]);
 
   // Timer logic
-  React.useEffect(() => {
+  useEffect(() => {
     let interval: NodeJS.Timeout;
     if (timerRunning && timerValue > 0) {
       interval = setInterval(() => {
@@ -157,22 +210,32 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
           onOpenTimer={handleOpenTimer}
           onRollDice={handleRollDice}
           onSendSticker={handleSendSticker}
+          studentCanDraw={studentCanDraw}
+          onToggleStudentDrawing={handleToggleStudentDrawing}
         />
 
         {/* Center: Main Stage */}
         <CenterStage
           slides={slides}
-          currentSlideIndex={currentSlideIndex}
+          currentSlideIndex={currentSlide}
           onPrevSlide={handlePrevSlide}
           onNextSlide={handleNextSlide}
           activeTool={activeTool}
-          onToolChange={setActiveTool}
+          onToolChange={handleToolChange}
+          activeColor={activeColor}
+          onColorChange={setActiveColor}
+          strokes={strokes}
+          roomId={roomName}
+          userId={user?.id || 'teacher-default'}
+          userName={teacherName}
+          onAddStroke={addStroke}
+          onClearCanvas={handleClearCanvas}
         />
 
         {/* Right: Slide Navigator */}
         <SlideNavigator
           slides={slides}
-          currentSlideIndex={currentSlideIndex}
+          currentSlideIndex={currentSlide}
           onSlideSelect={handleSlideSelect}
           lessonTitle={lessonTitle}
           isCollapsed={rightSidebarCollapsed}
