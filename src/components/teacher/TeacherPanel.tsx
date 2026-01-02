@@ -7,6 +7,7 @@ import { EnhancedCalendarTab } from "./EnhancedCalendarTab";
 import { StudentsTab } from "./StudentsTab";
 import { AssignmentsTab } from "./AssignmentsTab";
 import { MessagesTab } from "./MessagesTab";
+import { TeacherClassroom } from "./classroom/TeacherClassroom";
 
 interface TeacherPanelProps {
   teacherId?: string;
@@ -24,6 +25,8 @@ export const TeacherPanel = ({
     switch (activeTab) {
       case "dashboard":
         return <DashboardTab teacherName={teacherName} teacherId={teacherId} />;
+      case "classroom":
+        return <TeacherClassroom studentName="Emma" lessonTitle="Magic Forest: Lesson 1" />;
       case "calendar":
         return <EnhancedCalendarTab teacherId={teacherId} />;
       case "students":
