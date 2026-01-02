@@ -30,6 +30,7 @@ import {
 import { AssetGrid } from './AssetGrid';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useLessonContext } from '@/contexts/LessonContext';
 
 type TargetSystem = 'playground' | 'academy' | 'hub';
 type AssetType = 'video' | 'pdf' | 'quiz' | 'interactive';
@@ -56,6 +57,8 @@ const ASSET_TYPES: { value: AssetType; label: string; icon: React.ReactNode }[] 
 const LEVELS = ['Level 1', 'Level 2', 'Level 3'];
 
 export const UnifiedAssetManager = () => {
+  const { addLesson } = useLessonContext();
+  
   const [dragActive, setDragActive] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -208,8 +211,25 @@ export const UnifiedAssetManager = () => {
 
       if (dbError) throw dbError;
 
+      // Add to global lesson context if it's for Playground
+      if (targetSystem === 'playground') {
+        addLesson({
+          title,
+          type: assetType as 'video' | 'slide' | 'game' | 'pdf' | 'quiz' | 'interactive',
+          system: targetSystem,
+          content: {
+            vocabulary: ['New', 'Lesson', 'Word'],
+            sentence: `This is the ${title} lesson.`,
+            videoUrl: urlData?.publicUrl || undefined,
+            quizQuestion: 'What did you learn?',
+            quizOptions: ['Option A', 'Option B', 'Option C'],
+            quizAnswer: 'Option A',
+          },
+        });
+      }
+
       toast.success(`"${title}" uploaded successfully!`, {
-        description: `Tagged as ${SYSTEM_CONFIG[targetSystem].label}`,
+        description: `Tagged as ${SYSTEM_CONFIG[targetSystem].label}. ${targetSystem === 'playground' ? 'Check the Student Map!' : ''}`,
       });
 
       resetForm();

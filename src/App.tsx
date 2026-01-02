@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { LessonProvider } from "@/contexts/LessonContext";
 import { clearInsecureRoleStorage } from "@/utils/roleValidation";
 import { ImprovedProtectedRoute } from "@/components/auth/ImprovedProtectedRoute";
 import { LanguageProvider } from "@/contexts/LanguageContext";
@@ -91,11 +92,12 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
         <AuthProvider>
-          <RoleThemeProvider>
-            <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
+          <LessonProvider>
+            <RoleThemeProvider>
+              <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
             <AppErrorBoundary>
               <Routes>
               <Route path="/" element={<Index />} />
@@ -169,10 +171,11 @@ const App = () => {
               {/* 404 Not Found Route */}
               <Route path="*" element={<NotFoundPage />} />
               </Routes>
-            </AppErrorBoundary>
-          </BrowserRouter>
-            </TooltipProvider>
-          </RoleThemeProvider>
+              </AppErrorBoundary>
+            </BrowserRouter>
+              </TooltipProvider>
+            </RoleThemeProvider>
+          </LessonProvider>
         </AuthProvider>
       </LanguageProvider>
     </QueryClientProvider>
