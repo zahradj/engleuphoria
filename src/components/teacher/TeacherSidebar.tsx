@@ -18,7 +18,8 @@ import {
   Book,
   FolderOpen,
   User,
-  Sparkles
+  Sparkles,
+  Video
 } from "lucide-react";
 
 interface TeacherSidebarProps {
@@ -30,6 +31,7 @@ interface TeacherSidebarProps {
 export const TeacherSidebar = ({ activeTab, setActiveTab, onLogout }: TeacherSidebarProps) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3, type: 'tab' },
+    { id: 'classroom', label: 'Live Classroom', icon: Video, type: 'tab' },
     { id: 'profile', label: 'My Profile', icon: User, type: 'tab' },
     { id: 'assessments', label: 'Assessments', icon: FileText, type: 'tab' },
     { id: 'ai-generator', label: 'Curriculum Architect', icon: Sparkles, type: 'tab' },
