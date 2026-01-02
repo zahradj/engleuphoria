@@ -1319,12 +1319,16 @@ export type Database = {
         Row: {
           active_tool: string | null
           created_at: string
+          current_quiz_slide_id: string | null
           current_slide_index: number | null
           ended_at: string | null
           id: string
           lesson_id: string | null
           lesson_slides: Json | null
           lesson_title: string | null
+          quiz_active: boolean | null
+          quiz_locked: boolean | null
+          quiz_reveal_answer: boolean | null
           room_id: string
           session_status: string
           started_at: string | null
@@ -1335,12 +1339,16 @@ export type Database = {
         Insert: {
           active_tool?: string | null
           created_at?: string
+          current_quiz_slide_id?: string | null
           current_slide_index?: number | null
           ended_at?: string | null
           id?: string
           lesson_id?: string | null
           lesson_slides?: Json | null
           lesson_title?: string | null
+          quiz_active?: boolean | null
+          quiz_locked?: boolean | null
+          quiz_reveal_answer?: boolean | null
           room_id: string
           session_status?: string
           started_at?: string | null
@@ -1351,12 +1359,16 @@ export type Database = {
         Update: {
           active_tool?: string | null
           created_at?: string
+          current_quiz_slide_id?: string | null
           current_slide_index?: number | null
           ended_at?: string | null
           id?: string
           lesson_id?: string | null
           lesson_slides?: Json | null
           lesson_title?: string | null
+          quiz_active?: boolean | null
+          quiz_locked?: boolean | null
+          quiz_reveal_answer?: boolean | null
           room_id?: string
           session_status?: string
           started_at?: string | null
@@ -4888,6 +4900,50 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quiz_responses: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_correct: boolean
+          response_time_ms: number | null
+          selected_option_id: string
+          session_id: string
+          slide_id: string
+          student_id: string
+          student_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_correct: boolean
+          response_time_ms?: number | null
+          selected_option_id: string
+          session_id: string
+          slide_id: string
+          student_id: string
+          student_name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_correct?: boolean
+          response_time_ms?: number | null
+          selected_option_id?: string
+          session_id?: string
+          slide_id?: string
+          student_id?: string
+          student_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_responses_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "classroom_sessions"
             referencedColumns: ["id"]
           },
         ]
