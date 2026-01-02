@@ -28,6 +28,7 @@ import ResetPassword from "./pages/ResetPassword";
 // Lazy load classroom pages
 const TeacherClassroomPage = lazy(() => import("./pages/TeacherClassroomPage"));
 const StudentClassroomPage = lazy(() => import("./pages/StudentClassroomPage"));
+const TeacherClassroomDemo = lazy(() => import("./pages/TeacherClassroomPage"));
 
 import { AssessmentTaker } from "./components/assessment/AssessmentTaker";
 import { AssessmentResults } from "./components/assessment/AssessmentResults";
@@ -129,6 +130,13 @@ const App = () => {
                             <StudentClassroomPage />
                           </Suspense>
                         </ImprovedProtectedRoute>
+                      } />
+
+                      {/* Demo Classroom - No Auth Required */}
+                      <Route path="/demo-classroom/:id" element={
+                        <Suspense fallback={<LoadingFallback />}>
+                          <TeacherClassroomDemo />
+                        </Suspense>
                       } />
 
                       {/* Super Admin Dashboard - Protected */}
