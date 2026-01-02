@@ -1,15 +1,14 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Header } from "@/components/index/Header";
-import { Footer } from "@/components/index/Footer";
+import { Logo } from "@/components/Logo";
 import { TeacherApplicationForm } from "@/components/teacher/TeacherApplicationForm";
 import { ApplicationSuccess } from "@/components/teacher/ApplicationSuccess";
 import { CheckCircle, FileText, MessageSquare, Clock } from "lucide-react";
 
 const TeacherApplication = () => {
+  const navigate = useNavigate();
   const [submitted, setSubmitted] = useState(false);
   const [applicationId, setApplicationId] = useState<string | null>(null);
 
@@ -43,20 +42,34 @@ const TeacherApplication = () => {
 
   if (submitted) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50">
+        <header className="bg-white/80 backdrop-blur-sm border-b py-4 px-6">
+          <div className="container mx-auto flex items-center justify-between">
+            <Logo />
+            <Button variant="ghost" onClick={() => navigate('/login')}>
+              Back to Login
+            </Button>
+          </div>
+        </header>
         <ApplicationSuccess applicationId={applicationId} />
-        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50">
+      {/* Simple Header */}
+      <header className="bg-white/80 backdrop-blur-sm border-b py-4 px-6">
+        <div className="container mx-auto flex items-center justify-between">
+          <Logo />
+          <Button variant="ghost" onClick={() => navigate('/login')}>
+            Back to Login
+          </Button>
+        </div>
+      </header>
       
       {/* Hero Section */}
-      <section className="py-16 px-4 bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50">
+      <section className="py-16 px-4">
         <div className="container mx-auto max-w-4xl text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
             Join Our Teaching Team
@@ -69,7 +82,7 @@ const TeacherApplication = () => {
       </section>
 
       {/* Application Process */}
-      <section className="py-12 bg-white">
+      <section className="py-12 bg-white/50">
         <div className="container mx-auto px-4 max-w-6xl">
           <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 mb-12">
             Application Process
@@ -89,7 +102,7 @@ const TeacherApplication = () => {
       </section>
 
       {/* Application Form */}
-      <section className="py-12 bg-gray-50">
+      <section className="py-12">
         <div className="container mx-auto px-4 max-w-4xl">
           <Card>
             <CardHeader>
@@ -104,8 +117,6 @@ const TeacherApplication = () => {
           </Card>
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 };

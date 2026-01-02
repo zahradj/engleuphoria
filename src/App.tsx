@@ -1,20 +1,18 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LessonProvider } from "@/contexts/LessonContext";
-import { clearInsecureRoleStorage } from "@/utils/roleValidation";
 import { ImprovedProtectedRoute } from "@/components/auth/ImprovedProtectedRoute";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { RoleThemeProvider } from "@/contexts/RoleThemeContext";
 import { AppErrorBoundary } from "@/components/common/AppErrorBoundary";
 import { lazy, Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import Index from "./pages/Index";
+
+// Core Pages
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import StudentDashboard from "./pages/StudentDashboard";
@@ -27,26 +25,8 @@ import StudentApplication from "./pages/StudentApplication";
 import EmailVerification from "./pages/EmailVerification";
 import ResetPassword from "./pages/ResetPassword";
 
-// Lazy load heavy classroom components for better initial load performance
-const ClassroomEntryPage = lazy(() => import("./pages/ClassroomEntryPage"));
-const AdventuresPage = lazy(() => import("./pages/AdventuresPage"));
-const DemoShowcase = lazy(() => import("./pages/DemoShowcase"));
-
-import MediaTestPage from "./pages/MediaTestPage";
-import VideoTestPage from "./pages/VideoTestPage";
-import { DiscoverTeachers } from "./pages/DiscoverTeachers";
-import { TeacherProfile } from "./pages/TeacherProfile";
-import { BookLesson } from "./pages/BookLesson";
-import StudentSchedule from "./pages/student/StudentSchedule";
-import TeacherSchedule from "./pages/teacher/TeacherSchedule";
-import SpeakingPractice from "./pages/student/SpeakingPractice";
-import ForParents from "./pages/ForParents";
-import ForTeachers from "./pages/ForTeachers";  
-import AboutUs from "./pages/AboutUs";
-import NewPricingPage from "./pages/NewPricingPage";
-import { PlacementTest2Guard } from "./components/guards/PlacementTest2Guard";
-
-import ClassroomPrejoin from "./pages/ClassroomPrejoin";
+// Lazy load classroom page
+const TeacherClassroomPage = lazy(() => import("./pages/TeacherClassroomPage"));
 
 import { AssessmentTaker } from "./components/assessment/AssessmentTaker";
 import { AssessmentResults } from "./components/assessment/AssessmentResults";
@@ -54,8 +34,8 @@ import { AssessmentResults } from "./components/assessment/AssessmentResults";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 10 * 60 * 1000, // 10 minutes  
+      staleTime: 5 * 60 * 1000,
+      gcTime: 10 * 60 * 1000,
       refetchOnWindowFocus: false,
       retry: 2,
     },
@@ -72,21 +52,6 @@ const LoadingFallback = () => (
   </div>
 );
 
-const NotFoundPage = () => {
-  const navigate = useNavigate();
-  return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-foreground mb-4">404</h1>
-        <p className="text-muted-foreground mb-6">Page not found</p>
-        <Button onClick={() => navigate('/')} className="bg-gradient-to-r from-primary to-secondary">
-          Go Home
-        </Button>
-      </div>
-    </div>
-  );
-};
-
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
@@ -95,101 +60,85 @@ const App = () => {
           <LessonProvider>
             <RoleThemeProvider>
               <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-            <AppErrorBoundary>
-              <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route path="/teacher-signup" element={<TeacherSignUp />} />
-              <Route path="/student-signup" element={<StudentSignUp />} />
-              <Route path="/teacher-application" element={<TeacherApplication />} />
-              <Route path="/student-application" element={<StudentApplication />} />
-              <Route path="/email-verification" element={<EmailVerification />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/media-test" element={<MediaTestPage />} />
-              <Route path="/video-test" element={<VideoTestPage />} />
-              <Route path="/demo" element={<Suspense fallback={<LoadingFallback />}><DemoShowcase /></Suspense>} />
-              <Route path="/classroom-prejoin" element={<ClassroomPrejoin />} />
-              <Route path="/discover-teachers" element={<DiscoverTeachers />} />
-              <Route path="/teacher/:teacherId" element={<TeacherProfile />} />
-              <Route path="/student/schedule" element={<StudentSchedule />} />
-              <Route path="/teacher/schedule" element={<TeacherSchedule />} />
-              <Route path="/student/book-lesson" element={<BookLesson />} />
-              <Route path="/student/speaking-practice" element={<SpeakingPractice />} />
-              <Route path="/for-parents" element={<ForParents />} />
-              <Route path="/for-teachers" element={<ForTeachers />} />
-              <Route path="/about" element={<AboutUs />} />
-              <Route path="/pricing" element={<NewPricingPage />} />
-              <Route path="/adventures" element={
-                <Suspense fallback={<LoadingFallback />}>
-                  <AdventuresPage />
-                </Suspense>
-              } />
-              
-              {/* Assessment Routes */}
-              <Route path="/assessment/:assessmentId" element={
-                <ImprovedProtectedRoute>
-                  <AssessmentTaker />
-                </ImprovedProtectedRoute>
-              } />
-              <Route path="/assessment-results/:submissionId" element={
-                <ImprovedProtectedRoute>
-                  <AssessmentResults />
-                </ImprovedProtectedRoute>
-              } />
-              
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <AppErrorBoundary>
+                    <Routes>
+                      {/* Public Entry Point - Login is the main entry */}
+                      <Route path="/" element={<Login />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/signup" element={<SignUp />} />
+                      <Route path="/teacher-signup" element={<TeacherSignUp />} />
+                      <Route path="/student-signup" element={<StudentSignUp />} />
+                      <Route path="/teacher-application" element={<TeacherApplication />} />
+                      <Route path="/student-application" element={<StudentApplication />} />
+                      <Route path="/email-verification" element={<EmailVerification />} />
+                      <Route path="/reset-password" element={<ResetPassword />} />
 
-              {/* Protected Routes */}
-              <Route path="/student/*" element={
-                <ImprovedProtectedRoute requiredRole="student">
-                  <StudentDashboard />
-                </ImprovedProtectedRoute>
-              } />
-              
-              {/* Convenience routes for direct system access */}
-              <Route path="/playground/*" element={
-                <ImprovedProtectedRoute requiredRole="student">
-                  <StudentDashboard />
-                </ImprovedProtectedRoute>
-              } />
-              <Route path="/academy/*" element={
-                <ImprovedProtectedRoute requiredRole="student">
-                  <StudentDashboard />
-                </ImprovedProtectedRoute>
-              } />
-              <Route path="/hub/*" element={
-                <ImprovedProtectedRoute requiredRole="student">
-                  <StudentDashboard />
-                </ImprovedProtectedRoute>
-              } />
-              
-              <Route path="/teacher" element={
-                <ImprovedProtectedRoute requiredRole="teacher">
-                  <TeacherDashboard />
-                </ImprovedProtectedRoute>
-              } />
-              
-              <Route path="/admin" element={
-                <ImprovedProtectedRoute requiredRole="admin">
-                  <AdminDashboard />
-                </ImprovedProtectedRoute>
-              } />
-              
-              {/* Generic dashboard route that redirects based on role */}
-              <Route path="/dashboard" element={
-                <ImprovedProtectedRoute>
-                  <div>Redirecting...</div>
-                </ImprovedProtectedRoute>
-              } />
-              
-              {/* 404 Not Found Route */}
-              <Route path="*" element={<NotFoundPage />} />
-              </Routes>
-              </AppErrorBoundary>
-            </BrowserRouter>
+                      {/* Assessment Routes */}
+                      <Route path="/assessment/:assessmentId" element={
+                        <ImprovedProtectedRoute>
+                          <AssessmentTaker />
+                        </ImprovedProtectedRoute>
+                      } />
+                      <Route path="/assessment-results/:submissionId" element={
+                        <ImprovedProtectedRoute>
+                          <AssessmentResults />
+                        </ImprovedProtectedRoute>
+                      } />
+
+                      {/* Student Dashboard Routes - Protected */}
+                      <Route path="/playground/*" element={
+                        <ImprovedProtectedRoute requiredRole="student">
+                          <StudentDashboard />
+                        </ImprovedProtectedRoute>
+                      } />
+                      <Route path="/academy/*" element={
+                        <ImprovedProtectedRoute requiredRole="student">
+                          <StudentDashboard />
+                        </ImprovedProtectedRoute>
+                      } />
+                      <Route path="/hub/*" element={
+                        <ImprovedProtectedRoute requiredRole="student">
+                          <StudentDashboard />
+                        </ImprovedProtectedRoute>
+                      } />
+                      
+                      {/* Teacher Dashboard - Protected */}
+                      <Route path="/admin/*" element={
+                        <ImprovedProtectedRoute requiredRole="teacher">
+                          <TeacherDashboard />
+                        </ImprovedProtectedRoute>
+                      } />
+                      
+                      {/* Teacher Live Classroom - Protected */}
+                      <Route path="/classroom/:id" element={
+                        <ImprovedProtectedRoute requiredRole="teacher">
+                          <Suspense fallback={<LoadingFallback />}>
+                            <TeacherClassroomPage />
+                          </Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
+
+                      {/* Super Admin Dashboard - Protected */}
+                      <Route path="/super-admin/*" element={
+                        <ImprovedProtectedRoute requiredRole="admin">
+                          <AdminDashboard />
+                        </ImprovedProtectedRoute>
+                      } />
+
+                      {/* Legacy routes - redirect to new paths */}
+                      <Route path="/student/*" element={<Navigate to="/playground" replace />} />
+                      <Route path="/teacher" element={<Navigate to="/admin" replace />} />
+                      <Route path="/admin-dashboard" element={<Navigate to="/super-admin" replace />} />
+                      <Route path="/dashboard" element={<Navigate to="/playground" replace />} />
+
+                      {/* 404 - Redirect to Login */}
+                      <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                  </AppErrorBoundary>
+                </BrowserRouter>
               </TooltipProvider>
             </RoleThemeProvider>
           </LessonProvider>

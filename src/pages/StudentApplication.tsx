@@ -1,28 +1,25 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
-import { Header } from "@/components/index/Header";
-import { Footer } from "@/components/index/Footer";
+import { Logo } from "@/components/Logo";
 import { 
   User, 
   Target, 
   BookOpen, 
   Clock, 
   Heart, 
-  Gamepad2, 
   CheckCircle,
   Sparkles,
-  Rocket
+  ArrowLeft,
+  ArrowRight
 } from "lucide-react";
 
 interface StudentProfile {
@@ -142,10 +139,8 @@ const StudentApplication = () => {
     setIsGenerating(true);
     
     try {
-      // Store profile in localStorage for now (in real app, would save to database)
       localStorage.setItem('studentProfile', JSON.stringify(profile));
       
-      // Simulate AI processing
       await new Promise(resolve => setTimeout(resolve, 3000));
       
       toast({
@@ -153,9 +148,8 @@ const StudentApplication = () => {
         description: "Redirecting to your personalized dashboard...",
       });
       
-      // Redirect to student dashboard
       setTimeout(() => {
-        navigate('/student');
+        navigate('/playground');
       }, 1500);
       
     } catch (error) {
@@ -188,39 +182,43 @@ const StudentApplication = () => {
 
   if (isGenerating) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50">
-          <Card className="w-full max-w-md text-center">
-            <CardHeader>
-              <div className="w-16 h-16 bg-gradient-to-r from-emerald-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="h-8 w-8 text-white animate-pulse" />
-              </div>
-              <CardTitle>Creating Your Learning Path...</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Progress value={66} className="mb-4" />
-              <p className="text-gray-600 mb-4">
-                Our AI is analyzing your profile and creating a personalized curriculum just for you!
-              </p>
-              <div className="space-y-2 text-sm text-gray-500">
-                <div>✅ Analyzing your strengths and goals</div>
-                <div>✅ Selecting perfect learning materials</div>
-                <div className="animate-pulse">🔄 Building your weekly lessons...</div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        <Footer />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50">
+        <Card className="w-full max-w-md text-center">
+          <CardHeader>
+            <div className="w-16 h-16 bg-gradient-to-r from-emerald-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Sparkles className="h-8 w-8 text-white animate-pulse" />
+            </div>
+            <CardTitle>Creating Your Learning Path...</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Progress value={66} className="mb-4" />
+            <p className="text-gray-600 mb-4">
+              Our AI is analyzing your profile and creating a personalized curriculum just for you!
+            </p>
+            <div className="space-y-2 text-sm text-gray-500">
+              <div>✅ Analyzing your strengths and goals</div>
+              <div>✅ Selecting perfect learning materials</div>
+              <div className="animate-pulse">🔄 Building your weekly lessons...</div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50">
+      {/* Simple Header */}
+      <header className="bg-white/80 backdrop-blur-sm border-b py-4 px-6">
+        <div className="container mx-auto flex items-center justify-between">
+          <Logo />
+          <Button variant="ghost" onClick={() => navigate('/login')}>
+            Back to Login
+          </Button>
+        </div>
+      </header>
       
-      <main className="flex-1 py-8 px-4 bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50">
+      <main className="flex-1 py-8 px-4">
         <div className="container mx-auto max-w-2xl">
           {/* Progress Header */}
           <div className="mb-8">
@@ -461,42 +459,40 @@ const StudentApplication = () => {
                   
                   <div>
                     <Label className="text-base font-medium mb-3 block">
-                      What topics interest you most?
+                      What topics interest you? (Pick 3-5)
                     </Label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    <div className="flex flex-wrap gap-2">
                       {interestOptions.map((interest) => (
-                        <div key={interest} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={interest}
-                            checked={profile.interests.includes(interest)}
-                            onCheckedChange={() => 
-                              handleArrayToggle(profile.interests, interest, (interests) =>
-                                setProfile(prev => ({ ...prev, interests }))
-                              )
-                            }
-                          />
-                          <Label htmlFor={interest} className="text-sm cursor-pointer">
-                            {interest}
-                          </Label>
-                        </div>
+                        <Badge
+                          key={interest}
+                          variant={profile.interests.includes(interest) ? "default" : "outline"}
+                          className="cursor-pointer text-sm py-1.5 px-3"
+                          onClick={() => 
+                            handleArrayToggle(profile.interests, interest, (interests) =>
+                              setProfile(prev => ({ ...prev, interests }))
+                            )
+                          }
+                        >
+                          {interest}
+                        </Badge>
                       ))}
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Step 6: Schedule & Special Needs */}
+              {/* Step 6: Time & Schedule */}
               {currentStep === 6 && (
                 <div className="space-y-6">
                   <div>
                     <Label className="text-base font-medium mb-3 block">
-                      How much time can you dedicate to English each week?
+                      How much time can you dedicate to learning?
                     </Label>
                     <div className="space-y-2">
                       {timeOptions.map((option) => (
                         <div
                           key={option.value}
-                          className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                          className={`p-4 border rounded-lg cursor-pointer transition-colors ${
                             profile.timeCommitment === option.value
                               ? 'border-emerald-500 bg-emerald-50'
                               : 'border-gray-200 hover:border-gray-300'
@@ -510,14 +506,12 @@ const StudentApplication = () => {
                   </div>
                   
                   <div>
-                    <Label htmlFor="special">
-                      Any learning differences or special support needed? (Optional)
-                    </Label>
+                    <Label htmlFor="special">Any special requirements or notes? (Optional)</Label>
                     <Textarea
                       id="special"
                       value={profile.specialNeeds}
                       onChange={(e) => setProfile(prev => ({ ...prev, specialNeeds: e.target.value }))}
-                      placeholder="e.g., Dyslexia, ADHD, hearing difficulty, or any other information that helps us support your learning..."
+                      placeholder="Learning difficulties, specific focus areas, or anything else we should know..."
                       className="mt-1"
                       rows={3}
                     />
@@ -525,32 +519,32 @@ const StudentApplication = () => {
                 </div>
               )}
 
-              {/* Navigation Buttons */}
-              <div className="flex justify-between pt-6">
+              {/* Navigation */}
+              <div className="flex justify-between pt-4">
                 <Button
                   variant="outline"
                   onClick={prevStep}
                   disabled={currentStep === 1}
+                  className="flex items-center gap-2"
                 >
-                  Previous
+                  <ArrowLeft className="h-4 w-4" />
+                  Back
                 </Button>
                 
                 <Button
                   onClick={nextStep}
-                  className="bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700"
-                  disabled={
-                    (currentStep === 1 && (!profile.basicInfo.name || !profile.basicInfo.age || !profile.basicInfo.nationality || !profile.basicInfo.nativeLanguage)) ||
-                    (currentStep === 2 && !profile.englishLevel) ||
-                    (currentStep === 6 && !profile.timeCommitment)
-                  }
+                  className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-blue-500 hover:from-emerald-600 hover:to-blue-600"
                 >
                   {currentStep === totalSteps ? (
                     <>
-                      <Rocket className="mr-2 h-4 w-4" />
-                      Generate My Learning Path!
+                      Create My Path
+                      <Sparkles className="h-4 w-4" />
                     </>
                   ) : (
-                    'Next'
+                    <>
+                      Next
+                      <ArrowRight className="h-4 w-4" />
+                    </>
                   )}
                 </Button>
               </div>
@@ -558,8 +552,6 @@ const StudentApplication = () => {
           </Card>
         </div>
       </main>
-      
-      <Footer />
     </div>
   );
 };

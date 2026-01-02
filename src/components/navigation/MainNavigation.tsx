@@ -1,7 +1,5 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Header } from '@/components/index/Header';
 import { StudentSidebar } from '@/components/student/StudentSidebar';
 import { TeacherSidebar } from '@/components/teacher/TeacherSidebar';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
@@ -53,10 +51,9 @@ export const MainNavigation: React.FC<MainNavigationProps> = ({
 
   return (
     <div className="min-h-screen w-full bg-dashboard-blend dark:bg-dashboard-neutral">
-      <Header />
       <div className="flex w-full">
         {renderSidebar()}
-        <main className="flex-1 min-h-[calc(100vh-4rem)]">
+        <main className="flex-1 min-h-screen">
           {children}
         </main>
       </div>
