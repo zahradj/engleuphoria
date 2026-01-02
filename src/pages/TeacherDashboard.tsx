@@ -1,10 +1,10 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { ClassScheduler } from "@/components/teacher/scheduler";
+import { TeacherDashboardShell } from "@/components/teacher/dashboard";
 
 const TeacherDashboard = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const teacherName = user?.user_metadata?.full_name || user?.email || "Teacher";
@@ -12,7 +12,7 @@ const TeacherDashboard = () => {
 
   useEffect(() => {
     if (!user) {
-      navigate("/login");
+      navigate("/");
       return;
     }
 
@@ -22,7 +22,7 @@ const TeacherDashboard = () => {
       } else if (user.role === "admin") {
         navigate("/super-admin");
       } else {
-        navigate("/login");
+        navigate("/");
       }
     }
   }, [user, navigate]);
@@ -38,13 +38,7 @@ const TeacherDashboard = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-6 max-w-7xl">
-        <ClassScheduler teacherName={teacherName} teacherId={teacherId} />
-      </div>
-    </div>
-  );
+  return <TeacherDashboardShell teacherName={teacherName} teacherId={teacherId} />;
 }
 
 export default TeacherDashboard;
