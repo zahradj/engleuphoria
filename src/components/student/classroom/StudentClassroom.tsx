@@ -32,7 +32,10 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     isConnected,
     strokes,
     addStroke,
-    clearCanvas
+    clearCanvas,
+    quizActive,
+    quizLocked,
+    quizRevealAnswer
   } = useClassroomSync({
     roomId,
     userId: studentId,
@@ -98,6 +101,9 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
           userName={studentName}
           onAddStroke={addStroke}
           onClearMyStrokes={clearCanvas}
+          quizActive={quizActive}
+          quizLocked={quizLocked}
+          quizRevealAnswer={quizRevealAnswer}
         />
       </div>
     </div>
