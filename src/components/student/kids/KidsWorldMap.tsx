@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { JungleTheme } from './JungleTheme';
@@ -9,27 +9,12 @@ import { WindingPath } from './WindingPath';
 import { FloatingBackpack } from './FloatingBackpack';
 import { GiantGoButton } from './GiantGoButton';
 import { LessonPlayerModal } from './LessonPlayerModal';
+import { useLessonContext, Lesson } from '@/contexts/LessonContext';
 
 export type ThemeType = 'jungle' | 'space' | 'underwater';
 
-export interface LessonContent {
-  vocabulary: string[];
-  sentence: string;
-  videoUrl?: string;
-  quizQuestion: string;
-  quizOptions: string[];
-  quizAnswer: string;
-}
-
-export interface Level {
-  id: number;
-  number: number;
-  title: string;
-  type: 'video' | 'slide' | 'game';
-  status: 'completed' | 'current' | 'locked';
-  position: { x: number; y: number };
-  content: LessonContent;
-}
+// Re-export for backwards compatibility
+export type { LessonContent, Lesson as Level } from '@/contexts/LessonContext';
 
 interface KidsWorldMapProps {
   theme?: ThemeType;
@@ -38,97 +23,24 @@ interface KidsWorldMapProps {
   onPlayNext?: () => void;
 }
 
-// Magic Forest Curriculum - Real Educational Content for Ages 4-7
-const INITIAL_LESSONS: Level[] = [
-  {
-    id: 1,
-    number: 1,
-    title: 'Hello, Pip!',
-    type: 'video',
-    status: 'current',
-    position: { x: 15, y: 70 },
-    content: {
-      vocabulary: ['Hello', 'Name', 'Bird'],
-      sentence: 'Hello! My name is Pip.',
-      videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-      quizQuestion: "What is the bird's name?",
-      quizOptions: ['Pip', 'Pop', 'Pap'],
-      quizAnswer: 'Pip',
-    },
-  },
-  {
-    id: 2,
-    number: 2,
-    title: 'The Red Balloon',
-    type: 'slide',
-    status: 'locked',
-    position: { x: 30, y: 45 },
-    content: {
-      vocabulary: ['Red', 'Balloon', 'Up'],
-      sentence: 'The balloon is red.',
-      quizQuestion: 'Touch the RED balloon.',
-      quizOptions: ['🔴', '🔵', '🟢'],
-      quizAnswer: '🔴',
-    },
-  },
-  {
-    id: 3,
-    number: 3,
-    title: 'Counting Berries',
-    type: 'game',
-    status: 'locked',
-    position: { x: 50, y: 60 },
-    content: {
-      vocabulary: ['One', 'Two', 'Three'],
-      sentence: 'I see three berries.',
-      quizQuestion: 'How many berries?',
-      quizOptions: ['1', '3', '5'],
-      quizAnswer: '3',
-    },
-  },
-  {
-    id: 4,
-    number: 4,
-    title: 'Animal Friends',
-    type: 'video',
-    status: 'locked',
-    position: { x: 70, y: 40 },
-    content: {
-      vocabulary: ['Cat', 'Dog', 'Friend'],
-      sentence: 'The cat and dog are friends.',
-      videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
-      quizQuestion: 'Who are friends?',
-      quizOptions: ['Cat & Dog', 'Bird & Fish', 'Tree & Flower'],
-      quizAnswer: 'Cat & Dog',
-    },
-  },
-  {
-    id: 5,
-    number: 5,
-    title: 'My Family',
-    type: 'slide',
-    status: 'locked',
-    position: { x: 85, y: 55 },
-    content: {
-      vocabulary: ['Mom', 'Dad', 'Family'],
-      sentence: 'I love my family.',
-      quizQuestion: 'Who do you love?',
-      quizOptions: ['Family', 'Toys', 'Food'],
-      quizAnswer: 'Family',
-    },
-  },
-];
-
 export const KidsWorldMap: React.FC<KidsWorldMapProps> = ({
   theme = 'jungle',
   totalStars = 1234,
   studentName = 'Explorer',
   onPlayNext,
 }) => {
+  const { getPlaygroundLessons, updateLessonStatus } = useLessonContext();
+  const playgroundLessons = getPlaygroundLessons();
+  
   const [selectedTheme] = useState<ThemeType>(theme);
-  const [lessons, setLessons] = useState<Level[]>(INITIAL_LESSONS);
-  const [selectedLesson, setSelectedLesson] = useState<Level | null>(null);
+  const [lessons, setLessons] = useState<Lesson[]>(playgroundLessons);
+  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // Sync with context when lessons change
+  useEffect(() => {
+    setLessons(playgroundLessons);
+  }, [playgroundLessons]);
   
   const currentLevel = lessons.find(l => l.status === 'current');
   const completedIndex = lessons.findIndex(l => l.status === 'current') - 1;
