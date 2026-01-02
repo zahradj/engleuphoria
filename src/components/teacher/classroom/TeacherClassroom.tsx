@@ -1,33 +1,14 @@
 import React, { useState, useCallback } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { ClassroomTopBar } from "./ClassroomTopBar";
+import { CommunicationZone } from "./CommunicationZone";
+import { CenterStage } from "./CenterStage";
+import { SlideNavigator } from "./SlideNavigator";
+import { DiceRoller } from "./DiceRoller";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import { useLessonContext } from "@/contexts/LessonContext";
-import { useToast } from "@/hooks/use-toast";
-import { JitsiMeeting } from "@/components/video/JitsiMeeting";
-import { 
-  ArrowRight, 
-  BookOpen, 
-  Library, 
-  StickyNote, 
-  Search,
-  Video,
-  Image,
-  FileText,
-  Gamepad2,
-  Mic,
-  MicOff,
-  Camera,
-  CameraOff,
-  Phone,
-  Settings,
-  Users,
-  Clock,
-  Maximize2
-} from "lucide-react";
 
 interface TeacherClassroomProps {
   classId?: string;
@@ -42,388 +23,208 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   lessonTitle = "Magic Forest: Lesson 1",
   teacherName = "Teacher"
 }) => {
-  const { lessons, getPlaygroundLessons } = useLessonContext();
+  const navigate = useNavigate();
   const { toast } = useToast();
-  const [notes, setNotes] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
-  const [jitsiApi, setJitsiApi] = useState<any>(null);
-  const [participantCount, setParticipantCount] = useState(1);
+  const [participantCount, setParticipantCount] = useState(2);
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
+  const [activeTool, setActiveTool] = useState('pointer');
+  const [rightSidebarCollapsed, setRightSidebarCollapsed] = useState(false);
+  const [diceDialogOpen, setDiceDialogOpen] = useState(false);
+  const [timerDialogOpen, setTimerDialogOpen] = useState(false);
+  const [timerSeconds, setTimerSeconds] = useState(60);
+  const [timerRunning, setTimerRunning] = useState(false);
+  const [timerValue, setTimerValue] = useState(60);
 
   // Generate unique room name based on class ID
   const roomName = `MySchool_Class_${classId}`;
 
-  const handleJitsiApiReady = useCallback((api: any) => {
-    setJitsiApi(api);
-    console.log('[TeacherClassroom] Jitsi API ready');
-  }, []);
-
-  const handleParticipantJoined = useCallback((participant: any) => {
-    setParticipantCount(prev => prev + 1);
-    toast({
-      title: "Student Joined",
-      description: `${participant.displayName || 'A student'} has joined the class`,
-      className: "bg-emerald-900 border-emerald-700 text-white",
-    });
-  }, [toast]);
-
-  const handleParticipantLeft = useCallback((participant: any) => {
-    setParticipantCount(prev => Math.max(1, prev - 1));
-    toast({
-      title: "Student Left",
-      description: `${participant.displayName || 'A student'} has left the class`,
-      className: "bg-gray-800 border-gray-700 text-white",
-    });
-  }, [toast]);
-
-  const handleEndClass = useCallback(() => {
-    if (jitsiApi) {
-      jitsiApi.executeCommand('hangup');
-    }
-  }, [jitsiApi]);
-
-  const toggleMute = useCallback(() => {
-    if (jitsiApi) {
-      jitsiApi.executeCommand('toggleAudio');
-      setIsMuted(prev => !prev);
-    }
-  }, [jitsiApi]);
-
-  const toggleCamera = useCallback(() => {
-    if (jitsiApi) {
-      jitsiApi.executeCommand('toggleVideo');
-      setIsCameraOff(prev => !prev);
-    }
-  }, [jitsiApi]);
-
-  // Mock library assets
-  const libraryAssets = [
-    { id: 1, name: "Alphabet Flashcards", type: "pdf", category: "Vocabulary" },
-    { id: 2, name: "Animal Sounds Audio", type: "audio", category: "Listening" },
-    { id: 3, name: "Colors Poster", type: "image", category: "Visual Aids" },
-    { id: 4, name: "Numbers 1-10 Worksheet", type: "pdf", category: "Writing" },
-    { id: 5, name: "Family Members Video", type: "video", category: "Speaking" },
-    { id: 6, name: "Weather Icons Set", type: "image", category: "Vocabulary" },
-    { id: 7, name: "Greetings Game", type: "game", category: "Interactive" },
-    { id: 8, name: "Body Parts Diagram", type: "image", category: "Visual Aids" },
+  // Mock slides data
+  const slides = [
+    { id: '1', title: 'Welcome to the Lesson' },
+    { id: '2', title: 'Vocabulary: Animals' },
+    { id: '3', title: 'Practice: Matching Game' },
+    { id: '4', title: 'Sentence Building' },
+    { id: '5', title: 'Speaking Practice' },
+    { id: '6', title: 'Quiz Time!' },
+    { id: '7', title: 'Great Job! Summary' },
   ];
 
-  const filteredAssets = libraryAssets.filter(asset =>
-    asset.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    asset.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const handlePushAsset = (assetName: string) => {
-    console.log(`[PUSH ACTION] Sent "${assetName}" to Student Board at ${new Date().toISOString()}`);
+  const handleEndClass = useCallback(() => {
     toast({
-      title: "Asset Sent!",
-      description: `Sent "${assetName}" to Student Board`,
-      className: "bg-emerald-900 border-emerald-700 text-white",
+      title: "Class Ended",
+      description: "The class session has been ended.",
     });
-  };
+    navigate('/admin');
+  }, [navigate, toast]);
 
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'video': return <Video className="h-4 w-4" />;
-      case 'image': return <Image className="h-4 w-4" />;
-      case 'pdf': return <FileText className="h-4 w-4" />;
-      case 'game': return <Gamepad2 className="h-4 w-4" />;
-      case 'slide': return <FileText className="h-4 w-4" />;
-      default: return <FileText className="h-4 w-4" />;
+  const toggleMute = useCallback(() => {
+    setIsMuted(prev => !prev);
+  }, []);
+
+  const toggleCamera = useCallback(() => {
+    setIsCameraOff(prev => !prev);
+  }, []);
+
+  const handleGiveStar = useCallback(() => {
+    toast({
+      title: "⭐ Star Awarded!",
+      description: `You gave ${studentName} a star!`,
+      className: "bg-yellow-900 border-yellow-700 text-white",
+    });
+  }, [studentName, toast]);
+
+  const handleOpenTimer = useCallback(() => {
+    setTimerDialogOpen(true);
+  }, []);
+
+  const handleRollDice = useCallback(() => {
+    setDiceDialogOpen(true);
+  }, []);
+
+  const handleSendSticker = useCallback(() => {
+    toast({
+      title: "😊 Sticker Sent!",
+      description: "Sticker sent to the student's screen",
+    });
+  }, [toast]);
+
+  const handlePrevSlide = useCallback(() => {
+    setCurrentSlideIndex(prev => Math.max(0, prev - 1));
+  }, []);
+
+  const handleNextSlide = useCallback(() => {
+    setCurrentSlideIndex(prev => Math.min(slides.length - 1, prev + 1));
+  }, [slides.length]);
+
+  const handleSlideSelect = useCallback((index: number) => {
+    setCurrentSlideIndex(index);
+  }, []);
+
+  // Timer logic
+  React.useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (timerRunning && timerValue > 0) {
+      interval = setInterval(() => {
+        setTimerValue(prev => {
+          if (prev <= 1) {
+            setTimerRunning(false);
+            toast({
+              title: "⏰ Time's Up!",
+              description: "The timer has finished.",
+            });
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
     }
+    return () => clearInterval(interval);
+  }, [timerRunning, timerValue, toast]);
+
+  const startTimer = () => {
+    setTimerValue(timerSeconds);
+    setTimerRunning(true);
   };
 
-  const playgroundLessons = getPlaygroundLessons();
+  const resetTimer = () => {
+    setTimerRunning(false);
+    setTimerValue(timerSeconds);
+  };
 
   return (
     <div className="h-screen w-full bg-gray-950 text-gray-100 flex flex-col overflow-hidden">
       {/* Top Control Bar */}
-      <div className="h-14 bg-gray-900 border-b border-gray-800 flex items-center justify-between px-4">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded-full bg-red-500 animate-pulse" />
-            <span className="text-sm font-medium text-red-400">LIVE</span>
-          </div>
-          <div className="h-6 w-px bg-gray-700" />
-          <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-gray-400" />
-            <span className="text-sm">{participantCount} in room</span>
-          </div>
-          <Badge variant="secondary" className="bg-gray-800 text-gray-300">
-            {lessonTitle}
-          </Badge>
-          <Badge variant="outline" className="border-emerald-500 text-emerald-400 text-xs">
-            Room: {roomName}
-          </Badge>
-        </div>
+      <ClassroomTopBar
+        lessonTitle={lessonTitle}
+        roomName={roomName}
+        participantCount={participantCount}
+        isMuted={isMuted}
+        isCameraOff={isCameraOff}
+        onToggleMute={toggleMute}
+        onToggleCamera={toggleCamera}
+        onEndClass={handleEndClass}
+      />
 
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 text-sm text-gray-400 mr-4">
-            <Clock className="h-4 w-4" />
-            <span>00:15:32</span>
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`rounded-full ${isMuted ? 'bg-red-500/20 text-red-400' : 'bg-gray-800 text-gray-300'}`}
-            onClick={toggleMute}
-          >
-            {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`rounded-full ${isCameraOff ? 'bg-red-500/20 text-red-400' : 'bg-gray-800 text-gray-300'}`}
-            onClick={toggleCamera}
-          >
-            {isCameraOff ? <CameraOff className="h-5 w-5" /> : <Camera className="h-5 w-5" />}
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full bg-gray-800 text-gray-300"
-          >
-            <Settings className="h-5 w-5" />
-          </Button>
-          <div className="h-6 w-px bg-gray-700 mx-2" />
-          <Button
-            variant="destructive"
-            size="sm"
-            className="bg-red-600 hover:bg-red-700"
-            onClick={handleEndClass}
-          >
-            <Phone className="h-4 w-4 mr-2" />
-            End Class
-          </Button>
-        </div>
-      </div>
-
-      {/* Main Content Area */}
+      {/* 3-Column Layout */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left: Video Area (75%) */}
-        <div className="w-3/4 p-4 flex flex-col">
-          {/* Jitsi Video Conference */}
-          <JitsiMeeting
-            roomName={roomName}
-            displayName={teacherName}
-            userRole="teacher"
-            onApiReady={handleJitsiApiReady}
-            onParticipantJoined={handleParticipantJoined}
-            onParticipantLeft={handleParticipantLeft}
-            className="flex-1"
-          />
-        </div>
+        {/* Left: Communication Zone */}
+        <CommunicationZone
+          studentName={studentName}
+          teacherName={teacherName}
+          onGiveStar={handleGiveStar}
+          onOpenTimer={handleOpenTimer}
+          onRollDice={handleRollDice}
+          onSendSticker={handleSendSticker}
+        />
 
-        {/* Right: Sidebar - The Briefcase (25%) */}
-        <div className="w-1/4 border-l border-gray-800 bg-gray-900 flex flex-col">
-          <Tabs defaultValue="lesson-plan" className="flex-1 flex flex-col">
-            <TabsList className="w-full bg-gray-800 rounded-none border-b border-gray-700 p-0 h-12">
-              <TabsTrigger 
-                value="lesson-plan" 
-                className="flex-1 h-full rounded-none data-[state=active]:bg-gray-900 data-[state=active]:text-emerald-400 text-gray-400"
-              >
-                <BookOpen className="h-4 w-4 mr-2" />
-                Lesson Plan
-              </TabsTrigger>
-              <TabsTrigger 
-                value="library" 
-                className="flex-1 h-full rounded-none data-[state=active]:bg-gray-900 data-[state=active]:text-emerald-400 text-gray-400"
-              >
-                <Library className="h-4 w-4 mr-2" />
-                Library
-              </TabsTrigger>
-              <TabsTrigger 
-                value="notes" 
-                className="flex-1 h-full rounded-none data-[state=active]:bg-gray-900 data-[state=active]:text-emerald-400 text-gray-400"
-              >
-                <StickyNote className="h-4 w-4 mr-2" />
-                Notes
-              </TabsTrigger>
-            </TabsList>
+        {/* Center: Main Stage */}
+        <CenterStage
+          slides={slides}
+          currentSlideIndex={currentSlideIndex}
+          onPrevSlide={handlePrevSlide}
+          onNextSlide={handleNextSlide}
+          activeTool={activeTool}
+          onToolChange={setActiveTool}
+        />
 
-            {/* Lesson Plan Tab */}
-            <TabsContent value="lesson-plan" className="flex-1 m-0 overflow-hidden">
-              <ScrollArea className="h-full">
-                <div className="p-4 space-y-4">
-                  <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide">
-                    Today's Lessons
-                  </h3>
-                  
-                  {playgroundLessons.map((lesson) => (
-                    <div
-                      key={lesson.id}
-                      className="bg-gray-800 rounded-lg p-3 space-y-3"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          {getTypeIcon(lesson.type)}
-                          <span className="font-medium text-sm">{lesson.title}</span>
-                        </div>
-                        <Badge 
-                          variant="outline" 
-                          className={`text-xs ${
-                            lesson.status === 'completed' 
-                              ? 'border-emerald-500 text-emerald-400' 
-                              : lesson.status === 'current'
-                              ? 'border-amber-500 text-amber-400'
-                              : 'border-gray-600 text-gray-500'
-                          }`}
-                        >
-                          {lesson.status}
-                        </Badge>
-                      </div>
-
-                      {/* Lesson Assets */}
-                      <div className="space-y-2">
-                        {lesson.content.vocabulary.map((word, idx) => (
-                          <div
-                            key={idx}
-                            className="flex items-center justify-between bg-gray-900 rounded-md px-3 py-2"
-                          >
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-gray-500">Vocab:</span>
-                              <span className="text-sm">{word}</span>
-                            </div>
-                            <Button
-                              size="sm"
-                              className="h-7 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-lg shadow-emerald-900/50"
-                              onClick={() => handlePushAsset(`Vocabulary: ${word}`)}
-                            >
-                              <ArrowRight className="h-4 w-4 mr-1" />
-                              PUSH
-                            </Button>
-                          </div>
-                        ))}
-                        
-                        {/* Main Sentence */}
-                        <div className="flex items-center justify-between bg-gray-900 rounded-md px-3 py-2">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-500">Sentence:</span>
-                            <span className="text-sm truncate max-w-[120px]">{lesson.content.sentence}</span>
-                          </div>
-                          <Button
-                            size="sm"
-                            className="h-7 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-lg shadow-emerald-900/50"
-                            onClick={() => handlePushAsset(`Sentence: ${lesson.content.sentence}`)}
-                          >
-                            <ArrowRight className="h-4 w-4 mr-1" />
-                            PUSH
-                          </Button>
-                        </div>
-
-                        {/* Quiz */}
-                        <div className="flex items-center justify-between bg-gray-900 rounded-md px-3 py-2">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-500">Quiz:</span>
-                            <span className="text-sm truncate max-w-[120px]">{lesson.content.quizQuestion}</span>
-                          </div>
-                          <Button
-                            size="sm"
-                            className="h-7 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-lg shadow-emerald-900/50"
-                            onClick={() => handlePushAsset(`Quiz: ${lesson.content.quizQuestion}`)}
-                          >
-                            <ArrowRight className="h-4 w-4 mr-1" />
-                            PUSH
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </TabsContent>
-
-            {/* Library Tab */}
-            <TabsContent value="library" className="flex-1 m-0 overflow-hidden flex flex-col">
-              <div className="p-4 border-b border-gray-800">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-                  <Input
-                    placeholder="Search files..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
-                  />
-                </div>
-              </div>
-              <ScrollArea className="flex-1">
-                <div className="p-4 space-y-2">
-                  {filteredAssets.map((asset) => (
-                    <div
-                      key={asset.id}
-                      className="flex items-center justify-between bg-gray-800 rounded-lg px-3 py-3 hover:bg-gray-750 transition-colors"
-                    >
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="w-8 h-8 rounded-lg bg-gray-700 flex items-center justify-center">
-                          {asset.type === 'pdf' && <FileText className="h-4 w-4 text-red-400" />}
-                          {asset.type === 'image' && <Image className="h-4 w-4 text-blue-400" />}
-                          {asset.type === 'video' && <Video className="h-4 w-4 text-purple-400" />}
-                          {asset.type === 'audio' && <Mic className="h-4 w-4 text-amber-400" />}
-                          {asset.type === 'game' && <Gamepad2 className="h-4 w-4 text-emerald-400" />}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{asset.name}</p>
-                          <p className="text-xs text-gray-500">{asset.category}</p>
-                        </div>
-                      </div>
-                      <Button
-                        size="sm"
-                        className="h-8 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-lg shadow-emerald-900/50 ml-2"
-                        onClick={() => handlePushAsset(asset.name)}
-                      >
-                        <ArrowRight className="h-4 w-4 mr-1" />
-                        PUSH
-                      </Button>
-                    </div>
-                  ))}
-
-                  {filteredAssets.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      <Library className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                      <p>No files found</p>
-                    </div>
-                  )}
-                </div>
-              </ScrollArea>
-            </TabsContent>
-
-            {/* Notes Tab */}
-            <TabsContent value="notes" className="flex-1 m-0 overflow-hidden flex flex-col">
-              <div className="p-4 flex-1 flex flex-col">
-                <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">
-                  Session Notes
-                </h3>
-                <Textarea
-                  placeholder="Type notes about this session..."
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  className="flex-1 bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 resize-none"
-                />
-                <div className="mt-3 flex justify-end">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="border-gray-700 text-gray-300 hover:bg-gray-800"
-                    onClick={() => {
-                      console.log('[NOTES SAVED]', notes);
-                      toast({
-                        title: "Notes Saved",
-                        description: "Your session notes have been saved.",
-                        className: "bg-gray-800 border-gray-700 text-white",
-                      });
-                    }}
-                  >
-                    Save Notes
-                  </Button>
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </div>
+        {/* Right: Slide Navigator */}
+        <SlideNavigator
+          slides={slides}
+          currentSlideIndex={currentSlideIndex}
+          onSlideSelect={handleSlideSelect}
+          lessonTitle={lessonTitle}
+          isCollapsed={rightSidebarCollapsed}
+          onToggleCollapse={() => setRightSidebarCollapsed(!rightSidebarCollapsed)}
+        />
       </div>
+
+      {/* Dice Roller Dialog */}
+      <DiceRoller open={diceDialogOpen} onOpenChange={setDiceDialogOpen} />
+
+      {/* Timer Dialog */}
+      <Dialog open={timerDialogOpen} onOpenChange={setTimerDialogOpen}>
+        <DialogContent className="bg-gray-900 border-gray-800 text-white max-w-xs">
+          <DialogHeader>
+            <DialogTitle className="text-center">Activity Timer</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center py-4 gap-4">
+            <div className="text-6xl font-mono font-bold text-blue-400">
+              {Math.floor(timerValue / 60).toString().padStart(2, '0')}:
+              {(timerValue % 60).toString().padStart(2, '0')}
+            </div>
+            {!timerRunning && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-400">Set time (seconds):</span>
+                <Input
+                  type="number"
+                  value={timerSeconds}
+                  onChange={(e) => setTimerSeconds(Math.max(1, parseInt(e.target.value) || 60))}
+                  className="w-20 bg-gray-800 border-gray-700 text-center"
+                  min={1}
+                />
+              </div>
+            )}
+            <div className="flex gap-2">
+              {!timerRunning ? (
+                <Button onClick={startTimer} className="bg-blue-600 hover:bg-blue-700">
+                  Start Timer
+                </Button>
+              ) : (
+                <>
+                  <Button onClick={() => setTimerRunning(false)} variant="outline" className="border-gray-700">
+                    Pause
+                  </Button>
+                  <Button onClick={resetTimer} variant="destructive">
+                    Reset
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
-
-export default TeacherClassroom;

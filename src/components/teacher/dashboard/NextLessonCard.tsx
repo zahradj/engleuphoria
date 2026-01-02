@@ -12,6 +12,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { useNextClassCountdown } from '@/hooks/useNextClassCountdown';
 
 interface NextLessonCardProps {
   disabled?: boolean;
@@ -31,13 +32,27 @@ export const NextLessonCard: React.FC<NextLessonCardProps> = ({ disabled = false
     lastFeedback: 'Great progress on pronunciation!'
   };
 
+  const { formattedTime, canEnter, isStartingSoon, hasStarted } = useNextClassCountdown(nextLesson.scheduledAt);
+
+  // Button is enabled if: not disabled by prop AND (canEnter from countdown OR has already started)
+  const buttonEnabled = !disabled && (canEnter || hasStarted);
+
   const handleEnterClassroom = () => {
-    if (!disabled) {
+    if (buttonEnabled) {
       navigate(`/classroom/${nextLesson.id}`);
     }
   };
 
-  const minutesUntil = Math.max(0, Math.round((nextLesson.scheduledAt.getTime() - Date.now()) / 60000));
+  const getBadgeContent = () => {
+    if (hasStarted) return 'Starting Now!';
+    return `In ${formattedTime}`;
+  };
+
+  const getBadgeVariant = () => {
+    if (hasStarted) return 'destructive';
+    if (isStartingSoon) return 'default';
+    return 'secondary';
+  };
 
   return (
     <Card className="overflow-hidden">
@@ -47,8 +62,15 @@ export const NextLessonCard: React.FC<NextLessonCardProps> = ({ disabled = false
             <Video className="w-5 h-5 text-primary" />
             Next Lesson
           </CardTitle>
-          <Badge variant={minutesUntil <= 5 ? 'destructive' : 'secondary'}>
-            {minutesUntil <= 0 ? 'Starting Now' : `In ${minutesUntil} min`}
+          <Badge 
+            variant={getBadgeVariant()}
+            className={`${
+              isStartingSoon || hasStarted 
+                ? 'animate-pulse bg-emerald-500 text-white' 
+                : ''
+            }`}
+          >
+            {getBadgeContent()}
           </Badge>
         </div>
       </CardHeader>
@@ -92,19 +114,31 @@ export const NextLessonCard: React.FC<NextLessonCardProps> = ({ disabled = false
           </div>
         </div>
 
+        {/* Countdown Indicator when not yet ready */}
+        {!canEnter && !disabled && (
+          <div className="text-center py-2 bg-muted/30 rounded-lg">
+            <p className="text-sm text-muted-foreground">
+              Classroom opens in <span className="font-mono font-bold text-foreground">{formattedTime}</span>
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              You can enter 5 minutes before class starts
+            </p>
+          </div>
+        )}
+
         {/* Enter Classroom Button */}
         <Button
           onClick={handleEnterClassroom}
-          disabled={disabled}
+          disabled={!buttonEnabled}
           size="lg"
-          className={`w-full ${
-            disabled 
+          className={`w-full transition-all duration-300 ${
+            !buttonEnabled
               ? 'bg-muted text-muted-foreground' 
-              : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white animate-pulse'
-          }`}
+              : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg shadow-emerald-500/25'
+          } ${isStartingSoon || hasStarted ? 'animate-pulse' : ''}`}
         >
           <Video className="w-5 h-5 mr-2" />
-          Enter Classroom
+          {hasStarted ? 'Join Now!' : 'Enter Classroom'}
           <ChevronRight className="w-5 h-5 ml-2" />
         </Button>
 
