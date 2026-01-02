@@ -7861,6 +7861,28 @@ export type Database = {
         Args: { teacher_uuid: string }
         Returns: Json
       }
+      get_teacher_profile_with_payment: {
+        Args: { teacher_user_id: string }
+        Returns: {
+          accent: string
+          bio: string
+          full_name: string
+          hourly_rate_dzd: number
+          hourly_rate_eur: number
+          id: string
+          is_available: boolean
+          languages_spoken: string[]
+          payoneer_account_email: string
+          profile_image_url: string
+          rating: number
+          specializations: string[]
+          timezone: string
+          total_reviews: number
+          user_id: string
+          video_url: string
+          years_experience: number
+        }[]
+      }
       get_teacher_upcoming_lessons: {
         Args: { teacher_uuid: string }
         Returns: {
