@@ -1,4 +1,13 @@
 export { TeacherDashboardShell } from './TeacherDashboardShell';
-export { CommandCenterSidebar } from './CommandCenterSidebar';
-export { CommandCenterHeader } from './CommandCenterHeader';
+export { TeacherTopNav } from './TeacherTopNav';
+export { NovakidDashboard } from './NovakidDashboard';
+export { ProfileOnboardingModal } from './ProfileOnboardingModal';
+export { PendingReviewBanner } from './PendingReviewBanner';
+export { NextLessonCard } from './NextLessonCard';
+export { TeacherProfileCard } from './TeacherProfileCard';
+export { TeacherLevelCard } from './TeacherLevelCard';
+export { PerformanceCard } from './PerformanceCard';
+export { DeviceCheckBanner } from './DeviceCheckBanner';
+export { MonthlyStatsCard } from './MonthlyStatsCard';
+export { LessonsListCard } from './LessonsListCard';
 export { StudentsPlaceholder } from './StudentsPlaceholder';
