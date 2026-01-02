@@ -12,7 +12,8 @@ import {
   Library,
   BookOpen,
   Calendar,
-  GraduationCap
+  GraduationCap,
+  Presentation
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -28,6 +29,7 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
     { id: "users", label: "User Manager", icon: Users },
     { id: "library", label: "Library (The Core)", icon: Library },
     { id: "curriculum", label: "Curriculum", icon: BookOpen },
+    { id: "lesson-builder", label: "Lesson Builder", icon: Presentation },
     { id: "schedule", label: "Schedule", icon: Calendar },
     { id: "teachers", label: "Teachers", icon: GraduationCap },
     { id: "teacher-applications", label: "Applications", icon: FileText },

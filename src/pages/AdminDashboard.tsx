@@ -13,6 +13,7 @@ import { CurriculumBuilder } from '@/components/admin/CurriculumBuilder';
 import { ScheduleManager } from '@/components/admin/ScheduleManager';
 import { PaymentsPanel } from '@/components/admin/PaymentsPanel';
 import { SettingsPanel } from '@/components/admin/SettingsPanel';
+import { AdminLessonEditor } from '@/components/admin/lesson-builder';
 import { Loader2, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -66,6 +67,8 @@ const AdminDashboard = () => {
         return <LibraryManager />;
       case 'curriculum':
         return <CurriculumBuilder />;
+      case 'lesson-builder':
+        return <AdminLessonEditor />;
       case 'schedule':
         return <ScheduleManager />;
       case 'payments':
