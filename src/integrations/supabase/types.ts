@@ -6626,6 +6626,7 @@ export type Database = {
           teaching_experience_years: number | null
           teaching_methodology: string | null
           updated_at: string | null
+          user_id: string | null
         }
         Insert: {
           address?: string | null
@@ -6667,6 +6668,7 @@ export type Database = {
           teaching_experience_years?: number | null
           teaching_methodology?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
           address?: string | null
@@ -6708,6 +6710,7 @@ export type Database = {
           teaching_experience_years?: number | null
           teaching_methodology?: string | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
