@@ -38,19 +38,19 @@ const calculateSystemTag = (dateOfBirth: string): 'KIDS' | 'TEENS' | 'ADULTS' =>
 
 // Redirect user based on role and system tag
 const getRedirectPath = (role: string, systemTag: string | null): string => {
-  // Admin goes to admin dashboard
+  // Admin goes to super-admin dashboard
   if (role === 'admin') {
+    return '/super-admin';
+  }
+  
+  // Teacher goes to admin (teacher workspace)
+  if (role === 'teacher') {
     return '/admin';
   }
   
-  // Teacher goes to teacher dashboard
-  if (role === 'teacher') {
-    return '/teacher';
-  }
-  
-  // Students go to student dashboard (DashboardRouter handles system selection internally)
+  // Students go to playground (DashboardRouter handles system selection internally)
   if (role === 'student') {
-    return '/student';
+    return '/playground';
   }
   
   return '/';
