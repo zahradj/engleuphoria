@@ -35,7 +35,9 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     clearCanvas,
     quizActive,
     quizLocked,
-    quizRevealAnswer
+    quizRevealAnswer,
+    pollActive,
+    pollShowResults
   } = useClassroomSync({
     roomId,
     userId: studentId,
@@ -104,6 +106,8 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
           quizActive={quizActive}
           quizLocked={quizLocked}
           quizRevealAnswer={quizRevealAnswer}
+          pollActive={pollActive}
+          pollShowResults={pollShowResults}
         />
       </div>
     </div>

@@ -93,6 +93,7 @@ export const CenterStage: React.FC<CenterStageProps> = ({
 }) => {
   const currentSlide = slides[currentSlideIndex];
   const isQuizSlide = currentSlide?.type === 'quiz';
+  const isPollSlide = currentSlide?.type === 'poll';
   
   const {
     responses,
@@ -104,6 +105,22 @@ export const CenterStage: React.FC<CenterStageProps> = ({
     revealAnswer,
     resetQuiz
   } = useQuizInteraction({
+    sessionId,
+    slideId: currentSlide?.id,
+    roomId,
+    isTeacher: true
+  });
+
+  const {
+    responses: pollResponses,
+    pollActive,
+    pollShowResults,
+    voteDistribution,
+    startPoll,
+    toggleResults,
+    closePoll,
+    resetPoll
+  } = usePollInteraction({
     sessionId,
     slideId: currentSlide?.id,
     roomId,
