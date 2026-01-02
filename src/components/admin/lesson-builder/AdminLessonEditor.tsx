@@ -6,10 +6,14 @@ import { SlideOrganizer } from './SlideOrganizer';
 import { EditorCanvas } from './EditorCanvas';
 import { TeacherGuide } from './TeacherGuide';
 import { Slide, LessonDeck } from './types';
+import { AILessonWizard } from './ai-wizard';
+import { Button } from '@/components/ui/button';
+import { Wand2 } from 'lucide-react';
 
 export const AdminLessonEditor: React.FC = () => {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
+  const [showAIWizard, setShowAIWizard] = useState(false);
   
   // Lesson metadata
   const [lessonTitle, setLessonTitle] = useState('Untitled Lesson');
@@ -102,6 +106,24 @@ export const AdminLessonEditor: React.FC = () => {
     });
   };
 
+  const handleAILessonGenerated = useCallback((
+    generatedSlides: Slide[],
+    title: string,
+    newLevel: string,
+    newAgeGroup: string
+  ) => {
+    setSlides(generatedSlides);
+    setLessonTitle(title);
+    setLevel(newLevel);
+    setAgeGroup(newAgeGroup);
+    setSelectedSlideId(generatedSlides[0]?.id || null);
+    
+    toast({
+      title: 'Lesson Generated!',
+      description: `Created ${generatedSlides.length} slides using AI wizard.`,
+    });
+  }, [toast]);
+
   return (
     <div className="h-screen flex flex-col bg-background">
       <LessonHeader
@@ -118,7 +140,7 @@ export const AdminLessonEditor: React.FC = () => {
 
       <div className="flex-1 flex min-h-0">
         {/* Left: Slide Organizer */}
-        <div className="w-64 shrink-0">
+        <div className="w-64 shrink-0 relative">
           <SlideOrganizer
             slides={slides}
             selectedSlideId={selectedSlideId}
@@ -127,6 +149,17 @@ export const AdminLessonEditor: React.FC = () => {
             onDeleteSlide={handleDeleteSlide}
             onReorderSlides={handleReorderSlides}
           />
+          
+          {/* AI Wizard Button */}
+          <div className="absolute bottom-4 left-4 right-4">
+            <Button
+              onClick={() => setShowAIWizard(true)}
+              className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 hover:from-purple-700 hover:via-pink-700 hover:to-purple-700 shadow-lg"
+            >
+              <Wand2 className="mr-2 h-4 w-4" />
+              AI Generate Lesson
+            </Button>
+          </div>
         </div>
 
         {/* Center: Editor Canvas */}
@@ -145,6 +178,13 @@ export const AdminLessonEditor: React.FC = () => {
           />
         </div>
       </div>
+
+      {/* AI Lesson Wizard Modal */}
+      <AILessonWizard
+        open={showAIWizard}
+        onOpenChange={setShowAIWizard}
+        onLessonGenerated={handleAILessonGenerated}
+      />
     </div>
   );
 };
