@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { CommandCenterSidebar } from './CommandCenterSidebar';
-import { CommandCenterHeader } from './CommandCenterHeader';
+import { useTeacherStatus } from '@/hooks/useTeacherStatus';
+import { TeacherTopNav } from './TeacherTopNav';
+import { NovakidDashboard } from './NovakidDashboard';
+import { ProfileOnboardingModal } from './ProfileOnboardingModal';
+import { PendingReviewBanner } from './PendingReviewBanner';
 import { ClassScheduler } from '@/components/teacher/scheduler';
-import { LibraryManager } from '@/components/admin/LibraryManager';
+import { ProfileSetupTab } from '@/components/teacher/ProfileSetupTab';
 import { StudentsPlaceholder } from './StudentsPlaceholder';
+import { Loader2 } from 'lucide-react';
 
-type TabType = 'schedule' | 'library' | 'students';
+type TabType = 'dashboard' | 'schedule' | 'methodology' | 'account' | 'teacher-hub';
 
 interface TeacherDashboardShellProps {
   teacherName: string;
@@ -18,48 +20,70 @@ export const TeacherDashboardShell = ({
   teacherName,
   teacherId,
 }: TeacherDashboardShellProps) => {
-  const [activeTab, setActiveTab] = useState<TabType>('schedule');
-  const { signOut } = useAuth();
-  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<TabType>('dashboard');
+  const { status, loading, profile, refetch } = useTeacherStatus(teacherId);
 
-  const handleLogout = async () => {
-    await signOut();
-    navigate('/');
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   const renderContent = () => {
-    switch (activeTab) {
-      case 'schedule':
-        return <ClassScheduler teacherName={teacherName} teacherId={teacherId} />;
-      case 'library':
-        return <LibraryManager />;
-      case 'students':
-        return <StudentsPlaceholder />;
-      default:
-        return <ClassScheduler teacherName={teacherName} teacherId={teacherId} />;
+    // If pending approval, show banner regardless of tab
+    if (status === 'PENDING_APPROVAL') {
+      return <PendingReviewBanner teacherName={teacherName} />;
     }
+
+    // If approved, render content based on active tab
+    if (status === 'APPROVED') {
+      switch (activeTab) {
+        case 'dashboard':
+          return <NovakidDashboard teacherId={teacherId} />;
+        case 'schedule':
+          return <ClassScheduler teacherName={teacherName} teacherId={teacherId} />;
+        case 'account':
+          return <ProfileSetupTab teacherId={teacherId} />;
+        case 'methodology':
+        case 'teacher-hub':
+          return <StudentsPlaceholder />;
+        default:
+          return <NovakidDashboard teacherId={teacherId} />;
+      }
+    }
+
+    // For NEW status, the modal handles it
+    return null;
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Sidebar */}
-      <CommandCenterSidebar
+    <div className="min-h-screen bg-muted/30">
+      {/* Top Navigation */}
+      <TeacherTopNav
+        teacherName={teacherName}
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        teacherName={teacherName}
-        onLogout={handleLogout}
+        profileImageUrl={profile?.profile_image_url || undefined}
       />
 
-      {/* Main Content Area */}
-      <div className="ml-64 min-h-screen flex flex-col">
-        {/* Header */}
-        <CommandCenterHeader teacherName={teacherName} activeTab={activeTab} />
+      {/* Onboarding Modal - Blocks everything if NEW */}
+      {status === 'NEW' && (
+        <ProfileOnboardingModal
+          teacherId={teacherId}
+          teacherName={teacherName}
+          onComplete={refetch}
+        />
+      )}
 
-        {/* Main Stage */}
-        <main className="flex-1 p-6 bg-muted/30">
-          {renderContent()}
-        </main>
-      </div>
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-6">
+        {renderContent()}
+      </main>
     </div>
   );
 };
