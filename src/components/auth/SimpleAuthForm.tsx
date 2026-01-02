@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Eye, EyeOff, CheckCircle, XCircle, Mail, Lock, User, GraduationCap, BookOpen, Sparkles, Shield, Zap } from 'lucide-react';
+import { Loader2, Eye, EyeOff, CheckCircle, XCircle, Mail, Lock, User, GraduationCap, BookOpen, Sparkles, Shield, Zap, Calendar } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 import { supabase } from '@/integrations/supabase/client';
 interface SimpleAuthFormProps {
@@ -18,7 +18,47 @@ interface FormData {
   password: string;
   confirmPassword: string;
   role: 'student' | 'teacher' | 'admin';
+  dateOfBirth: string;
 }
+
+// Calculate age from date of birth and return system tag
+const calculateSystemTag = (dateOfBirth: string): 'KIDS' | 'TEENS' | 'ADULTS' => {
+  const today = new Date();
+  const birthDate = new Date(dateOfBirth);
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  
+  if (age >= 4 && age <= 10) return 'KIDS';
+  if (age >= 11 && age <= 17) return 'TEENS';
+  return 'ADULTS';
+};
+
+// Redirect user based on role and system tag
+const getRedirectPath = (role: string, systemTag: string | null): string => {
+  // Admin and Teacher go to admin dashboard
+  if (role === 'admin' || role === 'teacher') {
+    return '/admin/dashboard';
+  }
+  
+  // Students go to their age-appropriate system
+  if (role === 'student') {
+    switch (systemTag?.toUpperCase()) {
+      case 'KIDS':
+        return '/playground';
+      case 'TEENS':
+        return '/academy';
+      case 'ADULTS':
+        return '/hub';
+      default:
+        return '/student-dashboard'; // Fallback
+    }
+  }
+  
+  return '/dashboard'; // Default fallback
+};
 const passwordRequirements = [{
   test: (pwd: string) => pwd.length >= 6,
   text: "At least 6 characters"
@@ -41,7 +81,8 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'student'
+    role: 'student',
+    dateOfBirth: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -154,20 +195,54 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
             description: "Welcome back!"
           });
 
-          // Simply navigate to dashboard and let the ProtectedRoute handle the role-based redirection
-          // Add a small delay to ensure the auth context has updated
-          setTimeout(() => {
-            navigate('/dashboard', {
-              replace: true
-            });
+          // Fetch user role and system tag for role-based redirection
+          setTimeout(async () => {
+            try {
+              const userId = data.user?.id;
+              if (!userId) {
+                navigate('/dashboard', { replace: true });
+                return;
+              }
+
+              // Fetch role from user_roles table
+              const { data: roleData } = await supabase
+                .from('user_roles')
+                .select('role')
+                .eq('user_id', userId)
+                .single();
+
+              // Fetch system tag from users table
+              const { data: userData } = await supabase
+                .from('users')
+                .select('current_system')
+                .eq('id', userId)
+                .single();
+
+              const userRole = roleData?.role || 'student';
+              const systemTag = userData?.current_system || null;
+              
+              const redirectPath = getRedirectPath(userRole, systemTag);
+              navigate(redirectPath, { replace: true });
+            } catch (err) {
+              console.error('Error fetching user data for redirect:', err);
+              navigate('/dashboard', { replace: true });
+            }
           }, 100);
         }
       } else {
+        // Calculate system tag based on DOB for students
+        const systemTag = formData.role === 'student' && formData.dateOfBirth 
+          ? calculateSystemTag(formData.dateOfBirth)
+          : null;
+
         const {
+          data: signUpData,
           error
         } = await signUp(formData.email, formData.password, {
-          role: formData.role
-        });
+          role: formData.role,
+          full_name: formData.fullName,
+          system_tag: systemTag
+        } as any);
         if (error) {
           toast({
             title: "Sign Up Failed",
@@ -177,7 +252,9 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
         } else {
           toast({
             title: "Account Created Successfully!",
-            description: "Please check your email to verify your account."
+            description: systemTag 
+              ? `You've been assigned to the ${systemTag} program based on your age.`
+              : "Please check your email to verify your account."
           });
 
           // Send admin notification email (fire and forget)
@@ -186,6 +263,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
               name: formData.fullName,
               email: formData.email,
               role: formData.role,
+              systemTag: systemTag,
               registeredAt: new Date().toISOString()
             }
           }).catch(err => console.error('Failed to send admin notification:', err));
@@ -194,7 +272,17 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
           if (formData.role === 'teacher') {
             navigate('/teacher-application');
           } else if (formData.role === 'student') {
-            navigate('/student-application');
+            // If student with system tag, redirect to appropriate system
+            if (systemTag) {
+              const redirectPath = getRedirectPath('student', systemTag);
+              toast({
+                title: "Redirecting...",
+                description: `Taking you to your ${systemTag} learning environment!`
+              });
+              navigate(redirectPath);
+            } else {
+              navigate('/student-application');
+            }
           } else {
             navigate('/login');
           }
@@ -413,6 +501,37 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
                         <option value="student" className="bg-white text-slate-800">Student - Learn & Grow</option>
                         <option value="teacher" className="bg-white text-slate-800">Teacher - Inspire & Educate</option>
                       </select>
+                    </div>}
+
+                  {mode === 'signup' && formData.role === 'student' && <div className="space-y-2">
+                      <label htmlFor="dateOfBirth" className="text-sm font-medium text-slate-800">
+                        Date of Birth
+                      </label>
+                      <div className="relative group">
+                        <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-600 group-focus-within:text-slate-800 transition-colors" />
+                        <Input 
+                          id="dateOfBirth" 
+                          type="date" 
+                          value={formData.dateOfBirth} 
+                          onChange={e => handleInputChange('dateOfBirth', e.target.value)} 
+                          disabled={loading} 
+                          required
+                          max={new Date().toISOString().split('T')[0]}
+                          className="h-14 pl-12 bg-white/50 border-[#ead9de]/25 text-slate-700 focus:bg-white/70 focus:border-[#dfc7cc]/50 focus:ring-2 focus:ring-[#f0e4e8]/30 transition-all duration-300 rounded-xl shadow-sm hover:shadow-md" 
+                        />
+                      </div>
+                      {formData.dateOfBirth && (
+                        <p className="text-xs text-slate-600 flex items-center gap-1">
+                          <span className="font-medium">System assignment:</span>
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                            calculateSystemTag(formData.dateOfBirth) === 'KIDS' ? 'bg-green-100 text-green-700' :
+                            calculateSystemTag(formData.dateOfBirth) === 'TEENS' ? 'bg-purple-100 text-purple-700' :
+                            'bg-blue-100 text-blue-700'
+                          }`}>
+                            {calculateSystemTag(formData.dateOfBirth)} Program
+                          </span>
+                        </p>
+                      )}
                     </div>}
 
                   <div className="space-y-2">
