@@ -1,9 +1,14 @@
-export type SlideType = 'image' | 'video' | 'quiz' | 'draw';
+export type SlideType = 'image' | 'video' | 'quiz' | 'poll' | 'draw';
 
 export interface QuizOption {
   id: string;
   text: string;
   isCorrect: boolean;
+}
+
+export interface PollOption {
+  id: string;
+  text: string;
 }
 
 export interface Slide {
@@ -14,6 +19,8 @@ export interface Slide {
   videoUrl?: string;
   quizQuestion?: string;
   quizOptions?: QuizOption[];
+  pollQuestion?: string;
+  pollOptions?: PollOption[];
   teacherNotes: string;
   keywords: string[];
   title?: string;

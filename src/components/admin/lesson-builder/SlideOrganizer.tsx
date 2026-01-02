@@ -1,6 +1,6 @@
 import React from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { Plus, Trash2, GripVertical, Image, Video, HelpCircle, Pencil } from 'lucide-react';
+import { Plus, Trash2, GripVertical, Image, Video, HelpCircle, Pencil, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
@@ -19,6 +19,7 @@ const slideTypeIcons: Record<SlideType, React.ElementType> = {
   image: Image,
   video: Video,
   quiz: HelpCircle,
+  poll: BarChart3,
   draw: Pencil,
 };
 

@@ -13,10 +13,14 @@ import {
 } from 'lucide-react';
 import { CollaborativeCanvas } from '@/components/classroom/shared/CollaborativeCanvas';
 import { QuizSlideRenderer } from '@/components/classroom/shared/QuizSlideRenderer';
+import { PollSlideRenderer } from '@/components/classroom/shared/PollSlideRenderer';
 import { QuizControlPanel } from './QuizControlPanel';
+import { PollControlPanel } from './PollControlPanel';
 import { QuizResponsesGrid } from './QuizResponsesGrid';
+import { PollResultsChart } from '@/components/classroom/shared/PollResultsChart';
 import { WhiteboardStroke } from '@/services/whiteboardService';
 import { useQuizInteraction } from '@/hooks/useQuizInteraction';
+import { usePollInteraction } from '@/hooks/usePollInteraction';
 import {
   Popover,
   PopoverContent,
@@ -29,6 +33,11 @@ interface QuizOption {
   isCorrect: boolean;
 }
 
+interface PollOption {
+  id: string;
+  text: string;
+}
+
 interface Slide {
   id: string;
   title: string;
@@ -37,6 +46,8 @@ interface Slide {
   type?: string;
   quizQuestion?: string;
   quizOptions?: QuizOption[];
+  pollQuestion?: string;
+  pollOptions?: PollOption[];
 }
 
 interface CenterStageProps {
@@ -121,6 +132,16 @@ export const CenterStage: React.FC<CenterStageProps> = ({
               disabled={true}
               onSelectOption={() => {}}
             />
+          ) : isPollSlide && currentSlide.pollQuestion && currentSlide.pollOptions ? (
+            <PollSlideRenderer
+              question={currentSlide.pollQuestion}
+              options={currentSlide.pollOptions}
+              selectedOptionId={null}
+              showResults={pollShowResults}
+              disabled={true}
+              voteDistribution={voteDistribution}
+              onSelectOption={() => {}}
+            />
           ) : currentSlide?.imageUrl ? (
             <img 
               src={currentSlide.imageUrl} 
@@ -142,8 +163,8 @@ export const CenterStage: React.FC<CenterStageProps> = ({
             </div>
           )}
 
-          {/* Collaborative Canvas Overlay (not for quiz slides) */}
-          {!isQuizSlide && (
+          {/* Collaborative Canvas Overlay (not for quiz or poll slides) */}
+          {!isQuizSlide && !isPollSlide && (
             <CollaborativeCanvas
               roomId={roomId}
               userId={userId}
@@ -163,7 +184,7 @@ export const CenterStage: React.FC<CenterStageProps> = ({
           </div>
         </div>
 
-        {/* Quiz Responses Panel (shown for quiz slides) */}
+        {/* Quiz Responses Panel */}
         {isQuizSlide && currentSlide.quizOptions && (
           <div className="ml-4 w-72 shrink-0">
             <QuizResponsesGrid
@@ -173,9 +194,20 @@ export const CenterStage: React.FC<CenterStageProps> = ({
             />
           </div>
         )}
+
+        {/* Poll Responses Panel */}
+        {isPollSlide && currentSlide.pollOptions && (
+          <div className="ml-4 w-72 shrink-0 bg-card rounded-xl p-4 border border-border">
+            <h3 className="font-semibold mb-3">Live Results</h3>
+            <PollResultsChart
+              options={currentSlide.pollOptions}
+              voteDistribution={voteDistribution}
+            />
+          </div>
+        )}
       </div>
 
-      {/* Quiz Control Panel (shown for quiz slides) */}
+      {/* Quiz Control Panel */}
       {isQuizSlide && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30">
           <QuizControlPanel
@@ -187,6 +219,21 @@ export const CenterStage: React.FC<CenterStageProps> = ({
             onLockQuiz={lockQuiz}
             onRevealAnswer={revealAnswer}
             onResetQuiz={resetQuiz}
+          />
+        </div>
+      )}
+
+      {/* Poll Control Panel */}
+      {isPollSlide && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30">
+          <PollControlPanel
+            pollActive={pollActive}
+            pollShowResults={pollShowResults}
+            responsesCount={pollResponses.length}
+            onStartPoll={startPoll}
+            onToggleResults={toggleResults}
+            onClosePoll={closePoll}
+            onResetPoll={resetPoll}
           />
         </div>
       )}
