@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Loader2, Volume2, CheckCircle, Sparkles } from 'lucide-react';
+import { X, Loader2, Volume2, CheckCircle, Sparkles, Video } from 'lucide-react';
 import { playSound } from '@/constants/soundEffects';
+import { JitsiMeeting } from '@/components/video/JitsiMeeting';
 import type { Level, LessonContent } from './KidsWorldMap';
 
 interface LessonPlayerModalProps {
@@ -9,6 +10,8 @@ interface LessonPlayerModalProps {
   lesson: Level | null;
   onClose: () => void;
   onComplete: (lessonId: number) => void;
+  classId?: string;
+  studentName?: string;
 }
 
 export const LessonPlayerModal: React.FC<LessonPlayerModalProps> = ({
@@ -16,6 +19,8 @@ export const LessonPlayerModal: React.FC<LessonPlayerModalProps> = ({
   lesson,
   onClose,
   onComplete,
+  classId = "101",
+  studentName = "Student"
 }) => {
   const [isFinishing, setIsFinishing] = useState(false);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -215,6 +220,40 @@ export const LessonPlayerModal: React.FC<LessonPlayerModalProps> = ({
     </div>
   );
 
+  // Live Class content - Jitsi video conference for students
+  const renderLiveClassContent = () => {
+    const roomName = `MySchool_Class_${classId}`;
+    
+    return (
+      <div className="space-y-4">
+        <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl p-4 text-center">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <div className="h-3 w-3 rounded-full bg-red-500 animate-pulse" />
+            <span className="text-red-600 font-bold">LIVE CLASS</span>
+          </div>
+          <p className="text-purple-700 text-sm">
+            Your teacher is waiting for you! 🎉
+          </p>
+        </div>
+        
+        <div className="rounded-2xl overflow-hidden" style={{ height: '400px' }}>
+          <JitsiMeeting
+            roomName={roomName}
+            displayName={studentName}
+            userRole="student"
+            className="h-full"
+          />
+        </div>
+        
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-center">
+          <p className="text-amber-700 text-sm">
+            💡 <strong>Tip:</strong> Listen carefully to your teacher and raise your hand if you have a question!
+          </p>
+        </div>
+      </div>
+    );
+  };
+
   const renderContent = () => {
     if (!lesson) return null;
 
@@ -225,6 +264,9 @@ export const LessonPlayerModal: React.FC<LessonPlayerModalProps> = ({
         return renderSlideContent(lesson.content);
       case 'game':
         return renderGameContent(lesson.content);
+      case 'interactive':
+        // 'interactive' type is used for live classes
+        return renderLiveClassContent();
       default:
         return null;
     }
@@ -343,7 +385,11 @@ export const LessonPlayerModal: React.FC<LessonPlayerModalProps> = ({
             </motion.button>
 
             {/* Header */}
-            <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 p-6 pt-8 flex-shrink-0">
+            <div className={`p-6 pt-8 flex-shrink-0 ${
+              lesson.type === 'interactive' 
+                ? 'bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500' 
+                : 'bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400'
+            }`}>
               <motion.h2
                 initial={{ y: -20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -356,13 +402,15 @@ export const LessonPlayerModal: React.FC<LessonPlayerModalProps> = ({
                 {lesson.type === 'video' && '🎬 Watch & Learn'}
                 {lesson.type === 'slide' && '📖 Read & Repeat'}
                 {lesson.type === 'game' && '🎮 Play & Practice'}
+                {lesson.type === 'interactive' && '🎥 Live Class with Teacher'}
               </p>
             </div>
 
             {/* Scrollable Content Area */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               {renderContent()}
-              {renderQuiz()}
+              {/* Only show quiz for non-live lessons */}
+              {lesson.type !== 'interactive' && renderQuiz()}
             </div>
 
             {/* Footer with Finish Button - Only show when quiz is completed */}

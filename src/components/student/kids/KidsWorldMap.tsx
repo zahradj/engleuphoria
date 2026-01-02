@@ -167,6 +167,8 @@ export const KidsWorldMap: React.FC<KidsWorldMapProps> = ({
         lesson={selectedLesson}
         onClose={() => setIsModalOpen(false)}
         onComplete={handleLessonComplete}
+        classId="101"
+        studentName="Student"
       />
     </div>
   );

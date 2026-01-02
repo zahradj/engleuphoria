@@ -26,7 +26,7 @@ export const TeacherPanel = ({
       case "dashboard":
         return <DashboardTab teacherName={teacherName} teacherId={teacherId} />;
       case "classroom":
-        return <TeacherClassroom studentName="Emma" lessonTitle="Magic Forest: Lesson 1" />;
+        return <TeacherClassroom classId="101" studentName="Emma" lessonTitle="Magic Forest: Lesson 1" teacherName={teacherName} />;
       case "calendar":
         return <EnhancedCalendarTab teacherId={teacherId} />;
       case "students":

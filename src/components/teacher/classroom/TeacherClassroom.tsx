@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { useLessonContext } from "@/contexts/LessonContext";
 import { useToast } from "@/hooks/use-toast";
+import { JitsiMeeting } from "@/components/video/JitsiMeeting";
 import { 
   ArrowRight, 
   BookOpen, 
@@ -29,13 +30,17 @@ import {
 } from "lucide-react";
 
 interface TeacherClassroomProps {
+  classId?: string;
   studentName?: string;
   lessonTitle?: string;
+  teacherName?: string;
 }
 
 export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
+  classId = "101",
   studentName = "Emma",
-  lessonTitle = "Magic Forest: Lesson 1"
+  lessonTitle = "Magic Forest: Lesson 1",
+  teacherName = "Teacher"
 }) => {
   const { lessons, getPlaygroundLessons } = useLessonContext();
   const { toast } = useToast();
@@ -43,6 +48,54 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
+  const [jitsiApi, setJitsiApi] = useState<any>(null);
+  const [participantCount, setParticipantCount] = useState(1);
+
+  // Generate unique room name based on class ID
+  const roomName = `MySchool_Class_${classId}`;
+
+  const handleJitsiApiReady = useCallback((api: any) => {
+    setJitsiApi(api);
+    console.log('[TeacherClassroom] Jitsi API ready');
+  }, []);
+
+  const handleParticipantJoined = useCallback((participant: any) => {
+    setParticipantCount(prev => prev + 1);
+    toast({
+      title: "Student Joined",
+      description: `${participant.displayName || 'A student'} has joined the class`,
+      className: "bg-emerald-900 border-emerald-700 text-white",
+    });
+  }, [toast]);
+
+  const handleParticipantLeft = useCallback((participant: any) => {
+    setParticipantCount(prev => Math.max(1, prev - 1));
+    toast({
+      title: "Student Left",
+      description: `${participant.displayName || 'A student'} has left the class`,
+      className: "bg-gray-800 border-gray-700 text-white",
+    });
+  }, [toast]);
+
+  const handleEndClass = useCallback(() => {
+    if (jitsiApi) {
+      jitsiApi.executeCommand('hangup');
+    }
+  }, [jitsiApi]);
+
+  const toggleMute = useCallback(() => {
+    if (jitsiApi) {
+      jitsiApi.executeCommand('toggleAudio');
+      setIsMuted(prev => !prev);
+    }
+  }, [jitsiApi]);
+
+  const toggleCamera = useCallback(() => {
+    if (jitsiApi) {
+      jitsiApi.executeCommand('toggleVideo');
+      setIsCameraOff(prev => !prev);
+    }
+  }, [jitsiApi]);
 
   // Mock library assets
   const libraryAssets = [
@@ -95,10 +148,13 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
           <div className="h-6 w-px bg-gray-700" />
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-gray-400" />
-            <span className="text-sm">{studentName}</span>
+            <span className="text-sm">{participantCount} in room</span>
           </div>
           <Badge variant="secondary" className="bg-gray-800 text-gray-300">
             {lessonTitle}
+          </Badge>
+          <Badge variant="outline" className="border-emerald-500 text-emerald-400 text-xs">
+            Room: {roomName}
           </Badge>
         </div>
 
@@ -111,7 +167,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
             variant="ghost"
             size="icon"
             className={`rounded-full ${isMuted ? 'bg-red-500/20 text-red-400' : 'bg-gray-800 text-gray-300'}`}
-            onClick={() => setIsMuted(!isMuted)}
+            onClick={toggleMute}
           >
             {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
           </Button>
@@ -119,7 +175,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
             variant="ghost"
             size="icon"
             className={`rounded-full ${isCameraOff ? 'bg-red-500/20 text-red-400' : 'bg-gray-800 text-gray-300'}`}
-            onClick={() => setIsCameraOff(!isCameraOff)}
+            onClick={toggleCamera}
           >
             {isCameraOff ? <CameraOff className="h-5 w-5" /> : <Camera className="h-5 w-5" />}
           </Button>
@@ -135,6 +191,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
             variant="destructive"
             size="sm"
             className="bg-red-600 hover:bg-red-700"
+            onClick={handleEndClass}
           >
             <Phone className="h-4 w-4 mr-2" />
             End Class
@@ -146,57 +203,16 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
       <div className="flex-1 flex overflow-hidden">
         {/* Left: Video Area (75%) */}
         <div className="w-3/4 p-4 flex flex-col">
-          {/* Student Video Feed */}
-          <div className="flex-1 relative bg-gray-800 rounded-xl overflow-hidden">
-            {/* Video Placeholder */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-24 h-24 rounded-full bg-gray-700 mx-auto mb-4 flex items-center justify-center">
-                  <span className="text-4xl">👧</span>
-                </div>
-                <p className="text-gray-400 text-lg">{studentName}'s Video</p>
-                <p className="text-gray-500 text-sm mt-1">Camera feed will appear here</p>
-              </div>
-            </div>
-
-            {/* Student Name Overlay */}
-            <div className="absolute bottom-4 left-4 bg-black/50 px-3 py-1.5 rounded-lg backdrop-blur-sm">
-              <span className="text-sm font-medium">{studentName}</span>
-            </div>
-
-            {/* Fullscreen Button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white rounded-lg"
-            >
-              <Maximize2 className="h-5 w-5" />
-            </Button>
-
-            {/* Teacher Self-View PiP */}
-            <div className="absolute bottom-4 right-4 w-48 h-36 bg-gray-900 rounded-xl border-2 border-gray-700 overflow-hidden shadow-2xl">
-              <div className="absolute inset-0 flex items-center justify-center">
-                {isCameraOff ? (
-                  <div className="text-center">
-                    <CameraOff className="h-8 w-8 text-gray-500 mx-auto" />
-                    <p className="text-gray-500 text-xs mt-1">Camera Off</p>
-                  </div>
-                ) : (
-                  <div className="text-center">
-                    <div className="w-12 h-12 rounded-full bg-gray-700 mx-auto flex items-center justify-center">
-                      <span className="text-2xl">👩‍🏫</span>
-                    </div>
-                    <p className="text-gray-400 text-xs mt-1">You</p>
-                  </div>
-                )}
-              </div>
-              {isMuted && (
-                <div className="absolute bottom-2 right-2 bg-red-500/80 p-1 rounded-full">
-                  <MicOff className="h-3 w-3" />
-                </div>
-              )}
-            </div>
-          </div>
+          {/* Jitsi Video Conference */}
+          <JitsiMeeting
+            roomName={roomName}
+            displayName={teacherName}
+            userRole="teacher"
+            onApiReady={handleJitsiApiReady}
+            onParticipantJoined={handleParticipantJoined}
+            onParticipantLeft={handleParticipantLeft}
+            className="flex-1"
+          />
         </div>
 
         {/* Right: Sidebar - The Briefcase (25%) */}
