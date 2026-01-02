@@ -6,6 +6,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ErrorBoundary } from "@/components/common/ErrorBoundary";
 import { LoadingSpinner } from "@/components/ui/loading-states";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { supabase } from "@/integrations/supabase/client";
+import { SystemId } from "@/types/multiTenant";
+import { DashboardRouter } from "@/components/student/dashboards/DashboardRouter";
 
 // Lazy load components to improve initial load time
 import { MinimalStudentHeader } from "@/components/student/MinimalStudentHeader";
@@ -27,6 +30,7 @@ const StudentDashboard = () => {
   const [hasProfile, setHasProfile] = useState(false);
   const [studentProfile, setStudentProfile] = useState<any>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [systemId, setSystemId] = useState<SystemId>('kids');
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, loading: authLoading, signOut } = useAuth();
@@ -57,6 +61,28 @@ const StudentDashboard = () => {
           setHasProfile(false);
         }
         
+        // Fetch user's current_system from database
+        if (user?.id) {
+          const { data: userData, error } = await supabase
+            .from('users')
+            .select('current_system')
+            .eq('id', user.id)
+            .single();
+          
+          if (!error && userData?.current_system) {
+            // Map database value to SystemId
+            const systemMap: Record<string, SystemId> = {
+              'KIDS': 'kids',
+              'TEENS': 'teen',
+              'ADULTS': 'adult',
+              'kids': 'kids',
+              'teen': 'teen',
+              'adult': 'adult'
+            };
+            setSystemId(systemMap[userData.current_system] || 'kids');
+          }
+        }
+        
         setIsInitialized(true);
         console.log('✅ Student dashboard initialized successfully');
       } catch (error) {
@@ -73,7 +99,7 @@ const StudentDashboard = () => {
     if (!authLoading) {
       initializeDashboard();
     }
-  }, [authLoading, toast]);
+  }, [authLoading, toast, user?.id]);
 
   const handleLogout = async () => {
     try {
@@ -103,7 +129,7 @@ const StudentDashboard = () => {
 
   const renderActiveTab = () => {
     const tabComponents = {
-      dashboard: () => <LearningPathTab />,
+      dashboard: () => <DashboardRouter systemId={systemId} studentName={studentName} />,
       "learning-path": () => <LearningPathTab />,
       lessons: () => <LearningPathTab />,
       assessments: () => <AssessmentsTab />,

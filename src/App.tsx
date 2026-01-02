@@ -143,7 +143,24 @@ const App = () => {
               
 
               {/* Protected Routes */}
-              <Route path="/student" element={
+              <Route path="/student/*" element={
+                <ImprovedProtectedRoute requiredRole="student">
+                  <StudentDashboard />
+                </ImprovedProtectedRoute>
+              } />
+              
+              {/* Convenience routes for direct system access */}
+              <Route path="/playground/*" element={
+                <ImprovedProtectedRoute requiredRole="student">
+                  <StudentDashboard />
+                </ImprovedProtectedRoute>
+              } />
+              <Route path="/academy/*" element={
+                <ImprovedProtectedRoute requiredRole="student">
+                  <StudentDashboard />
+                </ImprovedProtectedRoute>
+              } />
+              <Route path="/hub/*" element={
                 <ImprovedProtectedRoute requiredRole="student">
                   <StudentDashboard />
                 </ImprovedProtectedRoute>

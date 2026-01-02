@@ -38,26 +38,22 @@ const calculateSystemTag = (dateOfBirth: string): 'KIDS' | 'TEENS' | 'ADULTS' =>
 
 // Redirect user based on role and system tag
 const getRedirectPath = (role: string, systemTag: string | null): string => {
-  // Admin and Teacher go to admin dashboard
-  if (role === 'admin' || role === 'teacher') {
-    return '/admin/dashboard';
+  // Admin goes to admin dashboard
+  if (role === 'admin') {
+    return '/admin';
   }
   
-  // Students go to their age-appropriate system
+  // Teacher goes to teacher dashboard
+  if (role === 'teacher') {
+    return '/teacher';
+  }
+  
+  // Students go to student dashboard (DashboardRouter handles system selection internally)
   if (role === 'student') {
-    switch (systemTag?.toUpperCase()) {
-      case 'KIDS':
-        return '/playground';
-      case 'TEENS':
-        return '/academy';
-      case 'ADULTS':
-        return '/hub';
-      default:
-        return '/student-dashboard'; // Fallback
-    }
+    return '/student';
   }
   
-  return '/dashboard'; // Default fallback
+  return '/';
 };
 const passwordRequirements = [{
   test: (pwd: string) => pwd.length >= 6,
