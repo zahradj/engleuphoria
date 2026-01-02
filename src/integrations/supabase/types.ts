@@ -1317,32 +1317,50 @@ export type Database = {
       }
       classroom_sessions: {
         Row: {
+          active_tool: string | null
           created_at: string
+          current_slide_index: number | null
           ended_at: string | null
           id: string
+          lesson_id: string | null
+          lesson_slides: Json | null
+          lesson_title: string | null
           room_id: string
           session_status: string
           started_at: string | null
+          student_can_draw: boolean | null
           teacher_id: string
           updated_at: string
         }
         Insert: {
+          active_tool?: string | null
           created_at?: string
+          current_slide_index?: number | null
           ended_at?: string | null
           id?: string
+          lesson_id?: string | null
+          lesson_slides?: Json | null
+          lesson_title?: string | null
           room_id: string
           session_status?: string
           started_at?: string | null
+          student_can_draw?: boolean | null
           teacher_id: string
           updated_at?: string
         }
         Update: {
+          active_tool?: string | null
           created_at?: string
+          current_slide_index?: number | null
           ended_at?: string | null
           id?: string
+          lesson_id?: string | null
+          lesson_slides?: Json | null
+          lesson_title?: string | null
           room_id?: string
           session_status?: string
           started_at?: string | null
+          student_can_draw?: boolean | null
           teacher_id?: string
           updated_at?: string
         }

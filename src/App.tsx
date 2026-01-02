@@ -25,8 +25,9 @@ import StudentApplication from "./pages/StudentApplication";
 import EmailVerification from "./pages/EmailVerification";
 import ResetPassword from "./pages/ResetPassword";
 
-// Lazy load classroom page
+// Lazy load classroom pages
 const TeacherClassroomPage = lazy(() => import("./pages/TeacherClassroomPage"));
+const StudentClassroomPage = lazy(() => import("./pages/StudentClassroomPage"));
 
 import { AssessmentTaker } from "./components/assessment/AssessmentTaker";
 import { AssessmentResults } from "./components/assessment/AssessmentResults";
@@ -117,6 +118,15 @@ const App = () => {
                         <ImprovedProtectedRoute requiredRole="teacher">
                           <Suspense fallback={<LoadingFallback />}>
                             <TeacherClassroomPage />
+                          </Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
+
+                      {/* Student Live Classroom - Protected */}
+                      <Route path="/student-classroom/:id" element={
+                        <ImprovedProtectedRoute requiredRole="student">
+                          <Suspense fallback={<LoadingFallback />}>
+                            <StudentClassroomPage />
                           </Suspense>
                         </ImprovedProtectedRoute>
                       } />

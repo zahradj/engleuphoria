@@ -7,8 +7,17 @@ import {
   Eraser, 
   Type, 
   MousePointer2, 
-  Circle 
+  Circle,
+  Trash2,
+  Palette
 } from 'lucide-react';
+import { CollaborativeCanvas } from '@/components/classroom/shared/CollaborativeCanvas';
+import { WhiteboardStroke } from '@/services/whiteboardService';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface Slide {
   id: string;
@@ -24,7 +33,21 @@ interface CenterStageProps {
   onNextSlide: () => void;
   activeTool: string;
   onToolChange: (tool: string) => void;
+  activeColor: string;
+  onColorChange: (color: string) => void;
+  strokes: WhiteboardStroke[];
+  roomId: string;
+  userId: string;
+  userName: string;
+  onAddStroke: (stroke: Omit<WhiteboardStroke, 'id' | 'roomId' | 'timestamp'>) => void;
+  onClearCanvas: () => void;
 }
+
+const COLORS = [
+  '#FF6B6B', '#4ECDC4', '#FFE66D', '#95E1D3',
+  '#F38181', '#AA96DA', '#FCBAD3', '#2D4059',
+  '#FFFFFF', '#000000'
+];
 
 export const CenterStage: React.FC<CenterStageProps> = ({
   slides,
@@ -32,14 +55,22 @@ export const CenterStage: React.FC<CenterStageProps> = ({
   onPrevSlide,
   onNextSlide,
   activeTool,
-  onToolChange
+  onToolChange,
+  activeColor,
+  onColorChange,
+  strokes,
+  roomId,
+  userId,
+  userName,
+  onAddStroke,
+  onClearCanvas
 }) => {
   const currentSlide = slides[currentSlideIndex];
   const tools = [
     { id: 'pointer', icon: MousePointer2, label: 'Pointer' },
     { id: 'pen', icon: Pencil, label: 'Pen' },
+    { id: 'highlighter', icon: Type, label: 'Highlighter' },
     { id: 'eraser', icon: Eraser, label: 'Eraser' },
-    { id: 'text', icon: Type, label: 'Text' },
     { id: 'laser', icon: Circle, label: 'Laser' }
   ];
 
@@ -68,9 +99,22 @@ export const CenterStage: React.FC<CenterStageProps> = ({
               </div>
             </div>
           )}
+
+          {/* Collaborative Canvas Overlay */}
+          <CollaborativeCanvas
+            roomId={roomId}
+            userId={userId}
+            userName={userName}
+            role="teacher"
+            canDraw={activeTool !== 'pointer' && activeTool !== 'laser'}
+            activeTool={activeTool as any}
+            activeColor={activeColor}
+            strokes={strokes}
+            onAddStroke={onAddStroke}
+          />
           
           {/* Slide Number Indicator */}
-          <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
+          <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm z-20">
             {currentSlideIndex + 1} / {slides.length}
           </div>
         </div>
@@ -115,6 +159,51 @@ export const CenterStage: React.FC<CenterStageProps> = ({
               <tool.icon className="h-5 w-5" />
             </Button>
           ))}
+
+          {/* Color Picker */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 rounded-full text-gray-400 hover:text-white hover:bg-gray-700"
+                title="Color"
+              >
+                <div 
+                  className="h-5 w-5 rounded-full border-2 border-gray-400"
+                  style={{ backgroundColor: activeColor }}
+                />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-2 bg-gray-800 border-gray-700">
+              <div className="grid grid-cols-5 gap-1">
+                {COLORS.map(color => (
+                  <button
+                    key={color}
+                    onClick={() => onColorChange(color)}
+                    className={`w-6 h-6 rounded-full transition-transform ${
+                      activeColor === color 
+                        ? 'ring-2 ring-white scale-110' 
+                        : 'hover:scale-105'
+                    }`}
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          {/* Clear Canvas */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-10 w-10 rounded-full text-gray-400 hover:text-red-400 hover:bg-gray-700"
+            onClick={onClearCanvas}
+            title="Clear Canvas"
+          >
+            <Trash2 className="h-5 w-5" />
+          </Button>
+
           <div className="h-6 w-px bg-gray-600 mx-2" />
           <Button
             variant="ghost"
