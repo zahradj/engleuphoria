@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
   ChevronLeft, 
@@ -12,18 +12,31 @@ import {
   Palette
 } from 'lucide-react';
 import { CollaborativeCanvas } from '@/components/classroom/shared/CollaborativeCanvas';
+import { QuizSlideRenderer } from '@/components/classroom/shared/QuizSlideRenderer';
+import { QuizControlPanel } from './QuizControlPanel';
+import { QuizResponsesGrid } from './QuizResponsesGrid';
 import { WhiteboardStroke } from '@/services/whiteboardService';
+import { useQuizInteraction } from '@/hooks/useQuizInteraction';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
 
+interface QuizOption {
+  id: string;
+  text: string;
+  isCorrect: boolean;
+}
+
 interface Slide {
   id: string;
   title: string;
   content?: React.ReactNode;
   imageUrl?: string;
+  type?: string;
+  quizQuestion?: string;
+  quizOptions?: QuizOption[];
 }
 
 interface CenterStageProps {
@@ -39,6 +52,7 @@ interface CenterStageProps {
   roomId: string;
   userId: string;
   userName: string;
+  sessionId?: string;
   onAddStroke: (stroke: Omit<WhiteboardStroke, 'id' | 'roomId' | 'timestamp'>) => void;
   onClearCanvas: () => void;
 }
@@ -62,10 +76,29 @@ export const CenterStage: React.FC<CenterStageProps> = ({
   roomId,
   userId,
   userName,
+  sessionId,
   onAddStroke,
   onClearCanvas
 }) => {
   const currentSlide = slides[currentSlideIndex];
+  const isQuizSlide = currentSlide?.type === 'quiz';
+  
+  const {
+    responses,
+    quizActive,
+    quizLocked,
+    quizRevealAnswer,
+    startQuiz,
+    lockQuiz,
+    revealAnswer,
+    resetQuiz
+  } = useQuizInteraction({
+    sessionId,
+    slideId: currentSlide?.id,
+    roomId,
+    isTeacher: true
+  });
+
   const tools = [
     { id: 'pointer', icon: MousePointer2, label: 'Pointer' },
     { id: 'pen', icon: Pencil, label: 'Pen' },
@@ -79,7 +112,16 @@ export const CenterStage: React.FC<CenterStageProps> = ({
       {/* Main Slide Display */}
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="relative w-full max-w-4xl aspect-[16/9] bg-white rounded-xl shadow-2xl overflow-hidden">
-          {currentSlide?.imageUrl ? (
+          {isQuizSlide && currentSlide.quizQuestion && currentSlide.quizOptions ? (
+            <QuizSlideRenderer
+              question={currentSlide.quizQuestion}
+              options={currentSlide.quizOptions}
+              selectedOptionId={null}
+              showResult={quizRevealAnswer}
+              disabled={true}
+              onSelectOption={() => {}}
+            />
+          ) : currentSlide?.imageUrl ? (
             <img 
               src={currentSlide.imageUrl} 
               alt={currentSlide.title}
@@ -100,25 +142,54 @@ export const CenterStage: React.FC<CenterStageProps> = ({
             </div>
           )}
 
-          {/* Collaborative Canvas Overlay */}
-          <CollaborativeCanvas
-            roomId={roomId}
-            userId={userId}
-            userName={userName}
-            role="teacher"
-            canDraw={activeTool !== 'pointer' && activeTool !== 'laser'}
-            activeTool={activeTool as any}
-            activeColor={activeColor}
-            strokes={strokes}
-            onAddStroke={onAddStroke}
-          />
+          {/* Collaborative Canvas Overlay (not for quiz slides) */}
+          {!isQuizSlide && (
+            <CollaborativeCanvas
+              roomId={roomId}
+              userId={userId}
+              userName={userName}
+              role="teacher"
+              canDraw={activeTool !== 'pointer' && activeTool !== 'laser'}
+              activeTool={activeTool as any}
+              activeColor={activeColor}
+              strokes={strokes}
+              onAddStroke={onAddStroke}
+            />
+          )}
           
           {/* Slide Number Indicator */}
           <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm z-20">
             {currentSlideIndex + 1} / {slides.length}
           </div>
         </div>
+
+        {/* Quiz Responses Panel (shown for quiz slides) */}
+        {isQuizSlide && currentSlide.quizOptions && (
+          <div className="ml-4 w-72 shrink-0">
+            <QuizResponsesGrid
+              responses={responses}
+              showResults={quizRevealAnswer}
+              options={currentSlide.quizOptions.map(o => ({ id: o.id, text: o.text }))}
+            />
+          </div>
+        )}
       </div>
+
+      {/* Quiz Control Panel (shown for quiz slides) */}
+      {isQuizSlide && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30">
+          <QuizControlPanel
+            quizActive={quizActive}
+            quizLocked={quizLocked}
+            quizRevealAnswer={quizRevealAnswer}
+            responsesCount={responses.length}
+            onStartQuiz={startQuiz}
+            onLockQuiz={lockQuiz}
+            onRevealAnswer={revealAnswer}
+            onResetQuiz={resetQuiz}
+          />
+        </div>
+      )}
 
       {/* Navigation Arrows */}
       <Button

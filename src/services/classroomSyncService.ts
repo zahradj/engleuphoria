@@ -6,10 +6,14 @@ export interface ClassroomSession {
   teacherId: string;
   currentSlideIndex: number;
   lessonTitle: string;
-  lessonSlides: Array<{ id: string; title: string; imageUrl?: string }>;
+  lessonSlides: Array<{ id: string; title: string; imageUrl?: string; type?: string; quizQuestion?: string; quizOptions?: Array<{ id: string; text: string; isCorrect: boolean }> }>;
   activeTool: string;
   studentCanDraw: boolean;
   sessionStatus: string;
+  quizActive: boolean;
+  quizLocked: boolean;
+  quizRevealAnswer: boolean;
+  currentQuizSlideId: string | null;
 }
 
 export interface SessionUpdate {
@@ -18,6 +22,10 @@ export interface SessionUpdate {
   studentCanDraw?: boolean;
   lessonSlides?: Array<{ id: string; title: string; imageUrl?: string }>;
   lessonTitle?: string;
+  quizActive?: boolean;
+  quizLocked?: boolean;
+  quizRevealAnswer?: boolean;
+  currentQuizSlideId?: string | null;
 }
 
 class ClassroomSyncService {
@@ -123,6 +131,18 @@ class ClassroomSyncService {
       if (updates.lessonTitle !== undefined) {
         updateData.lesson_title = updates.lessonTitle;
       }
+      if (updates.quizActive !== undefined) {
+        updateData.quiz_active = updates.quizActive;
+      }
+      if (updates.quizLocked !== undefined) {
+        updateData.quiz_locked = updates.quizLocked;
+      }
+      if (updates.quizRevealAnswer !== undefined) {
+        updateData.quiz_reveal_answer = updates.quizRevealAnswer;
+      }
+      if (updates.currentQuizSlideId !== undefined) {
+        updateData.current_quiz_slide_id = updates.currentQuizSlideId;
+      }
 
       const { error } = await supabase
         .from('classroom_sessions')
@@ -205,7 +225,11 @@ class ClassroomSyncService {
       lessonSlides: data.lesson_slides || [],
       activeTool: data.active_tool || 'pointer',
       studentCanDraw: data.student_can_draw || false,
-      sessionStatus: data.session_status
+      sessionStatus: data.session_status,
+      quizActive: data.quiz_active || false,
+      quizLocked: data.quiz_locked || false,
+      quizRevealAnswer: data.quiz_reveal_answer || false,
+      currentQuizSlideId: data.current_quiz_slide_id || null
     };
   }
 

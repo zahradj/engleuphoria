@@ -1,14 +1,24 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { CollaborativeCanvas } from '@/components/classroom/shared/CollaborativeCanvas';
+import { StudentQuizView } from './StudentQuizView';
 import { WhiteboardStroke } from '@/services/whiteboardService';
 import { Eye, PenLine } from 'lucide-react';
+
+interface QuizOption {
+  id: string;
+  text: string;
+  isCorrect: boolean;
+}
 
 interface Slide {
   id: string;
   title: string;
   content?: React.ReactNode;
   imageUrl?: string;
+  type?: string;
+  quizQuestion?: string;
+  quizOptions?: QuizOption[];
 }
 
 interface StudentCenterStageProps {
@@ -21,6 +31,10 @@ interface StudentCenterStageProps {
   roomId: string;
   userId: string;
   userName: string;
+  sessionId?: string;
+  quizActive: boolean;
+  quizLocked: boolean;
+  quizRevealAnswer: boolean;
   onAddStroke: (stroke: Omit<WhiteboardStroke, 'id' | 'roomId' | 'timestamp'>) => void;
   onClearMyStrokes: () => void;
 }
@@ -35,9 +49,14 @@ export const StudentCenterStage: React.FC<StudentCenterStageProps> = ({
   roomId,
   userId,
   userName,
+  sessionId,
+  quizActive,
+  quizLocked,
+  quizRevealAnswer,
   onAddStroke
 }) => {
   const currentSlide = slides[currentSlideIndex];
+  const isQuizSlide = currentSlide?.type === 'quiz';
 
   return (
     <div className="flex-1 flex flex-col bg-gray-950 relative overflow-hidden">
@@ -68,8 +87,20 @@ export const StudentCenterStage: React.FC<StudentCenterStageProps> = ({
       {/* Main Slide Display */}
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="relative w-full max-w-4xl aspect-[16/9] bg-white rounded-xl shadow-2xl overflow-hidden">
-          {/* Slide Content */}
-          {currentSlide?.imageUrl ? (
+          {/* Quiz Slide */}
+          {isQuizSlide && currentSlide.quizQuestion && currentSlide.quizOptions && sessionId ? (
+            <StudentQuizView
+              sessionId={sessionId}
+              slideId={currentSlide.id}
+              question={currentSlide.quizQuestion}
+              options={currentSlide.quizOptions}
+              studentId={userId}
+              studentName={userName}
+              quizActive={quizActive}
+              quizLocked={quizLocked}
+              quizRevealAnswer={quizRevealAnswer}
+            />
+          ) : currentSlide?.imageUrl ? (
             <img 
               src={currentSlide.imageUrl} 
               alt={currentSlide.title}
@@ -90,18 +121,20 @@ export const StudentCenterStage: React.FC<StudentCenterStageProps> = ({
             </div>
           )}
 
-          {/* Collaborative Canvas Overlay */}
-          <CollaborativeCanvas
-            roomId={roomId}
-            userId={userId}
-            userName={userName}
-            role="student"
-            canDraw={studentCanDraw}
-            activeTool={studentCanDraw ? 'pen' : 'pointer'}
-            activeColor={activeColor}
-            strokes={strokes}
-            onAddStroke={onAddStroke}
-          />
+          {/* Collaborative Canvas Overlay (not for quiz slides) */}
+          {!isQuizSlide && (
+            <CollaborativeCanvas
+              roomId={roomId}
+              userId={userId}
+              userName={userName}
+              role="student"
+              canDraw={studentCanDraw}
+              activeTool={studentCanDraw ? 'pen' : 'pointer'}
+              activeColor={activeColor}
+              strokes={strokes}
+              onAddStroke={onAddStroke}
+            />
+          )}
           
           {/* Slide Number Indicator */}
           <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-sm z-20">

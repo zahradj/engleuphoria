@@ -19,9 +19,15 @@ interface UseClassroomSyncReturn {
   currentSlide: number;
   activeTool: string;
   studentCanDraw: boolean;
-  lessonSlides: Array<{ id: string; title: string; imageUrl?: string }>;
+  lessonSlides: Array<{ id: string; title: string; imageUrl?: string; type?: string; quizQuestion?: string; quizOptions?: Array<{ id: string; text: string; isCorrect: boolean }> }>;
   lessonTitle: string;
   isConnected: boolean;
+  
+  // Quiz state
+  quizActive: boolean;
+  quizLocked: boolean;
+  quizRevealAnswer: boolean;
+  currentQuizSlideId: string | null;
   
   // Whiteboard state
   strokes: WhiteboardStroke[];
@@ -200,6 +206,10 @@ export const useClassroomSync = ({
     lessonSlides: session?.lessonSlides ?? [],
     lessonTitle: session?.lessonTitle ?? 'Untitled Lesson',
     isConnected,
+    quizActive: session?.quizActive ?? false,
+    quizLocked: session?.quizLocked ?? false,
+    quizRevealAnswer: session?.quizRevealAnswer ?? false,
+    currentQuizSlideId: session?.currentQuizSlideId ?? null,
     strokes,
     updateSlide,
     updateTool,
