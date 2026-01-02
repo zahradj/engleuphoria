@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { Upload, Image, Video, HelpCircle, Pencil, X, Plus, Check } from 'lucide-react';
+import { Upload, Image, Video, HelpCircle, Pencil, X, Plus, Check, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Slide, SlideType, QuizOption } from './types';
+import { Slide, SlideType, QuizOption, PollOption } from './types';
 import { v4 as uuidv4 } from 'uuid';
 
 interface EditorCanvasProps {
@@ -23,6 +23,7 @@ const slideTypes: { value: SlideType; label: string; icon: React.ElementType }[]
   { value: 'image', label: 'Static Image', icon: Image },
   { value: 'video', label: 'Video Embed', icon: Video },
   { value: 'quiz', label: 'Quiz (Multiple Choice)', icon: HelpCircle },
+  { value: 'poll', label: 'Poll/Survey', icon: BarChart3 },
   { value: 'draw', label: 'Blank Whiteboard', icon: Pencil },
 ];
 
@@ -83,6 +84,29 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({ slide, onUpdateSlide
       isCorrect: opt.id === optionId,
     }));
     onUpdateSlide({ quizOptions: updatedOptions });
+  };
+
+  // Poll option handlers
+  const addPollOption = () => {
+    const newOption: PollOption = {
+      id: uuidv4(),
+      text: '',
+    };
+    onUpdateSlide({
+      pollOptions: [...(slide?.pollOptions || []), newOption],
+    });
+  };
+
+  const updatePollOption = (optionId: string, text: string) => {
+    const updatedOptions = slide?.pollOptions?.map((opt) =>
+      opt.id === optionId ? { ...opt, text } : opt
+    );
+    onUpdateSlide({ pollOptions: updatedOptions });
+  };
+
+  const removePollOption = (optionId: string) => {
+    const updatedOptions = slide?.pollOptions?.filter((opt) => opt.id !== optionId);
+    onUpdateSlide({ pollOptions: updatedOptions });
   };
 
   if (!slide) {
@@ -298,6 +322,58 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({ slide, onUpdateSlide
                   </label>
                 )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {slide.type === 'poll' && (
+          <div className="space-y-6 max-w-2xl mx-auto">
+            <div>
+              <Label htmlFor="poll-question">Poll Question</Label>
+              <Textarea
+                id="poll-question"
+                value={slide.pollQuestion || ''}
+                onChange={(e) => onUpdateSlide({ pollQuestion: e.target.value })}
+                placeholder="Enter your poll question..."
+                className="mt-1 min-h-[100px]"
+              />
+            </div>
+
+            <div className="space-y-3">
+              <Label>Answer Options (no correct answer)</Label>
+              {slide.pollOptions?.map((option, index) => (
+                <div key={option.id} className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                    <span className="text-sm font-medium text-primary">
+                      {String.fromCharCode(65 + index)}
+                    </span>
+                  </div>
+                  <Input
+                    value={option.text}
+                    onChange={(e) => updatePollOption(option.id, e.target.value)}
+                    placeholder={`Option ${String.fromCharCode(65 + index)}`}
+                    className="flex-1"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removePollOption(option.id)}
+                  >
+                    <X className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              ))}
+              <Button variant="outline" onClick={addPollOption} className="w-full">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Option
+              </Button>
+            </div>
+
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <p className="text-sm text-muted-foreground">
+                <BarChart3 className="h-4 w-4 inline mr-1" />
+                Polls collect opinions without right/wrong answers. Results will be shown as a bar chart.
+              </p>
             </div>
           </div>
         )}

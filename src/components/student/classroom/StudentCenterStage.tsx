@@ -2,6 +2,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { CollaborativeCanvas } from '@/components/classroom/shared/CollaborativeCanvas';
 import { StudentQuizView } from './StudentQuizView';
+import { StudentPollView } from './StudentPollView';
 import { WhiteboardStroke } from '@/services/whiteboardService';
 import { Eye, PenLine } from 'lucide-react';
 
@@ -9,6 +10,11 @@ interface QuizOption {
   id: string;
   text: string;
   isCorrect: boolean;
+}
+
+interface PollOption {
+  id: string;
+  text: string;
 }
 
 interface Slide {
@@ -19,6 +25,8 @@ interface Slide {
   type?: string;
   quizQuestion?: string;
   quizOptions?: QuizOption[];
+  pollQuestion?: string;
+  pollOptions?: PollOption[];
 }
 
 interface StudentCenterStageProps {
@@ -35,6 +43,8 @@ interface StudentCenterStageProps {
   quizActive: boolean;
   quizLocked: boolean;
   quizRevealAnswer: boolean;
+  pollActive: boolean;
+  pollShowResults: boolean;
   onAddStroke: (stroke: Omit<WhiteboardStroke, 'id' | 'roomId' | 'timestamp'>) => void;
   onClearMyStrokes: () => void;
 }
@@ -53,10 +63,13 @@ export const StudentCenterStage: React.FC<StudentCenterStageProps> = ({
   quizActive,
   quizLocked,
   quizRevealAnswer,
+  pollActive,
+  pollShowResults,
   onAddStroke
 }) => {
   const currentSlide = slides[currentSlideIndex];
   const isQuizSlide = currentSlide?.type === 'quiz';
+  const isPollSlide = currentSlide?.type === 'poll';
 
   return (
     <div className="flex-1 flex flex-col bg-gray-950 relative overflow-hidden">
@@ -100,6 +113,17 @@ export const StudentCenterStage: React.FC<StudentCenterStageProps> = ({
               quizLocked={quizLocked}
               quizRevealAnswer={quizRevealAnswer}
             />
+          ) : isPollSlide && currentSlide.pollQuestion && currentSlide.pollOptions && sessionId ? (
+            <StudentPollView
+              sessionId={sessionId}
+              slideId={currentSlide.id}
+              question={currentSlide.pollQuestion}
+              options={currentSlide.pollOptions}
+              studentId={userId}
+              studentName={userName}
+              pollActive={pollActive}
+              pollShowResults={pollShowResults}
+            />
           ) : currentSlide?.imageUrl ? (
             <img 
               src={currentSlide.imageUrl} 
@@ -121,8 +145,8 @@ export const StudentCenterStage: React.FC<StudentCenterStageProps> = ({
             </div>
           )}
 
-          {/* Collaborative Canvas Overlay (not for quiz slides) */}
-          {!isQuizSlide && (
+          {/* Collaborative Canvas Overlay (not for quiz or poll slides) */}
+          {!isQuizSlide && !isPollSlide && (
             <CollaborativeCanvas
               roomId={roomId}
               userId={userId}

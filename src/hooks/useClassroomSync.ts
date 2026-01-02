@@ -19,7 +19,7 @@ interface UseClassroomSyncReturn {
   currentSlide: number;
   activeTool: string;
   studentCanDraw: boolean;
-  lessonSlides: Array<{ id: string; title: string; imageUrl?: string; type?: string; quizQuestion?: string; quizOptions?: Array<{ id: string; text: string; isCorrect: boolean }> }>;
+  lessonSlides: Array<{ id: string; title: string; imageUrl?: string; type?: string; quizQuestion?: string; quizOptions?: Array<{ id: string; text: string; isCorrect: boolean }>; pollQuestion?: string; pollOptions?: Array<{ id: string; text: string }> }>;
   lessonTitle: string;
   isConnected: boolean;
   
@@ -29,6 +29,10 @@ interface UseClassroomSyncReturn {
   quizRevealAnswer: boolean;
   currentQuizSlideId: string | null;
   
+  // Poll state
+  pollActive: boolean;
+  pollShowResults: boolean;
+  currentPollSlideId: string | null;
   // Whiteboard state
   strokes: WhiteboardStroke[];
   
@@ -210,6 +214,9 @@ export const useClassroomSync = ({
     quizLocked: session?.quizLocked ?? false,
     quizRevealAnswer: session?.quizRevealAnswer ?? false,
     currentQuizSlideId: session?.currentQuizSlideId ?? null,
+    pollActive: session?.pollActive ?? false,
+    pollShowResults: session?.pollShowResults ?? false,
+    currentPollSlideId: session?.currentPollSlideId ?? null,
     strokes,
     updateSlide,
     updateTool,

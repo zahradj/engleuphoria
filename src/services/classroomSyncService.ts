@@ -6,7 +6,7 @@ export interface ClassroomSession {
   teacherId: string;
   currentSlideIndex: number;
   lessonTitle: string;
-  lessonSlides: Array<{ id: string; title: string; imageUrl?: string; type?: string; quizQuestion?: string; quizOptions?: Array<{ id: string; text: string; isCorrect: boolean }> }>;
+  lessonSlides: Array<{ id: string; title: string; imageUrl?: string; type?: string; quizQuestion?: string; quizOptions?: Array<{ id: string; text: string; isCorrect: boolean }>; pollQuestion?: string; pollOptions?: Array<{ id: string; text: string }> }>;
   activeTool: string;
   studentCanDraw: boolean;
   sessionStatus: string;
@@ -14,6 +14,9 @@ export interface ClassroomSession {
   quizLocked: boolean;
   quizRevealAnswer: boolean;
   currentQuizSlideId: string | null;
+  pollActive: boolean;
+  pollShowResults: boolean;
+  currentPollSlideId: string | null;
 }
 
 export interface SessionUpdate {
@@ -26,6 +29,9 @@ export interface SessionUpdate {
   quizLocked?: boolean;
   quizRevealAnswer?: boolean;
   currentQuizSlideId?: string | null;
+  pollActive?: boolean;
+  pollShowResults?: boolean;
+  currentPollSlideId?: string | null;
 }
 
 class ClassroomSyncService {
@@ -143,6 +149,15 @@ class ClassroomSyncService {
       if (updates.currentQuizSlideId !== undefined) {
         updateData.current_quiz_slide_id = updates.currentQuizSlideId;
       }
+      if (updates.pollActive !== undefined) {
+        updateData.poll_active = updates.pollActive;
+      }
+      if (updates.pollShowResults !== undefined) {
+        updateData.poll_show_results = updates.pollShowResults;
+      }
+      if (updates.currentPollSlideId !== undefined) {
+        updateData.current_poll_slide_id = updates.currentPollSlideId;
+      }
 
       const { error } = await supabase
         .from('classroom_sessions')
@@ -229,7 +244,10 @@ class ClassroomSyncService {
       quizActive: data.quiz_active || false,
       quizLocked: data.quiz_locked || false,
       quizRevealAnswer: data.quiz_reveal_answer || false,
-      currentQuizSlideId: data.current_quiz_slide_id || null
+      currentQuizSlideId: data.current_quiz_slide_id || null,
+      pollActive: data.poll_active || false,
+      pollShowResults: data.poll_show_results || false,
+      currentPollSlideId: data.current_poll_slide_id || null
     };
   }
 
