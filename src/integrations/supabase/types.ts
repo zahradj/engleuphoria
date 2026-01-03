@@ -3238,6 +3238,142 @@ export type Database = {
         }
         Relationships: []
       }
+      iron_lesson_progress: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          current_phase: string | null
+          id: string
+          lesson_id: string
+          practice_completion: Json | null
+          presentation_completed: boolean | null
+          production_response: string | null
+          production_submitted: boolean | null
+          started_at: string | null
+          student_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          current_phase?: string | null
+          id?: string
+          lesson_id: string
+          practice_completion?: Json | null
+          presentation_completed?: boolean | null
+          production_response?: string | null
+          production_submitted?: boolean | null
+          started_at?: string | null
+          student_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          current_phase?: string | null
+          id?: string
+          lesson_id?: string
+          practice_completion?: Json | null
+          presentation_completed?: boolean | null
+          production_response?: string | null
+          production_submitted?: boolean | null
+          started_at?: string | null
+          student_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "iron_lesson_progress_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "iron_lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      iron_lessons: {
+        Row: {
+          cefr_level: string | null
+          cohort_group: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          module_id: string | null
+          practice_content: Json
+          presentation_content: Json
+          production_content: Json
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          cefr_level?: string | null
+          cohort_group: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          module_id?: string | null
+          practice_content?: Json
+          presentation_content?: Json
+          production_content?: Json
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          cefr_level?: string | null
+          cohort_group?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          module_id?: string | null
+          practice_content?: Json
+          presentation_content?: Json
+          production_content?: Json
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "iron_lessons_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "iron_modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      iron_modules: {
+        Row: {
+          cohort_group: string
+          created_at: string | null
+          description: string | null
+          id: string
+          module_name: string
+          module_number: number
+          updated_at: string | null
+        }
+        Insert: {
+          cohort_group: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          module_name: string
+          module_number: number
+          updated_at?: string | null
+        }
+        Update: {
+          cohort_group?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          module_name?: string
+          module_number?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       iron_student_progress: {
         Row: {
           completed_at: string | null
@@ -7624,6 +7760,7 @@ export type Database = {
       users: {
         Row: {
           avatar_id: number | null
+          cohort_group: string | null
           created_at: string
           current_level_id: string | null
           current_system: string | null
@@ -7639,6 +7776,7 @@ export type Database = {
         }
         Insert: {
           avatar_id?: number | null
+          cohort_group?: string | null
           created_at?: string
           current_level_id?: string | null
           current_system?: string | null
@@ -7654,6 +7792,7 @@ export type Database = {
         }
         Update: {
           avatar_id?: number | null
+          cohort_group?: string | null
           created_at?: string
           current_level_id?: string | null
           current_system?: string | null
