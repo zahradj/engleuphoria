@@ -41,7 +41,7 @@ const parseVocabulary = (text: string): VocabularyItem[] => {
 
 export const IronForgeEditor: React.FC<IronForgeEditorProps> = ({ onBack }) => {
   const [cohortGroup, setCohortGroup] = useState<'A' | 'B' | 'C'>('A');
-  const [moduleId, setModuleId] = useState<string>('');
+  const [moduleId, setModuleId] = useState<string>('none');
   const [cefrLevel, setCefrLevel] = useState<string>('A1');
   const [title, setTitle] = useState('');
 
@@ -81,7 +81,7 @@ export const IronForgeEditor: React.FC<IronForgeEditorProps> = ({ onBack }) => {
     const lessonData = {
       title,
       cohort_group: cohortGroup,
-      module_id: moduleId || null,
+      module_id: moduleId === 'none' ? null : moduleId,
       cefr_level: cefrLevel,
       presentation_content: {
         concept,
@@ -205,7 +205,7 @@ export const IronForgeEditor: React.FC<IronForgeEditorProps> = ({ onBack }) => {
                   <SelectValue placeholder="Select module..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No Module</SelectItem>
+                  <SelectItem value="none">No Module</SelectItem>
                   {modules?.map((mod) => (
                     <SelectItem key={mod.id} value={mod.id}>
                       Module {mod.module_number}: {mod.module_name}
