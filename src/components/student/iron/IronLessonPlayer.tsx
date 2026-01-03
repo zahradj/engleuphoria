@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { FileText, Zap, Target, Lock, CheckCircle2, ArrowRight, ArrowLeft, Send } from 'lucide-react';
 import { IronLesson, useIronLessonProgress, useUpdateIronProgress } from '@/hooks/useIronLessons';
+import { VocabularyRecallBox } from './VocabularyRecallBox';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -189,6 +190,20 @@ export const IronLessonPlayer: React.FC<IronLessonPlayerProps> = ({ lesson, onBa
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-6 space-y-6">
+              {/* Visual Aid - Display prominently at top */}
+              {lesson.presentation_content.visualAidUrl && (
+                <div className="relative">
+                  <img
+                    src={lesson.presentation_content.visualAidUrl}
+                    alt="Lesson visual aid"
+                    className={cn(
+                      'w-full h-64 object-cover rounded-xl border-2',
+                      theme.border
+                    )}
+                  />
+                </div>
+              )}
+
               {lesson.presentation_content.concept && (
                 <div>
                   <h3 className="font-semibold mb-2">Core Concept</h3>
@@ -196,6 +211,14 @@ export const IronLessonPlayer: React.FC<IronLessonPlayerProps> = ({ lesson, onBa
                     {lesson.presentation_content.concept}
                   </p>
                 </div>
+              )}
+
+              {/* Vocabulary Recall Box */}
+              {lesson.presentation_content.vocabulary && lesson.presentation_content.vocabulary.length > 0 && (
+                <VocabularyRecallBox
+                  vocabulary={lesson.presentation_content.vocabulary}
+                  cohortGroup={lesson.cohort_group}
+                />
               )}
               
               {lesson.presentation_content.keyPoints && lesson.presentation_content.keyPoints.length > 0 && (
