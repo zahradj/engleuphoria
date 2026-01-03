@@ -3,6 +3,9 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Sparkles, Rocket, Briefcase } from 'lucide-react';
 
+import logoDark from '@/assets/logo-dark.png';
+import logoWhite from '@/assets/logo-white.png';
+
 const columns = [
   {
     id: 'kids',
@@ -11,7 +14,7 @@ const columns = [
     description: 'Playful learning adventures with games, songs, and colorful activities',
     gradient: 'from-yellow-300 via-lime-400 to-emerald-500',
     textColor: 'text-emerald-900',
-    link: '/playground',
+    link: '/signup?system=KIDS',
     icon: Sparkles,
     image: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=800&h=1200&fit=crop&q=80',
   },
@@ -22,7 +25,7 @@ const columns = [
     description: 'Level up your English with interactive challenges and real-world skills',
     gradient: 'from-violet-600 via-purple-700 to-slate-900',
     textColor: 'text-white',
-    link: '/academy',
+    link: '/signup?system=ACADEMY',
     icon: Rocket,
     image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&h=1200&fit=crop&q=80',
   },
@@ -33,7 +36,7 @@ const columns = [
     description: 'Master business English and advance your career with confidence',
     gradient: 'from-slate-100 via-gray-200 to-slate-300',
     textColor: 'text-slate-900',
-    link: '/hub',
+    link: '/signup?system=HUB',
     icon: Briefcase,
     image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&h=1200&fit=crop&q=80',
   },
@@ -44,6 +47,11 @@ export function HeroSection() {
 
   return (
     <section className="relative h-screen w-full flex overflow-hidden">
+      {/* Fixed Logo Header */}
+      <div className="absolute top-6 left-6 z-30 flex items-center gap-3">
+        <img src={logoDark} alt="EnglEuphoria" className="w-10 h-10 object-contain bg-white/90 rounded-xl p-1" />
+        <span className="font-display text-xl font-bold text-white drop-shadow-lg hidden md:block">EnglEuphoria</span>
+      </div>
       {columns.map((column, index) => {
         const isActive = activeColumn === column.id;
         const isOtherActive = activeColumn !== null && activeColumn !== column.id;
