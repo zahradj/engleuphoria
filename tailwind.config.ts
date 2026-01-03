@@ -17,6 +17,7 @@ export default {
         'nunito': ['Nunito', 'system-ui', 'sans-serif'],
         'fredoka': ['Fredoka', 'Comic Neue', 'Comic Sans MS', 'cursive'],
         'comic': ['Comic Neue', 'Comic Sans MS', 'cursive'],
+        'display': ['Space Grotesk', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
