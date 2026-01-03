@@ -13,6 +13,7 @@ import { lazy, Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Core Pages
+import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import StudentDashboard from "./pages/StudentDashboard";
@@ -67,8 +68,8 @@ const App = () => {
                 <BrowserRouter>
                   <AppErrorBoundary>
                     <Routes>
-                      {/* Public Entry Point - Login is the main entry */}
-                      <Route path="/" element={<Login />} />
+                      {/* Public Entry Point - Landing Page */}
+                      <Route path="/" element={<LandingPage />} />
                       <Route path="/login" element={<Login />} />
                       <Route path="/signup" element={<SignUp />} />
                       <Route path="/teacher-signup" element={<TeacherSignUp />} />
