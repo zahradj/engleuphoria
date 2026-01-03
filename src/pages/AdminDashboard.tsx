@@ -14,6 +14,7 @@ import { ScheduleManager } from '@/components/admin/ScheduleManager';
 import { PaymentsPanel } from '@/components/admin/PaymentsPanel';
 import { SettingsPanel } from '@/components/admin/SettingsPanel';
 import { AdminLessonEditor } from '@/components/admin/lesson-builder';
+import { ScrollHeader } from '@/components/navigation/ScrollHeader';
 import { Loader2, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -82,6 +83,8 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Scroll Header with Logo */}
+      <ScrollHeader />
       {/* Mobile Sidebar Overlay */}
       {isMobileSidebarOpen && (
         <div 

@@ -7,6 +7,7 @@ import { PendingReviewBanner } from './PendingReviewBanner';
 import { ClassScheduler } from '@/components/teacher/scheduler';
 import { ProfileSetupTab } from '@/components/teacher/ProfileSetupTab';
 import { StudentsPlaceholder } from './StudentsPlaceholder';
+import { ScrollHeader } from '@/components/navigation/ScrollHeader';
 import { Loader2 } from 'lucide-react';
 
 type TabType = 'dashboard' | 'schedule' | 'methodology' | 'account' | 'teacher-hub';
@@ -63,6 +64,9 @@ export const TeacherDashboardShell = ({
 
   return (
     <div className="min-h-screen bg-muted/30">
+      {/* Scroll Header with Logo */}
+      <ScrollHeader />
+      
       {/* Top Navigation */}
       <TeacherTopNav
         teacherName={teacherName}
