@@ -1,9 +1,8 @@
-
 import React from 'react';
-import { SimpleAuthForm } from '@/components/auth/SimpleAuthForm';
+import { ThemedSignupForm } from '@/components/auth/ThemedSignupForm';
 
 const SignUp = () => {
-  return <SimpleAuthForm mode="signup" />;
+  return <ThemedSignupForm />;
 };
 
 export default SignUp;
