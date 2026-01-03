@@ -136,3 +136,6 @@ verify_jwt = false
 
 [functions.get-dashboard]
 verify_jwt = true
+
+[functions.iron-ppp-generator]
+verify_jwt = false
