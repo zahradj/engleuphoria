@@ -9,6 +9,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { supabase } from "@/integrations/supabase/client";
 import { SystemId } from "@/types/multiTenant";
 import { DashboardRouter } from "@/components/student/dashboards/DashboardRouter";
+import { ScrollHeader } from "@/components/navigation/ScrollHeader";
 
 // Lazy load components to improve initial load time
 import { MinimalStudentHeader } from "@/components/student/MinimalStudentHeader";
@@ -173,8 +174,9 @@ const StudentDashboard = () => {
   return (
     <ErrorBoundary>
       <SidebarProvider defaultOpen={true}>
+        <ScrollHeader />
         <div className="flex min-h-screen w-full bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
-          <StudentSidebar 
+          <StudentSidebar
             activeTab={activeTab} 
             setActiveTab={setActiveTab}
             hasProfile={hasProfile}
