@@ -38,19 +38,30 @@ const calculateSystemTag = (dateOfBirth: string): 'KIDS' | 'TEENS' | 'ADULTS' =>
 
 // Redirect user based on role and system tag
 const getRedirectPath = (role: string, systemTag: string | null): string => {
-  // Admin goes to super-admin dashboard
+  // ADMIN: Goes to Super Admin Panel
   if (role === 'admin') {
     return '/super-admin';
   }
   
-  // Teacher goes to admin (teacher workspace)
+  // TEACHER: Always goes to teacher dashboard
+  // The dashboard handles NEW/PENDING/APPROVED states internally via useTeacherStatus
   if (role === 'teacher') {
-    return '/admin';
+    return '/teacher';
   }
   
-  // Students go to playground (DashboardRouter handles system selection internally)
+  // STUDENT: Route based on system tag (currently all go to playground)
+  // Future: KIDS -> /playground, TEENS -> /academy, ADULTS -> /hub
   if (role === 'student') {
-    return '/playground';
+    switch (systemTag) {
+      case 'KIDS':
+        return '/playground';
+      case 'TEENS':
+        return '/playground'; // Future: /academy
+      case 'ADULTS':
+        return '/playground'; // Future: /hub
+      default:
+        return '/playground';
+    }
   }
   
   return '/';
@@ -599,11 +610,21 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({
                   </Button>
 
                   <div className="text-center text-sm space-y-4">
-                    {mode === 'login' && <div>
-                        <button type="button" onClick={() => setShowForgotPassword(true)} className="text-sm text-slate-600 hover:text-slate-800 transition-colors duration-200">
-                          Forgot password?
-                        </button>
-                      </div>}
+                    {mode === 'login' && (
+                      <>
+                        <div>
+                          <button type="button" onClick={() => setShowForgotPassword(true)} className="text-sm text-slate-600 hover:text-slate-800 transition-colors duration-200">
+                            Forgot password?
+                          </button>
+                        </div>
+                        <div className="pt-2 border-t border-slate-200/50">
+                          <p className="text-xs text-slate-600 flex items-center justify-center gap-2">
+                            <GraduationCap className="h-3 w-3" />
+                            <span>Applied to teach? Log in here to check your status.</span>
+                          </p>
+                        </div>
+                      </>
+                    )}
 
                     <div>
                       <span className="text-slate-700">
