@@ -14,6 +14,7 @@ import { ScheduleManager } from '@/components/admin/ScheduleManager';
 import { PaymentsPanel } from '@/components/admin/PaymentsPanel';
 import { SettingsPanel } from '@/components/admin/SettingsPanel';
 import { AdminLessonEditor } from '@/components/admin/lesson-builder';
+import { IronAdminPanel } from '@/components/admin/iron';
 import { ScrollHeader } from '@/components/navigation/ScrollHeader';
 import { Loader2, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -68,6 +69,8 @@ const AdminDashboard = () => {
         return <LibraryManager />;
       case 'curriculum':
         return <CurriculumBuilder />;
+      case 'iron':
+        return <IronAdminPanel />;
       case 'lesson-builder':
         return <AdminLessonEditor />;
       case 'schedule':
