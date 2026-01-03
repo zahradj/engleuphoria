@@ -12,9 +12,9 @@ const footerLinks = {
   ],
   company: [
     { label: 'About Us', href: '/about' },
-    { label: 'Careers', href: '/careers' },
+    { label: 'Careers', href: '/teach-with-us' },
     { label: 'Blog', href: '/blog' },
-    { label: 'Contact', href: '/contact' },
+    { label: 'Contact', href: 'mailto:hello@engleuphoria.com' },
   ],
   legal: [
     { label: 'Privacy Policy', href: '/privacy' },

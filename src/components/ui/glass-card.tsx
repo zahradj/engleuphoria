@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { HTMLAttributes } from "react";
+import { HTMLAttributes, ButtonHTMLAttributes } from "react";
 
 interface GlassCardProps extends HTMLAttributes<HTMLDivElement> {
   variant?: "default" | "light" | "strong";
@@ -40,5 +40,46 @@ export function GlassCard({
     >
       {children}
     </div>
+  );
+}
+
+interface GlassButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: "default" | "outline" | "ghost";
+  size?: "sm" | "md" | "lg";
+  children: React.ReactNode;
+}
+
+export function GlassButton({
+  variant = "default",
+  size = "md",
+  className,
+  children,
+  ...props
+}: GlassButtonProps) {
+  const variantClasses = {
+    default: "bg-white/10 hover:bg-white/20 text-white border border-white/10",
+    outline: "bg-transparent hover:bg-white/10 text-white border border-white/30",
+    ghost: "bg-transparent hover:bg-white/10 text-white"
+  };
+
+  const sizeClasses = {
+    sm: "px-3 py-1.5 text-sm",
+    md: "px-4 py-2 text-base",
+    lg: "px-6 py-3 text-lg"
+  };
+
+  return (
+    <button
+      className={cn(
+        "inline-flex items-center justify-center rounded-full font-medium transition-all duration-300",
+        "backdrop-blur-sm",
+        variantClasses[variant],
+        sizeClasses[size],
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </button>
   );
 }
