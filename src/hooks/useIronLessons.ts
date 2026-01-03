@@ -12,6 +12,11 @@ export interface IronModule {
   updated_at: string;
 }
 
+export interface VocabularyItem {
+  word: string;
+  definition: string;
+}
+
 export interface IronLesson {
   id: string;
   title: string;
@@ -22,6 +27,9 @@ export interface IronLesson {
     concept?: string;
     keyPoints?: string[];
     table?: { headers: string[]; rows: string[][] };
+    vocabulary?: VocabularyItem[];
+    visualAidUrl?: string;
+    visualAidPrompt?: string;
   };
   practice_content: {
     taskA: { instruction: string; pattern?: string; expectedOutput?: string };

@@ -7,8 +7,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Hammer, Save, Lock, FileText, Target, Zap, ArrowLeft } from 'lucide-react';
-import { useIronModules, useCreateIronLesson } from '@/hooks/useIronLessons';
+import { Hammer, Save, Lock, FileText, Target, Zap, ArrowLeft, BookOpen } from 'lucide-react';
+import { useIronModules, useCreateIronLesson, VocabularyItem } from '@/hooks/useIronLessons';
+import { IronImageGenerator } from './IronImageGenerator';
 import { toast } from 'sonner';
 
 const COHORT_CONFIG = {
@@ -23,6 +24,21 @@ interface IronForgeEditorProps {
   onBack?: () => void;
 }
 
+// Parse vocabulary from "Word: Definition" format
+const parseVocabulary = (text: string): VocabularyItem[] => {
+  return text
+    .split('\n')
+    .filter(line => line.includes(':'))
+    .map(line => {
+      const [word, ...rest] = line.split(':');
+      return {
+        word: word.trim().replace(/^\*+|\*+$/g, ''), // Remove markdown bold markers
+        definition: rest.join(':').trim()
+      };
+    })
+    .filter(item => item.word && item.definition);
+};
+
 export const IronForgeEditor: React.FC<IronForgeEditorProps> = ({ onBack }) => {
   const [cohortGroup, setCohortGroup] = useState<'A' | 'B' | 'C'>('A');
   const [moduleId, setModuleId] = useState<string>('');
@@ -32,6 +48,9 @@ export const IronForgeEditor: React.FC<IronForgeEditorProps> = ({ onBack }) => {
   // Presentation
   const [concept, setConcept] = useState('');
   const [keyPoints, setKeyPoints] = useState('');
+  const [vocabulary, setVocabulary] = useState('');
+  const [visualAidUrl, setVisualAidUrl] = useState('');
+  const [visualAidPrompt, setVisualAidPrompt] = useState('');
 
   // Practice Tasks
   const [taskAInstruction, setTaskAInstruction] = useState('');
@@ -67,6 +86,9 @@ export const IronForgeEditor: React.FC<IronForgeEditorProps> = ({ onBack }) => {
       presentation_content: {
         concept,
         keyPoints: keyPoints.split('\n').filter(Boolean),
+        vocabulary: parseVocabulary(vocabulary),
+        visualAidUrl: visualAidUrl || undefined,
+        visualAidPrompt: visualAidPrompt || undefined,
       },
       practice_content: {
         taskA: { instruction: taskAInstruction, pattern: taskAPattern },
@@ -89,6 +111,9 @@ export const IronForgeEditor: React.FC<IronForgeEditorProps> = ({ onBack }) => {
     setTitle('');
     setConcept('');
     setKeyPoints('');
+    setVocabulary('');
+    setVisualAidUrl('');
+    setVisualAidPrompt('');
     setTaskAInstruction('');
     setTaskAPattern('');
     setTaskBInstruction('');
@@ -214,7 +239,20 @@ export const IronForgeEditor: React.FC<IronForgeEditorProps> = ({ onBack }) => {
             PRESENTATION - The Download
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-4 space-y-4">
+        <CardContent className="pt-4 space-y-6">
+          {/* AI Visual Aid Generator */}
+          <IronImageGenerator
+            cohortGroup={cohortGroup}
+            onImageGenerated={(url, prompt) => {
+              setVisualAidUrl(url);
+              setVisualAidPrompt(prompt);
+            }}
+            initialPrompt={visualAidPrompt}
+            initialImageUrl={visualAidUrl}
+          />
+
+          <Separator />
+
           <div>
             <Label>Core Concept / Theory</Label>
             <Textarea
@@ -224,6 +262,27 @@ export const IronForgeEditor: React.FC<IronForgeEditorProps> = ({ onBack }) => {
               rows={4}
             />
           </div>
+
+          <Separator />
+
+          {/* Key Vocabulary Section */}
+          <div className="p-4 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950 dark:to-purple-950 rounded-lg border border-indigo-200 dark:border-indigo-800">
+            <div className="flex items-center gap-2 mb-3">
+              <BookOpen className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+              <Label className="text-base font-semibold">Key Vocabulary</Label>
+            </div>
+            <Textarea
+              value={vocabulary}
+              onChange={(e) => setVocabulary(e.target.value)}
+              placeholder="Word: Definition (one per line)&#10;Engineer: A person who builds things&#10;Tired: When you need to sleep&#10;Japanese: A person from Japan"
+              rows={5}
+              className="font-mono text-sm"
+            />
+            <p className="text-xs text-muted-foreground mt-2">
+              Format: <code className="bg-muted px-1 rounded">Word: Definition</code> — one vocabulary term per line
+            </p>
+          </div>
+
           <div>
             <Label>Key Points (one per line)</Label>
             <Textarea
