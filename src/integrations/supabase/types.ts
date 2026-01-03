@@ -3205,6 +3205,95 @@ export type Database = {
         }
         Relationships: []
       }
+      iron_curriculums: {
+        Row: {
+          cefr_level: string
+          created_at: string
+          created_by: string | null
+          id: string
+          levels: Json
+          target_audience: string
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          cefr_level: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          levels?: Json
+          target_audience: string
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          cefr_level?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          levels?: Json
+          target_audience?: string
+          topic?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      iron_student_progress: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          current_lesson: number
+          current_level: number
+          current_phase: string
+          curriculum_id: string
+          id: string
+          practice_completion: Json | null
+          production_attempts: number
+          production_passed: boolean
+          started_at: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          current_lesson?: number
+          current_level?: number
+          current_phase?: string
+          curriculum_id: string
+          id?: string
+          practice_completion?: Json | null
+          production_attempts?: number
+          production_passed?: boolean
+          started_at?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          current_lesson?: number
+          current_level?: number
+          current_phase?: string
+          curriculum_id?: string
+          id?: string
+          practice_completion?: Json | null
+          production_attempts?: number
+          production_passed?: boolean
+          started_at?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "iron_student_progress_curriculum_id_fkey"
+            columns: ["curriculum_id"]
+            isOneToOne: false
+            referencedRelation: "iron_curriculums"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leaderboard_entries: {
         Row: {
           additional_data: Json | null
