@@ -71,7 +71,7 @@ const TeamGrid = () => {
               {/* Social Links */}
               <div className="flex items-center gap-4">
                 <a
-                  href="https://linkedin.com"
+                  href="https://www.linkedin.com/in/fatima-zahra-djaanine"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="p-2 rounded-full bg-white/5 hover:bg-violet-500/20 transition-colors group"
