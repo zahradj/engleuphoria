@@ -142,7 +142,7 @@ export function HeroSection() {
                     shadow-xl hover:shadow-2xl hover:scale-105
                   `}
                 >
-                  Explore
+                  Start
                   <motion.span
                     animate={{ x: [0, 5, 0] }}
                     transition={{ repeat: Infinity, duration: 1.5 }}
