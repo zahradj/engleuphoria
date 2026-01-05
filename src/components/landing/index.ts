@@ -1,3 +1,7 @@
 export { HeroSection } from './HeroSection';
 export { BentoGridSection } from './BentoGridSection';
 export { FooterSection } from './FooterSection';
+export { NavHeader } from './NavHeader';
+export { PricingSection } from './PricingSection';
+export { HowItWorksSection } from './HowItWorksSection';
+export { TestimonialsSection } from './TestimonialsSection';
