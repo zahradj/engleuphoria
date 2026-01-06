@@ -3,9 +3,6 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Sparkles, Rocket, Briefcase } from 'lucide-react';
 
-import logoDark from '@/assets/logo-dark.png';
-import logoWhite from '@/assets/logo-white.png';
-
 const columns = [
   {
     id: 'kids',
@@ -47,11 +44,6 @@ export function HeroSection() {
 
   return (
     <section className="relative h-screen w-full flex overflow-hidden">
-      {/* Fixed Logo Header */}
-      <div className="absolute top-6 left-6 z-30 flex items-center gap-3">
-        <img src={logoDark} alt="EnglEuphoria" className="w-10 h-10 object-contain bg-white/90 rounded-xl p-1" />
-        <span className="font-display text-xl font-bold text-white drop-shadow-lg hidden md:block">EnglEuphoria</span>
-      </div>
       {columns.map((column, index) => {
         const isActive = activeColumn === column.id;
         const isOtherActive = activeColumn !== null && activeColumn !== column.id;
