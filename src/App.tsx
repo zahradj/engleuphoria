@@ -16,6 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import LandingPage from "./pages/LandingPage";
 import AboutPage from "./pages/AboutPage";
 import TeachWithUsPage from "./pages/TeachWithUsPage";
+import ForTeachersPage from "./pages/ForTeachersPage";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import StudentDashboard from "./pages/StudentDashboard";
@@ -74,6 +75,7 @@ const App = () => {
                       <Route path="/" element={<LandingPage />} />
                       <Route path="/about" element={<AboutPage />} />
                       <Route path="/teach-with-us" element={<TeachWithUsPage />} />
+                      <Route path="/for-teachers" element={<ForTeachersPage />} />
                       <Route path="/login" element={<Login />} />
                       <Route path="/signup" element={<SignUp />} />
                       <Route path="/teacher-signup" element={<TeacherSignUp />} />
