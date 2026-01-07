@@ -87,7 +87,7 @@ export function NavHeader() {
               <ThemeModeToggle className="text-white/80 hover:text-white hover:bg-white/10" />
               <Link to="/login">
                 <Button variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10">
-                  Student Login
+                  Login
                 </Button>
               </Link>
               <Link to="/student-signup">
@@ -194,7 +194,7 @@ export function NavHeader() {
                 <div className="space-y-3 pt-4 border-t border-white/10">
                   <Link to="/login" onClick={closeMobileMenu} className="block">
                     <Button variant="outline" className="w-full border-white/20 text-white hover:bg-white/10">
-                      Student Login
+                      Login
                     </Button>
                   </Link>
                   <Link to="/student-signup" onClick={closeMobileMenu} className="block">

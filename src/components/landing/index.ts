@@ -5,3 +5,4 @@ export { NavHeader } from './NavHeader';
 export { PricingSection } from './PricingSection';
 export { HowItWorksSection } from './HowItWorksSection';
 export { TestimonialsSection } from './TestimonialsSection';
+export { ContactSection } from './ContactSection';
