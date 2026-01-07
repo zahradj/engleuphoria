@@ -5,7 +5,8 @@ import {
   NavHeader,
   PricingSection,
   HowItWorksSection,
-  TestimonialsSection
+  TestimonialsSection,
+  ContactSection
 } from '@/components/landing';
 
 export default function LandingPage() {
@@ -17,6 +18,7 @@ export default function LandingPage() {
       <HowItWorksSection />
       <PricingSection />
       <TestimonialsSection />
+      <ContactSection />
       <FooterSection />
     </main>
   );
