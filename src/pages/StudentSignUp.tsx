@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -11,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Eye, EyeOff, User, Mail, Lock, CheckCircle, BookOpen } from "lucide-react";
 import { ProgressIndicator } from "@/components/navigation/ProgressIndicator";
-import { BackNavigation } from "@/components/navigation/BackNavigation";
+import { AuthPageLayout } from "@/components/auth/AuthPageLayout";
 import { supabase } from "@/integrations/supabase/client";
 
 const formSchema = z.object({
@@ -141,38 +140,26 @@ const StudentSignUp = () => {
     { met: /[0-9]/.test(form.watch("password") || ""), text: "One number" },
   ];
 
+  const progressIndicator = (
+    <ProgressIndicator 
+      currentStep={1} 
+      totalSteps={2} 
+      stepLabels={stepLabels}
+    />
+  );
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <div className="w-full max-w-md mx-auto">
-          <BackNavigation to="/signup" label="Back to Sign Up Options" className="mb-4" />
-          
-          <ProgressIndicator 
-            currentStep={1} 
-            totalSteps={2} 
-            stepLabels={stepLabels}
-          />
-          
-          <Card className="w-full p-6 shadow-2xl relative overflow-hidden bg-white/95 backdrop-blur-sm animate-fade-in">
-            {/* Card inner glow effects */}
-            <div className="absolute -z-10 top-0 left-0 w-[80%] h-[80%] bg-blue/10 rounded-full blur-2xl"></div>
-            <div className="absolute -z-10 bottom-0 right-0 w-[60%] h-[60%] bg-purple/5 rounded-full blur-2xl"></div>
-          
-            <div className="text-center mb-6">
-              <div className="flex justify-center mb-4">
-                <div className="w-16 h-16 bg-gradient-to-r from-purple-500/80 to-purple-600/80 rounded-full flex items-center justify-center">
-                  <BookOpen className="h-8 w-8 text-white" />
-                </div>
-              </div>
-              <h2 className="text-2xl font-bold text-gray-800">
-                Start Learning English
-              </h2>
-              <p className="text-muted-foreground">Create your student account and begin your learning journey</p>
-            </div>
-            
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
+    <AuthPageLayout
+      title="Start Learning English"
+      subtitle="Create your student account and begin your learning journey"
+      icon={BookOpen}
+      variant="student"
+      backLink={{ to: '/signup', label: 'Back to Sign Up Options' }}
+      showProgress={progressIndicator}
+    >
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
                   control={form.control}
                   name="fullName"
                   render={({ field }) => (
@@ -309,32 +296,29 @@ const StudentSignUp = () => {
                   )}
                 />
                 
-                <Button 
-                  type="submit" 
-                  className="w-full h-12 text-lg font-semibold bg-purple-500/90 hover:bg-purple-600/90 transition-all duration-200"
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Creating Account..." : 'Create Student Account'}
-                </Button>
-              </form>
-            </Form>
-            
-            <div className="mt-6 text-center">
-              <p className="text-sm text-muted-foreground">
-                Already have an account?{" "}
-                <Button 
-                  variant="link" 
-                  className="p-0 h-auto font-semibold text-purple-600 hover:text-purple-700" 
-                  onClick={() => navigate('/login')}
-                >
-                  Log In
-                </Button>
-              </p>
-            </div>
-          </Card>
-        </div>
+          <Button 
+            type="submit" 
+            className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-violet-500 to-pink-500 hover:from-violet-600 hover:to-pink-600 text-white transition-all duration-200"
+            disabled={isLoading}
+          >
+            {isLoading ? "Creating Account..." : 'Create Student Account'}
+          </Button>
+        </form>
+      </Form>
+      
+      <div className="mt-6 text-center">
+        <p className="text-sm text-muted-foreground">
+          Already have an account?{" "}
+          <Button 
+            variant="link" 
+            className="p-0 h-auto font-semibold text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300" 
+            onClick={() => navigate('/login')}
+          >
+            Log In
+          </Button>
+        </p>
       </div>
-    </div>
+    </AuthPageLayout>
   );
 };
 
