@@ -29,6 +29,10 @@ import StudentApplication from "./pages/StudentApplication";
 import EmailVerification from "./pages/EmailVerification";
 import ResetPassword from "./pages/ResetPassword";
 
+// New pages
+const ParentDashboard = lazy(() => import("./pages/ParentDashboard"));
+const CommunityPage = lazy(() => import("./pages/CommunityPage"));
+
 // Lazy load classroom pages
 const TeacherClassroomPage = lazy(() => import("./pages/TeacherClassroomPage"));
 const StudentClassroomPage = lazy(() => import("./pages/StudentClassroomPage"));
@@ -153,7 +157,29 @@ const App = () => {
                         </ImprovedProtectedRoute>
                       } />
 
+                      {/* Parent Dashboard - Protected */}
+                      <Route path="/parent/*" element={
+                        <ImprovedProtectedRoute requiredRole="parent">
+                          <Suspense fallback={<LoadingFallback />}>
+                            <ParentDashboard />
+                          </Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
+
+                      {/* Community Page - Any Authenticated User */}
+                      <Route path="/community/*" element={
+                        <ImprovedProtectedRoute>
+                          <Suspense fallback={<LoadingFallback />}>
+                            <CommunityPage />
+                          </Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
+
                       {/* Legacy routes - redirect to new paths */}
+                      <Route path="/student/*" element={<Navigate to="/playground" replace />} />
+                      <Route path="/teacher" element={<Navigate to="/admin" replace />} />
+                      <Route path="/admin-dashboard" element={<Navigate to="/super-admin" replace />} />
+                      <Route path="/dashboard" element={<Navigate to="/playground" replace />} />
                       <Route path="/student/*" element={<Navigate to="/playground" replace />} />
                       <Route path="/teacher" element={<Navigate to="/admin" replace />} />
                       <Route path="/admin-dashboard" element={<Navigate to="/super-admin" replace />} />
