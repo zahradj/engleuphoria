@@ -1,10 +1,11 @@
-
 import React from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, AlertTriangle } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useDevBypass } from '@/hooks/useDevBypass';
+import { DevBypassWrapper } from './DevBypassWrapper';
 
 interface ImprovedProtectedRouteProps {
   children: React.ReactNode;
@@ -19,6 +20,13 @@ export const ImprovedProtectedRoute: React.FC<ImprovedProtectedRouteProps> = ({
 }) => {
   const navigate = useNavigate();
   const { user, loading, error } = useAuth();
+  const { isDevBypassActive, bypassRole } = useDevBypass();
+
+  // DEV BYPASS - Only in development mode with query param
+  if (isDevBypassActive && bypassRole) {
+    console.warn('⚠️ DEV BYPASS ACTIVE - This should never appear in production');
+    return <DevBypassWrapper role={bypassRole}>{children}</DevBypassWrapper>;
+  }
 
   // Show loading spinner while auth is being determined
   if (loading) {
@@ -60,55 +68,23 @@ export const ImprovedProtectedRoute: React.FC<ImprovedProtectedRouteProps> = ({
     return <Navigate to={redirectTo} replace />;
   }
 
-  // SECURITY: Use server-validated role only (from user_roles table via AuthContext)
-  const effectiveRole = (user as any)?.role || 'student';
-
-  // Check role requirements using effectiveRole
-  if (requiredRole && effectiveRole !== requiredRole) {
-    // Redirect to correct dashboard if we know the role
-    const dashboardMap: Record<string, string> = {
-      student: '/student',
-      teacher: '/teacher',
-      admin: '/admin'
-    };
-
-    const correctPath = effectiveRole ? dashboardMap[effectiveRole] : undefined;
-
-    if (correctPath) {
-      return <Navigate to={correctPath} replace />;
-    } else {
-      // Handle unknown roles
-      return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 p-4">
-          <Card className="w-full max-w-md">
-            <CardContent className="p-6 text-center">
-              <AlertTriangle className="h-12 w-12 text-orange-500 mx-auto mb-4" />
-              <h3 className="font-semibold text-lg text-gray-900 mb-2">Role Not Recognized</h3>
-              <p className="text-gray-600 mb-4">
-                Your account role "{String((user as any)?.role || 'unknown')}" is not recognized. Please contact support.
-              </p>
-              <Button 
-                onClick={() => navigate('/')} 
-                variant="outline"
-                className="w-full"
-              >
-                Return to Home
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      );
+  // Check role if required
+  if (requiredRole && user.role !== requiredRole) {
+    // Handle special case for /dashboard generic redirect
+    if (requiredRole === 'any') {
+      return <>{children}</>;
     }
-  }
 
-  // Handle generic /dashboard redirect
-  if (!requiredRole && window.location.pathname === '/dashboard') {
-    const dashboardMap: Record<string, string> = {
-      student: '/student',
-      teacher: '/teacher', 
-      admin: '/admin'
+    // Redirect to appropriate dashboard based on actual role
+    const roleRedirects: Record<string, string> = {
+      student: '/playground',
+      teacher: '/admin',
+      admin: '/super-admin',
+      parent: '/parent'
     };
-    return <Navigate to={dashboardMap[effectiveRole || 'student'] || '/student'} replace />;
+
+    const redirectPath = roleRedirects[user.role] || '/login';
+    return <Navigate to={redirectPath} replace />;
   }
 
   return <>{children}</>;
