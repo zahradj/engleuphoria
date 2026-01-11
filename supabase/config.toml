@@ -139,3 +139,12 @@ verify_jwt = true
 
 [functions.iron-ppp-generator]
 verify_jwt = false
+
+[functions.ai-curriculum-analyzer]
+verify_jwt = true
+
+[functions.ai-quality-checker]
+verify_jwt = true
+
+[functions.ai-performance-analyzer]
+verify_jwt = true

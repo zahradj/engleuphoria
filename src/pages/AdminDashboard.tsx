@@ -15,6 +15,7 @@ import { PaymentsPanel } from '@/components/admin/PaymentsPanel';
 import { SettingsPanel } from '@/components/admin/SettingsPanel';
 import { AdminLessonEditor } from '@/components/admin/lesson-builder';
 import { IronAdminPanel } from '@/components/admin/iron';
+import { AIToolsDashboard } from '@/components/admin/ai-tools/AIToolsDashboard';
 import { ScrollHeader } from '@/components/navigation/ScrollHeader';
 import { Loader2, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -79,6 +80,8 @@ const AdminDashboard = () => {
         return <PaymentsPanel />;
       case 'settings':
         return <SettingsPanel />;
+      case 'ai-tools':
+        return <AIToolsDashboard />;
       default:
         return <AdminOverview />;
     }
