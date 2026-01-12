@@ -148,3 +148,6 @@ verify_jwt = true
 
 [functions.ai-performance-analyzer]
 verify_jwt = true
+
+[functions.n8n-bridge]
+verify_jwt = false
