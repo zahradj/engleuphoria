@@ -9,12 +9,9 @@ import {
   CreditCard, 
   Settings,
   LogOut,
-  Library,
   BookOpen,
   Calendar,
   GraduationCap,
-  Presentation,
-  Sword,
   Brain
 } from "lucide-react";
 
@@ -29,10 +26,7 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
   const menuItems = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
     { id: "users", label: "User Manager", icon: Users },
-    { id: "library", label: "Library (The Core)", icon: Library },
     { id: "curriculum", label: "Curriculum", icon: BookOpen },
-    { id: "iron", label: "Iron Curriculum", icon: Sword },
-    { id: "lesson-builder", label: "Lesson Builder", icon: Presentation },
     { id: "ai-tools", label: "AI Tools", icon: Brain },
     { id: "schedule", label: "Schedule", icon: Calendar },
     { id: "teachers", label: "Teachers", icon: GraduationCap },
