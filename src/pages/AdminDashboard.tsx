@@ -13,6 +13,7 @@ import { ScheduleManager } from '@/components/admin/ScheduleManager';
 import { PaymentsPanel } from '@/components/admin/PaymentsPanel';
 import { SettingsPanel } from '@/components/admin/SettingsPanel';
 import { AIToolsDashboard } from '@/components/admin/ai-tools/AIToolsDashboard';
+import { NewLibrary } from '@/components/admin/NewLibrary';
 import { ScrollHeader } from '@/components/navigation/ScrollHeader';
 import { Loader2, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -73,6 +74,8 @@ const AdminDashboard = () => {
         return <SettingsPanel />;
       case 'ai-tools':
         return <AIToolsDashboard />;
+      case 'ai-generator':
+        return <NewLibrary />;
       default:
         return <AdminOverview />;
     }
