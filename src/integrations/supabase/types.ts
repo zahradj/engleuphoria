@@ -585,6 +585,60 @@ export type Database = {
           },
         ]
       }
+      ai_lessons_ppp: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          level: string | null
+          level_id: string | null
+          ppp_content: Json
+          status: string | null
+          system_type: string
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          level?: string | null
+          level_id?: string | null
+          ppp_content: Json
+          status?: string | null
+          system_type: string
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          level?: string | null
+          level_id?: string | null
+          ppp_content?: Json
+          status?: string | null
+          system_type?: string
+          topic?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_lessons_ppp_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_lessons_ppp_level_id_fkey"
+            columns: ["level_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_levels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_tutoring_sessions: {
         Row: {
           ai_model: string | null
