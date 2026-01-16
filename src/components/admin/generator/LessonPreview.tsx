@@ -1,7 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Sparkles, Gamepad2, Target, MessageSquare, BookOpen, Briefcase } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Sparkles, Gamepad2, Target, MessageSquare, BookOpen, Briefcase, Play, List } from "lucide-react";
+import { SlidePreviewCarousel, LessonSlide } from "./SlidePreviewCarousel";
 
 interface LessonPreviewProps {
   data: any;
@@ -9,7 +12,13 @@ interface LessonPreviewProps {
 }
 
 export const LessonPreview = ({ data, system }: LessonPreviewProps) => {
+  const [viewMode, setViewMode] = useState<"overview" | "slides">("overview");
+
   if (!data) return null;
+
+  // Extract slides from the generated lesson data
+  const slides: LessonSlide[] = data.slides || [];
+  const hasSlides = slides.length > 0;
 
   const renderKidsPreview = () => (
     <div className="space-y-4">
@@ -193,16 +202,60 @@ export const LessonPreview = ({ data, system }: LessonPreviewProps) => {
     </div>
   );
 
+  const getSystemLabel = () => {
+    if (system === "kids") return "Playground";
+    if (system === "teen" || system === "teens") return "Academy";
+    return "Hub";
+  };
+
+  const renderOverviewContent = () => {
+    if (system === "kids") return renderKidsPreview();
+    if (system === "teen" || system === "teens") return renderTeensPreview();
+    return renderAdultsPreview();
+  };
+
   return (
     <div className="space-y-4">
+      {/* Header with title and view toggle */}
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-lg">{data.title}</h3>
-        <Badge>{system === "kids" ? "Playground" : system === "teens" ? "Academy" : "Hub"}</Badge>
+        <div className="flex items-center gap-2">
+          <h3 className="font-semibold text-lg">{data.title}</h3>
+          <Badge>{getSystemLabel()}</Badge>
+        </div>
       </div>
-      
-      {system === "kids" && renderKidsPreview()}
-      {system === "teens" && renderTeensPreview()}
-      {system === "adults" && renderAdultsPreview()}
+
+      {/* View Mode Toggle */}
+      {hasSlides ? (
+        <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "overview" | "slides")}>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="overview" className="flex items-center gap-2">
+              <List className="h-4 w-4" />
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="slides" className="flex items-center gap-2">
+              <Play className="h-4 w-4" />
+              Slides ({slides.length})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="mt-4">
+            {renderOverviewContent()}
+          </TabsContent>
+
+          <TabsContent value="slides" className="mt-4">
+            <SlidePreviewCarousel slides={slides} />
+          </TabsContent>
+        </Tabs>
+      ) : (
+        <>
+          {renderOverviewContent()}
+          <div className="mt-4 p-3 bg-muted/50 rounded-lg text-center">
+            <p className="text-sm text-muted-foreground">
+              💡 Tip: Full slide-by-slide preview is available when the lesson includes slides data.
+            </p>
+          </div>
+        </>
+      )}
     </div>
   );
 };
