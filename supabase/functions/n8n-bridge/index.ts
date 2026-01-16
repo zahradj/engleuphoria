@@ -73,50 +73,75 @@ serve(async (req) => {
         );
       }
 
-      // Forward to n8n webhook
+      // Try to forward to n8n webhook
       console.log("Forwarding to n8n webhook:", n8nWebhookUrl);
       
-      const n8nResponse = await fetch(n8nWebhookUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          topic,
-          system,
-          level,
-          level_id,
-          cefr_level,
-        }),
-      });
+      try {
+        const n8nResponse = await fetch(n8nWebhookUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            topic,
+            system,
+            level,
+            level_id,
+            cefr_level,
+          }),
+        });
 
-      if (!n8nResponse.ok) {
-        const errorText = await n8nResponse.text();
-        console.error("n8n webhook error:", errorText);
-        throw new Error(`n8n webhook failed: ${n8nResponse.status}`);
-      }
+        if (!n8nResponse.ok) {
+          const errorText = await n8nResponse.text();
+          console.warn("n8n webhook failed, falling back to built-in generator:", n8nResponse.status, errorText);
+          
+          // Fall back to built-in generator when n8n fails
+          const lesson = generateMockLesson(topic, system, level, cefr_level);
+          return new Response(
+            JSON.stringify({ 
+              status: "success", 
+              data: lesson,
+              message: `Generated using built-in generator (n8n returned ${n8nResponse.status})`
+            }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
 
-      const n8nData = await n8nResponse.json();
-      console.log("n8n response:", n8nData);
+        const n8nData = await n8nResponse.json();
+        console.log("n8n response:", n8nData);
 
-      // Check if n8n returned actual lesson data or just an async confirmation
-      if (n8nData.message === "Workflow was started" || !n8nData.presentation) {
-        // n8n is async, fall back to built-in generator
-        console.log("n8n webhook is async, using built-in generator as fallback");
-        const lesson = generateMockLesson(topic, system, level, cefr_level);
+        // Check if n8n returned actual lesson data or just an async confirmation
+        if (n8nData.message === "Workflow was started" || !n8nData.presentation) {
+          // n8n is async, fall back to built-in generator
+          console.log("n8n webhook is async, using built-in generator as fallback");
+          const lesson = generateMockLesson(topic, system, level, cefr_level);
+          
+          return new Response(
+            JSON.stringify({ 
+              status: "success", 
+              data: lesson,
+              message: "Generated using built-in generator (n8n workflow is async)"
+            }),
+            { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        return new Response(
+          JSON.stringify({ status: "success", data: n8nData }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      } catch (n8nError) {
+        console.warn("n8n webhook error, falling back to built-in generator:", n8nError);
         
+        // Fall back to built-in generator when n8n is unreachable
+        const lesson = generateMockLesson(topic, system, level, cefr_level);
         return new Response(
           JSON.stringify({ 
             status: "success", 
             data: lesson,
-            message: "Generated using built-in generator (n8n workflow is async)"
+            message: "Generated using built-in generator (n8n unreachable)"
           }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-
-      return new Response(
-        JSON.stringify({ status: "success", data: n8nData }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
     }
 
     return new Response(
