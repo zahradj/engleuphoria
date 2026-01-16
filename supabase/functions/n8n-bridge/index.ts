@@ -66,7 +66,7 @@ serve(async (req) => {
         return new Response(
           JSON.stringify({ 
             status: "success", 
-            lesson,
+            data: lesson,
             message: "Generated using built-in generator (n8n not configured)"
           }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -97,8 +97,24 @@ serve(async (req) => {
       const n8nData = await n8nResponse.json();
       console.log("n8n response:", n8nData);
 
+      // Check if n8n returned actual lesson data or just an async confirmation
+      if (n8nData.message === "Workflow was started" || !n8nData.presentation) {
+        // n8n is async, fall back to built-in generator
+        console.log("n8n webhook is async, using built-in generator as fallback");
+        const lesson = generateMockLesson(topic, system, level, cefr_level);
+        
+        return new Response(
+          JSON.stringify({ 
+            status: "success", 
+            data: lesson,
+            message: "Generated using built-in generator (n8n workflow is async)"
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       return new Response(
-        JSON.stringify(n8nData),
+        JSON.stringify({ status: "success", data: n8nData }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
