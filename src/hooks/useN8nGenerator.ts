@@ -41,16 +41,20 @@ export const useN8nGenerator = () => {
 
       if (error) throw error;
 
-      if (data?.status === "success" && data?.data) {
-        setGeneratedLesson(data.data);
+      // Handle various response formats
+      const lessonData = data?.data || data?.lesson || data;
+      
+      if (data?.status === "success" && lessonData) {
+        setGeneratedLesson(lessonData);
+        toast.success(data?.message || "Lesson generated successfully!");
+        return lessonData;
+      } else if (lessonData?.presentation || lessonData?.title) {
+        setGeneratedLesson(lessonData);
         toast.success("Lesson generated successfully!");
-        return data.data;
-      } else if (data?.lesson) {
-        setGeneratedLesson(data.lesson);
-        toast.success("Lesson generated successfully!");
-        return data.lesson;
+        return lessonData;
       } else {
-        throw new Error(data?.error || "Failed to generate lesson");
+        console.error("Unexpected response format:", data);
+        throw new Error(data?.error || "Failed to generate lesson - unexpected response format");
       }
     } catch (error: any) {
       console.error("Error generating lesson:", error);
