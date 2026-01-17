@@ -8,6 +8,8 @@ interface GenerateParams {
   level: string;
   levelId?: string;
   cefrLevel: string;
+  unitId?: string;
+  lessonNumber?: number;
 }
 
 interface GeneratedLesson {
@@ -83,6 +85,8 @@ export const useN8nGenerator = () => {
           difficulty_level: params.level,
           content: generatedLesson as any,
           level_id: params.levelId || null,
+          unit_id: params.unitId || null,
+          sequence_order: params.lessonNumber || 1,
           xp_reward: 100,
           is_published: false,
         })
