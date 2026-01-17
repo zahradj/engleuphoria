@@ -13,7 +13,8 @@ import {
   Calendar,
   GraduationCap,
   Brain,
-  Wand2
+  Wand2,
+  Library
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -28,6 +29,7 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
     { id: "overview", label: "Overview", icon: LayoutDashboard },
     { id: "users", label: "User Manager", icon: Users },
     { id: "curriculum", label: "Curriculum", icon: BookOpen },
+    { id: "curriculum-library", label: "Lesson Library", icon: Library },
     { id: "ai-generator", label: "AI Generator", icon: Wand2 },
     { id: "ai-tools", label: "AI Tools", icon: Brain },
     { id: "schedule", label: "Schedule", icon: Calendar },

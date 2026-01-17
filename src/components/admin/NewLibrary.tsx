@@ -30,13 +30,25 @@ interface CurriculumLevel {
   age_group: string;
 }
 
+interface CurriculumUnit {
+  id: string;
+  title: string;
+  unit_number: number;
+  cefr_level: string;
+  age_group: string;
+}
+
 export const NewLibrary = () => {
   const [topic, setTopic] = useState("");
   const [system, setSystem] = useState("kids");
   const [difficulty, setDifficulty] = useState("beginner");
   const [selectedLevelId, setSelectedLevelId] = useState<string>("");
+  const [selectedUnitId, setSelectedUnitId] = useState<string>("");
+  const [lessonNumber, setLessonNumber] = useState<number>(1);
   const [levels, setLevels] = useState<CurriculumLevel[]>([]);
+  const [units, setUnits] = useState<CurriculumUnit[]>([]);
   const [isLoadingLevels, setIsLoadingLevels] = useState(true);
+  const [isLoadingUnits, setIsLoadingUnits] = useState(true);
 
   const {
     isGenerating,
@@ -49,6 +61,7 @@ export const NewLibrary = () => {
 
   useEffect(() => {
     fetchLevels();
+    fetchUnits();
   }, []);
 
   const fetchLevels = async () => {
@@ -68,6 +81,23 @@ export const NewLibrary = () => {
     }
   };
 
+  const fetchUnits = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("curriculum_units")
+        .select("id, title, unit_number, cefr_level, age_group")
+        .order("unit_number", { ascending: true });
+
+      if (error) throw error;
+      setUnits(data || []);
+    } catch (error) {
+      console.error("Error fetching units:", error);
+      toast.error("Failed to load curriculum units");
+    } finally {
+      setIsLoadingUnits(false);
+    }
+  };
+
   const handleGenerate = async () => {
     if (!topic.trim()) {
       toast.error("Please enter a topic");
@@ -82,6 +112,8 @@ export const NewLibrary = () => {
       level: difficulty,
       levelId: selectedLevelId || undefined,
       cefrLevel: selectedLevel?.cefr_level || "A1",
+      unitId: selectedUnitId || undefined,
+      lessonNumber: lessonNumber,
     });
   };
 
@@ -94,6 +126,8 @@ export const NewLibrary = () => {
       level: difficulty,
       levelId: selectedLevelId || undefined,
       cefrLevel: selectedLevel?.cefr_level || "A1",
+      unitId: selectedUnitId || undefined,
+      lessonNumber: lessonNumber,
     });
   };
 
@@ -105,6 +139,16 @@ export const NewLibrary = () => {
       return level.age_group.includes("10-13") || level.age_group.includes("12-15") || level.age_group.includes("14-17") || level.age_group.includes("16+");
     }
     return level.age_group.includes("16+") || level.age_group.includes("18+");
+  });
+
+  const filteredUnits = units.filter((unit) => {
+    if (system === "kids") {
+      return unit.age_group.includes("4-7") || unit.age_group.includes("6-9") || unit.age_group.includes("8-11") || unit.age_group.includes("10-13");
+    }
+    if (system === "teens") {
+      return unit.age_group.includes("10-13") || unit.age_group.includes("12-15") || unit.age_group.includes("14-17") || unit.age_group.includes("16+");
+    }
+    return unit.age_group.includes("16+") || unit.age_group.includes("18+");
   });
 
   return (
@@ -177,6 +221,39 @@ export const NewLibrary = () => {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="unit">Unit</Label>
+              <Select
+                value={selectedUnitId}
+                onValueChange={setSelectedUnitId}
+                disabled={isLoadingUnits}
+              >
+                <SelectTrigger id="unit">
+                  <SelectValue placeholder={isLoadingUnits ? "Loading..." : "Select unit (optional)"} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">No unit</SelectItem>
+                  {filteredUnits.map((unit) => (
+                    <SelectItem key={unit.id} value={unit.id}>
+                      Unit {unit.unit_number}: {unit.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="lessonNumber">Lesson Number</Label>
+              <Input
+                id="lessonNumber"
+                type="number"
+                min={1}
+                value={lessonNumber}
+                onChange={(e) => setLessonNumber(parseInt(e.target.value) || 1)}
+                placeholder="e.g., 1, 2, 3..."
+              />
             </div>
 
             <div className="space-y-2">

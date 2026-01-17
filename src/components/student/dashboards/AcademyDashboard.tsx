@@ -182,7 +182,7 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
               </Card>
             </motion.div>
 
-            {/* Continue Learning */}
+            {/* Continue Learning - Using CurrentLessonCard */}
             <motion.div
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -191,13 +191,32 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
               <Card className={`overflow-hidden ${isDarkMode ? 'bg-gradient-to-br from-purple-900/50 to-cyan-900/50 border-purple-500/30' : 'bg-gradient-to-br from-purple-50 to-cyan-50'}`}>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
-                    <div>
+                    <div className="space-y-2">
                       <p className={`text-sm mb-1 ${isDarkMode ? 'text-purple-300' : 'text-purple-600'}`}>Continue where you left off</p>
-                      <h3 className="text-xl font-bold mb-2">
-                        {currentLesson?.title || 'Writing Workshop'}
-                      </h3>
+                      
+                      {/* Unit & Lesson info from currentLesson */}
+                      {currentLesson && (
+                        <>
+                          <div className="flex items-center gap-2 text-xs opacity-75">
+                            {(currentLesson as any).unit && (
+                              <span>Unit {(currentLesson as any).unit.unit_number}: {(currentLesson as any).unit.title}</span>
+                            )}
+                            {currentLesson.sequence_order && (
+                              <span>• Lesson {currentLesson.sequence_order}</span>
+                            )}
+                          </div>
+                          <h3 className="text-xl font-bold">
+                            {currentLesson.title || 'Writing Workshop'}
+                          </h3>
+                        </>
+                      )}
+                      
+                      {!currentLesson && (
+                        <h3 className="text-xl font-bold">No lessons available</h3>
+                      )}
+                      
                       <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>
-                        Lesson 12 of 20 • 35 min
+                        {currentLesson?.duration_minutes || 35} min
                       </p>
                       {/* Progress bar */}
                       <div className="mt-3 h-2 w-48 bg-gray-700/50 rounded-full overflow-hidden">

@@ -1,6 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,138 +17,134 @@ import {
   Trophy,
   Rocket,
   Heart,
-  Zap
+  Zap,
+  Layers,
+  Loader2
 } from "lucide-react";
 
-interface WeekPlan {
-  week: number;
-  theme: string;
-  objective: string;
-  xpTarget: number;
-  lessons: {
+interface CurriculumLesson {
+  id: string;
+  title: string;
+  description: string | null;
+  sequence_order: number | null;
+  duration_minutes: number | null;
+  xp_reward: number | null;
+  difficulty_level: string;
+  unit?: {
+    id: string;
     title: string;
-    duration: string;
-    skills: string[];
-    completed: boolean;
-  }[];
-  activities: string[];
-  completed: boolean;
+    unit_number: number;
+  } | null;
+}
+
+interface GroupedLessons {
+  unit: {
+    id: string;
+    title: string;
+    unit_number: number;
+  } | null;
+  lessons: CurriculumLesson[];
 }
 
 export const LearningPathTab = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
-  const [learningPath, setLearningPath] = useState<WeekPlan[]>([]);
-  const [currentWeek, setCurrentWeek] = useState(1);
 
   useEffect(() => {
-    // Load student profile from localStorage
     const savedProfile = localStorage.getItem('studentProfile');
     if (savedProfile) {
-      const profileData = JSON.parse(savedProfile);
-      setProfile(profileData);
-      generateLearningPath(profileData);
+      setProfile(JSON.parse(savedProfile));
     }
   }, []);
 
-  const generateLearningPath = (profileData: any) => {
-    // Generate personalized learning path based on profile
-    const themes = getPersonalizedThemes(profileData);
-    const path: WeekPlan[] = themes.map((theme, index) => ({
-      week: index + 1,
-      theme: theme.title,
-      objective: theme.objective,
-      xpTarget: 150,
-      lessons: [
-        {
-          title: `${theme.title}: Introduction`,
-          duration: "25 min",
-          skills: ["Vocabulary", "Listening"],
-          completed: index === 0
-        },
-        {
-          title: `${theme.title}: Practice`,
-          duration: "25 min", 
-          skills: ["Speaking", "Grammar"],
-          completed: false
-        }
-      ],
-      activities: theme.activities,
-      completed: index === 0
-    }));
-    
-    setLearningPath(path);
-  };
+  // Fetch real curriculum lessons
+  const { data: lessons = [], isLoading } = useQuery({
+    queryKey: ['learning-path-lessons'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('curriculum_lessons')
+        .select(`
+          id,
+          title,
+          description,
+          sequence_order,
+          duration_minutes,
+          xp_reward,
+          difficulty_level,
+          unit:curriculum_units(id, title, unit_number)
+        `)
+        .eq('is_published', true)
+        .order('sequence_order', { ascending: true });
 
-  const getPersonalizedThemes = (profileData: any) => {
-    const interests = profileData.interests || [];
-    const level = profileData.englishLevel;
-    const goals = profileData.goals || [];
+      if (error) throw error;
+      
+      // Transform the data to handle Supabase's array return for single relations
+      return (data || []).map((item: any) => ({
+        ...item,
+        unit: Array.isArray(item.unit) ? item.unit[0] : item.unit,
+      })) as CurriculumLesson[];
+    },
+  });
+
+  // Group lessons by unit
+  const groupedLessons: GroupedLessons[] = React.useMemo(() => {
+    const groups: Map<string | null, GroupedLessons> = new Map();
     
-    // Base themes that adapt to interests
-    const baseThemes = [
-      {
-        title: "All About Me",
-        objective: "Introduce yourself confidently",
-        activities: ["Create your avatar", "Record introduction video", "Family tree project"]
-      },
-      {
-        title: interests.includes('Animals & Nature') ? "Amazing Animals" : "My World",
-        objective: "Describe things you love",
-        activities: interests.includes('Animals & Nature') 
-          ? ["Animal habitat game", "Pet care guide", "Zoo virtual tour"]
-          : ["Hobby presentation", "Dream job interview", "Cultural exchange"]
-      },
-      {
-        title: interests.includes('Food & Cooking') ? "Delicious Foods" : "Daily Life",
-        objective: "Talk about daily activities",
-        activities: interests.includes('Food & Cooking')
-          ? ["Recipe creation", "Restaurant role-play", "Food from around the world"]
-          : ["Daily routine video", "Time management game", "Schedule planner"]
-      },
-      {
-        title: interests.includes('Space & Science') ? "Space Adventure" : "Future Dreams",
-        objective: "Express future plans and dreams",
-        activities: interests.includes('Space & Science')
-          ? ["Planet exploration", "Astronaut training", "Space mission planning"]
-          : ["Dream board creation", "Goal setting workshop", "Future timeline"]
-      },
-      {
-        title: interests.includes('Adventure & Travel') ? "World Explorer" : "Community Heroes",
-        objective: "Describe places and people",
-        activities: interests.includes('Adventure & Travel')
-          ? ["Virtual world tour", "Travel blog", "Adventure story writing"]
-          : ["Community helpers interview", "Local heroes presentation", "Neighborhood map"]
-      },
-      {
-        title: "Celebration Time",
-        objective: "Share experiences and stories",
-        activities: ["Festival around the world", "Memory sharing", "Achievement celebration"]
+    lessons.forEach((lesson) => {
+      const unitKey = lesson.unit?.id || null;
+      
+      if (!groups.has(unitKey)) {
+        groups.set(unitKey, {
+          unit: lesson.unit || null,
+          lessons: [],
+        });
       }
-    ];
+      
+      groups.get(unitKey)!.lessons.push(lesson);
+    });
 
-    return baseThemes.slice(0, 6); // 6-week program
-  };
+    // Sort by unit number
+    return Array.from(groups.values()).sort((a, b) => {
+      if (!a.unit) return 1;
+      if (!b.unit) return -1;
+      return a.unit.unit_number - b.unit.unit_number;
+    });
+  }, [lessons]);
 
   const getTotalProgress = () => {
-    const completedWeeks = learningPath.filter(week => week.completed).length;
-    return (completedWeeks / learningPath.length) * 100;
+    // For now, return a mock progress (in real app, this would check student_progress)
+    if (lessons.length === 0) return 0;
+    return Math.round((1 / lessons.length) * 100);
   };
 
   const getTotalXP = () => {
-    return learningPath.filter(week => week.completed).reduce((total, week) => total + week.xpTarget, 0);
+    // Mock: assume first lesson is completed
+    return lessons[0]?.xp_reward || 0;
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <span className="ml-3 text-muted-foreground">Loading your learning path...</span>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (!profile) {
     return (
       <div className="space-y-6">
         <Card>
           <CardContent className="text-center py-12">
-            <Rocket className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <Rocket className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">
               Complete Your Profile First!
             </h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-muted-foreground mb-4">
               To see your personalized learning path, please complete your student application form.
             </p>
             <Button 
@@ -167,17 +164,17 @@ export const LearningPathTab = () => {
       {/* Header with Progress */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Target className="h-6 w-6 text-emerald-600" />
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <Target className="h-6 w-6 text-primary" />
             Your Path to Fluency
           </h1>
-          <p className="text-gray-600 mt-1">
-            Personalized just for you, {profile.basicInfo.name}! 🌟
+          <p className="text-muted-foreground mt-1">
+            Personalized just for you, {profile?.basicInfo?.name || 'Learner'}! 🌟
           </p>
         </div>
         <div className="text-right">
-          <div className="text-2xl font-bold text-emerald-600">{getTotalXP()} XP</div>
-          <div className="text-sm text-gray-500">Total Earned</div>
+          <div className="text-2xl font-bold text-primary">{getTotalXP()} XP</div>
+          <div className="text-sm text-muted-foreground">Total Earned</div>
         </div>
       </div>
 
@@ -199,142 +196,159 @@ export const LearningPathTab = () => {
             
             <div className="grid grid-cols-3 gap-4 mt-4">
               <div className="text-center">
-                <div className="text-lg font-bold text-emerald-600">
-                  {learningPath.filter(w => w.completed).length}
+                <div className="text-lg font-bold text-primary">
+                  {groupedLessons.length}
                 </div>
-                <div className="text-xs text-gray-500">Weeks Completed</div>
+                <div className="text-xs text-muted-foreground">Total Units</div>
               </div>
               <div className="text-center">
                 <div className="text-lg font-bold text-blue-600">
-                  {currentWeek}
+                  {lessons.length}
                 </div>
-                <div className="text-xs text-gray-500">Current Week</div>
+                <div className="text-xs text-muted-foreground">Total Lessons</div>
               </div>
               <div className="text-center">
                 <div className="text-lg font-bold text-purple-600">
-                  {learningPath.length - learningPath.filter(w => w.completed).length}
+                  {lessons.reduce((acc, l) => acc + (l.xp_reward || 0), 0)}
                 </div>
-                <div className="text-xs text-gray-500">Weeks Remaining</div>
+                <div className="text-xs text-muted-foreground">Available XP</div>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Learning Path Timeline */}
+      {/* Learning Path by Units */}
       <div className="space-y-4">
-        <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+        <h2 className="text-xl font-semibold flex items-center gap-2">
           <Calendar className="h-5 w-5 text-blue-600" />
-          Your 6-Week Learning Journey
+          Your Learning Journey
         </h2>
         
-        {learningPath.map((week, index) => (
-          <Card key={week.week} className={`
-            ${week.week === currentWeek ? 'ring-2 ring-emerald-500 bg-emerald-50/50' : ''}
-            ${week.completed ? 'bg-green-50/50' : ''}
-            transition-all duration-200 hover:shadow-md
-          `}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-3">
-                  <div className={`
-                    w-10 h-10 rounded-full flex items-center justify-center text-white font-bold
-                    ${week.completed ? 'bg-green-500' : week.week === currentWeek ? 'bg-emerald-500' : 'bg-gray-400'}
-                  `}>
-                    {week.completed ? <CheckCircle className="h-5 w-5" /> : week.week}
-                  </div>
-                  <div>
-                    <div className="text-lg">Week {week.week}: {week.theme}</div>
-                    <div className="text-sm text-gray-600 font-normal">{week.objective}</div>
-                  </div>
-                </CardTitle>
-                
-                <div className="flex items-center gap-2">
-                  {week.week === currentWeek && (
-                    <Badge variant="default" className="bg-emerald-600">
-                      Current Week
-                    </Badge>
-                  )}
-                  {week.completed && (
-                    <Badge variant="secondary" className="bg-green-100 text-green-700">
-                      ✓ Completed
-                    </Badge>
-                  )}
-                  <div className="text-right">
-                    <div className="text-sm font-medium">{week.xpTarget} XP</div>
-                    <div className="text-xs text-gray-500">Target</div>
-                  </div>
-                </div>
-              </div>
-            </CardHeader>
-            
-            <CardContent>
-              <div className="space-y-4">
-                {/* Lessons */}
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
-                    <BookOpen className="h-4 w-4" />
-                    Lessons
-                  </h4>
-                  <div className="space-y-2">
-                    {week.lessons.map((lesson, lessonIndex) => (
-                      <div key={lessonIndex} className="flex items-center justify-between p-3 bg-white rounded-lg border">
-                        <div className="flex items-center gap-3">
-                          <div className={`
-                            w-6 h-6 rounded-full flex items-center justify-center
-                            ${lesson.completed ? 'bg-green-500 text-white' : 'bg-gray-200'}
-                          `}>
-                            {lesson.completed ? <CheckCircle className="h-3 w-3" /> : lessonIndex + 1}
-                          </div>
-                          <div>
-                            <div className="font-medium text-sm">{lesson.title}</div>
-                            <div className="text-xs text-gray-500 flex items-center gap-2">
-                              <Clock className="h-3 w-3" />
-                              {lesson.duration}
-                              <span>•</span>
-                              {lesson.skills.join(", ")}
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {week.week === currentWeek && !lesson.completed && (
-                          <Button size="sm" variant="outline">
-                            <Play className="h-3 w-3 mr-1" />
-                            Start
-                          </Button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                
-                {/* Fun Activities */}
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
-                    <Heart className="h-4 w-4 text-pink-500" />
-                    Fun Activities
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                    {week.activities.map((activity, actIndex) => (
-                      <div key={actIndex} className="text-sm bg-white p-2 rounded border text-center">
-                        {activity}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+        {groupedLessons.length === 0 ? (
+          <Card>
+            <CardContent className="text-center py-12">
+              <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No lessons available yet</h3>
+              <p className="text-muted-foreground">
+                Check back soon for new curriculum content!
+              </p>
             </CardContent>
           </Card>
-        ))}
+        ) : (
+          groupedLessons.map((group, groupIndex) => (
+            <Card 
+              key={group.unit?.id || 'no-unit'} 
+              className={`transition-all duration-200 hover:shadow-md ${
+                groupIndex === 0 ? 'ring-2 ring-primary bg-primary/5' : ''
+              }`}
+            >
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-3">
+                    <div className={`
+                      w-10 h-10 rounded-full flex items-center justify-center text-white font-bold
+                      ${groupIndex === 0 ? 'bg-primary' : 'bg-muted-foreground/50'}
+                    `}>
+                      {group.unit ? (
+                        <Layers className="h-5 w-5" />
+                      ) : (
+                        groupIndex + 1
+                      )}
+                    </div>
+                    <div>
+                      <div className="text-lg">
+                        {group.unit 
+                          ? `Unit ${group.unit.unit_number}: ${group.unit.title}`
+                          : 'General Lessons'
+                        }
+                      </div>
+                      <div className="text-sm text-muted-foreground font-normal">
+                        {group.lessons.length} lesson{group.lessons.length !== 1 ? 's' : ''}
+                      </div>
+                    </div>
+                  </CardTitle>
+                  
+                  <div className="flex items-center gap-2">
+                    {groupIndex === 0 && (
+                      <Badge variant="default" className="bg-primary">
+                        Current
+                      </Badge>
+                    )}
+                    <div className="text-right">
+                      <div className="text-sm font-medium">
+                        {group.lessons.reduce((acc, l) => acc + (l.xp_reward || 0), 0)} XP
+                      </div>
+                      <div className="text-xs text-muted-foreground">Total</div>
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              
+              <CardContent>
+                <div className="space-y-2">
+                  {group.lessons.map((lesson, lessonIndex) => (
+                    <div 
+                      key={lesson.id} 
+                      className="flex items-center justify-between p-3 bg-background rounded-lg border"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`
+                          w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium
+                          ${lessonIndex === 0 && groupIndex === 0 
+                            ? 'bg-green-500 text-white' 
+                            : 'bg-muted text-muted-foreground'
+                          }
+                        `}>
+                          {lessonIndex === 0 && groupIndex === 0 
+                            ? <CheckCircle className="h-3 w-3" /> 
+                            : lesson.sequence_order || lessonIndex + 1
+                          }
+                        </div>
+                        <div>
+                          <div className="font-medium text-sm">{lesson.title}</div>
+                          <div className="text-xs text-muted-foreground flex items-center gap-2">
+                            {lesson.duration_minutes && (
+                              <>
+                                <Clock className="h-3 w-3" />
+                                {lesson.duration_minutes} min
+                              </>
+                            )}
+                            <span>•</span>
+                            <span className="capitalize">{lesson.difficulty_level}</span>
+                            {lesson.xp_reward && (
+                              <>
+                                <span>•</span>
+                                <Star className="h-3 w-3 text-yellow-500" />
+                                {lesson.xp_reward} XP
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {groupIndex === 0 && lessonIndex === 1 && (
+                        <Button size="sm" variant="outline">
+                          <Play className="h-3 w-3 mr-1" />
+                          Start
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
       </div>
 
       {/* Motivational Footer */}
-      <Card className="bg-gradient-to-r from-emerald-500 to-blue-500 text-white">
+      <Card className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground">
         <CardContent className="text-center py-6">
           <Zap className="h-8 w-8 mx-auto mb-2 text-yellow-300" />
           <h3 className="text-lg font-bold mb-2">You're Doing Amazing!</h3>
-          <p className="text-emerald-100">
-            Keep going, {profile.basicInfo.name}! Every lesson brings you closer to English fluency. 🚀
+          <p className="opacity-90">
+            Keep going, {profile?.basicInfo?.name || 'Learner'}! Every lesson brings you closer to English fluency. 🚀
           </p>
         </CardContent>
       </Card>
