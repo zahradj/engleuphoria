@@ -16,11 +16,14 @@ import {
   CheckCircle,
   Trophy,
   Rocket,
-  Heart,
   Zap,
   Layers,
   Loader2
 } from "lucide-react";
+import { useAuth } from '@/contexts/AuthContext';
+import { useUserProgress, useProgressStats } from '@/hooks/useProgress';
+import { LessonPlayer } from './LessonPlayer';
+import { ProgressOverview } from './ProgressOverview';
 
 interface CurriculumLesson {
   id: string;
@@ -30,6 +33,7 @@ interface CurriculumLesson {
   duration_minutes: number | null;
   xp_reward: number | null;
   difficulty_level: string;
+  content: any;
   unit?: {
     id: string;
     title: string;
@@ -48,7 +52,22 @@ interface GroupedLessons {
 
 export const LearningPathTab = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);
+  const [playingLesson, setPlayingLesson] = useState<CurriculumLesson | null>(null);
+
+  // Fetch user progress
+  const { data: userProgress = [] } = useUserProgress(user?.id);
+  const { data: progressStats } = useProgressStats(user?.id);
+
+  // Create a map of lesson progress for quick lookup
+  const progressMap = React.useMemo(() => {
+    const map: Record<string, { status: string; score: number | null }> = {};
+    userProgress.forEach((p: any) => {
+      map[p.lesson_id] = { status: p.status, score: p.score };
+    });
+    return map;
+  }, [userProgress]);
 
   useEffect(() => {
     const savedProfile = localStorage.getItem('studentProfile');
@@ -71,6 +90,7 @@ export const LearningPathTab = () => {
           duration_minutes,
           xp_reward,
           difficulty_level,
+          content,
           unit:curriculum_units(id, title, unit_number)
         `)
         .eq('is_published', true)
@@ -112,14 +132,32 @@ export const LearningPathTab = () => {
   }, [lessons]);
 
   const getTotalProgress = () => {
-    // For now, return a mock progress (in real app, this would check student_progress)
     if (lessons.length === 0) return 0;
-    return Math.round((1 / lessons.length) * 100);
+    const completed = lessons.filter(l => progressMap[l.id]?.status === 'completed').length;
+    return Math.round((completed / lessons.length) * 100);
   };
 
   const getTotalXP = () => {
-    // Mock: assume first lesson is completed
-    return lessons[0]?.xp_reward || 0;
+    return progressStats?.completedLessons 
+      ? lessons.filter(l => progressMap[l.id]?.status === 'completed')
+          .reduce((sum, l) => sum + (l.xp_reward || 0), 0)
+      : 0;
+  };
+
+  const getNextLesson = () => {
+    // Find first lesson that isn't completed
+    for (const group of groupedLessons) {
+      for (const lesson of group.lessons) {
+        if (progressMap[lesson.id]?.status !== 'completed') {
+          return lesson;
+        }
+      }
+    }
+    return null;
+  };
+
+  const handleStartLesson = (lesson: CurriculumLesson) => {
+    setPlayingLesson(lesson);
   };
 
   if (isLoading) {
@@ -156,6 +194,26 @@ export const LearningPathTab = () => {
           </CardContent>
         </Card>
       </div>
+    );
+  }
+
+  const nextLesson = getNextLesson();
+
+  // If playing a lesson, show the player
+  if (playingLesson && user) {
+    return (
+      <LessonPlayer
+        lessonId={playingLesson.id}
+        lessonTitle={playingLesson.title}
+        slides={playingLesson.content?.slides || []}
+        userId={user.id}
+        xpReward={playingLesson.xp_reward || 100}
+        onClose={() => setPlayingLesson(null)}
+        onComplete={() => {
+          setPlayingLesson(null);
+          // Could navigate to next lesson here
+        }}
+      />
     );
   }
 

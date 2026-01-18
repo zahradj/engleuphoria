@@ -37,9 +37,11 @@ import {
   Plus,
   BookOpen,
   Layers,
+  Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 import { LessonPreview } from "./generator/LessonPreview";
+import { LessonEditorPage } from "./editor/LessonEditorPage";
 
 interface CurriculumLesson {
   id: string;
@@ -72,6 +74,7 @@ export const CurriculumLibrary = () => {
   const [unitFilter, setUnitFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [previewLesson, setPreviewLesson] = useState<CurriculumLesson | null>(null);
+  const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
 
   // Fetch lessons with unit info
   const { data: lessons = [], isLoading: isLoadingLessons } = useQuery({
@@ -183,6 +186,16 @@ export const CurriculumLibrary = () => {
         return "bg-gray-100 text-gray-700";
     }
   };
+
+  // If editing a lesson, show the editor
+  if (editingLessonId) {
+    return (
+      <LessonEditorPage
+        lessonId={editingLessonId}
+        onBack={() => setEditingLessonId(null)}
+      />
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -296,6 +309,10 @@ export const CurriculumLibrary = () => {
                       <DropdownMenuItem onClick={() => setPreviewLesson(lesson)}>
                         <Eye className="h-4 w-4 mr-2" />
                         Preview
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setEditingLessonId(lesson.id)}>
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Edit
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() =>
