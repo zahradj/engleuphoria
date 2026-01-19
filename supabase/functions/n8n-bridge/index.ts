@@ -365,13 +365,43 @@ REQUIREMENTS:
   }
 
   const aiResponse = await response.json();
-  console.log("AI response received");
+  console.log("AI response received:", JSON.stringify(aiResponse).substring(0, 500));
+
+  // Check if AI Gateway returned an error in the response body
+  if (aiResponse.error) {
+    console.error("AI Gateway returned error:", aiResponse.error);
+    throw new Error(`AI Gateway error: ${aiResponse.error.message || JSON.stringify(aiResponse.error)}`);
+  }
 
   // Extract the tool call result
   const toolCall = aiResponse.choices?.[0]?.message?.tool_calls?.[0];
-  if (!toolCall || toolCall.function.name !== "create_ppp_lesson") {
-    console.error("Unexpected AI response format:", aiResponse);
-    throw new Error("AI did not return expected lesson format");
+  
+  // If no tool call, try to extract from content directly (some models return JSON in content)
+  if (!toolCall) {
+    const content = aiResponse.choices?.[0]?.message?.content;
+    if (content) {
+      console.log("Attempting to parse lesson from content...");
+      try {
+        // Try to extract JSON from the content
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const lessonData = JSON.parse(jsonMatch[0]);
+          if (lessonData.slides && lessonData.title) {
+            console.log("Successfully parsed lesson from content");
+            return lessonData;
+          }
+        }
+      } catch (parseError) {
+        console.error("Failed to parse content as JSON:", parseError);
+      }
+    }
+    console.error("Unexpected AI response format:", JSON.stringify(aiResponse).substring(0, 1000));
+    throw new Error("AI did not return expected lesson format - no tool call or valid JSON content found");
+  }
+
+  if (toolCall.function.name !== "create_ppp_lesson") {
+    console.error("Wrong tool called:", toolCall.function.name);
+    throw new Error(`AI called wrong tool: ${toolCall.function.name}`);
   }
 
   const lessonData = JSON.parse(toolCall.function.arguments);
