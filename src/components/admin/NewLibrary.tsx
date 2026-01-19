@@ -11,12 +11,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Wand2, Save, Trash2, Sparkles, HelpCircle, RefreshCw, Zap } from "lucide-react";
+import { Loader2, Wand2, Save, Trash2, Sparkles, HelpCircle, RefreshCw, Zap, BarChart3 } from "lucide-react";
 import { SystemSelector } from "./generator/SystemSelector";
 import { LessonPreview } from "./generator/LessonPreview";
 import { LessonPicker, MasterLessonFlat } from "./generator/LessonPicker";
 import { BulkLessonGenerator } from "./generator/BulkLessonGenerator";
 import { GenerationProgress } from "./generator/GenerationProgress";
+import { GenerationHistoryPanel } from "./generator/GenerationHistoryPanel";
+import { QualityDashboard } from "./generator/QualityDashboard";
 import { useN8nGenerator } from "@/hooks/useN8nGenerator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -72,6 +74,7 @@ export const NewLibrary = () => {
     regenerateLesson,
     discardLesson,
     setEditing,
+    cancelGeneration,
   } = useN8nGenerator();
 
   useEffect(() => {
@@ -276,7 +279,7 @@ export const NewLibrary = () => {
       </div>
 
       <Tabs defaultValue="single" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
+        <TabsList className="grid w-full max-w-lg grid-cols-3">
           <TabsTrigger value="single" className="flex items-center gap-2">
             <Wand2 className="h-4 w-4" />
             Single Lesson
@@ -285,10 +288,18 @@ export const NewLibrary = () => {
             <Zap className="h-4 w-4" />
             Bulk Generate
           </TabsTrigger>
+          <TabsTrigger value="quality" className="flex items-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            Quality
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="bulk" className="mt-6">
           <BulkLessonGenerator />
+        </TabsContent>
+
+        <TabsContent value="quality" className="mt-6">
+          <QualityDashboard />
         </TabsContent>
 
         <TabsContent value="single" className="mt-6">
@@ -467,6 +478,7 @@ export const NewLibrary = () => {
                 durationMinutes={durationMinutes}
                 stage={generationStage}
                 startTime={generationStartTime}
+                onCancel={cancelGeneration}
               />
             ) : generatedLesson ? (
               <div className="space-y-4">
@@ -518,6 +530,11 @@ export const NewLibrary = () => {
             )}
           </CardContent>
         </Card>
+      </div>
+
+      {/* Generation History Panel */}
+      <div className="mt-6">
+        <GenerationHistoryPanel />
       </div>
         </TabsContent>
       </Tabs>

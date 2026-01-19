@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { validateLesson, ValidationResult } from "@/lib/lessonValidator";
@@ -36,9 +36,28 @@ export const useN8nGenerator = () => {
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
   const [generationStage, setGenerationStage] = useState<GenerationStage>('connecting');
   const [generationStartTime, setGenerationStartTime] = useState<number>(Date.now());
+  const [isCancelled, setIsCancelled] = useState(false);
+  
+  // AbortController ref for cancellation
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const cancelGeneration = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setIsCancelled(true);
+    setIsGenerating(false);
+    setGenerationStage('connecting');
+    toast.info("Generation cancelled");
+  }, []);
 
   const generateLesson = async (params: GenerateParams) => {
+    // Create new AbortController for this request
+    abortControllerRef.current = new AbortController();
+    
     setIsGenerating(true);
+    setIsCancelled(false);
     setGeneratedLesson(null);
     setValidationResult(null);
     setGenerationStage('connecting');
@@ -113,11 +132,16 @@ export const useN8nGenerator = () => {
         throw new Error(data?.error || "Failed to generate lesson - unexpected response format");
       }
     } catch (error: any) {
+      // Don't show error if it was cancelled
+      if (error.name === 'AbortError' || isCancelled) {
+        return null;
+      }
       console.error("Error generating lesson:", error);
       toast.error(error.message || "Failed to generate lesson");
       return null;
     } finally {
       setIsGenerating(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -226,11 +250,13 @@ export const useN8nGenerator = () => {
     validationResult,
     generationStage,
     generationStartTime,
+    isCancelled,
     generateLesson,
     saveLesson,
     regenerateLesson,
     discardLesson,
     setEditing,
     clearValidation,
+    cancelGeneration,
   };
 };

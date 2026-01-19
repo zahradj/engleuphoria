@@ -2815,6 +2815,71 @@ export type Database = {
         }
         Relationships: []
       }
+      generation_history: {
+        Row: {
+          age_group: string | null
+          cefr_level: string | null
+          created_at: string | null
+          duration_minutes: number | null
+          duration_seconds: number | null
+          error_message: string | null
+          id: string
+          lesson_id: string | null
+          metadata: Json | null
+          retry_count: number | null
+          status: string
+          system_type: string
+          topic: string
+          user_id: string | null
+          validation_issues: Json | null
+          validation_score: number | null
+        }
+        Insert: {
+          age_group?: string | null
+          cefr_level?: string | null
+          created_at?: string | null
+          duration_minutes?: number | null
+          duration_seconds?: number | null
+          error_message?: string | null
+          id?: string
+          lesson_id?: string | null
+          metadata?: Json | null
+          retry_count?: number | null
+          status: string
+          system_type: string
+          topic: string
+          user_id?: string | null
+          validation_issues?: Json | null
+          validation_score?: number | null
+        }
+        Update: {
+          age_group?: string | null
+          cefr_level?: string | null
+          created_at?: string | null
+          duration_minutes?: number | null
+          duration_seconds?: number | null
+          error_message?: string | null
+          id?: string
+          lesson_id?: string | null
+          metadata?: Json | null
+          retry_count?: number | null
+          status?: string
+          system_type?: string
+          topic?: string
+          user_id?: string | null
+          validation_issues?: Json | null
+          validation_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "generation_history_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       grammar_progression: {
         Row: {
           age_range: string

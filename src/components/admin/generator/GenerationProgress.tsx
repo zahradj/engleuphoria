@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { Progress } from "@/components/ui/progress";
-import { Clock, Brain, FileText, CheckCircle, Sparkles, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Clock, Brain, FileText, CheckCircle, Sparkles, Loader2, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type GenerationStage = 'connecting' | 'generating' | 'validating' | 'complete';
@@ -9,6 +20,7 @@ interface GenerationProgressProps {
   durationMinutes: number;
   stage: GenerationStage;
   startTime: number;
+  onCancel?: () => void;
 }
 
 const STAGE_CONFIG = {
@@ -64,9 +76,10 @@ function getExpectedSlides(durationMinutes: number): number {
   return 60;
 }
 
-export function GenerationProgress({ durationMinutes, stage, startTime }: GenerationProgressProps) {
+export function GenerationProgress({ durationMinutes, stage, startTime, onCancel }: GenerationProgressProps) {
   const [elapsedMs, setElapsedMs] = useState(0);
   const [tipIndex, setTipIndex] = useState(0);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
 
   const estimatedTime = getEstimatedTime(durationMinutes);
   const expectedSlides = getExpectedSlides(durationMinutes);
@@ -98,6 +111,15 @@ export function GenerationProgress({ durationMinutes, stage, startTime }: Genera
 
   const StageIcon = STAGE_CONFIG[stage].icon;
   const stageConfig = STAGE_CONFIG[stage];
+
+  const handleCancelClick = () => {
+    setShowCancelDialog(true);
+  };
+
+  const handleConfirmCancel = () => {
+    setShowCancelDialog(false);
+    onCancel?.();
+  };
 
   return (
     <div className="flex flex-col items-center justify-center py-8 px-4">
@@ -181,6 +203,41 @@ export function GenerationProgress({ durationMinutes, stage, startTime }: Genera
           );
         })}
       </div>
+
+      {/* Cancel button */}
+      {stage !== 'complete' && onCancel && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleCancelClick}
+          className="mt-6 text-muted-foreground hover:text-destructive hover:border-destructive"
+        >
+          <XCircle className="h-4 w-4 mr-1" />
+          Cancel Generation
+        </Button>
+      )}
+
+      {/* Cancel confirmation dialog */}
+      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Lesson Generation?</AlertDialogTitle>
+            <AlertDialogDescription>
+              The AI is currently generating your lesson. Are you sure you want to cancel?
+              You'll need to start over if you want to generate this lesson again.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Continue Generating</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmCancel}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Yes, Cancel
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
