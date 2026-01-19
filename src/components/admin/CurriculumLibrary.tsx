@@ -89,7 +89,11 @@ export const CurriculumLibrary = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as CurriculumLesson[];
+      // Transform unit from array to object (Supabase returns arrays for single relations)
+      return (data || []).map((item: any) => ({
+        ...item,
+        unit: Array.isArray(item.unit) ? item.unit[0] : item.unit,
+      })) as CurriculumLesson[];
     },
   });
 
