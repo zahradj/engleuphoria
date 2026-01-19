@@ -14,9 +14,9 @@ interface SystemSelectorProps {
 }
 
 const systems = [
-  { id: "kids", label: "🎪 Playground (Kids 6-10)", description: "Fun, visual, game-based learning" },
-  { id: "teen", label: "🎓 Academy (Teens 11-17)", description: "Modern contexts, social media themes" },
-  { id: "adult", label: "💼 Hub (Adults 18+)", description: "Professional, business-focused" },
+  { id: "kids", label: "🛝 Playground", description: "Kids/Foundation • Cartoon & Vibrant" },
+  { id: "teen", label: "🏫 The Academy", description: "Teens/Structure • Realistic & Modern" },
+  { id: "adult", label: "🏢 The Hub", description: "Adults/Pro • Corporate & Minimalist" },
 ];
 
 export const SystemSelector = ({ value, onChange }: SystemSelectorProps) => {
