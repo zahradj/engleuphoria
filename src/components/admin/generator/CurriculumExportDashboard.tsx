@@ -18,11 +18,22 @@ import {
   FileCode,
   Layers,
   Clock,
-  HardDrive
+  HardDrive,
+  Eye
 } from 'lucide-react';
 import { useCurriculumProgress, SystemProgress, UnitProgress } from '@/hooks/useCurriculumProgress';
 import { useCurriculumExport, ExportFormat, ExportHistoryItem } from '@/hooks/useCurriculumExport';
 import { supabase } from '@/integrations/supabase/client';
+import { LMSPreviewPlayer } from '@/components/admin/preview/LMSPreviewPlayer';
+
+interface LessonSlide {
+  id: string;
+  type: string;
+  title?: string;
+  content?: any;
+  phase?: 'presentation' | 'practice' | 'production';
+  teacherNotes?: string;
+}
 
 interface LessonWithId {
   id: string;
@@ -51,6 +62,44 @@ export function CurriculumExportDashboard() {
   const [includeTeacherNotes, setIncludeTeacherNotes] = useState(true);
   const [includeAnswerKeys, setIncludeAnswerKeys] = useState(true);
   const [generatedLessons, setGeneratedLessons] = useState<LessonWithId[]>([]);
+  const [previewLesson, setPreviewLesson] = useState<{
+    id: string;
+    title: string;
+    slides: LessonSlide[];
+    targetSystem?: string;
+  } | null>(null);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+
+  const handlePreviewLesson = async (lessonId: string) => {
+    setIsLoadingPreview(true);
+    try {
+      const { data, error } = await supabase
+        .from('curriculum_lessons')
+        .select('id, title, content, target_system')
+        .eq('id', lessonId)
+        .single();
+      if (error) throw error;
+      const content = data.content as { screens?: any[] } | null;
+      const slides = content?.screens || [];
+      setPreviewLesson({
+        id: data.id,
+        title: data.title,
+        slides: slides.map((s: any, idx: number) => ({
+          id: s.id || `slide-${idx}`,
+          type: s.screenType || s.type || 'unknown',
+          title: s.title,
+          content: s.content || s,
+          phase: s.phase,
+          teacherNotes: s.teacherNotes
+        })),
+        targetSystem: data.target_system
+      });
+    } catch (error) {
+      console.error('Failed to load lesson for preview:', error);
+    } finally {
+      setIsLoadingPreview(false);
+    }
+  };
 
   // Load generated lessons from database
   useEffect(() => {
@@ -270,7 +319,7 @@ export function CurriculumExportDashboard() {
                           <Label className="text-sm text-muted-foreground mb-2 block">
                             Individual Lessons:
                           </Label>
-                          <div className="grid grid-cols-2 gap-2">
+                          <div className="grid grid-cols-1 gap-2">
                             {systemLessons.map(lesson => (
                               <div 
                                 key={lesson.id}
@@ -289,6 +338,16 @@ export function CurriculumExportDashboard() {
                                   }}
                                 />
                                 <span className="text-xs truncate flex-1">{lesson.title}</span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 px-2"
+                                  onClick={() => handlePreviewLesson(lesson.id)}
+                                  disabled={isLoadingPreview}
+                                >
+                                  <Eye className="h-3 w-3 mr-1" />
+                                  <span className="text-xs">Preview</span>
+                                </Button>
                               </div>
                             ))}
                           </div>
@@ -481,6 +540,16 @@ export function CurriculumExportDashboard() {
           )}
         </CardContent>
       </Card>
+
+      {/* LMS Preview Player */}
+      {previewLesson && (
+        <LMSPreviewPlayer
+          lesson={previewLesson}
+          format={selectedFormat}
+          onClose={() => setPreviewLesson(null)}
+          showTeacherNotes={includeTeacherNotes}
+        />
+      )}
     </div>
   );
 }
