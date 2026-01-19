@@ -432,12 +432,236 @@ REQUIREMENTS:
 
   const lessonData = JSON.parse(toolCall.function.arguments);
   
-  // Validate minimum structure
-  if (!lessonData.slides || lessonData.slides.length < 10) {
-    console.warn("AI returned fewer slides than expected, lesson may be incomplete");
+  // Validate the generated lesson
+  const validationResult = validateLessonData(lessonData, durationMinutes);
+  
+  console.log(`Lesson validation: score=${validationResult.score}%, isValid=${validationResult.isValid}, errors=${validationResult.errors.length}, warnings=${validationResult.warnings.length}`);
+
+  // Return lesson with validation metadata
+  return {
+    ...lessonData,
+    _validation: validationResult,
+  };
+}
+
+// ============================================================================
+// Server-side Lesson Validation
+// ============================================================================
+
+interface ValidationError {
+  code: string;
+  field: string;
+  message: string;
+  severity: 'critical' | 'error';
+  slideIndex?: number;
+}
+
+interface ValidationWarning {
+  code: string;
+  field: string;
+  message: string;
+  slideIndex?: number;
+}
+
+interface ValidationResult {
+  isValid: boolean;
+  errors: ValidationError[];
+  warnings: ValidationWarning[];
+  score: number;
+  slideCount: number;
+  expectedSlideCount: number;
+  phaseCoverage: {
+    presentation: number;
+    practice: number;
+    production: number;
+  };
+}
+
+const MIN_SLIDES_BY_DURATION: Record<number, number> = {
+  30: 15,
+  45: 25,
+  60: 35,
+  90: 50,
+};
+
+const REQUIRED_SLIDE_FIELDS = ['id', 'type', 'title', 'phase', 'content'];
+const PPP_PHASES = ['presentation', 'practice', 'production'];
+const IPA_PATTERN = /^\/[^\/]+\/$|^\[[^\]]+\]$/;
+const COMMON_IPA_CHARS = /[æɑɒʌəɪʊeɛɔuiːˈˌŋθðʃʒtʃdʒ]/;
+
+function validateIPA(ipa: string | undefined | null): boolean {
+  if (!ipa || typeof ipa !== 'string') return false;
+  const trimmed = ipa.trim();
+  if (!IPA_PATTERN.test(trimmed)) {
+    return COMMON_IPA_CHARS.test(trimmed);
+  }
+  const inner = trimmed.slice(1, -1);
+  return inner.length > 0;
+}
+
+function validateLessonData(lessonData: any, durationMinutes: number): ValidationResult {
+  const errors: ValidationError[] = [];
+  const warnings: ValidationWarning[] = [];
+  
+  const slides = lessonData?.slides || [];
+  const slideCount = slides.length;
+  const expectedSlideCount = MIN_SLIDES_BY_DURATION[durationMinutes] || MIN_SLIDES_BY_DURATION[60];
+
+  // Check slide count
+  if (slideCount === 0) {
+    errors.push({
+      code: 'NO_SLIDES',
+      field: 'slides',
+      message: 'Lesson has no slides',
+      severity: 'critical',
+    });
+  } else if (slideCount < expectedSlideCount * 0.7) {
+    errors.push({
+      code: 'INSUFFICIENT_SLIDES',
+      field: 'slides',
+      message: `Expected at least ${expectedSlideCount} slides for ${durationMinutes}-minute lesson, got ${slideCount}`,
+      severity: 'error',
+    });
   }
 
-  return lessonData;
+  // Validate each slide
+  for (let i = 0; i < slides.length; i++) {
+    const slide = slides[i];
+    
+    // Check required fields
+    for (const field of REQUIRED_SLIDE_FIELDS) {
+      const value = slide[field];
+      if (value === undefined || value === null || value === '') {
+        if (field === 'id' || field === 'type') {
+          errors.push({
+            code: `SLIDE_MISSING_${field.toUpperCase()}`,
+            field: `slide[${i}].${field}`,
+            message: `Slide ${i + 1} is missing required field: ${field}`,
+            severity: 'critical',
+            slideIndex: i,
+          });
+        } else {
+          errors.push({
+            code: `SLIDE_MISSING_${field.toUpperCase()}`,
+            field: `slide[${i}].${field}`,
+            message: `Slide ${i + 1} is missing: ${field}`,
+            severity: 'error',
+            slideIndex: i,
+          });
+        }
+      }
+    }
+
+    // Check teacher notes
+    if (!slide.teacherNotes?.trim()) {
+      warnings.push({
+        code: 'SLIDE_MISSING_TEACHER_NOTES',
+        field: `slide[${i}].teacherNotes`,
+        message: `Slide ${i + 1} is missing teacher notes`,
+        slideIndex: i,
+      });
+    }
+
+    // Validate vocabulary in slide content
+    const vocabArray = slide.vocabulary || slide.content?.vocabulary;
+    if (Array.isArray(vocabArray)) {
+      for (const vocab of vocabArray) {
+        if (!vocab.word?.trim()) {
+          errors.push({
+            code: 'VOCAB_MISSING_WORD',
+            field: `slide[${i}].vocabulary.word`,
+            message: `Slide ${i + 1}: vocabulary word is missing`,
+            severity: 'error',
+            slideIndex: i,
+          });
+        }
+        if (!vocab.ipa || !validateIPA(vocab.ipa)) {
+          errors.push({
+            code: 'VOCAB_INVALID_IPA',
+            field: `slide[${i}].vocabulary.ipa`,
+            message: `Slide ${i + 1}: invalid IPA "${vocab.ipa}" for word "${vocab.word || 'unknown'}"`,
+            severity: 'error',
+            slideIndex: i,
+          });
+        }
+      }
+    }
+  }
+
+  // Check PPP phase coverage
+  const phaseCounts = { presentation: 0, practice: 0, production: 0 };
+  for (const slide of slides) {
+    const phase = slide.phase?.toLowerCase();
+    if (phase && phase in phaseCounts) {
+      phaseCounts[phase as keyof typeof phaseCounts]++;
+    }
+  }
+
+  const total = slides.length || 1;
+  const phaseCoverage = {
+    presentation: Math.round((phaseCounts.presentation / total) * 100),
+    practice: Math.round((phaseCounts.practice / total) * 100),
+    production: Math.round((phaseCounts.production / total) * 100),
+  };
+
+  if (phaseCoverage.presentation === 0 && slideCount > 0) {
+    errors.push({ code: 'MISSING_PRESENTATION_PHASE', field: 'slides.phase', message: 'No slides for Presentation phase', severity: 'error' });
+  }
+  if (phaseCoverage.practice === 0 && slideCount > 0) {
+    errors.push({ code: 'MISSING_PRACTICE_PHASE', field: 'slides.phase', message: 'No slides for Practice phase', severity: 'error' });
+  }
+  if (phaseCoverage.production === 0 && slideCount > 0) {
+    errors.push({ code: 'MISSING_PRODUCTION_PHASE', field: 'slides.phase', message: 'No slides for Production phase', severity: 'error' });
+  }
+
+  // Check lesson-level fields
+  if (!lessonData?.title?.trim()) {
+    errors.push({ code: 'MISSING_TITLE', field: 'title', message: 'Lesson title is missing', severity: 'critical' });
+  }
+
+  // Validate top-level vocabulary
+  if (lessonData?.presentation?.vocabulary && Array.isArray(lessonData.presentation.vocabulary)) {
+    for (const vocab of lessonData.presentation.vocabulary) {
+      if (!vocab.ipa || !validateIPA(vocab.ipa)) {
+        errors.push({
+          code: 'VOCAB_INVALID_IPA',
+          field: 'presentation.vocabulary.ipa',
+          message: `Invalid IPA "${vocab.ipa}" for word "${vocab.word || 'unknown'}"`,
+          severity: 'error',
+        });
+      }
+    }
+  }
+
+  // Calculate completeness score
+  const criticalErrors = errors.filter(e => e.severity === 'critical').length;
+  const regularErrors = errors.filter(e => e.severity === 'error').length;
+  const warningCount = warnings.length;
+
+  let score = 100;
+  score -= criticalErrors * 25;
+  score -= regularErrors * 10;
+  score -= warningCount * 2;
+
+  if (slideCount > 0) {
+    const slideRatio = slideCount / expectedSlideCount;
+    if (slideRatio < 0.5) score -= 20;
+    else if (slideRatio < 0.8) score -= 10;
+    else if (slideRatio >= 1) score += 5;
+  }
+
+  score = Math.max(0, Math.min(100, score));
+  const isValid = criticalErrors === 0 && score >= 50;
+
+  return {
+    isValid,
+    errors,
+    warnings,
+    score: Math.round(score),
+    slideCount,
+    expectedSlideCount,
+    phaseCoverage,
+  };
 }
 
 // ============================================================================

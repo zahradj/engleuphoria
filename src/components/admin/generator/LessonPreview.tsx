@@ -3,22 +3,29 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, Gamepad2, Target, MessageSquare, BookOpen, Briefcase, Play, List } from "lucide-react";
+import { Sparkles, Gamepad2, Target, MessageSquare, BookOpen, Briefcase, Play, List, AlertTriangle } from "lucide-react";
 import { SlidePreviewCarousel, LessonSlide } from "./SlidePreviewCarousel";
+import { LessonValidationReport, ValidationScoreBadge } from "./LessonValidationReport";
+import type { ValidationResult } from "@/lib/lessonValidator";
 
 interface LessonPreviewProps {
   data: any;
   system: string;
+  validationResult?: ValidationResult | null;
 }
 
-export const LessonPreview = ({ data, system }: LessonPreviewProps) => {
-  const [viewMode, setViewMode] = useState<"overview" | "slides">("overview");
+export const LessonPreview = ({ data, system, validationResult }: LessonPreviewProps) => {
+  const [viewMode, setViewMode] = useState<"overview" | "slides" | "validation">("overview");
+  const [showValidation, setShowValidation] = useState(true);
 
   if (!data) return null;
 
   // Extract slides from the generated lesson data
   const slides: LessonSlide[] = data.slides || [];
   const hasSlides = slides.length > 0;
+  
+  // Use provided validation or check for embedded validation
+  const validation = validationResult || data._validation;
 
   const renderKidsPreview = () => (
     <div className="space-y-4">
@@ -221,8 +228,20 @@ export const LessonPreview = ({ data, system }: LessonPreviewProps) => {
         <div className="flex items-center gap-2">
           <h3 className="font-semibold text-lg">{data.title}</h3>
           <Badge>{getSystemLabel()}</Badge>
+          {validation && (
+            <ValidationScoreBadge score={validation.score} isValid={validation.isValid} />
+          )}
         </div>
       </div>
+
+      {/* Validation Report */}
+      {validation && showValidation && (
+        <LessonValidationReport 
+          result={validation} 
+          onDismiss={() => setShowValidation(false)}
+          compact={false}
+        />
+      )}
 
       {/* View Mode Toggle */}
       {hasSlides ? (

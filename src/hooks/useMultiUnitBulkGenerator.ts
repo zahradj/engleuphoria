@@ -4,6 +4,7 @@ import { SystemKey } from '@/data/masterCurriculum';
 import { FlatLesson } from '@/hooks/useCurriculumProgress';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { validateLesson } from '@/lib/lessonValidator';
 
 export interface QueuedLesson {
   lesson: FlatLesson;
@@ -165,7 +166,15 @@ export function useMultiUnitBulkGenerator() {
       throw new Error("Invalid lesson format returned from AI");
     }
     
-    return lessonData;
+    // Validate the generated lesson
+    const validation = validateLesson(lessonData, 60);
+    console.log(`Lesson validation for "${lesson.lessonTitle}": score=${validation.score}%, isValid=${validation.isValid}`);
+    
+    if (!validation.isValid) {
+      console.warn(`Lesson "${lesson.lessonTitle}" has validation issues:`, validation.errors.slice(0, 5));
+    }
+    
+    return { ...lessonData, _validation: validation };
   };
 
   const saveLessonToDatabase = async (
