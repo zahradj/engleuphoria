@@ -65,14 +65,15 @@ export const useBulkLessonGenerator = () => {
         lesson_type: lesson.lessonType,
         unit_name: lesson.unitName,
         level_name: lesson.levelName,
+        duration_minutes: 60, // Default to 1-hour lessons
       },
     });
 
     if (error) throw error;
 
     const lessonData = data?.data || data?.lesson || data;
-    if (!lessonData?.presentation && !lessonData?.title) {
-      throw new Error("Invalid lesson format returned");
+    if (!lessonData?.presentation && !lessonData?.title && !lessonData?.slides) {
+      throw new Error("Invalid lesson format returned - missing required fields");
     }
 
     return lessonData;

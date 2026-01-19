@@ -147,14 +147,25 @@ export function useMultiUnitBulkGenerator() {
         topic: lesson.lessonTitle,
         system: lesson.systemKey,
         level: lesson.levelName,
+        cefr_level: lesson.cefrLevel,
+        lesson_type: lesson.lessonType,
+        unit_name: lesson.unitName,
+        level_name: lesson.levelName,
         unitNumber: lesson.unitNumber,
         lessonNumber: lesson.lessonNumber,
-        lessonType: lesson.lessonType,
+        duration_minutes: 60, // Default to 1-hour lessons
       },
     });
 
     if (error) throw error;
-    return data;
+    
+    // Extract the lesson data from the response
+    const lessonData = data?.data || data?.lesson || data;
+    if (!lessonData?.presentation && !lessonData?.title && !lessonData?.slides) {
+      throw new Error("Invalid lesson format returned from AI");
+    }
+    
+    return lessonData;
   };
 
   const saveLessonToDatabase = async (

@@ -53,9 +53,11 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const { action, topic, system, level, level_id, cefr_level, lesson_type, unit_name, level_name } = body;
+    const { action, topic, system, level, level_id, cefr_level, lesson_type, unit_name, level_name, duration_minutes } = body;
 
-    console.log("n8n-bridge request:", { action, topic, system, level, cefr_level, lesson_type });
+    // Default to 60 minutes if not specified
+    const lessonDuration = duration_minutes || 60;
+    console.log("n8n-bridge request:", { action, topic, system, level, cefr_level, lesson_type, duration_minutes: lessonDuration });
 
     if (action === "generate-lesson") {
       // Try n8n webhook first if configured
@@ -115,6 +117,7 @@ serve(async (req) => {
         lessonType: lesson_type,
         unitName: unit_name,
         levelName: level_name,
+        durationMinutes: lessonDuration,
         apiKey: lovableApiKey,
       });
 
@@ -171,18 +174,30 @@ interface GenerateParams {
   lessonType?: string;
   unitName?: string;
   levelName?: string;
+  durationMinutes: number;
   apiKey: string;
 }
 
 async function generateLessonWithAI(params: GenerateParams) {
-  const { topic, system, level, cefrLevel, lessonType, unitName, levelName, apiKey } = params;
+  const { topic, system, level, cefrLevel, lessonType, unitName, levelName, durationMinutes, apiKey } = params;
+  
+  // Calculate slide count based on duration (approximately 1.5 min per slide)
+  const slideCount = Math.min(Math.max(Math.ceil(durationMinutes / 1.5), 13), 50);
+  const presentationSlides = Math.ceil(slideCount * 0.35); // ~35% for presentation
+  const practiceSlides = Math.ceil(slideCount * 0.45);     // ~45% for practice
+  const productionSlides = slideCount - presentationSlides - practiceSlides; // remainder for production
 
   // Build system-specific context
   const systemContext = getSystemContext(system);
   const lessonTypeContext = getLessonTypeContext(lessonType || "Mechanic");
 
   const systemPrompt = `You are an expert ESL curriculum designer specializing in creating engaging, pedagogically sound lessons. 
-You create complete PPP (Presentation-Practice-Production) lessons with 13 slides that are classroom-ready.
+You create complete PPP (Presentation-Practice-Production) lessons that are classroom-ready.
+
+LESSON STRUCTURE FOR ${durationMinutes}-MINUTE LESSON (${slideCount} slides total):
+- Presentation Phase: ${presentationSlides} slides
+- Practice Phase: ${practiceSlides} slides
+- Production Phase: ${productionSlides} slides
 
 SYSTEM CONTEXT:
 - Target System: ${systemContext.label} (${systemContext.visualStyle})
@@ -193,9 +208,15 @@ SYSTEM CONTEXT:
 LESSON TYPE: ${lessonType || "Mechanic"}
 ${lessonTypeContext}
 
+CRITICAL INSTRUCTIONS:
+1. Generate EXACTLY ${slideCount} slides - no more, no less
+2. Each slide MUST have all required fields (id, type, title, phase, phaseLabel, content, teacherNotes, durationSeconds)
+3. Vocabulary must include accurate IPA pronunciations
+4. All JSON must be complete and valid - do not truncate
+
 Always output valid JSON matching the exact schema provided.`;
 
-  const userPrompt = `Create a complete 13-slide ESL lesson with the following specifications:
+  const userPrompt = `Create a complete ${slideCount}-slide ESL lesson (${durationMinutes} minutes) with the following specifications:
 
 LESSON DETAILS:
 - Topic: ${topic}
@@ -203,43 +224,47 @@ LESSON DETAILS:
 - Unit: ${unitName || "General"}
 - System: ${system}
 - Lesson Type: ${lessonType || "Mechanic"}
+- Duration: ${durationMinutes} minutes
+- Total Slides: ${slideCount}
+
+VOCABULARY REQUIREMENTS (${durationMinutes >= 60 ? "6-8" : "4-5"} words):
+- Word with IPA pronunciation (accurate phonetic transcription)
+- Clear, age-appropriate definition
+- Example sentence using the word in context
+- Image prompt suggestion for visual aid
+
+GRAMMAR REQUIREMENTS:
+- Clear explanation of the rule
+- Pattern formula (e.g., "Subject + verb + object")
+- ${durationMinutes >= 60 ? "6" : "4"} example sentences
+- 3 common mistakes with corrections
+
+SLIDE STRUCTURE for ${slideCount} slides:
+
+PRESENTATION PHASE (${presentationSlides} slides):
+- Slide 1: Title & Warmup (objectives, engaging question)
+- Slides 2-${Math.min(presentationSlides - 1, Math.ceil(presentationSlides * 0.7))}: Vocabulary (one word per slide)
+- Remaining presentation slides: Grammar Focus (rule, pattern, examples)
+
+PRACTICE PHASE (${practiceSlides} slides):
+- Controlled Practice slides (fill-in-the-blank exercises)
+- Dialogue slides (age-appropriate conversations)
+- Speaking Practice slides (guided speaking activities)
+- Interactive Game slides (matching, quiz, or drag-drop)
+- Listening comprehension slides (if 60+ minutes)
+- Quick Quiz slides (multiple choice assessment)
+
+PRODUCTION PHASE (${productionSlides} slides):
+- Creative Production Task slides
+- Role-play scenario slides
+- Summary & Homework slide (final slide)
 
 REQUIREMENTS:
-1. Generate 4 vocabulary items with:
-   - Word
-   - IPA pronunciation (accurate phonetic transcription)
-   - Clear, age-appropriate definition
-   - Example sentence using the word in context
-
-2. Create a grammar rule with:
-   - Clear explanation of the rule
-   - Pattern formula (e.g., "Subject + verb + object")
-   - 4 example sentences
-   - 3 common mistakes with corrections
-
-3. Design 13 slides following PPP structure:
-   PRESENTATION PHASE (Slides 1-6):
-   - Slide 1: Title & Warmup (objectives, engaging question)
-   - Slides 2-5: Vocabulary (one word per slide)
-   - Slide 6: Grammar Focus (rule, pattern, examples)
-   
-   PRACTICE PHASE (Slides 7-11):
-   - Slide 7: Controlled Practice (fill-in-the-blank exercises)
-   - Slide 8: Dialogue (age-appropriate conversation)
-   - Slide 9: Speaking Practice (guided speaking activity)
-   - Slide 10: Interactive Game (matching, quiz, or drag-drop)
-   - Slide 11: Quick Quiz (multiple choice assessment)
-   
-   PRODUCTION PHASE (Slides 12-13):
-   - Slide 12: Creative Production Task
-   - Slide 13: Summary & Homework
-
-4. Include teacher notes for each slide with timing suggestions.
-
-5. Make content age-appropriate for ${systemContext.ageGroup}:
-   - ${system === "kids" ? "Use cartoon characters, games, colors, simple language" : ""}
-   - ${system === "teen" ? "Reference social media, trending topics, peer interactions" : ""}
-   - ${system === "adult" ? "Use professional scenarios, business contexts, formal registers" : ""}`;
+1. Include teacher notes for each slide with timing suggestions
+2. Make content age-appropriate for ${systemContext.ageGroup}
+3. ${system === "kids" ? "Use cartoon characters, games, colors, simple language" : ""}
+4. ${system === "teen" ? "Reference social media, trending topics, peer interactions" : ""}
+5. ${system === "adult" ? "Use professional scenarios, business contexts, formal registers" : ""}`;
 
   // Define the tool for structured output
   const tools = [
@@ -254,8 +279,8 @@ REQUIREMENTS:
             title: { type: "string", description: "Lesson title including topic and level" },
             system: { type: "string", description: "Target system: kids, teen, or adult" },
             cefrLevel: { type: "string", description: "CEFR level code" },
-            slideCount: { type: "number", description: "Total number of slides (should be 13)" },
-            estimatedDuration: { type: "number", description: "Estimated lesson duration in minutes" },
+            slideCount: { type: "number", description: `Total number of slides (should be ${slideCount})` },
+            estimatedDuration: { type: "number", description: `Lesson duration in minutes (${durationMinutes})` },
             slides: {
               type: "array",
               description: "Array of 13 lesson slides",
@@ -331,8 +356,9 @@ REQUIREMENTS:
     },
   ];
 
-  console.log("Calling Lovable AI Gateway...");
+  console.log(`Calling Lovable AI Gateway for ${slideCount}-slide lesson...`);
 
+  // Use gemini-3-flash-preview for better performance and reliability
   const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -340,14 +366,14 @@ REQUIREMENTS:
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "google/gemini-2.5-flash",
+      model: "google/gemini-3-flash-preview",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
       ],
       tools,
       tool_choice: { type: "function", function: { name: "create_ppp_lesson" } },
-      max_tokens: 12000,
+      max_tokens: 20000,
     }),
   });
 
