@@ -276,3 +276,44 @@ export function getTotalLessonCount(): number {
   });
   return count;
 }
+
+// Get all levels for a system
+export function getLevelsForSystem(systemKey: SystemKey): Array<{ name: string; cefrLevel: string }> {
+  const system = MASTER_CURRICULUM[systemKey];
+  if (!system) return [];
+  
+  return Object.values(system.levels).map(level => ({
+    name: level.name,
+    cefrLevel: level.cefrLevel,
+  }));
+}
+
+// Get all units for a specific level
+export function getUnitsForLevel(
+  systemKey: SystemKey,
+  levelName: string
+): Array<{ number: number; name: string; lessonCount: number }> {
+  const system = MASTER_CURRICULUM[systemKey];
+  if (!system) return [];
+  
+  const level = system.levels[levelName];
+  if (!level) return [];
+  
+  return level.units.map(unit => ({
+    number: unit.number,
+    name: unit.name,
+    lessonCount: unit.lessons.length,
+  }));
+}
+
+// Get all lessons for a specific unit
+export function getLessonsForUnit(
+  systemKey: SystemKey,
+  levelName: string,
+  unitNumber: number
+) {
+  const allLessons = getAllLessonsForSystem(systemKey);
+  return allLessons.filter(
+    l => l.levelName === levelName && l.unitNumber === unitNumber
+  );
+}
