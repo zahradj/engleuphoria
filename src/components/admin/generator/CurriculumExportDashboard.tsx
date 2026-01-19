@@ -19,12 +19,14 @@ import {
   Layers,
   Clock,
   HardDrive,
-  Eye
+  Eye,
+  ClipboardCheck
 } from 'lucide-react';
 import { useCurriculumProgress, SystemProgress, UnitProgress } from '@/hooks/useCurriculumProgress';
 import { useCurriculumExport, ExportFormat, ExportHistoryItem } from '@/hooks/useCurriculumExport';
 import { supabase } from '@/integrations/supabase/client';
 import { LMSPreviewPlayer } from '@/components/admin/preview/LMSPreviewPlayer';
+import { LessonQualityChecker } from '@/components/admin/quality/LessonQualityChecker';
 
 interface LessonSlide {
   id: string;
@@ -69,6 +71,34 @@ export function CurriculumExportDashboard() {
     targetSystem?: string;
   } | null>(null);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+  const [qualityCheckLesson, setQualityCheckLesson] = useState<{
+    title: string;
+    slides: LessonSlide[];
+  } | null>(null);
+
+  const handleQualityCheck = async (lessonId: string, lessonTitle: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('curriculum_lessons')
+        .select('id, title, content')
+        .eq('id', lessonId)
+        .single();
+      if (error) throw error;
+      const content = data.content as { screens?: any[] } | null;
+      const slides = content?.screens || [];
+      setQualityCheckLesson({
+        title: data.title,
+        slides: slides.map((s: any, idx: number) => ({
+          id: s.id || `slide-${idx}`,
+          type: s.screenType || s.type || 'unknown',
+          title: s.title,
+          content: s.content || s,
+        })),
+      });
+    } catch (error) {
+      console.error('Failed to load lesson for quality check:', error);
+    }
+  };
 
   const handlePreviewLesson = async (lessonId: string) => {
     setIsLoadingPreview(true);
@@ -348,6 +378,15 @@ export function CurriculumExportDashboard() {
                                   <Eye className="h-3 w-3 mr-1" />
                                   <span className="text-xs">Preview</span>
                                 </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 px-2"
+                                  onClick={() => handleQualityCheck(lesson.id, lesson.title)}
+                                >
+                                  <ClipboardCheck className="h-3 w-3 mr-1" />
+                                  <span className="text-xs">Check</span>
+                                </Button>
                               </div>
                             ))}
                           </div>
@@ -549,6 +588,30 @@ export function CurriculumExportDashboard() {
           onClose={() => setPreviewLesson(null)}
           showTeacherNotes={includeTeacherNotes}
         />
+      )}
+
+      {/* Quality Checker Dialog */}
+      {qualityCheckLesson && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background rounded-xl max-w-2xl w-full max-h-[80vh] overflow-auto">
+            <div className="p-4 border-b flex items-center justify-between">
+              <h2 className="font-semibold">Lesson Quality Check</h2>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setQualityCheckLesson(null)}
+              >
+                ✕
+              </Button>
+            </div>
+            <div className="p-4">
+              <LessonQualityChecker 
+                lessonTitle={qualityCheckLesson.title}
+                slides={qualityCheckLesson.slides}
+              />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
