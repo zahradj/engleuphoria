@@ -188,6 +188,25 @@ export const SlidePreviewCarousel = ({ slides, onClose }: SlidePreviewCarouselPr
 
           {type === "vocabulary" && (
             <div className="space-y-4">
+              {/* Vocabulary Image */}
+              {currentSlide.imageUrl ? (
+                <div className="flex justify-center">
+                  <img 
+                    src={currentSlide.imageUrl} 
+                    alt={content.word || 'Vocabulary image'}
+                    className="max-h-48 rounded-lg object-contain border"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+              ) : content.imageKeyword && (
+                <div className="flex items-center justify-center gap-2 p-8 bg-muted/50 rounded-lg border-2 border-dashed">
+                  <Image className="h-6 w-6 text-muted-foreground" />
+                  <span className="text-muted-foreground">Image: {content.imageKeyword}</span>
+                </div>
+              )}
+              
               <div className="text-center p-6 bg-muted rounded-lg">
                 <h3 className="text-3xl font-bold mb-2">{content.word}</h3>
                 {content.ipa && (
@@ -198,12 +217,6 @@ export const SlidePreviewCarousel = ({ slides, onClose }: SlidePreviewCarouselPr
               {content.exampleSentence && (
                 <div className="p-4 bg-primary/10 rounded-lg">
                   <p className="italic">"{content.exampleSentence}"</p>
-                </div>
-              )}
-              {content.imageKeyword && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Image className="h-4 w-4" />
-                  <span>Image: {content.imageKeyword}</span>
                 </div>
               )}
             </div>
