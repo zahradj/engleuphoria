@@ -2,6 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { validateLesson, ValidationResult } from "@/lib/lessonValidator";
+import { GenerationStage } from "@/components/admin/generator/GenerationProgress";
 
 interface GenerateParams {
   topic: string;
@@ -33,14 +34,21 @@ export const useN8nGenerator = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
+  const [generationStage, setGenerationStage] = useState<GenerationStage>('connecting');
+  const [generationStartTime, setGenerationStartTime] = useState<number>(Date.now());
 
   const generateLesson = async (params: GenerateParams) => {
     setIsGenerating(true);
     setGeneratedLesson(null);
     setValidationResult(null);
+    setGenerationStage('connecting');
+    setGenerationStartTime(Date.now());
 
     try {
       const durationMinutes = params.durationMinutes || 60;
+      
+      // Move to generating stage after a brief delay
+      setTimeout(() => setGenerationStage('generating'), 500);
       
       const { data, error } = await supabase.functions.invoke("n8n-bridge", {
         body: {
@@ -59,6 +67,9 @@ export const useN8nGenerator = () => {
 
       if (error) throw error;
 
+      // Move to validating stage
+      setGenerationStage('validating');
+
       // Handle various response formats
       const lessonData = data?.data || data?.lesson || data;
       
@@ -72,6 +83,7 @@ export const useN8nGenerator = () => {
         
         setValidationResult(finalValidation);
         setGeneratedLesson(lessonData);
+        setGenerationStage('complete');
         
         if (!finalValidation.isValid) {
           toast.warning(`Lesson generated with issues (${finalValidation.score}% complete). Review validation report.`);
@@ -87,6 +99,7 @@ export const useN8nGenerator = () => {
         const clientValidation = validateLesson(lessonData, durationMinutes);
         setValidationResult(clientValidation);
         setGeneratedLesson(lessonData);
+        setGenerationStage('complete');
         
         if (!clientValidation.isValid) {
           toast.warning(`Lesson generated with issues (${clientValidation.score}% complete).`);
@@ -211,6 +224,8 @@ export const useN8nGenerator = () => {
     isSaving,
     editingLessonId,
     validationResult,
+    generationStage,
+    generationStartTime,
     generateLesson,
     saveLesson,
     regenerateLesson,

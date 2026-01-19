@@ -16,6 +16,7 @@ import { SystemSelector } from "./generator/SystemSelector";
 import { LessonPreview } from "./generator/LessonPreview";
 import { LessonPicker, MasterLessonFlat } from "./generator/LessonPicker";
 import { BulkLessonGenerator } from "./generator/BulkLessonGenerator";
+import { GenerationProgress } from "./generator/GenerationProgress";
 import { useN8nGenerator } from "@/hooks/useN8nGenerator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -64,6 +65,8 @@ export const NewLibrary = () => {
     generatedLesson,
     isSaving,
     editingLessonId,
+    generationStage,
+    generationStartTime,
     generateLesson,
     saveLesson,
     regenerateLesson,
@@ -460,10 +463,11 @@ export const NewLibrary = () => {
           </CardHeader>
           <CardContent>
             {isGenerating ? (
-              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                <Loader2 className="h-8 w-8 animate-spin mb-4" />
-                <p>AI is crafting your lesson...</p>
-              </div>
+              <GenerationProgress
+                durationMinutes={durationMinutes}
+                stage={generationStage}
+                startTime={generationStartTime}
+              />
             ) : generatedLesson ? (
               <div className="space-y-4">
                 <LessonPreview data={generatedLesson} system={system} />
