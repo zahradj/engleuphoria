@@ -13,6 +13,7 @@ interface GenerateParams {
   lessonType?: string;
   unitName?: string;
   levelName?: string;
+  durationMinutes?: number;
 }
 
 interface GeneratedLesson {
@@ -45,6 +46,7 @@ export const useN8nGenerator = () => {
           lesson_type: params.lessonType,
           unit_name: params.unitName,
           level_name: params.levelName,
+          duration_minutes: params.durationMinutes || 60,
         },
       });
 
@@ -57,7 +59,7 @@ export const useN8nGenerator = () => {
         setGeneratedLesson(lessonData);
         toast.success(data?.message || "Lesson generated successfully!");
         return lessonData;
-      } else if (lessonData?.presentation || lessonData?.title) {
+      } else if (lessonData?.presentation || lessonData?.title || lessonData?.slides) {
         setGeneratedLesson(lessonData);
         toast.success("Lesson generated successfully!");
         return lessonData;

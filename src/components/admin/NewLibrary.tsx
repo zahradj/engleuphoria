@@ -50,6 +50,7 @@ export const NewLibrary = () => {
   const [selectedLevelId, setSelectedLevelId] = useState<string>("");
   const [selectedUnitId, setSelectedUnitId] = useState<string>("");
   const [lessonNumber, setLessonNumber] = useState<number>(1);
+  const [durationMinutes, setDurationMinutes] = useState<number>(60);
   const [levels, setLevels] = useState<CurriculumLevel[]>([]);
   const [units, setUnits] = useState<CurriculumUnit[]>([]);
   const [isLoadingLevels, setIsLoadingLevels] = useState(true);
@@ -183,6 +184,7 @@ export const NewLibrary = () => {
       lessonType: selectedMasterLesson?.lessonType,
       unitName: selectedMasterLesson?.unitName || selectedUnit?.title,
       levelName: selectedMasterLesson?.levelName || selectedLevel?.name,
+      durationMinutes: durationMinutes,
     });
   };
 
@@ -200,6 +202,7 @@ export const NewLibrary = () => {
       lessonType: selectedMasterLesson?.lessonType,
       unitName: selectedMasterLesson?.unitName || selectedUnit?.title,
       levelName: selectedMasterLesson?.levelName || selectedLevel?.name,
+      durationMinutes: durationMinutes,
     };
 
     if (editingLessonId) {
@@ -371,6 +374,21 @@ export const NewLibrary = () => {
                 onChange={(e) => setLessonNumber(parseInt(e.target.value) || 1)}
                 placeholder="e.g., 1, 2, 3..."
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="duration">Lesson Duration</Label>
+              <Select value={durationMinutes.toString()} onValueChange={(v) => setDurationMinutes(parseInt(v))}>
+                <SelectTrigger id="duration">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="30">30 minutes (~20 slides)</SelectItem>
+                  <SelectItem value="45">45 minutes (~30 slides)</SelectItem>
+                  <SelectItem value="60">60 minutes (~40 slides)</SelectItem>
+                  <SelectItem value="90">90 minutes (~60 slides)</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
