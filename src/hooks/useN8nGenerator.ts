@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { validateLesson, ValidationResult } from "@/lib/lessonValidator";
 
 interface GenerateParams {
   topic: string;
@@ -19,9 +20,11 @@ interface GenerateParams {
 interface GeneratedLesson {
   system: string;
   title: string;
+  slides?: any[];
   presentation: any;
   practice: any;
   production: any;
+  _validation?: ValidationResult;
 }
 
 export const useN8nGenerator = () => {
@@ -29,12 +32,16 @@ export const useN8nGenerator = () => {
   const [generatedLesson, setGeneratedLesson] = useState<GeneratedLesson | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
+  const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
 
   const generateLesson = async (params: GenerateParams) => {
     setIsGenerating(true);
     setGeneratedLesson(null);
+    setValidationResult(null);
 
     try {
+      const durationMinutes = params.durationMinutes || 60;
+      
       const { data, error } = await supabase.functions.invoke("n8n-bridge", {
         body: {
           action: "generate-lesson",
@@ -46,7 +53,7 @@ export const useN8nGenerator = () => {
           lesson_type: params.lessonType,
           unit_name: params.unitName,
           level_name: params.levelName,
-          duration_minutes: params.durationMinutes || 60,
+          duration_minutes: durationMinutes,
         },
       });
 
@@ -56,12 +63,37 @@ export const useN8nGenerator = () => {
       const lessonData = data?.data || data?.lesson || data;
       
       if (data?.status === "success" && lessonData) {
+        // Check for server-side validation
+        const serverValidation = lessonData._validation;
+        
+        // Also run client-side validation as double-check
+        const clientValidation = validateLesson(lessonData, durationMinutes);
+        const finalValidation = serverValidation || clientValidation;
+        
+        setValidationResult(finalValidation);
         setGeneratedLesson(lessonData);
-        toast.success(data?.message || "Lesson generated successfully!");
+        
+        if (!finalValidation.isValid) {
+          toast.warning(`Lesson generated with issues (${finalValidation.score}% complete). Review validation report.`);
+        } else if (finalValidation.warnings.length > 0) {
+          toast.success(`Lesson generated (${finalValidation.score}% complete) with ${finalValidation.warnings.length} warnings.`);
+        } else {
+          toast.success(data?.message || `Lesson generated successfully! (${finalValidation.score}%)`);
+        }
+        
         return lessonData;
       } else if (lessonData?.presentation || lessonData?.title || lessonData?.slides) {
+        // Run client-side validation
+        const clientValidation = validateLesson(lessonData, durationMinutes);
+        setValidationResult(clientValidation);
         setGeneratedLesson(lessonData);
-        toast.success("Lesson generated successfully!");
+        
+        if (!clientValidation.isValid) {
+          toast.warning(`Lesson generated with issues (${clientValidation.score}% complete).`);
+        } else {
+          toast.success(`Lesson generated successfully! (${clientValidation.score}%)`);
+        }
+        
         return lessonData;
       } else {
         console.error("Unexpected response format:", data);
@@ -161,6 +193,7 @@ export const useN8nGenerator = () => {
   const discardLesson = () => {
     setGeneratedLesson(null);
     setEditingLessonId(null);
+    setValidationResult(null);
     toast.info("Lesson discarded");
   };
 
@@ -168,15 +201,21 @@ export const useN8nGenerator = () => {
     setEditingLessonId(lessonId);
   };
 
+  const clearValidation = () => {
+    setValidationResult(null);
+  };
+
   return {
     isGenerating,
     generatedLesson,
     isSaving,
     editingLessonId,
+    validationResult,
     generateLesson,
     saveLesson,
     regenerateLesson,
     discardLesson,
     setEditing,
+    clearValidation,
   };
 };
