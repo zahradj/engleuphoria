@@ -143,6 +143,7 @@ export function useMultiUnitBulkGenerator() {
   const generateLesson = async (lesson: FlatLesson) => {
     const { data, error } = await supabase.functions.invoke('n8n-bridge', {
       body: {
+        action: 'generate-lesson',
         topic: lesson.lessonTitle,
         system: lesson.systemKey,
         level: lesson.levelName,
