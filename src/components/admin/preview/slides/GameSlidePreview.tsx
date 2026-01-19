@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Gamepad2, Shuffle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { IronLMSGamePlayer } from '@/components/games';
+import { IronLMSGame, mapSystemToTargetGroup } from '@/types/ironLMS';
 
 interface MatchingItem {
   left: string;
@@ -16,16 +18,44 @@ interface GameSlidePreviewProps {
       instructions?: string;
       items?: MatchingItem[];
       categories?: { name: string; items: string[] }[];
+      ironLMSGame?: IronLMSGame;
     };
   };
+  system?: string;
 }
 
-export function GameSlidePreview({ slide }: GameSlidePreviewProps) {
+export function GameSlidePreview({ slide, system = 'hub' }: GameSlidePreviewProps) {
   const [selectedLeft, setSelectedLeft] = useState<number | null>(null);
   const [matched, setMatched] = useState<Set<number>>(new Set());
   
-  const { gameType, instructions, items, categories } = slide.content || {};
+  const { gameType, instructions, items, categories, ironLMSGame } = slide.content || {};
 
+  // If this slide has an IronLMS game, render the game player
+  if (ironLMSGame) {
+    const targetGroup = mapSystemToTargetGroup(system);
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-3 mb-4">
+          <Gamepad2 className="h-6 w-6 text-pink-600" />
+          <h2 className="text-2xl font-bold text-foreground">
+            {slide.title || ironLMSGame.title || 'Interactive Game'}
+          </h2>
+          <Badge variant="secondary" className="ml-2">
+            {ironLMSGame.type}
+          </Badge>
+        </div>
+        <IronLMSGamePlayer 
+          game={ironLMSGame} 
+          targetGroup={targetGroup}
+          onComplete={(result) => {
+            console.log('[GameSlide] Game completed:', result);
+          }}
+        />
+      </div>
+    );
+  }
+
+  // Legacy matching game logic
   const handleLeftClick = (idx: number) => {
     if (matched.has(idx)) return;
     setSelectedLeft(idx);

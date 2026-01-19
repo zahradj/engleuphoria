@@ -151,3 +151,6 @@ verify_jwt = true
 
 [functions.n8n-bridge]
 verify_jwt = false
+
+[functions.generate-iron-game]
+verify_jwt = false
