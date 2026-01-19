@@ -112,7 +112,7 @@ export const NewLibrary = () => {
       level: difficulty,
       levelId: selectedLevelId || undefined,
       cefrLevel: selectedLevel?.cefr_level || "A1",
-      unitId: selectedUnitId || undefined,
+      unitId: selectedUnitId && selectedUnitId !== "none" ? selectedUnitId : undefined,
       lessonNumber: lessonNumber,
     });
   };
@@ -126,7 +126,7 @@ export const NewLibrary = () => {
       level: difficulty,
       levelId: selectedLevelId || undefined,
       cefrLevel: selectedLevel?.cefr_level || "A1",
-      unitId: selectedUnitId || undefined,
+      unitId: selectedUnitId && selectedUnitId !== "none" ? selectedUnitId : undefined,
       lessonNumber: lessonNumber,
     });
   };
@@ -234,7 +234,7 @@ export const NewLibrary = () => {
                   <SelectValue placeholder={isLoadingUnits ? "Loading..." : "Select unit (optional)"} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No unit</SelectItem>
+                  <SelectItem value="none">No unit (optional)</SelectItem>
                   {filteredUnits.map((unit) => (
                     <SelectItem key={unit.id} value={unit.id}>
                       Unit {unit.unit_number}: {unit.title}
