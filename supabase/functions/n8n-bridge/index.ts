@@ -358,45 +358,84 @@ REQUIREMENTS:
 
   console.log(`Calling Lovable AI Gateway for ${slideCount}-slide lesson...`);
 
-  // Use gemini-3-flash-preview for better performance and reliability
-  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "google/gemini-3-flash-preview",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      tools,
-      tool_choice: { type: "function", function: { name: "create_ppp_lesson" } },
-      max_tokens: 20000,
-    }),
-  });
+  // Models to try in order - fallback if primary fails
+  const modelsToTry = [
+    "google/gemini-2.5-flash",      // Primary: stable and reliable
+    "google/gemini-3-flash-preview", // Fallback 1: newer but may have issues
+    "google/gemini-2.5-pro",         // Fallback 2: more capable but slower
+  ];
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error("AI Gateway error:", response.status, errorText);
-    
-    if (response.status === 429) {
-      throw new Response("Rate limit exceeded", { status: 429 });
+  let lastError: Error | null = null;
+  let aiResponse: any = null;
+
+  for (const model of modelsToTry) {
+    try {
+      console.log(`Trying model: ${model}`);
+      
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+          tools,
+          tool_choice: { type: "function", function: { name: "create_ppp_lesson" } },
+          max_tokens: 20000,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Model ${model} returned error:`, response.status, errorText);
+        
+        if (response.status === 429) {
+          throw new Response("Rate limit exceeded", { status: 429 });
+        }
+        if (response.status === 402) {
+          throw new Response("Payment required", { status: 402 });
+        }
+        
+        // For 500 errors, try the next model
+        if (response.status === 500) {
+          lastError = new Error(`Model ${model} returned 500: ${errorText}`);
+          continue;
+        }
+        
+        throw new Error(`AI generation failed: ${response.status}`);
+      }
+
+      aiResponse = await response.json();
+      console.log("AI response received:", JSON.stringify(aiResponse).substring(0, 500));
+
+      // Check if AI Gateway returned an error in the response body
+      if (aiResponse.error) {
+        console.error(`Model ${model} returned error in body:`, aiResponse.error);
+        lastError = new Error(`AI Gateway error: ${aiResponse.error.message || JSON.stringify(aiResponse.error)}`);
+        continue; // Try next model
+      }
+
+      // Success! Break out of the retry loop
+      console.log(`Successfully used model: ${model}`);
+      break;
+      
+    } catch (err) {
+      if (err instanceof Response) {
+        throw err; // Re-throw rate limit and payment errors
+      }
+      console.error(`Model ${model} failed:`, err);
+      lastError = err instanceof Error ? err : new Error(String(err));
     }
-    if (response.status === 402) {
-      throw new Response("Payment required", { status: 402 });
-    }
-    throw new Error(`AI generation failed: ${response.status}`);
   }
 
-  const aiResponse = await response.json();
-  console.log("AI response received:", JSON.stringify(aiResponse).substring(0, 500));
-
-  // Check if AI Gateway returned an error in the response body
-  if (aiResponse.error) {
-    console.error("AI Gateway returned error:", aiResponse.error);
-    throw new Error(`AI Gateway error: ${aiResponse.error.message || JSON.stringify(aiResponse.error)}`);
+  // If all models failed, throw the last error
+  if (!aiResponse || aiResponse.error) {
+    throw lastError || new Error("All AI models failed to generate lesson");
   }
 
   // Extract the tool call result
