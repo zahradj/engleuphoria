@@ -15,6 +15,7 @@ import { SettingsPanel } from '@/components/admin/SettingsPanel';
 import { AIToolsDashboard } from '@/components/admin/ai-tools/AIToolsDashboard';
 import { NewLibrary } from '@/components/admin/NewLibrary';
 import { CurriculumLibrary } from '@/components/admin/CurriculumLibrary';
+import { CurriculumProgressDashboard } from '@/components/admin/generator/CurriculumProgressDashboard';
 import { ScrollHeader } from '@/components/navigation/ScrollHeader';
 import { Loader2, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -79,6 +80,8 @@ const AdminDashboard = () => {
         return <NewLibrary />;
       case 'curriculum-library':
         return <CurriculumLibrary />;
+      case 'curriculum-progress':
+        return <CurriculumProgressDashboard />;
       default:
         return <AdminOverview />;
     }
