@@ -173,7 +173,7 @@ export const useN8nGenerator = () => {
 
       if (error) throw error;
 
-      toast.success("Lesson saved to curriculum!");
+      // Toast handled by caller for navigation purposes
       setGeneratedLesson(null);
       setEditingLessonId(null);
       return data;
@@ -214,7 +214,7 @@ export const useN8nGenerator = () => {
 
       if (error) throw error;
 
-      toast.success("Lesson regenerated and updated!");
+      // Toast handled by caller for navigation purposes
       setGeneratedLesson(null);
       setEditingLessonId(null);
       return data;
