@@ -15,7 +15,8 @@ import {
   Brain,
   Wand2,
   Library,
-  PieChart
+  PieChart,
+  Package
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -32,6 +33,7 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
     { id: "curriculum", label: "Curriculum", icon: BookOpen },
     { id: "curriculum-library", label: "Lesson Library", icon: Library },
     { id: "curriculum-progress", label: "Curriculum Progress", icon: PieChart },
+    { id: "curriculum-export", label: "Export Curriculum", icon: Package },
     { id: "ai-generator", label: "AI Generator", icon: Wand2 },
     { id: "ai-tools", label: "AI Tools", icon: Brain },
     { id: "schedule", label: "Schedule", icon: Calendar },
