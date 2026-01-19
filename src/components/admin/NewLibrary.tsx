@@ -13,7 +13,7 @@ import {
 import { Loader2, Wand2, Save, Trash2, Sparkles, HelpCircle, RefreshCw } from "lucide-react";
 import { SystemSelector } from "./generator/SystemSelector";
 import { LessonPreview } from "./generator/LessonPreview";
-import { LessonPicker } from "./generator/LessonPicker";
+import { LessonPicker, MasterLessonFlat } from "./generator/LessonPicker";
 import { useN8nGenerator } from "@/hooks/useN8nGenerator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -41,15 +41,6 @@ interface CurriculumUnit {
   age_group: string;
 }
 
-interface SelectedLesson {
-  id: string;
-  title: string;
-  target_system: string;
-  sequence_order: number | null;
-  unit_id: string | null;
-  difficulty_level: string;
-}
-
 export const NewLibrary = () => {
   const [topic, setTopic] = useState("");
   const [system, setSystem] = useState("kids");
@@ -61,7 +52,7 @@ export const NewLibrary = () => {
   const [units, setUnits] = useState<CurriculumUnit[]>([]);
   const [isLoadingLevels, setIsLoadingLevels] = useState(true);
   const [isLoadingUnits, setIsLoadingUnits] = useState(true);
-  const [selectedExistingLesson, setSelectedExistingLesson] = useState<SelectedLesson | null>(null);
+  const [selectedMasterLesson, setSelectedMasterLesson] = useState<MasterLessonFlat | null>(null);
 
   const queryClient = useQueryClient();
 
@@ -116,6 +107,60 @@ export const NewLibrary = () => {
     }
   };
 
+  // Map difficulty from level name
+  const mapLevelToDifficulty = (levelName: string): string => {
+    const lower = levelName.toLowerCase();
+    if (lower.includes("beginner") || lower.includes("pre-a1") || lower.includes("a1")) {
+      return "beginner";
+    }
+    if (lower.includes("intermediate") || lower.includes("a2") || lower.includes("b1")) {
+      return "intermediate";
+    }
+    return "advanced";
+  };
+
+  // Handle lesson selection from master curriculum picker
+  const handleMasterLessonSelect = (lesson: MasterLessonFlat | null, isGenerated: boolean) => {
+    if (!lesson) return;
+
+    setSelectedMasterLesson(lesson);
+    
+    // Auto-fill all fields from master curriculum data
+    setTopic(lesson.lessonTitle);
+    setSystem(lesson.system === "teen" ? "teens" : lesson.system);
+    setLessonNumber(lesson.lessonNumber);
+    setDifficulty(mapLevelToDifficulty(lesson.levelName));
+
+    // Try to find matching level in database
+    const matchingLevel = levels.find(
+      (l) => l.target_system === lesson.system && 
+             l.name.toLowerCase().includes(lesson.levelName.toLowerCase().split(" ")[0])
+    );
+    if (matchingLevel) {
+      setSelectedLevelId(matchingLevel.id);
+    }
+
+    // Try to find matching unit in database
+    const matchingUnit = units.find(
+      (u) => u.unit_number === lesson.unitNumber && 
+             u.title.toLowerCase() === lesson.unitName.toLowerCase()
+    );
+    if (matchingUnit) {
+      setSelectedUnitId(matchingUnit.id);
+    } else {
+      setSelectedUnitId("none");
+    }
+
+    // Set editing mode if already generated
+    if (isGenerated) {
+      setEditing(lesson.uniqueKey);
+      toast.info(`"${lesson.lessonTitle}" already exists - regenerate to update`);
+    } else {
+      setEditing(null);
+      toast.success(`Selected: ${lesson.lessonTitle}`);
+    }
+  };
+
   const handleGenerate = async () => {
     if (!topic.trim()) {
       toast.error("Please enter a topic");
@@ -126,7 +171,7 @@ export const NewLibrary = () => {
 
     await generateLesson({
       topic: topic.trim(),
-      system,
+      system: system === "teens" ? "teen" : system,
       level: difficulty,
       levelId: selectedLevelId || undefined,
       cefrLevel: selectedLevel?.cefr_level || "A1",
@@ -139,7 +184,7 @@ export const NewLibrary = () => {
     const selectedLevel = levels.find((l) => l.id === selectedLevelId);
     const params = {
       topic: topic.trim(),
-      system,
+      system: system === "teens" ? "teen" : system,
       level: difficulty,
       levelId: selectedLevelId || undefined,
       cefrLevel: selectedLevel?.cefr_level || "A1",
@@ -154,59 +199,35 @@ export const NewLibrary = () => {
     }
 
     // Invalidate queries to refresh the lesson picker
+    queryClient.invalidateQueries({ queryKey: ["generated-lessons"] });
     queryClient.invalidateQueries({ queryKey: ["curriculum-lessons-picker"] });
-  };
-
-  const handleLessonSelect = (
-    lesson: { id: string; title: string; target_system: string; sequence_order: number | null; unit_id: string | null; difficulty_level: string } | null,
-    unit: CurriculumUnit | null,
-    isNew: boolean
-  ) => {
-    if (isNew && unit) {
-      // Adding new lesson to a unit
-      setSelectedExistingLesson(null);
-      setEditing(null);
-      setSelectedUnitId(unit.id);
-      setTopic("");
-      
-      // Calculate next lesson number for this unit
-      // This will be handled by the LessonPicker internally
-      toast.info(`Ready to generate new lesson for Unit ${unit.unit_number}`);
-    } else if (lesson) {
-      // Selecting existing lesson for regeneration
-      setSelectedExistingLesson(lesson);
-      setEditing(lesson.id);
-      setTopic(lesson.title);
-      setDifficulty(lesson.difficulty_level);
-      if (lesson.unit_id) {
-        setSelectedUnitId(lesson.unit_id);
-      }
-      if (lesson.sequence_order) {
-        setLessonNumber(lesson.sequence_order);
-      }
-      toast.info(`Selected "${lesson.title}" for regeneration`);
-    }
+    
+    // Clear selection after save
+    setSelectedMasterLesson(null);
   };
 
   const handleClearSelection = () => {
-    setSelectedExistingLesson(null);
+    setSelectedMasterLesson(null);
     setEditing(null);
     setTopic("");
+    setSelectedLevelId("");
+    setSelectedUnitId("");
+    setLessonNumber(1);
   };
 
   const filteredLevels = levels.filter((level) => {
-    // Use direct target_system matching
-    return level.target_system === system;
+    const mappedSystem = system === "teens" ? "teen" : system;
+    return level.target_system === mappedSystem;
   });
 
   const filteredUnits = units.filter((unit) => {
     if (system === "kids") {
-      return unit.age_group.includes("4-7") || unit.age_group.includes("6-9") || unit.age_group.includes("8-11") || unit.age_group.includes("10-13");
+      return unit.age_group.includes("Kids") || unit.age_group.includes("6-10");
     }
     if (system === "teens") {
-      return unit.age_group.includes("10-13") || unit.age_group.includes("12-15") || unit.age_group.includes("14-17") || unit.age_group.includes("16+");
+      return unit.age_group.includes("Teen") || unit.age_group.includes("11-17");
     }
-    return unit.age_group.includes("16+") || unit.age_group.includes("18+");
+    return unit.age_group.includes("Adult") || unit.age_group.includes("18+");
   });
 
   return (
@@ -230,9 +251,8 @@ export const NewLibrary = () => {
             </TooltipTrigger>
             <TooltipContent className="max-w-sm">
               <p>
-                This generator uses n8n workflows to create structured lesson plans.
-                Select a system (Kids/Teens/Adults) and enter a grammar topic to generate
-                a complete PPP-method lesson.
+                Select a lesson from the Master Curriculum to auto-fill all fields.
+                Generated lessons are marked with a checkmark.
               </p>
             </TooltipContent>
           </Tooltip>
@@ -244,8 +264,8 @@ export const NewLibrary = () => {
         <div className="lg:col-span-1">
           <LessonPicker
             system={system}
-            onSelectLesson={handleLessonSelect}
-            selectedLessonId={editingLessonId}
+            onSelectLesson={handleMasterLessonSelect}
+            selectedLessonKey={selectedMasterLesson?.uniqueKey}
           />
         </div>
 
@@ -254,12 +274,14 @@ export const NewLibrary = () => {
           <CardHeader>
             <CardTitle>Lesson Configuration</CardTitle>
             <CardDescription>
-              Define your lesson parameters to generate content
+              {selectedMasterLesson 
+                ? "Auto-filled from Master Curriculum" 
+                : "Select a lesson from the picker or configure manually"}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="topic">Grammar Topic</Label>
+              <Label htmlFor="topic">Lesson Topic</Label>
               <Input
                 id="topic"
                 placeholder="e.g., Present Continuous, Modal Verbs, Conditionals"
@@ -337,12 +359,14 @@ export const NewLibrary = () => {
               </Select>
             </div>
 
-            {selectedExistingLesson && (
-              <div className="p-3 bg-muted/50 rounded-lg border border-dashed">
+            {selectedMasterLesson && (
+              <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
                 <div className="flex items-center justify-between">
                   <div className="text-sm">
-                    <span className="text-muted-foreground">Regenerating: </span>
-                    <span className="font-medium">{selectedExistingLesson.title}</span>
+                    <span className="text-muted-foreground">From Master: </span>
+                    <span className="font-medium text-primary">
+                      {selectedMasterLesson.levelName} → Unit {selectedMasterLesson.unitNumber}
+                    </span>
                   </div>
                   <Button
                     variant="ghost"
@@ -436,9 +460,9 @@ export const NewLibrary = () => {
                 <Sparkles className="h-12 w-12 mb-4 opacity-20" />
                 <p>Generated lesson will appear here</p>
                 <p className="text-sm">
-                  {editingLessonId 
-                    ? "Click Regenerate to create new content" 
-                    : "Configure options and click Generate"}
+                  {selectedMasterLesson 
+                    ? "Click Generate to create this lesson" 
+                    : "Select a lesson from the picker to begin"}
                 </p>
               </div>
             )}
