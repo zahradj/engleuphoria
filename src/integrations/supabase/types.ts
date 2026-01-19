@@ -1934,6 +1934,45 @@ export type Database = {
         }
         Relationships: []
       }
+      curriculum_exports: {
+        Row: {
+          admin_id: string | null
+          created_at: string | null
+          expires_at: string | null
+          file_name: string
+          file_size_bytes: number | null
+          format: string
+          id: string
+          lesson_count: number
+          options: Json | null
+          storage_path: string
+        }
+        Insert: {
+          admin_id?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          file_name: string
+          file_size_bytes?: number | null
+          format: string
+          id?: string
+          lesson_count: number
+          options?: Json | null
+          storage_path: string
+        }
+        Update: {
+          admin_id?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          file_name?: string
+          file_size_bytes?: number | null
+          format?: string
+          id?: string
+          lesson_count?: number
+          options?: Json | null
+          storage_path?: string
+        }
+        Relationships: []
+      }
       curriculum_lessons: {
         Row: {
           content: Json | null
