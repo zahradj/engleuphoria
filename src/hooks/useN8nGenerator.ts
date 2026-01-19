@@ -10,6 +10,9 @@ interface GenerateParams {
   cefrLevel: string;
   unitId?: string;
   lessonNumber?: number;
+  lessonType?: string;
+  unitName?: string;
+  levelName?: string;
 }
 
 interface GeneratedLesson {
@@ -39,6 +42,9 @@ export const useN8nGenerator = () => {
           level: params.level,
           level_id: params.levelId,
           cefr_level: params.cefrLevel,
+          lesson_type: params.lessonType,
+          unit_name: params.unitName,
+          level_name: params.levelName,
         },
       });
 

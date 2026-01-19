@@ -168,28 +168,36 @@ export const NewLibrary = () => {
     }
 
     const selectedLevel = levels.find((l) => l.id === selectedLevelId);
+    const selectedUnit = units.find((u) => u.id === selectedUnitId);
 
     await generateLesson({
       topic: topic.trim(),
       system: system === "teens" ? "teen" : system,
       level: difficulty,
       levelId: selectedLevelId || undefined,
-      cefrLevel: selectedLevel?.cefr_level || "A1",
+      cefrLevel: selectedLevel?.cefr_level || selectedMasterLesson?.cefrLevel || "A1",
       unitId: selectedUnitId && selectedUnitId !== "none" ? selectedUnitId : undefined,
       lessonNumber: lessonNumber,
+      lessonType: selectedMasterLesson?.lessonType,
+      unitName: selectedMasterLesson?.unitName || selectedUnit?.title,
+      levelName: selectedMasterLesson?.levelName || selectedLevel?.name,
     });
   };
 
   const handleSave = async () => {
     const selectedLevel = levels.find((l) => l.id === selectedLevelId);
+    const selectedUnit = units.find((u) => u.id === selectedUnitId);
     const params = {
       topic: topic.trim(),
       system: system === "teens" ? "teen" : system,
       level: difficulty,
       levelId: selectedLevelId || undefined,
-      cefrLevel: selectedLevel?.cefr_level || "A1",
+      cefrLevel: selectedLevel?.cefr_level || selectedMasterLesson?.cefrLevel || "A1",
       unitId: selectedUnitId && selectedUnitId !== "none" ? selectedUnitId : undefined,
       lessonNumber: lessonNumber,
+      lessonType: selectedMasterLesson?.lessonType,
+      unitName: selectedMasterLesson?.unitName || selectedUnit?.title,
+      levelName: selectedMasterLesson?.levelName || selectedLevel?.name,
     };
 
     if (editingLessonId) {
@@ -239,7 +247,7 @@ export const NewLibrary = () => {
             AI Lesson Generator
           </h1>
           <p className="text-muted-foreground">
-            Generate curriculum-aligned lessons powered by n8n + AI
+            Generate curriculum-aligned lessons powered by Lovable AI
           </p>
         </div>
         <TooltipProvider>
