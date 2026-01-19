@@ -340,14 +340,14 @@ REQUIREMENTS:
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "google/gemini-3-flash-preview",
+      model: "google/gemini-2.5-pro",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
       ],
       tools,
       tool_choice: { type: "function", function: { name: "create_ppp_lesson" } },
-      max_tokens: 8000,
+      max_tokens: 16000,
     }),
   });
 
