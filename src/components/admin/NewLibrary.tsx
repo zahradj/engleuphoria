@@ -30,6 +30,7 @@ interface CurriculumLevel {
   name: string;
   cefr_level: string;
   age_group: string;
+  target_system?: string;
 }
 
 interface CurriculumUnit {
@@ -85,7 +86,7 @@ export const NewLibrary = () => {
     try {
       const { data, error } = await supabase
         .from("curriculum_levels")
-        .select("id, name, cefr_level, age_group")
+        .select("id, name, cefr_level, age_group, target_system")
         .order("level_order", { ascending: true });
 
       if (error) throw error;
@@ -194,13 +195,8 @@ export const NewLibrary = () => {
   };
 
   const filteredLevels = levels.filter((level) => {
-    if (system === "kids") {
-      return level.age_group.includes("4-7") || level.age_group.includes("6-9") || level.age_group.includes("8-11") || level.age_group.includes("10-13");
-    }
-    if (system === "teens") {
-      return level.age_group.includes("10-13") || level.age_group.includes("12-15") || level.age_group.includes("14-17") || level.age_group.includes("16+");
-    }
-    return level.age_group.includes("16+") || level.age_group.includes("18+");
+    // Use direct target_system matching
+    return level.target_system === system;
   });
 
   const filteredUnits = units.filter((unit) => {

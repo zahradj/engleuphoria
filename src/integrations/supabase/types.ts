@@ -2017,6 +2017,7 @@ export type Database = {
           level_order: number
           name: string
           sequence_order: number | null
+          target_system: string | null
           thumbnail_url: string | null
           track_id: string | null
           updated_at: string | null
@@ -2032,6 +2033,7 @@ export type Database = {
           level_order: number
           name: string
           sequence_order?: number | null
+          target_system?: string | null
           thumbnail_url?: string | null
           track_id?: string | null
           updated_at?: string | null
@@ -2047,6 +2049,7 @@ export type Database = {
           level_order?: number
           name?: string
           sequence_order?: number | null
+          target_system?: string | null
           thumbnail_url?: string | null
           track_id?: string | null
           updated_at?: string | null
