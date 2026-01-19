@@ -488,14 +488,14 @@ export const NewLibrary = ({ onNavigate }: NewLibraryProps) => {
         </Card>
 
         {/* Preview Panel */}
-        <Card className="lg:col-span-1">
+        <Card className="lg:col-span-1 flex flex-col">
           <CardHeader>
             <CardTitle>Generated Preview</CardTitle>
             <CardDescription>
               Review and approve generated content before saving
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-1 flex flex-col">
             {isGenerating ? (
               <GenerationProgress
                 durationMinutes={durationMinutes}
@@ -504,10 +504,14 @@ export const NewLibrary = ({ onNavigate }: NewLibraryProps) => {
                 onCancel={cancelGeneration}
               />
             ) : generatedLesson ? (
-              <div className="space-y-4">
-                <LessonPreview data={generatedLesson} system={system} />
+              <div className="flex flex-col h-full">
+                {/* Scrollable preview area */}
+                <div className="flex-1 overflow-y-auto max-h-[400px] mb-4">
+                  <LessonPreview data={generatedLesson} system={system} />
+                </div>
                 
-                <div className="flex gap-2 pt-4 border-t">
+                {/* Fixed action buttons - always visible */}
+                <div className="flex gap-2 pt-4 border-t sticky bottom-0 bg-background">
                   <Button
                     variant="destructive"
                     onClick={discardLesson}
