@@ -10,9 +10,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Wand2, Save, Trash2, Sparkles, HelpCircle } from "lucide-react";
+import { Loader2, Wand2, Save, Trash2, Sparkles, HelpCircle, RefreshCw } from "lucide-react";
 import { SystemSelector } from "./generator/SystemSelector";
 import { LessonPreview } from "./generator/LessonPreview";
+import { LessonPicker } from "./generator/LessonPicker";
 import { useN8nGenerator } from "@/hooks/useN8nGenerator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -22,6 +23,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface CurriculumLevel {
   id: string;
@@ -38,6 +40,15 @@ interface CurriculumUnit {
   age_group: string;
 }
 
+interface SelectedLesson {
+  id: string;
+  title: string;
+  target_system: string;
+  sequence_order: number | null;
+  unit_id: string | null;
+  difficulty_level: string;
+}
+
 export const NewLibrary = () => {
   const [topic, setTopic] = useState("");
   const [system, setSystem] = useState("kids");
@@ -49,14 +60,20 @@ export const NewLibrary = () => {
   const [units, setUnits] = useState<CurriculumUnit[]>([]);
   const [isLoadingLevels, setIsLoadingLevels] = useState(true);
   const [isLoadingUnits, setIsLoadingUnits] = useState(true);
+  const [selectedExistingLesson, setSelectedExistingLesson] = useState<SelectedLesson | null>(null);
+
+  const queryClient = useQueryClient();
 
   const {
     isGenerating,
     generatedLesson,
     isSaving,
+    editingLessonId,
     generateLesson,
     saveLesson,
+    regenerateLesson,
     discardLesson,
+    setEditing,
   } = useN8nGenerator();
 
   useEffect(() => {
@@ -119,8 +136,7 @@ export const NewLibrary = () => {
 
   const handleSave = async () => {
     const selectedLevel = levels.find((l) => l.id === selectedLevelId);
-
-    await saveLesson({
+    const params = {
       topic: topic.trim(),
       system,
       level: difficulty,
@@ -128,7 +144,53 @@ export const NewLibrary = () => {
       cefrLevel: selectedLevel?.cefr_level || "A1",
       unitId: selectedUnitId && selectedUnitId !== "none" ? selectedUnitId : undefined,
       lessonNumber: lessonNumber,
-    });
+    };
+
+    if (editingLessonId) {
+      await regenerateLesson(editingLessonId, params);
+    } else {
+      await saveLesson(params);
+    }
+
+    // Invalidate queries to refresh the lesson picker
+    queryClient.invalidateQueries({ queryKey: ["curriculum-lessons-picker"] });
+  };
+
+  const handleLessonSelect = (
+    lesson: { id: string; title: string; target_system: string; sequence_order: number | null; unit_id: string | null; difficulty_level: string } | null,
+    unit: CurriculumUnit | null,
+    isNew: boolean
+  ) => {
+    if (isNew && unit) {
+      // Adding new lesson to a unit
+      setSelectedExistingLesson(null);
+      setEditing(null);
+      setSelectedUnitId(unit.id);
+      setTopic("");
+      
+      // Calculate next lesson number for this unit
+      // This will be handled by the LessonPicker internally
+      toast.info(`Ready to generate new lesson for Unit ${unit.unit_number}`);
+    } else if (lesson) {
+      // Selecting existing lesson for regeneration
+      setSelectedExistingLesson(lesson);
+      setEditing(lesson.id);
+      setTopic(lesson.title);
+      setDifficulty(lesson.difficulty_level);
+      if (lesson.unit_id) {
+        setSelectedUnitId(lesson.unit_id);
+      }
+      if (lesson.sequence_order) {
+        setLessonNumber(lesson.sequence_order);
+      }
+      toast.info(`Selected "${lesson.title}" for regeneration`);
+    }
+  };
+
+  const handleClearSelection = () => {
+    setSelectedExistingLesson(null);
+    setEditing(null);
+    setTopic("");
   };
 
   const filteredLevels = levels.filter((level) => {
@@ -181,9 +243,18 @@ export const NewLibrary = () => {
         </TooltipProvider>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Lesson Picker Panel */}
+        <div className="lg:col-span-1">
+          <LessonPicker
+            system={system}
+            onSelectLesson={handleLessonSelect}
+            selectedLessonId={editingLessonId}
+          />
+        </div>
+
         {/* Input Panel */}
-        <Card>
+        <Card className="lg:col-span-1">
           <CardHeader>
             <CardTitle>Lesson Configuration</CardTitle>
             <CardDescription>
@@ -270,6 +341,24 @@ export const NewLibrary = () => {
               </Select>
             </div>
 
+            {selectedExistingLesson && (
+              <div className="p-3 bg-muted/50 rounded-lg border border-dashed">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm">
+                    <span className="text-muted-foreground">Regenerating: </span>
+                    <span className="font-medium">{selectedExistingLesson.title}</span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleClearSelection}
+                  >
+                    Clear
+                  </Button>
+                </div>
+              </div>
+            )}
+
             <Button
               className="w-full"
               onClick={handleGenerate}
@@ -279,6 +368,11 @@ export const NewLibrary = () => {
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Generating...
+                </>
+              ) : editingLessonId ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Regenerate Lesson
                 </>
               ) : (
                 <>
@@ -291,7 +385,7 @@ export const NewLibrary = () => {
         </Card>
 
         {/* Preview Panel */}
-        <Card>
+        <Card className="lg:col-span-1">
           <CardHeader>
             <CardTitle>Generated Preview</CardTitle>
             <CardDescription>
@@ -325,7 +419,12 @@ export const NewLibrary = () => {
                     {isSaving ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Saving...
+                        {editingLessonId ? "Updating..." : "Saving..."}
+                      </>
+                    ) : editingLessonId ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Update Lesson
                       </>
                     ) : (
                       <>
@@ -340,7 +439,11 @@ export const NewLibrary = () => {
               <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                 <Sparkles className="h-12 w-12 mb-4 opacity-20" />
                 <p>Generated lesson will appear here</p>
-                <p className="text-sm">Configure options and click Generate</p>
+                <p className="text-sm">
+                  {editingLessonId 
+                    ? "Click Regenerate to create new content" 
+                    : "Configure options and click Generate"}
+                </p>
               </div>
             )}
           </CardContent>

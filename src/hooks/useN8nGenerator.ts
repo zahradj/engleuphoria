@@ -24,6 +24,7 @@ export const useN8nGenerator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedLesson, setGeneratedLesson] = useState<GeneratedLesson | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
 
   const generateLesson = async (params: GenerateParams) => {
     setIsGenerating(true);
@@ -97,6 +98,7 @@ export const useN8nGenerator = () => {
 
       toast.success("Lesson saved to curriculum!");
       setGeneratedLesson(null);
+      setEditingLessonId(null);
       return data;
     } catch (error: any) {
       console.error("Error saving lesson:", error);
@@ -107,17 +109,66 @@ export const useN8nGenerator = () => {
     }
   };
 
+  const regenerateLesson = async (lessonId: string, params: GenerateParams) => {
+    if (!generatedLesson) {
+      toast.error("No lesson to save");
+      return null;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const { data, error } = await supabase
+        .from("curriculum_lessons")
+        .update({
+          title: generatedLesson.title,
+          description: `AI-generated ${params.system} lesson on ${params.topic}`,
+          target_system: params.system,
+          difficulty_level: params.level,
+          content: generatedLesson as any,
+          level_id: params.levelId || null,
+          unit_id: params.unitId || null,
+          sequence_order: params.lessonNumber || 1,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", lessonId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast.success("Lesson regenerated and updated!");
+      setGeneratedLesson(null);
+      setEditingLessonId(null);
+      return data;
+    } catch (error: any) {
+      console.error("Error updating lesson:", error);
+      toast.error(error.message || "Failed to update lesson");
+      return null;
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const discardLesson = () => {
     setGeneratedLesson(null);
+    setEditingLessonId(null);
     toast.info("Lesson discarded");
+  };
+
+  const setEditing = (lessonId: string | null) => {
+    setEditingLessonId(lessonId);
   };
 
   return {
     isGenerating,
     generatedLesson,
     isSaving,
+    editingLessonId,
     generateLesson,
     saveLesson,
+    regenerateLesson,
     discardLesson,
+    setEditing,
   };
 };
