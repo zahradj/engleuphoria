@@ -46,7 +46,11 @@ interface CurriculumUnit {
   age_group: string;
 }
 
-export const NewLibrary = () => {
+interface NewLibraryProps {
+  onNavigate?: (tab: string) => void;
+}
+
+export const NewLibrary = ({ onNavigate }: NewLibraryProps) => {
   const [topic, setTopic] = useState("");
   const [system, setSystem] = useState("kids");
   const [difficulty, setDifficulty] = useState("beginner");
@@ -211,18 +215,37 @@ export const NewLibrary = () => {
       durationMinutes: durationMinutes,
     };
 
+    let savedLesson;
     if (editingLessonId) {
-      await regenerateLesson(editingLessonId, params);
+      savedLesson = await regenerateLesson(editingLessonId, params);
     } else {
-      await saveLesson(params);
+      savedLesson = await saveLesson(params);
     }
 
-    // Invalidate queries to refresh the lesson picker
-    queryClient.invalidateQueries({ queryKey: ["generated-lessons"] });
-    queryClient.invalidateQueries({ queryKey: ["curriculum-lessons-picker"] });
-    
-    // Clear selection after save
-    setSelectedMasterLesson(null);
+    if (savedLesson) {
+      // Invalidate queries to refresh the lesson picker and library
+      queryClient.invalidateQueries({ queryKey: ["generated-lessons"] });
+      queryClient.invalidateQueries({ queryKey: ["curriculum-lessons-picker"] });
+      queryClient.invalidateQueries({ queryKey: ["curriculum-lessons-library"] });
+      
+      // Clear selection after save
+      setSelectedMasterLesson(null);
+
+      // Show toast with navigation action
+      toast.success(`Lesson "${savedLesson.title}" saved successfully!`, {
+        description: "Your lesson is now in the Curriculum Library",
+        action: {
+          label: "View Lesson",
+          onClick: () => onNavigate?.("curriculum-library"),
+        },
+        duration: 5000,
+      });
+
+      // Auto-navigate after a brief delay
+      setTimeout(() => {
+        onNavigate?.("curriculum-library");
+      }, 1500);
+    }
   };
 
   const handleClearSelection = () => {

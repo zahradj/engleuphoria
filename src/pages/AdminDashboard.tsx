@@ -78,7 +78,7 @@ const AdminDashboard = () => {
       case 'ai-tools':
         return <AIToolsDashboard />;
       case 'ai-generator':
-        return <NewLibrary />;
+        return <NewLibrary onNavigate={handleTabChange} />;
       case 'curriculum-library':
         return <CurriculumLibrary />;
       case 'curriculum-progress':
