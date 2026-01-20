@@ -16,10 +16,12 @@ import { SystemSelector } from "./generator/SystemSelector";
 import { LessonPreview } from "./generator/LessonPreview";
 import { LessonPicker, MasterLessonFlat } from "./generator/LessonPicker";
 import { BulkLessonGenerator } from "./generator/BulkLessonGenerator";
-import { GenerationProgress } from "./generator/GenerationProgress";
 import { GenerationHistoryPanel } from "./generator/GenerationHistoryPanel";
 import { QualityDashboard } from "./generator/QualityDashboard";
 import { IronGameGenerator } from "./generator/IronGameGenerator";
+import { AdvancedLessonOptions, defaultAdvancedOptions, AdvancedOptions } from "./generator/AdvancedLessonOptions";
+import { PipelineProgress } from "./generator/PipelineProgress";
+import { useUnifiedLessonGenerator } from "@/hooks/useUnifiedLessonGenerator";
 import { useN8nGenerator } from "@/hooks/useN8nGenerator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -64,23 +66,37 @@ export const NewLibrary = ({ onNavigate }: NewLibraryProps) => {
   const [isLoadingLevels, setIsLoadingLevels] = useState(true);
   const [isLoadingUnits, setIsLoadingUnits] = useState(true);
   const [selectedMasterLesson, setSelectedMasterLesson] = useState<MasterLessonFlat | null>(null);
+  const [advancedOptions, setAdvancedOptions] = useState<AdvancedOptions>(defaultAdvancedOptions);
 
   const queryClient = useQueryClient();
 
+  // Unified generator for full pipeline (content + games + images)
   const {
-    isGenerating,
-    generatedLesson,
+    stages,
+    overallProgress,
+    isGenerating: isUnifiedGenerating,
+    elapsedTime,
+    generatedLesson: unifiedLesson,
+    generateLesson: generateUnifiedLesson,
+    cancelGeneration: cancelUnifiedGeneration,
+    reset: resetUnifiedGenerator,
+  } = useUnifiedLessonGenerator();
+
+  // Legacy generator for backwards compatibility
+  const {
+    isGenerating: isLegacyGenerating,
+    generatedLesson: legacyLesson,
     isSaving,
     editingLessonId,
-    generationStage,
-    generationStartTime,
-    generateLesson,
     saveLesson,
     regenerateLesson,
     discardLesson,
     setEditing,
-    cancelGeneration,
   } = useN8nGenerator();
+
+  // Use unified generator results when available
+  const isGenerating = isUnifiedGenerating || isLegacyGenerating;
+  const generatedLesson = unifiedLesson || legacyLesson;
 
   useEffect(() => {
     fetchLevels();
@@ -183,19 +199,17 @@ export const NewLibrary = ({ onNavigate }: NewLibraryProps) => {
 
     const selectedLevel = levels.find((l) => l.id === selectedLevelId);
     const selectedUnit = units.find((u) => u.id === selectedUnitId);
+    const mappedSystem = system === "teens" ? "teen" : system;
 
-    await generateLesson({
+    // Use unified generator with advanced options
+    await generateUnifiedLesson({
       topic: topic.trim(),
-      system: system === "teens" ? "teen" : system,
+      system: mappedSystem,
       level: difficulty,
-      levelId: selectedLevelId || undefined,
       cefrLevel: selectedLevel?.cefr_level || selectedMasterLesson?.cefrLevel || "A1",
-      unitId: selectedUnitId && selectedUnitId !== "none" ? selectedUnitId : undefined,
-      lessonNumber: lessonNumber,
-      lessonType: selectedMasterLesson?.lessonType,
-      unitName: selectedMasterLesson?.unitName || selectedUnit?.title,
-      levelName: selectedMasterLesson?.levelName || selectedLevel?.name,
       durationMinutes: durationMinutes,
+      ageGroup: mappedSystem === "kids" ? "6-10" : mappedSystem === "teen" ? "11-17" : "18+",
+      advancedOptions,
     });
   };
 
@@ -451,6 +465,13 @@ export const NewLibrary = ({ onNavigate }: NewLibraryProps) => {
               </Select>
             </div>
 
+            {/* Advanced Options - Games & Images */}
+            <AdvancedLessonOptions
+              options={advancedOptions}
+              onChange={setAdvancedOptions}
+              disabled={isGenerating}
+            />
+
             {selectedMasterLesson && (
               <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
                 <div className="flex items-center justify-between">
@@ -506,11 +527,12 @@ export const NewLibrary = ({ onNavigate }: NewLibraryProps) => {
           </CardHeader>
           <CardContent className="flex-1 flex flex-col">
             {isGenerating ? (
-              <GenerationProgress
-                durationMinutes={durationMinutes}
-                stage={generationStage}
-                startTime={generationStartTime}
-                onCancel={cancelGeneration}
+              <PipelineProgress
+                stages={stages}
+                overallProgress={overallProgress}
+                isGenerating={isGenerating}
+                elapsedTime={elapsedTime}
+                onCancel={cancelUnifiedGeneration}
               />
             ) : generatedLesson ? (
               <div className="flex flex-col h-full">
@@ -523,7 +545,10 @@ export const NewLibrary = ({ onNavigate }: NewLibraryProps) => {
                 <div className="flex gap-2 pt-4 border-t sticky bottom-0 bg-background">
                   <Button
                     variant="destructive"
-                    onClick={discardLesson}
+                    onClick={() => {
+                      resetUnifiedGenerator();
+                      discardLesson();
+                    }}
                     disabled={isSaving}
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
