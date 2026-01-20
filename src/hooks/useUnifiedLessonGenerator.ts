@@ -133,21 +133,26 @@ export const useUnifiedLessonGenerator = () => {
 
     updateStage('content', { progress: 80, message: 'Processing response...' });
 
-    // Parse the lesson data
+    // Parse the lesson data - handle nested response from edge function
+    // Edge function returns { status, data: lessonData, source }
     let lesson: GeneratedLesson;
-    if (data?.script) {
+    const lessonData = data?.data || data;
+    
+    if (lessonData?.slides) {
       lesson = {
-        title: data.title || `${config.topic} Lesson`,
-        slides: Array.isArray(data.script) ? data.script : [],
-        metadata: data.metadata || {},
+        title: lessonData.title || `${config.topic} Lesson`,
+        slides: lessonData.slides,
+        metadata: lessonData.metadata || lessonData._validation || {},
       };
-    } else if (data?.slides) {
+    } else if (lessonData?.script) {
+      // Legacy format support
       lesson = {
-        title: data.title || `${config.topic} Lesson`,
-        slides: data.slides,
-        metadata: data.metadata || {},
+        title: lessonData.title || `${config.topic} Lesson`,
+        slides: Array.isArray(lessonData.script) ? lessonData.script : [],
+        metadata: lessonData.metadata || {},
       };
     } else {
+      console.error('Unexpected response structure:', JSON.stringify(data).substring(0, 500));
       throw new Error('Invalid lesson data received');
     }
 
