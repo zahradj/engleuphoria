@@ -3399,6 +3399,48 @@ export type Database = {
         }
         Relationships: []
       }
+      iron_games: {
+        Row: {
+          cefr_level: string | null
+          created_at: string | null
+          created_by: string | null
+          game_data: Json
+          game_mode: string
+          id: string
+          status: string | null
+          target_group: string
+          title: string
+          topic: string
+          updated_at: string | null
+        }
+        Insert: {
+          cefr_level?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          game_data: Json
+          game_mode: string
+          id?: string
+          status?: string | null
+          target_group: string
+          title: string
+          topic: string
+          updated_at?: string | null
+        }
+        Update: {
+          cefr_level?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          game_data?: Json
+          game_mode?: string
+          id?: string
+          status?: string | null
+          target_group?: string
+          title?: string
+          topic?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       iron_lesson_progress: {
         Row: {
           completed_at: string | null
