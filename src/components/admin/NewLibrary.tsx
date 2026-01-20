@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Wand2, Save, Trash2, Sparkles, HelpCircle, RefreshCw, Zap, BarChart3 } from "lucide-react";
+import { Loader2, Wand2, Save, Trash2, Sparkles, HelpCircle, RefreshCw, Zap, BarChart3, Gamepad2 } from "lucide-react";
 import { SystemSelector } from "./generator/SystemSelector";
 import { LessonPreview } from "./generator/LessonPreview";
 import { LessonPicker, MasterLessonFlat } from "./generator/LessonPicker";
@@ -19,6 +19,7 @@ import { BulkLessonGenerator } from "./generator/BulkLessonGenerator";
 import { GenerationProgress } from "./generator/GenerationProgress";
 import { GenerationHistoryPanel } from "./generator/GenerationHistoryPanel";
 import { QualityDashboard } from "./generator/QualityDashboard";
+import { IronGameGenerator } from "./generator/IronGameGenerator";
 import { useN8nGenerator } from "@/hooks/useN8nGenerator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -302,7 +303,7 @@ export const NewLibrary = ({ onNavigate }: NewLibraryProps) => {
       </div>
 
       <Tabs defaultValue="single" className="w-full">
-        <TabsList className="grid w-full max-w-lg grid-cols-3">
+        <TabsList className="grid w-full max-w-2xl grid-cols-4">
           <TabsTrigger value="single" className="flex items-center gap-2">
             <Wand2 className="h-4 w-4" />
             Single Lesson
@@ -315,6 +316,10 @@ export const NewLibrary = ({ onNavigate }: NewLibraryProps) => {
             <BarChart3 className="h-4 w-4" />
             Quality
           </TabsTrigger>
+          <TabsTrigger value="games" className="flex items-center gap-2">
+            <Gamepad2 className="h-4 w-4" />
+            Games
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="bulk" className="mt-6">
@@ -323,6 +328,10 @@ export const NewLibrary = ({ onNavigate }: NewLibraryProps) => {
 
         <TabsContent value="quality" className="mt-6">
           <QualityDashboard />
+        </TabsContent>
+
+        <TabsContent value="games" className="mt-6">
+          <IronGameGenerator onNavigate={onNavigate} />
         </TabsContent>
 
         <TabsContent value="single" className="mt-6">
