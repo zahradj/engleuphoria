@@ -116,7 +116,7 @@ export const useUnifiedLessonGenerator = () => {
 
     const { data, error } = await supabase.functions.invoke('n8n-bridge', {
       body: {
-        action: 'generate_lesson',
+        action: 'generate-lesson',
         topic: config.topic,
         system: config.system,
         level: config.level,
