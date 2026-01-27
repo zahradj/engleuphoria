@@ -191,12 +191,12 @@ async function generateLessonWithAI(params: GenerateParams) {
   const systemContext = getSystemContext(system);
   const lessonTypeContext = getLessonTypeContext(lessonType || "Mechanic");
 
-  const systemPrompt = `You are an expert ESL curriculum designer specializing in creating engaging, pedagogically sound lessons. 
-You create complete PPP (Presentation-Practice-Production) lessons that are classroom-ready.
+  const systemPrompt = `You are an expert ESL curriculum designer specializing in creating engaging, pedagogically sound INTERACTIVE lessons. 
+You create complete PPP (Presentation-Practice-Production) lessons that are classroom-ready with diverse interactive activities.
 
 LESSON STRUCTURE FOR ${durationMinutes}-MINUTE LESSON (${slideCount} slides total):
 - Presentation Phase: ${presentationSlides} slides
-- Practice Phase: ${practiceSlides} slides
+- Practice Phase: ${practiceSlides} slides (MUST include at least 3 different interactive activity types)
 - Production Phase: ${productionSlides} slides
 
 SYSTEM CONTEXT:
@@ -208,11 +208,21 @@ SYSTEM CONTEXT:
 LESSON TYPE: ${lessonType || "Mechanic"}
 ${lessonTypeContext}
 
+CRITICAL INTERACTIVE SLIDE REQUIREMENTS:
+1. DRAG_DROP slides MUST have: content.items (array of {text, targetId}), content.targets (array of {id, label})
+2. MATCHING slides MUST have: content.pairs (array of {left, right} objects)
+3. SORTING slides MUST have: content.categories (array of {name, items})
+4. SPINNING_WHEEL slides MUST have: content.segments (array of strings)
+5. SENTENCE_BUILDER slides MUST have: content.words (scrambled array), content.correctOrder (correct sequence)
+6. QUIZ slides MUST have: content.options (array of {id, text, isCorrect})
+
 CRITICAL INSTRUCTIONS:
 1. Generate EXACTLY ${slideCount} slides - no more, no less
-2. Each slide MUST have all required fields (id, type, title, phase, phaseLabel, content, teacherNotes, durationSeconds)
-3. Vocabulary must include accurate IPA pronunciations
-4. All JSON must be complete and valid - do not truncate
+2. Include AT LEAST 3 different interactive slide types (drag_drop, matching, sorting, spinning_wheel, sentence_builder)
+3. Each slide MUST have all required fields (id, type, title, phase, phaseLabel, content, teacherNotes, durationSeconds)
+4. Vocabulary must include accurate IPA pronunciations
+5. All JSON must be complete and valid - do not truncate
+6. Interactive slides MUST have complete content structure as specified above
 
 Always output valid JSON matching the exact schema provided.`;
 
@@ -247,17 +257,21 @@ PRESENTATION PHASE (${presentationSlides} slides):
 - Remaining presentation slides: Grammar Focus (rule, pattern, examples)
 
 PRACTICE PHASE (${practiceSlides} slides):
-- Controlled Practice slides (fill-in-the-blank exercises)
-- Dialogue slides (age-appropriate conversations)
-- Speaking Practice slides (guided speaking activities)
-- Interactive Game slides (matching, quiz, or drag-drop)
-- Listening comprehension slides (if 60+ minutes)
-- Quick Quiz slides (multiple choice assessment)
+- controlled_practice slides (fill-in-the-blank exercises with options)
+- dialogue slides (age-appropriate conversations with roles)
+- speaking slides (guided speaking activities with prompts)
+- drag_drop slides (drag items to match with targets, MUST have items array with {text, targetId} and targets array with {id, label})
+- matching slides (memory card matching pairs, MUST have pairs array with {left, right} objects)
+- sorting slides (categorize items, MUST have categories array with {name, items})
+- spinning_wheel slides (random selection wheel, MUST have segments array with strings)
+- sentence_builder slides (arrange scrambled words, MUST have words array and correctOrder array)
+- listening slides (audio with comprehension questions)
+- quiz slides (multiple choice with options array containing {id, text, isCorrect})
 
 PRODUCTION PHASE (${productionSlides} slides):
-- Creative Production Task slides
+- production slides (creative tasks with clear instructions)
 - Role-play scenario slides
-- Summary & Homework slide (final slide)
+- rewards slide (celebration with badge/stars earned)
 
 REQUIREMENTS:
 1. Include teacher notes for each slide with timing suggestions
@@ -288,7 +302,7 @@ REQUIREMENTS:
                 type: "object",
                 properties: {
                   id: { type: "string" },
-                  type: { type: "string", enum: ["title", "vocabulary", "grammar", "practice", "dialogue", "speaking", "game", "quiz", "production", "summary"] },
+                  type: { type: "string", enum: ["title", "warmup", "vocabulary", "grammar", "grammar_focus", "controlled_practice", "dialogue", "dialogue_practice", "speaking", "speaking_practice", "listening", "listening_comprehension", "drag_drop", "matching", "sorting", "spinning_wheel", "sentence_builder", "quiz", "end_quiz", "production", "rewards", "summary"] },
                   title: { type: "string" },
                   phase: { type: "string", enum: ["presentation", "practice", "production"] },
                   phaseLabel: { type: "string" },
