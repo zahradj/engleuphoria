@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,11 @@ interface CommunicationZoneProps {
   onSendSticker: () => void;
   studentCanDraw?: boolean;
   onToggleStudentDrawing?: () => void;
+  onShareScreen?: () => void;
+  onEmbedLink?: () => void;
+  isScreenSharing?: boolean;
+  onStopScreenShare?: () => void;
+  screenShareStream?: MediaStream | null;
 }
 
 export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
@@ -24,12 +29,25 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
   onRollDice,
   onSendSticker,
   studentCanDraw = false,
-  onToggleStudentDrawing
+  onToggleStudentDrawing,
+  onShareScreen,
+  onEmbedLink,
+  isScreenSharing = false,
+  onStopScreenShare,
+  screenShareStream
 }) => {
   const [chatMessages, setChatMessages] = useState<Array<{ sender: string; text: string }>>([
     { sender: 'system', text: 'Class session started' }
   ]);
   const [newMessage, setNewMessage] = useState('');
+  const screenShareVideoRef = useRef<HTMLVideoElement>(null);
+
+  // Attach screen share stream to video element
+  useEffect(() => {
+    if (screenShareVideoRef.current && screenShareStream) {
+      screenShareVideoRef.current.srcObject = screenShareStream;
+    }
+  }, [screenShareStream]);
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {
@@ -40,8 +58,25 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
 
   return (
     <div className="w-80 bg-gray-900 border-r border-gray-800 flex flex-col shrink-0">
-      {/* Student Video Container */}
+      {/* Video Containers */}
       <div className="p-3 space-y-3">
+        {/* Screen Share Preview (if active) */}
+        {isScreenSharing && screenShareStream && (
+          <div className="relative aspect-video bg-gray-800 rounded-lg overflow-hidden border-2 border-indigo-500/50">
+            <video
+              ref={screenShareVideoRef}
+              autoPlay
+              muted
+              playsInline
+              className="w-full h-full object-contain"
+            />
+            <div className="absolute bottom-2 left-2 bg-indigo-600/80 px-2 py-1 rounded text-xs text-white">
+              Screen Share
+            </div>
+          </div>
+        )}
+
+        {/* Student Video Container */}
         <div className="relative aspect-[4/3] bg-gray-800 rounded-lg overflow-hidden border-2 border-primary/30">
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-20 h-20 rounded-full bg-gray-700 flex items-center justify-center">
@@ -76,6 +111,10 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
           onSendSticker={onSendSticker}
           studentCanDraw={studentCanDraw}
           onToggleStudentDrawing={onToggleStudentDrawing}
+          onShareScreen={onShareScreen}
+          onEmbedLink={onEmbedLink}
+          isScreenSharing={isScreenSharing}
+          onStopScreenShare={onStopScreenShare}
         />
       </div>
 
