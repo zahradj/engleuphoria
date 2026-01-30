@@ -1,21 +1,52 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { X, ExternalLink, Maximize2, Minimize2, RefreshCw } from 'lucide-react';
+import { X, ExternalLink, Maximize2, Minimize2, RefreshCw, Pencil, Eraser, Palette, Trash2 } from 'lucide-react';
+import { CollaborativeCanvas } from '@/components/classroom/shared/CollaborativeCanvas';
+import { WhiteboardStroke } from '@/services/whiteboardService';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface EmbeddedContentViewerProps {
   url: string;
   onClose: () => void;
+  // Drawing props (optional)
+  enableDrawing?: boolean;
+  roomId?: string;
+  userId?: string;
+  userName?: string;
+  strokes?: WhiteboardStroke[];
+  onAddStroke?: (stroke: Omit<WhiteboardStroke, 'id' | 'roomId' | 'timestamp'>) => void;
+  onClearCanvas?: () => void;
 }
+
+const COLORS = [
+  '#FF6B6B', '#4ECDC4', '#FFE66D', '#95E1D3',
+  '#F38181', '#AA96DA', '#FCBAD3', '#2D4059',
+  '#FFFFFF', '#000000'
+];
 
 export const EmbeddedContentViewer: React.FC<EmbeddedContentViewerProps> = ({
   url,
-  onClose
+  onClose,
+  enableDrawing = true,
+  roomId,
+  userId,
+  userName,
+  strokes = [],
+  onAddStroke,
+  onClearCanvas
 }) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
   const [key, setKey] = useState(0);
+  const [drawingEnabled, setDrawingEnabled] = useState(false);
+  const [activeTool, setActiveTool] = useState<'pen' | 'eraser'>('pen');
+  const [activeColor, setActiveColor] = useState('#FF6B6B');
 
   // Transform URL for better embedding (e.g., YouTube)
   const getEmbedUrl = (inputUrl: string): string => {
@@ -55,6 +86,8 @@ export const EmbeddedContentViewer: React.FC<EmbeddedContentViewerProps> = ({
     setKey(prev => prev + 1);
   };
 
+  const canDraw = enableDrawing && roomId && userId && userName && onAddStroke;
+
   return (
     <AnimatePresence>
       <motion.div
@@ -74,6 +107,81 @@ export const EmbeddedContentViewer: React.FC<EmbeddedContentViewerProps> = ({
             <span className="truncate max-w-[300px]">{url}</span>
           </div>
           <div className="flex items-center gap-1">
+            {/* Drawing Tools */}
+            {canDraw && (
+              <>
+                <div className="h-4 w-px bg-gray-700 mx-1" />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setDrawingEnabled(!drawingEnabled)}
+                  className={`h-8 w-8 ${drawingEnabled ? 'bg-green-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                  title={drawingEnabled ? 'Disable Drawing' : 'Enable Drawing'}
+                >
+                  <Pencil className="w-4 h-4" />
+                </Button>
+                
+                {drawingEnabled && (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setActiveTool(activeTool === 'pen' ? 'eraser' : 'pen')}
+                      className={`h-8 w-8 ${activeTool === 'eraser' ? 'bg-orange-600 text-white' : 'text-gray-400 hover:text-white'}`}
+                      title={activeTool === 'pen' ? 'Switch to Eraser' : 'Switch to Pen'}
+                    >
+                      <Eraser className="w-4 h-4" />
+                    </Button>
+
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-gray-400 hover:text-white"
+                          title="Color"
+                        >
+                          <div 
+                            className="h-4 w-4 rounded-full border-2 border-gray-400"
+                            style={{ backgroundColor: activeColor }}
+                          />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-2 bg-gray-800 border-gray-700">
+                        <div className="grid grid-cols-5 gap-1">
+                          {COLORS.map(color => (
+                            <button
+                              key={color}
+                              onClick={() => setActiveColor(color)}
+                              className={`w-6 h-6 rounded-full transition-transform ${
+                                activeColor === color 
+                                  ? 'ring-2 ring-white scale-110' 
+                                  : 'hover:scale-105'
+                              }`}
+                              style={{ backgroundColor: color }}
+                            />
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+
+                    {onClearCanvas && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={onClearCanvas}
+                        className="h-8 w-8 text-gray-400 hover:text-red-400"
+                        title="Clear Canvas"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </>
+                )}
+                <div className="h-4 w-px bg-gray-700 mx-1" />
+              </>
+            )}
+
             <Button
               variant="ghost"
               size="icon"
@@ -169,6 +277,21 @@ export const EmbeddedContentViewer: React.FC<EmbeddedContentViewerProps> = ({
             }}
             sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
           />
+
+          {/* Drawing Canvas Overlay */}
+          {canDraw && drawingEnabled && (
+            <CollaborativeCanvas
+              roomId={roomId}
+              userId={userId}
+              userName={userName}
+              role="teacher"
+              canDraw={true}
+              activeTool={activeTool}
+              activeColor={activeColor}
+              strokes={strokes}
+              onAddStroke={onAddStroke}
+            />
+          )}
         </div>
       </motion.div>
     </AnimatePresence>

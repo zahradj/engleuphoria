@@ -53,35 +53,6 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   const [embedDialogOpen, setEmbedDialogOpen] = useState(false);
   const [embeddedUrl, setEmbeddedUrl] = useState<string | null>(null);
 
-  // Screen share hook
-  const { 
-    isSharing: isScreenSharing, 
-    stream: screenShareStream,
-    startScreenShare, 
-    stopScreenShare 
-  } = useScreenShare({
-    onStreamStart: () => {
-      toast({
-        title: "Screen Sharing Started",
-        description: "Your screen is now visible to students",
-        className: "bg-indigo-900 border-indigo-700",
-      });
-    },
-    onStreamEnd: () => {
-      toast({
-        title: "Screen Sharing Stopped",
-        description: "Screen sharing has ended",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Screen Share Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  });
-
   // Generate unique room name based on class ID
   const roomName = `MySchool_Class_${classId}`;
 
@@ -107,7 +78,8 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     setStudentCanDraw,
     endSession,
     addStroke,
-    clearCanvas
+    clearCanvas,
+    updateSharedDisplay
   } = useClassroomSync({
     roomId: roomName,
     userId: user?.id || 'teacher-default',
@@ -116,6 +88,36 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     lessonData: {
       title: lessonTitle,
       slides: slides
+    }
+  });
+
+  // Screen share hook (must be after useClassroomSync for updateSharedDisplay access)
+  const { 
+    isSharing: isScreenSharing, 
+    stream: screenShareStream,
+    startScreenShare, 
+    stopScreenShare 
+  } = useScreenShare({
+    onStreamStart: () => {
+      toast({
+        title: "Screen Sharing Started",
+        description: "Your screen is now visible to students",
+        className: "bg-indigo-900 border-indigo-700",
+      });
+    },
+    onStreamEnd: () => {
+      // Note: updateSharedDisplay called in handleStopScreenShare instead
+      toast({
+        title: "Screen Sharing Stopped",
+        description: "Screen sharing has ended",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Screen Share Error",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   });
 
@@ -136,7 +138,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     setIsCameraOff(prev => !prev);
   }, []);
 
-  const handleGiveStar = useCallback(() => {
+  const handleGiveStar = useCallback(async () => {
     const newStarCount = studentStars + 1;
     setStudentStars(newStarCount);
     
@@ -144,7 +146,19 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     const milestone = newStarCount % 5 === 0;
     setIsMilestone(milestone);
     setShowStarCelebration(true);
-  }, [studentStars]);
+
+    // Sync to students
+    await updateSharedDisplay({
+      starCount: newStarCount,
+      showStarCelebration: true,
+      isMilestone: milestone
+    });
+
+    // Auto-hide celebration after animation
+    setTimeout(async () => {
+      await updateSharedDisplay({ showStarCelebration: false });
+    }, milestone ? 6500 : 3500);
+  }, [studentStars, updateSharedDisplay]);
 
   const handleOpenTimer = useCallback(() => {
     setTimerDialogOpen(true);
@@ -174,20 +188,34 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
 
   const handleShareScreen = useCallback(async () => {
     await startScreenShare('screen');
-  }, [startScreenShare]);
+    // Sync to students
+    await updateSharedDisplay({ isScreenSharing: true });
+  }, [startScreenShare, updateSharedDisplay]);
+
+  const handleStopScreenShare = useCallback(async () => {
+    stopScreenShare();
+    await updateSharedDisplay({ isScreenSharing: false });
+  }, [stopScreenShare, updateSharedDisplay]);
 
   const handleEmbedLink = useCallback(() => {
     setEmbedDialogOpen(true);
   }, []);
 
-  const handleEmbed = useCallback((url: string) => {
+  const handleEmbed = useCallback(async (url: string) => {
     setEmbeddedUrl(url);
+    // Sync to students
+    await updateSharedDisplay({ embeddedUrl: url });
     toast({
       title: "Content Embedded",
-      description: "External content is now visible in the classroom",
+      description: "External content is now visible to students",
       className: "bg-teal-900 border-teal-700",
     });
-  }, [toast]);
+  }, [toast, updateSharedDisplay]);
+
+  const handleCloseEmbed = useCallback(async () => {
+    setEmbeddedUrl(null);
+    await updateSharedDisplay({ embeddedUrl: null });
+  }, [updateSharedDisplay]);
 
   const handlePrevSlide = useCallback(async () => {
     const newIndex = Math.max(0, currentSlide - 1);
@@ -285,7 +313,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
           onShareScreen={handleShareScreen}
           onEmbedLink={handleEmbedLink}
           isScreenSharing={isScreenSharing}
-          onStopScreenShare={stopScreenShare}
+          onStopScreenShare={handleStopScreenShare}
           screenShareStream={screenShareStream}
         />
 
@@ -308,11 +336,18 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
             onClearCanvas={handleClearCanvas}
           />
 
-          {/* Embedded Content Viewer */}
+          {/* Embedded Content Viewer with Drawing Tools */}
           {embeddedUrl && (
             <EmbeddedContentViewer
               url={embeddedUrl}
-              onClose={() => setEmbeddedUrl(null)}
+              onClose={handleCloseEmbed}
+              enableDrawing={true}
+              roomId={roomName}
+              userId={user?.id || 'teacher-default'}
+              userName={teacherName}
+              strokes={strokes}
+              onAddStroke={addStroke}
+              onClearCanvas={handleClearCanvas}
             />
           )}
         </div>
