@@ -3,11 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useClassroomSync } from "@/hooks/useClassroomSync";
 import { useAuth } from "@/contexts/AuthContext";
+import { useScreenShare } from "@/hooks/useScreenShare";
 import { ClassroomTopBar } from "./ClassroomTopBar";
 import { CommunicationZone } from "./CommunicationZone";
 import { CenterStage } from "./CenterStage";
 import { SlideNavigator } from "./SlideNavigator";
 import { DiceRoller } from "./DiceRoller";
+import { StarCelebration } from "./StarCelebration";
+import { EmbedLinkDialog } from "./EmbedLinkDialog";
+import { EmbeddedContentViewer } from "./EmbeddedContentViewer";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +43,44 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   const [timerSeconds, setTimerSeconds] = useState(60);
   const [timerRunning, setTimerRunning] = useState(false);
   const [timerValue, setTimerValue] = useState(60);
+  
+  // Star celebration state
+  const [studentStars, setStudentStars] = useState(0);
+  const [showStarCelebration, setShowStarCelebration] = useState(false);
+  const [isMilestone, setIsMilestone] = useState(false);
+
+  // Embed link state
+  const [embedDialogOpen, setEmbedDialogOpen] = useState(false);
+  const [embeddedUrl, setEmbeddedUrl] = useState<string | null>(null);
+
+  // Screen share hook
+  const { 
+    isSharing: isScreenSharing, 
+    stream: screenShareStream,
+    startScreenShare, 
+    stopScreenShare 
+  } = useScreenShare({
+    onStreamStart: () => {
+      toast({
+        title: "Screen Sharing Started",
+        description: "Your screen is now visible to students",
+        className: "bg-indigo-900 border-indigo-700",
+      });
+    },
+    onStreamEnd: () => {
+      toast({
+        title: "Screen Sharing Stopped",
+        description: "Screen sharing has ended",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Screen Share Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
 
   // Generate unique room name based on class ID
   const roomName = `MySchool_Class_${classId}`;
@@ -95,12 +137,14 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   }, []);
 
   const handleGiveStar = useCallback(() => {
-    toast({
-      title: "⭐ Star Awarded!",
-      description: `You gave ${studentName} a star!`,
-      className: "bg-yellow-900 border-yellow-700 text-white",
-    });
-  }, [studentName, toast]);
+    const newStarCount = studentStars + 1;
+    setStudentStars(newStarCount);
+    
+    // Check if it's a milestone (every 5 stars)
+    const milestone = newStarCount % 5 === 0;
+    setIsMilestone(milestone);
+    setShowStarCelebration(true);
+  }, [studentStars]);
 
   const handleOpenTimer = useCallback(() => {
     setTimerDialogOpen(true);
@@ -127,6 +171,23 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
       className: studentCanDraw ? "" : "bg-green-900 border-green-700",
     });
   }, [studentCanDraw, setStudentCanDraw, toast]);
+
+  const handleShareScreen = useCallback(async () => {
+    await startScreenShare('screen');
+  }, [startScreenShare]);
+
+  const handleEmbedLink = useCallback(() => {
+    setEmbedDialogOpen(true);
+  }, []);
+
+  const handleEmbed = useCallback((url: string) => {
+    setEmbeddedUrl(url);
+    toast({
+      title: "Content Embedded",
+      description: "External content is now visible in the classroom",
+      className: "bg-teal-900 border-teal-700",
+    });
+  }, [toast]);
 
   const handlePrevSlide = useCallback(async () => {
     const newIndex = Math.max(0, currentSlide - 1);
@@ -188,6 +249,15 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
 
   return (
     <div className="h-screen w-full bg-gray-950 text-gray-100 flex flex-col overflow-hidden">
+      {/* Star Celebration Overlay */}
+      <StarCelebration
+        isVisible={showStarCelebration}
+        starCount={studentStars}
+        studentName={studentName}
+        isMilestone={isMilestone}
+        onComplete={() => setShowStarCelebration(false)}
+      />
+
       {/* Top Control Bar */}
       <ClassroomTopBar
         lessonTitle={lessonTitle}
@@ -212,25 +282,40 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
           onSendSticker={handleSendSticker}
           studentCanDraw={studentCanDraw}
           onToggleStudentDrawing={handleToggleStudentDrawing}
+          onShareScreen={handleShareScreen}
+          onEmbedLink={handleEmbedLink}
+          isScreenSharing={isScreenSharing}
+          onStopScreenShare={stopScreenShare}
+          screenShareStream={screenShareStream}
         />
 
         {/* Center: Main Stage */}
-        <CenterStage
-          slides={slides}
-          currentSlideIndex={currentSlide}
-          onPrevSlide={handlePrevSlide}
-          onNextSlide={handleNextSlide}
-          activeTool={activeTool}
-          onToolChange={handleToolChange}
-          activeColor={activeColor}
-          onColorChange={setActiveColor}
-          strokes={strokes}
-          roomId={roomName}
-          userId={user?.id || 'teacher-default'}
-          userName={teacherName}
-          onAddStroke={addStroke}
-          onClearCanvas={handleClearCanvas}
-        />
+        <div className="flex-1 relative">
+          <CenterStage
+            slides={slides}
+            currentSlideIndex={currentSlide}
+            onPrevSlide={handlePrevSlide}
+            onNextSlide={handleNextSlide}
+            activeTool={activeTool}
+            onToolChange={handleToolChange}
+            activeColor={activeColor}
+            onColorChange={setActiveColor}
+            strokes={strokes}
+            roomId={roomName}
+            userId={user?.id || 'teacher-default'}
+            userName={teacherName}
+            onAddStroke={addStroke}
+            onClearCanvas={handleClearCanvas}
+          />
+
+          {/* Embedded Content Viewer */}
+          {embeddedUrl && (
+            <EmbeddedContentViewer
+              url={embeddedUrl}
+              onClose={() => setEmbeddedUrl(null)}
+            />
+          )}
+        </div>
 
         {/* Right: Slide Navigator */}
         <SlideNavigator
@@ -245,6 +330,13 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
 
       {/* Dice Roller Dialog */}
       <DiceRoller open={diceDialogOpen} onOpenChange={setDiceDialogOpen} />
+
+      {/* Embed Link Dialog */}
+      <EmbedLinkDialog
+        open={embedDialogOpen}
+        onOpenChange={setEmbedDialogOpen}
+        onEmbed={handleEmbed}
+      />
 
       {/* Timer Dialog */}
       <Dialog open={timerDialogOpen} onOpenChange={setTimerDialogOpen}>

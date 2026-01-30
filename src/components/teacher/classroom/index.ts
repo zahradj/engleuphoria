@@ -5,3 +5,6 @@ export { CenterStage } from './CenterStage';
 export { SlideNavigator } from './SlideNavigator';
 export { InteractionToolsGrid } from './InteractionToolsGrid';
 export { DiceRoller } from './DiceRoller';
+export { StarCelebration } from './StarCelebration';
+export { EmbedLinkDialog } from './EmbedLinkDialog';
+export { EmbeddedContentViewer } from './EmbeddedContentViewer';

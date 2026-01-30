@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Star, Timer, Dice6, Smile, PenLine, PenOff } from 'lucide-react';
+import { Star, Timer, Dice6, Smile, PenLine, PenOff, Monitor, Link, MonitorStop } from 'lucide-react';
 
 interface InteractionToolsGridProps {
   onGiveStar: () => void;
@@ -9,6 +9,10 @@ interface InteractionToolsGridProps {
   onSendSticker: () => void;
   studentCanDraw?: boolean;
   onToggleStudentDrawing?: () => void;
+  onShareScreen?: () => void;
+  onEmbedLink?: () => void;
+  isScreenSharing?: boolean;
+  onStopScreenShare?: () => void;
 }
 
 export const InteractionToolsGrid: React.FC<InteractionToolsGridProps> = ({
@@ -17,7 +21,11 @@ export const InteractionToolsGrid: React.FC<InteractionToolsGridProps> = ({
   onRollDice,
   onSendSticker,
   studentCanDraw = false,
-  onToggleStudentDrawing
+  onToggleStudentDrawing,
+  onShareScreen,
+  onEmbedLink,
+  isScreenSharing = false,
+  onStopScreenShare
 }) => {
   const tools = [
     { icon: Star, label: 'Star', color: 'bg-yellow-500 hover:bg-yellow-600', action: onGiveStar },
@@ -41,6 +49,38 @@ export const InteractionToolsGrid: React.FC<InteractionToolsGridProps> = ({
           </Button>
         ))}
       </div>
+
+      {/* Screen Share & Embed Link Row */}
+      <div className="grid grid-cols-2 gap-2">
+        {isScreenSharing ? (
+          <Button
+            variant="ghost"
+            className="h-10 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white"
+            onClick={onStopScreenShare}
+          >
+            <MonitorStop className="h-4 w-4" />
+            <span className="text-xs font-medium">Stop Share</span>
+          </Button>
+        ) : (
+          <Button
+            variant="ghost"
+            className="h-10 flex items-center justify-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white"
+            onClick={onShareScreen}
+          >
+            <Monitor className="h-4 w-4" />
+            <span className="text-xs font-medium">Share Screen</span>
+          </Button>
+        )}
+        <Button
+          variant="ghost"
+          className="h-10 flex items-center justify-center gap-2 bg-teal-500 hover:bg-teal-600 text-white"
+          onClick={onEmbedLink}
+        >
+          <Link className="h-4 w-4" />
+          <span className="text-xs font-medium">Embed Link</span>
+        </Button>
+      </div>
+
       {onToggleStudentDrawing && (
         <Button
           variant="ghost"
