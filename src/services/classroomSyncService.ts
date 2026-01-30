@@ -17,6 +17,15 @@ export interface ClassroomSession {
   pollActive: boolean;
   pollShowResults: boolean;
   currentPollSlideId: string | null;
+  // Shared display state for students
+  embeddedUrl: string | null;
+  isScreenSharing: boolean;
+  starCount: number;
+  showStarCelebration: boolean;
+  isMilestone: boolean;
+  timerValue: number | null;
+  timerRunning: boolean;
+  diceValue: number | null;
 }
 
 export interface SessionUpdate {
@@ -32,6 +41,15 @@ export interface SessionUpdate {
   pollActive?: boolean;
   pollShowResults?: boolean;
   currentPollSlideId?: string | null;
+  // Shared display state
+  embeddedUrl?: string | null;
+  isScreenSharing?: boolean;
+  starCount?: number;
+  showStarCelebration?: boolean;
+  isMilestone?: boolean;
+  timerValue?: number | null;
+  timerRunning?: boolean;
+  diceValue?: number | null;
 }
 
 class ClassroomSyncService {
@@ -158,6 +176,31 @@ class ClassroomSyncService {
       if (updates.currentPollSlideId !== undefined) {
         updateData.current_poll_slide_id = updates.currentPollSlideId;
       }
+      // Shared display state updates
+      if (updates.embeddedUrl !== undefined) {
+        updateData.embedded_url = updates.embeddedUrl;
+      }
+      if (updates.isScreenSharing !== undefined) {
+        updateData.is_screen_sharing = updates.isScreenSharing;
+      }
+      if (updates.starCount !== undefined) {
+        updateData.star_count = updates.starCount;
+      }
+      if (updates.showStarCelebration !== undefined) {
+        updateData.show_star_celebration = updates.showStarCelebration;
+      }
+      if (updates.isMilestone !== undefined) {
+        updateData.is_milestone = updates.isMilestone;
+      }
+      if (updates.timerValue !== undefined) {
+        updateData.timer_value = updates.timerValue;
+      }
+      if (updates.timerRunning !== undefined) {
+        updateData.timer_running = updates.timerRunning;
+      }
+      if (updates.diceValue !== undefined) {
+        updateData.dice_value = updates.diceValue;
+      }
 
       const { error } = await supabase
         .from('classroom_sessions')
@@ -247,7 +290,16 @@ class ClassroomSyncService {
       currentQuizSlideId: data.current_quiz_slide_id || null,
       pollActive: data.poll_active || false,
       pollShowResults: data.poll_show_results || false,
-      currentPollSlideId: data.current_poll_slide_id || null
+      currentPollSlideId: data.current_poll_slide_id || null,
+      // Shared display state
+      embeddedUrl: data.embedded_url || null,
+      isScreenSharing: data.is_screen_sharing || false,
+      starCount: data.star_count || 0,
+      showStarCelebration: data.show_star_celebration || false,
+      isMilestone: data.is_milestone || false,
+      timerValue: data.timer_value || null,
+      timerRunning: data.timer_running || false,
+      diceValue: data.dice_value || null
     };
   }
 

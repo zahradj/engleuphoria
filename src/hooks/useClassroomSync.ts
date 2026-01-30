@@ -33,6 +33,16 @@ interface UseClassroomSyncReturn {
   pollActive: boolean;
   pollShowResults: boolean;
   currentPollSlideId: string | null;
+  
+  // Shared display state for students
+  embeddedUrl: string | null;
+  isScreenSharing: boolean;
+  starCount: number;
+  showStarCelebration: boolean;
+  isMilestone: boolean;
+  timerValue: number | null;
+  timerRunning: boolean;
+  diceValue: number | null;
   // Whiteboard state
   strokes: WhiteboardStroke[];
   
@@ -45,6 +55,18 @@ interface UseClassroomSyncReturn {
   // Whiteboard actions
   addStroke: (stroke: Omit<WhiteboardStroke, 'id' | 'roomId' | 'timestamp'>) => Promise<void>;
   clearCanvas: () => Promise<void>;
+  
+  // Shared display update (teacher only)
+  updateSharedDisplay: (updates: {
+    embeddedUrl?: string | null;
+    isScreenSharing?: boolean;
+    starCount?: number;
+    showStarCelebration?: boolean;
+    isMilestone?: boolean;
+    timerValue?: number | null;
+    timerRunning?: boolean;
+    diceValue?: number | null;
+  }) => Promise<void>;
 }
 
 export const useClassroomSync = ({
@@ -202,6 +224,25 @@ export const useClassroomSync = ({
     }
   }, [roomId]);
 
+  const updateSharedDisplay = useCallback(async (updates: {
+    embeddedUrl?: string | null;
+    isScreenSharing?: boolean;
+    starCount?: number;
+    showStarCelebration?: boolean;
+    isMilestone?: boolean;
+    timerValue?: number | null;
+    timerRunning?: boolean;
+    diceValue?: number | null;
+  }) => {
+    if (role !== 'teacher') return;
+    try {
+      await classroomSyncService.updateSession(roomId, updates);
+      setSession(prev => prev ? { ...prev, ...updates } : null);
+    } catch (error) {
+      console.error('Failed to update shared display:', error);
+    }
+  }, [roomId, role]);
+
   return {
     session,
     currentSlide: session?.currentSlideIndex ?? 0,
@@ -217,12 +258,22 @@ export const useClassroomSync = ({
     pollActive: session?.pollActive ?? false,
     pollShowResults: session?.pollShowResults ?? false,
     currentPollSlideId: session?.currentPollSlideId ?? null,
+    // Shared display state
+    embeddedUrl: session?.embeddedUrl ?? null,
+    isScreenSharing: session?.isScreenSharing ?? false,
+    starCount: session?.starCount ?? 0,
+    showStarCelebration: session?.showStarCelebration ?? false,
+    isMilestone: session?.isMilestone ?? false,
+    timerValue: session?.timerValue ?? null,
+    timerRunning: session?.timerRunning ?? false,
+    diceValue: session?.diceValue ?? null,
     strokes,
     updateSlide,
     updateTool,
     setStudentCanDraw,
     endSession,
     addStroke,
-    clearCanvas
+    clearCanvas,
+    updateSharedDisplay
   };
 };
