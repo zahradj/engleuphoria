@@ -68,10 +68,25 @@ export function useStudentLevel(): StudentLevelData {
 
 /**
  * Determines the student level based on age
+ * - Playground: ages < 12
+ * - Academy: ages 12-17
+ * - Professional: ages 18+
  */
 export function determineStudentLevel(age: number): StudentLevel {
-  if (age >= 4 && age <= 10) return 'playground';
-  if (age >= 11 && age <= 17) return 'academy';
+  if (age < 12) return 'playground';
+  if (age >= 12 && age < 18) return 'academy';
+  return 'professional';
+}
+
+/**
+ * Evaluates student level with score and age
+ * Score can be used for CEFR placement, age determines UI track
+ */
+export function evaluateStudentLevel(score: number, age: number): StudentLevel {
+  // Score reserved for future CEFR level determination
+  // Age determines the dashboard/UI track
+  if (age < 12) return 'playground';
+  if (age >= 12 && age < 18) return 'academy';
   return 'professional';
 }
 

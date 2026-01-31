@@ -29,6 +29,7 @@ import StudentApplication from "./pages/StudentApplication";
 import EmailVerification from "./pages/EmailVerification";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
+import StudentOnboardingFlow from "./components/onboarding/StudentOnboardingFlow";
 
 // New pages
 const ParentDashboard = lazy(() => import("./pages/ParentDashboard"));
@@ -180,6 +181,13 @@ const App = () => {
                       <Route path="/dashboard" element={
                         <ImprovedProtectedRoute>
                           <Dashboard />
+                        </ImprovedProtectedRoute>
+                      } />
+
+                      {/* Student Onboarding Flow */}
+                      <Route path="/onboarding" element={
+                        <ImprovedProtectedRoute requiredRole="student">
+                          <StudentOnboardingFlow />
                         </ImprovedProtectedRoute>
                       } />
 
