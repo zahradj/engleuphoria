@@ -5,6 +5,7 @@ import { Loader2 } from 'lucide-react';
 import { PlaygroundSidebar } from '../kids/PlaygroundSidebar';
 import { VirtualPetWidget } from '../kids/VirtualPetWidget';
 import { AILessonAgent } from '../AILessonAgent';
+import { WeeklyGoalWidget } from '../WeeklyGoalWidget';
 
 interface PlaygroundDashboardProps {
   studentName?: string;
@@ -87,7 +88,7 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
             />
           </div>
           
-          {/* Right Panel - Pet & AI Agent */}
+          {/* Right Panel - Pet, Goal & AI Agent */}
           <div className="w-full lg:w-80 flex flex-col gap-4">
             <VirtualPetWidget
               petType={petType}
@@ -95,6 +96,8 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
               wordsLearnedToday={wordsLearnedToday}
               wordsGoal={5}
             />
+
+            <WeeklyGoalWidget studentLevel="playground" />
             
             <AILessonAgent
               studentLevel="playground"

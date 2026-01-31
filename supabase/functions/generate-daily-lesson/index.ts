@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { level, cefrLevel, interests, weakAreas } = await req.json();
+    const { level, cefrLevel, interests, weakAreas, learningStyle, weeklyGoal, mistakeHistory } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
@@ -24,23 +24,43 @@ serve(async (req) => {
       professional: "adult professionals, focusing on business English, formal communication, and career-relevant vocabulary",
     };
 
+    const learningStyleActivities: Record<string, string> = {
+      visual: "diagrams, flashcards, charts, videos, color-coding, and visual mnemonics",
+      auditory: "podcasts, pronunciation drills, listening exercises, discussions, and audio content",
+      kinesthetic: "role-play, interactive games, drag-and-drop exercises, typing practice, and movement activities",
+    };
+
     const levelDescription = levelDescriptions[level] || levelDescriptions.professional;
     const interestsList = interests?.length > 0 ? interests.join(', ') : 'general topics';
     const weakAreasList = weakAreas?.length > 0 ? weakAreas.join(', ') : 'no specific weak areas identified';
+    const styleDescription = learningStyle ? learningStyleActivities[learningStyle] : 'mixed activities';
+    const goalContext = weeklyGoal ? `Their weekly goal is: "${weeklyGoal}".` : '';
+    
+    // Extract words from mistake history for review
+    const mistakeWords = mistakeHistory?.length > 0 
+      ? mistakeHistory.slice(0, 5).map((m: any) => m.word).join(', ')
+      : '';
+    const mistakeContext = mistakeWords 
+      ? `Include review of these words they previously got wrong: ${mistakeWords}.`
+      : '';
 
-    const systemPrompt = `You are an expert ESL lesson designer. Create engaging, personalized English lessons that match the student's level and interests. Always return valid JSON.`;
+    const systemPrompt = `You are an expert ESL lesson designer. Create engaging, personalized English lessons that match the student's level, interests, and learning style. Always return valid JSON.`;
 
     const userPrompt = `Create a personalized 15-minute English lesson for ${levelDescription}.
 
 Student Details:
 - CEFR Level: ${cefrLevel || 'A2'}
 - Interests: ${interestsList}
+- Learning Style: ${learningStyle || 'mixed'} (prioritize ${styleDescription})
 - Areas needing improvement: ${weakAreasList}
+${goalContext}
+${mistakeContext}
 
-Generate a lesson with:
-1. A compelling topic related to their interests
-2. 5 vocabulary words with IPA pronunciation, definitions, and example sentences
-3. An interactive quest/activity
+Instructions:
+1. Generate a compelling topic related to their interests${weeklyGoal ? ' that aligns with their weekly goal when possible' : ''}
+2. Create 5 vocabulary words with IPA pronunciation, definitions, and example sentences
+3. Design an interactive quest/activity that matches their learning style
+${mistakeWords ? '4. Include at least 1-2 words from their mistake history for review' : ''}
 
 Return ONLY this JSON structure (no markdown, no explanation):
 {
@@ -51,7 +71,8 @@ Return ONLY this JSON structure (no markdown, no explanation):
       "word": "example",
       "ipa": "/ɪɡˈzɑːmpəl/",
       "definition": "a thing characteristic of its kind",
-      "example": "This is a good example of the word."
+      "example": "This is a good example of the word.",
+      "isReview": false
     }
   ],
   "quest": {
@@ -59,10 +80,11 @@ Return ONLY this JSON structure (no markdown, no explanation):
     "description": "Clear instructions for the interactive activity",
     "type": "dialogue"
   },
-  "estimatedMinutes": 15
+  "estimatedMinutes": 15,
+  "learningStyleFocus": "${learningStyle || 'mixed'}"
 }
 
-Quest types: dialogue, quiz, writing, or listening. Choose the most appropriate for the topic.`;
+Quest types: dialogue, quiz, writing, or listening. Choose the most appropriate for both the topic AND the student's learning style.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

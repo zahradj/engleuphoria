@@ -6530,6 +6530,7 @@ export type Database = {
           learning_style: string | null
           long_term_goal: string | null
           longest_streak: number | null
+          mistake_history: Json | null
           onboarding_completed: boolean | null
           parent_email: string | null
           pet_happiness: number | null
@@ -6548,6 +6549,8 @@ export type Database = {
           timezone: string | null
           updated_at: string
           user_id: string
+          weekly_goal: string | null
+          weekly_goal_set_at: string | null
           weekly_minutes: number | null
           words_learned_today: number | null
         }
@@ -6571,6 +6574,7 @@ export type Database = {
           learning_style?: string | null
           long_term_goal?: string | null
           longest_streak?: number | null
+          mistake_history?: Json | null
           onboarding_completed?: boolean | null
           parent_email?: string | null
           pet_happiness?: number | null
@@ -6589,6 +6593,8 @@ export type Database = {
           timezone?: string | null
           updated_at?: string
           user_id: string
+          weekly_goal?: string | null
+          weekly_goal_set_at?: string | null
           weekly_minutes?: number | null
           words_learned_today?: number | null
         }
@@ -6612,6 +6618,7 @@ export type Database = {
           learning_style?: string | null
           long_term_goal?: string | null
           longest_streak?: number | null
+          mistake_history?: Json | null
           onboarding_completed?: boolean | null
           parent_email?: string | null
           pet_happiness?: number | null
@@ -6630,6 +6637,8 @@ export type Database = {
           timezone?: string | null
           updated_at?: string
           user_id?: string
+          weekly_goal?: string | null
+          weekly_goal_set_at?: string | null
           weekly_minutes?: number | null
           words_learned_today?: number | null
         }

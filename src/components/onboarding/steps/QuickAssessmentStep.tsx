@@ -6,6 +6,7 @@ import { StudentLevel } from '@/hooks/useStudentLevel';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
+import { useMistakeTracker } from '@/hooks/useMistakeTracker';
 
 interface QuickAssessmentStepProps {
   studentLevel: StudentLevel;
@@ -183,6 +184,7 @@ export const QuickAssessmentStep: React.FC<QuickAssessmentStepProps> = ({
 }) => {
   const questions = questionsByLevel[studentLevel];
   const config = levelConfig[studentLevel];
+  const { recordMistake } = useMistakeTracker();
   
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
@@ -199,7 +201,7 @@ export const QuickAssessmentStep: React.FC<QuickAssessmentStepProps> = ({
     setSelectedAnswer(index);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (selectedAnswer === null) return;
 
     const isCorrect = selectedAnswer === question.correctIndex;
@@ -207,6 +209,20 @@ export const QuickAssessmentStep: React.FC<QuickAssessmentStepProps> = ({
     setCorrectAnswers(newCorrectCount);
     setAnswers(prev => [...prev, selectedAnswer]);
     setShowResult(true);
+
+    // Record mistake if answer is wrong
+    if (!isCorrect) {
+      const correctOption = question.options[question.correctIndex];
+      const selectedOption = question.options[selectedAnswer];
+      
+      await recordMistake({
+        word: correctOption,
+        context: 'placement_test',
+        error_type: 'vocabulary',
+        correct_answer: correctOption,
+        student_answer: selectedOption,
+      });
+    }
 
     setTimeout(() => {
       if (isLastQuestion) {

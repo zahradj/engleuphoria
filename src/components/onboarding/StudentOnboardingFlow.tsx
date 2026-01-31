@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useStudentLevel, getStudentDashboardRoute, StudentLevel } from '@/hooks/useStudentLevel';
 import { WelcomeStep } from './steps/WelcomeStep';
 import { InterestsStep } from './steps/InterestsStep';
+import { LearningStyleStep } from './steps/LearningStyleStep';
 import { QuickAssessmentStep } from './steps/QuickAssessmentStep';
 import { LearningPathStep } from './steps/LearningPathStep';
 import { Progress } from '@/components/ui/progress';
@@ -12,6 +13,7 @@ import { Loader2 } from 'lucide-react';
 
 export interface OnboardingData {
   interests: string[];
+  learningStyle: 'visual' | 'auditory' | 'kinesthetic' | null;
   assessmentScore: number;
   learningPath: any | null;
 }
@@ -24,11 +26,12 @@ const StudentOnboardingFlow: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
     interests: [],
+    learningStyle: null,
     assessmentScore: 0,
     learningPath: null,
   });
 
-  const steps = ['Welcome', 'Interests', 'Quick Check', 'Your Path'];
+  const steps = ['Welcome', 'Interests', 'Learning Style', 'Quick Check', 'Your Path'];
   const progress = ((currentStep + 1) / steps.length) * 100;
 
   const handleNext = () => {
@@ -45,6 +48,11 @@ const StudentOnboardingFlow: React.FC = () => {
 
   const handleInterestsSelected = (interests: string[]) => {
     setOnboardingData(prev => ({ ...prev, interests }));
+    handleNext();
+  };
+
+  const handleLearningStyleComplete = (learningStyle: 'visual' | 'auditory' | 'kinesthetic') => {
+    setOnboardingData(prev => ({ ...prev, learningStyle }));
     handleNext();
   };
 
@@ -76,11 +84,12 @@ const StudentOnboardingFlow: React.FC = () => {
         });
       }
 
-      // Update student profile
+      // Update student profile with learning style
       await supabase.from('student_profiles')
         .update({
           onboarding_completed: true,
           interests: onboardingData.interests,
+          learning_style: onboardingData.learningStyle,
           placement_test_score: onboardingData.assessmentScore,
         })
         .eq('user_id', user.id);
@@ -140,13 +149,20 @@ const StudentOnboardingFlow: React.FC = () => {
           />
         )}
         {currentStep === 2 && (
+          <LearningStyleStep
+            studentLevel={studentLevel}
+            onComplete={handleLearningStyleComplete}
+            onBack={handleBack}
+          />
+        )}
+        {currentStep === 3 && (
           <QuickAssessmentStep
             studentLevel={studentLevel}
             onComplete={handleAssessmentComplete}
             onBack={handleBack}
           />
         )}
-        {currentStep === 3 && (
+        {currentStep === 4 && (
           <LearningPathStep
             studentLevel={studentLevel}
             interests={onboardingData.interests}
