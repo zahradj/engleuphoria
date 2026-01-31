@@ -110,18 +110,9 @@ export const ImprovedProtectedRoute: React.FC<ImprovedProtectedRouteProps> = ({
 
   // Check role if required
   if (requiredRole && requiredRole !== 'any' && userRole !== requiredRole) {
-    console.log('🚫 Role mismatch:', { required: requiredRole, actual: userRole });
-    
-    // Redirect to appropriate dashboard based on actual role
-    const roleRedirects: Record<string, string> = {
-      student: '/dashboard',
-      teacher: '/admin',
-      admin: '/super-admin',
-      parent: '/parent'
-    };
-
-    const redirectPath = roleRedirects[userRole] || '/login';
-    return <Navigate to={redirectPath} replace />;
+    // SECURITY: If user tries to access a protected route without the required role,
+    // always kick them back to login (do not "helpfully" redirect to another dashboard).
+    return <Navigate to={redirectTo} replace />;
   }
 
   // Check student level if required (for student-specific routes)
