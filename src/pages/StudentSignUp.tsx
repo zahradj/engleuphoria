@@ -94,7 +94,7 @@ const StudentSignUp = () => {
     try {
       const { data, error } = await signUp(values.email, values.password, {
         role: 'student'
-      });
+      } as any);
 
       if (error) {
         toast({
@@ -107,6 +107,37 @@ const StudentSignUp = () => {
       }
 
       if (data?.user) {
+        // Verify profile was created, if not create it manually (fallback for trigger failures)
+        const { data: existingProfile } = await supabase
+          .from('users')
+          .select('id')
+          .eq('id', data.user.id)
+          .maybeSingle();
+        
+        if (!existingProfile) {
+          console.log('Trigger failed to create student profile, creating manually...');
+          
+          // Determine system tag based on age
+          const systemTag = values.age >= 4 && values.age <= 10 ? 'KIDS' 
+                          : values.age >= 11 && values.age <= 17 ? 'TEENS' 
+                          : 'ADULTS';
+          
+          await supabase.from('users').insert({
+            id: data.user.id,
+            email: values.email,
+            full_name: values.fullName,
+            role: 'student',
+            current_system: systemTag
+          });
+          
+          await supabase.from('user_roles').insert({
+            user_id: data.user.id,
+            role: 'student'
+          });
+          
+          console.log('Manually created student profile for:', values.email);
+        }
+
         toast({
           title: "🎓 Student Account Created!",
           description: "Welcome! Let's set up your personalized learning journey.",
