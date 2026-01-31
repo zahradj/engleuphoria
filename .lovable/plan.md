@@ -1,202 +1,188 @@
 
-# Plan: Clean Up Auth Users & Enhance Playground Dashboard
+# Plan: Fix Authentication Loading State Issue & Holistic Auth Flow Review
 
-## Summary
-This plan addresses two main requests:
-1. **Delete old auth users** so those emails can sign up fresh
-2. **Refactor the Playground dashboard** to pull real lessons from the database and track progress per student
+## Problem Summary
+
+The application gets stuck on a loading screen ("Loading your dashboard...") when navigating from the homepage to sign-in/sign-up pages. This is caused by a **race condition** in the `AuthContext.tsx` authentication initialization.
+
+## Root Cause Analysis
+
+Looking at `src/contexts/AuthContext.tsx`, I identified the core issue:
+
+### The Problem Pattern (Lines 104-140)
+
+```typescript
+const { data: { subscription } } = supabase.auth.onAuthStateChange(
+  (event, session) => {
+    // ...
+    if (session?.user) {
+      // Defer database call with setTimeout
+      setTimeout(async () => {
+        // This async operation runs AFTER loading is set to false
+        const dbUser = await fetchUserFromDatabase(session.user.id);
+        // ...
+      }, 0);
+    }
+    
+    // Loading is set to false BEFORE the user data is fully loaded
+    if (mounted) {
+      setLoading(false);  // <-- This fires immediately
+    }
+  }
+);
+```
+
+**The flaw**: The `setLoading(false)` is called immediately in `onAuthStateChange`, but the user role/data is fetched asynchronously via `setTimeout(0)`. When the Login/SignUp pages check `loading` and `user`, the `loading` is `false` but `user` might still be incomplete or in flux.
+
+### How This Causes the Issue
+
+1. User is on **homepage** (logged in as a teacher at `/admin`)
+2. User clicks **"Login"** or **"Sign Up"** link
+3. React Router navigates to `/login` or `/signup`
+4. `AuthContext` fires `onAuthStateChange` with the existing session
+5. `setLoading(false)` is called immediately
+6. BUT `setTimeout(async () => {...fetchUserFromDatabase...})` is still pending
+7. The Login/SignUp page sees `user` is truthy and either:
+   - **Login page**: Triggers redirect to dashboard
+   - **SignUp page**: Triggers `signOut()` which causes another auth state change
+8. This creates a loop: signOut triggers onAuthStateChange again, loading toggles, redirects happen
+
+## Solution
+
+Refactor `AuthContext.tsx` to follow the proven pattern from the Stack Overflow solution:
+
+**Key Principles:**
+1. **Initial load must await async operations** before setting `loading = false`
+2. **Ongoing auth changes should NOT control the loading indicator** (they fire too frequently)
+3. **Never use setTimeout in auth callbacks** for role fetching
+
+## Files to Modify
+
+| File | Changes |
+|------|---------|
+| `src/contexts/AuthContext.tsx` | Refactor initialization pattern to separate initial load from ongoing changes |
+| `src/pages/Login.tsx` | Add guard to show loading state while auth is initializing |
+| `src/pages/SignUp.tsx` | Improve signout handling to prevent race conditions |
+| `src/pages/StudentSignUp.tsx` | Same signout handling improvements |
+| `src/pages/TeacherSignUp.tsx` | Same signout handling improvements |
 
 ---
 
-## Part 1: Delete Remaining Auth Users
+## Technical Implementation Details
 
-### Problem
-The previous migrations cleaned out your app data tables (`public.users`, `public.user_roles`, etc.), but the underlying **auth.users** records in Supabase still exist. Those emails cannot re-register until removed.
+### 1. Refactor `AuthContext.tsx`
 
-### Current State
-- 5 accounts still exist in `auth.users`
-- Only 1 remains in `public.users` (the admin)
-- You want to keep only the admin account (`f.zahra.djaanine@engleuphoria.com`)
-
-### Solution
-I cannot delete auth.users directly through code. You must manually delete them from the Supabase dashboard:
-
-**Step-by-step:**
-1. Open [Supabase Authentication > Users](https://supabase.com/dashboard/project/dcoxpyzoqjvmuuygvlme/auth/users)
-2. Find and delete the following accounts:
-   - `djaaninesana@gmail.com`
-   - `djaanine.zahra@gmail.com`
-   - `zahra.djaanine@gmail.com`
-   - `f.zahra.djaanine@gmail.com` (teacher account)
-3. Keep only `f.zahra.djaanine@engleuphoria.com` (admin)
-
-Once deleted, those emails can register again as new users.
-
----
-
-## Part 2: Refactor & Enhance Playground Dashboard
-
-### Current State
-The Playground uses **hardcoded mock lessons** from `LessonContext.tsx` (5 demo lessons). It does not connect to your real curriculum database.
-
-### Target State
-- **Pull lessons from `curriculum_lessons`** table (filtered by `target_system = 'kids'`)
-- **Track progress via `student_lesson_progress`** (current user ID + lesson ID)
-- Show lessons as a **fun adventure map** with locked/current/completed states
-- Add visual polish and gamification
-
-### Database Changes Required
-
-#### 1. Ensure `student_lesson_progress` RLS policies exist
-Currently the table exists with the right columns. I will verify and add any missing RLS policies:
-
+**Before (problematic):**
 ```text
-student_lesson_progress:
-  - id, user_id, lesson_id, status, score, time_spent_seconds, attempts
-  - started_at, completed_at, created_at, updated_at
+onAuthStateChange callback:
+  - Sets session
+  - Defers user fetch with setTimeout(0)
+  - Sets loading = false IMMEDIATELY
 
-Policies to ensure:
-  - Students can INSERT/UPDATE/SELECT their own rows (user_id = auth.uid())
-  - Teachers can SELECT all rows for reporting
+initializeAuth:
+  - Gets initial session
+  - Fetches user
+  - Sets loading = false
 ```
 
-### Code Changes
-
-#### 1. Create `usePlaygroundLessons` hook
-**New file: `src/hooks/usePlaygroundLessons.ts`**
-
-Responsibilities:
-- Fetch all lessons with `target_system = 'kids'` from `curriculum_lessons`
-- Fetch the logged-in user's `student_lesson_progress` records
-- Compute each lesson's status: `completed | current | locked`
-- Provide `markLessonComplete(lessonId)` function
-- Handle loading/error states
-
-#### 2. Update `LessonContext.tsx`
-- Remove hardcoded `INITIAL_LESSONS`
-- Add a `getPlaygroundLessonsFromDB()` method that delegates to the new hook (or deprecate this context for Playground in favor of the hook)
-
-#### 3. Refactor `PlaygroundDashboard.tsx`
-- Use `usePlaygroundLessons()` hook
-- Pass real lessons to `KidsWorldMap`
-- Show loading spinner while fetching
-- Handle empty state (no lessons yet)
-
-#### 4. Update `KidsWorldMap.tsx`
-- Accept lessons as prop (instead of calling `useLessonContext`)
-- Add animated mascot (Pip the Parrot) that follows the current level
-- Add floating star/XP counter from student's total
-- Add theme selection (jungle/space/underwater) stored in user preferences
-
-#### 5. Update `LevelNode.tsx`
-- Display lesson title and lesson number on hover
-- Add "NEW" badge for freshly unlocked lessons
-- Add 3-star rating for completed lessons (based on score)
-
-#### 6. Enhance `LessonPlayerModal.tsx`
-- On quiz completion, call `markLessonComplete()`
-- Award XP/stars based on score
-- Show confetti celebration
-- Auto-unlock next lesson
-
-#### 7. Update `FloatingBackpack.tsx`
-- Pull badges from `student_achievements` table
-- Pull star count from aggregate XP
-- Add "Trophy Room" button that navigates to certificates
-
-### Visual Enhancements
-- Animated mascot (Pip) that bounces near current lesson
-- Particle effects on path between completed nodes
-- Sound effects on level click and completion
-- Responsive layout for mobile (bottom navigation auto-hides on scroll)
-
----
-
-## Technical Details
-
-### Database Query: Get Playground Lessons
-
-```sql
-SELECT 
-  cl.id,
-  cl.title,
-  cl.sequence_order as lesson_number,
-  cl.difficulty_level,
-  cl.content,
-  slp.status as progress_status,
-  slp.score,
-  slp.completed_at
-FROM curriculum_lessons cl
-LEFT JOIN student_lesson_progress slp 
-  ON cl.id = slp.lesson_id 
-  AND slp.user_id = :currentUserId
-WHERE cl.target_system = 'kids'
-  AND cl.is_published = true
-ORDER BY cl.sequence_order ASC
-```
-
-### Progress Calculation Logic
-
+**After (fixed):**
 ```text
-for each lesson in order:
-  if lesson has progress.status = 'completed':
-    lesson.status = 'completed'
-  else if lesson is first OR previous lesson is completed:
-    lesson.status = 'current'
-  else:
-    lesson.status = 'locked'
+onAuthStateChange callback:
+  - Sets session and user synchronously
+  - Defers role fetch with setTimeout (fire-and-forget)
+  - Does NOT touch loading state
+
+initializeAuth:
+  - Sets up listener first
+  - Gets initial session
+  - AWAITS user AND role fetch
+  - THEN sets loading = false
 ```
 
-### Position Calculation for Map
+The key change is that `loading` only transitions to `false` once during the initial load, after all async operations complete. Subsequent auth state changes update user/session but don't affect loading.
 
-Lessons will be distributed along a winding path:
-```text
-lessonIndex % 2 === 0 ? leftSide : rightSide
-y = 80 - (lessonIndex * 10)  // Start from bottom, go up
+### 2. Login Page Guard
+
+Add a loading check at the top to prevent rendering the form while auth context is still initializing:
+
+```typescript
+// If auth is still loading, show a brief loading state
+if (loading) {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <Loader2 className="animate-spin" />
+    </div>
+  );
+}
+```
+
+### 3. SignUp Page Improvements
+
+The current pattern triggers `signOut()` inside a `useEffect` when a user is detected, which can create loops. The fix:
+
+```typescript
+// Track if we've already initiated signout to prevent loops
+const [hasInitiatedSignOut, setHasInitiatedSignOut] = useState(false);
+
+useEffect(() => {
+  if (!loading && user && !hasInitiatedSignOut) {
+    setHasInitiatedSignOut(true);
+    setIsSigningOut(true);
+    supabase.auth.signOut().finally(() => {
+      setIsSigningOut(false);
+    });
+  }
+}, [user, loading, hasInitiatedSignOut]);
 ```
 
 ---
 
-## Files to Create/Modify
+## Additional Holistic Improvements
 
-| Action | File |
-|--------|------|
-| Create | `src/hooks/usePlaygroundLessons.ts` |
-| Modify | `src/contexts/LessonContext.tsx` |
-| Modify | `src/components/student/dashboards/PlaygroundDashboard.tsx` |
-| Modify | `src/components/student/kids/KidsWorldMap.tsx` |
-| Modify | `src/components/student/kids/LevelNode.tsx` |
-| Modify | `src/components/student/kids/LessonPlayerModal.tsx` |
-| Modify | `src/components/student/kids/FloatingBackpack.tsx` |
-| Add Migration | RLS policies for `student_lesson_progress` (if missing) |
+While fixing the core issue, I'll also address these related concerns:
+
+### A. Navigation Flow Consistency
+
+The Hero section links to `/signup?system=KIDS` etc., but the NavHeader links to `/student-signup`. This creates inconsistent user journeys.
+
+**Fix**: Update Hero links to match NavHeader (`/student-signup`, `/signup`)
+
+### B. Login Page Redirect Path
+
+Currently redirects teachers to `/teacher`, but the route is `/admin`.
+
+**Fix**: Update redirect in Login.tsx from `/teacher` to `/admin`
+
+### C. Auth Timeout Reduction
+
+The current 1000ms timeout is sometimes not enough. Add a fallback UI instead of just force-setting loading to false:
+
+```typescript
+// If timeout hits, show a retry button instead of broken state
+if (mounted && loading && !user) {
+  setError('Taking longer than expected. Please refresh.');
+}
+```
 
 ---
 
 ## Verification Steps
 
 After implementation:
-1. Sign up as a new student (use a fresh email)
-2. Navigate to `/playground`
-3. Verify real lessons appear as map nodes
-4. Click a lesson and complete the quiz
-5. Confirm the lesson marks as completed
-6. Confirm the next lesson unlocks
-7. Refresh page and verify progress persists
-8. Check `student_lesson_progress` table has correct data
+1. Navigate from homepage to `/login` - should display form immediately
+2. Navigate from homepage to `/signup` - should display form immediately  
+3. Navigate from homepage to `/student-signup` - should display form immediately
+4. If logged in, visit `/signup` - should sign out and show form (not loop)
+5. Sign up as new user - should complete without getting stuck
+6. Log in as existing user - should redirect to correct dashboard
 
 ---
 
-## Timeline Estimate
+## Summary of Changes
 
-| Task | Effort |
-|------|--------|
-| Auth user cleanup (manual) | 5 minutes |
-| Create usePlaygroundLessons hook | Medium |
-| Update PlaygroundDashboard | Small |
-| Update KidsWorldMap | Medium |
-| Update LevelNode + visual polish | Medium |
-| Update LessonPlayerModal (progress saving) | Medium |
-| Update FloatingBackpack (real data) | Small |
-| RLS policy verification | Small |
-| Testing & verification | Medium |
-
+1. **AuthContext.tsx**: Separate initial load (controls `loading`) from ongoing changes (fire-and-forget)
+2. **Login.tsx**: Add loading guard, fix redirect path for teachers
+3. **SignUp.tsx**: Add loop prevention flag for signout
+4. **StudentSignUp.tsx**: Add loop prevention flag for signout
+5. **TeacherSignUp.tsx**: Add loop prevention flag for signout
+6. **HeroSection.tsx**: Fix navigation links to match NavHeader
