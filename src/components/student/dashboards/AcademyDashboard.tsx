@@ -12,6 +12,7 @@ import { CurriculumLesson } from '@/types/multiTenant';
 import { DailyStreakCard } from '../academy/DailyStreakCard';
 import { SocialLounge } from '../academy/SocialLounge';
 import { AILessonAgent } from '../AILessonAgent';
+import { WeeklyGoalWidget } from '../WeeklyGoalWidget';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface AcademyDashboardProps {
@@ -344,7 +345,9 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
             {/* Social Lounge */}
             <SocialLounge isDarkMode={isDarkMode} />
 
-            {/* Level Up Button */}
+            {/* Weekly Goal */}
+            <WeeklyGoalWidget studentLevel="academy" isDarkMode={isDarkMode} />
+
             {/* AI Lesson Agent */}
             <AILessonAgent
               studentLevel="academy"

@@ -12,6 +12,7 @@ import { useCurriculumLessons } from '@/hooks/useCurriculumLessons';
 import { SkillsRadarChart } from '../hub/SkillsRadarChart';
 import { BusinessMilestonesCard } from '../hub/BusinessMilestonesCard';
 import { AILessonAgent } from '../AILessonAgent';
+import { WeeklyGoalWidget } from '../WeeklyGoalWidget';
 
 interface HubDashboardProps {
   studentName?: string;
@@ -196,6 +197,9 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
             transition={{ delay: 0.4 }}
             className="space-y-6"
           >
+            {/* Weekly Goal */}
+            <WeeklyGoalWidget studentLevel="professional" isDarkMode={isDarkMode} />
+
             {/* Business Milestones */}
             <BusinessMilestonesCard
               timeSavedHours={4.5}

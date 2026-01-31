@@ -4,6 +4,7 @@ import { Sparkles, Brain, RefreshCw, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DailyLessonCard, GeneratedLesson } from './DailyLessonCard';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 interface AILessonAgentProps {
@@ -15,7 +16,8 @@ interface AILessonAgentProps {
 
 const thinkingMessages = [
   "Analyzing your interests...",
-  "Reviewing your learning history...",
+  "Reviewing your learning style...",
+  "Checking your previous mistakes...",
   "Crafting the perfect vocabulary...",
   "Building your personalized quest...",
   "Almost ready...",
@@ -45,13 +47,55 @@ export const AILessonAgent: React.FC<AILessonAgentProps> = ({
   cefrLevel = 'B1',
   onLessonGenerated,
 }) => {
+  const { user } = useAuth();
   const [state, setState] = useState<'ready' | 'thinking' | 'complete'>('ready');
   const [messageIndex, setMessageIndex] = useState(0);
   const [generatedLesson, setGeneratedLesson] = useState<GeneratedLesson | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [studentData, setStudentData] = useState<{
+    learningStyle: string | null;
+    weeklyGoal: string | null;
+    mistakeHistory: any[];
+    interests: string[];
+  }>({
+    learningStyle: null,
+    weeklyGoal: null,
+    mistakeHistory: [],
+    interests: studentInterests,
+  });
   
   const style = levelStyles[studentLevel];
   const isDarkMode = studentLevel === 'academy';
+
+  // Fetch student profile data
+  useEffect(() => {
+    const fetchStudentData = async () => {
+      if (!user?.id) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('student_profiles')
+          .select('learning_style, weekly_goal, mistake_history, interests')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
+          setStudentData({
+            learningStyle: data.learning_style,
+            weeklyGoal: data.weekly_goal,
+            mistakeHistory: (data.mistake_history as any[]) || [],
+            interests: data.interests || studentInterests,
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching student data:', err);
+      }
+    };
+
+    fetchStudentData();
+  }, [user?.id, studentInterests]);
 
   useEffect(() => {
     if (state === 'thinking') {
@@ -72,7 +116,10 @@ export const AILessonAgent: React.FC<AILessonAgentProps> = ({
         body: {
           level: studentLevel,
           cefrLevel,
-          interests: studentInterests,
+          interests: studentData.interests,
+          learningStyle: studentData.learningStyle,
+          weeklyGoal: studentData.weeklyGoal,
+          mistakeHistory: studentData.mistakeHistory.slice(0, 10),
         },
       });
 
@@ -112,7 +159,6 @@ export const AILessonAgent: React.FC<AILessonAgentProps> = ({
       setState('complete');
     }
   };
-
   const handleRegenerate = () => {
     setGeneratedLesson(null);
     generateLesson();
