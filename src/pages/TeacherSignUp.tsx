@@ -91,7 +91,7 @@ const TeacherSignUp = () => {
     try {
       const { data, error } = await signUp(values.email, values.password, {
         role: 'teacher'
-      });
+      } as any);
 
       if (error) {
         toast({
@@ -104,6 +104,31 @@ const TeacherSignUp = () => {
       }
 
       if (data?.user) {
+        // Verify profile was created, if not create it manually (fallback for trigger failures)
+        const { data: existingProfile } = await supabase
+          .from('users')
+          .select('id')
+          .eq('id', data.user.id)
+          .maybeSingle();
+        
+        if (!existingProfile) {
+          console.log('Trigger failed to create teacher profile, creating manually...');
+          
+          await supabase.from('users').insert({
+            id: data.user.id,
+            email: values.email,
+            full_name: values.fullName,
+            role: 'teacher'
+          });
+          
+          await supabase.from('user_roles').insert({
+            user_id: data.user.id,
+            role: 'teacher'
+          });
+          
+          console.log('Manually created teacher profile for:', values.email);
+        }
+
         toast({
           title: "🎓 Teacher Account Created!",
           description: "Welcome! Please complete your application to start teaching.",
