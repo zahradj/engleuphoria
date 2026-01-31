@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { Eye, EyeOff, User, Mail, Lock, CheckCircle, BookOpen } from "lucide-react";
+import { Eye, EyeOff, User, Mail, Lock, CheckCircle, BookOpen, Loader2 } from "lucide-react";
 import { ProgressIndicator } from "@/components/navigation/ProgressIndicator";
 import { AuthPageLayout } from "@/components/auth/AuthPageLayout";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,12 +27,37 @@ const formSchema = z.object({
 const StudentSignUp = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { signUp, isConfigured } = useAuth();
+  const { user, signUp, isConfigured, loading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  // Sign out existing user when accessing signup page
+  useEffect(() => {
+    if (!loading && user) {
+      setIsSigningOut(true);
+      console.log('Existing user detected on student signup page, signing out...');
+      supabase.auth.signOut().then(() => {
+        console.log('Previous session cleared for new student signup');
+        setIsSigningOut(false);
+      });
+    }
+  }, [user, loading]);
 
   const stepLabels = ['Create Account', 'Learning Profile'];
+
+  // Show loading while signing out existing user
+  if (isSigningOut) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-50 via-pink-50 to-orange-50">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-violet-600" />
+          <p className="text-gray-600 text-lg">Preparing signup...</p>
+        </div>
+      </div>
+    );
+  }
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
