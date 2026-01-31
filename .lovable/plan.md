@@ -1,297 +1,160 @@
 
+# Fix: Student Registration Redirecting to Admin Dashboard
 
-# Fix Authentication Email Service & Admin Notification System
+## Problem Identified
 
-## Problem Analysis
+After thorough investigation, I found the root cause: **when an admin user tests student registration, their existing admin session persists after signup, causing incorrect redirects**.
 
-After thorough investigation, I've identified several issues preventing proper email delivery and admin notifications:
+### What's Happening:
 
-### Issue 1: Email Sending Using Resend Test Domain
-All edge functions are currently using `resend.dev` domain (test emails):
-- `notify-admin-new-registration` uses `notifications@engleuphoria.com` (correct but needs domain verification)
-- `send-user-emails` uses `noreply@resend.dev` (test only)
-- `send-teacher-emails` uses `onboarding@resend.dev` (test only)
-- Other functions use `@resend.dev` domains
+1. Admin user (`f.zahra.djaanine@engleuphoria.com`) is logged in with an active session
+2. Admin navigates to `/signup` to test student registration
+3. Signup form creates a new user account in the database (correctly with role "student")
+4. However, the existing admin session is not invalidated
+5. The `onAuthStateChange` listener refreshes and fetches user data for the **admin** (the active session)
+6. The redirect logic sees `user.role = "admin"` and sends them to `/super-admin`
 
-Resend's test domain (`@resend.dev`) only sends emails to the account owner's email - not to actual users.
+### Evidence from Console Logs:
+```
+Setting user after auth state change: {
+  "id": "7368f171-f0df-45ce-8e8e-cc3413c803ed",
+  "email": "f.zahra.djaanine@engleuphoria.com",
+  "role": "admin",
+  ...
+}
+```
 
-### Issue 2: Missing Supabase Auth Email Hook
-Supabase's built-in authentication emails (signup confirmation, password reset) are not connected to your custom edge functions. By default, Supabase uses its own email templates, which may be disabled or misconfigured.
-
-### Issue 3: Admin Notifications Not Being Created
-The `notify-admin-new-registration` function sends emails but doesn't insert records into the `admin_notifications` table - so admins won't see in-app notifications.
-
-### Issue 4: Incomplete Teacher Onboarding Flow
-The teacher flow (Sign up -> Profile -> Equipment Test -> Interview -> Approval) needs proper stage tracking and admin visibility.
+The signup request correctly sends `{"role":"student","full_name":"fatima","system_tag":"TEENS"}` but the app still uses the admin session.
 
 ---
 
-## Solution Architecture
+## Solution: Multi-Point Fix
+
+### 1. Sign Out Existing User Before Signup
+
+Modify `SimpleAuthForm.tsx` and other signup components to detect and sign out any existing user before allowing a new account registration.
 
 ```text
-┌──────────────────────────────────────────────────────────────────────┐
-│                         USER SIGNS UP                                 │
-└─────────────────────────────┬────────────────────────────────────────┘
-                              │
-                              ▼
-┌──────────────────────────────────────────────────────────────────────┐
-│                    auth.users INSERT TRIGGER                         │
-│                         handle_new_user()                            │
-└─────────────────────────────┬────────────────────────────────────────┘
-                              │
-              ┌───────────────┴───────────────┐
-              ▼                               ▼
-┌─────────────────────────┐     ┌─────────────────────────┐
-│  INSERT INTO users      │     │  INSERT INTO user_roles │
-│  (profile data)         │     │  (role assignment)      │
-└─────────────────────────┘     └─────────────────────────┘
-              │
-              ▼
-┌──────────────────────────────────────────────────────────────────────┐
-│              AFTER INSERT TRIGGER (new function)                     │
-│              notify_admin_new_user()                                 │
-└─────────────────────────────┬────────────────────────────────────────┘
-              │
-              ├──────────────────────────────────┐
-              ▼                                  ▼
-┌─────────────────────────┐     ┌─────────────────────────────────────┐
-│ INSERT admin_notifications│   │ Call edge function (optional email) │
-│ (in-app notification)    │   │                                      │
-└─────────────────────────┘     └─────────────────────────────────────┘
+Before:
+┌─────────────┐    ┌──────────────┐    ┌─────────────────┐
+│ Admin logged│ -> │ Submits form │ -> │ Old session used│
+│    in       │    │              │    │ for redirect    │
+└─────────────┘    └──────────────┘    └─────────────────┘
+
+After:
+┌─────────────┐    ┌──────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│ Admin logged│ -> │ Sign out     │ -> │ Create new      │ -> │ New session used│
+│    in       │    │ first        │    │ account         │    │ for redirect    │
+└─────────────┘    └──────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
----
+### 2. Redirect Logged-In Users Away from Auth Pages
 
-## Implementation Plan
+Add protection to login/signup pages that redirects already-authenticated users to their appropriate dashboard.
 
-### Phase 1: Fix Resend Email Domain Configuration
+### 3. Fix the AuthContext to Handle Session Switching
 
-**What needs to happen:**
-1. You need to verify your domain `engleuphoria.com` in Resend Dashboard
-2. Update all edge functions to use verified domain instead of `resend.dev`
-
-**Update the following edge functions:**
-
-| Function | Current "from" | Updated "from" |
-|----------|---------------|----------------|
-| `send-user-emails` | `noreply@resend.dev` | `noreply@engleuphoria.com` |
-| `send-teacher-emails` | `onboarding@resend.dev` | `noreply@engleuphoria.com` |
-| `notify-admin-new-student` | `notifications@resend.dev` | `notifications@engleuphoria.com` |
-| `notify-teacher-booking` | `notifications@resend.dev` | `notifications@engleuphoria.com` |
-| `send-lesson-reminders` | `lessons@resend.dev` | `noreply@engleuphoria.com` |
+Update the signup flow to properly handle session transitions when creating a new account while another user is logged in.
 
 ---
 
-### Phase 2: Create Database Trigger for Admin Notifications
+## Files to Modify
 
-**New SQL Migration:**
-
-```sql
--- Function to create admin notifications on new user registration
-CREATE OR REPLACE FUNCTION public.notify_admin_new_user()
-RETURNS trigger
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  admin_user RECORD;
-  user_role TEXT;
-  notification_title TEXT;
-  notification_message TEXT;
-BEGIN
-  -- Get the user's role
-  user_role := COALESCE(NEW.role, 'student');
-  
-  -- Set notification content based on role
-  IF user_role = 'teacher' THEN
-    notification_title := 'New Teacher Registration';
-    notification_message := format('Teacher %s (%s) has registered and is awaiting profile completion.', 
-                                   NEW.full_name, NEW.email);
-  ELSE
-    notification_title := 'New Student Registration';
-    notification_message := format('Student %s (%s) has joined the platform.', 
-                                   NEW.full_name, NEW.email);
-  END IF;
-  
-  -- Create notification for all admins
-  FOR admin_user IN 
-    SELECT ur.user_id 
-    FROM user_roles ur 
-    WHERE ur.role = 'admin'
-  LOOP
-    INSERT INTO admin_notifications (
-      admin_id,
-      notification_type,
-      title,
-      message,
-      metadata,
-      is_read
-    ) VALUES (
-      admin_user.user_id,
-      CASE WHEN user_role = 'teacher' THEN 'new_teacher' ELSE 'new_student' END,
-      notification_title,
-      notification_message,
-      jsonb_build_object(
-        'user_id', NEW.id,
-        'email', NEW.email,
-        'full_name', NEW.full_name,
-        'role', user_role,
-        'registered_at', NEW.created_at
-      ),
-      false
-    );
-  END LOOP;
-  
-  RETURN NEW;
-END;
-$$;
-
--- Create trigger on users table
-DROP TRIGGER IF EXISTS on_new_user_notify_admin ON users;
-CREATE TRIGGER on_new_user_notify_admin
-  AFTER INSERT ON users
-  FOR EACH ROW
-  EXECUTE FUNCTION notify_admin_new_user();
-```
+| File | Change |
+|------|--------|
+| `src/components/auth/SimpleAuthForm.tsx` | Add useEffect to check for existing session and sign out before signup; Fix post-signup redirect |
+| `src/pages/Login.tsx` | Add redirect for logged-in users |
+| `src/pages/SignUp.tsx` | Add redirect for logged-in users |
+| `src/pages/StudentSignUp.tsx` | Add sign-out-first logic and redirect |
+| `src/pages/TeacherSignUp.tsx` | Add sign-out-first logic and redirect |
+| `src/contexts/AuthContext.tsx` | Add `signOutSilently` method for cleaner session switching |
 
 ---
 
-### Phase 3: Update `handle_new_user()` to Also Insert Role
+## Technical Implementation Details
 
-**Updated SQL:**
+### Change 1: SimpleAuthForm.tsx - Sign Out Before Signup
 
-```sql
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS trigger
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-DECLARE
-  user_role TEXT;
-BEGIN
-  -- Extract role from metadata, default to 'student'
-  user_role := COALESCE(NEW.raw_user_meta_data->>'role', 'student');
-  
-  -- Insert into users table
-  INSERT INTO users (id, email, full_name, role)
-  VALUES (
-    NEW.id,
-    NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email),
-    user_role
-  );
-  
-  -- Also insert into user_roles table (secure role storage)
-  INSERT INTO user_roles (user_id, role)
-  VALUES (NEW.id, user_role::app_role)
-  ON CONFLICT (user_id, role) DO NOTHING;
-  
-  -- If teacher, create empty teacher_profiles record
-  IF user_role = 'teacher' THEN
-    INSERT INTO teacher_profiles (user_id, profile_complete, can_teach, profile_approved_by_admin)
-    VALUES (NEW.id, false, false, false)
-    ON CONFLICT (user_id) DO NOTHING;
-  END IF;
-  
-  RETURN NEW;
-END;
-$$;
-```
-
----
-
-### Phase 4: Create Welcome Email Edge Function
-
-**New edge function: `send-welcome-email`**
-
-This function will be called after user signup to send a proper welcome email:
+Add at the top of the component:
 
 ```typescript
-// Handles: student-welcome, teacher-welcome emails
-// Triggered from frontend after successful signup
+const { user, signIn, signUp, signOut, resetPassword, isConfigured, error } = useAuth();
 
-Deno.serve(async (req) => {
-  // Send welcome email based on role
-  // For students: Welcome + how to get started
-  // For teachers: Welcome + complete your profile instructions
-});
+// Sign out any existing user when signup page loads
+React.useEffect(() => {
+  if (mode === 'signup' && user) {
+    console.log('Existing user detected on signup page, signing out...');
+    supabase.auth.signOut().then(() => {
+      console.log('Previous session cleared for new signup');
+    });
+  }
+}, [mode, user]);
 ```
 
----
+### Change 2: Update handleSubmit Redirect Logic
 
-### Phase 5: Update Admin Notification Center
-
-**Add new notification types:**
+Replace the redirect after successful signup to wait for the new session:
 
 ```typescript
-const getNotificationIcon = (type: string) => {
-  switch (type) {
-    case 'new_student':
-      return <UserPlus className="w-4 h-4 text-green-500" />;
-    case 'new_teacher':
-      return <GraduationCap className="w-4 h-4 text-blue-500" />;
-    case 'teacher_pending_approval':
-      return <Clock className="w-4 h-4 text-orange-500" />;
-    // ... existing types
+// Wait for new session to be established before redirecting
+setTimeout(() => {
+  if (formData.role === 'teacher') {
+    navigate('/teacher-application');
+  } else if (formData.role === 'student') {
+    navigate('/playground');
+  } else {
+    navigate('/login');
+  }
+}, 500); // Small delay to allow session to update
+```
+
+### Change 3: Login/SignUp Pages - Redirect Authenticated Users
+
+Add to Login.tsx and SignUp.tsx:
+
+```typescript
+const { user, loading } = useAuth();
+const navigate = useNavigate();
+
+useEffect(() => {
+  if (!loading && user) {
+    const redirectPath = 
+      user.role === 'admin' ? '/super-admin' : 
+      user.role === 'teacher' ? '/admin' : '/playground';
+    navigate(redirectPath, { replace: true });
+  }
+}, [user, loading, navigate]);
+```
+
+### Change 4: AuthContext - Add Silent Sign Out Helper
+
+Add a method for clearing session without side effects:
+
+```typescript
+const signOutSilently = async () => {
+  try {
+    setUser(null);
+    setSession(null);
+    await supabase.auth.signOut();
+    return { error: null };
+  } catch (error) {
+    console.error('Silent sign out error:', error);
+    return { error };
   }
 };
 ```
 
 ---
 
-### Phase 6: Teacher Onboarding Flow Notifications
+## Summary
 
-**Additional trigger for teacher profile updates:**
+This fix addresses the core issue by:
 
-```sql
-CREATE OR REPLACE FUNCTION public.notify_admin_teacher_ready_for_review()
-RETURNS trigger
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-BEGIN
-  -- When teacher completes their profile, notify admins
-  IF NEW.profile_complete = true AND OLD.profile_complete = false THEN
-    INSERT INTO admin_notifications (...)
-    VALUES (..., 'teacher_pending_approval', 
-            'Teacher Ready for Review',
-            format('%s has completed their profile and is awaiting approval.', ...));
-  END IF;
-  
-  RETURN NEW;
-END;
-$$;
-```
+1. **Preventing session conflicts** - Signing out existing users before new signups
+2. **Protecting auth pages** - Redirecting already-authenticated users away from login/signup
+3. **Improving session handling** - Adding silent logout capability for cleaner transitions
 
----
-
-## Summary of Changes
-
-| Component | Change |
-|-----------|--------|
-| **Resend Domain** | Verify `engleuphoria.com` and update all edge functions |
-| **Database Trigger** | New `notify_admin_new_user()` function creates admin_notifications |
-| **handle_new_user()** | Updated to insert into `user_roles` and create `teacher_profiles` |
-| **Admin Dashboard** | Update notification types for new_student/new_teacher |
-| **Welcome Emails** | New edge function for role-based welcome emails |
-| **Teacher Flow** | Trigger to notify admin when teacher is ready for review |
-
----
-
-## Prerequisites (Action Required from You)
-
-Before I implement this, please confirm:
-
-1. **Have you verified your domain `engleuphoria.com` in Resend?**
-   - Go to: https://resend.com/domains
-   - Add your domain and complete DNS verification
-   
-2. **Is your Resend API key scoped to your domain?**
-   - Check: https://resend.com/api-keys
-   - Ensure the key is associated with `engleuphoria.com`
-
-If not yet done, I can proceed with the code changes and you can update the domain later. The emails will only work after domain verification.
-
+After these changes:
+- Students will correctly land on `/playground` after registration
+- Teachers will correctly land on `/teacher-application` after registration
+- Admins testing signup will be logged out first, then can test with new accounts
