@@ -12,6 +12,7 @@ import { Eye, EyeOff, User, Mail, Lock, CheckCircle, BookOpen, Loader2 } from "l
 import { ProgressIndicator } from "@/components/navigation/ProgressIndicator";
 import { AuthPageLayout } from "@/components/auth/AuthPageLayout";
 import { supabase } from "@/integrations/supabase/client";
+import { determineStudentLevel } from "@/hooks/useStudentLevel";
 
 const formSchema = z.object({
   fullName: z.string().min(2, { message: "Full name must be at least 2 characters" }),
@@ -132,10 +133,11 @@ const StudentSignUp = () => {
         if (!existingProfile) {
           console.log('Trigger failed to create student profile, creating manually...');
           
-          // Determine system tag based on age
+          // Determine system tag and student level based on age
           const systemTag = values.age >= 4 && values.age <= 10 ? 'KIDS' 
                           : values.age >= 11 && values.age <= 17 ? 'TEENS' 
                           : 'ADULTS';
+          const studentLevel = determineStudentLevel(values.age);
           
           await supabase.from('users').insert({
             id: data.user.id,
@@ -149,8 +151,15 @@ const StudentSignUp = () => {
             user_id: data.user.id,
             role: 'student'
           });
+
+          // Create student profile with student_level
+          await supabase.from('student_profiles').insert({
+            user_id: data.user.id,
+            student_level: studentLevel,
+            onboarding_completed: false
+          });
           
-          console.log('Manually created student profile for:', values.email);
+          console.log('Manually created student profile for:', values.email, 'with level:', studentLevel);
         }
 
         toast({

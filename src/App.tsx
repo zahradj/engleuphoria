@@ -28,6 +28,7 @@ import TeacherApplication from "./pages/TeacherApplication";
 import StudentApplication from "./pages/StudentApplication";
 import EmailVerification from "./pages/EmailVerification";
 import ResetPassword from "./pages/ResetPassword";
+import Dashboard from "./pages/Dashboard";
 
 // New pages
 const ParentDashboard = lazy(() => import("./pages/ParentDashboard"));
@@ -175,15 +176,17 @@ const App = () => {
                         </ImprovedProtectedRoute>
                       } />
 
+                      {/* Smart Dashboard Router - redirects based on role */}
+                      <Route path="/dashboard" element={
+                        <ImprovedProtectedRoute>
+                          <Dashboard />
+                        </ImprovedProtectedRoute>
+                      } />
+
                       {/* Legacy routes - redirect to new paths */}
                       <Route path="/student/*" element={<Navigate to="/playground" replace />} />
                       <Route path="/teacher" element={<Navigate to="/admin" replace />} />
                       <Route path="/admin-dashboard" element={<Navigate to="/super-admin" replace />} />
-                      <Route path="/dashboard" element={<Navigate to="/playground" replace />} />
-                      <Route path="/student/*" element={<Navigate to="/playground" replace />} />
-                      <Route path="/teacher" element={<Navigate to="/admin" replace />} />
-                      <Route path="/admin-dashboard" element={<Navigate to="/super-admin" replace />} />
-                      <Route path="/dashboard" element={<Navigate to="/playground" replace />} />
 
                       {/* 404 - Redirect to Login */}
                       <Route path="*" element={<Navigate to="/" replace />} />

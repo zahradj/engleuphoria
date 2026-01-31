@@ -9,14 +9,11 @@ const Login = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect logged-in users to their appropriate dashboard
+  // Redirect logged-in users to the smart dashboard router
   useEffect(() => {
     if (!loading && user) {
-      const role = (user as any).role;
-      const redirectPath = 
-        role === 'admin' ? '/super-admin' : 
-        role === 'teacher' ? '/admin' : '/playground';
-      navigate(redirectPath, { replace: true });
+      // Use the unified dashboard route which handles role-based redirects
+      navigate('/dashboard', { replace: true });
     }
   }, [user, loading, navigate]);
 

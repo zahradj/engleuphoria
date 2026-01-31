@@ -6527,6 +6527,7 @@ export type Database = {
           last_completed_sequence_prea1: number | null
           learning_style: string | null
           long_term_goal: string | null
+          onboarding_completed: boolean | null
           parent_email: string | null
           placement_test_2_completed_at: string | null
           placement_test_2_score: number | null
@@ -6538,6 +6539,7 @@ export type Database = {
           profile_image_url: string | null
           school_name: string | null
           strengths: string[] | null
+          student_level: Database["public"]["Enums"]["student_level"] | null
           timezone: string | null
           updated_at: string
           user_id: string
@@ -6560,6 +6562,7 @@ export type Database = {
           last_completed_sequence_prea1?: number | null
           learning_style?: string | null
           long_term_goal?: string | null
+          onboarding_completed?: boolean | null
           parent_email?: string | null
           placement_test_2_completed_at?: string | null
           placement_test_2_score?: number | null
@@ -6571,6 +6574,7 @@ export type Database = {
           profile_image_url?: string | null
           school_name?: string | null
           strengths?: string[] | null
+          student_level?: Database["public"]["Enums"]["student_level"] | null
           timezone?: string | null
           updated_at?: string
           user_id: string
@@ -6593,6 +6597,7 @@ export type Database = {
           last_completed_sequence_prea1?: number | null
           learning_style?: string | null
           long_term_goal?: string | null
+          onboarding_completed?: boolean | null
           parent_email?: string | null
           placement_test_2_completed_at?: string | null
           placement_test_2_score?: number | null
@@ -6604,6 +6609,7 @@ export type Database = {
           profile_image_url?: string | null
           school_name?: string | null
           strengths?: string[] | null
+          student_level?: Database["public"]["Enums"]["student_level"] | null
           timezone?: string | null
           updated_at?: string
           user_id?: string
@@ -8465,6 +8471,7 @@ export type Database = {
         | "general_discussion"
       community_privacy: "public" | "private" | "invite_only"
       community_role: "owner" | "moderator" | "member" | "guest"
+      student_level: "playground" | "academy" | "professional"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -8605,6 +8612,7 @@ export const Constants = {
       ],
       community_privacy: ["public", "private", "invite_only"],
       community_role: ["owner", "moderator", "member", "guest"],
+      student_level: ["playground", "academy", "professional"],
     },
   },
 } as const
