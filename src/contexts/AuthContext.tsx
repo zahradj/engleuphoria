@@ -1,5 +1,5 @@
 
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 import { sanitizeText, rateLimiter } from '@/utils/security';
@@ -27,6 +27,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isConfigured] = useState(true); // Always configured in Lovable projects
+  const initializedRef = useRef(false);
 
   // Function to fetch user data from database
   const fetchUserFromDatabase = async (userId: string): Promise<User | null> => {
@@ -91,6 +92,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     let mounted = true;
 
     const initializeAuth = async () => {
+      // Prevent double initialization
+      if (initializedRef.current) return;
+      initializedRef.current = true;
+
       try {
         setError(null);
         
@@ -100,46 +105,49 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           return;
         }
 
-        // Supabase mode: set up auth state listener first
+        // Set up auth state listener FIRST
+        // This listener handles ONGOING auth changes (login/logout events)
+        // It does NOT control the loading state - only the initial load does
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
-          (event, session) => {
+          (event, currentSession) => {
             if (!mounted) return;
             
-            console.info('Auth state changed:', event, !!session);
-            setSession(session);
+            console.info('Auth state changed:', event, !!currentSession);
+            setSession(currentSession);
             
-            if (session?.user) {
-              // Defer database call to avoid blocking the auth state change
+            if (currentSession?.user) {
+              // For ongoing changes, update user in background (fire-and-forget)
+              // Do NOT await this - it should not block the UI
               setTimeout(async () => {
                 if (!mounted) return;
                 
-              try {
-                const dbUser = await fetchUserFromDatabase(session.user.id);
-                if (mounted) {
-                  const finalUser = dbUser || await createFallbackUser(session.user);
-                  console.log('Setting user after auth state change:', finalUser);
-                  setUser(finalUser);
+                try {
+                  const dbUser = await fetchUserFromDatabase(currentSession.user.id);
+                  if (mounted) {
+                    const finalUser = dbUser || await createFallbackUser(currentSession.user);
+                    console.log('Setting user after auth state change:', finalUser);
+                    setUser(finalUser);
+                  }
+                } catch (error) {
+                  console.error('Error in deferred user fetch:', error);
+                  if (mounted) {
+                    const fallbackUser = await createFallbackUser(currentSession.user);
+                    console.log('Setting fallback user after error:', fallbackUser);
+                    setUser(fallbackUser);
+                  }
                 }
-              } catch (error) {
-                console.error('Error in deferred user fetch:', error);
-                if (mounted) {
-                  const fallbackUser = await createFallbackUser(session.user);
-                  console.log('Setting fallback user after error:', fallbackUser);
-                  setUser(fallbackUser);
-                }
-              }
               }, 0);
             } else {
               setUser(null);
             }
             
-            if (mounted) {
-              setLoading(false);
-            }
+            // NOTE: We do NOT set loading = false here
+            // Loading is only controlled by the initial session check below
           }
         );
 
-        // Then get initial session
+        // THEN get initial session and AWAIT the user fetch
+        // This is the ONLY place where we set loading = false
         const { data: { session: initialSession } } = await supabase.auth.getSession();
         
         if (mounted) {
@@ -157,6 +165,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setUser(null);
           }
           
+          // Loading is set to false ONLY after initial session + user data is ready
           setLoading(false);
         }
 
@@ -176,13 +185,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const cleanup = initializeAuth();
      
-    // Reduce timeout to prevent long loading states
+    // Safety timeout - reduced to 1500ms with better handling
     const timeout = setTimeout(() => {
       if (mounted && loading) {
-        console.warn('Auth initialization timeout');
+        console.warn('Auth initialization timeout - forcing loading = false');
         setLoading(false);
       }
-    }, 1000); // Reduced from 2000ms to 1000ms
+    }, 1500);
 
     return () => {
       mounted = false;
