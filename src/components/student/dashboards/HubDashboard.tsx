@@ -3,12 +3,15 @@ import { motion } from 'framer-motion';
 import { 
   LayoutDashboard, BookOpen, Award, Settings, 
   Download, FileText, TrendingUp, Clock, CheckCircle, 
-  ChevronRight, BarChart3, Calendar
+  ChevronRight, BarChart3, Calendar, Moon, Sun
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useCurriculumLessons } from '@/hooks/useCurriculumLessons';
+import { SkillsRadarChart } from '../hub/SkillsRadarChart';
+import { BusinessMilestonesCard } from '../hub/BusinessMilestonesCard';
+import { AILessonAgent } from '../AILessonAgent';
 
 interface HubDashboardProps {
   studentName?: string;
@@ -23,6 +26,7 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
   totalXp = 5680,
 }) => {
   const [activeNav, setActiveNav] = useState<NavItem>('dashboard');
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const { data: lessons = [], isLoading } = useCurriculumLessons('adult');
 
   const navItems: { id: NavItem; label: string; icon: React.ReactNode }[] = [
@@ -60,18 +64,28 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
   ];
   const maxHours = Math.max(...weeklyActivity.map(d => d.hours));
 
+  const bgClass = isDarkMode ? 'bg-gray-900' : 'bg-white';
+  const textClass = isDarkMode ? 'text-gray-50' : 'text-gray-900';
+  const mutedClass = isDarkMode ? 'text-gray-400' : 'text-gray-500';
+  const borderClass = isDarkMode ? 'border-gray-700' : 'border-gray-100';
+  const cardClass = isDarkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-100';
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className={`min-h-screen transition-colors ${bgClass}`}>
       {/* Top Navigation */}
-      <header className="border-b border-gray-100 bg-white sticky top-0 z-50">
+      <header className={`border-b sticky top-0 z-50 ${borderClass} ${bgClass}`}>
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center">
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                isDarkMode 
+                  ? 'bg-gradient-to-br from-emerald-500 to-teal-500' 
+                  : 'bg-gradient-to-br from-blue-600 to-indigo-600'
+              }`}>
                 <BookOpen className="w-4 h-4 text-white" />
               </div>
-              <span className="text-xl font-semibold text-gray-900">The Hub</span>
+              <span className={`text-xl font-semibold ${textClass}`}>The Hub</span>
             </div>
 
             {/* Navigation */}
@@ -82,8 +96,12 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
                   onClick={() => setActiveNav(item.id)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
                     activeNav === item.id 
-                      ? 'bg-blue-50 text-blue-600' 
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ? isDarkMode 
+                        ? 'bg-emerald-500/20 text-emerald-400' 
+                        : 'bg-blue-50 text-blue-600' 
+                      : isDarkMode
+                        ? 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                 >
                   {item.icon}
@@ -92,13 +110,23 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
               ))}
             </nav>
 
-            {/* User */}
+            {/* User + Dark Mode */}
             <div className="flex items-center gap-3">
+              <button
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className={`p-2 rounded-lg transition-all ${
+                  isDarkMode ? 'bg-gray-800 text-yellow-400' : 'bg-gray-100 text-gray-600'
+                }`}
+              >
+                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
               <div className="text-right hidden sm:block">
-                <p className="font-medium text-gray-900">{studentName}</p>
-                <p className="text-sm text-gray-500">{totalXp.toLocaleString()} XP</p>
+                <p className={`font-medium ${textClass}`}>{studentName}</p>
+                <p className={`text-sm ${mutedClass}`}>{totalXp.toLocaleString()} XP</p>
               </div>
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-lg">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${
+                isDarkMode ? 'bg-emerald-900/30' : 'bg-gradient-to-br from-blue-100 to-indigo-100'
+              }`}>
                 👩‍💼
               </div>
             </div>
@@ -114,10 +142,10 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
           animate={{ y: 0, opacity: 1 }}
           className="mb-8"
         >
-          <h1 className="text-2xl md:text-3xl font-semibold text-gray-900 mb-1">
+          <h1 className={`text-2xl md:text-3xl font-semibold ${textClass} mb-1`}>
             Good morning, {studentName}
           </h1>
-          <p className="text-gray-500">
+          <p className={mutedClass}>
             Continue your learning journey where you left off.
           </p>
         </motion.div>
@@ -129,118 +157,88 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
           transition={{ delay: 0.1 }}
           className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"
         >
-          <StatCard icon={<CheckCircle className="w-5 h-5 text-green-600" />} label="Completed" value={stats.coursesCompleted} suffix="courses" />
-          <StatCard icon={<BookOpen className="w-5 h-5 text-blue-600" />} label="In Progress" value={stats.coursesInProgress} suffix="courses" />
-          <StatCard icon={<Clock className="w-5 h-5 text-indigo-600" />} label="Total Hours" value={stats.hoursLearned} suffix="hrs" />
-          <StatCard icon={<TrendingUp className="w-5 h-5 text-orange-600" />} label="Streak" value={stats.streak} suffix="days" />
+          <StatCard icon={<CheckCircle className={`w-5 h-5 ${isDarkMode ? 'text-emerald-400' : 'text-green-600'}`} />} label="Completed" value={stats.coursesCompleted} suffix="courses" isDarkMode={isDarkMode} />
+          <StatCard icon={<BookOpen className={`w-5 h-5 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`} />} label="In Progress" value={stats.coursesInProgress} suffix="courses" isDarkMode={isDarkMode} />
+          <StatCard icon={<Clock className={`w-5 h-5 ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`} />} label="Total Hours" value={stats.hoursLearned} suffix="hrs" isDarkMode={isDarkMode} />
+          <StatCard icon={<TrendingUp className={`w-5 h-5 ${isDarkMode ? 'text-orange-400' : 'text-orange-600'}`} />} label="Streak" value={stats.streak} suffix="days" isDarkMode={isDarkMode} />
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Course Progress & Weekly Activity */}
+          {/* Left Column - Skills Radar & AI Agent */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Course Progress */}
+            {/* Skills Radar Chart */}
             <motion.div
               initial={{ y: 10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2 }}
             >
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Course Progress</CardTitle>
-                  <CardDescription>Your active courses</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {isLoading ? (
-                    <div className="animate-pulse space-y-4">
-                      {[1,2].map(i => <div key={i} className="h-20 bg-gray-100 rounded-lg" />)}
-                    </div>
-                  ) : (
-                    lessons.slice(0, 3).map((lesson, index) => (
-                      <CourseProgressItem
-                        key={lesson.id}
-                        title={lesson.title}
-                        progress={[78, 45, 20][index] || 0}
-                        duration={lesson.duration_minutes}
-                      />
-                    ))
-                  )}
-                </CardContent>
-              </Card>
+              <SkillsRadarChart isDarkMode={isDarkMode} />
             </motion.div>
 
-            {/* Weekly Activity Chart */}
+            {/* AI Lesson Agent */}
             <motion.div
               initial={{ y: 10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.3 }}
+              transition={{ delay: 0.25 }}
             >
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <BarChart3 className="w-5 h-5 text-blue-600" />
-                    Weekly Activity
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-end justify-between h-40 gap-2">
-                    {weeklyActivity.map((day) => (
-                      <div key={day.day} className="flex-1 flex flex-col items-center gap-2">
-                        <div 
-                          className="w-full bg-blue-100 rounded-t-lg transition-all hover:bg-blue-200 relative"
-                          style={{ height: `${(day.hours / maxHours) * 100}%`, minHeight: day.hours > 0 ? '8px' : '2px' }}
-                        >
-                          {day.hours > 0 && (
-                            <div 
-                              className="absolute inset-0 bg-gradient-to-t from-blue-600 to-blue-400 rounded-t-lg"
-                            />
-                          )}
-                        </div>
-                        <span className="text-xs text-gray-500">{day.day}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="text-center text-sm text-gray-500 mt-4">
-                    You've studied {weeklyActivity.reduce((a, b) => a + b.hours, 0)} hours this week
-                  </p>
-                </CardContent>
-              </Card>
+              <AILessonAgent
+                studentLevel="professional"
+                studentInterests={['business', 'technology', 'leadership']}
+                cefrLevel="B1"
+              />
             </motion.div>
           </div>
 
-          {/* Right Column - Resources */}
+          {/* Right Column - Milestones & Resources */}
           <motion.div
             initial={{ x: 10, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.4 }}
+            className="space-y-6"
           >
-            <Card>
+            {/* Business Milestones */}
+            <BusinessMilestonesCard
+              timeSavedHours={4.5}
+              isDarkMode={isDarkMode}
+            />
+
+            {/* Resources */}
+            <Card className={cardClass}>
               <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-indigo-600" />
+                <CardTitle className={`text-lg flex items-center gap-2 ${textClass}`}>
+                  <FileText className={`w-5 h-5 ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`} />
                   Resources
                 </CardTitle>
-                <CardDescription>Downloadable materials</CardDescription>
+                <CardDescription className={mutedClass}>Downloadable materials</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
                 {resources.map((resource, index) => (
-                  <ResourceItem key={index} {...resource} />
+                  <ResourceItem key={index} {...resource} isDarkMode={isDarkMode} />
                 ))}
               </CardContent>
             </Card>
 
             {/* Upcoming Session */}
-            <Card className="mt-6">
+            <Card className={cardClass}>
               <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-green-600" />
+                <CardTitle className={`text-lg flex items-center gap-2 ${textClass}`}>
+                  <Calendar className={`w-5 h-5 ${isDarkMode ? 'text-emerald-400' : 'text-green-600'}`} />
                   Next Session
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg border border-green-100">
-                  <p className="font-medium text-gray-900">Public Speaking Workshop</p>
-                  <p className="text-sm text-gray-600 mt-1">Tomorrow at 6:00 PM</p>
-                  <Button className="mt-3 w-full bg-green-600 hover:bg-green-700">
+                <div className={`p-4 rounded-lg border ${
+                  isDarkMode 
+                    ? 'bg-gradient-to-br from-emerald-900/30 to-teal-900/30 border-emerald-700/30' 
+                    : 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-100'
+                }`}>
+                  <p className={`font-medium ${textClass}`}>Public Speaking Workshop</p>
+                  <p className={`text-sm mt-1 ${mutedClass}`}>Tomorrow at 6:00 PM</p>
+                  <Button className={`mt-3 w-full ${
+                    isDarkMode 
+                      ? 'bg-emerald-600 hover:bg-emerald-700' 
+                      : 'bg-green-600 hover:bg-green-700'
+                  }`}>
                     Join Session
                   </Button>
                 </div>
@@ -259,66 +257,50 @@ interface StatCardProps {
   label: string;
   value: number;
   suffix: string;
+  isDarkMode?: boolean;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ icon, label, value, suffix }) => (
-  <Card className="border-gray-100">
+const StatCard: React.FC<StatCardProps> = ({ icon, label, value, suffix, isDarkMode = false }) => (
+  <Card className={isDarkMode ? 'bg-gray-800/50 border-gray-700' : 'border-gray-100'}>
     <CardContent className="p-4">
       <div className="flex items-center gap-3">
-        <div className="p-2 bg-gray-50 rounded-lg">{icon}</div>
+        <div className={`p-2 rounded-lg ${isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>{icon}</div>
         <div>
-          <p className="text-2xl font-semibold text-gray-900">
-            {value} <span className="text-sm font-normal text-gray-500">{suffix}</span>
+          <p className={`text-2xl font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+            {value} <span className={`text-sm font-normal ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{suffix}</span>
           </p>
-          <p className="text-sm text-gray-500">{label}</p>
+          <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>{label}</p>
         </div>
       </div>
     </CardContent>
   </Card>
 );
 
-interface CourseProgressItemProps {
-  title: string;
-  progress: number;
-  duration: number;
-}
-
-const CourseProgressItem: React.FC<CourseProgressItemProps> = ({ title, progress, duration }) => (
-  <div className="p-4 border border-gray-100 rounded-lg hover:border-gray-200 transition-all">
-    <div className="flex items-center justify-between mb-2">
-      <h4 className="font-medium text-gray-900">{title}</h4>
-      <span className="text-sm text-blue-600 font-medium">{progress}%</span>
-    </div>
-    <Progress value={progress} className="h-2 mb-2" />
-    <div className="flex items-center justify-between text-sm text-gray-500">
-      <span>{duration} min per lesson</span>
-      <button className="text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1">
-        Continue <ChevronRight className="w-4 h-4" />
-      </button>
-    </div>
-  </div>
-);
-
 interface ResourceItemProps {
   name: string;
   size: string;
   type: string;
+  isDarkMode?: boolean;
 }
 
-const ResourceItem: React.FC<ResourceItemProps> = ({ name, size, type }) => (
-  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-all cursor-pointer">
+const ResourceItem: React.FC<ResourceItemProps> = ({ name, size, type, isDarkMode = false }) => (
+  <div className={`flex items-center justify-between p-3 rounded-lg transition-all cursor-pointer ${
+    isDarkMode ? 'bg-gray-700/50 hover:bg-gray-700' : 'bg-gray-50 hover:bg-gray-100'
+  }`}>
     <div className="flex items-center gap-3">
       <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-        type === 'PDF' ? 'bg-red-100 text-red-600' : 'bg-purple-100 text-purple-600'
+        type === 'PDF' 
+          ? isDarkMode ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-600' 
+          : isDarkMode ? 'bg-purple-900/30 text-purple-400' : 'bg-purple-100 text-purple-600'
       }`}>
         <FileText className="w-4 h-4" />
       </div>
       <div>
-        <p className="font-medium text-gray-900 text-sm">{name}</p>
-        <p className="text-xs text-gray-500">{size}</p>
+        <p className={`font-medium text-sm ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>{name}</p>
+        <p className={`text-xs ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>{size}</p>
       </div>
     </div>
-    <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700">
+    <Button variant="ghost" size="sm" className={isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-700'}>
       <Download className="w-4 h-4" />
     </Button>
   </div>

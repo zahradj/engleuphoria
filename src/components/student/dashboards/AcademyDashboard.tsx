@@ -2,18 +2,24 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Home, BookOpen, Calendar, Trophy, User, Moon, Sun, 
-  Flame, ChevronRight, Clock, Users, Zap, Sparkles
+  Flame, ChevronRight, Clock, Users, Zap, Sparkles, TrendingUp, TrendingDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useCurriculumLessons } from '@/hooks/useCurriculumLessons';
 import { CurriculumLesson } from '@/types/multiTenant';
+import { DailyStreakCard } from '../academy/DailyStreakCard';
+import { SocialLounge } from '../academy/SocialLounge';
+import { AILessonAgent } from '../AILessonAgent';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface AcademyDashboardProps {
   studentName?: string;
   totalXp?: number;
   level?: number;
+  currentStreak?: number;
+  weeklyActivity?: boolean[];
   onLevelUp?: () => void;
 }
 
@@ -23,10 +29,13 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
   studentName = 'Alex',
   totalXp = 2340,
   level = 5,
+  currentStreak = 7,
+  weeklyActivity = [true, true, true, true, true, false, true],
   onLevelUp,
 }) => {
   const [activeTab, setActiveTab] = useState<TabId>('home');
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [leaderboardPeriod, setLeaderboardPeriod] = useState<'weekly' | 'monthly' | 'all'>('weekly');
   const { data: lessons = [], isLoading } = useCurriculumLessons('teen');
 
   const tabs: { id: TabId; icon: React.ReactNode; label: string }[] = [
@@ -44,13 +53,13 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
     { day: 'Fri', time: '2:00 PM', subject: 'Reading' },
   ];
 
-  // Mock leaderboard data
+  // Mock leaderboard data with rank changes
   const leaderboard = [
-    { rank: 1, name: 'Sarah K.', xp: 4520, avatar: '👩' },
-    { rank: 2, name: 'Mike T.', xp: 3890, avatar: '👨' },
-    { rank: 3, name: studentName, xp: totalXp, avatar: '🧑', isYou: true },
-    { rank: 4, name: 'Emma L.', xp: 2100, avatar: '👧' },
-    { rank: 5, name: 'Jake R.', xp: 1850, avatar: '🧒' },
+    { rank: 1, name: 'Sarah K.', xp: 4520, avatar: '👩', change: 0 },
+    { rank: 2, name: 'Mike T.', xp: 3890, avatar: '👨', change: 1 },
+    { rank: 3, name: studentName, xp: totalXp, avatar: '🧑', isYou: true, change: -1 },
+    { rank: 4, name: 'Emma L.', xp: 2100, avatar: '👧', change: 2 },
+    { rank: 5, name: 'Jake R.', xp: 1850, avatar: '🧒', change: 0 },
   ];
 
   const currentLesson = lessons[2] || lessons[0]; // Current lesson is third one
@@ -128,12 +137,28 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
             </p>
           </div>
           <div className="flex items-center gap-4">
-            {/* Streak */}
+            {/* Streak Badge */}
             <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${isDarkMode ? 'bg-orange-500/20' : 'bg-orange-100'}`}>
-              <Flame className="w-5 h-5 text-orange-500" />
-              <span className="font-bold text-orange-500">7</span>
+              <Flame className="w-5 h-5 text-orange-500" fill="currentColor" />
+              <span className="font-bold text-orange-500">{currentStreak}</span>
             </div>
           </div>
+        </motion.div>
+
+        {/* Daily Streak Card - Full Width */}
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.05 }}
+          className="mb-6"
+        >
+          <DailyStreakCard
+            currentStreak={currentStreak}
+            longestStreak={14}
+            weeklyActivity={weeklyActivity}
+            hasStreakFreeze={true}
+            isDarkMode={isDarkMode}
+          />
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -238,13 +263,24 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
             initial={{ x: 20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             transition={{ delay: 0.3 }}
+            className="space-y-6"
           >
             <Card className={isDarkMode ? 'bg-[#1a1a2e] border-purple-900/30' : ''}>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Trophy className="w-5 h-5 text-yellow-500" />
-                  Leaderboard
-                </CardTitle>
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Trophy className="w-5 h-5 text-yellow-500" />
+                    Leaderboard
+                  </CardTitle>
+                </div>
+                {/* Period Tabs */}
+                <Tabs value={leaderboardPeriod} onValueChange={(v) => setLeaderboardPeriod(v as any)} className="mt-2">
+                  <TabsList className={`grid grid-cols-3 ${isDarkMode ? 'bg-[#0f0f1a]' : ''}`}>
+                    <TabsTrigger value="weekly" className="text-xs">Weekly</TabsTrigger>
+                    <TabsTrigger value="monthly" className="text-xs">Monthly</TabsTrigger>
+                    <TabsTrigger value="all" className="text-xs">All Time</TabsTrigger>
+                  </TabsList>
+                </Tabs>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -254,7 +290,7 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
                       className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
                         user.isYou 
                           ? isDarkMode 
-                            ? 'bg-purple-600/20 border border-purple-500/50' 
+                            ? 'bg-purple-600/20 border border-purple-500/50 shadow-lg shadow-purple-500/20' 
                             : 'bg-purple-50 border border-purple-200'
                           : isDarkMode 
                             ? 'bg-[#0f0f1a]' 
@@ -278,22 +314,49 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
                           {user.name} {user.isYou && <span className="text-purple-400 text-sm">(You)</span>}
                         </p>
                       </div>
+                      {/* Rank Change Indicator */}
+                      {user.change !== 0 && (
+                        <div className={`flex items-center gap-0.5 text-xs ${
+                          user.change > 0 ? 'text-green-400' : 'text-red-400'
+                        }`}>
+                          {user.change > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                          {Math.abs(user.change)}
+                        </div>
+                      )}
                       <span className={`font-bold ${isDarkMode ? 'text-cyan-400' : 'text-cyan-600'}`}>
                         {user.xp.toLocaleString()}
                       </span>
                     </div>
                   ))}
                 </div>
+                
+                {/* Challenge Button */}
+                <Button
+                  variant="outline"
+                  className={`w-full mt-4 ${isDarkMode ? 'border-purple-500/30 text-purple-300 hover:bg-purple-600/20' : ''}`}
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  Challenge a Friend
+                </Button>
               </CardContent>
             </Card>
 
+            {/* Social Lounge */}
+            <SocialLounge isDarkMode={isDarkMode} />
+
             {/* Level Up Button */}
+            {/* AI Lesson Agent */}
+            <AILessonAgent
+              studentLevel="academy"
+              studentInterests={['gaming', 'social media', 'music']}
+              cefrLevel="A2"
+            />
+
             {onLevelUp && (
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.4 }}
-                className="mt-4"
               >
                 <Button
                   onClick={onLevelUp}

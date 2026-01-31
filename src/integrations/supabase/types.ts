@@ -6513,6 +6513,7 @@ export type Database = {
         Row: {
           cefr_level: string
           created_at: string
+          current_streak: number | null
           date_of_birth: string | null
           emergency_contact: string | null
           final_cefr_level: string | null
@@ -6520,6 +6521,7 @@ export type Database = {
           grade_level: string | null
           id: string
           interests: string[] | null
+          last_activity_date: string | null
           last_completed_sequence_a1: number | null
           last_completed_sequence_a2: number | null
           last_completed_sequence_b1: number | null
@@ -6527,8 +6529,11 @@ export type Database = {
           last_completed_sequence_prea1: number | null
           learning_style: string | null
           long_term_goal: string | null
+          longest_streak: number | null
           onboarding_completed: boolean | null
           parent_email: string | null
+          pet_happiness: number | null
+          pet_type: string | null
           placement_test_2_completed_at: string | null
           placement_test_2_score: number | null
           placement_test_2_total: number | null
@@ -6544,10 +6549,12 @@ export type Database = {
           updated_at: string
           user_id: string
           weekly_minutes: number | null
+          words_learned_today: number | null
         }
         Insert: {
           cefr_level?: string
           created_at?: string
+          current_streak?: number | null
           date_of_birth?: string | null
           emergency_contact?: string | null
           final_cefr_level?: string | null
@@ -6555,6 +6562,7 @@ export type Database = {
           grade_level?: string | null
           id?: string
           interests?: string[] | null
+          last_activity_date?: string | null
           last_completed_sequence_a1?: number | null
           last_completed_sequence_a2?: number | null
           last_completed_sequence_b1?: number | null
@@ -6562,8 +6570,11 @@ export type Database = {
           last_completed_sequence_prea1?: number | null
           learning_style?: string | null
           long_term_goal?: string | null
+          longest_streak?: number | null
           onboarding_completed?: boolean | null
           parent_email?: string | null
+          pet_happiness?: number | null
+          pet_type?: string | null
           placement_test_2_completed_at?: string | null
           placement_test_2_score?: number | null
           placement_test_2_total?: number | null
@@ -6579,10 +6590,12 @@ export type Database = {
           updated_at?: string
           user_id: string
           weekly_minutes?: number | null
+          words_learned_today?: number | null
         }
         Update: {
           cefr_level?: string
           created_at?: string
+          current_streak?: number | null
           date_of_birth?: string | null
           emergency_contact?: string | null
           final_cefr_level?: string | null
@@ -6590,6 +6603,7 @@ export type Database = {
           grade_level?: string | null
           id?: string
           interests?: string[] | null
+          last_activity_date?: string | null
           last_completed_sequence_a1?: number | null
           last_completed_sequence_a2?: number | null
           last_completed_sequence_b1?: number | null
@@ -6597,8 +6611,11 @@ export type Database = {
           last_completed_sequence_prea1?: number | null
           learning_style?: string | null
           long_term_goal?: string | null
+          longest_streak?: number | null
           onboarding_completed?: boolean | null
           parent_email?: string | null
+          pet_happiness?: number | null
+          pet_type?: string | null
           placement_test_2_completed_at?: string | null
           placement_test_2_score?: number | null
           placement_test_2_total?: number | null
@@ -6614,6 +6631,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           weekly_minutes?: number | null
+          words_learned_today?: number | null
         }
         Relationships: []
       }
