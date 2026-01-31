@@ -74,9 +74,19 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
   const [resetEmail, setResetEmail] = useState('');
   const [resetLoading, setResetLoading] = useState(false);
 
-  const { signIn, signUp, resetPassword, isConfigured, error } = useAuth();
+  const { user, signIn, signUp, resetPassword, isConfigured, error } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Sign out any existing user when signup page loads to prevent session conflicts
+  React.useEffect(() => {
+    if (mode === 'signup' && user) {
+      console.log('Existing user detected on signup page, signing out...');
+      supabase.auth.signOut().then(() => {
+        console.log('Previous session cleared for new signup');
+      });
+    }
+  }, [mode, user]);
 
   React.useEffect(() => {
     if (error) console.warn('Auth error:', error);
