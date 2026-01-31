@@ -60,7 +60,7 @@ serve(async (req) => {
         
         // Send email
         const { error: emailError } = await resend.emails.send({
-          from: 'EnglEuphoria <lessons@resend.dev>',
+          from: 'EnglEuphoria <noreply@engleuphoria.com>',
           to: [reminder.recipient_email],
           subject: `Reminder: ${reminder.lesson_title} in ${reminderTypeText}`,
           html: `
