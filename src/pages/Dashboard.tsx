@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStudentLevel, getStudentDashboardRoute } from '@/hooks/useStudentLevel';
 import { Loader2 } from 'lucide-react';
@@ -23,10 +23,23 @@ import { Loader2 } from 'lucide-react';
  * 4. If student hasn't completed onboarding -> /onboarding
  */
 const Dashboard: React.FC = () => {
-  const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { studentLevel, onboardingCompleted, loading: studentLoading } = useStudentLevel();
   const [redirectPath, setRedirectPath] = useState<string | null>(null);
+  const [hasTimedOut, setHasTimedOut] = useState(false);
+
+  // Timeout fallback - if role doesn't load within 5 seconds, default to playground
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (!redirectPath && user && !hasTimedOut) {
+        console.warn('⏱️ Role loading timeout - defaulting to playground');
+        setHasTimedOut(true);
+        setRedirectPath('/playground');
+      }
+    }, 5000);
+    
+    return () => clearTimeout(timeout);
+  }, [redirectPath, user, hasTimedOut]);
 
   useEffect(() => {
     // Wait for auth to load
@@ -43,11 +56,11 @@ const Dashboard: React.FC = () => {
     // Wait for role to be populated before redirecting
     // This prevents race conditions where user exists but role hasn't been fetched yet
     if (!userRole) {
-      console.log('Waiting for user role to be populated...');
+      console.log('⏳ Waiting for user role to be populated...');
       return;
     }
 
-    console.log('Dashboard redirecting user with role:', userRole);
+    console.log('📍 Dashboard redirecting user with role:', userRole);
 
     // Handle admin redirect
     if (userRole === 'admin') {
@@ -111,12 +124,13 @@ const Dashboard: React.FC = () => {
     return <Navigate to={redirectPath} replace />;
   }
 
-  // Fallback loading state
+  // Fallback loading state (waiting for role)
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
       <div className="text-center">
         <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
-        <p className="text-foreground text-lg">Redirecting...</p>
+        <p className="text-foreground text-lg font-medium">Verifying your access...</p>
+        <p className="text-muted-foreground text-sm mt-2">Please wait a moment</p>
       </div>
     </div>
   );

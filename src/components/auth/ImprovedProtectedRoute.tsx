@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, AlertTriangle } from 'lucide-react';
@@ -27,6 +27,18 @@ export const ImprovedProtectedRoute: React.FC<ImprovedProtectedRouteProps> = ({
   const { user, loading, error } = useAuth();
   const { isDevBypassActive, bypassRole } = useDevBypass();
   const { studentLevel, onboardingCompleted, loading: studentLoading } = useStudentLevel();
+  const [roleLoadTimeout, setRoleLoadTimeout] = useState(false);
+
+  // Timeout for role loading - if role doesn't appear within 5 seconds, redirect to login
+  useEffect(() => {
+    if (user && !(user as any).role && requiredRole && requiredRole !== 'any') {
+      const timeout = setTimeout(() => {
+        console.warn('⏱️ Role verification timeout - redirecting to login');
+        setRoleLoadTimeout(true);
+      }, 5000);
+      return () => clearTimeout(timeout);
+    }
+  }, [user, requiredRole]);
 
   // DEV BYPASS - Only in development mode with query param
   if (isDevBypassActive && bypassRole) {
@@ -41,7 +53,7 @@ export const ImprovedProtectedRoute: React.FC<ImprovedProtectedRouteProps> = ({
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
         <div className="text-center">
           <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-foreground text-lg">Loading your dashboard...</p>
+          <p className="text-foreground text-lg font-medium">Loading your dashboard...</p>
           <p className="text-muted-foreground text-sm mt-2">Please wait while we set things up</p>
         </div>
       </div>
@@ -75,27 +87,45 @@ export const ImprovedProtectedRoute: React.FC<ImprovedProtectedRouteProps> = ({
     return <Navigate to={redirectTo} replace />;
   }
 
-  // Check role if required
-  if (requiredRole && user.role !== requiredRole) {
-    // Handle special case for /dashboard generic redirect
-    if (requiredRole === 'any') {
-      return <>{children}</>;
-    }
+  const userRole = (user as any).role;
 
+  // If role is required but not yet loaded, show loading spinner
+  if (requiredRole && requiredRole !== 'any' && !userRole && !roleLoadTimeout) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-foreground text-lg font-medium">Verifying your access...</p>
+          <p className="text-muted-foreground text-sm mt-2">Please wait a moment</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If role verification timed out, redirect to login
+  if (requiredRole && requiredRole !== 'any' && !userRole && roleLoadTimeout) {
+    console.warn('🚫 Role verification failed - redirecting to login');
+    return <Navigate to="/login" replace />;
+  }
+
+  // Check role if required
+  if (requiredRole && requiredRole !== 'any' && userRole !== requiredRole) {
+    console.log('🚫 Role mismatch:', { required: requiredRole, actual: userRole });
+    
     // Redirect to appropriate dashboard based on actual role
     const roleRedirects: Record<string, string> = {
-      student: '/dashboard', // Use smart router for students
+      student: '/dashboard',
       teacher: '/admin',
       admin: '/super-admin',
       parent: '/parent'
     };
 
-    const redirectPath = roleRedirects[user.role] || '/login';
+    const redirectPath = roleRedirects[userRole] || '/login';
     return <Navigate to={redirectPath} replace />;
   }
 
   // Check student level if required (for student-specific routes)
-  if (requiredStudentLevel && user.role === 'student') {
+  if (requiredStudentLevel && userRole === 'student') {
     if (studentLevel !== requiredStudentLevel) {
       // Redirect to the smart dashboard router which will handle proper routing
       return <Navigate to="/dashboard" replace />;
@@ -103,7 +133,7 @@ export const ImprovedProtectedRoute: React.FC<ImprovedProtectedRouteProps> = ({
   }
 
   // Check if onboarding is required and not completed
-  if (requireOnboarding && user.role === 'student' && !onboardingCompleted) {
+  if (requireOnboarding && userRole === 'student' && !onboardingCompleted) {
     return <Navigate to="/onboarding" replace />;
   }
 
