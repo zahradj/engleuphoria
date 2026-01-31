@@ -32,20 +32,35 @@ const TeacherSignUp = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [hasInitiatedSignOut, setHasInitiatedSignOut] = useState(false);
 
   // Sign out existing user when accessing signup page
+  // Use hasInitiatedSignOut flag to prevent infinite loops
   useEffect(() => {
-    if (!loading && user) {
+    if (!loading && user && !hasInitiatedSignOut) {
+      setHasInitiatedSignOut(true);
       setIsSigningOut(true);
       console.log('Existing user detected on teacher signup page, signing out...');
-      supabase.auth.signOut().then(() => {
+      supabase.auth.signOut().finally(() => {
         console.log('Previous session cleared for new teacher signup');
         setIsSigningOut(false);
       });
     }
-  }, [user, loading]);
+  }, [user, loading, hasInitiatedSignOut]);
 
   const stepLabels = ['Create Account', 'Complete Application'];
+
+  // Show loading while auth context is initializing
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-emerald-600" />
+          <p className="text-gray-600 text-lg">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Show loading while signing out existing user
   if (isSigningOut) {
