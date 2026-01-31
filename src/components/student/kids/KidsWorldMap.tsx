@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { JungleTheme } from './JungleTheme';
@@ -9,38 +9,34 @@ import { WindingPath } from './WindingPath';
 import { FloatingBackpack } from './FloatingBackpack';
 import { GiantGoButton } from './GiantGoButton';
 import { LessonPlayerModal } from './LessonPlayerModal';
-import { useLessonContext, Lesson } from '@/contexts/LessonContext';
+import { PlaygroundLesson } from '@/hooks/usePlaygroundLessons';
 
 export type ThemeType = 'jungle' | 'space' | 'underwater';
 
-// Re-export for backwards compatibility
-export type { LessonContent, Lesson as Level } from '@/contexts/LessonContext';
+// Type alias for backwards compatibility
+export type Level = PlaygroundLesson;
+export type LessonContent = PlaygroundLesson['content'];
 
 interface KidsWorldMapProps {
   theme?: ThemeType;
   totalStars?: number;
   studentName?: string;
+  lessons: PlaygroundLesson[];
+  onLessonComplete?: (lessonId: string, score?: number) => void;
   onPlayNext?: () => void;
 }
 
 export const KidsWorldMap: React.FC<KidsWorldMapProps> = ({
   theme = 'jungle',
-  totalStars = 1234,
+  totalStars = 0,
   studentName = 'Explorer',
+  lessons,
+  onLessonComplete,
   onPlayNext,
 }) => {
-  const { getPlaygroundLessons, updateLessonStatus } = useLessonContext();
-  const playgroundLessons = getPlaygroundLessons();
-  
   const [selectedTheme] = useState<ThemeType>(theme);
-  const [lessons, setLessons] = useState<Lesson[]>(playgroundLessons);
-  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
+  const [selectedLesson, setSelectedLesson] = useState<PlaygroundLesson | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
-  // Sync with context when lessons change
-  useEffect(() => {
-    setLessons(playgroundLessons);
-  }, [playgroundLessons]);
   
   const currentLevel = lessons.find(l => l.status === 'current');
   const completedIndex = lessons.findIndex(l => l.status === 'current') - 1;
@@ -85,31 +81,17 @@ export const KidsWorldMap: React.FC<KidsWorldMapProps> = ({
   }, []);
 
   const handleLevelClick = useCallback((levelId: string) => {
-    const lesson = lessons.find(l => String(l.id) === levelId);
+    const lesson = lessons.find(l => l.id === levelId);
     if (lesson && lesson.status !== 'locked') {
       setSelectedLesson(lesson);
       setIsModalOpen(true);
     }
   }, [lessons]);
 
-  const handleLessonComplete = useCallback((lessonId: number) => {
-    setLessons(prevLessons => {
-      const lessonIndex = prevLessons.findIndex(l => l.id === lessonId);
-      if (lessonIndex === -1) return prevLessons;
-
-      return prevLessons.map((lesson, index) => {
-        if (lesson.id === lessonId) {
-          return { ...lesson, status: 'completed' as const };
-        }
-        if (index === lessonIndex + 1 && lesson.status === 'locked') {
-          return { ...lesson, status: 'current' as const };
-        }
-        return lesson;
-      });
-    });
-
+  const handleLessonComplete = useCallback((lessonId: string, score: number = 100) => {
     triggerConfetti();
-  }, [triggerConfetti]);
+    onLessonComplete?.(lessonId, score);
+  }, [triggerConfetti, onLessonComplete]);
 
   const handlePlayNext = useCallback(() => {
     if (currentLevel) {
@@ -119,10 +101,48 @@ export const KidsWorldMap: React.FC<KidsWorldMapProps> = ({
     onPlayNext?.();
   }, [currentLevel, onPlayNext]);
 
+  // Animated mascot (Pip the Parrot)
+  const MascotPip = () => {
+    if (!currentLevel) return null;
+    
+    return (
+      <motion.div
+        animate={{
+          y: [-5, 5, -5],
+          rotate: [-5, 5, -5],
+        }}
+        transition={{
+          duration: 2,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        style={{
+          position: 'absolute',
+          left: `${currentLevel.position.x - 8}%`,
+          top: `${currentLevel.position.y - 15}%`,
+          transform: 'translate(-50%, -50%)',
+          zIndex: 15,
+        }}
+        className="pointer-events-none"
+      >
+        <div className="text-5xl drop-shadow-lg">🦜</div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.5 }}
+          className="absolute -top-8 left-1/2 -translate-x-1/2 bg-white px-3 py-1 rounded-full text-sm font-bold text-purple-600 whitespace-nowrap shadow-lg"
+        >
+          Let's go!
+        </motion.div>
+      </motion.div>
+    );
+  };
+
   return (
     <div className="relative w-full h-screen overflow-hidden" style={{ fontFamily: "'Fredoka', cursive" }}>
       <ThemeBackground />
       
+      {/* Header with student name */}
       <motion.div 
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -132,43 +152,59 @@ export const KidsWorldMap: React.FC<KidsWorldMapProps> = ({
           <span className="text-2xl">👋</span>
           <span className="font-bold text-purple-700">Hi, {studentName}!</span>
         </div>
+        
+        {/* Progress indicator */}
+        <div className="bg-white/90 backdrop-blur rounded-full px-4 py-2 shadow-lg flex items-center gap-2">
+          <span className="text-lg">📚</span>
+          <span className="font-bold text-emerald-700">
+            {lessons.filter(l => l.status === 'completed').length}/{lessons.length}
+          </span>
+        </div>
       </motion.div>
 
+      {/* Winding path */}
       <WindingPath 
         points={levelPositions} 
         completedIndex={completedIndex >= 0 ? completedIndex : -1}
         theme={selectedTheme}
       />
 
+      {/* Mascot */}
+      <MascotPip />
+
+      {/* Level nodes */}
       {lessons.map((level) => (
         <LevelNode
           key={level.id}
-          id={String(level.id)}
+          id={level.id}
           number={level.number}
           title={level.title}
           isCompleted={level.status === 'completed'}
           isCurrent={level.status === 'current'}
           isLocked={level.status === 'locked'}
           position={level.position}
-          onClick={() => handleLevelClick(String(level.id))}
+          onClick={() => handleLevelClick(level.id)}
           theme={selectedTheme}
+          score={level.score}
         />
       ))}
 
+      {/* Big Play button */}
       <GiantGoButton 
         onClick={handlePlayNext}
-        lessonTitle={currentLevel?.title || 'Next Lesson'}
+        lessonTitle={currentLevel?.title || 'Start Adventure'}
       />
 
+      {/* Floating backpack with stars */}
       <FloatingBackpack totalStars={totalStars} />
 
+      {/* Lesson player modal */}
       <LessonPlayerModal
         isOpen={isModalOpen}
         lesson={selectedLesson}
         onClose={() => setIsModalOpen(false)}
         onComplete={handleLessonComplete}
-        classId="101"
-        studentName="Student"
+        studentName={studentName}
       />
     </div>
   );

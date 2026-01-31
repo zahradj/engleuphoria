@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Loader2, Volume2, CheckCircle, Sparkles, Video } from 'lucide-react';
+import { X, Loader2, Volume2, CheckCircle, Sparkles, Star } from 'lucide-react';
 import { playSound } from '@/constants/soundEffects';
-import { JitsiMeeting } from '@/components/video/JitsiMeeting';
-import type { Level, LessonContent } from './KidsWorldMap';
+import confetti from 'canvas-confetti';
+import type { PlaygroundLesson } from '@/hooks/usePlaygroundLessons';
 
 interface LessonPlayerModalProps {
   isOpen: boolean;
-  lesson: Level | null;
+  lesson: PlaygroundLesson | null;
   onClose: () => void;
-  onComplete: (lessonId: number) => void;
+  onComplete: (lessonId: string, score?: number) => void;
   classId?: string;
   studentName?: string;
 }
@@ -28,6 +28,7 @@ export const LessonPlayerModal: React.FC<LessonPlayerModalProps> = ({
   const [wrongAttempts, setWrongAttempts] = useState<string[]>([]);
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [shakingAnswer, setShakingAnswer] = useState<string | null>(null);
+  const [showCelebration, setShowCelebration] = useState(false);
 
   // Reset state when lesson changes or modal opens/closes
   useEffect(() => {
@@ -37,6 +38,7 @@ export const LessonPlayerModal: React.FC<LessonPlayerModalProps> = ({
       setWrongAttempts([]);
       setQuizCompleted(false);
       setShakingAnswer(null);
+      setShowCelebration(false);
     }
   }, [isOpen, lesson?.id]);
 
@@ -68,19 +70,55 @@ export const LessonPlayerModal: React.FC<LessonPlayerModalProps> = ({
     }
   };
 
+  const triggerCelebration = () => {
+    // Confetti burst
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4'],
+    });
+
+    confetti({
+      particleCount: 50,
+      angle: 60,
+      spread: 55,
+      origin: { x: 0 },
+      colors: ['#FFD700', '#FFA500'],
+    });
+
+    confetti({
+      particleCount: 50,
+      angle: 120,
+      spread: 55,
+      origin: { x: 1 },
+      colors: ['#FFD700', '#FFA500'],
+    });
+  };
+
   const handleFinish = () => {
     if (!lesson) return;
     setIsFinishing(true);
     
+    // Calculate score based on wrong attempts
+    const maxScore = 100;
+    const penaltyPerWrong = 20;
+    const score = Math.max(0, maxScore - (wrongAttempts.length * penaltyPerWrong));
+
+    // Show celebration
+    setShowCelebration(true);
+    triggerCelebration();
+
     setTimeout(() => {
-      onComplete(lesson.id);
+      onComplete(lesson.id, score);
       setIsFinishing(false);
       setSelectedAnswer(null);
       setIsCorrect(null);
       setWrongAttempts([]);
       setQuizCompleted(false);
+      setShowCelebration(false);
       onClose();
-    }, 300);
+    }, 2000);
   };
 
   const handleClose = () => {
@@ -88,6 +126,7 @@ export const LessonPlayerModal: React.FC<LessonPlayerModalProps> = ({
     setIsCorrect(null);
     setWrongAttempts([]);
     setQuizCompleted(false);
+    setShowCelebration(false);
     onClose();
   };
 
@@ -100,7 +139,7 @@ export const LessonPlayerModal: React.FC<LessonPlayerModalProps> = ({
     }
   };
 
-  const renderVideoContent = (content: LessonContent) => (
+  const renderVideoContent = (content: PlaygroundLesson['content']) => (
     <div className="space-y-6">
       {/* Video Player */}
       <div className="relative w-full aspect-video bg-gray-900 rounded-2xl overflow-hidden shadow-inner">
@@ -149,7 +188,7 @@ export const LessonPlayerModal: React.FC<LessonPlayerModalProps> = ({
     </div>
   );
 
-  const renderSlideContent = (content: LessonContent) => (
+  const renderSlideContent = (content: PlaygroundLesson['content']) => (
     <div className="space-y-6">
       {/* Giant Sentence Display */}
       <motion.div
@@ -184,7 +223,7 @@ export const LessonPlayerModal: React.FC<LessonPlayerModalProps> = ({
     </div>
   );
 
-  const renderGameContent = (content: LessonContent) => (
+  const renderGameContent = (content: PlaygroundLesson['content']) => (
     <div className="space-y-6">
       {/* Game Area */}
       <motion.div
@@ -220,40 +259,6 @@ export const LessonPlayerModal: React.FC<LessonPlayerModalProps> = ({
     </div>
   );
 
-  // Live Class content - Jitsi video conference for students
-  const renderLiveClassContent = () => {
-    const roomName = `MySchool_Class_${classId}`;
-    
-    return (
-      <div className="space-y-4">
-        <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl p-4 text-center">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <div className="h-3 w-3 rounded-full bg-red-500 animate-pulse" />
-            <span className="text-red-600 font-bold">LIVE CLASS</span>
-          </div>
-          <p className="text-purple-700 text-sm">
-            Your teacher is waiting for you! 🎉
-          </p>
-        </div>
-        
-        <div className="rounded-2xl overflow-hidden" style={{ height: '400px' }}>
-          <JitsiMeeting
-            roomName={roomName}
-            displayName={studentName}
-            userRole="student"
-            className="h-full"
-          />
-        </div>
-        
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-center">
-          <p className="text-amber-700 text-sm">
-            💡 <strong>Tip:</strong> Listen carefully to your teacher and raise your hand if you have a question!
-          </p>
-        </div>
-      </div>
-    );
-  };
-
   const renderContent = () => {
     if (!lesson) return null;
 
@@ -264,11 +269,8 @@ export const LessonPlayerModal: React.FC<LessonPlayerModalProps> = ({
         return renderSlideContent(lesson.content);
       case 'game':
         return renderGameContent(lesson.content);
-      case 'interactive':
-        // 'interactive' type is used for live classes
-        return renderLiveClassContent();
       default:
-        return null;
+        return renderSlideContent(lesson.content);
     }
   };
 
@@ -331,7 +333,7 @@ export const LessonPlayerModal: React.FC<LessonPlayerModalProps> = ({
 
         {/* Feedback Messages */}
         <AnimatePresence mode="wait">
-          {quizCompleted && (
+          {quizCompleted && !showCelebration && (
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -356,6 +358,46 @@ export const LessonPlayerModal: React.FC<LessonPlayerModalProps> = ({
     );
   };
 
+  // Celebration overlay
+  const CelebrationOverlay = () => (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="absolute inset-0 bg-gradient-to-br from-yellow-400/90 via-orange-400/90 to-pink-500/90 flex items-center justify-center z-50 rounded-3xl"
+    >
+      <motion.div
+        initial={{ scale: 0 }}
+        animate={{ scale: [0, 1.2, 1] }}
+        transition={{ duration: 0.5 }}
+        className="text-center text-white"
+      >
+        <motion.div
+          animate={{ rotate: [0, 10, -10, 0] }}
+          transition={{ duration: 0.5, repeat: Infinity }}
+          className="text-8xl mb-4"
+        >
+          🎉
+        </motion.div>
+        <h2 className="text-4xl font-bold mb-2" style={{ fontFamily: "'Fredoka', cursive" }}>
+          Amazing!
+        </h2>
+        <div className="flex justify-center gap-1 mb-2">
+          {[1, 2, 3].map((i) => (
+            <motion.div
+              key={i}
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ delay: 0.2 + i * 0.1 }}
+            >
+              <Star className="w-8 h-8 text-yellow-300 fill-yellow-300" />
+            </motion.div>
+          ))}
+        </div>
+        <p className="text-xl opacity-90">Lesson Complete!</p>
+      </motion.div>
+    </motion.div>
+  );
+
   return (
     <AnimatePresence>
       {isOpen && lesson && (
@@ -374,6 +416,9 @@ export const LessonPlayerModal: React.FC<LessonPlayerModalProps> = ({
             className="relative w-full max-w-4xl max-h-[90vh] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Celebration overlay */}
+            {showCelebration && <CelebrationOverlay />}
+
             {/* Close Button */}
             <motion.button
               whileHover={{ scale: 1.1 }}
@@ -385,11 +430,7 @@ export const LessonPlayerModal: React.FC<LessonPlayerModalProps> = ({
             </motion.button>
 
             {/* Header */}
-            <div className={`p-6 pt-8 flex-shrink-0 ${
-              lesson.type === 'interactive' 
-                ? 'bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500' 
-                : 'bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400'
-            }`}>
+            <div className="p-6 pt-8 flex-shrink-0 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400">
               <motion.h2
                 initial={{ y: -20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -402,20 +443,20 @@ export const LessonPlayerModal: React.FC<LessonPlayerModalProps> = ({
                 {lesson.type === 'video' && '🎬 Watch & Learn'}
                 {lesson.type === 'slide' && '📖 Read & Repeat'}
                 {lesson.type === 'game' && '🎮 Play & Practice'}
-                {lesson.type === 'interactive' && '🎥 Live Class with Teacher'}
+                {lesson.type === 'quiz' && '❓ Quiz Time'}
+                {lesson.type === 'interactive' && '🎥 Interactive Lesson'}
               </p>
             </div>
 
             {/* Scrollable Content Area */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               {renderContent()}
-              {/* Only show quiz for non-live lessons */}
-              {lesson.type !== 'interactive' && renderQuiz()}
+              {renderQuiz()}
             </div>
 
             {/* Footer with Finish Button - Only show when quiz is completed */}
             <AnimatePresence>
-              {quizCompleted && (
+              {quizCompleted && !showCelebration && (
                 <motion.div 
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
