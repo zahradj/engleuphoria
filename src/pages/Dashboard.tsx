@@ -39,6 +39,15 @@ const Dashboard: React.FC = () => {
     }
 
     const userRole = (user as any).role;
+    
+    // Wait for role to be populated before redirecting
+    // This prevents race conditions where user exists but role hasn't been fetched yet
+    if (!userRole) {
+      console.log('Waiting for user role to be populated...');
+      return;
+    }
+
+    console.log('Dashboard redirecting user with role:', userRole);
 
     // Handle admin redirect
     if (userRole === 'admin') {

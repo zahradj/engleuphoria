@@ -151,20 +151,8 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
           toast({ title: "Login Failed", description: error.message || "Invalid email or password.", variant: "destructive" });
         } else {
           toast({ title: "Welcome back!", description: "Successfully signed in." });
-          setTimeout(async () => {
-            try {
-              const userId = data.user?.id;
-              if (!userId) { navigate('/dashboard', { replace: true }); return; }
-              const { data: roleData } = await supabase.from('user_roles').select('role').eq('user_id', userId).single();
-              const { data: userData } = await supabase.from('users').select('current_system').eq('id', userId).single();
-              const userRole = roleData?.role || 'student';
-              const systemTag = userData?.current_system || null;
-              navigate(getRedirectPath(userRole, systemTag), { replace: true });
-            } catch (err) {
-              console.error('Error fetching user data:', err);
-              navigate('/dashboard', { replace: true });
-            }
-          }, 100);
+          // Let Login.tsx useEffect handle the redirect to /dashboard
+          // Dashboard component will then redirect based on role from AuthContext
         }
       } else {
         const systemTag = formData.role === 'student' && formData.dateOfBirth ? calculateSystemTag(formData.dateOfBirth) : null;
