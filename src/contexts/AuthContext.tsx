@@ -303,9 +303,39 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) {
         setError(error.message);
         toast.error(error.message);
-      } else {
+      } else if (data.user) {
         // Reset rate limiter on successful login
         rateLimiter.reset(clientKey);
+        
+        // Check if user profile exists in users table, if not create it
+        // This handles cases where the database trigger failed during signup
+        const { data: existingUser } = await supabase
+          .from('users')
+          .select('id')
+          .eq('id', data.user.id)
+          .maybeSingle();
+        
+        if (!existingUser) {
+          console.log('Missing user profile detected, auto-creating...');
+          const fullName = data.user.user_metadata?.full_name || sanitizedEmail.split('@')[0] || 'User';
+          const role = data.user.user_metadata?.role || 'student';
+          
+          // Create missing user profile
+          await supabase.from('users').insert({
+            id: data.user.id,
+            email: sanitizedEmail,
+            full_name: fullName,
+            role: role
+          }).single();
+          
+          // Create missing user_roles entry
+          await supabase.from('user_roles').insert({
+            user_id: data.user.id,
+            role: role
+          }).single();
+          
+          console.log('Auto-created missing user profile for:', sanitizedEmail);
+        }
       }
       
       return { data, error };

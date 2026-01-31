@@ -168,7 +168,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
         }
       } else {
         const systemTag = formData.role === 'student' && formData.dateOfBirth ? calculateSystemTag(formData.dateOfBirth) : null;
-        const { error } = await signUp(formData.email, formData.password, {
+        const { data, error } = await signUp(formData.email, formData.password, {
           role: formData.role,
           full_name: formData.fullName,
           system_tag: systemTag
@@ -177,6 +177,32 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
         if (error) {
           toast({ title: "Sign Up Failed", description: error.message || "Failed to create account.", variant: "destructive" });
         } else {
+          // Verify profile was created, if not create it manually (fallback for trigger failures)
+          if (data?.user) {
+            const { data: existingProfile } = await supabase
+              .from('users')
+              .select('id')
+              .eq('id', data.user.id)
+              .maybeSingle();
+            
+            if (!existingProfile) {
+              console.log('Trigger failed to create profile, creating manually...');
+              await supabase.from('users').insert({
+                id: data.user.id,
+                email: formData.email,
+                full_name: formData.fullName,
+                role: formData.role,
+                current_system: systemTag
+              });
+              
+              await supabase.from('user_roles').insert({
+                user_id: data.user.id,
+                role: formData.role
+              });
+              console.log('Manually created profile for:', formData.email);
+            }
+          }
+
           toast({
             title: "Account Created!",
             description: systemTag ? `You've been assigned to the ${systemTag} program.` : "Please check your email to verify."
