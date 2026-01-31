@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Logo } from "@/components/Logo";
-import { TeacherApplicationForm } from "@/components/teacher/TeacherApplicationForm";
+import { EnhancedTeacherApplicationForm } from "@/components/teacher/EnhancedTeacherApplicationForm";
 import { ApplicationSuccess } from "@/components/teacher/ApplicationSuccess";
-import { CheckCircle, FileText, MessageSquare, Clock } from "lucide-react";
+import { CheckCircle, FileText, MessageSquare, Clock, Video } from "lucide-react";
 
 const TeacherApplication = () => {
   const navigate = useNavigate();
@@ -21,22 +21,22 @@ const TeacherApplication = () => {
     {
       icon: FileText,
       title: "Complete Application",
-      description: "Fill out our comprehensive application form with your qualifications and experience."
+      description: "Fill out our 5-step application with your bio, education, and teaching philosophy."
+    },
+    {
+      icon: Video,
+      title: "Submit Video Introduction",
+      description: "Record a 2-3 minute video introducing yourself and demonstrating your teaching style."
     },
     {
       icon: MessageSquare,
-      title: "Application Review",
-      description: "Our hiring team will review your application within 3-5 business days."
-    },
-    {
-      icon: Clock,
-      title: "Interview Process",
+      title: "Interview",
       description: "Qualified candidates will be invited for a virtual interview and demo lesson."
     },
     {
       icon: CheckCircle,
       title: "Welcome Aboard",
-      description: "Successful candidates receive onboarding materials and access to our teaching platform."
+      description: "Successful candidates receive onboarding materials and platform access."
     }
   ];
 
@@ -104,15 +104,15 @@ const TeacherApplication = () => {
       {/* Application Form */}
       <section className="py-12">
         <div className="container mx-auto px-4 max-w-4xl">
-          <Card>
-            <CardHeader>
+          <Card className="border-0 shadow-xl">
+            <CardHeader className="bg-gradient-to-r from-emerald-50 to-blue-50 rounded-t-lg">
               <CardTitle className="text-2xl text-center">Teacher Application Form</CardTitle>
               <CardDescription className="text-center">
-                Please fill out all sections completely and accurately. All fields marked with * are required.
+                Complete all 5 steps to submit your application. All fields marked with * are required.
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <TeacherApplicationForm onSubmissionSuccess={handleSubmissionSuccess} />
+            <CardContent className="pt-6">
+              <EnhancedTeacherApplicationForm onSubmissionSuccess={handleSubmissionSuccess} />
             </CardContent>
           </Card>
         </div>
