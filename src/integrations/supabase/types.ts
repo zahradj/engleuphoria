@@ -7025,7 +7025,9 @@ export type Database = {
           admin_notes: string | null
           age_groups_experience: string[] | null
           availability: string | null
+          bio: string | null
           certifications: string[] | null
+          classroom_management: string | null
           contact_notes: string | null
           cover_letter: string | null
           created_at: string | null
@@ -7054,20 +7056,25 @@ export type Database = {
           preferred_schedule: string | null
           previous_roles: string | null
           professional_references: Json | null
+          rejection_reason: string | null
           salary_expectation: number | null
           skills: string[] | null
           status: string | null
           teaching_experience_years: number | null
           teaching_methodology: string | null
+          teaching_philosophy: string | null
           updated_at: string | null
           user_id: string | null
+          video_description: string | null
         }
         Insert: {
           address?: string | null
           admin_notes?: string | null
           age_groups_experience?: string[] | null
           availability?: string | null
+          bio?: string | null
           certifications?: string[] | null
+          classroom_management?: string | null
           contact_notes?: string | null
           cover_letter?: string | null
           created_at?: string | null
@@ -7096,20 +7103,25 @@ export type Database = {
           preferred_schedule?: string | null
           previous_roles?: string | null
           professional_references?: Json | null
+          rejection_reason?: string | null
           salary_expectation?: number | null
           skills?: string[] | null
           status?: string | null
           teaching_experience_years?: number | null
           teaching_methodology?: string | null
+          teaching_philosophy?: string | null
           updated_at?: string | null
           user_id?: string | null
+          video_description?: string | null
         }
         Update: {
           address?: string | null
           admin_notes?: string | null
           age_groups_experience?: string[] | null
           availability?: string | null
+          bio?: string | null
           certifications?: string[] | null
+          classroom_management?: string | null
           contact_notes?: string | null
           cover_letter?: string | null
           created_at?: string | null
@@ -7138,13 +7150,16 @@ export type Database = {
           preferred_schedule?: string | null
           previous_roles?: string | null
           professional_references?: Json | null
+          rejection_reason?: string | null
           salary_expectation?: number | null
           skills?: string[] | null
           status?: string | null
           teaching_experience_years?: number | null
           teaching_methodology?: string | null
+          teaching_philosophy?: string | null
           updated_at?: string | null
           user_id?: string | null
+          video_description?: string | null
         }
         Relationships: []
       }
