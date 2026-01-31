@@ -116,27 +116,78 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setSession(currentSession);
             
             if (currentSession?.user) {
-              // For ongoing changes, update user in background (fire-and-forget)
-              // Do NOT await this - it should not block the UI
-              setTimeout(async () => {
-                if (!mounted) return;
-                
-                try {
-                  const dbUser = await fetchUserFromDatabase(currentSession.user.id);
-                  if (mounted) {
+              // CRITICAL: For SIGNED_IN events, fetch role SYNCHRONOUSLY and redirect
+              // This prevents race conditions where Login.tsx redirects before role is loaded
+              if (event === 'SIGNED_IN') {
+                (async () => {
+                  if (!mounted) return;
+                  
+                  try {
+                    console.log('🔐 SIGNED_IN: Fetching user role before redirect...');
+                    const dbUser = await fetchUserFromDatabase(currentSession.user.id);
                     const finalUser = dbUser || await createFallbackUser(currentSession.user);
-                    console.log('Setting user after auth state change:', finalUser);
-                    setUser(finalUser);
+                    
+                    if (mounted) {
+                      setUser(finalUser);
+                      
+                      // Role-based navigation after role is confirmed
+                      const email = currentSession.user.email;
+                      const role = (finalUser as any).role;
+                      
+                      console.log('🔐 Role-based redirect:', { email, role });
+                      
+                      // Admin redirect
+                      if (email === 'f.zahra.djaanine@engleuphoria.com' && role === 'admin') {
+                        console.log('➡️ Redirecting admin to /super-admin');
+                        window.location.href = '/super-admin';
+                        return;
+                      }
+                      
+                      // Teacher redirect
+                      if (email === 'f.zahra.djaanine@gmail.com' && role === 'teacher') {
+                        console.log('➡️ Redirecting teacher to /admin');
+                        window.location.href = '/admin';
+                        return;
+                      }
+                      
+                      // Default redirect based on role
+                      if (role === 'admin') {
+                        window.location.href = '/super-admin';
+                      } else if (role === 'teacher') {
+                        window.location.href = '/admin';
+                      } else {
+                        window.location.href = '/dashboard';
+                      }
+                    }
+                  } catch (error) {
+                    console.error('Error in SIGNED_IN handler:', error);
+                    if (mounted) {
+                      const fallbackUser = await createFallbackUser(currentSession.user);
+                      setUser(fallbackUser);
+                      window.location.href = '/dashboard';
+                    }
                   }
-                } catch (error) {
-                  console.error('Error in deferred user fetch:', error);
-                  if (mounted) {
-                    const fallbackUser = await createFallbackUser(currentSession.user);
-                    console.log('Setting fallback user after error:', fallbackUser);
-                    setUser(fallbackUser);
+                })();
+              } else {
+                // For other events (TOKEN_REFRESHED, etc), update user in background
+                setTimeout(async () => {
+                  if (!mounted) return;
+                  
+                  try {
+                    const dbUser = await fetchUserFromDatabase(currentSession.user.id);
+                    if (mounted) {
+                      const finalUser = dbUser || await createFallbackUser(currentSession.user);
+                      setUser(finalUser);
+                    }
+                  } catch (error) {
+                    console.error('Error in deferred user fetch:', error);
+                    if (mounted) {
+                      const fallbackUser = await createFallbackUser(currentSession.user);
+                      setUser(fallbackUser);
+                    }
                   }
-                }
-              }, 0);
+                }, 0);
+              }
             } else {
               setUser(null);
             }
