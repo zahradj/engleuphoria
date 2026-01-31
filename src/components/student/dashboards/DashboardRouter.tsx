@@ -22,8 +22,6 @@ export const DashboardRouter: React.FC<DashboardRouterProps> = ({
       return (
         <PlaygroundDashboard 
           studentName={studentName} 
-          totalXp={totalXp}
-          onLevelUp={onLevelUp}
         />
       );
     case 'teen':
@@ -45,8 +43,6 @@ export const DashboardRouter: React.FC<DashboardRouterProps> = ({
       return (
         <PlaygroundDashboard 
           studentName={studentName} 
-          totalXp={totalXp}
-          onLevelUp={onLevelUp}
         />
       );
   }

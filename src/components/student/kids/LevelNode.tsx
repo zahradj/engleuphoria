@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Star, Lock, Play } from 'lucide-react';
+import { Star, Lock, Play, Sparkles } from 'lucide-react';
 
 interface LevelNodeProps {
   id: string;
@@ -12,6 +12,8 @@ interface LevelNodeProps {
   position: { x: number; y: number };
   onClick?: () => void;
   theme?: 'jungle' | 'space' | 'underwater';
+  score?: number;
+  isNew?: boolean;
 }
 
 export const LevelNode: React.FC<LevelNodeProps> = ({
@@ -24,6 +26,8 @@ export const LevelNode: React.FC<LevelNodeProps> = ({
   position,
   onClick,
   theme = 'jungle',
+  score,
+  isNew = false,
 }) => {
   // Theme-specific colors
   const themeColors = {
@@ -69,6 +73,16 @@ export const LevelNode: React.FC<LevelNodeProps> = ({
     return <Lock className="w-6 h-6 text-white/70" />;
   };
 
+  // Calculate stars based on score (3 stars for 80%+, 2 for 60%+, 1 for less)
+  const getStarRating = () => {
+    if (!isCompleted || score === undefined) return 0;
+    if (score >= 80) return 3;
+    if (score >= 60) return 2;
+    return 1;
+  };
+
+  const starRating = getStarRating();
+
   return (
     <motion.div
       initial={{ scale: 0, opacity: 0 }}
@@ -77,7 +91,7 @@ export const LevelNode: React.FC<LevelNodeProps> = ({
         type: 'spring', 
         stiffness: 200, 
         damping: 15,
-        delay: number * 0.1 
+        delay: number * 0.08 
       }}
       style={{
         position: 'absolute',
@@ -117,9 +131,22 @@ export const LevelNode: React.FC<LevelNodeProps> = ({
         `}>
           {number}
         </div>
+
+        {/* NEW badge for freshly unlocked */}
+        {isCurrent && isNew && (
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1, rotate: [-5, 5, -5] }}
+            transition={{ rotate: { duration: 0.5, repeat: Infinity } }}
+            className="absolute -top-4 -left-4 bg-gradient-to-r from-pink-500 to-orange-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg flex items-center gap-1"
+          >
+            <Sparkles className="w-3 h-3" />
+            NEW
+          </motion.div>
+        )}
         
         {/* Current level indicator */}
-        {isCurrent && (
+        {isCurrent && !isNew && (
           <motion.div
             animate={{ y: [-5, 5, -5] }}
             transition={{ duration: 1.5, repeat: Infinity }}
@@ -131,15 +158,36 @@ export const LevelNode: React.FC<LevelNodeProps> = ({
             <div className="w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-white mx-auto" />
           </motion.div>
         )}
+
+        {/* Star rating for completed lessons */}
+        {isCompleted && starRating > 0 && (
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.3, type: 'spring' }}
+            className="absolute -bottom-3 left-1/2 -translate-x-1/2 flex gap-0.5"
+          >
+            {[1, 2, 3].map((star) => (
+              <Star
+                key={star}
+                className={`w-4 h-4 ${
+                  star <= starRating
+                    ? 'text-yellow-400 fill-yellow-400 drop-shadow'
+                    : 'text-gray-300 fill-gray-300'
+                }`}
+              />
+            ))}
+          </motion.div>
+        )}
       </motion.button>
       
       {/* Title label */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: number * 0.1 + 0.2 }}
+        transition={{ delay: number * 0.08 + 0.2 }}
         className={`
-          mt-2 text-center text-sm md:text-base font-bold
+          mt-3 text-center text-sm md:text-base font-bold
           ${isLocked ? 'text-gray-400' : 'text-white drop-shadow-lg'}
           max-w-[100px] truncate
         `}
