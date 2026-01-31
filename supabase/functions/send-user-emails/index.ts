@@ -207,7 +207,7 @@ const handler = async (req: Request): Promise<Response> => {
     const emailContent = generateEmailContent(type, data);
 
     const emailResponse = await resend.emails.send({
-      from: "EnglEuphoria <noreply@resend.dev>",
+      from: "EnglEuphoria <noreply@engleuphoria.com>",
       to: [to],
       subject: emailContent.subject,
       html: emailContent.html,

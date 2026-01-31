@@ -231,6 +231,39 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (error) {
         setError(error.message);
         toast.error(error.message);
+      } else if (data.user) {
+        // Send welcome email after successful signup
+        try {
+          const userName = (sanitizedUserData as any).full_name || sanitizedEmail.split('@')[0];
+          await supabase.functions.invoke('send-welcome-email', {
+            body: {
+              email: sanitizedEmail,
+              name: userName,
+              role: sanitizedUserData.role || 'student'
+            }
+          });
+          console.log('Welcome email sent successfully');
+        } catch (emailError) {
+          console.warn('Failed to send welcome email:', emailError);
+          // Don't fail signup if email fails
+        }
+
+        // Notify admins about new registration
+        try {
+          const userNameForNotify = (sanitizedUserData as any).full_name || sanitizedEmail.split('@')[0];
+          await supabase.functions.invoke('notify-admin-new-registration', {
+            body: {
+              name: userNameForNotify,
+              email: sanitizedEmail,
+              role: sanitizedUserData.role || 'student',
+              registeredAt: new Date().toISOString()
+            }
+          });
+          console.log('Admin notification sent successfully');
+        } catch (notifyError) {
+          console.warn('Failed to notify admins:', notifyError);
+          // Don't fail signup if notification fails
+        }
       }
 
       return { data, error };

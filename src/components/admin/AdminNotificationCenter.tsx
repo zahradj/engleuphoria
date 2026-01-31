@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { Bell, Check, UserPlus, BookOpen, AlertCircle } from 'lucide-react';
+import { Bell, Check, UserPlus, BookOpen, AlertCircle, GraduationCap, Clock, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -124,11 +124,17 @@ export const AdminNotificationCenter = () => {
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'new_student':
-        return <UserPlus className="w-4 h-4 text-primary" />;
+        return <UserPlus className="w-4 h-4 text-green-500" />;
+      case 'new_teacher':
+        return <GraduationCap className="w-4 h-4 text-blue-500" />;
+      case 'teacher_pending_approval':
+        return <Clock className="w-4 h-4 text-orange-500" />;
       case 'lesson_booked':
-        return <BookOpen className="w-4 h-4 text-success" />;
+        return <BookOpen className="w-4 h-4 text-purple-500" />;
       case 'system_alert':
-        return <AlertCircle className="w-4 h-4 text-warning" />;
+        return <AlertCircle className="w-4 h-4 text-red-500" />;
+      case 'new_registration':
+        return <Users className="w-4 h-4 text-indigo-500" />;
       default:
         return <Bell className="w-4 h-4 text-muted-foreground" />;
     }
