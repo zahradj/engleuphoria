@@ -160,3 +160,9 @@ verify_jwt = false
 
 [functions.generate-learning-path]
 verify_jwt = false
+
+[functions.generate-daily-lesson]
+verify_jwt = false
+
+[functions.generate-placement-summary]
+verify_jwt = false
