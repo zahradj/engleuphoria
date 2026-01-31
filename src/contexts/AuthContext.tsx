@@ -29,6 +29,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isConfigured] = useState(true); // Always configured in Lovable projects
   const initializedRef = useRef(false);
 
+  // SECURITY: Roles MUST come from user_roles table only.
+  const fetchUserRoleFromDatabase = async (userId: string): Promise<string | null> => {
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (error) return null;
+      return (data as any)?.role ?? null;
+    } catch {
+      return null;
+    }
+  };
+
   // Function to fetch user data from database
   const fetchUserFromDatabase = async (userId: string): Promise<User | null> => {
     try {
@@ -43,7 +59,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return null;
       }
 
-      return userData;
+      // Attach role from user_roles table (do NOT read role from users table)
+      const role = (await fetchUserRoleFromDatabase(userId)) ?? 'student';
+      return {
+        ...(userData as any),
+        role
+      } as any;
     } catch (error) {
       console.error('Error fetching user data:', error);
       return null;
@@ -52,26 +73,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Function to create fallback user from auth metadata
   const createFallbackUser = async (authUser: any): Promise<User> => {
-    let role = 'student'; // Default role
-    
-    // SECURITY: Get role ONLY from user_roles table (prevents privilege escalation)
-    // Never fallback to users.role column as it has been removed for security
-    try {
-      const { data: userRole } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', authUser.id)
-        .maybeSingle();
-      
-      if (userRole?.role) {
-        role = userRole.role;
-        console.log('🔒 Retrieved role from user_roles table:', role);
-      } else {
-        console.warn('⚠️ No role found in user_roles table, defaulting to student');
-      }
-    } catch (error) {
-      console.warn('Could not fetch role from database:', error);
-    }
+    const role = (await fetchUserRoleFromDatabase(authUser.id)) ?? 'student';
     
     return {
       id: authUser.id,
@@ -119,55 +121,48 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               // CRITICAL: For SIGNED_IN events, fetch role SYNCHRONOUSLY and redirect
               // This prevents race conditions where Login.tsx redirects before role is loaded
               if (event === 'SIGNED_IN') {
-                (async () => {
+                // Show a professional loading state while role is fetched
+                setLoading(true);
+
+                // Defer DB calls out of the auth callback to avoid auth deadlocks
+                setTimeout(async () => {
                   if (!mounted) return;
-                  
+
                   try {
-                    console.log('🔐 SIGNED_IN: Fetching user role before redirect...');
-                    const dbUser = await fetchUserFromDatabase(currentSession.user.id);
+                    const dbUser = await fetchUserFromDatabase(
+                      currentSession.user.id
+                    );
                     const finalUser = dbUser || await createFallbackUser(currentSession.user);
-                    
-                    if (mounted) {
-                      setUser(finalUser);
-                      
-                      // Role-based navigation after role is confirmed
-                      const email = currentSession.user.email;
-                      const role = (finalUser as any).role;
-                      
-                      console.log('🔐 Role-based redirect:', { email, role });
-                      
-                      // Admin redirect
-                      if (email === 'f.zahra.djaanine@engleuphoria.com' && role === 'admin') {
-                        console.log('➡️ Redirecting admin to /super-admin');
-                        window.location.href = '/super-admin';
-                        return;
-                      }
-                      
-                      // Teacher redirect
-                      if (email === 'f.zahra.djaanine@gmail.com' && role === 'teacher') {
-                        console.log('➡️ Redirecting teacher to /admin');
-                        window.location.href = '/admin';
-                        return;
-                      }
-                      
-                      // Default redirect based on role
-                      if (role === 'admin') {
-                        window.location.href = '/super-admin';
-                      } else if (role === 'teacher') {
-                        window.location.href = '/admin';
-                      } else {
-                        window.location.href = '/dashboard';
-                      }
+
+                    if (!mounted) return;
+                    setUser(finalUser);
+                    setLoading(false);
+
+                    const email = currentSession.user.email ?? '';
+                    const role = (finalUser as any).role;
+
+                    // Admin redirect
+                    if (email === 'f.zahra.djaanine@engleuphoria.com' && role === 'admin') {
+                      window.location.href = '/super-admin';
+                      return;
                     }
-                  } catch (error) {
-                    console.error('Error in SIGNED_IN handler:', error);
+
+                    // Teacher redirect
+                    if (email === 'f.zahra.djaanine@gmail.com' && role === 'teacher') {
+                      window.location.href = '/admin';
+                      return;
+                    }
+
+                    // Default redirect
+                    window.location.href = '/dashboard';
+                  } catch (err) {
+                    console.error('Error in SIGNED_IN redirect handler:', err);
                     if (mounted) {
-                      const fallbackUser = await createFallbackUser(currentSession.user);
-                      setUser(fallbackUser);
+                      setLoading(false);
                       window.location.href = '/dashboard';
                     }
                   }
-                })();
+                }, 0);
               } else {
                 // For other events (TOKEN_REFRESHED, etc), update user in background
                 setTimeout(async () => {
@@ -190,6 +185,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               }
             } else {
               setUser(null);
+              setLoading(false);
             }
             
             // NOTE: We do NOT set loading = false here
