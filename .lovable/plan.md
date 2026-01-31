@@ -1,434 +1,378 @@
 
-# Student Experience Enhancement Plan
-## Specialized Dashboards & AI Lesson Agent
+
+# Plan: Enhanced Student Profile Fields for AI Personalization
+
+## Summary
+
+This plan adds three new fields to the student experience that will significantly improve AI lesson personalization:
+
+| Field | Purpose | Captured In |
+|-------|---------|-------------|
+| `learning_style` | Visual, Auditory, or Kinesthetic | Onboarding Step 2 (new) |
+| `mistake_history` | Words the student got wrong | Lessons/Quizzes (automatic) |
+| `weekly_goal` | Short-term goal like "Prepare for interview" | Dashboard widget (new) |
+
+**Note:** The `learning_style` column already exists in the database but is not being captured during onboarding. This plan connects all the pieces.
 
 ---
 
-## Overview
+## Part 1: Capture Learning Style During Onboarding
 
-This plan enhances the three student dashboards (Playground, Academy, Professional) with level-specific features and adds an AI Lesson Agent that generates personalized daily lessons. It also improves the placement test completion experience with a "typing" summary effect.
+### 1.1 New Onboarding Step: Learning Style Quiz
 
----
+**New File:** `src/components/onboarding/steps/LearningStyleStep.tsx`
 
-## Part 1: Playground Dashboard (Kids) Enhancements
+A fun, interactive step between "Interests" and "Quick Check" with 3-4 simple questions that determine learning style.
 
-### 1.1 New Sidebar with 3D-Style Icons
+**Questions:**
+1. "When learning something new, you prefer to:"
+   - Watch videos or diagrams (Visual)
+   - Listen to explanations or podcasts (Auditory)
+   - Try it yourself hands-on (Kinesthetic)
 
-**New File:** `src/components/student/kids/PlaygroundSidebar.tsx`
+2. "You remember things best by:"
+   - Seeing them written down (Visual)
+   - Hearing them spoken (Auditory)
+   - Doing or practicing them (Kinesthetic)
 
-A vertical sidebar with large, colorful 3D-style icons:
-- Home (house icon with shadow)
-- Learn (book with sparkles)
-- My Pet (paw print)
-- Badges (trophy)
-- Settings (gear)
+3. "In class, you enjoy:"
+   - Pictures, charts, and colors (Visual)
+   - Discussions and music (Auditory)
+   - Games, role-play, and movement (Kinesthetic)
 
-Each icon uses:
-- Drop shadow effects for 3D appearance
-- Soft pastel gradients (rose-100 to pink-200, sky-100 to blue-200)
-- Large touch targets (56x56px minimum)
-- Bouncy hover animations via Framer Motion
+The most frequent selection becomes the learning style.
 
-### 1.2 Virtual Pet Widget
+**Level-specific UI:**
+- **Playground:** Big colorful icons, playful animations
+- **Academy:** Modern card-based selection with gaming vibes
+- **Professional:** Clean, minimalist selection interface
 
-**New File:** `src/components/student/kids/VirtualPetWidget.tsx`
+### 1.2 Update Onboarding Flow
 
-Features:
-- A cute animated pet (selectable: Lion 🦁, Panda 🐼, Bunny 🐰)
-- Pet mood states: Happy, Hungry, Sleepy (based on learning activity)
-- "Feed Me" mechanic: "Learn 5 words to feed your pet!"
-- Progress bar showing words learned today (0/5)
-- Pet happiness meter (filled by completing lessons)
-- Celebratory animation when pet is fed
+**File to Update:** `src/components/onboarding/StudentOnboardingFlow.tsx`
 
-**Database Change:** Add `pet_type` and `pet_happiness` columns to `student_profiles`
-
-### 1.3 Color Palette Update
-
-Apply soft pastel palette to PlaygroundDashboard:
-```css
---playground-bg: #FFF5F5 (rose-50)
---playground-primary: #F9A8D4 (pink-300)
---playground-secondary: #93C5FD (blue-300)
---playground-accent: #86EFAC (green-300)
---playground-text: #6B21A8 (purple-800)
-```
-
-### 1.4 Updated PlaygroundDashboard.tsx
-
-Integrate sidebar + pet widget alongside the existing KidsWorldMap:
-- Left panel: PlaygroundSidebar (collapsed on mobile)
-- Center: KidsWorldMap (adventure path)
-- Right panel: VirtualPetWidget (floating on mobile)
+Changes:
+- Add new step "Learning Style" between "Interests" and "Quick Check"
+- Update steps array: `['Welcome', 'Interests', 'Learning Style', 'Quick Check', 'Your Path']`
+- Store `learning_style` in `OnboardingData`
+- Save to `student_profiles.learning_style` on completion
 
 ---
 
-## Part 2: Academy Dashboard (Teens) Enhancements
+## Part 2: Mistake History Tracking
 
-### 2.1 Daily Streak Component
+### 2.1 Database Migration
 
-**New File:** `src/components/student/academy/DailyStreakCard.tsx`
+**Add new column to `student_profiles`:**
 
-Features:
-- Flame icon with current streak count (7 days)
-- Weekly calendar dots showing activity (Mon-Sun)
-- "Keep your streak alive!" motivational message
-- Streak freeze indicator (if available)
-- Animation: Flame grows larger at 7, 30, 100-day milestones
+```sql
+ALTER TABLE public.student_profiles
+ADD COLUMN IF NOT EXISTS mistake_history JSONB DEFAULT '[]';
 
-### 2.2 Enhanced Leaderboard
-
-**Update:** `src/components/student/dashboards/AcademyDashboard.tsx`
-
-Improvements to existing leaderboard:
-- Add weekly/monthly/all-time tabs
-- Show rank change indicators (up/down arrows)
-- Highlight current user with glow effect
-- "Challenge Friend" button for peer competition
-- XP gains per day visualization
-
-### 2.3 Social Lounge (Mocked Discord-Style UI)
-
-**New File:** `src/components/student/academy/SocialLounge.tsx`
-
-A Discord-inspired chat interface (mocked/read-only):
-- Channel list sidebar: #general, #study-groups, #memes
-- Message feed with avatar, username, timestamp, message
-- Typing indicator animation
-- Reaction buttons (emoji)
-- "Coming Soon" overlay for actual chat functionality
-- Purpose: Create FOMO and community feel, prepare for future chat integration
-
-### 2.4 Updated Academy Color Tokens
-
-```css
---academy-bg: #0f0f1a (dark mode default)
---academy-primary: #6366F1 (indigo-500)
---academy-secondary: #8B5CF6 (violet-500)
---academy-accent: #22D3EE (cyan-400)
---academy-surface: #1a1a2e (dark card)
+COMMENT ON COLUMN student_profiles.mistake_history IS 
+'Array of word/phrase mistakes for AI prioritization';
 ```
 
----
-
-## Part 3: Professional/Hub Dashboard (Adults) Enhancements
-
-### 3.1 Skills Radar Chart
-
-**New File:** `src/components/student/hub/SkillsRadarChart.tsx`
-
-Using Recharts RadarChart (already installed):
-- 6 skill axes: Speaking, Listening, Reading, Writing, Grammar, Vocabulary
-- Current level vs. target level overlay
-- Animated transitions when data updates
-- Tooltip showing skill level (1-10) and improvement suggestions
-
-Skills data structure:
-```typescript
-interface SkillData {
-  skill: string;
-  current: number;
-  target: number;
-}
-```
-
-### 3.2 Business Milestones Card
-
-**New File:** `src/components/student/hub/BusinessMilestonesCard.tsx`
-
-Features:
-- List of professional achievements:
-  - "Completed Business Email Course"
-  - "Delivered First Presentation"
-  - "Passed Interview Prep Module"
-- Progress toward next milestone
-- Certificate icons for completed courses
-- Time investment tracker: "You've saved 4.5 hours this month"
-
-### 3.3 Time Saved Analytics
-
-**New File:** `src/components/student/hub/TimeSavedWidget.tsx`
-
-Displays:
-- Hours saved compared to traditional learning
-- Efficiency metrics (lessons/hour, words/day)
-- Comparative benchmark: "You're 23% faster than average"
-- Weekly time investment graph
-
-### 3.4 Dark Mode "Wealth Management" Aesthetic
-
-Update HubDashboard with premium feel:
-```css
---hub-bg: #111827 (gray-900)
---hub-surface: #1F2937 (gray-800)
---hub-primary: #10B981 (emerald-500)
---hub-accent: #3B82F6 (blue-500)
---hub-text: #F9FAFB (gray-50)
---hub-muted: #9CA3AF (gray-400)
-```
-
-Add subtle gradients, glass-morphism cards, and premium typography.
-
----
-
-## Part 4: AI Lesson Agent Interface
-
-### 4.1 Generate Today's Lesson Button
-
-**New File:** `src/components/student/AILessonAgent.tsx`
-
-Shared component adapted per student level:
-
-**Button States:**
-1. **Ready**: "Generate Today's Lesson" with sparkle icon
-2. **Thinking**: Animated thinking state with typewriter messages
-3. **Complete**: Lesson card revealed with slide-up animation
-
-**Thinking Messages (rotated every 3 seconds):**
-- "Analyzing your interests..."
-- "Reviewing your previous mistakes..."
-- "Crafting the perfect vocabulary..."
-- "Building your personalized quest..."
-- "Almost ready..."
-
-### 4.2 Edge Function: generate-daily-lesson
-
-**New File:** `supabase/functions/generate-daily-lesson/index.ts`
-
-Logic:
-1. Fetch student profile (interests, CEFR level, recent errors)
-2. Query `student_lesson_progress` for weak areas
-3. Call Lovable AI with personalized prompt
-4. Return structured lesson with:
-   - Topic (based on interests + level)
-   - 5 Target Vocabulary words (with IPA, definition, example)
-   - Quest (interactive task description)
-   - Estimated duration
-
-**Prompt Template:**
-```
-You are an ESL lesson designer. Create a personalized 15-minute lesson for a ${level} student (CEFR ${cefrLevel}) who enjoys ${interests.join(', ')}.
-
-Their recent struggles include: ${weakAreas.join(', ')}.
-
-Return JSON:
-{
-  "topic": "string",
-  "tagline": "Short catchy subtitle",
-  "vocabulary": [
-    { "word": "string", "ipa": "string", "definition": "string", "example": "string" }
-  ],
-  "quest": {
-    "title": "string",
-    "description": "string",
-    "type": "dialogue|quiz|writing|listening"
+**Mistake History Structure:**
+```json
+[
+  {
+    "word": "accommodate",
+    "context": "vocabulary_quiz",
+    "timestamp": "2026-01-31T10:30:00Z",
+    "error_type": "spelling",
+    "correct_answer": "accommodate",
+    "student_answer": "accomodate"
   },
-  "estimated_minutes": 15
+  {
+    "word": "their/there",
+    "context": "grammar_exercise",
+    "timestamp": "2026-01-30T14:15:00Z",
+    "error_type": "homophone",
+    "correct_answer": "their",
+    "student_answer": "there"
+  }
+]
+```
+
+### 2.2 Create Mistake Tracking Hook
+
+**New File:** `src/hooks/useMistakeTracker.ts`
+
+```typescript
+interface MistakeEntry {
+  word: string;
+  context: string;
+  timestamp: string;
+  error_type: 'spelling' | 'grammar' | 'vocabulary' | 'pronunciation' | 'homophone';
+  correct_answer: string;
+  student_answer: string;
 }
+
+const useMistakeTracker = () => {
+  const recordMistake = async (mistake: Omit<MistakeEntry, 'timestamp'>) => {
+    // Append to mistake_history array
+    // Keep last 50 mistakes (rolling window)
+  };
+
+  const getMistakes = async (): Promise<MistakeEntry[]> => {
+    // Return current mistakes for AI analysis
+  };
+
+  const getWeakAreas = (): string[] => {
+    // Analyze mistakes and return common patterns
+  };
+
+  return { recordMistake, getMistakes, getWeakAreas };
+};
 ```
 
-### 4.3 Lesson Card Display
+### 2.3 Integration Points
 
-**New File:** `src/components/student/DailyLessonCard.tsx`
-
-Shows:
-- Topic title with level-specific styling
-- Tagline/subtitle
-- 5 vocabulary words in collapsible accordion
-- Quest card with "Start Quest" button
-- Estimated time badge
-- "Regenerate" button if user doesn't like the topic
-
-Level-specific theming:
-- **Playground**: Rounded corners (24px), bright colors, emoji accents
-- **Academy**: Medium corners (12px), dark mode, gradient accents
-- **Professional**: Subtle corners (8px), clean white/gray, green accent
+Update these components to record mistakes:
+- `QuickAssessmentStep.tsx` - Record wrong answers
+- `DailyLessonCard.tsx` - Record quiz mistakes
+- Future lesson components - Any interactive exercises
 
 ---
 
-## Part 5: Placement Test Completion Enhancement
+## Part 3: Weekly Goal Widget
 
-### 5.1 Typing Summary Effect
+### 3.1 Database Migration
 
-**Update:** `src/components/onboarding/steps/LearningPathStep.tsx`
+**Add new column to `student_profiles`:**
 
-Before showing the learning path, add a personalized summary that "types out":
-
-**Transition Flow:**
-1. Assessment completes → brief loading state
-2. AI generates personalized summary based on score
-3. Text types out character by character (50ms delay)
-4. After typing completes (3-5 seconds), fade in learning path preview
-5. "Continue" button appears
-
-**Summary Template Examples:**
-
-**Playground (Score 80%):**
-```
-"Wow, you're a superstar! 🌟 You got 4 out of 5 questions right! 
-You're really good at colors and animals. Let's work on some 
-new words together in The Playground!"
+```sql
+ALTER TABLE public.student_profiles
+ADD COLUMN IF NOT EXISTS weekly_goal TEXT,
+ADD COLUMN IF NOT EXISTS weekly_goal_set_at TIMESTAMPTZ;
 ```
 
-**Academy (Score 60%):**
-```
-"Nice work! You scored 60% on the assessment. Your grammar 
-is solid, but we can level up your vocabulary together. 
-Welcome to The Academy - let's crush those goals! 🎯"
-```
+### 3.2 Weekly Goal Widget Component
 
-**Professional (Score 75%):**
-```
-"Assessment complete. Your score of 75% places you at 
-CEFR B1 (Intermediate). Strengths: formal writing. 
-Areas for growth: business idioms. Your personalized 
-curriculum is ready."
-```
+**New File:** `src/components/student/WeeklyGoalWidget.tsx`
 
-### 5.2 Edge Function: generate-placement-summary
+Features:
+- Display current weekly goal
+- "Set Goal" button opens selection modal
+- Level-specific goal suggestions
 
-**New File:** `supabase/functions/generate-placement-summary/index.ts`
+**Goal Suggestions by Level:**
 
-Calls Lovable AI to generate a 2-3 sentence personalized summary based on:
-- Score percentage
-- Student level (playground/academy/professional)
-- Questions answered correctly vs incorrectly
+**Playground (Kids):**
+- Learn 10 new words
+- Complete 3 lessons
+- Help Pip find his friends
+- Earn 500 stars
+
+**Academy (Teens):**
+- Improve my speaking confidence
+- Prepare for an English test
+- Understand song lyrics better
+- Chat with online friends in English
+
+**Professional (Adults):**
+- Prepare for a job interview
+- Write professional emails confidently
+- Present in English at work
+- Travel conversation skills
+- Negotiate in English
+
+### 3.3 Modal for Setting Goals
+
+**New File:** `src/components/student/WeeklyGoalModal.tsx`
+
+- Pre-set goal buttons (from suggestions above)
+- Custom goal text input
+- Save updates `weekly_goal` and `weekly_goal_set_at`
+- Toast confirmation on save
 
 ---
 
-## Part 6: Implementation Files Summary
+## Part 4: AI Integration
+
+### 4.1 Update generate-daily-lesson Edge Function
+
+**File:** `supabase/functions/generate-daily-lesson/index.ts`
+
+Changes:
+1. Accept `learning_style` parameter
+2. Accept `mistake_history` parameter
+3. Accept `weekly_goal` parameter
+4. Update AI prompt to incorporate these fields
+
+**Updated Prompt Template:**
+```
+Create a personalized 15-minute English lesson for ${levelDescription}.
+
+Student Details:
+- CEFR Level: ${cefrLevel}
+- Interests: ${interestsList}
+- Learning Style: ${learningStyle} (prioritize ${learningStyleActivities})
+- Weekly Goal: ${weeklyGoal}
+- Recent Mistakes to Review: ${mistakesList}
+
+Instructions:
+1. Include at least 2 vocabulary words from their mistake history
+2. Design activities that match their learning style:
+   - Visual: Include diagrams, images, or visual mnemonics
+   - Auditory: Include pronunciation practice and listening exercises
+   - Kinesthetic: Include role-play, interactive games, or movement
+3. Align the lesson topic with their weekly goal when possible
+```
+
+### 4.2 Update AILessonAgent Component
+
+**File:** `src/components/student/AILessonAgent.tsx`
+
+Changes:
+1. Fetch `learning_style`, `weekly_goal`, and `mistake_history` from student profile
+2. Pass these to the edge function
+3. Display mistake review section in generated lesson
+
+---
+
+## Part 5: Dashboard Integration
+
+### 5.1 Add Weekly Goal Widget to Dashboards
+
+**Files to Update:**
+- `PlaygroundDashboard.tsx` - Add kid-friendly goal widget
+- `AcademyDashboard.tsx` - Add motivational goal tracker
+- `HubDashboard.tsx` - Add professional goal widget
+
+### 5.2 Display Learning Style Badge
+
+Show learning style badge in dashboard header:
+- Visual (eye icon)
+- Auditory (headphones icon)  
+- Kinesthetic (hand icon)
+
+---
+
+## Implementation Files Summary
 
 ### New Files to Create
 
 | File | Purpose |
 |------|---------|
-| `src/components/student/kids/PlaygroundSidebar.tsx` | 3D-style icon sidebar for kids |
-| `src/components/student/kids/VirtualPetWidget.tsx` | Interactive pet that encourages learning |
-| `src/components/student/academy/DailyStreakCard.tsx` | Streak tracking component |
-| `src/components/student/academy/SocialLounge.tsx` | Mocked Discord-style chat UI |
-| `src/components/student/hub/SkillsRadarChart.tsx` | Recharts radar chart for skills |
-| `src/components/student/hub/BusinessMilestonesCard.tsx` | Professional achievement tracker |
-| `src/components/student/hub/TimeSavedWidget.tsx` | Efficiency metrics display |
-| `src/components/student/AILessonAgent.tsx` | AI lesson generation interface |
-| `src/components/student/DailyLessonCard.tsx` | Display card for generated lessons |
-| `supabase/functions/generate-daily-lesson/index.ts` | AI daily lesson generator |
-| `supabase/functions/generate-placement-summary/index.ts` | AI placement test summary |
+| `src/components/onboarding/steps/LearningStyleStep.tsx` | Learning style quiz during onboarding |
+| `src/hooks/useMistakeTracker.ts` | Hook for recording and retrieving mistakes |
+| `src/components/student/WeeklyGoalWidget.tsx` | Goal display and setting widget |
+| `src/components/student/WeeklyGoalModal.tsx` | Modal for selecting/entering goals |
 
-### Files to Modify
+### Files to Update
 
 | File | Changes |
 |------|---------|
-| `src/components/student/dashboards/PlaygroundDashboard.tsx` | Integrate sidebar + pet widget |
-| `src/components/student/dashboards/AcademyDashboard.tsx` | Add streak, enhanced leaderboard, social lounge |
-| `src/components/student/dashboards/HubDashboard.tsx` | Add radar chart, milestones, time saved |
-| `src/components/onboarding/steps/LearningPathStep.tsx` | Add typing summary effect |
-| `src/contexts/RoleThemeContext.tsx` | Add student level theming |
-| `supabase/config.toml` | Register new edge functions |
+| `src/components/onboarding/StudentOnboardingFlow.tsx` | Add learning style step, update data flow |
+| `src/components/onboarding/steps/QuickAssessmentStep.tsx` | Record mistakes when answers are wrong |
+| `supabase/functions/generate-daily-lesson/index.ts` | Accept new parameters, update AI prompt |
+| `src/components/student/AILessonAgent.tsx` | Fetch and pass student data to edge function |
+| `src/components/student/dashboards/PlaygroundDashboard.tsx` | Add goal widget |
+| `src/components/student/dashboards/AcademyDashboard.tsx` | Add goal widget |
+| `src/components/student/dashboards/HubDashboard.tsx` | Add goal widget |
 
 ### Database Migration
 
-Add to `student_profiles`:
 ```sql
-ALTER TABLE student_profiles
-ADD COLUMN pet_type TEXT DEFAULT 'lion',
-ADD COLUMN pet_happiness INTEGER DEFAULT 50,
-ADD COLUMN words_learned_today INTEGER DEFAULT 0,
-ADD COLUMN current_streak INTEGER DEFAULT 0,
-ADD COLUMN longest_streak INTEGER DEFAULT 0,
-ADD COLUMN last_activity_date DATE;
+-- Add mistake_history and weekly_goal columns
+ALTER TABLE public.student_profiles
+ADD COLUMN IF NOT EXISTS mistake_history JSONB DEFAULT '[]',
+ADD COLUMN IF NOT EXISTS weekly_goal TEXT,
+ADD COLUMN IF NOT EXISTS weekly_goal_set_at TIMESTAMPTZ;
+
+-- Index for efficient mistake queries
+CREATE INDEX IF NOT EXISTS idx_student_profiles_mistake_history 
+ON student_profiles USING GIN (mistake_history);
+
+-- Add comment for documentation
+COMMENT ON COLUMN student_profiles.mistake_history IS 
+'Rolling array of last 50 mistakes for AI lesson personalization';
+COMMENT ON COLUMN student_profiles.weekly_goal IS 
+'Student-set short-term learning goal (e.g., Prepare for job interview)';
 ```
 
 ---
 
-## Part 7: Visual Reference
+## User Flow: How It Works
 
-### Playground (Kids 4-11)
 ```text
-┌─────────────────────────────────────────────┐
-│  [🏠] [📚] [🐾] [🏆] [⚙️]   ← 3D icon bar    │
-├─────────────────────────────────────────────┤
-│                                             │
-│   ┌─────────────────────────────────┐       │
-│   │      ADVENTURE MAP              │       │
-│   │   (KidsWorldMap component)      │       │
-│   │                                 │       │
-│   │   🦜 Pip says: "Let's go!"      │       │
-│   │                                 │       │
-│   │   ⭐ → ⭐ → ⭐ → 🔒              │       │
-│   └─────────────────────────────────┘       │
-│                                             │
-│   ┌─────────────┐  ┌─────────────────┐      │
-│   │ 🦁 My Pet   │  │ ✨ Today's      │      │
-│   │ Feed me!    │  │    Lesson       │      │
-│   │ [████░] 3/5 │  │ [Generate]      │      │
-│   └─────────────┘  └─────────────────┘      │
-└─────────────────────────────────────────────┘
-```
-
-### Academy (Teens 12-17)
-```text
-┌────┬──────────────────────────────────────────┐
-│    │  Welcome, Alex! 🔥 7-day streak          │
-│ 🏠 │                                          │
-│    ├──────────────────────────────────────────┤
-│ 📖 │  ┌──────────────────┐ ┌───────────────┐  │
-│    │  │ CONTINUE LESSON  │ │ LEADERBOARD   │  │
-│ 📅 │  │ Writing Workshop │ │ #1 Sarah 4520 │  │
-│    │  │ 60% complete     │ │ #2 Mike  3890 │  │
-│ 🏆 │  │ [Continue →]     │ │ #3 YOU   2340 │  │
-│    │  └──────────────────┘ └───────────────┘  │
-│ 👤 │                                          │
-│    │  ┌──────────────────────────────────────┐│
-│    │  │ 🎮 SOCIAL LOUNGE              [Soon] ││
-│ 🌙 │  │ #general: "Who's studying tonight?" ││
-│    │  └──────────────────────────────────────┘│
-│    │                                          │
-│    │  [✨ Generate Today's Lesson]            │
-└────┴──────────────────────────────────────────┘
-```
-
-### Professional/Hub (Adults 18+)
-```text
-┌──────────────────────────────────────────────────┐
-│  The Hub    Dashboard  Courses  Certificates     │
-├──────────────────────────────────────────────────┤
-│                                                  │
-│  Good morning, Sarah                             │
-│                                                  │
-│  ┌───────────────────┐  ┌─────────────────────┐  │
-│  │  SKILLS RADAR     │  │  TIME SAVED         │  │
-│  │                   │  │  ⏱️ 4.5 hrs/month   │  │
-│  │    Speaking       │  │  23% faster than    │  │
-│  │   /‾‾‾\           │  │  average learner    │  │
-│  │  /     \          │  └─────────────────────┘  │
-│  │ Grammar  Listening│                           │
-│  │  \     /          │  ┌─────────────────────┐  │
-│  │   \___/           │  │  MILESTONES         │  │
-│  │   Writing         │  │  ✓ Email Course     │  │
-│  └───────────────────┘  │  ✓ Interview Prep   │  │
-│                         │  ○ Public Speaking  │  │
-│  [✨ Generate Today's   └─────────────────────┘  │
-│      Lesson]                                     │
-└──────────────────────────────────────────────────┘
+NEW STUDENT ONBOARDING
+     |
+     v
+[Step 1: Welcome] --> [Step 2: Interests] --> [Step 3: Learning Style Quiz]
+                                                   |
+                                                   v
+                                         Determines: Visual/Auditory/Kinesthetic
+                                                   |
+                                                   v
+                            [Step 4: Quick Check] --> Records any wrong answers
+                                                        to mistake_history
+                                                   |
+                                                   v
+                            [Step 5: AI Learning Path] --> Uses learning_style
+                                                   |
+                                                   v
+                            [Dashboard] --> Set Weekly Goal
+                                                   |
+                                                   v
+                     [Generate Daily Lesson] --> AI uses:
+                                                - interests
+                                                - learning_style
+                                                - weekly_goal  
+                                                - mistake_history
+                                                   |
+                                                   v
+                            Personalized lesson targeting weak areas,
+                            matching learning style, aligned with goals
 ```
 
 ---
 
-## Part 8: Implementation Order
+## Technical Details
 
-| Priority | Task | Effort |
-|----------|------|--------|
-| 1 | Database migration (pet columns, streak columns) | Small |
-| 2 | Create AILessonAgent + DailyLessonCard shared components | Medium |
-| 3 | Create generate-daily-lesson edge function | Medium |
-| 4 | Create VirtualPetWidget for Playground | Medium |
-| 5 | Update PlaygroundDashboard with sidebar + pet | Medium |
-| 6 | Create DailyStreakCard + SocialLounge for Academy | Medium |
-| 7 | Update AcademyDashboard with new components | Medium |
-| 8 | Create SkillsRadarChart + BusinessMilestonesCard for Hub | Medium |
-| 9 | Update HubDashboard with new components + dark mode | Medium |
-| 10 | Create generate-placement-summary edge function | Small |
-| 11 | Update LearningPathStep with typing effect | Medium |
-| 12 | Update RoleThemeContext for student levels | Small |
-| 13 | Testing & refinement | Medium |
+### Mistake History Limits
+
+- Store maximum 50 entries (rolling window)
+- Older entries are automatically removed
+- Priority is given to recent mistakes
+- Words repeated multiple times get higher weight in AI prompt
+
+### Learning Style Activities Map
+
+| Style | Preferred Activities |
+|-------|---------------------|
+| Visual | Diagrams, flashcards, charts, videos, color-coding |
+| Auditory | Podcasts, pronunciation drills, listening exercises, discussions |
+| Kinesthetic | Role-play, games, drag-and-drop, typing exercises, movement |
+
+### Weekly Goal Reset Logic
+
+- Goals persist until changed by student
+- Optional: Prompt to update goal every Monday
+- Track goal completion (future enhancement)
+
+---
+
+## Testing Checklist
+
+1. Complete onboarding as a new student
+   - Verify learning style quiz appears
+   - Confirm learning style is saved to database
+
+2. Answer questions wrong during Quick Check
+   - Verify mistakes are recorded in mistake_history
+
+3. Open dashboard and set a weekly goal
+   - Verify goal is saved and displayed
+
+4. Generate a daily lesson
+   - Verify the lesson references:
+     - Learning style activities
+     - Weekly goal alignment
+     - Mistake review words
+
+5. Check database records
+   - Confirm all three fields are populated correctly
 
