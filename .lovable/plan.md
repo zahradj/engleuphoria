@@ -1,20 +1,31 @@
-# Completed: Profile Verification Fallback for Signup Forms
+# User Data Cleanup & Email Flow Verification
 
-## Status: ✅ Done
+## ✅ Completed: Database Cleanup
 
-Both `StudentSignUp.tsx` and `TeacherSignUp.tsx` now have fallback profile creation logic that ensures user profiles are created even if the database trigger fails.
+Removed all non-admin users from the database. Only the admin user remains:
+- `f.zahra.djaanine@engleuphoria.com` (admin)
 
-### Changes Made:
+## ✅ Email Flows Already Working
 
-1. **StudentSignUp.tsx** - Added fallback logic after signup that:
-   - Checks if profile exists in `users` table
-   - If not, creates profile with age-based `current_system` tag (KIDS/TEENS/ADULTS)
-   - Creates entry in `user_roles` table
+### 1. Welcome Emails (on signup)
+- **Student**: Receives `🎓 Welcome to EnglEuphoria, Young Learner!` email with steps to complete profile and start learning
+- **Teacher**: Receives `👨‍🏫 Welcome to EnglEuphoria Teaching Team!` email with steps to complete profile/application
+- **Parent**: Receives `👨‍👩‍👧 Welcome to EnglEuphoria, Parent!` email
 
-2. **TeacherSignUp.tsx** - Added fallback logic after signup that:
-   - Checks if profile exists in `users` table
-   - If not, creates profile with `teacher` role
-   - Creates entry in `user_roles` table
+### 2. Password Recovery
+- Users click "Forgot password?" on login page
+- Receive `🔐 Reset Your Password - EnglEuphoria` email with reset link
+- Link redirects to `/reset-password` page where they can set a new password
 
-### Result:
-All signup entry points now have profile verification fallback, preventing login failures due to missing profiles.
+### 3. Email Confirmation
+- Uses Supabase's built-in email confirmation
+- Can be configured in Supabase Dashboard > Authentication > Email Templates
+
+## Edge Functions
+- `send-welcome-email`: Role-based welcome emails (student/teacher/parent)
+- `send-user-emails`: Handles confirmation, password reset, login notifications
+- All emails use verified `engleuphoria.com` domain via Resend API
+
+## Notes
+- To customize email templates, edit the edge functions in `supabase/functions/`
+- Auth accounts need to be deleted from Supabase Dashboard > Authentication > Users
