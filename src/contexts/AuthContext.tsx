@@ -28,6 +28,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [error, setError] = useState<string | null>(null);
   const [isConfigured] = useState(true); // Always configured in Lovable projects
   const initializedRef = useRef(false);
+  const signInRedirectRef = useRef(false); // Track if SIGNED_IN redirect is in progress
 
   // SECURITY: Roles MUST come from user_roles table only.
   const fetchUserRoleFromDatabase = async (userId: string): Promise<string | null> => {
@@ -120,11 +121,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               // CRITICAL: Only perform hard redirect on SIGNED_IN (fresh login)
               // For INITIAL_SESSION (page refresh), let components handle routing
               if (event === 'SIGNED_IN') {
+                // Mark that a redirect is in progress - prevents safety timeout from interfering
+                signInRedirectRef.current = true;
                 // Show loading state while we fetch role and redirect
                 setLoading(true);
 
-                // Defer DB calls out of the auth callback to avoid auth deadlocks
-                setTimeout(async () => {
+                // Execute redirect logic immediately (use async IIFE instead of setTimeout)
+                (async () => {
                   if (!mounted) return;
 
                   try {
@@ -139,6 +142,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
                     console.log('🔐 SIGNED_IN redirect - email:', email, 'role:', role);
 
+                    // REDIRECT IMMEDIATELY - before any more state updates can interfere
                     // Admin redirect
                     if (email === 'f.zahra.djaanine@engleuphoria.com' && role === 'admin') {
                       window.location.href = '/super-admin';
@@ -155,12 +159,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     window.location.href = '/dashboard';
                   } catch (err) {
                     console.error('Error in SIGNED_IN redirect handler:', err);
+                    signInRedirectRef.current = false;
                     if (mounted) {
                       setLoading(false);
                       window.location.href = '/dashboard';
                     }
                   }
-                }, 0);
+                })();
               } else if (event === 'INITIAL_SESSION') {
                 // Page refresh with existing session - just update state, no redirect
                 // Let Dashboard.tsx handle the routing via React Router
@@ -248,13 +253,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const cleanup = initializeAuth();
      
-    // Safety timeout - reduced to 1500ms with better handling
+    // Safety timeout - increased to 3000ms with redirect protection
     const timeout = setTimeout(() => {
+      // Don't interfere if a SIGNED_IN redirect is in progress
+      if (signInRedirectRef.current) {
+        console.log('⏳ Safety timeout skipped - redirect in progress');
+        return;
+      }
       if (mounted && loading) {
         console.warn('Auth initialization timeout - forcing loading = false');
         setLoading(false);
       }
-    }, 1500);
+    }, 3000);
 
     return () => {
       mounted = false;
