@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, AlertTriangle } from 'lucide-react';
@@ -28,14 +28,18 @@ export const ImprovedProtectedRoute: React.FC<ImprovedProtectedRouteProps> = ({
   const { isDevBypassActive, bypassRole } = useDevBypass();
   const { studentLevel, onboardingCompleted, loading: studentLoading } = useStudentLevel();
   const [roleLoadTimeout, setRoleLoadTimeout] = useState(false);
+  const timeoutTriggeredRef = useRef(false);
 
-  // Timeout for role loading - if role doesn't appear within 5 seconds, redirect to login
+  // Timeout for role loading - extended to 8 seconds to allow AuthContext to complete
   useEffect(() => {
-    if (user && !(user as any).role && requiredRole && requiredRole !== 'any') {
+    if (user && !(user as any).role && requiredRole && requiredRole !== 'any' && !timeoutTriggeredRef.current) {
       const timeout = setTimeout(() => {
-        console.warn('⏱️ Role verification timeout - redirecting to login');
-        setRoleLoadTimeout(true);
-      }, 5000);
+        if (!timeoutTriggeredRef.current) {
+          console.warn('⏱️ Role verification timeout - redirecting to login');
+          timeoutTriggeredRef.current = true;
+          setRoleLoadTimeout(true);
+        }
+      }, 8000);
       return () => clearTimeout(timeout);
     }
   }, [user, requiredRole]);
