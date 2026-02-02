@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStudentLevel, getStudentDashboardRoute } from '@/hooks/useStudentLevel';
@@ -27,11 +27,12 @@ const Dashboard: React.FC = () => {
   const { studentLevel, onboardingCompleted, loading: studentLoading } = useStudentLevel();
   const [redirectPath, setRedirectPath] = useState<string | null>(null);
   const [hasTimedOut, setHasTimedOut] = useState(false);
+  const redirectExecutedRef = useRef(false);
 
   // Timeout fallback - if role doesn't load within 5 seconds, default to playground
   useEffect(() => {
     const timeout = setTimeout(() => {
-      if (!redirectPath && user && !hasTimedOut) {
+      if (!redirectPath && user && !hasTimedOut && !redirectExecutedRef.current) {
         console.warn('⏱️ Role loading timeout - defaulting to playground');
         setHasTimedOut(true);
         setRedirectPath('/playground');
@@ -119,8 +120,9 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  // Perform the redirect
-  if (redirectPath) {
+  // Perform the redirect - only once
+  if (redirectPath && !redirectExecutedRef.current) {
+    redirectExecutedRef.current = true;
     return <Navigate to={redirectPath} replace />;
   }
 

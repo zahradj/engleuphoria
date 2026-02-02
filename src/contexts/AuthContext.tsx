@@ -109,7 +109,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         // Set up auth state listener FIRST
         // This listener handles ONGOING auth changes (login/logout events)
-        // It does NOT control the loading state - only the initial load does
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
           (event, currentSession) => {
             if (!mounted) return;
@@ -118,10 +117,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setSession(currentSession);
             
             if (currentSession?.user) {
-              // CRITICAL: For SIGNED_IN events, fetch role SYNCHRONOUSLY and redirect
-              // This prevents race conditions where Login.tsx redirects before role is loaded
+              // CRITICAL: Only perform hard redirect on SIGNED_IN (fresh login)
+              // For INITIAL_SESSION (page refresh), let components handle routing
               if (event === 'SIGNED_IN') {
-                // Show a professional loading state while role is fetched
+                // Show loading state while we fetch role and redirect
                 setLoading(true);
 
                 // Defer DB calls out of the auth callback to avoid auth deadlocks
@@ -129,17 +128,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                   if (!mounted) return;
 
                   try {
-                    const dbUser = await fetchUserFromDatabase(
-                      currentSession.user.id
-                    );
+                    const dbUser = await fetchUserFromDatabase(currentSession.user.id);
                     const finalUser = dbUser || await createFallbackUser(currentSession.user);
 
                     if (!mounted) return;
                     setUser(finalUser);
-                    setLoading(false);
 
                     const email = currentSession.user.email ?? '';
                     const role = (finalUser as any).role;
+
+                    console.log('🔐 SIGNED_IN redirect - email:', email, 'role:', role);
 
                     // Admin redirect
                     if (email === 'f.zahra.djaanine@engleuphoria.com' && role === 'admin') {
@@ -153,7 +151,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                       return;
                     }
 
-                    // Default redirect
+                    // Default redirect for all other users
                     window.location.href = '/dashboard';
                   } catch (err) {
                     console.error('Error in SIGNED_IN redirect handler:', err);
@@ -163,8 +161,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     }
                   }
                 }, 0);
+              } else if (event === 'INITIAL_SESSION') {
+                // Page refresh with existing session - just update state, no redirect
+                // Let Dashboard.tsx handle the routing via React Router
+                setTimeout(async () => {
+                  if (!mounted) return;
+                  
+                  try {
+                    const dbUser = await fetchUserFromDatabase(currentSession.user.id);
+                    if (mounted) {
+                      const finalUser = dbUser || await createFallbackUser(currentSession.user);
+                      setUser(finalUser);
+                      // Do NOT redirect here - let components handle it
+                    }
+                  } catch (error) {
+                    console.error('Error in INITIAL_SESSION user fetch:', error);
+                    if (mounted) {
+                      const fallbackUser = await createFallbackUser(currentSession.user);
+                      setUser(fallbackUser);
+                    }
+                  }
+                }, 0);
               } else {
-                // For other events (TOKEN_REFRESHED, etc), update user in background
+                // For other events (TOKEN_REFRESHED, SIGNED_OUT, etc), update user in background
                 setTimeout(async () => {
                   if (!mounted) return;
                   
@@ -187,9 +206,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               setUser(null);
               setLoading(false);
             }
-            
-            // NOTE: We do NOT set loading = false here
-            // Loading is only controlled by the initial session check below
           }
         );
 
