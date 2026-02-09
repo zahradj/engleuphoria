@@ -121,12 +121,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               // CRITICAL: Only perform hard redirect on SIGNED_IN (fresh login)
               // For INITIAL_SESSION (page refresh), let components handle routing
               if (event === 'SIGNED_IN') {
-                // Mark that a redirect is in progress - prevents safety timeout from interfering
+                // Check if we already redirected for this session (prevents infinite reload loop)
+                if (sessionStorage.getItem('auth_redirect_done')) {
+                  // This is a page reload with existing session, NOT a fresh login
+                  // Just update user state, no redirect
+                  (async () => {
+                    if (!mounted) return;
+                    try {
+                      const dbUser = await fetchUserFromDatabase(currentSession.user.id);
+                      const finalUser = dbUser || await createFallbackUser(currentSession.user);
+                      if (mounted) setUser(finalUser);
+                    } catch (err) {
+                      console.error('Error fetching user on reload:', err);
+                      if (mounted) {
+                        const fallback = await createFallbackUser(currentSession.user);
+                        setUser(fallback);
+                      }
+                    }
+                  })();
+                  return;
+                }
+
+                // Fresh login - mark redirect flag and proceed
                 signInRedirectRef.current = true;
-                // Show loading state while we fetch role and redirect
                 setLoading(true);
 
-                // Execute redirect logic immediately (use async IIFE instead of setTimeout)
                 (async () => {
                   if (!mounted) return;
 
@@ -142,20 +161,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
                     console.log('🔐 SIGNED_IN redirect - email:', email, 'role:', role);
 
-                    // REDIRECT IMMEDIATELY - before any more state updates can interfere
-                    // Admin redirect
+                    // Set flag BEFORE redirect so the reload doesn't trigger another redirect
+                    sessionStorage.setItem('auth_redirect_done', 'true');
+
                     if (email === 'f.zahra.djaanine@engleuphoria.com' && role === 'admin') {
                       window.location.href = '/super-admin';
                       return;
                     }
-
-                    // Teacher redirect
                     if (email === 'f.zahra.djaanine@gmail.com' && role === 'teacher') {
                       window.location.href = '/admin';
                       return;
                     }
-
-                    // Default redirect for all other users
                     window.location.href = '/dashboard';
                   } catch (err) {
                     console.error('Error in SIGNED_IN redirect handler:', err);
@@ -510,6 +526,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       console.log('🔄 Clearing user state...');
+      // Clear redirect flag so next login can redirect again
+      sessionStorage.removeItem('auth_redirect_done');
       // Clear user state immediately
       setUser(null);
       setSession(null);
