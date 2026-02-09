@@ -19,6 +19,9 @@ interface CommunicationZoneProps {
   isScreenSharing?: boolean;
   onStopScreenShare?: () => void;
   screenShareStream?: MediaStream | null;
+  localStream?: MediaStream | null;
+  isVideoConnected?: boolean;
+  isLocalCameraOff?: boolean;
 }
 
 export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
@@ -34,13 +37,17 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
   onEmbedLink,
   isScreenSharing = false,
   onStopScreenShare,
-  screenShareStream
+  screenShareStream,
+  localStream,
+  isVideoConnected = false,
+  isLocalCameraOff = false
 }) => {
   const [chatMessages, setChatMessages] = useState<Array<{ sender: string; text: string }>>([
     { sender: 'system', text: 'Class session started' }
   ]);
   const [newMessage, setNewMessage] = useState('');
   const screenShareVideoRef = useRef<HTMLVideoElement>(null);
+  const teacherVideoRef = useRef<HTMLVideoElement>(null);
 
   // Attach screen share stream to video element
   useEffect(() => {
@@ -48,6 +55,13 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
       screenShareVideoRef.current.srcObject = screenShareStream;
     }
   }, [screenShareStream]);
+
+  // Attach local media stream to teacher video element
+  useEffect(() => {
+    if (teacherVideoRef.current && localStream) {
+      teacherVideoRef.current.srcObject = localStream;
+    }
+  }, [localStream]);
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {
@@ -91,11 +105,22 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
 
         {/* Teacher Video Container (smaller) */}
         <div className="relative aspect-[4/3] bg-gray-800 rounded-lg overflow-hidden border border-gray-700 w-2/3">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center">
-              <User className="w-6 h-6 text-gray-500" />
+          {isVideoConnected && localStream && !isLocalCameraOff ? (
+            <video
+              ref={teacherVideoRef}
+              autoPlay
+              muted
+              playsInline
+              className="w-full h-full object-cover mirror"
+              style={{ transform: 'scaleX(-1)' }}
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center">
+                <User className="w-6 h-6 text-gray-500" />
+              </div>
             </div>
-          </div>
+          )}
           <div className="absolute bottom-1 left-1 bg-black/60 px-1.5 py-0.5 rounded text-[10px] text-white">
             You
           </div>
