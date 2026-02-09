@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useClassroomSync } from "@/hooks/useClassroomSync";
 import { useAuth } from "@/contexts/AuthContext";
 import { useScreenShare } from "@/hooks/useScreenShare";
+import { useLocalMedia } from "@/hooks/useLocalMedia";
 import { ClassroomTopBar } from "./ClassroomTopBar";
 import { CommunicationZone } from "./CommunicationZone";
 import { CenterStage } from "./CenterStage";
@@ -32,8 +33,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
-  const [isMuted, setIsMuted] = useState(false);
-  const [isCameraOff, setIsCameraOff] = useState(false);
+  const media = useLocalMedia();
   const [participantCount, setParticipantCount] = useState(2);
   const [activeTool, setActiveTool] = useState('pointer');
   const [activeColor, setActiveColor] = useState('#FF6B6B');
@@ -130,13 +130,19 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     navigate('/admin');
   }, [navigate, toast, endSession]);
 
-  const toggleMute = useCallback(() => {
-    setIsMuted(prev => !prev);
+  // Auto-join media on mount
+  useEffect(() => {
+    media.join();
+    return () => { media.leave(); };
   }, []);
 
+  const toggleMute = useCallback(() => {
+    media.toggleMicrophone();
+  }, [media]);
+
   const toggleCamera = useCallback(() => {
-    setIsCameraOff(prev => !prev);
-  }, []);
+    media.toggleCamera();
+  }, [media]);
 
   const handleGiveStar = useCallback(async () => {
     const newStarCount = studentStars + 1;
@@ -291,11 +297,12 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
         lessonTitle={lessonTitle}
         roomName={roomName}
         participantCount={participantCount}
-        isMuted={isMuted}
-        isCameraOff={isCameraOff}
+        isMuted={media.isMuted}
+        isCameraOff={media.isCameraOff}
         onToggleMute={toggleMute}
         onToggleCamera={toggleCamera}
         onEndClass={handleEndClass}
+        studentStars={studentStars}
       />
 
       {/* 3-Column Layout */}
@@ -315,6 +322,9 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
           isScreenSharing={isScreenSharing}
           onStopScreenShare={handleStopScreenShare}
           screenShareStream={screenShareStream}
+          localStream={media.stream}
+          isVideoConnected={media.isConnected}
+          isLocalCameraOff={media.isCameraOff}
         />
 
         {/* Center: Main Stage */}

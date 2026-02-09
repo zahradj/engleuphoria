@@ -9,7 +9,8 @@ import {
   Camera,
   CameraOff,
   Phone,
-  Settings
+  Settings,
+  Star
 } from 'lucide-react';
 
 interface ClassroomTopBarProps {
@@ -22,6 +23,7 @@ interface ClassroomTopBarProps {
   onToggleCamera: () => void;
   onEndClass: () => void;
   onOpenSettings?: () => void;
+  studentStars?: number;
 }
 
 export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
@@ -33,7 +35,8 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
   onToggleMute,
   onToggleCamera,
   onEndClass,
-  onOpenSettings
+  onOpenSettings,
+  studentStars = 0
 }) => {
   const [elapsed, setElapsed] = useState(0);
 
@@ -69,6 +72,14 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
         <Badge variant="outline" className="border-emerald-500 text-emerald-400 text-xs">
           Room: {roomName}
         </Badge>
+      </div>
+
+      {/* Centered Star Count */}
+      <div className="flex items-center">
+        <div className="flex items-center gap-1.5 bg-amber-500/20 border border-amber-500/40 px-3 py-1 rounded-full shadow-[0_0_12px_rgba(245,158,11,0.3)]">
+          <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+          <span className="font-bold text-amber-300 text-sm">{studentStars} {studentStars === 1 ? 'Star' : 'Stars'}</span>
+        </div>
       </div>
 
       <div className="flex items-center gap-2">
