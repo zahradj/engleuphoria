@@ -1,74 +1,95 @@
 
 
-# Fix: Infinite Page Reload Loop
+# Add Star Count to Top Banner + Fix Video/Audio in Live Calls
 
-## Root Cause
+## 1. Add Star Count Display to the Top Banner
 
-The `SIGNED_IN` event in Supabase's `onAuthStateChange` fires **not only on fresh login** but also **on every page load when a valid session exists**. The current code performs `window.location.href` on every `SIGNED_IN` event, which causes a full page reload, which triggers another `SIGNED_IN`, creating an infinite loop:
+### What changes
+The `ClassroomTopBar` currently shows: LIVE indicator, participant count, lesson title, room name, timer, and media controls. The star count will be added **in the center** of the bar, between the left info section and the right controls.
 
-```text
-Login -> SIGNED_IN -> window.location.href = '/super-admin'
-  -> Page reload -> SIGNED_IN -> window.location.href = '/super-admin'
-  -> Page reload -> SIGNED_IN -> ... (infinite)
+### File: `src/components/teacher/classroom/ClassroomTopBar.tsx`
+- Add a new `studentStars` prop (number) and optional `studentName` prop
+- Render a centered star count badge with a gold star icon and the count
+- Style it with a glowing gold/amber background to make it visually prominent
+
+### File: `src/components/teacher/classroom/TeacherClassroom.tsx`
+- Pass `studentStars` to the `ClassroomTopBar` component
+
+### Visual design
+The star counter will appear as a pill-shaped badge in the center of the top bar:
+- Gold star icon (filled) + number display (e.g., "3 Stars")
+- Subtle glow/pulse animation when the count updates
+- Matches the dark theme of the classroom UI
+
+---
+
+## 2. Fix Video and Audio in Live Calls
+
+### Current problem
+The `CommunicationZone` (left sidebar in teacher classroom) shows **static placeholder icons** instead of actual camera feeds. The `useLocalMedia` hook exists and correctly requests `getUserMedia`, but it is **never connected** to the `TeacherClassroom` or its video containers.
+
+### Solution
+Integrate `useLocalMedia` into `TeacherClassroom` and pass the stream to `CommunicationZone` for rendering in the video containers.
+
+### File: `src/components/teacher/classroom/TeacherClassroom.tsx`
+- Import and call `useLocalMedia()` hook
+- Auto-join the call when the component mounts
+- Wire up `media.toggleMicrophone` and `media.toggleCamera` to the existing `isMuted`/`isCameraOff` state (replace the local state toggles with the hook's functions)
+- Pass `media.stream`, `media.isConnected`, and `media.isCameraOff` to `CommunicationZone`
+
+### File: `src/components/teacher/classroom/CommunicationZone.tsx`
+- Add new props: `localStream`, `isVideoConnected`, `isLocalCameraOff`
+- In the **Teacher Video Container** (currently a static `User` icon), render a `<video>` element when a stream is available
+- Use a `useRef` + `useEffect` to attach `stream` to the video element's `srcObject`
+- Set `autoPlay`, `muted` (to prevent feedback), and `playsInline` attributes
+- Fall back to the existing avatar placeholder when no stream is available
+- Apply the same pattern from the stack overflow solution: create the video element in the DOM immediately, set `playsInline` and `preload="auto"` for mobile compatibility
+
+### File: `src/components/teacher/classroom/ClassroomTopBar.tsx`
+- The existing mic/camera toggle buttons will now control the real media stream (the parent passes the correct handlers)
+
+---
+
+## Technical Details
+
+### Video element best practices (from the provided solution)
+```typescript
+<video
+  ref={videoRef}
+  autoPlay
+  muted        // Always mute local preview to prevent audio feedback
+  playsInline  // Required for iOS Safari inline playback
+  preload="auto"
+  className="w-full h-full object-cover"
+/>
 ```
 
-## Solution
-
-Use a `sessionStorage` flag to track whether the redirect has already been performed for this login session. This ensures `window.location.href` only fires **once** per login.
-
-## Changes
-
-### File: `src/contexts/AuthContext.tsx`
-
-1. Inside the `SIGNED_IN` handler (around line 123), **before** performing the redirect, check if a flag `auth_redirect_done` exists in `sessionStorage`. If it does, treat this as an `INITIAL_SESSION` instead (just update state, no redirect).
-
-2. **Before** calling `window.location.href`, set `sessionStorage.setItem('auth_redirect_done', 'true')`.
-
-3. In the `signOut` function, clear the flag: `sessionStorage.removeItem('auth_redirect_done')`.
-
-4. In the `INITIAL_SESSION` branch, also remove the `setTimeout` wrapper and handle the user fetch inline (same pattern as `getSession` below it) to avoid race conditions with double-fetching.
-
-### Technical Detail
-
+### Stream attachment pattern
 ```typescript
-// In SIGNED_IN handler:
-if (event === 'SIGNED_IN') {
-  // Check if we already redirected for this session
-  if (sessionStorage.getItem('auth_redirect_done')) {
-    // This is a page reload, not a fresh login - treat like INITIAL_SESSION
-    // Just update user state, no redirect
-    const dbUser = await fetchUserFromDatabase(currentSession.user.id);
-    const finalUser = dbUser || await createFallbackUser(currentSession.user);
-    setUser(finalUser);
-    return;
+const videoRef = useRef<HTMLVideoElement>(null);
+
+useEffect(() => {
+  if (videoRef.current && localStream) {
+    videoRef.current.srcObject = localStream;
   }
-
-  // Fresh login - proceed with redirect
-  signInRedirectRef.current = true;
-  setLoading(true);
-  // ... fetch role, then:
-  sessionStorage.setItem('auth_redirect_done', 'true');
-  window.location.href = '/super-admin'; // Only fires ONCE
-}
+}, [localStream]);
 ```
 
+### Auto-join on mount
 ```typescript
-// In signOut:
-sessionStorage.removeItem('auth_redirect_done');
-window.location.replace('/');
+useEffect(() => {
+  media.join();
+  return () => { media.leave(); };
+}, []);
 ```
 
-### Why sessionStorage?
+---
 
-- Persists across page reloads within the same browser tab (needed since `window.location.href` causes a reload)
-- Automatically cleared when the tab is closed
-- Does not persist across different tabs (each tab gets its own login flow)
-
-## Files Changed
+## Summary of File Changes
 
 | File | Change |
 |------|--------|
-| `AuthContext.tsx` | Add `sessionStorage` guard to prevent repeated SIGNED_IN redirects; clear flag on sign out |
-
-No other files need changes.
+| `ClassroomTopBar.tsx` | Add `studentStars` and `studentName` props; render centered star count badge |
+| `TeacherClassroom.tsx` | Integrate `useLocalMedia` hook; pass stream and star count to child components |
+| `CommunicationZone.tsx` | Add `localStream`/`isVideoConnected` props; render live `<video>` element for teacher feed |
 
