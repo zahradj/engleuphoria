@@ -37,6 +37,7 @@ const CommunityPage = lazy(() => import("./pages/CommunityPage"));
 
 // Lazy load classroom pages
 const TeacherClassroomPage = lazy(() => import("./pages/TeacherClassroomPage"));
+const AIPlacementTest = lazy(() => import("./components/placement/AIPlacementTest"));
 const StudentClassroomPage = lazy(() => import("./pages/StudentClassroomPage"));
 const TeacherClassroomDemo = lazy(() => import("./pages/TeacherClassroomPage"));
 
@@ -188,6 +189,15 @@ const App = () => {
                       <Route path="/onboarding" element={
                         <ImprovedProtectedRoute requiredRole="student">
                           <StudentOnboardingFlow />
+                        </ImprovedProtectedRoute>
+                      } />
+
+                      {/* AI Placement Test */}
+                      <Route path="/ai-placement-test" element={
+                        <ImprovedProtectedRoute requiredRole="student">
+                          <Suspense fallback={<LoadingFallback />}>
+                            <AIPlacementTest />
+                          </Suspense>
                         </ImprovedProtectedRoute>
                       } />
 
