@@ -1,95 +1,130 @@
 
 
-# Add Star Count to Top Banner + Fix Video/Audio in Live Calls
+# AIPlacementTest - Chat-Based Adaptive Placement Test
 
-## 1. Add Star Count Display to the Top Banner
+## Overview
 
-### What changes
-The `ClassroomTopBar` currently shows: LIVE indicator, participant count, lesson title, room name, timer, and media controls. The star count will be added **in the center** of the bar, between the left info section and the right controls.
+A premium, chat-based placement test component where an AI avatar ("The Guide") converses with the student through a typewriter-animated chat interface. It collects demographics, runs 5 adaptive questions based on age group, shows a processing animation, then updates the database and redirects to the correct dashboard.
 
-### File: `src/components/teacher/classroom/ClassroomTopBar.tsx`
-- Add a new `studentStars` prop (number) and optional `studentName` prop
-- Render a centered star count badge with a gold star icon and the count
-- Style it with a glowing gold/amber background to make it visually prominent
+## New Files to Create
 
-### File: `src/components/teacher/classroom/TeacherClassroom.tsx`
-- Pass `studentStars` to the `ClassroomTopBar` component
+### 1. `src/components/placement/AIPlacementTest.tsx` (Main orchestrator)
 
-### Visual design
-The star counter will appear as a pill-shaped badge in the center of the top bar:
-- Gold star icon (filled) + number display (e.g., "3 Stars")
-- Subtle glow/pulse animation when the count updates
-- Matches the dark theme of the classroom UI
+- Manages the overall flow through 4 phases: `demographics`, `test`, `processing`, `complete`
+- Uses Framer Motion `AnimatePresence` for smooth phase transitions
+- Glassmorphism container: `backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl`
+- Full-screen gradient background matching the Engleuphoria brand
+- Holds all state: `age`, `goal`, `answers[]`, `score`, `determinedLevel`
 
----
+### 2. `src/components/placement/TypewriterText.tsx` (Reusable typewriter effect)
 
-## 2. Fix Video and Audio in Live Calls
+- Accepts `text: string` and `speed?: number` (default ~40ms per char)
+- Uses `useState` + `useEffect` with a `setInterval` to reveal characters one by one
+- Calls an `onComplete` callback when finished typing
+- Renders with a blinking cursor animation at the end while typing
 
-### Current problem
-The `CommunicationZone` (left sidebar in teacher classroom) shows **static placeholder icons** instead of actual camera feeds. The `useLocalMedia` hook exists and correctly requests `getUserMedia`, but it is **never connected** to the `TeacherClassroom` or its video containers.
+### 3. `src/components/placement/ChatBubble.tsx` (Chat message component)
 
-### Solution
-Integrate `useLocalMedia` into `TeacherClassroom` and pass the stream to `CommunicationZone` for rendering in the video containers.
+- Two variants: `role: 'guide' | 'user'`
+- Guide bubbles: left-aligned with avatar icon (a gradient circle with a sparkle/brain icon), glassmorphism background
+- User bubbles: right-aligned with a subtle blue/purple background
+- Guide messages use `TypewriterText`; user messages render instantly
+- Framer Motion entry animation: `initial={{ opacity: 0, y: 20 }}` -> `animate={{ opacity: 1, y: 0 }}`
 
-### File: `src/components/teacher/classroom/TeacherClassroom.tsx`
-- Import and call `useLocalMedia()` hook
-- Auto-join the call when the component mounts
-- Wire up `media.toggleMicrophone` and `media.toggleCamera` to the existing `isMuted`/`isCameraOff` state (replace the local state toggles with the hook's functions)
-- Pass `media.stream`, `media.isConnected`, and `media.isCameraOff` to `CommunicationZone`
+### 4. `src/components/placement/DemographicsPhase.tsx`
 
-### File: `src/components/teacher/classroom/CommunicationZone.tsx`
-- Add new props: `localStream`, `isVideoConnected`, `isLocalCameraOff`
-- In the **Teacher Video Container** (currently a static `User` icon), render a `<video>` element when a stream is available
-- Use a `useRef` + `useEffect` to attach `stream` to the video element's `srcObject`
-- Set `autoPlay`, `muted` (to prevent feedback), and `playsInline` attributes
-- Fall back to the existing avatar placeholder when no stream is available
-- Apply the same pattern from the stack overflow solution: create the video element in the DOM immediately, set `playsInline` and `preload="auto"` for mobile compatibility
+- Chat-style flow:
+  1. Guide says: "Hello! I'm your Guide. I'm here to find the perfect learning path for you."
+  2. Guide asks: "First, how old are you?"
+  3. User types age into a styled input (glassmorphism, rounded-2xl)
+  4. Guide responds based on age with age-appropriate language
+  5. Guide asks: "What do you want to achieve with English?"
+  6. User selects from 4 goal cards (Travel, Work/Business, School/Exams, Fun/Social) or types custom
+- On completion, calls `onComplete({ age, goal })` which determines the question set
 
-### File: `src/components/teacher/classroom/ClassroomTopBar.tsx`
-- The existing mic/camera toggle buttons will now control the real media stream (the parent passes the correct handlers)
+### 5. `src/components/placement/TestPhase.tsx`
 
----
+- Receives `age` to determine question category:
+  - `age < 12`: Image-based/simple vocabulary (Playground style with emojis, bright colors)
+  - `age 12-18`: Grammar + social scenarios (Academy style)
+  - `age > 18`: Business English + complex structures (Professional style)
+- Each question appears as a Guide chat message with typewriter effect
+- Answer options appear as interactive cards below the chat (glassmorphism, hover effects)
+- After selecting, the Guide gives brief feedback before the next question
+- Progress indicator: 5 small dots at the top showing completion
+- Uses `AnimatePresence` for question transitions
 
-## Technical Details
+### 6. `src/components/placement/ProcessingPhase.tsx`
 
-### Video element best practices (from the provided solution)
-```typescript
-<video
-  ref={videoRef}
-  autoPlay
-  muted        // Always mute local preview to prevent audio feedback
-  playsInline  // Required for iOS Safari inline playback
-  preload="auto"
-  className="w-full h-full object-cover"
-/>
-```
+- Triggered after the 5th question is answered
+- Full-screen centered animation:
+  - Animated brain/sparkle icon with pulse effect
+  - Text: "Generating your personalized learning path..." with typewriter effect
+  - Animated progress bar (0% to 100% over ~4 seconds using Framer Motion `animate`)
+  - Subtle particle/glow effects around the progress area
+- After the bar reaches 100%, triggers the database update and redirect
 
-### Stream attachment pattern
-```typescript
-const videoRef = useRef<HTMLVideoElement>(null);
+### 7. `src/hooks/usePlacementTest.ts` (Business logic hook)
 
-useEffect(() => {
-  if (videoRef.current && localStream) {
-    videoRef.current.srcObject = localStream;
-  }
-}, [localStream]);
-```
+- `determineLevel(age)`: Uses the existing `determineStudentLevel` from `useStudentLevel.ts`
+- `calculateScore(answers, questions)`: Returns score percentage
+- `completeTest(userId, level, score)`: Updates `student_profiles` table:
+  - `student_level` = determined level ('playground' | 'academy' | 'professional')
+  - `onboarding_completed` = true
+  - `placement_test_score` = calculated score
+  - `placement_test_completed_at` = new Date().toISOString()
+- Returns the dashboard route using existing `getStudentDashboardRoute(level)`
 
-### Auto-join on mount
-```typescript
-useEffect(() => {
-  media.join();
-  return () => { media.leave(); };
-}, []);
-```
+## Routing Changes
 
----
+### `src/App.tsx`
 
-## Summary of File Changes
+- Add a new route: `/ai-placement-test`
+- Protected with `ImprovedProtectedRoute requiredRole="student"`
+- Lazy-loaded with `Suspense`
 
-| File | Change |
+## Question Bank (embedded in TestPhase.tsx)
+
+**Playground (age < 12)** - 5 image/emoji-based vocabulary questions:
+- "Which animal says 'Meow'?" with emoji options
+- Color identification, counting, basic greetings, simple verbs
+
+**Academy (age 12-18)** - 5 grammar/social scenario questions:
+- Correct tense usage, conditional sentences, phrasal verbs
+- Social scenario: "Your friend invites you to a party. How do you respond?"
+
+**Professional (age > 18)** - 5 business English questions:
+- Formal email language, idiomatic expressions, complex grammar
+- "Which phrase is most appropriate for a client presentation?"
+
+## Design Tokens
+
+- Background: `bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900`
+- Glass panels: `backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl`
+- Guide avatar: gradient circle `from-violet-500 to-fuchsia-500` with sparkle icon
+- Text: `text-white` for primary, `text-white/70` for secondary
+- Accent buttons: `bg-gradient-to-r from-violet-600 to-fuchsia-600`
+- Soft shadows: `shadow-[0_8px_32px_rgba(0,0,0,0.3)]`
+- Progress dots: `bg-white/30` inactive, `bg-violet-400` active, `bg-green-400` completed
+
+## Technical Notes
+
+- All questions are static/embedded (no AI API call needed for question generation)
+- Reuses `determineStudentLevel` and `getStudentDashboardRoute` from existing `useStudentLevel.ts`
+- Database update uses `supabase.from('student_profiles').update(...)` matching the existing pattern in `StudentOnboardingFlow.tsx`
+- Navigation uses `react-router-dom`'s `useNavigate` with `replace: true`
+- The typewriter speed adjusts slightly based on message length (shorter = slower per char for readability)
+
+## File Summary
+
+| File | Action |
 |------|--------|
-| `ClassroomTopBar.tsx` | Add `studentStars` and `studentName` props; render centered star count badge |
-| `TeacherClassroom.tsx` | Integrate `useLocalMedia` hook; pass stream and star count to child components |
-| `CommunicationZone.tsx` | Add `localStream`/`isVideoConnected` props; render live `<video>` element for teacher feed |
+| `src/components/placement/AIPlacementTest.tsx` | Create |
+| `src/components/placement/TypewriterText.tsx` | Create |
+| `src/components/placement/ChatBubble.tsx` | Create |
+| `src/components/placement/DemographicsPhase.tsx` | Create |
+| `src/components/placement/TestPhase.tsx` | Create |
+| `src/components/placement/ProcessingPhase.tsx` | Create |
+| `src/hooks/usePlacementTest.ts` | Create |
+| `src/App.tsx` | Add route for `/ai-placement-test` |
 
