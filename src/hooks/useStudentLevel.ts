@@ -68,9 +68,6 @@ export function useStudentLevel(): StudentLevelData {
 
 /**
  * Determines the student level based on age
- * - Playground: ages < 12
- * - Academy: ages 12-17
- * - Professional: ages 18+
  */
 export function determineStudentLevel(age: number): StudentLevel {
   if (age < 12) return 'playground';
@@ -79,24 +76,25 @@ export function determineStudentLevel(age: number): StudentLevel {
 }
 
 /**
- * Evaluates student level with score and age
- * Score can be used for CEFR placement, age determines UI track
+ * IRT-inspired evaluation: weighs age + correctCount + avgComplexity
+ * - Kid promotion: age < 12, score > 4, avgComplexity > 0.8 → academy (advanced)
+ * - Adult foundational: age > 18, score < 2 → professional (foundational)
+ * - Default: age-based level
  */
 export function evaluateStudentLevel(
   age: number,
   correctCount: number,
-  totalQuestions: number
+  totalQuestions: number,
+  avgComplexity: number = 0.5
 ): { level: StudentLevel; track: string } {
   const defaultLevel = determineStudentLevel(age);
-  const scoreRatio = correctCount / totalQuestions;
 
-  // Promotion: High-performing kid advances to Academy
-  if (age < 12 && correctCount > 4 && scoreRatio > 0.8) {
+  // Promotion: High-performing kid who answered hard questions correctly
+  if (age < 12 && correctCount > 4 && avgComplexity > 0.8) {
     return { level: 'academy', track: 'advanced' };
   }
 
-  // Foundational: Low-performing adult stays in Professional
-  // but gets flagged for simplified content
+  // Foundational: Struggling adult gets simplified content
   if (age > 18 && correctCount < 2) {
     return { level: 'professional', track: 'foundational' };
   }

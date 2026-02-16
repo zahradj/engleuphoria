@@ -6,6 +6,7 @@ import { PlaygroundSidebar } from '../kids/PlaygroundSidebar';
 import { VirtualPetWidget } from '../kids/VirtualPetWidget';
 import { AILessonAgent } from '../AILessonAgent';
 import { WeeklyGoalWidget } from '../WeeklyGoalWidget';
+import { RecommendedTeachers } from '../RecommendedTeachers';
 
 interface PlaygroundDashboardProps {
   studentName?: string;
@@ -104,6 +105,8 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
               studentInterests={['animals', 'games', 'cartoons']}
               cefrLevel="Pre-A1"
             />
+
+            <RecommendedTeachers />
           </div>
         </div>
       </div>

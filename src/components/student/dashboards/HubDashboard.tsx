@@ -13,6 +13,7 @@ import { SkillsRadarChart } from '../hub/SkillsRadarChart';
 import { BusinessMilestonesCard } from '../hub/BusinessMilestonesCard';
 import { AILessonAgent } from '../AILessonAgent';
 import { WeeklyGoalWidget } from '../WeeklyGoalWidget';
+import { RecommendedTeachers } from '../RecommendedTeachers';
 
 interface HubDashboardProps {
   studentName?: string;
@@ -221,6 +222,9 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
                 ))}
               </CardContent>
             </Card>
+
+            {/* Recommended Teachers */}
+            <RecommendedTeachers isDarkMode={isDarkMode} />
 
             {/* Upcoming Session */}
             <Card className={cardClass}>

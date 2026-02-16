@@ -4,41 +4,34 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { toast } from 'sonner';
 import DemographicsPhase from './DemographicsPhase';
 import TestPhase from './TestPhase';
+import type { TestResult } from './TestPhase';
 import ProcessingPhase from './ProcessingPhase';
 import { usePlacementTest } from '@/hooks/usePlacementTest';
 
 type Phase = 'demographics' | 'test' | 'processing' | 'complete';
 
-// Correct answer indices for scoring
-const CORRECT_INDICES = {
-  playground: [0, 1, 1, 1, 1],
-  academy: [1, 2, 1, 0, 1],
-  professional: [1, 1, 1, 1, 2],
-};
-
 const AIPlacementTest = () => {
   const navigate = useNavigate();
-  const { calculateScore, completeTest, determineStudentLevel } = usePlacementTest();
+  const { completeTest } = usePlacementTest();
   const [phase, setPhase] = useState<Phase>('demographics');
   const [age, setAge] = useState(0);
+  const [interests, setInterests] = useState<string[]>([]);
+  const [testResults, setTestResults] = useState<TestResult[]>([]);
 
-  const [answers, setAnswers] = useState<number[]>([]);
-
-  const handleDemographicsComplete = (result: { age: number; goal: string }) => {
+  const handleDemographicsComplete = (result: { age: number; goal: string; interests: string[] }) => {
     setAge(result.age);
+    setInterests(result.interests);
     setPhase('test');
   };
 
-  const handleTestComplete = (testAnswers: number[]) => {
-    setAnswers(testAnswers);
+  const handleTestComplete = (results: TestResult[]) => {
+    setTestResults(results);
     setPhase('processing');
   };
 
   const handleProcessingComplete = async () => {
     try {
-      const level = determineStudentLevel(age);
-      const key = level as keyof typeof CORRECT_INDICES;
-      const route = await completeTest(age, answers, CORRECT_INDICES[key]);
+      const route = await completeTest(age, testResults, interests);
       setPhase('complete');
       navigate(route, { replace: true });
     } catch (err) {

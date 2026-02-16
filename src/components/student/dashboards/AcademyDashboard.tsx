@@ -14,6 +14,7 @@ import { SocialLounge } from '../academy/SocialLounge';
 import { AILessonAgent } from '../AILessonAgent';
 import { WeeklyGoalWidget } from '../WeeklyGoalWidget';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RecommendedTeachers } from '../RecommendedTeachers';
 
 interface AcademyDashboardProps {
   studentName?: string;
@@ -354,6 +355,8 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
               studentInterests={['gaming', 'social media', 'music']}
               cefrLevel="A2"
             />
+
+            <RecommendedTeachers isDarkMode={isDarkMode} />
 
             {onLevelUp && (
               <motion.div
