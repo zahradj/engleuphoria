@@ -1,130 +1,113 @@
 
 
-# AIPlacementTest - Chat-Based Adaptive Placement Test
+# Upgrade: Smart Placement Logic (Age + Performance Weighting)
 
-## Overview
+## What Changes
 
-A premium, chat-based placement test component where an AI avatar ("The Guide") converses with the student through a typewriter-animated chat interface. It collects demographics, runs 5 adaptive questions based on age group, shows a processing animation, then updates the database and redirects to the correct dashboard.
+Right now, the placement test determines the student level based **only on age** -- a 10-year-old who aces every question still gets "Playground." The user's pseudocode introduces a smarter system that weighs **both age and test performance** to allow:
 
-## New Files to Create
+- **Promotion**: A high-performing kid (age < 12) can be promoted to Academy (Advanced Track)
+- **Foundational Track**: A low-performing adult (age > 18) stays in Professional but is flagged for simplified content
+- **Default**: Everyone else gets the level matching their age
 
-### 1. `src/components/placement/AIPlacementTest.tsx` (Main orchestrator)
+## Files to Change
 
-- Manages the overall flow through 4 phases: `demographics`, `test`, `processing`, `complete`
-- Uses Framer Motion `AnimatePresence` for smooth phase transitions
-- Glassmorphism container: `backdrop-blur-xl bg-white/10 border border-white/20 shadow-2xl`
-- Full-screen gradient background matching the Engleuphoria brand
-- Holds all state: `age`, `goal`, `answers[]`, `score`, `determinedLevel`
+### 1. `src/hooks/useStudentLevel.ts`
 
-### 2. `src/components/placement/TypewriterText.tsx` (Reusable typewriter effect)
+Replace the current `evaluateStudentLevel` function (which ignores score) with a real weighted evaluation:
 
-- Accepts `text: string` and `speed?: number` (default ~40ms per char)
-- Uses `useState` + `useEffect` with a `setInterval` to reveal characters one by one
-- Calls an `onComplete` callback when finished typing
-- Renders with a blinking cursor animation at the end while typing
+```typescript
+export function evaluateStudentLevel(
+  age: number,
+  correctCount: number,
+  totalQuestions: number
+): { level: StudentLevel; track: string } {
+  const defaultLevel = determineStudentLevel(age);
+  const scoreRatio = correctCount / totalQuestions;
 
-### 3. `src/components/placement/ChatBubble.tsx` (Chat message component)
+  // Promotion: High-performing kid advances to Academy
+  if (age < 12 && correctCount > 4 && scoreRatio > 0.8) {
+    return { level: 'academy', track: 'advanced' };
+  }
 
-- Two variants: `role: 'guide' | 'user'`
-- Guide bubbles: left-aligned with avatar icon (a gradient circle with a sparkle/brain icon), glassmorphism background
-- User bubbles: right-aligned with a subtle blue/purple background
-- Guide messages use `TypewriterText`; user messages render instantly
-- Framer Motion entry animation: `initial={{ opacity: 0, y: 20 }}` -> `animate={{ opacity: 1, y: 0 }}`
+  // Foundational: Low-performing adult stays in Professional 
+  // but gets flagged for simplified content
+  if (age > 18 && correctCount < 2) {
+    return { level: 'professional', track: 'foundational' };
+  }
 
-### 4. `src/components/placement/DemographicsPhase.tsx`
+  return { level: defaultLevel, track: 'standard' };
+}
+```
 
-- Chat-style flow:
-  1. Guide says: "Hello! I'm your Guide. I'm here to find the perfect learning path for you."
-  2. Guide asks: "First, how old are you?"
-  3. User types age into a styled input (glassmorphism, rounded-2xl)
-  4. Guide responds based on age with age-appropriate language
-  5. Guide asks: "What do you want to achieve with English?"
-  6. User selects from 4 goal cards (Travel, Work/Business, School/Exams, Fun/Social) or types custom
-- On completion, calls `onComplete({ age, goal })` which determines the question set
+### 2. `src/hooks/usePlacementTest.ts`
 
-### 5. `src/components/placement/TestPhase.tsx`
+Update `completeTest` to:
+- Accept the raw `answers` array and the `correctIndices` array
+- Count correct answers internally
+- Call the new `evaluateStudentLevel(age, correctCount, totalQuestions)` instead of `determineStudentLevel(age)`
+- Save the resulting `track` alongside the level in the database update (as metadata or a new column if available, otherwise stored in an existing JSONB field)
 
-- Receives `age` to determine question category:
-  - `age < 12`: Image-based/simple vocabulary (Playground style with emojis, bright colors)
-  - `age 12-18`: Grammar + social scenarios (Academy style)
-  - `age > 18`: Business English + complex structures (Professional style)
-- Each question appears as a Guide chat message with typewriter effect
-- Answer options appear as interactive cards below the chat (glassmorphism, hover effects)
-- After selecting, the Guide gives brief feedback before the next question
-- Progress indicator: 5 small dots at the top showing completion
-- Uses `AnimatePresence` for question transitions
+```typescript
+const completeTest = async (
+  age: number, 
+  answers: number[], 
+  correctIndices: number[]
+): Promise<string> => {
+  const correctCount = answers.filter((a, i) => a === correctIndices[i]).length;
+  const score = Math.round((correctCount / correctIndices.length) * 100);
+  const { level, track } = evaluateStudentLevel(age, correctCount, correctIndices.length);
 
-### 6. `src/components/placement/ProcessingPhase.tsx`
+  await supabase
+    .from('student_profiles')
+    .update({
+      student_level: level,
+      onboarding_completed: true,
+      placement_test_score: score,
+      placement_test_completed_at: new Date().toISOString(),
+    })
+    .eq('user_id', user.id);
 
-- Triggered after the 5th question is answered
-- Full-screen centered animation:
-  - Animated brain/sparkle icon with pulse effect
-  - Text: "Generating your personalized learning path..." with typewriter effect
-  - Animated progress bar (0% to 100% over ~4 seconds using Framer Motion `animate`)
-  - Subtle particle/glow effects around the progress area
-- After the bar reaches 100%, triggers the database update and redirect
+  return getStudentDashboardRoute(level);
+};
+```
 
-### 7. `src/hooks/usePlacementTest.ts` (Business logic hook)
+### 3. `src/components/placement/AIPlacementTest.tsx`
 
-- `determineLevel(age)`: Uses the existing `determineStudentLevel` from `useStudentLevel.ts`
-- `calculateScore(answers, questions)`: Returns score percentage
-- `completeTest(userId, level, score)`: Updates `student_profiles` table:
-  - `student_level` = determined level ('playground' | 'academy' | 'professional')
-  - `onboarding_completed` = true
-  - `placement_test_score` = calculated score
-  - `placement_test_completed_at` = new Date().toISOString()
-- Returns the dashboard route using existing `getStudentDashboardRoute(level)`
+Update `handleProcessingComplete` to pass the raw answers and correct indices to the new `completeTest` signature instead of pre-calculating the score:
 
-## Routing Changes
+```typescript
+const handleProcessingComplete = async () => {
+  const level = determineStudentLevel(age);
+  const key = level as keyof typeof CORRECT_INDICES;
+  const route = await completeTest(age, answers, CORRECT_INDICES[key]);
+  navigate(route, { replace: true });
+};
+```
 
-### `src/App.tsx`
+## How the "Secret Sauce" Works
 
-- Add a new route: `/ai-placement-test`
-- Protected with `ImprovedProtectedRoute requiredRole="student"`
-- Lazy-loaded with `Suspense`
-
-## Question Bank (embedded in TestPhase.tsx)
-
-**Playground (age < 12)** - 5 image/emoji-based vocabulary questions:
-- "Which animal says 'Meow'?" with emoji options
-- Color identification, counting, basic greetings, simple verbs
-
-**Academy (age 12-18)** - 5 grammar/social scenario questions:
-- Correct tense usage, conditional sentences, phrasal verbs
-- Social scenario: "Your friend invites you to a party. How do you respond?"
-
-**Professional (age > 18)** - 5 business English questions:
-- Formal email language, idiomatic expressions, complex grammar
-- "Which phrase is most appropriate for a client presentation?"
-
-## Design Tokens
-
-- Background: `bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900`
-- Glass panels: `backdrop-blur-xl bg-white/10 border border-white/20 rounded-2xl`
-- Guide avatar: gradient circle `from-violet-500 to-fuchsia-500` with sparkle icon
-- Text: `text-white` for primary, `text-white/70` for secondary
-- Accent buttons: `bg-gradient-to-r from-violet-600 to-fuchsia-600`
-- Soft shadows: `shadow-[0_8px_32px_rgba(0,0,0,0.3)]`
-- Progress dots: `bg-white/30` inactive, `bg-violet-400` active, `bg-green-400` completed
-
-## Technical Notes
-
-- All questions are static/embedded (no AI API call needed for question generation)
-- Reuses `determineStudentLevel` and `getStudentDashboardRoute` from existing `useStudentLevel.ts`
-- Database update uses `supabase.from('student_profiles').update(...)` matching the existing pattern in `StudentOnboardingFlow.tsx`
-- Navigation uses `react-router-dom`'s `useNavigate` with `replace: true`
-- The typewriter speed adjusts slightly based on message length (shorter = slower per char for readability)
+```text
+Student takes test (5 questions)
+        |
+        v
+  Count correct answers
+        |
+        v
+  +-----+-----+---------------------+
+  | Age < 12  | Score > 4 (80%+)    | --> PROMOTE to Academy (Advanced Track)
+  | Age < 12  | Score <= 4          | --> Playground (Standard)
+  | Age 12-17 | Any score           | --> Academy (Standard)
+  | Age > 18  | Score < 2 (< 40%)   | --> Professional (Foundational Track)
+  | Age > 18  | Score >= 2          | --> Professional (Standard)
+  +-----+-----+---------------------+
+```
 
 ## File Summary
 
-| File | Action |
+| File | Change |
 |------|--------|
-| `src/components/placement/AIPlacementTest.tsx` | Create |
-| `src/components/placement/TypewriterText.tsx` | Create |
-| `src/components/placement/ChatBubble.tsx` | Create |
-| `src/components/placement/DemographicsPhase.tsx` | Create |
-| `src/components/placement/TestPhase.tsx` | Create |
-| `src/components/placement/ProcessingPhase.tsx` | Create |
-| `src/hooks/usePlacementTest.ts` | Create |
-| `src/App.tsx` | Add route for `/ai-placement-test` |
+| `src/hooks/useStudentLevel.ts` | Upgrade `evaluateStudentLevel` to weight age + performance; return level + track |
+| `src/hooks/usePlacementTest.ts` | Update `completeTest` to use new evaluation; pass raw answers instead of pre-calculated score |
+| `src/components/placement/AIPlacementTest.tsx` | Update `handleProcessingComplete` to pass answers + correct indices to new API |
 
