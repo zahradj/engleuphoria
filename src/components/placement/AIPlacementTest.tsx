@@ -38,8 +38,7 @@ const AIPlacementTest = () => {
     try {
       const level = determineStudentLevel(age);
       const key = level as keyof typeof CORRECT_INDICES;
-      const score = calculateScore(answers, CORRECT_INDICES[key]);
-      const route = await completeTest(age, score);
+      const route = await completeTest(age, answers, CORRECT_INDICES[key]);
       setPhase('complete');
       navigate(route, { replace: true });
     } catch (err) {

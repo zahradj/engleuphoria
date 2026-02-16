@@ -82,12 +82,26 @@ export function determineStudentLevel(age: number): StudentLevel {
  * Evaluates student level with score and age
  * Score can be used for CEFR placement, age determines UI track
  */
-export function evaluateStudentLevel(score: number, age: number): StudentLevel {
-  // Score reserved for future CEFR level determination
-  // Age determines the dashboard/UI track
-  if (age < 12) return 'playground';
-  if (age >= 12 && age < 18) return 'academy';
-  return 'professional';
+export function evaluateStudentLevel(
+  age: number,
+  correctCount: number,
+  totalQuestions: number
+): { level: StudentLevel; track: string } {
+  const defaultLevel = determineStudentLevel(age);
+  const scoreRatio = correctCount / totalQuestions;
+
+  // Promotion: High-performing kid advances to Academy
+  if (age < 12 && correctCount > 4 && scoreRatio > 0.8) {
+    return { level: 'academy', track: 'advanced' };
+  }
+
+  // Foundational: Low-performing adult stays in Professional
+  // but gets flagged for simplified content
+  if (age > 18 && correctCount < 2) {
+    return { level: 'professional', track: 'foundational' };
+  }
+
+  return { level: defaultLevel, track: 'standard' };
 }
 
 /**
