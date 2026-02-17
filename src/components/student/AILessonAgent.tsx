@@ -12,6 +12,7 @@ interface AILessonAgentProps {
   studentInterests?: string[];
   cefrLevel?: string;
   onLessonGenerated?: (lesson: GeneratedLesson) => void;
+  autoGenerate?: boolean;
 }
 
 const thinkingMessages = [
@@ -46,6 +47,7 @@ export const AILessonAgent: React.FC<AILessonAgentProps> = ({
   studentInterests = ['technology', 'travel'],
   cefrLevel = 'B1',
   onLessonGenerated,
+  autoGenerate = true,
 }) => {
   const { user } = useAuth();
   const [state, setState] = useState<'ready' | 'thinking' | 'complete'>('ready');
@@ -97,6 +99,31 @@ export const AILessonAgent: React.FC<AILessonAgentProps> = ({
     fetchStudentData();
   }, [user?.id, studentInterests]);
 
+  // Auto-generate on mount with localStorage caching
+  useEffect(() => {
+    if (!autoGenerate || !user?.id) return;
+
+    const today = new Date().toISOString().split('T')[0];
+    const cacheKey = `dailyLesson_${user.id}_${today}`;
+    const cached = localStorage.getItem(cacheKey);
+
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached) as GeneratedLesson;
+        setGeneratedLesson(parsed);
+        setState('complete');
+        return;
+      } catch {
+        localStorage.removeItem(cacheKey);
+      }
+    }
+
+    // Auto-trigger generation after student data is loaded
+    if (studentData.interests.length > 0 || studentData.learningStyle) {
+      generateLesson();
+    }
+  }, [autoGenerate, user?.id, studentData.interests, studentData.learningStyle]);
+
   useEffect(() => {
     if (state === 'thinking') {
       const interval = setInterval(() => {
@@ -129,6 +156,11 @@ export const AILessonAgent: React.FC<AILessonAgentProps> = ({
         setGeneratedLesson(data.lesson);
         onLessonGenerated?.(data.lesson);
         setState('complete');
+        // Cache lesson for today
+        if (user?.id) {
+          const today = new Date().toISOString().split('T')[0];
+          localStorage.setItem(`dailyLesson_${user.id}_${today}`, JSON.stringify(data.lesson));
+        }
       } else {
         throw new Error(data?.error || 'Failed to generate lesson');
       }
@@ -159,7 +191,13 @@ export const AILessonAgent: React.FC<AILessonAgentProps> = ({
       setState('complete');
     }
   };
+
   const handleRegenerate = () => {
+    // Clear today's cache
+    if (user?.id) {
+      const today = new Date().toISOString().split('T')[0];
+      localStorage.removeItem(`dailyLesson_${user.id}_${today}`);
+    }
     setGeneratedLesson(null);
     generateLesson();
   };

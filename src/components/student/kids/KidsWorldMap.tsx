@@ -138,6 +138,17 @@ export const KidsWorldMap: React.FC<KidsWorldMapProps> = ({
     );
   };
 
+  // Zone labels for the map
+  const zoneLabels = [
+    { name: 'Vocab Forest', emoji: '🌲', x: 15, y: 20 },
+    { name: 'Grammar Mountain', emoji: '⛰️', x: 75, y: 15 },
+    { name: 'Story River', emoji: '🌊', x: 20, y: 70 },
+    { name: 'Phonics Valley', emoji: '🔤', x: 70, y: 65 },
+  ];
+
+  // Assign zone names to lessons based on index
+  const zoneNames = ['Vocab Forest', 'Vocab Forest', 'Grammar Mountain', 'Grammar Mountain', 'Story River', 'Story River', 'Phonics Valley', 'Phonics Valley'];
+
   return (
     <div className="relative w-full h-screen overflow-hidden" style={{ fontFamily: "'Fredoka', cursive" }}>
       <ThemeBackground />
@@ -162,6 +173,29 @@ export const KidsWorldMap: React.FC<KidsWorldMapProps> = ({
         </div>
       </motion.div>
 
+      {/* Floating zone labels */}
+      {zoneLabels.map((zone, i) => (
+        <motion.div
+          key={zone.name}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.5 + i * 0.15 }}
+          style={{
+            position: 'absolute',
+            left: `${zone.x}%`,
+            top: `${zone.y}%`,
+            transform: 'translate(-50%, -50%)',
+            zIndex: 5,
+          }}
+          className="pointer-events-none"
+        >
+          <div className="bg-white/60 backdrop-blur-sm px-4 py-1.5 rounded-full shadow-md border border-white/40">
+            <span className="text-lg mr-1">{zone.emoji}</span>
+            <span className="text-sm font-bold text-purple-800">{zone.name}</span>
+          </div>
+        </motion.div>
+      ))}
+
       {/* Winding path */}
       <WindingPath 
         points={levelPositions} 
@@ -173,7 +207,7 @@ export const KidsWorldMap: React.FC<KidsWorldMapProps> = ({
       <MascotPip />
 
       {/* Level nodes */}
-      {lessons.map((level) => (
+      {lessons.map((level, index) => (
         <LevelNode
           key={level.id}
           id={level.id}
@@ -186,6 +220,7 @@ export const KidsWorldMap: React.FC<KidsWorldMapProps> = ({
           onClick={() => handleLevelClick(level.id)}
           theme={selectedTheme}
           score={level.score}
+          zoneName={zoneNames[index]}
         />
       ))}
 

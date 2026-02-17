@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useCurriculumLessons } from '@/hooks/useCurriculumLessons';
 import { CurriculumLesson } from '@/types/multiTenant';
 import { DailyStreakCard } from '../academy/DailyStreakCard';
+import { DailyChallengeCard } from '../academy/DailyChallengeCard';
 import { SocialLounge } from '../academy/SocialLounge';
 import { AILessonAgent } from '../AILessonAgent';
 import { WeeklyGoalWidget } from '../WeeklyGoalWidget';
@@ -93,7 +94,7 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
               className={`w-full flex items-center gap-3 px-4 py-3 transition-all ${
                 activeTab === tab.id 
                   ? isDarkMode 
-                    ? 'bg-purple-600/20 text-purple-400 border-r-2 border-purple-500' 
+                    ? 'bg-purple-600/20 text-purple-400 border-r-2 border-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]' 
                     : 'bg-purple-50 text-purple-600 border-r-2 border-purple-500'
                   : isDarkMode 
                     ? 'text-gray-400 hover:text-white hover:bg-white/5' 
@@ -215,7 +216,7 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2 }}
             >
-              <Card className={`overflow-hidden ${isDarkMode ? 'bg-gradient-to-br from-purple-900/50 to-cyan-900/50 border-purple-500/30' : 'bg-gradient-to-br from-purple-50 to-cyan-50'}`}>
+              <Card className={`overflow-hidden ${isDarkMode ? 'bg-gradient-to-br from-purple-900/50 to-cyan-900/50 border border-purple-500/50 shadow-[0_0_20px_rgba(168,85,247,0.3)]' : 'bg-gradient-to-br from-purple-50 to-cyan-50'}`}>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div className="space-y-2">
@@ -300,9 +301,9 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
                       }`}
                     >
                       <span className={`w-6 text-center font-bold ${
-                        user.rank === 1 ? 'text-yellow-500' : 
-                        user.rank === 2 ? 'text-gray-400' : 
-                        user.rank === 3 ? 'text-amber-600' : 'text-gray-500'
+                        user.rank === 1 ? 'text-yellow-500 drop-shadow-[0_0_6px_rgba(234,179,8,0.6)]' : 
+                        user.rank === 2 ? 'text-gray-400 drop-shadow-[0_0_4px_rgba(156,163,175,0.4)]' : 
+                        user.rank === 3 ? 'text-amber-600 drop-shadow-[0_0_4px_rgba(217,119,6,0.4)]' : 'text-gray-500'
                       }`}>
                         #{user.rank}
                       </span>

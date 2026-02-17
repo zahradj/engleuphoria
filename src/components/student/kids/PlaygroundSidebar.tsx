@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Home, BookOpen, PawPrint, Trophy, Settings } from 'lucide-react';
+import { GameButton } from './GameButton';
 
 interface PlaygroundSidebarProps {
   activeTab: string;
@@ -8,11 +9,11 @@ interface PlaygroundSidebarProps {
 }
 
 const sidebarItems = [
-  { id: 'home', icon: Home, label: 'Home', gradient: 'from-rose-300 to-pink-400' },
-  { id: 'learn', icon: BookOpen, label: 'Learn', gradient: 'from-sky-300 to-blue-400' },
-  { id: 'pet', icon: PawPrint, label: 'My Pet', gradient: 'from-amber-300 to-orange-400' },
-  { id: 'badges', icon: Trophy, label: 'Badges', gradient: 'from-yellow-300 to-amber-400' },
-  { id: 'settings', icon: Settings, label: 'Settings', gradient: 'from-purple-300 to-violet-400' },
+  { id: 'home', icon: Home, label: 'Home', variant: 'orange' as const },
+  { id: 'learn', icon: BookOpen, label: 'Learn', variant: 'green' as const },
+  { id: 'pet', icon: PawPrint, label: 'My Pet', variant: 'orange' as const },
+  { id: 'badges', icon: Trophy, label: 'Badges', variant: 'orange' as const },
+  { id: 'settings', icon: Settings, label: 'Settings', variant: 'purple' as const },
 ];
 
 export const PlaygroundSidebar: React.FC<PlaygroundSidebarProps> = ({
@@ -30,51 +31,33 @@ export const PlaygroundSidebar: React.FC<PlaygroundSidebarProps> = ({
         const isActive = activeTab === item.id;
         
         return (
-          <motion.button
+          <motion.div
             key={item.id}
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ delay: index * 0.1, type: 'spring', stiffness: 300 }}
-            whileHover={{ scale: 1.1, y: -2 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => onTabChange(item.id)}
-            className={`relative flex flex-col items-center justify-center p-3 rounded-2xl transition-all duration-300 ${
-              isActive
-                ? `bg-gradient-to-br ${item.gradient} shadow-lg`
-                : 'bg-gray-100/80 hover:bg-gray-200/80'
-            }`}
-            style={{
-              boxShadow: isActive
-                ? '0 8px 20px -4px rgba(0, 0, 0, 0.2), inset 0 -3px 8px rgba(0, 0, 0, 0.1)'
-                : '0 4px 12px -2px rgba(0, 0, 0, 0.1), inset 0 -2px 4px rgba(0, 0, 0, 0.05)',
-            }}
           >
-            {/* 3D effect layer */}
-            <div
-              className={`absolute inset-0 rounded-2xl ${
-                isActive ? 'bg-white/20' : 'bg-white/40'
+            <GameButton
+              onClick={() => onTabChange(item.id)}
+              variant={isActive ? item.variant : 'orange'}
+              size="sm"
+              className={`w-full flex flex-col items-center justify-center p-3 ${
+                !isActive ? 'opacity-60 !bg-gray-200 !shadow-none' : ''
               }`}
-              style={{
-                clipPath: 'polygon(0 0, 100% 0, 100% 50%, 0 60%)',
-              }}
-            />
-            
-            <Icon
-              className={`w-7 h-7 lg:w-8 lg:h-8 relative z-10 ${
-                isActive ? 'text-white drop-shadow-md' : 'text-gray-600'
-              }`}
-            />
-            
-            {/* Sparkle effect for active */}
+            >
+              <Icon className="w-7 h-7 lg:w-8 lg:h-8" />
+            </GameButton>
+
+            {/* Sparkle for active */}
             {isActive && (
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: [1, 1.2, 1] }}
                 transition={{ repeat: Infinity, duration: 2 }}
-                className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-300 rounded-full shadow-lg"
+                className="w-2 h-2 bg-yellow-300 rounded-full shadow-lg mx-auto mt-1"
               />
             )}
-          </motion.button>
+          </motion.div>
         );
       })}
     </motion.aside>
