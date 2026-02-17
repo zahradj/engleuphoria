@@ -14,6 +14,7 @@ interface LevelNodeProps {
   theme?: 'jungle' | 'space' | 'underwater';
   score?: number;
   isNew?: boolean;
+  zoneName?: string;
 }
 
 export const LevelNode: React.FC<LevelNodeProps> = ({
@@ -28,6 +29,7 @@ export const LevelNode: React.FC<LevelNodeProps> = ({
   theme = 'jungle',
   score,
   isNew = false,
+  zoneName,
 }) => {
   // Theme-specific colors
   const themeColors = {
@@ -194,6 +196,19 @@ export const LevelNode: React.FC<LevelNodeProps> = ({
       >
         {isLocked ? '???' : title}
       </motion.div>
+
+      {/* Zone name badge */}
+      {zoneName && !isLocked && (
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: number * 0.08 + 0.4, type: 'spring' }}
+          className="mt-1 px-3 py-0.5 rounded-full bg-white/80 backdrop-blur text-xs font-bold text-purple-700 shadow-sm whitespace-nowrap"
+          style={{ fontFamily: "'Fredoka', cursive" }}
+        >
+          {zoneName}
+        </motion.div>
+      )}
     </motion.div>
   );
 };

@@ -83,7 +83,7 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
               <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
                 isDarkMode 
                   ? 'bg-gradient-to-br from-emerald-500 to-teal-500' 
-                  : 'bg-gradient-to-br from-blue-600 to-indigo-600'
+                  : 'bg-gradient-to-br from-emerald-600 to-teal-600'
               }`}>
                 <BookOpen className="w-4 h-4 text-white" />
               </div>
@@ -100,7 +100,7 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
                     activeNav === item.id 
                       ? isDarkMode 
                         ? 'bg-emerald-500/20 text-emerald-400' 
-                        : 'bg-blue-50 text-blue-600' 
+                        : 'bg-emerald-50 text-emerald-600' 
                       : isDarkMode
                         ? 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'
                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
@@ -127,7 +127,7 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
                 <p className={`text-sm ${mutedClass}`}>{totalXp.toLocaleString()} XP</p>
               </div>
               <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${
-                isDarkMode ? 'bg-emerald-900/30' : 'bg-gradient-to-br from-blue-100 to-indigo-100'
+                isDarkMode ? 'bg-emerald-900/30' : 'bg-gradient-to-br from-emerald-100 to-teal-100'
               }`}>
                 👩‍💼
               </div>
@@ -138,10 +138,42 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 md:px-8 py-8">
+        {/* Next Career Milestone Banner */}
+        <motion.div
+          initial={{ y: -10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className={`mb-6 p-4 rounded-xl flex items-center justify-between ${
+            isDarkMode
+              ? 'bg-gray-800 border border-emerald-500/30'
+              : 'bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+              isDarkMode ? 'bg-emerald-900/50' : 'bg-emerald-100'
+            }`}>
+              <TrendingUp className={`w-5 h-5 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`} />
+            </div>
+            <div>
+              <p className={`text-xs font-medium ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>Next Career Milestone</p>
+              <p className={`font-semibold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Master Business Presentations</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="text-right">
+              <p className={`text-sm font-bold ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`}>68%</p>
+            </div>
+            <div className={`w-24 h-2 rounded-full overflow-hidden ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
+              <div className="h-full w-[68%] bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full" />
+            </div>
+          </div>
+        </motion.div>
+
         {/* Welcome Section */}
         <motion.div
           initial={{ y: -10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.05 }}
           className="mb-8"
         >
           <h1 className={`text-2xl md:text-3xl font-semibold ${textClass} mb-1`}>
@@ -159,14 +191,14 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
           transition={{ delay: 0.1 }}
           className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"
         >
-          <StatCard icon={<CheckCircle className={`w-5 h-5 ${isDarkMode ? 'text-emerald-400' : 'text-green-600'}`} />} label="Completed" value={stats.coursesCompleted} suffix="courses" isDarkMode={isDarkMode} />
-          <StatCard icon={<BookOpen className={`w-5 h-5 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`} />} label="In Progress" value={stats.coursesInProgress} suffix="courses" isDarkMode={isDarkMode} />
-          <StatCard icon={<Clock className={`w-5 h-5 ${isDarkMode ? 'text-indigo-400' : 'text-indigo-600'}`} />} label="Total Hours" value={stats.hoursLearned} suffix="hrs" isDarkMode={isDarkMode} />
+          <StatCard icon={<CheckCircle className={`w-5 h-5 ${isDarkMode ? 'text-emerald-400' : 'text-emerald-600'}`} />} label="Completed" value={stats.coursesCompleted} suffix="courses" isDarkMode={isDarkMode} />
+          <StatCard icon={<BookOpen className={`w-5 h-5 ${isDarkMode ? 'text-emerald-300' : 'text-emerald-500'}`} />} label="In Progress" value={stats.coursesInProgress} suffix="courses" isDarkMode={isDarkMode} />
+          <StatCard icon={<Clock className={`w-5 h-5 ${isDarkMode ? 'text-teal-400' : 'text-teal-600'}`} />} label="Total Hours" value={stats.hoursLearned} suffix="hrs" isDarkMode={isDarkMode} />
           <StatCard icon={<TrendingUp className={`w-5 h-5 ${isDarkMode ? 'text-orange-400' : 'text-orange-600'}`} />} label="Streak" value={stats.streak} suffix="days" isDarkMode={isDarkMode} />
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Skills Radar & AI Agent */}
+          {/* Left Column - Skills Radar, Milestones & AI Agent */}
           <div className="lg:col-span-2 space-y-6">
             {/* Skills Radar Chart */}
             <motion.div
@@ -175,6 +207,18 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
               transition={{ delay: 0.2 }}
             >
               <SkillsRadarChart isDarkMode={isDarkMode} />
+            </motion.div>
+
+            {/* Business Milestones - promoted to main area */}
+            <motion.div
+              initial={{ y: 10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.22 }}
+            >
+              <BusinessMilestonesCard
+                timeSavedHours={4.5}
+                isDarkMode={isDarkMode}
+              />
             </motion.div>
 
             {/* AI Lesson Agent */}
@@ -191,7 +235,7 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
             </motion.div>
           </div>
 
-          {/* Right Column - Milestones & Resources */}
+          {/* Right Column - Resources & Schedule */}
           <motion.div
             initial={{ x: 10, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
@@ -200,12 +244,6 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
           >
             {/* Weekly Goal */}
             <WeeklyGoalWidget studentLevel="professional" isDarkMode={isDarkMode} />
-
-            {/* Business Milestones */}
-            <BusinessMilestonesCard
-              timeSavedHours={4.5}
-              isDarkMode={isDarkMode}
-            />
 
             {/* Resources */}
             <Card className={cardClass}>
