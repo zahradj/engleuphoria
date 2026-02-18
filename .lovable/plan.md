@@ -1,122 +1,169 @@
 
 
-# Phase 6: "Three Worlds" Dashboard Polish + Just-in-Time Content
+# Phase 7: "Perfect Classroom" -- AI Live-Syllabus, Shared Notes, Feedback Loop, and UI Polish
 
 ## Summary
 
-This upgrade enhances the visual identity of each dashboard and adds a "Just-in-Time" Daily Quest that automatically loads based on the student's last mistake -- no manual button click required.
+Four professional improvements to both the Teacher and Student classroom views: an AI-powered "Today's Mission" sidebar, a real-time shared notes area with AI conversation starters, a teacher-only lesson wrap-up feedback form, and UI polish (live indicator + focus mode).
 
 ---
 
-## Part 1: Playground (Kids) Enhancements
+## Database Changes (Migration)
 
-### 1A. Themed Zone Names on Path Nodes
+Add 2 new columns to the existing `classroom_sessions` table to support real-time shared notes syncing:
 
-**File: `src/components/student/kids/LevelNode.tsx`** (Modify)
+```sql
+ALTER TABLE public.classroom_sessions
+  ADD COLUMN IF NOT EXISTS shared_notes text DEFAULT '',
+  ADD COLUMN IF NOT EXISTS session_context jsonb DEFAULT '{}';
+```
 
-- Add a `zoneName` prop (optional) that displays themed labels like "Vocab Forest", "Grammar Mountain", "Story River"
-- When present, render a small badge below the title with a tree/mountain/wave emoji and the zone name
-- Use the existing Fredoka font and `rounded-full` pill styling
+- `shared_notes`: Real-time synced text area content (teacher writes, student sees via Realtime subscription -- already in place for other fields)
+- `session_context`: Stores the "Context Handshake" data loaded when teacher enters (student level, last mistakes, interests) so both views can read it
 
-### 1B. 3D Game-Style Buttons
-
-**New File: `src/components/student/kids/GameButton.tsx`** (Create)
-
-- A reusable 3D-style button component with:
-  - `box-shadow` for depth: `0 6px 0 #c2410c` (for orange), shifts on press to `0 2px 0`
-  - `transform: translateY(-2px)` on hover, `translateY(2px)` on active
-  - `rounded-full` corners, vibrant `#FF9F1C` / `#FFBF00` gradients
-  - Sparkle icon optional
-- Replace the existing `GiantGoButton` internal button styling with `GameButton`
-- Replace standard buttons in `PlaygroundSidebar.tsx` with `GameButton`
-
-### 1C. Zone Map Labels
-
-**File: `src/components/student/kids/KidsWorldMap.tsx`** (Modify)
-
-- Add floating zone labels on the map (e.g., "The Vocab Forest" at top-left, "Grammar Mountain" center-right)
-- Use `position: absolute` with `motion.div` fade-in, styled as translucent pill badges with emojis
-- Zone data is a static array of `{ name, emoji, position }` rendered over the map
+No new tables needed. The existing `lesson_feedback_submissions` table already handles wrap-up data (fields: `feedback_content`, `student_performance_rating`, `lesson_objectives_met`, `homework_assigned`).
 
 ---
 
-## Part 2: Academy (Teens) Enhancements
+## Part 1: AI Live-Syllabus Sidebar ("Today's Mission")
 
-### 2A. Daily Challenge Card (Social Media Style)
+### New File: `src/components/classroom/TodaysMissionSidebar.tsx`
 
-**New File: `src/components/student/academy/DailyChallengeCard.tsx`** (Create)
+A collapsible right-side panel visible to both teacher and student that displays:
 
-- Styled to look like a social post:
-  - Avatar + "AI Coach" username at top
-  - Challenge text as the "post body"
-  - Reaction bar with thumbs-up, fire, and lightning emoji buttons
-  - "Accept Challenge" neon-accented button
-  - Timestamp showing "Posted 2h ago"
-- Challenge content is derived from the student's last mistake (fetched from `student_profiles.mistake_history`):
-  - If mistakes exist: "Fix your weak spot! Use **[word]** correctly in 3 sentences"
-  - If no mistakes: "Daily vocab boost: learn 5 new words about [interest]"
-- Uses the `useMistakeTracker` hook's `getWeakAreas()` method
+- **Target Vocabulary**: 4-6 words pulled from the current lesson's objectives (`lessons.lesson_objectives`)
+- **Main Grammar Point**: Extracted from the lesson title or objectives
+- **Practical Goal**: A human-readable goal (e.g., "Order a coffee in English")
+- Each item has a checkbox -- teacher can tick them off during the lesson (synced via `classroom_sessions.session_context`)
+- Styled with a dark glass panel (`bg-gray-900/95 backdrop-blur`) to match the existing classroom aesthetic
+- Collapsible via a chevron toggle (same pattern as `SlideNavigator`)
 
-### 2B. Neon Accent Polish
-
-**File: `src/components/student/dashboards/AcademyDashboard.tsx`** (Modify)
-
-- Add neon glow effects to active sidebar items: `shadow-[0_0_10px_rgba(168,85,247,0.5)]`
-- Add neon border to the "Continue Learning" card: `border border-purple-500/50 shadow-[0_0_20px_rgba(168,85,247,0.3)]`
-- Integrate the new `DailyChallengeCard` above the Schedule section
-- Update leaderboard rank badges (#1, #2, #3) with neon glow on the podium positions
+Data flow: When the teacher enters the classroom, a query fetches the `lesson_objectives` from the `lessons` table using the `room_id`. If no structured objectives exist, fallback to the lesson title.
 
 ---
 
-## Part 3: Professional (Adults) Enhancements
+## Part 2: Real-Time Shared Notes + AI Suggest
 
-### 3A. Career Milestone Prominence
+### New File: `src/components/classroom/SharedNotesPanel.tsx`
 
-**File: `src/components/student/dashboards/HubDashboard.tsx`** (Modify)
+- A textarea area embedded within the "Today's Mission" sidebar (below the checklist)
+- Teacher types notes; content saved to `classroom_sessions.shared_notes` on debounced input (500ms)
+- Student sees notes updating in real-time via the existing Realtime subscription on `classroom_sessions`
+- Students can also type (both parties share the same text field)
 
-- Move `BusinessMilestonesCard` from the right sidebar to the main content area (left column), below Skills Radar
-- Add a "Next Career Milestone" banner at the top of the dashboard (above stats):
-  - Shows the next incomplete milestone title with a progress percentage
-  - Emerald gradient accent: `bg-gradient-to-r from-emerald-600 to-teal-600`
-  - Charcoal card: `bg-gray-900` with `border-emerald-500/30`
-- Ensure the `Emerald & Charcoal` palette is consistently applied (currently uses blue/indigo in some places)
+### "AI Suggest" Button
 
-### 3B. Color Palette Alignment
+- A button labeled "AI Suggest" with a sparkle icon
+- When clicked, reads the student's profile (`student_level`, `interests`, `mistake_history`) from `session_context`
+- Generates 3 personalized conversation starters locally (no edge function needed -- template-based):
+  - If student interested in "Minecraft": "Tell me about your favorite Minecraft world"
+  - If student struggled with Present Perfect: "Have you ever visited another country?"
+  - Generic fallback: "What did you do last weekend?"
+- Results are appended to the shared notes area
 
-**File: `src/components/student/dashboards/HubDashboard.tsx`** (Modify)
+### Service Updates
 
-- Replace `from-blue-600 to-indigo-600` with `from-emerald-600 to-teal-600` for the logo icon
-- Replace `bg-blue-50 text-blue-600` active nav with `bg-emerald-50 text-emerald-600`
-- Replace stat card accent colors to use emerald tones consistently
+**File: `src/services/classroomSyncService.ts`** (Modify)
+
+- Add `sharedNotes` and `sessionContext` to `ClassroomSession` interface
+- Add `sharedNotes` and `sessionContext` to `SessionUpdate` interface
+- Add mapping in `updateSession()` for `shared_notes` and `session_context`
+- Add mapping in `mapToSession()` for both fields
+
+**File: `src/hooks/useClassroomSync.ts`** (Modify)
+
+- Expose `sharedNotes` and `sessionContext` from session state
+- Add `updateSharedNotes(notes: string)` action
+- Add `updateSessionContext(context: object)` action
+- Return both in the hook's return object
 
 ---
 
-## Part 4: Just-in-Time Daily Quest (Auto-Loading)
+## Part 3: Context Handshake (Teacher Enters Room)
 
-### What Changes
+### New File: `src/hooks/useStudentContext.ts`
 
-Currently the AI Lesson Agent requires a manual "Generate Today's Lesson" button click. The Just-in-Time system will:
-1. Automatically trigger lesson generation when the dashboard mounts
-2. Prioritize the student's last mistake as the quest topic
-3. Cache the generated lesson in `localStorage` for the day (avoid re-generating on navigation)
+- A hook that takes a `studentId` and fetches:
+  - `student_profiles`: `student_level`, `mistake_history`, `interests`, `cefr_level`
+  - `users`: `full_name`
+- Returns a formatted context object:
+  ```typescript
+  {
+    studentName: "Emma",
+    level: "professional",
+    cefrLevel: "B1",
+    lastMistake: "Present Perfect tense",
+    interests: ["Technology", "Travel"],
+    summary: "Reminder: This student is in the Professional track and struggled with 'Present Perfect' yesterday."
+  }
+  ```
+- This context is saved to `classroom_sessions.session_context` when the teacher enters, so both views can read it
+- Teacher sees a small notification banner at the top of the classroom: "Emma -- Professional Track -- Last struggle: Present Perfect"
 
-### File: `src/components/student/AILessonAgent.tsx` (Modify)
+### Integration in Teacher Classroom
 
-- Add an `autoGenerate` prop (default: `true`)
-- On mount, check `localStorage` for a cached lesson from today (`dailyLesson_{userId}_{date}`)
-- If cached: load it directly into `generatedLesson` state (skip "thinking" animation)
-- If not cached: auto-trigger `generateLesson()` on mount
-- After generation, cache the result in `localStorage`
-- Keep the "Regenerate" button for manual override (clears cache and re-generates)
-- The existing `mistakeHistory` data (already passed to the edge function) ensures the AI factors in the student's last mistake when creating the quest
+**File: `src/components/teacher/classroom/TeacherClassroom.tsx`** (Modify)
 
-### File: `src/hooks/useDailyQuest.ts` (Create)
+- Call `useStudentContext(studentId)` on mount
+- Save the context to the session via `updateSessionContext()`
+- Pass the context to `TodaysMissionSidebar`
 
-- A lightweight hook that:
-  - Reads `mistake_history` from `student_profiles`
-  - Extracts the most recent mistake's `error_type` and `word`
-  - Returns `{ lastMistake, weakAreas, questContext }` for display in the Daily Challenge card
-  - `questContext` is a human-readable string: "You struggled with **'accomplish'** (spelling). Let's practice!"
+---
+
+## Part 4: Instant Lesson Feedback (Teacher-Only Wrap-Up)
+
+### New File: `src/components/classroom/LessonWrapUpDialog.tsx`
+
+- A dialog triggered by a "Lesson Wrap-Up" button (visible only to teachers)
+- Contains:
+  - **Words Mastered**: Multi-select checkboxes from the Target Vocabulary list
+  - **Areas for Improvement**: Dropdown options (Grammar, Pronunciation, Vocabulary, Fluency, Listening)
+  - **Quick Notes**: Short text area
+  - **Performance Rating**: 1-5 stars
+- On submit:
+  1. Inserts into `lesson_feedback_submissions` (already exists with all needed columns)
+  2. Updates `student_profiles.mistake_history` with any new areas for improvement
+  3. Shows a success toast
+
+### Integration
+
+- Add "Lesson Wrap-Up" button to `ClassroomTopBar.tsx` (teacher view only)
+- Button styled with a clipboard icon, positioned near the "End Class" button
+
+---
+
+## Part 5: UI Polish
+
+### 5A. Live Indicator
+
+**File: `src/components/teacher/classroom/ClassroomTopBar.tsx`** (Modify)
+**File: `src/components/student/classroom/StudentClassroomHeader.tsx`** (Modify)
+
+- Add a pulsing red dot next to the connection badge when `isConnected` is true
+- CSS: `animate-pulse` with a `bg-red-500 rounded-full h-2.5 w-2.5` element
+- Label: "LIVE" in small red text next to the dot
+
+### 5B. Focus Mode
+
+**File: `src/components/student/classroom/StudentClassroom.tsx`** (Modify)
+**File: `src/components/teacher/classroom/TeacherClassroom.tsx`** (Modify)
+
+- Both classrooms already use `h-screen` and don't render the global nav
+- Add a keyboard shortcut `F11` or a toggle button to enter/exit browser-like "Focus Mode"
+- Focus Mode: hides the header bar (just the top bar shrinks to minimal -- lesson title + live dot + leave button only)
+- Toggle via a small eye icon in the header
+
+---
+
+## Notes Persistence for Student Dashboard
+
+### File: `src/components/student/dashboards/PlaygroundDashboard.tsx` (Modify)
+### File: `src/components/student/dashboards/AcademyDashboard.tsx` (Modify)
+### File: `src/components/student/dashboards/HubDashboard.tsx` (Modify)
+
+- Add a "Last Lesson Notes" card that queries the most recent `classroom_sessions.shared_notes` for the student
+- Displays the saved notes in a read-only card below the Daily Quest section
+- Only shows if notes exist from the last session
 
 ---
 
@@ -124,13 +171,18 @@ Currently the AI Lesson Agent requires a manual "Generate Today's Lesson" button
 
 | File | Action | Description |
 |------|--------|-------------|
-| `src/components/student/kids/GameButton.tsx` | Create | Reusable 3D game-style button |
-| `src/components/student/kids/GiantGoButton.tsx` | Modify | Use GameButton internally |
-| `src/components/student/kids/LevelNode.tsx` | Modify | Add optional zoneName prop |
-| `src/components/student/kids/KidsWorldMap.tsx` | Modify | Add floating zone labels |
-| `src/components/student/academy/DailyChallengeCard.tsx` | Create | Social-media-styled daily challenge card |
-| `src/components/student/dashboards/AcademyDashboard.tsx` | Modify | Add DailyChallengeCard, neon accents |
-| `src/components/student/dashboards/HubDashboard.tsx` | Modify | Promote milestones, fix emerald palette |
-| `src/components/student/AILessonAgent.tsx` | Modify | Add autoGenerate + localStorage caching |
-| `src/hooks/useDailyQuest.ts` | Create | Mistake-driven quest context hook |
-| `src/components/student/dashboards/PlaygroundDashboard.tsx` | Modify | Use GameButton in sidebar area |
+| **Migration** | SQL | Add `shared_notes` and `session_context` columns to `classroom_sessions` |
+| `src/components/classroom/TodaysMissionSidebar.tsx` | Create | Collapsible mission sidebar with vocabulary, grammar, and goal checkboxes |
+| `src/components/classroom/SharedNotesPanel.tsx` | Create | Real-time shared notes textarea with AI Suggest button |
+| `src/components/classroom/LessonWrapUpDialog.tsx` | Create | Teacher-only wrap-up form (words mastered, areas for improvement) |
+| `src/hooks/useStudentContext.ts` | Create | Fetches student profile context for the "Context Handshake" |
+| `src/services/classroomSyncService.ts` | Modify | Add `sharedNotes` and `sessionContext` to sync interfaces and mappings |
+| `src/hooks/useClassroomSync.ts` | Modify | Expose shared notes and session context; add update actions |
+| `src/components/teacher/classroom/TeacherClassroom.tsx` | Modify | Integrate mission sidebar, context handshake, wrap-up button, focus mode |
+| `src/components/teacher/classroom/ClassroomTopBar.tsx` | Modify | Add live indicator dot, wrap-up button, focus mode toggle |
+| `src/components/student/classroom/StudentClassroom.tsx` | Modify | Add mission sidebar (read-only checkboxes), focus mode |
+| `src/components/student/classroom/StudentClassroomHeader.tsx` | Modify | Add live indicator dot |
+| `src/components/student/dashboards/PlaygroundDashboard.tsx` | Modify | Add "Last Lesson Notes" card |
+| `src/components/student/dashboards/AcademyDashboard.tsx` | Modify | Add "Last Lesson Notes" card |
+| `src/components/student/dashboards/HubDashboard.tsx` | Modify | Add "Last Lesson Notes" card |
+
