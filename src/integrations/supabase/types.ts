@@ -1387,7 +1387,9 @@ export type Database = {
           quiz_locked: boolean | null
           quiz_reveal_answer: boolean | null
           room_id: string
+          session_context: Json | null
           session_status: string
+          shared_notes: string | null
           started_at: string | null
           student_can_draw: boolean | null
           teacher_id: string
@@ -1410,7 +1412,9 @@ export type Database = {
           quiz_locked?: boolean | null
           quiz_reveal_answer?: boolean | null
           room_id: string
+          session_context?: Json | null
           session_status?: string
+          shared_notes?: string | null
           started_at?: string | null
           student_can_draw?: boolean | null
           teacher_id: string
@@ -1433,7 +1437,9 @@ export type Database = {
           quiz_locked?: boolean | null
           quiz_reveal_answer?: boolean | null
           room_id?: string
+          session_context?: Json | null
           session_status?: string
+          shared_notes?: string | null
           started_at?: string | null
           student_can_draw?: boolean | null
           teacher_id?: string

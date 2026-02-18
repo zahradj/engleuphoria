@@ -26,6 +26,9 @@ export interface ClassroomSession {
   timerValue: number | null;
   timerRunning: boolean;
   diceValue: number | null;
+  // Phase 7: Shared notes & context
+  sharedNotes: string;
+  sessionContext: Record<string, any>;
 }
 
 export interface SessionUpdate {
@@ -50,6 +53,9 @@ export interface SessionUpdate {
   timerValue?: number | null;
   timerRunning?: boolean;
   diceValue?: number | null;
+  // Phase 7: Shared notes & context
+  sharedNotes?: string;
+  sessionContext?: Record<string, any>;
 }
 
 class ClassroomSyncService {
@@ -201,6 +207,12 @@ class ClassroomSyncService {
       if (updates.diceValue !== undefined) {
         updateData.dice_value = updates.diceValue;
       }
+      if (updates.sharedNotes !== undefined) {
+        updateData.shared_notes = updates.sharedNotes;
+      }
+      if (updates.sessionContext !== undefined) {
+        updateData.session_context = updates.sessionContext;
+      }
 
       const { error } = await supabase
         .from('classroom_sessions')
@@ -299,7 +311,9 @@ class ClassroomSyncService {
       isMilestone: data.is_milestone || false,
       timerValue: data.timer_value || null,
       timerRunning: data.timer_running || false,
-      diceValue: data.dice_value || null
+      diceValue: data.dice_value || null,
+      sharedNotes: data.shared_notes || '',
+      sessionContext: data.session_context || {}
     };
   }
 
