@@ -5,6 +5,7 @@ import { useClassroomSync } from "@/hooks/useClassroomSync";
 import { useAuth } from "@/contexts/AuthContext";
 import { useScreenShare } from "@/hooks/useScreenShare";
 import { useLocalMedia } from "@/hooks/useLocalMedia";
+import { useStudentContext } from "@/hooks/useStudentContext";
 import { ClassroomTopBar } from "./ClassroomTopBar";
 import { CommunicationZone } from "./CommunicationZone";
 import { CenterStage } from "./CenterStage";
@@ -13,6 +14,8 @@ import { DiceRoller } from "./DiceRoller";
 import { StarCelebration } from "./StarCelebration";
 import { EmbedLinkDialog } from "./EmbedLinkDialog";
 import { EmbeddedContentViewer } from "./EmbeddedContentViewer";
+import { TodaysMissionSidebar } from "@/components/classroom/TodaysMissionSidebar";
+import { LessonWrapUpDialog } from "@/components/classroom/LessonWrapUpDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,14 +23,18 @@ import { Input } from "@/components/ui/input";
 interface TeacherClassroomProps {
   classId?: string;
   studentName?: string;
+  studentId?: string;
   lessonTitle?: string;
+  lessonId?: string;
   teacherName?: string;
 }
 
 export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   classId = "101",
   studentName = "Emma",
+  studentId,
   lessonTitle = "Magic Forest: Lesson 1",
+  lessonId,
   teacherName = "Teacher"
 }) => {
   const navigate = useNavigate();
@@ -43,6 +50,8 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   const [timerSeconds, setTimerSeconds] = useState(60);
   const [timerRunning, setTimerRunning] = useState(false);
   const [timerValue, setTimerValue] = useState(60);
+  const [wrapUpOpen, setWrapUpOpen] = useState(false);
+  const [isFocusMode, setIsFocusMode] = useState(false);
   
   // Star celebration state
   const [studentStars, setStudentStars] = useState(0);
@@ -52,6 +61,9 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   // Embed link state
   const [embedDialogOpen, setEmbedDialogOpen] = useState(false);
   const [embeddedUrl, setEmbeddedUrl] = useState<string | null>(null);
+
+  // Context Handshake
+  const { context: studentContext } = useStudentContext(studentId);
 
   // Generate unique room name based on class ID
   const roomName = `MySchool_Class_${classId}`;
@@ -73,13 +85,17 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     studentCanDraw,
     isConnected,
     strokes,
+    sharedNotes,
+    sessionContext,
     updateSlide,
     updateTool,
     setStudentCanDraw,
     endSession,
     addStroke,
     clearCanvas,
-    updateSharedDisplay
+    updateSharedDisplay,
+    updateSharedNotes,
+    updateSessionContext
   } = useClassroomSync({
     roomId: roomName,
     userId: user?.id || 'teacher-default',
@@ -91,7 +107,21 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     }
   });
 
-  // Screen share hook (must be after useClassroomSync for updateSharedDisplay access)
+  // Save student context to session when available
+  useEffect(() => {
+    if (studentContext && isConnected) {
+      updateSessionContext({
+        studentName: studentContext.studentName,
+        level: studentContext.level,
+        cefrLevel: studentContext.cefrLevel,
+        lastMistake: studentContext.lastMistake,
+        interests: studentContext.interests,
+        summary: studentContext.summary
+      });
+    }
+  }, [studentContext, isConnected]);
+
+  // Screen share hook
   const { 
     isSharing: isScreenSharing, 
     stream: screenShareStream,
@@ -106,7 +136,6 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
       });
     },
     onStreamEnd: () => {
-      // Note: updateSharedDisplay called in handleStopScreenShare instead
       toast({
         title: "Screen Sharing Stopped",
         description: "Screen sharing has ended",
@@ -120,6 +149,18 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
       });
     }
   });
+
+  // Focus mode keyboard shortcut
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'F11') {
+        e.preventDefault();
+        setIsFocusMode(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleEndClass = useCallback(async () => {
     await endSession();
@@ -136,65 +177,38 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     return () => { media.leave(); };
   }, []);
 
-  const toggleMute = useCallback(() => {
-    media.toggleMicrophone();
-  }, [media]);
-
-  const toggleCamera = useCallback(() => {
-    media.toggleCamera();
-  }, [media]);
+  const toggleMute = useCallback(() => { media.toggleMicrophone(); }, [media]);
+  const toggleCamera = useCallback(() => { media.toggleCamera(); }, [media]);
 
   const handleGiveStar = useCallback(async () => {
     const newStarCount = studentStars + 1;
     setStudentStars(newStarCount);
-    
-    // Check if it's a milestone (every 5 stars)
     const milestone = newStarCount % 5 === 0;
     setIsMilestone(milestone);
     setShowStarCelebration(true);
-
-    // Sync to students
-    await updateSharedDisplay({
-      starCount: newStarCount,
-      showStarCelebration: true,
-      isMilestone: milestone
-    });
-
-    // Auto-hide celebration after animation
+    await updateSharedDisplay({ starCount: newStarCount, showStarCelebration: true, isMilestone: milestone });
     setTimeout(async () => {
       await updateSharedDisplay({ showStarCelebration: false });
     }, milestone ? 6500 : 3500);
   }, [studentStars, updateSharedDisplay]);
 
-  const handleOpenTimer = useCallback(() => {
-    setTimerDialogOpen(true);
-  }, []);
-
-  const handleRollDice = useCallback(() => {
-    setDiceDialogOpen(true);
-  }, []);
-
+  const handleOpenTimer = useCallback(() => { setTimerDialogOpen(true); }, []);
+  const handleRollDice = useCallback(() => { setDiceDialogOpen(true); }, []);
   const handleSendSticker = useCallback(() => {
-    toast({
-      title: "😊 Sticker Sent!",
-      description: "Sticker sent to the student's screen",
-    });
+    toast({ title: "😊 Sticker Sent!", description: "Sticker sent to the student's screen" });
   }, [toast]);
 
   const handleToggleStudentDrawing = useCallback(async () => {
     await setStudentCanDraw(!studentCanDraw);
     toast({
       title: studentCanDraw ? "Drawing Disabled" : "Drawing Enabled",
-      description: studentCanDraw 
-        ? "Students can no longer draw on the canvas" 
-        : "Students can now draw on the shared canvas!",
+      description: studentCanDraw ? "Students can no longer draw on the canvas" : "Students can now draw on the shared canvas!",
       className: studentCanDraw ? "" : "bg-green-900 border-green-700",
     });
   }, [studentCanDraw, setStudentCanDraw, toast]);
 
   const handleShareScreen = useCallback(async () => {
     await startScreenShare('screen');
-    // Sync to students
     await updateSharedDisplay({ isScreenSharing: true });
   }, [startScreenShare, updateSharedDisplay]);
 
@@ -203,19 +217,12 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     await updateSharedDisplay({ isScreenSharing: false });
   }, [stopScreenShare, updateSharedDisplay]);
 
-  const handleEmbedLink = useCallback(() => {
-    setEmbedDialogOpen(true);
-  }, []);
+  const handleEmbedLink = useCallback(() => { setEmbedDialogOpen(true); }, []);
 
   const handleEmbed = useCallback(async (url: string) => {
     setEmbeddedUrl(url);
-    // Sync to students
     await updateSharedDisplay({ embeddedUrl: url });
-    toast({
-      title: "Content Embedded",
-      description: "External content is now visible to students",
-      className: "bg-teal-900 border-teal-700",
-    });
+    toast({ title: "Content Embedded", description: "External content is now visible to students", className: "bg-teal-900 border-teal-700" });
   }, [toast, updateSharedDisplay]);
 
   const handleCloseEmbed = useCallback(async () => {
@@ -223,19 +230,9 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     await updateSharedDisplay({ embeddedUrl: null });
   }, [updateSharedDisplay]);
 
-  const handlePrevSlide = useCallback(async () => {
-    const newIndex = Math.max(0, currentSlide - 1);
-    await updateSlide(newIndex);
-  }, [currentSlide, updateSlide]);
-
-  const handleNextSlide = useCallback(async () => {
-    const newIndex = Math.min(slides.length - 1, currentSlide + 1);
-    await updateSlide(newIndex);
-  }, [currentSlide, slides.length, updateSlide]);
-
-  const handleSlideSelect = useCallback(async (index: number) => {
-    await updateSlide(index);
-  }, [updateSlide]);
+  const handlePrevSlide = useCallback(async () => { await updateSlide(Math.max(0, currentSlide - 1)); }, [currentSlide, updateSlide]);
+  const handleNextSlide = useCallback(async () => { await updateSlide(Math.min(slides.length - 1, currentSlide + 1)); }, [currentSlide, slides.length, updateSlide]);
+  const handleSlideSelect = useCallback(async (index: number) => { await updateSlide(index); }, [updateSlide]);
 
   const handleToolChange = useCallback(async (tool: string) => {
     setActiveTool(tool);
@@ -244,10 +241,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
 
   const handleClearCanvas = useCallback(async () => {
     await clearCanvas();
-    toast({
-      title: "Canvas Cleared",
-      description: "The whiteboard has been cleared.",
-    });
+    toast({ title: "Canvas Cleared", description: "The whiteboard has been cleared." });
   }, [clearCanvas, toast]);
 
   // Timer logic
@@ -258,10 +252,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
         setTimerValue(prev => {
           if (prev <= 1) {
             setTimerRunning(false);
-            toast({
-              title: "⏰ Time's Up!",
-              description: "The timer has finished.",
-            });
+            toast({ title: "⏰ Time's Up!", description: "The timer has finished." });
             return 0;
           }
           return prev - 1;
@@ -271,15 +262,8 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     return () => clearInterval(interval);
   }, [timerRunning, timerValue, toast]);
 
-  const startTimer = () => {
-    setTimerValue(timerSeconds);
-    setTimerRunning(true);
-  };
-
-  const resetTimer = () => {
-    setTimerRunning(false);
-    setTimerValue(timerSeconds);
-  };
+  const startTimer = () => { setTimerValue(timerSeconds); setTimerRunning(true); };
+  const resetTimer = () => { setTimerRunning(false); setTimerValue(timerSeconds); };
 
   return (
     <div className="h-screen w-full bg-gray-950 text-gray-100 flex flex-col overflow-hidden">
@@ -302,30 +286,35 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
         onToggleMute={toggleMute}
         onToggleCamera={toggleCamera}
         onEndClass={handleEndClass}
+        onOpenWrapUp={() => setWrapUpOpen(true)}
         studentStars={studentStars}
+        isFocusMode={isFocusMode}
+        onToggleFocusMode={() => setIsFocusMode(!isFocusMode)}
       />
 
-      {/* 3-Column Layout */}
+      {/* 3-Column Layout + Mission Sidebar */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left: Communication Zone */}
-        <CommunicationZone
-          studentName={studentName}
-          teacherName={teacherName}
-          onGiveStar={handleGiveStar}
-          onOpenTimer={handleOpenTimer}
-          onRollDice={handleRollDice}
-          onSendSticker={handleSendSticker}
-          studentCanDraw={studentCanDraw}
-          onToggleStudentDrawing={handleToggleStudentDrawing}
-          onShareScreen={handleShareScreen}
-          onEmbedLink={handleEmbedLink}
-          isScreenSharing={isScreenSharing}
-          onStopScreenShare={handleStopScreenShare}
-          screenShareStream={screenShareStream}
-          localStream={media.stream}
-          isVideoConnected={media.isConnected}
-          isLocalCameraOff={media.isCameraOff}
-        />
+        {!isFocusMode && (
+          <CommunicationZone
+            studentName={studentName}
+            teacherName={teacherName}
+            onGiveStar={handleGiveStar}
+            onOpenTimer={handleOpenTimer}
+            onRollDice={handleRollDice}
+            onSendSticker={handleSendSticker}
+            studentCanDraw={studentCanDraw}
+            onToggleStudentDrawing={handleToggleStudentDrawing}
+            onShareScreen={handleShareScreen}
+            onEmbedLink={handleEmbedLink}
+            isScreenSharing={isScreenSharing}
+            onStopScreenShare={handleStopScreenShare}
+            screenShareStream={screenShareStream}
+            localStream={media.stream}
+            isVideoConnected={media.isConnected}
+            isLocalCameraOff={media.isCameraOff}
+          />
+        )}
 
         {/* Center: Main Stage */}
         <div className="flex-1 relative">
@@ -345,8 +334,6 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
             onAddStroke={addStroke}
             onClearCanvas={handleClearCanvas}
           />
-
-          {/* Embedded Content Viewer with Drawing Tools */}
           {embeddedUrl && (
             <EmbeddedContentViewer
               url={embeddedUrl}
@@ -363,25 +350,41 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
         </div>
 
         {/* Right: Slide Navigator */}
-        <SlideNavigator
-          slides={slides}
-          currentSlideIndex={currentSlide}
-          onSlideSelect={handleSlideSelect}
+        {!isFocusMode && (
+          <SlideNavigator
+            slides={slides}
+            currentSlideIndex={currentSlide}
+            onSlideSelect={handleSlideSelect}
+            lessonTitle={lessonTitle}
+            isCollapsed={rightSidebarCollapsed}
+            onToggleCollapse={() => setRightSidebarCollapsed(!rightSidebarCollapsed)}
+          />
+        )}
+
+        {/* Today's Mission Sidebar */}
+        <TodaysMissionSidebar
           lessonTitle={lessonTitle}
-          isCollapsed={rightSidebarCollapsed}
-          onToggleCollapse={() => setRightSidebarCollapsed(!rightSidebarCollapsed)}
+          isTeacher={true}
+          sharedNotes={sharedNotes}
+          sessionContext={sessionContext}
+          onNotesChange={updateSharedNotes}
         />
       </div>
+
+      {/* Lesson Wrap-Up Dialog */}
+      <LessonWrapUpDialog
+        open={wrapUpOpen}
+        onOpenChange={setWrapUpOpen}
+        lessonId={lessonId}
+        studentId={studentId}
+        teacherId={user?.id}
+      />
 
       {/* Dice Roller Dialog */}
       <DiceRoller open={diceDialogOpen} onOpenChange={setDiceDialogOpen} />
 
       {/* Embed Link Dialog */}
-      <EmbedLinkDialog
-        open={embedDialogOpen}
-        onOpenChange={setEmbedDialogOpen}
-        onEmbed={handleEmbed}
-      />
+      <EmbedLinkDialog open={embedDialogOpen} onOpenChange={setEmbedDialogOpen} onEmbed={handleEmbed} />
 
       {/* Timer Dialog */}
       <Dialog open={timerDialogOpen} onOpenChange={setTimerDialogOpen}>
@@ -408,17 +411,11 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
             )}
             <div className="flex gap-2">
               {!timerRunning ? (
-                <Button onClick={startTimer} className="bg-blue-600 hover:bg-blue-700">
-                  Start Timer
-                </Button>
+                <Button onClick={startTimer} className="bg-blue-600 hover:bg-blue-700">Start Timer</Button>
               ) : (
                 <>
-                  <Button onClick={() => setTimerRunning(false)} variant="outline" className="border-gray-700">
-                    Pause
-                  </Button>
-                  <Button onClick={resetTimer} variant="destructive">
-                    Reset
-                  </Button>
+                  <Button onClick={() => setTimerRunning(false)} variant="outline" className="border-gray-700">Pause</Button>
+                  <Button onClick={resetTimer} variant="destructive">Reset</Button>
                 </>
               )}
             </div>

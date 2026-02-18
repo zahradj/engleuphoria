@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Mic, MicOff, Video, VideoOff, LogOut, Wifi, WifiOff } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, LogOut, Wifi, WifiOff, Eye, EyeOff } from 'lucide-react';
 
 interface StudentClassroomHeaderProps {
   lessonTitle: string;
@@ -11,6 +11,8 @@ interface StudentClassroomHeaderProps {
   onToggleMute: () => void;
   onToggleCamera: () => void;
   onLeaveClass: () => void;
+  isFocusMode?: boolean;
+  onToggleFocusMode?: () => void;
 }
 
 export const StudentClassroomHeader: React.FC<StudentClassroomHeaderProps> = ({
@@ -20,12 +22,21 @@ export const StudentClassroomHeader: React.FC<StudentClassroomHeaderProps> = ({
   isCameraOff,
   onToggleMute,
   onToggleCamera,
-  onLeaveClass
+  onLeaveClass,
+  isFocusMode = false,
+  onToggleFocusMode
 }) => {
   return (
     <div className="h-14 bg-gray-900 border-b border-gray-800 px-4 flex items-center justify-between">
-      {/* Left: Lesson Title */}
+      {/* Left: Live Indicator + Lesson Title */}
       <div className="flex items-center gap-3">
+        {/* Live Indicator */}
+        {isConnected && (
+          <div className="flex items-center gap-1.5">
+            <div className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse" />
+            <span className="text-xs font-medium text-red-400">LIVE</span>
+          </div>
+        )}
         <h1 className="text-lg font-semibold text-white">{lessonTitle}</h1>
         <Badge 
           variant={isConnected ? 'default' : 'destructive'}
@@ -54,6 +65,17 @@ export const StudentClassroomHeader: React.FC<StudentClassroomHeaderProps> = ({
         >
           {isCameraOff ? <VideoOff className="h-4 w-4" /> : <Video className="h-4 w-4" />}
         </Button>
+        {/* Focus Mode Toggle */}
+        {onToggleFocusMode && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onToggleFocusMode}
+            className="h-9 w-9 rounded-full bg-gray-700 hover:bg-gray-600"
+          >
+            {isFocusMode ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </Button>
+        )}
         <div className="h-6 w-px bg-gray-700 mx-2" />
         <Button
           variant="destructive"

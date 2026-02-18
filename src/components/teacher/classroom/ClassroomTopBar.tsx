@@ -10,7 +10,10 @@ import {
   CameraOff,
   Phone,
   Settings,
-  Star
+  Star,
+  ClipboardCheck,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 interface ClassroomTopBarProps {
@@ -23,7 +26,10 @@ interface ClassroomTopBarProps {
   onToggleCamera: () => void;
   onEndClass: () => void;
   onOpenSettings?: () => void;
+  onOpenWrapUp?: () => void;
   studentStars?: number;
+  isFocusMode?: boolean;
+  onToggleFocusMode?: () => void;
 }
 
 export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
@@ -36,7 +42,10 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
   onToggleCamera,
   onEndClass,
   onOpenSettings,
-  studentStars = 0
+  onOpenWrapUp,
+  studentStars = 0,
+  isFocusMode = false,
+  onToggleFocusMode
 }) => {
   const [elapsed, setElapsed] = useState(0);
 
@@ -57,8 +66,9 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
   return (
     <div className="h-14 bg-gray-900 border-b border-gray-800 flex items-center justify-between px-4 shrink-0">
       <div className="flex items-center gap-4">
+        {/* Live Indicator */}
         <div className="flex items-center gap-2">
-          <div className="h-3 w-3 rounded-full bg-red-500 animate-pulse" />
+          <div className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse" />
           <span className="text-sm font-medium text-red-400">LIVE</span>
         </div>
         <div className="h-6 w-px bg-gray-700" />
@@ -66,21 +76,27 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
           <Users className="h-4 w-4 text-gray-400" />
           <span className="text-sm text-gray-300">{participantCount} in room</span>
         </div>
-        <Badge variant="secondary" className="bg-gray-800 text-gray-300">
-          {lessonTitle}
-        </Badge>
-        <Badge variant="outline" className="border-emerald-500 text-emerald-400 text-xs">
-          Room: {roomName}
-        </Badge>
+        {!isFocusMode && (
+          <>
+            <Badge variant="secondary" className="bg-gray-800 text-gray-300">
+              {lessonTitle}
+            </Badge>
+            <Badge variant="outline" className="border-emerald-500 text-emerald-400 text-xs">
+              Room: {roomName}
+            </Badge>
+          </>
+        )}
       </div>
 
       {/* Centered Star Count */}
-      <div className="flex items-center">
-        <div className="flex items-center gap-1.5 bg-amber-500/20 border border-amber-500/40 px-3 py-1 rounded-full shadow-[0_0_12px_rgba(245,158,11,0.3)]">
-          <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-          <span className="font-bold text-amber-300 text-sm">{studentStars} {studentStars === 1 ? 'Star' : 'Stars'}</span>
+      {!isFocusMode && (
+        <div className="flex items-center">
+          <div className="flex items-center gap-1.5 bg-amber-500/20 border border-amber-500/40 px-3 py-1 rounded-full shadow-[0_0_12px_rgba(245,158,11,0.3)]">
+            <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+            <span className="font-bold text-amber-300 text-sm">{studentStars} {studentStars === 1 ? 'Star' : 'Stars'}</span>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="flex items-center gap-2">
         <div className="flex items-center gap-1 text-sm text-gray-400 mr-4">
@@ -103,6 +119,17 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
         >
           {isCameraOff ? <CameraOff className="h-5 w-5" /> : <Camera className="h-5 w-5" />}
         </Button>
+        {/* Focus Mode Toggle */}
+        {onToggleFocusMode && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full bg-gray-800 text-gray-300"
+            onClick={onToggleFocusMode}
+          >
+            {isFocusMode ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+          </Button>
+        )}
         <Button
           variant="ghost"
           size="icon"
@@ -111,6 +138,18 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
         >
           <Settings className="h-5 w-5" />
         </Button>
+        {/* Wrap-Up Button */}
+        {onOpenWrapUp && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onOpenWrapUp}
+            className="bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30"
+          >
+            <ClipboardCheck className="h-4 w-4 mr-1" />
+            Wrap-Up
+          </Button>
+        )}
         <div className="h-6 w-px bg-gray-700 mx-2" />
         <Button
           variant="destructive"

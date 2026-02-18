@@ -43,6 +43,9 @@ interface UseClassroomSyncReturn {
   timerValue: number | null;
   timerRunning: boolean;
   diceValue: number | null;
+  // Phase 7: Shared notes & context
+  sharedNotes: string;
+  sessionContext: Record<string, any>;
   // Whiteboard state
   strokes: WhiteboardStroke[];
   
@@ -67,6 +70,10 @@ interface UseClassroomSyncReturn {
     timerRunning?: boolean;
     diceValue?: number | null;
   }) => Promise<void>;
+
+  // Phase 7: Shared notes & context actions
+  updateSharedNotes: (notes: string) => Promise<void>;
+  updateSessionContext: (context: Record<string, any>) => Promise<void>;
 }
 
 export const useClassroomSync = ({
@@ -243,6 +250,24 @@ export const useClassroomSync = ({
     }
   }, [roomId, role]);
 
+  const updateSharedNotes = useCallback(async (notes: string) => {
+    try {
+      await classroomSyncService.updateSession(roomId, { sharedNotes: notes });
+      setSession(prev => prev ? { ...prev, sharedNotes: notes } : null);
+    } catch (error) {
+      console.error('Failed to update shared notes:', error);
+    }
+  }, [roomId]);
+
+  const updateSessionContext = useCallback(async (context: Record<string, any>) => {
+    try {
+      await classroomSyncService.updateSession(roomId, { sessionContext: context });
+      setSession(prev => prev ? { ...prev, sessionContext: context } : null);
+    } catch (error) {
+      console.error('Failed to update session context:', error);
+    }
+  }, [roomId]);
+
   return {
     session,
     currentSlide: session?.currentSlideIndex ?? 0,
@@ -258,7 +283,6 @@ export const useClassroomSync = ({
     pollActive: session?.pollActive ?? false,
     pollShowResults: session?.pollShowResults ?? false,
     currentPollSlideId: session?.currentPollSlideId ?? null,
-    // Shared display state
     embeddedUrl: session?.embeddedUrl ?? null,
     isScreenSharing: session?.isScreenSharing ?? false,
     starCount: session?.starCount ?? 0,
@@ -267,6 +291,8 @@ export const useClassroomSync = ({
     timerValue: session?.timerValue ?? null,
     timerRunning: session?.timerRunning ?? false,
     diceValue: session?.diceValue ?? null,
+    sharedNotes: session?.sharedNotes ?? '',
+    sessionContext: session?.sessionContext ?? {},
     strokes,
     updateSlide,
     updateTool,
@@ -274,6 +300,8 @@ export const useClassroomSync = ({
     endSession,
     addStroke,
     clearCanvas,
-    updateSharedDisplay
+    updateSharedDisplay,
+    updateSharedNotes,
+    updateSessionContext
   };
 };

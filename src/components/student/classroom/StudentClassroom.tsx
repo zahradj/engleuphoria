@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useClassroomSync } from '@/hooks/useClassroomSync';
@@ -7,6 +7,7 @@ import { StudentCommunicationSidebar } from './StudentCommunicationSidebar';
 import { StudentMainStage } from './StudentMainStage';
 import { StarCelebration } from '@/components/teacher/classroom/StarCelebration';
 import { DiceRoller } from '@/components/teacher/classroom/DiceRoller';
+import { TodaysMissionSidebar } from '@/components/classroom/TodaysMissionSidebar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Timer, Dice6 } from 'lucide-react';
 
@@ -26,6 +27,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
   const [isMuted, setIsMuted] = useState(true);
   const [isCameraOff, setIsCameraOff] = useState(false);
   const [activeColor, setActiveColor] = useState('#FF6B6B');
+  const [isFocusMode, setIsFocusMode] = useState(false);
 
   const {
     currentSlide,
@@ -41,7 +43,6 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     quizRevealAnswer,
     pollActive,
     pollShowResults,
-    // Shared display state from teacher
     embeddedUrl,
     isScreenSharing,
     starCount,
@@ -49,13 +50,28 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     isMilestone,
     timerValue,
     timerRunning,
-    diceValue
+    diceValue,
+    sharedNotes,
+    sessionContext,
+    updateSharedNotes
   } = useClassroomSync({
     roomId,
     userId: studentId,
     userName: studentName,
     role: 'student'
   });
+
+  // Focus mode keyboard shortcut
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'F11') {
+        e.preventDefault();
+        setIsFocusMode(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleLeaveClass = () => {
     toast({
@@ -65,14 +81,13 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     navigate('/playground');
   };
 
-  // Convert lesson slides to expected format
   const slides = lessonSlides.length > 0 
     ? lessonSlides 
     : [{ id: '1', title: 'Waiting for teacher...' }];
 
   return (
     <div className="h-screen w-full bg-gray-950 text-gray-100 flex flex-col overflow-hidden">
-      {/* Star Celebration Overlay - visible to students */}
+      {/* Star Celebration Overlay */}
       <StarCelebration
         isVisible={showStarCelebration}
         starCount={starCount}
@@ -81,7 +96,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
         onComplete={() => {}}
       />
 
-      {/* Timer Overlay - visible to students */}
+      {/* Timer Overlay */}
       <AnimatePresence>
         {timerRunning && timerValue !== null && (
           <motion.div
@@ -103,7 +118,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Dice Result Overlay - visible to students */}
+      {/* Dice Result Overlay */}
       <AnimatePresence>
         {diceValue !== null && (
           <motion.div
@@ -132,21 +147,25 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
         onToggleMute={() => setIsMuted(!isMuted)}
         onToggleCamera={() => setIsCameraOff(!isCameraOff)}
         onLeaveClass={handleLeaveClass}
+        isFocusMode={isFocusMode}
+        onToggleFocusMode={() => setIsFocusMode(!isFocusMode)}
       />
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Left Sidebar - Communication only */}
-        <StudentCommunicationSidebar
-          studentName={studentName}
-          teacherName="Teacher"
-          isMuted={isMuted}
-          isCameraOff={isCameraOff}
-          onToggleMute={() => setIsMuted(!isMuted)}
-          onToggleCamera={() => setIsCameraOff(!isCameraOff)}
-        />
+        {/* Left Sidebar - Communication */}
+        {!isFocusMode && (
+          <StudentCommunicationSidebar
+            studentName={studentName}
+            teacherName="Teacher"
+            isMuted={isMuted}
+            isCameraOff={isCameraOff}
+            onToggleMute={() => setIsMuted(!isMuted)}
+            onToggleCamera={() => setIsCameraOff(!isCameraOff)}
+          />
+        )}
 
-        {/* Main Stage - Slides/Screen Share/Embedded Content */}
+        {/* Main Stage */}
         <StudentMainStage
           slides={slides}
           currentSlideIndex={currentSlide}
@@ -165,6 +184,15 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
           embeddedUrl={embeddedUrl}
           isScreenSharing={isScreenSharing}
           onAddStroke={addStroke}
+        />
+
+        {/* Today's Mission Sidebar (read-only for students) */}
+        <TodaysMissionSidebar
+          lessonTitle={lessonTitle}
+          isTeacher={false}
+          sharedNotes={sharedNotes}
+          sessionContext={sessionContext}
+          onNotesChange={updateSharedNotes}
         />
       </div>
     </div>
