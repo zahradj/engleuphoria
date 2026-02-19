@@ -4,14 +4,14 @@
 
 ## Problem
 
-The classroom UI renders but database sync is completely broken, causing repeated 400 and 406 errors every few seconds. Two root causes:
+The classroom UI renders but database sync is completely broken, causing repeated 400 and 406 errors every few seconds. Confirmed two root causes:
 
-1. **Missing columns**: 9 columns referenced in the code don't exist in the `classroom_sessions` table: `active_canvas_tab`, `embedded_url`, `is_screen_sharing`, `star_count`, `show_star_celebration`, `is_milestone`, `timer_value`, `timer_running`, `dice_value`
-2. **UUID type mismatch**: The `teacher_id` column is `uuid` type, but when no user is logged in (demo mode), the code sends `"teacher-default"` which is not a valid UUID
+1. **Missing columns**: 9 columns referenced in code don't exist in `classroom_sessions`: `active_canvas_tab`, `embedded_url`, `is_screen_sharing`, `star_count`, `show_star_celebration`, `is_milestone`, `timer_value`, `timer_running`, `dice_value`
+2. **UUID type mismatch**: `teacher_id` is `uuid` type in the database, but the code sends `"teacher-default"` as fallback when `user` hasn't loaded yet
 
 ## Fix 1: Database Migration
 
-Add all missing columns to `classroom_sessions`:
+Run SQL migration to add all 9 missing columns:
 
 ```sql
 ALTER TABLE public.classroom_sessions
@@ -28,35 +28,32 @@ ALTER TABLE public.classroom_sessions
 
 ## Fix 2: Demo Mode UUID Handling
 
-**File: `src/hooks/useClassroomSync.ts`** (Modify)
-
-The `userId` passed in demo mode is `"teacher-default"`, which fails the UUID insert. Fix by:
-- Before calling `createOrUpdateSession`, check if `userId` is a valid UUID
-- If not (demo mode), generate a deterministic UUID from the string using a simple fallback like `crypto.randomUUID()` stored in sessionStorage, or use a hardcoded demo UUID constant
-
 **File: `src/components/teacher/classroom/TeacherClassroom.tsx`** (Modify)
 
-- Where `userId` is computed (currently falls back to `"teacher-default"`), generate a proper demo UUID instead:
+Replace the two occurrences of `'teacher-default'` with a proper UUID fallback:
+
+- **Line 108** (useClassroomSync call): Replace `user?.id || 'teacher-default'` with:
   ```typescript
-  const userId = user?.id || sessionStorage.getItem('demo-teacher-id') || (() => {
+  userId: user?.id || (() => {
+    const stored = sessionStorage.getItem('demo-teacher-id');
+    if (stored) return stored;
     const id = crypto.randomUUID();
     sessionStorage.setItem('demo-teacher-id', id);
     return id;
-  })();
+  })(),
   ```
 
-## Fix 3: Supabase Types Update
+- **Line 335** (CenterStage userId prop): Replace `user?.id || 'teacher-default'` with:
+  ```typescript
+  userId={user?.id || sessionStorage.getItem('demo-teacher-id') || crypto.randomUUID()}
+  ```
 
-**File: `src/integrations/supabase/types.ts`** (Modify)
-
-Add the 9 new columns to the `classroom_sessions` Row, Insert, and Update type definitions so TypeScript is aware of them.
+No other files need changes -- the sync service and hook already handle the new columns correctly.
 
 ## File Summary
 
 | File | Action | Description |
 |------|--------|-------------|
-| **Migration SQL** | Create | Add 9 missing columns to `classroom_sessions` |
-| `src/components/teacher/classroom/TeacherClassroom.tsx` | Modify | Generate proper demo UUID instead of "teacher-default" |
-| `src/hooks/useClassroomSync.ts` | Modify | No change needed if TeacherClassroom passes valid UUID |
-| `src/integrations/supabase/types.ts` | Modify | Add new column types |
+| Migration SQL | Run | Add 9 missing columns to `classroom_sessions` |
+| `src/components/teacher/classroom/TeacherClassroom.tsx` | Modify | Replace `'teacher-default'` with valid UUID fallback (2 locations) |
 
