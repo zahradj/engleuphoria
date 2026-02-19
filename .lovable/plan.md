@@ -1,59 +1,44 @@
 
 
-# Phase 9.5: Database Fix + Classroom Stability
+# Phase 9.5b: Fix Check Constraint + Session Status Mismatch
 
 ## Problem
 
-The classroom UI renders but database sync is completely broken, causing repeated 400 and 406 errors every few seconds. Confirmed two root causes:
+The classroom sync is failing with two errors on every request cycle:
 
-1. **Missing columns**: 9 columns referenced in code don't exist in `classroom_sessions`: `active_canvas_tab`, `embedded_url`, `is_screen_sharing`, `star_count`, `show_star_celebration`, `is_milestone`, `timer_value`, `timer_running`, `dice_value`
-2. **UUID type mismatch**: `teacher_id` is `uuid` type in the database, but the code sends `"teacher-default"` as fallback when `user` hasn't loaded yet
+- **400 error**: `"new row violates check constraint classroom_sessions_session_status_check"` -- The database only allows `'waiting'`, `'started'`, `'ended'`, but the code sends `'active'`.
+- **406 error**: `"The result contains 0 rows"` -- Since no session can be created (blocked by the 400), all subsequent queries return 0 rows, and the `.single()` call fails with 406.
 
-## Fix 1: Database Migration
+These errors repeat every ~2 seconds in a loop (try to fetch, fail, try to create, fail, repeat).
 
-Run SQL migration to add all 9 missing columns:
+## Root Cause
+
+The `classroomSyncService.ts` (and `quizService.ts`, `pollService.ts`) use `'active'` as the session status, but the database check constraint was created with only `('waiting', 'started', 'ended')`.
+
+## Solution: Update the Database Constraint
+
+Add `'active'` to the allowed values in the check constraint. This is the simplest fix since 4 files already use `'active'` consistently.
+
+### Database Migration
+
+Drop the old constraint and create a new one that includes `'active'`:
 
 ```sql
 ALTER TABLE public.classroom_sessions
-  ADD COLUMN IF NOT EXISTS active_canvas_tab text DEFAULT 'slides',
-  ADD COLUMN IF NOT EXISTS embedded_url text DEFAULT NULL,
-  ADD COLUMN IF NOT EXISTS is_screen_sharing boolean DEFAULT false,
-  ADD COLUMN IF NOT EXISTS star_count integer DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS show_star_celebration boolean DEFAULT false,
-  ADD COLUMN IF NOT EXISTS is_milestone boolean DEFAULT false,
-  ADD COLUMN IF NOT EXISTS timer_value integer DEFAULT NULL,
-  ADD COLUMN IF NOT EXISTS timer_running boolean DEFAULT false,
-  ADD COLUMN IF NOT EXISTS dice_value integer DEFAULT NULL;
+  DROP CONSTRAINT IF EXISTS classroom_sessions_session_status_check;
+
+ALTER TABLE public.classroom_sessions
+  ADD CONSTRAINT classroom_sessions_session_status_check
+  CHECK (session_status = ANY (ARRAY['waiting', 'started', 'active', 'ended']));
 ```
 
-## Fix 2: Demo Mode UUID Handling
-
-**File: `src/components/teacher/classroom/TeacherClassroom.tsx`** (Modify)
-
-Replace the two occurrences of `'teacher-default'` with a proper UUID fallback:
-
-- **Line 108** (useClassroomSync call): Replace `user?.id || 'teacher-default'` with:
-  ```typescript
-  userId: user?.id || (() => {
-    const stored = sessionStorage.getItem('demo-teacher-id');
-    if (stored) return stored;
-    const id = crypto.randomUUID();
-    sessionStorage.setItem('demo-teacher-id', id);
-    return id;
-  })(),
-  ```
-
-- **Line 335** (CenterStage userId prop): Replace `user?.id || 'teacher-default'` with:
-  ```typescript
-  userId={user?.id || sessionStorage.getItem('demo-teacher-id') || crypto.randomUUID()}
-  ```
-
-No other files need changes -- the sync service and hook already handle the new columns correctly.
+No code changes are needed -- the services already use the correct values. Once the constraint is updated, the inserts and queries will succeed immediately, stopping the error loop.
 
 ## File Summary
 
 | File | Action | Description |
 |------|--------|-------------|
-| Migration SQL | Run | Add 9 missing columns to `classroom_sessions` |
-| `src/components/teacher/classroom/TeacherClassroom.tsx` | Modify | Replace `'teacher-default'` with valid UUID fallback (2 locations) |
+| Migration SQL | Run | Update check constraint to allow `'active'` status |
+
+No TypeScript files need modification. The UUID fix from the previous phase is already applied.
 
