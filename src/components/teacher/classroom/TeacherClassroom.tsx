@@ -105,7 +105,13 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     updateCanvasTab
   } = useClassroomSync({
     roomId: roomName,
-    userId: user?.id || 'teacher-default',
+    userId: user?.id || (() => {
+      const stored = sessionStorage.getItem('demo-teacher-id');
+      if (stored) return stored;
+      const id = crypto.randomUUID();
+      sessionStorage.setItem('demo-teacher-id', id);
+      return id;
+    })(),
     userName: teacherName,
     role: 'teacher',
     lessonData: { title: lessonTitle, slides }
@@ -332,7 +338,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
             onColorChange={setActiveColor}
             strokes={strokes}
             roomId={roomName}
-            userId={user?.id || 'teacher-default'}
+            userId={user?.id || sessionStorage.getItem('demo-teacher-id') || crypto.randomUUID()}
             userName={teacherName}
             onAddStroke={addStroke}
             onClearCanvas={handleClearCanvas}
