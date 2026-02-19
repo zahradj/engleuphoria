@@ -1,44 +1,95 @@
 
 
-# Phase 9.5b: Fix Check Constraint + Session Status Mismatch
+# Phase 9.5c: Fix Duplicate Key Constraint Error
 
 ## Problem
 
-The classroom sync is failing with two errors on every request cycle:
+The `createOrUpdateSession` method in `classroomSyncService.ts` searches for an existing session filtered by `session_status = 'active'`. When it finds none (because prior sessions are `'ended'`), it attempts an INSERT, which fails because of the `classroom_sessions_room_id_key` unique constraint on `room_id`.
 
-- **400 error**: `"new row violates check constraint classroom_sessions_session_status_check"` -- The database only allows `'waiting'`, `'started'`, `'ended'`, but the code sends `'active'`.
-- **406 error**: `"The result contains 0 rows"` -- Since no session can be created (blocked by the 400), all subsequent queries return 0 rows, and the `.single()` call fails with 406.
-
-These errors repeat every ~2 seconds in a loop (try to fetch, fail, try to create, fail, repeat).
+This causes a rapid error loop: query returns 0 active rows, insert fails with 23505, repeat.
 
 ## Root Cause
 
-The `classroomSyncService.ts` (and `quizService.ts`, `pollService.ts`) use `'active'` as the session status, but the database check constraint was created with only `('waiting', 'started', 'ended')`.
+Line 82 filters by `session_status = 'active'`, so ended sessions are invisible. But the unique constraint on `room_id` means only one row per room can ever exist.
 
-## Solution: Update the Database Constraint
+## Solution
 
-Add `'active'` to the allowed values in the check constraint. This is the simplest fix since 4 files already use `'active'` consistently.
+Change the lookup to find ANY existing session for the room (regardless of status), then UPDATE it back to `'active'` instead of trying to INSERT a duplicate.
 
-### Database Migration
+### File: `src/services/classroomSyncService.ts`
 
-Drop the old constraint and create a new one that includes `'active'`:
+**Modify `createOrUpdateSession` method (lines 76-124)**
 
-```sql
-ALTER TABLE public.classroom_sessions
-  DROP CONSTRAINT IF EXISTS classroom_sessions_session_status_check;
+Replace the existing logic with:
 
-ALTER TABLE public.classroom_sessions
-  ADD CONSTRAINT classroom_sessions_session_status_check
-  CHECK (session_status = ANY (ARRAY['waiting', 'started', 'active', 'ended']));
+1. Query for ANY existing session for the `room_id` (remove the `.eq('session_status', 'active')` filter).
+2. If a row exists, UPDATE it (reset status to `'active'`, update lesson data, clear ended_at).
+3. If no row exists, INSERT a new one.
+
+```typescript
+async createOrUpdateSession(
+  roomId: string,
+  teacherId: string,
+  lessonData: {
+    title: string;
+    slides: Array<{ id: string; title: string; imageUrl?: string }>;
+  }
+): Promise<ClassroomSession | null> {
+  try {
+    // Check for ANY existing session for this room (regardless of status)
+    const { data: existing } = await supabase
+      .from('classroom_sessions')
+      .select('*')
+      .eq('room_id', roomId)
+      .maybeSingle();
+
+    if (existing) {
+      // Reactivate / update existing session
+      const { data, error } = await supabase
+        .from('classroom_sessions')
+        .update({
+          teacher_id: teacherId,
+          lesson_title: lessonData.title,
+          lesson_slides: lessonData.slides,
+          session_status: 'active',
+          ended_at: null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existing.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return this.mapToSession(data);
+    }
+
+    // Create new session (only if no row exists for this room)
+    const { data, error } = await supabase
+      .from('classroom_sessions')
+      .insert({ ... })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return this.mapToSession(data);
+  } catch (error) {
+    console.error('Failed to create/update session:', error);
+    return null;
+  }
+}
 ```
 
-No code changes are needed -- the services already use the correct values. Once the constraint is updated, the inserts and queries will succeed immediately, stopping the error loop.
+Key changes:
+- Remove `.eq('session_status', 'active')` from the lookup query (line 82)
+- Use `.maybeSingle()` instead of `.single()` to avoid 406 when 0 rows
+- On update, also set `session_status: 'active'` and `ended_at: null` to reactivate ended sessions
+- Also update `teacher_id` in case the demo UUID changed between sessions
+
+No database migration needed. Only one file changes.
 
 ## File Summary
 
 | File | Action | Description |
 |------|--------|-------------|
-| Migration SQL | Run | Update check constraint to allow `'active'` status |
-
-No TypeScript files need modification. The UUID fix from the previous phase is already applied.
+| `src/services/classroomSyncService.ts` | Modify | Fix lookup to find any existing session, reactivate instead of re-inserting |
 
