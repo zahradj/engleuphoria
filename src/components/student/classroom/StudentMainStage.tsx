@@ -4,6 +4,8 @@ import { CollaborativeCanvas } from '@/components/classroom/shared/Collaborative
 import { StudentQuizView } from './StudentQuizView';
 import { StudentPollView } from './StudentPollView';
 import { WhiteboardStroke } from '@/services/whiteboardService';
+import { TargetWordsOverlay } from '@/components/classroom/TargetWordsOverlay';
+import { SmartSummaryTip } from '@/components/classroom/SmartSummaryTip';
 import { Eye, PenLine, Monitor, ExternalLink, Layout, PenTool, Globe } from 'lucide-react';
 
 interface QuizOption { id: string; text: string; isCorrect: boolean; }
@@ -40,6 +42,7 @@ interface StudentMainStageProps {
   embeddedUrl: string | null;
   isScreenSharing: boolean;
   activeCanvasTab?: string;
+  sessionContext?: Record<string, any>;
   onAddStroke: (stroke: Omit<WhiteboardStroke, 'id' | 'roomId' | 'timestamp'>) => void;
 }
 
@@ -84,6 +87,7 @@ export const StudentMainStage: React.FC<StudentMainStageProps> = ({
   embeddedUrl,
   isScreenSharing,
   activeCanvasTab = 'slides',
+  sessionContext = {},
   onAddStroke
 }) => {
   const currentSlide = slides[currentSlideIndex];
@@ -173,6 +177,12 @@ export const StudentMainStage: React.FC<StudentMainStageProps> = ({
           </div>
         ))}
       </div>
+
+      {/* Target Words Overlay */}
+      <TargetWordsOverlay sessionContext={sessionContext} isTeacher={false} />
+
+      {/* Smart Summary Tip */}
+      <SmartSummaryTip sessionContext={sessionContext} />
 
       {/* Mode Indicator */}
       <div className="absolute top-12 left-4 z-20">

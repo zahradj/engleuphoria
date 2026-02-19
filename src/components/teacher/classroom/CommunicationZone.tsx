@@ -71,7 +71,7 @@ export const CommunicationZone: React.FC<CommunicationZoneProps> = ({
   };
 
   return (
-    <div className="w-80 bg-gray-900 border-r border-gray-800 flex flex-col shrink-0">
+    <div className="w-80 glass-panel border-r border-white/5 flex flex-col shrink-0">
       {/* Video Containers */}
       <div className="p-3 space-y-3">
         {/* Screen Share Preview (if active) */}

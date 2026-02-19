@@ -66,8 +66,9 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   const [embedDialogOpen, setEmbedDialogOpen] = useState(false);
   const [embeddedUrl, setEmbeddedUrl] = useState<string | null>(null);
 
-  // Auto-hide for top bar
+  // Auto-hide for top bar and sidebars
   const topBarIdle = useIdleOpacity({ idleTimeout: 3000, idleOpacity: 0.4 });
+  const sidebarIdle = useIdleOpacity({ idleTimeout: 4000, idleOpacity: 0.3 });
 
   // Context Handshake
   const { context: studentContext } = useStudentContext(studentId);
@@ -296,24 +297,26 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
       <div className="flex-1 flex overflow-hidden">
         {/* Left: Communication Zone */}
         {!isZenMode && (
-          <CommunicationZone
-            studentName={studentName}
-            teacherName={teacherName}
-            onGiveStar={handleGiveStar}
-            onOpenTimer={handleOpenTimer}
-            onRollDice={handleRollDice}
-            onSendSticker={handleSendSticker}
-            studentCanDraw={studentCanDraw}
-            onToggleStudentDrawing={handleToggleStudentDrawing}
-            onShareScreen={handleShareScreen}
-            onEmbedLink={handleEmbedLink}
-            isScreenSharing={isScreenSharing}
-            onStopScreenShare={handleStopScreenShare}
-            screenShareStream={screenShareStream}
-            localStream={media.stream}
-            isVideoConnected={media.isConnected}
-            isLocalCameraOff={media.isCameraOff}
-          />
+          <div style={sidebarIdle.style} onMouseMove={sidebarIdle.onMouseMove} onMouseEnter={sidebarIdle.onMouseEnter}>
+            <CommunicationZone
+              studentName={studentName}
+              teacherName={teacherName}
+              onGiveStar={handleGiveStar}
+              onOpenTimer={handleOpenTimer}
+              onRollDice={handleRollDice}
+              onSendSticker={handleSendSticker}
+              studentCanDraw={studentCanDraw}
+              onToggleStudentDrawing={handleToggleStudentDrawing}
+              onShareScreen={handleShareScreen}
+              onEmbedLink={handleEmbedLink}
+              isScreenSharing={isScreenSharing}
+              onStopScreenShare={handleStopScreenShare}
+              screenShareStream={screenShareStream}
+              localStream={media.stream}
+              isVideoConnected={media.isConnected}
+              isLocalCameraOff={media.isCameraOff}
+            />
+          </div>
         )}
 
         {/* Center: Main Stage with Tabbed Canvas */}
@@ -337,19 +340,22 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
             onCanvasTabChange={handleCanvasTabChange}
             embeddedUrl={embeddedUrl}
             onCloseEmbed={handleCloseEmbed}
+            sessionContext={sessionContext}
           />
         </div>
 
         {/* Right: Slide Navigator */}
         {!isZenMode && (
-          <SlideNavigator
-            slides={slides}
-            currentSlideIndex={currentSlide}
-            onSlideSelect={handleSlideSelect}
-            lessonTitle={lessonTitle}
-            isCollapsed={rightSidebarCollapsed}
-            onToggleCollapse={() => setRightSidebarCollapsed(!rightSidebarCollapsed)}
-          />
+          <div style={sidebarIdle.style} onMouseMove={sidebarIdle.onMouseMove} onMouseEnter={sidebarIdle.onMouseEnter}>
+            <SlideNavigator
+              slides={slides}
+              currentSlideIndex={currentSlide}
+              onSlideSelect={handleSlideSelect}
+              lessonTitle={lessonTitle}
+              isCollapsed={rightSidebarCollapsed}
+              onToggleCollapse={() => setRightSidebarCollapsed(!rightSidebarCollapsed)}
+            />
+          </div>
         )}
       </div>
 

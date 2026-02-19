@@ -27,7 +27,7 @@ export const StudentClassroomHeader: React.FC<StudentClassroomHeaderProps> = ({
   onToggleZenMode
 }) => {
   return (
-    <div className="h-14 bg-gray-900 border-b border-gray-800 px-4 flex items-center justify-between">
+    <div className="h-14 glass-panel border-b border-white/5 px-4 flex items-center justify-between">
       {/* Left: Live Indicator + Lesson Title */}
       <div className="flex items-center gap-3">
         {isConnected && (
