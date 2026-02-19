@@ -35,7 +35,7 @@ export const StudentCommunicationSidebar: React.FC<StudentCommunicationSidebarPr
   };
 
   return (
-    <div className="w-72 bg-gray-900 border-r border-gray-800 flex flex-col shrink-0">
+    <div className="w-72 glass-panel border-r border-white/5 flex flex-col shrink-0">
       {/* Video Containers */}
       <div className="p-3 space-y-3">
         {/* Teacher Video Container */}

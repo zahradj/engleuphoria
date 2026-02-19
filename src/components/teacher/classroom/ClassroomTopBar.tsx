@@ -64,7 +64,7 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
   };
 
   return (
-    <div className="h-14 bg-gray-900 border-b border-gray-800 flex items-center justify-between px-4 shrink-0">
+    <div className="h-14 glass-panel border-b border-white/5 flex items-center justify-between px-4 shrink-0">
       <div className="flex items-center gap-4">
         {/* Live Indicator */}
         <div className="flex items-center gap-2">

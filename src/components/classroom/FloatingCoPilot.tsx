@@ -88,7 +88,7 @@ export const FloatingCoPilot: React.FC<FloatingCoPilotProps> = ({
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-gray-900/95 backdrop-blur-md border border-gray-700 rounded-2xl shadow-2xl shadow-black/40 overflow-hidden flex flex-col max-h-[70vh]"
+        className="glass-panel rounded-2xl shadow-2xl shadow-black/40 overflow-hidden flex flex-col max-h-[70vh]"
       >
         {/* Header */}
         <div className="copilot-drag-handle flex items-center justify-between px-4 py-3 border-b border-gray-800 cursor-grab active:cursor-grabbing select-none">

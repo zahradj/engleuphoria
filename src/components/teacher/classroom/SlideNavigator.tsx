@@ -28,7 +28,7 @@ export const SlideNavigator: React.FC<SlideNavigatorProps> = ({
 }) => {
   if (isCollapsed) {
     return (
-      <div className="w-10 bg-gray-900 border-l border-gray-800 flex flex-col items-center py-4 shrink-0">
+      <div className="w-10 glass-panel border-l border-white/5 flex flex-col items-center py-4 shrink-0">
         <Button
           variant="ghost"
           size="icon"
@@ -47,7 +47,7 @@ export const SlideNavigator: React.FC<SlideNavigatorProps> = ({
   }
 
   return (
-    <div className="w-52 bg-gray-900 border-l border-gray-800 flex flex-col shrink-0">
+    <div className="w-52 glass-panel border-l border-white/5 flex flex-col shrink-0">
       {/* Header */}
       <div className="p-3 border-b border-gray-800 flex items-center justify-between">
         <div className="flex-1 min-w-0">

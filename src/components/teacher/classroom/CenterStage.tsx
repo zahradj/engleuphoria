@@ -25,11 +25,15 @@ import { WhiteboardStroke } from '@/services/whiteboardService';
 import { useQuizInteraction } from '@/hooks/useQuizInteraction';
 import { usePollInteraction } from '@/hooks/usePollInteraction';
 import { useIdleOpacity } from '@/hooks/useIdleOpacity';
+import { TargetWordsOverlay } from '@/components/classroom/TargetWordsOverlay';
+import { SmartSummaryTip } from '@/components/classroom/SmartSummaryTip';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+
+
 
 interface QuizOption { id: string; text: string; isCorrect: boolean; }
 interface PollOption { id: string; text: string; }
@@ -67,6 +71,7 @@ interface CenterStageProps {
   onCanvasTabChange?: (tab: string) => void;
   embeddedUrl?: string | null;
   onCloseEmbed?: () => void;
+  sessionContext?: Record<string, any>;
 }
 
 const COLORS = [
@@ -116,7 +121,8 @@ export const CenterStage: React.FC<CenterStageProps> = ({
   activeCanvasTab = 'slides',
   onCanvasTabChange,
   embeddedUrl,
-  onCloseEmbed
+  onCloseEmbed,
+  sessionContext = {}
 }) => {
   const currentSlide = slides[currentSlideIndex];
   const isQuizSlide = currentSlide?.type === 'quiz';
@@ -201,6 +207,12 @@ export const CenterStage: React.FC<CenterStageProps> = ({
           </button>
         ))}
       </div>
+
+      {/* Target Words Overlay */}
+      <TargetWordsOverlay sessionContext={sessionContext} isTeacher={true} />
+
+      {/* Smart Summary Tip */}
+      <SmartSummaryTip sessionContext={sessionContext} />
 
       {/* Canvas Content */}
       <div className="flex-1 flex items-center justify-center p-6">
@@ -309,7 +321,7 @@ export const CenterStage: React.FC<CenterStageProps> = ({
         onMouseMove={toolbarIdle.onMouseMove}
         onMouseEnter={toolbarIdle.onMouseEnter}
       >
-        <div className="flex items-center gap-1 bg-gray-800/90 backdrop-blur-sm rounded-full px-2 py-2 shadow-xl border border-gray-700">
+        <div className="flex items-center gap-1 glass-panel rounded-full px-2 py-2 shadow-xl">
           {tools.map((tool) => (
             <Button
               key={tool.id}

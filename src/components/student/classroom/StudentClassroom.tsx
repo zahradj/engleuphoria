@@ -34,6 +34,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
   const [zenElapsed, setZenElapsed] = useState(0);
 
   const headerIdle = useIdleOpacity({ idleTimeout: 3000, idleOpacity: 0.4 });
+  const sidebarIdle = useIdleOpacity({ idleTimeout: 4000, idleOpacity: 0.3 });
 
   const {
     currentSlide,
@@ -193,14 +194,16 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
       <div className="flex-1 flex overflow-hidden">
         {/* Left Sidebar - Communication */}
         {!isZenMode && (
-          <StudentCommunicationSidebar
-            studentName={studentName}
-            teacherName="Teacher"
-            isMuted={isMuted}
-            isCameraOff={isCameraOff}
-            onToggleMute={() => setIsMuted(!isMuted)}
-            onToggleCamera={() => setIsCameraOff(!isCameraOff)}
-          />
+          <div style={sidebarIdle.style} onMouseMove={sidebarIdle.onMouseMove} onMouseEnter={sidebarIdle.onMouseEnter}>
+            <StudentCommunicationSidebar
+              studentName={studentName}
+              teacherName="Teacher"
+              isMuted={isMuted}
+              isCameraOff={isCameraOff}
+              onToggleMute={() => setIsMuted(!isMuted)}
+              onToggleCamera={() => setIsCameraOff(!isCameraOff)}
+            />
+          </div>
         )}
 
         {/* Main Stage */}
@@ -222,6 +225,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
           embeddedUrl={embeddedUrl}
           isScreenSharing={isScreenSharing}
           activeCanvasTab={activeCanvasTab}
+          sessionContext={sessionContext}
           onAddStroke={addStroke}
         />
       </div>
