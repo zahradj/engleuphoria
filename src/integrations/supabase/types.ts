@@ -3975,6 +3975,7 @@ export type Database = {
           memory_consolidation_score: number | null
           neuroscience_engagement_score: number | null
           pages_completed: number | null
+          shared_notes: string | null
           student_id: string
           total_pages: number | null
           vocabulary_learned: string[] | null
@@ -3993,6 +3994,7 @@ export type Database = {
           memory_consolidation_score?: number | null
           neuroscience_engagement_score?: number | null
           pages_completed?: number | null
+          shared_notes?: string | null
           student_id: string
           total_pages?: number | null
           vocabulary_learned?: string[] | null
@@ -4011,6 +4013,7 @@ export type Database = {
           memory_consolidation_score?: number | null
           neuroscience_engagement_score?: number | null
           pages_completed?: number | null
+          shared_notes?: string | null
           student_id?: string
           total_pages?: number | null
           vocabulary_learned?: string[] | null
@@ -6547,6 +6550,7 @@ export type Database = {
           cefr_level: string
           created_at: string
           current_streak: number | null
+          daily_streak: number | null
           date_of_birth: string | null
           emergency_contact: string | null
           final_cefr_level: string | null
@@ -6560,6 +6564,7 @@ export type Database = {
           last_completed_sequence_b1: number | null
           last_completed_sequence_b2: number | null
           last_completed_sequence_prea1: number | null
+          last_streak_date: string | null
           learning_style: string | null
           long_term_goal: string | null
           longest_streak: number | null
@@ -6591,6 +6596,7 @@ export type Database = {
           cefr_level?: string
           created_at?: string
           current_streak?: number | null
+          daily_streak?: number | null
           date_of_birth?: string | null
           emergency_contact?: string | null
           final_cefr_level?: string | null
@@ -6604,6 +6610,7 @@ export type Database = {
           last_completed_sequence_b1?: number | null
           last_completed_sequence_b2?: number | null
           last_completed_sequence_prea1?: number | null
+          last_streak_date?: string | null
           learning_style?: string | null
           long_term_goal?: string | null
           longest_streak?: number | null
@@ -6635,6 +6642,7 @@ export type Database = {
           cefr_level?: string
           created_at?: string
           current_streak?: number | null
+          daily_streak?: number | null
           date_of_birth?: string | null
           emergency_contact?: string | null
           final_cefr_level?: string | null
@@ -6648,6 +6656,7 @@ export type Database = {
           last_completed_sequence_b1?: number | null
           last_completed_sequence_b2?: number | null
           last_completed_sequence_prea1?: number | null
+          last_streak_date?: string | null
           learning_style?: string | null
           long_term_goal?: string | null
           longest_streak?: number | null

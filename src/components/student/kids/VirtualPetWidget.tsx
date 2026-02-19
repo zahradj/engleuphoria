@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Sparkles, Star } from 'lucide-react';
+import { Heart, Sparkles, Star, MessageCircle } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
 interface VirtualPetWidgetProps {
@@ -29,6 +29,16 @@ const moodMessages = {
   sleepy: "Let's learn together... 💤",
 };
 
+const WORDS_OF_THE_DAY = [
+  { word: 'Adventure', meaning: 'An exciting experience' },
+  { word: 'Curious', meaning: 'Wanting to learn more' },
+  { word: 'Brave', meaning: 'Not afraid to try new things' },
+  { word: 'Imagine', meaning: 'To create pictures in your mind' },
+  { word: 'Explore', meaning: 'To discover new places or ideas' },
+  { word: 'Wonderful', meaning: 'Something amazing and great' },
+  { word: 'Discover', meaning: 'To find something new' },
+];
+
 export const VirtualPetWidget: React.FC<VirtualPetWidgetProps> = ({
   petType = 'lion',
   petHappiness = 50,
@@ -37,6 +47,11 @@ export const VirtualPetWidget: React.FC<VirtualPetWidgetProps> = ({
   onFeedPet,
 }) => {
   const [isAnimating, setIsAnimating] = useState(false);
+  
+  const todaysWord = useMemo(() => {
+    const dayIndex = new Date().getDate() % WORDS_OF_THE_DAY.length;
+    return WORDS_OF_THE_DAY[dayIndex];
+  }, []);
   
   const progress = Math.min((wordsLearnedToday / wordsGoal) * 100, 100);
   const canFeed = wordsLearnedToday >= wordsGoal;
@@ -115,6 +130,22 @@ export const VirtualPetWidget: React.FC<VirtualPetWidgetProps> = ({
           className="absolute -top-2 -right-2 bg-white rounded-2xl px-3 py-1 shadow-md border border-pink-200"
         >
           <p className="text-xs text-gray-700">{moodMessages[mood]}</p>
+        </motion.div>
+        
+        {/* Word of the Day Speech Bubble */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="mt-3 bg-white/80 rounded-2xl px-4 py-2 shadow-md border border-purple-200 relative"
+        >
+          <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-r-[6px] border-b-[8px] border-l-transparent border-r-transparent border-b-white/80" />
+          <div className="flex items-center gap-1 mb-1">
+            <MessageCircle className="w-3 h-3 text-purple-500" />
+            <span className="text-[10px] font-bold text-purple-600 uppercase tracking-wider">Word of the Day</span>
+          </div>
+          <p className="text-sm font-bold text-purple-800">{todaysWord.word}</p>
+          <p className="text-[10px] text-purple-600">{todaysWord.meaning}</p>
         </motion.div>
         
         {/* Celebration particles */}
