@@ -74,21 +74,23 @@ class ClassroomSyncService {
     }
   ): Promise<ClassroomSession | null> {
     try {
-      // Check for existing active session
+      // Check for ANY existing session for this room (regardless of status)
       const { data: existing } = await supabase
         .from('classroom_sessions')
         .select('*')
         .eq('room_id', roomId)
-        .eq('session_status', 'active')
-        .single();
+        .maybeSingle();
 
       if (existing) {
-        // Update existing session
+        // Reactivate / update existing session
         const { data, error } = await supabase
           .from('classroom_sessions')
           .update({
+            teacher_id: teacherId,
             lesson_title: lessonData.title,
             lesson_slides: lessonData.slides,
+            session_status: 'active',
+            ended_at: null,
             updated_at: new Date().toISOString()
           })
           .eq('id', existing.id)
