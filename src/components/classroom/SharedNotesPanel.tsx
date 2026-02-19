@@ -8,6 +8,9 @@ interface SharedNotesPanelProps {
   onNotesChange: (notes: string) => void;
   sessionContext: Record<string, any>;
   readOnly?: boolean;
+  typingUsers?: Array<{ userName: string; userId: string }>;
+  onTypingStart?: () => void;
+  onTypingEnd?: () => void;
 }
 
 const CONVERSATION_TEMPLATES = [
@@ -31,10 +34,14 @@ export const SharedNotesPanel: React.FC<SharedNotesPanelProps> = ({
   notes,
   onNotesChange,
   sessionContext,
-  readOnly = false
+  readOnly = false,
+  typingUsers = [],
+  onTypingStart,
+  onTypingEnd
 }) => {
   const [localNotes, setLocalNotes] = useState(notes);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setLocalNotes(notes);
@@ -42,18 +49,25 @@ export const SharedNotesPanel: React.FC<SharedNotesPanelProps> = ({
 
   const handleChange = useCallback((value: string) => {
     setLocalNotes(value);
+
+    // Signal typing start
+    onTypingStart?.();
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => {
+      onTypingEnd?.();
+    }, 1500);
+
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       onNotesChange(value);
     }, 500);
-  }, [onNotesChange]);
+  }, [onNotesChange, onTypingStart, onTypingEnd]);
 
   const handleAiSuggest = useCallback(() => {
     const interests: string[] = sessionContext?.interests || [];
     const lastMistake: string = sessionContext?.lastMistake || '';
     const suggestions: string[] = [];
 
-    // Match interests to templates
     for (const interest of interests) {
       const match = CONVERSATION_TEMPLATES.find(t =>
         interest.toLowerCase().includes(t.interest)
@@ -63,12 +77,10 @@ export const SharedNotesPanel: React.FC<SharedNotesPanelProps> = ({
       }
     }
 
-    // Add mistake-based suggestion
     if (lastMistake && lastMistake !== 'None recorded') {
       suggestions.push(`Practice area: "${lastMistake}" — Try using it in a sentence.`);
     }
 
-    // Fill with fallbacks
     while (suggestions.length < 3) {
       const fallback = FALLBACK_STARTERS[suggestions.length % FALLBACK_STARTERS.length];
       if (!suggestions.includes(fallback)) suggestions.push(fallback);
@@ -104,6 +116,12 @@ export const SharedNotesPanel: React.FC<SharedNotesPanelProps> = ({
         placeholder={readOnly ? 'Notes will appear here...' : 'Type lesson notes here...'}
         className="min-h-[120px] bg-gray-800/50 border-gray-700 text-gray-200 text-sm resize-none placeholder:text-gray-500"
       />
+      {/* Typing indicator */}
+      {typingUsers.length > 0 && (
+        <p className="text-[10px] text-purple-400 animate-pulse">
+          {typingUsers.map(u => u.userName).join(', ')} {typingUsers.length === 1 ? 'is' : 'are'} typing...
+        </p>
+      )}
     </div>
   );
 };

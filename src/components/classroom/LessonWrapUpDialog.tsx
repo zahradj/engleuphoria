@@ -14,6 +14,7 @@ interface LessonWrapUpDialogProps {
   studentId?: string;
   teacherId?: string;
   vocabularyWords?: string[];
+  sharedNotes?: string;
 }
 
 const IMPROVEMENT_AREAS = ['Grammar', 'Pronunciation', 'Vocabulary', 'Fluency', 'Listening'];
@@ -24,7 +25,8 @@ export const LessonWrapUpDialog: React.FC<LessonWrapUpDialogProps> = ({
   lessonId,
   studentId,
   teacherId,
-  vocabularyWords = ['accomplish', 'schedule', 'presentation', 'negotiate', 'deadline']
+  vocabularyWords = ['accomplish', 'schedule', 'presentation', 'negotiate', 'deadline'],
+  sharedNotes = ''
 }) => {
   const { toast } = useToast();
   const [masteredWords, setMasteredWords] = useState<string[]>([]);
@@ -63,6 +65,16 @@ export const LessonWrapUpDialog: React.FC<LessonWrapUpDialogProps> = ({
         student_performance_rating: rating,
         lesson_objectives_met: masteredWords.length >= vocabularyWords.length / 2
       });
+
+      // Save shared notes to lesson_completions
+      if (lessonId && studentId && sharedNotes) {
+        await supabase.from('lesson_completions').upsert({
+          lesson_id: lessonId,
+          student_id: studentId,
+          shared_notes: sharedNotes,
+          completed_at: new Date().toISOString()
+        }, { onConflict: 'lesson_id,student_id' });
+      }
 
       // Update student mistake_history if improvements noted
       if (studentId && areasForImprovement.length > 0) {

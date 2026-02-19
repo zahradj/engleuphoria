@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Rnd } from 'react-rnd';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, X, Target, GripVertical } from 'lucide-react';
+import { Sparkles, X, Target, GripVertical, AlertTriangle } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { SharedNotesPanel } from './SharedNotesPanel';
 
@@ -52,6 +52,21 @@ export const FloatingCoPilot: React.FC<FloatingCoPilotProps> = ({
   const [missionItems, setMissionItems] = useState<MissionItem[]>(() =>
     getDefaultMission(lessonTitle, sessionContext)
   );
+
+  // Extract weak points from mistake_history in session context
+  const weakPointsTips = useMemo(() => {
+    const mistakes: Array<{ error_type: string }> = sessionContext?.mistakeHistory || [];
+    if (mistakes.length === 0) return [];
+    // Count frequency
+    const freq: Record<string, number> = {};
+    for (const m of mistakes) {
+      freq[m.error_type] = (freq[m.error_type] || 0) + 1;
+    }
+    return Object.entries(freq)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([area, count]) => `${area} (${count} occurrence${count > 1 ? 's' : ''})`);
+  }, [sessionContext?.mistakeHistory]);
 
   const handleToggle = (id: string) => {
     if (!isTeacher) return;
@@ -133,6 +148,23 @@ export const FloatingCoPilot: React.FC<FloatingCoPilotProps> = ({
               </div>
             ))}
           </div>
+
+          <div className="h-px bg-gray-800" />
+
+          {/* AI Weak Points Tips */}
+          {isTeacher && weakPointsTips.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wider flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3 text-amber-400" />
+                Student Weak Areas
+              </p>
+              <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 space-y-1">
+                {weakPointsTips.map((tip, i) => (
+                  <p key={i} className="text-xs text-amber-300">• Focus on: {tip}</p>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="h-px bg-gray-800" />
 

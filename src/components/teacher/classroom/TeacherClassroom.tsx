@@ -383,6 +383,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
         lessonId={lessonId}
         studentId={studentId}
         teacherId={user?.id}
+        sharedNotes={sharedNotes}
       />
 
       {/* Dice Roller Dialog */}

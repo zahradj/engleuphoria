@@ -64,6 +64,7 @@ export interface SessionUpdate {
 
 class ClassroomSyncService {
   private channels: Map<string, any> = new Map();
+  private presenceCallbacks: Map<string, (state: Record<string, any[]>) => void> = new Map();
 
   async cleanupStaleSessions(): Promise<number> {
     try {
@@ -309,6 +310,56 @@ class ClassroomSyncService {
         this.channels.delete(channelName);
       }
     };
+  }
+
+  // Presence: track typing state
+  trackPresence(
+    roomId: string,
+    userId: string,
+    userName: string,
+    onPresenceChange: (state: Record<string, any[]>) => void
+  ): () => void {
+    const channelName = `presence_${roomId}`;
+
+    if (this.channels.has(channelName)) {
+      supabase.removeChannel(this.channels.get(channelName));
+    }
+
+    this.presenceCallbacks.set(channelName, onPresenceChange);
+
+    const channel = supabase.channel(channelName, {
+      config: { presence: { key: userId } }
+    });
+
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        const cb = this.presenceCallbacks.get(channelName);
+        if (cb) cb(state);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await channel.track({ userId, userName, isTyping: false });
+        }
+      });
+
+    this.channels.set(channelName, channel);
+
+    return () => {
+      if (this.channels.has(channelName)) {
+        supabase.removeChannel(this.channels.get(channelName));
+        this.channels.delete(channelName);
+        this.presenceCallbacks.delete(channelName);
+      }
+    };
+  }
+
+  async updatePresence(roomId: string, userId: string, userName: string, isTyping: boolean): Promise<void> {
+    const channelName = `presence_${roomId}`;
+    const channel = this.channels.get(channelName);
+    if (channel) {
+      await channel.track({ userId, userName, isTyping });
+    }
   }
 
   private mapToSession(data: any): ClassroomSession {
