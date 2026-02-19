@@ -1,169 +1,167 @@
 
-
-# Phase 7: "Perfect Classroom" -- AI Live-Syllabus, Shared Notes, Feedback Loop, and UI Polish
+# Phase 8: Smart Minimalist Classroom -- Floating AI Co-Pilot, Zen Mode, Unified Canvas, and Auto-Hide Controls
 
 ## Summary
 
-Four professional improvements to both the Teacher and Student classroom views: an AI-powered "Today's Mission" sidebar, a real-time shared notes area with AI conversation starters, a teacher-only lesson wrap-up feedback form, and UI polish (live indicator + focus mode).
+This upgrade declutters the classroom by converting the fixed "Today's Mission" sidebar into a draggable floating bubble, upgrading the existing Focus Mode into a true "Zen Mode" that shows only video + content, making call controls auto-hide on idle, and combining the whiteboard + embedded content into a single tabbed canvas area.
 
 ---
 
-## Database Changes (Migration)
+## Part 1: Floating AI Co-Pilot Bubble
 
-Add 2 new columns to the existing `classroom_sessions` table to support real-time shared notes syncing:
+### What Changes
 
-```sql
-ALTER TABLE public.classroom_sessions
-  ADD COLUMN IF NOT EXISTS shared_notes text DEFAULT '',
-  ADD COLUMN IF NOT EXISTS session_context jsonb DEFAULT '{}';
-```
+Replace the fixed `TodaysMissionSidebar` (currently a permanent 288px-wide right panel) with a small draggable floating bubble that expands into a compact overlay when clicked.
 
-- `shared_notes`: Real-time synced text area content (teacher writes, student sees via Realtime subscription -- already in place for other fields)
-- `session_context`: Stores the "Context Handshake" data loaded when teacher enters (student level, last mistakes, interests) so both views can read it
+### New File: `src/components/classroom/FloatingCoPilot.tsx`
 
-No new tables needed. The existing `lesson_feedback_submissions` table already handles wrap-up data (fields: `feedback_content`, `student_performance_rating`, `lesson_objectives_met`, `homework_assigned`).
+- **Collapsed state**: A small circular button (48x48) positioned bottom-right with a sparkle icon + subtle pulse animation
+- **Expanded state**: A 360px-wide floating card (using `react-rnd` for drag + resize) containing:
+  - Mission checklist (same 3 checkboxes from TodaysMissionSidebar)
+  - Shared Notes textarea (same SharedNotesPanel)
+  - "AI Suggest" button (same logic)
+  - Context banner (student level + last mistake)
+- The bubble can be dragged anywhere on screen and remembers its position in local state
+- A close button collapses it back to the bubble
+- Props are identical to `TodaysMissionSidebar` so it is a drop-in replacement
 
----
+### File: `src/components/teacher/classroom/TeacherClassroom.tsx` (Modify)
 
-## Part 1: AI Live-Syllabus Sidebar ("Today's Mission")
+- Remove `<TodaysMissionSidebar>` from the 3-column layout
+- Add `<FloatingCoPilot>` as a positioned overlay inside the main container
+- Pass the same props: `lessonTitle`, `isTeacher`, `sharedNotes`, `sessionContext`, `onNotesChange`
 
-### New File: `src/components/classroom/TodaysMissionSidebar.tsx`
+### File: `src/components/student/classroom/StudentClassroom.tsx` (Modify)
 
-A collapsible right-side panel visible to both teacher and student that displays:
+- Same replacement: remove `<TodaysMissionSidebar>`, add `<FloatingCoPilot>` with `isTeacher={false}`
 
-- **Target Vocabulary**: 4-6 words pulled from the current lesson's objectives (`lessons.lesson_objectives`)
-- **Main Grammar Point**: Extracted from the lesson title or objectives
-- **Practical Goal**: A human-readable goal (e.g., "Order a coffee in English")
-- Each item has a checkbox -- teacher can tick them off during the lesson (synced via `classroom_sessions.session_context`)
-- Styled with a dark glass panel (`bg-gray-900/95 backdrop-blur`) to match the existing classroom aesthetic
-- Collapsible via a chevron toggle (same pattern as `SlideNavigator`)
-
-Data flow: When the teacher enters the classroom, a query fetches the `lesson_objectives` from the `lessons` table using the `room_id`. If no structured objectives exist, fallback to the lesson title.
+**Screen space saved**: ~288px of permanent sidebar width reclaimed for the main stage.
 
 ---
 
-## Part 2: Real-Time Shared Notes + AI Suggest
+## Part 2: True Zen Mode (Deep Focus)
 
-### New File: `src/components/classroom/SharedNotesPanel.tsx`
+### What Changes
 
-- A textarea area embedded within the "Today's Mission" sidebar (below the checklist)
-- Teacher types notes; content saved to `classroom_sessions.shared_notes` on debounced input (500ms)
-- Student sees notes updating in real-time via the existing Realtime subscription on `classroom_sessions`
-- Students can also type (both parties share the same text field)
+The existing Focus Mode hides the sidebars but keeps the full top bar. True Zen Mode goes further: it hides everything except the video feeds and the current slide/content, with all controls fading away until mouse movement.
 
-### "AI Suggest" Button
+### File: `src/components/teacher/classroom/TeacherClassroom.tsx` (Modify)
 
-- A button labeled "AI Suggest" with a sparkle icon
-- When clicked, reads the student's profile (`student_level`, `interests`, `mistake_history`) from `session_context`
-- Generates 3 personalized conversation starters locally (no edge function needed -- template-based):
-  - If student interested in "Minecraft": "Tell me about your favorite Minecraft world"
-  - If student struggled with Present Perfect: "Have you ever visited another country?"
-  - Generic fallback: "What did you do last weekend?"
-- Results are appended to the shared notes area
+- Rename `isFocusMode` to `isZenMode` (and update all references)
+- When `isZenMode` is true:
+  - Hide the `ClassroomTopBar` entirely (not just parts of it)
+  - Hide the `CommunicationZone` sidebar
+  - Hide the `SlideNavigator` sidebar
+  - Hide the `FloatingCoPilot` bubble
+  - Show a minimal floating overlay at top-center: just the LIVE dot + elapsed time + "Exit Zen" button
+  - This overlay auto-hides after 3 seconds of no mouse movement (use `onMouseMove` with a timeout)
+  - The video feeds move to a small picture-in-picture corner (top-left, 200x150, draggable)
 
-### Service Updates
+### File: `src/components/student/classroom/StudentClassroom.tsx` (Modify)
 
-**File: `src/services/classroomSyncService.ts`** (Modify)
+- Same Zen Mode logic: hide header, sidebar, and co-pilot
+- Show minimal overlay with LIVE dot + "Exit Zen" button
+- Teacher video appears as PiP corner
 
-- Add `sharedNotes` and `sessionContext` to `ClassroomSession` interface
-- Add `sharedNotes` and `sessionContext` to `SessionUpdate` interface
-- Add mapping in `updateSession()` for `shared_notes` and `session_context`
-- Add mapping in `mapToSession()` for both fields
+### New File: `src/components/classroom/ZenModeOverlay.tsx`
 
-**File: `src/hooks/useClassroomSync.ts`** (Modify)
+- A thin, semi-transparent bar (auto-hides on idle) containing:
+  - Pulsing red LIVE dot
+  - Elapsed time (font-mono)
+  - Mute/Camera toggle buttons (compact)
+  - "Exit Zen" button
+- Uses `opacity-0` + `transition-opacity` + `group-hover:opacity-100` pattern or a `mousemove` timer
+- Appears at the top of the screen, fades in on hover/movement
 
-- Expose `sharedNotes` and `sessionContext` from session state
-- Add `updateSharedNotes(notes: string)` action
-- Add `updateSessionContext(context: object)` action
-- Return both in the hook's return object
+### New File: `src/components/classroom/PictureInPicture.tsx`
 
----
+- A small draggable video container (using `react-rnd`) for showing the remote participant's video feed during Zen Mode
+- Default position: top-left corner, 200x150
+- Shows a minimal name label and connection dot
+- Can be dragged anywhere on screen
 
-## Part 3: Context Handshake (Teacher Enters Room)
+### File: `src/components/teacher/classroom/ClassroomTopBar.tsx` (Modify)
 
-### New File: `src/hooks/useStudentContext.ts`
+- Rename `isFocusMode` prop to `isZenMode`
+- Update the toggle button icon/label
 
-- A hook that takes a `studentId` and fetches:
-  - `student_profiles`: `student_level`, `mistake_history`, `interests`, `cefr_level`
-  - `users`: `full_name`
-- Returns a formatted context object:
-  ```typescript
-  {
-    studentName: "Emma",
-    level: "professional",
-    cefrLevel: "B1",
-    lastMistake: "Present Perfect tense",
-    interests: ["Technology", "Travel"],
-    summary: "Reminder: This student is in the Professional track and struggled with 'Present Perfect' yesterday."
-  }
-  ```
-- This context is saved to `classroom_sessions.session_context` when the teacher enters, so both views can read it
-- Teacher sees a small notification banner at the top of the classroom: "Emma -- Professional Track -- Last struggle: Present Perfect"
+### File: `src/components/student/classroom/StudentClassroomHeader.tsx` (Modify)
 
-### Integration in Teacher Classroom
-
-**File: `src/components/teacher/classroom/TeacherClassroom.tsx`** (Modify)
-
-- Call `useStudentContext(studentId)` on mount
-- Save the context to the session via `updateSessionContext()`
-- Pass the context to `TodaysMissionSidebar`
+- Rename `isFocusMode` prop to `isZenMode`
+- Update the toggle button
 
 ---
 
-## Part 4: Instant Lesson Feedback (Teacher-Only Wrap-Up)
+## Part 3: Unified Tabbed Canvas
 
-### New File: `src/components/classroom/LessonWrapUpDialog.tsx`
+### What Changes
 
-- A dialog triggered by a "Lesson Wrap-Up" button (visible only to teachers)
-- Contains:
-  - **Words Mastered**: Multi-select checkboxes from the Target Vocabulary list
-  - **Areas for Improvement**: Dropdown options (Grammar, Pronunciation, Vocabulary, Fluency, Listening)
-  - **Quick Notes**: Short text area
-  - **Performance Rating**: 1-5 stars
-- On submit:
-  1. Inserts into `lesson_feedback_submissions` (already exists with all needed columns)
-  2. Updates `student_profiles.mistake_history` with any new areas for improvement
-  3. Shows a success toast
+Currently the whiteboard (CenterStage with CollaborativeCanvas) and the embedded content viewer (EmbeddedContentViewer) are separate overlapping components. Combine them into a single tabbed area.
 
-### Integration
+### File: `src/components/teacher/classroom/CenterStage.tsx` (Modify)
 
-- Add "Lesson Wrap-Up" button to `ClassroomTopBar.tsx` (teacher view only)
-- Button styled with a clipboard icon, positioned near the "End Class" button
+- Add tabs at the top of the stage: **Slides** | **Whiteboard** | **Web Content**
+- Use a minimal tab bar (just text tabs, no heavy UI) with an underline indicator
+- **Slides tab** (default): Shows the current slide with the drawing overlay (existing behavior)
+- **Whiteboard tab**: Shows a full blank canvas for freeform drawing (reuses CollaborativeCanvas at full size with white background)
+- **Web Content tab**: Shows the embedded iframe viewer (currently handled by EmbeddedContentViewer)
+  - When a teacher embeds a link, auto-switch to this tab
+  - "Close" button returns to Slides tab
+- The floating toolbar (pen, eraser, etc.) remains visible across all tabs
+- Slide navigation arrows only show on the Slides tab
 
----
+### File: `src/components/teacher/classroom/TeacherClassroom.tsx` (Modify)
 
-## Part 5: UI Polish
+- Remove the separate `<EmbeddedContentViewer>` render block
+- Pass `embeddedUrl` and `onCloseEmbed` to `CenterStage` instead
+- Add `activeCanvasTab` state and pass it to CenterStage
 
-### 5A. Live Indicator
+### File: `src/components/student/classroom/StudentMainStage.tsx` (Modify)
 
-**File: `src/components/teacher/classroom/ClassroomTopBar.tsx`** (Modify)
-**File: `src/components/student/classroom/StudentClassroomHeader.tsx`** (Modify)
+- Mirror the same tabbed structure (Slides | Whiteboard | Web Content)
+- Student sees whichever tab the teacher has selected (synced via `classroomSync`)
+- Read-only whiteboard tab unless `studentCanDraw` is true
 
-- Add a pulsing red dot next to the connection badge when `isConnected` is true
-- CSS: `animate-pulse` with a `bg-red-500 rounded-full h-2.5 w-2.5` element
-- Label: "LIVE" in small red text next to the dot
+### Service Update: `src/services/classroomSyncService.ts` (Modify)
 
-### 5B. Focus Mode
+- Add `activeCanvasTab` to the `SessionUpdate` interface
+- Sync the active tab so student sees the same view as teacher
 
-**File: `src/components/student/classroom/StudentClassroom.tsx`** (Modify)
-**File: `src/components/teacher/classroom/TeacherClassroom.tsx`** (Modify)
+### Hook Update: `src/hooks/useClassroomSync.ts` (Modify)
 
-- Both classrooms already use `h-screen` and don't render the global nav
-- Add a keyboard shortcut `F11` or a toggle button to enter/exit browser-like "Focus Mode"
-- Focus Mode: hides the header bar (just the top bar shrinks to minimal -- lesson title + live dot + leave button only)
-- Toggle via a small eye icon in the header
+- Expose `activeCanvasTab` from session state
+- Add `updateCanvasTab(tab: string)` action
 
 ---
 
-## Notes Persistence for Student Dashboard
+## Part 4: Auto-Hide Controls
 
-### File: `src/components/student/dashboards/PlaygroundDashboard.tsx` (Modify)
-### File: `src/components/student/dashboards/AcademyDashboard.tsx` (Modify)
-### File: `src/components/student/dashboards/HubDashboard.tsx` (Modify)
+### What Changes
 
-- Add a "Last Lesson Notes" card that queries the most recent `classroom_sessions.shared_notes` for the student
-- Displays the saved notes in a read-only card below the Daily Quest section
-- Only shows if notes exist from the last session
+Make the call controls (Mute, Camera, End Call) and the floating drawing toolbar semi-transparent when idle, fully visible on hover.
+
+### File: `src/components/teacher/classroom/ClassroomTopBar.tsx` (Modify)
+
+- Wrap the entire top bar in a container that uses `opacity-70 hover:opacity-100 transition-opacity duration-300`
+- When the user hasn't moved their mouse for 3 seconds, reduce opacity to 0.4
+- On any mouse movement over the bar, restore to full opacity
+- The LIVE indicator always stays visible (exempt from fade)
+
+### File: `src/components/teacher/classroom/CenterStage.tsx` (Modify)
+
+- Apply the same auto-fade logic to the floating toolbar at the bottom
+- Toolbar fades to `opacity-40` after 3 seconds of inactivity
+- Fully visible on hover or mouse movement
+
+### File: `src/components/student/classroom/StudentClassroomHeader.tsx` (Modify)
+
+- Same auto-fade behavior for the student header bar
+
+### Shared Hook: `src/hooks/useIdleOpacity.ts` (Create)
+
+- A reusable hook that tracks mouse movement and returns an opacity class
+- Parameters: `idleTimeout` (default 3000ms), `activeOpacity` (default 1), `idleOpacity` (default 0.4)
+- Returns `{ opacity, onMouseMove, onMouseEnter }` for applying to containers
 
 ---
 
@@ -171,18 +169,15 @@ Data flow: When the teacher enters the classroom, a query fetches the `lesson_ob
 
 | File | Action | Description |
 |------|--------|-------------|
-| **Migration** | SQL | Add `shared_notes` and `session_context` columns to `classroom_sessions` |
-| `src/components/classroom/TodaysMissionSidebar.tsx` | Create | Collapsible mission sidebar with vocabulary, grammar, and goal checkboxes |
-| `src/components/classroom/SharedNotesPanel.tsx` | Create | Real-time shared notes textarea with AI Suggest button |
-| `src/components/classroom/LessonWrapUpDialog.tsx` | Create | Teacher-only wrap-up form (words mastered, areas for improvement) |
-| `src/hooks/useStudentContext.ts` | Create | Fetches student profile context for the "Context Handshake" |
-| `src/services/classroomSyncService.ts` | Modify | Add `sharedNotes` and `sessionContext` to sync interfaces and mappings |
-| `src/hooks/useClassroomSync.ts` | Modify | Expose shared notes and session context; add update actions |
-| `src/components/teacher/classroom/TeacherClassroom.tsx` | Modify | Integrate mission sidebar, context handshake, wrap-up button, focus mode |
-| `src/components/teacher/classroom/ClassroomTopBar.tsx` | Modify | Add live indicator dot, wrap-up button, focus mode toggle |
-| `src/components/student/classroom/StudentClassroom.tsx` | Modify | Add mission sidebar (read-only checkboxes), focus mode |
-| `src/components/student/classroom/StudentClassroomHeader.tsx` | Modify | Add live indicator dot |
-| `src/components/student/dashboards/PlaygroundDashboard.tsx` | Modify | Add "Last Lesson Notes" card |
-| `src/components/student/dashboards/AcademyDashboard.tsx` | Modify | Add "Last Lesson Notes" card |
-| `src/components/student/dashboards/HubDashboard.tsx` | Modify | Add "Last Lesson Notes" card |
-
+| `src/components/classroom/FloatingCoPilot.tsx` | Create | Draggable floating bubble replacing the fixed mission sidebar |
+| `src/components/classroom/ZenModeOverlay.tsx` | Create | Auto-hiding minimal control bar for Zen Mode |
+| `src/components/classroom/PictureInPicture.tsx` | Create | Draggable PiP video container for Zen Mode |
+| `src/hooks/useIdleOpacity.ts` | Create | Reusable hook for auto-fading UI on idle |
+| `src/components/teacher/classroom/TeacherClassroom.tsx` | Modify | Replace sidebar with FloatingCoPilot, add Zen Mode, pass canvas tab state |
+| `src/components/student/classroom/StudentClassroom.tsx` | Modify | Replace sidebar with FloatingCoPilot, add Zen Mode |
+| `src/components/teacher/classroom/ClassroomTopBar.tsx` | Modify | Rename to isZenMode, add auto-fade behavior |
+| `src/components/student/classroom/StudentClassroomHeader.tsx` | Modify | Rename to isZenMode, add auto-fade behavior |
+| `src/components/teacher/classroom/CenterStage.tsx` | Modify | Add Slides/Whiteboard/Web tabs, merge embedded viewer, auto-fade toolbar |
+| `src/components/student/classroom/StudentMainStage.tsx` | Modify | Mirror tabbed canvas from teacher view |
+| `src/services/classroomSyncService.ts` | Modify | Add `activeCanvasTab` to sync interface |
+| `src/hooks/useClassroomSync.ts` | Modify | Expose `activeCanvasTab` and `updateCanvasTab()` |
