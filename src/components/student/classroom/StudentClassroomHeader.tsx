@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Mic, MicOff, Video, VideoOff, LogOut, Wifi, WifiOff, Eye, EyeOff } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, LogOut, Wifi, WifiOff, Maximize2, Minimize2 } from 'lucide-react';
 
 interface StudentClassroomHeaderProps {
   lessonTitle: string;
@@ -11,8 +11,8 @@ interface StudentClassroomHeaderProps {
   onToggleMute: () => void;
   onToggleCamera: () => void;
   onLeaveClass: () => void;
-  isFocusMode?: boolean;
-  onToggleFocusMode?: () => void;
+  isZenMode?: boolean;
+  onToggleZenMode?: () => void;
 }
 
 export const StudentClassroomHeader: React.FC<StudentClassroomHeaderProps> = ({
@@ -23,14 +23,13 @@ export const StudentClassroomHeader: React.FC<StudentClassroomHeaderProps> = ({
   onToggleMute,
   onToggleCamera,
   onLeaveClass,
-  isFocusMode = false,
-  onToggleFocusMode
+  isZenMode = false,
+  onToggleZenMode
 }) => {
   return (
     <div className="h-14 bg-gray-900 border-b border-gray-800 px-4 flex items-center justify-between">
       {/* Left: Live Indicator + Lesson Title */}
       <div className="flex items-center gap-3">
-        {/* Live Indicator */}
         {isConnected && (
           <div className="flex items-center gap-1.5">
             <div className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse" />
@@ -38,7 +37,7 @@ export const StudentClassroomHeader: React.FC<StudentClassroomHeaderProps> = ({
           </div>
         )}
         <h1 className="text-lg font-semibold text-white">{lessonTitle}</h1>
-        <Badge 
+        <Badge
           variant={isConnected ? 'default' : 'destructive'}
           className={`flex items-center gap-1 ${isConnected ? 'bg-green-600' : 'bg-red-600'}`}
         >
@@ -65,15 +64,15 @@ export const StudentClassroomHeader: React.FC<StudentClassroomHeaderProps> = ({
         >
           {isCameraOff ? <VideoOff className="h-4 w-4" /> : <Video className="h-4 w-4" />}
         </Button>
-        {/* Focus Mode Toggle */}
-        {onToggleFocusMode && (
+        {onToggleZenMode && (
           <Button
             variant="ghost"
             size="icon"
-            onClick={onToggleFocusMode}
+            onClick={onToggleZenMode}
             className="h-9 w-9 rounded-full bg-gray-700 hover:bg-gray-600"
+            title="Zen Mode (F11)"
           >
-            {isFocusMode ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            {isZenMode ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
           </Button>
         )}
         <div className="h-6 w-px bg-gray-700 mx-2" />

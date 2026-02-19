@@ -46,6 +46,8 @@ interface UseClassroomSyncReturn {
   // Phase 7: Shared notes & context
   sharedNotes: string;
   sessionContext: Record<string, any>;
+  // Phase 8: Canvas tab sync
+  activeCanvasTab: string;
   // Whiteboard state
   strokes: WhiteboardStroke[];
   
@@ -74,6 +76,8 @@ interface UseClassroomSyncReturn {
   // Phase 7: Shared notes & context actions
   updateSharedNotes: (notes: string) => Promise<void>;
   updateSessionContext: (context: Record<string, any>) => Promise<void>;
+  // Phase 8: Canvas tab
+  updateCanvasTab: (tab: string) => Promise<void>;
 }
 
 export const useClassroomSync = ({
@@ -268,6 +272,16 @@ export const useClassroomSync = ({
     }
   }, [roomId]);
 
+  const updateCanvasTab = useCallback(async (tab: string) => {
+    if (role !== 'teacher') return;
+    try {
+      await classroomSyncService.updateSession(roomId, { activeCanvasTab: tab });
+      setSession(prev => prev ? { ...prev, activeCanvasTab: tab } : null);
+    } catch (error) {
+      console.error('Failed to update canvas tab:', error);
+    }
+  }, [roomId, role]);
+
   return {
     session,
     currentSlide: session?.currentSlideIndex ?? 0,
@@ -293,6 +307,7 @@ export const useClassroomSync = ({
     diceValue: session?.diceValue ?? null,
     sharedNotes: session?.sharedNotes ?? '',
     sessionContext: session?.sessionContext ?? {},
+    activeCanvasTab: session?.activeCanvasTab ?? 'slides',
     strokes,
     updateSlide,
     updateTool,
@@ -302,6 +317,7 @@ export const useClassroomSync = ({
     clearCanvas,
     updateSharedDisplay,
     updateSharedNotes,
-    updateSessionContext
+    updateSessionContext,
+    updateCanvasTab
   };
 };

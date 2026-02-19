@@ -7,9 +7,12 @@ import { StudentCommunicationSidebar } from './StudentCommunicationSidebar';
 import { StudentMainStage } from './StudentMainStage';
 import { StarCelebration } from '@/components/teacher/classroom/StarCelebration';
 import { DiceRoller } from '@/components/teacher/classroom/DiceRoller';
-import { TodaysMissionSidebar } from '@/components/classroom/TodaysMissionSidebar';
+import { FloatingCoPilot } from '@/components/classroom/FloatingCoPilot';
+import { ZenModeOverlay } from '@/components/classroom/ZenModeOverlay';
+import { PictureInPicture } from '@/components/classroom/PictureInPicture';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Timer, Dice6 } from 'lucide-react';
+import { useIdleOpacity } from '@/hooks/useIdleOpacity';
 
 interface StudentClassroomProps {
   roomId: string;
@@ -27,7 +30,10 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
   const [isMuted, setIsMuted] = useState(true);
   const [isCameraOff, setIsCameraOff] = useState(false);
   const [activeColor, setActiveColor] = useState('#FF6B6B');
-  const [isFocusMode, setIsFocusMode] = useState(false);
+  const [isZenMode, setIsZenMode] = useState(false);
+  const [zenElapsed, setZenElapsed] = useState(0);
+
+  const headerIdle = useIdleOpacity({ idleTimeout: 3000, idleOpacity: 0.4 });
 
   const {
     currentSlide,
@@ -53,6 +59,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     diceValue,
     sharedNotes,
     sessionContext,
+    activeCanvasTab,
     updateSharedNotes
   } = useClassroomSync({
     roomId,
@@ -61,17 +68,24 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     role: 'student'
   });
 
-  // Focus mode keyboard shortcut
+  // Zen mode keyboard shortcut
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'F11') {
         e.preventDefault();
-        setIsFocusMode(prev => !prev);
+        setIsZenMode(prev => !prev);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  // Zen mode elapsed timer
+  useEffect(() => {
+    if (!isZenMode) return;
+    const interval = setInterval(() => setZenElapsed(prev => prev + 1), 1000);
+    return () => clearInterval(interval);
+  }, [isZenMode]);
 
   const handleLeaveClass = () => {
     toast({
@@ -81,8 +95,8 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
     navigate('/playground');
   };
 
-  const slides = lessonSlides.length > 0 
-    ? lessonSlides 
+  const slides = lessonSlides.length > 0
+    ? lessonSlides
     : [{ id: '1', title: 'Waiting for teacher...' }];
 
   return (
@@ -138,23 +152,47 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Header */}
-      <StudentClassroomHeader
-        lessonTitle={lessonTitle}
-        isConnected={isConnected}
-        isMuted={isMuted}
-        isCameraOff={isCameraOff}
-        onToggleMute={() => setIsMuted(!isMuted)}
-        onToggleCamera={() => setIsCameraOff(!isCameraOff)}
-        onLeaveClass={handleLeaveClass}
-        isFocusMode={isFocusMode}
-        onToggleFocusMode={() => setIsFocusMode(!isFocusMode)}
-      />
+      {/* Zen Mode Overlay */}
+      <AnimatePresence>
+        {isZenMode && (
+          <>
+            <ZenModeOverlay
+              elapsed={zenElapsed}
+              isMuted={isMuted}
+              isCameraOff={isCameraOff}
+              onToggleMute={() => setIsMuted(!isMuted)}
+              onToggleCamera={() => setIsCameraOff(!isCameraOff)}
+              onExitZen={() => setIsZenMode(false)}
+            />
+            <PictureInPicture
+              name="Teacher"
+              isConnected={isConnected}
+            />
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Header (hidden in Zen) */}
+      {!isZenMode && (
+        <div style={headerIdle.style} onMouseMove={headerIdle.onMouseMove} onMouseEnter={headerIdle.onMouseEnter}>
+          <StudentClassroomHeader
+            lessonTitle={lessonTitle}
+            isConnected={isConnected}
+            isMuted={isMuted}
+            isCameraOff={isCameraOff}
+            onToggleMute={() => setIsMuted(!isMuted)}
+            onToggleCamera={() => setIsCameraOff(!isCameraOff)}
+            onLeaveClass={handleLeaveClass}
+            isZenMode={isZenMode}
+            onToggleZenMode={() => setIsZenMode(!isZenMode)}
+          />
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Sidebar - Communication */}
-        {!isFocusMode && (
+        {!isZenMode && (
           <StudentCommunicationSidebar
             studentName={studentName}
             teacherName="Teacher"
@@ -183,18 +221,21 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
           pollShowResults={pollShowResults}
           embeddedUrl={embeddedUrl}
           isScreenSharing={isScreenSharing}
+          activeCanvasTab={activeCanvasTab}
           onAddStroke={addStroke}
         />
+      </div>
 
-        {/* Today's Mission Sidebar (read-only for students) */}
-        <TodaysMissionSidebar
+      {/* Floating AI Co-Pilot (hidden in Zen) */}
+      {!isZenMode && (
+        <FloatingCoPilot
           lessonTitle={lessonTitle}
           isTeacher={false}
           sharedNotes={sharedNotes}
           sessionContext={sessionContext}
           onNotesChange={updateSharedNotes}
         />
-      </div>
+      )}
     </div>
   );
 };
