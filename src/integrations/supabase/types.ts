@@ -8266,6 +8266,7 @@ export type Database = {
         Args: { teacher_uuid: string }
         Returns: undefined
       }
+      cleanup_stale_classroom_sessions: { Args: never; Returns: number }
       create_admin_notification: {
         Args: {
           p_message: string

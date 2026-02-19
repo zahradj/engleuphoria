@@ -65,6 +65,21 @@ export interface SessionUpdate {
 class ClassroomSyncService {
   private channels: Map<string, any> = new Map();
 
+  async cleanupStaleSessions(): Promise<number> {
+    try {
+      const { data, error } = await supabase.rpc('cleanup_stale_classroom_sessions');
+      if (error) throw error;
+      const count = data || 0;
+      if (count > 0) {
+        console.log(`🧹 Cleaned up ${count} stale session(s)`);
+      }
+      return count;
+    } catch (error) {
+      console.error('Failed to cleanup stale sessions:', error);
+      return 0;
+    }
+  }
+
   async createOrUpdateSession(
     roomId: string,
     teacherId: string,
@@ -74,6 +89,8 @@ class ClassroomSyncService {
     }
   ): Promise<ClassroomSession | null> {
     try {
+      // Clean up stale sessions before any room lookup
+      await this.cleanupStaleSessions();
       // Check for ANY existing session for this room (regardless of status)
       const { data: existing } = await supabase
         .from('classroom_sessions')
