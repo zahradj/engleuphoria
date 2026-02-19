@@ -1371,13 +1371,18 @@ export type Database = {
       }
       classroom_sessions: {
         Row: {
+          active_canvas_tab: string | null
           active_tool: string | null
           created_at: string
           current_poll_slide_id: string | null
           current_quiz_slide_id: string | null
           current_slide_index: number | null
+          dice_value: number | null
+          embedded_url: string | null
           ended_at: string | null
           id: string
+          is_milestone: boolean | null
+          is_screen_sharing: boolean | null
           lesson_id: string | null
           lesson_slides: Json | null
           lesson_title: string | null
@@ -1390,19 +1395,28 @@ export type Database = {
           session_context: Json | null
           session_status: string
           shared_notes: string | null
+          show_star_celebration: boolean | null
+          star_count: number | null
           started_at: string | null
           student_can_draw: boolean | null
           teacher_id: string
+          timer_running: boolean | null
+          timer_value: number | null
           updated_at: string
         }
         Insert: {
+          active_canvas_tab?: string | null
           active_tool?: string | null
           created_at?: string
           current_poll_slide_id?: string | null
           current_quiz_slide_id?: string | null
           current_slide_index?: number | null
+          dice_value?: number | null
+          embedded_url?: string | null
           ended_at?: string | null
           id?: string
+          is_milestone?: boolean | null
+          is_screen_sharing?: boolean | null
           lesson_id?: string | null
           lesson_slides?: Json | null
           lesson_title?: string | null
@@ -1415,19 +1429,28 @@ export type Database = {
           session_context?: Json | null
           session_status?: string
           shared_notes?: string | null
+          show_star_celebration?: boolean | null
+          star_count?: number | null
           started_at?: string | null
           student_can_draw?: boolean | null
           teacher_id: string
+          timer_running?: boolean | null
+          timer_value?: number | null
           updated_at?: string
         }
         Update: {
+          active_canvas_tab?: string | null
           active_tool?: string | null
           created_at?: string
           current_poll_slide_id?: string | null
           current_quiz_slide_id?: string | null
           current_slide_index?: number | null
+          dice_value?: number | null
+          embedded_url?: string | null
           ended_at?: string | null
           id?: string
+          is_milestone?: boolean | null
+          is_screen_sharing?: boolean | null
           lesson_id?: string | null
           lesson_slides?: Json | null
           lesson_title?: string | null
@@ -1440,9 +1463,13 @@ export type Database = {
           session_context?: Json | null
           session_status?: string
           shared_notes?: string | null
+          show_star_celebration?: boolean | null
+          star_count?: number | null
           started_at?: string | null
           student_can_draw?: boolean | null
           teacher_id?: string
+          timer_running?: boolean | null
+          timer_value?: number | null
           updated_at?: string
         }
         Relationships: []
