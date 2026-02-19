@@ -1,95 +1,84 @@
 
 
-# Phase 9.5c: Fix Duplicate Key Constraint Error
+# Phase 9.5d: Stale Session Cleanup + End-to-End Verification
 
-## Problem
+## Current State
 
-The `createOrUpdateSession` method in `classroomSyncService.ts` searches for an existing session filtered by `session_status = 'active'`. When it finds none (because prior sessions are `'ended'`), it attempts an INSERT, which fails because of the `classroom_sessions_room_id_key` unique constraint on `room_id`.
+The duplicate key fix (Phase 9.5c) is already applied in `classroomSyncService.ts`. The `createOrUpdateSession` method correctly looks up ANY existing session by `room_id` and reactivates it instead of inserting a duplicate.
 
-This causes a rapid error loop: query returns 0 active rows, insert fails with 23505, repeat.
+## 1. Add Stale Session Cleanup
 
-## Root Cause
+### Approach: Database Function + Client-Side Trigger
 
-Line 82 filters by `session_status = 'active'`, so ended sessions are invisible. But the unique constraint on `room_id` means only one row per room can ever exist.
+Since `pg_cron` requires manual setup in the Supabase dashboard, the most reliable approach is:
 
-## Solution
+1. **Create a database function** `cleanup_stale_classroom_sessions()` that marks sessions older than 24 hours as `'ended'`.
+2. **Call it from the sync service** at session creation time (lightweight -- runs once per teacher entering a room).
 
-Change the lookup to find ANY existing session for the room (regardless of status), then UPDATE it back to `'active'` instead of trying to INSERT a duplicate.
+### Database Migration
 
-### File: `src/services/classroomSyncService.ts`
+```sql
+CREATE OR REPLACE FUNCTION public.cleanup_stale_classroom_sessions()
+RETURNS integer
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+DECLARE
+  cleaned_count integer;
+BEGIN
+  UPDATE public.classroom_sessions
+  SET session_status = 'ended',
+      ended_at = now(),
+      updated_at = now()
+  WHERE session_status = 'active'
+    AND updated_at < now() - interval '24 hours';
+  
+  GET DIAGNOSTICS cleaned_count = ROW_COUNT;
+  RETURN cleaned_count;
+END;
+$$;
+```
 
-**Modify `createOrUpdateSession` method (lines 76-124)**
+### Code Change: `src/services/classroomSyncService.ts`
 
-Replace the existing logic with:
-
-1. Query for ANY existing session for the `room_id` (remove the `.eq('session_status', 'active')` filter).
-2. If a row exists, UPDATE it (reset status to `'active'`, update lesson data, clear ended_at).
-3. If no row exists, INSERT a new one.
+Add a `cleanupStaleSessions()` method to the `ClassroomSyncService` class that calls the database function via `supabase.rpc('cleanup_stale_classroom_sessions')`. Call it at the start of `createOrUpdateSession` so stale sessions are cleaned up before any room lookup.
 
 ```typescript
-async createOrUpdateSession(
-  roomId: string,
-  teacherId: string,
-  lessonData: {
-    title: string;
-    slides: Array<{ id: string; title: string; imageUrl?: string }>;
-  }
-): Promise<ClassroomSession | null> {
+async cleanupStaleSessions(): Promise<number> {
   try {
-    // Check for ANY existing session for this room (regardless of status)
-    const { data: existing } = await supabase
-      .from('classroom_sessions')
-      .select('*')
-      .eq('room_id', roomId)
-      .maybeSingle();
-
-    if (existing) {
-      // Reactivate / update existing session
-      const { data, error } = await supabase
-        .from('classroom_sessions')
-        .update({
-          teacher_id: teacherId,
-          lesson_title: lessonData.title,
-          lesson_slides: lessonData.slides,
-          session_status: 'active',
-          ended_at: null,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', existing.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return this.mapToSession(data);
-    }
-
-    // Create new session (only if no row exists for this room)
-    const { data, error } = await supabase
-      .from('classroom_sessions')
-      .insert({ ... })
-      .select()
-      .single();
-
+    const { data, error } = await supabase.rpc('cleanup_stale_classroom_sessions');
     if (error) throw error;
-    return this.mapToSession(data);
+    const count = data || 0;
+    if (count > 0) {
+      console.log(`Cleaned up ${count} stale session(s)`);
+    }
+    return count;
   } catch (error) {
-    console.error('Failed to create/update session:', error);
-    return null;
+    console.error('Failed to cleanup stale sessions:', error);
+    return 0;
   }
 }
 ```
 
-Key changes:
-- Remove `.eq('session_status', 'active')` from the lookup query (line 82)
-- Use `.maybeSingle()` instead of `.single()` to avoid 406 when 0 rows
-- On update, also set `session_status: 'active'` and `ended_at: null` to reactivate ended sessions
-- Also update `teacher_id` in case the demo UUID changed between sessions
+Then add one line at the top of `createOrUpdateSession`:
 
-No database migration needed. Only one file changes.
+```typescript
+await this.cleanupStaleSessions();
+```
+
+## 2. End-to-End Verification
+
+After applying, navigate to `/demo-classroom/test-room` and verify:
+- No 400 or 406 errors in console
+- Session creates/reactivates successfully
+- Teacher slide changes sync to student view
+- Interactive tools (timer, dice, stars) update in real time
 
 ## File Summary
 
 | File | Action | Description |
 |------|--------|-------------|
-| `src/services/classroomSyncService.ts` | Modify | Fix lookup to find any existing session, reactivate instead of re-inserting |
+| Database migration | Create | Add `cleanup_stale_classroom_sessions()` function |
+| `src/services/classroomSyncService.ts` | Modify | Add `cleanupStaleSessions()` method; call it in `createOrUpdateSession` |
 
