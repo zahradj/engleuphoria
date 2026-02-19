@@ -29,6 +29,8 @@ export interface ClassroomSession {
   // Phase 7: Shared notes & context
   sharedNotes: string;
   sessionContext: Record<string, any>;
+  // Phase 8: Canvas tab sync
+  activeCanvasTab: string;
 }
 
 export interface SessionUpdate {
@@ -56,6 +58,8 @@ export interface SessionUpdate {
   // Phase 7: Shared notes & context
   sharedNotes?: string;
   sessionContext?: Record<string, any>;
+  // Phase 8: Canvas tab sync
+  activeCanvasTab?: string;
 }
 
 class ClassroomSyncService {
@@ -213,6 +217,9 @@ class ClassroomSyncService {
       if (updates.sessionContext !== undefined) {
         updateData.session_context = updates.sessionContext;
       }
+      if (updates.activeCanvasTab !== undefined) {
+        updateData.active_canvas_tab = updates.activeCanvasTab;
+      }
 
       const { error } = await supabase
         .from('classroom_sessions')
@@ -313,7 +320,8 @@ class ClassroomSyncService {
       timerRunning: data.timer_running || false,
       diceValue: data.dice_value || null,
       sharedNotes: data.shared_notes || '',
-      sessionContext: data.session_context || {}
+      sessionContext: data.session_context || {},
+      activeCanvasTab: data.active_canvas_tab || 'slides'
     };
   }
 
