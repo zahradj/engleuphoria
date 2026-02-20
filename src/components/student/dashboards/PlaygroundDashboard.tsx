@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { KidsWorldMap, ThemeType } from '../kids/KidsWorldMap';
 import { usePlaygroundLessons } from '@/hooks/usePlaygroundLessons';
-import { Loader2 } from 'lucide-react';
 import { useLiveClassroomStatus } from '@/hooks/useLiveClassroomStatus';
 import { LiveSessionBadge } from '@/components/shared/LiveSessionBadge';
+import { PlaygroundSkeleton } from '@/components/shared/DashboardSkeleton';
 import { PlaygroundSidebar } from '../kids/PlaygroundSidebar';
 import { VirtualPetWidget } from '../kids/VirtualPetWidget';
 import { AILessonAgent } from '../AILessonAgent';
@@ -58,16 +58,7 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
   }, [user?.id]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-screen bg-gradient-to-b from-rose-100 to-pink-200">
-        <div className="text-center text-purple-800">
-          <Loader2 className="w-16 h-16 animate-spin mx-auto mb-4 text-pink-500" />
-          <p className="text-2xl font-bold" style={{ fontFamily: "'Fredoka', cursive" }}>
-            Loading your adventure...
-          </p>
-        </div>
-      </div>
-    );
+    return <PlaygroundSkeleton />;
   }
 
   if (error) {

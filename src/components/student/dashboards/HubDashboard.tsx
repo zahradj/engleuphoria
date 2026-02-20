@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { HubSkeleton } from '@/components/shared/DashboardSkeleton';
 import { useLiveClassroomStatus } from '@/hooks/useLiveClassroomStatus';
 import { LiveSessionBadge } from '@/components/shared/LiveSessionBadge';
 import { 
@@ -80,6 +81,8 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
   const mutedClass = isDarkMode ? 'text-gray-400' : 'text-gray-500';
   const borderClass = isDarkMode ? 'border-gray-700' : 'border-gray-100';
   const cardClass = isDarkMode ? 'bg-gray-800/50 border-gray-700' : 'bg-white border-gray-100';
+
+  if (isLoading) return <HubSkeleton />;
 
   return (
     <div className={`min-h-screen transition-colors ${bgClass}`}>

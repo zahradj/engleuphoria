@@ -65,19 +65,22 @@ export function OneOnOneVideoPanel({
   if (!teacherFeed || !studentFeed) return null;
 
   return (
-    <div 
+    <div
       className={`bg-black rounded-lg overflow-hidden shadow-md w-full ${
-        position === "fixed" 
-          ? "fixed top-2 right-2 z-50 w-[400px]" 
-          : "relative"
+        position === 'fixed'
+          ? 'fixed top-2 right-2 z-50 w-[min(400px,_calc(100vw-1rem))]'
+          : 'relative'
       }`}
-      style={{ transform: position === "static" ? `translateY(${topOffset}px)` : "none" }}
+      style={{ transform: position === 'static' ? `translateY(${topOffset}px)` : 'none' }}
     >
-      <div 
-        className={`flex flex-row gap-2 p-2 transition-all duration-500 ease-in-out ${animating ? 'animate-fade-in' : ''}`}
+      {/* Responsive: stack vertically on small screens, side-by-side on md+ */}
+      <div
+        className={`flex flex-col sm:flex-row gap-2 p-2 transition-all duration-500 ease-in-out ${
+          animating ? 'animate-fade-in' : ''
+        }`}
       >
         {/* Teacher video */}
-        <div className="flex-1 aspect-video max-w-full max-h-full relative bg-muted-foreground/20 rounded overflow-hidden border-2 border-blue-300">
+        <div className="w-full sm:flex-1 aspect-video relative bg-muted-foreground/20 rounded overflow-hidden border-2 border-blue-300">
           <VideoFeed
             feed={teacherFeed}
             isSmall={false}
@@ -94,7 +97,7 @@ export function OneOnOneVideoPanel({
         </div>
 
         {/* Student video */}
-        <div className="flex-1 aspect-video max-w-full max-h-full relative bg-muted-foreground/20 rounded overflow-hidden border-2 border-purple-300">
+        <div className="w-full sm:flex-1 aspect-video relative bg-muted-foreground/20 rounded overflow-hidden border-2 border-purple-300">
           <VideoFeed
             feed={studentFeed}
             isSmall={false}
