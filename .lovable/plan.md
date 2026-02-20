@@ -1,140 +1,126 @@
 
-# Steps 12, 13 & 14: Session IDs, Classroom Security & Deployment Checklist
+# Live Session Badge + NextLessonCard Real Data + End-to-End Verification
 
-## Audit Summary — What Already Exists
+## What Exists (Full Audit)
 
-After a deep inspection of every relevant file and the live database, here is the complete picture:
+### Teacher Side
+- `NextLessonCard.tsx` — **already wired to real data** via `get_teacher_upcoming_lessons` RPC. The "Replace mock data" task from the previous plan was already completed. The card properly shows the next upcoming lesson with student name, time, and countdown. The "Enter Classroom" button navigates to `/classroom/{room_id}`.
+- `NovakidDashboard.tsx` — renders `<NextLessonCard />` in the teacher dashboard's main column.
 
-**Already Built:**
-- `class_bookings` table: has `id`, `student_id`, `teacher_id`, `scheduled_at`, `status`, `duration`, but **no `session_id` or `meeting_link` columns**
-- `lessons` table: has `room_id` and `room_link` columns already
-- `classroom_sessions` table: tracks live sessions keyed by `room_id` (e.g. `MySchool_Class_{id}`)
-- `ClassroomQuickJoin` component: detects upcoming lessons within 15 minutes and shows a floating "Join" button
-- `TeacherClassroom` routes via `/classroom/:id` (teacher only, protected by `ImprovedProtectedRoute`)
-- `StudentClassroom` routes via `/student-classroom/:id` (student only, protected)
-- `ImprovedProtectedRoute`: properly redirects to `/login` for wrong roles — route protection is already solid
-- `send-lesson-reminders` edge function: includes `room_link` in the email if present
-- Teacher `NextLessonCard`: uses mock data and navigates to `/classroom/{lesson.id}` — needs wiring to real data
-- `NovakidDashboard`: teacher dashboard, loads the `NextLessonCard` — needs real upcoming lesson data
-- RLS: `student_profiles` and `class_bookings` already restrict to their owners; `classroom_sessions` has a "view own room" policy
+### Student Side
+- `PlaygroundDashboard.tsx` — uses `EnterClassroomCTA` (bouncy button) wired to `get_student_upcoming_lessons` RPC and a `BookMyClassModal`. Real data is already being fetched.
+- `AcademyDashboard.tsx` — has `BookMyClassModal` with `bookingOpen` state. Has a mock schedule. No live "Join" button beyond the modal.
+- `HubDashboard.tsx` — has `BookMyClassModal` with `bookingOpen` state. No live "Join" button either.
 
-**Gaps to Fill:**
-1. `class_bookings` table is missing `session_id` and `meeting_link` — need a DB migration to add them
-2. No database trigger to auto-generate `session_id` and `meeting_link` when a booking is created
-3. `NextLessonCard` in teacher dashboard uses hardcoded mock data — needs real DB query
-4. `BookMyClassModal` creates a `class_bookings` record but does not pass the resulting `meeting_link` back to the confirmation screen for the student to copy/use
-5. The classroom `/student-classroom/:id` route uses the `id` param as a `roomId` — but the booking flow uses `class_bookings.id`, not a room/session ID — these need to be reconciled
-6. No "classroom privacy" check at the page level: any authenticated student can currently load `/student-classroom/any-id`
-7. `ImprovedProtectedRoute` redirects silently — Step 13 wants a visible toast saying "Access Denied"
-8. Step 14 is a manual launch checklist — no code changes needed, just a checklist to hand to the user
+### Classroom Sessions
+- `classroom_sessions` table has: `room_id`, `session_status` (`waiting | started | active | ended`), `teacher_id`, `started_at`, `ended_at`
+- `classroomSyncService.ts` writes to this table when teacher enters and sets `session_status = 'active'`
+- **No existing LIVE badge/indicator** on any dashboard — this is the main gap
 
----
+### Booking Flow (already complete)
+- `BookMyClassModal.tsx` — fully functional: fetches slots, atomic booking, confetti on success, shows `meeting_link`
+- `SessionPrivacyGuard.tsx` — wraps both `StudentClassroomPage` and `TeacherClassroomPage`
+- `class_bookings` trigger — auto-generates `session_id` and `meeting_link`
 
-## What Will Be Built
-
-### Step 12A — Database Migration: `session_id` & `meeting_link` on `class_bookings`
-
-Two new columns will be added to `class_bookings`:
-- `session_id TEXT` — a unique 12-character alphanumeric string (generated via `substring(replace(gen_random_uuid()::text, '-', ''), 1, 12)`)
-- `meeting_link TEXT` — automatically set to `/student-classroom/{session_id}`
-
-A PostgreSQL trigger function `generate_booking_session` will be created and attached `BEFORE INSERT` on `class_bookings`. It will populate both columns so every new booking automatically has a private, unique URL.
-
-The teacher needs the same URL but via the teacher-facing route. The trigger will store the student-facing URL in `meeting_link`. The teacher's classroom URL (for the same session) will be `/classroom/{session_id}`, which is the parallel teacher route.
-
-### Step 12B — Wire Real Data into Teacher's `NextLessonCard`
-
-The `NextLessonCard` component currently uses hardcoded mock data. It will be updated to:
-- Use a Supabase query from `lessons` (joining `users` for student name) filtered by `teacher_id = auth.uid()`, `status IN ('scheduled','confirmed')`, and `scheduled_at >= NOW()`
-- Display the actual next lesson's title, student name, time, and `room_link`
-- Show the "Enter Classroom" button that navigates to `/classroom/{room_id}` (the lesson's `room_id` is how the teacher classroom is keyed)
-
-### Step 12C — "Join Live Lesson" Button in Student Dashboards (Classroom Quick Join)
-
-The existing `ClassroomQuickJoin` component already handles the 15-minute window detection and displays a floating "Join" button. However, it currently routes to `/classroom/{lesson.id}` — the **teacher** route — for all users.
-
-It will be updated to route students to `/student-classroom/{room_id}` instead of `/classroom/{...}`.
-
-The `BookMyClassModal`'s success screen will also show the meeting link immediately after booking, so the student doesn't need to wait for email.
-
-### Step 12D — Update Reminder Email to Include `meeting_link`
-
-The `send-lesson-reminders` edge function already handles `room_link`. The gap is that `class_bookings` records (created via `BookMyClassModal`) don't create an entry in the `lessons` table or `lesson_reminders` table — so they never appear in reminder emails.
-
-To bridge this: after inserting into `class_bookings`, the `BookMyClassModal` will also insert a corresponding record into `lesson_reminders` using the booking's `session_id` as the room reference, with `1h_before` reminder type. This ensures the existing reminder system picks it up automatically.
-
-### Step 13A — Route Protection: "Access Denied" Toast
-
-The `ImprovedProtectedRoute` currently redirects silently to `/login` when role doesn't match. It will be updated to pass a query parameter `?reason=access_denied` when redirecting due to role mismatch (not when simply unauthenticated).
-
-The `Login` page will read this query param and display a Sonner toast: *"Access Denied — You don't have permission to access that page."*
-
-This gives the user clear feedback without revealing any sensitive information.
-
-### Step 13B — Classroom Privacy Guard (New Component: `SessionPrivacyGuard`)
-
-A new lightweight wrapper component `SessionPrivacyGuard` will be created at `src/components/classroom/SessionPrivacyGuard.tsx`. It will:
-1. Accept `sessionId` (the room ID / `session_id`) and `userRole` as props
-2. Query the database: for students, check `class_bookings` where `session_id = ? AND student_id = auth.uid()`; for teachers, check `lessons` where `room_id = ? AND teacher_id = auth.uid()`
-3. If the check passes, render the classroom children
-4. If it fails, show a full-screen "This session is private" message with a "Go back" button — no redirect, just an in-page block
-
-This component will be used in both `StudentClassroomPage` and `TeacherClassroomPage`.
-
-### Step 13C — RLS Audit (Database)
-
-A migration will clean up redundant/conflicting RLS policies on `teacher_availability` and `classroom_sessions`. The current state has multiple overlapping SELECT policies on `teacher_availability` which could confuse access control. The migration will:
-- Drop the redundant overlapping policies on `teacher_availability` (keeping only `secure_availability_teacher` and `secure_availability_student`)
-- Add an explicit INSERT policy on `class_bookings` for authenticated students (`student_id = auth.uid()`)
-- Verify `classroom_sessions` student SELECT policy uses the lessons join (already exists)
-
-No changes to `student_profiles` or `user_roles` — those are already correctly configured.
+### What Needs to Be Built
+1. **`useLiveClassroomStatus` hook** — queries `classroom_sessions` table and subscribes to real-time updates to detect any `session_status = 'active'` session involving the current user (as teacher or student). Returns the active `room_id` when live.
+2. **`LiveSessionBadge` component** — a green pulsing `● LIVE` badge displayed in both teacher and student dashboards when a session is active.
+3. **`NextLessonCard`** — add the LIVE badge to the card header when `room_id` of the lesson matches an active session.
+4. **`AcademyDashboard`** — add a "Join Live Lesson" floating button that appears when an active session is detected for this student.
+5. **`HubDashboard`** — same floating "Join Live Lesson" button.
+6. **`PlaygroundDashboard`** — already has `EnterClassroomCTA`, but needs to also detect active sessions (not just upcoming ones) and change the button text/style to "🔴 Join LIVE" when a session is active.
 
 ---
 
-## Technical Details
-
-### Files to Create
+## Files to Create
 
 | File | Purpose |
 |------|---------|
-| `src/components/classroom/SessionPrivacyGuard.tsx` | Wraps classroom pages; blocks access if user is not the booked student/teacher |
+| `src/hooks/useLiveClassroomStatus.ts` | Polls + subscribes to `classroom_sessions` in real time to detect active sessions for the current user |
+| `src/components/shared/LiveSessionBadge.tsx` | Reusable green pulsing LIVE badge + "Join Now" button |
 
-### Files to Modify
+## Files to Modify
 
 | File | Change |
 |------|---------|
-| `supabase/migrations/[timestamp]_booking_session_id.sql` | Add `session_id` + `meeting_link` to `class_bookings`; create `generate_booking_session` trigger; clean up redundant RLS on `teacher_availability` |
-| `src/components/teacher/dashboard/NextLessonCard.tsx` | Replace mock data with real Supabase query using `get_teacher_upcoming_lessons` RPC |
-| `src/components/student/ClassroomQuickJoin.tsx` | Fix navigation to use `/student-classroom/{room_id}` instead of teacher route |
-| `src/components/student/BookMyClassModal.tsx` | After successful booking, show `meeting_link` in success screen; insert a `lesson_reminders` row |
-| `src/pages/StudentClassroomPage.tsx` | Wrap `StudentClassroom` in `SessionPrivacyGuard` |
-| `src/pages/TeacherClassroomPage.tsx` | Wrap `TeacherClassroom` in `SessionPrivacyGuard` |
-| `src/components/auth/ImprovedProtectedRoute.tsx` | Pass `?reason=access_denied` on role-mismatch redirect |
-| `src/pages/Login.tsx` | Read `?reason=access_denied` param; show Sonner toast on load |
-
-### Step 14 — Deployment Checklist (No Code Changes)
-
-This is a manual testing checklist to hand to the user. No code changes. All items below can be verified by the user directly:
-
-**[ ] The Login Test**
-Log in as `f.zahra.djaanine@engleuphoria.com`. Confirm you land on `/super-admin`. Log out. Log in as a teacher account. Confirm you land on `/admin`. Log in as a student. Confirm you land on `/playground`, `/academy`, or `/hub` depending on their level.
-
-**[ ] The Booking Test**
-As a teacher: go to the Schedule tab → create an availability slot 15 minutes from now. As a student: open any dashboard → click "Book a Class" → select the slot → confirm confetti fires and the success screen shows a meeting link.
-
-**[ ] The Sync Test**
-Open two browser tabs. Log in as teacher in one → navigate to a classroom. Log in as student in another → join the same room. Change the slide in the teacher tab and confirm the student tab updates within 1–2 seconds.
-
-**[ ] The Email Test**
-When the AI generates a daily lesson (via the Academy or Hub dashboard), the `notify-student-lesson` edge function sends a "Lesson Ready" email. Confirm it arrives at the student's registered email. Check the Supabase Edge Function logs at the link below if it doesn't arrive.
+| `src/components/teacher/dashboard/NextLessonCard.tsx` | Import `useLiveClassroomStatus`; add green LIVE badge in card header when `room_id` matches an active session; change button to "Join LIVE Class Now" with red pulse |
+| `src/components/student/dashboards/PlaygroundDashboard.tsx` | Import `useLiveClassroomStatus`; when active session detected, override `EnterClassroomCTA` with live session link to `/student-classroom/{room_id}` |
+| `src/components/student/dashboards/AcademyDashboard.tsx` | Import `useLiveClassroomStatus`; render `LiveSessionBadge` floating bar at the top of main content area when session is active |
+| `src/components/student/dashboards/HubDashboard.tsx` | Same as Academy — import hook and render floating `LiveSessionBadge` |
 
 ---
 
-## Architecture Note: Two Classroom Routes
+## Technical Implementation
 
-The platform has a clear separation:
-- Teacher enters via `/classroom/:id` → renders `TeacherClassroom`
-- Student enters via `/student-classroom/:id` → renders `StudentClassroom`
+### `useLiveClassroomStatus` Hook
 
-Both use the same `roomId` (the `classroom_sessions.room_id` column) to connect to the same Supabase Realtime channel. The `session_id` generated in `class_bookings` will serve as this shared `roomId`. The trigger sets `meeting_link = '/student-classroom/' || session_id` and the teacher navigates to `/classroom/` + the same `session_id`.
+```
+Query: classroom_sessions
+  WHERE session_status = 'active'
+  AND (teacher_id = auth.uid() OR student_id ... )
+```
+
+Since `classroom_sessions` does not have a `student_id` column (it only stores `teacher_id` and `room_id`), the student check works differently: the hook will look up `class_bookings` for the student's confirmed bookings and cross-reference the `session_id`/`room_id` with `classroom_sessions.room_id`.
+
+**Teacher flow**: Query `classroom_sessions WHERE teacher_id = auth.uid() AND session_status = 'active'` → gets `room_id` → navigation target is `/classroom/{room_id}`.
+
+**Student flow**: Query student's `class_bookings` where `status = 'confirmed'` and `session_id` is set → then check if any of those `session_id` values appear in `classroom_sessions.room_id` with `session_status = 'active'` → navigation target is `/student-classroom/{session_id}`.
+
+Both subscribe to real-time Supabase channel on `classroom_sessions` table to instantly detect state changes without polling.
+
+### `LiveSessionBadge` Component
+
+A floating banner / pill that renders:
+- A pulsing red dot `●`
+- Text: **"LIVE — Your class is in session!"**
+- A green "Join Now →" button that navigates to the appropriate classroom URL
+- Positioned as a sticky banner at the top of the page content for Academy/Hub dashboards
+- Animate in/out using Framer Motion
+
+### LIVE Badge in `NextLessonCard`
+
+When `useLiveClassroomStatus` returns an active `room_id` that matches the next lesson's `room_id`:
+- Show a `● LIVE` badge in the card header (green, pulsing)
+- Change the "Enter Classroom" button to a bright red `🔴 Join LIVE Class` with stronger pulse animation
+- The button click navigates immediately (no countdown restriction)
+
+### Verification Checklist (Step 14)
+
+The plan also covers the end-to-end test. Here is the sequence:
+
+**Booking Test:**
+1. Log in as a teacher → go to Schedule tab → create an availability slot starting 5 minutes from now
+2. Open a second browser tab → log in as a student → go to any dashboard → click "Book a Class"
+3. The `BookMyClassModal` opens → the slot appears in the calendar → click to book
+4. Confetti fires → success screen shows a `meeting_link` like `/student-classroom/abc123def456`
+5. The teacher's `NextLessonCard` shows the next lesson with the correct countdown (within 5 min → green "Enter Classroom" button becomes enabled)
+
+**LIVE Test:**
+6. Teacher clicks "Enter Classroom" → navigates to `/classroom/{room_id}`
+7. The `classroomSyncService` inserts/updates `classroom_sessions` with `session_status = 'active'`
+8. After ≤3 seconds, the student's dashboard shows the `LiveSessionBadge` banner appear automatically (via real-time subscription)
+9. Student clicks "Join Now" → navigates to `/student-classroom/{session_id}`
+
+**Security Test:**
+- `SessionPrivacyGuard` on `StudentClassroomPage` calls `can_access_booking_session` RPC
+- Since `session_id` in `class_bookings` matches the `room_id` used by the classroom, and the student's `student_id` is in the booking → access is granted ✓
+
+---
+
+## Important Note on `can_access_booking_session`
+
+The `SessionPrivacyGuard` calls `can_access_booking_session(p_session_id, p_user_id)` which checks `class_bookings.session_id`. However, the teacher classroom is keyed by `lessons.room_id`, not `class_bookings.session_id`. The guard already handles this with a fallback to `can_access_lesson(room_uuid, user_uuid)`.
+
+For bookings created via `BookMyClassModal`, the `class_bookings.session_id` becomes the shared room key (e.g., `abc123def456`). The classroom sync uses this as the `room_id` in `classroom_sessions`. The student's `meeting_link` is `/student-classroom/abc123def456` and the teacher's is `/classroom/abc123def456` — both valid.
+
+---
+
+## No Database Changes Required
+
+All required data is already available:
+- `classroom_sessions` table with `session_status` — exists ✓
+- `class_bookings` with `session_id` and `meeting_link` — exists ✓
+- RLS on `classroom_sessions` — already allows sessions to be read by participants ✓
+- `can_access_booking_session` RPC — exists ✓
+
+No migrations needed. This is purely a frontend/hook implementation.
