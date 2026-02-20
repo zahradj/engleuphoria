@@ -169,6 +169,55 @@ export function useDailyPersonalizedLesson() {
           const aiLesson: DailyLesson = { ...fnData.lesson, aiGenerated: true };
           setLesson(aiLesson);
           localStorage.setItem(cacheKey, JSON.stringify({ lesson: aiLesson, completed: false, fluencyScore: currentScore }));
+
+          // ── Email notification: save lesson to DB and send "Lesson Ready" email ──
+          if (user?.email) {
+            try {
+              // Upsert today's lesson record (unique per student per day)
+              const { data: lessonRow } = await supabase
+                .from('daily_lessons')
+                .upsert(
+                  {
+                    student_id: user.id,
+                    student_level: studentLevel as 'playground' | 'academy' | 'professional',
+                    title: aiLesson.title,
+                    content: aiLesson as any,
+                    lesson_date: new Date().toISOString().split('T')[0],
+                    email_sent: false,
+                  },
+                  { onConflict: 'student_id,lesson_date', ignoreDuplicates: false }
+                )
+                .select('id, email_sent')
+                .maybeSingle();
+
+              // Only send email if not already sent today
+              if (lessonRow && !lessonRow.email_sent) {
+                const { data: profileData } = await supabase
+                  .from('users')
+                  .select('full_name')
+                  .eq('id', user.id)
+                  .maybeSingle();
+
+                await supabase.functions.invoke('notify-student-lesson', {
+                  body: {
+                    student_email: user.email,
+                    student_name: profileData?.full_name || user.email,
+                    student_level: studentLevel,
+                    lesson_title: aiLesson.title,
+                  },
+                });
+
+                // Mark email as sent
+                await supabase
+                  .from('daily_lessons')
+                  .update({ email_sent: true, email_sent_at: new Date().toISOString() })
+                  .eq('id', lessonRow.id);
+              }
+            } catch (emailErr) {
+              // Non-fatal: log but don't disrupt lesson loading
+              console.warn('Lesson email notification failed:', emailErr);
+            }
+          }
         }
       } catch (err) {
         console.warn('Edge function call failed, using fallback:', err);

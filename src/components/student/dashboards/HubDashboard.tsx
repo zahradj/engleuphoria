@@ -18,6 +18,7 @@ import { AIPersonalizedLessonCard } from '../AIPersonalizedLessonCard';
 import { AILessonAgent } from '../AILessonAgent';
 import { WeeklyGoalWidget } from '../WeeklyGoalWidget';
 import { RecommendedTeachers } from '../RecommendedTeachers';
+import { BookMyClassModal } from '../BookMyClassModal';
 
 interface HubDashboardProps {
   studentName?: string;
@@ -33,6 +34,7 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
 }) => {
   const [activeNav, setActiveNav] = useState<NavItem>('dashboard');
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [bookingOpen, setBookingOpen] = useState(false);
   const { data: lessons = [], isLoading } = useCurriculumLessons('adult');
 
   const navItems: { id: NavItem; label: string; icon: React.ReactNode }[] = [
@@ -293,6 +295,18 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
             {/* Recommended Teachers */}
             <RecommendedTeachers isDarkMode={isDarkMode} />
 
+            {/* Schedule a Session CTA */}
+            <button
+              onClick={() => setBookingOpen(true)}
+              className={`w-full py-3 px-5 rounded-xl font-semibold text-sm transition-all hover:brightness-105 active:scale-95 ${
+                isDarkMode
+                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white'
+                  : 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white'
+              } shadow-md`}
+            >
+              📅 Schedule a Session
+            </button>
+
             {/* Upcoming Session */}
             <Card className={cardClass}>
               <CardHeader>
@@ -352,6 +366,13 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
           </motion.div>
         </div>
       </main>
+
+      {/* Booking Modal */}
+      <BookMyClassModal
+        isOpen={bookingOpen}
+        onClose={() => setBookingOpen(false)}
+        studentLevel="professional"
+      />
     </div>
   );
 };
