@@ -126,6 +126,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
         cefrLevel: studentContext.cefrLevel,
         lastMistake: studentContext.lastMistake,
         interests: studentContext.interests,
+        mistakeHistory: studentContext.mistakeHistory,
         summary: studentContext.summary
       });
     }
@@ -373,6 +374,9 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
           sharedNotes={sharedNotes}
           sessionContext={sessionContext}
           onNotesChange={updateSharedNotes}
+          roomId={roomName}
+          userId={user?.id || sessionStorage.getItem('demo-teacher-id') || ''}
+          userName={teacherName}
         />
       )}
 

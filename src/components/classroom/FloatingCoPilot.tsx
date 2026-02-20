@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Rnd } from 'react-rnd';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, X, Target, GripVertical, AlertTriangle } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { SharedNotesPanel } from './SharedNotesPanel';
+import { classroomSyncService } from '@/services/classroomSyncService';
 
 interface MissionItem {
   id: string;
@@ -18,6 +19,9 @@ interface FloatingCoPilotProps {
   sharedNotes: string;
   sessionContext: Record<string, any>;
   onNotesChange: (notes: string) => void;
+  roomId?: string;
+  userId?: string;
+  userName?: string;
 }
 
 const getDefaultMission = (title: string, ctx: Record<string, any>): MissionItem[] => {
@@ -46,12 +50,49 @@ export const FloatingCoPilot: React.FC<FloatingCoPilotProps> = ({
   isTeacher,
   sharedNotes,
   sessionContext,
-  onNotesChange
+  onNotesChange,
+  roomId,
+  userId,
+  userName = 'Teacher',
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [missionItems, setMissionItems] = useState<MissionItem[]>(() =>
     getDefaultMission(lessonTitle, sessionContext)
   );
+  const [typingUsers, setTypingUsers] = useState<Array<{ userId: string; userName: string }>>([]);
+
+  // Set up presence tracking for typing indicators
+  React.useEffect(() => {
+    if (!roomId || !userId) return;
+    const cleanup = classroomSyncService.trackPresence(
+      roomId,
+      userId,
+      userName,
+      (state) => {
+        // Collect all users who are currently typing (excluding self)
+        const typing: Array<{ userId: string; userName: string }> = [];
+        for (const [, presences] of Object.entries(state)) {
+          for (const p of presences as any[]) {
+            if (p.isTyping && p.userId !== userId) {
+              typing.push({ userId: p.userId, userName: p.userName });
+            }
+          }
+        }
+        setTypingUsers(typing);
+      }
+    );
+    return cleanup;
+  }, [roomId, userId, userName]);
+
+  const handleTypingStart = useCallback(() => {
+    if (!roomId || !userId) return;
+    classroomSyncService.updatePresence(roomId, userId, userName, true);
+  }, [roomId, userId, userName]);
+
+  const handleTypingEnd = useCallback(() => {
+    if (!roomId || !userId) return;
+    classroomSyncService.updatePresence(roomId, userId, userName, false);
+  }, [roomId, userId, userName]);
 
   // Extract weak points from mistake_history in session context
   const weakPointsTips = useMemo(() => {
@@ -174,6 +215,9 @@ export const FloatingCoPilot: React.FC<FloatingCoPilotProps> = ({
             onNotesChange={onNotesChange}
             sessionContext={sessionContext}
             readOnly={false}
+            typingUsers={typingUsers}
+            onTypingStart={handleTypingStart}
+            onTypingEnd={handleTypingEnd}
           />
         </div>
       </motion.div>
