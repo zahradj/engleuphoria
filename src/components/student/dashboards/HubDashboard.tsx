@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { 
   LayoutDashboard, BookOpen, Award, Settings, 
   Download, FileText, TrendingUp, Clock, CheckCircle, 
-  ChevronRight, BarChart3, Calendar, Moon, Sun
+  ChevronRight, BarChart3, Calendar, Moon, Sun, ExternalLink
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -11,6 +11,8 @@ import { Progress } from '@/components/ui/progress';
 import { useCurriculumLessons } from '@/hooks/useCurriculumLessons';
 import { SkillsRadarChart } from '../hub/SkillsRadarChart';
 import { BusinessMilestonesCard } from '../hub/BusinessMilestonesCard';
+import { LearningVelocityChart } from '../hub/LearningVelocityChart';
+import { WeeklyBriefingCard } from '../hub/WeeklyBriefingCard';
 import { AILessonAgent } from '../AILessonAgent';
 import { WeeklyGoalWidget } from '../WeeklyGoalWidget';
 import { RecommendedTeachers } from '../RecommendedTeachers';
@@ -54,17 +56,17 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
     streak: 12,
   };
 
-  // Mock weekly activity data
+  // Mock weekly activity data — shaped for LearningVelocityChart
   const weeklyActivity = [
-    { day: 'Mon', hours: 1.5 },
-    { day: 'Tue', hours: 2 },
-    { day: 'Wed', hours: 0.5 },
-    { day: 'Thu', hours: 1 },
-    { day: 'Fri', hours: 2.5 },
-    { day: 'Sat', hours: 0 },
-    { day: 'Sun', hours: 1 },
+    { day: 'Mon', studied: 1.5, goal: 2 },
+    { day: 'Tue', studied: 2.0, goal: 2 },
+    { day: 'Wed', studied: 0.5, goal: 2 },
+    { day: 'Thu', studied: 1.0, goal: 2 },
+    { day: 'Fri', studied: 2.5, goal: 2 },
+    { day: 'Sat', studied: 0.0, goal: 2 },
+    { day: 'Sun', studied: 1.0, goal: 2 },
   ];
-  const maxHours = Math.max(...weeklyActivity.map(d => d.hours));
+  const maxHours = Math.max(...weeklyActivity.map(d => d.studied));
 
   const bgClass = isDarkMode ? 'bg-gray-900' : 'bg-white';
   const textClass = isDarkMode ? 'text-gray-50' : 'text-gray-900';
@@ -221,11 +223,24 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
               />
             </motion.div>
 
+            {/* Learning Velocity Chart */}
+            <motion.div
+              initial={{ y: 10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.24 }}
+            >
+              <LearningVelocityChart
+                isDarkMode={isDarkMode}
+                weeklyData={weeklyActivity}
+                dailyGoalHours={2}
+              />
+            </motion.div>
+
             {/* AI Lesson Agent */}
             <motion.div
               initial={{ y: 10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.25 }}
+              transition={{ delay: 0.28 }}
             >
               <AILessonAgent
                 studentLevel="professional"
@@ -242,6 +257,9 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
             transition={{ delay: 0.4 }}
             className="space-y-6"
           >
+            {/* Weekly Briefing AI Card — top of right sidebar */}
+            <WeeklyBriefingCard isDarkMode={isDarkMode} />
+
             {/* Weekly Goal */}
             <WeeklyGoalWidget studentLevel="professional" isDarkMode={isDarkMode} />
 
@@ -287,6 +305,36 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
                   }`}>
                     Join Session
                   </Button>
+
+                  {/* Calendar integration buttons */}
+                  <div className="flex gap-2 mt-2">
+                    <a
+                      href={`https://calendar.google.com/calendar/render?action=TEMPLATE&text=Public+Speaking+Workshop&details=English+lesson+session&dates=20260221T180000Z/20260221T190000Z`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-medium py-1.5 px-2 rounded-lg border transition-colors ${
+                        isDarkMode
+                          ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
+                          : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      Google Cal
+                    </a>
+                    <a
+                      href={`https://outlook.live.com/calendar/0/deeplink/compose?subject=Public+Speaking+Workshop&startdt=2026-02-21T18:00:00&enddt=2026-02-21T19:00:00`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-medium py-1.5 px-2 rounded-lg border transition-colors ${
+                        isDarkMode
+                          ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
+                          : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      Outlook
+                    </a>
+                  </div>
                 </div>
               </CardContent>
             </Card>
