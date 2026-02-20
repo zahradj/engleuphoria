@@ -1,132 +1,168 @@
 
-
-# Phase 10: Real-time Classroom Engine + Playground Dashboard Enhancement
+# Phase 11: Academy Dashboard "Creator Space" + Hub Dashboard "Executive Suite"
 
 ## Executive Summary
 
-This phase activates the real-time "nerve system" for the Smart Classroom and enhances the Playground Dashboard with game-world aesthetics. The classroom already has strong sync infrastructure (Supabase Postgres Changes + `useClassroomSync`), but needs Realtime to be enabled on the `classroom_sessions` table and a few functional gaps closed. The Playground Dashboard already exists with a world map, virtual pet, and sidebar -- we enhance it with daily streak, coin balance, and a bouncy CTA.
+Both dashboards already have strong foundations built in Phase 10. This phase adds the **three missing interactive features** the user requested that don't yet exist in the codebase, plus verifies that the "Traffic Controller" routing is properly wired.
 
 ---
 
-## Part 1: Activate Supabase Realtime (The "Nerve System")
+## Audit: What Already Exists
 
-### Current State (What Already Works)
+### Academy Dashboard (`AcademyDashboard.tsx`)
+- Dark mode with purple/cyan neon palette — done
+- Card-based layout with sidebar nav — done
+- `DailyChallengeCard` (social-post style challenge) — done
+- `DailyStreakCard` — done
+- Global Leaderboard with Weekly/Monthly/All-Time tabs and rank-change indicators — done
+- `SocialLounge` (Discord-style channels) — done
 
-- `classroomSyncService.ts` subscribes to `postgres_changes` on `classroom_sessions` for a given `room_id`
-- `useClassroomSync` hook manages all session state (slides, tools, canvas tab, notes, stars, timer, dice) and propagates updates to both teacher and student
-- `CenterStage` (teacher) and `StudentMainStage` (student) both render based on `activeCanvasTab` synced from the session
-- `SharedNotesPanel` with debounced save and AI Suggest already exists inside the `FloatingCoPilot`
-- `LessonWrapUpDialog` saves notes and updates `student_profiles.mistake_history`
+### Hub Dashboard (`HubDashboard.tsx`)
+- Clean Apple-style white/slate-gray with Emerald accents — done
+- `SkillsRadarChart` (Speaking, Listening, Reading, Writing, Grammar, Vocabulary) — done
+- `BusinessMilestonesCard` — done
+- Resources section with downloadable PDFs — done
+- "Next Session" card with Join button — done
 
-### What Needs Fixing
-
-#### 1.1 Enable Realtime on `classroom_sessions` table
-- **Database Migration**: Run `ALTER PUBLICATION supabase_realtime ADD TABLE classroom_sessions;`
-- Without this, the `subscribeToSession` method receives no events, so students see a frozen view
-
-#### 1.2 Add Presence for Typing Indicators
-- Add Supabase Presence to the classroom channel in `classroomSyncService.ts`
-- Track `{ userId, userName, isTyping }` state
-- Display a "Teacher is typing..." or "Student is typing..." indicator in the `SharedNotesPanel`
-
-#### 1.3 Save Notes to `lesson_completions` on End Class
-- Modify `handleEndClass` in `TeacherClassroom.tsx` to persist `sharedNotes` to the `lesson_completions` table (or create a `lesson_records` column if needed)
-- The `LessonWrapUpDialog` already saves to `lesson_completions` -- we add `shared_notes` to its save payload
-
-#### 1.4 AI Live-Prompter (weak_points tip)
-- The `FloatingCoPilot` already reads `sessionContext` (level, interests, lastMistake) and generates mission items
-- The `SharedNotesPanel` AI Suggest already pulls from `sessionContext.interests` and `sessionContext.lastMistake`
-- Enhancement: Add a dedicated "AI Tip" card that fetches `student_profiles.mistake_history` and displays the top 3 weak areas as actionable tips for the teacher
+### DashboardRouter (`DashboardRouter.tsx`)
+- Routes `systemId: 'kids' | 'teen' | 'adult'` to the correct dashboard — done
+- Integrated into `StudentPanel` and the student routes — done
 
 ---
 
-## Part 2: Playground Dashboard Enhancement
+## What Needs to Be Built
 
-### Current State
+### Gap 1 — Academy: "Record a Clip" with AI Confidence Score
 
-The `PlaygroundDashboard` already includes:
-- `KidsWorldMap` -- zone-based lesson map with star progress
-- `PlaygroundSidebar` -- navigation sidebar
-- `VirtualPetWidget` -- pet that grows from learning words
-- `WeeklyGoalWidget` -- weekly goal tracker
-- `AILessonAgent` -- AI-powered lesson recommendations
-- `RecommendedTeachers` -- teacher cards
+**New component**: `src/components/student/academy/RecordClipWidget.tsx`
 
-### What We Add
+This widget will:
+- Display a microphone button with a pulsing recording animation (Framer Motion)
+- Use the browser's `MediaRecorder` API to capture a short voice clip (max 30 seconds)
+- Show a waveform-style animation while recording
+- On stop, display a simulated "AI Confidence Score" breakdown card:
+  - Pronunciation: e.g. 82%
+  - Fluency: e.g. 74%
+  - Grammar: e.g. 91%
+  - Overall Confidence: e.g. 82%
+- Show a progress ring for the overall score with a color-coded badge (green = 80+, yellow = 60–79, red < 60)
+- Include a "Try Again" button and encouraging feedback message
 
-#### 2.1 Coin Balance (Stars) Header Bar
-- Add a top bar showing the student's total stars (from `getTotalStars()`) with a coin/star icon
-- Include a "Daily Streak" fire icon with streak count (from `student_profiles.daily_streak` or local tracking)
+The widget integrates into `AcademyDashboard.tsx` in the left column, placed between the "Continue Learning" card and the bottom section.
 
-#### 2.2 Bouncy "Enter the Classroom" CTA
-- Add a prominent, animated button using Framer Motion with a bounce effect
-- Links to the student's next scheduled lesson room (from `get_student_upcoming_lessons`)
-- If no upcoming lesson, shows "Book a Lesson" instead
+### Gap 2 — Academy: Skill XP Progress Bars (Slang, Grammar, Fluency)
 
-#### 2.3 "Word of the Day" in Virtual Pet Widget
-- Enhance `VirtualPetWidget` to display a daily vocabulary word
-- The pet "says" the word in a speech bubble
+**New component**: `src/components/student/academy/SkillXPBars.tsx`
+
+A compact card showing three animated progress bars:
+- Slang (e.g., 340 XP / 500 XP to next level)
+- Grammar (e.g., 580 XP / 800 XP)
+- Fluency (e.g., 210 XP / 500 XP)
+
+Each bar uses Framer Motion for a smooth fill animation on mount. Replaces the "Stars" concept entirely with "XP" for teens.
+
+Integrated into the Academy Dashboard right sidebar, above the Leaderboard card.
+
+### Gap 3 — Hub: Learning Velocity Line Chart
+
+**New component**: `src/components/student/hub/LearningVelocityChart.tsx`
+
+A Recharts `LineChart` showing:
+- X-axis: last 7 days (Mon → Sun)
+- Two lines:
+  - "Hours Studied" (actual) — emerald green
+  - "Daily Goal" (target) — dashed slate
+- Fill area under the "Hours Studied" line
+- Tooltip showing exact hours for each day
+- Summary metric below: "You've studied X hrs this week. Goal: Y hrs."
+
+Integrated into the Hub Dashboard main content column, beneath the `SkillsRadarChart`.
+
+### Gap 4 — Hub: Calendar Integration Buttons ("Add to Calendar")
+
+**Enhancement** to the existing "Next Session" card in `HubDashboard.tsx`:
+- Add two small icon buttons: "Add to Google Calendar" and "Add to Outlook"
+- Google Calendar link: `https://calendar.google.com/calendar/render?action=TEMPLATE&text=...&dates=...`
+- Outlook link: `https://outlook.live.com/calendar/0/deeplink/compose?subject=...&startdt=...`
+- Both open in a new tab
+
+### Gap 5 — Hub: Weekly Briefing AI Card
+
+**New component**: `src/components/student/hub/WeeklyBriefingCard.tsx`
+
+A card styled like an executive report with:
+- Header: "📊 Your Weekly Briefing"
+- Main insight: e.g., "You improved your professional tone by 15% this week."
+- Focus area recommendation: "Next focus: Negotiation Vocabulary"
+- Three supporting data points displayed as mini stat pills:
+  - Sessions this week: 4
+  - Avg session score: 87%
+  - Streak: 12 days
+- Visual trend arrow (up/down) for improvement metric
+- Subtle gradient background (emerald → teal)
+
+Integrated into the Hub Dashboard right sidebar, at the top.
+
+### Gap 6 — Traffic Controller Validation
+
+**Check and fix** `DashboardRouter.tsx`:
+
+The router currently maps `systemId` values (`'kids'`, `'teen'`, `'adult'`). The `student_profiles.student_level` column stores `'playground'`, `'academy'`, `'professional'`. The mapping between them happens somewhere upstream (in `AuthContext` or profile-loading hooks). We need to confirm the bridge is correct and, if not, add a fallback mapping inside `DashboardRouter` that also accepts the `student_level` string directly.
 
 ---
 
 ## Technical Details
 
-### Database Migration
+### Files to Create
 
-```sql
--- Enable Realtime on classroom_sessions
-ALTER PUBLICATION supabase_realtime ADD TABLE classroom_sessions;
-
--- Add shared_notes column to lesson_completions if missing
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns 
-    WHERE table_name = 'lesson_completions' AND column_name = 'shared_notes'
-  ) THEN
-    ALTER TABLE public.lesson_completions ADD COLUMN shared_notes text DEFAULT '';
-  END IF;
-END $$;
-
--- Add daily_streak to student_profiles if missing
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns 
-    WHERE table_name = 'student_profiles' AND column_name = 'daily_streak'
-  ) THEN
-    ALTER TABLE public.student_profiles ADD COLUMN daily_streak integer DEFAULT 0;
-    ALTER TABLE public.student_profiles ADD COLUMN last_streak_date date;
-  END IF;
-END $$;
-```
+| File | Purpose |
+|------|---------|
+| `src/components/student/academy/RecordClipWidget.tsx` | Voice recording + AI Confidence Score display |
+| `src/components/student/academy/SkillXPBars.tsx` | XP progress bars for Slang, Grammar, Fluency |
+| `src/components/student/hub/LearningVelocityChart.tsx` | Line chart: hours studied vs. goal (7-day view) |
+| `src/components/student/hub/WeeklyBriefingCard.tsx` | Executive AI insight card for adults |
 
 ### Files to Modify
 
 | File | Change |
 |------|--------|
-| `src/services/classroomSyncService.ts` | Add Presence tracking (typing indicators) to the channel subscription |
-| `src/components/classroom/SharedNotesPanel.tsx` | Show typing indicator using Presence state |
-| `src/components/teacher/classroom/TeacherClassroom.tsx` | Pass `sharedNotes` to `LessonWrapUpDialog` on end class |
-| `src/components/classroom/LessonWrapUpDialog.tsx` | Save `shared_notes` to `lesson_completions` |
-| `src/components/classroom/FloatingCoPilot.tsx` | Add "AI Weak Points Tip" card showing top 3 mistake areas |
-| `src/components/student/dashboards/PlaygroundDashboard.tsx` | Add star balance header, daily streak, bouncy CTA |
-| `src/components/student/kids/VirtualPetWidget.tsx` | Add "Word of the Day" speech bubble |
+| `src/components/student/dashboards/AcademyDashboard.tsx` | Import and place `RecordClipWidget` (left column) + `SkillXPBars` (right sidebar above leaderboard) |
+| `src/components/student/dashboards/HubDashboard.tsx` | Import and place `LearningVelocityChart` (main column) + `WeeklyBriefingCard` (right sidebar top) + enhance "Next Session" card with calendar buttons |
+| `src/components/student/dashboards/DashboardRouter.tsx` | Expand type handling to also accept `'playground' | 'academy' | 'professional'` as aliases, ensuring the correct dashboard is always served |
 
-### Files to Create
+### No Database Migration Required
 
-| File | Purpose |
-|------|---------|
-| `src/components/student/kids/PlaygroundTopBar.tsx` | Star balance + daily streak + notification bell |
-| `src/components/student/kids/EnterClassroomCTA.tsx` | Bouncy animated "Enter the Classroom" button |
+All new features use:
+- Client-side state for the recording flow
+- Mock/computed data for the Confidence Score (no external AI call — presented as "AI-analyzed" with a realistic delay using `setTimeout`)
+- Existing `student_profiles` data for XP and skill levels
+- Recharts (already installed) for the Learning Velocity chart
+- Computed values from existing `weeklyActivity` data for the Hub velocity chart
 
-### Flow Summary
+---
 
-```
-Teacher clicks tab -> updateCanvasTab() -> DB update -> Realtime event -> Student receives -> StudentMainStage re-renders with new tab
+## Design Specifications
 
-Teacher types notes -> debounced updateSharedNotes() -> DB update -> Realtime event -> Student's SharedNotesPanel updates + Presence shows "Teacher is typing..."
+### Academy — RecordClipWidget
+- Dark background (`bg-[#1a1a2e]`) with purple/cyan neon border
+- Recording button: large pulsing red circle when active, purple gradient when idle
+- Confidence Score ring: `stroke-dashoffset` SVG circle animated to the score value
+- Font: inherit from AcademyDashboard (system sans, neon accents)
 
-End Class -> LessonWrapUpDialog saves shared_notes to lesson_completions -> Student dashboard shows "Last Lesson Notes"
-```
+### Academy — SkillXPBars
+- Three rows with skill name, current XP / next level XP, and animated bar
+- Bar colors: Slang = magenta (`#E879F9`), Grammar = cyan (`#22D3EE`), Fluency = yellow (`#FBBF24`)
+- Dark card background matching the dashboard
 
+### Hub — LearningVelocityChart
+- Recharts `AreaChart` with two datasets
+- "Studied" line: solid emerald (`#10B981`), filled area at 20% opacity
+- "Goal" line: dashed slate (`#94A3B8`)
+- White/light background card matching the Hub's Apple aesthetic
+- Responsive with `ResponsiveContainer`
+
+### Hub — WeeklyBriefingCard
+- Gradient background: `from-emerald-50 to-teal-50` (light) / `from-emerald-900/30 to-teal-900/30` (dark)
+- Bold improvement percentage with upward arrow icon in green
+- Focus recommendation in a pill badge
+- Clean Inter/system font, compact padding
