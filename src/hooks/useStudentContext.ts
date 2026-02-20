@@ -7,6 +7,7 @@ export interface StudentContext {
   cefrLevel: string;
   lastMistake: string;
   interests: string[];
+  mistakeHistory: Array<{ error_type: string; word?: string }>;
   summary: string;
 }
 
@@ -40,11 +41,14 @@ export const useStudentContext = (studentId: string | undefined) => {
         const cefrLevel = profile?.cefr_level || 'A1';
         const interests: string[] = Array.isArray(profile?.interests) ? profile.interests : [];
 
-        // Extract last mistake
+        // Extract mistake history (full array for AI weak-points analysis)
+        const mistakeHistory: Array<{ error_type: string; word?: string }> = 
+          Array.isArray(profile?.mistake_history) ? profile.mistake_history as Array<{ error_type: string; word?: string }> : [];
+
+        // Extract last mistake for summary
         let lastMistake = 'None recorded';
-        const history = profile?.mistake_history;
-        if (Array.isArray(history) && history.length > 0) {
-          const last = history[history.length - 1] as Record<string, any>;
+        if (mistakeHistory.length > 0) {
+          const last = mistakeHistory[mistakeHistory.length - 1];
           lastMistake = last?.error_type
             ? `${last.error_type}${last.word ? ` (${last.word})` : ''}`
             : 'Recent errors logged';
@@ -59,6 +63,7 @@ export const useStudentContext = (studentId: string | undefined) => {
           cefrLevel,
           lastMistake,
           interests,
+          mistakeHistory,
           summary
         });
       } catch (err) {

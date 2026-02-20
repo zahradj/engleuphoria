@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { KidsWorldMap, ThemeType } from '../kids/KidsWorldMap';
 import { usePlaygroundLessons } from '@/hooks/usePlaygroundLessons';
 import { Loader2 } from 'lucide-react';
@@ -9,6 +9,8 @@ import { WeeklyGoalWidget } from '../WeeklyGoalWidget';
 import { RecommendedTeachers } from '../RecommendedTeachers';
 import { PlaygroundTopBar } from '../kids/PlaygroundTopBar';
 import { EnterClassroomCTA } from '../kids/EnterClassroomCTA';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface PlaygroundDashboardProps {
   studentName?: string;
@@ -27,8 +29,27 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
   wordsLearnedToday = 2,
   dailyStreak = 0,
 }) => {
+  const { user } = useAuth();
   const { lessons, loading, error, markLessonComplete, getTotalStars } = usePlaygroundLessons();
   const [activeTab, setActiveTab] = useState('home');
+  const [nextLessonRoomLink, setNextLessonRoomLink] = useState<string | null>(null);
+  const [nextLessonTitle, setNextLessonTitle] = useState<string | undefined>(undefined);
+
+  // Fetch student's next upcoming lesson room link
+  useEffect(() => {
+    if (!user?.id) return;
+    const fetchUpcoming = async () => {
+      const { data, error } = await supabase.rpc('get_student_upcoming_lessons', {
+        student_uuid: user.id
+      });
+      if (!error && data && data.length > 0) {
+        const next = data[0];
+        setNextLessonRoomLink(next.room_link || (next.room_id ? `/classroom/${next.room_id}` : null));
+        setNextLessonTitle(next.title || undefined);
+      }
+    };
+    fetchUpcoming();
+  }, [user?.id]);
 
   if (loading) {
     return (
@@ -103,8 +124,11 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
             
             {/* Right Panel */}
             <div className="w-full lg:w-80 flex flex-col gap-4">
-              {/* Bouncy CTA */}
-              <EnterClassroomCTA />
+              {/* Bouncy CTA — linked to real upcoming lesson */}
+              <EnterClassroomCTA
+                nextLessonRoomLink={nextLessonRoomLink}
+                nextLessonTitle={nextLessonTitle}
+              />
 
               <VirtualPetWidget
                 petType={petType}
