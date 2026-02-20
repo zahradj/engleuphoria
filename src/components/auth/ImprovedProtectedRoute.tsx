@@ -115,8 +115,8 @@ export const ImprovedProtectedRoute: React.FC<ImprovedProtectedRouteProps> = ({
   // Check role if required
   if (requiredRole && requiredRole !== 'any' && userRole !== requiredRole) {
     // SECURITY: If user tries to access a protected route without the required role,
-    // always kick them back to login (do not "helpfully" redirect to another dashboard).
-    return <Navigate to={redirectTo} replace />;
+    // redirect to login with an access_denied reason so the login page can show a toast.
+    return <Navigate to="/login?reason=access_denied" replace />;
   }
 
   // Check student level if required (for student-specific routes)

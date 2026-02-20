@@ -1,11 +1,24 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { LogIn, Loader2 } from 'lucide-react';
 import { AuthPageLayout } from '@/components/auth/AuthPageLayout';
 import { SimpleAuthForm } from '@/components/auth/SimpleAuthForm';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 const Login = () => {
   const { user, loading } = useAuth();
+  const [searchParams] = useSearchParams();
+
+  // Show "Access Denied" toast when redirected due to role mismatch
+  useEffect(() => {
+    if (searchParams.get('reason') === 'access_denied') {
+      toast.error('Access Denied', {
+        description: "You don't have permission to access that page.",
+        duration: 5000,
+      });
+    }
+  }, [searchParams]);
 
   // Show loading state while auth context is initializing OR if user exists (redirect pending)
   // When user exists, AuthContext is handling the redirect via window.location.href
