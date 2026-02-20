@@ -13,6 +13,8 @@ import { SkillsRadarChart } from '../hub/SkillsRadarChart';
 import { BusinessMilestonesCard } from '../hub/BusinessMilestonesCard';
 import { LearningVelocityChart } from '../hub/LearningVelocityChart';
 import { WeeklyBriefingCard } from '../hub/WeeklyBriefingCard';
+import { DailyLessonCard } from '../DailyLessonCard';
+import { AIPersonalizedLessonCard } from '../AIPersonalizedLessonCard';
 import { AILessonAgent } from '../AILessonAgent';
 import { WeeklyGoalWidget } from '../WeeklyGoalWidget';
 import { RecommendedTeachers } from '../RecommendedTeachers';
@@ -234,6 +236,15 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
                 weeklyData={weeklyActivity}
                 dailyGoalHours={2}
               />
+            </motion.div>
+
+            {/* Daily AI Lesson Card */}
+            <motion.div
+              initial={{ y: 10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.26 }}
+            >
+              <AIPersonalizedLessonCard isDarkMode={isDarkMode} />
             </motion.div>
 
             {/* AI Lesson Agent */}

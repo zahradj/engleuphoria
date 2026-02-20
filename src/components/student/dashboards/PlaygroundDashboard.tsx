@@ -9,6 +9,7 @@ import { WeeklyGoalWidget } from '../WeeklyGoalWidget';
 import { RecommendedTeachers } from '../RecommendedTeachers';
 import { PlaygroundTopBar } from '../kids/PlaygroundTopBar';
 import { EnterClassroomCTA } from '../kids/EnterClassroomCTA';
+import { AIPersonalizedLessonCard } from '../AIPersonalizedLessonCard';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -136,6 +137,8 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
                 wordsLearnedToday={wordsLearnedToday}
                 wordsGoal={5}
               />
+
+              <AIPersonalizedLessonCard />
 
               <WeeklyGoalWidget studentLevel="playground" />
               

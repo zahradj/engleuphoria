@@ -6554,6 +6554,7 @@ export type Database = {
           date_of_birth: string | null
           emergency_contact: string | null
           final_cefr_level: string | null
+          fluency_score: number
           gaps: string[] | null
           grade_level: string | null
           id: string
@@ -6600,6 +6601,7 @@ export type Database = {
           date_of_birth?: string | null
           emergency_contact?: string | null
           final_cefr_level?: string | null
+          fluency_score?: number
           gaps?: string[] | null
           grade_level?: string | null
           id?: string
@@ -6646,6 +6648,7 @@ export type Database = {
           date_of_birth?: string | null
           emergency_contact?: string | null
           final_cefr_level?: string | null
+          fluency_score?: number
           gaps?: string[] | null
           grade_level?: string | null
           id?: string

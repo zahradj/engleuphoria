@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
   LayoutDashboard, 
-  Users, 
+  Activity,
+  Users,
   FileText, 
   TrendingUp, 
   CreditCard, 
@@ -29,6 +30,7 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
   
   const menuItems = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
+    { id: "super-control", label: "Super Control Center", icon: Activity },
     { id: "users", label: "User Manager", icon: Users },
     { id: "curriculum", label: "Curriculum", icon: BookOpen },
     { id: "curriculum-library", label: "Lesson Library", icon: Library },
