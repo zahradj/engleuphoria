@@ -2441,6 +2441,53 @@ export type Database = {
           },
         ]
       }
+      daily_lessons: {
+        Row: {
+          content: Json
+          created_at: string
+          email_sent: boolean
+          email_sent_at: string | null
+          generated_at: string
+          id: string
+          lesson_date: string
+          student_id: string
+          student_level: string
+          title: string
+        }
+        Insert: {
+          content?: Json
+          created_at?: string
+          email_sent?: boolean
+          email_sent_at?: string | null
+          generated_at?: string
+          id?: string
+          lesson_date?: string
+          student_id: string
+          student_level?: string
+          title: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          email_sent?: boolean
+          email_sent_at?: string | null
+          generated_at?: string
+          id?: string
+          lesson_date?: string
+          student_id?: string
+          student_level?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_lessons_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       early_learners_assets: {
         Row: {
           asset_type: string

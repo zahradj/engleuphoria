@@ -20,6 +20,7 @@ import { AILessonAgent } from '../AILessonAgent';
 import { WeeklyGoalWidget } from '../WeeklyGoalWidget';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RecommendedTeachers } from '../RecommendedTeachers';
+import { BookMyClassModal } from '../BookMyClassModal';
 
 interface AcademyDashboardProps {
   studentName?: string;
@@ -43,6 +44,7 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
   const [activeTab, setActiveTab] = useState<TabId>('home');
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [leaderboardPeriod, setLeaderboardPeriod] = useState<'weekly' | 'monthly' | 'all'>('weekly');
+  const [bookingOpen, setBookingOpen] = useState(false);
   const { data: lessons = [], isLoading } = useCurriculumLessons('teen');
 
   const tabs: { id: TabId; icon: React.ReactNode; label: string }[] = [
@@ -290,6 +292,17 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
             transition={{ delay: 0.3 }}
             className="space-y-6"
           >
+            {/* Book a Slot CTA */}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => setBookingOpen(true)}
+              className="w-full py-3 px-5 rounded-xl font-bold text-white text-sm shadow-lg transition-all"
+              style={{ background: 'linear-gradient(135deg, #8b5cf6, #06b6d4)' }}
+            >
+              ⚡ Book a Slot with a Teacher
+            </motion.button>
+
             {/* Skill XP Bars — above Leaderboard */}
             <SkillXPBars isDarkMode={isDarkMode} />
 
@@ -402,6 +415,13 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
           </motion.div>
         </div>
       </main>
+
+      {/* Booking Modal */}
+      <BookMyClassModal
+        isOpen={bookingOpen}
+        onClose={() => setBookingOpen(false)}
+        studentLevel="academy"
+      />
     </div>
   );
 };

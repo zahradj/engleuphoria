@@ -10,6 +10,7 @@ import { RecommendedTeachers } from '../RecommendedTeachers';
 import { PlaygroundTopBar } from '../kids/PlaygroundTopBar';
 import { EnterClassroomCTA } from '../kids/EnterClassroomCTA';
 import { AIPersonalizedLessonCard } from '../AIPersonalizedLessonCard';
+import { BookMyClassModal } from '../BookMyClassModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -33,6 +34,7 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
   const { user } = useAuth();
   const { lessons, loading, error, markLessonComplete, getTotalStars } = usePlaygroundLessons();
   const [activeTab, setActiveTab] = useState('home');
+  const [bookingOpen, setBookingOpen] = useState(false);
   const [nextLessonRoomLink, setNextLessonRoomLink] = useState<string | null>(null);
   const [nextLessonTitle, setNextLessonTitle] = useState<string | undefined>(undefined);
 
@@ -131,6 +133,18 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
                 nextLessonTitle={nextLessonTitle}
               />
 
+              {/* Book a Class Button */}
+              <button
+                onClick={() => setBookingOpen(true)}
+                className="w-full py-3 px-4 rounded-2xl font-bold text-white text-base shadow-lg transition-all active:scale-95 hover:brightness-110"
+                style={{
+                  background: 'linear-gradient(135deg, #ec4899, #8b5cf6)',
+                  fontFamily: "'Fredoka', cursive",
+                }}
+              >
+                📅 Book a Class!
+              </button>
+
               <VirtualPetWidget
                 petType={petType}
                 petHappiness={petHappiness}
@@ -153,6 +167,13 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Booking Modal */}
+      <BookMyClassModal
+        isOpen={bookingOpen}
+        onClose={() => setBookingOpen(false)}
+        studentLevel="playground"
+      />
     </div>
   );
 };
