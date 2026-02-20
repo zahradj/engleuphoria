@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { KidsWorldMap, ThemeType } from '../kids/KidsWorldMap';
 import { usePlaygroundLessons } from '@/hooks/usePlaygroundLessons';
 import { Loader2 } from 'lucide-react';
+import { useLiveClassroomStatus } from '@/hooks/useLiveClassroomStatus';
+import { LiveSessionBadge } from '@/components/shared/LiveSessionBadge';
 import { PlaygroundSidebar } from '../kids/PlaygroundSidebar';
 import { VirtualPetWidget } from '../kids/VirtualPetWidget';
 import { AILessonAgent } from '../AILessonAgent';
@@ -37,6 +39,7 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
   const [bookingOpen, setBookingOpen] = useState(false);
   const [nextLessonRoomLink, setNextLessonRoomLink] = useState<string | null>(null);
   const [nextLessonTitle, setNextLessonTitle] = useState<string | undefined>(undefined);
+  const liveStatus = useLiveClassroomStatus('student');
 
   // Fetch student's next upcoming lesson room link
   useEffect(() => {
@@ -127,11 +130,19 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
             
             {/* Right Panel */}
             <div className="w-full lg:w-80 flex flex-col gap-4">
-              {/* Bouncy CTA — linked to real upcoming lesson */}
-              <EnterClassroomCTA
-                nextLessonRoomLink={nextLessonRoomLink}
-                nextLessonTitle={nextLessonTitle}
-              />
+              {/* LIVE Session Badge — overrides CTA when teacher is in the room */}
+              {liveStatus.isLive && liveStatus.classroomUrl ? (
+                <LiveSessionBadge
+                  classroomUrl={liveStatus.classroomUrl}
+                  variant="banner"
+                />
+              ) : (
+                /* Bouncy CTA — linked to real upcoming lesson */
+                <EnterClassroomCTA
+                  nextLessonRoomLink={nextLessonRoomLink}
+                  nextLessonTitle={nextLessonTitle}
+                />
+              )}
 
               {/* Book a Class Button */}
               <button

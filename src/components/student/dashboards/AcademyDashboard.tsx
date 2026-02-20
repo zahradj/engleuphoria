@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useLiveClassroomStatus } from '@/hooks/useLiveClassroomStatus';
+import { LiveSessionBadge } from '@/components/shared/LiveSessionBadge';
 import { 
   Home, BookOpen, Calendar, Trophy, User, Moon, Sun, 
   Flame, ChevronRight, Clock, Users, Zap, Sparkles, TrendingUp, TrendingDown
@@ -46,6 +48,7 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
   const [leaderboardPeriod, setLeaderboardPeriod] = useState<'weekly' | 'monthly' | 'all'>('weekly');
   const [bookingOpen, setBookingOpen] = useState(false);
   const { data: lessons = [], isLoading } = useCurriculumLessons('teen');
+  const liveStatus = useLiveClassroomStatus('student');
 
   const tabs: { id: TabId; icon: React.ReactNode; label: string }[] = [
     { id: 'home', icon: <Home className="w-5 h-5" />, label: 'Home' },
@@ -131,6 +134,17 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
 
       {/* Main Content */}
       <main className="flex-1 p-4 md:p-6 overflow-y-auto">
+        {/* LIVE Session Banner — appears automatically when teacher opens the room */}
+        {liveStatus.isLive && liveStatus.classroomUrl && (
+          <div className="mb-4">
+            <LiveSessionBadge
+              classroomUrl={liveStatus.classroomUrl}
+              variant="banner"
+              isDarkMode={isDarkMode}
+            />
+          </div>
+        )}
+
         {/* Header */}
         <motion.div 
           initial={{ y: -20, opacity: 0 }}
