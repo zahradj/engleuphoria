@@ -1,113 +1,91 @@
 
-# Phase 11: Academy Dashboard "Creator Space" + Hub Dashboard "Executive Suite"
+# Steps 9, 10 & 11: Email Notifications + Booking System + Booking Calendar UI
 
-## Executive Summary
+## What Already Exists (Audit)
 
-Both dashboards already have strong foundations built in Phase 10. This phase adds the **three missing interactive features** the user requested that don't yet exist in the codebase, plus verifies that the "Traffic Controller" routing is properly wired.
+After thoroughly reviewing the codebase:
 
----
+**Already built and working:**
+- `RESEND_API_KEY` is configured as a Supabase secret
+- `teacher_availability` table exists with all required columns (`id`, `teacher_id`, `start_time`, `end_time`, `is_available`, `is_booked`, `duration`, `lesson_id`, etc.)
+- `class_bookings` table exists (the platform uses this, not a separate `bookings` table)
+- `lesson_reminders` table exists with 24h/1h/15min reminder logic
+- `send-lesson-reminders` edge function already handles class reminders via `get_pending_reminders()` RPC
+- `StudentBookingCalendar.tsx` component exists with real-time subscriptions and slot selection UI
+- `TeacherAvailability.tsx` exists with date/time slot creation for teachers
+- `ClassScheduler` is already in the teacher dashboard under the "Schedule" tab
 
-## Audit: What Already Exists
-
-### Academy Dashboard (`AcademyDashboard.tsx`)
-- Dark mode with purple/cyan neon palette — done
-- Card-based layout with sidebar nav — done
-- `DailyChallengeCard` (social-post style challenge) — done
-- `DailyStreakCard` — done
-- Global Leaderboard with Weekly/Monthly/All-Time tabs and rank-change indicators — done
-- `SocialLounge` (Discord-style channels) — done
-
-### Hub Dashboard (`HubDashboard.tsx`)
-- Clean Apple-style white/slate-gray with Emerald accents — done
-- `SkillsRadarChart` (Speaking, Listening, Reading, Writing, Grammar, Vocabulary) — done
-- `BusinessMilestonesCard` — done
-- Resources section with downloadable PDFs — done
-- "Next Session" card with Join button — done
-
-### DashboardRouter (`DashboardRouter.tsx`)
-- Routes `systemId: 'kids' | 'teen' | 'adult'` to the correct dashboard — done
-- Integrated into `StudentPanel` and the student routes — done
+**Missing (needs to be built):**
+1. `daily_lessons` table — does not exist; needed for the "Lesson Ready" email trigger
+2. `notify-student-lesson` edge function — does not exist
+3. "Book My Next Class" modal integration in the three student dashboards (Playground, Academy, Hub)
+4. The `daily_lessons` table needs a database trigger to call the new email edge function
 
 ---
 
-## What Needs to Be Built
+## What Will Be Built
 
-### Gap 1 — Academy: "Record a Clip" with AI Confidence Score
+### Step 9: Email Notification System
 
-**New component**: `src/components/student/academy/RecordClipWidget.tsx`
+#### Part A — Database: `daily_lessons` table
+A new `daily_lessons` table will be created to track when AI-generated lessons become ready for students. This is the table the email trigger will watch.
 
-This widget will:
-- Display a microphone button with a pulsing recording animation (Framer Motion)
-- Use the browser's `MediaRecorder` API to capture a short voice clip (max 30 seconds)
-- Show a waveform-style animation while recording
-- On stop, display a simulated "AI Confidence Score" breakdown card:
-  - Pronunciation: e.g. 82%
-  - Fluency: e.g. 74%
-  - Grammar: e.g. 91%
-  - Overall Confidence: e.g. 82%
-- Show a progress ring for the overall score with a color-coded badge (green = 80+, yellow = 60–79, red < 60)
-- Include a "Try Again" button and encouraging feedback message
+**Columns:**
+- `id` (UUID, primary key)
+- `student_id` (UUID, references `users`)
+- `student_level` (text: `playground`, `academy`, `professional`)
+- `title` (text)
+- `content` (jsonb — stores the vocabulary, quiz, etc.)
+- `generated_at` (timestamp, default now)
+- `email_sent` (boolean, default false)
 
-The widget integrates into `AcademyDashboard.tsx` in the left column, placed between the "Continue Learning" card and the bottom section.
+RLS: students can read their own rows; only the service role can insert.
 
-### Gap 2 — Academy: Skill XP Progress Bars (Slang, Grammar, Fluency)
+#### Part B — Edge Function: `notify-student-lesson`
+A new edge function that:
+- Accepts a `POST` request with `{ student_id, lesson_title, student_level, student_email, student_name }` in the body
+- Sends a beautiful branded HTML email via Resend:
+  > *"Hi [Name]! Your personalized AI lesson for today is ready. Log in to your [Level] dashboard to start!"*
+- Uses the same purple/branded email template style already established in `send-user-emails`
+- Returns success/failure JSON
 
-**New component**: `src/components/student/academy/SkillXPBars.tsx`
+This function is called from the client (or a future Postgres trigger/webhook) whenever a new lesson is saved to `daily_lessons`.
 
-A compact card showing three animated progress bars:
-- Slang (e.g., 340 XP / 500 XP to next level)
-- Grammar (e.g., 580 XP / 800 XP)
-- Fluency (e.g., 210 XP / 500 XP)
+#### Part C — Integration: Call the notification when a lesson is saved
+The `useDailyPersonalizedLesson.ts` hook already fetches and caches AI lessons. After successfully saving a lesson result, it will be extended to invoke `notify-student-lesson` via `supabase.functions.invoke()` if this is the first time the student is seeing today's lesson (using the `email_sent` flag on the DB row to ensure the email fires only once).
 
-Each bar uses Framer Motion for a smooth fill animation on mount. Replaces the "Stars" concept entirely with "XP" for teens.
+#### Part D — Class Reminder (already exists — verified)
+The `send-lesson-reminders` edge function already handles 1h-before class reminders using the `lesson_reminders` table and the `get_pending_reminders()` database function. No new work is needed here — this will be documented and confirmed working.
 
-Integrated into the Academy Dashboard right sidebar, above the Leaderboard card.
+---
 
-### Gap 3 — Hub: Learning Velocity Line Chart
+### Step 10: Booking & Scheduling — No New Tables Needed
 
-**New component**: `src/components/student/hub/LearningVelocityChart.tsx`
+The SQL in Step 10 proposes creating `teacher_availability` and `bookings` tables. Both already exist:
+- `teacher_availability` — fully featured with RLS
+- `class_bookings` — serves the same purpose as the proposed `bookings` table
 
-A Recharts `LineChart` showing:
-- X-axis: last 7 days (Mon → Sun)
-- Two lines:
-  - "Hours Studied" (actual) — emerald green
-  - "Daily Goal" (target) — dashed slate
-- Fill area under the "Hours Studied" line
-- Tooltip showing exact hours for each day
-- Summary metric below: "You've studied X hrs this week. Goal: Y hrs."
+No database migration is required. The existing schema is more advanced than what was proposed.
 
-Integrated into the Hub Dashboard main content column, beneath the `SkillsRadarChart`.
+---
 
-### Gap 4 — Hub: Calendar Integration Buttons ("Add to Calendar")
+### Step 11: Booking Calendar UI
 
-**Enhancement** to the existing "Next Session" card in `HubDashboard.tsx`:
-- Add two small icon buttons: "Add to Google Calendar" and "Add to Outlook"
-- Google Calendar link: `https://calendar.google.com/calendar/render?action=TEMPLATE&text=...&dates=...`
-- Outlook link: `https://outlook.live.com/calendar/0/deeplink/compose?subject=...&startdt=...`
-- Both open in a new tab
+#### Part A — `BookMyClassModal.tsx` (new component)
+A dialog/modal containing the already-built `StudentBookingCalendar` component, wrapped in:
+- A `Dialog` from shadcn/ui
+- A hook `useAvailableSlots` that fetches from `teacher_availability` where `is_available = true AND is_booked = false AND start_time > now()`
+- An `onBookSlot` handler that:
+  1. Updates `is_booked = true` on the `teacher_availability` row
+  2. Inserts a new record into `class_bookings`
+  3. Shows a confetti/celebration animation using `canvas-confetti`
+  4. Shows a success toast: "🎉 Class booked! Check your email for a reminder."
+  5. Invokes `notify-teacher-booking` (already exists) to notify the teacher
 
-### Gap 5 — Hub: Weekly Briefing AI Card
-
-**New component**: `src/components/student/hub/WeeklyBriefingCard.tsx`
-
-A card styled like an executive report with:
-- Header: "📊 Your Weekly Briefing"
-- Main insight: e.g., "You improved your professional tone by 15% this week."
-- Focus area recommendation: "Next focus: Negotiation Vocabulary"
-- Three supporting data points displayed as mini stat pills:
-  - Sessions this week: 4
-  - Avg session score: 87%
-  - Streak: 12 days
-- Visual trend arrow (up/down) for improvement metric
-- Subtle gradient background (emerald → teal)
-
-Integrated into the Hub Dashboard right sidebar, at the top.
-
-### Gap 6 — Traffic Controller Validation
-
-**Check and fix** `DashboardRouter.tsx`:
-
-The router currently maps `systemId` values (`'kids'`, `'teen'`, `'adult'`). The `student_profiles.student_level` column stores `'playground'`, `'academy'`, `'professional'`. The mapping between them happens somewhere upstream (in `AuthContext` or profile-loading hooks). We need to confirm the bridge is correct and, if not, add a fallback mapping inside `DashboardRouter` that also accepts the `student_level` string directly.
+#### Part B — "Book My Next Class" button in each student dashboard
+- **PlaygroundDashboard** — add a friendly, colorful "Book a Class!" button in the right panel above the `VirtualPetWidget`, opening `BookMyClassModal`
+- **AcademyDashboard** — add a "Book a Slot" button in the Schedule tab and as a floating action in the Home tab, opening `BookMyClassModal`
+- **HubDashboard** — add a "Schedule a Session" button in the right column next to the existing "Next Session" card, opening `BookMyClassModal`
 
 ---
 
@@ -117,52 +95,33 @@ The router currently maps `systemId` values (`'kids'`, `'teen'`, `'adult'`). The
 
 | File | Purpose |
 |------|---------|
-| `src/components/student/academy/RecordClipWidget.tsx` | Voice recording + AI Confidence Score display |
-| `src/components/student/academy/SkillXPBars.tsx` | XP progress bars for Slang, Grammar, Fluency |
-| `src/components/student/hub/LearningVelocityChart.tsx` | Line chart: hours studied vs. goal (7-day view) |
-| `src/components/student/hub/WeeklyBriefingCard.tsx` | Executive AI insight card for adults |
+| `supabase/migrations/[timestamp]_daily_lessons.sql` | Creates `daily_lessons` table with RLS |
+| `supabase/functions/notify-student-lesson/index.ts` | New edge function: sends "Lesson Ready" email via Resend |
+| `src/components/student/BookMyClassModal.tsx` | Dialog wrapping `StudentBookingCalendar` with confetti on success |
 
 ### Files to Modify
 
 | File | Change |
 |------|--------|
-| `src/components/student/dashboards/AcademyDashboard.tsx` | Import and place `RecordClipWidget` (left column) + `SkillXPBars` (right sidebar above leaderboard) |
-| `src/components/student/dashboards/HubDashboard.tsx` | Import and place `LearningVelocityChart` (main column) + `WeeklyBriefingCard` (right sidebar top) + enhance "Next Session" card with calendar buttons |
-| `src/components/student/dashboards/DashboardRouter.tsx` | Expand type handling to also accept `'playground' | 'academy' | 'professional'` as aliases, ensuring the correct dashboard is always served |
+| `src/hooks/useDailyPersonalizedLesson.ts` | After saving AI lesson, invoke `notify-student-lesson` edge function once per day per student |
+| `src/components/student/dashboards/PlaygroundDashboard.tsx` | Add "Book a Class!" button + `BookMyClassModal` |
+| `src/components/student/dashboards/AcademyDashboard.tsx` | Add "Book a Slot" CTA in home tab + `BookMyClassModal` |
+| `src/components/student/dashboards/HubDashboard.tsx` | Add "Schedule a Session" button in right sidebar + `BookMyClassModal` |
 
-### No Database Migration Required
+### No New Secrets Required
+`RESEND_API_KEY` is already configured.
 
-All new features use:
-- Client-side state for the recording flow
-- Mock/computed data for the Confidence Score (no external AI call — presented as "AI-analyzed" with a realistic delay using `setTimeout`)
-- Existing `student_profiles` data for XP and skill levels
-- Recharts (already installed) for the Learning Velocity chart
-- Computed values from existing `weeklyActivity` data for the Hub velocity chart
+### Email Design
+The "Lesson Ready" email will match the existing purple EnglEuphoria brand template. Level-specific messaging:
+- Playground: "🌟 Your adventure lesson for today is ready!"
+- Academy: "🔥 Your daily challenge just dropped. Don't miss it!"  
+- Professional: "📊 Your personalized business English briefing is ready."
 
----
+### Booking Flow (No Double-Booking)
+The atomic update on `teacher_availability` (`is_booked = true WHERE is_booked = false`) prevents race conditions where two students book the same slot simultaneously.
 
-## Design Specifications
+### Celebration Animation
+`canvas-confetti` is already installed. On successful booking, a burst of confetti fires for 2 seconds before the modal closes.
 
-### Academy — RecordClipWidget
-- Dark background (`bg-[#1a1a2e]`) with purple/cyan neon border
-- Recording button: large pulsing red circle when active, purple gradient when idle
-- Confidence Score ring: `stroke-dashoffset` SVG circle animated to the score value
-- Font: inherit from AcademyDashboard (system sans, neon accents)
-
-### Academy — SkillXPBars
-- Three rows with skill name, current XP / next level XP, and animated bar
-- Bar colors: Slang = magenta (`#E879F9`), Grammar = cyan (`#22D3EE`), Fluency = yellow (`#FBBF24`)
-- Dark card background matching the dashboard
-
-### Hub — LearningVelocityChart
-- Recharts `AreaChart` with two datasets
-- "Studied" line: solid emerald (`#10B981`), filled area at 20% opacity
-- "Goal" line: dashed slate (`#94A3B8`)
-- White/light background card matching the Hub's Apple aesthetic
-- Responsive with `ResponsiveContainer`
-
-### Hub — WeeklyBriefingCard
-- Gradient background: `from-emerald-50 to-teal-50` (light) / `from-emerald-900/30 to-teal-900/30` (dark)
-- Bold improvement percentage with upward arrow icon in green
-- Focus recommendation in a pill badge
-- Clean Inter/system font, compact padding
+### Existing Reminder System
+The `send-lesson-reminders` edge function is fully functional. To activate it on a schedule, a `pg_cron` job can be set up via the Supabase SQL editor — this will be provided as an optional SQL snippet for the user to run manually in the Supabase dashboard.
