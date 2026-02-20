@@ -1,91 +1,94 @@
 
-# Steps 9, 10 & 11: Email Notifications + Booking System + Booking Calendar UI
+# Steps 12, 13 & 14: Session IDs, Classroom Security & Deployment Checklist
 
-## What Already Exists (Audit)
+## Audit Summary — What Already Exists
 
-After thoroughly reviewing the codebase:
+After a deep inspection of every relevant file and the live database, here is the complete picture:
 
-**Already built and working:**
-- `RESEND_API_KEY` is configured as a Supabase secret
-- `teacher_availability` table exists with all required columns (`id`, `teacher_id`, `start_time`, `end_time`, `is_available`, `is_booked`, `duration`, `lesson_id`, etc.)
-- `class_bookings` table exists (the platform uses this, not a separate `bookings` table)
-- `lesson_reminders` table exists with 24h/1h/15min reminder logic
-- `send-lesson-reminders` edge function already handles class reminders via `get_pending_reminders()` RPC
-- `StudentBookingCalendar.tsx` component exists with real-time subscriptions and slot selection UI
-- `TeacherAvailability.tsx` exists with date/time slot creation for teachers
-- `ClassScheduler` is already in the teacher dashboard under the "Schedule" tab
+**Already Built:**
+- `class_bookings` table: has `id`, `student_id`, `teacher_id`, `scheduled_at`, `status`, `duration`, but **no `session_id` or `meeting_link` columns**
+- `lessons` table: has `room_id` and `room_link` columns already
+- `classroom_sessions` table: tracks live sessions keyed by `room_id` (e.g. `MySchool_Class_{id}`)
+- `ClassroomQuickJoin` component: detects upcoming lessons within 15 minutes and shows a floating "Join" button
+- `TeacherClassroom` routes via `/classroom/:id` (teacher only, protected by `ImprovedProtectedRoute`)
+- `StudentClassroom` routes via `/student-classroom/:id` (student only, protected)
+- `ImprovedProtectedRoute`: properly redirects to `/login` for wrong roles — route protection is already solid
+- `send-lesson-reminders` edge function: includes `room_link` in the email if present
+- Teacher `NextLessonCard`: uses mock data and navigates to `/classroom/{lesson.id}` — needs wiring to real data
+- `NovakidDashboard`: teacher dashboard, loads the `NextLessonCard` — needs real upcoming lesson data
+- RLS: `student_profiles` and `class_bookings` already restrict to their owners; `classroom_sessions` has a "view own room" policy
 
-**Missing (needs to be built):**
-1. `daily_lessons` table — does not exist; needed for the "Lesson Ready" email trigger
-2. `notify-student-lesson` edge function — does not exist
-3. "Book My Next Class" modal integration in the three student dashboards (Playground, Academy, Hub)
-4. The `daily_lessons` table needs a database trigger to call the new email edge function
+**Gaps to Fill:**
+1. `class_bookings` table is missing `session_id` and `meeting_link` — need a DB migration to add them
+2. No database trigger to auto-generate `session_id` and `meeting_link` when a booking is created
+3. `NextLessonCard` in teacher dashboard uses hardcoded mock data — needs real DB query
+4. `BookMyClassModal` creates a `class_bookings` record but does not pass the resulting `meeting_link` back to the confirmation screen for the student to copy/use
+5. The classroom `/student-classroom/:id` route uses the `id` param as a `roomId` — but the booking flow uses `class_bookings.id`, not a room/session ID — these need to be reconciled
+6. No "classroom privacy" check at the page level: any authenticated student can currently load `/student-classroom/any-id`
+7. `ImprovedProtectedRoute` redirects silently — Step 13 wants a visible toast saying "Access Denied"
+8. Step 14 is a manual launch checklist — no code changes needed, just a checklist to hand to the user
 
 ---
 
 ## What Will Be Built
 
-### Step 9: Email Notification System
+### Step 12A — Database Migration: `session_id` & `meeting_link` on `class_bookings`
 
-#### Part A — Database: `daily_lessons` table
-A new `daily_lessons` table will be created to track when AI-generated lessons become ready for students. This is the table the email trigger will watch.
+Two new columns will be added to `class_bookings`:
+- `session_id TEXT` — a unique 12-character alphanumeric string (generated via `substring(replace(gen_random_uuid()::text, '-', ''), 1, 12)`)
+- `meeting_link TEXT` — automatically set to `/student-classroom/{session_id}`
 
-**Columns:**
-- `id` (UUID, primary key)
-- `student_id` (UUID, references `users`)
-- `student_level` (text: `playground`, `academy`, `professional`)
-- `title` (text)
-- `content` (jsonb — stores the vocabulary, quiz, etc.)
-- `generated_at` (timestamp, default now)
-- `email_sent` (boolean, default false)
+A PostgreSQL trigger function `generate_booking_session` will be created and attached `BEFORE INSERT` on `class_bookings`. It will populate both columns so every new booking automatically has a private, unique URL.
 
-RLS: students can read their own rows; only the service role can insert.
+The teacher needs the same URL but via the teacher-facing route. The trigger will store the student-facing URL in `meeting_link`. The teacher's classroom URL (for the same session) will be `/classroom/{session_id}`, which is the parallel teacher route.
 
-#### Part B — Edge Function: `notify-student-lesson`
-A new edge function that:
-- Accepts a `POST` request with `{ student_id, lesson_title, student_level, student_email, student_name }` in the body
-- Sends a beautiful branded HTML email via Resend:
-  > *"Hi [Name]! Your personalized AI lesson for today is ready. Log in to your [Level] dashboard to start!"*
-- Uses the same purple/branded email template style already established in `send-user-emails`
-- Returns success/failure JSON
+### Step 12B — Wire Real Data into Teacher's `NextLessonCard`
 
-This function is called from the client (or a future Postgres trigger/webhook) whenever a new lesson is saved to `daily_lessons`.
+The `NextLessonCard` component currently uses hardcoded mock data. It will be updated to:
+- Use a Supabase query from `lessons` (joining `users` for student name) filtered by `teacher_id = auth.uid()`, `status IN ('scheduled','confirmed')`, and `scheduled_at >= NOW()`
+- Display the actual next lesson's title, student name, time, and `room_link`
+- Show the "Enter Classroom" button that navigates to `/classroom/{room_id}` (the lesson's `room_id` is how the teacher classroom is keyed)
 
-#### Part C — Integration: Call the notification when a lesson is saved
-The `useDailyPersonalizedLesson.ts` hook already fetches and caches AI lessons. After successfully saving a lesson result, it will be extended to invoke `notify-student-lesson` via `supabase.functions.invoke()` if this is the first time the student is seeing today's lesson (using the `email_sent` flag on the DB row to ensure the email fires only once).
+### Step 12C — "Join Live Lesson" Button in Student Dashboards (Classroom Quick Join)
 
-#### Part D — Class Reminder (already exists — verified)
-The `send-lesson-reminders` edge function already handles 1h-before class reminders using the `lesson_reminders` table and the `get_pending_reminders()` database function. No new work is needed here — this will be documented and confirmed working.
+The existing `ClassroomQuickJoin` component already handles the 15-minute window detection and displays a floating "Join" button. However, it currently routes to `/classroom/{lesson.id}` — the **teacher** route — for all users.
 
----
+It will be updated to route students to `/student-classroom/{room_id}` instead of `/classroom/{...}`.
 
-### Step 10: Booking & Scheduling — No New Tables Needed
+The `BookMyClassModal`'s success screen will also show the meeting link immediately after booking, so the student doesn't need to wait for email.
 
-The SQL in Step 10 proposes creating `teacher_availability` and `bookings` tables. Both already exist:
-- `teacher_availability` — fully featured with RLS
-- `class_bookings` — serves the same purpose as the proposed `bookings` table
+### Step 12D — Update Reminder Email to Include `meeting_link`
 
-No database migration is required. The existing schema is more advanced than what was proposed.
+The `send-lesson-reminders` edge function already handles `room_link`. The gap is that `class_bookings` records (created via `BookMyClassModal`) don't create an entry in the `lessons` table or `lesson_reminders` table — so they never appear in reminder emails.
 
----
+To bridge this: after inserting into `class_bookings`, the `BookMyClassModal` will also insert a corresponding record into `lesson_reminders` using the booking's `session_id` as the room reference, with `1h_before` reminder type. This ensures the existing reminder system picks it up automatically.
 
-### Step 11: Booking Calendar UI
+### Step 13A — Route Protection: "Access Denied" Toast
 
-#### Part A — `BookMyClassModal.tsx` (new component)
-A dialog/modal containing the already-built `StudentBookingCalendar` component, wrapped in:
-- A `Dialog` from shadcn/ui
-- A hook `useAvailableSlots` that fetches from `teacher_availability` where `is_available = true AND is_booked = false AND start_time > now()`
-- An `onBookSlot` handler that:
-  1. Updates `is_booked = true` on the `teacher_availability` row
-  2. Inserts a new record into `class_bookings`
-  3. Shows a confetti/celebration animation using `canvas-confetti`
-  4. Shows a success toast: "🎉 Class booked! Check your email for a reminder."
-  5. Invokes `notify-teacher-booking` (already exists) to notify the teacher
+The `ImprovedProtectedRoute` currently redirects silently to `/login` when role doesn't match. It will be updated to pass a query parameter `?reason=access_denied` when redirecting due to role mismatch (not when simply unauthenticated).
 
-#### Part B — "Book My Next Class" button in each student dashboard
-- **PlaygroundDashboard** — add a friendly, colorful "Book a Class!" button in the right panel above the `VirtualPetWidget`, opening `BookMyClassModal`
-- **AcademyDashboard** — add a "Book a Slot" button in the Schedule tab and as a floating action in the Home tab, opening `BookMyClassModal`
-- **HubDashboard** — add a "Schedule a Session" button in the right column next to the existing "Next Session" card, opening `BookMyClassModal`
+The `Login` page will read this query param and display a Sonner toast: *"Access Denied — You don't have permission to access that page."*
+
+This gives the user clear feedback without revealing any sensitive information.
+
+### Step 13B — Classroom Privacy Guard (New Component: `SessionPrivacyGuard`)
+
+A new lightweight wrapper component `SessionPrivacyGuard` will be created at `src/components/classroom/SessionPrivacyGuard.tsx`. It will:
+1. Accept `sessionId` (the room ID / `session_id`) and `userRole` as props
+2. Query the database: for students, check `class_bookings` where `session_id = ? AND student_id = auth.uid()`; for teachers, check `lessons` where `room_id = ? AND teacher_id = auth.uid()`
+3. If the check passes, render the classroom children
+4. If it fails, show a full-screen "This session is private" message with a "Go back" button — no redirect, just an in-page block
+
+This component will be used in both `StudentClassroomPage` and `TeacherClassroomPage`.
+
+### Step 13C — RLS Audit (Database)
+
+A migration will clean up redundant/conflicting RLS policies on `teacher_availability` and `classroom_sessions`. The current state has multiple overlapping SELECT policies on `teacher_availability` which could confuse access control. The migration will:
+- Drop the redundant overlapping policies on `teacher_availability` (keeping only `secure_availability_teacher` and `secure_availability_student`)
+- Add an explicit INSERT policy on `class_bookings` for authenticated students (`student_id = auth.uid()`)
+- Verify `classroom_sessions` student SELECT policy uses the lessons join (already exists)
+
+No changes to `student_profiles` or `user_roles` — those are already correctly configured.
 
 ---
 
@@ -95,33 +98,43 @@ A dialog/modal containing the already-built `StudentBookingCalendar` component, 
 
 | File | Purpose |
 |------|---------|
-| `supabase/migrations/[timestamp]_daily_lessons.sql` | Creates `daily_lessons` table with RLS |
-| `supabase/functions/notify-student-lesson/index.ts` | New edge function: sends "Lesson Ready" email via Resend |
-| `src/components/student/BookMyClassModal.tsx` | Dialog wrapping `StudentBookingCalendar` with confetti on success |
+| `src/components/classroom/SessionPrivacyGuard.tsx` | Wraps classroom pages; blocks access if user is not the booked student/teacher |
 
 ### Files to Modify
 
 | File | Change |
-|------|--------|
-| `src/hooks/useDailyPersonalizedLesson.ts` | After saving AI lesson, invoke `notify-student-lesson` edge function once per day per student |
-| `src/components/student/dashboards/PlaygroundDashboard.tsx` | Add "Book a Class!" button + `BookMyClassModal` |
-| `src/components/student/dashboards/AcademyDashboard.tsx` | Add "Book a Slot" CTA in home tab + `BookMyClassModal` |
-| `src/components/student/dashboards/HubDashboard.tsx` | Add "Schedule a Session" button in right sidebar + `BookMyClassModal` |
+|------|---------|
+| `supabase/migrations/[timestamp]_booking_session_id.sql` | Add `session_id` + `meeting_link` to `class_bookings`; create `generate_booking_session` trigger; clean up redundant RLS on `teacher_availability` |
+| `src/components/teacher/dashboard/NextLessonCard.tsx` | Replace mock data with real Supabase query using `get_teacher_upcoming_lessons` RPC |
+| `src/components/student/ClassroomQuickJoin.tsx` | Fix navigation to use `/student-classroom/{room_id}` instead of teacher route |
+| `src/components/student/BookMyClassModal.tsx` | After successful booking, show `meeting_link` in success screen; insert a `lesson_reminders` row |
+| `src/pages/StudentClassroomPage.tsx` | Wrap `StudentClassroom` in `SessionPrivacyGuard` |
+| `src/pages/TeacherClassroomPage.tsx` | Wrap `TeacherClassroom` in `SessionPrivacyGuard` |
+| `src/components/auth/ImprovedProtectedRoute.tsx` | Pass `?reason=access_denied` on role-mismatch redirect |
+| `src/pages/Login.tsx` | Read `?reason=access_denied` param; show Sonner toast on load |
 
-### No New Secrets Required
-`RESEND_API_KEY` is already configured.
+### Step 14 — Deployment Checklist (No Code Changes)
 
-### Email Design
-The "Lesson Ready" email will match the existing purple EnglEuphoria brand template. Level-specific messaging:
-- Playground: "🌟 Your adventure lesson for today is ready!"
-- Academy: "🔥 Your daily challenge just dropped. Don't miss it!"  
-- Professional: "📊 Your personalized business English briefing is ready."
+This is a manual testing checklist to hand to the user. No code changes. All items below can be verified by the user directly:
 
-### Booking Flow (No Double-Booking)
-The atomic update on `teacher_availability` (`is_booked = true WHERE is_booked = false`) prevents race conditions where two students book the same slot simultaneously.
+**[ ] The Login Test**
+Log in as `f.zahra.djaanine@engleuphoria.com`. Confirm you land on `/super-admin`. Log out. Log in as a teacher account. Confirm you land on `/admin`. Log in as a student. Confirm you land on `/playground`, `/academy`, or `/hub` depending on their level.
 
-### Celebration Animation
-`canvas-confetti` is already installed. On successful booking, a burst of confetti fires for 2 seconds before the modal closes.
+**[ ] The Booking Test**
+As a teacher: go to the Schedule tab → create an availability slot 15 minutes from now. As a student: open any dashboard → click "Book a Class" → select the slot → confirm confetti fires and the success screen shows a meeting link.
 
-### Existing Reminder System
-The `send-lesson-reminders` edge function is fully functional. To activate it on a schedule, a `pg_cron` job can be set up via the Supabase SQL editor — this will be provided as an optional SQL snippet for the user to run manually in the Supabase dashboard.
+**[ ] The Sync Test**
+Open two browser tabs. Log in as teacher in one → navigate to a classroom. Log in as student in another → join the same room. Change the slide in the teacher tab and confirm the student tab updates within 1–2 seconds.
+
+**[ ] The Email Test**
+When the AI generates a daily lesson (via the Academy or Hub dashboard), the `notify-student-lesson` edge function sends a "Lesson Ready" email. Confirm it arrives at the student's registered email. Check the Supabase Edge Function logs at the link below if it doesn't arrive.
+
+---
+
+## Architecture Note: Two Classroom Routes
+
+The platform has a clear separation:
+- Teacher enters via `/classroom/:id` → renders `TeacherClassroom`
+- Student enters via `/student-classroom/:id` → renders `StudentClassroom`
+
+Both use the same `roomId` (the `classroom_sessions.room_id` column) to connect to the same Supabase Realtime channel. The `session_id` generated in `class_bookings` will serve as this shared `roomId`. The trigger sets `meeting_link = '/student-classroom/' || session_id` and the teacher navigates to `/classroom/` + the same `session_id`.
