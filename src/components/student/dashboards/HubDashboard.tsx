@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useLiveClassroomStatus } from '@/hooks/useLiveClassroomStatus';
+import { LiveSessionBadge } from '@/components/shared/LiveSessionBadge';
 import { 
   LayoutDashboard, BookOpen, Award, Settings, 
   Download, FileText, TrendingUp, Clock, CheckCircle, 
@@ -36,6 +38,7 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [bookingOpen, setBookingOpen] = useState(false);
   const { data: lessons = [], isLoading } = useCurriculumLessons('adult');
+  const liveStatus = useLiveClassroomStatus('student');
 
   const navItems: { id: NavItem; label: string; icon: React.ReactNode }[] = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
@@ -144,6 +147,17 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 md:px-8 py-8">
+        {/* LIVE Session Banner — appears automatically when teacher opens the room */}
+        {liveStatus.isLive && liveStatus.classroomUrl && (
+          <div className="mb-6">
+            <LiveSessionBadge
+              classroomUrl={liveStatus.classroomUrl}
+              variant="banner"
+              isDarkMode={isDarkMode}
+            />
+          </div>
+        )}
+
         {/* Next Career Milestone Banner */}
         <motion.div
           initial={{ y: -10, opacity: 0 }}

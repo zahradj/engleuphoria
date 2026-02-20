@@ -9,13 +9,15 @@ import {
   User, 
   Video,
   ChevronRight,
-  Loader2
+  Loader2,
+  Radio
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useNextClassCountdown } from '@/hooks/useNextClassCountdown';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { useLiveClassroomStatus } from '@/hooks/useLiveClassroomStatus';
 
 interface NextLessonCardProps {
   disabled?: boolean;
@@ -44,12 +46,20 @@ export const NextLessonCard: React.FC<NextLessonCardProps> = ({ disabled = false
   const scheduledAt = nextLesson ? new Date(nextLesson.scheduled_at) : new Date(Date.now() + 3_600_000);
 
   const { formattedTime, canEnter, isStartingSoon, hasStarted } = useNextClassCountdown(scheduledAt);
+  const liveStatus = useLiveClassroomStatus('teacher');
 
-  const buttonEnabled = !disabled && !!nextLesson && (canEnter || hasStarted);
+  // Consider it "live" if the hook detects an active session OR the lesson has started
+  const isSessionLive = liveStatus.isLive && !!nextLesson &&
+    (liveStatus.roomId === nextLesson.room_id || liveStatus.roomId === nextLesson.id);
+
+  const buttonEnabled = !disabled && !!nextLesson && (canEnter || hasStarted || isSessionLive);
 
   const handleEnterClassroom = () => {
+    if (isSessionLive && liveStatus.classroomUrl) {
+      navigate(liveStatus.classroomUrl);
+      return;
+    }
     if (!buttonEnabled || !nextLesson) return;
-    // Prefer room_id if set, otherwise use lesson id
     const roomId = nextLesson.room_id || nextLesson.id;
     navigate(`/classroom/${roomId}`);
   };
@@ -75,18 +85,27 @@ export const NextLessonCard: React.FC<NextLessonCardProps> = ({ disabled = false
             <Video className="w-5 h-5 text-primary" />
             Next Lesson
           </CardTitle>
-          {!isLoading && (
-            <Badge
-              variant={getBadgeVariant()}
-              className={`${
-                (isStartingSoon || hasStarted) && nextLesson
-                  ? 'animate-pulse bg-emerald-500 text-white'
-                  : ''
-              }`}
-            >
-              {getBadgeContent()}
-            </Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {/* LIVE badge — shows when session is active */}
+            {isSessionLive && (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500 text-white text-xs font-bold shadow-md">
+                <Radio className="w-3 h-3 animate-pulse" />
+                LIVE
+              </span>
+            )}
+            {!isLoading && (
+              <Badge
+                variant={getBadgeVariant()}
+                className={`${
+                  (isStartingSoon || hasStarted || isSessionLive) && nextLesson
+                    ? 'animate-pulse bg-emerald-500 text-white'
+                    : ''
+                }`}
+              >
+                {isSessionLive ? 'In Session!' : getBadgeContent()}
+              </Badge>
+            )}
+          </div>
         </div>
       </CardHeader>
 
@@ -156,17 +175,28 @@ export const NextLessonCard: React.FC<NextLessonCardProps> = ({ disabled = false
         {/* Enter Classroom Button */}
         <Button
           onClick={handleEnterClassroom}
-          disabled={!buttonEnabled}
+          disabled={!buttonEnabled && !isSessionLive}
           size="lg"
           className={`w-full transition-all duration-300 ${
-            !buttonEnabled
-              ? 'bg-muted text-muted-foreground'
-              : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg shadow-emerald-500/25'
-          } ${(isStartingSoon || hasStarted) && nextLesson ? 'animate-pulse' : ''}`}
+            isSessionLive
+              ? 'bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white shadow-lg shadow-red-500/30 animate-pulse'
+              : !buttonEnabled
+                ? 'bg-muted text-muted-foreground'
+                : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg shadow-emerald-500/25'
+          } ${(isStartingSoon || hasStarted) && !isSessionLive && nextLesson ? 'animate-pulse' : ''}`}
         >
-          <Video className="w-5 h-5 mr-2" />
-          {hasStarted ? 'Join Now!' : 'Enter Classroom'}
-          <ChevronRight className="w-5 h-5 ml-2" />
+          {isSessionLive ? (
+            <>
+              <Radio className="w-5 h-5 mr-2 animate-pulse" />
+              🔴 Join LIVE Class
+            </>
+          ) : (
+            <>
+              <Video className="w-5 h-5 mr-2" />
+              {hasStarted ? 'Join Now!' : 'Enter Classroom'}
+              <ChevronRight className="w-5 h-5 ml-2" />
+            </>
+          )}
         </Button>
 
         {disabled && (
