@@ -107,6 +107,12 @@ export const LessonPlayer: React.FC<LessonPlayerProps> = ({
     await updateTimeMutation.mutateAsync({ userId, lessonId, additionalSeconds: timeSpent });
 
     setFinalScore(score);
+    
+    toast.success(`Brilliant! +${earnedXp} XP added to your profile.`, {
+      duration: 4000,
+      icon: '🌟',
+    });
+    
     setShowCompletionModal(true);
   };
 

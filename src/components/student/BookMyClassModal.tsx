@@ -175,7 +175,7 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
 
       toast({
         title: '🎉 Class booked!',
-        description: 'Check your email for a reminder 1 hour before the session.',
+        description: 'Success! Your coach has been notified. Check your email for a reminder 1 hour before the session.',
       });
 
       // Close modal after 2.5 seconds
