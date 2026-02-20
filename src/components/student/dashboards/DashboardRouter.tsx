@@ -4,11 +4,33 @@ import { PlaygroundDashboard } from './PlaygroundDashboard';
 import { AcademyDashboard } from './AcademyDashboard';
 import { HubDashboard } from './HubDashboard';
 
+// student_profiles.student_level values (from DB)
+type StudentLevel = 'playground' | 'academy' | 'professional';
+
 interface DashboardRouterProps {
-  systemId: SystemId;
+  /** Primary routing key — accepts both SystemId ('kids'|'teen'|'adult')
+   *  and raw student_level strings ('playground'|'academy'|'professional') */
+  systemId: SystemId | StudentLevel | string;
   studentName?: string;
   totalXp?: number;
   onLevelUp?: () => void;
+}
+
+/** Normalise any incoming id to a canonical SystemId */
+function resolveSystemId(id: string): SystemId {
+  switch (id) {
+    case 'kids':
+    case 'playground':
+      return 'kids';
+    case 'teen':
+    case 'academy':
+      return 'teen';
+    case 'adult':
+    case 'professional':
+      return 'adult';
+    default:
+      return 'kids';
+  }
 }
 
 export const DashboardRouter: React.FC<DashboardRouterProps> = ({
@@ -17,33 +39,22 @@ export const DashboardRouter: React.FC<DashboardRouterProps> = ({
   totalXp,
   onLevelUp,
 }) => {
-  switch (systemId) {
+  const canonical = resolveSystemId(systemId as string);
+
+  switch (canonical) {
     case 'kids':
-      return (
-        <PlaygroundDashboard 
-          studentName={studentName} 
-        />
-      );
+      return <PlaygroundDashboard studentName={studentName} />;
     case 'teen':
       return (
-        <AcademyDashboard 
-          studentName={studentName} 
+        <AcademyDashboard
+          studentName={studentName}
           totalXp={totalXp}
           onLevelUp={onLevelUp}
         />
       );
     case 'adult':
-      return (
-        <HubDashboard 
-          studentName={studentName} 
-          totalXp={totalXp}
-        />
-      );
+      return <HubDashboard studentName={studentName} totalXp={totalXp} />;
     default:
-      return (
-        <PlaygroundDashboard 
-          studentName={studentName} 
-        />
-      );
+      return <PlaygroundDashboard studentName={studentName} />;
   }
 };

@@ -12,6 +12,8 @@ import { CurriculumLesson } from '@/types/multiTenant';
 import { DailyStreakCard } from '../academy/DailyStreakCard';
 import { DailyChallengeCard } from '../academy/DailyChallengeCard';
 import { SocialLounge } from '../academy/SocialLounge';
+import { RecordClipWidget } from '../academy/RecordClipWidget';
+import { SkillXPBars } from '../academy/SkillXPBars';
 import { AILessonAgent } from '../AILessonAgent';
 import { WeeklyGoalWidget } from '../WeeklyGoalWidget';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -259,6 +261,15 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
                 </CardContent>
               </Card>
             </motion.div>
+
+            {/* Record a Clip Widget */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.28 }}
+            >
+              <RecordClipWidget isDarkMode={isDarkMode} />
+            </motion.div>
           </div>
 
           {/* Right Column - Leaderboard */}
@@ -268,6 +279,9 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
             transition={{ delay: 0.3 }}
             className="space-y-6"
           >
+            {/* Skill XP Bars — above Leaderboard */}
+            <SkillXPBars isDarkMode={isDarkMode} />
+
             <Card className={isDarkMode ? 'bg-[#1a1a2e] border-purple-900/30' : ''}>
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
