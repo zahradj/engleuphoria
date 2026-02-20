@@ -1245,9 +1245,11 @@ export type Database = {
           duration: number
           id: string
           lesson_id: string | null
+          meeting_link: string | null
           notes: string | null
           price_paid: number
           scheduled_at: string
+          session_id: string | null
           status: string
           student_id: string
           subscription_id: string | null
@@ -1263,9 +1265,11 @@ export type Database = {
           duration?: number
           id?: string
           lesson_id?: string | null
+          meeting_link?: string | null
           notes?: string | null
           price_paid?: number
           scheduled_at: string
+          session_id?: string | null
           status?: string
           student_id: string
           subscription_id?: string | null
@@ -1281,9 +1285,11 @@ export type Database = {
           duration?: number
           id?: string
           lesson_id?: string | null
+          meeting_link?: string | null
           notes?: string | null
           price_paid?: number
           scheduled_at?: string
+          session_id?: string | null
           status?: string
           student_id?: string
           subscription_id?: string | null
@@ -8313,6 +8319,10 @@ export type Database = {
       }
     }
     Functions: {
+      can_access_booking_session: {
+        Args: { p_session_id: string; p_user_id: string }
+        Returns: boolean
+      }
       can_access_lesson: {
         Args: { room_uuid: string; user_uuid: string }
         Returns: boolean

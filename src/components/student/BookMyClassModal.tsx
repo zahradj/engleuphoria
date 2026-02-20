@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, X, Loader2, CheckCircle, Sparkles } from 'lucide-react';
+import { Calendar, X, Loader2, CheckCircle, Sparkles, Link2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { StudentBookingCalendar } from './StudentBookingCalendar';
@@ -40,6 +40,7 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [booking, setBooking] = useState(false);
   const [booked, setBooked] = useState(false);
+  const [meetingLink, setMeetingLink] = useState<string | null>(null);
 
   // Fetch available slots
   const fetchSlots = useCallback(async () => {
@@ -97,6 +98,7 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
   useEffect(() => {
     if (isOpen) {
       setBooked(false);
+      setMeetingLink(null);
       fetchSlots();
     }
   }, [isOpen, fetchSlots]);
@@ -134,8 +136,8 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
         return;
       }
 
-      // Insert booking record into class_bookings
-      const { error: bookingError } = await supabase
+      // Insert booking record into class_bookings; trigger auto-generates session_id + meeting_link
+      const { data: bookingData, error: bookingError } = await supabase
         .from('class_bookings')
         .insert({
           student_id: user.id,
@@ -145,7 +147,9 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
           booking_type: 'standard',
           price_paid: 0,
           status: 'confirmed',
-        });
+        })
+        .select('session_id, meeting_link')
+        .single();
 
       if (bookingError) {
         console.error('Booking insert failed:', bookingError);
@@ -164,7 +168,8 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
         return;
       }
 
-      // 🎉 Success — fire confetti
+      // 🎉 Success — fire confetti and store meeting link
+      setMeetingLink(bookingData?.meeting_link ?? null);
       setBooked(true);
       fireConfetti();
 
@@ -256,7 +261,7 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex flex-col items-center justify-center py-16 text-center gap-4"
+                className="flex flex-col items-center justify-center py-12 text-center gap-4"
               >
                 <motion.div
                   initial={{ scale: 0 }}
@@ -269,6 +274,15 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
                 <p className="text-muted-foreground max-w-sm">
                   Your class is booked. You'll receive an email reminder 1 hour before the session.
                 </p>
+                {meetingLink && (
+                  <div className="w-full max-w-sm bg-muted/50 rounded-lg p-3 border border-border">
+                    <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
+                      <Link2 className="w-3 h-3" />
+                      Your classroom link
+                    </p>
+                    <p className="text-sm font-mono text-foreground break-all">{meetingLink}</p>
+                  </div>
+                )}
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Sparkles className="w-4 h-4 text-yellow-500" />
                   Keep up the great work!
