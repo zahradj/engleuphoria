@@ -13,6 +13,7 @@ import { ScheduleManager } from '@/components/admin/ScheduleManager';
 import { PaymentsPanel } from '@/components/admin/PaymentsPanel';
 import { SettingsPanel } from '@/components/admin/SettingsPanel';
 import { AIToolsDashboard } from '@/components/admin/ai-tools/AIToolsDashboard';
+import { SuperAdminControlCenter } from '@/components/admin/SuperAdminControlCenter';
 import { NewLibrary } from '@/components/admin/NewLibrary';
 import { CurriculumLibrary } from '@/components/admin/CurriculumLibrary';
 import { CurriculumProgressDashboard } from '@/components/admin/generator/CurriculumProgressDashboard';
@@ -77,6 +78,8 @@ const AdminDashboard = () => {
         return <SettingsPanel />;
       case 'ai-tools':
         return <AIToolsDashboard />;
+      case 'super-control':
+        return <SuperAdminControlCenter />;
       case 'ai-generator':
         return <NewLibrary onNavigate={handleTabChange} />;
       case 'curriculum-library':

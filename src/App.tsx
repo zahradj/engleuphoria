@@ -10,6 +10,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { RoleThemeProvider } from "@/contexts/RoleThemeContext";
 import { AppErrorBoundary } from "@/components/common/AppErrorBoundary";
 import { lazy, Suspense } from "react";
+import { AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Core Pages
@@ -76,6 +77,7 @@ const App = () => {
                 <Toaster />
                 <Sonner />
                 <BrowserRouter>
+                  <AnimatePresence mode="wait">
                   <AppErrorBoundary>
                     <Routes>
                       {/* Public Entry Point - Landing Page */}
@@ -210,6 +212,7 @@ const App = () => {
                       <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                   </AppErrorBoundary>
+                  </AnimatePresence>
                 </BrowserRouter>
               </TooltipProvider>
             </RoleThemeProvider>

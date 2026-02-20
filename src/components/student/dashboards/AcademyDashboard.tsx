@@ -14,6 +14,8 @@ import { DailyChallengeCard } from '../academy/DailyChallengeCard';
 import { SocialLounge } from '../academy/SocialLounge';
 import { RecordClipWidget } from '../academy/RecordClipWidget';
 import { SkillXPBars } from '../academy/SkillXPBars';
+import { DailyLessonCard } from '../DailyLessonCard';
+import { AIPersonalizedLessonCard } from '../AIPersonalizedLessonCard';
 import { AILessonAgent } from '../AILessonAgent';
 import { WeeklyGoalWidget } from '../WeeklyGoalWidget';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -260,6 +262,15 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
                   </div>
                 </CardContent>
               </Card>
+            </motion.div>
+
+            {/* Daily AI Lesson Card */}
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.25 }}
+            >
+              <AIPersonalizedLessonCard isDarkMode={isDarkMode} />
             </motion.div>
 
             {/* Record a Clip Widget */}
