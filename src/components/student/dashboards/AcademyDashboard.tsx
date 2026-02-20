@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { AcademySkeleton } from '@/components/shared/DashboardSkeleton';
 import { useLiveClassroomStatus } from '@/hooks/useLiveClassroomStatus';
 import { LiveSessionBadge } from '@/components/shared/LiveSessionBadge';
 import { 
@@ -75,6 +76,8 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
   ];
 
   const currentLesson = lessons[2] || lessons[0]; // Current lesson is third one
+
+  if (isLoading) return <AcademySkeleton />;
 
   return (
     <div className={`min-h-screen flex ${isDarkMode ? 'bg-[#0f0f1a] text-white' : 'bg-gray-50 text-gray-900'}`}>
