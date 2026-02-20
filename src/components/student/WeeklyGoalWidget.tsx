@@ -1,15 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Target, Edit3, Check } from 'lucide-react';
+import { Target, Edit3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { WeeklyGoalModal } from './WeeklyGoalModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import confetti from 'canvas-confetti';
+import { toast } from 'sonner';
 
 interface WeeklyGoalWidgetProps {
   studentLevel: 'playground' | 'academy' | 'professional';
   isDarkMode?: boolean;
+  progress?: number;
 }
 
 const levelStyles = {
@@ -39,13 +42,34 @@ const levelStyles = {
 export const WeeklyGoalWidget: React.FC<WeeklyGoalWidgetProps> = ({
   studentLevel,
   isDarkMode = false,
+  progress = 0,
 }) => {
   const { user } = useAuth();
   const [weeklyGoal, setWeeklyGoal] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const celebrationFired = useRef(false);
   
   const style = levelStyles[studentLevel];
+
+  // Fire confetti when progress reaches 100%
+  useEffect(() => {
+    if (progress >= 100 && !celebrationFired.current && weeklyGoal) {
+      celebrationFired.current = true;
+      confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+      toast.success('You reached 100% this week! Amazing work! 🎊', {
+        duration: 5000,
+        icon: '🎊',
+      });
+    }
+  }, [progress, weeklyGoal]);
+
+  // Reset celebration flag when progress drops below 100 (new week)
+  useEffect(() => {
+    if (progress < 100) {
+      celebrationFired.current = false;
+    }
+  }, [progress]);
 
   useEffect(() => {
     const fetchGoal = async () => {
