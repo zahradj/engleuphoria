@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 export interface DailyWord {
   word: string;
@@ -21,167 +22,88 @@ export interface DailyLesson {
   theme: string;
   vocabularySpotlight: DailyWord[];
   quiz: QuizQuestion[];
+  aiGenerated?: boolean;
 }
 
-interface StudentContext {
-  studentLevel: string;
-  cefrLevel: string;
-  interests: string[];
-  lastMistake: string;
-}
+// ─── Fallback lesson (no AI / not logged in) ─────────────────────────────────
+const FALLBACK_LESSONS: Record<string, DailyLesson> = {
+  academy: {
+    title: 'Mastering Future Tense through Social Media',
+    theme: 'social media',
+    aiGenerated: false,
+    vocabularySpotlight: [
+      { word: 'hustle', pronunciation: '/ˈhʌs.əl/', definition: 'Work hard with energy and urgency', example: 'You have to hustle to reach your goals.' },
+      { word: 'vibe', pronunciation: '/vaɪb/', definition: 'The general feeling of a place or situation', example: 'This playlist has a great vibe.' },
+      { word: 'iconic', pronunciation: '/aɪˈkɒn.ɪk/', definition: 'Widely admired and recognized', example: 'That post went iconic overnight.' },
+      { word: 'negotiate', pronunciation: '/nɪˈɡoʊ.ʃi.eɪt/', definition: 'To discuss to reach an agreement', example: 'They negotiated a better deal.' },
+      { word: 'momentum', pronunciation: '/məˈmen.təm/', definition: 'Energy that keeps things moving forward', example: 'Build momentum with small daily wins.' },
+    ],
+    quiz: [
+      { id: 1, question: '"She ___ (hustle) every day to hit her goals." (Past tense)', options: ['hustle', 'hustles', 'hustled', 'hustling'], correctIndex: 2 },
+      { id: 2, question: 'Which is the most professional way to say "I like this idea"?', options: ['It slaps fr.', 'I believe this approach has merit.', 'This vibes.', 'Kinda works I guess.'], correctIndex: 1 },
+      { id: 3, question: '"Build ___ with small wins." (Correct word)', options: ['noise', 'momentum', 'chaos', 'stress'], correctIndex: 1 },
+    ],
+  },
+  professional: {
+    title: 'Business Negotiation & Professional Tone',
+    theme: 'business',
+    aiGenerated: false,
+    vocabularySpotlight: [
+      { word: 'leverage', pronunciation: '/ˈlev.ər.ɪdʒ/', definition: 'Use something to maximum advantage', example: 'We can leverage this partnership.' },
+      { word: 'articulate', pronunciation: '/ɑːˈtɪk.jʊ.lət/', definition: 'Express clearly and effectively', example: 'She articulated the strategy well.' },
+      { word: 'synergy', pronunciation: '/ˈsɪn.ər.dʒi/', definition: 'Combined effort greater than sum of parts', example: 'There is great synergy between departments.' },
+      { word: 'pivot', pronunciation: '/ˈpɪv.ət/', definition: 'Change direction strategically', example: 'The company decided to pivot its model.' },
+      { word: 'stakeholder', pronunciation: '/ˈsteɪk.hoʊl.dər/', definition: 'A person with an interest in a project', example: 'All stakeholders must be informed.' },
+    ],
+    quiz: [
+      { id: 1, question: '"To ___ our resources effectively" — choose the correct word', options: ['waste', 'leverage', 'ignore', 'delay'], correctIndex: 1 },
+      { id: 2, question: '"All ___ must approve the budget."', options: ['bystanders', 'strangers', 'stakeholders', 'employees'], correctIndex: 2 },
+      { id: 3, question: 'Which sentence is most formally articulate?', options: ['We need to change stuff up.', 'The company will pivot its core strategy to address market shifts.', 'Things are not working so we pivot.', 'Let us pivot because of issues.'], correctIndex: 1 },
+    ],
+  },
+  playground: {
+    title: "Let's Learn Colors & Action Words!",
+    theme: 'everyday life',
+    aiGenerated: false,
+    vocabularySpotlight: [
+      { word: 'bright', pronunciation: '/braɪt/', definition: 'Full of light or colour', example: 'The sun is bright today!' },
+      { word: 'leap', pronunciation: '/liːp/', definition: 'To jump high', example: 'The frog can leap very far.' },
+      { word: 'giggle', pronunciation: '/ˈɡɪɡ.əl/', definition: 'A small happy laugh', example: 'She gave a little giggle.' },
+      { word: 'cozy', pronunciation: '/ˈkoʊ.zi/', definition: 'Warm and comfortable', example: 'The blanket is so cozy!' },
+      { word: 'whisper', pronunciation: '/ˈwɪs.pər/', definition: 'To speak very softly', example: 'Please whisper in the library.' },
+    ],
+    quiz: [
+      { id: 1, question: 'What is the opposite of "bright"?', options: ['Dark', 'Happy', 'Fast', 'Big'], correctIndex: 0 },
+      { id: 2, question: 'Which word means "to jump high"?', options: ['Swim', 'Leap', 'Crawl', 'Roll'], correctIndex: 1 },
+      { id: 3, question: 'Fill in the blank: "The blanket is very ___.\"', options: ['Loud', 'Cozy', 'Angry', 'Heavy'], correctIndex: 1 },
+    ],
+  },
+};
 
-// Cache key pattern: daily-lesson-{userId}-{date}
+// Cache key: daily-lesson-v2-{userId}-{date}
 const getCacheKey = (userId: string) =>
-  `daily-lesson-${userId}-${new Date().toISOString().split('T')[0]}`;
-
-function buildLesson(ctx: StudentContext): DailyLesson {
-  const { studentLevel, interests, cefrLevel, lastMistake } = ctx;
-
-  const interestTopic = interests?.[0] || 'everyday life';
-  const mistake = lastMistake || 'verb tenses';
-
-  // Generate contextual title
-  const levelTitles: Record<string, string[]> = {
-    playground: [
-      `Let's Learn Colors with ${interestTopic}!`,
-      `Action Words in ${interestTopic} World`,
-      `Amazing Animals & Adjectives`,
-    ],
-    academy: [
-      `Mastering Future Tense through ${interestTopic}`,
-      `${interestTopic} Slang & Grammar Upgrade`,
-      `Real Talk: ${interestTopic} Vocabulary`,
-    ],
-    professional: [
-      `Business Negotiation & ${interestTopic}`,
-      `Professional Tone for ${interestTopic} Contexts`,
-      `Advanced ${interestTopic} Discourse Patterns`,
-    ],
-  };
-
-  const titles = levelTitles[studentLevel] || levelTitles['academy'];
-  const title = titles[new Date().getDay() % titles.length];
-
-  // Vocabulary by level
-  const vocabSets: Record<string, DailyWord[]> = {
-    playground: [
-      { word: 'bright', definition: 'Full of light or colour', example: 'The sun is bright today!', pronunciation: '/braɪt/' },
-      { word: 'leap', definition: 'To jump high', example: 'The frog can leap very far.', pronunciation: '/liːp/' },
-      { word: 'giggle', definition: 'A small happy laugh', example: 'She gave a little giggle.', pronunciation: '/ˈɡɪɡ.əl/' },
-      { word: 'cozy', definition: 'Warm and comfortable', example: 'The blanket is so cozy!', pronunciation: '/ˈkoʊ.zi/' },
-      { word: 'whisper', definition: 'To speak very softly', example: 'Please whisper in the library.', pronunciation: '/ˈwɪs.pər/' },
-    ],
-    academy: [
-      { word: 'hustle', definition: 'Work hard with energy and urgency', example: 'You have to hustle to reach your goals.', pronunciation: '/ˈhʌs.əl/' },
-      { word: 'vibe', definition: 'The general feeling of a place or situation', example: 'This place has a great vibe.', pronunciation: '/vaɪb/' },
-      { word: 'iconic', definition: 'Widely admired and recognized', example: 'That sneaker is iconic in streetwear.', pronunciation: '/aɪˈkɒn.ɪk/' },
-      { word: 'negotiate', definition: 'To discuss to reach an agreement', example: 'They negotiated a better deal.', pronunciation: '/nɪˈɡoʊ.ʃi.eɪt/' },
-      { word: 'momentum', definition: 'Energy that keeps things moving forward', example: 'Build momentum with small wins.', pronunciation: '/məˈmen.təm/' },
-    ],
-    professional: [
-      { word: 'leverage', definition: 'Use something to maximum advantage', example: 'We can leverage this partnership.', pronunciation: '/ˈlev.ər.ɪdʒ/' },
-      { word: 'articulate', definition: 'Express clearly and effectively', example: 'She articulated the strategy well.', pronunciation: '/ɑːˈtɪk.jʊ.lət/' },
-      { word: 'synergy', definition: 'Combined effort greater than the sum of parts', example: 'There is great synergy between departments.', pronunciation: '/ˈsɪn.ər.dʒi/' },
-      { word: 'pivot', definition: 'Change direction strategically', example: 'The company decided to pivot its model.', pronunciation: '/ˈpɪv.ət/' },
-      { word: 'stakeholder', definition: 'A person with an interest in a project', example: 'All stakeholders must be informed.', pronunciation: '/ˈsteɪk.hoʊl.dər/' },
-    ],
-  };
-
-  const vocab = vocabSets[studentLevel] || vocabSets['academy'];
-
-  // Quiz by level — addresses last mistake theme
-  const quizSets: Record<string, QuizQuestion[]> = {
-    playground: [
-      {
-        id: 1,
-        question: 'What is the opposite of "bright"?',
-        options: ['Dark', 'Happy', 'Fast', 'Big'],
-        correctIndex: 0,
-      },
-      {
-        id: 2,
-        question: 'Which word means "to jump high"?',
-        options: ['Swim', 'Leap', 'Crawl', 'Roll'],
-        correctIndex: 1,
-      },
-      {
-        id: 3,
-        question: 'Fill in the blank: "The blanket is very ___."',
-        options: ['Loud', 'Cozy', 'Angry', 'Heavy'],
-        correctIndex: 1,
-      },
-    ],
-    academy: [
-      {
-        id: 1,
-        question: `"She ___ (hustle) every day to achieve her dreams." (Past tense — fixes: ${mistake})`,
-        options: ['hustle', 'hustles', 'hustled', 'hustling'],
-        correctIndex: 2,
-      },
-      {
-        id: 2,
-        question: 'Which is the most professional way to say "I think this is a good idea"?',
-        options: ['It slaps fr.', 'I personally believe this approach has merit.', 'This vibes.', 'Kinda works I guess.'],
-        correctIndex: 1,
-      },
-      {
-        id: 3,
-        question: '"Build ___ with small wins." (Choose the correct word)',
-        options: ['noise', 'momentum', 'chaos', 'stress'],
-        correctIndex: 1,
-      },
-    ],
-    professional: [
-      {
-        id: 1,
-        question: `"To ___ our resources effectively" — choose the correct word (fixes: ${mistake})`,
-        options: ['waste', 'leverage', 'ignore', 'delay'],
-        correctIndex: 1,
-      },
-      {
-        id: 2,
-        question: '"All ___ must approve the budget." What word fits best?',
-        options: ['bystanders', 'strangers', 'stakeholders', 'employees'],
-        correctIndex: 2,
-      },
-      {
-        id: 3,
-        question: 'Which sentence is most formally articulate?',
-        options: [
-          'We need to change stuff up.',
-          'The company will pivot its core strategy to address market shifts.',
-          'Things are not working so we pivot.',
-          'Let us pivot because of issues.',
-        ],
-        correctIndex: 1,
-      },
-    ],
-  };
-
-  const quiz = quizSets[studentLevel] || quizSets['academy'];
-
-  return {
-    title,
-    theme: interestTopic,
-    vocabularySpotlight: vocab,
-    quiz,
-  };
-}
+  `daily-lesson-v2-${userId}-${new Date().toISOString().split('T')[0]}`;
 
 export function useDailyPersonalizedLesson() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [lesson, setLesson] = useState<DailyLesson | null>(null);
   const [loading, setLoading] = useState(true);
   const [completed, setCompleted] = useState(false);
   const [fluencyScore, setFluencyScore] = useState(0);
 
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      // Show fallback for non-logged-in preview
+      setLesson(FALLBACK_LESSONS.academy);
+      setLoading(false);
+      return;
+    }
 
     const load = async () => {
       setLoading(true);
 
-      // Check cache first
+      // 1. Check daily cache first
       const cacheKey = getCacheKey(user.id);
       const cached = localStorage.getItem(cacheKey);
       if (cached) {
@@ -189,36 +111,72 @@ export function useDailyPersonalizedLesson() {
           const parsed = JSON.parse(cached);
           setLesson(parsed.lesson);
           setCompleted(parsed.completed || false);
+          setFluencyScore(parsed.fluencyScore || 0);
           setLoading(false);
           return;
-        } catch {}
+        } catch { /* ignore corrupted cache */ }
       }
 
-      // Fetch student context from DB
+      // 2. Fetch student profile
       const { data: profile } = await supabase
         .from('student_profiles')
-        .select('student_level, cefr_level, interests, mistake_history, fluency_score')
+        .select('student_level, cefr_level, interests, mistake_history, fluency_score, learning_style, weekly_goal')
         .eq('user_id', user.id)
         .maybeSingle();
 
+      const currentScore = profile?.fluency_score ?? 0;
+      setFluencyScore(currentScore);
+
+      const studentLevel = profile?.student_level || 'academy';
+      // Map DB level to edge function mode
+      const mode = studentLevel === 'professional' ? 'academy' : 'academy'; // academy mode for teens/adults daily lesson
+      
       const mistakeHistory = (profile?.mistake_history as any[]) || [];
       const lastMistake = mistakeHistory.length > 0
         ? (mistakeHistory[mistakeHistory.length - 1]?.error || 'verb tenses')
         : 'verb tenses';
 
-      const ctx: StudentContext = {
-        studentLevel: profile?.student_level || 'academy',
-        cefrLevel: profile?.cefr_level || 'A2',
-        interests: (profile?.interests as string[]) || ['everyday life'],
-        lastMistake,
-      };
+      const interests = (profile?.interests as string[]) || ['everyday life'];
 
-      const built = buildLesson(ctx);
-      setLesson(built);
-      setFluencyScore(profile?.fluency_score ?? 0);
+      // 3. Call AI edge function
+      try {
+        const { data: fnData, error: fnError } = await supabase.functions.invoke('generate-daily-lesson', {
+          body: {
+            mode: 'academy',
+            cefrLevel: profile?.cefr_level || 'A2',
+            interests,
+            lastMistake,
+            learningStyle: (profile as any)?.learning_style || 'mixed',
+            weeklyGoal: (profile as any)?.weekly_goal || null,
+          },
+        });
 
-      // Cache it
-      localStorage.setItem(cacheKey, JSON.stringify({ lesson: built, completed: false }));
+        if (fnError || !fnData?.success) {
+          const errMsg = fnData?.error || fnError?.message || 'Unknown error';
+          console.warn('AI lesson generation failed, using fallback:', errMsg);
+
+          // Show toast for rate limit / credits
+          if (errMsg.includes('Rate limit')) {
+            toast({ title: 'AI Lesson', description: 'Rate limit reached — showing your practice lesson.', variant: 'default' });
+          } else if (errMsg.includes('credits')) {
+            toast({ title: 'AI Lesson', description: 'AI credits depleted — showing your practice lesson.', variant: 'destructive' });
+          }
+
+          const fallback = FALLBACK_LESSONS[studentLevel] || FALLBACK_LESSONS.academy;
+          setLesson(fallback);
+          localStorage.setItem(cacheKey, JSON.stringify({ lesson: fallback, completed: false, fluencyScore: currentScore }));
+        } else {
+          const aiLesson: DailyLesson = { ...fnData.lesson, aiGenerated: true };
+          setLesson(aiLesson);
+          localStorage.setItem(cacheKey, JSON.stringify({ lesson: aiLesson, completed: false, fluencyScore: currentScore }));
+        }
+      } catch (err) {
+        console.warn('Edge function call failed, using fallback:', err);
+        const fallback = FALLBACK_LESSONS[studentLevel] || FALLBACK_LESSONS.academy;
+        setLesson(fallback);
+        localStorage.setItem(cacheKey, JSON.stringify({ lesson: fallback, completed: false, fluencyScore: currentScore }));
+      }
+
       setLoading(false);
     };
 
@@ -252,8 +210,8 @@ export function useDailyPersonalizedLesson() {
     if (cached) {
       try {
         const parsed = JSON.parse(cached);
-        localStorage.setItem(cacheKey, JSON.stringify({ ...parsed, completed: true }));
-      } catch {}
+        localStorage.setItem(cacheKey, JSON.stringify({ ...parsed, completed: true, fluencyScore: newScore }));
+      } catch { /* ignore */ }
     }
   }, [user?.id, completed]);
 

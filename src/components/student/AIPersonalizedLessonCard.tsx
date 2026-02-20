@@ -60,9 +60,16 @@ export const AIPersonalizedLessonCard: React.FC<AIPersonalizedLessonCardProps> =
               <Sparkles className={`w-5 h-5 ${accentText}`} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className={`text-xs font-semibold uppercase tracking-wide mb-1 ${accentText}`}>
-                🧠 Daily AI Lesson
-              </p>
+              <div className="flex items-center gap-2 mb-1">
+                <p className={`text-xs font-semibold uppercase tracking-wide ${accentText}`}>
+                  🧠 Daily AI Lesson
+                </p>
+                {lesson.aiGenerated && (
+                  <span className={`text-xs px-1.5 py-0.5 rounded-full flex items-center gap-0.5 ${isDarkMode ? 'bg-purple-900/50 text-purple-300' : 'bg-emerald-50 text-emerald-600'}`}>
+                    <Sparkles className="w-2.5 h-2.5" /> AI
+                  </span>
+                )}
+              </div>
               <h3 className={`font-bold text-sm leading-snug ${textPrimary}`}>{lesson.title}</h3>
               <p className={`text-xs mt-1 ${textMuted}`}>
                 Theme: <span className="font-medium capitalize">{lesson.theme}</span>
