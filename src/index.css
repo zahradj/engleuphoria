@@ -463,7 +463,7 @@
 
 /* Cinematic Typography Effects */
 .text-glow {
-  text-shadow: 0 0 10px currentColor, 0 0 30px currentColor;
+  text-shadow: 0 0 6px rgba(255,255,255,0.15), 0 0 18px rgba(255,255,255,0.06);
 }
 
 .text-ink {
