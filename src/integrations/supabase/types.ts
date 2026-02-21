@@ -7960,6 +7960,8 @@ export type Database = {
           total_reviews: number | null
           updated_at: string
           user_id: string
+          video_rejection_reason: string | null
+          video_status: string | null
           video_url: string | null
           years_experience: number | null
         }
@@ -7986,6 +7988,8 @@ export type Database = {
           total_reviews?: number | null
           updated_at?: string
           user_id: string
+          video_rejection_reason?: string | null
+          video_status?: string | null
           video_url?: string | null
           years_experience?: number | null
         }
@@ -8012,6 +8016,8 @@ export type Database = {
           total_reviews?: number | null
           updated_at?: string
           user_id?: string
+          video_rejection_reason?: string | null
+          video_status?: string | null
           video_url?: string | null
           years_experience?: number | null
         }

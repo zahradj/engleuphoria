@@ -9,12 +9,15 @@ const corsHeaders = {
 };
 
 interface EmailRequest {
-  type: 'approval' | 'rejection' | 'interview_invite';
+  type: 'approval' | 'rejection' | 'interview_invite' | 'video_rejection' | 'video_approved';
   teacherName: string;
   teacherEmail: string;
   interviewDate?: string;
   interviewTime?: string;
   rejectionReason?: string;
+  emailSubject?: string;
+  emailBody?: string;
+  meetingLink?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -122,6 +125,56 @@ const handler = async (req: Request): Promise<Response> => {
             
             <p>Best regards,<br>
             <strong>The EnglEuphoria Team</strong></p>
+          </div>
+        `;
+        break;
+
+      case 'video_rejection':
+        subject = "Your EnglEuphoria Intro Video Needs a Quick Adjustment";
+        html = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h1 style="color: #6366f1; text-align: center;">Almost There! 🎬</h1>
+            <p>Hi ${teacherName},</p>
+            <p>We loved your profile, but your intro video needs a quick adjustment.</p>
+            
+            <div style="background-color: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ef4444;">
+              <h3 style="color: #dc2626; margin-top: 0;">What to improve:</h3>
+              <p style="margin-bottom: 0;">${rejectionReason || 'Please review our video guidelines and re-record.'}</p>
+            </div>
+            
+            <p>Feel free to re-upload anytime — we can't wait to get you live!</p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="https://engleuphoria.lovable.app/teacher-dashboard" style="background-color: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Re-upload Your Video</a>
+            </div>
+            
+            <p>Best regards,<br><strong>The EnglEuphoria Team</strong></p>
+          </div>
+        `;
+        break;
+
+      case 'video_approved':
+        subject = "🎉 Congratulations! Your Intro Video is Now Live!";
+        html = `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <h1 style="color: #16a34a; text-align: center;">You're Live! 🚀</h1>
+            <p>Dear ${teacherName},</p>
+            <p>Congratulations! Your intro video has been approved and is now <strong>live on your profile</strong>.</p>
+            
+            <div style="background-color: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #16a34a;">
+              <h3 style="color: #166534; margin-top: 0;">What this means:</h3>
+              <ul style="margin-bottom: 0;">
+                <li>Students can now see your video in search results</li>
+                <li>Your profile is fully activated for bookings</li>
+                <li>You can start receiving session requests immediately</li>
+              </ul>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="https://engleuphoria.lovable.app/teacher-dashboard" style="background-color: #16a34a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Go to Your Dashboard</a>
+            </div>
+            
+            <p>Welcome to the team! 🎓<br><strong>The EnglEuphoria Team</strong></p>
           </div>
         `;
         break;

@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
+import { VideoReviewPanel } from './VideoReviewPanel';
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -495,22 +496,27 @@ The EnglEuphoria Hiring Team`,
                   </div>
                 )}
 
-                {/* Video */}
+                {/* Video Review Panel */}
                 {selectedApplication.video_url && (
+                  <VideoReviewPanel
+                    teacherProfileId={selectedApplication.id}
+                    teacherUserId={selectedApplication.id}
+                    teacherName={selectedApplication.full_name}
+                    teacherEmail={selectedApplication.email}
+                    videoUrl={selectedApplication.video_url}
+                    videoStatus={(selectedApplication as any).video_status || 'pending'}
+                    onStatusChange={fetchApplications}
+                  />
+                )}
+
+                {/* Fallback if no video */}
+                {!selectedApplication.video_url && (
                   <div>
                     <h4 className="font-semibold flex items-center gap-2 mb-2">
                       <Video className="h-4 w-4" />
                       Introduction Video
                     </h4>
-                    <Button variant="outline" asChild>
-                      <a href={selectedApplication.video_url} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                        Watch Video
-                      </a>
-                    </Button>
-                    {selectedApplication.video_description && (
-                      <p className="text-sm text-muted-foreground mt-2">{selectedApplication.video_description}</p>
-                    )}
+                    <p className="text-sm text-muted-foreground">No video submitted yet.</p>
                   </div>
                 )}
               </div>
