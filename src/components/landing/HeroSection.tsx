@@ -127,6 +127,15 @@ export function HeroSection() {
           : 'bg-gradient-to-b from-[#FAFAFA] via-slate-50 to-[#FAFAFA]'
       }`} />
 
+      {/* Light-mode ink bleed corners */}
+      {!isDark && (
+        <>
+          <div className="absolute top-0 left-0 w-[400px] h-[400px] rounded-full blur-[120px] opacity-40 pointer-events-none bg-sky-300/30" />
+          <div className="absolute top-0 right-0 w-[350px] h-[350px] rounded-full blur-[100px] opacity-30 pointer-events-none bg-emerald-300/25" />
+          <div className="absolute bottom-0 right-0 w-[450px] h-[450px] rounded-full blur-[130px] opacity-35 pointer-events-none bg-orange-200/30" />
+        </>
+      )}
+
       {/* The Magnetic Orb */}
       <motion.div
         className="absolute w-[300px] h-[300px] md:w-[450px] md:h-[450px] rounded-full blur-[80px] opacity-60 pointer-events-none"
@@ -149,7 +158,7 @@ export function HeroSection() {
 
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 sm:px-6 text-center py-32">
-        {/* Headline */}
+        {/* Headline — Kinetic Typography */}
         <motion.h1
           className={`font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight mb-6 leading-[1.05] transition-colors duration-300 ${
             isDark ? 'text-white' : 'text-slate-900'
@@ -158,10 +167,13 @@ export function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
-          Fluency is no longer
+          English Mastery,
           <br />
-          <span className="bg-gradient-to-r from-indigo-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent">
-            a slow process.
+          <span
+            className="bg-gradient-to-r from-indigo-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent animate-gradient-text"
+            style={{ backgroundSize: '200% auto' }}
+          >
+            Accelerated.
           </span>
         </motion.h1>
 
@@ -174,7 +186,7 @@ export function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          Meet Engleuphoria. The English academy designed for absolute mastery. Choose your world.
+          One platform. Three worlds. Unlimited potential. Welcome to the future of fluency.
         </motion.p>
 
         {/* Glassmorphic Pill Buttons */}

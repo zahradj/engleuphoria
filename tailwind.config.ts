@@ -14,11 +14,11 @@ export default {
     },
     extend: {
       fontFamily: {
-        'jakarta': ['Plus Jakarta Sans', 'system-ui', 'sans-serif'],
+        'jakarta': ['Outfit', 'system-ui', 'sans-serif'],
         'nunito': ['Nunito', 'system-ui', 'sans-serif'],
         'fredoka': ['Fredoka', 'Comic Neue', 'Comic Sans MS', 'cursive'],
         'comic': ['Comic Neue', 'Comic Sans MS', 'cursive'],
-        'display': ['Plus Jakarta Sans', 'Space Grotesk', 'system-ui', 'sans-serif'],
+        'display': ['Outfit', 'Space Grotesk', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -170,6 +170,18 @@ export default {
           "0%": { transform: "rotate(0deg)" },
           "100%": { transform: "rotate(360deg)" }
         },
+        "border-beam": {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(100%)" }
+        },
+        "shimmer": {
+          "0%": { backgroundPosition: "100% 0" },
+          "100%": { backgroundPosition: "-100% 0" }
+        },
+        "gradient-text": {
+          "0%, 100%": { backgroundPosition: "0% 50%" },
+          "50%": { backgroundPosition: "100% 50%" }
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -187,6 +199,9 @@ export default {
         "marquee": "marquee 30s linear infinite",
         "glow-pulse": "glow-pulse 2s ease-in-out infinite",
         "gradient-rotate": "gradient-rotate 3s linear infinite",
+        "border-beam": "border-beam 2s linear infinite",
+        "shimmer": "shimmer 2s ease-in-out infinite",
+        "gradient-text": "gradient-text 3s ease infinite",
       },
     },
   },

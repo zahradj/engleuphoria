@@ -22,7 +22,6 @@ export function NavHeader() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Prevent body scroll when mobile menu is open
   useEffect(() => {
     if (isMobileMenuOpen) {
       document.body.style.overflow = 'hidden';
@@ -100,7 +99,7 @@ export function NavHeader() {
               </Link>
             </nav>
 
-            {/* Desktop Auth Buttons */}
+            {/* Desktop Auth Buttons — No theme toggle here (moved to floating) */}
             <div className="hidden md:flex items-center gap-3">
               <div className={isDark
                 ? '[&_button]:text-white/80 [&_button]:hover:text-white [&_button]:hover:bg-white/10 [&_button]:border-white/20'
@@ -108,10 +107,6 @@ export function NavHeader() {
               }>
                 <LanguageSwitcher />
               </div>
-              <ThemeModeToggle className={isDark
-                ? 'text-white/80 hover:text-white hover:bg-white/10'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              } />
               <Link to="/login">
                 <Button variant="ghost" className={
                   isDark
@@ -148,7 +143,6 @@ export function NavHeader() {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <>
-            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -158,7 +152,6 @@ export function NavHeader() {
               onClick={closeMobileMenu}
             />
             
-            {/* Drawer */}
             <motion.div
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
@@ -169,7 +162,6 @@ export function NavHeader() {
               }`}
             >
               <div className="flex flex-col h-full p-6">
-                {/* Drawer Header */}
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-3">
                     <img src={logoDark} alt="EnglEuphoria" className="w-8 h-8 object-contain bg-white/90 rounded-lg p-0.5" />
@@ -184,7 +176,6 @@ export function NavHeader() {
                   </button>
                 </div>
 
-                {/* Navigation Links */}
                 <nav className="flex-1 space-y-2">
                   {[
                     { to: '/', icon: Home, label: 'Home', isLink: true },
@@ -216,7 +207,7 @@ export function NavHeader() {
                   })}
                 </nav>
 
-                {/* Theme Toggle */}
+                {/* Theme Toggle & Language */}
                 <div className={`py-4 border-t ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
                   <div className="flex items-center justify-between px-4">
                     <span className={`text-sm ${isDark ? 'text-white/60' : 'text-slate-400'}`}>Language</span>

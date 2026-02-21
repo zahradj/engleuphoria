@@ -3,7 +3,7 @@ import { Check, Sparkles, Clock, Tag, Shield, Cpu, UserCheck, Timer } from 'luci
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useThemeMode } from '@/hooks/useThemeMode';
 
 type AudienceLevel = 'playground' | 'professional';
@@ -172,28 +172,48 @@ export function PricingSection() {
                         : 'bg-white border border-slate-200 shadow-[0_8px_32px_rgba(0,0,0,0.05)]'
                 } ${isDark ? 'hover:bg-white/[0.08]' : 'hover:shadow-[0_16px_48px_rgba(0,0,0,0.08)]'}`}
               >
-                {/* Animated gradient border for Mastery */}
+                {/* Border Beam for Mastery card */}
                 {pack.isMastery && (
-                  <div className="absolute -inset-[1px] rounded-3xl overflow-hidden pointer-events-none">
-                    <div
-                      className="absolute inset-[-50%] animate-gradient-rotate"
-                      style={{
-                        background: 'conic-gradient(from 0deg, #6366f1, #10b981, #f59e0b, #6366f1)',
-                        opacity: isDark ? 0.4 : 0.25,
-                      }}
-                    />
-                    <div className={`absolute inset-[1px] rounded-3xl ${isDark ? 'bg-[#09090B]' : 'bg-white'}`} />
+                  <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
+                    {/* Top beam */}
+                    <div className="absolute top-0 left-0 right-0 h-[1px] overflow-hidden">
+                      <div
+                        className="h-full w-1/3 animate-border-beam"
+                        style={{
+                          background: isDark
+                            ? 'linear-gradient(90deg, transparent, #6366f1, #10b981, transparent)'
+                            : 'linear-gradient(90deg, transparent, #4f46e5, #059669, transparent)',
+                        }}
+                      />
+                    </div>
+                    {/* Bottom beam */}
+                    <div className="absolute bottom-0 left-0 right-0 h-[1px] overflow-hidden">
+                      <div
+                        className="h-full w-1/3 animate-border-beam"
+                        style={{
+                          background: isDark
+                            ? 'linear-gradient(90deg, transparent, #f59e0b, #6366f1, transparent)'
+                            : 'linear-gradient(90deg, transparent, #d97706, #4f46e5, transparent)',
+                          animationDelay: '1s',
+                          animationDirection: 'reverse',
+                        }}
+                      />
+                    </div>
                   </div>
                 )}
 
-                {/* Savings Badge */}
+                {/* Savings Badge — Holographic Shimmer */}
                 {hasDiscount && (
                   <div className="absolute -top-3 right-4 z-10">
-                    <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold text-white ${
-                      isDark
-                        ? 'bg-gradient-to-r from-orange-500 to-amber-500'
-                        : 'bg-indigo-600'
-                    }`}>
+                    <span
+                      className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold text-white animate-shimmer"
+                      style={{
+                        backgroundImage: isDark
+                          ? 'linear-gradient(110deg, #f97316, #fbbf24, rgba(255,255,255,0.5), #f97316, #fbbf24)'
+                          : 'linear-gradient(110deg, #4f46e5, #6366f1, rgba(255,255,255,0.6), #4f46e5, #6366f1)',
+                        backgroundSize: '300% 100%',
+                      }}
+                    >
                       🔥 Save €{pack.savings}
                     </span>
                   </div>
@@ -223,12 +243,21 @@ export function PricingSection() {
                     </span>
                   </div>
 
-                  {/* Price */}
-                  <div className="mb-5">
+                  {/* Price — Flip Animation */}
+                  <div className="mb-5" style={{ perspective: '600px' }}>
                     <div className="flex items-baseline gap-2">
-                      <span className={`font-extrabold font-display ${pack.isMastery ? 'text-5xl' : 'text-4xl'} ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                        €{price}
-                      </span>
+                      <AnimatePresence mode="wait">
+                        <motion.span
+                          key={`${packName}-${price}`}
+                          className={`font-extrabold font-display ${pack.isMastery ? 'text-5xl' : 'text-4xl'} ${isDark ? 'text-white' : 'text-slate-900'}`}
+                          initial={{ rotateX: -90, opacity: 0 }}
+                          animate={{ rotateX: 0, opacity: 1 }}
+                          exit={{ rotateX: 90, opacity: 0 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          €{price}
+                        </motion.span>
+                      </AnimatePresence>
                       {hasDiscount && (
                         <span className={`line-through text-lg ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>€{originalPrice}</span>
                       )}
