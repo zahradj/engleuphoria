@@ -1,153 +1,179 @@
 
 
-# Landing Page V3: "Dark Glass & Bioluminescence" Redesign
+# Dual-Mood Theme System: Dark Glass + Pearl Light Mode
 
 ## Overview
 
-A comprehensive visual overhaul of the entire landing page, transforming it into a "Spatial SaaS" experience with a cursor-reactive hero orb, redesigned Bento grid with animated feature cards, a live activity marquee for social proof, and a polished pricing section with animated gradient borders.
+Make the entire landing page theme-aware so it responds to the existing dark/light toggle. Currently, all landing components hardcode dark backgrounds (`bg-[#09090B]`, white text, `bg-white/[0.04]` cards). This plan replaces those hardcoded values with Tailwind `dark:` variants, creating two distinct visual moods: "Spatial" (dark) and "Pearl" (light).
 
 ---
 
-## 1. Font & Global Style Update
+## 1. CSS Variables Update
 
-### Modify: `index.html`
-- Replace the current Google Fonts import (Fredoka, Comic Neue, Space Grotesk) with **Plus Jakarta Sans** (weights 400-800) for body and headlines
-- Keep Space Grotesk as a secondary option for display headings
+### Modify: `src/index.css`
 
-### Modify: `tailwind.config.ts`
-- Add `'jakarta': ['Plus Jakarta Sans', 'system-ui', 'sans-serif']` to `fontFamily`
-- Update `'display'` to use Plus Jakarta Sans as primary
-- Add a `marquee` keyframe for the infinite scroll animation:
-  - `"0%": { transform: "translateX(0)" }` to `"100%": { transform: "translateX(-50%)" }`
-- Add a `glow-pulse` keyframe for the CTA button pulse effect
-- Add a `gradient-rotate` keyframe for the animated gradient border on the Mastery card (rotating a conic-gradient)
+Update the `:root` (light) and `.dark` CSS variables to match the Dual-Mood palettes:
 
----
+**Light mode (Pearl):**
+- `--background`: Off-White/Pearl (`#FAFAFA` / `210 40% 98%`)
+- `--foreground`: Slate Black (`#0F172A` / `222 47% 11%`)
+- `--card`: 100% white
+- `--card-foreground`: Slate Black
 
-## 2. Hero Section: "The Magnetic Orb"
+**Dark mode (Spatial):**
+- `--background`: Midnight Black (`#09090B` / `240 10% 4%`)
+- `--foreground`: Pure White (`0 0% 98%`)
+- `--card`: `240 10% 6%`
 
-### Rewrite: `src/components/landing/HeroSection.tsx`
-
-**Remove**: The current Tri-Portal expanding panels layout.
-
-**New structure**:
-1. **Background Orb**: A large CSS mesh-gradient circle (300-400px) centered behind the headline, using layered radial gradients with Electric Indigo (#6366F1), Neon Mint (#10B981), and Liquid Gold (#F59E0B). Uses `onMouseMove` on the section to slightly offset the orb position via CSS `translate` with `framer-motion`'s `useMotionValue` and `useTransform` for smooth parallax (capped at ~20px movement).
-2. **Headline**: "Fluency is no longer a slow process." -- massive, bold (text-6xl to text-8xl), white.
-3. **Subheadline**: "Meet Engleuphoria. The English academy designed for absolute mastery. Choose your world." (Note: no mention of AI per user instruction)
-4. **Three glassmorphic pill buttons** in a row:
-   - "Playground (Ages 5-12)" -- hover glows Neon Mint (#10B981) via `shadow-[0_0_30px_rgba(16,185,129,0.4)]`
-   - "Academy (Teens)" -- hover glows Electric Indigo (#6366F1)
-   - "Professional (Adults)" -- hover glows Liquid Gold (#F59E0B)
-   - Each links to `/student-signup`
-   - Style: `bg-white/5 backdrop-blur-xl border border-white/10 rounded-full px-8 py-4`
-5. **Social proof ribbon** stays (reuse existing `SocialProofRibbon` component)
-
-**Mobile**: Orb scales down, pills stack vertically.
+No structural change to the variable system -- just tightened values for the landing page palette.
 
 ---
 
-## 3. Bento Box Feature Grid
+## 2. Hero Section: Dual-Mood Orb + Typography
 
-### Rewrite: `src/components/landing/BentoGridSection.tsx`
+### Modify: `src/components/landing/HeroSection.tsx`
 
-**New 3x3 asymmetric grid layout** using `grid-cols-4` with span variations:
+**Background:**
+- Replace `bg-[#09090B]` with `bg-[#FAFAFA] dark:bg-[#09090B]`
+- Replace the gradient overlay similarly with light pastels for light mode
 
-- **Card 1 (col-span-2, row-span-1): "The 55-Minute Rule"**
-  - An animated circular SVG timer (ring stroke-dashoffset animation counting down from 55:00)
-  - Text: "Optimized sessions with built-in buffer times for maximum focus."
-  - Glassmorphic dark card: `bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] rounded-3xl`
+**The Orb:**
+- Dark mode: Keep current deep blues/purples/gold radial gradients (high contrast)
+- Light mode: Switch to soft pastels (sky blue `rgba(56,189,248,0.2)`, peach `rgba(251,146,60,0.15)`, mint `rgba(52,211,153,0.2)`) via conditional class or inline style based on `useThemeMode().resolvedTheme`
 
-- **Card 2 (col-span-2, row-span-2): "AI Skill Radar"**
-  - Reuse the existing radar chart SVG from `IntelligenceSection` (the polygon + animated data points)
-  - Neon glow effect on the polygon stroke
-  - Text: "Real-time tracking of your vocabulary, grammar, and fluency."
+**Typography:**
+- Headline: `text-slate-900 dark:text-white`
+- Gradient text span: stays the same (gradients work on both)
+- Subheadline: `text-slate-600 dark:text-slate-400`
 
-- **Card 3 (col-span-1, row-span-1): "Top 3% Mentors"**
-  - Stacked teacher avatar images (reuse existing Unsplash URLs) with a subtle infinite vertical slide animation
-  - Small text: "Handpicked. Certified. Passionate."
+**Pill Buttons:**
+- Dark: current `bg-white/[0.04] border-white/[0.08]` with white text
+- Light: `bg-white/70 border-slate-200 text-slate-800 shadow-sm` with glow colors as deep rich versions (Navy, Amber, Emerald)
+- Hover glow colors adjust: dark uses neon rgba, light uses deeper saturated shadows
 
-- **Card 4 (col-span-1, row-span-1): "Daily Feed"**
-  - A small mockup of a mobile phone frame (CSS border-radius + border) containing two mini feed cards (reuse the `feedCards` data style from IntelligenceSection)
-  - Subtle floating animation on the phone
+**Social Proof Ribbon:**
+- Dark: current styling
+- Light: `bg-white/70 border-slate-200 text-slate-700`
 
-- **Card 5 (col-span-2, row-span-1): CTA card**
-  - Keep existing "Start Your Free Trial" CTA with gradient background
-
-- **Card 6 (col-span-1): "Gamified Learning"**
-  - Keep existing small card
-
-- **Card 7 (col-span-1): "Live Classes"**
-  - Keep existing small card
-
-**All cards**: `rounded-3xl` (24px), glassmorphic dark-mode, subtle `hover:scale-[1.02] hover:-translate-y-1` lift.
-
-**Mobile**: Cards stack as single column with auto height.
+**Scroll Indicator:**
+- `text-slate-400/40 dark:text-white/40`
 
 ---
 
-## 4. Live Activity Marquee (Social Proof)
+## 3. Bento Grid: Dual-Mood Cards
 
-### Create: `src/components/landing/ActivityMarquee.tsx`
+### Modify: `src/components/landing/BentoGridSection.tsx`
 
-**Structure**: An infinitely scrolling horizontal row of semi-transparent pill badges, positioned between the Bento grid and the Intelligence section.
+**Section background:** `bg-[#FAFAFA] dark:bg-[#09090B]`
 
-**Badges** (hardcoded, rotating set):
-- "Sarah (Madrid) just hit C1 Business English."
-- "Leo (12) just unlocked the 'Grammar Wizard' badge."
-- "David (CEO) booked a 55-min Negotiation Masterclass."
-- "Amira (Algiers) completed her IELTS Prep module."
-- "Tom (London) earned 500 XP this week."
-- "Yuki (Tokyo) just booked her 10th session."
+**Card style constants:**
+- Replace the `GLASS` constant with theme-aware classes:
+  - Dark: `dark:bg-white/[0.04] dark:backdrop-blur-xl dark:border-white/[0.08]`
+  - Light: `bg-white/70 border-slate-200/60 shadow-[0_8px_32px_rgba(0,0,0,0.05)]`
+- Hover behavior:
+  - Dark: Keep subtle inner glow (current `group-hover:opacity-100` gradient overlay)
+  - Light: Remove gradient overlay, add `hover:shadow-[0_16px_48px_rgba(0,0,0,0.08)]` for floating effect
 
-**Implementation**:
-- Two identical sets of badges rendered side-by-side in a flex row
-- Parent container uses `animation: marquee 30s linear infinite`
-- Each badge: `bg-white/[0.04] backdrop-blur-sm border border-white/[0.08] rounded-full px-5 py-2.5 text-sm text-slate-300 whitespace-nowrap`
-- Faint glowing border on hover
-- Fade masks on left/right edges using `mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent)`
+**Typography:**
+- Card titles: `text-slate-900 dark:text-white`
+- Card descriptions: `text-slate-500 dark:text-slate-400`
+- SVG strokes (timer, radar): Keep the gradient colors (they work on both backgrounds)
+- Radar grid lines: `rgba(0,0,0,0.06)` in light, `rgba(255,255,255,0.06)` in dark (conditional)
+
+**Ambient blurs:** `bg-indigo-500/5 dark:bg-indigo-500/10` (subtler in light mode)
+
+**Teacher avatars border:** `border-[#FAFAFA] dark:border-[#09090B]`
+
+**CTA card gradient:** Stays the same (gradient works on both)
 
 ---
 
-## 5. Pricing Section: "Dark Glass" Redesign
+## 4. Activity Marquee: Dual-Mood
+
+### Modify: `src/components/landing/ActivityMarquee.tsx`
+
+- Section background: `bg-[#FAFAFA] dark:bg-[#09090B]`
+- Badge style: Light uses `bg-slate-100 border-slate-200 text-slate-600`, dark keeps current
+- Fade masks work identically on both backgrounds
+
+---
+
+## 5. Pricing Section: Dual-Mood
 
 ### Modify: `src/components/landing/PricingSection.tsx`
 
-**Toggle changes**:
-- Simplify to a 2-option toggle: `[Playground & Academy]` | `[Professional]`
-- Large, satisfying pill toggle with a sliding indicator dot/bar
-- Kids and Teens still share the same pricing (15 EUR base), just presented under one label
+**Section background:**
+- Dark: Keep `bg-[#09090B]` with faint indigo radial glow
+- Light: `bg-[#FAFAFA]` with faint warm-white radial glow (`from-amber-500/3 via-transparent`)
 
-**Card design updates**:
-- Keep the 3-card layout (Explorer/5, Achiever/10, Mastery/20)
-- **Mastery card**: Add an animated gradient border using a pseudo-element with `conic-gradient` rotating via CSS animation (the `gradient-rotate` keyframe). The card itself stays dark glass, the border shimmers.
-- **Savings pill**: Replace plain "Save EUR X" with a vibrant neon pill: `bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full px-3 py-1 text-xs font-bold` with a fire emoji prefix
-- **CTA button text**: Change from "Buy X Credits" to "Start Your Journey"
-- **CTA pulse**: Add a subtle `animate-pulse` or custom `glow-pulse` animation (box-shadow pulsing) on the Mastery card's CTA button
+**Toggle:**
+- Dark: current `bg-white/[0.04] border-white/[0.08]`, active = `bg-white/10 text-white`
+- Light: `bg-slate-100 border-slate-200`, active = `bg-white text-slate-900 shadow-md`
+
+**Cards:**
+- Dark: current glassmorphic style
+- Light: `bg-white border-slate-200 shadow-[0_8px_32px_rgba(0,0,0,0.05)]`
+- Mastery animated gradient border: stays (works on both)
+- Mastery card inner bg: `bg-white dark:bg-[#09090B]`
+
+**Savings badge:**
+- Dark: neon gradient glow (current)
+- Light: solid bold color `bg-indigo-600 text-white` (no glow needed)
+
+**Feature check icons:**
+- Dark: current colors
+- Light: `text-indigo-600` for mastery, `text-amber-600` for popular, `text-slate-400` for default
+
+**CTA buttons:**
+- Keep gradient buttons (they pop on both backgrounds)
+- Default card CTA in light: `bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200`
+
+**Cancellation policy box:**
+- Dark: current
+- Light: `bg-white border-slate-200`
 
 ---
 
-## 6. Landing Page Section Order Update
+## 6. NavHeader: Dual-Mood Polish
 
-### Modify: `src/pages/LandingPage.tsx`
+### Modify: `src/components/landing/NavHeader.tsx`
 
-Insert the new `ActivityMarquee` component:
-```
-NavHeader
-HeroSection
-BentoGridSection
-ActivityMarquee    <-- NEW
-IntelligenceSection
-HowItWorksSection
-PricingSection
-TestimonialsSection
-TrustBarSection
-AmbassadorSection
-ContactSection
-FooterSection
-```
+**Scrolled state:**
+- Dark: current `bg-slate-950/60 backdrop-blur-2xl border-white/10`
+- Light: `bg-white/80 backdrop-blur-2xl border-slate-200 shadow-sm`
 
-### Modify: `src/components/landing/index.ts`
-- Add export for `ActivityMarquee`
+**Logo text:** `text-slate-900 dark:text-white`
+
+**Nav links:** `text-slate-600 hover:text-slate-900 dark:text-white/80 dark:hover:text-white`
+
+**Sign Up button:**
+- Dark: `bg-white text-slate-900`
+- Light: `bg-slate-900 text-white hover:bg-slate-800`
+
+**Login button:**
+- Light: `text-slate-600 hover:text-slate-900 hover:bg-slate-100`
+
+**Mobile drawer:**
+- Dark: current `bg-slate-900 border-white/10`
+- Light: `bg-white border-slate-200`
+
+---
+
+## 7. ThemeModeToggle: Enhanced Animation
+
+### Modify: `src/components/ui/ThemeModeToggle.tsx`
+
+The toggle already has a 180-degree flip animation with Sun/Moon icons and localStorage persistence. Minor polish:
+- Ensure the rotation transition is exactly `duration: 0.3` (currently 0.3s -- already correct)
+- The `useThemeMode` hook already saves to localStorage and applies the `dark` class -- no changes needed there
+
+---
+
+## Implementation Approach
+
+Each landing component will import `useThemeMode` only where inline style switching is needed (e.g., the orb gradient colors, SVG strokes). For most elements, standard Tailwind `dark:` prefix classes handle the switch automatically since the `dark` class is already toggled on `<html>` by the existing `useThemeMode` hook.
+
+The background color transition is handled by adding `transition-colors duration-300` to each section's root element, ensuring smooth 0.3s color crossfades with no harsh flashing.
 
 ---
 
@@ -155,24 +181,22 @@ FooterSection
 
 | Action | File | Purpose |
 |--------|------|---------|
-| Modify | `index.html` | Add Plus Jakarta Sans font |
-| Modify | `tailwind.config.ts` | Add jakarta font family, marquee/glow keyframes |
-| Rewrite | `src/components/landing/HeroSection.tsx` | Magnetic Orb hero with pill CTAs |
-| Rewrite | `src/components/landing/BentoGridSection.tsx` | Asymmetric Bento grid with animated cards |
-| Create | `src/components/landing/ActivityMarquee.tsx` | Infinite scrolling social proof badges |
-| Modify | `src/components/landing/PricingSection.tsx` | 2-way toggle, animated gradient border, neon pills |
-| Modify | `src/pages/LandingPage.tsx` | Add ActivityMarquee to section order |
-| Modify | `src/components/landing/index.ts` | Export ActivityMarquee |
+| Modify | `src/index.css` | Tighten light/dark CSS variable values |
+| Modify | `src/components/landing/HeroSection.tsx` | Dual-mood orb, text, pills, social proof |
+| Modify | `src/components/landing/BentoGridSection.tsx` | Dual-mood cards with light shadows vs dark glow |
+| Modify | `src/components/landing/ActivityMarquee.tsx` | Dual-mood badges |
+| Modify | `src/components/landing/PricingSection.tsx` | Dual-mood cards, toggle, savings badges |
+| Modify | `src/components/landing/NavHeader.tsx` | Dual-mood header, links, buttons, mobile drawer |
+| Modify | `src/components/ui/ThemeModeToggle.tsx` | Minor animation polish (if needed) |
 
 ---
 
 ## Technical Notes
 
-- The cursor-reactive orb uses `framer-motion`'s `useMotionValue` + `useTransform` with `onMouseMove` on the hero section -- no new dependencies needed
-- The marquee uses pure CSS animation with duplicated content (no JS timers)
-- The animated gradient border on the Mastery card uses a `before:` pseudo-element with `conic-gradient` and CSS `@keyframes` rotation -- lightweight, GPU-accelerated
-- The radar chart in the Bento grid is extracted from the existing `IntelligenceSection` SVG code and reused as a standalone sub-component
-- All glassmorphic cards follow the "Dark Glass" formula: `bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] rounded-3xl`
-- No 3D libraries needed -- the orb is a layered CSS mesh gradient (multiple radial-gradients composited), not a Three.js object
-- The pricing toggle simplification (2-way instead of 3-way) keeps the internal data model unchanged -- Kids and Teens still resolve to the same price, just presented under one label "Playground & Academy"
+- The `darkMode: ["class"]` config in `tailwind.config.ts` is already set, so `dark:` variants work out of the box
+- The `useThemeMode` hook already toggles the `dark` class on `document.documentElement` and persists to localStorage
+- The orb gradient colors need runtime switching (not just CSS classes) since they are inline `background` styles -- this uses `resolvedTheme` from the hook
+- SVG strokes in the radar/timer use hardcoded colors that work well on both backgrounds (indigo/emerald gradients have sufficient contrast on white and black)
+- No new dependencies required
+- The `transition-colors duration-300` on section backgrounds ensures smooth mode transitions without flashing
 
