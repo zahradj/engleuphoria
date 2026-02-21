@@ -1,123 +1,77 @@
 
 
-# Landing Page V6: Cinematic Hero, Parallax Depth, Ripple Theme Transition & Signature Footer
+# Booking Engine Audit + "Glass Calendar" Visual Upgrade
 
-## Overview
+## Assessment of Existing System
 
-This pass adds six cinematic upgrades: (1) a breathing "Euphoria Ring" and grainy film texture to the hero, with updated copy, (2) parallax Z-axis layering on the Bento grid with cursor-following micro-glow behind cards, (3) a "Mentor Spotlight" visual in the IntelligenceSection showing a teacher portrait with overlapping skill radar, (4) a circle-ripple theme transition effect originating from the toggle button, (5) dark-mode text glow and light-mode ink drop-shadow on key headings, and (6) an oversized "ENGLEUPHORIA" signature in the footer.
+Your booking engine is **already fully functional** with a robust architecture:
 
-**Copy note:** The user's suggested subtext "The AI-Human Academy where language meets intuition" contains "AI" which violates the brand guidelines. It will be adapted to: "The Human-First Academy where language meets intuition."
+- **`class_bookings` table** exists with `student_id`, `teacher_id`, `session_id`, `meeting_link`, `scheduled_at`, `status`, etc.
+- **RLS policies** are in place (students can insert their own bookings, participants can view their own, admins can manage all)
+- **`BookMyClassModal.tsx`** already implements:
+  - Atomic slot locking (`UPDATE ... WHERE is_booked = false`)
+  - Credit consumption via `consume_credit` RPC
+  - No-credits warning with a destructive alert
+  - Confetti celebration on success
+  - Slot-taken error toast with auto-refresh
+  - Auto-generated `session_id` and `meeting_link` via database trigger
 
----
+**There is no need** to create a separate `bookings` table -- `class_bookings` already does everything the suggested SQL would do, and more.
 
-## 1. Cinematic Hero: Euphoria Ring + Film Grain + New Copy
+## What This Plan Actually Does
 
-### Modify: `src/components/landing/HeroSection.tsx`
-
-**The "Euphoria Ring":**
-- Add a slowly breathing, glowing ring (200px diameter) centered behind the headline text
-- Implementation: a `motion.div` with `border: 2px solid` using a gradient border (indigo-to-emerald), a large `box-shadow` glow, and `animate={{ scale: [1, 1.05, 1], opacity: [0.4, 0.6, 0.4] }}` with `repeat: Infinity, duration: 4`
-- The ring sits behind the text (z-index below content) as a decorative element
-- Dark mode: indigo/violet glow ring; Light mode: softer amber/emerald glow ring
-
-**Grainy Film Texture:**
-- Add an SVG-based noise overlay covering the entire hero section
-- Implementation: a `position: absolute` div with an inline SVG `<filter>` using `<feTurbulence>` and `<feColorMatrix>` to create subtle film grain
-- Opacity: 0.03 (dark mode) / 0.02 (light mode) -- barely perceptible but adds tactile depth
-- `pointer-events: none` and `mix-blend-mode: overlay`
-
-**Copy updates:**
-- Headline: "Find Your Voice in a Global World." (replaces "English Mastery, Accelerated.")
-- Subheadline: "The Human-First Academy where language meets intuition." (note: "AI-Human" adapted to "Human-First" per brand rules)
-- The gradient clip-path text effect remains on the full headline
+Since the booking logic is solid, the real value is in **upgrading the booking visual experience** to match the cinematic V6 aesthetic: a glass calendar, glowing "Time Pills," and polished transitions.
 
 ---
 
-## 2. Parallax Bento Grid + Cursor Micro-Glow
+## 1. Glass Calendar + Time Pills
 
-### Modify: `src/components/landing/BentoGridSection.tsx`
+### Modify: `src/components/student/StudentBookingCalendar.tsx`
 
-**Parallax Z-axis layering:**
-- Track `scroll` position via `useScroll` from framer-motion on the Bento section
-- Apply different `translateY` offsets to cards based on their visual "depth":
-  - "Foreground" cards (Gamified Learning, Daily Feed): `useTransform(scrollYProgress, [0,1], [0, -30])` -- move faster
-  - "Background" cards (CTA, 55-Min Rule): `useTransform(scrollYProgress, [0,1], [0, -10])` -- move slower
-  - Radar card stays roughly centered as the anchor
-- This creates a subtle depth illusion as the user scrolls
+**Current state:** Standard shadcn Calendar + plain Card list for time slots.
 
-**Cursor micro-glow ("flashlight under ice"):**
-- Add an `onMouseMove` handler to each Bento card
-- Track mouse position relative to the card
-- Render a `radial-gradient` as a pseudo-layer (`position: absolute, pointer-events: none`) centered at the cursor position within the card
-- Gradient: `radial-gradient(300px circle at {x}px {y}px, rgba(99,102,241,0.06), transparent 70%)`
-- On mouse leave, fade out the glow
-- Implementation: use a state variable `{ x, y }` per card via a shared handler, render a div with `style={{ background: radial-gradient(...) }}`
+**Upgrade to:**
 
----
+- **Glass Calendar Card**: Replace the plain Card wrapper with a `backdrop-blur-xl bg-white/5 border-white/10` glassmorphism container (dark) or `bg-white/70 border-gray-200/50` (light). Import `useThemeMode` for dual-mood.
 
-## 3. Mentor Spotlight with Radar Overlay
+- **"Time Pills" replacing the slot list**: Instead of full Card rows per slot, render each time slot as a pill-shaped button:
+  - Default state: `bg-slate-700/40 text-slate-300 border-slate-600` (dark) / `bg-slate-100 text-slate-700 border-slate-200` (light)
+  - Selected/hover state: `bg-indigo-600 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]` -- the "Electric Indigo" glow
+  - Booked/disabled state: `opacity-40 cursor-not-allowed`
+  - Shape: `rounded-full px-5 py-2.5 text-sm font-medium transition-all duration-200`
+  - Display: `{formatTime(slot.startTime)}` with teacher name as a small label below
 
-### Modify: `src/components/landing/IntelligenceSection.tsx`
+- **Layout change**: Time pills arranged in a flowing `flex flex-wrap gap-2` grid instead of a vertical stack
 
-**Replace the current standalone radar with a composite "Mentor Spotlight":**
-- Show a large circular teacher portrait (250px) using one of the existing Unsplash teacher avatar URLs, scaled up
-- Overlay the existing skill radar SVG on top of the portrait at reduced opacity (0.5-0.6)
-- The radar polygon and data points render on top of the photo, creating the "data + human" partnership visual
-- Add a text caption below: "Data-driven insights. Mentor-led inspiration."
-- The portrait has a subtle border glow matching the radar gradient colors
-- Grayscale by default with `hover:grayscale-0` transition for the "sophisticated" effect
+- **Selected slot detail panel**: When a pill is clicked, show a confirmation panel below with teacher name, duration badge, and the "Book Now" button -- rather than booking immediately on click
+
+### Modify: `src/components/student/BookMyClassModal.tsx`
+
+- **Glass modal header**: Add `backdrop-blur-md` to the gradient header
+- **Film grain overlay**: Add the same SVG noise filter used in the hero section, at very low opacity (0.02)
+- **No-credits state**: Upgrade from plain destructive box to a glass-styled warning panel with a "Purchase Credits" CTA button that navigates to the pricing page
+- **Success state**: Add a subtle radial gradient glow behind the CheckCircle icon, matching the Euphoria Ring aesthetic
 
 ---
 
-## 4. Circle Ripple Theme Transition
+## 2. Credit Check Enhancement
 
-### Modify: `src/components/ui/ThemeModeToggle.tsx`
+### Modify: `src/components/student/BookMyClassModal.tsx`
 
-**Ripple effect on theme switch:**
-- When the toggle is clicked, before changing the theme, capture the button's position on screen
-- Create a full-screen `position: fixed` overlay div that starts as a circle at the button's position with `clip-path: circle(0px at Xpx Ypx)`
-- Animate the clip-path to `circle(150vmax at Xpx Ypx)` over 0.6s using CSS transitions
-- The overlay has the target theme's background color (dark = `#09090B`, light = `#FAFAFA`)
-- After the animation completes, toggle the actual theme and remove the overlay
-- Implementation: use a `useState` for the ripple state, a `useRef` for the button position, and a `useEffect` to clean up after the transition
-- This creates a dramatic "painting the screen" effect from the toggle point
+The credit check already exists and works. Two small improvements:
 
-### Modify: `src/pages/LandingPage.tsx`
-- Pass a callback from LandingPage to ThemeModeToggle (or use the existing toggleTheme) -- no change needed since the ripple is self-contained in ThemeModeToggle
+- When `hasCredits` is false, add a **"Get Credits"** Button that navigates to `/student?tab=packages` so the student can purchase immediately without closing the modal
+- Show the **remaining credit count** as a badge in the modal header: `{totalCredits} credits remaining`
 
 ---
 
-## 5. Theme-Aware Typography Effects
+## 3. Error Toast Wording Update
 
-### Modify: `src/index.css`
+### Modify: `src/components/student/BookMyClassModal.tsx`
 
-**Add utility classes for text effects:**
-- `.text-glow`: `text-shadow: 0 0 10px currentColor, 0 0 20px currentColor` (for dark mode headings)
-- `.text-ink`: `text-shadow: 0 1px 2px rgba(0,0,0,0.15)` (for light mode headings -- crisp ink drop-shadow)
-
-### Modify: `src/components/landing/HeroSection.tsx`
-- Apply `text-glow` class to headline in dark mode, `text-ink` class in light mode
-- Conditional via `className={isDark ? 'text-glow' : 'text-ink'}`
-
-### Modify: `src/components/landing/BentoGridSection.tsx`
-- Apply the same text effect to the section title "Why EnglEuphoria?"
-
-### Modify: `src/components/landing/IntelligenceSection.tsx`
-- Apply to the section headline
-
----
-
-## 6. Signature Oversized Footer
-
-### Modify: `src/components/landing/FooterSection.tsx`
-
-**Below the existing footer content, add:**
-- A full-width div containing "ENGLEUPHORIA" in massive text (`text-[120px] md:text-[200px] lg:text-[280px]`)
-- `font-display font-extrabold uppercase leading-none`
-- The text overflows the bottom of the viewport: `overflow-hidden` on the container, text shifted down so only the top ~60% is visible
-- Color: very faint -- `text-slate-200/10` (dark) / `text-slate-900/[0.03]` (light) -- ghostly watermark feel
-- Below the text, a small tagline centered: "The last English platform you will ever need." in `text-sm text-slate-500`
-- `user-select: none` and `pointer-events: none` since it is decorative
+Update the slot-taken toast to match the requested copy:
+- Current: "Someone just booked this slot. Please choose another time."
+- New: "Oops! This slot was just taken. Please try another time."
 
 ---
 
@@ -125,23 +79,20 @@ This pass adds six cinematic upgrades: (1) a breathing "Euphoria Ring" and grain
 
 | Action | File | Purpose |
 |--------|------|---------|
-| Modify | `src/components/landing/HeroSection.tsx` | Euphoria Ring, film grain overlay, new copy, text glow/ink |
-| Modify | `src/components/landing/BentoGridSection.tsx` | Parallax scroll offsets, cursor micro-glow, text effects |
-| Modify | `src/components/landing/IntelligenceSection.tsx` | Mentor Spotlight with radar overlay, text effects |
-| Modify | `src/components/ui/ThemeModeToggle.tsx` | Circle ripple theme transition |
-| Modify | `src/components/landing/FooterSection.tsx` | Oversized signature logo + tagline |
-| Modify | `src/index.css` | text-glow and text-ink utility classes |
+| Modify | `src/components/student/StudentBookingCalendar.tsx` | Glass calendar + Time Pills UI |
+| Modify | `src/components/student/BookMyClassModal.tsx` | Glass modal, credit badge, Get Credits CTA, toast wording |
 
----
+## What Is NOT Needed
+
+- **No new `bookings` table** -- `class_bookings` already handles everything
+- **No new RLS policies** -- already properly configured
+- **No booking logic changes** -- atomic slot locking, credit consumption, confetti, and error handling are all already implemented and working
+- **No new database migrations**
 
 ## Technical Notes
 
-- The film grain uses an inline SVG filter (`feTurbulence`) rather than an image file -- zero network requests, tiny DOM footprint
-- The parallax effect uses framer-motion's `useScroll` + `useTransform` which are GPU-accelerated and performant
-- The cursor micro-glow uses a single absolutely-positioned div per card with `pointer-events: none` -- no extra DOM nodes on mouse move, just a style update
-- The circle ripple transition uses CSS `clip-path` which is hardware-accelerated in all modern browsers
-- The mentor spotlight portrait reuses existing Unsplash URLs already loaded in the page, so no additional network requests
-- The oversized footer text uses pure CSS text sizing with `overflow: hidden` -- no images or canvas needed
-- All new features respect the dual-mood theme system and the no-AI brand rule
+- The glass effect uses `backdrop-filter: blur()` which is GPU-accelerated and supported in all modern browsers
+- Time Pills use CSS transitions only (no framer-motion overhead for hover states)
+- The `useThemeMode` hook is imported for dual-mood styling, consistent with all other V6 sections
 - No new dependencies required
 
