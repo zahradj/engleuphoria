@@ -210,13 +210,13 @@
 }
 
 :root {
-  /* Base Colors - Light & Airy */
-  --background: 0 0% 99%;
-  --foreground: 240 10% 20%;
+  /* Base Colors - Pearl Light Mode */
+  --background: 210 40% 98%;
+  --foreground: 222 47% 11%;
   --card: 0 0% 100%;
-  --card-foreground: 240 10% 20%;
+  --card-foreground: 222 47% 11%;
   --popover: 0 0% 100%;
-  --popover-foreground: 240 10% 20%;
+  --popover-foreground: 222 47% 11%;
   --primary: 280 60% 65%;
   --primary-foreground: 0 0% 100%;
   --secondary: 240 5% 96%;
@@ -273,12 +273,12 @@
 }
 
 .dark {
-  --background: 240 10% 8%;
-  --foreground: 0 0% 96%;
-  --card: 240 10% 10%;
-  --card-foreground: 0 0% 96%;
-  --popover: 240 10% 10%;
-  --popover-foreground: 0 0% 96%;
+  --background: 240 10% 4%;
+  --foreground: 0 0% 98%;
+  --card: 240 10% 6%;
+  --card-foreground: 0 0% 98%;
+  --popover: 240 10% 6%;
+  --popover-foreground: 0 0% 98%;
   --primary: 280 60% 70%;
   --primary-foreground: 0 0% 100%;
   --secondary: 240 4% 18%;

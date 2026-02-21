@@ -5,11 +5,14 @@ import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThemeModeToggle } from '@/components/ui/ThemeModeToggle';
 import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
+import { useThemeMode } from '@/hooks/useThemeMode';
 import logoDark from '@/assets/logo-dark.png';
 
 export function NavHeader() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { resolvedTheme } = useThemeMode();
+  const isDark = resolvedTheme === 'dark';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -43,7 +46,9 @@ export function NavHeader() {
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           isScrolled
-            ? 'bg-slate-950/60 backdrop-blur-2xl border-b border-white/10 shadow-2xl'
+            ? isDark
+              ? 'bg-slate-950/60 backdrop-blur-2xl border-b border-white/10 shadow-2xl'
+              : 'bg-white/80 backdrop-blur-2xl border-b border-slate-200 shadow-sm'
             : 'bg-transparent'
         }`}
       >
@@ -60,36 +65,35 @@ export function NavHeader() {
                   isScrolled ? 'w-8 h-8' : 'w-10 h-10'
                 }`}
               />
-              <span className={`font-bold text-white transition-all duration-500 ${
+              <span className={`font-bold transition-all duration-500 ${
                 isScrolled ? 'text-xl' : 'text-2xl'
-              }`}>
+              } ${isDark ? 'text-white' : 'text-slate-900'}`}>
                 EnglEuphoria
               </span>
             </Link>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-8">
-              <button
-                onClick={() => scrollToSection('features')}
-                className="text-white/80 hover:text-white transition-colors font-medium"
-              >
-                Features
-              </button>
-              <button
-                onClick={() => scrollToSection('how-it-works')}
-                className="text-white/80 hover:text-white transition-colors font-medium"
-              >
-                How It Works
-              </button>
-              <button
-                onClick={() => scrollToSection('pricing')}
-                className="text-white/80 hover:text-white transition-colors font-medium"
-              >
-                Pricing
-              </button>
+              {[
+                { label: 'Features', id: 'features' },
+                { label: 'How It Works', id: 'how-it-works' },
+                { label: 'Pricing', id: 'pricing' },
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => scrollToSection(item.id)}
+                  className={`transition-colors font-medium ${
+                    isDark ? 'text-white/80 hover:text-white' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
               <Link
                 to="/for-teachers"
-                className="flex items-center gap-2 text-white/80 hover:text-white transition-colors font-medium"
+                className={`flex items-center gap-2 transition-colors font-medium ${
+                  isDark ? 'text-white/80 hover:text-white' : 'text-slate-600 hover:text-slate-900'
+                }`}
               >
                 <GraduationCap className="w-4 h-4" />
                 Become a Teacher
@@ -98,17 +102,31 @@ export function NavHeader() {
 
             {/* Desktop Auth Buttons */}
             <div className="hidden md:flex items-center gap-3">
-              <div className="[&_button]:text-white/80 [&_button]:hover:text-white [&_button]:hover:bg-white/10 [&_button]:border-white/20">
+              <div className={isDark
+                ? '[&_button]:text-white/80 [&_button]:hover:text-white [&_button]:hover:bg-white/10 [&_button]:border-white/20'
+                : '[&_button]:text-slate-600 [&_button]:hover:text-slate-900 [&_button]:hover:bg-slate-100 [&_button]:border-slate-200'
+              }>
                 <LanguageSwitcher />
               </div>
-              <ThemeModeToggle className="text-white/80 hover:text-white hover:bg-white/10" />
+              <ThemeModeToggle className={isDark
+                ? 'text-white/80 hover:text-white hover:bg-white/10'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              } />
               <Link to="/login">
-                <Button variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10">
+                <Button variant="ghost" className={
+                  isDark
+                    ? 'text-white/80 hover:text-white hover:bg-white/10'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }>
                   Login
                 </Button>
               </Link>
               <Link to="/student-signup">
-                <Button className="bg-white text-slate-900 hover:bg-white/90 font-semibold shadow-lg">
+                <Button className={`font-semibold shadow-lg ${
+                  isDark
+                    ? 'bg-white text-slate-900 hover:bg-white/90'
+                    : 'bg-slate-900 text-white hover:bg-slate-800'
+                }`}>
                   Sign Up Free
                 </Button>
               </Link>
@@ -116,7 +134,7 @@ export function NavHeader() {
 
             {/* Mobile Menu Button */}
             <button
-              className="md:hidden p-2 text-white/80 hover:text-white z-50"
+              className={`md:hidden p-2 z-50 ${isDark ? 'text-white/80 hover:text-white' : 'text-slate-600 hover:text-slate-900'}`}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
             >
@@ -146,18 +164,20 @@ export function NavHeader() {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-slate-900 border-l border-white/10 z-50 md:hidden shadow-2xl"
+              className={`fixed top-0 right-0 h-full w-80 max-w-[85vw] z-50 md:hidden shadow-2xl ${
+                isDark ? 'bg-slate-900 border-l border-white/10' : 'bg-white border-l border-slate-200'
+              }`}
             >
               <div className="flex flex-col h-full p-6">
                 {/* Drawer Header */}
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-3">
                     <img src={logoDark} alt="EnglEuphoria" className="w-8 h-8 object-contain bg-white/90 rounded-lg p-0.5" />
-                    <span className="text-xl font-bold text-white">EnglEuphoria</span>
+                    <span className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>EnglEuphoria</span>
                   </div>
                   <button
                     onClick={closeMobileMenu}
-                    className="p-2 text-white/60 hover:text-white transition-colors"
+                    className={`p-2 transition-colors ${isDark ? 'text-white/60 hover:text-white' : 'text-slate-400 hover:text-slate-900'}`}
                     aria-label="Close menu"
                   >
                     <X size={20} />
@@ -166,63 +186,62 @@ export function NavHeader() {
 
                 {/* Navigation Links */}
                 <nav className="flex-1 space-y-2">
-                  <Link
-                    to="/"
-                    onClick={closeMobileMenu}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/80 hover:text-white hover:bg-white/5 transition-colors"
-                  >
-                    <Home className="w-5 h-5" />
-                    Home
-                  </Link>
-                  <button
-                    onClick={() => scrollToSection('features')}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/80 hover:text-white hover:bg-white/5 transition-colors w-full text-left"
-                  >
-                    <Info className="w-5 h-5" />
-                    Features
-                  </button>
-                  <button
-                    onClick={() => scrollToSection('how-it-works')}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/80 hover:text-white hover:bg-white/5 transition-colors w-full text-left"
-                  >
-                    <Lightbulb className="w-5 h-5" />
-                    How It Works
-                  </button>
-                  <button
-                    onClick={() => scrollToSection('pricing')}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/80 hover:text-white hover:bg-white/5 transition-colors w-full text-left"
-                  >
-                    <DollarSign className="w-5 h-5" />
-                    Pricing
-                  </button>
-                  <Link
-                    to="/for-teachers"
-                    onClick={closeMobileMenu}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/80 hover:text-white hover:bg-white/5 transition-colors"
-                  >
-                    <GraduationCap className="w-5 h-5" />
-                    Become a Teacher
-                  </Link>
+                  {[
+                    { to: '/', icon: Home, label: 'Home', isLink: true },
+                    { id: 'features', icon: Info, label: 'Features' },
+                    { id: 'how-it-works', icon: Lightbulb, label: 'How It Works' },
+                    { id: 'pricing', icon: DollarSign, label: 'Pricing' },
+                    { to: '/for-teachers', icon: GraduationCap, label: 'Become a Teacher', isLink: true },
+                  ].map((item) => {
+                    const Icon = item.icon;
+                    const cls = `flex items-center gap-3 px-4 py-3 rounded-xl transition-colors w-full text-left ${
+                      isDark
+                        ? 'text-white/80 hover:text-white hover:bg-white/5'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    }`;
+                    if ('to' in item && item.isLink) {
+                      return (
+                        <Link key={item.label} to={item.to!} onClick={closeMobileMenu} className={cls}>
+                          <Icon className="w-5 h-5" />
+                          {item.label}
+                        </Link>
+                      );
+                    }
+                    return (
+                      <button key={item.label} onClick={() => scrollToSection(item.id!)} className={cls}>
+                        <Icon className="w-5 h-5" />
+                        {item.label}
+                      </button>
+                    );
+                  })}
                 </nav>
 
                 {/* Theme Toggle */}
-                <div className="py-4 border-t border-white/10">
+                <div className={`py-4 border-t ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
                   <div className="flex items-center justify-between px-4">
-                    <span className="text-white/60 text-sm">Language</span>
-                    <div className="[&_button]:text-white/80 [&_button]:hover:text-white [&_button]:hover:bg-white/10 [&_button]:border-white/20">
+                    <span className={`text-sm ${isDark ? 'text-white/60' : 'text-slate-400'}`}>Language</span>
+                    <div className={isDark
+                      ? '[&_button]:text-white/80 [&_button]:hover:text-white [&_button]:hover:bg-white/10 [&_button]:border-white/20'
+                      : '[&_button]:text-slate-600 [&_button]:hover:text-slate-900 [&_button]:hover:bg-slate-100 [&_button]:border-slate-200'
+                    }>
                       <LanguageSwitcher />
                     </div>
                   </div>
                   <div className="flex items-center justify-between px-4 mt-2">
-                    <span className="text-white/60 text-sm">Theme</span>
-                    <ThemeModeToggle className="text-white/80 hover:text-white hover:bg-white/10" />
+                    <span className={`text-sm ${isDark ? 'text-white/60' : 'text-slate-400'}`}>Theme</span>
+                    <ThemeModeToggle className={isDark
+                      ? 'text-white/80 hover:text-white hover:bg-white/10'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    } />
                   </div>
                 </div>
 
                 {/* Auth Buttons */}
-                <div className="space-y-3 pt-4 border-t border-white/10">
+                <div className={`space-y-3 pt-4 border-t ${isDark ? 'border-white/10' : 'border-slate-200'}`}>
                   <Link to="/login" onClick={closeMobileMenu} className="block">
-                    <Button variant="outline" className="w-full border-white/20 text-white hover:bg-white/10">
+                    <Button variant="outline" className={`w-full ${
+                      isDark ? 'border-white/20 text-white hover:bg-white/10' : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+                    }`}>
                       Login
                     </Button>
                   </Link>

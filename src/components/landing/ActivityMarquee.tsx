@@ -1,3 +1,5 @@
+import { useThemeMode } from '@/hooks/useThemeMode';
+
 const badges = [
   '🌟 Sarah (Madrid) just hit C1 Business English.',
   '🚀 Leo (12) just unlocked the "Grammar Wizard" badge.',
@@ -10,8 +12,13 @@ const badges = [
 ];
 
 export function ActivityMarquee() {
+  const { resolvedTheme } = useThemeMode();
+  const isDark = resolvedTheme === 'dark';
+
   return (
-    <section className="py-8 bg-[#09090B] overflow-hidden relative">
+    <section className={`py-8 overflow-hidden relative transition-colors duration-300 ${
+      isDark ? 'bg-[#09090B]' : 'bg-[#FAFAFA]'
+    }`}>
       {/* Fade masks */}
       <div
         className="absolute inset-0 z-10 pointer-events-none"
@@ -24,7 +31,11 @@ export function ActivityMarquee() {
           {[...badges, ...badges].map((badge, i) => (
             <div
               key={i}
-              className="flex-shrink-0 mx-3 px-5 py-2.5 rounded-full bg-white/[0.04] backdrop-blur-sm border border-white/[0.08] text-sm text-slate-400 whitespace-nowrap hover:border-white/20 hover:text-slate-300 transition-colors duration-300"
+              className={`flex-shrink-0 mx-3 px-5 py-2.5 rounded-full backdrop-blur-sm text-sm whitespace-nowrap transition-colors duration-300 ${
+                isDark
+                  ? 'bg-white/[0.04] border border-white/[0.08] text-slate-400 hover:border-white/20 hover:text-slate-300'
+                  : 'bg-slate-100 border border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-700'
+              }`}
             >
               {badge}
             </div>
