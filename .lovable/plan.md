@@ -1,103 +1,153 @@
 
 
-# Landing Page 2026 Redesign: Tri-Portal Hero + Segmented Pricing + Design Polish
+# Landing Page V3: "Dark Glass & Bioluminescence" Redesign
 
 ## Overview
 
-Five interconnected upgrades to transform the landing page into a high-conversion, 2026-standard experience: (1) interactive Tri-Portal hero, (2) 3-way audience pricing toggle with Kids added, (3) floating nav polish, (4) Bento grid refinement, and (5) visual atmosphere differentiation.
+A comprehensive visual overhaul of the entire landing page, transforming it into a "Spatial SaaS" experience with a cursor-reactive hero orb, redesigned Bento grid with animated feature cards, a live activity marquee for social proof, and a polished pricing section with animated gradient borders.
 
 ---
 
-## 1. Tri-Portal Hero Section (Interactive Panels)
+## 1. Font & Global Style Update
 
-### Modify: `src/components/landing/HeroSection.tsx`
+### Modify: `index.html`
+- Replace the current Google Fonts import (Fredoka, Comic Neue, Space Grotesk) with **Plus Jakarta Sans** (weights 400-800) for body and headlines
+- Keep Space Grotesk as a secondary option for display headings
 
-**Current state**: Three static portal cards in a grid layout with hover-scale animation.
-
-**New behavior**: Three vertical panels that fill the viewport height. On hover (desktop), the active panel expands to ~50% width while the others shrink to ~25%. On mobile, panels stack vertically as full-width cards.
-
-**Layout details**:
-- Full-viewport section (`min-h-[90vh]`) with three `flex` children
-- Each panel uses `transition-all duration-700 ease-out` for smooth width changes
-- Default: each panel is `flex-1` (33%)
-- On hover: active panel gets `flex-[2]`, others stay `flex-1`
-- State managed via `hoveredPortal` (`useState<string | null>`)
-
-**Visual atmosphere per panel**:
-- **Playground (Kids)**: Soft pastel glow (`from-amber-400/20 to-emerald-400/20`), floating 3D-style decorative elements (stars, rocket emoji overlays via absolutely-positioned animated spans), tagline: "Where English feels like play."
-- **Academy (Teens)**: Neon purple accents (`from-violet-500/20 to-indigo-500/20`), XP bar visual element, motion-line SVG decorations, tagline: "Own your future. Speak with confidence."
-- **Professional (Adults)**: Minimalist slate-grey glassmorphic blur (`bg-white/5 backdrop-blur-xl`), clean serif-style approach for description text, tagline: "Master the language of leadership."
-
-**CTA on each panel**: "Claim Your Free Assessment" button linking to `/student-signup`
-
-**Mobile fallback**: Below `md` breakpoint, panels stack as full-width cards (similar to current but with the new visual themes applied). No hover interaction needed on mobile.
-
-**Headline**: Keep the existing "Learn English. Your Way." headline and social proof ribbon above the panels.
+### Modify: `tailwind.config.ts`
+- Add `'jakarta': ['Plus Jakarta Sans', 'system-ui', 'sans-serif']` to `fontFamily`
+- Update `'display'` to use Plus Jakarta Sans as primary
+- Add a `marquee` keyframe for the infinite scroll animation:
+  - `"0%": { transform: "translateX(0)" }` to `"100%": { transform: "translateX(-50%)" }`
+- Add a `glow-pulse` keyframe for the CTA button pulse effect
+- Add a `gradient-rotate` keyframe for the animated gradient border on the Mastery card (rotating a conic-gradient)
 
 ---
 
-## 2. Segmented Pricing with 3-Way Toggle
+## 2. Hero Section: "The Magnetic Orb"
+
+### Rewrite: `src/components/landing/HeroSection.tsx`
+
+**Remove**: The current Tri-Portal expanding panels layout.
+
+**New structure**:
+1. **Background Orb**: A large CSS mesh-gradient circle (300-400px) centered behind the headline, using layered radial gradients with Electric Indigo (#6366F1), Neon Mint (#10B981), and Liquid Gold (#F59E0B). Uses `onMouseMove` on the section to slightly offset the orb position via CSS `translate` with `framer-motion`'s `useMotionValue` and `useTransform` for smooth parallax (capped at ~20px movement).
+2. **Headline**: "Fluency is no longer a slow process." -- massive, bold (text-6xl to text-8xl), white.
+3. **Subheadline**: "Meet Engleuphoria. The English academy designed for absolute mastery. Choose your world." (Note: no mention of AI per user instruction)
+4. **Three glassmorphic pill buttons** in a row:
+   - "Playground (Ages 5-12)" -- hover glows Neon Mint (#10B981) via `shadow-[0_0_30px_rgba(16,185,129,0.4)]`
+   - "Academy (Teens)" -- hover glows Electric Indigo (#6366F1)
+   - "Professional (Adults)" -- hover glows Liquid Gold (#F59E0B)
+   - Each links to `/student-signup`
+   - Style: `bg-white/5 backdrop-blur-xl border border-white/10 rounded-full px-8 py-4`
+5. **Social proof ribbon** stays (reuse existing `SocialProofRibbon` component)
+
+**Mobile**: Orb scales down, pills stack vertically.
+
+---
+
+## 3. Bento Box Feature Grid
+
+### Rewrite: `src/components/landing/BentoGridSection.tsx`
+
+**New 3x3 asymmetric grid layout** using `grid-cols-4` with span variations:
+
+- **Card 1 (col-span-2, row-span-1): "The 55-Minute Rule"**
+  - An animated circular SVG timer (ring stroke-dashoffset animation counting down from 55:00)
+  - Text: "Optimized sessions with built-in buffer times for maximum focus."
+  - Glassmorphic dark card: `bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] rounded-3xl`
+
+- **Card 2 (col-span-2, row-span-2): "AI Skill Radar"**
+  - Reuse the existing radar chart SVG from `IntelligenceSection` (the polygon + animated data points)
+  - Neon glow effect on the polygon stroke
+  - Text: "Real-time tracking of your vocabulary, grammar, and fluency."
+
+- **Card 3 (col-span-1, row-span-1): "Top 3% Mentors"**
+  - Stacked teacher avatar images (reuse existing Unsplash URLs) with a subtle infinite vertical slide animation
+  - Small text: "Handpicked. Certified. Passionate."
+
+- **Card 4 (col-span-1, row-span-1): "Daily Feed"**
+  - A small mockup of a mobile phone frame (CSS border-radius + border) containing two mini feed cards (reuse the `feedCards` data style from IntelligenceSection)
+  - Subtle floating animation on the phone
+
+- **Card 5 (col-span-2, row-span-1): CTA card**
+  - Keep existing "Start Your Free Trial" CTA with gradient background
+
+- **Card 6 (col-span-1): "Gamified Learning"**
+  - Keep existing small card
+
+- **Card 7 (col-span-1): "Live Classes"**
+  - Keep existing small card
+
+**All cards**: `rounded-3xl` (24px), glassmorphic dark-mode, subtle `hover:scale-[1.02] hover:-translate-y-1` lift.
+
+**Mobile**: Cards stack as single column with auto height.
+
+---
+
+## 4. Live Activity Marquee (Social Proof)
+
+### Create: `src/components/landing/ActivityMarquee.tsx`
+
+**Structure**: An infinitely scrolling horizontal row of semi-transparent pill badges, positioned between the Bento grid and the Intelligence section.
+
+**Badges** (hardcoded, rotating set):
+- "Sarah (Madrid) just hit C1 Business English."
+- "Leo (12) just unlocked the 'Grammar Wizard' badge."
+- "David (CEO) booked a 55-min Negotiation Masterclass."
+- "Amira (Algiers) completed her IELTS Prep module."
+- "Tom (London) earned 500 XP this week."
+- "Yuki (Tokyo) just booked her 10th session."
+
+**Implementation**:
+- Two identical sets of badges rendered side-by-side in a flex row
+- Parent container uses `animation: marquee 30s linear infinite`
+- Each badge: `bg-white/[0.04] backdrop-blur-sm border border-white/[0.08] rounded-full px-5 py-2.5 text-sm text-slate-300 whitespace-nowrap`
+- Faint glowing border on hover
+- Fade masks on left/right edges using `mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent)`
+
+---
+
+## 5. Pricing Section: "Dark Glass" Redesign
 
 ### Modify: `src/components/landing/PricingSection.tsx`
 
-**Current state**: 2-option toggle (Academy / Professional) with correct pack prices.
+**Toggle changes**:
+- Simplify to a 2-option toggle: `[Playground & Academy]` | `[Professional]`
+- Large, satisfying pill toggle with a sliding indicator dot/bar
+- Kids and Teens still share the same pricing (15 EUR base), just presented under one label
 
-**Changes**:
-- Add "Kids" as a third toggle option: `[Kids] [Teens] [Adults]`
-- Kids and Teens share the same pricing (unified at 15 EUR/session base)
-- Toggle becomes a 3-segment pill with distinct colors:
-  - Kids: amber/emerald gradient when active
-  - Teens: violet/indigo gradient when active  
-  - Adults: emerald/teal gradient when active
-
-**Data update**:
-- Change `StudentLevel` type from `'academy' | 'professional'` to `'kids' | 'teens' | 'professional'`
-- Kids and Teens both map to the same prices: 75 EUR / 145 EUR / 290 EUR
-- Professional stays: 100 EUR / 195 EUR / 390 EUR
-- Update pack names per level:
-  - Kids/Teens: "Explorer" (5), "Achiever" (10), "Mastery" (20)
-  - Professional: "Pro" (5), "Executive" (10), "Global Leader" (20)
-
-**Mastery/20-session card glow**: Keep the existing outer glow on the 20-session pack (already implemented with `shadow-[0_0_40px...]`)
-
-**Mobile**: Cards already stack vertically. Add horizontal scroll-snap (`overflow-x-auto snap-x`) as an alternative swipe option on small screens.
+**Card design updates**:
+- Keep the 3-card layout (Explorer/5, Achiever/10, Mastery/20)
+- **Mastery card**: Add an animated gradient border using a pseudo-element with `conic-gradient` rotating via CSS animation (the `gradient-rotate` keyframe). The card itself stays dark glass, the border shimmers.
+- **Savings pill**: Replace plain "Save EUR X" with a vibrant neon pill: `bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full px-3 py-1 text-xs font-bold` with a fire emoji prefix
+- **CTA button text**: Change from "Buy X Credits" to "Start Your Journey"
+- **CTA pulse**: Add a subtle `animate-pulse` or custom `glow-pulse` animation (box-shadow pulsing) on the Mastery card's CTA button
 
 ---
 
-## 3. Floating Navigation Polish
+## 6. Landing Page Section Order Update
 
-### Modify: `src/components/landing/NavHeader.tsx`
+### Modify: `src/pages/LandingPage.tsx`
 
-**Current state**: Already has a fixed header that transitions from transparent to `bg-slate-950/60 backdrop-blur-2xl` on scroll. Height is `h-16 md:h-20`.
+Insert the new `ActivityMarquee` component:
+```
+NavHeader
+HeroSection
+BentoGridSection
+ActivityMarquee    <-- NEW
+IntelligenceSection
+HowItWorksSection
+PricingSection
+TestimonialsSection
+TrustBarSection
+AmbassadorSection
+ContactSection
+FooterSection
+```
 
-**Enhancements**:
-- On scroll, slightly shrink the header height: `h-14 md:h-16` (vs current `h-16 md:h-20`)
-- Add a subtle scale transition to the logo on scroll (slightly smaller)
-- Add `transition-all duration-500` to the height change (already partially there)
-- This is a minimal refinement since the nav is already floating/blurred
-
----
-
-## 4. Bento Grid Visual Polish
-
-### Modify: `src/components/landing/BentoGridSection.tsx`
-
-**Minor refinements** (the current Bento grid is already well-structured):
-- Update the section header to use a bolder typographic contrast: large sans-serif headline stays, add a small-caps serif-styled subtitle using `font-serif tracking-widest uppercase text-xs`
-- No structural changes needed -- the grid already follows the Apple-style bento pattern with varying card sizes
-
----
-
-## 5. Update Pricing Data Files
-
-### Modify: `src/data/pricingPlans.ts`
-
-- Update `lessonPackages` to reflect the new unified Kids/Teens pricing at 15 EUR base and Professional at 20 EUR base
-- Add package entries for the new naming convention (Explorer, Achiever, Mastery, Pro, Executive, Global Leader)
-
-### Modify: `src/services/pricingData.ts`
-
-- Update the `getPricingPlans` and `getRegionalPlans` functions to reflect the new 3-tier audience model
+### Modify: `src/components/landing/index.ts`
+- Add export for `ActivityMarquee`
 
 ---
 
@@ -105,21 +155,24 @@ Five interconnected upgrades to transform the landing page into a high-conversio
 
 | Action | File | Purpose |
 |--------|------|---------|
-| Modify | `src/components/landing/HeroSection.tsx` | Rebuild as interactive Tri-Portal with expanding panels and visual atmosphere |
-| Modify | `src/components/landing/PricingSection.tsx` | Add Kids toggle, 3-way segmentation, updated pack names |
-| Modify | `src/components/landing/NavHeader.tsx` | Subtle height shrink on scroll |
-| Modify | `src/components/landing/BentoGridSection.tsx` | Typography contrast polish |
-| Modify | `src/data/pricingPlans.ts` | Updated package data with new names and pricing |
-| Modify | `src/services/pricingData.ts` | Updated pricing service for 3-tier model |
+| Modify | `index.html` | Add Plus Jakarta Sans font |
+| Modify | `tailwind.config.ts` | Add jakarta font family, marquee/glow keyframes |
+| Rewrite | `src/components/landing/HeroSection.tsx` | Magnetic Orb hero with pill CTAs |
+| Rewrite | `src/components/landing/BentoGridSection.tsx` | Asymmetric Bento grid with animated cards |
+| Create | `src/components/landing/ActivityMarquee.tsx` | Infinite scrolling social proof badges |
+| Modify | `src/components/landing/PricingSection.tsx` | 2-way toggle, animated gradient border, neon pills |
+| Modify | `src/pages/LandingPage.tsx` | Add ActivityMarquee to section order |
+| Modify | `src/components/landing/index.ts` | Export ActivityMarquee |
 
 ---
 
 ## Technical Notes
 
-- No new dependencies -- uses existing framer-motion, Tailwind, lucide-react
-- The hero panel expand/contract uses CSS flex-grow transitions, not JavaScript width calculations
-- Mobile breakpoint (`md:`) switches from flex-row panels to flex-col stacked cards
-- The pricing toggle state type changes from a 2-value to 3-value union; Kids and Teens resolve to the same price lookup
-- Floating decorative elements (stars, rockets for Kids panel) use `absolute` positioning within the panel with `animate-bounce` or custom keyframes for subtle float
-- All sessions are 55 minutes as already stated in the current pricing section
+- The cursor-reactive orb uses `framer-motion`'s `useMotionValue` + `useTransform` with `onMouseMove` on the hero section -- no new dependencies needed
+- The marquee uses pure CSS animation with duplicated content (no JS timers)
+- The animated gradient border on the Mastery card uses a `before:` pseudo-element with `conic-gradient` and CSS `@keyframes` rotation -- lightweight, GPU-accelerated
+- The radar chart in the Bento grid is extracted from the existing `IntelligenceSection` SVG code and reused as a standalone sub-component
+- All glassmorphic cards follow the "Dark Glass" formula: `bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] rounded-3xl`
+- No 3D libraries needed -- the orb is a layered CSS mesh gradient (multiple radial-gradients composited), not a Three.js object
+- The pricing toggle simplification (2-way instead of 3-way) keeps the internal data model unchanged -- Kids and Teens still resolve to the same price, just presented under one label "Playground & Academy"
 
