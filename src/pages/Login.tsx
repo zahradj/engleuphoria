@@ -10,7 +10,6 @@ const Login = () => {
   const { user, loading } = useAuth();
   const [searchParams] = useSearchParams();
 
-  // Show "Access Denied" toast when redirected due to role mismatch
   useEffect(() => {
     if (searchParams.get('reason') === 'access_denied') {
       toast.error('Access Denied', {
@@ -20,9 +19,6 @@ const Login = () => {
     }
   }, [searchParams]);
 
-  // Show loading state while auth context is initializing OR if user exists (redirect pending)
-  // When user exists, AuthContext is handling the redirect via window.location.href
-  // We keep showing loading to prevent flickering back to login form
   if (loading || user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
@@ -40,7 +36,7 @@ const Login = () => {
   return (
     <AuthPageLayout
       title="Welcome Back"
-      subtitle="Log in to continue your learning journey"
+      subtitle="Sign in to continue your learning journey"
       icon={LogIn}
       variant="default"
     >
