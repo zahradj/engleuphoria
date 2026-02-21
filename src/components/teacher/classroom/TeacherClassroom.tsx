@@ -313,6 +313,8 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
             isZenMode={isZenMode}
             onToggleZenMode={() => setIsZenMode(!isZenMode)}
             shouldPulseWrapUp={smartTimer.shouldPulseWrapUp}
+            elapsedSeconds={classTime}
+            sessionDuration={sessionDuration}
           />
         </div>
       )}
