@@ -18,8 +18,12 @@ import {
   Video, 
   Users,
   CheckCircle,
-  Loader2
+  Loader2,
+  Clapperboard,
+  CheckCircle2
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { VideoInstructionsModal } from './VideoInstructionsModal';
 import { cn } from "@/lib/utils";
 
 interface EnhancedTeacherApplicationFormProps {
@@ -77,6 +81,9 @@ export const EnhancedTeacherApplicationForm: React.FC<EnhancedTeacherApplication
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [showGuideModal, setShowGuideModal] = useState(false);
+  const [selfReview, setSelfReview] = useState({ audio: false, lighting: false, script: false });
+  const selfReviewComplete = selfReview.audio && selfReview.lighting && selfReview.script;
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
     lastName: '',
@@ -113,7 +120,16 @@ export const EnhancedTeacherApplicationForm: React.FC<EnhancedTeacherApplication
       case 3:
         return !!(formData.teachingPhilosophy);
       case 4:
-        return !!(formData.videoUrl);
+        if (!formData.videoUrl) return false;
+        if (!selfReviewComplete) {
+          toast({
+            title: "Self-Review Required",
+            description: "Please complete the self-review checklist before proceeding.",
+            variant: "destructive",
+          });
+          return false;
+        }
+        return true;
       case 5:
         return !!(formData.preferredAgeGroup);
       default:
@@ -422,15 +438,44 @@ export const EnhancedTeacherApplicationForm: React.FC<EnhancedTeacherApplication
               </CardContent>
             </Card>
             
-            <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
-              <h4 className="font-medium text-sm mb-2">📹 Video Tips:</h4>
-              <ul className="text-sm text-muted-foreground space-y-1">
-                <li>• Introduce yourself warmly and professionally</li>
-                <li>• Demonstrate a brief teaching segment</li>
-                <li>• Show your personality and teaching energy</li>
-                <li>• Ensure good lighting and audio quality</li>
-              </ul>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => setShowGuideModal(true)}
+            >
+              <Clapperboard className="h-4 w-4 mr-2" />
+              View Script Templates & Filming Guide
+            </Button>
+
+            <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
+              <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                ✅ Self-Review Checklist
+              </h4>
+              {([
+                { key: 'audio' as const, label: 'I have checked my audio quality.' },
+                { key: 'lighting' as const, label: 'My face is clearly lit.' },
+                { key: 'script' as const, label: 'I followed the Engleuphoria script structure.' },
+              ]).map((item) => (
+                <label key={item.key} className="flex items-center gap-3 cursor-pointer">
+                  <Checkbox
+                    checked={selfReview[item.key]}
+                    onCheckedChange={() =>
+                      setSelfReview((prev) => ({ ...prev, [item.key]: !prev[item.key] }))
+                    }
+                  />
+                  <span className="text-sm">{item.label}</span>
+                </label>
+              ))}
             </div>
+
+            <VideoInstructionsModal
+              open={showGuideModal}
+              onOpenChange={setShowGuideModal}
+              onSelfReviewComplete={(checked) => {
+                if (checked) setSelfReview({ audio: true, lighting: true, script: true });
+              }}
+            />
           </div>
         );
 

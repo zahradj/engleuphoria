@@ -8,7 +8,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
-import { User, Upload, Video, FileCheck, AlertCircle, CheckCircle } from 'lucide-react';
+import { User, Upload, Video, FileCheck, AlertCircle, CheckCircle, Clapperboard, CheckCircle2 } from 'lucide-react';
+import { VideoInstructionsModal } from './VideoInstructionsModal';
 
 interface TeacherProfile {
   id?: string;
@@ -46,6 +47,8 @@ export const ProfileSetupTab = ({ teacherId, onProfileComplete }: ProfileSetupTa
   });
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [uploadingCert, setUploadingCert] = useState(false);
+  const [showGuideModal, setShowGuideModal] = useState(false);
+  const [selfReviewComplete, setSelfReviewComplete] = useState(false);
 
   useEffect(() => {
     fetchProfile();
@@ -325,9 +328,20 @@ export const ProfileSetupTab = ({ teacherId, onProfileComplete }: ProfileSetupTa
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="video-url">
-                YouTube or Vimeo Video URL *
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="video-url">
+                  YouTube or Vimeo Video URL *
+                </Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowGuideModal(true)}
+                >
+                  <Clapperboard className="h-4 w-4 mr-1" />
+                  View Script & Filming Guide
+                </Button>
+              </div>
               <Input
                 id="video-url"
                 placeholder="https://www.youtube.com/watch?v=... or https://vimeo.com/..."
@@ -339,6 +353,27 @@ export const ProfileSetupTab = ({ teacherId, onProfileComplete }: ProfileSetupTa
                 Record a 2-3 minute introduction video to help students get to know you
               </p>
             </div>
+
+            {selfReviewComplete && (
+              <div className="flex flex-col gap-1.5 rounded-lg border bg-muted/30 p-3">
+                {[
+                  'Audio quality verified',
+                  'Lighting verified',
+                  'Script structure followed',
+                ].map((label) => (
+                  <div key={label} className="flex items-center gap-2 text-sm text-green-600">
+                    <CheckCircle2 className="h-4 w-4" />
+                    {label}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {!selfReviewComplete && profile.video_url && (
+              <p className="text-sm text-amber-600">
+                💡 We recommend completing the filming checklist for the best first impression.
+              </p>
+            )}
 
             {videoPreview && (
               <div className="border rounded-lg overflow-hidden">
@@ -424,6 +459,12 @@ export const ProfileSetupTab = ({ teacherId, onProfileComplete }: ProfileSetupTa
           </Button>
         </div>
       </div>
+
+      <VideoInstructionsModal
+        open={showGuideModal}
+        onOpenChange={setShowGuideModal}
+        onSelfReviewComplete={setSelfReviewComplete}
+      />
     </div>
   );
 };
