@@ -11,7 +11,8 @@ import {
   ContactSection,
   IntelligenceSection,
   TrustBarSection,
-  AmbassadorSection
+  AmbassadorSection,
+  ActivityMarquee
 } from '@/components/landing';
 
 export default function LandingPage() {
@@ -26,10 +27,11 @@ export default function LandingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950">
+    <main className="min-h-screen bg-[#09090B]">
       <NavHeader />
       <HeroSection />
       <BentoGridSection />
+      <ActivityMarquee />
       <IntelligenceSection />
       <HowItWorksSection />
       <PricingSection />
