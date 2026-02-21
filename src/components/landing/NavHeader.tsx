@@ -43,9 +43,9 @@ export function NavHeader() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           isScrolled
-            ? 'bg-slate-950/95 backdrop-blur-lg border-b border-white/10 shadow-lg'
+            ? 'bg-slate-950/60 backdrop-blur-2xl border-b border-white/10 shadow-2xl'
             : 'bg-transparent'
         }`}
       >

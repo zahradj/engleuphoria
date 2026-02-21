@@ -28,9 +28,8 @@ const testimonials = [
 export function TestimonialsSection() {
   return (
     <section className="py-24 bg-gradient-to-b from-slate-950 to-slate-900 relative overflow-hidden">
-      {/* Background decoration */}
       <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-slate-900 to-transparent" />
-      
+
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
         {/* Header */}
         <motion.div
@@ -40,9 +39,9 @@ export function TestimonialsSection() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight mb-4">
             What Our{' '}
-            <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent">
               Students Say
             </span>
           </h2>
@@ -60,10 +59,11 @@ export function TestimonialsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.15 }}
-              className="relative bg-slate-800/50 rounded-2xl p-8 border border-slate-700/50 hover:border-amber-500/30 transition-colors"
+              whileHover={{ y: -4 }}
+              className="relative rounded-2xl p-8 backdrop-blur-xl bg-white/5 border border-white/10 hover:border-indigo-500/30 hover:shadow-[0_0_30px_-10px_rgba(99,102,241,0.2)] transition-all duration-500"
             >
               {/* Quote icon */}
-              <div className="absolute -top-4 -left-4 w-10 h-10 rounded-full bg-gradient-to-r from-amber-500 to-orange-600 flex items-center justify-center">
+              <div className="absolute -top-4 -left-4 w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
                 <Quote className="w-5 h-5 text-white" />
               </div>
 
@@ -79,7 +79,7 @@ export function TestimonialsSection() {
 
               {/* Author */}
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-600/20 flex items-center justify-center text-2xl">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-500/20 to-violet-500/20 flex items-center justify-center text-2xl border border-white/10">
                   {testimonial.avatar}
                 </div>
                 <div>

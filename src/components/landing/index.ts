@@ -6,3 +6,5 @@ export { PricingSection } from './PricingSection';
 export { HowItWorksSection } from './HowItWorksSection';
 export { TestimonialsSection } from './TestimonialsSection';
 export { ContactSection } from './ContactSection';
+export { IntelligenceSection } from './IntelligenceSection';
+export { TrustBarSection } from './TrustBarSection';
