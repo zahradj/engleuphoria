@@ -1,11 +1,12 @@
 import { motion, useInView } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Zap, Users } from 'lucide-react';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useThemeMode } from '@/hooks/useThemeMode';
 
 const skills = ['Speaking', 'Listening', 'Reading', 'Writing', 'Vocabulary'];
 const skillValues = [0.85, 0.7, 0.9, 0.65, 0.8];
+const skillValuesHovered = [0.85, 0.7, 0.9, 0.65, 0.95]; // Vocabulary boosted on hover
 
 function getPolygonPoints(values: number[], radius: number, cx: number, cy: number) {
   return values.map((v, i) => {
@@ -51,12 +52,13 @@ function TimerRing({ isDark }: { isDark: boolean }) {
   );
 }
 
-function SkillRadar({ isDark }: { isDark: boolean }) {
+function SkillRadar({ isDark, hovered }: { isDark: boolean; hovered: boolean }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-50px' });
   const cx = 100, cy = 100, radius = 75;
   const gridStroke = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
   const axisStroke = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)';
+  const activeValues = hovered ? skillValuesHovered : skillValues;
 
   return (
     <div ref={ref} className="flex justify-center">
@@ -75,7 +77,7 @@ function SkillRadar({ isDark }: { isDark: boolean }) {
           return <line key={i} x1={cx} y1={cy} x2={end.x} y2={end.y} stroke={axisStroke} strokeWidth="1" />;
         })}
         <motion.polygon
-          points={getPolygonPoints(isInView ? skillValues : Array(5).fill(0), radius, cx, cy)}
+          points={getPolygonPoints(isInView ? activeValues : Array(5).fill(0), radius, cx, cy)}
           fill="rgba(99,102,241,0.15)"
           stroke="#6366f1"
           strokeWidth="2"
@@ -84,7 +86,7 @@ function SkillRadar({ isDark }: { isDark: boolean }) {
           animate={isInView ? { opacity: 1 } : {}}
           transition={{ duration: 1, delay: 0.3 }}
         />
-        {skillValues.map((v, i) => {
+        {activeValues.map((v, i) => {
           const end = getAxisEnd(i, 5, (isInView ? v : 0) * radius, cx, cy);
           return (
             <motion.circle
@@ -135,13 +137,21 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.6, ease: 'easeOut' as const } },
 };
 
+// Staggered float durations for each card
+const floatDurations = [3.2, 4.0, 3.6, 4.4, 3.8, 4.2, 3.4];
+
 export function BentoGridSection() {
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
+  const [radarHovered, setRadarHovered] = useState(false);
 
   const GLASS = isDark
-    ? 'bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] rounded-3xl'
-    : 'bg-white/70 backdrop-blur-xl border border-slate-200/60 rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.05)]';
+    ? 'backdrop-blur-xl rounded-[32px]'
+    : 'backdrop-blur-xl rounded-[32px]';
+
+  const glassStyle = isDark
+    ? { background: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255, 255, 255, 0.1)' }
+    : { background: 'rgba(255, 255, 255, 0.7)', border: '1px solid rgba(0, 0, 0, 0.05)', boxShadow: '0 8px 32px rgba(0,0,0,0.05)' };
 
   const HOVER = isDark
     ? 'hover:scale-[1.02] hover:-translate-y-1 transition-all duration-500'
@@ -186,8 +196,14 @@ export function BentoGridSection() {
           viewport={{ once: true, margin: '-80px' }}
         >
           {/* Card 1 — The 55-Minute Rule (col-span-2) */}
-          <motion.div className={`md:col-span-2 ${GLASS} ${HOVER} p-8 group relative overflow-hidden`} variants={itemVariants}>
-            <div className={`absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent ${hoverOverlayClass}`} />
+          <motion.div
+            className={`md:col-span-2 ${GLASS} ${HOVER} p-8 group relative overflow-hidden`}
+            style={glassStyle}
+            variants={itemVariants}
+            animate={{ y: [0, -4, 0] }}
+            transition={{ repeat: Infinity, duration: floatDurations[0], ease: 'easeInOut' }}
+          >
+            <div className={`absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent rounded-[32px] ${hoverOverlayClass}`} />
             <div className="relative h-full flex items-center gap-8">
               <TimerRing isDark={isDark} />
               <div>
@@ -199,21 +215,41 @@ export function BentoGridSection() {
             </div>
           </motion.div>
 
-          {/* Card 2 — AI Skill Radar (col-span-2, row-span-2) */}
-          <motion.div className={`md:col-span-2 lg:row-span-2 ${GLASS} ${HOVER} p-8 group relative overflow-hidden`} variants={itemVariants}>
-            <div className={`absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent ${hoverOverlayClass}`} />
+          {/* Card 2 — AI Skill Radar (col-span-2, row-span-2) — Interactive */}
+          <motion.div
+            className={`md:col-span-2 lg:row-span-2 ${GLASS} ${HOVER} p-8 group relative overflow-hidden`}
+            style={glassStyle}
+            variants={itemVariants}
+            animate={{ y: [0, -4, 0] }}
+            transition={{ repeat: Infinity, duration: floatDurations[1], ease: 'easeInOut' }}
+            onMouseEnter={() => setRadarHovered(true)}
+            onMouseLeave={() => setRadarHovered(false)}
+          >
+            <div className={`absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent rounded-[32px] ${hoverOverlayClass}`} />
             <div className="relative h-full flex flex-col">
               <h3 className={`font-display text-2xl font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>AI Skill Radar</h3>
-              <p className={`text-sm mb-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Real-time tracking of your vocabulary, grammar, and fluency.</p>
+              <p className={`text-sm mb-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                {radarHovered
+                  ? 'AI-Adjusted Curriculum: Your path evolves as you do.'
+                  : 'Real-time tracking of your vocabulary, grammar, and fluency.'}
+              </p>
               <div className="flex-1 flex items-center justify-center">
-                <SkillRadar isDark={isDark} />
+                <SkillRadar isDark={isDark} hovered={radarHovered} />
               </div>
             </div>
           </motion.div>
 
           {/* Card 3 — Top 3% Mentors */}
-          <motion.div className={`${GLASS} ${HOVER} p-6 group relative overflow-hidden`} variants={itemVariants}>
-            <div className={`absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent ${hoverOverlayClass}`} />
+          <motion.div
+            className={`${GLASS} ${HOVER} p-6 group relative overflow-hidden`}
+            style={glassStyle}
+            variants={itemVariants}
+            animate={{ y: [0, -4, 0] }}
+            transition={{ repeat: Infinity, duration: floatDurations[2], ease: 'easeInOut' }}
+          >
+            <div className={`absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent rounded-[32px] ${hoverOverlayClass}`} />
+            {/* Decorative icon */}
+            <span className="absolute top-3 right-3 text-lg opacity-30 animate-float pointer-events-none">🌍</span>
             <div className="relative h-full flex flex-col items-center justify-center text-center">
               <div className="flex -space-x-3 mb-4">
                 {teacherAvatars.map((src, i) => (
@@ -238,8 +274,16 @@ export function BentoGridSection() {
           </motion.div>
 
           {/* Card 4 — Daily Feed */}
-          <motion.div className={`${GLASS} ${HOVER} p-6 group relative overflow-hidden`} variants={itemVariants}>
-            <div className={`absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent ${hoverOverlayClass}`} />
+          <motion.div
+            className={`${GLASS} ${HOVER} p-6 group relative overflow-hidden`}
+            style={glassStyle}
+            variants={itemVariants}
+            animate={{ y: [0, -4, 0] }}
+            transition={{ repeat: Infinity, duration: floatDurations[3], ease: 'easeInOut' }}
+          >
+            <div className={`absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent rounded-[32px] ${hoverOverlayClass}`} />
+            {/* Decorative icon */}
+            <span className="absolute bottom-3 left-3 text-lg opacity-25 animate-float-delayed pointer-events-none">🚀</span>
             <div className="relative h-full flex flex-col items-center justify-center">
               <motion.div
                 className={`w-28 rounded-xl border p-2 space-y-1.5 ${isDark ? 'border-white/10 bg-white/[0.03]' : 'border-slate-200 bg-white/50'}`}
@@ -261,8 +305,17 @@ export function BentoGridSection() {
           </motion.div>
 
           {/* Card 5 — Gamified Learning */}
-          <motion.div className={`${GLASS} ${HOVER} p-6 group relative overflow-hidden`} variants={itemVariants}>
-            <div className={`absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent ${hoverOverlayClass}`} />
+          <motion.div
+            className={`${GLASS} ${HOVER} p-6 group relative overflow-hidden`}
+            style={glassStyle}
+            variants={itemVariants}
+            animate={{ y: [0, -4, 0] }}
+            transition={{ repeat: Infinity, duration: floatDurations[4], ease: 'easeInOut' }}
+          >
+            <div className={`absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent rounded-[32px] ${hoverOverlayClass}`} />
+            {/* Decorative icon */}
+            <span className="absolute top-3 left-3 text-sm opacity-30 animate-float pointer-events-none">🎮</span>
+            <span className="absolute top-3 right-3 text-[10px] font-bold text-emerald-400/40 animate-bounce-gentle pointer-events-none">XP</span>
             <div className="relative h-full flex flex-col items-center justify-center text-center">
               <div className="p-3 rounded-xl bg-cyan-500/10 text-cyan-400 mb-3">
                 <Zap className="w-6 h-6" />
@@ -273,8 +326,14 @@ export function BentoGridSection() {
           </motion.div>
 
           {/* Card 6 — Live Classes */}
-          <motion.div className={`${GLASS} ${HOVER} p-6 group relative overflow-hidden`} variants={itemVariants}>
-            <div className={`absolute inset-0 bg-gradient-to-br from-rose-500/5 to-transparent ${hoverOverlayClass}`} />
+          <motion.div
+            className={`${GLASS} ${HOVER} p-6 group relative overflow-hidden`}
+            style={glassStyle}
+            variants={itemVariants}
+            animate={{ y: [0, -4, 0] }}
+            transition={{ repeat: Infinity, duration: floatDurations[5], ease: 'easeInOut' }}
+          >
+            <div className={`absolute inset-0 bg-gradient-to-br from-rose-500/5 to-transparent rounded-[32px] ${hoverOverlayClass}`} />
             <div className="relative h-full flex flex-col items-center justify-center text-center">
               <div className="p-3 rounded-xl bg-rose-500/10 text-rose-400 mb-3">
                 <Users className="w-6 h-6" />
@@ -286,10 +345,10 @@ export function BentoGridSection() {
 
           {/* Card 7 — CTA */}
           <motion.div
-            className="md:col-span-2 relative group overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-600/80 via-violet-600/80 to-emerald-500/80 p-6 border border-white/10 hover:scale-[1.02] hover:-translate-y-1 transition-all duration-500"
+            className="md:col-span-2 relative group overflow-hidden rounded-[32px] bg-gradient-to-r from-indigo-600/80 via-violet-600/80 to-emerald-500/80 p-6 border border-white/10 hover:scale-[1.02] hover:-translate-y-1 transition-all duration-500"
             variants={itemVariants}
           >
-            <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-[32px]" />
             <div className="relative h-full flex items-center justify-between">
               <div>
                 <h3 className="font-display text-2xl md:text-3xl font-bold text-white mb-2">Start Your Free Trial</h3>
