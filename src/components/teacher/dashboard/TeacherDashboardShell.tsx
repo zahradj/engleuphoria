@@ -7,10 +7,11 @@ import { PendingReviewBanner } from './PendingReviewBanner';
 import { ClassScheduler } from '@/components/teacher/scheduler';
 import { ProfileSetupTab } from '@/components/teacher/ProfileSetupTab';
 import { StudentsPlaceholder } from './StudentsPlaceholder';
+import { TeacherGuideTab } from './TeacherGuideTab';
 import { ScrollHeader } from '@/components/navigation/ScrollHeader';
 import { Loader2 } from 'lucide-react';
 
-type TabType = 'dashboard' | 'schedule' | 'methodology' | 'account' | 'teacher-hub';
+type TabType = 'dashboard' | 'schedule' | 'methodology' | 'account' | 'teacher-hub' | 'help';
 
 interface TeacherDashboardShellProps {
   teacherName: string;
@@ -50,6 +51,8 @@ export const TeacherDashboardShell = ({
           return <ClassScheduler teacherName={teacherName} teacherId={teacherId} />;
         case 'account':
           return <ProfileSetupTab teacherId={teacherId} />;
+        case 'help':
+          return <TeacherGuideTab />;
         case 'methodology':
         case 'teacher-hub':
           return <StudentsPlaceholder />;

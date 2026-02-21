@@ -11,3 +11,4 @@ export { DeviceCheckBanner } from './DeviceCheckBanner';
 export { MonthlyStatsCard } from './MonthlyStatsCard';
 export { LessonsListCard } from './LessonsListCard';
 export { StudentsPlaceholder } from './StudentsPlaceholder';
+export { TeacherGuideTab } from './TeacherGuideTab';

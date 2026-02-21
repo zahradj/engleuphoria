@@ -18,10 +18,11 @@ import {
   Users, 
   LogOut,
   ChevronDown,
-  GraduationCap
+  GraduationCap,
+  HelpCircle
 } from 'lucide-react';
 
-type TabType = 'dashboard' | 'schedule' | 'methodology' | 'account' | 'teacher-hub';
+type TabType = 'dashboard' | 'schedule' | 'methodology' | 'account' | 'teacher-hub' | 'help';
 
 interface TeacherTopNavProps {
   teacherName: string;
@@ -36,6 +37,7 @@ const navItems: { id: TabType; label: string; icon: React.ElementType }[] = [
   { id: 'methodology', label: 'Methodology', icon: BookOpen },
   { id: 'account', label: 'Account', icon: User },
   { id: 'teacher-hub', label: 'Teacher Hub', icon: Users },
+  { id: 'help', label: 'Help', icon: HelpCircle },
 ];
 
 export const TeacherTopNav: React.FC<TeacherTopNavProps> = ({
