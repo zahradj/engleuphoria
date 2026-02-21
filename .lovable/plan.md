@@ -1,61 +1,118 @@
 
-# Language Toggle, Smooth Scroll Navigation, and Animated Counters
+# Referral System: "Give One, Get One" Viral Loop
 
 ## Overview
 
-Three enhancements to the landing page: (1) integrate the existing `LanguageSwitcher` into the NavHeader, (2) add smooth scroll-to-section navigation for all major sections, and (3) add an animated counter in the social proof ribbon that counts up when visible.
+Build a complete referral system with three parts: (1) database tables for referral tracking, (2) a "Referral Center" tab on the Student Dashboard with sharing tools, and (3) an "Ambassador" section on the landing page.
 
 ---
 
-## 1. Language Toggle in NavHeader
+## 1. Database Migration
 
-**File:** `src/components/landing/NavHeader.tsx`
+Add referral infrastructure to the existing schema. Per project guidelines, we do NOT reference `auth.users` directly -- we reference the public `users` table instead.
 
-The `LanguageSwitcher` component already exists with all 5 languages (EN, AR, FR, ES, Turkish). It just needs to be imported and placed in the header.
+### New columns on `users` table:
+- `referral_code TEXT UNIQUE` -- auto-generated 8-char alphanumeric code
+- `referred_by UUID REFERENCES public.users(id)` -- who referred this user
 
-- **Desktop**: Add the `LanguageSwitcher` between the `ThemeModeToggle` and "Login" button, re-styled with transparent/glassmorphic styling to match the dark nav (`variant="ghost"` with white text)
-- **Mobile drawer**: Add it in the theme section of the drawer, next to the `ThemeModeToggle`
-- Override the default outline styling to use `text-white/80 hover:text-white hover:bg-white/10 border-white/20` so it blends with the dark header
+### New `referrals` table:
+```text
+referrals
+---------
+id            UUID PK
+referrer_id   UUID -> users(id)
+friend_id     UUID -> users(id)
+status        TEXT DEFAULT 'pending'  ('pending' | 'completed')
+reward_given  BOOLEAN DEFAULT false
+created_at    TIMESTAMPTZ
+completed_at  TIMESTAMPTZ
+```
+
+### Database function: `complete_referral(friend_uuid)`
+- Called after a student's first package purchase
+- Finds the referral record where `friend_id = friend_uuid` and `status = 'pending'`
+- Updates status to `'completed'`, sets `completed_at` and `reward_given`
+- Adds +1 credit to the referrer's `student_credits.total_credits`
+- Adds +1 credit to the friend's `student_credits.total_credits`
+- Creates a notification for the referrer
+
+### Trigger: `auto_generate_referral_code`
+- BEFORE INSERT on `users` -- generates `referral_code` if NULL using `lower(substring(md5(random()::text), 1, 8))`
+
+### RLS Policies on `referrals`:
+- Students can read their own referrals (where `referrer_id = auth.uid()` OR `friend_id = auth.uid()`)
+- Insert allowed for authenticated users (system-level inserts happen via `SECURITY DEFINER` functions)
+- Admins can read all
+
+### Backfill existing users:
+- UPDATE `users` SET `referral_code = lower(substring(md5(random()::text || id::text), 1, 8))` WHERE `referral_code IS NULL`
 
 ---
 
-## 2. Smooth Scroll-to-Section Navigation
+## 2. Referral Center Tab (Student Dashboard)
 
-### Add section IDs to all landing sections:
+### New file: `src/components/student/tabs/ReferralTab.tsx`
 
-| File | ID to add |
-|------|-----------|
-| `HeroSection.tsx` | `id="hero"` (already at top) |
-| `BentoGridSection.tsx` | `id="features"` |
-| `IntelligenceSection.tsx` | `id="intelligence"` |
-| `HowItWorksSection.tsx` | `id="how-it-works"` |
-| `PricingSection.tsx` | Already has `id="pricing"` |
-| `TestimonialsSection.tsx` | `id="testimonials"` |
-| `ContactSection.tsx` | Already has `id="contact"` |
+**Layout:**
+- **Hero card** at top: "Give a Lesson, Get a Lesson!" with gift emoji, explanatory text
+- **Referral code display** with a "Copy Link" button that copies `{origin}/signup?ref={code}`
+- **Share buttons**: WhatsApp (pre-filled message with link) and LinkedIn (share URL)
+- **Stats tracker**: "Friends joined: X | Credits earned: Y" -- fetched from `referrals` table where `referrer_id = auth.uid()`
 
-### Update NavHeader navigation links:
+**Data fetching:**
+- Query `users` table for the current user's `referral_code`
+- Query `referrals` where `referrer_id = auth.uid()` to get counts (total invited, completed)
+- Use existing `student_credits` to show total bonus credits earned
 
-- Replace the "About" `<Link>` with a scroll button targeting `#features`
-- Add a "How It Works" scroll button targeting `#how-it-works`
-- Keep the existing "Pricing" scroll button (already works)
-- Extract a reusable `scrollToSection(id)` helper function that uses `document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })`
-- Update all mobile drawer nav items to use the same scroll functions and close the drawer after click
+### Sidebar update: `src/components/student/StudentSidebar.tsx`
+- Add a new menu item: `{ id: 'referrals', label: 'Invite Friends', icon: Gift, badge: 'New' }`
+- Place it after "Progress" and before "Profile"
+
+### Dashboard routing: `src/pages/StudentDashboard.tsx`
+- Add `referrals: () => <ReferralTab />` to `tabComponents`
+- Import `ReferralTab`
 
 ---
 
-## 3. Animated Counter in Social Proof Ribbon
+## 3. Capture Referral Code on Signup
 
-**File:** `src/components/landing/HeroSection.tsx`
+### Modify: `src/components/auth/SimpleAuthForm.tsx`
+- On mount, read `ref` query parameter from the URL
+- Store it in component state
+- After successful signup, if a `ref` code exists:
+  - Look up the referrer by `referral_code` in the `users` table
+  - Insert a row into `referrals` with `referrer_id` = found user, `friend_id` = new user, `status = 'pending'`
+  - Update the new user's `referred_by` column
 
-- Create a custom `useCountUp` hook (inline in the file) that:
-  - Takes a target number and animation duration
-  - Uses `useEffect` + `requestAnimationFrame` to animate from 0 to target
-  - Triggers only when the element is in view (using `useInView` from framer-motion)
-- Replace the static "30+ countries" text with animated counters:
-  - "2,500+" students (counts up from 0 to 2500)
-  - "30+" countries (counts up from 0 to 30)
-- Display format: two stats separated by a divider dot, e.g., "2,500+ students from 30+ countries"
-- Numbers animate with an easing curve over ~2 seconds when the ribbon scrolls into view
+---
+
+## 4. Auto-Complete Referral on First Purchase
+
+### Modify the existing `add_credits_on_purchase` trigger function
+- After adding credits, check if the student has a pending referral
+- If so, call `complete_referral(student_id)` to award bonus credits to both parties
+
+Alternatively, create a separate trigger on `credit_purchases` (or wherever purchases are recorded) that calls `complete_referral`.
+
+---
+
+## 5. Landing Page Ambassador Section
+
+### New file: `src/components/landing/AmbassadorSection.tsx`
+
+**Design:**
+- Dark background matching the landing page (`bg-slate-950`)
+- Glassmorphic card with gradient accent
+- Headline: "Join the Engleuphoria Ambassador Program"
+- Copy: "Education is better with friends. Share the future of AI learning and earn free sessions for every successful referral."
+- CTA button: "Start Sharing" -- links to `/signup` (or `/student-dashboard` if logged in)
+- Small visual: three overlapping avatar circles suggesting community
+
+### Update: `src/components/landing/index.ts`
+- Export `AmbassadorSection`
+
+### Update: `src/pages/LandingPage.tsx`
+- Add `<AmbassadorSection />` between `TrustBarSection` and `ContactSection`
 
 ---
 
@@ -63,18 +120,21 @@ The `LanguageSwitcher` component already exists with all 5 languages (EN, AR, FR
 
 | Action | File | Purpose |
 |--------|------|---------|
-| Modify | `src/components/landing/NavHeader.tsx` | Add LanguageSwitcher + scroll nav links |
-| Modify | `src/components/landing/HeroSection.tsx` | Animated counter in social proof ribbon |
-| Modify | `src/components/landing/BentoGridSection.tsx` | Add `id="features"` to section |
-| Modify | `src/components/landing/HowItWorksSection.tsx` | Add `id="how-it-works"` to section |
-| Modify | `src/components/landing/TestimonialsSection.tsx` | Add `id="testimonials"` to section |
-| Modify | `src/components/landing/IntelligenceSection.tsx` | Add `id="intelligence"` to section |
+| Migration | SQL | Add `referral_code`, `referred_by` to `users`; create `referrals` table; `complete_referral()` function; RLS; backfill |
+| Create | `src/components/student/tabs/ReferralTab.tsx` | Referral Center with share tools and stats |
+| Create | `src/components/landing/AmbassadorSection.tsx` | Landing page ambassador section |
+| Modify | `src/components/student/StudentSidebar.tsx` | Add "Invite Friends" menu item |
+| Modify | `src/pages/StudentDashboard.tsx` | Add referrals tab routing |
+| Modify | `src/components/auth/SimpleAuthForm.tsx` | Capture `?ref=` code on signup and create referral record |
+| Modify | `src/components/landing/index.ts` | Export AmbassadorSection |
+| Modify | `src/pages/LandingPage.tsx` | Add AmbassadorSection to page |
 
 ---
 
 ## Technical Notes
 
-- The `LanguageSwitcher` component uses `react-i18next` which is already installed and configured with translations for all 5 languages
-- The animated counter uses `framer-motion`'s `useInView` hook (already a dependency) combined with `requestAnimationFrame` for smooth number animation -- no new dependencies needed
-- The `scrollToSection` helper adds `scroll-margin-top` via Tailwind's `scroll-mt-20` class on each section to account for the fixed header height
-- All section `<section>` tags get a `scroll-mt-20` class to offset the sticky nav when scrolling
+- The `complete_referral` function is `SECURITY DEFINER` so it can update credits for both users regardless of who calls it
+- Referral codes are 8-character lowercase hex strings derived from `md5(random())` -- collision-resistant for the expected user volume
+- The WhatsApp share uses `https://wa.me/?text=...` with URL-encoded message
+- The LinkedIn share uses `https://www.linkedin.com/sharing/share-offsite/?url=...`
+- No new dependencies required -- uses existing Supabase client, lucide-react icons, and Tailwind styling
