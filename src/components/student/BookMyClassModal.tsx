@@ -136,6 +136,9 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
         return;
       }
 
+      // Consume a credit (if available)
+      const { data: creditOk } = await supabase.rpc('consume_credit', { p_student_id: user.id });
+
       // Insert booking record into class_bookings; trigger auto-generates session_id + meeting_link
       const { data: bookingData, error: bookingError } = await supabase
         .from('class_bookings')
@@ -145,7 +148,7 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
           scheduled_at: slot.startTime.toISOString(),
           duration: slot.duration,
           booking_type: 'standard',
-          price_paid: 0,
+          price_paid: creditOk ? 0 : 0,
           status: 'confirmed',
         })
         .select('session_id, meeting_link')

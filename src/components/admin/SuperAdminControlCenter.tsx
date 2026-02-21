@@ -3,8 +3,9 @@ import { motion } from 'framer-motion';
 import { 
   Users, Activity, Eye, Edit2, Check, X, 
   GraduationCap, BookOpen, TrendingUp, Video,
-  RefreshCw, Search, Filter, UserCheck
+  RefreshCw, Search, Filter, UserCheck, DollarSign
 } from 'lucide-react';
+import { SalesPanel } from './SalesPanel';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -54,7 +55,7 @@ export const SuperAdminControlCenter: React.FC = () => {
   const [filterLevel, setFilterLevel] = useState('all');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newLevel, setNewLevel] = useState('');
-  const [activeTab, setActiveTab] = useState<'analytics' | 'monitor' | 'override'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'monitor' | 'override' | 'sales'>('analytics');
 
   // Stats summary
   const [stats, setStats] = useState({ totalStudents: 0, totalTeachers: 0, activeNow: 0 });
@@ -176,6 +177,7 @@ export const SuperAdminControlCenter: React.FC = () => {
     { id: 'analytics', label: 'Global Analytics', icon: <TrendingUp className="w-4 h-4" /> },
     { id: 'monitor', label: 'Live Monitor', icon: <Activity className="w-4 h-4" /> },
     { id: 'override', label: 'Manual Override', icon: <Edit2 className="w-4 h-4" /> },
+    { id: 'sales', label: 'Sales & Revenue', icon: <DollarSign className="w-4 h-4" /> },
   ] as const;
 
   return (
@@ -519,6 +521,13 @@ export const SuperAdminControlCenter: React.FC = () => {
               )}
             </CardContent>
           </Card>
+        </motion.div>
+      )}
+
+      {/* ─── SALES & REVENUE ──────────────────────────────────────────────── */}
+      {activeTab === 'sales' && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+          <SalesPanel />
         </motion.div>
       )}
     </div>
