@@ -116,6 +116,26 @@ export function FooterSection() {
           </div>
         </motion.div>
       </div>
+
+      {/* Signature Oversized Logo */}
+      <div className="relative overflow-hidden pointer-events-none select-none" aria-hidden="true">
+        <div className="max-w-[100vw] overflow-hidden text-center pb-4">
+          <motion.p
+            className={`font-display font-extrabold uppercase leading-none tracking-tighter text-[100px] md:text-[180px] lg:text-[260px] translate-y-[30%] ${
+              isDark ? 'text-white/[0.04]' : 'text-slate-900/[0.03]'
+            }`}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1, delay: 0.4 }}
+          >
+            ENGLEUPHORIA
+          </motion.p>
+        </div>
+        <p className={`text-center text-sm pb-8 -mt-4 ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
+          The last English platform you will ever need.
+        </p>
+      </div>
     </footer>
   );
 }

@@ -1,12 +1,12 @@
-import { motion, useInView } from 'framer-motion';
+import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Zap, Users } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import { useThemeMode } from '@/hooks/useThemeMode';
 
 const skills = ['Speaking', 'Listening', 'Reading', 'Writing', 'Vocabulary'];
 const skillValues = [0.85, 0.7, 0.9, 0.65, 0.8];
-const skillValuesHovered = [0.85, 0.7, 0.9, 0.65, 0.95]; // Vocabulary boosted on hover
+const skillValuesHovered = [0.85, 0.7, 0.9, 0.65, 0.95];
 
 function getPolygonPoints(values: number[], radius: number, cx: number, cy: number) {
   return values.map((v, i) => {
@@ -137,17 +137,54 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.6, ease: 'easeOut' as const } },
 };
 
-// Staggered float durations for each card
 const floatDurations = [3.2, 4.0, 3.6, 4.4, 3.8, 4.2, 3.4];
+
+/* Cursor micro-glow hook */
+function useCursorGlow(isDark: boolean) {
+  const [glow, setGlow] = useState<{ x: number; y: number; visible: boolean }>({ x: 0, y: 0, visible: false });
+
+  const onMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setGlow({ x: e.clientX - rect.left, y: e.clientY - rect.top, visible: true });
+  }, []);
+
+  const onMouseLeave = useCallback(() => {
+    setGlow((prev) => ({ ...prev, visible: false }));
+  }, []);
+
+  const glowStyle: React.CSSProperties = {
+    position: 'absolute',
+    inset: 0,
+    pointerEvents: 'none',
+    borderRadius: 'inherit',
+    opacity: glow.visible ? 1 : 0,
+    transition: 'opacity 0.3s ease',
+    background: `radial-gradient(300px circle at ${glow.x}px ${glow.y}px, ${isDark ? 'rgba(99,102,241,0.07)' : 'rgba(99,102,241,0.04)'}, transparent 70%)`,
+  };
+
+  return { onMouseMove, onMouseLeave, glowStyle };
+}
 
 export function BentoGridSection() {
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
   const [radarHovered, setRadarHovered] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
 
-  const GLASS = isDark
-    ? 'backdrop-blur-xl rounded-[32px]'
-    : 'backdrop-blur-xl rounded-[32px]';
+  // Parallax scroll
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start end', 'end start'] });
+  const parallaxFast = useTransform(scrollYProgress, [0, 1], [0, -30]);
+  const parallaxSlow = useTransform(scrollYProgress, [0, 1], [0, -10]);
+
+  // Cursor glow instances for each card
+  const glow1 = useCursorGlow(isDark);
+  const glow2 = useCursorGlow(isDark);
+  const glow3 = useCursorGlow(isDark);
+  const glow4 = useCursorGlow(isDark);
+  const glow5 = useCursorGlow(isDark);
+  const glow6 = useCursorGlow(isDark);
+
+  const GLASS = 'backdrop-blur-xl rounded-[32px]';
 
   const glassStyle = isDark
     ? { background: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255, 255, 255, 0.1)' }
@@ -162,7 +199,7 @@ export function BentoGridSection() {
     : 'opacity-0 transition-opacity duration-500';
 
   return (
-    <section id="features" className={`relative py-24 px-6 md:px-12 lg:px-24 overflow-hidden scroll-mt-20 transition-colors duration-300 ${
+    <section ref={sectionRef} id="features" className={`relative py-24 px-6 md:px-12 lg:px-24 overflow-hidden scroll-mt-20 transition-colors duration-300 ${
       isDark ? 'bg-[#09090B]' : 'bg-[#FAFAFA]'
     }`}>
       {/* Subtle ambient blurs */}
@@ -179,7 +216,7 @@ export function BentoGridSection() {
           transition={{ duration: 0.6 }}
         >
           <p className="font-serif tracking-[0.25em] uppercase text-[11px] text-indigo-400/80 mb-4">Why Choose Us</p>
-          <h2 className={`font-display text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6 transition-colors duration-300 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+          <h2 className={`font-display text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6 transition-colors duration-300 ${isDark ? 'text-white text-glow' : 'text-slate-900 text-ink'}`}>
             Why <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-emerald-400">EnglEuphoria</span>?
           </h2>
           <p className={`text-lg max-w-2xl mx-auto ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
@@ -195,14 +232,15 @@ export function BentoGridSection() {
           whileInView="visible"
           viewport={{ once: true, margin: '-80px' }}
         >
-          {/* Card 1 — The 55-Minute Rule (col-span-2) */}
+          {/* Card 1 — The 55-Minute Rule (col-span-2) — parallax slow */}
           <motion.div
             className={`md:col-span-2 ${GLASS} ${HOVER} p-8 group relative overflow-hidden`}
-            style={glassStyle}
+            style={{ ...glassStyle, y: parallaxSlow }}
             variants={itemVariants}
-            animate={{ y: [0, -4, 0] }}
-            transition={{ repeat: Infinity, duration: floatDurations[0], ease: 'easeInOut' }}
+            onMouseMove={glow1.onMouseMove}
+            onMouseLeave={glow1.onMouseLeave}
           >
+            <div style={glow1.glowStyle} />
             <div className={`absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent rounded-[32px] ${hoverOverlayClass}`} />
             <div className="relative h-full flex items-center gap-8">
               <TimerRing isDark={isDark} />
@@ -215,16 +253,16 @@ export function BentoGridSection() {
             </div>
           </motion.div>
 
-          {/* Card 2 — AI Skill Radar (col-span-2, row-span-2) — Interactive */}
+          {/* Card 2 — Skill Radar (col-span-2, row-span-2) — anchor (no parallax) */}
           <motion.div
             className={`md:col-span-2 lg:row-span-2 ${GLASS} ${HOVER} p-8 group relative overflow-hidden`}
             style={glassStyle}
             variants={itemVariants}
-            animate={{ y: [0, -4, 0] }}
-            transition={{ repeat: Infinity, duration: floatDurations[1], ease: 'easeInOut' }}
             onMouseEnter={() => setRadarHovered(true)}
-            onMouseLeave={() => setRadarHovered(false)}
+            onMouseLeave={() => { setRadarHovered(false); glow2.onMouseLeave(); }}
+            onMouseMove={glow2.onMouseMove}
           >
+            <div style={glow2.glowStyle} />
             <div className={`absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent rounded-[32px] ${hoverOverlayClass}`} />
             <div className="relative h-full flex flex-col">
               <h3 className={`font-display text-2xl font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>Skill Radar</h3>
@@ -239,16 +277,16 @@ export function BentoGridSection() {
             </div>
           </motion.div>
 
-          {/* Card 3 — Top 3% Mentors */}
+          {/* Card 3 — Top 3% Mentors — parallax fast */}
           <motion.div
             className={`${GLASS} ${HOVER} p-6 group relative overflow-hidden`}
-            style={glassStyle}
+            style={{ ...glassStyle, y: parallaxFast }}
             variants={itemVariants}
-            animate={{ y: [0, -4, 0] }}
-            transition={{ repeat: Infinity, duration: floatDurations[2], ease: 'easeInOut' }}
+            onMouseMove={glow3.onMouseMove}
+            onMouseLeave={glow3.onMouseLeave}
           >
+            <div style={glow3.glowStyle} />
             <div className={`absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent rounded-[32px] ${hoverOverlayClass}`} />
-            {/* Decorative icon */}
             <span className="absolute top-3 right-3 text-lg opacity-30 animate-float pointer-events-none">🌍</span>
             <div className="relative h-full flex flex-col items-center justify-center text-center">
               <div className="flex -space-x-3 mb-4">
@@ -273,16 +311,16 @@ export function BentoGridSection() {
             </div>
           </motion.div>
 
-          {/* Card 4 — Daily Feed */}
+          {/* Card 4 — Daily Feed — parallax fast */}
           <motion.div
             className={`${GLASS} ${HOVER} p-6 group relative overflow-hidden`}
-            style={glassStyle}
+            style={{ ...glassStyle, y: parallaxFast }}
             variants={itemVariants}
-            animate={{ y: [0, -4, 0] }}
-            transition={{ repeat: Infinity, duration: floatDurations[3], ease: 'easeInOut' }}
+            onMouseMove={glow4.onMouseMove}
+            onMouseLeave={glow4.onMouseLeave}
           >
+            <div style={glow4.glowStyle} />
             <div className={`absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent rounded-[32px] ${hoverOverlayClass}`} />
-            {/* Decorative icon */}
             <span className="absolute bottom-3 left-3 text-lg opacity-25 animate-float-delayed pointer-events-none">🚀</span>
             <div className="relative h-full flex flex-col items-center justify-center">
               <motion.div
@@ -304,16 +342,16 @@ export function BentoGridSection() {
             </div>
           </motion.div>
 
-          {/* Card 5 — Gamified Learning */}
+          {/* Card 5 — Gamified Learning — parallax fast */}
           <motion.div
             className={`${GLASS} ${HOVER} p-6 group relative overflow-hidden`}
-            style={glassStyle}
+            style={{ ...glassStyle, y: parallaxFast }}
             variants={itemVariants}
-            animate={{ y: [0, -4, 0] }}
-            transition={{ repeat: Infinity, duration: floatDurations[4], ease: 'easeInOut' }}
+            onMouseMove={glow5.onMouseMove}
+            onMouseLeave={glow5.onMouseLeave}
           >
+            <div style={glow5.glowStyle} />
             <div className={`absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent rounded-[32px] ${hoverOverlayClass}`} />
-            {/* Decorative icon */}
             <span className="absolute top-3 left-3 text-sm opacity-30 animate-float pointer-events-none">🎮</span>
             <span className="absolute top-3 right-3 text-[10px] font-bold text-emerald-400/40 animate-bounce-gentle pointer-events-none">XP</span>
             <div className="relative h-full flex flex-col items-center justify-center text-center">
@@ -325,14 +363,15 @@ export function BentoGridSection() {
             </div>
           </motion.div>
 
-          {/* Card 6 — Live Classes */}
+          {/* Card 6 — Live Classes — parallax slow */}
           <motion.div
             className={`${GLASS} ${HOVER} p-6 group relative overflow-hidden`}
-            style={glassStyle}
+            style={{ ...glassStyle, y: parallaxSlow }}
             variants={itemVariants}
-            animate={{ y: [0, -4, 0] }}
-            transition={{ repeat: Infinity, duration: floatDurations[5], ease: 'easeInOut' }}
+            onMouseMove={glow6.onMouseMove}
+            onMouseLeave={glow6.onMouseLeave}
           >
+            <div style={glow6.glowStyle} />
             <div className={`absolute inset-0 bg-gradient-to-br from-rose-500/5 to-transparent rounded-[32px] ${hoverOverlayClass}`} />
             <div className="relative h-full flex flex-col items-center justify-center text-center">
               <div className="p-3 rounded-xl bg-rose-500/10 text-rose-400 mb-3">
@@ -343,9 +382,10 @@ export function BentoGridSection() {
             </div>
           </motion.div>
 
-          {/* Card 7 — CTA */}
+          {/* Card 7 — CTA — parallax slow */}
           <motion.div
             className="md:col-span-2 relative group overflow-hidden rounded-[32px] bg-gradient-to-r from-indigo-600/80 via-violet-600/80 to-emerald-500/80 p-6 border border-white/10 hover:scale-[1.02] hover:-translate-y-1 transition-all duration-500"
+            style={{ y: parallaxSlow }}
             variants={itemVariants}
           >
             <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-[32px]" />
