@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { Globe } from 'lucide-react';
 import {
   DropdownMenu,
@@ -19,14 +20,23 @@ const languages = [
 
 export function LanguageSwitcher() {
   const { i18n } = useTranslation();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { lang } = useParams<{ lang: string }>();
 
-  const changeLanguage = (lng: string) => {
-    i18n.changeLanguage(lng);
-    document.documentElement.lang = lng;
-    document.documentElement.dir = lng === 'ar' ? 'rtl' : 'ltr';
+  const changeLanguage = (newLang: string) => {
+    i18n.changeLanguage(newLang);
+    document.documentElement.lang = newLang;
+    document.documentElement.dir = newLang === 'ar' ? 'rtl' : 'ltr';
+
+    // Update URL to reflect new language
+    if (lang) {
+      const newPath = location.pathname.replace(`/${lang}`, `/${newLang}`);
+      navigate(`${newPath}${location.search}${location.hash}`, { replace: true });
+    }
   };
 
-  const currentLanguage = languages.find(lang => lang.code === i18n.language) || languages[0];
+  const currentLanguage = languages.find(l => l.code === i18n.language) || languages[0];
 
   return (
     <DropdownMenu>
