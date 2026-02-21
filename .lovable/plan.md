@@ -1,113 +1,99 @@
 
 
-# Step 16-18: Welcome Suite + Toast System + Final Polish
+# Professional Buffer System: Smart Timer + Pricing Labels + Wrap-Up Mode
 
 ## Overview
 
-Three deliverables: (1) level-specific welcome emails, (2) global toast notifications with XP feedback, and (3) confetti on 100% weekly progress.
+Implement the "Professional Buffer" system: relabel session durations (25-min / 55-min), add a color-coded Smart Timer to the classroom, auto-trigger the Wrap-Up dialog, and update pricing cards. The database continues to block the full 30/60-minute window to prevent double-booking.
 
 ---
 
-## Step 16: Level-Specific Welcome Emails
+## What Already Exists
 
-### Current State
-- `send-welcome-email` edge function exists but only differentiates by **role** (student/teacher/parent)
-- All students get the same generic email regardless of their `student_level`
-- `student_level` enum already exists: `playground | academy | professional`
-
-### Changes
-
-**File: `supabase/functions/send-welcome-email/index.ts`**
-
-Expand the request interface to accept an optional `studentLevel` field:
-
-```typescript
-interface WelcomeEmailRequest {
-  email: string;
-  name: string;
-  role: "student" | "teacher" | "parent";
-  studentLevel?: "playground" | "academy" | "professional";
-  interests?: string[];
-  mainGoal?: string;
-}
-```
-
-Add 3 new email templates inside `generateEmailContent()`:
-
-| Level | Subject | Key Message |
-|-------|---------|-------------|
-| `playground` | "Welcome to the Adventure, [Name]!" | "Your AI guide is ready! We've unlocked the First Island for you. Log in to start your first quest and earn your first 50 Stars!" |
-| `academy` | "Level Up: Your Academy Access is Live" | "We've analyzed your interests in [Interests] and built your 4-week roadmap. Check your Daily Feed for today's challenge." |
-| `professional` | "Your Executive Learning Path is Ready" | "Based on your assessment, we have tailored a high-efficiency curriculum focusing on [Main Goal]. Your ROI charts are now live." |
-
-When `role === 'student'`, the function checks `studentLevel` and selects the matching template. Falls back to the current generic student email if `studentLevel` is missing.
-
-**File: `src/pages/StudentSignUp.tsx`** (or wherever the welcome email is triggered after profile creation)
-
-Update the `send-welcome-email` invocation to include `studentLevel` and `interests` from the student profile data.
+- **Database**: `teacher_availability.duration` has a CHECK constraint `(duration = ANY (ARRAY[30, 60]))` -- slots are stored as 30/60 but teaching time is 25/55
+- **`availabilityInsert.ts`**: Already has `to25or55` / `to30or60` mapping with fallback logic
+- **Landing page pricing**: `PricingSection.tsx` already shows "25 minutes" / "55 minutes" and EUR prices
+- **Classroom timers**: `UnifiedTopBar.tsx`, `OneOnOneTopBar.tsx`, and `ClassStatusBar.tsx` all display elapsed time but have **no color-coded warnings**
+- **Lesson Wrap-Up**: `LessonWrapUpDialog.tsx` exists and is wired into `TeacherClassroom.tsx` via a manual "Wrap-Up" button in the top bar
 
 ---
 
-## Step 17: Admin Reference (Documentation Only)
+## Changes
 
-This step is a reference table for the owner -- no code changes needed. The information will be summarized in the chat response:
+### 1. Booking & Calendar Labels (UI-only, no DB change)
 
-| Component | Location | Purpose |
-|-----------|----------|---------|
-| User Roles | `user_roles` table | Change roles securely |
-| Lesson Content | `daily_lessons` / `lessons` tables | Review AI-generated content |
-| Bookings | `class_bookings` table | Revenue calendar |
-| Admin Access | `/super-admin` route | Command center |
+**Files to modify:**
+- `src/components/teacher/calendar/TimeSlotActionModal.tsx` -- Change the duration selector buttons from "30 min" / "60 min" to "25-min Focused Session" / "55-min Deep Dive". The actual `duration` value sent to the DB stays 30/60 (the CHECK constraint requires it). Add a small helper text: "Includes 5-min teacher buffer."
+- `src/components/student/BookMyClassModal.tsx` -- When displaying available slots, show duration as "25 min" or "55 min" (subtract 5 from the stored value). Label them "Focused Session" or "Deep Dive" based on the `duration` field.
+- `src/components/student/StudentBookingCalendar.tsx` -- Same relabeling for slot cards.
 
----
+### 2. Smart Timer with Color Phases
 
-## Step 18: Global Toast Polish + Confetti on 100% Progress
+**New file:** `src/hooks/classroom/useSmartTimer.ts`
 
-### Current State
-- Both `Toaster` (shadcn) and `Sonner` are already mounted in `App.tsx`
-- `BookMyClassModal` already fires confetti and shows a toast on booking success
-- `LessonPlayer` calls `completeLessonMutation` but does NOT show a toast with XP feedback
-- No confetti on weekly progress reaching 100%
-
-### Changes
-
-**File: `src/components/student/LessonPlayer.tsx`**
-
-After `completeLessonMutation.mutateAsync()` succeeds (around line 104), add:
-
-```typescript
-import { toast } from 'sonner';
-
-// After line 109 (setFinalScore)
-toast.success(`Brilliant! +${earnedXp} XP added to your profile.`, {
-  duration: 4000,
-  icon: '🌟',
-});
-```
-
-**File: `src/components/student/BookMyClassModal.tsx`**
-
-The existing toast says `"🎉 Class booked!"` -- update the description to:
+A hook that wraps the existing `useClassroomTimer` and adds phase detection:
 
 ```
-"Success! Your coach has been notified. Check your email for a reminder 1 hour before the session."
+Input: classTime (seconds), sessionDuration (25 | 55)
+Output: { phase, phaseColor, phaseLabel, shouldPulseWrapUp }
+
+Phases for 25-min session:
+  - "normal"  (0:00 - 19:59) -> default gradient text
+  - "warning" (20:00 - 22:59) -> amber/yellow
+  - "urgent"  (23:00 - 24:59) -> red + pulse
+  - "overtime" (25:00+)       -> red + steady glow
+
+Phases for 55-min session:
+  - "normal"  (0:00 - 44:59) -> default gradient text
+  - "warning" (45:00 - 49:59) -> amber/yellow
+  - "urgent"  (50:00 - 54:59) -> red + pulse
+  - "overtime" (55:00+)       -> red + steady glow
 ```
 
-**File: `src/components/student/WeeklyGoalWidget.tsx`** (or equivalent progress component)
+`shouldPulseWrapUp` becomes `true` at the "urgent" phase.
 
-Add a check: when `progress >= 100`, fire `canvas-confetti` and show a celebratory toast:
+**Files to modify:**
 
-```typescript
-import confetti from 'canvas-confetti';
-import { toast } from 'sonner';
+- `src/components/classroom/unified/UnifiedTopBar.tsx` -- Import `useSmartTimer`. Apply `phaseColor` to the timer text via dynamic className (replace the static gradient). When `phase === 'overtime'`, show a small "OVERTIME" badge next to the timer.
 
-// Inside useEffect watching progress
-if (progress >= 100 && !celebrationFired) {
-  confetti({ particleCount: 150, spread: 80 });
-  toast.success('You reached 100% this week! Amazing work!', { icon: '🎊' });
-  setCelebrationFired(true);
-}
-```
+- `src/components/classroom/oneonone/OneOnOneTopBar.tsx` -- Same smart timer integration. Apply color to the `text-2xl font-mono` timer div.
+
+- `src/components/classroom/unified/components/ClassStatusBar.tsx` -- Accept a `sessionDuration` prop (default 25). Pass the teaching duration (25 or 55) as `totalSec` (in seconds: 1500 or 3300) instead of the current hardcoded 1800. The progress bar will naturally reflect the teaching window.
+
+### 3. Automated "Save Session Notes" Pulse
+
+**Files to modify:**
+
+- `src/components/teacher/classroom/ClassroomTopBar.tsx` -- The existing "Wrap-Up" button already exists. Add a `shouldPulse` prop. When true (from `useSmartTimer.shouldPulseWrapUp`), apply a pulsing animation (`animate-pulse` + ring effect) to make the button visually urgent. Change button text to "Save Session Notes" during the pulse phase.
+
+- `src/components/teacher/classroom/TeacherClassroom.tsx` -- Pass the smart timer phase data down to `ClassroomTopBar`. When `phase === 'urgent'` or `phase === 'overtime'` and `isTeacher`, auto-open the `LessonWrapUpDialog` (only once, using a ref to prevent repeated opens). The teacher can dismiss it, but the pulsing button remains as a reminder.
+
+### 4. Pricing Label Updates
+
+**File to modify:** `src/components/landing/PricingSection.tsx`
+
+Update the `pricingPlans` array:
+
+| Current | New |
+|---------|-----|
+| name: "Quick Session" | name: "25-Minute Focused Quest" |
+| name: "Full Lesson" | name: "55-Minute Deep Dive" |
+| price: 7 | price: 7.50 |
+| price: 14 | price: 15 (Academy) / 20 (Professional) |
+
+Since pricing currently does not differentiate by student level, add a note under the 55-min card: "Academy: 15.00 EUR / Professional: 20.00 EUR". The 25-min card shows 7.50 EUR.
+
+Update the `description` fields:
+- 25-min: "A focused burst of learning -- perfect for kids and busy schedules"
+- 55-min: "Our signature deep-dive session for comprehensive mastery"
+
+Also update `pricePerMinute` calculations accordingly.
+
+### 5. Teacher Earnings Label
+
+**File to modify:** `src/components/dashboard/teacher/TeacherEarningsTracker.tsx`
+
+The current text says "You earn 4 EUR for each completed 25-minute lesson." This stays consistent with the new labeling -- no change needed here as it already references 25 minutes.
 
 ---
 
@@ -115,20 +101,22 @@ if (progress >= 100 && !celebrationFired) {
 
 | Action | File | What Changes |
 |--------|------|--------------|
-| Modify | `supabase/functions/send-welcome-email/index.ts` | Add 3 level-specific student email templates |
-| Modify | `src/pages/StudentSignUp.tsx` | Pass `studentLevel` + `interests` to welcome email |
-| Modify | `src/components/student/LessonPlayer.tsx` | Add XP toast on lesson completion |
-| Modify | `src/components/student/BookMyClassModal.tsx` | Update booking toast copy |
-| Modify | `src/components/student/WeeklyGoalWidget.tsx` | Add confetti + toast at 100% weekly progress |
-
-No database migrations required. No new dependencies needed (canvas-confetti and sonner are already installed).
+| Create | `src/hooks/classroom/useSmartTimer.ts` | Phase detection hook for timer color and wrap-up pulse |
+| Modify | `src/components/teacher/calendar/TimeSlotActionModal.tsx` | Relabel duration buttons to "25-min Focused" / "55-min Deep Dive" |
+| Modify | `src/components/student/BookMyClassModal.tsx` | Display teaching duration (subtract 5) with session labels |
+| Modify | `src/components/classroom/unified/UnifiedTopBar.tsx` | Apply smart timer colors to classroom timer |
+| Modify | `src/components/classroom/oneonone/OneOnOneTopBar.tsx` | Apply smart timer colors to 1-on-1 timer |
+| Modify | `src/components/classroom/unified/components/ClassStatusBar.tsx` | Accept sessionDuration prop, use teaching time as totalSec |
+| Modify | `src/components/teacher/classroom/ClassroomTopBar.tsx` | Add pulsing animation to Wrap-Up button |
+| Modify | `src/components/teacher/classroom/TeacherClassroom.tsx` | Wire smart timer, auto-open wrap-up at urgent phase |
+| Modify | `src/components/landing/PricingSection.tsx` | Update names, prices, descriptions |
 
 ---
 
-## Technical Notes
+## No Database Changes Required
 
-- The `send-welcome-email` edge function uses **Resend** with the `RESEND_API_KEY` secret (already configured)
-- The email `from` address uses the verified `engleuphoria.com` domain
-- Sonner toasts are preferred over shadcn toasts for quick feedback (both are mounted in `App.tsx`)
-- The `WeeklyGoalWidget` celebration uses a `celebrationFired` ref to prevent repeat confetti on re-renders
+The `teacher_availability.duration` CHECK constraint stays as `(30, 60)`. The "Professional Buffer" is purely a UI/UX layer:
+- Database blocks the full 30/60 minutes (no double-booking)
+- UI shows 25/55 minutes as the "teaching time"
+- Smart Timer alerts the teacher to wrap up before the buffer window
 
