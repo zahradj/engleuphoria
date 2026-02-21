@@ -6914,6 +6914,50 @@ export type Database = {
           },
         ]
       }
+      student_skills: {
+        Row: {
+          cefr_equivalent: string | null
+          created_at: string | null
+          current_score: number | null
+          id: string
+          next_focus: string | null
+          skill_name: string
+          student_id: string
+          target_score: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          cefr_equivalent?: string | null
+          created_at?: string | null
+          current_score?: number | null
+          id?: string
+          next_focus?: string | null
+          skill_name: string
+          student_id: string
+          target_score?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          cefr_equivalent?: string | null
+          created_at?: string | null
+          current_score?: number | null
+          id?: string
+          next_focus?: string | null
+          skill_name?: string
+          student_id?: string
+          target_score?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_skills_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_slide_progress: {
         Row: {
           accuracy_score: number | null

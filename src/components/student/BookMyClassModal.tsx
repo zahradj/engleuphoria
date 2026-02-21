@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, X, Loader2, CheckCircle, Sparkles, Link2 } from 'lucide-react';
+import { Calendar, X, Loader2, CheckCircle, Sparkles, Link2, AlertTriangle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { StudentBookingCalendar } from './StudentBookingCalendar';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { usePackageValidation } from '@/hooks/usePackageValidation';
 import confetti from 'canvas-confetti';
 
 interface TimeSlot {
@@ -35,12 +36,15 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { totalCredits, loading: creditsLoading } = usePackageValidation(user?.id || null);
 
   const [slots, setSlots] = useState<TimeSlot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [booking, setBooking] = useState(false);
   const [booked, setBooked] = useState(false);
   const [meetingLink, setMeetingLink] = useState<string | null>(null);
+
+  const hasCredits = totalCredits > 0;
 
   // Fetch available slots
   const fetchSlots = useCallback(async () => {
@@ -111,7 +115,7 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
   }, [fetchSlots]);
 
   const handleBookSlot = async (slot: TimeSlot) => {
-    if (!user?.id || booking) return;
+    if (!user?.id || booking || !hasCredits) return;
     setBooking(true);
 
     try {
@@ -256,6 +260,18 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
         </div>
 
         <div className="p-6">
+          {/* No credits warning */}
+          {!creditsLoading && !hasCredits && !booked && (
+            <div className="mb-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-destructive mt-0.5 shrink-0" />
+              <div>
+                <p className="font-semibold text-destructive">No credits available</p>
+                <p className="text-sm text-destructive/80 mt-1">
+                  You need at least 1 credit to book a session. Purchase a credit pack to continue.
+                </p>
+              </div>
+            </div>
+          )}
           <AnimatePresence mode="wait">
             {booked ? (
               /* ✅ Success state */
