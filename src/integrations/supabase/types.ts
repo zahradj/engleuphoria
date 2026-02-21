@@ -1973,6 +1973,102 @@ export type Database = {
         }
         Relationships: []
       }
+      credit_packs: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          original_price_eur: number
+          price_eur: number
+          savings_eur: number
+          session_count: number
+          sort_order: number
+          student_level: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          original_price_eur: number
+          price_eur: number
+          savings_eur?: number
+          session_count: number
+          sort_order?: number
+          student_level: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          original_price_eur?: number
+          price_eur?: number
+          savings_eur?: number
+          session_count?: number
+          sort_order?: number
+          student_level?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      credit_purchases: {
+        Row: {
+          amount_paid: number
+          created_at: string
+          credits_purchased: number
+          currency: string
+          expires_at: string
+          id: string
+          pack_id: string
+          payment_method: string | null
+          purchased_at: string
+          student_id: string
+        }
+        Insert: {
+          amount_paid: number
+          created_at?: string
+          credits_purchased: number
+          currency?: string
+          expires_at?: string
+          id?: string
+          pack_id: string
+          payment_method?: string | null
+          purchased_at?: string
+          student_id: string
+        }
+        Update: {
+          amount_paid?: number
+          created_at?: string
+          credits_purchased?: number
+          currency?: string
+          expires_at?: string
+          id?: string
+          pack_id?: string
+          payment_method?: string | null
+          purchased_at?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_purchases_pack_id_fkey"
+            columns: ["pack_id"]
+            isOneToOne: false
+            referencedRelation: "credit_packs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_purchases_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       curriculum_exports: {
         Row: {
           admin_id: string | null
@@ -6287,6 +6383,44 @@ export type Database = {
           },
         ]
       }
+      student_credits: {
+        Row: {
+          created_at: string
+          expired_credits: number
+          id: string
+          student_id: string
+          total_credits: number
+          updated_at: string
+          used_credits: number
+        }
+        Insert: {
+          created_at?: string
+          expired_credits?: number
+          id?: string
+          student_id: string
+          total_credits?: number
+          updated_at?: string
+          used_credits?: number
+        }
+        Update: {
+          created_at?: string
+          expired_credits?: number
+          id?: string
+          student_id?: string
+          total_credits?: number
+          updated_at?: string
+          used_credits?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_credits_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_curriculum_assignments: {
         Row: {
           assigned_at: string | null
@@ -8336,6 +8470,7 @@ export type Database = {
         Returns: undefined
       }
       cleanup_stale_classroom_sessions: { Args: never; Returns: number }
+      consume_credit: { Args: { p_student_id: string }; Returns: boolean }
       create_admin_notification: {
         Args: {
           p_message: string
@@ -8530,6 +8665,7 @@ export type Database = {
         Args: { reward_uuid: string; student_uuid: string }
         Returns: Json
       }
+      refund_credit: { Args: { p_student_id: string }; Returns: undefined }
       reset_monthly_class_usage: { Args: never; Returns: undefined }
       save_placement_test_result: {
         Args: {
