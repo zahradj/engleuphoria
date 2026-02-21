@@ -30,6 +30,7 @@ interface ClassroomTopBarProps {
   studentStars?: number;
   isZenMode?: boolean;
   onToggleZenMode?: () => void;
+  shouldPulseWrapUp?: boolean;
 }
 
 export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
@@ -45,7 +46,8 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
   onOpenWrapUp,
   studentStars = 0,
   isZenMode = false,
-  onToggleZenMode
+  onToggleZenMode,
+  shouldPulseWrapUp = false
 }) => {
   const [elapsed, setElapsed] = useState(0);
 
@@ -139,10 +141,14 @@ export const ClassroomTopBar: React.FC<ClassroomTopBarProps> = ({
             variant="ghost"
             size="sm"
             onClick={onOpenWrapUp}
-            className="bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30"
+            className={`${
+              shouldPulseWrapUp
+                ? 'bg-red-600/30 text-red-300 hover:bg-red-600/40 animate-pulse ring-2 ring-red-500/50'
+                : 'bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600/30'
+            }`}
           >
             <ClipboardCheck className="h-4 w-4 mr-1" />
-            Wrap-Up
+            {shouldPulseWrapUp ? 'Save Session Notes' : 'Wrap-Up'}
           </Button>
         )}
         <div className="h-6 w-px bg-gray-700 mx-2" />

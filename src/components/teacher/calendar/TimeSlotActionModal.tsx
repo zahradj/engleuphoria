@@ -296,23 +296,26 @@ Please log out and log back in.`;
           </div>
 
           {/* Duration Selector - Compact */}
-          <div className="flex justify-center gap-2">
-            <Button
-              type="button"
-              size="sm"
-              variant={localDuration === 30 ? "default" : "outline"}
-              onClick={() => setLocalDuration(30)}
-            >
-              30 min
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant={localDuration === 60 ? "default" : "outline"}
-              onClick={() => setLocalDuration(60)}
-            >
-              60 min
-            </Button>
+          <div className="flex flex-col items-center gap-2">
+            <div className="flex justify-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={localDuration === 30 ? "default" : "outline"}
+                onClick={() => setLocalDuration(30)}
+              >
+                25-min Focused Session
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={localDuration === 60 ? "default" : "outline"}
+                onClick={() => setLocalDuration(60)}
+              >
+                55-min Deep Dive
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">Includes 5-min teacher buffer</p>
           </div>
 
           {/* Main Action Buttons */}

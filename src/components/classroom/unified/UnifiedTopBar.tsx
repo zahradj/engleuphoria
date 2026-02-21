@@ -18,6 +18,7 @@ import {
   GraduationCap
 } from "lucide-react";
 import { useMediaContext } from "@/components/classroom/oneonone/video/MediaContext";
+import { useSmartTimer } from "@/hooks/classroom/useSmartTimer";
 
 interface UserProfile {
   id: string;
@@ -31,6 +32,7 @@ interface UnifiedTopBarProps {
   currentUser: UserProfile;
   enhancedClassroom: any;
   roomId: string;
+  sessionDuration?: 25 | 55;
 }
 
 const formatTime = (seconds: number) => {
@@ -43,8 +45,10 @@ export function UnifiedTopBar({
   classTime,
   currentUser,
   enhancedClassroom,
-  roomId
+  roomId,
+  sessionDuration = 25
 }: UnifiedTopBarProps) {
+  const smartTimer = useSmartTimer(classTime, sessionDuration);
   // Use MediaContext for actual video controls
   const media = useMediaContext();
   
@@ -86,8 +90,13 @@ export function UnifiedTopBar({
 
       {/* Center: Timer & Status */}
       <div className="text-center">
-        <div className="text-3xl font-bold bg-gradient-to-r from-teal-600 via-blue-600 to-purple-600 bg-clip-text text-transparent font-mono tracking-wider">
+        <div className={`text-3xl font-bold font-mono tracking-wider ${smartTimer.phaseColor}`}>
           {formatTime(classTime)}
+          {smartTimer.phase === 'overtime' && (
+            <span className="ml-2 text-xs font-semibold bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full align-middle">
+              OVERTIME
+            </span>
+          )}
         </div>
         
         <div className="flex items-center justify-center gap-3 text-xs mt-2">

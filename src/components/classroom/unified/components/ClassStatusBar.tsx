@@ -5,12 +5,15 @@ interface ClassStatusBarProps {
   elapsedSec: number;
   totalSec?: number;
   participantsCount?: number;
+  sessionDuration?: 25 | 55;
 }
 
-export function ClassStatusBar({ elapsedSec, totalSec = 1800, participantsCount = 0 }: ClassStatusBarProps) {
+export function ClassStatusBar({ elapsedSec, totalSec, participantsCount = 0, sessionDuration = 25 }: ClassStatusBarProps) {
+  // Use teaching time as total if totalSec not explicitly provided
+  const effectiveTotal = totalSec ?? sessionDuration * 60;
   const clamp = (n: number) => Math.max(0, Math.min(100, n));
-  const pct = clamp((elapsedSec / totalSec) * 100);
-  const remaining = Math.max(0, totalSec - elapsedSec);
+  const pct = clamp((elapsedSec / effectiveTotal) * 100);
+  const remaining = Math.max(0, effectiveTotal - elapsedSec);
 
   const fmt = (s: number) => {
     const m = Math.floor(s / 60);
