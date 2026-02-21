@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
 import { User, Upload, Video, FileCheck, AlertCircle, CheckCircle, Clapperboard, CheckCircle2 } from 'lucide-react';
 import { VideoInstructionsModal } from './VideoInstructionsModal';
+import { VideoPreCheck } from './VideoPreCheck';
 
 interface TeacherProfile {
   id?: string;
@@ -388,6 +389,15 @@ export const ProfileSetupTab = ({ teacherId, onProfileComplete }: ProfileSetupTa
                 />
               </div>
             )}
+
+            {/* AI Video Pre-Check for file uploads */}
+            <VideoPreCheck
+              onCheckComplete={(passed, results) => {
+                if (passed) {
+                  toast({ title: 'Video passed AI pre-check!', description: 'All quality checks are green. You\'re ready to submit!' });
+                }
+              }}
+            />
 
             {profile.video_url && !validateVideoUrl(profile.video_url) && (
               <Alert variant="destructive">

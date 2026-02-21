@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { VideoInstructionsModal } from './VideoInstructionsModal';
+import { VideoPreCheck } from './VideoPreCheck';
 import { cn } from "@/lib/utils";
 
 interface EnhancedTeacherApplicationFormProps {
@@ -474,6 +475,18 @@ export const EnhancedTeacherApplicationForm: React.FC<EnhancedTeacherApplication
               onOpenChange={setShowGuideModal}
               onSelfReviewComplete={(checked) => {
                 if (checked) setSelfReview({ audio: true, lighting: true, script: true });
+              }}
+            />
+
+            {/* AI Video Pre-Check */}
+            <VideoPreCheck
+              onCheckComplete={(passed) => {
+                if (passed) {
+                  toast({
+                    title: "Video passed AI pre-check! ✅",
+                    description: "All quality indicators are green.",
+                  });
+                }
               }}
             />
           </div>
