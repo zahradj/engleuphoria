@@ -1,118 +1,82 @@
 
-# Referral System: "Give One, Get One" Viral Loop
+
+# Post-Class Feedback Loop: "How Was Your Session?"
 
 ## Overview
 
-Build a complete referral system with three parts: (1) database tables for referral tracking, (2) a "Referral Center" tab on the Student Dashboard with sharing tools, and (3) an "Ambassador" section on the landing page.
+Build a beautiful, minimalist post-class feedback modal that appears when a student leaves the classroom. It captures Teacher Energy, Material Relevance, a confidence metric ("Euphoria Metric"), and an improvement suggestion. Low ratings (1-2 stars) trigger an instant admin notification.
 
 ---
 
 ## 1. Database Migration
 
-Add referral infrastructure to the existing schema. Per project guidelines, we do NOT reference `auth.users` directly -- we reference the public `users` table instead.
+### New table: `post_class_feedback`
 
-### New columns on `users` table:
-- `referral_code TEXT UNIQUE` -- auto-generated 8-char alphanumeric code
-- `referred_by UUID REFERENCES public.users(id)` -- who referred this user
+| Column | Type | Notes |
+|--------|------|-------|
+| id | UUID PK | auto-generated |
+| student_id | UUID -> users(id) | NOT NULL |
+| teacher_id | UUID -> users(id) | NOT NULL |
+| lesson_id | TEXT | nullable, the room/session ID |
+| teacher_energy_rating | INTEGER | 1-5 stars |
+| material_relevance_rating | INTEGER | 1-5 stars |
+| feels_more_confident | BOOLEAN | The "Euphoria Metric" |
+| improvement_suggestion | TEXT | "One thing that could be better" |
+| created_at | TIMESTAMPTZ | default NOW() |
 
-### New `referrals` table:
+### RLS Policies:
+- Students can INSERT their own feedback (`student_id = auth.uid()`)
+- Students can SELECT their own feedback
+- Admins can SELECT all feedback
+
+### Database trigger: `notify_admin_low_rating`
+- AFTER INSERT on `post_class_feedback`
+- Fires when `teacher_energy_rating <= 2` OR `material_relevance_rating <= 2`
+- Inserts a notification into `admin_notifications` for all admins with type `low_rating_alert`, including teacher name, student name, and the ratings in metadata
+
+---
+
+## 2. New Component: PostClassFeedbackModal
+
+### File: `src/components/student/classroom/PostClassFeedbackModal.tsx`
+
+**Props:**
+- `isOpen: boolean`
+- `onClose: () => void`
+- `teacherName: string`
+- `teacherId: string`
+- `lessonId: string`
+
+**Layout (minimalist, warm design):**
+1. Title: "How was your session with [Teacher Name]?"
+2. Two 5-star rating rows:
+   - "Teacher Energy" (with a lightning bolt icon)
+   - "Material Relevance" (with a book icon)
+3. The "Euphoria Metric": "Do you feel more confident in English after this lesson?" with Yes/No toggle buttons
+4. Text area: "One thing that could be better" (optional, max 500 chars)
+5. "Submit Feedback" button + "Skip" link
+
+**Behavior:**
+- On submit, insert into `post_class_feedback`
+- Show a thank-you toast
+- Call `onClose()` to navigate away
+
+---
+
+## 3. Integration into Student Classroom
+
+### Modify: `src/components/student/classroom/StudentClassroom.tsx`
+
+**Current behavior (line 91-97):**
 ```text
-referrals
----------
-id            UUID PK
-referrer_id   UUID -> users(id)
-friend_id     UUID -> users(id)
-status        TEXT DEFAULT 'pending'  ('pending' | 'completed')
-reward_given  BOOLEAN DEFAULT false
-created_at    TIMESTAMPTZ
-completed_at  TIMESTAMPTZ
+handleLeaveClass -> toast -> navigate('/playground')
 ```
 
-### Database function: `complete_referral(friend_uuid)`
-- Called after a student's first package purchase
-- Finds the referral record where `friend_id = friend_uuid` and `status = 'pending'`
-- Updates status to `'completed'`, sets `completed_at` and `reward_given`
-- Adds +1 credit to the referrer's `student_credits.total_credits`
-- Adds +1 credit to the friend's `student_credits.total_credits`
-- Creates a notification for the referrer
-
-### Trigger: `auto_generate_referral_code`
-- BEFORE INSERT on `users` -- generates `referral_code` if NULL using `lower(substring(md5(random()::text), 1, 8))`
-
-### RLS Policies on `referrals`:
-- Students can read their own referrals (where `referrer_id = auth.uid()` OR `friend_id = auth.uid()`)
-- Insert allowed for authenticated users (system-level inserts happen via `SECURITY DEFINER` functions)
-- Admins can read all
-
-### Backfill existing users:
-- UPDATE `users` SET `referral_code = lower(substring(md5(random()::text || id::text), 1, 8))` WHERE `referral_code IS NULL`
-
----
-
-## 2. Referral Center Tab (Student Dashboard)
-
-### New file: `src/components/student/tabs/ReferralTab.tsx`
-
-**Layout:**
-- **Hero card** at top: "Give a Lesson, Get a Lesson!" with gift emoji, explanatory text
-- **Referral code display** with a "Copy Link" button that copies `{origin}/signup?ref={code}`
-- **Share buttons**: WhatsApp (pre-filled message with link) and LinkedIn (share URL)
-- **Stats tracker**: "Friends joined: X | Credits earned: Y" -- fetched from `referrals` table where `referrer_id = auth.uid()`
-
-**Data fetching:**
-- Query `users` table for the current user's `referral_code`
-- Query `referrals` where `referrer_id = auth.uid()` to get counts (total invited, completed)
-- Use existing `student_credits` to show total bonus credits earned
-
-### Sidebar update: `src/components/student/StudentSidebar.tsx`
-- Add a new menu item: `{ id: 'referrals', label: 'Invite Friends', icon: Gift, badge: 'New' }`
-- Place it after "Progress" and before "Profile"
-
-### Dashboard routing: `src/pages/StudentDashboard.tsx`
-- Add `referrals: () => <ReferralTab />` to `tabComponents`
-- Import `ReferralTab`
-
----
-
-## 3. Capture Referral Code on Signup
-
-### Modify: `src/components/auth/SimpleAuthForm.tsx`
-- On mount, read `ref` query parameter from the URL
-- Store it in component state
-- After successful signup, if a `ref` code exists:
-  - Look up the referrer by `referral_code` in the `users` table
-  - Insert a row into `referrals` with `referrer_id` = found user, `friend_id` = new user, `status = 'pending'`
-  - Update the new user's `referred_by` column
-
----
-
-## 4. Auto-Complete Referral on First Purchase
-
-### Modify the existing `add_credits_on_purchase` trigger function
-- After adding credits, check if the student has a pending referral
-- If so, call `complete_referral(student_id)` to award bonus credits to both parties
-
-Alternatively, create a separate trigger on `credit_purchases` (or wherever purchases are recorded) that calls `complete_referral`.
-
----
-
-## 5. Landing Page Ambassador Section
-
-### New file: `src/components/landing/AmbassadorSection.tsx`
-
-**Design:**
-- Dark background matching the landing page (`bg-slate-950`)
-- Glassmorphic card with gradient accent
-- Headline: "Join the Engleuphoria Ambassador Program"
-- Copy: "Education is better with friends. Share the future of AI learning and earn free sessions for every successful referral."
-- CTA button: "Start Sharing" -- links to `/signup` (or `/student-dashboard` if logged in)
-- Small visual: three overlapping avatar circles suggesting community
-
-### Update: `src/components/landing/index.ts`
-- Export `AmbassadorSection`
-
-### Update: `src/pages/LandingPage.tsx`
-- Add `<AmbassadorSection />` between `TrustBarSection` and `ContactSection`
+**New behavior:**
+- Instead of navigating immediately, set `showFeedbackModal = true`
+- Render `PostClassFeedbackModal` at the bottom of the component
+- On modal close (submit or skip), THEN navigate to `/playground`
+- Pass teacher name from `sessionContext` or fallback to "Teacher"
 
 ---
 
@@ -120,21 +84,16 @@ Alternatively, create a separate trigger on `credit_purchases` (or wherever purc
 
 | Action | File | Purpose |
 |--------|------|---------|
-| Migration | SQL | Add `referral_code`, `referred_by` to `users`; create `referrals` table; `complete_referral()` function; RLS; backfill |
-| Create | `src/components/student/tabs/ReferralTab.tsx` | Referral Center with share tools and stats |
-| Create | `src/components/landing/AmbassadorSection.tsx` | Landing page ambassador section |
-| Modify | `src/components/student/StudentSidebar.tsx` | Add "Invite Friends" menu item |
-| Modify | `src/pages/StudentDashboard.tsx` | Add referrals tab routing |
-| Modify | `src/components/auth/SimpleAuthForm.tsx` | Capture `?ref=` code on signup and create referral record |
-| Modify | `src/components/landing/index.ts` | Export AmbassadorSection |
-| Modify | `src/pages/LandingPage.tsx` | Add AmbassadorSection to page |
+| Migration | SQL | Create `post_class_feedback` table + `notify_admin_low_rating` trigger + RLS |
+| Create | `src/components/student/classroom/PostClassFeedbackModal.tsx` | The feedback modal UI |
+| Modify | `src/components/student/classroom/StudentClassroom.tsx` | Wire modal into leave flow |
 
 ---
 
 ## Technical Notes
 
-- The `complete_referral` function is `SECURITY DEFINER` so it can update credits for both users regardless of who calls it
-- Referral codes are 8-character lowercase hex strings derived from `md5(random())` -- collision-resistant for the expected user volume
-- The WhatsApp share uses `https://wa.me/?text=...` with URL-encoded message
-- The LinkedIn share uses `https://www.linkedin.com/sharing/share-offsite/?url=...`
-- No new dependencies required -- uses existing Supabase client, lucide-react icons, and Tailwind styling
+- The admin alert trigger uses the existing `admin_notifications` table and the same pattern as `notify_admin_new_user` (loops through `user_roles WHERE role = 'admin'`)
+- The modal uses existing Radix Dialog, Star from lucide-react, and Tailwind -- no new dependencies
+- The `lesson_id` stores the `roomId` string, not a UUID FK, since the classroom uses string-based room IDs
+- The feedback is separate from the existing `teacher_reviews` table (which is tied to `class_bookings`). This captures session-specific pedagogical quality metrics rather than a general teacher rating
+
