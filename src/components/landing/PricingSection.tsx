@@ -5,11 +5,11 @@ import { motion } from 'framer-motion';
 
 const pricingPlans = [
   {
-    name: 'Quick Session',
+    name: '25-Minute Focused Quest',
     duration: '25 minutes',
-    price: 7,
-    pricePerMinute: '0.28',
-    description: 'Perfect for focused practice or busy schedules',
+    price: 7.5,
+    pricePerMinute: '0.30',
+    description: 'A focused burst of learning — perfect for kids and busy schedules',
     features: [
       'One-on-one with native speaker',
       'Personalized lesson plan',
@@ -17,13 +17,14 @@ const pricingPlans = [
       'Progress tracking',
     ],
     popular: false,
+    priceNote: null,
   },
   {
-    name: 'Full Lesson',
+    name: '55-Minute Deep Dive',
     duration: '55 minutes',
-    price: 14,
-    pricePerMinute: '0.25',
-    description: 'Our most popular choice for comprehensive learning',
+    price: 15,
+    pricePerMinute: '0.27',
+    description: 'Our signature deep-dive session for comprehensive mastery',
     features: [
       'One-on-one with native speaker',
       'Personalized lesson plan',
@@ -33,6 +34,7 @@ const pricingPlans = [
       'In-depth grammar review',
     ],
     popular: true,
+    priceNote: 'Academy: €15 · Professional: €20',
   },
 ];
 
@@ -109,6 +111,11 @@ export function PricingSection() {
                 <p className="text-slate-500 text-sm mt-1">
                   €{plan.pricePerMinute} per minute
                 </p>
+                {plan.priceNote && (
+                  <p className="text-amber-400/80 text-xs mt-1 font-medium">
+                    {plan.priceNote}
+                  </p>
+                )}
               </div>
 
               {/* Features */}

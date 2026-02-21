@@ -17,6 +17,7 @@ import {
   Monitor
 } from "lucide-react";
 import { useMediaContext } from "./video/MediaContext";
+import { useSmartTimer } from "@/hooks/classroom/useSmartTimer";
 
 interface OneOnOneTopBarProps {
   classTime: number;
@@ -27,6 +28,7 @@ interface OneOnOneTopBarProps {
   currentUserId: string;
   currentUserName: string;
   isTeacher: boolean;
+  sessionDuration?: 25 | 55;
 }
 
 const formatTime = (seconds: number) => {
@@ -43,8 +45,10 @@ export function OneOnOneTopBar({
   roomId,
   currentUserId,
   currentUserName,
-  isTeacher
+  isTeacher,
+  sessionDuration = 25
 }: OneOnOneTopBarProps) {
+  const smartTimer = useSmartTimer(classTime, sessionDuration);
   // Use the shared media context for state and controls
   const media = useMediaContext();
   const participants = enhancedClassroom?.participants || [];
@@ -69,8 +73,13 @@ export function OneOnOneTopBar({
 
         {/* Center: Class Timer & Connection Status */}
         <div className="text-center">
-          <div className="text-2xl font-mono font-bold text-primary">
+          <div className={`text-2xl font-mono font-bold ${smartTimer.phaseColor}`}>
             {formatTime(classTime)}
+            {smartTimer.phase === 'overtime' && (
+              <span className="ml-2 text-xs font-semibold bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full align-middle">
+                OVERTIME
+              </span>
+            )}
           </div>
           <div className="flex items-center justify-center gap-2 text-xs text-gray-500">
             <div className="flex items-center gap-1">

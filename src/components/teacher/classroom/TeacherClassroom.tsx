@@ -22,6 +22,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AnimatePresence } from "framer-motion";
 import { useIdleOpacity } from "@/hooks/useIdleOpacity";
+import { useClassroomTimer } from "@/hooks/classroom/useClassroomTimer";
+import { useSmartTimer } from "@/hooks/classroom/useSmartTimer";
 
 interface TeacherClassroomProps {
   classId?: string;
@@ -65,6 +67,12 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
   // Embed link state
   const [embedDialogOpen, setEmbedDialogOpen] = useState(false);
   const [embeddedUrl, setEmbeddedUrl] = useState<string | null>(null);
+
+  // Smart timer for Professional Buffer
+  const sessionDuration: 25 | 55 = 25; // TODO: derive from booking data
+  const { classTime } = useClassroomTimer();
+  const smartTimer = useSmartTimer(classTime, sessionDuration);
+  const wrapUpAutoOpenedRef = React.useRef(false);
 
   // Auto-hide for top bar and sidebars
   const topBarIdle = useIdleOpacity({ idleTimeout: 3000, idleOpacity: 0.4 });
@@ -155,6 +163,14 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  // Auto-open wrap-up dialog at urgent phase
+  useEffect(() => {
+    if (smartTimer.shouldPulseWrapUp && !wrapUpAutoOpenedRef.current && !wrapUpOpen) {
+      wrapUpAutoOpenedRef.current = true;
+      setWrapUpOpen(true);
+    }
+  }, [smartTimer.shouldPulseWrapUp, wrapUpOpen]);
 
   // Zen mode elapsed timer
   useEffect(() => {
@@ -296,6 +312,7 @@ export const TeacherClassroom: React.FC<TeacherClassroomProps> = ({
             studentStars={studentStars}
             isZenMode={isZenMode}
             onToggleZenMode={() => setIsZenMode(!isZenMode)}
+            shouldPulseWrapUp={smartTimer.shouldPulseWrapUp}
           />
         </div>
       )}
