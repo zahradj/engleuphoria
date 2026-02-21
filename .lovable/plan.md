@@ -1,67 +1,103 @@
 
-# Teacher Video Script Templates, Filming Checklist, and Self-Review Validation
+
+# Homepage Premium Redesign -- Full Conversion Overhaul
 
 ## Overview
 
-Add three interconnected features to the teacher video submission flow: (1) a "Teacher Success" instructions modal with script templates and filming tips shown before recording, (2) a track-based script selector (Professional vs. Kids), and (3) a self-review checklist that gates the video submission.
+A comprehensive redesign of the EnglEuphoria landing page across 5 areas: (1) Tri-World Hero with social proof, (2) new AI Intelligence showcase section, (3) glassmorphic pricing upgrade, (4) micro-interactions and visual polish throughout, and (5) trust bar, typography, and footer refinements.
 
 ---
 
-## 1. New Component: `VideoInstructionsModal`
+## 1. Hero Section Redesign (`HeroSection.tsx`)
 
-**File to create:** `src/components/teacher/VideoInstructionsModal.tsx`
+**Current state:** Three expanding columns with background images and basic CTAs.
 
-A Dialog modal containing:
-
-### Script Templates Section
-- Toggle between two script tabs: **"Professional / Executive Track"** and **"Playground / Academy Track"**
-- Each tab displays the full 60-second script with timestamp markers (0:00-0:10, 0:10-0:30, etc.) styled as a step-by-step guide
-- Professional script emphasizes Business English, negotiations, executive presence
-- Kids script emphasizes adventure, games, energy, and fun
-
-### Filming Checklist Section (Accordion)
-Five tips displayed as an expandable checklist:
-1. **Eye Contact is King** -- Look at the camera lens, not your own image
-2. **Lighting (The 3-Point Rule)** -- Face the window or use a ring light; avoid backlighting
-3. **The "Silent" Background** -- No fan noise, traffic, or echo
-4. **Dress for the Price** -- Professional: business casual; Playground: bright colors
-5. **The Engleuphoria Background** -- Clean workspace, small plant or bookshelf
-
-Each tip will have an icon and a short explanation paragraph.
-
-### Self-Review Checklist
-Three checkboxes that must ALL be checked before the teacher can proceed:
-- "I have checked my audio quality"
-- "My face is clearly lit"
-- "I followed the Engleuphoria script structure"
-
-A "Got It" / "I'm Ready" button at the bottom, disabled until all 3 checkboxes are checked. Closing the modal also stores a local flag so returning users are not blocked but can reopen it via a help link.
+**Changes:**
+- Add a headline above the three portals: "Learn English. Your Way." with a social proof ribbon below: "Trusted by students from 30+ countries"
+- Restyle the three portal cards with distinct track branding:
+  - **Playground (Kids):** Vibrant yellow/green gradient, playful rounded-3xl corners, "Start the Adventure" CTA button
+  - **Academy (Teens):** Electric violet/purple gradient with neon glow, "Level Up Your English" CTA
+  - **Professional (Adults):** Minimalist slate/navy, sleek rounded-lg corners, "Executive Mastery" CTA
+- Add a subtle "pulse" animation on CTA buttons using the existing `animate-[pulse_2s]` keyframe
+- On hover, cards elevate with `scale(1.05)` and a soft glow shadow matching each track's accent color
+- Mobile: Stack cards vertically instead of the expanding column layout (which does not work well on small screens)
 
 ---
 
-## 2. Integration into `ProfileSetupTab.tsx`
+## 2. New "Intelligence" Section (`IntelligenceSection.tsx`)
 
-**File to modify:** `src/components/teacher/ProfileSetupTab.tsx`
+**New file:** `src/components/landing/IntelligenceSection.tsx`
 
-- Add a "View Script & Filming Guide" button (with a `Clapperboard` or `FileVideo` icon) next to the video URL input field
-- Clicking it opens `VideoInstructionsModal`
-- Track the `selfReviewChecked` state: once the teacher completes the self-review checklist in the modal, show 3 green checkmarks below the video URL field confirming:
-  - Audio quality verified
-  - Lighting verified
-  - Script structure followed
-- The "Save Profile" button remains gated on `bio + video_url` (existing logic), but now also shows a gentle reminder if self-review was not completed: "We recommend completing the filming checklist for the best first impression"
+**Content:**
+- Section headline: "Personalized by AI. Perfected by Human Mentors."
+- Left side: An animated mock Skill Radar chart (SVG pentagon with 5 axes) that fills in as the user scrolls into view, demonstrating the student_skills visualization
+- Right side: A "Daily Feed" mockup showing two example lesson cards:
+  - Adults: "English through Marketing -- Negotiation Vocabulary"
+  - Teens: "English through Gaming -- In-Game Communication"
+- Cards use glassmorphic style (`backdrop-blur-xl bg-white/5 border border-white/10`)
+- Register the new component in `src/components/landing/index.ts`
+- Add it to `LandingPage.tsx` between BentoGridSection and HowItWorksSection
 
 ---
 
-## 3. Integration into `EnhancedTeacherApplicationForm.tsx` (Step 4)
+## 3. Pricing Section Upgrade (`PricingSection.tsx`)
 
-**File to modify:** `src/components/teacher/EnhancedTeacherApplicationForm.tsx`
+**Changes:**
+- Apply glassmorphism to all three pack cards: `backdrop-blur-xl bg-white/5 border border-white/10`
+- Add a subtle animated glow border on the "Mastery Pack" (20 sessions) using a CSS keyframe that cycles a gradient border
+- Change the "Save" badge color to Gold (`#C9A96E`) for Professional and Electric Blue (`#6366F1`) for Academy
+- Add 3 bullet points under each price: "25/55 Min Sessions", "AI-Powered Curriculum", "Verified Native Teachers"
+- Keep the existing level toggle and cancellation policy as-is
 
-- Replace the current simple "Video Tips" box (lines 425-433) with:
-  - A prominent "View Script Templates & Filming Guide" button that opens `VideoInstructionsModal`
-  - The 3 self-review checkboxes displayed inline below the video URL input
-  - The "Next" button on Step 4 requires all 3 self-review checkboxes to be checked (in addition to the video URL)
-- Keep the video URL and description fields as-is
+---
+
+## 4. Micro-Interactions and Visual Polish
+
+### NavHeader (`NavHeader.tsx`)
+- Apply glassmorphism to the scrolled state: replace `bg-slate-950/95` with `bg-slate-950/60 backdrop-blur-2xl`
+- Add the "Login" button as always visible (already done, just confirming)
+
+### BentoGridSection (`BentoGridSection.tsx`)
+- No structural changes; the existing cards already use glassmorphic styling
+- Ensure consistent `rounded-3xl` (24px) on all cards (already in place)
+
+### TestimonialsSection (`TestimonialsSection.tsx`)
+- Add glassmorphic card styling to match the new design language
+- Add a subtle hover glow effect on testimonial cards
+
+### General
+- All CTA buttons site-wide get a subtle pulse shadow animation on idle (2s infinite, low opacity glow)
+- Section headers use scroll-triggered reveal animations (already using `whileInView` from framer-motion)
+
+---
+
+## 5. Trust Bar, Typography, and Footer
+
+### New Trust Bar Section (`TrustBarSection.tsx`)
+**New file:** `src/components/landing/TrustBarSection.tsx`
+
+- Three trust icons in a horizontal row:
+  - Shield + "Secure Payments (Stripe)"
+  - Headphones + "24-Hour Support"
+  - Brain + "Certified AI Curriculum"
+- Glassmorphic card styling, placed between TestimonialsSection and ContactSection
+- Register in `index.ts` and add to `LandingPage.tsx`
+
+### Footer (`FooterSection.tsx`)
+- Update the 3-column layout to a proper 4-column layout:
+  - Column 1: "The Worlds" (Playground, Academy, Professional Hub)
+  - Column 2: "Learn" (existing links)
+  - Column 3: "Company" (About, Careers, Contact)
+  - Column 4: "Legal" (Privacy, Terms, Cookies)
+- Keep the existing brand column and bottom bar
+
+### Color Palette Enforcement
+- Primary background: Deep Navy `#0F172A` (already `slate-950`)
+- Primary action color: Electric Indigo `#6366F1` (Tailwind `indigo-500`) -- update main CTA gradients to use this
+- Accent highlights remain track-specific (yellow/green for kids, violet for teens, slate/gold for pro)
+
+### Typography
+- Headers already use `font-display`; ensure tight letter-spacing with `tracking-tight` class on all major headings
 
 ---
 
@@ -69,67 +105,23 @@ A "Got It" / "I'm Ready" button at the bottom, disabled until all 3 checkboxes a
 
 | Action | File | Purpose |
 |--------|------|---------|
-| Create | `src/components/teacher/VideoInstructionsModal.tsx` | Script templates, filming checklist, self-review gate |
-| Modify | `src/components/teacher/ProfileSetupTab.tsx` | Add "View Guide" button + self-review status indicators |
-| Modify | `src/components/teacher/EnhancedTeacherApplicationForm.tsx` | Replace video tips with modal trigger + inline self-review checkboxes |
+| Modify | `src/components/landing/HeroSection.tsx` | Tri-World portals with headline, social proof, track-specific CTAs |
+| Create | `src/components/landing/IntelligenceSection.tsx` | AI Skill Radar mockup and Daily Feed showcase |
+| Modify | `src/components/landing/PricingSection.tsx` | Glassmorphic cards, glow on Mastery Pack, value bullets |
+| Modify | `src/components/landing/NavHeader.tsx` | Enhanced glassmorphic scrolled header |
+| Modify | `src/components/landing/TestimonialsSection.tsx` | Glassmorphic card polish |
+| Create | `src/components/landing/TrustBarSection.tsx` | Stripe, Support, AI Curriculum trust icons |
+| Modify | `src/components/landing/FooterSection.tsx` | 4-column layout with "The Worlds" column |
+| Modify | `src/components/landing/index.ts` | Export new components |
+| Modify | `src/pages/LandingPage.tsx` | Add IntelligenceSection and TrustBarSection |
 
 ---
 
-## Technical Details
+## Technical Notes
 
-### `VideoInstructionsModal.tsx` Structure
+- The animated Skill Radar in IntelligenceSection will be a pure SVG with framer-motion `pathLength` animations -- no chart library needed
+- All glassmorphic styles follow the existing pattern: `backdrop-blur-xl bg-white/5 border border-white/10`
+- CTA pulse effect uses a custom Tailwind animation: `shadow-[0_0_20px_rgba(99,102,241,0.4)]` with a pulse keyframe
+- Mobile responsiveness: Hero cards stack vertically; Intelligence section stacks radar above feed; Trust bar wraps to 1-column on small screens
+- No new dependencies required -- everything uses existing framer-motion, lucide-react, and Tailwind utilities
 
-```text
-Props:
-  - open: boolean
-  - onOpenChange: (open: boolean) => void
-  - onSelfReviewComplete: (checked: boolean) => void
-  - initialTrack?: 'professional' | 'kids' (default: 'professional')
-
-State:
-  - selectedTrack: 'professional' | 'kids'
-  - checklist: { audio: boolean, lighting: boolean, script: boolean }
-
-Components used:
-  - Dialog (Radix) for the modal shell
-  - Tabs for Professional vs. Kids script toggle
-  - Accordion for the 5 filming tips
-  - Checkbox (3x) for self-review
-  - Button ("I'm Ready") disabled until all 3 checked
-```
-
-### Script Content (Hardcoded Constants)
-
-The two script templates will be stored as structured arrays within the component file:
-
-```text
-PROFESSIONAL_SCRIPT = [
-  { time: "0:00-0:10", label: "The Hook", text: "Hello! Are you looking to bridge..." },
-  { time: "0:10-0:30", label: "The Value", text: "I specialize in Business English..." },
-  { time: "0:30-0:50", label: "The Method", text: "In our 55-minute sessions..." },
-  { time: "0:50-1:00", label: "The Call to Action", text: "Check my schedule below..." }
-]
-
-KIDS_SCRIPT = [
-  { time: "0:00-0:10", label: "Energy", text: "Hi there! I'm [Name]..." },
-  { time: "0:10-0:30", label: "Engagement", text: "I love making English feel..." },
-  { time: "0:30-0:50", label: "The Promise", text: "I use games and interactive..." },
-  { time: "0:50-1:00", label: "CTA", text: "I can't wait to meet you..." }
-]
-```
-
-### Filming Tips Data
-
-```text
-FILMING_TIPS = [
-  { icon: Eye, title: "Eye Contact is King", description: "Look directly into the camera lens..." },
-  { icon: Sun, title: "Lighting (The 3-Point Rule)", description: "Face the window or use a ring light..." },
-  { icon: VolumeX, title: "The Silent Background", description: "No fan noise, traffic, or echo..." },
-  { icon: Shirt, title: "Dress for the Price", description: "Professional: business casual. Playground: bright colors..." },
-  { icon: Home, title: "The Engleuphoria Background", description: "Clean workspace, small plant or bookshelf..." }
-]
-```
-
-### Validation Logic in Application Form (Step 4)
-
-The existing `validateStep(4)` function will be extended to also check that all 3 self-review booleans are `true`. If not, a toast will prompt: "Please complete the self-review checklist before proceeding."
