@@ -10,6 +10,7 @@ import { StudentsPlaceholder } from './StudentsPlaceholder';
 import { TeacherGuideTab } from './TeacherGuideTab';
 import { ScrollHeader } from '@/components/navigation/ScrollHeader';
 import { Loader2 } from 'lucide-react';
+import { FloatingHelpButton } from '@/components/support/FloatingHelpButton';
 
 type TabType = 'dashboard' | 'schedule' | 'methodology' | 'account' | 'teacher-hub' | 'help';
 
@@ -91,6 +92,9 @@ export const TeacherDashboardShell = ({
       <main className="container mx-auto px-4 py-6">
         {renderContent()}
       </main>
+
+      {/* Floating Help Button */}
+      <FloatingHelpButton />
     </div>
   );
 };

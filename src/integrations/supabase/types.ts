@@ -1379,6 +1379,7 @@ export type Database = {
         Row: {
           active_canvas_tab: string | null
           active_tool: string | null
+          connection_health: string | null
           created_at: string
           current_poll_slide_id: string | null
           current_quiz_slide_id: string | null
@@ -1413,6 +1414,7 @@ export type Database = {
         Insert: {
           active_canvas_tab?: string | null
           active_tool?: string | null
+          connection_health?: string | null
           created_at?: string
           current_poll_slide_id?: string | null
           current_quiz_slide_id?: string | null
@@ -1447,6 +1449,7 @@ export type Database = {
         Update: {
           active_canvas_tab?: string | null
           active_tool?: string | null
+          connection_health?: string | null
           created_at?: string
           current_poll_slide_id?: string | null
           current_quiz_slide_id?: string | null
@@ -7075,6 +7078,50 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      support_tickets: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          id: string
+          message: string
+          priority: string | null
+          status: string | null
+          user_email: string
+          user_id: string | null
+          user_name: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          message: string
+          priority?: string | null
+          status?: string | null
+          user_email: string
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          message?: string
+          priority?: string | null
+          status?: string | null
+          user_email?: string
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       system_transitions: {
         Row: {

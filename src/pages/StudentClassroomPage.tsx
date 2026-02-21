@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { StudentClassroom } from '@/components/student/classroom';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SessionPrivacyGuard } from '@/components/classroom/SessionPrivacyGuard';
+import { PreFlightCheck } from '@/components/classroom/PreFlightCheck';
 
 const StudentClassroomPage: React.FC = () => {
   const { id: roomId } = useParams<{ id: string }>();
   const { user, loading } = useAuth();
+  const [preFlightPassed, setPreFlightPassed] = useState(false);
 
   if (loading) {
     return (
@@ -27,6 +29,10 @@ const StudentClassroomPage: React.FC = () => {
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (!preFlightPassed) {
+    return <PreFlightCheck onComplete={() => setPreFlightPassed(true)} />;
   }
 
   const studentName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Student';

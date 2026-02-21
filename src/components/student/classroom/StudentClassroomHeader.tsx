@@ -1,7 +1,9 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Mic, MicOff, Video, VideoOff, LogOut, Wifi, WifiOff, Maximize2, Minimize2 } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, LogOut, Signal, SignalMedium, SignalLow, WifiOff, Maximize2, Minimize2 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useConnectionHealth } from '@/hooks/useConnectionHealth';
 
 interface StudentClassroomHeaderProps {
   lessonTitle: string;
@@ -26,25 +28,42 @@ export const StudentClassroomHeader: React.FC<StudentClassroomHeaderProps> = ({
   isZenMode = false,
   onToggleZenMode
 }) => {
+  const { quality, latencyMs, suggestion } = useConnectionHealth();
+
+  const SignalIcon = quality === 'good' ? Signal : quality === 'fair' ? SignalMedium : SignalLow;
+  const signalColor = quality === 'good' ? 'bg-green-600' : quality === 'fair' ? 'bg-yellow-600' : 'bg-red-600';
+  const signalLabel = quality === 'good' ? 'Strong' : quality === 'fair' ? 'Unstable' : 'Weak';
+
   return (
-    <div className="h-14 glass-panel border-b border-white/5 px-4 flex items-center justify-between">
-      {/* Left: Live Indicator + Lesson Title */}
-      <div className="flex items-center gap-3">
-        {isConnected && (
-          <div className="flex items-center gap-1.5">
-            <div className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse" />
-            <span className="text-xs font-medium text-red-400">LIVE</span>
-          </div>
-        )}
-        <h1 className="text-lg font-semibold text-white">{lessonTitle}</h1>
-        <Badge
-          variant={isConnected ? 'default' : 'destructive'}
-          className={`flex items-center gap-1 ${isConnected ? 'bg-green-600' : 'bg-red-600'}`}
-        >
-          {isConnected ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
-          {isConnected ? 'Connected' : 'Disconnected'}
-        </Badge>
-      </div>
+    <div className="relative">
+      <div className="h-14 glass-panel border-b border-white/5 px-4 flex items-center justify-between">
+        {/* Left: Live Indicator + Lesson Title */}
+        <div className="flex items-center gap-3">
+          {isConnected && (
+            <div className="flex items-center gap-1.5">
+              <div className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse" />
+              <span className="text-xs font-medium text-red-400">LIVE</span>
+            </div>
+          )}
+          <h1 className="text-lg font-semibold text-white">{lessonTitle}</h1>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  variant={isConnected ? 'default' : 'destructive'}
+                  className={`flex items-center gap-1 cursor-default ${isConnected ? signalColor : 'bg-red-600'}`}
+                >
+                  {isConnected ? <SignalIcon className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
+                  {isConnected ? signalLabel : 'Disconnected'}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Latency: {latencyMs}ms</p>
+                {suggestion && <p className="text-xs mt-1">{suggestion}</p>}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
 
       {/* Right: Controls */}
       <div className="flex items-center gap-2">
@@ -86,6 +105,14 @@ export const StudentClassroomHeader: React.FC<StudentClassroomHeaderProps> = ({
           Leave
         </Button>
       </div>
+    </div>
+
+    {/* Connection warning banner */}
+    {quality === 'poor' && suggestion && (
+      <div className="bg-yellow-500/20 border-b border-yellow-500/30 px-4 py-2 text-center">
+        <p className="text-xs text-yellow-300">⚠️ {suggestion}</p>
+      </div>
+    )}
     </div>
   );
 };
