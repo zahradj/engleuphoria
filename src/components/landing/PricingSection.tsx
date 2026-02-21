@@ -5,14 +5,14 @@ import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
-type StudentLevel = 'academy' | 'professional';
+type StudentLevel = 'kids' | 'teens' | 'professional';
 
 interface PackTier {
-  name: string;
+  name: Record<'kids' | 'teens', string> & Record<'professional', string>;
   label: string;
   sessions: number;
-  price: Record<StudentLevel, number>;
-  originalPrice: Record<StudentLevel, number>;
+  price: { kids: number; teens: number; professional: number };
+  originalPrice: { kids: number; teens: number; professional: number };
   savings: number;
   popular: boolean;
   isMastery: boolean;
@@ -20,31 +20,31 @@ interface PackTier {
 
 const packTiers: PackTier[] = [
   {
-    name: 'Starter',
+    name: { kids: 'Explorer', teens: 'Explorer', professional: 'Pro' },
     label: 'Try it out',
     sessions: 5,
-    price: { academy: 75, professional: 100 },
-    originalPrice: { academy: 75, professional: 100 },
+    price: { kids: 75, teens: 75, professional: 100 },
+    originalPrice: { kids: 75, teens: 75, professional: 100 },
     savings: 0,
     popular: false,
     isMastery: false,
   },
   {
-    name: 'Value Pack',
+    name: { kids: 'Achiever', teens: 'Achiever', professional: 'Executive' },
     label: 'Most popular',
     sessions: 10,
-    price: { academy: 145, professional: 195 },
-    originalPrice: { academy: 150, professional: 200 },
+    price: { kids: 145, teens: 145, professional: 195 },
+    originalPrice: { kids: 150, teens: 150, professional: 200 },
     savings: 5,
     popular: true,
     isMastery: false,
   },
   {
-    name: 'Mastery Pack',
+    name: { kids: 'Mastery', teens: 'Mastery', professional: 'Global Leader' },
     label: 'Best value',
     sessions: 20,
-    price: { academy: 290, professional: 390 },
-    originalPrice: { academy: 300, professional: 400 },
+    price: { kids: 290, teens: 290, professional: 390 },
+    originalPrice: { kids: 300, teens: 300, professional: 400 },
     savings: 10,
     popular: false,
     isMastery: true,
@@ -61,14 +61,20 @@ const features = [
 ];
 
 const valueBullets = [
-  { icon: Timer, text: '25/55 Min Sessions' },
+  { icon: Timer, text: '55-Min Sessions' },
   { icon: Cpu, text: 'AI-Powered Curriculum' },
   { icon: UserCheck, text: 'Verified Native Teachers' },
 ];
 
+const toggleOptions: { key: StudentLevel; emoji: string; label: string; activeGradient: string }[] = [
+  { key: 'kids', emoji: '🎨', label: 'Kids', activeGradient: 'from-amber-500 to-emerald-500' },
+  { key: 'teens', emoji: '🚀', label: 'Teens', activeGradient: 'from-violet-600 to-indigo-500' },
+  { key: 'professional', emoji: '💼', label: 'Adults', activeGradient: 'from-emerald-500 to-teal-500' },
+];
+
 export function PricingSection() {
-  const [level, setLevel] = useState<StudentLevel>('academy');
-  const perSession = level === 'academy' ? 15 : 20;
+  const [level, setLevel] = useState<StudentLevel>('teens');
+  const perSession = level === 'professional' ? 20 : 15;
 
   return (
     <section id="pricing" className="py-24 bg-gradient-to-b from-slate-900 to-slate-950 relative overflow-hidden">
@@ -97,28 +103,21 @@ export function PricingSection() {
             Buy credits, book sessions. No subscriptions, no hidden fees. All sessions are 55 minutes.
           </p>
 
-          {/* Level Toggle */}
+          {/* 3-Way Level Toggle */}
           <div className="inline-flex items-center gap-1 bg-white/5 backdrop-blur-xl rounded-full p-1 border border-white/10">
-            <button
-              onClick={() => setLevel('academy')}
-              className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
-                level === 'academy'
-                  ? 'bg-gradient-to-r from-violet-600 to-indigo-500 text-white shadow-lg'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              🎓 Academy (Teens)
-            </button>
-            <button
-              onClick={() => setLevel('professional')}
-              className={`px-5 py-2 rounded-full text-sm font-medium transition-all ${
-                level === 'professional'
-                  ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              💼 Professional (Adults)
-            </button>
+            {toggleOptions.map((opt) => (
+              <button
+                key={opt.key}
+                onClick={() => setLevel(opt.key)}
+                className={`px-4 sm:px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                  level === opt.key
+                    ? `bg-gradient-to-r ${opt.activeGradient} text-white shadow-lg`
+                    : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                {opt.emoji} {opt.label}
+              </button>
+            ))}
           </div>
 
           <p className="text-slate-500 text-sm mt-3">
@@ -132,10 +131,11 @@ export function PricingSection() {
             const price = pack.price[level];
             const originalPrice = pack.originalPrice[level];
             const hasDiscount = pack.savings > 0;
+            const packName = pack.name[level];
 
             return (
               <motion.div
-                key={pack.name}
+                key={packName}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -179,7 +179,7 @@ export function PricingSection() {
 
                 <div className="relative z-10 flex flex-col flex-1">
                   <div className="mb-5 mt-2">
-                    <h3 className="text-xl font-bold text-white mb-1">{pack.name}</h3>
+                    <h3 className="text-xl font-bold text-white mb-1">{packName}</h3>
                     <p className="text-slate-400 text-sm">{pack.label}</p>
                   </div>
 
