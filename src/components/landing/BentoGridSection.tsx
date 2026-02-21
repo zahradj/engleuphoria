@@ -2,9 +2,7 @@ import { motion, useInView } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Zap, Users } from 'lucide-react';
 import { useRef } from 'react';
-
-const GLASS = 'bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] rounded-3xl';
-const HOVER = 'hover:scale-[1.02] hover:-translate-y-1 transition-all duration-500';
+import { useThemeMode } from '@/hooks/useThemeMode';
 
 const skills = ['Speaking', 'Listening', 'Reading', 'Writing', 'Vocabulary'];
 const skillValues = [0.85, 0.7, 0.9, 0.65, 0.8];
@@ -21,11 +19,11 @@ function getAxisEnd(index: number, total: number, radius: number, cx: number, cy
   return { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) };
 }
 
-function TimerRing() {
+function TimerRing({ isDark }: { isDark: boolean }) {
   return (
     <div className="relative w-28 h-28">
       <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-        <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="6" />
+        <circle cx="50" cy="50" r="42" fill="none" stroke={isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'} strokeWidth="6" />
         <motion.circle
           cx="50" cy="50" r="42"
           fill="none"
@@ -46,17 +44,19 @@ function TimerRing() {
         </defs>
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-2xl font-bold text-white font-display">55</span>
-        <span className="text-xs text-slate-400 ml-0.5 mt-1">min</span>
+        <span className={`text-2xl font-bold font-display ${isDark ? 'text-white' : 'text-slate-900'}`}>55</span>
+        <span className={`text-xs ml-0.5 mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>min</span>
       </div>
     </div>
   );
 }
 
-function SkillRadar() {
+function SkillRadar({ isDark }: { isDark: boolean }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-50px' });
   const cx = 100, cy = 100, radius = 75;
+  const gridStroke = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+  const axisStroke = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)';
 
   return (
     <div ref={ref} className="flex justify-center">
@@ -66,13 +66,13 @@ function SkillRadar() {
             key={scale}
             points={getPolygonPoints(Array(5).fill(scale), radius, cx, cy)}
             fill="none"
-            stroke="rgba(255,255,255,0.06)"
+            stroke={gridStroke}
             strokeWidth="1"
           />
         ))}
         {skills.map((_, i) => {
           const end = getAxisEnd(i, 5, radius, cx, cy);
-          return <line key={i} x1={cx} y1={cy} x2={end.x} y2={end.y} stroke="rgba(255,255,255,0.04)" strokeWidth="1" />;
+          return <line key={i} x1={cx} y1={cy} x2={end.x} y2={end.y} stroke={axisStroke} strokeWidth="1" />;
         })}
         <motion.polygon
           points={getPolygonPoints(isInView ? skillValues : Array(5).fill(0), radius, cx, cy)}
@@ -90,7 +90,7 @@ function SkillRadar() {
             <motion.circle
               key={i}
               cx={end.x} cy={end.y} r="3"
-              fill="white"
+              fill={isDark ? 'white' : '#1e293b'}
               initial={{ opacity: 0 }}
               animate={isInView ? { opacity: 1 } : {}}
               transition={{ duration: 0.4, delay: 0.5 + i * 0.1 }}
@@ -100,7 +100,7 @@ function SkillRadar() {
         {skills.map((skill, i) => {
           const end = getAxisEnd(i, 5, radius + 18, cx, cy);
           return (
-            <text key={skill} x={end.x} y={end.y} textAnchor="middle" dominantBaseline="middle" className="fill-slate-500 text-[9px] font-medium">
+            <text key={skill} x={end.x} y={end.y} textAnchor="middle" dominantBaseline="middle" className={`text-[9px] font-medium ${isDark ? 'fill-slate-500' : 'fill-slate-400'}`}>
               {skill}
             </text>
           );
@@ -136,11 +136,28 @@ const itemVariants = {
 };
 
 export function BentoGridSection() {
+  const { resolvedTheme } = useThemeMode();
+  const isDark = resolvedTheme === 'dark';
+
+  const GLASS = isDark
+    ? 'bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] rounded-3xl'
+    : 'bg-white/70 backdrop-blur-xl border border-slate-200/60 rounded-3xl shadow-[0_8px_32px_rgba(0,0,0,0.05)]';
+
+  const HOVER = isDark
+    ? 'hover:scale-[1.02] hover:-translate-y-1 transition-all duration-500'
+    : 'hover:scale-[1.02] hover:-translate-y-1 hover:shadow-[0_16px_48px_rgba(0,0,0,0.08)] transition-all duration-500';
+
+  const hoverOverlayClass = isDark
+    ? 'opacity-0 group-hover:opacity-100 transition-opacity duration-500'
+    : 'opacity-0 transition-opacity duration-500';
+
   return (
-    <section id="features" className="relative py-24 px-6 md:px-12 lg:px-24 bg-[#09090B] overflow-hidden scroll-mt-20">
+    <section id="features" className={`relative py-24 px-6 md:px-12 lg:px-24 overflow-hidden scroll-mt-20 transition-colors duration-300 ${
+      isDark ? 'bg-[#09090B]' : 'bg-[#FAFAFA]'
+    }`}>
       {/* Subtle ambient blurs */}
-      <div className="absolute top-1/4 -left-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-1/4 -right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className={`absolute top-1/4 -left-1/4 w-96 h-96 rounded-full blur-[120px] pointer-events-none ${isDark ? 'bg-indigo-500/10' : 'bg-indigo-500/5'}`} />
+      <div className={`absolute bottom-1/4 -right-1/4 w-96 h-96 rounded-full blur-[120px] pointer-events-none ${isDark ? 'bg-emerald-500/10' : 'bg-emerald-500/5'}`} />
 
       <div className="relative max-w-7xl mx-auto">
         {/* Header */}
@@ -152,10 +169,10 @@ export function BentoGridSection() {
           transition={{ duration: 0.6 }}
         >
           <p className="font-serif tracking-[0.25em] uppercase text-[11px] text-indigo-400/80 mb-4">Why Choose Us</p>
-          <h2 className="font-display text-5xl md:text-6xl lg:text-7xl font-extrabold text-white mb-6">
+          <h2 className={`font-display text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6 transition-colors duration-300 ${isDark ? 'text-white' : 'text-slate-900'}`}>
             Why <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-emerald-400">EnglEuphoria</span>?
           </h2>
-          <p className="text-lg text-slate-500 max-w-2xl mx-auto">
+          <p className={`text-lg max-w-2xl mx-auto ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
             Three specialized schools under one roof, powered by cutting-edge technology
           </p>
         </motion.div>
@@ -170,12 +187,12 @@ export function BentoGridSection() {
         >
           {/* Card 1 — The 55-Minute Rule (col-span-2) */}
           <motion.div className={`md:col-span-2 ${GLASS} ${HOVER} p-8 group relative overflow-hidden`} variants={itemVariants}>
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className={`absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent ${hoverOverlayClass}`} />
             <div className="relative h-full flex items-center gap-8">
-              <TimerRing />
+              <TimerRing isDark={isDark} />
               <div>
-                <h3 className="font-display text-2xl font-bold text-white mb-2">The 55-Minute Rule</h3>
-                <p className="text-slate-400 text-sm leading-relaxed">
+                <h3 className={`font-display text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>The 55-Minute Rule</h3>
+                <p className={`text-sm leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                   Optimized sessions with built-in buffer times for maximum focus.
                 </p>
               </div>
@@ -184,19 +201,19 @@ export function BentoGridSection() {
 
           {/* Card 2 — AI Skill Radar (col-span-2, row-span-2) */}
           <motion.div className={`md:col-span-2 lg:row-span-2 ${GLASS} ${HOVER} p-8 group relative overflow-hidden`} variants={itemVariants}>
-            <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className={`absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent ${hoverOverlayClass}`} />
             <div className="relative h-full flex flex-col">
-              <h3 className="font-display text-2xl font-bold text-white mb-1">AI Skill Radar</h3>
-              <p className="text-slate-400 text-sm mb-4">Real-time tracking of your vocabulary, grammar, and fluency.</p>
+              <h3 className={`font-display text-2xl font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>AI Skill Radar</h3>
+              <p className={`text-sm mb-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Real-time tracking of your vocabulary, grammar, and fluency.</p>
               <div className="flex-1 flex items-center justify-center">
-                <SkillRadar />
+                <SkillRadar isDark={isDark} />
               </div>
             </div>
           </motion.div>
 
           {/* Card 3 — Top 3% Mentors */}
           <motion.div className={`${GLASS} ${HOVER} p-6 group relative overflow-hidden`} variants={itemVariants}>
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className={`absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent ${hoverOverlayClass}`} />
             <div className="relative h-full flex flex-col items-center justify-center text-center">
               <div className="flex -space-x-3 mb-4">
                 {teacherAvatars.map((src, i) => (
@@ -204,29 +221,28 @@ export function BentoGridSection() {
                     key={i}
                     src={src}
                     alt="Teacher"
-                    className="w-11 h-11 rounded-full border-2 border-[#09090B] object-cover"
+                    className={`w-11 h-11 rounded-full border-2 object-cover ${isDark ? 'border-[#09090B]' : 'border-[#FAFAFA]'}`}
                     initial={{ x: -10, opacity: 0 }}
                     whileInView={{ x: 0, opacity: 1 }}
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.08 }}
                   />
                 ))}
-                <div className="w-11 h-11 rounded-full bg-amber-500/20 border-2 border-[#09090B] flex items-center justify-center text-amber-400 text-xs font-bold">
+                <div className={`w-11 h-11 rounded-full bg-amber-500/20 border-2 flex items-center justify-center text-amber-400 text-xs font-bold ${isDark ? 'border-[#09090B]' : 'border-[#FAFAFA]'}`}>
                   +50
                 </div>
               </div>
-              <h3 className="font-display text-lg font-bold text-white mb-1">Top 3% Mentors</h3>
-              <p className="text-slate-500 text-xs">Handpicked. Certified. Passionate.</p>
+              <h3 className={`font-display text-lg font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>Top 3% Mentors</h3>
+              <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Handpicked. Certified. Passionate.</p>
             </div>
           </motion.div>
 
           {/* Card 4 — Daily Feed */}
           <motion.div className={`${GLASS} ${HOVER} p-6 group relative overflow-hidden`} variants={itemVariants}>
-            <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className={`absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent ${hoverOverlayClass}`} />
             <div className="relative h-full flex flex-col items-center justify-center">
-              {/* Mini phone frame */}
               <motion.div
-                className="w-28 rounded-xl border border-white/10 bg-white/[0.03] p-2 space-y-1.5"
+                className={`w-28 rounded-xl border p-2 space-y-1.5 ${isDark ? 'border-white/10 bg-white/[0.03]' : 'border-slate-200 bg-white/50'}`}
                 animate={{ y: [0, -4, 0] }}
                 transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
               >
@@ -239,32 +255,32 @@ export function BentoGridSection() {
                   <div className="w-2/3 h-1 rounded bg-violet-400/20" />
                 </div>
               </motion.div>
-              <h3 className="font-display text-sm font-bold text-white mt-3 mb-0.5">Daily Feed</h3>
-              <p className="text-slate-500 text-[10px]">AI-curated challenges</p>
+              <h3 className={`font-display text-sm font-bold mt-3 mb-0.5 ${isDark ? 'text-white' : 'text-slate-900'}`}>Daily Feed</h3>
+              <p className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>AI-curated challenges</p>
             </div>
           </motion.div>
 
           {/* Card 5 — Gamified Learning */}
           <motion.div className={`${GLASS} ${HOVER} p-6 group relative overflow-hidden`} variants={itemVariants}>
-            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className={`absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent ${hoverOverlayClass}`} />
             <div className="relative h-full flex flex-col items-center justify-center text-center">
               <div className="p-3 rounded-xl bg-cyan-500/10 text-cyan-400 mb-3">
                 <Zap className="w-6 h-6" />
               </div>
-              <h3 className="font-display text-lg font-bold text-white mb-1">Gamified Learning</h3>
-              <p className="text-slate-500 text-sm">XP, badges & rewards</p>
+              <h3 className={`font-display text-lg font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>Gamified Learning</h3>
+              <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>XP, badges & rewards</p>
             </div>
           </motion.div>
 
           {/* Card 6 — Live Classes */}
           <motion.div className={`${GLASS} ${HOVER} p-6 group relative overflow-hidden`} variants={itemVariants}>
-            <div className="absolute inset-0 bg-gradient-to-br from-rose-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <div className={`absolute inset-0 bg-gradient-to-br from-rose-500/5 to-transparent ${hoverOverlayClass}`} />
             <div className="relative h-full flex flex-col items-center justify-center text-center">
               <div className="p-3 rounded-xl bg-rose-500/10 text-rose-400 mb-3">
                 <Users className="w-6 h-6" />
               </div>
-              <h3 className="font-display text-lg font-bold text-white mb-1">Live Classes</h3>
-              <p className="text-slate-500 text-sm">Real-time interaction</p>
+              <h3 className={`font-display text-lg font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>Live Classes</h3>
+              <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Real-time interaction</p>
             </div>
           </motion.div>
 

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Globe, Users } from 'lucide-react';
 import { useRef, useEffect, useState } from 'react';
 import { useInView } from 'framer-motion';
+import { useThemeMode } from '@/hooks/useThemeMode';
 
 function useCountUp(target: number, duration = 2000) {
   const [count, setCount] = useState(0);
@@ -30,51 +31,54 @@ const portals = [
     emoji: '👶',
     label: 'Playground',
     age: 'Ages 5–12',
-    glowColor: 'rgba(16,185,129,0.4)',
-    hoverShadow: 'shadow-[0_0_30px_rgba(16,185,129,0.4)]',
-    borderHover: 'border-emerald-400/40',
+    glowColorDark: 'rgba(16,185,129,0.4)',
+    glowColorLight: 'rgba(5,150,105,0.3)',
   },
   {
     id: 'teens',
     emoji: '🎧',
     label: 'Academy',
     age: 'Teens',
-    glowColor: 'rgba(99,102,241,0.4)',
-    hoverShadow: 'shadow-[0_0_30px_rgba(99,102,241,0.4)]',
-    borderHover: 'border-indigo-400/40',
+    glowColorDark: 'rgba(99,102,241,0.4)',
+    glowColorLight: 'rgba(67,56,202,0.3)',
   },
   {
     id: 'adults',
     emoji: '💼',
     label: 'Professional',
     age: 'Adults',
-    glowColor: 'rgba(245,158,11,0.4)',
-    hoverShadow: 'shadow-[0_0_30px_rgba(245,158,11,0.4)]',
-    borderHover: 'border-amber-400/40',
+    glowColorDark: 'rgba(245,158,11,0.4)',
+    glowColorLight: 'rgba(217,119,6,0.3)',
   },
 ];
 
-function SocialProofRibbon() {
+function SocialProofRibbon({ isDark }: { isDark: boolean }) {
   const students = useCountUp(2500);
   const countries = useCountUp(30);
 
   return (
     <motion.div
-      className="inline-flex items-center gap-3 px-6 py-3 rounded-full backdrop-blur-xl bg-white/[0.04] border border-white/[0.08]"
+      className={`inline-flex items-center gap-3 px-6 py-3 rounded-full backdrop-blur-xl transition-colors duration-300 ${
+        isDark
+          ? 'bg-white/[0.04] border border-white/[0.08]'
+          : 'bg-white/70 border border-slate-200 shadow-sm'
+      }`}
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 0.8, duration: 0.5 }}
     >
       <div className="flex -space-x-2">
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-emerald-500 flex items-center justify-center text-xs text-white font-bold border-2 border-slate-950">
+        <div className={`w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-emerald-500 flex items-center justify-center text-xs text-white font-bold border-2 ${
+          isDark ? 'border-[#09090B]' : 'border-[#FAFAFA]'
+        }`}>
           <Users className="w-4 h-4" />
         </div>
       </div>
       <div className="flex items-center gap-2 text-sm">
-        <Globe className="w-4 h-4 text-indigo-400" />
-        <span className="text-slate-300">
-          <span ref={students.ref} className="text-white font-semibold">{students.count.toLocaleString()}+</span> students from{' '}
-          <span ref={countries.ref} className="text-white font-semibold">{countries.count}+</span> countries
+        <Globe className={`w-4 h-4 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`} />
+        <span className={isDark ? 'text-slate-300' : 'text-slate-600'}>
+          <span ref={students.ref} className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{students.count.toLocaleString()}+</span> students from{' '}
+          <span ref={countries.ref} className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{countries.count}+</span> countries
         </span>
       </div>
     </motion.div>
@@ -82,6 +86,8 @@ function SocialProofRibbon() {
 }
 
 export function HeroSection() {
+  const { resolvedTheme } = useThemeMode();
+  const isDark = resolvedTheme === 'dark';
   const sectionRef = useRef<HTMLElement>(null);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -98,14 +104,28 @@ export function HeroSection() {
     mouseY.set(y);
   };
 
+  const orbGradient = isDark
+    ? 'radial-gradient(circle, rgba(99,102,241,0.35) 0%, rgba(16,185,129,0.2) 40%, rgba(245,158,11,0.15) 70%, transparent 100%)'
+    : 'radial-gradient(circle, rgba(56,189,248,0.2) 0%, rgba(52,211,153,0.15) 40%, rgba(251,146,60,0.12) 70%, transparent 100%)';
+
+  const secondaryOrbGradient = isDark
+    ? 'radial-gradient(circle, rgba(245,158,11,0.3) 0%, rgba(99,102,241,0.15) 60%, transparent 100%)'
+    : 'radial-gradient(circle, rgba(251,146,60,0.15) 0%, rgba(56,189,248,0.1) 60%, transparent 100%)';
+
   return (
     <section
       ref={sectionRef}
       onMouseMove={handleMouseMove}
-      className="relative min-h-screen flex items-center justify-center bg-[#09090B] overflow-hidden"
+      className={`relative min-h-screen flex items-center justify-center overflow-hidden transition-colors duration-300 ${
+        isDark ? 'bg-[#09090B]' : 'bg-[#FAFAFA]'
+      }`}
     >
       {/* Ambient background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#09090B] via-slate-950 to-[#09090B]" />
+      <div className={`absolute inset-0 transition-colors duration-300 ${
+        isDark
+          ? 'bg-gradient-to-b from-[#09090B] via-slate-950 to-[#09090B]'
+          : 'bg-gradient-to-b from-[#FAFAFA] via-slate-50 to-[#FAFAFA]'
+      }`} />
 
       {/* The Magnetic Orb */}
       <motion.div
@@ -113,7 +133,7 @@ export function HeroSection() {
         style={{
           x: orbX,
           y: orbY,
-          background: 'radial-gradient(circle, rgba(99,102,241,0.35) 0%, rgba(16,185,129,0.2) 40%, rgba(245,158,11,0.15) 70%, transparent 100%)',
+          background: orbGradient,
         }}
       />
 
@@ -123,7 +143,7 @@ export function HeroSection() {
         style={{
           x: useTransform(mouseX, [-1, 1], [15, -15]),
           y: useTransform(mouseY, [-1, 1], [15, -15]),
-          background: 'radial-gradient(circle, rgba(245,158,11,0.3) 0%, rgba(99,102,241,0.15) 60%, transparent 100%)',
+          background: secondaryOrbGradient,
         }}
       />
 
@@ -131,7 +151,9 @@ export function HeroSection() {
       <div className="relative z-10 container mx-auto px-4 sm:px-6 text-center py-32">
         {/* Headline */}
         <motion.h1
-          className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold text-white tracking-tight mb-6 leading-[1.05]"
+          className={`font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight mb-6 leading-[1.05] transition-colors duration-300 ${
+            isDark ? 'text-white' : 'text-slate-900'
+          }`}
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
@@ -145,7 +167,9 @@ export function HeroSection() {
 
         {/* Subheadline */}
         <motion.p
-          className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-12 leading-relaxed"
+          className={`text-lg md:text-xl max-w-2xl mx-auto mb-12 leading-relaxed transition-colors duration-300 ${
+            isDark ? 'text-slate-400' : 'text-slate-600'
+          }`}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
@@ -164,40 +188,42 @@ export function HeroSection() {
             <Link
               key={portal.id}
               to="/student-signup"
-              className={`group relative px-8 py-4 rounded-full bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] text-white font-medium transition-all duration-500 hover:bg-white/[0.08] hover:${portal.borderHover} hover:${portal.hoverShadow}`}
-              style={{
-                ['--glow-color' as string]: portal.glowColor,
-              }}
+              className={`group relative px-8 py-4 rounded-full backdrop-blur-xl font-medium transition-all duration-500 ${
+                isDark
+                  ? 'bg-white/[0.04] border border-white/[0.08] text-white hover:bg-white/[0.08]'
+                  : 'bg-white/70 border border-slate-200 text-slate-800 shadow-sm hover:bg-white/90'
+              }`}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow = `0 0 30px ${portal.glowColor}`;
-                (e.currentTarget as HTMLElement).style.borderColor = portal.glowColor;
+                const color = isDark ? portal.glowColorDark : portal.glowColorLight;
+                (e.currentTarget as HTMLElement).style.boxShadow = `0 0 30px ${color}`;
+                (e.currentTarget as HTMLElement).style.borderColor = color;
               }}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLElement).style.boxShadow = 'none';
-                (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.08)';
+                (e.currentTarget as HTMLElement).style.borderColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgb(226,232,240)';
               }}
             >
               <span className="text-lg mr-2">{portal.emoji}</span>
               {portal.label}
-              <span className="text-slate-500 ml-2 text-sm">({portal.age})</span>
+              <span className={`ml-2 text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>({portal.age})</span>
             </Link>
           ))}
         </motion.div>
 
         {/* Social Proof */}
-        <SocialProofRibbon />
+        <SocialProofRibbon isDark={isDark} />
       </div>
 
       {/* Scroll Indicator */}
       <motion.div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center text-white/40"
+        className={`absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center ${isDark ? 'text-white/40' : 'text-slate-400/40'}`}
         animate={{ y: [0, 8, 0] }}
         transition={{ repeat: Infinity, duration: 2 }}
       >
         <span className="text-xs font-medium mb-2">Scroll to explore</span>
-        <div className="w-5 h-8 border-2 border-white/20 rounded-full flex justify-center pt-1.5">
+        <div className={`w-5 h-8 border-2 rounded-full flex justify-center pt-1.5 ${isDark ? 'border-white/20' : 'border-slate-300/40'}`}>
           <motion.div
-            className="w-1 h-1 bg-white/60 rounded-full"
+            className={`w-1 h-1 rounded-full ${isDark ? 'bg-white/60' : 'bg-slate-400/60'}`}
             animate={{ y: [0, 10, 0] }}
             transition={{ repeat: Infinity, duration: 1.5 }}
           />

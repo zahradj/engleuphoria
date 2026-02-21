@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useThemeMode } from '@/hooks/useThemeMode';
 
 type AudienceLevel = 'playground' | 'professional';
 
@@ -68,11 +69,17 @@ const valueBullets = [
 
 export function PricingSection() {
   const [level, setLevel] = useState<AudienceLevel>('playground');
+  const { resolvedTheme } = useThemeMode();
+  const isDark = resolvedTheme === 'dark';
   const perSession = level === 'professional' ? 20 : 15;
 
   return (
-    <section id="pricing" className="py-24 bg-[#09090B] relative overflow-hidden">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-500/5 via-transparent to-transparent" />
+    <section id="pricing" className={`py-24 relative overflow-hidden transition-colors duration-300 ${
+      isDark ? 'bg-[#09090B]' : 'bg-[#FAFAFA]'
+    }`}>
+      <div className={`absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] ${
+        isDark ? 'from-indigo-500/5 via-transparent to-transparent' : 'from-amber-500/[0.03] via-transparent to-transparent'
+      }`} />
 
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
         {/* Header */}
@@ -83,22 +90,32 @@ export function PricingSection() {
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
-          <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/[0.04] border border-white/[0.08] text-indigo-400 text-sm font-medium mb-4">
+          <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium mb-4 ${
+            isDark
+              ? 'bg-white/[0.04] border border-white/[0.08] text-indigo-400'
+              : 'bg-white border border-slate-200 text-indigo-600 shadow-sm'
+          }`}>
             <Sparkles className="w-4 h-4" />
             Simple, Transparent Pricing
           </span>
-          <h2 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight mb-4 font-display">
+          <h2 className={`text-4xl md:text-5xl font-extrabold tracking-tight mb-4 font-display transition-colors duration-300 ${
+            isDark ? 'text-white' : 'text-slate-900'
+          }`}>
             Session Credit{' '}
             <span className="bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent">
               Packs
             </span>
           </h2>
-          <p className="text-slate-500 text-lg max-w-2xl mx-auto mb-8">
+          <p className={`text-lg max-w-2xl mx-auto mb-8 ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
             Buy credits, book sessions. No subscriptions, no hidden fees. All sessions are 55 minutes.
           </p>
 
           {/* 2-Way Toggle */}
-          <div className="inline-flex items-center bg-white/[0.04] backdrop-blur-xl rounded-full p-1.5 border border-white/[0.08]">
+          <div className={`inline-flex items-center backdrop-blur-xl rounded-full p-1.5 ${
+            isDark
+              ? 'bg-white/[0.04] border border-white/[0.08]'
+              : 'bg-slate-100 border border-slate-200'
+          }`}>
             {([
               { key: 'playground' as const, label: '🎨 Playground & Academy' },
               { key: 'professional' as const, label: '💼 Professional' },
@@ -108,8 +125,12 @@ export function PricingSection() {
                 onClick={() => setLevel(opt.key)}
                 className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 ${
                   level === opt.key
-                    ? 'bg-white/10 text-white shadow-lg'
-                    : 'text-slate-500 hover:text-slate-300'
+                    ? isDark
+                      ? 'bg-white/10 text-white shadow-lg'
+                      : 'bg-white text-slate-900 shadow-md'
+                    : isDark
+                      ? 'text-slate-500 hover:text-slate-300'
+                      : 'text-slate-400 hover:text-slate-600'
                 }`}
               >
                 {opt.label}
@@ -117,8 +138,8 @@ export function PricingSection() {
             ))}
           </div>
 
-          <p className="text-slate-600 text-sm mt-3">
-            Base rate: <span className="text-indigo-400 font-semibold">€{perSession}</span> per 55-minute session
+          <p className={`text-sm mt-3 ${isDark ? 'text-slate-600' : 'text-slate-500'}`}>
+            Base rate: <span className={`font-semibold ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>€{perSession}</span> per 55-minute session
           </p>
         </motion.div>
 
@@ -139,11 +160,17 @@ export function PricingSection() {
                 transition={{ duration: 0.6, delay: index * 0.15 }}
                 className={`relative rounded-3xl p-7 flex flex-col backdrop-blur-xl transition-all duration-500 ${
                   pack.isMastery
-                    ? 'bg-white/[0.06] border border-white/[0.08] scale-[1.03]'
+                    ? isDark
+                      ? 'bg-white/[0.06] border border-white/[0.08] scale-[1.03]'
+                      : 'bg-white border border-slate-200 scale-[1.03] shadow-[0_8px_32px_rgba(0,0,0,0.08)]'
                     : pack.popular
-                      ? 'bg-white/[0.05] border border-amber-500/20'
-                      : 'bg-white/[0.04] border border-white/[0.08]'
-                } hover:bg-white/[0.08]`}
+                      ? isDark
+                        ? 'bg-white/[0.05] border border-amber-500/20'
+                        : 'bg-white border border-amber-300/40 shadow-[0_8px_32px_rgba(0,0,0,0.05)]'
+                      : isDark
+                        ? 'bg-white/[0.04] border border-white/[0.08]'
+                        : 'bg-white border border-slate-200 shadow-[0_8px_32px_rgba(0,0,0,0.05)]'
+                } ${isDark ? 'hover:bg-white/[0.08]' : 'hover:shadow-[0_16px_48px_rgba(0,0,0,0.08)]'}`}
               >
                 {/* Animated gradient border for Mastery */}
                 {pack.isMastery && (
@@ -152,10 +179,10 @@ export function PricingSection() {
                       className="absolute inset-[-50%] animate-gradient-rotate"
                       style={{
                         background: 'conic-gradient(from 0deg, #6366f1, #10b981, #f59e0b, #6366f1)',
-                        opacity: 0.4,
+                        opacity: isDark ? 0.4 : 0.25,
                       }}
                     />
-                    <div className="absolute inset-[1px] rounded-3xl bg-[#09090B]" />
+                    <div className={`absolute inset-[1px] rounded-3xl ${isDark ? 'bg-[#09090B]' : 'bg-white'}`} />
                   </div>
                 )}
 
@@ -163,9 +190,9 @@ export function PricingSection() {
                 {hasDiscount && (
                   <div className="absolute -top-3 right-4 z-10">
                     <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold text-white ${
-                      pack.isMastery
+                      isDark
                         ? 'bg-gradient-to-r from-orange-500 to-amber-500'
-                        : 'bg-gradient-to-r from-orange-500 to-amber-500'
+                        : 'bg-indigo-600'
                     }`}>
                       🔥 Save €{pack.savings}
                     </span>
@@ -184,14 +211,14 @@ export function PricingSection() {
 
                 <div className="relative z-10 flex flex-col flex-1">
                   <div className="mb-5 mt-2">
-                    <h3 className="text-xl font-bold text-white mb-1 font-display">{packName}</h3>
-                    <p className="text-slate-500 text-sm">{pack.label}</p>
+                    <h3 className={`text-xl font-bold mb-1 font-display ${isDark ? 'text-white' : 'text-slate-900'}`}>{packName}</h3>
+                    <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{pack.label}</p>
                   </div>
 
                   {/* Sessions count */}
                   <div className="mb-4 flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-indigo-400" />
-                    <span className="text-slate-400 text-sm font-medium">
+                    <Clock className={`w-4 h-4 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`} />
+                    <span className={`text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                       {pack.sessions} × 55-min sessions
                     </span>
                   </div>
@@ -199,26 +226,26 @@ export function PricingSection() {
                   {/* Price */}
                   <div className="mb-5">
                     <div className="flex items-baseline gap-2">
-                      <span className={`font-extrabold text-white font-display ${pack.isMastery ? 'text-5xl' : 'text-4xl'}`}>
+                      <span className={`font-extrabold font-display ${pack.isMastery ? 'text-5xl' : 'text-4xl'} ${isDark ? 'text-white' : 'text-slate-900'}`}>
                         €{price}
                       </span>
                       {hasDiscount && (
-                        <span className="text-slate-600 line-through text-lg">€{originalPrice}</span>
+                        <span className={`line-through text-lg ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>€{originalPrice}</span>
                       )}
                     </div>
-                    <p className="text-slate-600 text-xs mt-1">
+                    <p className={`text-xs mt-1 ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
                       €{(price / pack.sessions).toFixed(2)} per session
                     </p>
                   </div>
 
                   {/* Value Bullets */}
-                  <div className="space-y-2 mb-5 pb-5 border-b border-white/[0.06]">
+                  <div className={`space-y-2 mb-5 pb-5 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
                     {valueBullets.map((bullet) => {
                       const BulletIcon = bullet.icon;
                       return (
                         <div key={bullet.text} className="flex items-center gap-2.5">
-                          <BulletIcon className="w-3.5 h-3.5 text-indigo-400/60 flex-shrink-0" />
-                          <span className="text-slate-400 text-xs font-medium">{bullet.text}</span>
+                          <BulletIcon className={`w-3.5 h-3.5 flex-shrink-0 ${isDark ? 'text-indigo-400/60' : 'text-indigo-500/60'}`} />
+                          <span className={`text-xs font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{bullet.text}</span>
                         </div>
                       );
                     })}
@@ -228,12 +255,16 @@ export function PricingSection() {
                   <ul className="space-y-2.5 mb-6 flex-1">
                     {features.map((feature) => (
                       <li key={feature} className="flex items-center gap-2.5">
-                        <div className="flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center bg-white/[0.06]">
+                        <div className={`flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center ${isDark ? 'bg-white/[0.06]' : 'bg-slate-100'}`}>
                           <Check className={`w-2.5 h-2.5 ${
-                            pack.isMastery ? 'text-indigo-400' : pack.popular ? 'text-amber-400' : 'text-slate-500'
+                            pack.isMastery
+                              ? isDark ? 'text-indigo-400' : 'text-indigo-600'
+                              : pack.popular
+                                ? isDark ? 'text-amber-400' : 'text-amber-600'
+                                : isDark ? 'text-slate-500' : 'text-slate-400'
                           }`} />
                         </div>
-                        <span className="text-slate-400 text-sm">{feature}</span>
+                        <span className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -246,7 +277,9 @@ export function PricingSection() {
                           ? 'bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-lg animate-glow-pulse'
                           : pack.popular
                             ? 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-lg'
-                            : 'bg-white/[0.06] hover:bg-white/[0.1] text-white border border-white/[0.08]'
+                            : isDark
+                              ? 'bg-white/[0.06] hover:bg-white/[0.1] text-white border border-white/[0.08]'
+                              : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200'
                       }`}
                     >
                       Start Your Journey
@@ -266,23 +299,25 @@ export function PricingSection() {
           transition={{ duration: 0.6, delay: 0.5 }}
           className="max-w-3xl mx-auto mt-12"
         >
-          <div className="backdrop-blur-xl bg-white/[0.04] rounded-2xl border border-white/[0.08] p-5">
+          <div className={`backdrop-blur-xl rounded-2xl p-5 transition-colors duration-300 ${
+            isDark ? 'bg-white/[0.04] border border-white/[0.08]' : 'bg-white border border-slate-200 shadow-sm'
+          }`}>
             <div className="flex items-center gap-2 mb-3">
               <Shield className="w-4 h-4 text-emerald-400" />
-              <h4 className="text-sm font-semibold text-white">Our Fair Cancellation Policy</h4>
+              <h4 className={`text-sm font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>Our Fair Cancellation Policy</h4>
             </div>
             <div className="grid sm:grid-cols-3 gap-3 text-xs">
               <div className="bg-emerald-500/10 rounded-xl p-3 border border-emerald-500/10">
                 <p className="text-emerald-400 font-semibold mb-1">✅ Free Cancellation</p>
-                <p className="text-slate-500">24+ hours before class — credit fully refunded</p>
+                <p className={isDark ? 'text-slate-500' : 'text-slate-500'}>24+ hours before class — credit fully refunded</p>
               </div>
               <div className="bg-amber-500/10 rounded-xl p-3 border border-amber-500/10">
                 <p className="text-amber-400 font-semibold mb-1">⚠️ Late Cancellation</p>
-                <p className="text-slate-500">Less than 24 hours — credit kept as teacher fee</p>
+                <p className={isDark ? 'text-slate-500' : 'text-slate-500'}>Less than 24 hours — credit kept as teacher fee</p>
               </div>
-              <div className="bg-white/[0.04] rounded-xl p-3 border border-white/[0.06]">
-                <p className="text-slate-300 font-semibold mb-1">📅 Expiry</p>
-                <p className="text-slate-500">Credits expire 6 months after purchase</p>
+              <div className={`rounded-xl p-3 border ${isDark ? 'bg-white/[0.04] border-white/[0.06]' : 'bg-slate-50 border-slate-200'}`}>
+                <p className={`font-semibold mb-1 ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>📅 Expiry</p>
+                <p className={isDark ? 'text-slate-500' : 'text-slate-500'}>Credits expire 6 months after purchase</p>
               </div>
             </div>
           </div>
@@ -293,7 +328,7 @@ export function PricingSection() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.7 }}
-          className="text-center text-slate-600 mt-8 text-sm"
+          className={`text-center mt-8 text-sm ${isDark ? 'text-slate-600' : 'text-slate-400'}`}
         >
           All prices in EUR. First lesson includes a free assessment.
         </motion.p>
