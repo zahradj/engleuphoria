@@ -1,82 +1,103 @@
 
 
-# Post-Class Feedback Loop: "How Was Your Session?"
+# Landing Page 2026 Redesign: Tri-Portal Hero + Segmented Pricing + Design Polish
 
 ## Overview
 
-Build a beautiful, minimalist post-class feedback modal that appears when a student leaves the classroom. It captures Teacher Energy, Material Relevance, a confidence metric ("Euphoria Metric"), and an improvement suggestion. Low ratings (1-2 stars) trigger an instant admin notification.
+Five interconnected upgrades to transform the landing page into a high-conversion, 2026-standard experience: (1) interactive Tri-Portal hero, (2) 3-way audience pricing toggle with Kids added, (3) floating nav polish, (4) Bento grid refinement, and (5) visual atmosphere differentiation.
 
 ---
 
-## 1. Database Migration
+## 1. Tri-Portal Hero Section (Interactive Panels)
 
-### New table: `post_class_feedback`
+### Modify: `src/components/landing/HeroSection.tsx`
 
-| Column | Type | Notes |
-|--------|------|-------|
-| id | UUID PK | auto-generated |
-| student_id | UUID -> users(id) | NOT NULL |
-| teacher_id | UUID -> users(id) | NOT NULL |
-| lesson_id | TEXT | nullable, the room/session ID |
-| teacher_energy_rating | INTEGER | 1-5 stars |
-| material_relevance_rating | INTEGER | 1-5 stars |
-| feels_more_confident | BOOLEAN | The "Euphoria Metric" |
-| improvement_suggestion | TEXT | "One thing that could be better" |
-| created_at | TIMESTAMPTZ | default NOW() |
+**Current state**: Three static portal cards in a grid layout with hover-scale animation.
 
-### RLS Policies:
-- Students can INSERT their own feedback (`student_id = auth.uid()`)
-- Students can SELECT their own feedback
-- Admins can SELECT all feedback
+**New behavior**: Three vertical panels that fill the viewport height. On hover (desktop), the active panel expands to ~50% width while the others shrink to ~25%. On mobile, panels stack vertically as full-width cards.
 
-### Database trigger: `notify_admin_low_rating`
-- AFTER INSERT on `post_class_feedback`
-- Fires when `teacher_energy_rating <= 2` OR `material_relevance_rating <= 2`
-- Inserts a notification into `admin_notifications` for all admins with type `low_rating_alert`, including teacher name, student name, and the ratings in metadata
+**Layout details**:
+- Full-viewport section (`min-h-[90vh]`) with three `flex` children
+- Each panel uses `transition-all duration-700 ease-out` for smooth width changes
+- Default: each panel is `flex-1` (33%)
+- On hover: active panel gets `flex-[2]`, others stay `flex-1`
+- State managed via `hoveredPortal` (`useState<string | null>`)
 
----
+**Visual atmosphere per panel**:
+- **Playground (Kids)**: Soft pastel glow (`from-amber-400/20 to-emerald-400/20`), floating 3D-style decorative elements (stars, rocket emoji overlays via absolutely-positioned animated spans), tagline: "Where English feels like play."
+- **Academy (Teens)**: Neon purple accents (`from-violet-500/20 to-indigo-500/20`), XP bar visual element, motion-line SVG decorations, tagline: "Own your future. Speak with confidence."
+- **Professional (Adults)**: Minimalist slate-grey glassmorphic blur (`bg-white/5 backdrop-blur-xl`), clean serif-style approach for description text, tagline: "Master the language of leadership."
 
-## 2. New Component: PostClassFeedbackModal
+**CTA on each panel**: "Claim Your Free Assessment" button linking to `/student-signup`
 
-### File: `src/components/student/classroom/PostClassFeedbackModal.tsx`
+**Mobile fallback**: Below `md` breakpoint, panels stack as full-width cards (similar to current but with the new visual themes applied). No hover interaction needed on mobile.
 
-**Props:**
-- `isOpen: boolean`
-- `onClose: () => void`
-- `teacherName: string`
-- `teacherId: string`
-- `lessonId: string`
-
-**Layout (minimalist, warm design):**
-1. Title: "How was your session with [Teacher Name]?"
-2. Two 5-star rating rows:
-   - "Teacher Energy" (with a lightning bolt icon)
-   - "Material Relevance" (with a book icon)
-3. The "Euphoria Metric": "Do you feel more confident in English after this lesson?" with Yes/No toggle buttons
-4. Text area: "One thing that could be better" (optional, max 500 chars)
-5. "Submit Feedback" button + "Skip" link
-
-**Behavior:**
-- On submit, insert into `post_class_feedback`
-- Show a thank-you toast
-- Call `onClose()` to navigate away
+**Headline**: Keep the existing "Learn English. Your Way." headline and social proof ribbon above the panels.
 
 ---
 
-## 3. Integration into Student Classroom
+## 2. Segmented Pricing with 3-Way Toggle
 
-### Modify: `src/components/student/classroom/StudentClassroom.tsx`
+### Modify: `src/components/landing/PricingSection.tsx`
 
-**Current behavior (line 91-97):**
-```text
-handleLeaveClass -> toast -> navigate('/playground')
-```
+**Current state**: 2-option toggle (Academy / Professional) with correct pack prices.
 
-**New behavior:**
-- Instead of navigating immediately, set `showFeedbackModal = true`
-- Render `PostClassFeedbackModal` at the bottom of the component
-- On modal close (submit or skip), THEN navigate to `/playground`
-- Pass teacher name from `sessionContext` or fallback to "Teacher"
+**Changes**:
+- Add "Kids" as a third toggle option: `[Kids] [Teens] [Adults]`
+- Kids and Teens share the same pricing (unified at 15 EUR/session base)
+- Toggle becomes a 3-segment pill with distinct colors:
+  - Kids: amber/emerald gradient when active
+  - Teens: violet/indigo gradient when active  
+  - Adults: emerald/teal gradient when active
+
+**Data update**:
+- Change `StudentLevel` type from `'academy' | 'professional'` to `'kids' | 'teens' | 'professional'`
+- Kids and Teens both map to the same prices: 75 EUR / 145 EUR / 290 EUR
+- Professional stays: 100 EUR / 195 EUR / 390 EUR
+- Update pack names per level:
+  - Kids/Teens: "Explorer" (5), "Achiever" (10), "Mastery" (20)
+  - Professional: "Pro" (5), "Executive" (10), "Global Leader" (20)
+
+**Mastery/20-session card glow**: Keep the existing outer glow on the 20-session pack (already implemented with `shadow-[0_0_40px...]`)
+
+**Mobile**: Cards already stack vertically. Add horizontal scroll-snap (`overflow-x-auto snap-x`) as an alternative swipe option on small screens.
+
+---
+
+## 3. Floating Navigation Polish
+
+### Modify: `src/components/landing/NavHeader.tsx`
+
+**Current state**: Already has a fixed header that transitions from transparent to `bg-slate-950/60 backdrop-blur-2xl` on scroll. Height is `h-16 md:h-20`.
+
+**Enhancements**:
+- On scroll, slightly shrink the header height: `h-14 md:h-16` (vs current `h-16 md:h-20`)
+- Add a subtle scale transition to the logo on scroll (slightly smaller)
+- Add `transition-all duration-500` to the height change (already partially there)
+- This is a minimal refinement since the nav is already floating/blurred
+
+---
+
+## 4. Bento Grid Visual Polish
+
+### Modify: `src/components/landing/BentoGridSection.tsx`
+
+**Minor refinements** (the current Bento grid is already well-structured):
+- Update the section header to use a bolder typographic contrast: large sans-serif headline stays, add a small-caps serif-styled subtitle using `font-serif tracking-widest uppercase text-xs`
+- No structural changes needed -- the grid already follows the Apple-style bento pattern with varying card sizes
+
+---
+
+## 5. Update Pricing Data Files
+
+### Modify: `src/data/pricingPlans.ts`
+
+- Update `lessonPackages` to reflect the new unified Kids/Teens pricing at 15 EUR base and Professional at 20 EUR base
+- Add package entries for the new naming convention (Explorer, Achiever, Mastery, Pro, Executive, Global Leader)
+
+### Modify: `src/services/pricingData.ts`
+
+- Update the `getPricingPlans` and `getRegionalPlans` functions to reflect the new 3-tier audience model
 
 ---
 
@@ -84,16 +105,21 @@ handleLeaveClass -> toast -> navigate('/playground')
 
 | Action | File | Purpose |
 |--------|------|---------|
-| Migration | SQL | Create `post_class_feedback` table + `notify_admin_low_rating` trigger + RLS |
-| Create | `src/components/student/classroom/PostClassFeedbackModal.tsx` | The feedback modal UI |
-| Modify | `src/components/student/classroom/StudentClassroom.tsx` | Wire modal into leave flow |
+| Modify | `src/components/landing/HeroSection.tsx` | Rebuild as interactive Tri-Portal with expanding panels and visual atmosphere |
+| Modify | `src/components/landing/PricingSection.tsx` | Add Kids toggle, 3-way segmentation, updated pack names |
+| Modify | `src/components/landing/NavHeader.tsx` | Subtle height shrink on scroll |
+| Modify | `src/components/landing/BentoGridSection.tsx` | Typography contrast polish |
+| Modify | `src/data/pricingPlans.ts` | Updated package data with new names and pricing |
+| Modify | `src/services/pricingData.ts` | Updated pricing service for 3-tier model |
 
 ---
 
 ## Technical Notes
 
-- The admin alert trigger uses the existing `admin_notifications` table and the same pattern as `notify_admin_new_user` (loops through `user_roles WHERE role = 'admin'`)
-- The modal uses existing Radix Dialog, Star from lucide-react, and Tailwind -- no new dependencies
-- The `lesson_id` stores the `roomId` string, not a UUID FK, since the classroom uses string-based room IDs
-- The feedback is separate from the existing `teacher_reviews` table (which is tied to `class_bookings`). This captures session-specific pedagogical quality metrics rather than a general teacher rating
+- No new dependencies -- uses existing framer-motion, Tailwind, lucide-react
+- The hero panel expand/contract uses CSS flex-grow transitions, not JavaScript width calculations
+- Mobile breakpoint (`md:`) switches from flex-row panels to flex-col stacked cards
+- The pricing toggle state type changes from a 2-value to 3-value union; Kids and Teens resolve to the same price lookup
+- Floating decorative elements (stars, rockets for Kids panel) use `absolute` positioning within the panel with `animate-bounce` or custom keyframes for subtle float
+- All sessions are 55 minutes as already stated in the current pricing section
 
