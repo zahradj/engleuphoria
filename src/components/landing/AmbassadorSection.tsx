@@ -42,7 +42,7 @@ export const AmbassadorSection: React.FC = () => {
           Join the Engleuphoria Ambassador Program
         </h2>
         <p className={`text-lg max-w-2xl mx-auto mb-8 leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-          Education is better with friends. Share the future of AI learning and earn free sessions for every successful referral.
+          Education is better with friends. Share the future of language learning and earn free sessions for every successful referral.
         </p>
 
         {/* Social proof avatars */}
