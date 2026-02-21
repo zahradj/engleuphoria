@@ -1,96 +1,144 @@
 
-# Support Layer, Pre-Flight Check, and Admin Emergency View
+# Professional Dashboard: Skill Radar, Learning Velocity, and Executive Polish
 
 ## Overview
 
-Add three major features: (1) a floating Help Center widget on both dashboards with quick fixes and a live support form, (2) a Pre-Flight hardware check screen before entering any classroom, and (3) a connection health indicator inside classrooms plus a "Live Classroom Pulse" emergency view for admins.
+Upgrade the Professional ("Hub") Dashboard with three categories of improvements: (1) a data-connected Skill Radar chart with interactive tooltips and a target overlay, (2) a Learning Velocity line chart with milestone markers, and (3) executive-grade UI polish including professional color palette, typography, and credit balance prominence.
 
 ---
 
-## 1. Floating Help Center Widget
+## 1. Database: Create `student_skills` Table
 
-### New Files
+A new table to persist per-student skill scores (sourced from teacher feedback and AI placement tests).
 
-**`src/components/support/FloatingHelpButton.tsx`**
-- A fixed-position circular button (bottom-right corner) with a `HelpCircle` icon
-- On click, opens a Dialog/Sheet modal with two sections:
-  - **Quick Fixes** (accordion-style): "My mic isn't working", "How to book a class", "I can't see the teacher's slides", "My video is laggy", "How to cancel a class"
-  - **Live Support Form**: Name (pre-filled from auth), email, category dropdown (Technical / Billing / General), message textarea, "Send" button
-- The form inserts into a new `support_tickets` table
+```text
+CREATE TABLE public.student_skills (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  student_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  skill_name TEXT NOT NULL CHECK (skill_name IN (
+    'professional_vocabulary', 'fluency', 'grammar_accuracy', 'business_writing', 'listening'
+  )),
+  current_score NUMERIC(4,1) DEFAULT 0 CHECK (current_score BETWEEN 0 AND 10),
+  target_score NUMERIC(4,1) DEFAULT 8 CHECK (target_score BETWEEN 0 AND 10),
+  cefr_equivalent TEXT DEFAULT 'A1',
+  next_focus TEXT,
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(student_id, skill_name)
+);
 
-**`src/components/support/QuickFixItem.tsx`**
-- Reusable accordion item with icon + solution text for each quick fix
+-- RLS: students read their own, teachers/admins can update
+ALTER TABLE public.student_skills ENABLE ROW LEVEL SECURITY;
 
-### Integration Points
-- Import `FloatingHelpButton` into:
-  - `src/components/teacher/dashboard/TeacherDashboardShell.tsx` (render at bottom of the component)
-  - `src/components/student/dashboard/` or the student layout wrapper
-- The button appears on all dashboard pages but NOT inside the classroom (to avoid clutter)
+-- Students can read their own skills
+CREATE POLICY "Students can view own skills"
+  ON public.student_skills FOR SELECT
+  USING (student_id = auth.uid());
 
-### Database
-- New `support_tickets` table: `id`, `user_id`, `user_email`, `user_name`, `category`, `message`, `priority` (default 'normal'), `status` (default 'open'), `created_at`
-- RLS: Users can INSERT their own tickets; admins can SELECT all
+-- Students can insert their own (for placement test seeding)
+CREATE POLICY "Students can insert own skills"
+  ON public.student_skills FOR INSERT
+  WITH CHECK (student_id = auth.uid());
 
----
+-- Admins and teachers can update any student skills
+CREATE POLICY "Teachers and admins can update skills"
+  ON public.student_skills FOR UPDATE
+  USING (
+    public.has_role(auth.uid(), 'admin') OR
+    public.has_role(auth.uid(), 'teacher')
+  );
 
-## 2. Connection Health Check (Classroom)
+-- Admins can view all skills
+CREATE POLICY "Admins can view all skills"
+  ON public.student_skills FOR SELECT
+  USING (public.has_role(auth.uid(), 'admin'));
+```
 
-**`src/hooks/useConnectionHealth.ts`**
-- A lightweight hook that measures connection quality by:
-  - Checking `navigator.connection` API (if available) for `effectiveType` and `downlink`
-  - Falling back to a periodic small fetch to the Supabase health endpoint and measuring latency
-- Returns: `{ quality: 'good' | 'fair' | 'poor', latencyMs: number, suggestion: string | null }`
-- When `quality === 'poor'`, `suggestion` returns: "We noticed a slow connection. Try turning off your video to improve audio quality."
-
-**Modify `src/components/student/classroom/StudentClassroomHeader.tsx`**
-- Replace the static `Wifi`/`WifiOff` badge with a dynamic signal strength indicator:
-  - Green (`Signal`) for good
-  - Yellow (`SignalMedium`) for fair, with a tooltip showing the suggestion
-  - Red (`SignalLow`) for poor, with a subtle alert banner below the header
-
-**Modify `src/components/classroom/unified/UnifiedTopBar.tsx`**
-- Add a small signal icon next to the "Live" indicator using the same `useConnectionHealth` hook
-- Show tooltip on hover with latency info
-
----
-
-## 3. Pre-Flight Hardware Check
-
-**`src/components/classroom/PreFlightCheck.tsx`**
-- A full-screen overlay/page shown before entering the classroom
-- Three checks displayed as a vertical checklist:
-  1. **Camera**: Requests `getUserMedia({ video: true })`, shows live preview in a small rounded rectangle
-  2. **Microphone**: Requests `getUserMedia({ audio: true })`, shows a real-time audio level bar (using `AnalyserNode` from Web Audio API)
-  3. **Speaker**: Plays a short test tone or chime, asks user to confirm they heard it via a checkbox
-- Each check shows a green checkmark when passed, red X on failure with a troubleshooting hint
-- "Join Class" button is disabled until Camera + Microphone pass (speaker is optional but encouraged)
-- "Skip Check" link for returning users who want to bypass
-
-**`src/hooks/usePreFlightCheck.ts`**
-- Manages the state machine for each device check
-- Returns: `{ cameraStatus, micStatus, speakerStatus, videoStream, audioLevel, runCameraCheck, runMicCheck, runSpeakerTest, allPassed }`
-
-### Integration
-- **`src/pages/StudentClassroomPage.tsx`**: Add state `preFlightPassed`. Show `PreFlightCheck` when false; show `SessionPrivacyGuard > StudentClassroom` when true
-- **`src/pages/TeacherClassroomPage.tsx`**: Same pattern -- show `PreFlightCheck` first, then the classroom
+**Seeding logic**: When a student has no `student_skills` rows yet, the component will auto-seed 5 rows using a baseline derived from their `placement_test_score` in `student_profiles`.
 
 ---
 
-## 4. Admin "Live Classroom Pulse" (Emergency View)
+## 2. Upgrade `SkillsRadarChart.tsx` -- Data-Connected with Tooltips
 
-**Modify `src/components/admin/SuperAdminControlCenter.tsx`**
-- Add a new tab: `{ id: 'pulse', label: 'Classroom Pulse', icon: <HeartPulse> }`
-- The Pulse tab shows:
-  - A real-time list of all active classroom sessions (reuses existing `fetchLiveSessions`)
-  - Each session card includes:
-    - Teacher name, student name, room ID, duration elapsed
-    - **Connection status badge**: "Connected" (green), "Unstable" (yellow), "Disconnected" (red)
-    - A "Notify Teacher" button that inserts a notification into the `notifications` table for the teacher
-  - Summary bar at top: "X classes live, Y healthy, Z with issues"
+**File:** `src/components/student/hub/SkillsRadarChart.tsx`
 
-**Modify the `classroom_sessions` table** (migration):
-- Add column `connection_health` (text, default 'connected', check in ('connected', 'unstable', 'disconnected'))
-- The classroom sync service will periodically update this field based on WebRTC/connection status
+Changes:
+- Fetch real data from `student_skills` table via Supabase
+- If no data exists, compute baseline from placement test score and insert seed rows
+- Change the 5 axes to: Professional Vocabulary, Fluency, Grammar Accuracy, Business Writing, Listening
+- Add a custom Tooltip that shows:
+  - "Current Level: [CEFR]. Focus on '[next_focus]' to reach [next CEFR]."
+- Keep the existing "Target" overlay polygon (already implemented) but connect it to the `target_score` column
+- Use Deep Navy (#1A2B3C) and Slate Gold (#C9A96E) accents for the professional palette
+
+---
+
+## 3. Upgrade `LearningVelocityChart.tsx` -- Weekly Line Chart with Milestones
+
+**File:** `src/components/student/hub/LearningVelocityChart.tsx`
+
+Changes:
+- Switch from daily "hours studied" to a weekly "Progress Points" view
+  - X-axis: Week labels (Week 1, Week 2, ...)
+  - Y-axis: Progress Points (derived from completed lessons count and average lesson scores from `student_lesson_progress`)
+- Fetch real data from `student_lesson_progress` grouped by week
+- Add milestone markers (small star/trophy icons via Recharts `ReferenceDot`) at weeks where the student completed their 10th and 20th session
+- If no data, show placeholder with a message: "Complete your first lesson to start tracking progress"
+
+---
+
+## 4. Executive UI Polish on `HubDashboard.tsx`
+
+**File:** `src/components/student/dashboards/HubDashboard.tsx`
+
+Changes:
+
+| Element | Current | New |
+|---------|---------|-----|
+| Color palette | Emerald/Teal gradients | Deep Navy (#1A2B3C) + Slate Gold (#C9A96E) accents |
+| Header brand name | "The Hub" | "Executive Learning Hub" |
+| Session CTA button | "Schedule a Session" | "Schedule Executive Briefing" |
+| Join button | "Join Session" | "Join Executive Briefing" |
+| Font weight/style | Standard semibold | Tighter tracking, uppercase section labels |
+| Card borders | gray-100 | Subtle slate borders with gold accent on hover |
+
+---
+
+## 5. Credit Balance Prominence
+
+**File:** `src/components/student/dashboards/HubDashboard.tsx`
+
+- Import and render `CreditDisplay` component prominently in the right sidebar (above "Resources")
+- The `CreditDisplay` component already handles:
+  - Shows "Credits: 0" with destructive styling + "Buy Credits" CTA
+  - Shows remaining credits with proper count
+  - Low credit warning at 2 or fewer
+
+**File:** `src/components/student/BookMyClassModal.tsx`
+- Verify and ensure the "Schedule" button is disabled when credits are 0 (add explicit check if missing)
+
+---
+
+## 6. New Hook: `useStudentSkills`
+
+**File to create:** `src/hooks/useStudentSkills.ts`
+
+- Fetches `student_skills` for the current user
+- If no rows found, seeds 5 rows from placement test baseline:
+  - `placement_test_score` / `placement_test_total` mapped to a 0-10 scale with slight per-skill variance
+- Returns `{ skills, loading, refresh }`
+- Maps CEFR equivalents: 0-2 = A1, 2-4 = A2, 4-6 = B1, 6-8 = B2, 8-10 = C1
+
+---
+
+## 7. New Hook: `useLearningVelocity`
+
+**File to create:** `src/hooks/useLearningVelocity.ts`
+
+- Fetches from `student_lesson_progress` grouped by ISO week
+- Calculates "Progress Points" per week: `completed_lessons_count * 10 + average_score`
+- Identifies milestone weeks (10th and 20th completed lesson overall)
+- Returns `{ weeklyData, milestones, totalLessons, loading }`
 
 ---
 
@@ -98,47 +146,10 @@ Add three major features: (1) a floating Help Center widget on both dashboards w
 
 | Action | File | Purpose |
 |--------|------|---------|
-| Create | `src/components/support/FloatingHelpButton.tsx` | Floating help widget with quick fixes + support form |
-| Create | `src/components/support/QuickFixItem.tsx` | Reusable accordion quick-fix item |
-| Create | `src/hooks/useConnectionHealth.ts` | Network quality detection hook |
-| Create | `src/components/classroom/PreFlightCheck.tsx` | Hardware verification screen |
-| Create | `src/hooks/usePreFlightCheck.ts` | Device check state management |
-| Modify | `src/components/teacher/dashboard/TeacherDashboardShell.tsx` | Add FloatingHelpButton |
-| Modify | `src/components/student/classroom/StudentClassroomHeader.tsx` | Dynamic signal strength indicator |
-| Modify | `src/components/classroom/unified/UnifiedTopBar.tsx` | Signal strength icon |
-| Modify | `src/pages/StudentClassroomPage.tsx` | Pre-flight gate before classroom entry |
-| Modify | `src/pages/TeacherClassroomPage.tsx` | Pre-flight gate before classroom entry |
-| Modify | `src/components/admin/SuperAdminControlCenter.tsx` | Add "Classroom Pulse" emergency tab |
-| Migration | `support_tickets` table + `connection_health` column | Database support |
-
----
-
-## Database Migration
-
-```text
-1. CREATE TABLE support_tickets (
-     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-     user_id UUID REFERENCES public.users(id),
-     user_email TEXT NOT NULL,
-     user_name TEXT,
-     category TEXT DEFAULT 'general' CHECK (category IN ('technical', 'billing', 'general')),
-     message TEXT NOT NULL,
-     priority TEXT DEFAULT 'normal' CHECK (priority IN ('low', 'normal', 'high', 'urgent')),
-     status TEXT DEFAULT 'open' CHECK (status IN ('open', 'in_progress', 'resolved', 'closed')),
-     created_at TIMESTAMPTZ DEFAULT now()
-   );
-
-2. ALTER TABLE classroom_sessions 
-   ADD COLUMN connection_health TEXT DEFAULT 'connected' 
-   CHECK (connection_health IN ('connected', 'unstable', 'disconnected'));
-
-3. Enable RLS on support_tickets:
-   - INSERT: authenticated users can insert where user_id = auth.uid()
-   - SELECT: admins can read all; users can read their own
-```
-
----
-
-## No Loading State Changes
-
-The existing Suspense/Skeleton loading states remain as-is. The Pre-Flight check is a deliberate UX gate, not a loading state.
+| Migration | `student_skills` table | Persistent skill scores |
+| Create | `src/hooks/useStudentSkills.ts` | Fetch/seed student skill data |
+| Create | `src/hooks/useLearningVelocity.ts` | Weekly progress point aggregation |
+| Modify | `src/components/student/hub/SkillsRadarChart.tsx` | Data-connected radar with tooltips |
+| Modify | `src/components/student/hub/LearningVelocityChart.tsx` | Weekly progress with milestones |
+| Modify | `src/components/student/dashboards/HubDashboard.tsx` | Executive palette, credit display, text changes |
+| Modify | `src/components/student/BookMyClassModal.tsx` | Verify credit-gate on booking button |
