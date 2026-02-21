@@ -120,6 +120,13 @@
   }
 }
 
+@media (min-width: 768px) {
+  body.custom-cursor,
+  body.custom-cursor * {
+    cursor: none !important;
+  }
+}
+
 @layer utilities {
   /* Custom animations that work with Tailwind's animate- prefix */
   @keyframes fade-in {

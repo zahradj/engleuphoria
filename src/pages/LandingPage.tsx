@@ -14,7 +14,8 @@ import {
   IntelligenceSection,
   TrustBarSection,
   AmbassadorSection,
-  ActivityMarquee
+  ActivityMarquee,
+  CustomCursor
 } from '@/components/landing';
 
 export default function LandingPage() {
@@ -32,6 +33,7 @@ export default function LandingPage() {
 
   return (
     <main className={`min-h-screen transition-colors duration-300 ${isDark ? 'bg-[#09090B]' : 'bg-[#FAFAFA]'}`}>
+      <CustomCursor />
       <NavHeader />
       <HeroSection />
       <BentoGridSection />

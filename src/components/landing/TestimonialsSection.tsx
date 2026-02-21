@@ -1,5 +1,6 @@
 import { Star, Quote } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useThemeMode } from '@/hooks/useThemeMode';
 
 const testimonials = [
   {
@@ -26,9 +27,14 @@ const testimonials = [
 ];
 
 export function TestimonialsSection() {
+  const { resolvedTheme } = useThemeMode();
+  const isDark = resolvedTheme === 'dark';
+
   return (
-    <section id="testimonials" className="py-24 bg-gradient-to-b from-slate-950 to-slate-900 relative overflow-hidden scroll-mt-20">
-      <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-slate-900 to-transparent" />
+    <section id="testimonials" className={`py-24 relative overflow-hidden scroll-mt-20 transition-colors duration-300 ${
+      isDark ? 'bg-gradient-to-b from-slate-950 to-slate-900' : 'bg-[#FAFAFA]'
+    }`}>
+      {isDark && <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-slate-900 to-transparent" />}
 
       <div className="container mx-auto px-4 sm:px-6 relative z-10">
         {/* Header */}
@@ -39,13 +45,13 @@ export function TestimonialsSection() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight mb-4">
+          <h2 className={`text-4xl md:text-5xl font-bold tracking-tight mb-4 transition-colors duration-300 ${isDark ? 'text-white' : 'text-slate-900'}`}>
             What Our{' '}
             <span className="bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent">
               Students Say
             </span>
           </h2>
-          <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+          <p className={`text-lg max-w-2xl mx-auto ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
             Join thousands of happy learners who have transformed their English skills with us.
           </p>
         </motion.div>
@@ -60,7 +66,11 @@ export function TestimonialsSection() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.15 }}
               whileHover={{ y: -4 }}
-              className="relative rounded-2xl p-8 backdrop-blur-xl bg-white/5 border border-white/10 hover:border-indigo-500/30 hover:shadow-[0_0_30px_-10px_rgba(99,102,241,0.2)] transition-all duration-500"
+              className={`relative rounded-2xl p-8 backdrop-blur-xl transition-all duration-500 ${
+                isDark
+                  ? 'bg-white/5 border border-white/10 hover:border-indigo-500/30 hover:shadow-[0_0_30px_-10px_rgba(99,102,241,0.2)]'
+                  : 'bg-white border border-slate-200 shadow-sm hover:border-indigo-300/40 hover:shadow-[0_8px_30px_-10px_rgba(99,102,241,0.1)]'
+              }`}
             >
               {/* Quote icon */}
               <div className="absolute -top-4 -left-4 w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
@@ -75,16 +85,20 @@ export function TestimonialsSection() {
               </div>
 
               {/* Text */}
-              <p className="text-slate-300 mb-6 leading-relaxed">"{testimonial.text}"</p>
+              <p className={`mb-6 leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>"{testimonial.text}"</p>
 
               {/* Author */}
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-500/20 to-violet-500/20 flex items-center justify-center text-2xl border border-white/10">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl border ${
+                  isDark
+                    ? 'bg-gradient-to-r from-indigo-500/20 to-violet-500/20 border-white/10'
+                    : 'bg-indigo-50 border-slate-200'
+                }`}>
                   {testimonial.avatar}
                 </div>
                 <div>
-                  <p className="font-semibold text-white">{testimonial.name}</p>
-                  <p className="text-sm text-slate-400">{testimonial.role}</p>
+                  <p className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{testimonial.name}</p>
+                  <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{testimonial.role}</p>
                 </div>
               </div>
             </motion.div>

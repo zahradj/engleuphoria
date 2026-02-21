@@ -10,3 +10,4 @@ export { IntelligenceSection } from './IntelligenceSection';
 export { TrustBarSection } from './TrustBarSection';
 export { AmbassadorSection } from './AmbassadorSection';
 export { ActivityMarquee } from './ActivityMarquee';
+export { CustomCursor } from './CustomCursor';
