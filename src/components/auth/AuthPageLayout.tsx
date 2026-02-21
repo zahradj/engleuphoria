@@ -48,10 +48,20 @@ export function AuthPageLayout({
 
   return (
     <div className="relative flex flex-col min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 transition-colors duration-500">
-      {/* Subtle background orbs */}
+      {/* Circling purple light orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-gradient-to-bl from-purple-200/30 to-transparent dark:from-purple-900/15 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[250px] h-[250px] bg-gradient-to-tr from-indigo-200/30 to-transparent dark:from-indigo-900/15 rounded-full blur-3xl" />
+        <motion.div
+          className="absolute -top-20 -right-20 w-[350px] h-[350px] rounded-full bg-gradient-to-bl from-purple-400/20 via-violet-300/15 to-transparent dark:from-purple-500/15 dark:via-violet-400/10 blur-3xl"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 12, repeat: Infinity, ease: 'linear' }}
+          style={{ transformOrigin: '70% 30%' }}
+        />
+        <motion.div
+          className="absolute -bottom-20 -left-20 w-[300px] h-[300px] rounded-full bg-gradient-to-tr from-violet-400/20 via-purple-300/15 to-transparent dark:from-violet-500/15 dark:via-purple-400/10 blur-3xl"
+          animate={{ rotate: -360 }}
+          transition={{ duration: 16, repeat: Infinity, ease: 'linear' }}
+          style={{ transformOrigin: '30% 70%' }}
+        />
       </div>
 
       {/* Header */}
