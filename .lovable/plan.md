@@ -1,144 +1,67 @@
 
-# Professional Dashboard: Skill Radar, Learning Velocity, and Executive Polish
+# Teacher Video Script Templates, Filming Checklist, and Self-Review Validation
 
 ## Overview
 
-Upgrade the Professional ("Hub") Dashboard with three categories of improvements: (1) a data-connected Skill Radar chart with interactive tooltips and a target overlay, (2) a Learning Velocity line chart with milestone markers, and (3) executive-grade UI polish including professional color palette, typography, and credit balance prominence.
+Add three interconnected features to the teacher video submission flow: (1) a "Teacher Success" instructions modal with script templates and filming tips shown before recording, (2) a track-based script selector (Professional vs. Kids), and (3) a self-review checklist that gates the video submission.
 
 ---
 
-## 1. Database: Create `student_skills` Table
+## 1. New Component: `VideoInstructionsModal`
 
-A new table to persist per-student skill scores (sourced from teacher feedback and AI placement tests).
+**File to create:** `src/components/teacher/VideoInstructionsModal.tsx`
 
-```text
-CREATE TABLE public.student_skills (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  student_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-  skill_name TEXT NOT NULL CHECK (skill_name IN (
-    'professional_vocabulary', 'fluency', 'grammar_accuracy', 'business_writing', 'listening'
-  )),
-  current_score NUMERIC(4,1) DEFAULT 0 CHECK (current_score BETWEEN 0 AND 10),
-  target_score NUMERIC(4,1) DEFAULT 8 CHECK (target_score BETWEEN 0 AND 10),
-  cefr_equivalent TEXT DEFAULT 'A1',
-  next_focus TEXT,
-  updated_at TIMESTAMPTZ DEFAULT now(),
-  created_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE(student_id, skill_name)
-);
+A Dialog modal containing:
 
--- RLS: students read their own, teachers/admins can update
-ALTER TABLE public.student_skills ENABLE ROW LEVEL SECURITY;
+### Script Templates Section
+- Toggle between two script tabs: **"Professional / Executive Track"** and **"Playground / Academy Track"**
+- Each tab displays the full 60-second script with timestamp markers (0:00-0:10, 0:10-0:30, etc.) styled as a step-by-step guide
+- Professional script emphasizes Business English, negotiations, executive presence
+- Kids script emphasizes adventure, games, energy, and fun
 
--- Students can read their own skills
-CREATE POLICY "Students can view own skills"
-  ON public.student_skills FOR SELECT
-  USING (student_id = auth.uid());
+### Filming Checklist Section (Accordion)
+Five tips displayed as an expandable checklist:
+1. **Eye Contact is King** -- Look at the camera lens, not your own image
+2. **Lighting (The 3-Point Rule)** -- Face the window or use a ring light; avoid backlighting
+3. **The "Silent" Background** -- No fan noise, traffic, or echo
+4. **Dress for the Price** -- Professional: business casual; Playground: bright colors
+5. **The Engleuphoria Background** -- Clean workspace, small plant or bookshelf
 
--- Students can insert their own (for placement test seeding)
-CREATE POLICY "Students can insert own skills"
-  ON public.student_skills FOR INSERT
-  WITH CHECK (student_id = auth.uid());
+Each tip will have an icon and a short explanation paragraph.
 
--- Admins and teachers can update any student skills
-CREATE POLICY "Teachers and admins can update skills"
-  ON public.student_skills FOR UPDATE
-  USING (
-    public.has_role(auth.uid(), 'admin') OR
-    public.has_role(auth.uid(), 'teacher')
-  );
+### Self-Review Checklist
+Three checkboxes that must ALL be checked before the teacher can proceed:
+- "I have checked my audio quality"
+- "My face is clearly lit"
+- "I followed the Engleuphoria script structure"
 
--- Admins can view all skills
-CREATE POLICY "Admins can view all skills"
-  ON public.student_skills FOR SELECT
-  USING (public.has_role(auth.uid(), 'admin'));
-```
-
-**Seeding logic**: When a student has no `student_skills` rows yet, the component will auto-seed 5 rows using a baseline derived from their `placement_test_score` in `student_profiles`.
+A "Got It" / "I'm Ready" button at the bottom, disabled until all 3 checkboxes are checked. Closing the modal also stores a local flag so returning users are not blocked but can reopen it via a help link.
 
 ---
 
-## 2. Upgrade `SkillsRadarChart.tsx` -- Data-Connected with Tooltips
+## 2. Integration into `ProfileSetupTab.tsx`
 
-**File:** `src/components/student/hub/SkillsRadarChart.tsx`
+**File to modify:** `src/components/teacher/ProfileSetupTab.tsx`
 
-Changes:
-- Fetch real data from `student_skills` table via Supabase
-- If no data exists, compute baseline from placement test score and insert seed rows
-- Change the 5 axes to: Professional Vocabulary, Fluency, Grammar Accuracy, Business Writing, Listening
-- Add a custom Tooltip that shows:
-  - "Current Level: [CEFR]. Focus on '[next_focus]' to reach [next CEFR]."
-- Keep the existing "Target" overlay polygon (already implemented) but connect it to the `target_score` column
-- Use Deep Navy (#1A2B3C) and Slate Gold (#C9A96E) accents for the professional palette
-
----
-
-## 3. Upgrade `LearningVelocityChart.tsx` -- Weekly Line Chart with Milestones
-
-**File:** `src/components/student/hub/LearningVelocityChart.tsx`
-
-Changes:
-- Switch from daily "hours studied" to a weekly "Progress Points" view
-  - X-axis: Week labels (Week 1, Week 2, ...)
-  - Y-axis: Progress Points (derived from completed lessons count and average lesson scores from `student_lesson_progress`)
-- Fetch real data from `student_lesson_progress` grouped by week
-- Add milestone markers (small star/trophy icons via Recharts `ReferenceDot`) at weeks where the student completed their 10th and 20th session
-- If no data, show placeholder with a message: "Complete your first lesson to start tracking progress"
+- Add a "View Script & Filming Guide" button (with a `Clapperboard` or `FileVideo` icon) next to the video URL input field
+- Clicking it opens `VideoInstructionsModal`
+- Track the `selfReviewChecked` state: once the teacher completes the self-review checklist in the modal, show 3 green checkmarks below the video URL field confirming:
+  - Audio quality verified
+  - Lighting verified
+  - Script structure followed
+- The "Save Profile" button remains gated on `bio + video_url` (existing logic), but now also shows a gentle reminder if self-review was not completed: "We recommend completing the filming checklist for the best first impression"
 
 ---
 
-## 4. Executive UI Polish on `HubDashboard.tsx`
+## 3. Integration into `EnhancedTeacherApplicationForm.tsx` (Step 4)
 
-**File:** `src/components/student/dashboards/HubDashboard.tsx`
+**File to modify:** `src/components/teacher/EnhancedTeacherApplicationForm.tsx`
 
-Changes:
-
-| Element | Current | New |
-|---------|---------|-----|
-| Color palette | Emerald/Teal gradients | Deep Navy (#1A2B3C) + Slate Gold (#C9A96E) accents |
-| Header brand name | "The Hub" | "Executive Learning Hub" |
-| Session CTA button | "Schedule a Session" | "Schedule Executive Briefing" |
-| Join button | "Join Session" | "Join Executive Briefing" |
-| Font weight/style | Standard semibold | Tighter tracking, uppercase section labels |
-| Card borders | gray-100 | Subtle slate borders with gold accent on hover |
-
----
-
-## 5. Credit Balance Prominence
-
-**File:** `src/components/student/dashboards/HubDashboard.tsx`
-
-- Import and render `CreditDisplay` component prominently in the right sidebar (above "Resources")
-- The `CreditDisplay` component already handles:
-  - Shows "Credits: 0" with destructive styling + "Buy Credits" CTA
-  - Shows remaining credits with proper count
-  - Low credit warning at 2 or fewer
-
-**File:** `src/components/student/BookMyClassModal.tsx`
-- Verify and ensure the "Schedule" button is disabled when credits are 0 (add explicit check if missing)
-
----
-
-## 6. New Hook: `useStudentSkills`
-
-**File to create:** `src/hooks/useStudentSkills.ts`
-
-- Fetches `student_skills` for the current user
-- If no rows found, seeds 5 rows from placement test baseline:
-  - `placement_test_score` / `placement_test_total` mapped to a 0-10 scale with slight per-skill variance
-- Returns `{ skills, loading, refresh }`
-- Maps CEFR equivalents: 0-2 = A1, 2-4 = A2, 4-6 = B1, 6-8 = B2, 8-10 = C1
-
----
-
-## 7. New Hook: `useLearningVelocity`
-
-**File to create:** `src/hooks/useLearningVelocity.ts`
-
-- Fetches from `student_lesson_progress` grouped by ISO week
-- Calculates "Progress Points" per week: `completed_lessons_count * 10 + average_score`
-- Identifies milestone weeks (10th and 20th completed lesson overall)
-- Returns `{ weeklyData, milestones, totalLessons, loading }`
+- Replace the current simple "Video Tips" box (lines 425-433) with:
+  - A prominent "View Script Templates & Filming Guide" button that opens `VideoInstructionsModal`
+  - The 3 self-review checkboxes displayed inline below the video URL input
+  - The "Next" button on Step 4 requires all 3 self-review checkboxes to be checked (in addition to the video URL)
+- Keep the video URL and description fields as-is
 
 ---
 
@@ -146,10 +69,67 @@ Changes:
 
 | Action | File | Purpose |
 |--------|------|---------|
-| Migration | `student_skills` table | Persistent skill scores |
-| Create | `src/hooks/useStudentSkills.ts` | Fetch/seed student skill data |
-| Create | `src/hooks/useLearningVelocity.ts` | Weekly progress point aggregation |
-| Modify | `src/components/student/hub/SkillsRadarChart.tsx` | Data-connected radar with tooltips |
-| Modify | `src/components/student/hub/LearningVelocityChart.tsx` | Weekly progress with milestones |
-| Modify | `src/components/student/dashboards/HubDashboard.tsx` | Executive palette, credit display, text changes |
-| Modify | `src/components/student/BookMyClassModal.tsx` | Verify credit-gate on booking button |
+| Create | `src/components/teacher/VideoInstructionsModal.tsx` | Script templates, filming checklist, self-review gate |
+| Modify | `src/components/teacher/ProfileSetupTab.tsx` | Add "View Guide" button + self-review status indicators |
+| Modify | `src/components/teacher/EnhancedTeacherApplicationForm.tsx` | Replace video tips with modal trigger + inline self-review checkboxes |
+
+---
+
+## Technical Details
+
+### `VideoInstructionsModal.tsx` Structure
+
+```text
+Props:
+  - open: boolean
+  - onOpenChange: (open: boolean) => void
+  - onSelfReviewComplete: (checked: boolean) => void
+  - initialTrack?: 'professional' | 'kids' (default: 'professional')
+
+State:
+  - selectedTrack: 'professional' | 'kids'
+  - checklist: { audio: boolean, lighting: boolean, script: boolean }
+
+Components used:
+  - Dialog (Radix) for the modal shell
+  - Tabs for Professional vs. Kids script toggle
+  - Accordion for the 5 filming tips
+  - Checkbox (3x) for self-review
+  - Button ("I'm Ready") disabled until all 3 checked
+```
+
+### Script Content (Hardcoded Constants)
+
+The two script templates will be stored as structured arrays within the component file:
+
+```text
+PROFESSIONAL_SCRIPT = [
+  { time: "0:00-0:10", label: "The Hook", text: "Hello! Are you looking to bridge..." },
+  { time: "0:10-0:30", label: "The Value", text: "I specialize in Business English..." },
+  { time: "0:30-0:50", label: "The Method", text: "In our 55-minute sessions..." },
+  { time: "0:50-1:00", label: "The Call to Action", text: "Check my schedule below..." }
+]
+
+KIDS_SCRIPT = [
+  { time: "0:00-0:10", label: "Energy", text: "Hi there! I'm [Name]..." },
+  { time: "0:10-0:30", label: "Engagement", text: "I love making English feel..." },
+  { time: "0:30-0:50", label: "The Promise", text: "I use games and interactive..." },
+  { time: "0:50-1:00", label: "CTA", text: "I can't wait to meet you..." }
+]
+```
+
+### Filming Tips Data
+
+```text
+FILMING_TIPS = [
+  { icon: Eye, title: "Eye Contact is King", description: "Look directly into the camera lens..." },
+  { icon: Sun, title: "Lighting (The 3-Point Rule)", description: "Face the window or use a ring light..." },
+  { icon: VolumeX, title: "The Silent Background", description: "No fan noise, traffic, or echo..." },
+  { icon: Shirt, title: "Dress for the Price", description: "Professional: business casual. Playground: bright colors..." },
+  { icon: Home, title: "The Engleuphoria Background", description: "Clean workspace, small plant or bookshelf..." }
+]
+```
+
+### Validation Logic in Application Form (Step 4)
+
+The existing `validateStep(4)` function will be extended to also check that all 3 self-review booleans are `true`. If not, a toast will prompt: "Please complete the self-review checklist before proceeding."
