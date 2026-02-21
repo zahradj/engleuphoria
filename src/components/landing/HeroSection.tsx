@@ -33,6 +33,7 @@ const portals = [
     age: 'Ages 5–12',
     glowColorDark: 'rgba(16,185,129,0.4)',
     glowColorLight: 'rgba(5,150,105,0.3)',
+    cursor: 'playground' as const,
   },
   {
     id: 'teens',
@@ -41,6 +42,7 @@ const portals = [
     age: 'Teens',
     glowColorDark: 'rgba(99,102,241,0.4)',
     glowColorLight: 'rgba(67,56,202,0.3)',
+    cursor: 'academy' as const,
   },
   {
     id: 'adults',
@@ -49,7 +51,14 @@ const portals = [
     age: 'Adults',
     glowColorDark: 'rgba(245,158,11,0.4)',
     glowColorLight: 'rgba(217,119,6,0.3)',
+    cursor: 'professional' as const,
   },
+];
+
+const worldTaglines = [
+  { label: 'Playground', text: "Stop 'teaching' them. Let them play their way to fluency." },
+  { label: 'Academy', text: "Don't just pass exams. Master the language of the global internet." },
+  { label: 'Professional', text: "Your expertise is global. Now, make your voice match your ambition." },
 ];
 
 function SocialProofRibbon({ isDark }: { isDark: boolean }) {
@@ -130,9 +139,10 @@ export function HeroSection() {
       {/* Light-mode ink bleed corners */}
       {!isDark && (
         <>
-          <div className="absolute top-0 left-0 w-[400px] h-[400px] rounded-full blur-[120px] opacity-40 pointer-events-none bg-sky-300/30" />
-          <div className="absolute top-0 right-0 w-[350px] h-[350px] rounded-full blur-[100px] opacity-30 pointer-events-none bg-emerald-300/25" />
-          <div className="absolute bottom-0 right-0 w-[450px] h-[450px] rounded-full blur-[130px] opacity-35 pointer-events-none bg-orange-200/30" />
+          <div className="absolute top-0 left-0 w-[400px] h-[400px] rounded-full blur-[140px] opacity-40 pointer-events-none bg-sky-300/30" />
+          <div className="absolute top-0 right-0 w-[350px] h-[350px] rounded-full blur-[120px] opacity-30 pointer-events-none bg-emerald-300/25" />
+          <div className="absolute bottom-0 right-0 w-[450px] h-[450px] rounded-full blur-[150px] opacity-35 pointer-events-none bg-orange-200/30" />
+          <div className="absolute bottom-0 left-0 w-[380px] h-[380px] rounded-full blur-[130px] opacity-25 pointer-events-none bg-violet-300/20" />
         </>
       )}
 
@@ -158,28 +168,27 @@ export function HeroSection() {
 
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 sm:px-6 text-center py-32">
-        {/* Headline — Kinetic Typography */}
+        {/* Headline — Full Gradient Clip-Path */}
         <motion.h1
-          className={`font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight mb-6 leading-[1.05] transition-colors duration-300 ${
-            isDark ? 'text-white' : 'text-slate-900'
-          }`}
+          className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight mb-6 leading-[1.05] bg-clip-text text-transparent animate-gradient-text"
+          style={{
+            backgroundImage: isDark
+              ? 'linear-gradient(90deg, #818cf8, #34d399, #fbbf24, #a78bfa, #818cf8)'
+              : 'linear-gradient(90deg, #4f46e5, #059669, #d97706, #7c3aed, #4f46e5)',
+            backgroundSize: '200% auto',
+          }}
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
           English Mastery,
           <br />
-          <span
-            className="bg-gradient-to-r from-indigo-400 via-emerald-400 to-amber-400 bg-clip-text text-transparent animate-gradient-text"
-            style={{ backgroundSize: '200% auto' }}
-          >
-            Accelerated.
-          </span>
+          Accelerated.
         </motion.h1>
 
         {/* Subheadline */}
         <motion.p
-          className={`text-lg md:text-xl max-w-2xl mx-auto mb-12 leading-relaxed transition-colors duration-300 ${
+          className={`text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed transition-colors duration-300 ${
             isDark ? 'text-slate-400' : 'text-slate-600'
           }`}
           initial={{ opacity: 0, y: 20 }}
@@ -191,7 +200,7 @@ export function HeroSection() {
 
         {/* Glassmorphic Pill Buttons */}
         <motion.div
-          className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16"
+          className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
@@ -200,6 +209,7 @@ export function HeroSection() {
             <Link
               key={portal.id}
               to="/student-signup"
+              data-cursor={portal.cursor}
               className={`group relative px-8 py-4 rounded-full backdrop-blur-xl font-medium transition-all duration-500 ${
                 isDark
                   ? 'bg-white/[0.04] border border-white/[0.08] text-white hover:bg-white/[0.08]'
@@ -219,6 +229,27 @@ export function HeroSection() {
               {portal.label}
               <span className={`ml-2 text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>({portal.age})</span>
             </Link>
+          ))}
+        </motion.div>
+
+        {/* World Taglines */}
+        <motion.div
+          className="flex flex-col items-center gap-2 mb-16"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.7 }}
+        >
+          {worldTaglines.map((tagline, i) => (
+            <motion.p
+              key={tagline.label}
+              className={`text-sm italic max-w-lg ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.8 + i * 0.15 }}
+            >
+              <span className={`font-semibold not-italic ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{tagline.label}:</span>{' '}
+              {tagline.text}
+            </motion.p>
           ))}
         </motion.div>
 

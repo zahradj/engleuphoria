@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Shield, Headphones, Brain } from 'lucide-react';
+import { useThemeMode } from '@/hooks/useThemeMode';
 
 const trustItems = [
   {
@@ -23,8 +24,11 @@ const trustItems = [
 ];
 
 export function TrustBarSection() {
+  const { resolvedTheme } = useThemeMode();
+  const isDark = resolvedTheme === 'dark';
+
   return (
-    <section className="py-16 bg-slate-950 relative">
+    <section className={`py-16 relative transition-colors duration-300 ${isDark ? 'bg-slate-950' : 'bg-[#FAFAFA]'}`}>
       <div className="container mx-auto px-4 sm:px-6">
         <div className="grid sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
           {trustItems.map((item, index) => {
@@ -36,13 +40,17 @@ export function TrustBarSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="flex flex-col items-center text-center p-6 rounded-2xl backdrop-blur-xl bg-white/5 border border-white/10 hover:border-white/20 transition-colors"
+                className={`flex flex-col items-center text-center p-6 rounded-2xl backdrop-blur-xl transition-colors ${
+                  isDark
+                    ? 'bg-white/5 border border-white/10 hover:border-white/20'
+                    : 'bg-white border border-slate-200 shadow-sm hover:border-slate-300'
+                }`}
               >
                 <div className={`p-3 rounded-xl ${item.accent} mb-4`}>
                   <Icon className="w-6 h-6" />
                 </div>
-                <h3 className="text-white font-semibold mb-1">{item.title}</h3>
-                <p className="text-slate-400 text-sm">{item.description}</p>
+                <h3 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.title}</h3>
+                <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{item.description}</p>
               </motion.div>
             );
           })}

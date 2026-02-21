@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
+import { useThemeMode } from '@/hooks/useThemeMode';
 
 const contactSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(100, "Name must be less than 100 characters"),
@@ -21,6 +22,8 @@ export function ContactSection() {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const { toast } = useToast();
+  const { resolvedTheme } = useThemeMode();
+  const isDark = resolvedTheme === 'dark';
   
   const [formData, setFormData] = useState<ContactFormData>({
     name: '',
@@ -33,7 +36,6 @@ export function ContactSection() {
 
   const handleInputChange = (field: keyof ContactFormData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
@@ -43,7 +45,6 @@ export function ContactSection() {
     e.preventDefault();
     setErrors({});
 
-    // Validate form
     const result = contactSchema.safeParse(formData);
     if (!result.success) {
       const fieldErrors: Partial<ContactFormData> = {};
@@ -56,10 +57,7 @@ export function ContactSection() {
     }
 
     setIsSubmitting(true);
-
-    // Simulate API call (replace with actual edge function)
     await new Promise(resolve => setTimeout(resolve, 1500));
-
     setIsSubmitting(false);
     setIsSubmitted(true);
     
@@ -68,7 +66,6 @@ export function ContactSection() {
       description: "We'll get back to you as soon as possible.",
     });
 
-    // Reset form after delay
     setTimeout(() => {
       setFormData({ name: '', email: '', message: '' });
       setIsSubmitted(false);
@@ -77,10 +74,7 @@ export function ContactSection() {
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
+    visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
   };
 
   const itemVariants = {
@@ -89,13 +83,19 @@ export function ContactSection() {
   };
 
   return (
-    <section id="contact" className="relative py-24 overflow-hidden" ref={ref}>
+    <section id="contact" className={`relative py-24 overflow-hidden transition-colors duration-300 ${
+      isDark ? '' : 'bg-[#FAFAFA]'
+    }`} ref={ref}>
       {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-900/50 to-slate-950" />
+      <div className={`absolute inset-0 ${
+        isDark
+          ? 'bg-gradient-to-b from-transparent via-slate-900/50 to-slate-950'
+          : 'bg-gradient-to-b from-transparent via-slate-100/50 to-[#FAFAFA]'
+      }`} />
       
       {/* Decorative blobs */}
-      <div className="absolute top-20 left-10 w-72 h-72 bg-violet-500/10 rounded-full filter blur-3xl" />
-      <div className="absolute bottom-20 right-10 w-80 h-80 bg-emerald-500/10 rounded-full filter blur-3xl" />
+      <div className={`absolute top-20 left-10 w-72 h-72 rounded-full filter blur-3xl ${isDark ? 'bg-violet-500/10' : 'bg-violet-500/5'}`} />
+      <div className={`absolute bottom-20 right-10 w-80 h-80 rounded-full filter blur-3xl ${isDark ? 'bg-emerald-500/10' : 'bg-emerald-500/5'}`} />
 
       <div className="container mx-auto px-4 relative z-10">
         <motion.div
@@ -106,16 +106,18 @@ export function ContactSection() {
         >
           {/* Header */}
           <motion.div variants={itemVariants} className="text-center mb-12">
-            <span className="inline-block px-4 py-1.5 bg-white/10 backdrop-blur-sm rounded-full text-sm font-medium text-white/80 mb-4">
+            <span className={`inline-block px-4 py-1.5 backdrop-blur-sm rounded-full text-sm font-medium mb-4 ${
+              isDark ? 'bg-white/10 text-white/80' : 'bg-slate-100 text-slate-700'
+            }`}>
               Get In Touch
             </span>
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            <h2 className={`text-3xl md:text-4xl font-bold mb-4 transition-colors duration-300 ${isDark ? 'text-white' : 'text-slate-900'}`}>
               Have Questions?{' '}
               <span className="bg-gradient-to-r from-violet-400 to-emerald-400 bg-clip-text text-transparent">
                 We'd Love to Hear From You
               </span>
             </h2>
-            <p className="text-slate-400 text-lg">
+            <p className={`text-lg ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
               Whether you're a student, teacher, or parent — reach out and we'll get back to you soon.
             </p>
           </motion.div>
@@ -123,10 +125,18 @@ export function ContactSection() {
           {/* Contact Form Card */}
           <motion.div
             variants={itemVariants}
-            className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl"
+            className={`relative backdrop-blur-xl rounded-2xl p-8 shadow-2xl ${
+              isDark
+                ? 'bg-white/5 border border-white/10'
+                : 'bg-white border border-slate-200 shadow-lg'
+            }`}
           >
             {/* Card glow */}
-            <div className="absolute -z-10 inset-0 bg-gradient-to-br from-violet-500/10 via-transparent to-emerald-500/10 rounded-2xl" />
+            <div className={`absolute -z-10 inset-0 rounded-2xl ${
+              isDark
+                ? 'bg-gradient-to-br from-violet-500/10 via-transparent to-emerald-500/10'
+                : 'bg-gradient-to-br from-violet-500/5 via-transparent to-emerald-500/5'
+            }`} />
 
             {isSubmitted ? (
               <motion.div
@@ -142,14 +152,13 @@ export function ContactSection() {
                 >
                   <CheckCircle className="w-10 h-10 text-white" />
                 </motion.div>
-                <h3 className="text-2xl font-bold text-white mb-2">Thank You!</h3>
-                <p className="text-slate-400">Your message has been sent successfully.</p>
+                <h3 className={`text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>Thank You!</h3>
+                <p className={isDark ? 'text-slate-400' : 'text-slate-500'}>Your message has been sent successfully.</p>
               </motion.div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Name Field */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-white/80 flex items-center gap-2">
+                  <label className={`text-sm font-medium flex items-center gap-2 ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
                     <User className="w-4 h-4" />
                     Your Name
                   </label>
@@ -157,18 +166,17 @@ export function ContactSection() {
                     placeholder="John Doe"
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
-                    className={`bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-violet-500/50 h-12 ${
-                      errors.name ? 'border-red-500/50' : ''
-                    }`}
+                    className={`h-12 ${
+                      isDark
+                        ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-violet-500/50'
+                        : 'bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-violet-500/50'
+                    } ${errors.name ? 'border-red-500/50' : ''}`}
                   />
-                  {errors.name && (
-                    <p className="text-red-400 text-sm">{errors.name}</p>
-                  )}
+                  {errors.name && <p className="text-red-400 text-sm">{errors.name}</p>}
                 </div>
 
-                {/* Email Field */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-white/80 flex items-center gap-2">
+                  <label className={`text-sm font-medium flex items-center gap-2 ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
                     <Mail className="w-4 h-4" />
                     Email Address
                   </label>
@@ -177,18 +185,17 @@ export function ContactSection() {
                     placeholder="john@example.com"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
-                    className={`bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-violet-500/50 h-12 ${
-                      errors.email ? 'border-red-500/50' : ''
-                    }`}
+                    className={`h-12 ${
+                      isDark
+                        ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-violet-500/50'
+                        : 'bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-violet-500/50'
+                    } ${errors.email ? 'border-red-500/50' : ''}`}
                   />
-                  {errors.email && (
-                    <p className="text-red-400 text-sm">{errors.email}</p>
-                  )}
+                  {errors.email && <p className="text-red-400 text-sm">{errors.email}</p>}
                 </div>
 
-                {/* Message Field */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-white/80 flex items-center gap-2">
+                  <label className={`text-sm font-medium flex items-center gap-2 ${isDark ? 'text-white/80' : 'text-slate-700'}`}>
                     <MessageSquare className="w-4 h-4" />
                     Your Message
                   </label>
@@ -197,16 +204,15 @@ export function ContactSection() {
                     value={formData.message}
                     onChange={(e) => handleInputChange('message', e.target.value)}
                     rows={5}
-                    className={`bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-violet-500/50 resize-none ${
-                      errors.message ? 'border-red-500/50' : ''
-                    }`}
+                    className={`resize-none ${
+                      isDark
+                        ? 'bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-violet-500/50'
+                        : 'bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-violet-500/50'
+                    } ${errors.message ? 'border-red-500/50' : ''}`}
                   />
-                  {errors.message && (
-                    <p className="text-red-400 text-sm">{errors.message}</p>
-                  )}
+                  {errors.message && <p className="text-red-400 text-sm">{errors.message}</p>}
                 </div>
 
-                {/* Submit Button */}
                 <Button
                   type="submit"
                   disabled={isSubmitting}

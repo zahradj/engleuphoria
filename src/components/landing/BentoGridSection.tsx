@@ -257,7 +257,7 @@ export function BentoGridSection() {
                     key={i}
                     src={src}
                     alt="Teacher"
-                    className={`w-11 h-11 rounded-full border-2 object-cover ${isDark ? 'border-[#09090B]' : 'border-[#FAFAFA]'}`}
+                    className={`w-11 h-11 rounded-full border-2 object-cover grayscale hover:grayscale-0 transition-all duration-500 ${isDark ? 'border-[#09090B]' : 'border-[#FAFAFA]'}`}
                     initial={{ x: -10, opacity: 0 }}
                     whileInView={{ x: 0, opacity: 1 }}
                     viewport={{ once: true }}
