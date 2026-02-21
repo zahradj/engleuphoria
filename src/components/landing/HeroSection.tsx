@@ -94,6 +94,24 @@ function SocialProofRibbon({ isDark }: { isDark: boolean }) {
   );
 }
 
+/* Film Grain Overlay — uses inline SVG feTurbulence, zero network requests */
+function FilmGrain({ isDark }: { isDark: boolean }) {
+  return (
+    <div
+      className="absolute inset-0 pointer-events-none z-[1] animate-grain"
+      style={{ mixBlendMode: 'overlay', opacity: isDark ? 0.035 : 0.025 }}
+    >
+      <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+        <filter id="heroGrain">
+          <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
+          <feColorMatrix type="saturate" values="0" />
+        </filter>
+        <rect width="100%" height="100%" filter="url(#heroGrain)" />
+      </svg>
+    </div>
+  );
+}
+
 export function HeroSection() {
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
@@ -136,6 +154,9 @@ export function HeroSection() {
           : 'bg-gradient-to-b from-[#FAFAFA] via-slate-50 to-[#FAFAFA]'
       }`} />
 
+      {/* Film Grain Overlay */}
+      <FilmGrain isDark={isDark} />
+
       {/* Light-mode ink bleed corners */}
       {!isDark && (
         <>
@@ -168,9 +189,29 @@ export function HeroSection() {
 
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 sm:px-6 text-center py-32">
+
+        {/* Euphoria Ring — breathing glow behind headline */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-0">
+          <div
+            className="w-[200px] h-[200px] md:w-[300px] md:h-[300px] rounded-full animate-euphoria-ring"
+            style={{
+              border: '2px solid transparent',
+              background: isDark
+                ? 'radial-gradient(circle, transparent 60%, rgba(99,102,241,0.08) 100%)'
+                : 'radial-gradient(circle, transparent 60%, rgba(251,191,36,0.06) 100%)',
+              boxShadow: isDark
+                ? '0 0 60px rgba(99,102,241,0.3), 0 0 120px rgba(139,92,246,0.15), inset 0 0 60px rgba(99,102,241,0.1)'
+                : '0 0 60px rgba(251,191,36,0.2), 0 0 120px rgba(52,211,153,0.1), inset 0 0 60px rgba(251,191,36,0.05)',
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+            }}
+          />
+        </div>
+
         {/* Headline — Full Gradient Clip-Path */}
         <motion.h1
-          className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight mb-6 leading-[1.05] bg-clip-text text-transparent animate-gradient-text"
+          className={`font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight mb-6 leading-[1.05] bg-clip-text text-transparent animate-gradient-text relative z-10 ${isDark ? 'text-glow' : 'text-ink'}`}
           style={{
             backgroundImage: isDark
               ? 'linear-gradient(90deg, #818cf8, #34d399, #fbbf24, #a78bfa, #818cf8)'
@@ -181,26 +222,26 @@ export function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
         >
-          English Mastery,
+          Find Your Voice
           <br />
-          Accelerated.
+          in a Global World.
         </motion.h1>
 
         {/* Subheadline */}
         <motion.p
-          className={`text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed transition-colors duration-300 ${
+          className={`text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed transition-colors duration-300 relative z-10 ${
             isDark ? 'text-slate-400' : 'text-slate-600'
           }`}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          One platform. Three worlds. Unlimited potential. Welcome to the future of fluency.
+          The Human-First Academy where language meets intuition.
         </motion.p>
 
         {/* Glassmorphic Pill Buttons */}
         <motion.div
-          className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8"
+          className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8 relative z-10"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
@@ -234,7 +275,7 @@ export function HeroSection() {
 
         {/* World Taglines */}
         <motion.div
-          className="flex flex-col items-center gap-2 mb-16"
+          className="flex flex-col items-center gap-2 mb-16 relative z-10"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.7 }}
@@ -254,7 +295,9 @@ export function HeroSection() {
         </motion.div>
 
         {/* Social Proof */}
-        <SocialProofRibbon isDark={isDark} />
+        <div className="relative z-10">
+          <SocialProofRibbon isDark={isDark} />
+        </div>
       </div>
 
       {/* Scroll Indicator */}

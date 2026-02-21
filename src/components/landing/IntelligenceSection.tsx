@@ -18,6 +18,8 @@ function getAxisEnd(index: number, total: number, radius: number, cx: number, cy
   return { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) };
 }
 
+const MENTOR_IMG = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop&crop=face';
+
 const feedCards = [
   {
     label: 'Adults',
@@ -74,7 +76,7 @@ export function IntelligenceSection() {
             <Brain className="w-4 h-4" />
             Smart Learning
           </span>
-          <h2 className={`text-4xl md:text-5xl font-bold tracking-tight mb-4 transition-colors duration-300 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+          <h2 className={`text-4xl md:text-5xl font-bold tracking-tight mb-4 transition-colors duration-300 ${isDark ? 'text-white text-glow' : 'text-slate-900 text-ink'}`}>
             Personalized for You.{' '}
             <span className="bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent">
               Perfected by Human Mentors.
@@ -87,7 +89,7 @@ export function IntelligenceSection() {
 
         {/* Content Grid */}
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center max-w-6xl mx-auto">
-          {/* Skill Radar */}
+          {/* Mentor Spotlight — Teacher portrait with radar overlay */}
           <motion.div
             className="flex justify-center"
             initial={{ opacity: 0, scale: 0.8 }}
@@ -95,77 +97,91 @@ export function IntelligenceSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.7 }}
           >
-            <div className="relative">
-              <svg width="300" height="300" viewBox="0 0 300 300" className="drop-shadow-2xl">
-                {[0.25, 0.5, 0.75, 1].map((scale) => (
-                  <polygon
-                    key={scale}
-                    points={getPolygonPoints(Array(5).fill(scale), radius, cx, cy)}
-                    fill="none"
-                    stroke={gridStroke}
-                    strokeWidth="1"
-                  />
-                ))}
-                {skills.map((_, i) => {
-                  const end = getAxisEnd(i, 5, radius, cx, cy);
-                  return <line key={i} x1={cx} y1={cy} x2={end.x} y2={end.y} stroke={axisStroke} strokeWidth="1" />;
-                })}
-                <motion.polygon
-                  points={getPolygonPoints(isInView ? skillValues : Array(5).fill(0), radius, cx, cy)}
-                  fill="url(#radarGradient)"
-                  stroke="url(#radarStroke)"
-                  strokeWidth="2"
-                  initial={{ opacity: 0 }}
-                  animate={isInView ? { opacity: 1 } : {}}
-                  transition={{ duration: 1, delay: 0.3 }}
+            <div className="relative group">
+              {/* Mentor Portrait */}
+              <div
+                className="w-[250px] h-[250px] md:w-[300px] md:h-[300px] rounded-full overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-700"
+                style={{
+                  boxShadow: isDark
+                    ? '0 0 40px rgba(99,102,241,0.25), 0 0 80px rgba(52,211,153,0.1)'
+                    : '0 0 40px rgba(99,102,241,0.15), 0 0 60px rgba(52,211,153,0.08)',
+                }}
+              >
+                <img
+                  src={MENTOR_IMG}
+                  alt="Mentor"
+                  className="w-full h-full object-cover"
                 />
-                {skillValues.map((v, i) => {
-                  const end = getAxisEnd(i, 5, (isInView ? v : 0) * radius, cx, cy);
-                  return (
-                    <motion.circle
-                      key={i}
-                      cx={end.x} cy={end.y} r="4"
-                      fill={isDark ? 'white' : '#1e293b'}
-                      initial={{ opacity: 0, r: 0 }}
-                      animate={isInView ? { opacity: 1, r: 4 } : {}}
-                      transition={{ duration: 0.5, delay: 0.5 + i * 0.1 }}
-                    />
-                  );
-                })}
-                {skills.map((skill, i) => {
-                  const end = getAxisEnd(i, 5, radius + 24, cx, cy);
-                  return (
-                    <text key={skill} x={end.x} y={end.y} textAnchor="middle" dominantBaseline="middle" className={`text-xs font-medium ${isDark ? 'fill-slate-400' : 'fill-slate-500'}`}>
-                      {skill}
-                    </text>
-                  );
-                })}
-                <defs>
-                  <linearGradient id="radarGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="rgba(99,102,241,0.25)" />
-                    <stop offset="100%" stopColor="rgba(52,211,153,0.15)" />
-                  </linearGradient>
-                  <linearGradient id="radarStroke" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#6366f1" />
-                    <stop offset="100%" stopColor="#34d399" />
-                  </linearGradient>
-                </defs>
-              </svg>
+              </div>
 
-              {/* Floating label */}
-              <motion.div
-                className={`absolute -bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full backdrop-blur-xl text-xs font-medium ${
-                  isDark
-                    ? 'bg-white/5 border border-white/10 text-slate-300'
-                    : 'bg-white/70 border border-slate-200 text-slate-600'
-                }`}
+              {/* Radar overlay on top of portrait */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <svg width="300" height="300" viewBox="0 0 300 300" className="w-full h-full opacity-50 group-hover:opacity-70 transition-opacity duration-500">
+                  {[0.25, 0.5, 0.75, 1].map((scale) => (
+                    <polygon
+                      key={scale}
+                      points={getPolygonPoints(Array(5).fill(scale), radius, cx, cy)}
+                      fill="none"
+                      stroke={isDark ? 'rgba(255,255,255,0.15)' : 'rgba(99,102,241,0.2)'}
+                      strokeWidth="1"
+                    />
+                  ))}
+                  {skills.map((_, i) => {
+                    const end = getAxisEnd(i, 5, radius, cx, cy);
+                    return <line key={i} x1={cx} y1={cy} x2={end.x} y2={end.y} stroke={axisStroke} strokeWidth="1" />;
+                  })}
+                  <motion.polygon
+                    points={getPolygonPoints(isInView ? skillValues : Array(5).fill(0), radius, cx, cy)}
+                    fill="url(#radarGradient)"
+                    stroke="url(#radarStroke)"
+                    strokeWidth="2"
+                    initial={{ opacity: 0 }}
+                    animate={isInView ? { opacity: 1 } : {}}
+                    transition={{ duration: 1, delay: 0.3 }}
+                  />
+                  {skillValues.map((v, i) => {
+                    const end = getAxisEnd(i, 5, (isInView ? v : 0) * radius, cx, cy);
+                    return (
+                      <motion.circle
+                        key={i}
+                        cx={end.x} cy={end.y} r="4"
+                        fill={isDark ? 'white' : '#6366f1'}
+                        initial={{ opacity: 0, r: 0 }}
+                        animate={isInView ? { opacity: 1, r: 4 } : {}}
+                        transition={{ duration: 0.5, delay: 0.5 + i * 0.1 }}
+                      />
+                    );
+                  })}
+                  {skills.map((skill, i) => {
+                    const end = getAxisEnd(i, 5, radius + 24, cx, cy);
+                    return (
+                      <text key={skill} x={end.x} y={end.y} textAnchor="middle" dominantBaseline="middle" className={`text-xs font-semibold ${isDark ? 'fill-white/80' : 'fill-indigo-600/80'}`}>
+                        {skill}
+                      </text>
+                    );
+                  })}
+                  <defs>
+                    <linearGradient id="radarGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="rgba(99,102,241,0.25)" />
+                      <stop offset="100%" stopColor="rgba(52,211,153,0.15)" />
+                    </linearGradient>
+                    <linearGradient id="radarStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#6366f1" />
+                      <stop offset="100%" stopColor="#34d399" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+
+              {/* Caption */}
+              <motion.p
+                className={`text-center mt-6 text-sm font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}
                 initial={{ opacity: 0, y: 10 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
                 transition={{ delay: 1.2 }}
               >
-                <Zap className={`w-3 h-3 inline mr-1 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`} />
-                Your Skill Radar
-              </motion.div>
+                Data-driven insights. Mentor-led inspiration.
+              </motion.p>
             </div>
           </motion.div>
 

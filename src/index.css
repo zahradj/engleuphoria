@@ -461,3 +461,56 @@
   animation: path-dash 2s ease-out forwards;
 }
 
+/* Cinematic Typography Effects */
+.text-glow {
+  text-shadow: 0 0 10px currentColor, 0 0 30px currentColor;
+}
+
+.text-ink {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+/* Film Grain Filter */
+@keyframes grain-shift {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-2%, -3%); }
+  30% { transform: translate(3%, 2%); }
+  50% { transform: translate(-1%, 3%); }
+  70% { transform: translate(2%, -1%); }
+  90% { transform: translate(-3%, 1%); }
+}
+
+.animate-grain {
+  animation: grain-shift 0.5s steps(3) infinite;
+}
+
+/* Gradient text animation */
+@keyframes gradient-text-flow {
+  0% { background-position: 0% center; }
+  100% { background-position: -200% center; }
+}
+
+.animate-gradient-text {
+  animation: gradient-text-flow 6s linear infinite;
+}
+
+/* Euphoria Ring breathing */
+@keyframes euphoria-breathe {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+  50% { transform: translate(-50%, -50%) scale(1.08); opacity: 0.6; }
+}
+
+.animate-euphoria-ring {
+  animation: euphoria-breathe 4s ease-in-out infinite;
+}
+
+/* Circle ripple for theme transition */
+@keyframes ripple-expand {
+  from { clip-path: circle(0% at var(--ripple-x) var(--ripple-y)); }
+  to { clip-path: circle(150vmax at var(--ripple-x) var(--ripple-y)); }
+}
+
+.theme-ripple {
+  animation: ripple-expand 0.7s ease-out forwards;
+}
+
