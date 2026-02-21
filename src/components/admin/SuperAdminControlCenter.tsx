@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import { 
   Users, Activity, Eye, Edit2, Check, X, 
   GraduationCap, BookOpen, TrendingUp, Video,
-  RefreshCw, Search, Filter, UserCheck, DollarSign
+  RefreshCw, Search, Filter, UserCheck, DollarSign,
+  HeartPulse, Bell, Signal, SignalMedium, SignalLow
 } from 'lucide-react';
 import { SalesPanel } from './SalesPanel';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -55,7 +56,7 @@ export const SuperAdminControlCenter: React.FC = () => {
   const [filterLevel, setFilterLevel] = useState('all');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newLevel, setNewLevel] = useState('');
-  const [activeTab, setActiveTab] = useState<'analytics' | 'monitor' | 'override' | 'sales'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'monitor' | 'override' | 'sales' | 'pulse'>('analytics');
 
   // Stats summary
   const [stats, setStats] = useState({ totalStudents: 0, totalTeachers: 0, activeNow: 0 });
@@ -174,11 +175,12 @@ export const SuperAdminControlCenter: React.FC = () => {
 
   // ─── Tabs ──────────────────────────────────────────────────────────────────
   const tabs = [
-    { id: 'analytics', label: 'Global Analytics', icon: <TrendingUp className="w-4 h-4" /> },
-    { id: 'monitor', label: 'Live Monitor', icon: <Activity className="w-4 h-4" /> },
-    { id: 'override', label: 'Manual Override', icon: <Edit2 className="w-4 h-4" /> },
-    { id: 'sales', label: 'Sales & Revenue', icon: <DollarSign className="w-4 h-4" /> },
-  ] as const;
+    { id: 'analytics' as const, label: 'Global Analytics', icon: <TrendingUp className="w-4 h-4" /> },
+    { id: 'monitor' as const, label: 'Live Monitor', icon: <Activity className="w-4 h-4" /> },
+    { id: 'override' as const, label: 'Manual Override', icon: <Edit2 className="w-4 h-4" /> },
+    { id: 'sales' as const, label: 'Sales & Revenue', icon: <DollarSign className="w-4 h-4" /> },
+    { id: 'pulse' as const, label: 'Classroom Pulse', icon: <HeartPulse className="w-4 h-4" /> },
+  ];
 
   return (
     <div className="space-y-6">
@@ -528,6 +530,97 @@ export const SuperAdminControlCenter: React.FC = () => {
       {activeTab === 'sales' && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
           <SalesPanel />
+        </motion.div>
+      )}
+
+      {/* ─── CLASSROOM PULSE (Emergency View) ─────────────────────────────── */}
+      {activeTab === 'pulse' && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+          {/* Summary bar */}
+          <div className="flex items-center gap-4 p-4 rounded-lg bg-muted/50 border border-border">
+            <HeartPulse className="w-5 h-5 text-red-500 animate-pulse" />
+            <span className="text-sm font-medium">
+              {liveSessions.length} class{liveSessions.length !== 1 ? 'es' : ''} live
+            </span>
+            <Badge variant="default" className="bg-green-600">
+              {liveSessions.length} healthy
+            </Badge>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <HeartPulse className="w-5 h-5 text-red-500" />
+                Live Classroom Pulse
+              </CardTitle>
+              <CardDescription>
+                Emergency view — monitor active sessions and intervene if needed
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {sessionsLoading ? (
+                <div className="text-center text-muted-foreground py-8">Loading sessions...</div>
+              ) : liveSessions.length === 0 ? (
+                <div className="text-center py-12">
+                  <HeartPulse className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-40" />
+                  <p className="text-muted-foreground">No active sessions right now</p>
+                </div>
+              ) : (
+                <div className="grid gap-3">
+                  {liveSessions.map(session => {
+                    const elapsed = session.started_at
+                      ? Math.round((Date.now() - new Date(session.started_at).getTime()) / 60000)
+                      : 0;
+                    return (
+                      <div
+                        key={session.id}
+                        className="flex items-center justify-between p-4 rounded-lg bg-muted/50 border border-border"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
+                          <div>
+                            <p className="font-medium text-sm">
+                              Teacher: {session.teacher_name}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Room: <span className="font-mono">{session.room_id}</span> · {elapsed} min elapsed
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="default" className="bg-green-600 text-xs gap-1">
+                            <Signal className="w-3 h-3" />
+                            Connected
+                          </Badge>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={async () => {
+                              try {
+                                await supabase.from('notifications').insert({
+                                  user_id: session.teacher_id,
+                                  title: 'Admin Alert',
+                                  content: 'Admin is monitoring your session. Please check your connection if you experience issues.',
+                                  type: 'admin_alert',
+                                });
+                                toast.success('Teacher notified');
+                              } catch {
+                                toast.error('Failed to notify teacher');
+                              }
+                            }}
+                            className="gap-1 text-xs"
+                          >
+                            <Bell className="w-3 h-3" />
+                            Notify
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </motion.div>
       )}
     </div>

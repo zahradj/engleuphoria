@@ -19,6 +19,9 @@ import {
 } from "lucide-react";
 import { useMediaContext } from "@/components/classroom/oneonone/video/MediaContext";
 import { useSmartTimer } from "@/hooks/classroom/useSmartTimer";
+import { useConnectionHealth } from "@/hooks/useConnectionHealth";
+import { Signal, SignalMedium, SignalLow } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface UserProfile {
   id: string;
@@ -49,8 +52,11 @@ export function UnifiedTopBar({
   sessionDuration = 25
 }: UnifiedTopBarProps) {
   const smartTimer = useSmartTimer(classTime, sessionDuration);
-  // Use MediaContext for actual video controls
   const media = useMediaContext();
+  const { quality, latencyMs, suggestion } = useConnectionHealth();
+
+  const ConnectionIcon = quality === 'good' ? Signal : quality === 'fair' ? SignalMedium : SignalLow;
+  const connectionColor = quality === 'good' ? 'text-emerald-500' : quality === 'fair' ? 'text-yellow-500' : 'text-red-500';
   
   const {
     participants,
@@ -108,6 +114,21 @@ export function UnifiedTopBar({
               {media.isConnected ? 'Live' : 'Ready'}
             </span>
           </div>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-1 px-2 py-1 glass-subtle rounded-full backdrop-blur-sm cursor-default">
+                  <ConnectionIcon size={12} className={connectionColor} />
+                  <span className={`text-xs font-medium ${connectionColor}`}>{latencyMs}ms</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Connection: {quality}</p>
+                {suggestion && <p className="text-xs mt-1 max-w-[200px]">{suggestion}</p>}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           
           {participants && participants.length > 0 && (
             <div className="flex items-center gap-1 px-3 py-1 glass-subtle rounded-full backdrop-blur-sm">
