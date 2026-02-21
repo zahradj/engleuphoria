@@ -63,7 +63,7 @@ const features = [
 
 const valueBullets = [
   { icon: Timer, text: '55-Min Sessions' },
-  { icon: Cpu, text: 'AI-Powered Curriculum' },
+  { icon: Cpu, text: 'Adaptive Curriculum' },
   { icon: UserCheck, text: 'Verified Native Teachers' },
 ];
 

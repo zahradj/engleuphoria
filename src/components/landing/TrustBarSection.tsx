@@ -17,8 +17,8 @@ const trustItems = [
   },
   {
     icon: Brain,
-    title: 'Certified AI Curriculum',
-    description: 'CEFR-aligned, AI-powered lesson plans.',
+    title: 'Certified Curriculum',
+    description: 'CEFR-aligned, expertly crafted lesson plans.',
     accent: 'text-amber-400 bg-amber-500/10',
   },
 ];

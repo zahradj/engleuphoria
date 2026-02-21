@@ -72,16 +72,16 @@ export function IntelligenceSection() {
             isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-100 text-indigo-600'
           }`}>
             <Brain className="w-4 h-4" />
-            AI-Powered Learning
+            Smart Learning
           </span>
           <h2 className={`text-4xl md:text-5xl font-bold tracking-tight mb-4 transition-colors duration-300 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-            Personalized by AI.{' '}
+            Personalized for You.{' '}
             <span className="bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent">
               Perfected by Human Mentors.
             </span>
           </h2>
           <p className={`text-lg max-w-2xl mx-auto ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            Our AI maps your strengths, adapts your curriculum, and delivers lessons tailored to your interests.
+            Our system maps your strengths, adapts your curriculum, and delivers lessons tailored to your interests.
           </p>
         </motion.div>
 

@@ -227,10 +227,10 @@ export function BentoGridSection() {
           >
             <div className={`absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent rounded-[32px] ${hoverOverlayClass}`} />
             <div className="relative h-full flex flex-col">
-              <h3 className={`font-display text-2xl font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>AI Skill Radar</h3>
+              <h3 className={`font-display text-2xl font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>Skill Radar</h3>
               <p className={`text-sm mb-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
                 {radarHovered
-                  ? 'AI-Adjusted Curriculum: Your path evolves as you do.'
+                  ? 'Adaptive Curriculum: Your path evolves as you do.'
                   : 'Real-time tracking of your vocabulary, grammar, and fluency.'}
               </p>
               <div className="flex-1 flex items-center justify-center">
@@ -300,7 +300,7 @@ export function BentoGridSection() {
                 </div>
               </motion.div>
               <h3 className={`font-display text-sm font-bold mt-3 mb-0.5 ${isDark ? 'text-white' : 'text-slate-900'}`}>Daily Feed</h3>
-              <p className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>AI-curated challenges</p>
+              <p className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Curated daily challenges</p>
             </div>
           </motion.div>
 
