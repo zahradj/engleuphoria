@@ -45,7 +45,7 @@ export function IntelligenceSection() {
   const cx = 150, cy = 150, radius = 110;
 
   return (
-    <section ref={ref} className="py-24 bg-slate-950 relative overflow-hidden">
+    <section id="intelligence" ref={ref} className="py-24 bg-slate-950 relative overflow-hidden scroll-mt-20">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-indigo-500/5 via-transparent to-transparent" />
 
       <div className="container mx-auto px-4 sm:px-6 relative z-10">

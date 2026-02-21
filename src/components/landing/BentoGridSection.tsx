@@ -27,7 +27,7 @@ const itemVariants = {
 
 export function BentoGridSection() {
   return (
-    <section className="relative py-24 px-6 md:px-12 lg:px-24 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 overflow-hidden">
+    <section id="features" className="relative py-24 px-6 md:px-12 lg:px-24 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 overflow-hidden scroll-mt-20">
       {/* Background Effects */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-1/4 -left-1/4 w-96 h-96 bg-violet-500/20 rounded-full blur-3xl" />

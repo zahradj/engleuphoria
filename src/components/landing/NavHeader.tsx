@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, GraduationCap, Home, DollarSign, Info } from 'lucide-react';
+import { Menu, X, GraduationCap, Home, DollarSign, Info, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThemeModeToggle } from '@/components/ui/ThemeModeToggle';
+import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
 import logoDark from '@/assets/logo-dark.png';
 
 export function NavHeader() {
@@ -30,11 +31,8 @@ export function NavHeader() {
     };
   }, [isMobileMenuOpen]);
 
-  const scrollToPricing = () => {
-    const pricingSection = document.getElementById('pricing');
-    if (pricingSection) {
-      pricingSection.scrollIntoView({ behavior: 'smooth' });
-    }
+  const scrollToSection = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
     setIsMobileMenuOpen(false);
   };
 
@@ -61,14 +59,20 @@ export function NavHeader() {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-8">
-              <Link
-                to="/about"
+              <button
+                onClick={() => scrollToSection('features')}
                 className="text-white/80 hover:text-white transition-colors font-medium"
               >
-                About
-              </Link>
+                Features
+              </button>
               <button
-                onClick={scrollToPricing}
+                onClick={() => scrollToSection('how-it-works')}
+                className="text-white/80 hover:text-white transition-colors font-medium"
+              >
+                How It Works
+              </button>
+              <button
+                onClick={() => scrollToSection('pricing')}
                 className="text-white/80 hover:text-white transition-colors font-medium"
               >
                 Pricing
@@ -84,6 +88,9 @@ export function NavHeader() {
 
             {/* Desktop Auth Buttons */}
             <div className="hidden md:flex items-center gap-3">
+              <div className="[&_button]:text-white/80 [&_button]:hover:text-white [&_button]:hover:bg-white/10 [&_button]:border-white/20">
+                <LanguageSwitcher />
+              </div>
               <ThemeModeToggle className="text-white/80 hover:text-white hover:bg-white/10" />
               <Link to="/login">
                 <Button variant="ghost" className="text-white/80 hover:text-white hover:bg-white/10">
@@ -157,16 +164,22 @@ export function NavHeader() {
                     <Home className="w-5 h-5" />
                     Home
                   </Link>
-                  <Link
-                    to="/about"
-                    onClick={closeMobileMenu}
-                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/80 hover:text-white hover:bg-white/5 transition-colors"
+                  <button
+                    onClick={() => scrollToSection('features')}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/80 hover:text-white hover:bg-white/5 transition-colors w-full text-left"
                   >
                     <Info className="w-5 h-5" />
-                    About
-                  </Link>
+                    Features
+                  </button>
                   <button
-                    onClick={scrollToPricing}
+                    onClick={() => scrollToSection('how-it-works')}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/80 hover:text-white hover:bg-white/5 transition-colors w-full text-left"
+                  >
+                    <Lightbulb className="w-5 h-5" />
+                    How It Works
+                  </button>
+                  <button
+                    onClick={() => scrollToSection('pricing')}
                     className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/80 hover:text-white hover:bg-white/5 transition-colors w-full text-left"
                   >
                     <DollarSign className="w-5 h-5" />
@@ -185,6 +198,12 @@ export function NavHeader() {
                 {/* Theme Toggle */}
                 <div className="py-4 border-t border-white/10">
                   <div className="flex items-center justify-between px-4">
+                    <span className="text-white/60 text-sm">Language</span>
+                    <div className="[&_button]:text-white/80 [&_button]:hover:text-white [&_button]:hover:bg-white/10 [&_button]:border-white/20">
+                      <LanguageSwitcher />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between px-4 mt-2">
                     <span className="text-white/60 text-sm">Theme</span>
                     <ThemeModeToggle className="text-white/80 hover:text-white hover:bg-white/10" />
                   </div>

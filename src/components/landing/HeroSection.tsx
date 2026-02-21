@@ -1,6 +1,27 @@
-import { motion } from 'framer-motion';
+import { motion, useInView } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Sparkles, Rocket, Briefcase, Globe, Users } from 'lucide-react';
+import { useRef, useEffect, useState, useCallback } from 'react';
+
+function useCountUp(target: number, duration = 2000) {
+  const [count, setCount] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: true, margin: '-50px' });
+
+  useEffect(() => {
+    if (!isInView) return;
+    const start = performance.now();
+    const step = (now: number) => {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+      setCount(Math.round(eased * target));
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }, [isInView, target, duration]);
+
+  return { ref, count };
+}
 
 const portals = [
   {
@@ -53,6 +74,33 @@ const portals = [
   },
 ];
 
+function SocialProofRibbon() {
+  const students = useCountUp(2500);
+  const countries = useCountUp(30);
+
+  return (
+    <motion.div
+      className="inline-flex items-center gap-3 px-6 py-3 rounded-full backdrop-blur-xl bg-white/5 border border-white/10"
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: 0.4, duration: 0.5 }}
+    >
+      <div className="flex -space-x-2">
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center text-xs text-white font-bold border-2 border-slate-950">
+          <Users className="w-4 h-4" />
+        </div>
+      </div>
+      <div className="flex items-center gap-2 text-sm">
+        <Globe className="w-4 h-4 text-indigo-400" />
+        <span className="text-slate-300">
+          <span ref={students.ref} className="text-white font-semibold">{students.count.toLocaleString()}+</span> students from{' '}
+          <span ref={countries.ref} className="text-white font-semibold">{countries.count}+</span> countries
+        </span>
+      </div>
+    </motion.div>
+  );
+}
+
 export function HeroSection() {
   return (
     <section className="relative pt-32 pb-24 bg-slate-950 overflow-hidden">
@@ -78,24 +126,7 @@ export function HeroSection() {
           </p>
 
           {/* Social Proof Ribbon */}
-          <motion.div
-            className="inline-flex items-center gap-3 px-6 py-3 rounded-full backdrop-blur-xl bg-white/5 border border-white/10"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4, duration: 0.5 }}
-          >
-            <div className="flex -space-x-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center text-xs text-white font-bold border-2 border-slate-950">
-                <Users className="w-4 h-4" />
-              </div>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <Globe className="w-4 h-4 text-indigo-400" />
-              <span className="text-slate-300">
-                Trusted by students from <span className="text-white font-semibold">30+ countries</span>
-              </span>
-            </div>
-          </motion.div>
+          <SocialProofRibbon />
         </motion.div>
 
         {/* Three Portal Cards */}
