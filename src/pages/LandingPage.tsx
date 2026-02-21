@@ -10,7 +10,8 @@ import {
   TestimonialsSection,
   ContactSection,
   IntelligenceSection,
-  TrustBarSection
+  TrustBarSection,
+  AmbassadorSection
 } from '@/components/landing';
 
 export default function LandingPage() {
@@ -34,6 +35,7 @@ export default function LandingPage() {
       <PricingSection />
       <TestimonialsSection />
       <TrustBarSection />
+      <AmbassadorSection />
       <ContactSection />
       <FooterSection />
     </main>

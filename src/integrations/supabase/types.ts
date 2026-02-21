@@ -5614,6 +5614,51 @@ export type Database = {
           },
         ]
       }
+      referrals: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          friend_id: string
+          id: string
+          referrer_id: string
+          reward_given: boolean
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          friend_id: string
+          id?: string
+          referrer_id: string
+          reward_given?: boolean
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          friend_id?: string
+          id?: string
+          referrer_id?: string
+          reward_given?: boolean
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_friend_id_fkey"
+            columns: ["friend_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       resource_library: {
         Row: {
           age_group: string
@@ -8349,6 +8394,8 @@ export type Database = {
           id: string
           payment_locked: boolean | null
           primary_organization_id: string | null
+          referral_code: string | null
+          referred_by: string | null
           role: string
           teacher_level: string | null
           teacher_points: number | null
@@ -8365,6 +8412,8 @@ export type Database = {
           id: string
           payment_locked?: boolean | null
           primary_organization_id?: string | null
+          referral_code?: string | null
+          referred_by?: string | null
           role: string
           teacher_level?: string | null
           teacher_points?: number | null
@@ -8381,6 +8430,8 @@ export type Database = {
           id?: string
           payment_locked?: boolean | null
           primary_organization_id?: string | null
+          referral_code?: string | null
+          referred_by?: string | null
           role?: string
           teacher_level?: string | null
           teacher_points?: number | null
@@ -8399,6 +8450,13 @@ export type Database = {
             columns: ["primary_organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "users_referred_by_fkey"
+            columns: ["referred_by"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -8567,6 +8625,7 @@ export type Database = {
         Returns: undefined
       }
       cleanup_stale_classroom_sessions: { Args: never; Returns: number }
+      complete_referral: { Args: { friend_uuid: string }; Returns: undefined }
       consume_credit: { Args: { p_student_id: string }; Returns: boolean }
       create_admin_notification: {
         Args: {

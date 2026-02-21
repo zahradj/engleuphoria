@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Eye, EyeOff, CheckCircle, XCircle, Mail, Lock, User, GraduationCap, BookOpen, Sparkles, Shield, Calendar } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useSearchParams } from 'react-router-dom';
 
 interface SimpleAuthFormProps {
   mode: 'login' | 'signup';
@@ -58,6 +59,8 @@ const passwordRequirements = [
 ];
 
 export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChange }) => {
+  const [searchParams] = useSearchParams();
+  const refCode = searchParams.get('ref') || '';
   const [formData, setFormData] = useState<FormData>({
     fullName: '',
     email: '',
@@ -189,8 +192,30 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
               });
               console.log('Manually created profile for:', formData.email);
             }
-          }
+            }
 
+            // Handle referral linking
+            if (refCode && data.user) {
+              try {
+                const { data: referrer } = await supabase
+                  .from('users')
+                  .select('id')
+                  .eq('referral_code', refCode)
+                  .maybeSingle();
+
+                if (referrer) {
+                  await supabase.from('users').update({ referred_by: referrer.id }).eq('id', data.user.id);
+                  await supabase.from('referrals').insert({
+                    referrer_id: referrer.id,
+                    friend_id: data.user.id,
+                    status: 'pending'
+                  });
+                  console.log('Referral linked successfully for code:', refCode);
+                }
+              } catch (refErr) {
+                console.error('Error linking referral:', refErr);
+              }
+            }
           toast({
             title: "Account Created!",
             description: systemTag ? `You've been assigned to the ${systemTag} program.` : "Please check your email to verify."

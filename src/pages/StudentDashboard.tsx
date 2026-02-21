@@ -24,6 +24,7 @@ import { SettingsTab } from "@/components/student/SettingsTab";
 import { QuickActions } from "@/components/navigation/QuickActions";
 import { AssessmentsTab } from "@/components/student/tabs/AssessmentsTab";
 import { CertificatesTab } from "@/components/student/tabs/CertificatesTab";
+import { ReferralTab } from "@/components/student/tabs/ReferralTab";
 
 
 const StudentDashboard = () => {
@@ -139,6 +140,7 @@ const StudentDashboard = () => {
       "upcoming-classes": () => <UpcomingClassesTab />,
       speaking: () => <SpeakingPracticeTab />,
       billing: () => <EnhancedBillingTab />,
+      referrals: () => <ReferralTab />,
       profile: () => <ProfileTab studentName={studentName} />,
       settings: () => <SettingsTab />,
     };

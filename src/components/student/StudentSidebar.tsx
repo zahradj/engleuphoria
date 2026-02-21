@@ -12,7 +12,8 @@ import {
   Map,
   Sparkles,
   LogOut,
-  Video
+  Video,
+  Gift
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -59,6 +60,7 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
     { id: 'upcoming-classes', label: 'Classes', icon: Calendar },
     { id: 'homework', label: 'Homework', icon: BookOpen },
     { id: 'progress', label: 'Progress', icon: TrendingUp },
+    { id: 'referrals', label: 'Invite Friends', icon: Gift, badge: 'New' },
     { id: 'profile', label: 'Profile', icon: User }
   ];
 
