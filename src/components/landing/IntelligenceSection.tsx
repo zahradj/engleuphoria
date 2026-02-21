@@ -18,7 +18,8 @@ function getAxisEnd(index: number, total: number, radius: number, cx: number, cy
   return { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) };
 }
 
-const MENTOR_IMG = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop&crop=face';
+import mentorPortrait from '@/assets/mentor-portrait.jpg';
+const MENTOR_IMG = mentorPortrait;
 
 const feedCards = [
   {
