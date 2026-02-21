@@ -1,179 +1,120 @@
 
 
-# Dual-Mood Theme System: Dark Glass + Pearl Light Mode
+# Landing Page V4: "Spatial Glass & Kinetic Typography" Polish
 
 ## Overview
 
-Make the entire landing page theme-aware so it responds to the existing dark/light toggle. Currently, all landing components hardcode dark backgrounds (`bg-[#09090B]`, white text, `bg-white/[0.04]` cards). This plan replaces those hardcoded values with Tailwind `dark:` variants, creating two distinct visual moods: "Spatial" (dark) and "Pearl" (light).
+This is an iterative refinement pass over the existing landing page, upgrading six areas: (1) global font swap to Outfit, (2) hero section with kinetic gradient text and updated copy, (3) Bento grid with 32px super-ellipse cards and floating motion, (4) interactive hover-expand skill radar in Bento, (5) pricing card "border beam" and holographic badge effects, and (6) floating bottom-center mood toggle with aura glow.
 
 ---
 
-## 1. CSS Variables Update
+## 1. Global Font: Swap to "Outfit"
 
-### Modify: `src/index.css`
+### Modify: `index.html`
+- Replace the current Plus Jakarta Sans Google Fonts link with Outfit (weights 400-800):
+  `https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap`
+- Keep Space Grotesk as secondary display font
 
-Update the `:root` (light) and `.dark` CSS variables to match the Dual-Mood palettes:
-
-**Light mode (Pearl):**
-- `--background`: Off-White/Pearl (`#FAFAFA` / `210 40% 98%`)
-- `--foreground`: Slate Black (`#0F172A` / `222 47% 11%`)
-- `--card`: 100% white
-- `--card-foreground`: Slate Black
-
-**Dark mode (Spatial):**
-- `--background`: Midnight Black (`#09090B` / `240 10% 4%`)
-- `--foreground`: Pure White (`0 0% 98%`)
-- `--card`: `240 10% 6%`
-
-No structural change to the variable system -- just tightened values for the landing page palette.
+### Modify: `tailwind.config.ts`
+- Update `fontFamily.jakarta` to `['Outfit', 'system-ui', 'sans-serif']`
+- Update `fontFamily.display` to `['Outfit', 'Space Grotesk', 'system-ui', 'sans-serif']`
+- Add new keyframes:
+  - `border-beam`: a translateX(-100%) to translateX(100%) for the border light effect on the Mastery card
+  - `shimmer`: a background-position shift for the holographic badge effect
+  - `gradient-text`: a background-position shift for kinetic text gradient animation
 
 ---
 
-## 2. Hero Section: Dual-Mood Orb + Typography
+## 2. Hero Section: Kinetic Typography + Updated Copy
 
 ### Modify: `src/components/landing/HeroSection.tsx`
 
-**Background:**
-- Replace `bg-[#09090B]` with `bg-[#FAFAFA] dark:bg-[#09090B]`
-- Replace the gradient overlay similarly with light pastels for light mode
+**Copy updates:**
+- Headline: "English Mastery, Accelerated."
+- The word "Accelerated." gets an animated moving gradient (using `background-size: 200%` and CSS `animation: gradient-text 3s ease infinite` to shift the gradient position back and forth)
+- Subheadline: "One platform. Three worlds. Unlimited potential. Welcome to the future of fluency."
 
-**The Orb:**
-- Dark mode: Keep current deep blues/purples/gold radial gradients (high contrast)
-- Light mode: Switch to soft pastels (sky blue `rgba(56,189,248,0.2)`, peach `rgba(251,146,60,0.15)`, mint `rgba(52,211,153,0.2)`) via conditional class or inline style based on `useThemeMode().resolvedTheme`
+**Orb adjustments:**
+- Dark mode: Keep current deep blues/purples but shift slightly more charcoal/navy for the "deep space" feel
+- Light mode: Softer pastels as currently implemented, but add subtle corner "ink bleed" gradients (absolutely-positioned blurred divs in corners with soft color washes -- sky blue top-left, peach bottom-right, mint top-right)
 
-**Typography:**
-- Headline: `text-slate-900 dark:text-white`
-- Gradient text span: stays the same (gradients work on both)
-- Subheadline: `text-slate-600 dark:text-slate-400`
-
-**Pill Buttons:**
-- Dark: current `bg-white/[0.04] border-white/[0.08]` with white text
-- Light: `bg-white/70 border-slate-200 text-slate-800 shadow-sm` with glow colors as deep rich versions (Navy, Amber, Emerald)
-- Hover glow colors adjust: dark uses neon rgba, light uses deeper saturated shadows
-
-**Social Proof Ribbon:**
-- Dark: current styling
-- Light: `bg-white/70 border-slate-200 text-slate-700`
-
-**Scroll Indicator:**
-- `text-slate-400/40 dark:text-white/40`
+**Pill buttons remain the same** (already glassmorphic with hover glows).
 
 ---
 
-## 3. Bento Grid: Dual-Mood Cards
+## 3. Bento Grid: Super-Ellipse Cards + Floating Motion
 
 ### Modify: `src/components/landing/BentoGridSection.tsx`
 
-**Section background:** `bg-[#FAFAFA] dark:bg-[#09090B]`
+**Card style updates:**
+- Increase corner radius from `rounded-3xl` (24px) to a custom `rounded-[32px]` for the super-ellipse look
+- Update glassmorphism values per the user's spec:
+  - Dark: `rgba(15, 23, 42, 0.6)` background with `border: 1px solid rgba(255, 255, 255, 0.1)`
+  - Light: `rgba(255, 255, 255, 0.7)` background with `border: 1px solid rgba(0, 0, 0, 0.05)`
+- Add Framer Motion "floating" effect: wrap each card's motion.div with a subtle `animate={{ y: [0, -4, 0] }}` with staggered durations (3-5s) and `repeat: Infinity` for a gentle idle float
 
-**Card style constants:**
-- Replace the `GLASS` constant with theme-aware classes:
-  - Dark: `dark:bg-white/[0.04] dark:backdrop-blur-xl dark:border-white/[0.08]`
-  - Light: `bg-white/70 border-slate-200/60 shadow-[0_8px_32px_rgba(0,0,0,0.05)]`
-- Hover behavior:
-  - Dark: Keep subtle inner glow (current `group-hover:opacity-100` gradient overlay)
-  - Light: Remove gradient overlay, add `hover:shadow-[0_16px_48px_rgba(0,0,0,0.08)]` for floating effect
+**New "Live Skills" interactive card (replace or enhance Card 2 -- AI Skill Radar):**
+- On hover over the radar card, expand the radar polygon's `skillValues` for one skill (e.g., "Professional Vocabulary" mapped to the "Vocabulary" axis) from 0.8 to 0.95
+- Add a text overlay on hover: "AI-Adjusted Curriculum: Your path evolves as you do."
+- Use `whileHover` on the card to trigger a state change that adjusts the radar polygon points
+- Implementation: add a `hovered` state to the SkillRadar component, pass it as a prop from the card's `onMouseEnter`/`onMouseLeave`, and conditionally use boosted skill values when hovered
 
-**Typography:**
-- Card titles: `text-slate-900 dark:text-white`
-- Card descriptions: `text-slate-500 dark:text-slate-400`
-- SVG strokes (timer, radar): Keep the gradient colors (they work on both backgrounds)
-- Radar grid lines: `rgba(0,0,0,0.06)` in light, `rgba(255,255,255,0.06)` in dark (conditional)
-
-**Ambient blurs:** `bg-indigo-500/5 dark:bg-indigo-500/10` (subtler in light mode)
-
-**Teacher avatars border:** `border-[#FAFAFA] dark:border-[#09090B]`
-
-**CTA card gradient:** Stays the same (gradient works on both)
+**3D-style decorative icons per world** (shown as emoji/icon compositions in the Bento cards):
+- Add small floating decorative elements within relevant cards using absolutely-positioned, animated spans:
+  - "Playground" reference: A stylized "A" block emoji (🔤) + rocket (🚀) floating near the Daily Feed or Gamified Learning card
+  - "Academy" reference: A controller emoji (🎮) + "XP" text badge near the Gamified Learning card
+  - "Professional" reference: A pen emoji (🖊) or globe (🌍) near the mentors card
+- These are small, subtle decorative touches (opacity 0.3-0.5, floating animation) -- not full 3D renders
 
 ---
 
-## 4. Activity Marquee: Dual-Mood
-
-### Modify: `src/components/landing/ActivityMarquee.tsx`
-
-- Section background: `bg-[#FAFAFA] dark:bg-[#09090B]`
-- Badge style: Light uses `bg-slate-100 border-slate-200 text-slate-600`, dark keeps current
-- Fade masks work identically on both backgrounds
-
----
-
-## 5. Pricing Section: Dual-Mood
+## 4. Pricing: Border Beam + Holographic Badge
 
 ### Modify: `src/components/landing/PricingSection.tsx`
 
-**Section background:**
-- Dark: Keep `bg-[#09090B]` with faint indigo radial glow
-- Light: `bg-[#FAFAFA]` with faint warm-white radial glow (`from-amber-500/3 via-transparent`)
+**Border Beam on Mastery card:**
+- Replace the current rotating `conic-gradient` border with a "border beam" effect
+- Implementation: a small glowing dot/rectangle that travels along the card border using CSS animation
+- Use a pseudo-element (`::before`) with a small gradient segment, animated via `translateX` from -100% to 100% along the top edge, then cycle through all four sides
+- Simplified approach: a single light traveling along the top border using the `border-beam` keyframe (translateX -100% to 100%) on a narrow pseudo-element positioned at the top of the card
 
-**Toggle:**
-- Dark: current `bg-white/[0.04] border-white/[0.08]`, active = `bg-white/10 text-white`
-- Light: `bg-slate-100 border-slate-200`, active = `bg-white text-slate-900 shadow-md`
+**Holographic shimmer on savings badge:**
+- Replace the current static gradient badge with a shimmer effect
+- Apply `background-size: 200% 100%` with `animation: shimmer 2s ease-in-out infinite` that shifts the `background-position` from `100% 0` to `0% 0` and back
+- Colors: a multi-stop gradient with white highlight in the middle (`from-orange-500 via-white/40 to-amber-500`) for the holographic look
 
-**Cards:**
-- Dark: current glassmorphic style
-- Light: `bg-white border-slate-200 shadow-[0_8px_32px_rgba(0,0,0,0.05)]`
-- Mastery animated gradient border: stays (works on both)
-- Mastery card inner bg: `bg-white dark:bg-[#09090B]`
-
-**Savings badge:**
-- Dark: neon gradient glow (current)
-- Light: solid bold color `bg-indigo-600 text-white` (no glow needed)
-
-**Feature check icons:**
-- Dark: current colors
-- Light: `text-indigo-600` for mastery, `text-amber-600` for popular, `text-slate-400` for default
-
-**CTA buttons:**
-- Keep gradient buttons (they pop on both backgrounds)
-- Default card CTA in light: `bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200`
-
-**Cancellation policy box:**
-- Dark: current
-- Light: `bg-white border-slate-200`
+**Price flip animation:**
+- When toggling between Playground & Academy vs Professional, wrap the price number in a `<motion.span>` with `key={price}` so AnimatePresence triggers a flip:
+  - Exit: `rotateX: 90, opacity: 0`
+  - Enter: from `rotateX: -90` to `rotateX: 0, opacity: 1`
+  - Duration: 0.3s
 
 ---
 
-## 6. NavHeader: Dual-Mood Polish
+## 5. Floating Bottom-Center Mood Toggle
 
 ### Modify: `src/components/landing/NavHeader.tsx`
+- Remove the ThemeModeToggle from the desktop nav bar actions (it will move to a floating position)
 
-**Scrolled state:**
-- Dark: current `bg-slate-950/60 backdrop-blur-2xl border-white/10`
-- Light: `bg-white/80 backdrop-blur-2xl border-slate-200 shadow-sm`
+### Modify: `src/pages/LandingPage.tsx`
+- Add a fixed-position floating toggle at the bottom-center of the screen
+- Position: `fixed bottom-6 left-1/2 -translate-x-1/2 z-50`
+- The toggle sits inside a glassmorphic pill container with an aura glow:
+  - Dark mode: The pill has a soft purple aura (`shadow-[0_0_30px_rgba(99,102,241,0.3)]`)
+  - Light mode: The pill has a warm amber aura (`shadow-[0_0_30px_rgba(251,191,36,0.3)]`)
+- Reuse the existing `ThemeModeToggle` component inside this floating container
+- Keep the toggle in the mobile drawer as well (it stays there for mobile)
 
-**Logo text:** `text-slate-900 dark:text-white`
-
-**Nav links:** `text-slate-600 hover:text-slate-900 dark:text-white/80 dark:hover:text-white`
-
-**Sign Up button:**
-- Dark: `bg-white text-slate-900`
-- Light: `bg-slate-900 text-white hover:bg-slate-800`
-
-**Login button:**
-- Light: `text-slate-600 hover:text-slate-900 hover:bg-slate-100`
-
-**Mobile drawer:**
-- Dark: current `bg-slate-900 border-white/10`
-- Light: `bg-white border-slate-200`
+### Modify: `src/components/landing/NavHeader.tsx` (mobile drawer)
+- Keep the theme toggle in the mobile drawer unchanged
 
 ---
 
-## 7. ThemeModeToggle: Enhanced Animation
+## 6. LandingPage `<main>` Background
 
-### Modify: `src/components/ui/ThemeModeToggle.tsx`
-
-The toggle already has a 180-degree flip animation with Sun/Moon icons and localStorage persistence. Minor polish:
-- Ensure the rotation transition is exactly `duration: 0.3` (currently 0.3s -- already correct)
-- The `useThemeMode` hook already saves to localStorage and applies the `dark` class -- no changes needed there
-
----
-
-## Implementation Approach
-
-Each landing component will import `useThemeMode` only where inline style switching is needed (e.g., the orb gradient colors, SVG strokes). For most elements, standard Tailwind `dark:` prefix classes handle the switch automatically since the `dark` class is already toggled on `<html>` by the existing `useThemeMode` hook.
-
-The background color transition is handled by adding `transition-colors duration-300` to each section's root element, ensuring smooth 0.3s color crossfades with no harsh flashing.
+### Modify: `src/pages/LandingPage.tsx`
+- Make the `<main>` background theme-aware: `bg-[#FAFAFA] dark:bg-[#09090B]`
+- Currently it's hardcoded to `bg-[#09090B]`
 
 ---
 
@@ -181,22 +122,23 @@ The background color transition is handled by adding `transition-colors duration
 
 | Action | File | Purpose |
 |--------|------|---------|
-| Modify | `src/index.css` | Tighten light/dark CSS variable values |
-| Modify | `src/components/landing/HeroSection.tsx` | Dual-mood orb, text, pills, social proof |
-| Modify | `src/components/landing/BentoGridSection.tsx` | Dual-mood cards with light shadows vs dark glow |
-| Modify | `src/components/landing/ActivityMarquee.tsx` | Dual-mood badges |
-| Modify | `src/components/landing/PricingSection.tsx` | Dual-mood cards, toggle, savings badges |
-| Modify | `src/components/landing/NavHeader.tsx` | Dual-mood header, links, buttons, mobile drawer |
-| Modify | `src/components/ui/ThemeModeToggle.tsx` | Minor animation polish (if needed) |
+| Modify | `index.html` | Swap to Outfit font |
+| Modify | `tailwind.config.ts` | Update font families, add border-beam/shimmer/gradient-text keyframes |
+| Modify | `src/components/landing/HeroSection.tsx` | Kinetic gradient text, updated copy, light-mode ink bleeds |
+| Modify | `src/components/landing/BentoGridSection.tsx` | 32px corners, floating motion, interactive radar hover, decorative icons |
+| Modify | `src/components/landing/PricingSection.tsx` | Border beam, holographic badge shimmer, price flip animation |
+| Modify | `src/components/landing/NavHeader.tsx` | Remove desktop theme toggle (moves to floating) |
+| Modify | `src/pages/LandingPage.tsx` | Add floating mood toggle, theme-aware main bg |
 
 ---
 
 ## Technical Notes
 
-- The `darkMode: ["class"]` config in `tailwind.config.ts` is already set, so `dark:` variants work out of the box
-- The `useThemeMode` hook already toggles the `dark` class on `document.documentElement` and persists to localStorage
-- The orb gradient colors need runtime switching (not just CSS classes) since they are inline `background` styles -- this uses `resolvedTheme` from the hook
-- SVG strokes in the radar/timer use hardcoded colors that work well on both backgrounds (indigo/emerald gradients have sufficient contrast on white and black)
-- No new dependencies required
-- The `transition-colors duration-300` on section backgrounds ensures smooth mode transitions without flashing
+- The border beam effect uses a single pseudo-element with `translateX` animation along the top edge -- simpler and more performant than a full 4-side traveling light
+- The kinetic text gradient uses `background-size: 200% auto` with `animation: gradient-text` shifting `background-position` -- pure CSS, no JS
+- The price flip uses `framer-motion`'s `AnimatePresence` with `mode="wait"` and `rotateX` transforms for a card-flip feel
+- The interactive radar hover uses the existing `SkillRadar` component with a new `hoveredSkill` prop that boosts one value in the polygon points
+- Floating decorative emoji icons use `position: absolute` with `animate-float` (existing keyframe) at low opacity
+- The floating mood toggle is rendered in `LandingPage.tsx` so it persists across all landing sections without being tied to the nav scroll state
+- No new dependencies needed
 
