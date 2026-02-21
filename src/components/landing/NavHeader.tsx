@@ -48,11 +48,21 @@ export function NavHeader() {
         }`}
       >
         <div className="container mx-auto px-4 sm:px-6">
-          <div className="flex items-center justify-between h-16 md:h-20">
+          <div className={`flex items-center justify-between transition-all duration-500 ${
+            isScrolled ? 'h-14 md:h-16' : 'h-16 md:h-20'
+          }`}>
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3">
-              <img src={logoDark} alt="EnglEuphoria" className="w-10 h-10 object-contain bg-white/90 rounded-xl p-1" />
-              <span className="text-2xl font-bold text-white">
+              <img
+                src={logoDark}
+                alt="EnglEuphoria"
+                className={`object-contain bg-white/90 rounded-xl p-1 transition-all duration-500 ${
+                  isScrolled ? 'w-8 h-8' : 'w-10 h-10'
+                }`}
+              />
+              <span className={`font-bold text-white transition-all duration-500 ${
+                isScrolled ? 'text-xl' : 'text-2xl'
+              }`}>
                 EnglEuphoria
               </span>
             </Link>

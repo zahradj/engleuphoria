@@ -43,6 +43,7 @@ export function BentoGridSection() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
+          <p className="font-serif tracking-widest uppercase text-xs text-indigo-400 mb-4">Why Choose Us</p>
           <h2 className="font-display text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6">
             Why <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-emerald-400">EnglEuphoria</span>?
           </h2>
