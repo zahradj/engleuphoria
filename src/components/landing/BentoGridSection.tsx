@@ -287,7 +287,7 @@ export function BentoGridSection() {
           >
             <div style={glow3.glowStyle} />
             <div className={`absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent rounded-[32px] ${hoverOverlayClass}`} />
-            <span className="absolute top-3 right-3 text-lg opacity-30 animate-float pointer-events-none">🌍</span>
+            
             <div className="relative h-full flex flex-col items-center justify-center text-center">
               <div className="flex -space-x-3 mb-4">
                 {teacherAvatars.map((src, i) => (
@@ -321,7 +321,7 @@ export function BentoGridSection() {
           >
             <div style={glow4.glowStyle} />
             <div className={`absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent rounded-[32px] ${hoverOverlayClass}`} />
-            <span className="absolute bottom-3 left-3 text-lg opacity-25 animate-float-delayed pointer-events-none">🚀</span>
+            
             <div className="relative h-full flex flex-col items-center justify-center">
               <motion.div
                 className={`w-28 rounded-xl border p-2 space-y-1.5 ${isDark ? 'border-white/10 bg-white/[0.03]' : 'border-slate-200 bg-white/50'}`}
@@ -352,8 +352,6 @@ export function BentoGridSection() {
           >
             <div style={glow5.glowStyle} />
             <div className={`absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent rounded-[32px] ${hoverOverlayClass}`} />
-            <span className="absolute top-3 left-3 text-sm opacity-30 animate-float pointer-events-none">🎮</span>
-            <span className="absolute top-3 right-3 text-[10px] font-bold text-emerald-400/40 animate-bounce-gentle pointer-events-none">XP</span>
             <div className="relative h-full flex flex-col items-center justify-center text-center">
               <div className="p-3 rounded-xl bg-cyan-500/10 text-cyan-400 mb-3">
                 <Zap className="w-6 h-6" />
