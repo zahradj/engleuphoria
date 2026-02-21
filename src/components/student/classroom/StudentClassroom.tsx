@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { PostClassFeedbackModal } from './PostClassFeedbackModal';
 import { useToast } from '@/hooks/use-toast';
 import { useClassroomSync } from '@/hooks/useClassroomSync';
 import { StudentClassroomHeader } from './StudentClassroomHeader';
@@ -32,6 +33,7 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
   const [activeColor, setActiveColor] = useState('#FF6B6B');
   const [isZenMode, setIsZenMode] = useState(false);
   const [zenElapsed, setZenElapsed] = useState(0);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
 
   const headerIdle = useIdleOpacity({ idleTimeout: 3000, idleOpacity: 0.4 });
   const sidebarIdle = useIdleOpacity({ idleTimeout: 4000, idleOpacity: 0.3 });
@@ -89,6 +91,11 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
   }, [isZenMode]);
 
   const handleLeaveClass = () => {
+    setShowFeedbackModal(true);
+  };
+
+  const handleFeedbackClose = () => {
+    setShowFeedbackModal(false);
     toast({
       title: 'Left Classroom',
       description: 'You have left the classroom session.'
@@ -240,6 +247,15 @@ export const StudentClassroom: React.FC<StudentClassroomProps> = ({
           onNotesChange={updateSharedNotes}
         />
       )}
+
+      {/* Post-Class Feedback Modal */}
+      <PostClassFeedbackModal
+        isOpen={showFeedbackModal}
+        onClose={handleFeedbackClose}
+        teacherName={(sessionContext as any)?.teacherName || 'Teacher'}
+        teacherId={(sessionContext as any)?.teacherId || ''}
+        lessonId={roomId}
+      />
     </div>
   );
 };

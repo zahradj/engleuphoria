@@ -5570,6 +5570,57 @@ export type Database = {
           },
         ]
       }
+      post_class_feedback: {
+        Row: {
+          created_at: string
+          feels_more_confident: boolean | null
+          id: string
+          improvement_suggestion: string | null
+          lesson_id: string | null
+          material_relevance_rating: number
+          student_id: string
+          teacher_energy_rating: number
+          teacher_id: string
+        }
+        Insert: {
+          created_at?: string
+          feels_more_confident?: boolean | null
+          id?: string
+          improvement_suggestion?: string | null
+          lesson_id?: string | null
+          material_relevance_rating: number
+          student_id: string
+          teacher_energy_rating: number
+          teacher_id: string
+        }
+        Update: {
+          created_at?: string
+          feels_more_confident?: boolean | null
+          id?: string
+          improvement_suggestion?: string | null
+          lesson_id?: string | null
+          material_relevance_rating?: number
+          student_id?: string
+          teacher_energy_rating?: number
+          teacher_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_class_feedback_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_class_feedback_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quiz_responses: {
         Row: {
           created_at: string | null
