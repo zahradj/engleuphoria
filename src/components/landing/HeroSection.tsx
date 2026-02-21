@@ -1,169 +1,174 @@
-import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Sparkles, Rocket, Briefcase } from 'lucide-react';
+import { Sparkles, Rocket, Briefcase, Globe, Users } from 'lucide-react';
 
-const columns = [
+const portals = [
   {
     id: 'kids',
-    title: 'English for Kids',
-    subtitle: '(Ages 4-10)',
-    description: 'Playful learning adventures with games, songs, and colorful activities',
-    gradient: 'from-yellow-300 via-lime-400 to-emerald-500',
-    textColor: 'text-emerald-900',
+    title: 'The Playground',
+    subtitle: 'Ages 4–10',
+    description: 'Playful learning adventures with games, songs, and colorful activities.',
+    cta: 'Start the Adventure',
     link: '/student-signup',
     icon: Sparkles,
-    image: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=800&h=1200&fit=crop&q=80',
+    gradient: 'from-amber-400 via-lime-400 to-emerald-400',
+    glowColor: 'shadow-emerald-500/40',
+    bgAccent: 'bg-gradient-to-br from-amber-500/10 to-emerald-500/10',
+    borderAccent: 'hover:border-emerald-400/50',
+    ctaGradient: 'from-amber-500 to-emerald-500',
+    iconBg: 'bg-emerald-500/20 text-emerald-400',
+    rounded: 'rounded-3xl',
   },
   {
     id: 'teens',
     title: 'The Academy',
-    subtitle: '(Ages 11-17)',
-    description: 'Level up your English with interactive challenges and real-world skills',
-    gradient: 'from-violet-600 via-purple-700 to-slate-900',
-    textColor: 'text-white',
+    subtitle: 'Ages 11–17',
+    description: 'Level up your English with interactive challenges and real-world skills.',
+    cta: 'Level Up Your English',
     link: '/student-signup',
     icon: Rocket,
-    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&h=1200&fit=crop&q=80',
+    gradient: 'from-violet-500 via-purple-500 to-indigo-500',
+    glowColor: 'shadow-violet-500/40',
+    bgAccent: 'bg-gradient-to-br from-violet-500/10 to-indigo-500/10',
+    borderAccent: 'hover:border-violet-400/50',
+    ctaGradient: 'from-violet-600 to-indigo-500',
+    iconBg: 'bg-violet-500/20 text-violet-400',
+    rounded: 'rounded-2xl',
   },
   {
     id: 'adults',
-    title: 'Professional Hub',
-    subtitle: '(Ages 18+)',
-    description: 'Master business English and advance your career with confidence',
-    gradient: 'from-slate-100 via-gray-200 to-slate-300',
-    textColor: 'text-slate-900',
+    title: 'The Professional',
+    subtitle: 'Ages 18+',
+    description: 'Master business English and advance your career with executive-level coaching.',
+    cta: 'Executive Mastery',
     link: '/signup',
     icon: Briefcase,
-    image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&h=1200&fit=crop&q=80',
+    gradient: 'from-slate-400 via-slate-300 to-amber-300',
+    glowColor: 'shadow-amber-400/30',
+    bgAccent: 'bg-gradient-to-br from-slate-500/10 to-amber-500/5',
+    borderAccent: 'hover:border-amber-400/40',
+    ctaGradient: 'from-slate-700 to-slate-900',
+    iconBg: 'bg-amber-500/20 text-amber-400',
+    rounded: 'rounded-xl',
   },
 ];
 
 export function HeroSection() {
-  const [activeColumn, setActiveColumn] = useState<string | null>(null);
-
   return (
-    <section className="relative h-screen w-full flex overflow-hidden">
-      {columns.map((column, index) => {
-        const isActive = activeColumn === column.id;
-        const isOtherActive = activeColumn !== null && activeColumn !== column.id;
-        const Icon = column.icon;
+    <section className="relative pt-32 pb-24 bg-slate-950 overflow-hidden">
+      {/* Background glow */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-500/10 via-transparent to-transparent" />
 
-        return (
+      <div className="container mx-auto px-4 sm:px-6 relative z-10">
+        {/* Headline */}
+        <motion.div
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7 }}
+        >
+          <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-bold text-white tracking-tight mb-6">
+            Learn English.{' '}
+            <span className="bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent">
+              Your Way.
+            </span>
+          </h1>
+          <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto mb-8">
+            Three specialized schools under one roof — from playful kids' adventures to professional business mastery.
+          </p>
+
+          {/* Social Proof Ribbon */}
           <motion.div
-            key={column.id}
-            className={`relative h-full cursor-pointer overflow-hidden bg-gradient-to-br ${column.gradient}`}
-            initial={{ flex: 1 }}
-            animate={{
-              flex: isActive ? 2 : isOtherActive ? 0.5 : 1,
-            }}
-            transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
-            onMouseEnter={() => setActiveColumn(column.id)}
-            onMouseLeave={() => setActiveColumn(null)}
+            className="inline-flex items-center gap-3 px-6 py-3 rounded-full backdrop-blur-xl bg-white/5 border border-white/10"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
           >
-            {/* Background Image with Overlay */}
-            <div className="absolute inset-0">
-              <img
-                src={column.image}
-                alt={column.title}
-                className="w-full h-full object-cover opacity-30"
-              />
-              <div className={`absolute inset-0 bg-gradient-to-br ${column.gradient} opacity-80`} />
+            <div className="flex -space-x-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-500 to-indigo-500 flex items-center justify-center text-xs text-white font-bold border-2 border-slate-950">
+                <Users className="w-4 h-4" />
+              </div>
             </div>
-
-            {/* Glass Panel */}
-            <motion.div
-              className="absolute inset-0 flex flex-col items-center justify-center p-8"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.2, duration: 0.6 }}
-            >
-              {/* Icon */}
-              <motion.div
-                className={`mb-6 p-4 rounded-2xl backdrop-blur-md bg-white/20 ${column.textColor}`}
-                whileHover={{ scale: 1.1, rotate: 5 }}
-              >
-                <Icon className="w-12 h-12" />
-              </motion.div>
-
-              {/* Title */}
-              <motion.h2
-                className={`font-display text-4xl md:text-5xl lg:text-6xl font-bold text-center mb-2 ${column.textColor}`}
-                animate={{ scale: isActive ? 1.1 : 1 }}
-                transition={{ duration: 0.3 }}
-              >
-                {column.title}
-              </motion.h2>
-
-              {/* Subtitle */}
-              <p className={`text-xl md:text-2xl font-medium mb-4 ${column.textColor} opacity-80`}>
-                {column.subtitle}
-              </p>
-
-              {/* Description - Only visible when active */}
-              <motion.p
-                className={`text-center max-w-xs mb-8 ${column.textColor} opacity-70`}
-                initial={{ opacity: 0, height: 0 }}
-                animate={{
-                  opacity: isActive ? 1 : 0,
-                  height: isActive ? 'auto' : 0,
-                }}
-                transition={{ duration: 0.3 }}
-              >
-                {column.description}
-              </motion.p>
-
-              {/* CTA Button */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{
-                  opacity: isActive ? 1 : 0,
-                  y: isActive ? 0 : 20,
-                }}
-                transition={{ duration: 0.3, delay: 0.1 }}
-              >
-                <Link
-                  to={column.link}
-                  className={`
-                    inline-flex items-center gap-2 px-8 py-4 rounded-full font-semibold text-lg
-                    backdrop-blur-md transition-all duration-300
-                    ${column.id === 'adults'
-                      ? 'bg-slate-900 text-white hover:bg-slate-800'
-                      : 'bg-white/90 text-slate-900 hover:bg-white'
-                    }
-                    shadow-xl hover:shadow-2xl hover:scale-105
-                  `}
-                >
-                  Start
-                  <motion.span
-                    animate={{ x: [0, 5, 0] }}
-                    transition={{ repeat: Infinity, duration: 1.5 }}
-                  >
-                    →
-                  </motion.span>
-                </Link>
-              </motion.div>
-            </motion.div>
-
-            {/* Column Number */}
-            <div className={`absolute bottom-8 left-8 font-display text-8xl font-bold ${column.textColor} opacity-10`}>
-              0{index + 1}
+            <div className="flex items-center gap-2 text-sm">
+              <Globe className="w-4 h-4 text-indigo-400" />
+              <span className="text-slate-300">
+                Trusted by students from <span className="text-white font-semibold">30+ countries</span>
+              </span>
             </div>
           </motion.div>
-        );
-      })}
+        </motion.div>
+
+        {/* Three Portal Cards */}
+        <div className="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
+          {portals.map((portal, index) => {
+            const Icon = portal.icon;
+            return (
+              <motion.div
+                key={portal.id}
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.2 + index * 0.15 }}
+                whileHover={{ scale: 1.04, y: -8 }}
+                className={`group relative ${portal.rounded} p-8 backdrop-blur-xl bg-white/5 border border-white/10 ${portal.borderAccent} transition-all duration-500 cursor-pointer hover:shadow-2xl hover:${portal.glowColor}`}
+              >
+                {/* Accent glow behind card */}
+                <div className={`absolute inset-0 ${portal.rounded} ${portal.bgAccent} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+
+                <div className="relative z-10">
+                  {/* Icon */}
+                  <div className={`inline-flex p-3 ${portal.rounded} ${portal.iconBg} mb-6`}>
+                    <Icon className="w-7 h-7" />
+                  </div>
+
+                  {/* Title & Subtitle */}
+                  <h3 className="font-display text-2xl lg:text-3xl font-bold text-white tracking-tight mb-1">
+                    {portal.title}
+                  </h3>
+                  <p className="text-slate-400 text-sm font-medium mb-4">{portal.subtitle}</p>
+
+                  {/* Description */}
+                  <p className="text-slate-300/80 text-sm leading-relaxed mb-8">
+                    {portal.description}
+                  </p>
+
+                  {/* CTA */}
+                  <Link
+                    to={portal.link}
+                    className={`inline-flex items-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r ${portal.ctaGradient} text-white text-sm font-semibold shadow-lg transition-all duration-300 hover:shadow-xl hover:brightness-110 animate-[pulse_3s_ease-in-out_infinite]`}
+                    style={{
+                      animationName: 'none',
+                      boxShadow: undefined,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.animationName = '';
+                    }}
+                  >
+                    {portal.cta}
+                    <motion.span
+                      animate={{ x: [0, 4, 0] }}
+                      transition={{ repeat: Infinity, duration: 1.5 }}
+                    >
+                      →
+                    </motion.span>
+                  </Link>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Scroll Indicator */}
       <motion.div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center text-white/70"
-        animate={{ y: [0, 10, 0] }}
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center text-white/50"
+        animate={{ y: [0, 8, 0] }}
         transition={{ repeat: Infinity, duration: 2 }}
       >
-        <span className="text-sm font-medium mb-2">Scroll to explore</span>
-        <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center pt-2">
+        <span className="text-xs font-medium mb-2">Scroll to explore</span>
+        <div className="w-5 h-8 border-2 border-white/20 rounded-full flex justify-center pt-1.5">
           <motion.div
-            className="w-1.5 h-1.5 bg-white rounded-full"
-            animate={{ y: [0, 12, 0] }}
+            className="w-1 h-1 bg-white/60 rounded-full"
+            animate={{ y: [0, 10, 0] }}
             transition={{ repeat: Infinity, duration: 1.5 }}
           />
         </div>
