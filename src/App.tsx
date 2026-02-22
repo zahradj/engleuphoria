@@ -12,8 +12,6 @@ import { AppErrorBoundary } from "@/components/common/AppErrorBoundary";
 import { lazy, Suspense } from "react";
 import { AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TranslationSkeleton } from "@/components/common/TranslationSkeleton";
-import { LanguageRouter, LanguageRedirect } from "@/components/routing/LanguageRouter";
 
 // Core Pages
 import LandingPage from "./pages/LandingPage";
@@ -70,170 +68,158 @@ const LoadingFallback = () => (
 
 const App = () => {
   return (
-    <Suspense fallback={<TranslationSkeleton />}>
-      <QueryClientProvider client={queryClient}>
-        <LanguageProvider>
-          <AuthProvider>
-            <LessonProvider>
-              <RoleThemeProvider>
-                <TooltipProvider>
-                  <Toaster />
-                  <Sonner />
-                  <BrowserRouter>
-                    <AnimatePresence mode="wait">
-                      <AppErrorBoundary>
-                        <Routes>
-                          {/* Bare root redirects to /:lang */}
-                          <Route path="/" element={<LanguageRedirect />} />
+    <QueryClientProvider client={queryClient}>
+      <LanguageProvider>
+        <AuthProvider>
+          <LessonProvider>
+            <RoleThemeProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
+                  <AnimatePresence mode="wait">
+                  <AppErrorBoundary>
+                    <Routes>
+                      {/* Public Entry Point - Landing Page */}
+                      <Route path="/" element={<LandingPage />} />
+                      <Route path="/about" element={<AboutPage />} />
+                      <Route path="/teach-with-us" element={<TeachWithUsPage />} />
+                      <Route path="/for-teachers" element={<ForTeachersPage />} />
+                      <Route path="/login" element={<Login />} />
+                      <Route path="/signup" element={<SignUp />} />
+                      <Route path="/teacher-signup" element={<TeacherSignUp />} />
+                      <Route path="/student-signup" element={<StudentSignUp />} />
+                      <Route path="/teacher-application" element={<TeacherApplication />} />
+                      <Route path="/student-application" element={<StudentApplication />} />
+                      <Route path="/email-verification" element={<EmailVerification />} />
+                      <Route path="/reset-password" element={<ResetPassword />} />
 
-                          {/* All routes under /:lang */}
-                          <Route path="/:lang" element={<LanguageRouter />}>
-                            <Route index element={<LandingPage />} />
-                            <Route path="about" element={<AboutPage />} />
-                            <Route path="teach-with-us" element={<TeachWithUsPage />} />
-                            <Route path="for-teachers" element={<ForTeachersPage />} />
-                            <Route path="login" element={<Login />} />
-                            <Route path="signup" element={<SignUp />} />
-                            <Route path="teacher-signup" element={<TeacherSignUp />} />
-                            <Route path="student-signup" element={<StudentSignUp />} />
-                            <Route path="teacher-application" element={<TeacherApplication />} />
-                            <Route path="student-application" element={<StudentApplication />} />
-                            <Route path="email-verification" element={<EmailVerification />} />
-                            <Route path="reset-password" element={<ResetPassword />} />
+                      {/* Assessment Routes */}
+                      <Route path="/assessment/:assessmentId" element={
+                        <ImprovedProtectedRoute>
+                          <AssessmentTaker />
+                        </ImprovedProtectedRoute>
+                      } />
+                      <Route path="/assessment-results/:submissionId" element={
+                        <ImprovedProtectedRoute>
+                          <AssessmentResults />
+                        </ImprovedProtectedRoute>
+                      } />
 
-                            {/* Assessment Routes */}
-                            <Route path="assessment/:assessmentId" element={
-                              <ImprovedProtectedRoute>
-                                <AssessmentTaker />
-                              </ImprovedProtectedRoute>
-                            } />
-                            <Route path="assessment-results/:submissionId" element={
-                              <ImprovedProtectedRoute>
-                                <AssessmentResults />
-                              </ImprovedProtectedRoute>
-                            } />
+                      {/* Student Dashboard Routes - Protected */}
+                      <Route path="/playground/*" element={
+                        <ImprovedProtectedRoute requiredRole="student">
+                          <StudentDashboard />
+                        </ImprovedProtectedRoute>
+                      } />
+                      <Route path="/academy/*" element={
+                        <ImprovedProtectedRoute requiredRole="student">
+                          <StudentDashboard />
+                        </ImprovedProtectedRoute>
+                      } />
+                      <Route path="/hub/*" element={
+                        <ImprovedProtectedRoute requiredRole="student">
+                          <StudentDashboard />
+                        </ImprovedProtectedRoute>
+                      } />
+                      
+                      {/* Teacher Dashboard - Protected */}
+                      <Route path="/admin/*" element={
+                        <ImprovedProtectedRoute requiredRole="teacher">
+                          <TeacherDashboard />
+                        </ImprovedProtectedRoute>
+                      } />
+                      
+                      {/* Teacher Live Classroom - Protected */}
+                      <Route path="/classroom/:id" element={
+                        <ImprovedProtectedRoute requiredRole="teacher">
+                          <Suspense fallback={<LoadingFallback />}>
+                            <TeacherClassroomPage />
+                          </Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
 
-                            {/* Student Dashboard Routes - Protected */}
-                            <Route path="playground/*" element={
-                              <ImprovedProtectedRoute requiredRole="student">
-                                <StudentDashboard />
-                              </ImprovedProtectedRoute>
-                            } />
-                            <Route path="academy/*" element={
-                              <ImprovedProtectedRoute requiredRole="student">
-                                <StudentDashboard />
-                              </ImprovedProtectedRoute>
-                            } />
-                            <Route path="hub/*" element={
-                              <ImprovedProtectedRoute requiredRole="student">
-                                <StudentDashboard />
-                              </ImprovedProtectedRoute>
-                            } />
-                            
-                            {/* Teacher Dashboard - Protected */}
-                            <Route path="admin/*" element={
-                              <ImprovedProtectedRoute requiredRole="teacher">
-                                <TeacherDashboard />
-                              </ImprovedProtectedRoute>
-                            } />
-                            
-                            {/* Teacher Live Classroom - Protected */}
-                            <Route path="classroom/:id" element={
-                              <ImprovedProtectedRoute requiredRole="teacher">
-                                <Suspense fallback={<LoadingFallback />}>
-                                  <TeacherClassroomPage />
-                                </Suspense>
-                              </ImprovedProtectedRoute>
-                            } />
+                      {/* Student Live Classroom - Protected */}
+                      <Route path="/student-classroom/:id" element={
+                        <ImprovedProtectedRoute requiredRole="student">
+                          <Suspense fallback={<LoadingFallback />}>
+                            <StudentClassroomPage />
+                          </Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
 
-                            {/* Student Live Classroom - Protected */}
-                            <Route path="student-classroom/:id" element={
-                              <ImprovedProtectedRoute requiredRole="student">
-                                <Suspense fallback={<LoadingFallback />}>
-                                  <StudentClassroomPage />
-                                </Suspense>
-                              </ImprovedProtectedRoute>
-                            } />
+                      {/* Demo Classroom - No Auth Required */}
+                      <Route path="/demo-classroom/:id" element={
+                        <Suspense fallback={<LoadingFallback />}>
+                          <TeacherClassroomDemo />
+                        </Suspense>
+                      } />
 
-                            {/* Demo Classroom - No Auth Required */}
-                            <Route path="demo-classroom/:id" element={
-                              <Suspense fallback={<LoadingFallback />}>
-                                <TeacherClassroomDemo />
-                              </Suspense>
-                            } />
+                      {/* Super Admin Dashboard - Protected */}
+                      <Route path="/super-admin/*" element={
+                        <ImprovedProtectedRoute requiredRole="admin">
+                          <AdminDashboard />
+                        </ImprovedProtectedRoute>
+                      } />
 
-                            {/* Super Admin Dashboard - Protected */}
-                            <Route path="super-admin/*" element={
-                              <ImprovedProtectedRoute requiredRole="admin">
-                                <AdminDashboard />
-                              </ImprovedProtectedRoute>
-                            } />
+                      {/* Parent Dashboard - Protected */}
+                      <Route path="/parent/*" element={
+                        <ImprovedProtectedRoute requiredRole="parent">
+                          <Suspense fallback={<LoadingFallback />}>
+                            <ParentDashboard />
+                          </Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
 
-                            {/* Parent Dashboard - Protected */}
-                            <Route path="parent/*" element={
-                              <ImprovedProtectedRoute requiredRole="parent">
-                                <Suspense fallback={<LoadingFallback />}>
-                                  <ParentDashboard />
-                                </Suspense>
-                              </ImprovedProtectedRoute>
-                            } />
+                      {/* Community Page - Any Authenticated User */}
+                      <Route path="/community/*" element={
+                        <ImprovedProtectedRoute>
+                          <Suspense fallback={<LoadingFallback />}>
+                            <CommunityPage />
+                          </Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
 
-                            {/* Community Page - Any Authenticated User */}
-                            <Route path="community/*" element={
-                              <ImprovedProtectedRoute>
-                                <Suspense fallback={<LoadingFallback />}>
-                                  <CommunityPage />
-                                </Suspense>
-                              </ImprovedProtectedRoute>
-                            } />
+                      {/* Smart Dashboard Router - redirects based on role */}
+                      <Route path="/dashboard" element={
+                        <ImprovedProtectedRoute>
+                          <Dashboard />
+                        </ImprovedProtectedRoute>
+                      } />
 
-                            {/* Smart Dashboard Router - redirects based on role */}
-                            <Route path="dashboard" element={
-                              <ImprovedProtectedRoute>
-                                <Dashboard />
-                              </ImprovedProtectedRoute>
-                            } />
+                      {/* Student Onboarding Flow */}
+                      <Route path="/onboarding" element={
+                        <ImprovedProtectedRoute requiredRole="student">
+                          <StudentOnboardingFlow />
+                        </ImprovedProtectedRoute>
+                      } />
 
-                            {/* Student Onboarding Flow */}
-                            <Route path="onboarding" element={
-                              <ImprovedProtectedRoute requiredRole="student">
-                                <StudentOnboardingFlow />
-                              </ImprovedProtectedRoute>
-                            } />
+                      {/* AI Placement Test */}
+                      <Route path="/ai-placement-test" element={
+                        <ImprovedProtectedRoute requiredRole="student">
+                          <Suspense fallback={<LoadingFallback />}>
+                            <AIPlacementTest />
+                          </Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
 
-                            {/* AI Placement Test */}
-                            <Route path="ai-placement-test" element={
-                              <ImprovedProtectedRoute requiredRole="student">
-                                <Suspense fallback={<LoadingFallback />}>
-                                  <AIPlacementTest />
-                                </Suspense>
-                              </ImprovedProtectedRoute>
-                            } />
+                      {/* Legacy routes - redirect to new paths */}
+                      <Route path="/student/*" element={<Navigate to="/playground" replace />} />
+                      <Route path="/teacher" element={<Navigate to="/admin" replace />} />
+                      <Route path="/admin-dashboard" element={<Navigate to="/super-admin" replace />} />
 
-                            {/* Legacy routes - redirect to new paths */}
-                            <Route path="student/*" element={<Navigate to="playground" replace />} />
-                            <Route path="teacher" element={<Navigate to="admin" replace />} />
-                            <Route path="admin-dashboard" element={<Navigate to="super-admin" replace />} />
-
-                            {/* 404 within lang - redirect to lang root */}
-                            <Route path="*" element={<Navigate to="" replace />} />
-                          </Route>
-
-                          {/* Legacy non-lang routes redirect to lang-prefixed versions */}
-                          <Route path="/login" element={<LanguageRedirect />} />
-                          <Route path="/signup" element={<LanguageRedirect />} />
-                          <Route path="*" element={<LanguageRedirect />} />
-                        </Routes>
-                      </AppErrorBoundary>
-                    </AnimatePresence>
-                  </BrowserRouter>
-                </TooltipProvider>
-              </RoleThemeProvider>
-            </LessonProvider>
-          </AuthProvider>
-        </LanguageProvider>
-      </QueryClientProvider>
-    </Suspense>
+                      {/* 404 - Redirect to Login */}
+                      <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                  </AppErrorBoundary>
+                  </AnimatePresence>
+                </BrowserRouter>
+              </TooltipProvider>
+            </RoleThemeProvider>
+          </LessonProvider>
+        </AuthProvider>
+      </LanguageProvider>
+    </QueryClientProvider>
   );
 };
 
