@@ -1,49 +1,30 @@
 
 
-# Sync All Missing Features Into Production
+# Fix Language Persistence
 
-## Current Status
+## What's Wrong
+The `i18next-browser-languagedetector` plugin is missing. Without it, `lng: 'en'` in `i18n.ts` forces English on every page load, ignoring whatever language the user selected.
 
-The preview environment already has the Spatial UI, Bento Grid, custom cursor, dark/light mode, purple auth orbs, and film grain working correctly. The likely issue is one of two things:
+## Changes Required
 
-1. **Published site not updated** -- Frontend changes only go live when you click "Update" in the publish dialog (top-right corner). Backend changes (database, edge functions) deploy automatically, but UI changes do not.
-2. **Language resets on navigation/refresh** -- The i18next language detector plugin was never installed, so selecting French or Arabic reverts to English when you navigate or refresh.
+### 1. Install dependency
+Add `i18next-browser-languagedetector` to the project.
 
-## What Needs To Be Done
+### 2. Update `src/lib/i18n.ts`
+- Import and register `LanguageDetector` plugin (before `initReactI18next`)
+- Remove `lng: 'en'` so the detector controls the initial language
+- Keep `fallbackLng: 'en'` as the safety net
+- Configure detection with `lookupLocalStorage: 'i18nextLng'`
 
-### Step 1: Fix Language Persistence (the core missing feature)
-
-Install and configure `i18next-browser-languagedetector` so that:
-- Selected language is saved to localStorage
-- On next visit, the saved language is automatically loaded
-- Browser language is detected on first visit
-
-Changes:
-- **src/lib/i18n.ts**: Import and use the `LanguageDetector` plugin, configure detection order as `['localStorage', 'navigator']`
-- **src/components/common/LanguageSwitcher.tsx**: Add localStorage save on language change (the detector handles this, but we ensure consistency)
-
-### Step 2: Sync LanguageSwitcher with i18n properly
-
-The `LanguageSwitcher` already calls `i18n.changeLanguage()` which is correct. With the detector plugin, localStorage persistence will happen automatically.
-
-### Step 3: Publish the Frontend
-
-After the code fix, you need to click the **Publish** button (top-right) and then **Update** to push all accumulated UI changes to the live site at engleuphoria.lovable.app.
-
----
-
-## Technical Details
-
-**i18n.ts change:**
 ```text
 import LanguageDetector from 'i18next-browser-languagedetector';
 
 i18n
-  .use(LanguageDetector)    // <-- add this line
+  .use(LanguageDetector)       // detect saved language
   .use(initReactI18next)
   .init({
     resources,
-    fallbackLng: 'en',      // remove "lng: 'en'" so detector takes priority
+    fallbackLng: 'en',         // no more lng: 'en'
     detection: {
       order: ['localStorage', 'navigator', 'htmlTag'],
       caches: ['localStorage'],
@@ -54,7 +35,14 @@ i18n
   });
 ```
 
-**New dependency:** `i18next-browser-languagedetector`
+### 3. No changes needed to LanguageSwitcher
+It already calls `i18n.changeLanguage()` which, with the detector plugin active, automatically saves to localStorage.
 
-No URL-based routing changes (the simpler localStorage approach is sufficient and avoids a large routing refactor).
+### 4. Publish
+After the code change, click **Publish** (top-right) then **Update** to push all frontend changes live.
+
+## Result
+- Selected language persists across page navigation and browser refresh
+- First-time visitors see their browser's language (if supported) or English
+- No routing changes needed
 
