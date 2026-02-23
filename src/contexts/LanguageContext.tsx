@@ -1,13 +1,42 @@
-import { createContext, useState, useContext, ReactNode } from "react";
+import { createContext, useState, useContext, useEffect, useCallback, ReactNode } from "react";
 import { translations, LanguageOption } from "../translations";
 import { LanguageContextType, LanguageProviderProps } from "./LanguageContextTypes";
+import i18n from "@/lib/i18n";
 
-// Create the language context
+const i18nToOption: Record<string, LanguageOption> = {
+  en: "english",
+  es: "spanish",
+  ar: "arabic",
+  fr: "french",
+};
+
+const optionToI18n: Record<LanguageOption, string> = {
+  english: "en",
+  spanish: "es",
+  arabic: "ar",
+  french: "fr",
+};
+
+const getLanguageOption = (lng: string): LanguageOption =>
+  i18nToOption[lng?.substring(0, 2)] || "english";
+
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-// Language provider component
 export const LanguageProvider = ({ children }: LanguageProviderProps) => {
-  const [language, setLanguage] = useState<LanguageOption>("english");
+  const [language, setLanguageState] = useState<LanguageOption>(
+    getLanguageOption(i18n.language)
+  );
+
+  useEffect(() => {
+    const handler = (lng: string) => setLanguageState(getLanguageOption(lng));
+    i18n.on("languageChanged", handler);
+    return () => { i18n.off("languageChanged", handler); };
+  }, []);
+
+  const setLanguage = useCallback((opt: LanguageOption) => {
+    setLanguageState(opt);
+    i18n.changeLanguage(optionToI18n[opt]);
+  }, []);
 
   const value = {
     language,
@@ -20,7 +49,6 @@ export const LanguageProvider = ({ children }: LanguageProviderProps) => {
   );
 };
 
-// Hook to use the language context
 export const useLanguage = () => {
   const context = useContext(LanguageContext);
   if (context === undefined) {
