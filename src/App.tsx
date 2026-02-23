@@ -10,7 +10,6 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { RoleThemeProvider } from "@/contexts/RoleThemeContext";
 import { AppErrorBoundary } from "@/components/common/AppErrorBoundary";
 import { lazy, Suspense } from "react";
-import { AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Core Pages
@@ -40,7 +39,7 @@ const CommunityPage = lazy(() => import("./pages/CommunityPage"));
 const TeacherClassroomPage = lazy(() => import("./pages/TeacherClassroomPage"));
 const AIPlacementTest = lazy(() => import("./components/placement/AIPlacementTest"));
 const StudentClassroomPage = lazy(() => import("./pages/StudentClassroomPage"));
-const TeacherClassroomDemo = lazy(() => import("./pages/TeacherClassroomPage"));
+
 
 import { AssessmentTaker } from "./components/assessment/AssessmentTaker";
 import { AssessmentResults } from "./components/assessment/AssessmentResults";
@@ -77,7 +76,6 @@ const App = () => {
                 <Toaster />
                 <Sonner />
                 <BrowserRouter>
-                  <AnimatePresence mode="wait">
                   <AppErrorBoundary>
                     <Routes>
                       {/* Public Entry Point - Landing Page */}
@@ -151,7 +149,7 @@ const App = () => {
                       {/* Demo Classroom - No Auth Required */}
                       <Route path="/demo-classroom/:id" element={
                         <Suspense fallback={<LoadingFallback />}>
-                          <TeacherClassroomDemo />
+                          <TeacherClassroomPage />
                         </Suspense>
                       } />
 
@@ -212,7 +210,6 @@ const App = () => {
                       <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                   </AppErrorBoundary>
-                  </AnimatePresence>
                 </BrowserRouter>
               </TooltipProvider>
             </RoleThemeProvider>

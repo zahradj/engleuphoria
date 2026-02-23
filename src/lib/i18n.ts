@@ -5,14 +5,12 @@ import { englishTranslations } from '@/translations/english';
 import { spanishTranslations } from '@/translations/spanish';
 import { arabicTranslations } from '@/translations/arabic';
 import { frenchTranslations } from '@/translations/french';
-import { turkishTranslations } from '@/translations/turkish';
 
 const resources = {
   en: { translation: englishTranslations },
   es: { translation: spanishTranslations },
   ar: { translation: arabicTranslations },
   fr: { translation: frenchTranslations },
-  tr: { translation: turkishTranslations },
 };
 
 i18n

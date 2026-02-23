@@ -1,5 +1,10 @@
-
 import { useState, useRef, useCallback, useEffect } from "react";
+
+// Module-level constants (computed once)
+const IS_SECURE_CONTEXT =
+  typeof window !== "undefined" && (window.isSecureContext || location.protocol === "https:");
+const IS_BROWSER_SUPPORTED =
+  typeof navigator !== "undefined" && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
 
 export function useLocalMedia() {
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -10,19 +15,13 @@ export function useLocalMedia() {
   const mediaRef = useRef<MediaStream | null>(null);
   const joinAttemptRef = useRef(false);
 
-  // Check if we're in a secure context
-  const isSecureContext = window.isSecureContext || location.protocol === 'https:';
-
-  // Check browser compatibility
-  const isBrowserSupported = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
-
   useEffect(() => {
-    if (!isSecureContext) {
+    if (!IS_SECURE_CONTEXT) {
       setError("HTTPS is required for camera and microphone access. Please use HTTPS or localhost.");
-    } else if (!isBrowserSupported) {
+    } else if (!IS_BROWSER_SUPPORTED) {
       setError("Your browser doesn't support camera and microphone access.");
     }
-  }, [isSecureContext, isBrowserSupported]);
+  }, []);
 
   // Connect: request access to webcam & mic
   const join = useCallback(async () => {
@@ -46,11 +45,11 @@ export function useLocalMedia() {
         return;
       }
 
-      if (!isSecureContext) {
+      if (!IS_SECURE_CONTEXT) {
         throw new Error("HTTPS is required for camera and microphone access");
       }
 
-      if (!isBrowserSupported) {
+      if (!IS_BROWSER_SUPPORTED) {
         throw new Error("Your browser doesn't support camera and microphone access");
       }
 
@@ -113,7 +112,7 @@ export function useLocalMedia() {
     } finally {
       joinAttemptRef.current = false;
     }
-  }, [isSecureContext, isBrowserSupported]);
+  }, []);
 
   // Leave: stop all tracks
   const leave = useCallback(() => {
