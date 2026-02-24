@@ -23,11 +23,7 @@ export default function LandingPage() {
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
 
-  if (loading) {
-    return null;
-  }
-
-  if (user) {
+  if (!loading && user) {
     return <Navigate to="/dashboard" replace />;
   }
 

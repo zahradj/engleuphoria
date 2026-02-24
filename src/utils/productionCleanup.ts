@@ -35,9 +35,9 @@ export const cleanupDevelopmentArtifacts = () => {
 export const clearAllCaches = async () => {
   try {
     // Clear localStorage (except auth tokens)
-    const authKeys = ['supabase.auth.token', 'sb-auth-token'];
+    const preservedKeys = ['supabase.auth.token', 'sb-auth-token', 'i18nextLng', 'theme-mode', 'cache_version'];
     const keysToRemove = Object.keys(localStorage).filter(
-      key => !authKeys.some(authKey => key.includes(authKey))
+      key => !preservedKeys.some(pk => key.includes(pk))
     );
     keysToRemove.forEach(key => localStorage.removeItem(key));
     
