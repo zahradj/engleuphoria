@@ -1,111 +1,92 @@
 
 
-# Fix Functionality and Performance Bugs
+# Fix Remaining Functionality and Performance Bugs
 
 ## Bugs Found
 
-### Bug 1: Duplicate Lazy Import (TeacherClassroomDemo)
-**File:** `src/App.tsx`, line 43
+### Bug 1: `clearAllCaches` Destroys User Preferences (Critical)
+**File:** `src/utils/productionCleanup.ts` and `src/main.tsx`
 
-`TeacherClassroomDemo` is a duplicate lazy import pointing to the same module as `TeacherClassroomPage` (both import `./pages/TeacherClassroomPage`). This wastes a chunk split for no reason and is confusing. It should reuse the existing `TeacherClassroomPage` import.
+The `clearAllCaches` function runs on every app start when the cache version changes. It wipes **all localStorage** except Supabase auth tokens. This destroys:
+- `i18nextLng` -- the language persistence we just set up
+- `theme-mode` -- the user's dark/light mode preference
+- `cache_version` itself (temporarily, before being re-set after the async clear)
 
-**Fix:** Remove line 43 and replace `TeacherClassroomDemo` with `TeacherClassroomPage` on line 154.
-
----
-
-### Bug 2: AnimatePresence Wrapping Routes Incorrectly
-**File:** `src/App.tsx`, lines 80-215
-
-`AnimatePresence mode="wait"` wraps `AppErrorBoundary` and `Routes` but has no `key` on children. AnimatePresence requires its direct children to have unique `key` props to detect route transitions. Without a location-based key, it does nothing -- wasting rendering overhead.
-
-**Fix:** Remove the `AnimatePresence` wrapper from around `Routes` since route-level animation is not being used properly, or wire it up correctly with `useLocation()`. Since route-level animation is complex and not actively used, removing it is the cleaner fix.
+**Fix:** Add `i18nextLng` and `theme-mode` to the preserved keys list alongside auth tokens.
 
 ---
 
-### Bug 3: LanguageContext Doesn't Sync with i18n
-**File:** `src/contexts/LanguageContext.tsx`
+### Bug 2: Landing Page Shows Black Screen During Auth Load
+**File:** `src/pages/LandingPage.tsx`, lines 26-28
 
-The `LanguageProvider` maintains its own `useState("english")` state that is completely disconnected from the `i18next` system we just configured with `LanguageDetector`. This means:
-- `useLanguage()` always returns "english" even if `i18n.language` is "fr"
-- Any component using `useLanguage()` sees stale data
-- The `LanguageDetector` persistence is bypassed by components using this context
+The landing page returns `null` while `useAuth()` is loading. Since the page background is dark (`bg-[#09090B]`), users see a completely black screen for several seconds before any content appears. The landing page is public and doesn't need auth -- it only checks auth to redirect logged-in users.
 
-**Fix:** Sync `LanguageContext` state with `i18n.language` by listening to `i18n.on('languageChanged')`, or migrate all usages to `useTranslation()` from react-i18next. The simpler fix is to have `LanguageProvider` initialize from `i18n.language` and subscribe to language changes.
+**Fix:** Show the landing page content immediately and only redirect after auth finishes loading with a confirmed user. Move the auth redirect check below the main render, using a separate effect or deferred check.
 
 ---
 
-### Bug 4: Auth `loading` State Can Get Stuck
-**File:** `src/contexts/AuthContext.tsx`, line 279
+### Bug 3: Unused `productionMonitor` Import
+**File:** `src/main.tsx`, line 9
 
-The safety timeout at line 273 references `loading` in the closure, but `loading` is a state variable captured at render time. If the component re-renders before the timeout fires, the stale closure still checks the old `loading` value. This is a minor issue since the 3-second timeout is a safety net, but it should use a ref for reliability.
+`productionMonitor` is imported but never referenced in code (only a console.log message mentions it by name string). This pulls an unnecessary module into the main bundle.
 
-**Fix:** No change needed -- the existing `signInRedirectRef` protection and the fact that `setLoading(false)` is idempotent makes this tolerable. We will leave it as-is to avoid unnecessary complexity.
-
----
-
-### Bug 5: `isSecureContext` and `isBrowserSupported` Computed Outside Hook Lifecycle
-**File:** `src/hooks/useLocalMedia.ts`, lines 14-17
-
-These are computed at the top level of the hook on every render, accessing `window` and `navigator` directly. While functional, they should be constants or refs since they never change.
-
-**Fix:** Wrap in `useMemo` or move to module-level constants.
+**Fix:** Remove the unused import. The monitor module self-registers on `window` if needed, or users can import it directly in the console.
 
 ---
 
 ## Implementation Plan
 
-### Step 1: Fix duplicate lazy import in App.tsx
-- Remove `TeacherClassroomDemo` lazy import (line 43)
-- Replace usage on line 154 with `TeacherClassroomPage`
+### Step 1: Fix `clearAllCaches` to preserve user preferences
+**File:** `src/utils/productionCleanup.ts`
+- Add `i18nextLng`, `theme-mode`, and `cache_version` to the preserved keys list
+- Change from auth-only preservation to a general "user preferences" preservation approach
 
-### Step 2: Remove broken AnimatePresence from App.tsx
-- Remove `AnimatePresence mode="wait"` wrapper around Routes (lines 80, 215)
-- Remove unused `AnimatePresence` import if no longer needed
+### Step 2: Fix black screen on landing page
+**File:** `src/pages/LandingPage.tsx`
+- Remove the `if (loading) return null` block
+- Instead, conditionally render the redirect only when `!loading && user` is true
+- The page content renders immediately while auth loads in the background
 
-### Step 3: Sync LanguageContext with i18n
-- Import `i18n` and `useEffect` into `LanguageContext.tsx`
-- Initialize state from `i18n.language` mapped to the LanguageOption type
-- Add `useEffect` to listen for `i18n.on('languageChanged')` events
-- When language changes in either system, keep them in sync
-
-### Step 4: Optimize useLocalMedia constants
-- Move `isSecureContext` and `isBrowserSupported` checks to module-level constants so they are computed once
+### Step 3: Remove unused import
+**File:** `src/main.tsx`
+- Remove `productionMonitor` import (line 9)
 
 ---
 
 ## Technical Details
 
-### LanguageContext sync (Step 3):
+### Step 1 -- Preserved keys:
 ```text
-// Map i18n language codes to LanguageOption
-const i18nToOption = { en: 'english', es: 'spanish', ar: 'arabic', fr: 'french', tr: 'turkish' };
-const optionToI18n = { english: 'en', spanish: 'es', arabic: 'ar', french: 'fr', turkish: 'tr' };
-
-// Initialize from i18n.language
-const [language, setLanguageState] = useState<LanguageOption>(
-  i18nToOption[i18n.language] || 'english'
+const preservedKeys = [
+  'supabase.auth.token',
+  'sb-auth-token',
+  'i18nextLng',
+  'theme-mode',
+  'cache_version',
+];
+const keysToRemove = Object.keys(localStorage).filter(
+  key => !preservedKeys.some(pk => key.includes(pk))
 );
-
-// Subscribe to i18n changes
-useEffect(() => {
-  const handler = (lng) => setLanguageState(i18nToOption[lng] || 'english');
-  i18n.on('languageChanged', handler);
-  return () => i18n.off('languageChanged', handler);
-}, []);
-
-// When setLanguage is called, also update i18n
-const setLanguage = (opt) => {
-  setLanguageState(opt);
-  i18n.changeLanguage(optionToI18n[opt]);
-};
 ```
 
-### useLocalMedia optimization (Step 4):
+### Step 2 -- Landing page fix:
 ```text
-// Module-level constants (computed once)
-const IS_SECURE_CONTEXT = typeof window !== 'undefined' && 
-  (window.isSecureContext || location.protocol === 'https:');
-const IS_BROWSER_SUPPORTED = typeof navigator !== 'undefined' && 
-  !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+export default function LandingPage() {
+  const { user, loading } = useAuth();
+  const { resolvedTheme } = useThemeMode();
+  const isDark = resolvedTheme === 'dark';
+
+  // Redirect logged-in users (only after auth finishes loading)
+  if (!loading && user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  // Render landing page immediately -- no black screen
+  return (
+    <main className={...}>
+      ...
+    </main>
+  );
+}
 ```
 
