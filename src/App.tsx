@@ -12,37 +12,33 @@ import { AppErrorBoundary } from "@/components/common/AppErrorBoundary";
 import { lazy, Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// Core Pages
+// Only the landing page is eagerly loaded (entry point)
 import LandingPage from "./pages/LandingPage";
-import AboutPage from "./pages/AboutPage";
-import TeachWithUsPage from "./pages/TeachWithUsPage";
-import ForTeachersPage from "./pages/ForTeachersPage";
-import Login from "./pages/Login";
-import SignUp from "./pages/SignUp";
-import StudentDashboard from "./pages/StudentDashboard";
-import TeacherDashboard from "./pages/TeacherDashboard";
-import AdminDashboard from "./pages/AdminDashboard";
-import TeacherSignUp from "./pages/TeacherSignUp";
-import StudentSignUp from "./pages/StudentSignUp";
-import TeacherApplication from "./pages/TeacherApplication";
-import StudentApplication from "./pages/StudentApplication";
-import EmailVerification from "./pages/EmailVerification";
-import ResetPassword from "./pages/ResetPassword";
-import Dashboard from "./pages/Dashboard";
-import StudentOnboardingFlow from "./components/onboarding/StudentOnboardingFlow";
 
-// New pages
+// All other pages are lazy-loaded for bundle optimization
+const AboutPage = lazy(() => import("./pages/AboutPage"));
+const TeachWithUsPage = lazy(() => import("./pages/TeachWithUsPage"));
+const ForTeachersPage = lazy(() => import("./pages/ForTeachersPage"));
+const Login = lazy(() => import("./pages/Login"));
+const SignUp = lazy(() => import("./pages/SignUp"));
+const StudentDashboard = lazy(() => import("./pages/StudentDashboard"));
+const TeacherDashboard = lazy(() => import("./pages/TeacherDashboard"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const TeacherSignUp = lazy(() => import("./pages/TeacherSignUp"));
+const StudentSignUp = lazy(() => import("./pages/StudentSignUp"));
+const TeacherApplication = lazy(() => import("./pages/TeacherApplication"));
+const StudentApplication = lazy(() => import("./pages/StudentApplication"));
+const EmailVerification = lazy(() => import("./pages/EmailVerification"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const StudentOnboardingFlow = lazy(() => import("./components/onboarding/StudentOnboardingFlow"));
 const ParentDashboard = lazy(() => import("./pages/ParentDashboard"));
 const CommunityPage = lazy(() => import("./pages/CommunityPage"));
-
-// Lazy load classroom pages
 const TeacherClassroomPage = lazy(() => import("./pages/TeacherClassroomPage"));
 const AIPlacementTest = lazy(() => import("./components/placement/AIPlacementTest"));
 const StudentClassroomPage = lazy(() => import("./pages/StudentClassroomPage"));
-
-
-import { AssessmentTaker } from "./components/assessment/AssessmentTaker";
-import { AssessmentResults } from "./components/assessment/AssessmentResults";
+const AssessmentTaker = lazy(() => import("./components/assessment/AssessmentTaker"));
+const AssessmentResults = lazy(() => import("./components/assessment/AssessmentResults"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -80,51 +76,51 @@ const App = () => {
                     <Routes>
                       {/* Public Entry Point - Landing Page */}
                       <Route path="/" element={<LandingPage />} />
-                      <Route path="/about" element={<AboutPage />} />
-                      <Route path="/teach-with-us" element={<TeachWithUsPage />} />
-                      <Route path="/for-teachers" element={<ForTeachersPage />} />
-                      <Route path="/login" element={<Login />} />
-                      <Route path="/signup" element={<SignUp />} />
-                      <Route path="/teacher-signup" element={<TeacherSignUp />} />
-                      <Route path="/student-signup" element={<StudentSignUp />} />
-                      <Route path="/teacher-application" element={<TeacherApplication />} />
-                      <Route path="/student-application" element={<StudentApplication />} />
-                      <Route path="/email-verification" element={<EmailVerification />} />
-                      <Route path="/reset-password" element={<ResetPassword />} />
+                      <Route path="/about" element={<Suspense fallback={<LoadingFallback />}><AboutPage /></Suspense>} />
+                      <Route path="/teach-with-us" element={<Suspense fallback={<LoadingFallback />}><TeachWithUsPage /></Suspense>} />
+                      <Route path="/for-teachers" element={<Suspense fallback={<LoadingFallback />}><ForTeachersPage /></Suspense>} />
+                      <Route path="/login" element={<Suspense fallback={<LoadingFallback />}><Login /></Suspense>} />
+                      <Route path="/signup" element={<Suspense fallback={<LoadingFallback />}><SignUp /></Suspense>} />
+                      <Route path="/teacher-signup" element={<Suspense fallback={<LoadingFallback />}><TeacherSignUp /></Suspense>} />
+                      <Route path="/student-signup" element={<Suspense fallback={<LoadingFallback />}><StudentSignUp /></Suspense>} />
+                      <Route path="/teacher-application" element={<Suspense fallback={<LoadingFallback />}><TeacherApplication /></Suspense>} />
+                      <Route path="/student-application" element={<Suspense fallback={<LoadingFallback />}><StudentApplication /></Suspense>} />
+                      <Route path="/email-verification" element={<Suspense fallback={<LoadingFallback />}><EmailVerification /></Suspense>} />
+                      <Route path="/reset-password" element={<Suspense fallback={<LoadingFallback />}><ResetPassword /></Suspense>} />
 
                       {/* Assessment Routes */}
                       <Route path="/assessment/:assessmentId" element={
                         <ImprovedProtectedRoute>
-                          <AssessmentTaker />
+                          <Suspense fallback={<LoadingFallback />}><AssessmentTaker /></Suspense>
                         </ImprovedProtectedRoute>
                       } />
                       <Route path="/assessment-results/:submissionId" element={
                         <ImprovedProtectedRoute>
-                          <AssessmentResults />
+                          <Suspense fallback={<LoadingFallback />}><AssessmentResults /></Suspense>
                         </ImprovedProtectedRoute>
                       } />
 
                       {/* Student Dashboard Routes - Protected */}
                       <Route path="/playground/*" element={
                         <ImprovedProtectedRoute requiredRole="student">
-                          <StudentDashboard />
+                          <Suspense fallback={<LoadingFallback />}><StudentDashboard /></Suspense>
                         </ImprovedProtectedRoute>
                       } />
                       <Route path="/academy/*" element={
                         <ImprovedProtectedRoute requiredRole="student">
-                          <StudentDashboard />
+                          <Suspense fallback={<LoadingFallback />}><StudentDashboard /></Suspense>
                         </ImprovedProtectedRoute>
                       } />
                       <Route path="/hub/*" element={
                         <ImprovedProtectedRoute requiredRole="student">
-                          <StudentDashboard />
+                          <Suspense fallback={<LoadingFallback />}><StudentDashboard /></Suspense>
                         </ImprovedProtectedRoute>
                       } />
                       
                       {/* Teacher Dashboard - Protected */}
                       <Route path="/admin/*" element={
                         <ImprovedProtectedRoute requiredRole="teacher">
-                          <TeacherDashboard />
+                          <Suspense fallback={<LoadingFallback />}><TeacherDashboard /></Suspense>
                         </ImprovedProtectedRoute>
                       } />
                       
@@ -156,7 +152,7 @@ const App = () => {
                       {/* Super Admin Dashboard - Protected */}
                       <Route path="/super-admin/*" element={
                         <ImprovedProtectedRoute requiredRole="admin">
-                          <AdminDashboard />
+                          <Suspense fallback={<LoadingFallback />}><AdminDashboard /></Suspense>
                         </ImprovedProtectedRoute>
                       } />
 
@@ -181,14 +177,14 @@ const App = () => {
                       {/* Smart Dashboard Router - redirects based on role */}
                       <Route path="/dashboard" element={
                         <ImprovedProtectedRoute>
-                          <Dashboard />
+                          <Suspense fallback={<LoadingFallback />}><Dashboard /></Suspense>
                         </ImprovedProtectedRoute>
                       } />
 
                       {/* Student Onboarding Flow */}
                       <Route path="/onboarding" element={
                         <ImprovedProtectedRoute requiredRole="student">
-                          <StudentOnboardingFlow />
+                          <Suspense fallback={<LoadingFallback />}><StudentOnboardingFlow /></Suspense>
                         </ImprovedProtectedRoute>
                       } />
 

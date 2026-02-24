@@ -185,3 +185,5 @@ export function AssessmentResults() {
     </div>
   );
 }
+
+export default AssessmentResults;

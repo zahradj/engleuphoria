@@ -238,3 +238,5 @@ export function AssessmentTaker() {
     </div>
   );
 }
+
+export default AssessmentTaker;
