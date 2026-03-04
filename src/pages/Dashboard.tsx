@@ -75,6 +75,12 @@ const Dashboard: React.FC = () => {
       return;
     }
 
+    // Handle content_creator redirect
+    if (userRole === 'content_creator') {
+      setRedirectPath('/content-creator');
+      return;
+    }
+
     // Handle parent redirect
     if (userRole === 'parent') {
       setRedirectPath('/parent');
