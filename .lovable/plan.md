@@ -1,123 +1,135 @@
 
 
-# Bundle Optimization and Security Audit Results
+# AI Curriculum & Lesson Generator -- Standalone Module
 
-## Part 1: Verification Results
+## Current State Analysis
 
-### Landing Page - PASSED
-The landing page renders instantly without any black screen. The fix (removing `if (loading) return null`) is working correctly -- content appears immediately while auth loads in the background.
+Your platform already has extensive curriculum and lesson generation infrastructure:
 
-### Language Persistence - NEEDS MANUAL TESTING
-The LanguageContext is now synced with i18next and the `clearAllCaches` function preserves `i18nextLng`. To verify: switch language in the app, refresh the page, and confirm the language persists.
+**Existing Components:**
+- `CurriculumBuilder` -- hierarchical track/level/lesson viewer
+- `CurriculumLibrary` -- lesson grid with filters, preview, edit, publish
+- `NewLibrary` (AI Generator) -- lesson generation with unified pipeline (content + games + images)
+- `LessonEditorPage` + `SlideEditor` -- slide-level editing
+- `LessonPicker` -- master curriculum checklist
+- `BulkLessonGenerator` -- batch generation
+- `CurriculumProgressDashboard` + `CurriculumExportDashboard`
+- `QualityDashboard`, `GenerationHistoryPanel`
 
-### Dark/Light Mode Persistence - NEEDS MANUAL TESTING
-The `clearAllCaches` function now preserves `theme-mode`. To verify: toggle the theme, refresh, and confirm the preference survives.
+**Existing Edge Functions (17+):** `n8n-bridge`, `curriculum-generator`, `curriculum-expert-agent`, `interactive-lesson-generator`, `generate-iron-game`, `batch-generate-lesson-images`, etc.
+
+**Existing Database:** `tracks`, `curriculum_levels`, `curriculum_units`, `curriculum_lessons` tables with full hierarchy. Master curriculum data map in `src/data/masterCurriculum.ts`.
+
+**Current Role System:** `app_role` enum has `student | teacher | admin`. No `content_creator` role exists yet.
+
+## What Needs to Be Built
+
+Rather than rebuilding what exists, the plan is to:
+1. Add a `content_creator` role to the system
+2. Create a dedicated Content Creator dashboard page that consolidates existing components into the 6-section layout requested
+3. Add a **Curriculum Generator** wizard (AI generates units/lessons structure from scratch)
+4. Add a **Quiz Generator** tab
+5. Wire everything with proper role-based access
 
 ---
 
-## Part 2: Bundle Size Optimization
+## Implementation Plan
 
-### Problem
-In `src/App.tsx`, 17 page components are **eagerly imported**, meaning they are all bundled into the initial JavaScript payload even though most users only visit 1-2 pages on first load. Only 5 components (ParentDashboard, CommunityPage, TeacherClassroomPage, StudentClassroomPage, AIPlacementTest) are lazy-loaded.
+### Step 1: Add `content_creator` Role
 
-### Pages to Convert to Lazy Loading
+**Database Migration:**
+- Alter `app_role` enum to add `'content_creator'`
+- Update `has_role` and `get_user_role` functions to handle the new role
+- Add RLS policies so content creators can access curriculum tables
 
-| Page | Used By | Priority |
-|------|---------|----------|
-| AboutPage | Public visitors | High |
-| TeachWithUsPage | Public visitors | High |
-| ForTeachersPage | Public visitors | High |
-| Login | Auth flow | High |
-| SignUp | Auth flow | High |
-| TeacherSignUp | Auth flow | Medium |
-| StudentSignUp | Auth flow | Medium |
-| TeacherApplication | Auth flow | Medium |
-| StudentApplication | Auth flow | Medium |
-| EmailVerification | Auth flow | Medium |
-| ResetPassword | Auth flow | Medium |
-| StudentDashboard | Students only | High |
-| TeacherDashboard | Teachers only | High |
-| AdminDashboard | Admins only | High |
-| Dashboard | Role router | Medium |
-| StudentOnboardingFlow | Students only | Medium |
-| AssessmentTaker | Assessments | Low |
-| AssessmentResults | Assessments | Low |
+### Step 2: Create Content Creator Dashboard Page
 
-### What Stays Eagerly Loaded
-- `LandingPage` -- the entry point, must load instantly
+**New file:** `src/pages/ContentCreatorDashboard.tsx`
 
-### Implementation
+A standalone page at route `/content-creator` with its own sidebar containing the 6 sections:
+1. **Curriculum Generator** -- new AI-powered wizard
+2. **Curriculum Editor** -- reuses existing `CurriculumBuilder`
+3. **Lesson Generator** -- reuses existing `NewLibrary` (AI Generator)
+4. **Lesson Editor** -- reuses existing `CurriculumLibrary` (with preview/edit)
+5. **Quiz Generator** -- new component
+6. **Content Library** -- reuses existing `CurriculumLibrary` filtered view
 
-**File: `src/App.tsx`**
+**New files:**
+- `src/components/content-creator/ContentCreatorSidebar.tsx`
+- `src/components/content-creator/CurriculumGeneratorWizard.tsx`
+- `src/components/content-creator/QuizGenerator.tsx`
 
-1. Replace all 17 eager imports (lines 17-32, 44-45) with `lazy()` calls
-2. Wrap all lazy-loaded route elements in `<Suspense fallback={<LoadingFallback />}>`
-3. Keep `LandingPage` as the only eager import
+### Step 3: Curriculum Generator Wizard
+
+A multi-step form where the Content Creator inputs:
+- Student level (Beginner / Elementary / Pre-Intermediate / Intermediate)
+- Age group (Kids / Teens / Adults)
+- Number of units
+- Number of lessons per unit
+
+Calls the existing `curriculum-expert-agent` edge function (which already uses Lovable AI Gateway) to generate:
+- Units with titles
+- Lesson titles per unit
+- Learning objectives, grammar focus, vocabulary themes
+
+Output is displayed in a structured tree view, editable inline, and saveable to `curriculum_units` + `curriculum_lessons` tables.
+
+### Step 4: Quiz Generator
+
+A component that:
+- Lets the Content Creator select a lesson or enter a topic + level
+- Calls an edge function to generate 5-question quizzes with:
+  - Multiple choice, fill-in-the-blank, matching, sentence ordering
+  - Correct answers + explanations
+- Saves quiz data as structured JSON in the lesson content or a dedicated field
+
+**New edge function:** `quiz-generator` -- uses Lovable AI Gateway with tool calling for structured output.
+
+### Step 5: Route & Access Control
+
+- Add lazy-loaded route `/content-creator` in `App.tsx`
+- Protect with `ImprovedProtectedRoute` requiring `content_creator` role
+- Add redirect from `Dashboard.tsx` for content_creator role
+- Update `AdminDashboard` login check to also allow content_creator role where appropriate
+
+### Step 6: Content Library View
+
+Reuses `CurriculumLibrary` with additional filters:
+- Filter by level, unit, lesson
+- Show generated content organized hierarchically
+- Export as JSON for platform integration
+
+---
+
+## Technical Architecture
 
 ```text
-// BEFORE (eager - all in initial bundle)
-import AboutPage from "./pages/AboutPage";
-import Login from "./pages/Login";
-import StudentDashboard from "./pages/StudentDashboard";
-// ... 14 more
+/content-creator (new route)
+├── ContentCreatorDashboard.tsx (new page)
+├── ContentCreatorSidebar.tsx (new - 6 tabs)
+├── CurriculumGeneratorWizard.tsx (new - AI wizard)
+├── QuizGenerator.tsx (new - quiz creation)
+├── CurriculumBuilder (existing - reused)
+├── NewLibrary (existing - reused as Lesson Generator)
+├── CurriculumLibrary (existing - reused as Lesson Editor + Content Library)
+└── quiz-generator/ (new edge function)
 
-// AFTER (lazy - loaded on demand)
-const AboutPage = lazy(() => import("./pages/AboutPage"));
-const Login = lazy(() => import("./pages/Login"));
-const StudentDashboard = lazy(() => import("./pages/StudentDashboard"));
-// ... 14 more
+Database Changes:
+├── ALTER TYPE app_role ADD VALUE 'content_creator'
+├── RLS policies for content_creator on curriculum tables
+└── No new tables needed (uses existing curriculum_lessons.content JSON)
 ```
 
-Each route that uses a lazy component gets wrapped:
-```text
-<Route path="/about" element={
-  <Suspense fallback={<LoadingFallback />}>
-    <AboutPage />
-  </Suspense>
-} />
-```
+## Files to Create/Modify
 
-### Expected Impact
-- Initial bundle reduced by ~60-70% (removing 17 page modules from main chunk)
-- Each page loads only when navigated to
-- Users see the skeleton loading state briefly on first visit to each page
-
----
-
-## Part 3: Security Scan Summary
-
-The scan found **224 issues** across three categories:
-
-### Category A: RLS Enabled but No Policies (3 tables) -- INFO
-Three tables have RLS enabled but no policies defined, meaning **all access is blocked**. This is safe (restrictive) but may cause features to silently fail.
-
-### Category B: Overly Permissive RLS Policies (~25 tables) -- WARN
-Many tables have `USING (true)` or `WITH CHECK (true)` on INSERT/UPDATE/DELETE operations, meaning **any authenticated user can modify any row**. This is the most critical security concern.
-
-### Category C: Anonymous Access Policies (~100+ tables) -- WARN
-Many RLS policies are enforced on roles that include `anon`, meaning unauthenticated users could potentially access data. Most of these are likely false positives (policies check `auth.uid()` internally), but should be reviewed.
-
-### Category D: Functions Without search_path (5 functions) -- WARN
-Five database functions don't have `search_path` set, making them vulnerable to search path injection.
-
-### Category E: Extension in Public Schema (1) -- WARN
-An extension is installed in the `public` schema instead of a dedicated schema.
-
-### Recommendation
-The security findings are extensive and should be tackled as a **separate dedicated task** -- fixing 25+ overly permissive RLS policies and 100+ anonymous access policies requires careful review of each table's access patterns to avoid breaking functionality. The bundle optimization can proceed independently.
-
----
-
-## Implementation Steps
-
-### Step 1: Convert all eager imports to lazy imports in App.tsx
-- Move 17 page imports from static `import` to `lazy(() => import(...))`
-- Keep only `LandingPage` as eager import
-
-### Step 2: Wrap all lazy route elements in Suspense
-- Add `<Suspense fallback={<LoadingFallback />}>` around every lazy component in Routes
-- Reuse the existing `LoadingFallback` component
-
-### Step 3: Clean up unused direct imports
-- Remove the `AssessmentTaker` and `AssessmentResults` named imports and convert to lazy default imports (may require adding `export default` wrappers)
+| File | Action |
+|------|--------|
+| `src/pages/ContentCreatorDashboard.tsx` | Create |
+| `src/components/content-creator/ContentCreatorSidebar.tsx` | Create |
+| `src/components/content-creator/CurriculumGeneratorWizard.tsx` | Create |
+| `src/components/content-creator/QuizGenerator.tsx` | Create |
+| `supabase/functions/quiz-generator/index.ts` | Create |
+| `src/App.tsx` | Add route |
+| `src/pages/Dashboard.tsx` | Add content_creator redirect |
+| Database migration | Add content_creator to app_role enum + RLS |
 
