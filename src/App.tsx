@@ -39,6 +39,7 @@ const AIPlacementTest = lazy(() => import("./components/placement/AIPlacementTes
 const StudentClassroomPage = lazy(() => import("./pages/StudentClassroomPage"));
 const AssessmentTaker = lazy(() => import("./components/assessment/AssessmentTaker"));
 const AssessmentResults = lazy(() => import("./components/assessment/AssessmentResults"));
+const ContentCreatorDashboard = lazy(() => import("./pages/ContentCreatorDashboard"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -153,6 +154,15 @@ const App = () => {
                       <Route path="/super-admin/*" element={
                         <ImprovedProtectedRoute requiredRole="admin">
                           <Suspense fallback={<LoadingFallback />}><AdminDashboard /></Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
+
+                      {/* Content Creator Dashboard - Protected */}
+                      <Route path="/content-creator/*" element={
+                        <ImprovedProtectedRoute requiredRole="content_creator">
+                          <Suspense fallback={<LoadingFallback />}>
+                            <ContentCreatorDashboard />
+                          </Suspense>
                         </ImprovedProtectedRoute>
                       } />
 
