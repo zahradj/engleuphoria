@@ -1,135 +1,54 @@
 
 
-# AI Curriculum & Lesson Generator -- Standalone Module
+# Fix "Forgot Password" Link
 
-## Current State Analysis
+## Problem
 
-Your platform already has extensive curriculum and lesson generation infrastructure:
+The forgot password flow is broken. Looking at the auth logs:
 
-**Existing Components:**
-- `CurriculumBuilder` -- hierarchical track/level/lesson viewer
-- `CurriculumLibrary` -- lesson grid with filters, preview, edit, publish
-- `NewLibrary` (AI Generator) -- lesson generation with unified pipeline (content + games + images)
-- `LessonEditorPage` + `SlideEditor` -- slide-level editing
-- `LessonPicker` -- master curriculum checklist
-- `BulkLessonGenerator` -- batch generation
-- `CurriculumProgressDashboard` + `CurriculumExportDashboard`
-- `QualityDashboard`, `GenerationHistoryPanel`
+1. The reset email **is sent successfully** (status 200 from Supabase)
+2. When the user clicks the link in the email, Supabase returns **"Email link is invalid or has expired"** (403)
 
-**Existing Edge Functions (17+):** `n8n-bridge`, `curriculum-generator`, `curriculum-expert-agent`, `interactive-lesson-generator`, `generate-iron-game`, `batch-generate-lesson-images`, etc.
+The root cause: The `redirectTo` URL in the reset email uses `window.location.origin`, which resolves to the **preview URL** (e.g., `https://f2c868c1-...lovableproject.com`). However, Supabase's **Site URL** and **Redirect URLs** configuration likely only allows certain domains. The auth logs show the verify request referrer is `http://localhost:3000`, confirming a URL mismatch.
 
-**Existing Database:** `tracks`, `curriculum_levels`, `curriculum_units`, `curriculum_lessons` tables with full hierarchy. Master curriculum data map in `src/data/masterCurriculum.ts`.
+Additionally, the reset link format from Supabase uses a hash fragment (`#access_token=...&type=recovery`), and the `ResetPassword` page does not parse hash parameters -- it only reads `useSearchParams()` (query params).
 
-**Current Role System:** `app_role` enum has `student | teacher | admin`. No `content_creator` role exists yet.
+## Fixes Required
 
-## What Needs to Be Built
+### Fix 1: Parse hash fragment in ResetPassword page
 
-Rather than rebuilding what exists, the plan is to:
-1. Add a `content_creator` role to the system
-2. Create a dedicated Content Creator dashboard page that consolidates existing components into the 6-section layout requested
-3. Add a **Curriculum Generator** wizard (AI generates units/lessons structure from scratch)
-4. Add a **Quiz Generator** tab
-5. Wire everything with proper role-based access
+Supabase sends recovery links with tokens in the URL **hash** (e.g., `#access_token=...&type=recovery`). The Supabase JS client automatically picks up these tokens via `onAuthStateChange` with event `PASSWORD_RECOVERY`. The `ResetPassword` page needs to:
 
----
+- Listen for `PASSWORD_RECOVERY` event from `onAuthStateChange`
+- Show the password reset form only when a valid recovery session is detected
+- Show an error/expired message if no valid session is found after a timeout
 
-## Implementation Plan
+**File:** `src/pages/ResetPassword.tsx`
+- Add `useEffect` that listens to `supabase.auth.onAuthStateChange` for `PASSWORD_RECOVERY` event
+- Set a `sessionReady` state to `true` when recovery session is detected
+- Show a loading state initially, then the form when ready, or an error if timed out
 
-### Step 1: Add `content_creator` Role
+### Fix 2: Use published URL for redirectTo
 
-**Database Migration:**
-- Alter `app_role` enum to add `'content_creator'`
-- Update `has_role` and `get_user_role` functions to handle the new role
-- Add RLS policies so content creators can access curriculum tables
+Change the `redirectTo` in `AuthContext.tsx` to use the published domain instead of `window.location.origin` (which changes between preview/published):
 
-### Step 2: Create Content Creator Dashboard Page
+**File:** `src/contexts/AuthContext.tsx` (line ~500)
+- Change `redirectTo` to use `https://engleuphoria.lovable.app/reset-password` as the primary URL
+- This ensures the reset link always points to a stable, allowed URL
 
-**New file:** `src/pages/ContentCreatorDashboard.tsx`
+### Fix 3: Add redirect URLs in Supabase dashboard
 
-A standalone page at route `/content-creator` with its own sidebar containing the 6 sections:
-1. **Curriculum Generator** -- new AI-powered wizard
-2. **Curriculum Editor** -- reuses existing `CurriculumBuilder`
-3. **Lesson Generator** -- reuses existing `NewLibrary` (AI Generator)
-4. **Lesson Editor** -- reuses existing `CurriculumLibrary` (with preview/edit)
-5. **Quiz Generator** -- new component
-6. **Content Library** -- reuses existing `CurriculumLibrary` filtered view
+The user needs to add these URLs to Supabase Auth > URL Configuration > Redirect URLs:
+- `https://engleuphoria.lovable.app/**`
+- `https://id-preview--f2c868c1-6921-4fb3-b652-76d62600c4d5.lovable.app/**`
 
-**New files:**
-- `src/components/content-creator/ContentCreatorSidebar.tsx`
-- `src/components/content-creator/CurriculumGeneratorWizard.tsx`
-- `src/components/content-creator/QuizGenerator.tsx`
+This is a manual step in the Supabase dashboard.
 
-### Step 3: Curriculum Generator Wizard
+## Summary of Changes
 
-A multi-step form where the Content Creator inputs:
-- Student level (Beginner / Elementary / Pre-Intermediate / Intermediate)
-- Age group (Kids / Teens / Adults)
-- Number of units
-- Number of lessons per unit
-
-Calls the existing `curriculum-expert-agent` edge function (which already uses Lovable AI Gateway) to generate:
-- Units with titles
-- Lesson titles per unit
-- Learning objectives, grammar focus, vocabulary themes
-
-Output is displayed in a structured tree view, editable inline, and saveable to `curriculum_units` + `curriculum_lessons` tables.
-
-### Step 4: Quiz Generator
-
-A component that:
-- Lets the Content Creator select a lesson or enter a topic + level
-- Calls an edge function to generate 5-question quizzes with:
-  - Multiple choice, fill-in-the-blank, matching, sentence ordering
-  - Correct answers + explanations
-- Saves quiz data as structured JSON in the lesson content or a dedicated field
-
-**New edge function:** `quiz-generator` -- uses Lovable AI Gateway with tool calling for structured output.
-
-### Step 5: Route & Access Control
-
-- Add lazy-loaded route `/content-creator` in `App.tsx`
-- Protect with `ImprovedProtectedRoute` requiring `content_creator` role
-- Add redirect from `Dashboard.tsx` for content_creator role
-- Update `AdminDashboard` login check to also allow content_creator role where appropriate
-
-### Step 6: Content Library View
-
-Reuses `CurriculumLibrary` with additional filters:
-- Filter by level, unit, lesson
-- Show generated content organized hierarchically
-- Export as JSON for platform integration
-
----
-
-## Technical Architecture
-
-```text
-/content-creator (new route)
-├── ContentCreatorDashboard.tsx (new page)
-├── ContentCreatorSidebar.tsx (new - 6 tabs)
-├── CurriculumGeneratorWizard.tsx (new - AI wizard)
-├── QuizGenerator.tsx (new - quiz creation)
-├── CurriculumBuilder (existing - reused)
-├── NewLibrary (existing - reused as Lesson Generator)
-├── CurriculumLibrary (existing - reused as Lesson Editor + Content Library)
-└── quiz-generator/ (new edge function)
-
-Database Changes:
-├── ALTER TYPE app_role ADD VALUE 'content_creator'
-├── RLS policies for content_creator on curriculum tables
-└── No new tables needed (uses existing curriculum_lessons.content JSON)
-```
-
-## Files to Create/Modify
-
-| File | Action |
+| File | Change |
 |------|--------|
-| `src/pages/ContentCreatorDashboard.tsx` | Create |
-| `src/components/content-creator/ContentCreatorSidebar.tsx` | Create |
-| `src/components/content-creator/CurriculumGeneratorWizard.tsx` | Create |
-| `src/components/content-creator/QuizGenerator.tsx` | Create |
-| `supabase/functions/quiz-generator/index.ts` | Create |
-| `src/App.tsx` | Add route |
-| `src/pages/Dashboard.tsx` | Add content_creator redirect |
-| Database migration | Add content_creator to app_role enum + RLS |
+| `src/pages/ResetPassword.tsx` | Add `PASSWORD_RECOVERY` event listener, loading/error states |
+| `src/contexts/AuthContext.tsx` | Use stable published URL for `redirectTo` |
+| Supabase Dashboard (manual) | Add redirect URLs to Auth configuration |
 
