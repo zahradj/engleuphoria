@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Lock, Eye, EyeOff, CheckCircle, ArrowRight } from "lucide-react";
+import { Lock, Eye, EyeOff, CheckCircle, ArrowRight, Loader2, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -13,9 +13,45 @@ const ResetPassword = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [sessionReady, setSessionReady] = useState(false);
+  const [sessionExpired, setSessionExpired] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Listen for PASSWORD_RECOVERY event from Supabase
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setSessionReady(true);
+        setCheckingSession(false);
+      }
+    });
+
+    // Also check if there's already a session (user may have landed with hash fragment already processed)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setSessionReady(true);
+        setCheckingSession(false);
+      }
+    });
+
+    // Timeout after 5 seconds if no recovery session detected
+    const timeout = setTimeout(() => {
+      setCheckingSession(prev => {
+        if (prev) {
+          setSessionExpired(true);
+          return false;
+        }
+        return prev;
+      });
+    }, 5000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
+    };
+  }, []);
 
   const passwordRequirements = [
     { test: (pwd: string) => pwd.length >= 6, text: "At least 6 characters" },
@@ -65,6 +101,7 @@ const ResetPassword = () => {
           title: "Password Reset Successful! ✅",
           description: "Your password has been updated. You can now log in.",
         });
+        await supabase.auth.signOut();
         setTimeout(() => navigate('/login'), 2000);
       }
     } catch (error: any) {
@@ -77,6 +114,45 @@ const ResetPassword = () => {
       setLoading(false);
     }
   };
+
+  // Loading state while checking for recovery session
+  if (checkingSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-purple-50/20 to-gray-50">
+        <Card className="w-full max-w-md shadow-2xl bg-white/95 backdrop-blur-sm border-0">
+          <CardContent className="flex flex-col items-center justify-center py-16 gap-4">
+            <Loader2 className="h-10 w-10 animate-spin text-purple-500" />
+            <p className="text-gray-600 text-sm">Verifying your reset link...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Expired / invalid link state
+  if (sessionExpired && !sessionReady) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-purple-50/20 to-gray-50">
+        <Card className="w-full max-w-md shadow-2xl bg-white/95 backdrop-blur-sm border-0">
+          <CardContent className="flex flex-col items-center justify-center py-16 gap-4 text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+              <AlertTriangle className="h-8 w-8 text-red-500" />
+            </div>
+            <h2 className="text-xl font-bold text-gray-800">Link Expired or Invalid</h2>
+            <p className="text-gray-600 text-sm max-w-xs">
+              This password reset link has expired or is invalid. Please request a new one.
+            </p>
+            <Button
+              onClick={() => navigate('/login')}
+              className="mt-4 bg-purple-500/90 hover:bg-purple-600/90"
+            >
+              Back to Login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-gray-50 via-purple-50/20 to-gray-50">
