@@ -1,19 +1,35 @@
-import { useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React from 'react';
 
 type ThemeMode = 'light' | 'dark' | 'system';
 
-export function useThemeMode() {
+interface ThemeModeContextType {
+  mode: ThemeMode;
+  resolvedTheme: 'light' | 'dark';
+  setThemeMode: (newMode: ThemeMode) => void;
+  toggleTheme: () => void;
+}
+
+const ThemeModeContext = createContext<ThemeModeContextType | undefined>(undefined);
+
+export function ThemeModeProvider({ children }: { children: ReactNode }) {
   const [mode, setMode] = useState<ThemeMode>(() => {
     const stored = localStorage.getItem('theme-mode');
     return (stored as ThemeMode) || 'system';
   });
 
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
+  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>(() => {
+    const stored = localStorage.getItem('theme-mode') as ThemeMode || 'system';
+    if (stored === 'system') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return stored;
+  });
 
   useEffect(() => {
     const updateTheme = () => {
       let theme: 'light' | 'dark';
-      
+
       if (mode === 'system') {
         theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
       } else {
@@ -21,7 +37,7 @@ export function useThemeMode() {
       }
 
       setResolvedTheme(theme);
-      
+
       if (theme === 'dark') {
         document.documentElement.classList.add('dark');
       } else {
@@ -42,15 +58,27 @@ export function useThemeMode() {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, [mode]);
 
-  const setThemeMode = (newMode: ThemeMode) => {
+  const setThemeMode = useCallback((newMode: ThemeMode) => {
     setMode(newMode);
     localStorage.setItem('theme-mode', newMode);
-  };
+  }, []);
 
-  const toggleTheme = () => {
+  const toggleTheme = useCallback(() => {
     const newMode = resolvedTheme === 'dark' ? 'light' : 'dark';
     setThemeMode(newMode);
-  };
+  }, [resolvedTheme, setThemeMode]);
 
-  return { mode, resolvedTheme, setThemeMode, toggleTheme };
+  return React.createElement(
+    ThemeModeContext.Provider,
+    { value: { mode, resolvedTheme, setThemeMode, toggleTheme } },
+    children
+  );
+}
+
+export function useThemeMode() {
+  const context = useContext(ThemeModeContext);
+  if (!context) {
+    throw new Error('useThemeMode must be used within a ThemeModeProvider');
+  }
+  return context;
 }
