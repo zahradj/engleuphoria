@@ -224,6 +224,7 @@ const App = () => {
           </LessonProvider>
         </AuthProvider>
       </LanguageProvider>
+      </ThemeModeProvider>
     </QueryClientProvider>
   );
 };
