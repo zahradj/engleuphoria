@@ -66,6 +66,7 @@ const LoadingFallback = () => (
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
+      <ThemeModeProvider>
       <LanguageProvider>
         <AuthProvider>
           <LessonProvider>
