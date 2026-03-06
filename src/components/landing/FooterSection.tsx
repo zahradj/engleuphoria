@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, useScroll, useTransform } from 'framer-motion';
 import { Globe, Mail, MessageCircle } from 'lucide-react';
 import logoWhite from '@/assets/logo-white.png';
 import { useThemeMode } from '@/hooks/useThemeMode';
+import { useRef } from 'react';
 
 const footerLinks = {
   worlds: [
@@ -32,11 +33,23 @@ const footerLinks = {
 export function FooterSection() {
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
+  const logoRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: logoRef, offset: ['start end', 'end start'] });
+  const logoY = useTransform(scrollYProgress, [0, 1], [40, -40]);
 
   return (
     <footer className={`relative transition-colors duration-300 ${
       isDark ? 'bg-slate-950 border-t border-white/10' : 'bg-[#FAFAFA] border-t border-slate-200'
     }`}>
+      {/* Gradient divider line */}
+      <div className="absolute top-0 left-0 right-0 h-[1px]">
+        <div className={`h-full w-full bg-gradient-to-r ${
+          isDark
+            ? 'from-transparent via-indigo-500/50 to-transparent'
+            : 'from-transparent via-indigo-400/30 to-transparent'
+        }`} />
+      </div>
+
       <div className="max-w-7xl mx-auto px-6 md:px-12 py-16">
         <motion.div
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-12"
@@ -58,10 +71,10 @@ export function FooterSection() {
             </p>
             <div className="flex items-center gap-4">
               {[Globe, Mail, MessageCircle].map((Icon, i) => (
-                <a key={i} href="#" className={`p-3 rounded-xl transition-colors ${
+                <a key={i} href="#" className={`p-3 rounded-xl transition-all duration-300 ${
                   isDark
-                    ? 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10'
-                    : 'bg-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-200'
+                    ? 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 hover:shadow-[0_0_20px_rgba(99,102,241,0.15)]'
+                    : 'bg-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-200 hover:shadow-md'
                 }`}>
                   <Icon className="w-5 h-5" />
                 </a>
@@ -78,7 +91,7 @@ export function FooterSection() {
               <ul className="space-y-3">
                 {links.map((link) => (
                   <li key={link.label}>
-                    <Link to={link.href} className={`text-sm transition-colors ${
+                    <Link to={link.href} className={`text-sm transition-colors story-link ${
                       isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'
                     }`}>
                       {link.label}
@@ -117,13 +130,14 @@ export function FooterSection() {
         </motion.div>
       </div>
 
-      {/* Signature Oversized Logo */}
-      <div className="relative overflow-hidden pointer-events-none select-none" aria-hidden="true">
+      {/* Signature Oversized Logo with parallax */}
+      <div ref={logoRef} className="relative overflow-hidden pointer-events-none select-none" aria-hidden="true">
         <div className="max-w-[100vw] overflow-hidden text-center pb-4">
           <motion.p
             className={`font-display font-extrabold uppercase leading-none tracking-tighter text-[100px] md:text-[180px] lg:text-[260px] translate-y-[30%] ${
               isDark ? 'text-white/[0.04]' : 'text-slate-900/[0.03]'
             }`}
+            style={{ y: logoY }}
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
