@@ -33,6 +33,8 @@ const portals = [
     age: 'Ages 5–12',
     glowColorDark: 'rgba(16,185,129,0.4)',
     glowColorLight: 'rgba(5,150,105,0.3)',
+    accentFrom: 'from-emerald-500',
+    accentTo: 'to-teal-400',
     cursor: 'playground' as const,
   },
   {
@@ -42,6 +44,8 @@ const portals = [
     age: 'Teens',
     glowColorDark: 'rgba(99,102,241,0.4)',
     glowColorLight: 'rgba(67,56,202,0.3)',
+    accentFrom: 'from-indigo-500',
+    accentTo: 'to-violet-400',
     cursor: 'academy' as const,
   },
   {
@@ -51,6 +55,8 @@ const portals = [
     age: 'Adults',
     glowColorDark: 'rgba(245,158,11,0.4)',
     glowColorLight: 'rgba(217,119,6,0.3)',
+    accentFrom: 'from-amber-500',
+    accentTo: 'to-orange-400',
     cursor: 'professional' as const,
   },
 ];
@@ -60,6 +66,22 @@ const worldTaglines = [
   { label: 'Academy', text: "Don't just pass exams. Master the language of the global internet." },
   { label: 'Professional', text: "Your expertise is global. Now, make your voice match your ambition." },
 ];
+
+/* Animated dot grid background */
+function DotGrid({ isDark }: { isDark: boolean }) {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-[1]">
+      <svg className="w-full h-full opacity-[0.15]" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <pattern id="dotGrid" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse">
+            <circle cx="1" cy="1" r="1" fill={isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)'} />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#dotGrid)" />
+      </svg>
+    </div>
+  );
+}
 
 function SocialProofRibbon({ isDark }: { isDark: boolean }) {
   const students = useCountUp(2500);
@@ -94,7 +116,7 @@ function SocialProofRibbon({ isDark }: { isDark: boolean }) {
   );
 }
 
-/* Film Grain Overlay — uses inline SVG feTurbulence, zero network requests */
+/* Film Grain Overlay */
 function FilmGrain({ isDark }: { isDark: boolean }) {
   return (
     <div
@@ -154,6 +176,9 @@ export function HeroSection() {
           : 'bg-gradient-to-b from-[#FAFAFA] via-slate-50 to-[#FAFAFA]'
       }`} />
 
+      {/* Dot Grid */}
+      <DotGrid isDark={isDark} />
+
       {/* Film Grain Overlay */}
       <FilmGrain isDark={isDark} />
 
@@ -190,7 +215,7 @@ export function HeroSection() {
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 sm:px-6 text-center py-32">
 
-        {/* Euphoria Ring — breathing glow behind headline */}
+        {/* Euphoria Ring */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-0">
           <div
             className="w-[200px] h-[200px] md:w-[300px] md:h-[300px] rounded-full animate-euphoria-ring"
@@ -209,7 +234,7 @@ export function HeroSection() {
           />
         </div>
 
-        {/* Headline — Full Gradient Clip-Path */}
+        {/* Headline */}
         <motion.h1
           className={`font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight mb-6 leading-[1.05] bg-clip-text text-transparent animate-gradient-text relative z-10 ${isDark ? 'text-glow' : 'text-ink'}`}
           style={{
@@ -239,37 +264,45 @@ export function HeroSection() {
           The Human-First Academy where language meets intuition.
         </motion.p>
 
-        {/* Glassmorphic Pill Buttons */}
+        {/* Enhanced Portal Buttons */}
         <motion.div
           className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8 relative z-10"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
         >
-          {portals.map((portal) => (
-            <Link
+          {portals.map((portal, i) => (
+            <motion.div
               key={portal.id}
-              to="/student-signup"
-              data-cursor={portal.cursor}
-              className={`group relative px-8 py-4 rounded-full backdrop-blur-xl font-medium transition-all duration-500 ${
-                isDark
-                  ? 'bg-white/[0.04] border border-white/[0.08] text-white hover:bg-white/[0.08]'
-                  : 'bg-white/70 border border-slate-200 text-slate-800 shadow-sm hover:bg-white/90'
-              }`}
-              onMouseEnter={(e) => {
-                const color = isDark ? portal.glowColorDark : portal.glowColorLight;
-                (e.currentTarget as HTMLElement).style.boxShadow = `0 0 30px ${color}`;
-                (e.currentTarget as HTMLElement).style.borderColor = color;
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLElement).style.boxShadow = 'none';
-                (e.currentTarget as HTMLElement).style.borderColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgb(226,232,240)';
-              }}
+              whileHover={{ scale: 1.06, y: -2 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             >
-              <span className="text-lg mr-2">{portal.emoji}</span>
-              {portal.label}
-              <span className={`ml-2 text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>({portal.age})</span>
-            </Link>
+              <Link
+                to="/student-signup"
+                data-cursor={portal.cursor}
+                className={`group relative px-8 py-4 rounded-full backdrop-blur-xl font-medium transition-all duration-500 block ${
+                  isDark
+                    ? 'bg-white/[0.04] border border-white/[0.08] text-white hover:bg-white/[0.08]'
+                    : 'bg-white/70 border border-slate-200 text-slate-800 shadow-sm hover:bg-white/90'
+                }`}
+                onMouseEnter={(e) => {
+                  const color = isDark ? portal.glowColorDark : portal.glowColorLight;
+                  (e.currentTarget as HTMLElement).style.boxShadow = `0 0 30px ${color}, 0 0 60px ${color.replace(/[\d.]+\)$/, '0.15)')}`;
+                  (e.currentTarget as HTMLElement).style.borderColor = color;
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.boxShadow = 'none';
+                  (e.currentTarget as HTMLElement).style.borderColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgb(226,232,240)';
+                }}
+              >
+                {/* Gradient underline on hover */}
+                <span className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] w-0 group-hover:w-3/4 transition-all duration-500 rounded-full bg-gradient-to-r ${portal.accentFrom} ${portal.accentTo}`} />
+                <span className="text-lg mr-2">{portal.emoji}</span>
+                {portal.label}
+                <span className={`ml-2 text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>({portal.age})</span>
+              </Link>
+            </motion.div>
           ))}
         </motion.div>
 

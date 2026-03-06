@@ -11,12 +11,27 @@ import logoDark from '@/assets/logo-dark.png';
 export function NavHeader() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<string | null>(null);
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
+
+      // Detect active section
+      const sections = ['features', 'how-it-works', 'pricing'];
+      for (const id of sections) {
+        const el = document.getElementById(id);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= 120 && rect.bottom > 120) {
+            setActiveSection(id);
+            return;
+          }
+        }
+      }
+      setActiveSection(null);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
@@ -46,8 +61,8 @@ export function NavHeader() {
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           isScrolled
             ? isDark
-              ? 'bg-slate-950/60 backdrop-blur-2xl border-b border-white/10 shadow-2xl'
-              : 'bg-white/80 backdrop-blur-2xl border-b border-slate-200 shadow-sm'
+              ? 'bg-slate-950/70 backdrop-blur-2xl border-b border-white/[0.06] shadow-[0_4px_30px_rgba(0,0,0,0.3)]'
+              : 'bg-white/70 backdrop-blur-2xl border-b border-slate-200/80 shadow-[0_4px_30px_rgba(0,0,0,0.05)]'
             : 'bg-transparent'
         }`}
       >
@@ -71,7 +86,7 @@ export function NavHeader() {
               </span>
             </Link>
 
-            {/* Desktop Navigation */}
+            {/* Desktop Navigation with active indicators */}
             <nav className="hidden md:flex items-center gap-8">
               {[
                 { label: 'Features', id: 'features' },
@@ -81,17 +96,27 @@ export function NavHeader() {
                 <button
                   key={item.id}
                   onClick={() => scrollToSection(item.id)}
-                  className={`transition-colors font-medium ${
-                    isDark ? 'text-white/80 hover:text-white' : 'text-slate-600 hover:text-slate-900'
+                  className={`relative transition-colors font-medium py-1 ${
+                    activeSection === item.id
+                      ? isDark ? 'text-white' : 'text-slate-900'
+                      : isDark ? 'text-white/60 hover:text-white' : 'text-slate-500 hover:text-slate-900'
                   }`}
                 >
                   {item.label}
+                  {/* Active gradient underline */}
+                  {activeSection === item.id && (
+                    <motion.div
+                      layoutId="navUnderline"
+                      className="absolute -bottom-1 left-0 right-0 h-[2px] rounded-full bg-gradient-to-r from-indigo-500 to-emerald-500"
+                      transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+                    />
+                  )}
                 </button>
               ))}
               <Link
                 to="/for-teachers"
                 className={`flex items-center gap-2 transition-colors font-medium ${
-                  isDark ? 'text-white/80 hover:text-white' : 'text-slate-600 hover:text-slate-900'
+                  isDark ? 'text-white/60 hover:text-white' : 'text-slate-500 hover:text-slate-900'
                 }`}
               >
                 <GraduationCap className="w-4 h-4" />
@@ -99,7 +124,7 @@ export function NavHeader() {
               </Link>
             </nav>
 
-            {/* Desktop Auth Buttons — No theme toggle here (moved to floating) */}
+            {/* Desktop Auth Buttons */}
             <div className="hidden md:flex items-center gap-3">
               <div className={isDark
                 ? '[&_button]:text-white/80 [&_button]:hover:text-white [&_button]:hover:bg-white/10 [&_button]:border-white/20'

@@ -26,6 +26,16 @@ const testimonials = [
   },
 ];
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.2 } },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 40, scale: 0.95 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.7, ease: [0.25, 0.1, 0.25, 1] } },
+};
+
 export function TestimonialsSection() {
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
@@ -56,22 +66,32 @@ export function TestimonialsSection() {
           </p>
         </motion.div>
 
-        {/* Testimonials Grid */}
-        <div className="grid md:grid-cols-3 gap-8">
+        {/* Testimonials Grid with stagger */}
+        <motion.div
+          className="grid md:grid-cols-3 gap-8"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-80px' }}
+        >
           {testimonials.map((testimonial, index) => (
             <motion.div
               key={testimonial.name}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.15 }}
-              whileHover={{ y: -4 }}
-              className={`relative rounded-2xl p-8 backdrop-blur-xl transition-all duration-500 ${
+              variants={cardVariants}
+              whileHover={{ y: -6, transition: { duration: 0.3 } }}
+              className={`relative rounded-2xl p-8 backdrop-blur-xl transition-all duration-500 group ${
                 isDark
                   ? 'bg-white/5 border border-white/10 hover:border-indigo-500/30 hover:shadow-[0_0_30px_-10px_rgba(99,102,241,0.2)]'
-                  : 'bg-white border border-slate-200 shadow-sm hover:border-indigo-300/40 hover:shadow-[0_8px_30px_-10px_rgba(99,102,241,0.1)]'
+                  : 'bg-white border border-slate-200 shadow-sm hover:border-indigo-300/40 hover:shadow-[0_8px_30px_-10px_rgba(99,102,241,0.15)]'
               }`}
             >
+              {/* Gradient border glow on hover */}
+              <div className={`absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none ${
+                isDark
+                  ? 'bg-gradient-to-br from-indigo-500/[0.05] to-violet-500/[0.03]'
+                  : 'bg-gradient-to-br from-indigo-500/[0.03] to-violet-500/[0.02]'
+              }`} />
+
               {/* Quote icon */}
               <div className="absolute -top-4 -left-4 w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
                 <Quote className="w-5 h-5 text-white" />
@@ -80,15 +100,23 @@ export function TestimonialsSection() {
               {/* Rating */}
               <div className="flex gap-1 mb-4">
                 {[...Array(testimonial.rating)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400" />
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, scale: 0 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.3 + index * 0.15 + i * 0.05 }}
+                  >
+                    <Star className="w-5 h-5 fill-amber-400 text-amber-400" />
+                  </motion.div>
                 ))}
               </div>
 
               {/* Text */}
-              <p className={`mb-6 leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>"{testimonial.text}"</p>
+              <p className={`mb-6 leading-relaxed relative z-10 ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>"{testimonial.text}"</p>
 
               {/* Author */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 relative z-10">
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl border ${
                   isDark
                     ? 'bg-gradient-to-r from-indigo-500/20 to-violet-500/20 border-white/10'
@@ -103,7 +131,7 @@ export function TestimonialsSection() {
               </div>
             </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );
