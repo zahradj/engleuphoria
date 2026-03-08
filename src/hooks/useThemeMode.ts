@@ -15,11 +15,11 @@ const ThemeModeContext = createContext<ThemeModeContextType | undefined>(undefin
 export function ThemeModeProvider({ children }: { children: ReactNode }) {
   const [mode, setMode] = useState<ThemeMode>(() => {
     const stored = localStorage.getItem('theme-mode');
-    return (stored as ThemeMode) || 'system';
+    return (stored as ThemeMode) || 'light';
   });
 
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>(() => {
-    const stored = localStorage.getItem('theme-mode') as ThemeMode || 'system';
+    const stored = localStorage.getItem('theme-mode') as ThemeMode || 'light';
     if (stored === 'system') {
       return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }
