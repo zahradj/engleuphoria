@@ -7,19 +7,25 @@ const trustItems = [
     icon: Shield,
     title: 'Secure Payments',
     description: 'Powered by Stripe with bank-level encryption.',
-    accent: 'text-emerald-400 bg-emerald-500/10',
+    accentDark: 'text-emerald-400 bg-emerald-500/10',
+    accentLight: 'text-emerald-600 bg-gradient-to-br from-emerald-50 to-teal-50',
+    floatDelay: 0,
   },
   {
     icon: Headphones,
     title: '24-Hour Support',
     description: 'Dedicated help whenever you need it.',
-    accent: 'text-indigo-400 bg-indigo-500/10',
+    accentDark: 'text-indigo-400 bg-indigo-500/10',
+    accentLight: 'text-indigo-600 bg-gradient-to-br from-indigo-50 to-violet-50',
+    floatDelay: 0.5,
   },
   {
     icon: Brain,
     title: 'Certified Curriculum',
     description: 'CEFR-aligned, expertly crafted lesson plans.',
-    accent: 'text-amber-400 bg-amber-500/10',
+    accentDark: 'text-amber-400 bg-amber-500/10',
+    accentLight: 'text-amber-600 bg-gradient-to-br from-amber-50 to-orange-50',
+    floatDelay: 1,
   },
 ];
 
@@ -40,15 +46,25 @@ export function TrustBarSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className={`flex flex-col items-center text-center p-6 rounded-2xl backdrop-blur-xl transition-colors ${
+                whileHover={{ y: -4 }}
+                className={`flex flex-col items-center text-center p-6 rounded-2xl backdrop-blur-xl transition-all duration-500 ${
                   isDark
                     ? 'bg-white/5 border border-white/10 hover:border-white/20'
-                    : 'bg-white border border-slate-200 shadow-sm hover:border-slate-300'
+                    : 'bg-white border border-slate-200/60 shadow-[0_2px_16px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.08)] hover:border-slate-300'
                 }`}
               >
-                <div className={`p-3 rounded-xl ${item.accent} mb-4`}>
+                <motion.div
+                  className={`p-3.5 rounded-xl mb-4 ${isDark ? item.accentDark : item.accentLight}`}
+                  animate={{ y: [0, -4, 0] }}
+                  transition={{
+                    repeat: Infinity,
+                    duration: 3,
+                    ease: 'easeInOut',
+                    delay: item.floatDelay,
+                  }}
+                >
                   <Icon className="w-6 h-6" />
-                </div>
+                </motion.div>
                 <h3 className={`font-semibold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>{item.title}</h3>
                 <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{item.description}</p>
               </motion.div>

@@ -1,4 +1,4 @@
-import { motion, useMotionValue, useTransform } from 'framer-motion';
+import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Globe, Users } from 'lucide-react';
 import { useRef, useEffect, useState } from 'react';
@@ -32,9 +32,10 @@ const portals = [
     label: 'Playground',
     age: 'Ages 5–12',
     glowColorDark: 'rgba(16,185,129,0.4)',
-    glowColorLight: 'rgba(5,150,105,0.3)',
+    glowColorLight: 'rgba(5,150,105,0.25)',
     accentFrom: 'from-emerald-500',
     accentTo: 'to-teal-400',
+    gradientBorder: 'linear-gradient(135deg, #10b981, #14b8a6)',
     cursor: 'playground' as const,
   },
   {
@@ -43,9 +44,10 @@ const portals = [
     label: 'Academy',
     age: 'Teens',
     glowColorDark: 'rgba(99,102,241,0.4)',
-    glowColorLight: 'rgba(67,56,202,0.3)',
+    glowColorLight: 'rgba(67,56,202,0.25)',
     accentFrom: 'from-indigo-500',
     accentTo: 'to-violet-400',
+    gradientBorder: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
     cursor: 'academy' as const,
   },
   {
@@ -54,27 +56,40 @@ const portals = [
     label: 'Professional',
     age: 'Adults',
     glowColorDark: 'rgba(245,158,11,0.4)',
-    glowColorLight: 'rgba(217,119,6,0.3)',
+    glowColorLight: 'rgba(217,119,6,0.25)',
     accentFrom: 'from-amber-500',
     accentTo: 'to-orange-400',
+    gradientBorder: 'linear-gradient(135deg, #f59e0b, #f97316)',
     cursor: 'professional' as const,
   },
 ];
 
-const worldTaglines = [
-  { label: 'Playground', text: "Stop 'teaching' them. Let them play their way to fluency." },
-  { label: 'Academy', text: "Don't just pass exams. Master the language of the global internet." },
-  { label: 'Professional', text: "Your expertise is global. Now, make your voice match your ambition." },
+const rotatingTaglines = [
+  "Stop 'teaching' them. Let them play their way to fluency.",
+  "Don't just pass exams. Master the language of the global internet.",
+  "Your expertise is global. Now, make your voice match your ambition.",
+  "Where language meets intuition — the human-first academy.",
 ];
+
+/* Animated gradient mesh background for light mode */
+function GradientMesh() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-[0]">
+      <div className="absolute w-[600px] h-[600px] -top-[200px] -left-[100px] rounded-full blur-[120px] opacity-40 animate-gradient-mesh bg-gradient-to-br from-rose-200 via-fuchsia-100 to-violet-200" />
+      <div className="absolute w-[500px] h-[500px] top-[100px] -right-[150px] rounded-full blur-[100px] opacity-35 animate-gradient-mesh bg-gradient-to-br from-sky-200 via-cyan-100 to-emerald-200" style={{ animationDelay: '-3s' }} />
+      <div className="absolute w-[400px] h-[400px] -bottom-[100px] left-[30%] rounded-full blur-[110px] opacity-30 animate-gradient-mesh bg-gradient-to-br from-amber-200 via-orange-100 to-rose-200" style={{ animationDelay: '-6s' }} />
+    </div>
+  );
+}
 
 /* Animated dot grid background */
 function DotGrid({ isDark }: { isDark: boolean }) {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-[1]">
-      <svg className="w-full h-full opacity-[0.15]" xmlns="http://www.w3.org/2000/svg">
+      <svg className="w-full h-full opacity-[0.12]" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <pattern id="dotGrid" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse">
-            <circle cx="1" cy="1" r="1" fill={isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)'} />
+            <circle cx="1" cy="1" r="1" fill={isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.15)'} />
           </pattern>
         </defs>
         <rect width="100%" height="100%" fill="url(#dotGrid)" />
@@ -87,26 +102,38 @@ function SocialProofRibbon({ isDark }: { isDark: boolean }) {
   const students = useCountUp(2500);
   const countries = useCountUp(30);
 
+  const avatarGradients = [
+    'from-indigo-400 to-violet-500',
+    'from-emerald-400 to-teal-500',
+    'from-amber-400 to-orange-500',
+    'from-rose-400 to-pink-500',
+  ];
+
   return (
     <motion.div
       className={`inline-flex items-center gap-3 px-6 py-3 rounded-full backdrop-blur-xl transition-colors duration-300 ${
         isDark
           ? 'bg-white/[0.04] border border-white/[0.08]'
-          : 'bg-white/70 border border-slate-200 shadow-sm'
+          : 'bg-white/80 border border-slate-200/60 shadow-[0_4px_24px_rgba(0,0,0,0.06)]'
       }`}
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 0.8, duration: 0.5 }}
     >
       <div className="flex -space-x-2">
-        <div className={`w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-emerald-500 flex items-center justify-center text-xs text-white font-bold border-2 ${
-          isDark ? 'border-[#09090B]' : 'border-[#FAFAFA]'
-        }`}>
-          <Users className="w-4 h-4" />
-        </div>
+        {avatarGradients.map((gradient, i) => (
+          <div
+            key={i}
+            className={`w-7 h-7 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center text-[10px] text-white font-bold border-2 ${
+              isDark ? 'border-[#09090B]' : 'border-white'
+            }`}
+          >
+            {i === 0 ? <Users className="w-3.5 h-3.5" /> : ['S', 'A', 'M'][i - 1]}
+          </div>
+        ))}
       </div>
       <div className="flex items-center gap-2 text-sm">
-        <Globe className={`w-4 h-4 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`} />
+        <Globe className={`w-4 h-4 ${isDark ? 'text-indigo-400' : 'text-indigo-500'}`} />
         <span className={isDark ? 'text-slate-300' : 'text-slate-600'}>
           <span ref={students.ref} className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{students.count.toLocaleString()}+</span> students from{' '}
           <span ref={countries.ref} className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{countries.count}+</span> countries
@@ -116,20 +143,31 @@ function SocialProofRibbon({ isDark }: { isDark: boolean }) {
   );
 }
 
-/* Film Grain Overlay */
-function FilmGrain({ isDark }: { isDark: boolean }) {
+/* Rotating tagline component */
+function RotatingTagline({ isDark }: { isDark: boolean }) {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % rotatingTaglines.length);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <div
-      className="absolute inset-0 pointer-events-none z-[1] animate-grain"
-      style={{ mixBlendMode: 'overlay', opacity: isDark ? 0.035 : 0.025 }}
-    >
-      <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-        <filter id="heroGrain">
-          <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
-          <feColorMatrix type="saturate" values="0" />
-        </filter>
-        <rect width="100%" height="100%" filter="url(#heroGrain)" />
-      </svg>
+    <div className="h-[28px] overflow-hidden relative">
+      <AnimatePresence mode="wait">
+        <motion.p
+          key={index}
+          className={`text-base md:text-lg italic absolute inset-0 text-center ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.5 }}
+        >
+          "{rotatingTaglines[index]}"
+        </motion.p>
+      </AnimatePresence>
     </div>
   );
 }
@@ -155,11 +193,7 @@ export function HeroSection() {
 
   const orbGradient = isDark
     ? 'radial-gradient(circle, rgba(99,102,241,0.35) 0%, rgba(16,185,129,0.2) 40%, rgba(245,158,11,0.15) 70%, transparent 100%)'
-    : 'radial-gradient(circle, rgba(56,189,248,0.2) 0%, rgba(52,211,153,0.15) 40%, rgba(251,146,60,0.12) 70%, transparent 100%)';
-
-  const secondaryOrbGradient = isDark
-    ? 'radial-gradient(circle, rgba(245,158,11,0.3) 0%, rgba(99,102,241,0.15) 60%, transparent 100%)'
-    : 'radial-gradient(circle, rgba(251,146,60,0.15) 0%, rgba(56,189,248,0.1) 60%, transparent 100%)';
+    : 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, rgba(52,211,153,0.08) 40%, rgba(251,146,60,0.06) 70%, transparent 100%)';
 
   return (
     <section
@@ -173,75 +207,36 @@ export function HeroSection() {
       <div className={`absolute inset-0 transition-colors duration-300 ${
         isDark
           ? 'bg-gradient-to-b from-[#09090B] via-slate-950 to-[#09090B]'
-          : 'bg-gradient-to-b from-[#FAFAFA] via-slate-50 to-[#FAFAFA]'
+          : 'bg-gradient-to-b from-[#FAFAFA] via-white to-[#FAFAFA]'
       }`} />
+
+      {/* Gradient Mesh — Light mode only */}
+      {!isDark && <GradientMesh />}
 
       {/* Dot Grid */}
       <DotGrid isDark={isDark} />
 
-      {/* Film Grain Overlay */}
-      <FilmGrain isDark={isDark} />
-
-      {/* Light-mode ink bleed corners */}
-      {!isDark && (
-        <>
-          <div className="absolute top-0 left-0 w-[400px] h-[400px] rounded-full blur-[140px] opacity-40 pointer-events-none bg-sky-300/30" />
-          <div className="absolute top-0 right-0 w-[350px] h-[350px] rounded-full blur-[120px] opacity-30 pointer-events-none bg-emerald-300/25" />
-          <div className="absolute bottom-0 right-0 w-[450px] h-[450px] rounded-full blur-[150px] opacity-35 pointer-events-none bg-orange-200/30" />
-          <div className="absolute bottom-0 left-0 w-[380px] h-[380px] rounded-full blur-[130px] opacity-25 pointer-events-none bg-violet-300/20" />
-        </>
-      )}
-
       {/* The Magnetic Orb */}
       <motion.div
         className="absolute w-[300px] h-[300px] md:w-[450px] md:h-[450px] rounded-full blur-[80px] opacity-60 pointer-events-none"
-        style={{
-          x: orbX,
-          y: orbY,
-          background: orbGradient,
-        }}
-      />
-
-      {/* Secondary orb glow */}
-      <motion.div
-        className="absolute w-[200px] h-[200px] md:w-[300px] md:h-[300px] rounded-full blur-[60px] opacity-40 pointer-events-none"
-        style={{
-          x: useTransform(mouseX, [-1, 1], [15, -15]),
-          y: useTransform(mouseY, [-1, 1], [15, -15]),
-          background: secondaryOrbGradient,
-        }}
+        style={{ x: orbX, y: orbY, background: orbGradient }}
       />
 
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 sm:px-6 text-center py-32">
 
-        {/* Euphoria Ring */}
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-0">
-          <div
-            className="w-[200px] h-[200px] md:w-[300px] md:h-[300px] rounded-full animate-euphoria-ring"
-            style={{
-              border: '2px solid transparent',
-              background: isDark
-                ? 'radial-gradient(circle, transparent 60%, rgba(99,102,241,0.08) 100%)'
-                : 'radial-gradient(circle, transparent 60%, rgba(251,191,36,0.06) 100%)',
-              boxShadow: isDark
-                ? '0 0 60px rgba(99,102,241,0.3), 0 0 120px rgba(139,92,246,0.15), inset 0 0 60px rgba(99,102,241,0.1)'
-                : '0 0 60px rgba(251,191,36,0.2), 0 0 120px rgba(52,211,153,0.1), inset 0 0 60px rgba(251,191,36,0.05)',
-              position: 'absolute',
-              left: '50%',
-              top: '50%',
-            }}
-          />
-        </div>
-
-        {/* Headline */}
+        {/* Headline with text shimmer */}
         <motion.h1
-          className={`font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight mb-6 leading-[1.05] bg-clip-text text-transparent animate-gradient-text relative z-10 ${isDark ? 'text-glow' : 'text-ink'}`}
+          className={`font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight mb-6 leading-[1.05] relative z-10 ${
+            isDark
+              ? 'bg-clip-text text-transparent animate-gradient-text text-glow'
+              : 'animate-text-shimmer bg-clip-text text-transparent text-ink'
+          }`}
           style={{
             backgroundImage: isDark
               ? 'linear-gradient(90deg, #818cf8, #34d399, #fbbf24, #a78bfa, #818cf8)'
-              : 'linear-gradient(90deg, #4f46e5, #059669, #d97706, #7c3aed, #4f46e5)',
-            backgroundSize: '200% auto',
+              : 'linear-gradient(92deg, #1e293b 0%, #4f46e5 25%, #059669 50%, #d97706 75%, #1e293b 100%)',
+            backgroundSize: isDark ? '200% auto' : '300% auto',
           }}
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -254,7 +249,7 @@ export function HeroSection() {
 
         {/* Subheadline */}
         <motion.p
-          className={`text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed transition-colors duration-300 relative z-10 ${
+          className={`text-lg md:text-xl max-w-2xl mx-auto mb-4 leading-relaxed transition-colors duration-300 relative z-10 ${
             isDark ? 'text-slate-400' : 'text-slate-600'
           }`}
           initial={{ opacity: 0, y: 20 }}
@@ -264,66 +259,59 @@ export function HeroSection() {
           The Human-First Academy where language meets intuition.
         </motion.p>
 
-        {/* Enhanced Portal Buttons */}
+        {/* Rotating Tagline */}
         <motion.div
-          className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8 relative z-10"
+          className="mb-10 relative z-10"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5, duration: 0.6 }}
+        >
+          <RotatingTagline isDark={isDark} />
+        </motion.div>
+
+        {/* Enhanced Frosted Glass Portal Cards */}
+        <motion.div
+          className="flex flex-col sm:flex-row items-center justify-center gap-5 mb-12 relative z-10"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
         >
-          {portals.map((portal, i) => (
+          {portals.map((portal) => (
             <motion.div
               key={portal.id}
-              whileHover={{ scale: 1.06, y: -2 }}
+              whileHover={{ scale: 1.05, y: -4 }}
               whileTap={{ scale: 0.97 }}
               transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+              className="relative rounded-2xl p-[1.5px]"
+              style={{
+                background: isDark ? 'transparent' : portal.gradientBorder,
+              }}
             >
               <Link
                 to="/student-signup"
                 data-cursor={portal.cursor}
-                className={`group relative px-8 py-4 rounded-full backdrop-blur-xl font-medium transition-all duration-500 block ${
+                className={`group relative flex items-center gap-3 px-7 py-4 rounded-2xl backdrop-blur-xl font-medium transition-all duration-500 block ${
                   isDark
                     ? 'bg-white/[0.04] border border-white/[0.08] text-white hover:bg-white/[0.08]'
-                    : 'bg-white/70 border border-slate-200 text-slate-800 shadow-sm hover:bg-white/90'
+                    : 'bg-white/90 text-slate-800 hover:bg-white'
                 }`}
                 onMouseEnter={(e) => {
                   const color = isDark ? portal.glowColorDark : portal.glowColorLight;
-                  (e.currentTarget as HTMLElement).style.boxShadow = `0 0 30px ${color}, 0 0 60px ${color.replace(/[\d.]+\)$/, '0.15)')}`;
-                  (e.currentTarget as HTMLElement).style.borderColor = color;
+                  (e.currentTarget as HTMLElement).style.boxShadow = `0 8px 32px ${color}`;
                 }}
                 onMouseLeave={(e) => {
                   (e.currentTarget as HTMLElement).style.boxShadow = 'none';
-                  (e.currentTarget as HTMLElement).style.borderColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgb(226,232,240)';
                 }}
               >
+                <span className="text-2xl">{portal.emoji}</span>
+                <div className="text-left">
+                  <span className="font-semibold block">{portal.label}</span>
+                  <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{portal.age}</span>
+                </div>
                 {/* Gradient underline on hover */}
                 <span className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] w-0 group-hover:w-3/4 transition-all duration-500 rounded-full bg-gradient-to-r ${portal.accentFrom} ${portal.accentTo}`} />
-                <span className="text-lg mr-2">{portal.emoji}</span>
-                {portal.label}
-                <span className={`ml-2 text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>({portal.age})</span>
               </Link>
             </motion.div>
-          ))}
-        </motion.div>
-
-        {/* World Taglines */}
-        <motion.div
-          className="flex flex-col items-center gap-2 mb-16 relative z-10"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.7 }}
-        >
-          {worldTaglines.map((tagline, i) => (
-            <motion.p
-              key={tagline.label}
-              className={`text-sm italic max-w-lg ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.8 + i * 0.15 }}
-            >
-              <span className={`font-semibold not-italic ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{tagline.label}:</span>{' '}
-              {tagline.text}
-            </motion.p>
           ))}
         </motion.div>
 

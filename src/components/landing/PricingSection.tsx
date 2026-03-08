@@ -292,13 +292,16 @@ function PricingCard({ pack, index, level, isDark }: { pack: PackTier; index: nu
         </div>
       )}
 
-      {/* Popular badge */}
+      {/* Popular badge with pulse ring */}
       {pack.popular && (
         <div className="absolute -top-3 left-4 z-10">
-          <Badge className="bg-gradient-to-r from-amber-500 to-orange-600 text-white border-0 shadow-lg shadow-orange-500/20 px-3 py-1 text-xs font-bold">
-            <Sparkles className="w-3 h-3 mr-1" />
-            Most Popular
-          </Badge>
+          <div className="relative">
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-amber-500 to-orange-600 blur-md opacity-40 animate-pulse-ring" />
+            <Badge className="relative bg-gradient-to-r from-amber-500 to-orange-600 text-white border-0 shadow-lg shadow-orange-500/20 px-3 py-1 text-xs font-bold">
+              <Sparkles className="w-3 h-3 mr-1" />
+              Most Popular
+            </Badge>
+          </div>
         </div>
       )}
 
