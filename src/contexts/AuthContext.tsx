@@ -29,6 +29,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isConfigured] = useState(true); // Always configured in Lovable projects
   const initializedRef = useRef(false);
   const signInRedirectRef = useRef(false); // Track if SIGNED_IN redirect is in progress
+  const initialFetchDoneRef = useRef(false); // Track when initial auth fetch completes
 
   // SECURITY: Roles MUST come from user_roles table only.
   // When a user has multiple roles, prioritize: admin > content_creator > teacher > student
