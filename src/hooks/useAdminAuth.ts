@@ -1,7 +1,17 @@
+/**
+ * useAdminAuth — server-validated admin status hook.
+ *
+ * SECURITY NOTE: Admin status is determined by `validateUserRole()` which
+ * queries the `user_roles` table server-side. The result is never sourced
+ * from localStorage, URL params, or any client-controlled storage.
+ * `(user as any).role` from AuthContext is itself populated from the server
+ * and used only as a fallback when `validateUserRole()` returns nothing.
+ */
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { validateUserRole } from '@/utils/roleValidation';
+import { logger } from '@/utils/logger';
 
 export interface AdminPermissions {
   canManageUsers: boolean;
@@ -13,36 +23,30 @@ export interface AdminPermissions {
   canAccessSystemSettings: boolean;
 }
 
+const NO_PERMISSIONS: AdminPermissions = {
+  canManageUsers: false,
+  canManageTeachers: false,
+  canAssignTeachers: false,
+  canViewAnalytics: false,
+  canModerateContent: false,
+  canGenerateReports: false,
+  canAccessSystemSettings: false,
+};
+
 export const useAdminAuth = () => {
   const { user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [permissions, setPermissions] = useState<AdminPermissions>({
-    canManageUsers: false,
-    canManageTeachers: false,
-    canAssignTeachers: false,
-    canViewAnalytics: false,
-    canModerateContent: false,
-    canGenerateReports: false,
-    canAccessSystemSettings: false,
-  });
+  const [permissions, setPermissions] = useState<AdminPermissions>(NO_PERMISSIONS);
 
   useEffect(() => {
     const checkAdminStatus = async () => {
-      console.log('=== Admin Auth Check Starting (Secure) ===');
+      logger.debug('Admin auth check starting');
       
       if (!user?.id) {
-        console.log('No user, setting non-admin status');
+        logger.debug('No user, setting non-admin status');
         setIsAdmin(false);
-        setPermissions({
-          canManageUsers: false,
-          canManageTeachers: false,
-          canAssignTeachers: false,
-          canViewAnalytics: false,
-          canModerateContent: false,
-          canGenerateReports: false,
-          canAccessSystemSettings: false,
-        });
+        setPermissions(NO_PERMISSIONS);
         setIsLoading(false);
         return;
       }
@@ -56,41 +60,21 @@ export const useAdminAuth = () => {
       
       const adminStatus = effectiveRole === 'admin';
       
-      console.log('Admin status determined (secure):', {
-        adminStatus,
-        effectiveRole,
-        userId: user.id
-      });
+      logger.debug('Admin status determined', { adminStatus, effectiveRole, userId: user.id });
       
       setIsAdmin(adminStatus);
-
-      // Set permissions based on admin status
-      if (adminStatus) {
-        console.log('Setting admin permissions');
-        setPermissions({
-          canManageUsers: true,
-          canManageTeachers: true,
-          canAssignTeachers: true,
-          canViewAnalytics: true,
-          canModerateContent: true,
-          canGenerateReports: true,
-          canAccessSystemSettings: true,
-        });
-      } else {
-        console.log('Setting no permissions (not admin)');
-        setPermissions({
-          canManageUsers: false,
-          canManageTeachers: false,
-          canAssignTeachers: false,
-          canViewAnalytics: false,
-          canModerateContent: false,
-          canGenerateReports: false,
-          canAccessSystemSettings: false,
-        });
-      }
+      setPermissions(adminStatus ? {
+        canManageUsers: true,
+        canManageTeachers: true,
+        canAssignTeachers: true,
+        canViewAnalytics: true,
+        canModerateContent: true,
+        canGenerateReports: true,
+        canAccessSystemSettings: true,
+      } : NO_PERMISSIONS);
       
       setIsLoading(false);
-      console.log('=== Admin Auth Check Complete ===');
+      logger.debug('Admin auth check complete');
     };
 
     checkAdminStatus();

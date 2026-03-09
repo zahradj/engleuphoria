@@ -1,3 +1,5 @@
+import { logger } from '@/utils/logger';
+
 export interface ScreenShareState {
   isScreenSharing: boolean;
   screenStream: MediaStream | null;
@@ -18,22 +20,13 @@ export interface VideoQualitySettings {
 }
 
 export interface AdvancedVideoControls {
-  // Screen sharing
   startScreenShare(): Promise<boolean>;
   stopScreenShare(): Promise<boolean>;
-  
-  // Recording
   startRecording(): Promise<boolean>;
   stopRecording(): Promise<string | null>;
-  
-  // Video quality
   setVideoQuality(quality: VideoQualitySettings): Promise<void>;
-  
-  // Participant management
   spotlightParticipant(participantId: string): Promise<void>;
   pinParticipant(participantId: string): Promise<void>;
-  
-  // Audio/Video controls
   muteParticipant(participantId: string): Promise<void>;
   removeParticipant(participantId: string): Promise<void>;
 }
@@ -57,7 +50,7 @@ export class AdvancedVideoFeatureManager {
 
   async startScreenShare(): Promise<boolean> {
     try {
-      console.log('🖥️ Starting screen share...');
+      logger.debug('Starting screen share');
       
       const screenStream = await navigator.mediaDevices.getDisplayMedia({
         video: {
@@ -69,15 +62,14 @@ export class AdvancedVideoFeatureManager {
       this.screenShareState.isScreenSharing = true;
       this.screenShareState.screenStream = screenStream;
 
-      // Listen for screen share end
       screenStream.getVideoTracks()[0].addEventListener('ended', () => {
         this.stopScreenShare();
       });
 
-      console.log('🖥️ Screen share started successfully');
+      logger.info('Screen share started');
       return true;
     } catch (error) {
-      console.error('🖥️ Failed to start screen share:', error);
+      logger.error('Failed to start screen share', error);
       return false;
     }
   }
@@ -91,17 +83,17 @@ export class AdvancedVideoFeatureManager {
       this.screenShareState.isScreenSharing = false;
       this.screenShareState.screenStream = null;
       
-      console.log('🖥️ Screen share stopped');
+      logger.debug('Screen share stopped');
       return true;
     } catch (error) {
-      console.error('🖥️ Failed to stop screen share:', error);
+      logger.error('Failed to stop screen share', error);
       return false;
     }
   }
 
   async startRecording(stream: MediaStream): Promise<boolean> {
     try {
-      console.log('🎥 Starting recording...');
+      logger.debug('Starting recording');
       
       if (!MediaRecorder.isTypeSupported('video/webm')) {
         throw new Error('WebM recording not supported');
@@ -124,15 +116,15 @@ export class AdvancedVideoFeatureManager {
         this.recordingState.recordingUrl = URL.createObjectURL(blob);
       };
 
-      this.mediaRecorder.start(1000); // Collect data every second
+      this.mediaRecorder.start(1000);
       
       this.recordingState.isRecording = true;
       this.recordingState.recordingStartTime = new Date();
       
-      console.log('🎥 Recording started successfully');
+      logger.info('Recording started');
       return true;
     } catch (error) {
-      console.error('🎥 Failed to start recording:', error);
+      logger.error('Failed to start recording', error);
       return false;
     }
   }
@@ -143,15 +135,14 @@ export class AdvancedVideoFeatureManager {
         this.mediaRecorder.stop();
         this.recordingState.isRecording = false;
         
-        // Wait a bit for the recording to finalize
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        console.log('🎥 Recording stopped, URL:', this.recordingState.recordingUrl);
+        logger.debug('Recording stopped, URL:', this.recordingState.recordingUrl);
         return this.recordingState.recordingUrl;
       }
       return null;
     } catch (error) {
-      console.error('🎥 Failed to stop recording:', error);
+      logger.error('Failed to stop recording', error);
       return null;
     }
   }

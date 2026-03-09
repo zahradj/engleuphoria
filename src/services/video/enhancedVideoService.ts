@@ -4,6 +4,7 @@ import { JitsiApiLoader } from './jitsiApiLoader';
 import { JitsiEventHandlers } from './jitsiEventHandlers';
 import { JitsiConfigBuilder } from './jitsiConfig';
 import { AdvancedVideoFeatureManager } from './advancedVideoFeatures';
+import { logger } from '@/utils/logger';
 
 export class EnhancedVideoService extends VideoService {
   private api: any = null;
@@ -27,27 +28,26 @@ export class EnhancedVideoService extends VideoService {
 
   async initialize(): Promise<void> {
     if (this.initialized) {
-      console.log('🎥 Enhanced video service already initialized');
+      logger.debug('Enhanced: video service already initialized');
       return;
     }
 
-    console.log('🎥 Enhanced: Initializing video service...');
+    logger.debug('Enhanced: initializing video service');
     try {
       await JitsiApiLoader.loadJitsiApi();
       this.initialized = true;
-      console.log('🎥 Enhanced: Video service initialized successfully');
+      logger.info('Enhanced: video service initialized');
     } catch (error) {
-      console.error('🎥 Enhanced: Failed to initialize video service:', error);
+      logger.error('Enhanced: failed to initialize video service', error);
       this.callbacks.onError?.('Failed to initialize video service');
       throw error;
     }
   }
 
   async joinRoom(): Promise<void> {
-    console.log('🎥 Enhanced: joinRoom called, state:', {
+    logger.debug('Enhanced: joinRoom called', {
       initialized: this.initialized,
       hasApi: !!this.api,
-      config: this.enhancedConfig
     });
 
     if (!this.initialized) {
@@ -55,27 +55,27 @@ export class EnhancedVideoService extends VideoService {
     }
 
     if (this.api) {
-      console.log('🎥 Already connected to room');
+      logger.debug('Enhanced: already connected to room');
       return;
     }
 
     try {
-      console.log('🎥 Enhanced: Joining room with config:', this.enhancedConfig);
+      logger.debug('Enhanced: joining room', { domain: this.enhancedConfig.domain });
       const domain = this.enhancedConfig.domain || 'meet.jit.si';
       
       const container = JitsiApiLoader.createContainer();
       const options = JitsiConfigBuilder.buildOptions(this.enhancedConfig, container);
 
-      console.log('🎥 Enhanced: Creating Jitsi API instance with options:', options);
+      logger.debug('Enhanced: creating Jitsi API instance');
       
       if (!window.JitsiMeetExternalAPI) {
         throw new Error('JitsiMeetExternalAPI not available');
       }
 
       this.api = new window.JitsiMeetExternalAPI(domain, options);
-      console.log('🎥 Enhanced: Jitsi API instance created:', !!this.api);
+      logger.debug('Enhanced: Jitsi API instance created', !!this.api);
       
-      console.log('🎥 Enhanced: Setting up event listeners...');
+      logger.debug('Enhanced: setting up event listeners');
       this.eventHandlers.setupEventListeners(this.api);
       
       // Get local media stream for preview
@@ -84,22 +84,22 @@ export class EnhancedVideoService extends VideoService {
           video: true,
           audio: true
         });
-        console.log('🎥 Enhanced: Local media stream obtained');
+        logger.debug('Enhanced: local media stream obtained');
       } catch (mediaError) {
-        console.warn('🎥 Enhanced: Failed to get local media stream:', mediaError);
+        logger.warn('Enhanced: failed to get local media stream', mediaError);
       }
       
       // Simulate connection after a short delay
       this.connectionSimTimeout = setTimeout(() => {
         if (!this.isDisposed) {
-          console.log('🎥 Enhanced: Simulating connection success');
+          logger.debug('Enhanced: simulating connection success');
           this.callbacks.onConnectionStatusChanged?.(true);
         }
         this.connectionSimTimeout = null;
       }, 2000);
       
     } catch (error) {
-      console.error('🎥 Enhanced: Failed to join room:', error);
+      logger.error('Enhanced: failed to join room', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to join room';
       this.callbacks.onError?.(errorMessage);
       throw error;
@@ -109,10 +109,10 @@ export class EnhancedVideoService extends VideoService {
   async startRecording(): Promise<boolean> {
     if (this.api && this.enhancedConfig.enableRecording && this.localMediaStream) {
       try {
-        console.log('Starting enhanced recording...');
+        logger.debug('Enhanced: starting recording');
         return await this.featureManager.startRecording(this.localMediaStream);
       } catch (error) {
-        console.error('Enhanced: Failed to start recording:', error);
+        logger.error('Enhanced: failed to start recording', error);
         return false;
       }
     }
@@ -122,10 +122,10 @@ export class EnhancedVideoService extends VideoService {
   async stopRecording(): Promise<string | null> {
     if (this.featureManager) {
       try {
-        console.log('Stopping enhanced recording...');
+        logger.debug('Enhanced: stopping recording');
         return await this.featureManager.stopRecording();
       } catch (error) {
-        console.error('Enhanced: Failed to stop recording:', error);
+        logger.error('Enhanced: failed to stop recording', error);
         return null;
       }
     }
@@ -135,21 +135,20 @@ export class EnhancedVideoService extends VideoService {
   async startScreenShare(): Promise<boolean> {
     if (this.api && this.enhancedConfig.enableScreenShare) {
       try {
-        console.log('Starting enhanced screen share...');
+        logger.debug('Enhanced: starting screen share');
         const success = await this.featureManager.startScreenShare();
         
-        // Also try to start screen share in Jitsi if available
         if (success && this.api) {
           try {
             await this.api.executeCommand('toggleShareScreen');
           } catch (jitsiError) {
-            console.warn('Jitsi screen share failed, using local only:', jitsiError);
+            logger.warn('Enhanced: Jitsi screen share failed, using local only', jitsiError);
           }
         }
         
         return success;
       } catch (error) {
-        console.error('Enhanced: Failed to start screen share:', error);
+        logger.error('Enhanced: failed to start screen share', error);
         return false;
       }
     }
@@ -158,21 +157,20 @@ export class EnhancedVideoService extends VideoService {
 
   async stopScreenShare(): Promise<boolean> {
     try {
-      console.log('Stopping enhanced screen share...');
+      logger.debug('Enhanced: stopping screen share');
       const success = await this.featureManager.stopScreenShare();
       
-      // Also stop screen share in Jitsi if available
       if (this.api) {
         try {
           await this.api.executeCommand('toggleShareScreen');
         } catch (jitsiError) {
-          console.warn('Jitsi screen share stop failed:', jitsiError);
+          logger.warn('Enhanced: Jitsi screen share stop failed', jitsiError);
         }
       }
       
       return success;
     } catch (error) {
-      console.error('Enhanced: Failed to stop screen share:', error);
+      logger.error('Enhanced: failed to stop screen share', error);
       return false;
     }
   }
@@ -188,11 +186,11 @@ export class EnhancedVideoService extends VideoService {
   async raiseHand(): Promise<boolean> {
     if (this.api) {
       try {
-        console.log('Raising hand...');
+        logger.debug('Enhanced: raising hand');
         await this.api.executeCommand('toggleRaiseHand');
         return true;
       } catch (error) {
-        console.error('Enhanced: Failed to raise hand:', error);
+        logger.error('Enhanced: failed to raise hand', error);
         return false;
       }
     }
@@ -213,58 +211,54 @@ export class EnhancedVideoService extends VideoService {
   }
 
   async toggleMicrophone(): Promise<boolean> {
-    console.log('🎤 Enhanced: toggleMicrophone called');
+    logger.debug('Enhanced: toggleMicrophone called');
     
-    // If we have local media stream, toggle it directly
     if (this.localMediaStream) {
       const audioTrack = this.localMediaStream.getAudioTracks()[0];
       if (audioTrack) {
         audioTrack.enabled = !audioTrack.enabled;
-        console.log('🎤 Enhanced: Local audio track toggled:', audioTrack.enabled ? 'unmuted' : 'muted');
+        logger.debug('Enhanced: local audio track toggled', audioTrack.enabled ? 'unmuted' : 'muted');
       }
     }
     
-    // If connected to Jitsi, also toggle there
     if (this.api) {
       try {
-        console.log('🎤 Enhanced: Toggling microphone in Jitsi...');
+        logger.debug('Enhanced: toggling microphone in Jitsi');
         await this.api.executeCommand('toggleAudio');
         return true;
       } catch (error) {
-        console.error('🎤 Enhanced: Failed to toggle microphone in Jitsi:', error);
+        logger.error('Enhanced: failed to toggle microphone in Jitsi', error);
         return false;
       }
     }
     
-    console.log('🎤 Enhanced: Microphone toggled (local only)');
+    logger.debug('Enhanced: microphone toggled (local only)');
     return true;
   }
 
   async toggleCamera(): Promise<boolean> {
-    console.log('📹 Enhanced: toggleCamera called');
+    logger.debug('Enhanced: toggleCamera called');
     
-    // If we have local media stream, toggle it directly
     if (this.localMediaStream) {
       const videoTrack = this.localMediaStream.getVideoTracks()[0];
       if (videoTrack) {
         videoTrack.enabled = !videoTrack.enabled;
-        console.log('📹 Enhanced: Local video track toggled:', videoTrack.enabled ? 'on' : 'off');
+        logger.debug('Enhanced: local video track toggled', videoTrack.enabled ? 'on' : 'off');
       }
     }
     
-    // If connected to Jitsi, also toggle there
     if (this.api) {
       try {
-        console.log('📹 Enhanced: Toggling camera in Jitsi...');
+        logger.debug('Enhanced: toggling camera in Jitsi');
         await this.api.executeCommand('toggleVideo');
         return true;
       } catch (error) {
-        console.error('📹 Enhanced: Failed to toggle camera in Jitsi:', error);
+        logger.error('Enhanced: failed to toggle camera in Jitsi', error);
         return false;
       }
     }
     
-    console.log('📹 Enhanced: Camera toggled (local only)');
+    logger.debug('Enhanced: camera toggled (local only)');
     return true;
   }
 
@@ -273,13 +267,11 @@ export class EnhancedVideoService extends VideoService {
   }
 
   getRemoteStreams(): Map<string, MediaStream> {
-    return new Map(); // Jitsi handles streams internally
+    return new Map();
   }
 
   isConnected(): boolean {
-    const connected = this.api !== null;
-    console.log('🎥 Enhanced: isConnected check:', connected);
-    return connected;
+    return this.api !== null;
   }
 
   private clearConnectionTimeout(): void {
@@ -290,10 +282,9 @@ export class EnhancedVideoService extends VideoService {
   }
 
   async leaveRoom(): Promise<void> {
-    console.log('🎥 Enhanced: Leaving room...');
+    logger.debug('Enhanced: leaving room');
     this.clearConnectionTimeout();
     
-    // Stop advanced features
     await this.featureManager.stopScreenShare();
     await this.featureManager.stopRecording();
     
@@ -303,7 +294,6 @@ export class EnhancedVideoService extends VideoService {
       JitsiApiLoader.removeContainer();
     }
     
-    // Stop local media stream
     if (this.localMediaStream) {
       this.localMediaStream.getTracks().forEach(track => track.stop());
       this.localMediaStream = null;

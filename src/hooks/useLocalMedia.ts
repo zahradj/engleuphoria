@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { logger } from "@/utils/logger";
 
 // Module-level constants (computed once)
 const IS_SECURE_CONTEXT =
@@ -25,11 +26,10 @@ export function useLocalMedia() {
 
   // Connect: request access to webcam & mic
   const join = useCallback(async () => {
-    console.log("🎥 Attempting to join video call...");
+    logger.debug("Attempting to join video call");
     
-    // Prevent multiple simultaneous join attempts
     if (joinAttemptRef.current) {
-      console.log("🎥 Join already in progress, skipping...");
+      logger.debug("Join already in progress, skipping");
       return;
     }
     
@@ -37,9 +37,8 @@ export function useLocalMedia() {
     setError(null);
     
     try {
-      // Check if we already have a stream
       if (mediaRef.current && mediaRef.current.active) {
-        console.log("🎥 Reusing existing stream");
+        logger.debug("Reusing existing stream");
         setIsConnected(true);
         joinAttemptRef.current = false;
         return;
@@ -53,7 +52,7 @@ export function useLocalMedia() {
         throw new Error("Your browser doesn't support camera and microphone access");
       }
 
-      console.log("🎥 Requesting media permissions...");
+      logger.debug("Requesting media permissions");
       
       const constraints = {
         video: { 
@@ -70,15 +69,13 @@ export function useLocalMedia() {
 
       const userStream = await navigator.mediaDevices.getUserMedia(constraints);
       
-      console.log("🎥 Media access granted:", {
+      logger.debug("Media access granted", {
         video: userStream.getVideoTracks().length,
         audio: userStream.getAudioTracks().length,
-        streamId: userStream.id
       });
 
-      // Ensure we haven't been cancelled while waiting
       if (!joinAttemptRef.current) {
-        console.log("🎥 Join was cancelled, stopping new stream");
+        logger.debug("Join was cancelled, stopping new stream");
         userStream.getTracks().forEach(track => track.stop());
         return;
       }
@@ -90,9 +87,9 @@ export function useLocalMedia() {
       setIsConnected(true);
       setError(null);
       
-      console.log("🎥 Successfully connected to media");
+      logger.info("Successfully connected to media");
     } catch (err) {
-      console.error("🎥 Media access error:", err);
+      logger.error("Media access error", err);
       let errorMessage = "Unable to access camera/microphone";
       
       if (err instanceof Error) {
@@ -116,12 +113,12 @@ export function useLocalMedia() {
 
   // Leave: stop all tracks
   const leave = useCallback(() => {
-    console.log("🎥 Leaving video call...");
+    logger.debug("Leaving video call");
     joinAttemptRef.current = false;
     
     if (mediaRef.current) {
       mediaRef.current.getTracks().forEach((track) => {
-        console.log(`🎥 Stopping ${track.kind} track`);
+        logger.debug(`Stopping ${track.kind} track`);
         track.stop();
       });
     }
@@ -133,13 +130,13 @@ export function useLocalMedia() {
     setIsMuted(false);
     setError(null);
     
-    console.log("🎥 Successfully left video call");
+    logger.info("Successfully left video call");
   }, []);
 
   // Mute/unmute audio
   const toggleMicrophone = useCallback(() => {
     if (!mediaRef.current) {
-      console.warn("🎤 No media stream available for microphone toggle");
+      logger.warn("No media stream available for microphone toggle");
       return;
     }
     
@@ -148,14 +145,14 @@ export function useLocalMedia() {
       const newMutedState = !audioTracks[0].enabled;
       audioTracks[0].enabled = !newMutedState;
       setIsMuted(newMutedState);
-      console.log(`🎤 Microphone ${newMutedState ? 'muted' : 'unmuted'}`);
+      logger.debug(`Microphone ${newMutedState ? 'muted' : 'unmuted'}`);
     }
   }, []);
 
   // Disable/enable camera
   const toggleCamera = useCallback(() => {
     if (!mediaRef.current) {
-      console.warn("📹 No media stream available for camera toggle");
+      logger.warn("No media stream available for camera toggle");
       return;
     }
     
@@ -164,7 +161,7 @@ export function useLocalMedia() {
       const newCameraOffState = !videoTracks[0].enabled;
       videoTracks[0].enabled = !newCameraOffState;
       setIsCameraOff(newCameraOffState);
-      console.log(`📹 Camera ${newCameraOffState ? 'disabled' : 'enabled'}`);
+      logger.debug(`Camera ${newCameraOffState ? 'disabled' : 'enabled'}`);
     }
   }, []);
 

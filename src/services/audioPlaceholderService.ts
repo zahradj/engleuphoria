@@ -1,4 +1,15 @@
-// Audio Placeholder Service - Centralized audio management for lessons
+/**
+ * @placeholder
+ * Audio Placeholder Service — manages audio file references for lessons.
+ *
+ * Status: Placeholder. Real audio playback is not implemented.
+ * Pending integration with a TTS provider (ElevenLabs, Google TTS, etc.).
+ *
+ * This service generates audio filenames and manifest data for batch
+ * processing. The `playAudio()` method is a no-op until TTS is wired in.
+ */
+
+import { logger } from '@/utils/logger';
 
 export interface AudioPlaceholder {
   id: string;
@@ -18,18 +29,10 @@ class AudioPlaceholderService {
   private audioCache: Map<string, string> = new Map();
   private currentManifest: AudioManifest | null = null;
 
-  /**
-   * Generate audio placeholder reference
-   * @param filename - The audio filename (e.g., "vocab-apple.mp3")
-   * @returns Audio placeholder string
-   */
   audio(filename: string): string {
     return `audio("${filename}")`;
   }
 
-  /**
-   * Register an audio file in the current lesson manifest
-   */
   registerAudio(audio: Omit<AudioPlaceholder, 'id'>): string {
     const id = `audio-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const placeholder: AudioPlaceholder = { id, ...audio };
@@ -42,9 +45,6 @@ class AudioPlaceholderService {
     return this.audio(audio.filename);
   }
 
-  /**
-   * Initialize a new audio manifest for a lesson
-   */
   initManifest(lessonId: string): void {
     this.currentManifest = {
       lessonId,
@@ -53,21 +53,11 @@ class AudioPlaceholderService {
     };
   }
 
-  /**
-   * Get the current audio manifest
-   */
   getManifest(): AudioManifest | null {
     return this.currentManifest;
   }
 
-  /**
-   * Generate audio filenames for vocabulary
-   */
-  generateVocabAudio(word: string): {
-    normal: string;
-    slow: string;
-    fast: string;
-  } {
+  generateVocabAudio(word: string): { normal: string; slow: string; fast: string } {
     const sanitized = word.toLowerCase().replace(/[^a-z0-9]/g, '-');
     return {
       normal: `vocab-${sanitized}.mp3`,
@@ -76,32 +66,20 @@ class AudioPlaceholderService {
     };
   }
 
-  /**
-   * Generate audio filename for sentence
-   */
   generateSentenceAudio(sentenceIndex: number, slideId: string): string {
     return `sentence-${slideId}-${sentenceIndex}.mp3`;
   }
 
-  /**
-   * Generate audio filename for dialogue line
-   */
   generateDialogueAudio(characterName: string, lineIndex: number): string {
     const sanitized = characterName.toLowerCase().replace(/[^a-z0-9]/g, '-');
     return `dialogue-${sanitized}-${lineIndex}.mp3`;
   }
 
-  /**
-   * Generate audio filename for phonics sound
-   */
   generatePhonicsAudio(sound: string): string {
     const sanitized = sound.toLowerCase().replace(/[^a-z0-9]/g, '-');
     return `phonics-${sanitized}.mp3`;
   }
 
-  /**
-   * Feedback audio constants
-   */
   readonly feedbackAudio = {
     correct: 'feedback-correct.mp3',
     incorrect: 'feedback-incorrect.mp3',
@@ -111,9 +89,6 @@ class AudioPlaceholderService {
     almostThere: 'feedback-almost.mp3'
   };
 
-  /**
-   * UI audio constants
-   */
   readonly uiAudio = {
     buttonClick: 'ui-button-click.mp3',
     slideTransition: 'ui-slide-transition.mp3',
@@ -124,21 +99,13 @@ class AudioPlaceholderService {
   };
 
   /**
-   * Play audio in browser (placeholder for actual TTS integration)
+   * @placeholder No-op until TTS integration is complete.
+   * TODO: Wire to ElevenLabs / Google TTS / Azure Speech.
    */
   async playAudio(filename: string): Promise<void> {
-    console.log(`[Audio] Playing: ${filename}`);
-    // TODO: Integrate with actual TTS service or audio files
-    // For now, this is a placeholder that can be connected to:
-    // - ElevenLabs API
-    // - Google Text-to-Speech
-    // - Azure Speech Services
-    // - Local audio files
+    logger.debug('[Audio] Playing (placeholder):', filename);
   }
 
-  /**
-   * Generate audio manifest for batch processing
-   */
   exportManifest(): string {
     if (!this.currentManifest) {
       throw new Error('No manifest initialized');
@@ -146,18 +113,12 @@ class AudioPlaceholderService {
     return JSON.stringify(this.currentManifest, null, 2);
   }
 
-  /**
-   * Clear the current manifest
-   */
   clearManifest(): void {
     this.currentManifest = null;
   }
 }
 
-// Export singleton instance
 export const audioService = new AudioPlaceholderService();
-
-// Export utility functions
 export const audio = (filename: string) => audioService.audio(filename);
 export const generateVocabAudio = (word: string) => audioService.generateVocabAudio(word);
 export const generateSentenceAudio = (index: number, slideId: string) => audioService.generateSentenceAudio(index, slideId);

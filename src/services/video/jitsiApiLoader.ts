@@ -1,18 +1,17 @@
+import { logger } from '@/utils/logger';
 
 export class JitsiApiLoader {
   private static isLoading = false;
   private static isLoaded = false;
 
   static async loadJitsiApi(): Promise<void> {
-    // If already loaded, resolve immediately
     if (this.isLoaded && window.JitsiMeetExternalAPI) {
-      console.log('Jitsi API already loaded');
+      logger.debug('Jitsi API already loaded');
       return Promise.resolve();
     }
 
-    // If currently loading, wait for it to complete
     if (this.isLoading) {
-      console.log('Jitsi API is already loading, waiting...');
+      logger.debug('Jitsi API is already loading, waiting');
       return new Promise((resolve, reject) => {
         const checkLoaded = () => {
           if (this.isLoaded && window.JitsiMeetExternalAPI) {
@@ -28,13 +27,12 @@ export class JitsiApiLoader {
     }
 
     return new Promise((resolve, reject) => {
-      console.log('Loading Jitsi Meet API...');
+      logger.debug('Loading Jitsi Meet API');
       this.isLoading = true;
 
-      // Check if script already exists
       const existingScript = document.querySelector('script[src*="external_api.js"]');
       if (existingScript) {
-        console.log('Jitsi script already exists, checking if loaded...');
+        logger.debug('Jitsi script already exists, checking if loaded');
         if (window.JitsiMeetExternalAPI) {
           this.isLoaded = true;
           this.isLoading = false;
@@ -48,11 +46,10 @@ export class JitsiApiLoader {
       script.async = true;
       
       script.onload = () => {
-        console.log('Jitsi API script loaded successfully');
+        logger.info('Jitsi API script loaded');
         this.isLoaded = true;
         this.isLoading = false;
         
-        // Additional check to ensure API is available
         if (window.JitsiMeetExternalAPI) {
           resolve();
         } else {
@@ -61,7 +58,7 @@ export class JitsiApiLoader {
       };
       
       script.onerror = (error) => {
-        console.error('Failed to load Jitsi API script:', error);
+        logger.error('Failed to load Jitsi API script', error);
         this.isLoading = false;
         reject(new Error('Failed to load Jitsi Meet API script'));
       };
@@ -82,7 +79,7 @@ export class JitsiApiLoader {
       container.style.width = '1px';
       container.style.height = '1px';
       document.body.appendChild(container);
-      console.log('Created Jitsi container');
+      logger.debug('Created Jitsi container');
     }
     return container;
   }
@@ -91,7 +88,7 @@ export class JitsiApiLoader {
     const container = document.getElementById('jitsi-container');
     if (container) {
       container.remove();
-      console.log('Removed Jitsi container');
+      logger.debug('Removed Jitsi container');
     }
   }
 }
