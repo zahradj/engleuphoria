@@ -19,6 +19,18 @@ const Login = () => {
     }
   }, [searchParams]);
 
+  // Safety net: redirect authenticated users based on role
+  useEffect(() => {
+    if (!loading && user) {
+      const role = (user as any).role;
+      if (role === 'admin') window.location.href = '/super-admin';
+      else if (role === 'content_creator') window.location.href = '/content-creator';
+      else if (role === 'teacher') window.location.href = '/admin';
+      else if (role === 'parent') window.location.href = '/parent';
+      else window.location.href = '/dashboard';
+    }
+  }, [loading, user]);
+
   if (loading || user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted">
