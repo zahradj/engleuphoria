@@ -7,6 +7,7 @@ import {
   BookOpen,
   HelpCircle,
   Library,
+  PenTool,
 } from 'lucide-react';
 
 export type ContentCreatorTab =
@@ -15,7 +16,8 @@ export type ContentCreatorTab =
   | 'lesson-generator'
   | 'lesson-editor'
   | 'quiz-generator'
-  | 'content-library';
+  | 'content-library'
+  | 'creator-studio';
 
 interface ContentCreatorSidebarProps {
   activeTab: ContentCreatorTab;
@@ -23,6 +25,7 @@ interface ContentCreatorSidebarProps {
 }
 
 const TABS: { id: ContentCreatorTab; label: string; icon: React.ElementType; description: string }[] = [
+  { id: 'creator-studio', label: 'Creator Studio', icon: PenTool, description: 'Write & preview lessons live' },
   { id: 'curriculum-generator', label: 'Curriculum Generator', icon: Wand2, description: 'AI-powered curriculum creation' },
   { id: 'curriculum-editor', label: 'Curriculum Editor', icon: Edit3, description: 'View & edit curriculum structure' },
   { id: 'lesson-generator', label: 'Lesson Generator', icon: Sparkles, description: 'Generate lessons with AI' },

@@ -5,16 +5,19 @@ import { QuizGenerator } from '@/components/content-creator/QuizGenerator';
 import { CurriculumBuilder } from '@/components/admin/CurriculumBuilder';
 import { CurriculumLibrary } from '@/components/admin/CurriculumLibrary';
 import { NewLibrary } from '@/components/admin/NewLibrary';
+import { CreatorStudio } from '@/components/content-creator/CreatorStudio';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const ContentCreatorDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<ContentCreatorTab>('curriculum-generator');
+  const [activeTab, setActiveTab] = useState<ContentCreatorTab>('creator-studio');
   const { user, signOut } = useAuth();
 
   const renderContent = () => {
     switch (activeTab) {
+      case 'creator-studio':
+        return <CreatorStudio />;
       case 'curriculum-generator':
         return <CurriculumGeneratorWizard />;
       case 'curriculum-editor':
