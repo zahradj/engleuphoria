@@ -164,12 +164,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     // Set flag BEFORE redirect so the reload doesn't trigger another redirect
                     sessionStorage.setItem('auth_redirect_done', 'true');
 
-                    if (email === 'f.zahra.djaanine@engleuphoria.com' && role === 'admin') {
+                    // Role-based redirects (server-validated role from user_roles table)
+                    if (role === 'admin') {
                       window.location.href = '/super-admin';
                       return;
                     }
-                    if (email === 'f.zahra.djaanine@gmail.com' && role === 'teacher') {
+                    if (role === 'teacher') {
                       window.location.href = '/admin';
+                      return;
+                    }
+                    if (role === 'content_creator') {
+                      window.location.href = '/content-creator';
+                      return;
+                    }
+                    if (role === 'parent') {
+                      window.location.href = '/parent';
                       return;
                     }
                     window.location.href = '/dashboard';
