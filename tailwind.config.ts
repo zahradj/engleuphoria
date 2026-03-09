@@ -182,6 +182,14 @@ export default {
           "0%, 100%": { backgroundPosition: "0% 50%" },
           "50%": { backgroundPosition: "100% 50%" }
         },
+        "shine": {
+          "0%": { transform: "translateX(-100%) skewX(-12deg)" },
+          "100%": { transform: "translateX(200%) skewX(-12deg)" }
+        },
+        "pulse-slow": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.85" }
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -202,6 +210,8 @@ export default {
         "border-beam": "border-beam 2s linear infinite",
         "shimmer": "shimmer 2s ease-in-out infinite",
         "gradient-text": "gradient-text 3s ease infinite",
+        "shine": "shine 3s ease-in-out infinite",
+        "pulse-slow": "pulse-slow 3s ease-in-out infinite",
       },
     },
   },
