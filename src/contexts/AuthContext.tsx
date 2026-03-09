@@ -429,6 +429,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       setError(null);
       
+      // Ensure stale redirect guard from previous sessions never blocks current login flow
+      sessionStorage.removeItem('auth_redirect_done');
+      signInRedirectRef.current = false;
+
       // Input sanitization
       const sanitizedEmail = sanitizeText(email);
       
@@ -499,6 +503,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             console.warn('🔧 Auto-healed missing user_roles:', data.user.email, '→', healedRole);
           }
         }
+
+        // Deterministic post-login redirect fallback (prevents listener race conditions)
+        const resolvedRole = (await fetchUserRoleFromDatabase(data.user.id))
+          || data.user.user_metadata?.role
+          || 'student';
+
+        const redirectPath = resolvedRole === 'admin'
+          ? '/super-admin'
+          : resolvedRole === 'content_creator'
+            ? '/content-creator'
+            : resolvedRole === 'teacher'
+              ? '/admin'
+              : resolvedRole === 'parent'
+                ? '/parent'
+                : '/dashboard';
+
+        setSession(data.session ?? null);
+        setUser({ ...(data.user as any), role: resolvedRole } as any);
+        sessionStorage.setItem('auth_redirect_done', 'true');
+        signInRedirectRef.current = true;
+        window.location.href = redirectPath;
       }
       
       return { data, error };
