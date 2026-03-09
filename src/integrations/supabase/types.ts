@@ -8490,6 +8490,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      ensure_user_role: {
+        Args: { p_role: string; p_user_id: string }
+        Returns: undefined
+      }
       generate_adaptive_learning_path: {
         Args: {
           difficulty_pref?: string
