@@ -320,11 +320,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.log('⏳ Safety timeout skipped - redirect in progress');
         return;
       }
+      // Don't interfere if initial fetch already completed
+      if (initialFetchDoneRef.current) {
+        return;
+      }
       if (mounted && loading) {
         console.warn('Auth initialization timeout - forcing loading = false');
         setLoading(false);
       }
-    }, 3000);
+    }, 10000);
 
     return () => {
       mounted = false;
