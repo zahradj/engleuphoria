@@ -12,6 +12,8 @@ export class EnhancedVideoService extends VideoService {
   private connectionQuality = 'good';
   private initialized = false;
   private localMediaStream: MediaStream | null = null;
+  private connectionSimTimeout: ReturnType<typeof setTimeout> | null = null;
+  private isDisposed = false;
 
   constructor(config: EnhancedVideoConfig, callbacks: VideoServiceCallbacks = {}) {
     super(config, callbacks);
@@ -88,9 +90,12 @@ export class EnhancedVideoService extends VideoService {
       }
       
       // Simulate connection after a short delay
-      setTimeout(() => {
-        console.log('🎥 Enhanced: Simulating connection success');
-        this.callbacks.onConnectionStatusChanged?.(true);
+      this.connectionSimTimeout = setTimeout(() => {
+        if (!this.isDisposed) {
+          console.log('🎥 Enhanced: Simulating connection success');
+          this.callbacks.onConnectionStatusChanged?.(true);
+        }
+        this.connectionSimTimeout = null;
       }, 2000);
       
     } catch (error) {
@@ -277,8 +282,16 @@ export class EnhancedVideoService extends VideoService {
     return connected;
   }
 
+  private clearConnectionTimeout(): void {
+    if (this.connectionSimTimeout !== null) {
+      clearTimeout(this.connectionSimTimeout);
+      this.connectionSimTimeout = null;
+    }
+  }
+
   async leaveRoom(): Promise<void> {
     console.log('🎥 Enhanced: Leaving room...');
+    this.clearConnectionTimeout();
     
     // Stop advanced features
     await this.featureManager.stopScreenShare();
@@ -300,8 +313,11 @@ export class EnhancedVideoService extends VideoService {
     this.callbacks.onConnectionStatusChanged?.(false);
   }
 
-  dispose(): void {
-    this.leaveRoom();
+  async dispose(): Promise<void> {
+    if (this.isDisposed) return;
+    this.isDisposed = true;
+    this.clearConnectionTimeout();
+    await this.leaveRoom();
     this.initialized = false;
   }
 }

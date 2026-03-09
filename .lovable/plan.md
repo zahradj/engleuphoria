@@ -1,89 +1,135 @@
 
 
-## Code Quality Fix Plan
+# AI Curriculum & Lesson Generator -- Standalone Module
 
-### Summary
-Four targeted fixes: two lifecycle bugs in the video service, two stale file deletions.
+## Current State Analysis
 
----
+Your platform already has extensive curriculum and lesson generation infrastructure:
 
-### 1. Fix connection-state race in `EnhancedVideoService.joinRoom()`
+**Existing Components:**
+- `CurriculumBuilder` -- hierarchical track/level/lesson viewer
+- `CurriculumLibrary` -- lesson grid with filters, preview, edit, publish
+- `NewLibrary` (AI Generator) -- lesson generation with unified pipeline (content + games + images)
+- `LessonEditorPage` + `SlideEditor` -- slide-level editing
+- `LessonPicker` -- master curriculum checklist
+- `BulkLessonGenerator` -- batch generation
+- `CurriculumProgressDashboard` + `CurriculumExportDashboard`
+- `QualityDashboard`, `GenerationHistoryPanel`
 
-**File:** `src/services/video/enhancedVideoService.ts`
+**Existing Edge Functions (17+):** `n8n-bridge`, `curriculum-generator`, `curriculum-expert-agent`, `interactive-lesson-generator`, `generate-iron-game`, `batch-generate-lesson-images`, etc.
 
-- Add class field: `private connectionSimTimeout: ReturnType<typeof setTimeout> | null = null`
-- Add class field: `private isDisposed = false`
-- In `joinRoom()` line 91-94: store timeout handle, guard callback with `!this.isDisposed` check
-- In `leaveRoom()`: clear timeout at start of method
-- In `dispose()`: clear timeout, set `isDisposed = true`
+**Existing Database:** `tracks`, `curriculum_levels`, `curriculum_units`, `curriculum_lessons` tables with full hierarchy. Master curriculum data map in `src/data/masterCurriculum.ts`.
 
-### 2. Fix async teardown in `dispose()`
+**Current Role System:** `app_role` enum has `student | teacher | admin`. No `content_creator` role exists yet.
 
-**File:** `src/services/video/enhancedVideoService.ts`  
-**File:** `src/services/videoService.ts` (base class)
+## What Needs to Be Built
 
-- Change base class abstract signature from `abstract dispose(): void` to `abstract dispose(): void | Promise<void>`
-- Make `EnhancedVideoService.dispose()` async, `await this.leaveRoom()`
-- Add idempotent guard using `isDisposed` flag — early return if already disposed
-- Also update callers that may need to handle the promise (current callers in cleanup callbacks don't await anyway, so no behavior change)
-
-### 3. Delete stale duplicate admin page
-
-**File to delete:** `pages/AdminDashboard.tsx`
-
-No imports reference this file (it's outside `src/`). Safe to remove.
-
-### 4. Delete stale security snippet
-
-**File to delete:** `src/App.tsx.security-update`
-
-Already confirmed `clearInsecureRoleStorage()` is called in `src/main.tsx` line 23.
+Rather than rebuilding what exists, the plan is to:
+1. Add a `content_creator` role to the system
+2. Create a dedicated Content Creator dashboard page that consolidates existing components into the 6-section layout requested
+3. Add a **Curriculum Generator** wizard (AI generates units/lessons structure from scratch)
+4. Add a **Quiz Generator** tab
+5. Wire everything with proper role-based access
 
 ---
 
-### Technical Details
+## Implementation Plan
 
-**`enhancedVideoService.ts` changes (lines shown for reference):**
+### Step 1: Add `content_creator` Role
 
-```typescript
-// New fields (after line 14):
-private connectionSimTimeout: ReturnType<typeof setTimeout> | null = null;
-private isDisposed = false;
+**Database Migration:**
+- Alter `app_role` enum to add `'content_creator'`
+- Update `has_role` and `get_user_role` functions to handle the new role
+- Add RLS policies so content creators can access curriculum tables
 
-// joinRoom() timeout (replace lines 91-94):
-this.connectionSimTimeout = setTimeout(() => {
-  if (!this.isDisposed) {
-    this.callbacks.onConnectionStatusChanged?.(true);
-  }
-}, 2000);
+### Step 2: Create Content Creator Dashboard Page
 
-// leaveRoom() (add at start, before line 284):
-private clearConnectionTimeout(): void {
-  if (this.connectionSimTimeout !== null) {
-    clearTimeout(this.connectionSimTimeout);
-    this.connectionSimTimeout = null;
-  }
-}
-// Call this.clearConnectionTimeout() at top of leaveRoom()
+**New file:** `src/pages/ContentCreatorDashboard.tsx`
 
-// dispose() (replace lines 303-306):
-async dispose(): Promise<void> {
-  if (this.isDisposed) return;
-  this.isDisposed = true;
-  this.clearConnectionTimeout();
-  await this.leaveRoom();
-  this.initialized = false;
-}
+A standalone page at route `/content-creator` with its own sidebar containing the 6 sections:
+1. **Curriculum Generator** -- new AI-powered wizard
+2. **Curriculum Editor** -- reuses existing `CurriculumBuilder`
+3. **Lesson Generator** -- reuses existing `NewLibrary` (AI Generator)
+4. **Lesson Editor** -- reuses existing `CurriculumLibrary` (with preview/edit)
+5. **Quiz Generator** -- new component
+6. **Content Library** -- reuses existing `CurriculumLibrary` filtered view
+
+**New files:**
+- `src/components/content-creator/ContentCreatorSidebar.tsx`
+- `src/components/content-creator/CurriculumGeneratorWizard.tsx`
+- `src/components/content-creator/QuizGenerator.tsx`
+
+### Step 3: Curriculum Generator Wizard
+
+A multi-step form where the Content Creator inputs:
+- Student level (Beginner / Elementary / Pre-Intermediate / Intermediate)
+- Age group (Kids / Teens / Adults)
+- Number of units
+- Number of lessons per unit
+
+Calls the existing `curriculum-expert-agent` edge function (which already uses Lovable AI Gateway) to generate:
+- Units with titles
+- Lesson titles per unit
+- Learning objectives, grammar focus, vocabulary themes
+
+Output is displayed in a structured tree view, editable inline, and saveable to `curriculum_units` + `curriculum_lessons` tables.
+
+### Step 4: Quiz Generator
+
+A component that:
+- Lets the Content Creator select a lesson or enter a topic + level
+- Calls an edge function to generate 5-question quizzes with:
+  - Multiple choice, fill-in-the-blank, matching, sentence ordering
+  - Correct answers + explanations
+- Saves quiz data as structured JSON in the lesson content or a dedicated field
+
+**New edge function:** `quiz-generator` -- uses Lovable AI Gateway with tool calling for structured output.
+
+### Step 5: Route & Access Control
+
+- Add lazy-loaded route `/content-creator` in `App.tsx`
+- Protect with `ImprovedProtectedRoute` requiring `content_creator` role
+- Add redirect from `Dashboard.tsx` for content_creator role
+- Update `AdminDashboard` login check to also allow content_creator role where appropriate
+
+### Step 6: Content Library View
+
+Reuses `CurriculumLibrary` with additional filters:
+- Filter by level, unit, lesson
+- Show generated content organized hierarchically
+- Export as JSON for platform integration
+
+---
+
+## Technical Architecture
+
+```text
+/content-creator (new route)
+├── ContentCreatorDashboard.tsx (new page)
+├── ContentCreatorSidebar.tsx (new - 6 tabs)
+├── CurriculumGeneratorWizard.tsx (new - AI wizard)
+├── QuizGenerator.tsx (new - quiz creation)
+├── CurriculumBuilder (existing - reused)
+├── NewLibrary (existing - reused as Lesson Generator)
+├── CurriculumLibrary (existing - reused as Lesson Editor + Content Library)
+└── quiz-generator/ (new edge function)
+
+Database Changes:
+├── ALTER TYPE app_role ADD VALUE 'content_creator'
+├── RLS policies for content_creator on curriculum tables
+└── No new tables needed (uses existing curriculum_lessons.content JSON)
 ```
 
-**`videoService.ts` base class (line 41):**
-```typescript
-abstract dispose(): void | Promise<void>;
-```
+## Files to Create/Modify
 
-**Files changed:** 4 total
-1. `src/services/video/enhancedVideoService.ts` — race fix + async dispose
-2. `src/services/videoService.ts` — allow async dispose signature
-3. `pages/AdminDashboard.tsx` — deleted
-4. `src/App.tsx.security-update` — deleted
+| File | Action |
+|------|--------|
+| `src/pages/ContentCreatorDashboard.tsx` | Create |
+| `src/components/content-creator/ContentCreatorSidebar.tsx` | Create |
+| `src/components/content-creator/CurriculumGeneratorWizard.tsx` | Create |
+| `src/components/content-creator/QuizGenerator.tsx` | Create |
+| `supabase/functions/quiz-generator/index.ts` | Create |
+| `src/App.tsx` | Add route |
+| `src/pages/Dashboard.tsx` | Add content_creator redirect |
+| Database migration | Add content_creator to app_role enum + RLS |
 
