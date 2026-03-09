@@ -34,25 +34,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // When a user has multiple roles, prioritize: admin > content_creator > teacher > student
   const fetchUserRoleFromDatabase = async (userId: string): Promise<string | null> => {
     try {
+      // Use .select() (NOT .maybeSingle()) to handle users with multiple roles
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', userId)
-        .order('role', { ascending: true }); // Alphabetical: admin < content_creator < student < teacher
+        .eq('user_id', userId);
 
-      if (error || !data || data.length === 0) return null;
-      
-      // Priority order: admin > content_creator > teacher > parent > student
-      const priorityOrder = ['admin', 'content_creator', 'teacher', 'parent', 'student'];
-      const userRoles = data.map((r: any) => r.role);
-      
-      for (const role of priorityOrder) {
-        if (userRoles.includes(role)) {
-          return role;
+      if (!error && data && data.length > 0) {
+        // Priority order: admin > content_creator > teacher > parent > student
+        const priorityOrder = ['admin', 'content_creator', 'teacher', 'parent', 'student'];
+        const userRoles = data.map((r: any) => r.role);
+        
+        for (const role of priorityOrder) {
+          if (userRoles.includes(role)) {
+            return role;
+          }
         }
+        
+        return userRoles[0] ?? null;
       }
+
+      // Fallback: check users.role column for legacy users missing user_roles rows
+      const { data: userData } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', userId)
+        .maybeSingle();
       
-      return userRoles[0] ?? null;
+      return userData?.role || null;
     } catch {
       return null;
     }
@@ -464,14 +473,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           
           console.log('Auto-created missing user profile for:', sanitizedEmail);
         } else {
-          // Auto-heal: check if user_roles row exists for this user
-          const { data: existingRole } = await supabase
+          // Auto-heal: check if user_roles rows exist (use .select, NOT .maybeSingle to avoid PGRST116)
+          const { data: existingRoles } = await supabase
             .from('user_roles')
             .select('role')
-            .eq('user_id', data.user.id)
-            .maybeSingle();
+            .eq('user_id', data.user.id);
 
-          if (!existingRole) {
+          if (!existingRoles || existingRoles.length === 0) {
             const { data: usersRow } = await supabase
               .from('users')
               .select('role')
@@ -482,12 +490,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               || data.user.user_metadata?.role
               || 'student';
 
-            await supabase.from('user_roles').insert({
-              user_id: data.user.id,
-              role: healedRole
+            // Use security definer RPC to bypass RLS
+            await supabase.rpc('ensure_user_role', {
+              p_user_id: data.user.id,
+              p_role: healedRole
             });
 
-            console.warn('🔧 Auto-healed missing user_roles row:', data.user.email, '→', healedRole);
+            console.warn('🔧 Auto-healed missing user_roles:', data.user.email, '→', healedRole);
           }
         }
       }
