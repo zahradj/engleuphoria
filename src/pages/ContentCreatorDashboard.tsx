@@ -11,7 +11,7 @@ import { LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const ContentCreatorDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<ContentCreatorTab>('curriculum-generator');
+  const [activeTab, setActiveTab] = useState<ContentCreatorTab>('creator-studio');
   const { user, signOut } = useAuth();
 
   const renderContent = () => {
