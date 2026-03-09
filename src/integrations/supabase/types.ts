@@ -2061,13 +2061,16 @@ export type Database = {
       }
       curriculum_lessons: {
         Row: {
+          ai_metadata: Json | null
           content: Json | null
           created_at: string | null
+          created_by: string | null
           description: string | null
           difficulty_level: string
           duration_minutes: number | null
           id: string
           is_published: boolean | null
+          language: string | null
           level_id: string | null
           order_index: number | null
           sequence_order: number | null
@@ -2079,13 +2082,16 @@ export type Database = {
           xp_reward: number | null
         }
         Insert: {
+          ai_metadata?: Json | null
           content?: Json | null
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           difficulty_level: string
           duration_minutes?: number | null
           id?: string
           is_published?: boolean | null
+          language?: string | null
           level_id?: string | null
           order_index?: number | null
           sequence_order?: number | null
@@ -2097,13 +2103,16 @@ export type Database = {
           xp_reward?: number | null
         }
         Update: {
+          ai_metadata?: Json | null
           content?: Json | null
           created_at?: string | null
+          created_by?: string | null
           description?: string | null
           difficulty_level?: string
           duration_minutes?: number | null
           id?: string
           is_published?: boolean | null
+          language?: string | null
           level_id?: string | null
           order_index?: number | null
           sequence_order?: number | null
@@ -2115,6 +2124,13 @@ export type Database = {
           xp_reward?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "curriculum_lessons_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "curriculum_lessons_level_id_fkey"
             columns: ["level_id"]
