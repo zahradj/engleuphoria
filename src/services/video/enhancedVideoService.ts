@@ -12,6 +12,8 @@ export class EnhancedVideoService extends VideoService {
   private connectionQuality = 'good';
   private initialized = false;
   private localMediaStream: MediaStream | null = null;
+  private connectionSimTimeout: ReturnType<typeof setTimeout> | null = null;
+  private isDisposed = false;
 
   constructor(config: EnhancedVideoConfig, callbacks: VideoServiceCallbacks = {}) {
     super(config, callbacks);
