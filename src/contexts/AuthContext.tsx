@@ -29,6 +29,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isConfigured] = useState(true); // Always configured in Lovable projects
   const initializedRef = useRef(false);
   const signInRedirectRef = useRef(false); // Track if SIGNED_IN redirect is in progress
+  const initialFetchDoneRef = useRef(false); // Track when initial auth fetch completes
 
   // SECURITY: Roles MUST come from user_roles table only.
   // When a user has multiple roles, prioritize: admin > content_creator > teacher > student
@@ -277,6 +278,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setSession(initialSession);
           
           if (initialSession?.user) {
+            // Set interim user immediately so protected routes see a user
+            // while the slower DB fetch (role resolution) completes
+            setUser(initialSession.user as any);
             try {
               const dbUser = await fetchUserFromDatabase(initialSession.user.id);
               setUser(dbUser || await createFallbackUser(initialSession.user));
@@ -289,6 +293,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           }
           
           // Loading is set to false ONLY after initial session + user data is ready
+          initialFetchDoneRef.current = true;
           setLoading(false);
         }
 
@@ -315,11 +320,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.log('⏳ Safety timeout skipped - redirect in progress');
         return;
       }
+      // Don't interfere if initial fetch already completed
+      if (initialFetchDoneRef.current) {
+        return;
+      }
       if (mounted && loading) {
         console.warn('Auth initialization timeout - forcing loading = false');
         setLoading(false);
       }
-    }, 3000);
+    }, 10000);
 
     return () => {
       mounted = false;
