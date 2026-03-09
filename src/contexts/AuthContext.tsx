@@ -277,6 +277,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setSession(initialSession);
           
           if (initialSession?.user) {
+            // Set interim user immediately so protected routes see a user
+            // while the slower DB fetch (role resolution) completes
+            setUser(initialSession.user as any);
             try {
               const dbUser = await fetchUserFromDatabase(initialSession.user.id);
               setUser(dbUser || await createFallbackUser(initialSession.user));
@@ -289,6 +292,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           }
           
           // Loading is set to false ONLY after initial session + user data is ready
+          initialFetchDoneRef.current = true;
           setLoading(false);
         }
 
