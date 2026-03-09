@@ -259,7 +259,7 @@ export const NewLibrary = ({ onNavigate }: NewLibraryProps) => {
 
       // Auto-navigate after a brief delay
       setTimeout(() => {
-        onNavigate?.("curriculum-library");
+        onNavigate?.("lesson-editor");
       }, 1500);
     }
   };
