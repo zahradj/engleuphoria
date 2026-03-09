@@ -34,25 +34,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // When a user has multiple roles, prioritize: admin > content_creator > teacher > student
   const fetchUserRoleFromDatabase = async (userId: string): Promise<string | null> => {
     try {
+      // Use .select() (NOT .maybeSingle()) to handle users with multiple roles
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', userId)
-        .order('role', { ascending: true }); // Alphabetical: admin < content_creator < student < teacher
+        .eq('user_id', userId);
 
-      if (error || !data || data.length === 0) return null;
-      
-      // Priority order: admin > content_creator > teacher > parent > student
-      const priorityOrder = ['admin', 'content_creator', 'teacher', 'parent', 'student'];
-      const userRoles = data.map((r: any) => r.role);
-      
-      for (const role of priorityOrder) {
-        if (userRoles.includes(role)) {
-          return role;
+      if (!error && data && data.length > 0) {
+        // Priority order: admin > content_creator > teacher > parent > student
+        const priorityOrder = ['admin', 'content_creator', 'teacher', 'parent', 'student'];
+        const userRoles = data.map((r: any) => r.role);
+        
+        for (const role of priorityOrder) {
+          if (userRoles.includes(role)) {
+            return role;
+          }
         }
+        
+        return userRoles[0] ?? null;
       }
+
+      // Fallback: check users.role column for legacy users missing user_roles rows
+      const { data: userData } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', userId)
+        .maybeSingle();
       
-      return userRoles[0] ?? null;
+      return userData?.role || null;
     } catch {
       return null;
     }
