@@ -129,7 +129,7 @@ verify_jwt = true
 verify_jwt = false
 
 [functions.complete-lesson]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-welcome-lesson]
 verify_jwt = false
