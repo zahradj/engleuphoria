@@ -5,6 +5,7 @@ import { QuizGenerator } from '@/components/content-creator/QuizGenerator';
 import { CurriculumBuilder } from '@/components/admin/CurriculumBuilder';
 import { CurriculumLibrary } from '@/components/admin/CurriculumLibrary';
 import { NewLibrary } from '@/components/admin/NewLibrary';
+import { CreatorStudio } from '@/components/content-creator/CreatorStudio';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
