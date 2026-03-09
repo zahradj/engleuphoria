@@ -32,8 +32,39 @@ serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    // ========== AUTH CHECK ==========
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Create client with user's auth context to validate token
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getUser(token);
+
+    if (claimsError || !claimsData?.user) {
+      console.error('[complete-lesson] Auth error:', claimsError);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const authenticatedUserId = claimsData.user.id;
+    // ================================
+
+    // Use service role for DB operations
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const { studentId, lessonId, score, timeSpentMinutes } = await req.json();
     
@@ -44,6 +75,17 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // ========== OWNERSHIP CHECK ==========
+    // Ensure the authenticated user can only complete their own lessons
+    if (authenticatedUserId !== studentId) {
+      console.error(`[complete-lesson] User ${authenticatedUserId} attempted to complete lesson for ${studentId}`);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    // =====================================
 
     console.log(`[complete-lesson] Completing lesson ${lessonId} for student ${studentId}`);
 
@@ -171,7 +213,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('[complete-lesson] Unexpected error:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error', details: error.message }),
+      JSON.stringify({ error: 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
