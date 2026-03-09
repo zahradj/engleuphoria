@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import type { ContentCreatorTab } from '@/components/content-creator/ContentCreatorSidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,7 +51,7 @@ interface CurriculumUnit {
 }
 
 interface NewLibraryProps {
-  onNavigate?: (tab: string) => void;
+  onNavigate?: (tab: ContentCreatorTab | string) => void;
 }
 
 export const NewLibrary = ({ onNavigate }: NewLibraryProps) => {
@@ -251,14 +252,14 @@ export const NewLibrary = ({ onNavigate }: NewLibraryProps) => {
         description: "Your lesson is now in the Curriculum Library",
         action: {
           label: "View Lesson",
-          onClick: () => onNavigate?.("curriculum-library"),
+          onClick: () => onNavigate?.("lesson-editor"),
         },
         duration: 5000,
       });
 
       // Auto-navigate after a brief delay
       setTimeout(() => {
-        onNavigate?.("curriculum-library");
+        onNavigate?.("lesson-editor");
       }, 1500);
     }
   };
