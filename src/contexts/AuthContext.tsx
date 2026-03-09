@@ -463,6 +463,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           }).single();
           
           console.log('Auto-created missing user profile for:', sanitizedEmail);
+        } else {
+          // Auto-heal: check if user_roles row exists for this user
+          const { data: existingRole } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', data.user.id)
+            .maybeSingle();
+
+          if (!existingRole) {
+            const { data: usersRow } = await supabase
+              .from('users')
+              .select('role')
+              .eq('id', data.user.id)
+              .maybeSingle();
+
+            const healedRole = usersRow?.role
+              || data.user.user_metadata?.role
+              || 'student';
+
+            await supabase.from('user_roles').insert({
+              user_id: data.user.id,
+              role: healedRole
+            });
+
+            console.warn('🔧 Auto-healed missing user_roles row:', data.user.email, '→', healedRole);
+          }
         }
       }
       
