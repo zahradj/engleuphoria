@@ -7,6 +7,7 @@ import {
   BookOpen,
   HelpCircle,
   Library,
+  PenTool,
 } from 'lucide-react';
 
 export type ContentCreatorTab =
@@ -15,7 +16,8 @@ export type ContentCreatorTab =
   | 'lesson-generator'
   | 'lesson-editor'
   | 'quiz-generator'
-  | 'content-library';
+  | 'content-library'
+  | 'creator-studio';
 
 interface ContentCreatorSidebarProps {
   activeTab: ContentCreatorTab;
