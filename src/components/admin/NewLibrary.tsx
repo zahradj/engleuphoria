@@ -252,7 +252,7 @@ export const NewLibrary = ({ onNavigate }: NewLibraryProps) => {
         description: "Your lesson is now in the Curriculum Library",
         action: {
           label: "View Lesson",
-          onClick: () => onNavigate?.("curriculum-library"),
+          onClick: () => onNavigate?.("lesson-editor"),
         },
         duration: 5000,
       });
