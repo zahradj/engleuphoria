@@ -210,6 +210,8 @@ export default {
         "border-beam": "border-beam 2s linear infinite",
         "shimmer": "shimmer 2s ease-in-out infinite",
         "gradient-text": "gradient-text 3s ease infinite",
+        "shine": "shine 3s ease-in-out infinite",
+        "pulse-slow": "pulse-slow 3s ease-in-out infinite",
       },
     },
   },
