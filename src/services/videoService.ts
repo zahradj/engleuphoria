@@ -38,5 +38,5 @@ export abstract class VideoService {
   abstract getLocalStream(): MediaStream | null;
   abstract getRemoteStreams(): Map<string, MediaStream>;
   abstract isConnected(): boolean;
-  abstract dispose(): void;
+  abstract dispose(): void | Promise<void>;
 }

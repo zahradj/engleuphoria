@@ -282,8 +282,16 @@ export class EnhancedVideoService extends VideoService {
     return connected;
   }
 
+  private clearConnectionTimeout(): void {
+    if (this.connectionSimTimeout !== null) {
+      clearTimeout(this.connectionSimTimeout);
+      this.connectionSimTimeout = null;
+    }
+  }
+
   async leaveRoom(): Promise<void> {
     console.log('🎥 Enhanced: Leaving room...');
+    this.clearConnectionTimeout();
     
     // Stop advanced features
     await this.featureManager.stopScreenShare();
@@ -305,8 +313,11 @@ export class EnhancedVideoService extends VideoService {
     this.callbacks.onConnectionStatusChanged?.(false);
   }
 
-  dispose(): void {
-    this.leaveRoom();
+  async dispose(): Promise<void> {
+    if (this.isDisposed) return;
+    this.isDisposed = true;
+    this.clearConnectionTimeout();
+    await this.leaveRoom();
     this.initialized = false;
   }
 }
