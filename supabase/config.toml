@@ -169,3 +169,6 @@ verify_jwt = false
 
 [functions.quiz-generator]
 verify_jwt = false
+
+[functions.studio-ai-copilot]
+verify_jwt = false
