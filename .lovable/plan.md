@@ -1,135 +1,111 @@
 
 
-# AI Curriculum & Lesson Generator -- Standalone Module
+## Plan: Engineering Quality Hardening Pass (Incremental)
 
-## Current State Analysis
+Most foundational work already exists from the prior pass. This plan addresses the gaps.
 
-Your platform already has extensive curriculum and lesson generation infrastructure:
+### What already exists (no changes needed)
+- `.github/workflows/ci.yml` — lint, tsc, strict tsc, vitest, hygiene
+- `tsconfig.strict.json` — strictNullChecks for video + utils
+- `src/utils/logger.ts` — dev-only debug/info, always warn/error
+- `scripts/hygiene-check.mjs` — stale artifact detection
+- `docs/TS_MIGRATION.md`, `docs/ARCHITECTURE_BOUNDARIES.md`, `docs/DEPENDENCY_MAINTENANCE.md`
+- `.github/dependabot.yml`
 
-**Existing Components:**
-- `CurriculumBuilder` -- hierarchical track/level/lesson viewer
-- `CurriculumLibrary` -- lesson grid with filters, preview, edit, publish
-- `NewLibrary` (AI Generator) -- lesson generation with unified pipeline (content + games + images)
-- `LessonEditorPage` + `SlideEditor` -- slide-level editing
-- `LessonPicker` -- master curriculum checklist
-- `BulkLessonGenerator` -- batch generation
-- `CurriculumProgressDashboard` + `CurriculumExportDashboard`
-- `QualityDashboard`, `GenerationHistoryPanel`
+### Changes to implement
 
-**Existing Edge Functions (17+):** `n8n-bridge`, `curriculum-generator`, `curriculum-expert-agent`, `interactive-lesson-generator`, `generate-iron-game`, `batch-generate-lesson-images`, etc.
+| # | File | Action |
+|---|------|--------|
+| 1 | `package.json` | Add `typecheck`, `typecheck:strict`, `test:unit` scripts |
+| 2 | `.github/workflows/ci.yml` | Update to use new script names; add coverage gate step |
+| 3 | `vitest.config.ts` | Add coverage thresholds (60% lines/functions/branches) |
+| 4 | `.github/CODEOWNERS` | Create: assign owners for video, auth, payments |
+| 5 | `.github/PULL_REQUEST_TEMPLATE.md` | Create: checklist (tests, risk, rollback, screenshots) |
+| 6 | `docs/ENGINEERING_GOVERNANCE.md` | Create: CI policy, logging policy, hygiene policy, branch protection recs, preview deploy guidance, coverage ratcheting strategy |
 
-**Existing Database:** `tracks`, `curriculum_levels`, `curriculum_units`, `curriculum_lessons` tables with full hierarchy. Master curriculum data map in `src/data/masterCurriculum.ts`.
+### Details
 
-**Current Role System:** `app_role` enum has `student | teacher | admin`. No `content_creator` role exists yet.
+**A. package.json script additions**
 
-## What Needs to Be Built
-
-Rather than rebuilding what exists, the plan is to:
-1. Add a `content_creator` role to the system
-2. Create a dedicated Content Creator dashboard page that consolidates existing components into the 6-section layout requested
-3. Add a **Curriculum Generator** wizard (AI generates units/lessons structure from scratch)
-4. Add a **Quiz Generator** tab
-5. Wire everything with proper role-based access
-
----
-
-## Implementation Plan
-
-### Step 1: Add `content_creator` Role
-
-**Database Migration:**
-- Alter `app_role` enum to add `'content_creator'`
-- Update `has_role` and `get_user_role` functions to handle the new role
-- Add RLS policies so content creators can access curriculum tables
-
-### Step 2: Create Content Creator Dashboard Page
-
-**New file:** `src/pages/ContentCreatorDashboard.tsx`
-
-A standalone page at route `/content-creator` with its own sidebar containing the 6 sections:
-1. **Curriculum Generator** -- new AI-powered wizard
-2. **Curriculum Editor** -- reuses existing `CurriculumBuilder`
-3. **Lesson Generator** -- reuses existing `NewLibrary` (AI Generator)
-4. **Lesson Editor** -- reuses existing `CurriculumLibrary` (with preview/edit)
-5. **Quiz Generator** -- new component
-6. **Content Library** -- reuses existing `CurriculumLibrary` filtered view
-
-**New files:**
-- `src/components/content-creator/ContentCreatorSidebar.tsx`
-- `src/components/content-creator/CurriculumGeneratorWizard.tsx`
-- `src/components/content-creator/QuizGenerator.tsx`
-
-### Step 3: Curriculum Generator Wizard
-
-A multi-step form where the Content Creator inputs:
-- Student level (Beginner / Elementary / Pre-Intermediate / Intermediate)
-- Age group (Kids / Teens / Adults)
-- Number of units
-- Number of lessons per unit
-
-Calls the existing `curriculum-expert-agent` edge function (which already uses Lovable AI Gateway) to generate:
-- Units with titles
-- Lesson titles per unit
-- Learning objectives, grammar focus, vocabulary themes
-
-Output is displayed in a structured tree view, editable inline, and saveable to `curriculum_units` + `curriculum_lessons` tables.
-
-### Step 4: Quiz Generator
-
-A component that:
-- Lets the Content Creator select a lesson or enter a topic + level
-- Calls an edge function to generate 5-question quizzes with:
-  - Multiple choice, fill-in-the-blank, matching, sentence ordering
-  - Correct answers + explanations
-- Saves quiz data as structured JSON in the lesson content or a dedicated field
-
-**New edge function:** `quiz-generator` -- uses Lovable AI Gateway with tool calling for structured output.
-
-### Step 5: Route & Access Control
-
-- Add lazy-loaded route `/content-creator` in `App.tsx`
-- Protect with `ImprovedProtectedRoute` requiring `content_creator` role
-- Add redirect from `Dashboard.tsx` for content_creator role
-- Update `AdminDashboard` login check to also allow content_creator role where appropriate
-
-### Step 6: Content Library View
-
-Reuses `CurriculumLibrary` with additional filters:
-- Filter by level, unit, lesson
-- Show generated content organized hierarchically
-- Export as JSON for platform integration
-
----
-
-## Technical Architecture
-
-```text
-/content-creator (new route)
-├── ContentCreatorDashboard.tsx (new page)
-├── ContentCreatorSidebar.tsx (new - 6 tabs)
-├── CurriculumGeneratorWizard.tsx (new - AI wizard)
-├── QuizGenerator.tsx (new - quiz creation)
-├── CurriculumBuilder (existing - reused)
-├── NewLibrary (existing - reused as Lesson Generator)
-├── CurriculumLibrary (existing - reused as Lesson Editor + Content Library)
-└── quiz-generator/ (new edge function)
-
-Database Changes:
-├── ALTER TYPE app_role ADD VALUE 'content_creator'
-├── RLS policies for content_creator on curriculum tables
-└── No new tables needed (uses existing curriculum_lessons.content JSON)
+Add alongside existing scripts:
+```
+"typecheck": "tsc --noEmit",
+"typecheck:strict": "tsc -p tsconfig.strict.json --noEmit",
+"test:unit": "vitest run"
 ```
 
-## Files to Create/Modify
+Keep existing `test`, `test:watch`, `test:coverage` as-is. `test:unit` is an alias CI will use.
 
-| File | Action |
-|------|--------|
-| `src/pages/ContentCreatorDashboard.tsx` | Create |
-| `src/components/content-creator/ContentCreatorSidebar.tsx` | Create |
-| `src/components/content-creator/CurriculumGeneratorWizard.tsx` | Create |
-| `src/components/content-creator/QuizGenerator.tsx` | Create |
-| `supabase/functions/quiz-generator/index.ts` | Create |
-| `src/App.tsx` | Add route |
-| `src/pages/Dashboard.tsx` | Add content_creator redirect |
-| Database migration | Add content_creator to app_role enum + RLS |
+**B. CI workflow update**
+
+Replace hardcoded commands with script references and add coverage:
+```yaml
+- run: npm run lint
+- run: npm run typecheck
+- run: npm run typecheck:strict
+- run: npm run test:unit -- --coverage
+- run: npm run hygiene:check
+```
+
+Coverage will fail CI if below thresholds (configured in vitest.config.ts).
+
+**C. vitest.config.ts — coverage thresholds**
+
+Add to existing coverage config:
+```ts
+thresholds: {
+  lines: 60,
+  functions: 60,
+  branches: 60,
+}
+```
+
+This is the initial modest baseline. The governance doc will describe ratcheting.
+
+**D. CODEOWNERS**
+
+```
+# Video subsystem
+src/services/video/** @team-video
+
+# Auth & security
+src/contexts/AuthContext.tsx @team-auth
+src/hooks/useRoleBasedSecurity.ts @team-auth
+src/hooks/useAdminAuth.ts @team-auth
+
+# Payments
+src/services/lessonPricingService.ts @team-payments
+src/services/locationService.ts @team-payments
+
+# CI & config
+.github/** @team-infra
+tsconfig*.json @team-infra
+vitest.config.ts @team-infra
+```
+
+Uses placeholder team names; owner can replace with real GitHub handles.
+
+**E. PR template**
+
+Standard checklist: description, type of change, tests, risk assessment, rollback notes, screenshots for UI.
+
+**F. Engineering Governance doc**
+
+Single consolidated doc covering:
+1. CI policy — what runs, what blocks merge
+2. Branch protection recommendations — require PR, 1 approval, status checks, up-to-date branch, squash-merge preference
+3. Coverage ratcheting — start at 60%, increase by 5% per quarter
+4. Logging policy — use `logger.*`, no raw `console.*` in services
+5. Hygiene policy — what the script checks, how to fix findings
+6. Preview deploy guidance — Lovable auto-deploys previews; no extra config needed
+7. Strict TS migration roadmap — references `docs/TS_MIGRATION.md`
+
+### Files changed: 6 total
+- 2 modified (`package.json`, `.github/workflows/ci.yml`, `vitest.config.ts`)
+- 3 created (`CODEOWNERS`, PR template, governance doc)
+
+### Intentionally deferred
+- Actual coverage may be below 60% given minimal existing tests; if so, threshold will be set to current level and documented
+- CODEOWNERS uses placeholder team names
+- Branch protection settings require manual GitHub repo configuration (documented)
 
