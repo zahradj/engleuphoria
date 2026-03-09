@@ -51,7 +51,7 @@ interface CurriculumUnit {
 }
 
 interface NewLibraryProps {
-  onNavigate?: (tab: string) => void;
+  onNavigate?: (tab: ContentCreatorTab | string) => void;
 }
 
 export const NewLibrary = ({ onNavigate }: NewLibraryProps) => {
