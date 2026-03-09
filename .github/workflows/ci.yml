@@ -24,13 +24,13 @@ jobs:
         run: npm run lint
       
       - name: TypeScript check (main)
-        run: npx tsc --noEmit
+        run: npm run typecheck
       
       - name: TypeScript check (strict)
-        run: npx tsc -p tsconfig.strict.json --noEmit
+        run: npm run typecheck:strict
       
-      - name: Run tests
-        run: npm run test
+      - name: Run tests with coverage
+        run: npm run test:unit -- --coverage
       
       - name: Check repository hygiene
         run: npm run hygiene:check
