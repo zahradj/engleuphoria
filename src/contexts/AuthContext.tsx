@@ -31,16 +31,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signInRedirectRef = useRef(false); // Track if SIGNED_IN redirect is in progress
 
   // SECURITY: Roles MUST come from user_roles table only.
+  // When a user has multiple roles, prioritize: admin > content_creator > teacher > student
   const fetchUserRoleFromDatabase = async (userId: string): Promise<string | null> => {
     try {
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
-        .maybeSingle();
+        .order('role', { ascending: true }); // Alphabetical: admin < content_creator < student < teacher
 
-      if (error) return null;
-      return (data as any)?.role ?? null;
+      if (error || !data || data.length === 0) return null;
+      
+      // Priority order: admin > content_creator > teacher > parent > student
+      const priorityOrder = ['admin', 'content_creator', 'teacher', 'parent', 'student'];
+      const userRoles = data.map((r: any) => r.role);
+      
+      for (const role of priorityOrder) {
+        if (userRoles.includes(role)) {
+          return role;
+        }
+      }
+      
+      return userRoles[0] ?? null;
     } catch {
       return null;
     }
