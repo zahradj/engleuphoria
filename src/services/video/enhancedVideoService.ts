@@ -90,9 +90,12 @@ export class EnhancedVideoService extends VideoService {
       }
       
       // Simulate connection after a short delay
-      setTimeout(() => {
-        console.log('🎥 Enhanced: Simulating connection success');
-        this.callbacks.onConnectionStatusChanged?.(true);
+      this.connectionSimTimeout = setTimeout(() => {
+        if (!this.isDisposed) {
+          console.log('🎥 Enhanced: Simulating connection success');
+          this.callbacks.onConnectionStatusChanged?.(true);
+        }
+        this.connectionSimTimeout = null;
       }, 2000);
       
     } catch (error) {
