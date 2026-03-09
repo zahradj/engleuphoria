@@ -1,135 +1,92 @@
 
 
-# AI Curriculum & Lesson Generator -- Standalone Module
+## Plan: AI Co-Pilot Creator Studio Upgrade
 
-## Current State Analysis
-
-Your platform already has extensive curriculum and lesson generation infrastructure:
-
-**Existing Components:**
-- `CurriculumBuilder` -- hierarchical track/level/lesson viewer
-- `CurriculumLibrary` -- lesson grid with filters, preview, edit, publish
-- `NewLibrary` (AI Generator) -- lesson generation with unified pipeline (content + games + images)
-- `LessonEditorPage` + `SlideEditor` -- slide-level editing
-- `LessonPicker` -- master curriculum checklist
-- `BulkLessonGenerator` -- batch generation
-- `CurriculumProgressDashboard` + `CurriculumExportDashboard`
-- `QualityDashboard`, `GenerationHistoryPanel`
-
-**Existing Edge Functions (17+):** `n8n-bridge`, `curriculum-generator`, `curriculum-expert-agent`, `interactive-lesson-generator`, `generate-iron-game`, `batch-generate-lesson-images`, etc.
-
-**Existing Database:** `tracks`, `curriculum_levels`, `curriculum_units`, `curriculum_lessons` tables with full hierarchy. Master curriculum data map in `src/data/masterCurriculum.ts`.
-
-**Current Role System:** `app_role` enum has `student | teacher | admin`. No `content_creator` role exists yet.
-
-## What Needs to Be Built
-
-Rather than rebuilding what exists, the plan is to:
-1. Add a `content_creator` role to the system
-2. Create a dedicated Content Creator dashboard page that consolidates existing components into the 6-section layout requested
-3. Add a **Curriculum Generator** wizard (AI generates units/lessons structure from scratch)
-4. Add a **Quiz Generator** tab
-5. Wire everything with proper role-based access
+This upgrades the Creator Studio from a basic text editor into an AI-powered authoring environment with lesson generation, content refinement, cover image generation, and a polished device-frame preview.
 
 ---
 
-## Implementation Plan
+### 1. New Edge Function: `studio-ai-copilot`
 
-### Step 1: Add `content_creator` Role
+A single edge function handling three modes via a `mode` parameter:
 
-**Database Migration:**
-- Alter `app_role` enum to add `'content_creator'`
-- Update `has_role` and `get_user_role` functions to handle the new role
-- Add RLS policies so content creators can access curriculum tables
+- **`generate`**: Takes `track`, `level`, `topic` and returns a full Markdown lesson using the "Elite Curriculum Designer" prompt (narrative intro, core concepts, interactive quiz, tone-matched to track)
+- **`refine`**: Takes existing content + target level and rewrites it simpler/harder
+- **`cover-image`**: Takes title + track and generates a cover image via `google/gemini-2.5-flash-image`, uploads to Supabase storage, returns the public URL
 
-### Step 2: Create Content Creator Dashboard Page
+Uses `LOVABLE_API_KEY` for AI gateway calls. Uses `google/gemini-3-flash-preview` for text generation and `google/gemini-2.5-flash-image` for image generation.
 
-**New file:** `src/pages/ContentCreatorDashboard.tsx`
-
-A standalone page at route `/content-creator` with its own sidebar containing the 6 sections:
-1. **Curriculum Generator** -- new AI-powered wizard
-2. **Curriculum Editor** -- reuses existing `CurriculumBuilder`
-3. **Lesson Generator** -- reuses existing `NewLibrary` (AI Generator)
-4. **Lesson Editor** -- reuses existing `CurriculumLibrary` (with preview/edit)
-5. **Quiz Generator** -- new component
-6. **Content Library** -- reuses existing `CurriculumLibrary` filtered view
-
-**New files:**
-- `src/components/content-creator/ContentCreatorSidebar.tsx`
-- `src/components/content-creator/CurriculumGeneratorWizard.tsx`
-- `src/components/content-creator/QuizGenerator.tsx`
-
-### Step 3: Curriculum Generator Wizard
-
-A multi-step form where the Content Creator inputs:
-- Student level (Beginner / Elementary / Pre-Intermediate / Intermediate)
-- Age group (Kids / Teens / Adults)
-- Number of units
-- Number of lessons per unit
-
-Calls the existing `curriculum-expert-agent` edge function (which already uses Lovable AI Gateway) to generate:
-- Units with titles
-- Lesson titles per unit
-- Learning objectives, grammar focus, vocabulary themes
-
-Output is displayed in a structured tree view, editable inline, and saveable to `curriculum_units` + `curriculum_lessons` tables.
-
-### Step 4: Quiz Generator
-
-A component that:
-- Lets the Content Creator select a lesson or enter a topic + level
-- Calls an edge function to generate 5-question quizzes with:
-  - Multiple choice, fill-in-the-blank, matching, sentence ordering
-  - Correct answers + explanations
-- Saves quiz data as structured JSON in the lesson content or a dedicated field
-
-**New edge function:** `quiz-generator` -- uses Lovable AI Gateway with tool calling for structured output.
-
-### Step 5: Route & Access Control
-
-- Add lazy-loaded route `/content-creator` in `App.tsx`
-- Protect with `ImprovedProtectedRoute` requiring `content_creator` role
-- Add redirect from `Dashboard.tsx` for content_creator role
-- Update `AdminDashboard` login check to also allow content_creator role where appropriate
-
-### Step 6: Content Library View
-
-Reuses `CurriculumLibrary` with additional filters:
-- Filter by level, unit, lesson
-- Show generated content organized hierarchically
-- Export as JSON for platform integration
-
----
-
-## Technical Architecture
-
-```text
-/content-creator (new route)
-├── ContentCreatorDashboard.tsx (new page)
-├── ContentCreatorSidebar.tsx (new - 6 tabs)
-├── CurriculumGeneratorWizard.tsx (new - AI wizard)
-├── QuizGenerator.tsx (new - quiz creation)
-├── CurriculumBuilder (existing - reused)
-├── NewLibrary (existing - reused as Lesson Generator)
-├── CurriculumLibrary (existing - reused as Lesson Editor + Content Library)
-└── quiz-generator/ (new edge function)
-
-Database Changes:
-├── ALTER TYPE app_role ADD VALUE 'content_creator'
-├── RLS policies for content_creator on curriculum tables
-└── No new tables needed (uses existing curriculum_lessons.content JSON)
+```toml
+[functions.studio-ai-copilot]
+verify_jwt = false
 ```
 
-## Files to Create/Modify
+---
+
+### 2. Storage Bucket: `lesson-covers`
+
+SQL migration to create a public storage bucket for generated cover images, with RLS allowing authenticated users to upload and public read access.
+
+---
+
+### 3. UI Overhaul: `CreatorStudio.tsx`
+
+**New state:**
+- `topic` (string) -- separate input for AI generation topic
+- `generating` (boolean) -- loading state for AI generation
+- `coverImageUrl` (string | null) -- generated cover image
+
+**New layout elements:**
+- **Topic input + "Generate Lesson" button** at top of editor -- calls `studio-ai-copilot` with mode `generate`, populates title + content
+- **Focus Mode toggle** -- when active, dims everything except the editor textarea (opacity transition)
+
+**Updated save flow:**
+- Includes `coverImageUrl` in `ai_metadata` when saving to `curriculum_lessons`
+
+---
+
+### 4. UI Overhaul: `CreatorStudioPreview.tsx`
+
+Replace the plain glassmorphic card with a **device frame preview**:
+- A CSS tablet/phone frame (rounded border, notch, bezel) wrapping the content
+- Cover image displayed as a hero banner at top of preview when present
+- Track-specific styling:
+  - **Playground**: Warm orange/yellow gradient header, rounded-3xl corners, emoji-rich
+  - **Academy**: Dark with electric blue/purple neon accent border
+  - **Professional**: Minimalist emerald/charcoal, sharp typography
+
+---
+
+### 5. UI Overhaul: `CreatorStudioAITools.tsx`
+
+Add three new buttons to the Magic Wand popover:
+- **"AI Refine"** -- calls `studio-ai-copilot` mode `refine` to simplify/adjust content to match selected CEFR level. Returns updated content that replaces the editor.
+- **"Generate Cover Image"** -- calls `studio-ai-copilot` mode `cover-image`, shows the result in the preview
+- **"Tone Check"** -- for Professional track, flags informal language; for Playground, flags overly formal language. Client-side heuristic with keyword lists.
+
+Requires lifting `setContent` and `setCoverImageUrl` from `CreatorStudio` into the AI tools (pass as props or use a callback).
+
+---
+
+### 6. Mastery Badge Component
+
+New `src/components/content-creator/MasteryBadge.tsx`:
+- A glowing neon medal in dark mode (CSS box-shadow with animated pulse)
+- A metallic gold coin in light mode (CSS gradient with shine animation)
+- Displayed in the preview card when a lesson is marked as "published"
+- Reusable -- can later be triggered in student dashboards on lesson completion
+
+---
+
+### Files
 
 | File | Action |
-|------|--------|
-| `src/pages/ContentCreatorDashboard.tsx` | Create |
-| `src/components/content-creator/ContentCreatorSidebar.tsx` | Create |
-| `src/components/content-creator/CurriculumGeneratorWizard.tsx` | Create |
-| `src/components/content-creator/QuizGenerator.tsx` | Create |
-| `supabase/functions/quiz-generator/index.ts` | Create |
-| `src/App.tsx` | Add route |
-| `src/pages/Dashboard.tsx` | Add content_creator redirect |
-| Database migration | Add content_creator to app_role enum + RLS |
+|---|---|
+| `supabase/functions/studio-ai-copilot/index.ts` | **New** -- AI generation, refinement, cover image |
+| `supabase/config.toml` | Add `studio-ai-copilot` entry |
+| SQL migration | Create `lesson-covers` storage bucket + policies |
+| `src/components/content-creator/CreatorStudio.tsx` | Add topic input, generate button, focus mode, cover image state |
+| `src/components/content-creator/CreatorStudioPreview.tsx` | Device frame, track-themed styling, cover image hero |
+| `src/components/content-creator/CreatorStudioAITools.tsx` | Add Refine, Cover Image, Tone Check actions |
+| `src/components/content-creator/MasteryBadge.tsx` | **New** -- dual-theme achievement badge |
 
