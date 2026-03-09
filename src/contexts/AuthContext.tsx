@@ -473,14 +473,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           
           console.log('Auto-created missing user profile for:', sanitizedEmail);
         } else {
-          // Auto-heal: check if user_roles row exists for this user
-          const { data: existingRole } = await supabase
+          // Auto-heal: check if user_roles rows exist (use .select, NOT .maybeSingle to avoid PGRST116)
+          const { data: existingRoles } = await supabase
             .from('user_roles')
             .select('role')
-            .eq('user_id', data.user.id)
-            .maybeSingle();
+            .eq('user_id', data.user.id);
 
-          if (!existingRole) {
+          if (!existingRoles || existingRoles.length === 0) {
             const { data: usersRow } = await supabase
               .from('users')
               .select('role')
@@ -491,12 +490,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               || data.user.user_metadata?.role
               || 'student';
 
-            await supabase.from('user_roles').insert({
-              user_id: data.user.id,
-              role: healedRole
+            // Use security definer RPC to bypass RLS
+            await supabase.rpc('ensure_user_role', {
+              p_user_id: data.user.id,
+              p_role: healedRole
             });
 
-            console.warn('🔧 Auto-healed missing user_roles row:', data.user.email, '→', healedRole);
+            console.warn('🔧 Auto-healed missing user_roles:', data.user.email, '→', healedRole);
           }
         }
       }
