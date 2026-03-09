@@ -32,11 +32,11 @@ Object.defineProperty(global.navigator, 'mediaDevices', {
 describe('EnhancedVideoService - Lifecycle & Race Conditions', () => {
   let service: EnhancedVideoService;
   let config: EnhancedVideoConfig;
-  let connectionCallback: ReturnType<typeof vi.fn>;
+  let connectionCallback: (connected: boolean) => void;
 
   beforeEach(() => {
     vi.useFakeTimers();
-    connectionCallback = vi.fn();
+    connectionCallback = vi.fn() as (connected: boolean) => void;
     
     config = {
       roomName: 'test-room',
