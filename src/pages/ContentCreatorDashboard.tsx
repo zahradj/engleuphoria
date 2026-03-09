@@ -16,6 +16,8 @@ const ContentCreatorDashboard: React.FC = () => {
 
   const renderContent = () => {
     switch (activeTab) {
+      case 'creator-studio':
+        return <CreatorStudio />;
       case 'curriculum-generator':
         return <CurriculumGeneratorWizard />;
       case 'curriculum-editor':
