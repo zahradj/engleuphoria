@@ -135,14 +135,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               if (event === 'SIGNED_IN') {
                 // Check if we already redirected for this session (prevents infinite reload loop)
                 if (sessionStorage.getItem('auth_redirect_done')) {
-                  // This is a page reload with existing session, NOT a fresh login
-                  // Just update user state, no redirect
+                  // Update user state even on reload
                   (async () => {
                     if (!mounted) return;
                     try {
                       const dbUser = await fetchUserFromDatabase(currentSession.user.id);
                       const finalUser = dbUser || await createFallbackUser(currentSession.user);
                       if (mounted) setUser(finalUser);
+
+                      // Safety: if still on /login, redirect based on role
+                      if (window.location.pathname === '/login') {
+                        const role = (finalUser as any).role;
+                        if (role === 'admin') window.location.href = '/super-admin';
+                        else if (role === 'content_creator') window.location.href = '/content-creator';
+                        else if (role === 'teacher') window.location.href = '/admin';
+                        else if (role === 'parent') window.location.href = '/parent';
+                        else window.location.href = '/dashboard';
+                      }
                     } catch (err) {
                       console.error('Error fetching user on reload:', err);
                       if (mounted) {
