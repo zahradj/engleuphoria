@@ -1,4 +1,5 @@
 import { toast } from "sonner";
+import { logger } from '@/utils/logger';
 
 export interface ReconnectionConfig {
   maxAttempts: number;
@@ -38,14 +39,14 @@ export class ReconnectionManager {
 
   async attemptReconnection() {
     if (this.isReconnecting) {
-      console.log('🔄 Already attempting to reconnect');
+      logger.debug('Already attempting to reconnect');
       return;
     }
 
     this.isReconnecting = true;
     this.reconnectAttempts = 0;
 
-    console.log('🔄 Starting reconnection process...');
+    logger.info('Starting reconnection process');
     this.notifyStatusChange('reconnecting');
     
     toast.info("Connection lost. Attempting to reconnect...");
@@ -55,7 +56,7 @@ export class ReconnectionManager {
 
   private async scheduleReconnect() {
     if (this.reconnectAttempts >= this.config.maxAttempts) {
-      console.error('❌ Max reconnection attempts reached');
+      logger.warn('Max reconnection attempts reached');
       this.isReconnecting = false;
       this.notifyStatusChange('failed');
       
@@ -70,14 +71,14 @@ export class ReconnectionManager {
       this.config.maxDelay
     );
 
-    console.log(`🔄 Reconnection attempt ${this.reconnectAttempts}/${this.config.maxAttempts} in ${delay}ms`);
+    logger.debug(`Reconnection attempt ${this.reconnectAttempts}/${this.config.maxAttempts} in ${delay}ms`);
 
     this.reconnectTimer = window.setTimeout(async () => {
       try {
         if (this.onReconnectCallback) {
           await this.onReconnectCallback();
           
-          console.log('✅ Reconnection successful');
+          logger.info('Reconnection successful');
           this.isReconnecting = false;
           this.reconnectAttempts = 0;
           this.notifyStatusChange('connected');
@@ -85,9 +86,7 @@ export class ReconnectionManager {
           toast.success("Reconnected successfully!");
         }
       } catch (error) {
-        console.error(`❌ Reconnection attempt ${this.reconnectAttempts} failed:`, error);
-        
-        // Schedule next attempt
+        logger.warn(`Reconnection attempt ${this.reconnectAttempts} failed`, error);
         await this.scheduleReconnect();
       }
     }, delay);
@@ -106,7 +105,7 @@ export class ReconnectionManager {
     }
     this.isReconnecting = false;
     this.reconnectAttempts = 0;
-    console.log('🛑 Reconnection cancelled');
+    logger.debug('Reconnection cancelled');
   }
 
   isCurrentlyReconnecting(): boolean {

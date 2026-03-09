@@ -1,53 +1,64 @@
-// Audio service for sound effects and game sounds
+/**
+ * @stub
+ * Audio service stubs for sound effects and game sounds.
+ *
+ * Status: Stub. All sound-effect methods are no-ops.
+ * Pending: Integration with a real audio engine or Web Audio API.
+ *
+ * Voice generation methods (ElevenLabs) are also stubbed.
+ * See src/services/audioPlaceholderService.ts for audio manifest helpers.
+ */
+
+import { logger } from '@/utils/logger';
+
 let isMuted = false;
 
 export const audioService = {
-  // Sound effects
   playButtonClick: () => {
     if (isMuted) return;
-    // Simple click sound
+    // TODO: Implement click sound
   },
 
   playSuccessSound: () => {
     if (isMuted) return;
-    // Success/correct sound
+    // TODO: Implement success sound
   },
 
   playErrorSound: () => {
     if (isMuted) return;
-    // Error/incorrect sound
+    // TODO: Implement error sound
   },
 
-  playRewardSound: (points: number = 10) => {
+  playRewardSound: (_points: number = 10) => {
     if (isMuted) return;
-    // Reward sound based on points
+    // TODO: Implement reward sound
   },
 
   playCelebrationSound: () => {
     if (isMuted) return;
-    // Big celebration sound
+    // TODO: Implement celebration sound
   },
 
   playPronunciation: (word: string) => {
     if (isMuted) return;
-    // Play word pronunciation
-    console.log('Playing pronunciation for:', word);
+    logger.debug('Playing pronunciation for:', word);
+    // TODO: Implement pronunciation via TTS
   },
 
-  // Voice generation (ElevenLabs)
+  // Voice generation (ElevenLabs) — @stub
   hasElevenLabsKey: (): boolean => {
-    return false; // Stub for now
+    return false;
   },
 
-  setElevenLabsApiKey: (key: string) => {
-    console.log('API key set');
+  setElevenLabsApiKey: (_key: string) => {
+    logger.debug('ElevenLabs API key set (stub)');
   },
 
   generateVoiceMessage: async (message: string, voiceId?: string | number): Promise<void> => {
-    console.log('Generating voice for:', message, voiceId);
+    logger.debug('Generating voice for (stub):', message, voiceId);
+    // TODO: Implement ElevenLabs TTS call
   },
 
-  // Settings
   isSoundMuted: (): boolean => isMuted,
 
   setMuted: (muted: boolean) => {
