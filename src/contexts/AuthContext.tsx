@@ -332,6 +332,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     return () => {
       mounted = false;
+      initializedRef.current = false; // Allow re-init on StrictMode remount
       clearTimeout(timeout);
       if (cleanup instanceof Promise) {
         cleanup.then(cleanupFn => cleanupFn?.());
