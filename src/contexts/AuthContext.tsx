@@ -140,28 +140,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setSession(currentSession);
             
             if (currentSession?.user) {
-              // CRITICAL: Only perform hard redirect on SIGNED_IN (fresh login)
-              // For INITIAL_SESSION (page refresh), let components handle routing
+              // SIGNED_IN is handled entirely by the signIn() function which
+              // already does role resolution + redirect. The listener only needs
+              // to update user state for non-redirect events.
               if (event === 'SIGNED_IN') {
-                // Check if we already redirected for this session (prevents infinite reload loop)
-                if (sessionStorage.getItem('auth_redirect_done')) {
-                  // Update user state even on reload
+                // signIn() already handles redirect — just update state if needed
+                if (sessionStorage.getItem('auth_redirect_done') || signInRedirectRef.current) {
+                  // User state already set by signIn(), nothing to do
                   (async () => {
                     if (!mounted) return;
                     try {
                       const dbUser = await fetchUserFromDatabase(currentSession.user.id);
                       const finalUser = dbUser || await createFallbackUser(currentSession.user);
                       if (mounted) setUser(finalUser);
-
-                      // Safety: if still on /login, redirect based on role
-                      if (window.location.pathname === '/login') {
-                        const role = (finalUser as any).role;
-                        if (role === 'admin') window.location.href = '/super-admin';
-                        else if (role === 'content_creator') window.location.href = '/content-creator';
-                        else if (role === 'teacher') window.location.href = '/admin';
-                        else if (role === 'parent') window.location.href = '/parent';
-                        else window.location.href = '/dashboard';
-                      }
                     } catch (err) {
                       console.error('Error fetching user on reload:', err);
                       if (mounted) {
@@ -172,53 +163,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                   })();
                   return;
                 }
-
-                // Fresh login - mark redirect flag and proceed
-                signInRedirectRef.current = true;
-                setLoading(true);
-
+                // If somehow we get SIGNED_IN without signIn() handling it,
+                // just update state — Login.tsx will handle the redirect
                 (async () => {
                   if (!mounted) return;
-
                   try {
                     const dbUser = await fetchUserFromDatabase(currentSession.user.id);
                     const finalUser = dbUser || await createFallbackUser(currentSession.user);
-
-                    if (!mounted) return;
-                    setUser(finalUser);
-
-                    const email = currentSession.user.email ?? '';
-                    const role = (finalUser as any).role;
-
-                    console.log('🔐 SIGNED_IN redirect - email:', email, 'role:', role);
-
-                    // Set flag BEFORE redirect so the reload doesn't trigger another redirect
-                    sessionStorage.setItem('auth_redirect_done', 'true');
-
-                    // Role-based redirects (server-validated role from user_roles table)
-                    if (role === 'admin') {
-                      window.location.href = '/super-admin';
-                      return;
-                    }
-                    if (role === 'teacher') {
-                      window.location.href = '/admin';
-                      return;
-                    }
-                    if (role === 'content_creator') {
-                      window.location.href = '/content-creator';
-                      return;
-                    }
-                    if (role === 'parent') {
-                      window.location.href = '/parent';
-                      return;
-                    }
-                    window.location.href = '/dashboard';
-                  } catch (err) {
-                    console.error('Error in SIGNED_IN redirect handler:', err);
-                    signInRedirectRef.current = false;
                     if (mounted) {
+                      setUser(finalUser);
                       setLoading(false);
-                      window.location.href = '/dashboard';
+                    }
+                  } catch (err) {
+                    console.error('Error in SIGNED_IN state update:', err);
+                    if (mounted) {
+                      const fallback = await createFallbackUser(currentSession.user);
+                      setUser(fallback);
+                      setLoading(false);
                     }
                   }
                 })();
@@ -278,9 +239,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setSession(initialSession);
           
           if (initialSession?.user) {
-            // Set interim user immediately so protected routes see a user
-            // while the slower DB fetch (role resolution) completes
-            setUser(initialSession.user as any);
+            // Do NOT set interim user without role — it causes Login.tsx to
+            // see a truthy user with undefined role and redirect to /dashboard
+            // prematurely. Wait for the DB fetch to complete.
             try {
               const dbUser = await fetchUserFromDatabase(initialSession.user.id);
               setUser(dbUser || await createFallbackUser(initialSession.user));
@@ -332,7 +293,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     return () => {
       mounted = false;
-      initializedRef.current = false; // Allow re-init on StrictMode remount
+      // Do NOT reset initializedRef — StrictMode double-mount causes
+      // duplicate subscriptions and double redirects if we re-init.
       clearTimeout(timeout);
       if (cleanup instanceof Promise) {
         cleanup.then(cleanupFn => cleanupFn?.());

@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import React, { useEffect, useRef } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { LogIn, Loader2 } from 'lucide-react';
 import { AuthPageLayout } from '@/components/auth/AuthPageLayout';
 import { SimpleAuthForm } from '@/components/auth/SimpleAuthForm';
@@ -9,6 +9,8 @@ import { toast } from 'sonner';
 const Login = () => {
   const { user, loading } = useAuth();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const redirectedRef = useRef(false);
 
   useEffect(() => {
     if (searchParams.get('reason') === 'access_denied') {
@@ -20,16 +22,20 @@ const Login = () => {
   }, [searchParams]);
 
   // Safety net: redirect authenticated users based on role
+  // Guard: only redirect once AND only when role is resolved
   useEffect(() => {
-    if (!loading && user) {
+    if (!loading && user && !redirectedRef.current) {
       const role = (user as any).role;
-      if (role === 'admin') window.location.href = '/super-admin';
-      else if (role === 'content_creator') window.location.href = '/content-creator';
-      else if (role === 'teacher') window.location.href = '/admin';
-      else if (role === 'parent') window.location.href = '/parent';
-      else window.location.href = '/dashboard';
+      // Don't redirect if role hasn't been resolved yet
+      if (!role) return;
+      redirectedRef.current = true;
+      if (role === 'admin') navigate('/super-admin', { replace: true });
+      else if (role === 'content_creator') navigate('/content-creator', { replace: true });
+      else if (role === 'teacher') navigate('/admin', { replace: true });
+      else if (role === 'parent') navigate('/parent', { replace: true });
+      else navigate('/dashboard', { replace: true });
     }
-  }, [loading, user]);
+  }, [loading, user, navigate]);
 
   if (loading || user) {
     return (
