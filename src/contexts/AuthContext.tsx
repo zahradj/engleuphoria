@@ -239,9 +239,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setSession(initialSession);
           
           if (initialSession?.user) {
-            // Set interim user immediately so protected routes see a user
-            // while the slower DB fetch (role resolution) completes
-            setUser(initialSession.user as any);
+            // Do NOT set interim user without role — it causes Login.tsx to
+            // see a truthy user with undefined role and redirect to /dashboard
+            // prematurely. Wait for the DB fetch to complete.
             try {
               const dbUser = await fetchUserFromDatabase(initialSession.user.id);
               setUser(dbUser || await createFallbackUser(initialSession.user));
