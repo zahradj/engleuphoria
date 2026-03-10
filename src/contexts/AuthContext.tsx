@@ -293,7 +293,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     return () => {
       mounted = false;
-      initializedRef.current = false; // Allow re-init on StrictMode remount
+      // Do NOT reset initializedRef — StrictMode double-mount causes
+      // duplicate subscriptions and double redirects if we re-init.
       clearTimeout(timeout);
       if (cleanup instanceof Promise) {
         cleanup.then(cleanupFn => cleanupFn?.());
