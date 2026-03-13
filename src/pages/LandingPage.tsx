@@ -38,7 +38,9 @@ export default function LandingPage() {
       <BentoGridSection />
       <ActivityMarquee />
       <IntelligenceSection />
+      <PersonalizedPathSection />
       <HowItWorksSection />
+      <GamificationSection />
       <PricingSection />
       <TestimonialsSection />
       <TrustBarSection />
