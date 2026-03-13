@@ -52,7 +52,7 @@ export function TrustBarSection() {
   return (
     <section className={`py-16 relative transition-colors duration-300 ${isDark ? 'bg-slate-950' : 'bg-[#FAFAFA]'}`}>
       <div className="container mx-auto px-4 sm:px-6">
-        <div className="grid sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-6 max-w-6xl mx-auto">
           {trustItems.map((item, index) => {
             const Icon = item.icon;
             return (

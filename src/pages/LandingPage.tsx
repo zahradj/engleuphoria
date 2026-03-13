@@ -45,6 +45,7 @@ export default function LandingPage() {
       <TestimonialsSection />
       <TrustBarSection />
       <AmbassadorSection />
+      <FinalCTASection />
       <ContactSection />
       <FooterSection />
 
