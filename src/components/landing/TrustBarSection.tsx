@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Shield, Headphones, Brain } from 'lucide-react';
+import { Shield, Headphones, Brain, FlaskConical, BarChart3 } from 'lucide-react';
 import { useThemeMode } from '@/hooks/useThemeMode';
 
 const trustItems = [
