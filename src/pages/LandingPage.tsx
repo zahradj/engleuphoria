@@ -15,7 +15,10 @@ import {
   TrustBarSection,
   AmbassadorSection,
   ActivityMarquee,
-  CustomCursor
+  CustomCursor,
+  PersonalizedPathSection,
+  GamificationSection,
+  FinalCTASection
 } from '@/components/landing';
 
 export default function LandingPage() {
