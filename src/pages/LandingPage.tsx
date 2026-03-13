@@ -15,7 +15,10 @@ import {
   TrustBarSection,
   AmbassadorSection,
   ActivityMarquee,
-  CustomCursor
+  CustomCursor,
+  PersonalizedPathSection,
+  GamificationSection,
+  FinalCTASection
 } from '@/components/landing';
 
 export default function LandingPage() {
@@ -35,11 +38,14 @@ export default function LandingPage() {
       <BentoGridSection />
       <ActivityMarquee />
       <IntelligenceSection />
+      <PersonalizedPathSection />
       <HowItWorksSection />
+      <GamificationSection />
       <PricingSection />
       <TestimonialsSection />
       <TrustBarSection />
       <AmbassadorSection />
+      <FinalCTASection />
       <ContactSection />
       <FooterSection />
 

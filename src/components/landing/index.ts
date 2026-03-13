@@ -11,3 +11,6 @@ export { TrustBarSection } from './TrustBarSection';
 export { AmbassadorSection } from './AmbassadorSection';
 export { ActivityMarquee } from './ActivityMarquee';
 export { CustomCursor } from './CustomCursor';
+export { PersonalizedPathSection } from './PersonalizedPathSection';
+export { GamificationSection } from './GamificationSection';
+export { FinalCTASection } from './FinalCTASection';

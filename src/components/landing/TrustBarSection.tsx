@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Shield, Headphones, Brain } from 'lucide-react';
+import { Shield, Headphones, Brain, FlaskConical, BarChart3 } from 'lucide-react';
 import { useThemeMode } from '@/hooks/useThemeMode';
 
 const trustItems = [
@@ -27,6 +27,22 @@ const trustItems = [
     accentLight: 'text-amber-600 bg-gradient-to-br from-amber-50 to-orange-50',
     floatDelay: 1,
   },
+  {
+    icon: FlaskConical,
+    title: 'Science-Based Design',
+    description: 'Evidence-backed methodology from language acquisition research.',
+    accentDark: 'text-violet-400 bg-violet-500/10',
+    accentLight: 'text-violet-600 bg-gradient-to-br from-violet-50 to-purple-50',
+    floatDelay: 1.5,
+  },
+  {
+    icon: BarChart3,
+    title: 'Transparent Analytics',
+    description: 'Real-time dashboards for students and parents.',
+    accentDark: 'text-cyan-400 bg-cyan-500/10',
+    accentLight: 'text-cyan-600 bg-gradient-to-br from-cyan-50 to-sky-50',
+    floatDelay: 2,
+  },
 ];
 
 export function TrustBarSection() {
@@ -36,7 +52,7 @@ export function TrustBarSection() {
   return (
     <section className={`py-16 relative transition-colors duration-300 ${isDark ? 'bg-slate-950' : 'bg-[#FAFAFA]'}`}>
       <div className="container mx-auto px-4 sm:px-6">
-        <div className="grid sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-6 max-w-6xl mx-auto">
           {trustItems.map((item, index) => {
             const Icon = item.icon;
             return (
