@@ -86,7 +86,7 @@ export function AuthPageLayout({
               background: `linear-gradient(135deg, ${theme.cssFrom}, ${theme.cssTo})`,
             }}
           >
-            <img src={resolvedTheme === 'dark' ? logoWhite : logoBlack} alt="EnglEuphoria" className="w-full h-full object-contain rounded-[10px]" />
+            <img src={resolvedTheme === 'dark' ? logoBlack : logoWhite} alt="EnglEuphoria" className="w-full h-full object-contain rounded-[10px]" />
           </motion.div>
           <motion.span
             className="text-xl font-bold bg-clip-text text-transparent"
