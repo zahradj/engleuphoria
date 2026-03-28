@@ -1,74 +1,67 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowRight, MessageCircle } from 'lucide-react';
-import { GlassButton } from '@/components/ui/glass-card';
+import { ArrowRight, Sparkles, MessageCircle } from 'lucide-react';
+import { useThemeMode } from '@/hooks/useThemeMode';
+import { useHeroTheme } from '@/contexts/HeroThemeContext';
 
 const AboutCTA = () => {
-  return (
-    <section className="relative py-24 overflow-hidden">
-      {/* Background — works in both modes */}
-      <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-600 to-emerald-600" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent" />
-      
-      {/* Floating particles */}
-      <div className="absolute inset-0 overflow-hidden">
-        {[...Array(20)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute w-2 h-2 bg-white/20 rounded-full"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-            }}
-            animate={{
-              y: [0, -30, 0],
-              opacity: [0.2, 0.5, 0.2],
-            }}
-            transition={{
-              duration: 3 + Math.random() * 2,
-              repeat: Infinity,
-              delay: Math.random() * 2,
-            }}
-          />
-        ))}
-      </div>
+  const { resolvedTheme } = useThemeMode();
+  const isDark = resolvedTheme === 'dark';
+  const { theme } = useHeroTheme();
 
-      <div className="container mx-auto px-6 relative z-10">
+  return (
+    <section className={`py-24 md:py-32 relative overflow-hidden ${
+      isDark ? 'bg-[#09090B]' : 'bg-white'
+    }`}>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          className={`max-w-4xl mx-auto text-center rounded-[2rem] p-12 md:p-16 relative overflow-hidden ${
+            isDark
+              ? 'bg-gradient-to-br from-indigo-950/80 to-violet-950/80 border border-indigo-500/20'
+              : 'bg-gradient-to-br from-indigo-600 to-violet-700'
+          }`}
+          initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center max-w-3xl mx-auto"
+          transition={{ duration: 0.7 }}
         >
-          <h2 className="text-3xl md:text-5xl lg:text-6xl font-display font-bold text-white mb-6">
-            Ready to find your world?
-          </h2>
-          
-          <p className="text-xl text-white/80 mb-10">
-            Join thousands of learners who've discovered their perfect English path.
-          </p>
+          {/* Decorative blurs */}
+          <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-[80px] bg-violet-500/20" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full blur-[60px] bg-indigo-500/20" />
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link to="/">
-              <GlassButton
-                size="lg"
-                className="bg-white text-violet-700 hover:bg-white/90 px-8 py-4 text-lg font-semibold group"
+          <div className="relative z-10">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white/90 text-sm font-medium mb-8 backdrop-blur-sm">
+              <Sparkles className="w-4 h-4" />
+              Join the community
+            </div>
+
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6 leading-tight">
+              Ready to Find
+              <br />
+              Your World?
+            </h2>
+
+            <p className="text-lg text-white/70 max-w-xl mx-auto mb-10">
+              Join thousands of learners who've discovered their perfect English learning path.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                to="/student-signup"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-bold text-lg shadow-xl shadow-black/10 transition-all duration-700 hover:shadow-2xl hover:-translate-y-0.5"
+                style={{ background: `linear-gradient(to right, ${theme.cssFrom}, ${theme.cssTo})`, color: 'white' }}
               >
-                Explore Curriculums
-                <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </GlassButton>
-            </Link>
-            
-            <a href="mailto:hello@engleuphoria.com">
-              <GlassButton
-                size="lg"
-                variant="outline"
-                className="border-white/30 text-white hover:bg-white/10 px-8 py-4 text-lg"
+                Get Started Free
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+              <a
+                href="mailto:hello@engleuphoria.com"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-white/10 text-white font-semibold text-lg backdrop-blur-sm border border-white/20 transition-all duration-300 hover:bg-white/20"
               >
-                <MessageCircle className="mr-2 w-5 h-5" />
+                <MessageCircle className="w-5 h-5" />
                 Talk to Us
-              </GlassButton>
-            </a>
+              </a>
+            </div>
           </div>
         </motion.div>
       </div>
