@@ -1,46 +1,63 @@
 
 
-## Homepage Visual Upgrade Plan
+## Dynamic Color-Coded Hero Section
 
-### Current State
-The homepage already has **all 12+ sections** requested (Hero, Features/BentoGrid, How It Works, Personalized Path, Gamification, Pricing, Testimonials, Trust, Ambassador, Final CTA, Contact, Footer) with glassmorphism, framer-motion animations, dual-theme support, and responsive layouts.
+### What Changes
 
-### What's Actually New in This Request
-The primary gap is the **Hero section background** — currently it uses abstract gradient meshes and a dot grid. The user wants a **dynamic, high-quality background image** with parallax effects showing engaged learners or illustrated learning scenarios.
+The hero section carousel currently rotates through 3 images with no visual differentiation between student groups. This upgrade makes each group instantly recognizable with its own color palette and generates clean, transparent-background character images.
+
+### Color Palette per Group (from brand guidelines)
+
+```text
+┌─────────────┬─────────────────────────────┬────────────┐
+│ Group       │ Colors                      │ Accent     │
+├─────────────┼─────────────────────────────┼────────────┤
+│ Playground  │ #FF9F1C → #FFBF00           │ Orange/    │
+│ (Kids <12)  │ warm gradients              │ Amber      │
+├─────────────┼─────────────────────────────┼────────────┤
+│ Academy     │ #6366F1 → #A855F7           │ Indigo/    │
+│ (Teens)     │ electric blue/purple glow   │ Violet     │
+├─────────────┼─────────────────────────────┼────────────┤
+│ Professional│ #10B981 → #1E293B           │ Emerald/   │
+│ (Adults)    │ deep navy + slate gold      │ Charcoal   │
+└─────────────┴─────────────────────────────┴────────────┘
+```
 
 ### Plan
 
-#### 1. Hero Background Image with Parallax (HeroSection.tsx)
-- Generate a high-quality illustrated hero background using the AI image generation API — depicting an engaged, diverse group of students in a modern digital learning environment with flowing abstract shapes in brand colors (indigo/violet/emerald/amber)
-- Add parallax scrolling effect using `useScroll` + `useTransform` so the background image moves at a slower rate than content (0.5x speed)
-- Layer the image behind existing gradient mesh and dot grid with a semi-transparent overlay
-- Dark mode: dark overlay (85% opacity) with gradient blend
-- Light mode: light frosted overlay (70% opacity) preserving warmth
-- Image uses `object-cover` for responsive fill, lazy-loaded
+#### 1. Generate 3 New Hero Images (AI Image API)
+- **Kids**: Happy child with tablet, illustrated style, transparent/white background, no text
+- **Teens**: Confident teenager with headphones and laptop, clean background, no text
+- **Adults**: Professional in business setting, clean background, no text
+- All images: PNG format, no background clutter, no writing/watermarks
 
-#### 2. Enhanced Gradient Overlays (HeroSection.tsx)
-- Add a stronger gradient overlay on top of the hero image: `bg-gradient-to-b from-transparent via-[bg-color]/60 to-[bg-color]` to blend into the next section
-- Add subtle animated floating shapes (3-4 translucent circles/blobs) with slow drift animations layered between the image and content for depth
+#### 2. Rewrite `HeroSection.tsx` — Color Transitions
+- Define a `GROUP_THEMES` config object mapping each slide index to its color scheme:
+  - `gradient` (CTA button, headline accent)
+  - `accentBg` (trust badge, stat icon backgrounds)
+  - `glowColor` (decorative blurs)
+  - `dotColor` (selector dots active color)
+  - `label` and `tagline` per group
+- When `activeImage` changes, all colors smoothly transition (CSS `transition-colors duration-700`)
+- The headline accent span changes gradient per group
+- CTA button gradient updates per group
+- Background decorative blurs change hue per group
+- Floating badge borders/accents tint to match active group
 
-#### 3. Course Offerings Quick-View Section (New: `CourseOfferingsSection.tsx`)
-- A dedicated "Our Courses" section with card-based layout showcasing 6 course categories (General English, Business English, Exam Prep, Kids English, Conversation Club, Grammar Mastery)
-- Each card: glassmorphic style, gradient icon badge, course title, brief description, level tag (A1-C2), and "Learn More" CTA
-- 3-column grid (desktop), 2-col (tablet), 1-col (mobile)
-- Staggered entrance animations
-- Place between `BentoGridSection` and `ActivityMarquee`
+#### 3. Update Image Container
+- Use `object-contain` instead of `object-cover` so transparent-background images display cleanly
+- Remove the heavy gradient overlay on the image (no longer needed with clean backgrounds)
+- Add a subtle colored glow/shadow behind each image matching its group color
+
+#### 4. Slide Labels
+- Add a visible label chip on the image area showing the active group name (e.g., "Kids 5–12", "Teens 13–17", "Adults 18+") styled in the group's color
 
 ### Files Changed
 
 | File | Action |
 |---|---|
-| `src/components/landing/HeroSection.tsx` | Add background image with parallax, enhanced gradient overlays, floating shapes |
-| `src/components/landing/CourseOfferingsSection.tsx` | New — 6-card course showcase with glassmorphic cards |
-| `src/components/landing/index.ts` | Export new section |
-| `src/pages/LandingPage.tsx` | Insert CourseOfferingsSection after BentoGrid |
-
-### Technical Notes
-- Hero image generated via AI image API and stored as a project asset
-- Parallax uses `useScroll({ target: sectionRef })` with `useTransform(scrollYProgress, [0, 1], ['0%', '30%'])` on the image container
-- All new elements maintain the existing dual-theme (Spatial/Pearl) pattern
-- Brand copy rules respected: "Smart"/"Adaptive" terminology, no "AI" in public copy
+| `src/assets/hero-kid.png` | Replace — new transparent-bg image via AI generation |
+| `src/assets/hero-teen.png` | Create — new transparent-bg teen image |
+| `src/assets/hero-adult.png` | Replace — new transparent-bg image via AI generation |
+| `src/components/landing/HeroSection.tsx` | Rewrite carousel with per-group color theming and smooth transitions |
 
