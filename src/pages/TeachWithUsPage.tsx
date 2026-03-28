@@ -2,10 +2,13 @@ import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { TeacherHero, BenefitsCards, SimpleTeacherForm, TeacherCTA } from '@/components/teach-with-us';
 import { FooterSection } from '@/components/landing';
-import logoDark from '@/assets/logo-dark.png';
+import logoBlack from '@/assets/logo-black.png';
+import logoWhite from '@/assets/logo-white.png';
+import { useThemeMode } from '@/hooks/useThemeMode';
 
 const TeachWithUsPage = () => {
   const formRef = useRef<HTMLDivElement>(null);
+  const { resolvedTheme } = useThemeMode();
 
   const scrollToForm = () => {
     formRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -17,7 +20,7 @@ const TeachWithUsPage = () => {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-950/80 backdrop-blur-md border-b border-white/5">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logoDark} alt="Engleuphoria" className="h-10 w-auto" />
+            <img src={resolvedTheme === 'dark' ? logoBlack : logoWhite} alt="Engleuphoria" className="h-10 w-auto" />
           </Link>
           <div className="flex items-center gap-6">
             <Link to="/" className="text-white/70 hover:text-white transition-colors text-sm">
