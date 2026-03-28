@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useHeroTheme, GROUP_THEMES } from '@/contexts/HeroThemeContext';
-import { useThemeMode } from '@/hooks/useThemeMode';
 import { ThemeModeToggle } from '@/components/ui/ThemeModeToggle';
 import logoDark from '@/assets/logo-dark.png';
 import heroKid from '@/assets/hero-kid.png';
@@ -36,7 +35,6 @@ export function AuthPageLayout({
   showProgress,
 }: AuthPageLayoutProps) {
   const { activeIndex, setActiveIndex, theme } = useHeroTheme();
-  const { isDark } = useThemeMode();
 
   // Auto-rotate demographics
   useEffect(() => {
