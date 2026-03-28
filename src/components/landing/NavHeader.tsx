@@ -30,10 +30,12 @@ export function NavHeader() {
   };
 
   const navItems = [
-    { label: 'Courses', id: 'features' },
     { label: 'How It Works', id: 'how-it-works' },
     { label: 'Pricing', id: 'pricing' },
-    { label: 'Testimonials', id: 'testimonials' },
+  ];
+
+  const navLinks = [
+    { label: 'About Us', to: '/about' },
   ];
 
   return (
@@ -50,13 +52,16 @@ export function NavHeader() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 lg:h-20">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2.5">
-              <img
-                src={logoDark}
-                alt="EnglEuphoria"
-                className="w-9 h-9 object-contain bg-white/90 rounded-xl p-0.5"
-              />
-              <span className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            <Link to="/" className="flex items-center gap-2.5 group">
+              <div className="relative w-9 h-9">
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-[#FF9F1C] via-[#6366F1] to-[#10B981] opacity-80 group-hover:opacity-100 transition-opacity blur-[1px]" />
+                <img
+                  src={logoDark}
+                  alt="EnglEuphoria"
+                  className="relative w-9 h-9 object-contain rounded-xl p-0.5 bg-white/90 dark:bg-white/10"
+                />
+              </div>
+              <span className="text-xl font-bold bg-gradient-to-r from-[#FF9F1C] via-[#6366F1] to-[#10B981] bg-clip-text text-transparent">
                 EnglEuphoria
               </span>
             </Link>
