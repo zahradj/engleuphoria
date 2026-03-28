@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
 import { useThemeMode } from '@/hooks/useThemeMode';
+import { useHeroTheme } from '@/contexts/HeroThemeContext';
 import logoDark from '@/assets/logo-dark.png';
 
 export function NavHeader() {
@@ -12,6 +13,7 @@ export function NavHeader() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
+  const { theme } = useHeroTheme();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -51,17 +53,23 @@ export function NavHeader() {
       >
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 lg:h-20">
-            {/* Logo */}
+            {/* Logo — color synced with hero */}
             <Link to="/" className="flex items-center gap-2.5 group">
               <div className="relative w-9 h-9">
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-[#FF9F1C] via-[#6366F1] to-[#10B981] opacity-80 group-hover:opacity-100 transition-opacity blur-[1px]" />
+                <div
+                  className="absolute inset-0 rounded-xl opacity-80 group-hover:opacity-100 transition-all duration-700 blur-[1px]"
+                  style={{ background: `linear-gradient(135deg, ${theme.cssFrom}, ${theme.cssTo})` }}
+                />
                 <img
                   src={logoDark}
                   alt="EnglEuphoria"
                   className="relative w-9 h-9 object-contain rounded-xl p-0.5 bg-white/90 dark:bg-white/10"
                 />
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-[#FF9F1C] via-[#6366F1] to-[#10B981] bg-clip-text text-transparent">
+              <span
+                className="text-xl font-bold bg-clip-text text-transparent transition-all duration-700"
+                style={{ backgroundImage: `linear-gradient(to right, ${theme.cssFrom}, ${theme.cssTo})` }}
+              >
                 EnglEuphoria
               </span>
             </Link>
@@ -107,7 +115,7 @@ export function NavHeader() {
               </Link>
             </nav>
 
-            {/* Desktop Right */}
+            {/* Desktop Right — CTA synced with hero */}
             <div className="hidden lg:flex items-center gap-3">
               <div className={isDark
                 ? '[&_button]:text-white/70 [&_button]:hover:text-white [&_button]:hover:bg-white/10 [&_button]:border-white/20'
@@ -123,7 +131,9 @@ export function NavHeader() {
                 </Button>
               </Link>
               <Link to="/student-signup">
-                <Button className="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-semibold px-6 shadow-lg shadow-indigo-500/20 rounded-xl">
+                <Button
+                  className={`text-white font-semibold px-6 shadow-lg rounded-xl transition-all duration-700 bg-gradient-to-r ${theme.gradient} ${theme.shadow}`}
+                >
                   Get Started Free
                 </Button>
               </Link>
@@ -226,7 +236,7 @@ export function NavHeader() {
                     </Button>
                   </Link>
                   <Link to="/student-signup" onClick={() => setIsMobileMenuOpen(false)} className="block">
-                    <Button className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-semibold">
+                    <Button className={`w-full text-white font-semibold transition-all duration-700 bg-gradient-to-r ${theme.gradient}`}>
                       Get Started Free
                     </Button>
                   </Link>

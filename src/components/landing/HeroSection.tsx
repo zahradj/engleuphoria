@@ -7,6 +7,7 @@ import { useThemeMode } from '@/hooks/useThemeMode';
 import heroKid from '@/assets/hero-kid.png';
 import heroTeen from '@/assets/hero-teen.png';
 import heroAdult from '@/assets/hero-adult.png';
+import { useHeroTheme } from '@/contexts/HeroThemeContext';
 
 function useCountUp(target: number, duration = 2000) {
   const [count, setCount] = useState(0);
@@ -92,7 +93,7 @@ export function HeroSection() {
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
   const sectionRef = useRef<HTMLElement>(null);
-  const [activeImage, setActiveImage] = useState(0);
+  const { activeIndex: activeImage, setActiveIndex: setActiveImage } = useHeroTheme();
   const theme = GROUP_THEMES[activeImage];
 
   const { scrollYProgress } = useScroll({
