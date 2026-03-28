@@ -513,9 +513,8 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
             </div>
             <div className="flex gap-1 mb-2">
               {[1, 2, 3, 4].map(i => (
-                <div key={i} className="flex-1 h-1 rounded-full transition-colors"
-                  style={{ backgroundColor: i <= getPasswordStrength() ? theme.cssFrom : undefined }}
-                  className={`flex-1 h-1 rounded-full transition-colors ${i > getPasswordStrength() ? 'bg-muted' : ''}`}
+                <div key={i} className={`flex-1 h-1 rounded-full transition-colors ${i > getPasswordStrength() ? 'bg-muted' : ''}`}
+                  style={i <= getPasswordStrength() ? { backgroundColor: theme.cssFrom } : undefined}
                 />
               ))}
             </div>
