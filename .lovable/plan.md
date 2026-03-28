@@ -1,44 +1,63 @@
 
 
-## Fix Hero Images: Replace with Illustrated SVG Characters + Pop-up Animation
+## Dynamic Color-Coded Hero Section
 
-### Problem
-The AI-generated PNG images are large files that load slowly and don't look polished. The current crossfade animation is underwhelming.
+### What Changes
 
-### Solution
-Replace the heavy PNG images with lightweight **illustrated SVG character compositions** built directly in JSX (no external files needed). Each character is a stylized, minimal illustration using the group's color palette. Add a satisfying **pop-up scale + bounce** entrance animation.
+The hero section carousel currently rotates through 3 images with no visual differentiation between student groups. This upgrade makes each group instantly recognizable with its own color palette and generates clean, transparent-background character images.
 
-### Changes
+### Color Palette per Group (from brand guidelines)
 
-#### 1. `HeroSection.tsx` — Replace images with inline SVG illustrations + pop-up animation
-
-**Remove** the three PNG imports (`hero-kid.png`, `hero-teen.png`, `hero-adult.png`). Instead, create three simple illustrated character components inline:
-
-- **Kids**: Colorful cartoon child with tablet, rounded shapes, orange/amber palette
-- **Teens**: Stylized teen with headphones and laptop, indigo/violet palette
-- **Adults**: Professional figure with briefcase, emerald/charcoal palette
-
-Each rendered as a styled `div` composition using Tailwind classes and simple geometric shapes (circles for heads, rounded rectangles for bodies, gradient accents) — **zero external image loading**.
-
-**Animation change**: Replace the current fade+slide with a dramatic **pop-up spring animation**:
-```typescript
-initial={{ opacity: 0, scale: 0.3, y: 60 }}
-animate={{ opacity: 1, scale: 1, y: 0 }}
-exit={{ opacity: 0, scale: 0.8, y: -30 }}
-transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+```text
+┌─────────────┬─────────────────────────────┬────────────┐
+│ Group       │ Colors                      │ Accent     │
+├─────────────┼─────────────────────────────┼────────────┤
+│ Playground  │ #FF9F1C → #FFBF00           │ Orange/    │
+│ (Kids <12)  │ warm gradients              │ Amber      │
+├─────────────┼─────────────────────────────┼────────────┤
+│ Academy     │ #6366F1 → #A855F7           │ Indigo/    │
+│ (Teens)     │ electric blue/purple glow   │ Violet     │
+├─────────────┼─────────────────────────────┼────────────┤
+│ Professional│ #10B981 → #1E293B           │ Emerald/   │
+│ (Adults)    │ deep navy + slate gold      │ Charcoal   │
+└─────────────┴─────────────────────────────┴────────────┘
 ```
 
-This gives a satisfying "pop in from below" with a subtle overshoot bounce.
+### Plan
 
-#### 2. Delete unused assets
-Remove `src/assets/hero-kid.png`, `src/assets/hero-teen.png`, `src/assets/hero-adult.png`.
+#### 1. Generate 3 New Hero Images (AI Image API)
+- **Kids**: Happy child with tablet, illustrated style, transparent/white background, no text
+- **Teens**: Confident teenager with headphones and laptop, clean background, no text
+- **Adults**: Professional in business setting, clean background, no text
+- All images: PNG format, no background clutter, no writing/watermarks
+
+#### 2. Rewrite `HeroSection.tsx` — Color Transitions
+- Define a `GROUP_THEMES` config object mapping each slide index to its color scheme:
+  - `gradient` (CTA button, headline accent)
+  - `accentBg` (trust badge, stat icon backgrounds)
+  - `glowColor` (decorative blurs)
+  - `dotColor` (selector dots active color)
+  - `label` and `tagline` per group
+- When `activeImage` changes, all colors smoothly transition (CSS `transition-colors duration-700`)
+- The headline accent span changes gradient per group
+- CTA button gradient updates per group
+- Background decorative blurs change hue per group
+- Floating badge borders/accents tint to match active group
+
+#### 3. Update Image Container
+- Use `object-contain` instead of `object-cover` so transparent-background images display cleanly
+- Remove the heavy gradient overlay on the image (no longer needed with clean backgrounds)
+- Add a subtle colored glow/shadow behind each image matching its group color
+
+#### 4. Slide Labels
+- Add a visible label chip on the image area showing the active group name (e.g., "Kids 5–12", "Teens 13–17", "Adults 18+") styled in the group's color
 
 ### Files Changed
 
 | File | Action |
 |---|---|
-| `src/components/landing/HeroSection.tsx` | Replace PNG images with inline SVG illustrations, add spring pop-up animation |
-| `src/assets/hero-kid.png` | Delete |
-| `src/assets/hero-teen.png` | Delete |
-| `src/assets/hero-adult.png` | Delete |
+| `src/assets/hero-kid.png` | Replace — new transparent-bg image via AI generation |
+| `src/assets/hero-teen.png` | Create — new transparent-bg teen image |
+| `src/assets/hero-adult.png` | Replace — new transparent-bg image via AI generation |
+| `src/components/landing/HeroSection.tsx` | Rewrite carousel with per-group color theming and smooth transitions |
 
