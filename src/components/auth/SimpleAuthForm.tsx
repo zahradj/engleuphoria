@@ -458,11 +458,11 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
           {formData.dateOfBirth && (
             <p className="text-xs text-muted-foreground flex items-center gap-1.5">
               <span>Program:</span>
-              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                calculateSystemTag(formData.dateOfBirth) === 'KIDS' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                calculateSystemTag(formData.dateOfBirth) === 'TEENS' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' :
-                'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-              }`}>
+              <span className="px-2 py-0.5 rounded-full text-xs font-medium text-white"
+                style={{
+                  backgroundColor: calculateSystemTag(formData.dateOfBirth) === 'KIDS' ? '#FF9F1C' :
+                    calculateSystemTag(formData.dateOfBirth) === 'TEENS' ? '#6366F1' : '#10B981'
+                }}>
                 {calculateSystemTag(formData.dateOfBirth)}
               </span>
             </p>
@@ -513,9 +513,10 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
             </div>
             <div className="flex gap-1 mb-2">
               {[1, 2, 3, 4].map(i => (
-                <div key={i} className={`flex-1 h-1 rounded-full transition-colors ${
-                  i <= getPasswordStrength() ? 'bg-primary' : 'bg-muted'
-                }`} />
+                <div key={i} className="flex-1 h-1 rounded-full transition-colors"
+                  style={{ backgroundColor: i <= getPasswordStrength() ? theme.cssFrom : undefined }}
+                  className={`flex-1 h-1 rounded-full transition-colors ${i > getPasswordStrength() ? 'bg-muted' : ''}`}
+                />
               ))}
             </div>
             <div className="grid grid-cols-2 gap-1">
@@ -568,7 +569,8 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
       <motion.div variants={fieldVariants} initial="hidden" animate="visible" custom={fieldIndex++}>
         <Button
           type="submit"
-          className="w-full h-11 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-medium shadow-lg shadow-indigo-500/25 transition-all hover:shadow-xl hover:shadow-indigo-500/30"
+          className="w-full h-11 text-white font-medium shadow-lg transition-all duration-500 hover:shadow-xl hover:brightness-110"
+          style={{ backgroundImage: `linear-gradient(to right, ${theme.cssFrom}, ${theme.cssTo})` }}
           disabled={loading}
         >
           {loading ? (
