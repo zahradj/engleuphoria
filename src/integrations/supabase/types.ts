@@ -8553,6 +8553,13 @@ export type Database = {
         }[]
       }
       get_current_user_role: { Args: never; Returns: string }
+      get_global_skill_averages: {
+        Args: never
+        Returns: {
+          avg_score: number
+          skill_name: string
+        }[]
+      }
       get_organization_analytics: { Args: { org_uuid: string }; Returns: Json }
       get_pending_reminders: {
         Args: never
