@@ -1,51 +1,33 @@
 
 
-## Refactor About Us Page — Theme Compatibility
+## Sync About Hero with NavHeader + Revamp Hero Visuals
 
 ### Problem
-The About page is hardcoded to a dark-only design (`bg-slate-950`, `text-white` everywhere) with its own inline navigation. The homepage uses the `ThemeModeProvider` + `useThemeMode()` hook for light/dark toggling and reuses `NavHeader` with the `HeroThemeContext`. The About page shares none of this infrastructure.
+The MissionHeader component on the About page uses its own local `activeGroup` state for the rotating mascot icons. This state is **not connected** to the global `HeroThemeContext`, so the NavHeader logo and "Get Started Free" button colors never change when the About hero rotates. Additionally, the hero section currently shows generic icon circles instead of the actual character images used on the homepage.
 
 ### Plan
 
-#### 1. Wrap About Page in Theme Providers
-- Wrap `AboutPage` in `HeroThemeProvider` (so NavHeader logo/CTA colors work)
-- Replace the inline `<nav>` with the shared `NavHeader` component from landing
-- Page will inherit `ThemeModeProvider` from the app root (already wrapping routes)
+#### 1. Connect MissionHeader to Global Theme Context
+- Import `useHeroTheme` in `MissionHeader.tsx`
+- Replace the local `activeGroup` / `setActiveGroup` state with `activeIndex` / `setActiveIndex` from the context
+- The auto-rotation interval will call `setActiveIndex` instead, which updates the global context
+- This instantly syncs the NavHeader logo gradient and CTA button colors
 
-#### 2. Refactor `AboutPage.tsx`
-- Remove the hardcoded dark nav block (lines 10-33)
-- Import and render `<NavHeader />` instead
-- Change root container from `bg-slate-950` to theme-aware classes: `bg-white dark:bg-[#09090B]`
+#### 2. Replace Icon Circles with Hero Character Images
+- Import `hero-kid.png`, `hero-teen.png`, `hero-adult.png` into MissionHeader
+- Replace the orbiting icon circles with a **carousel/crossfade** of the actual character images (same assets used on homepage and PhilosophyPanels)
+- The active character image fades in with a themed color glow behind it
+- Non-active groups shown as small thumbnail dots or mini-avatars below
+- Each image gets a radial glow matching the group's color (orange/indigo/emerald)
 
-#### 3. Refactor `MissionHeader.tsx`
-- Replace hardcoded dark gradients with theme-aware variants using `useThemeMode()`
-- Light mode: soft gradient backgrounds (white/slate-50 base), dark text
-- Dark mode: keep existing violet/emerald/slate-900 gradients
-- Floating mascot circles and labels remain color-coded per group
-
-#### 4. Refactor `PhilosophyPanels.tsx`
-- Add `useThemeMode()` hook
-- Light mode: white/slate-50 backgrounds, dark text, colored accent borders
-- Dark mode: keep existing dark slate backgrounds with gradient overlays
-- Panel text: `text-slate-900 dark:text-white`, body: `text-slate-600 dark:text-white/70`
-
-#### 5. Refactor `TeamGrid.tsx`
-- Light mode: `bg-white` / `bg-slate-50` section background, dark text
-- Dark mode: keep `bg-slate-950/900` gradients
-- Founder card: light glassmorphism in light mode, current dark glass in dark mode
-- Name highlight: keep `text-violet-500` (works in both modes)
-
-#### 6. Refactor `AboutCTA.tsx`
-- The gradient CTA banner works in both modes (colored background with white text) — minimal changes needed
-- Ensure button styles remain readable in both contexts
+#### 3. Visual Polish
+- Add a subtle floating animation to the active character image
+- Keep the dots navigation at the bottom, connected to the global context
+- Maintain the existing left-column content (headline, stats, description) unchanged
 
 ### Files Changed
 
 | File | Action |
 |---|---|
-| `src/pages/AboutPage.tsx` | Remove inline nav, add `HeroThemeProvider` + `NavHeader`, theme-aware root |
-| `src/components/about/MissionHeader.tsx` | Add `useThemeMode`, dual-theme backgrounds and text |
-| `src/components/about/PhilosophyPanels.tsx` | Add `useThemeMode`, dual-theme panels |
-| `src/components/about/TeamGrid.tsx` | Add `useThemeMode`, dual-theme card and section |
-| `src/components/about/AboutCTA.tsx` | Minor adjustments for theme consistency |
+| `src/components/about/MissionHeader.tsx` | Replace local state with `useHeroTheme`, swap icon circles for hero character image carousel with color glows |
 
