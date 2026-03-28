@@ -37,6 +37,7 @@ export function AuthPageLayout({
   showProgress,
 }: AuthPageLayoutProps) {
   const { activeIndex, setActiveIndex, theme } = useHeroTheme();
+  const { resolvedTheme } = useThemeMode();
 
   // Auto-rotate demographics
   useEffect(() => {
