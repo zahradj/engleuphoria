@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
 import { useThemeMode } from '@/hooks/useThemeMode';
 import { useHeroTheme } from '@/contexts/HeroThemeContext';
-import logoDark from '@/assets/logo-dark.png';
+import logoBlack from '@/assets/logo-black.png';
+import logoWhite from '@/assets/logo-white.png';
 
 export function NavHeader() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -61,9 +62,9 @@ export function NavHeader() {
                   style={{ background: `linear-gradient(135deg, ${theme.cssFrom}, ${theme.cssTo})` }}
                 />
                 <img
-                  src={logoDark}
+                  src={isDark ? logoBlack : logoWhite}
                   alt="EnglEuphoria"
-                  className="relative w-9 h-9 object-contain rounded-xl p-0.5 bg-white/90 dark:bg-white/10"
+                  className="relative w-9 h-9 object-contain rounded-xl p-0.5"
                 />
               </div>
               <span

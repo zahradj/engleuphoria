@@ -1,6 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import logoImage from '@/assets/engleuphoria-logo.png';
+import logoBlack from '@/assets/logo-black.png';
+import logoWhite from '@/assets/logo-white.png';
+import { useThemeMode } from '@/hooks/useThemeMode';
 
 interface AnimatedLogoProps {
   size?: 'sm' | 'md' | 'lg';
@@ -8,6 +10,7 @@ interface AnimatedLogoProps {
 }
 
 const AnimatedLogo: React.FC<AnimatedLogoProps> = ({ size = 'md', className = '' }) => {
+  const { resolvedTheme } = useThemeMode();
   const sizeClasses = {
     sm: 'w-12 h-12',
     md: 'w-16 h-16', 
@@ -45,9 +48,9 @@ const AnimatedLogo: React.FC<AnimatedLogoProps> = ({ size = 'md', className = ''
       >
         {/* Logo image */}
         <img 
-          src={logoImage} 
+          src={resolvedTheme === 'dark' ? logoBlack : logoWhite} 
           alt="EnglEuphoria Logo" 
-          className="w-3/4 h-3/4 object-contain filter brightness-0 invert"
+          className="w-3/4 h-3/4 object-contain"
         />
       </motion.div>
       

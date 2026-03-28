@@ -12,7 +12,7 @@ import {
   Bird, Rocket, Briefcase
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import logoDark from '@/assets/logo-dark.png';
+import logoBlack from '@/assets/logo-black.png';
 import logoWhite from '@/assets/logo-white.png';
 
 type SystemType = 'KIDS' | 'ACADEMY' | 'HUB' | null;
@@ -388,7 +388,7 @@ export const ThemedSignupForm: React.FC = () => {
                       whileHover={{ scale: 1.1, rotate: 5 }}
                     >
                       <img 
-                        src={isDarkMode ? logoWhite : logoDark} 
+                        src={isDarkMode ? logoBlack : logoWhite} 
                         alt="EnglEuphoria" 
                         className="w-12 h-12 object-contain"
                       />

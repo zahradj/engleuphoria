@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Globe, Mail, MessageCircle } from 'lucide-react';
 import logoWhite from '@/assets/logo-white.png';
+import logoBlack from '@/assets/logo-black.png';
 import { useThemeMode } from '@/hooks/useThemeMode';
 import { useRef } from 'react';
 
@@ -61,7 +62,7 @@ export function FooterSection() {
           {/* Brand Column */}
           <div className="lg:col-span-2">
             <Link to="/" className="inline-flex items-center gap-3 mb-6">
-              <img src={logoWhite} alt="EnglEuphoria" className={`w-10 h-10 object-contain ${!isDark ? 'brightness-0' : ''}`} />
+              <img src={isDark ? logoWhite : logoBlack} alt="EnglEuphoria" className="w-10 h-10 object-contain" />
               <h3 className="font-display text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-emerald-400">
                 EnglEuphoria
               </h3>
