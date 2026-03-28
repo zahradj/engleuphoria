@@ -185,6 +185,19 @@ export function NavHeader() {
                       <ChevronRight className="w-4 h-4 opacity-40" />
                     </button>
                   ))}
+                  {navLinks.map((item) => (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`flex items-center justify-between w-full px-4 py-3.5 rounded-xl text-left font-medium transition-colors ${
+                        isDark ? 'text-slate-300 hover:bg-white/5' : 'text-slate-600 hover:bg-slate-50'
+                      }`}
+                    >
+                      {item.label}
+                      <ChevronRight className="w-4 h-4 opacity-40" />
+                    </Link>
+                  ))}
                   <Link
                     to="/for-teachers"
                     onClick={() => setIsMobileMenuOpen(false)}
