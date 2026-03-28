@@ -1,12 +1,12 @@
 import { motion, useInView, useScroll, useTransform } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Zap, Users } from 'lucide-react';
+import { ArrowRight, Zap, Users, BookOpen, Target, Trophy, Headphones } from 'lucide-react';
 import { useRef, useState, useCallback } from 'react';
 import { useThemeMode } from '@/hooks/useThemeMode';
+import { useHeroTheme } from '@/contexts/HeroThemeContext';
 
 const skills = ['Speaking', 'Listening', 'Reading', 'Writing', 'Vocabulary'];
 const skillValues = [0.85, 0.7, 0.9, 0.65, 0.8];
-const skillValuesHovered = [0.85, 0.7, 0.9, 0.65, 0.95];
 
 function getPolygonPoints(values: number[], radius: number, cx: number, cy: number) {
   return values.map((v, i) => {
@@ -20,45 +20,12 @@ function getAxisEnd(index: number, total: number, radius: number, cx: number, cy
   return { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) };
 }
 
-function TimerRing({ isDark }: { isDark: boolean }) {
-  return (
-    <div className="relative w-28 h-28">
-      <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-        <circle cx="50" cy="50" r="42" fill="none" stroke={isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'} strokeWidth="6" />
-        <motion.circle
-          cx="50" cy="50" r="42"
-          fill="none"
-          stroke="url(#timerGrad)"
-          strokeWidth="6"
-          strokeLinecap="round"
-          strokeDasharray={2 * Math.PI * 42}
-          initial={{ strokeDashoffset: 2 * Math.PI * 42 }}
-          whileInView={{ strokeDashoffset: 2 * Math.PI * 42 * 0.08 }}
-          viewport={{ once: true }}
-          transition={{ duration: 2, ease: 'easeOut', delay: 0.3 }}
-        />
-        <defs>
-          <linearGradient id="timerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#6366f1" />
-            <stop offset="100%" stopColor="#10b981" />
-          </linearGradient>
-        </defs>
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className={`text-2xl font-bold font-display ${isDark ? 'text-white' : 'text-slate-900'}`}>55</span>
-        <span className={`text-xs ml-0.5 mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>min</span>
-      </div>
-    </div>
-  );
-}
-
-function SkillRadar({ isDark, hovered }: { isDark: boolean; hovered: boolean }) {
+function SkillRadar({ isDark }: { isDark: boolean }) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-50px' });
   const cx = 100, cy = 100, radius = 75;
   const gridStroke = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
   const axisStroke = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)';
-  const activeValues = hovered ? skillValuesHovered : skillValues;
 
   return (
     <div ref={ref} className="flex justify-center">
@@ -77,7 +44,7 @@ function SkillRadar({ isDark, hovered }: { isDark: boolean; hovered: boolean }) 
           return <line key={i} x1={cx} y1={cy} x2={end.x} y2={end.y} stroke={axisStroke} strokeWidth="1" />;
         })}
         <motion.polygon
-          points={getPolygonPoints(isInView ? activeValues : Array(5).fill(0), radius, cx, cy)}
+          points={getPolygonPoints(isInView ? skillValues : Array(5).fill(0), radius, cx, cy)}
           fill="rgba(99,102,241,0.15)"
           stroke="#6366f1"
           strokeWidth="2"
@@ -86,7 +53,7 @@ function SkillRadar({ isDark, hovered }: { isDark: boolean; hovered: boolean }) 
           animate={isInView ? { opacity: 1 } : {}}
           transition={{ duration: 1, delay: 0.3 }}
         />
-        {activeValues.map((v, i) => {
+        {skillValues.map((v, i) => {
           const end = getAxisEnd(i, 5, (isInView ? v : 0) * radius, cx, cy);
           return (
             <motion.circle
@@ -121,6 +88,41 @@ function SkillRadar({ isDark, hovered }: { isDark: boolean; hovered: boolean }) 
   );
 }
 
+const FEATURES = [
+  {
+    icon: Target,
+    title: 'Adaptive Learning',
+    desc: 'Lessons adjust to your pace, strengths, and weaknesses in real-time.',
+    color: 'from-violet-500 to-indigo-600',
+    iconBg: 'bg-violet-500/10 text-violet-500',
+    span: 'md:col-span-1',
+  },
+  {
+    icon: Headphones,
+    title: 'Immersive Audio',
+    desc: 'Native-speaker conversations, pronunciation drills, and real-world listening.',
+    color: 'from-cyan-500 to-blue-600',
+    iconBg: 'bg-cyan-500/10 text-cyan-500',
+    span: 'md:col-span-1',
+  },
+  {
+    icon: BookOpen,
+    title: 'CEFR-Aligned Curriculum',
+    desc: 'Structured progression from A1 to C2 with measurable milestones.',
+    color: 'from-amber-500 to-orange-600',
+    iconBg: 'bg-amber-500/10 text-amber-500',
+    span: 'md:col-span-1',
+  },
+  {
+    icon: Trophy,
+    title: 'Gamified Progress',
+    desc: 'XP, streaks, badges, and leaderboards keep motivation high.',
+    color: 'from-emerald-500 to-teal-600',
+    iconBg: 'bg-emerald-500/10 text-emerald-500',
+    span: 'md:col-span-1',
+  },
+];
+
 const teacherAvatars = [
   'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop',
   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop',
@@ -130,274 +132,163 @@ const teacherAvatars = [
 
 const containerVariants = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.12 } },
+  visible: { opacity: 1, transition: { staggerChildren: 0.1 } },
 };
 const itemVariants = {
-  hidden: { opacity: 0, y: 30, scale: 0.97 },
-  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.6, ease: 'easeOut' as const } },
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' as const } },
 };
-
-const floatDurations = [3.2, 4.0, 3.6, 4.4, 3.8, 4.2, 3.4];
-
-/* Cursor micro-glow hook */
-function useCursorGlow(isDark: boolean) {
-  const [glow, setGlow] = useState<{ x: number; y: number; visible: boolean }>({ x: 0, y: 0, visible: false });
-
-  const onMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    setGlow({ x: e.clientX - rect.left, y: e.clientY - rect.top, visible: true });
-  }, []);
-
-  const onMouseLeave = useCallback(() => {
-    setGlow((prev) => ({ ...prev, visible: false }));
-  }, []);
-
-  const glowStyle: React.CSSProperties = {
-    position: 'absolute',
-    inset: 0,
-    pointerEvents: 'none',
-    borderRadius: 'inherit',
-    opacity: glow.visible ? 1 : 0,
-    transition: 'opacity 0.3s ease',
-    background: `radial-gradient(300px circle at ${glow.x}px ${glow.y}px, ${isDark ? 'rgba(99,102,241,0.07)' : 'rgba(99,102,241,0.04)'}, transparent 70%)`,
-  };
-
-  return { onMouseMove, onMouseLeave, glowStyle };
-}
 
 export function BentoGridSection() {
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
-  const [radarHovered, setRadarHovered] = useState(false);
+  const { theme } = useHeroTheme();
   const sectionRef = useRef<HTMLElement>(null);
 
-  // Parallax scroll
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start end', 'end start'] });
-  const parallaxFast = useTransform(scrollYProgress, [0, 1], [0, -30]);
-  const parallaxSlow = useTransform(scrollYProgress, [0, 1], [0, -10]);
+  const parallaxSlow = useTransform(scrollYProgress, [0, 1], [0, -15]);
 
-  // Cursor glow instances for each card
-  const glow1 = useCursorGlow(isDark);
-  const glow2 = useCursorGlow(isDark);
-  const glow3 = useCursorGlow(isDark);
-  const glow4 = useCursorGlow(isDark);
-  const glow5 = useCursorGlow(isDark);
-  const glow6 = useCursorGlow(isDark);
-
-  const GLASS = 'backdrop-blur-xl rounded-[32px]';
-
-  const glassStyle = isDark
-    ? { background: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255, 255, 255, 0.1)' }
-    : { background: 'rgba(255, 255, 255, 0.7)', border: '1px solid rgba(0, 0, 0, 0.05)', boxShadow: '0 8px 32px rgba(0,0,0,0.05)' };
-
-  const HOVER = isDark
-    ? 'hover:scale-[1.02] hover:-translate-y-1 transition-all duration-500'
-    : 'hover:scale-[1.02] hover:-translate-y-1 hover:shadow-[0_16px_48px_rgba(0,0,0,0.08)] transition-all duration-500';
-
-  const hoverOverlayClass = isDark
-    ? 'opacity-0 group-hover:opacity-100 transition-opacity duration-500'
-    : 'opacity-0 transition-opacity duration-500';
+  const cardBase = isDark
+    ? 'bg-slate-900/60 border border-white/[0.06] hover:border-white/[0.12]'
+    : 'bg-white border border-slate-200/60 hover:border-slate-300/80 shadow-sm hover:shadow-lg';
 
   return (
-    <section ref={sectionRef} id="features" className={`relative py-24 px-6 md:px-12 lg:px-24 overflow-hidden scroll-mt-20 transition-colors duration-300 ${
+    <section ref={sectionRef} id="features" className={`relative py-28 px-6 md:px-12 lg:px-24 overflow-hidden scroll-mt-20 transition-colors duration-300 ${
       isDark ? 'bg-[#09090B]' : 'bg-[#FAFAFA]'
     }`}>
-      {/* Subtle ambient blurs */}
-      <div className={`absolute top-1/4 -left-1/4 w-96 h-96 rounded-full blur-[120px] pointer-events-none ${isDark ? 'bg-indigo-500/10' : 'bg-indigo-500/5'}`} />
-      <div className={`absolute bottom-1/4 -right-1/4 w-96 h-96 rounded-full blur-[120px] pointer-events-none ${isDark ? 'bg-emerald-500/10' : 'bg-emerald-500/5'}`} />
+      {/* Ambient glow synced with hero */}
+      <div
+        className="absolute top-1/4 -left-1/4 w-96 h-96 rounded-full blur-[140px] pointer-events-none transition-colors duration-700"
+        style={{ backgroundColor: theme.cssFrom, opacity: isDark ? 0.06 : 0.04 }}
+      />
+      <div
+        className="absolute bottom-1/4 -right-1/4 w-96 h-96 rounded-full blur-[140px] pointer-events-none transition-colors duration-700"
+        style={{ backgroundColor: theme.cssTo, opacity: isDark ? 0.06 : 0.04 }}
+      />
 
       <div className="relative max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
-          className="text-center mb-16"
+          className="text-center mb-20"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <p className="font-serif tracking-[0.25em] uppercase text-[11px] text-indigo-400/80 mb-4">Why Choose Us</p>
-          <h2 className={`font-display text-5xl md:text-6xl lg:text-7xl font-extrabold mb-6 transition-colors duration-300 ${isDark ? 'text-white text-glow' : 'text-slate-900 text-ink'}`}>
-            Why <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-emerald-400">EnglEuphoria</span>?
+          <motion.div
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wider uppercase mb-6 transition-all duration-700"
+            style={{
+              background: `linear-gradient(to right, ${theme.cssFrom}15, ${theme.cssTo}15)`,
+              color: theme.cssFrom,
+              border: `1px solid ${theme.cssFrom}30`,
+            }}
+          >
+            <Zap className="w-3.5 h-3.5" />
+            Why Choose Us
+          </motion.div>
+          <h2 className={`text-4xl md:text-5xl lg:text-6xl font-extrabold mb-5 transition-colors duration-300 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+            Why{' '}
+            <span
+              className="bg-clip-text text-transparent transition-all duration-700"
+              style={{ backgroundImage: `linear-gradient(to right, ${theme.cssFrom}, ${theme.cssTo})` }}
+            >
+              EnglEuphoria
+            </span>
+            ?
           </h2>
-          <p className={`text-lg max-w-2xl mx-auto ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>
-            Three specialized schools under one roof, powered by cutting-edge technology
+          <p className={`text-lg max-w-2xl mx-auto ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+            Three specialized programs under one roof — personalized for every age and goal.
           </p>
         </motion.div>
 
-        {/* Bento Grid */}
+        {/* Top row: 4 feature cards */}
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 auto-rows-[220px]"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-5"
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true, margin: '-80px' }}
+          viewport={{ once: true, margin: '-60px' }}
         >
-          {/* Card 1 — The 55-Minute Rule (col-span-2) — parallax slow */}
-          <motion.div
-            className={`md:col-span-2 ${GLASS} ${HOVER} p-8 group relative overflow-hidden`}
-            style={{ ...glassStyle, y: parallaxSlow }}
-            variants={itemVariants}
-            onMouseMove={glow1.onMouseMove}
-            onMouseLeave={glow1.onMouseLeave}
-          >
-            <div style={glow1.glowStyle} />
-            <div className={`absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent rounded-[32px] ${hoverOverlayClass}`} />
-            <div className="relative h-full flex items-center gap-8">
-              <TimerRing isDark={isDark} />
-              <div>
-                <h3 className={`font-display text-2xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>The 55-Minute Rule</h3>
-                <p className={`text-sm leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                  Optimized sessions with built-in buffer times for maximum focus.
-                </p>
+          {FEATURES.map((f) => (
+            <motion.div
+              key={f.title}
+              className={`${cardBase} rounded-2xl p-6 group hover:scale-[1.02] hover:-translate-y-1 transition-all duration-400`}
+              variants={itemVariants}
+            >
+              <div className={`w-12 h-12 rounded-xl ${f.iconBg} flex items-center justify-center mb-4`}>
+                <f.icon className="w-6 h-6" />
               </div>
-            </div>
+              <h3 className={`text-lg font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>{f.title}</h3>
+              <p className={`text-sm leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{f.desc}</p>
+            </motion.div>
+          ))}
+        </motion.div>
+
+        {/* Bottom row: Skill Radar + Mentors + CTA */}
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-3 gap-5"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-60px' }}
+        >
+          {/* Skill Radar */}
+          <motion.div
+            className={`${cardBase} rounded-2xl p-8 group hover:scale-[1.02] hover:-translate-y-1 transition-all duration-400`}
+            variants={itemVariants}
+          >
+            <h3 className={`text-xl font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>Skill Radar</h3>
+            <p className={`text-sm mb-3 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+              Track speaking, writing, listening & more in real-time.
+            </p>
+            <SkillRadar isDark={isDark} />
           </motion.div>
 
-          {/* Card 2 — Skill Radar (col-span-2, row-span-2) — anchor (no parallax) */}
+          {/* Top 3% Mentors */}
           <motion.div
-            className={`md:col-span-2 lg:row-span-2 ${GLASS} ${HOVER} p-8 group relative overflow-hidden`}
-            style={glassStyle}
+            className={`${cardBase} rounded-2xl p-8 flex flex-col items-center justify-center text-center group hover:scale-[1.02] hover:-translate-y-1 transition-all duration-400`}
             variants={itemVariants}
-            onMouseEnter={() => setRadarHovered(true)}
-            onMouseLeave={() => { setRadarHovered(false); glow2.onMouseLeave(); }}
-            onMouseMove={glow2.onMouseMove}
           >
-            <div style={glow2.glowStyle} />
-            <div className={`absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent rounded-[32px] ${hoverOverlayClass}`} />
-            <div className="relative h-full flex flex-col">
-              <h3 className={`font-display text-2xl font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>Skill Radar</h3>
-              <p className={`text-sm mb-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-                {radarHovered
-                  ? 'Adaptive Curriculum: Your path evolves as you do.'
-                  : 'Real-time tracking of your vocabulary, grammar, and fluency.'}
-              </p>
-              <div className="flex-1 flex items-center justify-center">
-                <SkillRadar isDark={isDark} hovered={radarHovered} />
+            <div className="flex -space-x-3 mb-5">
+              {teacherAvatars.map((src, i) => (
+                <motion.img
+                  key={i}
+                  src={src}
+                  alt="Teacher"
+                  className={`w-12 h-12 rounded-full border-2 object-cover grayscale hover:grayscale-0 transition-all duration-500 ${isDark ? 'border-[#09090B]' : 'border-[#FAFAFA]'}`}
+                  initial={{ x: -10, opacity: 0 }}
+                  whileInView={{ x: 0, opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.08 }}
+                />
+              ))}
+              <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center text-xs font-bold ${isDark ? 'border-[#09090B] bg-amber-500/20 text-amber-400' : 'border-[#FAFAFA] bg-amber-50 text-amber-600'}`}>
+                +50
               </div>
             </div>
+            <h3 className={`text-xl font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>Top 3% Mentors</h3>
+            <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Handpicked. Certified. Passionate about teaching.</p>
           </motion.div>
 
-          {/* Card 3 — Top 3% Mentors — parallax fast */}
+          {/* CTA Card — synced with hero */}
           <motion.div
-            className={`${GLASS} ${HOVER} p-6 group relative overflow-hidden`}
-            style={{ ...glassStyle, y: parallaxFast }}
-            variants={itemVariants}
-            onMouseMove={glow3.onMouseMove}
-            onMouseLeave={glow3.onMouseLeave}
-          >
-            <div style={glow3.glowStyle} />
-            <div className={`absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent rounded-[32px] ${hoverOverlayClass}`} />
-            
-            <div className="relative h-full flex flex-col items-center justify-center text-center">
-              <div className="flex -space-x-3 mb-4">
-                {teacherAvatars.map((src, i) => (
-                  <motion.img
-                    key={i}
-                    src={src}
-                    alt="Teacher"
-                    className={`w-11 h-11 rounded-full border-2 object-cover grayscale hover:grayscale-0 transition-all duration-500 ${isDark ? 'border-[#09090B]' : 'border-[#FAFAFA]'}`}
-                    initial={{ x: -10, opacity: 0 }}
-                    whileInView={{ x: 0, opacity: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.08 }}
-                  />
-                ))}
-                <div className={`w-11 h-11 rounded-full bg-amber-500/20 border-2 flex items-center justify-center text-amber-400 text-xs font-bold ${isDark ? 'border-[#09090B]' : 'border-[#FAFAFA]'}`}>
-                  +50
-                </div>
-              </div>
-              <h3 className={`font-display text-lg font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>Top 3% Mentors</h3>
-              <p className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Handpicked. Certified. Passionate.</p>
-            </div>
-          </motion.div>
-
-          {/* Card 4 — Daily Feed — parallax fast */}
-          <motion.div
-            className={`${GLASS} ${HOVER} p-6 group relative overflow-hidden`}
-            style={{ ...glassStyle, y: parallaxFast }}
-            variants={itemVariants}
-            onMouseMove={glow4.onMouseMove}
-            onMouseLeave={glow4.onMouseLeave}
-          >
-            <div style={glow4.glowStyle} />
-            <div className={`absolute inset-0 bg-gradient-to-br from-violet-500/5 to-transparent rounded-[32px] ${hoverOverlayClass}`} />
-            
-            <div className="relative h-full flex flex-col items-center justify-center">
-              <motion.div
-                className={`w-28 rounded-xl border p-2 space-y-1.5 ${isDark ? 'border-white/10 bg-white/[0.03]' : 'border-slate-200 bg-white/50'}`}
-                animate={{ y: [0, -4, 0] }}
-                transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
-              >
-                <div className="rounded-lg bg-gradient-to-r from-amber-500/20 to-orange-500/10 border border-amber-500/20 p-1.5">
-                  <div className="w-full h-1 rounded bg-amber-400/40 mb-1" />
-                  <div className="w-3/4 h-1 rounded bg-amber-400/20" />
-                </div>
-                <div className="rounded-lg bg-gradient-to-r from-violet-500/20 to-indigo-500/10 border border-violet-500/20 p-1.5">
-                  <div className="w-full h-1 rounded bg-violet-400/40 mb-1" />
-                  <div className="w-2/3 h-1 rounded bg-violet-400/20" />
-                </div>
-              </motion.div>
-              <h3 className={`font-display text-sm font-bold mt-3 mb-0.5 ${isDark ? 'text-white' : 'text-slate-900'}`}>Daily Feed</h3>
-              <p className={`text-[10px] ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Curated daily challenges</p>
-            </div>
-          </motion.div>
-
-          {/* Card 5 — Gamified Learning — parallax fast */}
-          <motion.div
-            className={`${GLASS} ${HOVER} p-6 group relative overflow-hidden`}
-            style={{ ...glassStyle, y: parallaxFast }}
-            variants={itemVariants}
-            onMouseMove={glow5.onMouseMove}
-            onMouseLeave={glow5.onMouseLeave}
-          >
-            <div style={glow5.glowStyle} />
-            <div className={`absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent rounded-[32px] ${hoverOverlayClass}`} />
-            <div className="relative h-full flex flex-col items-center justify-center text-center">
-              <div className="p-3 rounded-xl bg-cyan-500/10 text-cyan-400 mb-3">
-                <Zap className="w-6 h-6" />
-              </div>
-              <h3 className={`font-display text-lg font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>Gamified Learning</h3>
-              <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>XP, badges & rewards</p>
-            </div>
-          </motion.div>
-
-          {/* Card 6 — Live Classes — parallax slow */}
-          <motion.div
-            className={`${GLASS} ${HOVER} p-6 group relative overflow-hidden`}
-            style={{ ...glassStyle, y: parallaxSlow }}
-            variants={itemVariants}
-            onMouseMove={glow6.onMouseMove}
-            onMouseLeave={glow6.onMouseLeave}
-          >
-            <div style={glow6.glowStyle} />
-            <div className={`absolute inset-0 bg-gradient-to-br from-rose-500/5 to-transparent rounded-[32px] ${hoverOverlayClass}`} />
-            <div className="relative h-full flex flex-col items-center justify-center text-center">
-              <div className="p-3 rounded-xl bg-rose-500/10 text-rose-400 mb-3">
-                <Users className="w-6 h-6" />
-              </div>
-              <h3 className={`font-display text-lg font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>Live Classes</h3>
-              <p className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Real-time interaction</p>
-            </div>
-          </motion.div>
-
-          {/* Card 7 — CTA — parallax slow */}
-          <motion.div
-            className="md:col-span-2 relative group overflow-hidden rounded-[32px] bg-gradient-to-r from-indigo-600/80 via-violet-600/80 to-emerald-500/80 p-6 border border-white/10 hover:scale-[1.02] hover:-translate-y-1 transition-all duration-500"
-            style={{ y: parallaxSlow }}
+            className="rounded-2xl p-8 flex flex-col justify-center relative overflow-hidden group hover:scale-[1.02] hover:-translate-y-1 transition-all duration-500"
+            style={{
+              background: `linear-gradient(135deg, ${theme.cssFrom}, ${theme.cssTo})`,
+              y: parallaxSlow,
+            }}
             variants={itemVariants}
           >
-            <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-[32px]" />
-            <div className="relative h-full flex items-center justify-between">
-              <div>
-                <h3 className="font-display text-2xl md:text-3xl font-bold text-white mb-2">Start Your Free Trial</h3>
-                <p className="text-white/70">No credit card required • 7 days free</p>
-              </div>
+            <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
+            <div className="relative">
+              <h3 className="text-2xl font-bold text-white mb-2">Start Your Free Trial</h3>
+              <p className="text-white/70 text-sm mb-6">No credit card required • 7 days free</p>
               <Link
-                to="/signup"
-                className="flex items-center gap-2 px-8 py-4 bg-white rounded-full text-slate-900 font-bold text-lg hover:bg-slate-100 transition-colors shadow-xl group/btn"
+                to="/student-signup"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-white rounded-xl text-slate-900 font-bold hover:bg-slate-100 transition-colors shadow-lg group/btn"
               >
                 Get Started
-                <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
+                <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
               </Link>
             </div>
           </motion.div>

@@ -2,10 +2,12 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useThemeMode } from '@/hooks/useThemeMode';
+import { useHeroTheme } from '@/contexts/HeroThemeContext';
 
 export function FinalCTASection() {
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
+  const { theme } = useHeroTheme();
 
   return (
     <section className={`py-24 md:py-32 relative overflow-hidden ${
@@ -23,7 +25,6 @@ export function FinalCTASection() {
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
         >
-          {/* Decorative circles */}
           <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-[80px] bg-violet-500/20" />
           <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full blur-[60px] bg-indigo-500/20" />
 
@@ -47,7 +48,8 @@ export function FinalCTASection() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 to="/student-signup"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-white text-indigo-700 font-bold text-lg shadow-xl shadow-black/10 transition-all duration-300 hover:shadow-2xl hover:-translate-y-0.5"
+                className={`inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-bold text-lg shadow-xl shadow-black/10 transition-all duration-700 hover:shadow-2xl hover:-translate-y-0.5`}
+                style={{ background: `linear-gradient(to right, ${theme.cssFrom}, ${theme.cssTo})`, color: 'white' }}
               >
                 Get Started Free
                 <ArrowRight className="w-5 h-5" />

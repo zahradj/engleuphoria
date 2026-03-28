@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { HeroThemeProvider } from '@/contexts/HeroThemeContext';
 import { 
   HeroSection, 
   BentoGridSection, 
@@ -25,21 +26,23 @@ export default function LandingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-white dark:bg-[#09090B] transition-colors duration-300">
-      <NavHeader />
-      <HeroSection />
-      <TrustBarSection />
-      <CourseOfferingsSection />
-      <BentoGridSection />
-      <ActivityMarquee />
-      <HowItWorksSection />
-      <PersonalizedPathSection />
-      <GamificationSection />
-      <PricingSection />
-      <TestimonialsSection />
-      <FinalCTASection />
-      <ContactSection />
-      <FooterSection />
-    </main>
+    <HeroThemeProvider>
+      <main className="min-h-screen bg-white dark:bg-[#09090B] transition-colors duration-300">
+        <NavHeader />
+        <HeroSection />
+        <TrustBarSection />
+        <CourseOfferingsSection />
+        <BentoGridSection />
+        <ActivityMarquee />
+        <HowItWorksSection />
+        <PersonalizedPathSection />
+        <GamificationSection />
+        <PricingSection />
+        <TestimonialsSection />
+        <FinalCTASection />
+        <ContactSection />
+        <FooterSection />
+      </main>
+    </HeroThemeProvider>
   );
 }
