@@ -1,9 +1,10 @@
-import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
+import { motion, useMotionValue, useTransform, useScroll, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Globe, Users } from 'lucide-react';
 import { useRef, useEffect, useState } from 'react';
 import { useInView } from 'framer-motion';
 import { useThemeMode } from '@/hooks/useThemeMode';
+import heroBg from '@/assets/hero-bg.jpg';
 
 function useCountUp(target: number, duration = 2000) {
   const [count, setCount] = useState(0);
@@ -71,13 +72,41 @@ const rotatingTaglines = [
   "Where language meets intuition — the human-first academy.",
 ];
 
-/* Animated gradient mesh background for light mode */
-function GradientMesh() {
+/* Floating decorative shapes */
+function FloatingShapes({ isDark }: { isDark: boolean }) {
+  const shapes = [
+    { size: 180, x: '10%', y: '20%', delay: 0, color: isDark ? 'rgba(99,102,241,0.15)' : 'rgba(99,102,241,0.08)' },
+    { size: 120, x: '80%', y: '30%', delay: 2, color: isDark ? 'rgba(16,185,129,0.12)' : 'rgba(16,185,129,0.06)' },
+    { size: 200, x: '70%', y: '70%', delay: 4, color: isDark ? 'rgba(245,158,11,0.1)' : 'rgba(245,158,11,0.05)' },
+    { size: 90, x: '20%', y: '75%', delay: 1, color: isDark ? 'rgba(168,85,247,0.12)' : 'rgba(168,85,247,0.06)' },
+  ];
+
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none z-[0]">
-      <div className="absolute w-[600px] h-[600px] -top-[200px] -left-[100px] rounded-full blur-[120px] opacity-40 animate-gradient-mesh bg-gradient-to-br from-rose-200 via-fuchsia-100 to-violet-200" />
-      <div className="absolute w-[500px] h-[500px] top-[100px] -right-[150px] rounded-full blur-[100px] opacity-35 animate-gradient-mesh bg-gradient-to-br from-sky-200 via-cyan-100 to-emerald-200" style={{ animationDelay: '-3s' }} />
-      <div className="absolute w-[400px] h-[400px] -bottom-[100px] left-[30%] rounded-full blur-[110px] opacity-30 animate-gradient-mesh bg-gradient-to-br from-amber-200 via-orange-100 to-rose-200" style={{ animationDelay: '-6s' }} />
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-[2]">
+      {shapes.map((shape, i) => (
+        <motion.div
+          key={i}
+          className="absolute rounded-full blur-[60px]"
+          style={{
+            width: shape.size,
+            height: shape.size,
+            left: shape.x,
+            top: shape.y,
+            background: shape.color,
+          }}
+          animate={{
+            y: [0, -30, 0, 20, 0],
+            x: [0, 15, -10, 5, 0],
+            scale: [1, 1.1, 0.95, 1.05, 1],
+          }}
+          transition={{
+            duration: 12 + i * 2,
+            repeat: Infinity,
+            delay: shape.delay,
+            ease: 'easeInOut',
+          }}
+        />
+      ))}
     </div>
   );
 }
@@ -85,8 +114,8 @@ function GradientMesh() {
 /* Animated dot grid background */
 function DotGrid({ isDark }: { isDark: boolean }) {
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none z-[1]">
-      <svg className="w-full h-full opacity-[0.12]" xmlns="http://www.w3.org/2000/svg">
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-[3]">
+      <svg className="w-full h-full opacity-[0.08]" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <pattern id="dotGrid" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse">
             <circle cx="1" cy="1" r="1" fill={isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.15)'} />
@@ -179,6 +208,14 @@ export function HeroSection() {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start start', 'end start'],
+  });
+
+  const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '30%']);
+  const bgScale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
+
   const orbX = useTransform(mouseX, [-1, 1], [-20, 20]);
   const orbY = useTransform(mouseY, [-1, 1], [-20, 20]);
 
@@ -203,22 +240,49 @@ export function HeroSection() {
         isDark ? 'bg-[#09090B]' : 'bg-[#FAFAFA]'
       }`}
     >
-      {/* Ambient background */}
-      <div className={`absolute inset-0 transition-colors duration-300 ${
-        isDark
-          ? 'bg-gradient-to-b from-[#09090B] via-slate-950 to-[#09090B]'
-          : 'bg-gradient-to-b from-[#FAFAFA] via-white to-[#FAFAFA]'
-      }`} />
+      {/* Hero Background Image with Parallax */}
+      <motion.div
+        className="absolute inset-0 z-[0]"
+        style={{ y: bgY, scale: bgScale }}
+      >
+        <img
+          src={heroBg}
+          alt=""
+          width={1920}
+          height={1080}
+          className="w-full h-full object-cover object-center"
+          loading="eager"
+          aria-hidden="true"
+        />
+      </motion.div>
 
-      {/* Gradient Mesh — Light mode only */}
-      {!isDark && <GradientMesh />}
+      {/* Theme overlay on top of image */}
+      <div
+        className={`absolute inset-0 z-[1] transition-colors duration-300 ${
+          isDark
+            ? 'bg-[#09090B]/85'
+            : 'bg-[#FAFAFA]/70'
+        }`}
+      />
+
+      {/* Gradient blend to next section */}
+      <div
+        className={`absolute inset-0 z-[1] ${
+          isDark
+            ? 'bg-gradient-to-b from-transparent via-[#09090B]/40 to-[#09090B]'
+            : 'bg-gradient-to-b from-transparent via-[#FAFAFA]/50 to-[#FAFAFA]'
+        }`}
+      />
+
+      {/* Floating Shapes */}
+      <FloatingShapes isDark={isDark} />
 
       {/* Dot Grid */}
       <DotGrid isDark={isDark} />
 
       {/* The Magnetic Orb */}
       <motion.div
-        className="absolute w-[300px] h-[300px] md:w-[450px] md:h-[450px] rounded-full blur-[80px] opacity-60 pointer-events-none"
+        className="absolute w-[300px] h-[300px] md:w-[450px] md:h-[450px] rounded-full blur-[80px] opacity-60 pointer-events-none z-[4]"
         style={{ x: orbX, y: orbY, background: orbGradient }}
       />
 
@@ -323,7 +387,7 @@ export function HeroSection() {
 
       {/* Scroll Indicator */}
       <motion.div
-        className={`absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center ${isDark ? 'text-white/40' : 'text-slate-400/40'}`}
+        className={`absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center z-10 ${isDark ? 'text-white/40' : 'text-slate-400/40'}`}
         animate={{ y: [0, 8, 0] }}
         transition={{ repeat: Infinity, duration: 2 }}
       >

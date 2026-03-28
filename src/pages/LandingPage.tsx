@@ -18,7 +18,8 @@ import {
   CustomCursor,
   PersonalizedPathSection,
   GamificationSection,
-  FinalCTASection
+  FinalCTASection,
+  CourseOfferingsSection
 } from '@/components/landing';
 
 export default function LandingPage() {
