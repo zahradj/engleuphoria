@@ -35,7 +35,7 @@ export const GROUP_THEMES = [
 
 interface HeroThemeContextType {
   activeIndex: number;
-  setActiveIndex: (i: number) => void;
+  setActiveIndex: React.Dispatch<React.SetStateAction<number>>;
   theme: typeof GROUP_THEMES[number];
 }
 
