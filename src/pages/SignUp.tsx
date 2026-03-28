@@ -50,14 +50,16 @@ const SignUp = () => {
   }
 
   return (
-    <AuthPageLayout
-      title="Create Account"
-      subtitle="Join our community of English learners"
-      icon={UserPlus}
-      variant="default"
-    >
-      <SimpleAuthForm mode="signup" />
-    </AuthPageLayout>
+    <HeroThemeProvider>
+      <AuthPageLayout
+        title="Create Account"
+        subtitle="Join our community of English learners"
+        icon={UserPlus}
+        variant="default"
+      >
+        <SimpleAuthForm mode="signup" />
+      </AuthPageLayout>
+    </HeroThemeProvider>
   );
 };
 
