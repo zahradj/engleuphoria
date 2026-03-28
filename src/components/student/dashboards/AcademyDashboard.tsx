@@ -413,6 +413,8 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
               cefrLevel="A2"
             />
 
+            <MaterialsGallery track="teens" />
+
             <RecommendedTeachers isDarkMode={isDarkMode} />
 
             {onLevelUp && (

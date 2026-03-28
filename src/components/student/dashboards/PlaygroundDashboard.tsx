@@ -165,6 +165,8 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
                 cefrLevel="Pre-A1"
               />
 
+              <MaterialsGallery track="kids" />
+
               <RecommendedTeachers />
             </div>
           </div>
