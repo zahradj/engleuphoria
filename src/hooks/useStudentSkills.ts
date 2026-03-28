@@ -128,5 +128,22 @@ export const useStudentSkills = () => {
     fetchAndSeed();
   }, [fetchAndSeed]);
 
-  return { skills, loading, refresh: fetchAndSeed, scoreToCefr, nextCefr };
+  const incrementSkill = useCallback(async (skillName: string, amount: number) => {
+    if (!user?.id) return;
+    const existing = skills.find(s => s.skill === skillName);
+    const newScore = Math.min(10, (existing?.current || 0) + amount);
+
+    await supabase
+      .from('student_skills')
+      .upsert({
+        student_id: user.id,
+        skill_name: skillName,
+        current_score: newScore,
+        target_score: Math.min(10, newScore + 2),
+        cefr_equivalent: scoreToCefr(newScore),
+        next_focus: NEXT_FOCUS_MAP[skillName] || null,
+      }, { onConflict: 'student_id,skill_name' });
+  }, [user?.id, skills]);
+
+  return { skills, loading, refresh: fetchAndSeed, scoreToCefr, nextCefr, incrementSkill };
 };

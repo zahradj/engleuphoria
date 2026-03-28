@@ -17,7 +17,7 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
   onFontSizeChange,
   content,
 }) => {
-  const { mode, toggleMode } = useThemeMode();
+  const { resolvedTheme, toggleTheme } = useThemeMode();
   const [isPlaying, setIsPlaying] = useState(false);
 
   const handleListen = async () => {
@@ -68,8 +68,8 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
 
       <div className="w-px h-6 bg-border/40" />
 
-      <Button variant="ghost" size="sm" onClick={toggleMode} className="rounded-xl gap-1.5">
-        {mode === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+      <Button variant="ghost" size="sm" onClick={toggleTheme} className="rounded-xl gap-1.5">
+        {resolvedTheme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
         <span className="text-xs">Theme</span>
       </Button>
 

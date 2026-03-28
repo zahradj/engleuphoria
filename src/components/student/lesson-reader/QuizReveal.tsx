@@ -33,7 +33,7 @@ export const QuizReveal: React.FC<QuizRevealProps> = ({
   const [showResult, setShowResult] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [shakingOption, setShakingOption] = useState<number | null>(null);
-  const { incrementSkill, refresh } = useStudentSkills();
+  const { refresh } = useStudentSkills();
 
   const handleStart = () => {
     confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } });
@@ -75,7 +75,7 @@ export const QuizReveal: React.FC<QuizRevealProps> = ({
       try {
         await incrementSkill('grammar_accuracy', 0.3);
         await incrementSkill('professional_vocabulary', 0.2);
-        await refresh();
+        refresh();
       } catch (e) {
         console.error('Skill update error:', e);
       }
@@ -114,7 +114,7 @@ export const QuizReveal: React.FC<QuizRevealProps> = ({
           animate={{ scale: 1, opacity: 1 }}
           className="text-center py-12"
         >
-          <MasteryBadge size="lg" skillName="Lesson Complete" />
+          <MasteryBadge size="lg" />
           <h2 className="text-2xl font-bold text-foreground mt-6 mb-2">
             {score >= 80 ? '🎉 Mastery Achieved!' : score >= 60 ? '✨ Well Done!' : '💪 Keep Practicing!'}
           </h2>
