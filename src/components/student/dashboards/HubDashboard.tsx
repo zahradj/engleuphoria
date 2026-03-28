@@ -285,6 +285,8 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
               </CardContent>
             </Card>
 
+            <MaterialsGallery track="adults" />
+
             <RecommendedTeachers isDarkMode={isDarkMode} />
 
             {/* Schedule Executive Briefing CTA */}
