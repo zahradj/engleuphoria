@@ -1,39 +1,40 @@
-import { UserPlus, ClipboardCheck, Calendar, Rocket } from 'lucide-react';
+import { UserPlus, ClipboardCheck, Calendar, Rocket, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { useThemeMode } from '@/hooks/useThemeMode';
 
 const steps = [
   {
     icon: UserPlus,
-    title: 'Sign Up',
-    description: 'Create your free account in less than a minute',
-    color: 'from-blue-500 to-cyan-500',
-    lightBg: 'bg-blue-50',
-    lightIcon: 'text-blue-600',
+    number: '01',
+    title: 'Create Your Account',
+    description: 'Sign up in 30 seconds. No credit card required.',
+    gradient: 'from-indigo-500 to-violet-600',
+    bgLight: 'bg-indigo-50',
   },
   {
     icon: ClipboardCheck,
-    title: 'Take Assessment',
-    description: 'Quick placement test to find your level',
-    color: 'from-purple-500 to-pink-500',
-    lightBg: 'bg-purple-50',
-    lightIcon: 'text-purple-600',
+    number: '02',
+    title: 'Take the Level Test',
+    description: 'Our adaptive placement test finds your exact CEFR level in 10 minutes.',
+    gradient: 'from-violet-500 to-purple-600',
+    bgLight: 'bg-violet-50',
   },
   {
     icon: Calendar,
-    title: 'Book Lessons',
-    description: 'Choose times that fit your schedule',
-    color: 'from-amber-500 to-orange-500',
-    lightBg: 'bg-amber-50',
-    lightIcon: 'text-amber-600',
+    number: '03',
+    title: 'Book Your Lessons',
+    description: 'Choose your teacher, pick times that work for you. It\'s that simple.',
+    gradient: 'from-amber-500 to-orange-600',
+    bgLight: 'bg-amber-50',
   },
   {
     icon: Rocket,
-    title: 'Start Learning',
-    description: 'Enjoy interactive lessons with expert teachers',
-    color: 'from-green-500 to-emerald-500',
-    lightBg: 'bg-emerald-50',
-    lightIcon: 'text-emerald-600',
+    number: '04',
+    title: 'Start Speaking',
+    description: 'Jump into interactive 1-on-1 lessons and watch your confidence soar.',
+    gradient: 'from-emerald-500 to-teal-600',
+    bgLight: 'bg-emerald-50',
   },
 ];
 
@@ -42,152 +43,126 @@ export function HowItWorksSection() {
   const isDark = resolvedTheme === 'dark';
 
   return (
-    <section id="how-it-works" className={`py-24 relative overflow-hidden scroll-mt-20 transition-colors duration-300 ${
-      isDark ? 'bg-slate-950' : 'bg-[#FAFAFA]'
+    <section id="how-it-works" className={`py-24 md:py-32 relative overflow-hidden scroll-mt-20 transition-colors duration-300 ${
+      isDark ? 'bg-[#09090B]' : 'bg-[#FAFAFA]'
     }`}>
-      <div className="container mx-auto px-4 sm:px-6 relative z-10">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="text-center mb-20"
         >
-          <h2 className={`text-4xl md:text-5xl font-bold mb-4 transition-colors duration-300 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+          <span className={`inline-block text-sm font-bold tracking-widest uppercase mb-4 ${
+            isDark ? 'text-indigo-400' : 'text-indigo-600'
+          }`}>
+            Getting Started
+          </span>
+          <h2 className={`text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-5 ${
+            isDark ? 'text-white' : 'text-slate-900'
+          }`}>
             How It{' '}
-            <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">
               Works
             </span>
           </h2>
-          <p className={`text-lg max-w-2xl mx-auto ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
-            Getting started is easy. Follow these simple steps to begin your English journey.
+          <p className={`text-lg max-w-xl mx-auto ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+            From sign-up to speaking — in four simple steps.
           </p>
         </motion.div>
 
-        {/* Timeline - Desktop horizontal, Mobile vertical */}
-        <div className="relative">
-          {/* Desktop horizontal timeline */}
-          <div className="hidden md:block">
-            {/* Animated connecting line */}
-            <div className="absolute top-16 left-[12.5%] right-[12.5%] h-[2px] overflow-hidden">
-              <motion.div
-                className="h-full w-full"
-                style={{
-                  background: isDark
-                    ? 'linear-gradient(90deg, #3b82f6, #a855f7, #f59e0b, #10b981)'
-                    : 'linear-gradient(90deg, #3b82f6, #a855f7, #f59e0b, #10b981)',
-                  opacity: isDark ? 0.3 : 0.25,
-                }}
-                initial={{ scaleX: 0, transformOrigin: 'left' }}
-                whileInView={{ scaleX: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 1.2, ease: 'easeOut' }}
-              />
-              {/* Traveling pulse */}
-              <motion.div
-                className="absolute top-0 h-full w-24 blur-sm"
-                style={{
-                  background: 'linear-gradient(90deg, transparent, rgba(99,102,241,0.6), transparent)',
-                }}
-                animate={{ x: ['-100px', 'calc(100% + 100px)'] }}
-                transition={{ repeat: Infinity, duration: 3, ease: 'linear' }}
-              />
-            </div>
+        {/* Steps */}
+        <div className="max-w-5xl mx-auto">
+          {/* Desktop: Alternating left-right layout */}
+          <div className="space-y-0">
+            {steps.map((step, index) => {
+              const Icon = step.icon;
+              const isEven = index % 2 === 0;
 
-            <div className="grid grid-cols-4 gap-8">
-              {steps.map((step, index) => (
+              return (
                 <motion.div
                   key={step.title}
-                  initial={{ opacity: 0, y: 30 }}
+                  initial={{ opacity: 0, y: 40 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: index * 0.2 }}
-                  className="relative flex flex-col items-center text-center"
+                  viewport={{ once: true, margin: '-50px' }}
+                  transition={{ duration: 0.6, delay: index * 0.15 }}
+                  className="relative"
                 >
-                  {/* Icon container */}
-                  <motion.div
-                    className={`relative w-32 h-32 rounded-2xl mb-6 ${
-                      isDark ? '' : step.lightBg
-                    }`}
-                    whileHover={{ scale: 1.08, rotate: 2 }}
-                    transition={{ type: 'spring', stiffness: 300 }}
-                    style={isDark ? {
-                      background: `linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02))`,
-                      border: '1px solid rgba(255,255,255,0.08)',
-                    } : {
-                      border: '1px solid rgba(0,0,0,0.04)',
-                      boxShadow: '0 4px 24px rgba(0,0,0,0.04)',
-                    }}
-                  >
-                    <div className="w-full h-full rounded-2xl flex items-center justify-center">
-                      <step.icon className={`w-12 h-12 ${isDark ? 'text-white' : step.lightIcon}`} />
-                    </div>
-                    {/* Step number badge */}
-                    <div className={`absolute -top-3 -right-3 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                      isDark
-                        ? 'bg-slate-900 border-2 border-slate-700 text-white'
-                        : `bg-gradient-to-br ${step.color} text-white shadow-md`
+                  {/* Connector line */}
+                  {index < steps.length - 1 && (
+                    <div className={`hidden md:block absolute left-1/2 -translate-x-1/2 top-[120px] h-[calc(100%-60px)] w-[2px] ${
+                      isDark ? 'bg-white/[0.06]' : 'bg-slate-200'
                     }`}>
-                      {index + 1}
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-b from-indigo-500/50 to-transparent"
+                        initial={{ scaleY: 0, transformOrigin: 'top' }}
+                        whileInView={{ scaleY: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.8, delay: 0.3 + index * 0.2 }}
+                      />
                     </div>
-                  </motion.div>
+                  )}
 
-                  <h3 className={`text-xl font-bold mb-2 ${isDark ? 'text-white' : 'text-slate-900'}`}>{step.title}</h3>
-                  <p className={isDark ? 'text-slate-400' : 'text-slate-500'}>{step.description}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-
-          {/* Mobile vertical timeline */}
-          <div className="md:hidden relative">
-            {/* Vertical line */}
-            <div className={`absolute left-8 top-0 bottom-0 w-[2px] ${
-              isDark ? 'bg-white/10' : 'bg-slate-200'
-            }`}>
-              <motion.div
-                className="absolute inset-0"
-                style={{
-                  background: 'linear-gradient(180deg, #3b82f6, #a855f7, #f59e0b, #10b981)',
-                  opacity: isDark ? 0.4 : 0.3,
-                }}
-                initial={{ scaleY: 0, transformOrigin: 'top' }}
-                whileInView={{ scaleY: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 1.5, ease: 'easeOut' }}
-              />
-            </div>
-
-            <div className="space-y-10">
-              {steps.map((step, index) => (
-                <motion.div
-                  key={step.title}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: index * 0.15 }}
-                  className="flex items-start gap-6 pl-0"
-                >
-                  {/* Timeline node */}
-                  <div className={`relative z-10 w-16 h-16 flex-shrink-0 rounded-xl flex items-center justify-center ${
-                    isDark ? 'bg-slate-900 border border-white/10' : `${step.lightBg} border border-slate-100`
+                  <div className={`flex flex-col md:flex-row items-center gap-8 md:gap-16 py-8 ${
+                    isEven ? '' : 'md:flex-row-reverse'
                   }`}>
-                    <step.icon className={`w-7 h-7 ${isDark ? 'text-white' : step.lightIcon}`} />
-                    <div className={`absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                      isDark ? 'bg-slate-800 text-white border border-slate-600' : `bg-gradient-to-br ${step.color} text-white shadow-sm`
-                    }`}>
-                      {index + 1}
+                    {/* Number circle in center for desktop */}
+                    <div className="hidden md:flex md:absolute md:left-1/2 md:-translate-x-1/2 z-10">
+                      <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${step.gradient} flex items-center justify-center text-white font-extrabold text-xl shadow-xl`}>
+                        {step.number}
+                      </div>
                     </div>
-                  </div>
-                  <div className="pt-2">
-                    <h3 className={`text-lg font-bold mb-1 ${isDark ? 'text-white' : 'text-slate-900'}`}>{step.title}</h3>
-                    <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{step.description}</p>
+
+                    {/* Content card */}
+                    <div className={`flex-1 ${isEven ? 'md:pr-24 md:text-right' : 'md:pl-24 md:text-left'}`}>
+                      <div className={`rounded-3xl p-8 transition-all duration-500 ${
+                        isDark
+                          ? 'bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.05]'
+                          : 'bg-white border border-slate-100 shadow-sm hover:shadow-lg'
+                      }`}>
+                        {/* Mobile number */}
+                        <div className={`md:hidden w-12 h-12 rounded-xl bg-gradient-to-br ${step.gradient} flex items-center justify-center text-white font-bold text-sm mb-4`}>
+                          {step.number}
+                        </div>
+
+                        <div className={`w-14 h-14 rounded-2xl ${isDark ? 'bg-white/5' : step.bgLight} flex items-center justify-center mb-5 ${isEven ? 'md:ml-auto' : ''}`}>
+                          <Icon className={`w-7 h-7 ${isDark ? 'text-white' : 'text-slate-700'}`} />
+                        </div>
+                        <h3 className={`text-2xl font-bold mb-3 ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                          {step.title}
+                        </h3>
+                        <p className={`text-base leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                          {step.description}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Spacer for other side */}
+                    <div className="hidden md:block flex-1" />
                   </div>
                 </motion.div>
-              ))}
-            </div>
+              );
+            })}
           </div>
+
+          {/* CTA */}
+          <motion.div
+            className="text-center mt-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+          >
+            <Link
+              to="/student-signup"
+              className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-lg shadow-xl shadow-indigo-500/25 transition-all duration-300 hover:-translate-y-0.5"
+            >
+              Start Your Free Trial
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+          </motion.div>
         </div>
       </div>
     </section>

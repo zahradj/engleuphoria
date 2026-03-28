@@ -1,101 +1,64 @@
 import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { useThemeMode } from '@/hooks/useThemeMode';
 
 export function FinalCTASection() {
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
 
-  const scrollToPricing = () => {
-    document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   return (
-    <section
-      className={`py-24 md:py-32 relative overflow-hidden transition-colors duration-300 ${
-        isDark ? 'bg-[#09090B]' : 'bg-[#FAFAFA]'
-      }`}
-    >
-      {/* Pulsing glow orb */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+    <section className={`py-24 md:py-32 relative overflow-hidden ${
+      isDark ? 'bg-[#09090B]' : 'bg-white'
+    }`}>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <motion.div
-          animate={{ scale: [1, 1.2, 1], opacity: [0.15, 0.25, 0.15] }}
-          transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }}
-          className={`w-[400px] h-[400px] md:w-[600px] md:h-[600px] rounded-full blur-3xl ${
+          className={`max-w-4xl mx-auto text-center rounded-[2rem] p-12 md:p-16 relative overflow-hidden ${
             isDark
-              ? 'bg-gradient-to-br from-indigo-600/30 to-violet-600/30'
-              : 'bg-gradient-to-br from-indigo-200/40 to-violet-200/40'
+              ? 'bg-gradient-to-br from-indigo-950/80 to-violet-950/80 border border-indigo-500/20'
+              : 'bg-gradient-to-br from-indigo-600 to-violet-700'
           }`}
-        />
-      </div>
-
-      <div className="container mx-auto px-4 sm:px-6 relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
-          className="text-center max-w-3xl mx-auto"
         >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className={`inline-flex items-center gap-1.5 text-xs font-semibold tracking-widest uppercase mb-6 px-3 py-1.5 rounded-full ${
-              isDark
-                ? 'text-indigo-400 bg-indigo-500/10 border border-indigo-500/20'
-                : 'text-indigo-600 bg-indigo-50 border border-indigo-200'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            Ready to Begin?
-          </motion.div>
+          {/* Decorative circles */}
+          <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-[80px] bg-violet-500/20" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full blur-[60px] bg-indigo-500/20" />
 
-          <h2
-            className={`text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight ${
-              isDark ? 'text-white' : 'text-slate-900'
-            }`}
-          >
-            Start Speaking{' '}
-            <span className="bg-gradient-to-r from-indigo-500 via-violet-500 to-purple-500 bg-clip-text text-transparent">
-              English Today
-            </span>
-          </h2>
+          <div className="relative z-10">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white/90 text-sm font-medium mb-8 backdrop-blur-sm">
+              <Sparkles className="w-4 h-4" />
+              Limited time: First lesson is free
+            </div>
 
-          <p
-            className={`text-lg md:text-xl mb-10 max-w-xl mx-auto leading-relaxed ${
-              isDark ? 'text-slate-400' : 'text-slate-600'
-            }`}
-          >
-            Join thousands of learners building real confidence with our adaptive, gamified platform.
-          </p>
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight mb-6 leading-tight">
+              Ready to Start
+              <br />
+              Speaking English?
+            </h2>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button
-              asChild
-              size="lg"
-              className="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white shadow-lg shadow-indigo-500/25 px-8 h-12 text-base font-medium rounded-xl"
-            >
-              <Link to="/student-signup">
-                Start Free Trial
-                <ArrowRight className="w-4 h-4 ml-1" />
+            <p className="text-lg text-white/70 max-w-xl mx-auto mb-10">
+              Join 2,500+ students who chose EnglEuphoria to reach their language goals. 
+              Your first lesson is on us.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                to="/student-signup"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-white text-indigo-700 font-bold text-lg shadow-xl shadow-black/10 transition-all duration-300 hover:shadow-2xl hover:-translate-y-0.5"
+              >
+                Get Started Free
+                <ArrowRight className="w-5 h-5" />
               </Link>
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={scrollToPricing}
-              className={`px-8 h-12 text-base font-medium rounded-xl ${
-                isDark
-                  ? 'border-white/20 text-white hover:bg-white/10'
-                  : 'border-slate-300 text-slate-700 hover:bg-slate-100'
-              }`}
-            >
-              Explore Courses
-            </Button>
+              <button
+                onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-white/10 text-white font-semibold text-lg backdrop-blur-sm border border-white/20 transition-all duration-300 hover:bg-white/20"
+              >
+                View Pricing
+              </button>
+            </div>
           </div>
         </motion.div>
       </div>
