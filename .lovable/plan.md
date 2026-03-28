@@ -1,63 +1,51 @@
 
 
-## Dynamic Color-Coded Hero Section
+## Refactor About Us Page — Theme Compatibility
 
-### What Changes
-
-The hero section carousel currently rotates through 3 images with no visual differentiation between student groups. This upgrade makes each group instantly recognizable with its own color palette and generates clean, transparent-background character images.
-
-### Color Palette per Group (from brand guidelines)
-
-```text
-┌─────────────┬─────────────────────────────┬────────────┐
-│ Group       │ Colors                      │ Accent     │
-├─────────────┼─────────────────────────────┼────────────┤
-│ Playground  │ #FF9F1C → #FFBF00           │ Orange/    │
-│ (Kids <12)  │ warm gradients              │ Amber      │
-├─────────────┼─────────────────────────────┼────────────┤
-│ Academy     │ #6366F1 → #A855F7           │ Indigo/    │
-│ (Teens)     │ electric blue/purple glow   │ Violet     │
-├─────────────┼─────────────────────────────┼────────────┤
-│ Professional│ #10B981 → #1E293B           │ Emerald/   │
-│ (Adults)    │ deep navy + slate gold      │ Charcoal   │
-└─────────────┴─────────────────────────────┴────────────┘
-```
+### Problem
+The About page is hardcoded to a dark-only design (`bg-slate-950`, `text-white` everywhere) with its own inline navigation. The homepage uses the `ThemeModeProvider` + `useThemeMode()` hook for light/dark toggling and reuses `NavHeader` with the `HeroThemeContext`. The About page shares none of this infrastructure.
 
 ### Plan
 
-#### 1. Generate 3 New Hero Images (AI Image API)
-- **Kids**: Happy child with tablet, illustrated style, transparent/white background, no text
-- **Teens**: Confident teenager with headphones and laptop, clean background, no text
-- **Adults**: Professional in business setting, clean background, no text
-- All images: PNG format, no background clutter, no writing/watermarks
+#### 1. Wrap About Page in Theme Providers
+- Wrap `AboutPage` in `HeroThemeProvider` (so NavHeader logo/CTA colors work)
+- Replace the inline `<nav>` with the shared `NavHeader` component from landing
+- Page will inherit `ThemeModeProvider` from the app root (already wrapping routes)
 
-#### 2. Rewrite `HeroSection.tsx` — Color Transitions
-- Define a `GROUP_THEMES` config object mapping each slide index to its color scheme:
-  - `gradient` (CTA button, headline accent)
-  - `accentBg` (trust badge, stat icon backgrounds)
-  - `glowColor` (decorative blurs)
-  - `dotColor` (selector dots active color)
-  - `label` and `tagline` per group
-- When `activeImage` changes, all colors smoothly transition (CSS `transition-colors duration-700`)
-- The headline accent span changes gradient per group
-- CTA button gradient updates per group
-- Background decorative blurs change hue per group
-- Floating badge borders/accents tint to match active group
+#### 2. Refactor `AboutPage.tsx`
+- Remove the hardcoded dark nav block (lines 10-33)
+- Import and render `<NavHeader />` instead
+- Change root container from `bg-slate-950` to theme-aware classes: `bg-white dark:bg-[#09090B]`
 
-#### 3. Update Image Container
-- Use `object-contain` instead of `object-cover` so transparent-background images display cleanly
-- Remove the heavy gradient overlay on the image (no longer needed with clean backgrounds)
-- Add a subtle colored glow/shadow behind each image matching its group color
+#### 3. Refactor `MissionHeader.tsx`
+- Replace hardcoded dark gradients with theme-aware variants using `useThemeMode()`
+- Light mode: soft gradient backgrounds (white/slate-50 base), dark text
+- Dark mode: keep existing violet/emerald/slate-900 gradients
+- Floating mascot circles and labels remain color-coded per group
 
-#### 4. Slide Labels
-- Add a visible label chip on the image area showing the active group name (e.g., "Kids 5–12", "Teens 13–17", "Adults 18+") styled in the group's color
+#### 4. Refactor `PhilosophyPanels.tsx`
+- Add `useThemeMode()` hook
+- Light mode: white/slate-50 backgrounds, dark text, colored accent borders
+- Dark mode: keep existing dark slate backgrounds with gradient overlays
+- Panel text: `text-slate-900 dark:text-white`, body: `text-slate-600 dark:text-white/70`
+
+#### 5. Refactor `TeamGrid.tsx`
+- Light mode: `bg-white` / `bg-slate-50` section background, dark text
+- Dark mode: keep `bg-slate-950/900` gradients
+- Founder card: light glassmorphism in light mode, current dark glass in dark mode
+- Name highlight: keep `text-violet-500` (works in both modes)
+
+#### 6. Refactor `AboutCTA.tsx`
+- The gradient CTA banner works in both modes (colored background with white text) — minimal changes needed
+- Ensure button styles remain readable in both contexts
 
 ### Files Changed
 
 | File | Action |
 |---|---|
-| `src/assets/hero-kid.png` | Replace — new transparent-bg image via AI generation |
-| `src/assets/hero-teen.png` | Create — new transparent-bg teen image |
-| `src/assets/hero-adult.png` | Replace — new transparent-bg image via AI generation |
-| `src/components/landing/HeroSection.tsx` | Rewrite carousel with per-group color theming and smooth transitions |
+| `src/pages/AboutPage.tsx` | Remove inline nav, add `HeroThemeProvider` + `NavHeader`, theme-aware root |
+| `src/components/about/MissionHeader.tsx` | Add `useThemeMode`, dual-theme backgrounds and text |
+| `src/components/about/PhilosophyPanels.tsx` | Add `useThemeMode`, dual-theme panels |
+| `src/components/about/TeamGrid.tsx` | Add `useThemeMode`, dual-theme card and section |
+| `src/components/about/AboutCTA.tsx` | Minor adjustments for theme consistency |
 
