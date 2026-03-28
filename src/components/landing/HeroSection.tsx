@@ -1,10 +1,12 @@
-import { motion, useMotionValue, useTransform, useScroll, AnimatePresence } from 'framer-motion';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Globe, Users } from 'lucide-react';
+import { Star, Play, ArrowRight, Globe, Users, Award, CheckCircle2 } from 'lucide-react';
 import { useRef, useEffect, useState } from 'react';
 import { useInView } from 'framer-motion';
 import { useThemeMode } from '@/hooks/useThemeMode';
-import heroBg from '@/assets/hero-bg.jpg';
+import heroStudent from '@/assets/hero-student.jpg';
+import heroKid from '@/assets/hero-kid.jpg';
+import heroAdult from '@/assets/hero-adult.jpg';
 
 function useCountUp(target: number, duration = 2000) {
   const [count, setCount] = useState(0);
@@ -26,380 +28,275 @@ function useCountUp(target: number, duration = 2000) {
   return { ref, count };
 }
 
-const portals = [
-  {
-    id: 'kids',
-    emoji: '👶',
-    label: 'Playground',
-    age: 'Ages 5–12',
-    glowColorDark: 'rgba(16,185,129,0.4)',
-    glowColorLight: 'rgba(5,150,105,0.25)',
-    accentFrom: 'from-emerald-500',
-    accentTo: 'to-teal-400',
-    gradientBorder: 'linear-gradient(135deg, #10b981, #14b8a6)',
-    cursor: 'playground' as const,
-  },
-  {
-    id: 'teens',
-    emoji: '🎧',
-    label: 'Academy',
-    age: 'Teens',
-    glowColorDark: 'rgba(99,102,241,0.4)',
-    glowColorLight: 'rgba(67,56,202,0.25)',
-    accentFrom: 'from-indigo-500',
-    accentTo: 'to-violet-400',
-    gradientBorder: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-    cursor: 'academy' as const,
-  },
-  {
-    id: 'adults',
-    emoji: '💼',
-    label: 'Professional',
-    age: 'Adults',
-    glowColorDark: 'rgba(245,158,11,0.4)',
-    glowColorLight: 'rgba(217,119,6,0.25)',
-    accentFrom: 'from-amber-500',
-    accentTo: 'to-orange-400',
-    gradientBorder: 'linear-gradient(135deg, #f59e0b, #f97316)',
-    cursor: 'professional' as const,
-  },
+const heroImages = [
+  { src: heroStudent, alt: 'Student learning English online', label: 'Teens & Adults' },
+  { src: heroKid, alt: 'Child learning English on tablet', label: 'Kids 5-12' },
+  { src: heroAdult, alt: 'Professional taking English course', label: 'Professionals' },
 ];
-
-const rotatingTaglines = [
-  "Stop 'teaching' them. Let them play their way to fluency.",
-  "Don't just pass exams. Master the language of the global internet.",
-  "Your expertise is global. Now, make your voice match your ambition.",
-  "Where language meets intuition — the human-first academy.",
-];
-
-/* Floating decorative shapes */
-function FloatingShapes({ isDark }: { isDark: boolean }) {
-  const shapes = [
-    { size: 180, x: '10%', y: '20%', delay: 0, color: isDark ? 'rgba(99,102,241,0.15)' : 'rgba(99,102,241,0.08)' },
-    { size: 120, x: '80%', y: '30%', delay: 2, color: isDark ? 'rgba(16,185,129,0.12)' : 'rgba(16,185,129,0.06)' },
-    { size: 200, x: '70%', y: '70%', delay: 4, color: isDark ? 'rgba(245,158,11,0.1)' : 'rgba(245,158,11,0.05)' },
-    { size: 90, x: '20%', y: '75%', delay: 1, color: isDark ? 'rgba(168,85,247,0.12)' : 'rgba(168,85,247,0.06)' },
-  ];
-
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none z-[2]">
-      {shapes.map((shape, i) => (
-        <motion.div
-          key={i}
-          className="absolute rounded-full blur-[60px]"
-          style={{
-            width: shape.size,
-            height: shape.size,
-            left: shape.x,
-            top: shape.y,
-            background: shape.color,
-          }}
-          animate={{
-            y: [0, -30, 0, 20, 0],
-            x: [0, 15, -10, 5, 0],
-            scale: [1, 1.1, 0.95, 1.05, 1],
-          }}
-          transition={{
-            duration: 12 + i * 2,
-            repeat: Infinity,
-            delay: shape.delay,
-            ease: 'easeInOut',
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
-/* Animated dot grid background */
-function DotGrid({ isDark }: { isDark: boolean }) {
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none z-[3]">
-      <svg className="w-full h-full opacity-[0.08]" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <pattern id="dotGrid" x="0" y="0" width="32" height="32" patternUnits="userSpaceOnUse">
-            <circle cx="1" cy="1" r="1" fill={isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.15)'} />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#dotGrid)" />
-      </svg>
-    </div>
-  );
-}
-
-function SocialProofRibbon({ isDark }: { isDark: boolean }) {
-  const students = useCountUp(2500);
-  const countries = useCountUp(30);
-
-  const avatarGradients = [
-    'from-indigo-400 to-violet-500',
-    'from-emerald-400 to-teal-500',
-    'from-amber-400 to-orange-500',
-    'from-rose-400 to-pink-500',
-  ];
-
-  return (
-    <motion.div
-      className={`inline-flex items-center gap-3 px-6 py-3 rounded-full backdrop-blur-xl transition-colors duration-300 ${
-        isDark
-          ? 'bg-white/[0.04] border border-white/[0.08]'
-          : 'bg-white/80 border border-slate-200/60 shadow-[0_4px_24px_rgba(0,0,0,0.06)]'
-      }`}
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: 0.8, duration: 0.5 }}
-    >
-      <div className="flex -space-x-2">
-        {avatarGradients.map((gradient, i) => (
-          <div
-            key={i}
-            className={`w-7 h-7 rounded-full bg-gradient-to-br ${gradient} flex items-center justify-center text-[10px] text-white font-bold border-2 ${
-              isDark ? 'border-[#09090B]' : 'border-white'
-            }`}
-          >
-            {i === 0 ? <Users className="w-3.5 h-3.5" /> : ['S', 'A', 'M'][i - 1]}
-          </div>
-        ))}
-      </div>
-      <div className="flex items-center gap-2 text-sm">
-        <Globe className={`w-4 h-4 ${isDark ? 'text-indigo-400' : 'text-indigo-500'}`} />
-        <span className={isDark ? 'text-slate-300' : 'text-slate-600'}>
-          <span ref={students.ref} className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{students.count.toLocaleString()}+</span> students from{' '}
-          <span ref={countries.ref} className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{countries.count}+</span> countries
-        </span>
-      </div>
-    </motion.div>
-  );
-}
-
-/* Rotating tagline component */
-function RotatingTagline({ isDark }: { isDark: boolean }) {
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIndex((prev) => (prev + 1) % rotatingTaglines.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <div className="h-[28px] overflow-hidden relative">
-      <AnimatePresence mode="wait">
-        <motion.p
-          key={index}
-          className={`text-base md:text-lg italic absolute inset-0 text-center ${isDark ? 'text-slate-500' : 'text-slate-400'}`}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.5 }}
-        >
-          "{rotatingTaglines[index]}"
-        </motion.p>
-      </AnimatePresence>
-    </div>
-  );
-}
 
 export function HeroSection() {
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
   const sectionRef = useRef<HTMLElement>(null);
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
+  const [activeImage, setActiveImage] = useState(0);
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ['start start', 'end start'],
   });
+  const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '15%']);
 
-  const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '30%']);
-  const bgScale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
+  const students = useCountUp(2500);
+  const countries = useCountUp(45);
+  const lessons = useCountUp(50000);
 
-  const orbX = useTransform(mouseX, [-1, 1], [-20, 20]);
-  const orbY = useTransform(mouseY, [-1, 1], [-20, 20]);
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!sectionRef.current) return;
-    const rect = sectionRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
-    const y = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
-    mouseX.set(x);
-    mouseY.set(y);
-  };
-
-  const orbGradient = isDark
-    ? 'radial-gradient(circle, rgba(99,102,241,0.35) 0%, rgba(16,185,129,0.2) 40%, rgba(245,158,11,0.15) 70%, transparent 100%)'
-    : 'radial-gradient(circle, rgba(99,102,241,0.12) 0%, rgba(52,211,153,0.08) 40%, rgba(251,146,60,0.06) 70%, transparent 100%)';
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveImage((prev) => (prev + 1) % heroImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <section
       ref={sectionRef}
-      onMouseMove={handleMouseMove}
-      className={`relative min-h-screen flex items-center justify-center overflow-hidden transition-colors duration-300 ${
-        isDark ? 'bg-[#09090B]' : 'bg-[#FAFAFA]'
+      className={`relative min-h-screen flex items-center overflow-hidden transition-colors duration-300 ${
+        isDark ? 'bg-[#09090B]' : 'bg-gradient-to-br from-slate-50 via-white to-indigo-50/30'
       }`}
     >
-      {/* Hero Background Image with Parallax */}
-      <motion.div
-        className="absolute inset-0 z-[0]"
-        style={{ y: bgY, scale: bgScale }}
-      >
-        <img
-          src={heroBg}
-          alt=""
-          width={1920}
-          height={1080}
-          className="w-full h-full object-cover object-center"
-          loading="eager"
-          aria-hidden="true"
-        />
-      </motion.div>
+      {/* Decorative elements */}
+      <div className={`absolute top-0 right-0 w-[60%] h-full ${isDark ? 'bg-gradient-to-l from-indigo-950/20 to-transparent' : 'bg-gradient-to-l from-indigo-100/40 to-transparent'}`} />
+      <div className={`absolute bottom-0 left-0 w-96 h-96 rounded-full blur-[120px] ${isDark ? 'bg-indigo-600/10' : 'bg-indigo-400/10'}`} />
+      <div className={`absolute top-20 right-20 w-72 h-72 rounded-full blur-[100px] ${isDark ? 'bg-emerald-600/8' : 'bg-emerald-400/8'}`} />
 
-      {/* Theme overlay on top of image */}
-      <div
-        className={`absolute inset-0 z-[1] transition-colors duration-300 ${
-          isDark
-            ? 'bg-[#09090B]/85'
-            : 'bg-[#FAFAFA]/70'
-        }`}
-      />
-
-      {/* Gradient blend to next section */}
-      <div
-        className={`absolute inset-0 z-[1] ${
-          isDark
-            ? 'bg-gradient-to-b from-transparent via-[#09090B]/40 to-[#09090B]'
-            : 'bg-gradient-to-b from-transparent via-[#FAFAFA]/50 to-[#FAFAFA]'
-        }`}
-      />
-
-      {/* Floating Shapes */}
-      <FloatingShapes isDark={isDark} />
-
-      {/* Dot Grid */}
-      <DotGrid isDark={isDark} />
-
-      {/* The Magnetic Orb */}
-      <motion.div
-        className="absolute w-[300px] h-[300px] md:w-[450px] md:h-[450px] rounded-full blur-[80px] opacity-60 pointer-events-none z-[4]"
-        style={{ x: orbX, y: orbY, background: orbGradient }}
-      />
-
-      {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 text-center py-32">
-
-        {/* Headline with text shimmer */}
-        <motion.h1
-          className={`font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight mb-6 leading-[1.05] relative z-10 ${
-            isDark
-              ? 'bg-clip-text text-transparent animate-gradient-text text-glow'
-              : 'animate-text-shimmer bg-clip-text text-transparent text-ink'
-          }`}
-          style={{
-            backgroundImage: isDark
-              ? 'linear-gradient(90deg, #818cf8, #34d399, #fbbf24, #a78bfa, #818cf8)'
-              : 'linear-gradient(92deg, #1e293b 0%, #4f46e5 25%, #059669 50%, #d97706 75%, #1e293b 100%)',
-            backgroundSize: isDark ? '200% auto' : '300% auto',
-          }}
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-        >
-          Find Your Voice
-          <br />
-          in a Global World.
-        </motion.h1>
-
-        {/* Subheadline */}
-        <motion.p
-          className={`text-lg md:text-xl max-w-2xl mx-auto mb-4 leading-relaxed transition-colors duration-300 relative z-10 ${
-            isDark ? 'text-slate-400' : 'text-slate-600'
-          }`}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-        >
-          The Human-First Academy where language meets intuition.
-        </motion.p>
-
-        {/* Rotating Tagline */}
-        <motion.div
-          className="mb-10 relative z-10"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5, duration: 0.6 }}
-        >
-          <RotatingTagline isDark={isDark} />
-        </motion.div>
-
-        {/* Enhanced Frosted Glass Portal Cards */}
-        <motion.div
-          className="flex flex-col sm:flex-row items-center justify-center gap-5 mb-12 relative z-10"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-        >
-          {portals.map((portal) => (
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-28 lg:py-0">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center min-h-[85vh]">
+          
+          {/* Left: Content */}
+          <div className="order-2 lg:order-1">
+            {/* Trust badge */}
             <motion.div
-              key={portal.id}
-              whileHover={{ scale: 1.05, y: -4 }}
-              whileTap={{ scale: 0.97 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-              className="relative rounded-2xl p-[1.5px]"
-              style={{
-                background: isDark ? 'transparent' : portal.gradientBorder,
-              }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8 ${
+                isDark
+                  ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
+                  : 'bg-emerald-50 border border-emerald-200 text-emerald-700'
+              }`}
+            >
+              <CheckCircle2 className="w-4 h-4" />
+              <span className="text-sm font-medium">Trusted by 2,500+ students worldwide</span>
+            </motion.div>
+
+            {/* Headline */}
+            <motion.h1
+              className={`text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05] mb-6 ${
+                isDark ? 'text-white' : 'text-slate-900'
+              }`}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.1 }}
+            >
+              Learn English
+              <br />
+              <span className="bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 bg-clip-text text-transparent">
+                Your Way.
+              </span>
+            </motion.h1>
+
+            {/* Subheadline */}
+            <motion.p
+              className={`text-xl leading-relaxed mb-8 max-w-lg ${
+                isDark ? 'text-slate-400' : 'text-slate-600'
+              }`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.2 }}
+            >
+              Personalized 1-on-1 lessons with native speakers. 
+              For kids, teens, and professionals — at any level.
+            </motion.p>
+
+            {/* CTA Buttons */}
+            <motion.div
+              className="flex flex-col sm:flex-row gap-4 mb-12"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.3 }}
             >
               <Link
                 to="/student-signup"
-                data-cursor={portal.cursor}
-                className={`group relative flex items-center gap-3 px-7 py-4 rounded-2xl backdrop-blur-xl font-medium transition-all duration-500 block ${
-                  isDark
-                    ? 'bg-white/[0.04] border border-white/[0.08] text-white hover:bg-white/[0.08]'
-                    : 'bg-white/90 text-slate-800 hover:bg-white'
-                }`}
-                onMouseEnter={(e) => {
-                  const color = isDark ? portal.glowColorDark : portal.glowColorLight;
-                  (e.currentTarget as HTMLElement).style.boxShadow = `0 8px 32px ${color}`;
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.boxShadow = 'none';
-                }}
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-lg shadow-xl shadow-indigo-500/25 transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/30 hover:-translate-y-0.5"
               >
-                <span className="text-2xl">{portal.emoji}</span>
-                <div className="text-left">
-                  <span className="font-semibold block">{portal.label}</span>
-                  <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{portal.age}</span>
-                </div>
-                {/* Gradient underline on hover */}
-                <span className={`absolute bottom-0 left-1/2 -translate-x-1/2 h-[2px] w-0 group-hover:w-3/4 transition-all duration-500 rounded-full bg-gradient-to-r ${portal.accentFrom} ${portal.accentTo}`} />
+                Get Started Free
+                <ArrowRight className="w-5 h-5" />
               </Link>
+              <button
+                onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
+                className={`inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300 ${
+                  isDark
+                    ? 'bg-white/5 border border-white/10 text-white hover:bg-white/10'
+                    : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm'
+                }`}
+              >
+                <Play className="w-5 h-5" />
+                How It Works
+              </button>
             </motion.div>
-          ))}
-        </motion.div>
 
-        {/* Social Proof */}
-        <div className="relative z-10">
-          <SocialProofRibbon isDark={isDark} />
+            {/* Stats Row - Skyeng style floating stats */}
+            <motion.div
+              className="flex flex-wrap gap-8"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.7, delay: 0.5 }}
+            >
+              {[
+                { ref: students.ref, count: students.count, suffix: '+', label: 'Active Students', icon: Users },
+                { ref: countries.ref, count: countries.count, suffix: '+', label: 'Countries', icon: Globe },
+                { ref: lessons.ref, count: lessons.count, suffix: '+', label: 'Lessons Delivered', icon: Award },
+              ].map((stat, i) => (
+                <div key={i} className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                    isDark ? 'bg-white/5' : 'bg-indigo-50'
+                  }`}>
+                    <stat.icon className={`w-5 h-5 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`} />
+                  </div>
+                  <div>
+                    <span ref={stat.ref} className={`text-2xl font-extrabold block leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
+                      {stat.count.toLocaleString()}{stat.suffix}
+                    </span>
+                    <span className={`text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{stat.label}</span>
+                  </div>
+                </div>
+              ))}
+            </motion.div>
+          </div>
+
+          {/* Right: Hero Image with floating cards */}
+          <motion.div
+            className="order-1 lg:order-2 relative"
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            style={{ y: bgY }}
+          >
+            {/* Main image container */}
+            <div className="relative mx-auto max-w-lg lg:max-w-none">
+              <div className={`relative rounded-3xl overflow-hidden aspect-[4/5] ${
+                isDark ? 'shadow-2xl shadow-indigo-500/10' : 'shadow-2xl shadow-slate-300/40'
+              }`}>
+                <AnimatePresence mode="wait">
+                  <motion.img
+                    key={activeImage}
+                    src={heroImages[activeImage].src}
+                    alt={heroImages[activeImage].alt}
+                    className="w-full h-full object-cover"
+                    loading="eager"
+                    initial={{ opacity: 0, scale: 1.05 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.6 }}
+                  />
+                </AnimatePresence>
+                {/* Gradient overlay */}
+                <div className={`absolute inset-0 ${
+                  isDark
+                    ? 'bg-gradient-to-t from-[#09090B]/60 via-transparent to-transparent'
+                    : 'bg-gradient-to-t from-white/30 via-transparent to-transparent'
+                }`} />
+              </div>
+
+              {/* Image selector dots */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                {heroImages.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActiveImage(i)}
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      i === activeImage
+                        ? 'w-8 bg-white'
+                        : 'w-2 bg-white/50 hover:bg-white/70'
+                    }`}
+                    aria-label={`Show ${heroImages[i].label}`}
+                  />
+                ))}
+              </div>
+
+              {/* Floating stat card - Top left */}
+              <motion.div
+                className={`absolute -left-4 top-8 lg:-left-12 backdrop-blur-xl rounded-2xl px-5 py-4 ${
+                  isDark
+                    ? 'bg-slate-900/80 border border-white/10 shadow-xl'
+                    : 'bg-white/90 border border-slate-200/60 shadow-xl shadow-slate-200/50'
+                }`}
+                animate={{ y: [0, -8, 0] }}
+                transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex -space-x-1.5">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                    ))}
+                  </div>
+                  <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>4.9/5</span>
+                </div>
+                <p className={`text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>from 1,200+ reviews</p>
+              </motion.div>
+
+              {/* Floating stat card - Bottom right */}
+              <motion.div
+                className={`absolute -right-4 bottom-20 lg:-right-12 backdrop-blur-xl rounded-2xl px-5 py-4 ${
+                  isDark
+                    ? 'bg-slate-900/80 border border-white/10 shadow-xl'
+                    : 'bg-white/90 border border-slate-200/60 shadow-xl shadow-slate-200/50'
+                }`}
+                animate={{ y: [0, 8, 0] }}
+                transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut', delay: 1 }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center`}>
+                    <CheckCircle2 className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Free Trial Lesson</p>
+                    <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>No credit card needed</p>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Active now indicator */}
+              <motion.div
+                className={`absolute -left-2 bottom-32 lg:-left-8 backdrop-blur-xl rounded-xl px-4 py-3 ${
+                  isDark
+                    ? 'bg-slate-900/80 border border-white/10 shadow-lg'
+                    : 'bg-white/90 border border-slate-200/60 shadow-lg'
+                }`}
+                animate={{ y: [0, -5, 0] }}
+                transition={{ repeat: Infinity, duration: 3.5, ease: 'easeInOut', delay: 2 }}
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className={`text-xs font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+                    <strong className={isDark ? 'text-white' : 'text-slate-900'}>127</strong> students online now
+                  </span>
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
         </div>
       </div>
 
-      {/* Scroll Indicator */}
-      <motion.div
-        className={`absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center z-10 ${isDark ? 'text-white/40' : 'text-slate-400/40'}`}
-        animate={{ y: [0, 8, 0] }}
-        transition={{ repeat: Infinity, duration: 2 }}
-      >
-        <span className="text-xs font-medium mb-2">Scroll to explore</span>
-        <div className={`w-5 h-8 border-2 rounded-full flex justify-center pt-1.5 ${isDark ? 'border-white/20' : 'border-slate-300/40'}`}>
-          <motion.div
-            className={`w-1 h-1 rounded-full ${isDark ? 'bg-white/60' : 'bg-slate-400/60'}`}
-            animate={{ y: [0, 10, 0] }}
-            transition={{ repeat: Infinity, duration: 1.5 }}
+      {/* Bottom wave separator */}
+      <div className="absolute bottom-0 left-0 right-0">
+        <svg viewBox="0 0 1440 80" fill="none" className="w-full" preserveAspectRatio="none">
+          <path
+            d="M0,40 C480,80 960,0 1440,40 L1440,80 L0,80 Z"
+            fill={isDark ? '#0F172A' : '#FAFAFA'}
           />
-        </div>
-      </motion.div>
+        </svg>
+      </div>
     </section>
   );
 }
