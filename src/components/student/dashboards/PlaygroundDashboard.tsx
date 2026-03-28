@@ -12,6 +12,7 @@ import { RecommendedTeachers } from '../RecommendedTeachers';
 import { PlaygroundTopBar } from '../kids/PlaygroundTopBar';
 import { EnterClassroomCTA } from '../kids/EnterClassroomCTA';
 import { AIPersonalizedLessonCard } from '../AIPersonalizedLessonCard';
+import { MaterialsGallery } from '../MaterialsGallery';
 import { BookMyClassModal } from '../BookMyClassModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';

@@ -19,6 +19,7 @@ import { RecordClipWidget } from '../academy/RecordClipWidget';
 import { SkillXPBars } from '../academy/SkillXPBars';
 import { DailyLessonCard } from '../DailyLessonCard';
 import { AIPersonalizedLessonCard } from '../AIPersonalizedLessonCard';
+import { MaterialsGallery } from '../MaterialsGallery';
 import { AILessonAgent } from '../AILessonAgent';
 import { WeeklyGoalWidget } from '../WeeklyGoalWidget';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
