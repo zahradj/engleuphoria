@@ -73,7 +73,18 @@ export function AuthPageLayout({
 
         {/* Logo */}
         <Link to="/" className="relative z-10 flex items-center gap-2.5 mb-8 lg:mb-12">
-          <img src={logoDark} alt="EnglEuphoria" className="w-9 h-9 object-contain bg-white/90 dark:bg-white/90 rounded-xl p-0.5" />
+          <motion.div
+            className="w-9 h-9 rounded-xl p-0.5 flex items-center justify-center"
+            animate={{
+              background: `linear-gradient(135deg, ${theme.cssFrom}, ${theme.cssTo})`,
+            }}
+            transition={{ duration: 0.8 }}
+            style={{
+              background: `linear-gradient(135deg, ${theme.cssFrom}, ${theme.cssTo})`,
+            }}
+          >
+            <img src={logoDark} alt="EnglEuphoria" className="w-full h-full object-contain bg-white dark:bg-white rounded-[10px]" />
+          </motion.div>
           <motion.span
             className="text-xl font-bold bg-clip-text text-transparent"
             animate={{
