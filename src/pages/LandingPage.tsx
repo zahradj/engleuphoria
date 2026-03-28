@@ -37,6 +37,7 @@ export default function LandingPage() {
       <NavHeader />
       <HeroSection />
       <BentoGridSection />
+      <CourseOfferingsSection />
       <ActivityMarquee />
       <IntelligenceSection />
       <PersonalizedPathSection />
