@@ -41,6 +41,7 @@ const StudentClassroomPage = lazy(() => import("./pages/StudentClassroomPage"));
 const AssessmentTaker = lazy(() => import("./components/assessment/AssessmentTaker"));
 const AssessmentResults = lazy(() => import("./components/assessment/AssessmentResults"));
 const ContentCreatorDashboard = lazy(() => import("./pages/ContentCreatorDashboard"));
+const LessonReaderPage = lazy(() => import("./pages/student/LessonReaderPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -205,6 +206,15 @@ const App = () => {
                         <ImprovedProtectedRoute requiredRole="student">
                           <Suspense fallback={<LoadingFallback />}>
                             <AIPlacementTest />
+                          </Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
+
+                      {/* Immersive Lesson Reader */}
+                      <Route path="/lesson/:id" element={
+                        <ImprovedProtectedRoute requiredRole="student">
+                          <Suspense fallback={<LoadingFallback />}>
+                            <LessonReaderPage />
                           </Suspense>
                         </ImprovedProtectedRoute>
                       } />

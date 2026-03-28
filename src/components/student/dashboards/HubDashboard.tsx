@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { useCurriculumLessons } from '@/hooks/useCurriculumLessons';
 import { SkillsRadarChart } from '../hub/SkillsRadarChart';
+import { MaterialsGallery } from '../MaterialsGallery';
 import { BusinessMilestonesCard } from '../hub/BusinessMilestonesCard';
 import { LearningVelocityChart } from '../hub/LearningVelocityChart';
 import { WeeklyBriefingCard } from '../hub/WeeklyBriefingCard';
@@ -283,6 +284,8 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
                 ))}
               </CardContent>
             </Card>
+
+            <MaterialsGallery track="adults" />
 
             <RecommendedTeachers isDarkMode={isDarkMode} />
 

@@ -248,6 +248,51 @@ serve(async (req) => {
       });
     }
 
+    // MODE: word-insight
+    if (mode === "word-insight") {
+      const { word, level: wordLevel } = body;
+      if (!word?.trim()) throw new Error("Word is required");
+
+      const response = await fetch(AI_GATEWAY, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: [
+            {
+              role: "user",
+              content: `For the English word "${word}" at CEFR level ${wordLevel || "B1"}, provide:
+1. A simple, clear meaning (1 sentence)
+2. Phonetic pronunciation (IPA format)
+3. A modern, real-world example sentence
+
+Return ONLY valid JSON: {"meaning": "...", "pronunciation": "...", "example": "..."}`,
+            },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        console.error("Word insight error:", response.status, errText);
+        throw new Error(`AI gateway error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const raw = data.choices?.[0]?.message?.content || "{}";
+
+      // Extract JSON from response
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
+      const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : { meaning: "Definition unavailable", pronunciation: `/${word}/`, example: `Use "${word}" in a sentence.` };
+
+      return new Response(JSON.stringify(parsed), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     throw new Error(`Unknown mode: ${mode}`);
   } catch (e) {
     console.error("studio-ai-copilot error:", e);
