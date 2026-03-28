@@ -135,7 +135,7 @@ export function AuthPageLayout({
                   : 'w-9 h-9 opacity-50 hover:opacity-80 hover:scale-105'
               }`}
               style={{
-                ringColor: i === activeIndex ? theme.cssFrom : undefined,
+                ['--tw-ring-color' as string]: i === activeIndex ? theme.cssFrom : undefined,
                 borderColor: i === activeIndex ? theme.cssFrom : 'transparent',
               }}
             >
