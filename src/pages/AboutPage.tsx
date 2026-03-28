@@ -1,6 +1,6 @@
 import { MissionHeader, PhilosophyPanels, TeamGrid, AboutCTA } from '@/components/about';
 import { FooterSection } from '@/components/landing';
-import NavHeader from '@/components/landing/NavHeader';
+import { NavHeader } from '@/components/landing/NavHeader';
 import { HeroThemeProvider } from '@/contexts/HeroThemeContext';
 
 const AboutPage = () => {
