@@ -1,106 +1,137 @@
-import { motion } from 'framer-motion';
-import { GlassCard } from '@/components/ui/glass-card';
+import { motion, useInView } from 'framer-motion';
 import { Linkedin } from 'lucide-react';
 import founderImage from '@/assets/founder-fatima.png';
 import { useThemeMode } from '@/hooks/useThemeMode';
+import { useRef } from 'react';
 
 const TeamGrid = () => {
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: '-80px' });
 
   return (
-    <section className={`py-24 transition-colors duration-300 ${
-      isDark
-        ? 'bg-gradient-to-b from-slate-950 to-slate-900'
-        : 'bg-gradient-to-b from-white to-slate-50'
+    <section className={`py-24 md:py-32 transition-colors duration-300 ${
+      isDark ? 'bg-[#09090B]' : 'bg-white'
     }`}>
-      <div className="container mx-auto px-6">
-        {/* Section Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
-          <h2 className={`text-3xl md:text-5xl font-display font-bold mb-6 ${
-            isDark ? 'text-white' : 'text-slate-900'
-          }`}>
-            Meet the Founder
-          </h2>
-          
-          <p className={`text-lg max-w-3xl mx-auto leading-relaxed ${
-            isDark ? 'text-white/70' : 'text-slate-600'
-          }`}>
-            In 2020, amid a world searching for new ways to connect, <span className="text-violet-500 font-semibold">Fatima Zahra Djaanine</span> saw 
-            an opportunity to reimagine English education. What started as a vision to make language learning 
-            accessible, engaging, and personalized for every age has grown into Engleuphoria — three distinct 
-            learning worlds united by one mission: to help every learner find their voice.
-          </p>
-        </motion.div>
-
-        {/* Founder Card */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="flex justify-center"
-        >
-          <GlassCard className={`p-8 sm:p-10 max-w-lg w-full border ${
-            isDark
-              ? 'bg-gradient-to-br from-violet-500/10 via-rose-500/10 to-amber-500/10 border-white/10'
-              : 'bg-gradient-to-br from-violet-50 via-rose-50 to-amber-50 border-slate-200 shadow-lg'
-          }`}>
-            <div className="flex flex-col items-center text-center">
-              {/* Photo */}
-              <div className="relative mb-6">
-                <div className="w-40 h-40 rounded-full overflow-hidden ring-4 ring-violet-500/30 shadow-xl">
-                  <img
-                    src={founderImage}
-                    alt="Fatima Zahra Djaanine"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-violet-500/20 to-rose-500/20 blur-xl -z-10 scale-110" />
-              </div>
-
-              {/* Role Badge */}
-              <span className="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium bg-gradient-to-r from-violet-500 to-rose-500 text-white mb-4 shadow-lg">
-                Founder & CEO
-              </span>
-
-              {/* Name */}
-              <h3 className={`text-2xl font-display font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                Fatima Zahra Djaanine
-              </h3>
-
-              {/* Bio */}
-              <p className={`leading-relaxed mb-6 ${isDark ? 'text-white/70' : 'text-slate-600'}`}>
-                An educator and innovator passionate about transforming how the world learns English. 
-                With a background in language education and technology, Fatima built Engleuphoria to 
-                bridge the gap between traditional teaching and modern learning experiences — creating 
-                a platform where children play, teens thrive, and professionals succeed.
-              </p>
-
-              {/* Social Links */}
-              <div className="flex items-center gap-4">
-                <a
-                  href="https://www.linkedin.com/in/fatima-zahra-djaanine"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`p-2 rounded-full transition-colors group ${
-                    isDark ? 'bg-white/5 hover:bg-violet-500/20' : 'bg-slate-100 hover:bg-violet-100'
-                  }`}
-                  aria-label="LinkedIn Profile"
-                >
-                  <Linkedin className={`w-5 h-5 transition-colors group-hover:text-violet-500 ${
-                    isDark ? 'text-white/60' : 'text-slate-400'
-                  }`} />
-                </a>
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div ref={ref} className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center max-w-5xl mx-auto">
+          {/* Left: Image */}
+          <motion.div
+            initial={{ opacity: 0, x: -40 }}
+            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            transition={{ duration: 0.7 }}
+            className="relative"
+          >
+            <div className="absolute inset-0 rounded-full blur-[80px] bg-violet-500 opacity-[0.08]" />
+            <div className={`relative rounded-[2rem] overflow-hidden ${
+              isDark
+                ? 'border border-white/5 shadow-2xl'
+                : 'border border-slate-200/60 shadow-xl shadow-slate-200/50'
+            }`}>
+              <img
+                src={founderImage}
+                alt="Fatima Zahra Djaanine — Founder & CEO"
+                className="w-full aspect-[3/4] object-cover"
+              />
+              {/* Overlay gradient */}
+              <div className={`absolute inset-0 bg-gradient-to-t ${
+                isDark ? 'from-black/60 via-transparent' : 'from-black/30 via-transparent'
+              }`} />
+              {/* Name overlay at bottom */}
+              <div className="absolute bottom-6 left-6 right-6">
+                <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-[#6366F1] to-[#A855F7] text-white shadow-lg mb-2">
+                  Founder & CEO
+                </span>
+                <h3 className="text-2xl font-extrabold text-white tracking-tight">
+                  Fatima Zahra Djaanine
+                </h3>
               </div>
             </div>
-          </GlassCard>
-        </motion.div>
+
+            {/* LinkedIn floating card */}
+            <motion.a
+              href="https://www.linkedin.com/in/fatima-zahra-djaanine"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`absolute -right-4 top-8 lg:-right-6 backdrop-blur-xl rounded-2xl px-5 py-4 z-10 flex items-center gap-3 ${
+                isDark
+                  ? 'bg-slate-900/80 border border-white/10 shadow-xl'
+                  : 'bg-white/90 border border-slate-200/60 shadow-xl shadow-slate-200/50'
+              }`}
+              animate={{ y: [0, -8, 0] }}
+              transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }}
+            >
+              <div className="w-10 h-10 rounded-xl bg-[#0A66C2] flex items-center justify-center">
+                <Linkedin className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Connect</p>
+                <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>LinkedIn</p>
+              </div>
+            </motion.a>
+          </motion.div>
+
+          {/* Right: Story */}
+          <motion.div
+            initial={{ opacity: 0, x: 40 }}
+            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            transition={{ duration: 0.7, delay: 0.15 }}
+          >
+            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6 border ${
+              isDark
+                ? 'bg-rose-500/10 border-rose-500/20 text-rose-300'
+                : 'bg-rose-50 border-rose-200 text-rose-700'
+            }`}>
+              <span className="text-sm font-medium">Meet the Founder</span>
+            </div>
+
+            <h2 className={`text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight mb-6 leading-tight ${
+              isDark ? 'text-white' : 'text-slate-900'
+            }`}>
+              Built by a Teacher,{' '}
+              <span className="bg-gradient-to-r from-[#6366F1] to-[#A855F7] bg-clip-text text-transparent">
+                for Learners.
+              </span>
+            </h2>
+
+            <div className={`space-y-4 text-base leading-relaxed ${
+              isDark ? 'text-slate-400' : 'text-slate-600'
+            }`}>
+              <p>
+                In 2020, amid a world searching for new ways to connect, 
+                <span className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}> Fatima Zahra Djaanine </span>
+                saw an opportunity to reimagine English education.
+              </p>
+              <p>
+                What started as a vision to make language learning accessible, engaging, 
+                and personalized for every age has grown into EnglEuphoria — three distinct 
+                learning worlds united by one mission.
+              </p>
+              <p>
+                With a background in language education and technology, Fatima built a platform 
+                where children play, teens thrive, and professionals succeed — bridging the gap 
+                between traditional teaching and modern learning experiences.
+              </p>
+            </div>
+
+            {/* Values chips */}
+            <div className="flex flex-wrap gap-3 mt-8">
+              {['Accessibility', 'Innovation', 'Inclusion', 'Excellence'].map((value) => (
+                <span
+                  key={value}
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                    isDark
+                      ? 'bg-white/5 border border-white/10 text-slate-300'
+                      : 'bg-slate-100 border border-slate-200 text-slate-700'
+                  }`}
+                >
+                  {value}
+                </span>
+              ))}
+            </div>
+          </motion.div>
+        </div>
       </div>
     </section>
   );

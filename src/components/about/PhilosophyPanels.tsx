@@ -1,176 +1,163 @@
 import { useRef, useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Sparkles, Rocket, Briefcase } from 'lucide-react';
+import { motion, useInView } from 'framer-motion';
+import { Sparkles, Rocket, Briefcase, ArrowRight } from 'lucide-react';
 import { useThemeMode } from '@/hooks/useThemeMode';
 
 const panels = [
   {
     id: 'spark',
     icon: Sparkles,
+    label: 'The Spark',
     headline: 'For Kids, we believe in Magic.',
     body: "In our Playground, every lesson is an adventure. Kids explore a gamified forest world where learning English feels like playing their favorite game. Animated mascots guide them, rewards celebrate every milestone, and laughter is part of the curriculum.",
-    gradient: 'from-yellow-400 via-green-400 to-emerald-500',
-    bgGradientDark: 'from-yellow-500/20 via-green-500/20 to-emerald-500/20',
-    bgGradientLight: 'from-yellow-50 via-green-50 to-emerald-50',
-    iconColor: 'text-yellow-400',
-    image: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=600&h=400&fit=crop'
+    gradient: 'from-[#FF9F1C] to-[#FFBF00]',
+    glowColor: '#FF9F1C',
+    iconBgDark: 'bg-[#FF9F1C]/15',
+    iconBgLight: 'bg-orange-50',
+    image: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=600&h=400&fit=crop',
   },
   {
     id: 'drive',
     icon: Rocket,
+    label: 'The Drive',
     headline: 'For Teens, we believe in Agency.',
-    body: "The Academy puts teens in the driver's seat. Project-based learning, real-world challenges, and creative expression help them build confidence. No boring textbooks - just skills that matter for their future.",
-    gradient: 'from-violet-500 via-purple-500 to-fuchsia-500',
-    bgGradientDark: 'from-violet-500/20 via-purple-500/20 to-fuchsia-500/20',
-    bgGradientLight: 'from-violet-50 via-purple-50 to-fuchsia-50',
-    iconColor: 'text-violet-400',
-    image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=400&fit=crop'
+    body: "The Academy puts teens in the driver's seat. Project-based learning, real-world challenges, and creative expression help them build confidence. No boring textbooks — just skills that matter for their future.",
+    gradient: 'from-[#6366F1] to-[#A855F7]',
+    glowColor: '#6366F1',
+    iconBgDark: 'bg-[#6366F1]/15',
+    iconBgLight: 'bg-indigo-50',
+    image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=400&fit=crop',
   },
   {
     id: 'goal',
     icon: Briefcase,
+    label: 'The Goal',
     headline: 'For Adults, we believe in Results.',
-    body: "The Professional Hub is designed for busy professionals who need English for career growth. Structured business English courses, interview preparation, and presentation skills - all delivered efficiently with measurable progress.",
-    gradient: 'from-slate-400 via-blue-500 to-cyan-500',
-    bgGradientDark: 'from-slate-400/20 via-blue-500/20 to-cyan-500/20',
-    bgGradientLight: 'from-slate-50 via-blue-50 to-cyan-50',
-    iconColor: 'text-blue-400',
-    image: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&h=400&fit=crop'
-  }
+    body: "The Professional Hub is designed for busy professionals who need English for career growth. Structured business English courses, interview preparation, and presentation skills — all delivered efficiently with measurable progress.",
+    gradient: 'from-[#10B981] to-[#059669]',
+    glowColor: '#10B981',
+    iconBgDark: 'bg-[#10B981]/15',
+    iconBgLight: 'bg-emerald-50',
+    image: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&h=400&fit=crop',
+  },
 ];
 
-const PhilosophyPanels = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const { resolvedTheme } = useThemeMode();
-  const isDark = resolvedTheme === 'dark';
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const handleScroll = () => {
-      const scrollLeft = container.scrollLeft;
-      const panelWidth = container.offsetWidth;
-      const newIndex = Math.round(scrollLeft / panelWidth);
-      setActiveIndex(newIndex);
-    };
-
-    container.addEventListener('scroll', handleScroll);
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const scrollToPanel = (index: number) => {
-    const container = containerRef.current;
-    if (!container) return;
-    container.scrollTo({
-      left: index * container.offsetWidth,
-      behavior: 'smooth'
-    });
-  };
+function PanelCard({ panel, index, isDark }: { panel: typeof panels[0]; index: number; isDark: boolean }) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: '-80px' });
 
   return (
-    <section className={`relative transition-colors duration-300 ${isDark ? 'bg-slate-950' : 'bg-white'}`}>
-      {/* Section Header */}
-      <div className="py-16 text-center">
-        <motion.h2
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className={`text-3xl md:text-5xl font-display font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}
-        >
-          Our Philosophy
-        </motion.h2>
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.1 }}
-          className={`text-lg ${isDark ? 'text-white/60' : 'text-slate-500'}`}
-        >
-          Swipe to explore our three worlds
-        </motion.p>
-      </div>
-
-      {/* Horizontal Scroll Container */}
-      <div
-        ref={containerRef}
-        className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-      >
-        {panels.map((panel, index) => (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 40 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6, delay: index * 0.15 }}
+      className={`rounded-[2rem] overflow-hidden transition-colors duration-300 ${
+        isDark
+          ? 'bg-slate-900/60 border border-white/5'
+          : 'bg-white border border-slate-200/60 shadow-xl shadow-slate-200/40'
+      }`}
+    >
+      <div className="grid md:grid-cols-2 gap-0">
+        {/* Image side */}
+        <div className="relative overflow-hidden aspect-[4/3] md:aspect-auto">
           <div
-            key={panel.id}
-            className="min-w-full w-full snap-start flex-shrink-0"
-          >
-            <div className={`min-h-[70vh] flex items-center bg-gradient-to-br ${
-              isDark ? panel.bgGradientDark + ' bg-slate-950' : panel.bgGradientLight + ' bg-white'
-            }`}>
-              <div className="container mx-auto px-6 py-12">
-                <div className="grid md:grid-cols-2 gap-12 items-center">
-                  {/* Content */}
-                  <motion.div
-                    initial={{ opacity: 0, x: -30 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.2 }}
-                  >
-                    <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r ${panel.gradient} mb-6`}>
-                      <panel.icon className="w-5 h-5 text-white" />
-                      <span className="text-white font-semibold text-sm">
-                        {index === 0 ? 'The Spark' : index === 1 ? 'The Drive' : 'The Goal'}
-                      </span>
-                    </div>
-                    
-                    <h3 className={`text-3xl md:text-4xl lg:text-5xl font-display font-bold mb-6 ${
-                      isDark ? 'text-white' : 'text-slate-900'
-                    }`}>
-                      {panel.headline}
-                    </h3>
-                    
-                    <p className={`text-lg md:text-xl leading-relaxed ${
-                      isDark ? 'text-white/70' : 'text-slate-600'
-                    }`}>
-                      {panel.body}
-                    </p>
-                  </motion.div>
-
-                  {/* Image */}
-                  <motion.div
-                    initial={{ opacity: 0, x: 30 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.4 }}
-                    className="relative"
-                  >
-                    <div className={`absolute inset-0 bg-gradient-to-r ${panel.gradient} blur-3xl opacity-30 rounded-3xl`} />
-                    <img
-                      src={panel.image}
-                      alt={panel.headline}
-                      className="relative rounded-2xl shadow-2xl w-full object-cover aspect-[4/3]"
-                    />
-                  </motion.div>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Progress Dots */}
-      <div className={`flex justify-center gap-3 py-8 ${isDark ? 'bg-slate-950' : 'bg-white'}`}>
-        {panels.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => scrollToPanel(index)}
-            className={`w-3 h-3 rounded-full transition-all duration-300 ${
-              activeIndex === index
-                ? `${isDark ? 'bg-white' : 'bg-slate-900'} w-8`
-                : `${isDark ? 'bg-white/30 hover:bg-white/50' : 'bg-slate-300 hover:bg-slate-400'}`
-            }`}
-            aria-label={`Go to panel ${index + 1}`}
+            className="absolute inset-0 opacity-20 blur-3xl"
+            style={{ backgroundColor: panel.glowColor }}
           />
-        ))}
+          <img
+            src={panel.image}
+            alt={panel.headline}
+            className="relative w-full h-full object-cover"
+            loading="lazy"
+          />
+          {/* Group chip */}
+          <div className={`absolute top-6 left-6 px-4 py-1.5 rounded-full text-sm font-bold bg-gradient-to-r ${panel.gradient} text-white shadow-lg`}>
+            {panel.label}
+          </div>
+        </div>
+
+        {/* Content side */}
+        <div className="p-8 md:p-10 flex flex-col justify-center">
+          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 ${
+            isDark ? panel.iconBgDark : panel.iconBgLight
+          }`}>
+            <panel.icon className="w-6 h-6" style={{ color: panel.glowColor }} />
+          </div>
+
+          <h3 className={`text-2xl md:text-3xl font-extrabold tracking-tight mb-4 ${
+            isDark ? 'text-white' : 'text-slate-900'
+          }`}>
+            {panel.headline}
+          </h3>
+
+          <p className={`text-base leading-relaxed mb-6 ${
+            isDark ? 'text-slate-400' : 'text-slate-600'
+          }`}>
+            {panel.body}
+          </p>
+
+          <div className="flex items-center gap-2 text-sm font-semibold" style={{ color: panel.glowColor }}>
+            <span>Learn more</span>
+            <ArrowRight className="w-4 h-4" />
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+const PhilosophyPanels = () => {
+  const { resolvedTheme } = useThemeMode();
+  const isDark = resolvedTheme === 'dark';
+  const headerRef = useRef(null);
+  const isHeaderInView = useInView(headerRef, { once: true, margin: '-60px' });
+
+  return (
+    <section
+      id="philosophy"
+      className={`py-24 md:py-32 transition-colors duration-300 ${
+        isDark ? 'bg-[#0F172A]' : 'bg-[#FAFAFA]'
+      }`}
+    >
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Section Header */}
+        <motion.div
+          ref={headerRef}
+          initial={{ opacity: 0, y: 30 }}
+          animate={isHeaderInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-16 md:mb-20"
+        >
+          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6 border ${
+            isDark
+              ? 'bg-violet-500/10 border-violet-500/20 text-violet-300'
+              : 'bg-violet-50 border-violet-200 text-violet-700'
+          }`}>
+            <Sparkles className="w-4 h-4" />
+            <span className="text-sm font-medium">Our Philosophy</span>
+          </div>
+          <h2 className={`text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-6 ${
+            isDark ? 'text-white' : 'text-slate-900'
+          }`}>
+            Three Worlds,{' '}
+            <span className="bg-gradient-to-r from-[#6366F1] to-[#A855F7] bg-clip-text text-transparent">
+              One Mission
+            </span>
+          </h2>
+          <p className={`text-lg max-w-2xl mx-auto ${
+            isDark ? 'text-slate-400' : 'text-slate-600'
+          }`}>
+            Every learner deserves an experience crafted for their stage of life.
+          </p>
+        </motion.div>
+
+        {/* Stacked panels */}
+        <div className="space-y-8 max-w-5xl mx-auto">
+          {panels.map((panel, index) => (
+            <PanelCard key={panel.id} panel={panel} index={index} isDark={isDark} />
+          ))}
+        </div>
       </div>
     </section>
   );
