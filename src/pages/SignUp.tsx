@@ -3,6 +3,7 @@ import { UserPlus, Loader2 } from 'lucide-react';
 import { AuthPageLayout } from '@/components/auth/AuthPageLayout';
 import { SimpleAuthForm } from '@/components/auth/SimpleAuthForm';
 import { useAuth } from '@/contexts/AuthContext';
+import { HeroThemeProvider } from '@/contexts/HeroThemeContext';
 import { supabase } from '@/integrations/supabase/client';
 
 const SignUp = () => {

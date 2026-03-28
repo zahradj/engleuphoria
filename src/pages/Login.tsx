@@ -4,6 +4,7 @@ import { LogIn, Loader2 } from 'lucide-react';
 import { AuthPageLayout } from '@/components/auth/AuthPageLayout';
 import { SimpleAuthForm } from '@/components/auth/SimpleAuthForm';
 import { useAuth } from '@/contexts/AuthContext';
+import { HeroThemeProvider } from '@/contexts/HeroThemeContext';
 import { toast } from 'sonner';
 
 const Login = () => {
@@ -52,14 +53,16 @@ const Login = () => {
   }
 
   return (
-    <AuthPageLayout
-      title="Welcome Back"
-      subtitle="Sign in to continue your learning journey"
-      icon={LogIn}
-      variant="default"
-    >
-      <SimpleAuthForm mode="login" />
-    </AuthPageLayout>
+    <HeroThemeProvider>
+      <AuthPageLayout
+        title="Welcome Back"
+        subtitle="Sign in to continue your learning journey"
+        icon={LogIn}
+        variant="default"
+      >
+        <SimpleAuthForm mode="login" />
+      </AuthPageLayout>
+    </HeroThemeProvider>
   );
 };
 
