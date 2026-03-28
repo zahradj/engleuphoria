@@ -74,7 +74,19 @@ export function AuthPageLayout({
         {/* Logo */}
         <Link to="/" className="relative z-10 flex items-center gap-2.5 mb-8 lg:mb-12">
           <img src={logoDark} alt="EnglEuphoria" className="w-9 h-9 object-contain bg-white/90 dark:bg-white/90 rounded-xl p-0.5" />
-          <span className="text-xl font-bold text-foreground">EnglEuphoria</span>
+          <motion.span
+            className="text-xl font-bold bg-clip-text text-transparent"
+            animate={{
+              backgroundImage: `linear-gradient(to right, ${theme.cssFrom}, ${theme.cssTo})`,
+            }}
+            transition={{ duration: 0.8 }}
+            style={{
+              backgroundImage: `linear-gradient(to right, ${theme.cssFrom}, ${theme.cssTo})`,
+              WebkitBackgroundClip: 'text',
+            }}
+          >
+            EnglEuphoria
+          </motion.span>
         </Link>
 
         {/* Character Image Carousel */}
