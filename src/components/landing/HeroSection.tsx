@@ -4,9 +4,9 @@ import { Star, Play, ArrowRight, Globe, Users, Award, CheckCircle2 } from 'lucid
 import { useRef, useEffect, useState } from 'react';
 import { useInView } from 'framer-motion';
 import { useThemeMode } from '@/hooks/useThemeMode';
-import heroStudent from '@/assets/hero-student.jpg';
-import heroKid from '@/assets/hero-kid.jpg';
-import heroAdult from '@/assets/hero-adult.jpg';
+import heroKid from '@/assets/hero-kid.png';
+import heroTeen from '@/assets/hero-teen.png';
+import heroAdult from '@/assets/hero-adult.png';
 
 function useCountUp(target: number, duration = 2000) {
   const [count, setCount] = useState(0);
@@ -28,10 +28,64 @@ function useCountUp(target: number, duration = 2000) {
   return { ref, count };
 }
 
-const heroImages = [
-  { src: heroStudent, alt: 'Student learning English online', label: 'Teens & Adults' },
-  { src: heroKid, alt: 'Child learning English on tablet', label: 'Kids 5-12' },
-  { src: heroAdult, alt: 'Professional taking English course', label: 'Professionals' },
+const GROUP_THEMES = [
+  {
+    id: 'kids',
+    label: 'The Playground',
+    ageLabel: 'Kids 5–12',
+    tagline: 'Learn Through Play!',
+    src: heroKid,
+    alt: 'Happy child learning English on tablet',
+    gradient: 'from-[#FF9F1C] to-[#FFBF00]',
+    gradientHover: 'hover:from-[#FFB340] hover:to-[#FFD040]',
+    shadow: 'shadow-[#FF9F1C]/25 hover:shadow-[#FF9F1C]/35',
+    glowColor: 'bg-[#FF9F1C]',
+    glowColorAlt: 'bg-[#FFBF00]',
+    dotActive: 'bg-[#FF9F1C]',
+    iconBg: { dark: 'bg-[#FF9F1C]/15', light: 'bg-orange-50' },
+    iconColor: { dark: 'text-[#FF9F1C]', light: 'text-orange-600' },
+    accentText: { dark: 'text-[#FF9F1C]', light: 'text-orange-600' },
+    badgeBg: { dark: 'bg-[#FF9F1C]/10 border-[#FF9F1C]/20 text-[#FFBF00]', light: 'bg-orange-50 border-orange-200 text-orange-700' },
+    chipBg: 'bg-gradient-to-r from-[#FF9F1C] to-[#FFBF00] text-white',
+  },
+  {
+    id: 'teen',
+    label: 'The Academy',
+    ageLabel: 'Teens 13–17',
+    tagline: 'Level Up Your English!',
+    src: heroTeen,
+    alt: 'Confident teenager learning English with laptop',
+    gradient: 'from-[#6366F1] to-[#A855F7]',
+    gradientHover: 'hover:from-[#7578F3] hover:to-[#B96AF8]',
+    shadow: 'shadow-[#6366F1]/25 hover:shadow-[#6366F1]/35',
+    glowColor: 'bg-[#6366F1]',
+    glowColorAlt: 'bg-[#A855F7]',
+    dotActive: 'bg-[#6366F1]',
+    iconBg: { dark: 'bg-[#6366F1]/15', light: 'bg-indigo-50' },
+    iconColor: { dark: 'text-[#6366F1]', light: 'text-indigo-600' },
+    accentText: { dark: 'text-[#A855F7]', light: 'text-indigo-600' },
+    badgeBg: { dark: 'bg-[#6366F1]/10 border-[#6366F1]/20 text-[#A855F7]', light: 'bg-indigo-50 border-indigo-200 text-indigo-700' },
+    chipBg: 'bg-gradient-to-r from-[#6366F1] to-[#A855F7] text-white',
+  },
+  {
+    id: 'adult',
+    label: 'The Hub',
+    ageLabel: 'Adults 18+',
+    tagline: 'Professional Growth Starts Here.',
+    src: heroAdult,
+    alt: 'Professional adult learning Business English',
+    gradient: 'from-[#10B981] to-[#059669]',
+    gradientHover: 'hover:from-[#34D399] hover:to-[#10B981]',
+    shadow: 'shadow-[#10B981]/25 hover:shadow-[#10B981]/35',
+    glowColor: 'bg-[#10B981]',
+    glowColorAlt: 'bg-[#059669]',
+    dotActive: 'bg-[#10B981]',
+    iconBg: { dark: 'bg-[#10B981]/15', light: 'bg-emerald-50' },
+    iconColor: { dark: 'text-[#10B981]', light: 'text-emerald-600' },
+    accentText: { dark: 'text-[#10B981]', light: 'text-emerald-600' },
+    badgeBg: { dark: 'bg-[#10B981]/10 border-[#10B981]/20 text-[#34D399]', light: 'bg-emerald-50 border-emerald-200 text-emerald-700' },
+    chipBg: 'bg-gradient-to-r from-[#10B981] to-[#059669] text-white',
+  },
 ];
 
 export function HeroSection() {
@@ -39,6 +93,7 @@ export function HeroSection() {
   const isDark = resolvedTheme === 'dark';
   const sectionRef = useRef<HTMLElement>(null);
   const [activeImage, setActiveImage] = useState(0);
+  const theme = GROUP_THEMES[activeImage];
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -52,7 +107,7 @@ export function HeroSection() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setActiveImage((prev) => (prev + 1) % heroImages.length);
+      setActiveImage((prev) => (prev + 1) % GROUP_THEMES.length);
     }, 5000);
     return () => clearInterval(interval);
   }, []);
@@ -64,32 +119,37 @@ export function HeroSection() {
         isDark ? 'bg-[#09090B]' : 'bg-gradient-to-br from-slate-50 via-white to-indigo-50/30'
       }`}
     >
-      {/* Decorative elements */}
-      <div className={`absolute top-0 right-0 w-[60%] h-full ${isDark ? 'bg-gradient-to-l from-indigo-950/20 to-transparent' : 'bg-gradient-to-l from-indigo-100/40 to-transparent'}`} />
-      <div className={`absolute bottom-0 left-0 w-96 h-96 rounded-full blur-[120px] ${isDark ? 'bg-indigo-600/10' : 'bg-indigo-400/10'}`} />
-      <div className={`absolute top-20 right-20 w-72 h-72 rounded-full blur-[100px] ${isDark ? 'bg-emerald-600/8' : 'bg-emerald-400/8'}`} />
+      {/* Decorative glows — colored per active group */}
+      <div
+        className={`absolute bottom-0 left-0 w-96 h-96 rounded-full blur-[120px] transition-colors duration-700 ${theme.glowColor} ${
+          isDark ? 'opacity-[0.08]' : 'opacity-[0.06]'
+        }`}
+      />
+      <div
+        className={`absolute top-20 right-20 w-72 h-72 rounded-full blur-[100px] transition-colors duration-700 ${theme.glowColorAlt} ${
+          isDark ? 'opacity-[0.06]' : 'opacity-[0.05]'
+        }`}
+      />
 
       <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-28 lg:py-0">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center min-h-[85vh]">
-          
+
           {/* Left: Content */}
           <div className="order-2 lg:order-1">
-            {/* Trust badge */}
+            {/* Trust badge — colored per group */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8 ${
-                isDark
-                  ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'
-                  : 'bg-emerald-50 border border-emerald-200 text-emerald-700'
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8 border transition-colors duration-700 ${
+                isDark ? theme.badgeBg.dark : theme.badgeBg.light
               }`}
             >
               <CheckCircle2 className="w-4 h-4" />
               <span className="text-sm font-medium">Trusted by 2,500+ students worldwide</span>
             </motion.div>
 
-            {/* Headline */}
+            {/* Headline with dynamic gradient accent */}
             <motion.h1
               className={`text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.05] mb-6 ${
                 isDark ? 'text-white' : 'text-slate-900'
@@ -100,8 +160,8 @@ export function HeroSection() {
             >
               Learn English
               <br />
-              <span className="bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 bg-clip-text text-transparent">
-                Your Way.
+              <span className={`bg-gradient-to-r ${theme.gradient} bg-clip-text text-transparent transition-all duration-700`}>
+                {theme.tagline}
               </span>
             </motion.h1>
 
@@ -114,11 +174,11 @@ export function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.2 }}
             >
-              Personalized 1-on-1 lessons with native speakers. 
+              Personalized 1-on-1 lessons with native speakers.
               For kids, teens, and professionals — at any level.
             </motion.p>
 
-            {/* CTA Buttons */}
+            {/* CTA Buttons — gradient matches active group */}
             <motion.div
               className="flex flex-col sm:flex-row gap-4 mb-12"
               initial={{ opacity: 0, y: 20 }}
@@ -127,7 +187,7 @@ export function HeroSection() {
             >
               <Link
                 to="/student-signup"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-lg shadow-xl shadow-indigo-500/25 transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/30 hover:-translate-y-0.5"
+                className={`inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r ${theme.gradient} ${theme.gradientHover} text-white font-bold text-lg shadow-xl ${theme.shadow} transition-all duration-500 hover:-translate-y-0.5`}
               >
                 Get Started Free
                 <ArrowRight className="w-5 h-5" />
@@ -145,7 +205,7 @@ export function HeroSection() {
               </button>
             </motion.div>
 
-            {/* Stats Row - Skyeng style floating stats */}
+            {/* Stats Row — icons colored per group */}
             <motion.div
               className="flex flex-wrap gap-8"
               initial={{ opacity: 0 }}
@@ -158,10 +218,10 @@ export function HeroSection() {
                 { ref: lessons.ref, count: lessons.count, suffix: '+', label: 'Lessons Delivered', icon: Award },
               ].map((stat, i) => (
                 <div key={i} className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                    isDark ? 'bg-white/5' : 'bg-indigo-50'
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors duration-700 ${
+                    isDark ? theme.iconBg.dark : theme.iconBg.light
                   }`}>
-                    <stat.icon className={`w-5 h-5 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`} />
+                    <stat.icon className={`w-5 h-5 transition-colors duration-700 ${isDark ? theme.iconColor.dark : theme.iconColor.light}`} />
                   </div>
                   <div>
                     <span ref={stat.ref} className={`text-2xl font-extrabold block leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
@@ -174,7 +234,7 @@ export function HeroSection() {
             </motion.div>
           </div>
 
-          {/* Right: Hero Image with floating cards */}
+          {/* Right: Hero Image */}
           <motion.div
             className="order-1 lg:order-2 relative"
             initial={{ opacity: 0, x: 40 }}
@@ -182,51 +242,64 @@ export function HeroSection() {
             transition={{ duration: 0.8, delay: 0.2 }}
             style={{ y: bgY }}
           >
-            {/* Main image container */}
             <div className="relative mx-auto max-w-lg lg:max-w-none">
-              <div className={`relative rounded-3xl overflow-hidden aspect-[4/5] ${
-                isDark ? 'shadow-2xl shadow-indigo-500/10' : 'shadow-2xl shadow-slate-300/40'
-              }`}>
+              {/* Colored glow behind image */}
+              <div
+                className={`absolute inset-0 rounded-full blur-[80px] transition-colors duration-700 ${theme.glowColor} ${
+                  isDark ? 'opacity-[0.15]' : 'opacity-[0.12]'
+                }`}
+                style={{ top: '10%', bottom: '10%', left: '10%', right: '10%' }}
+              />
+
+              {/* Image container — no heavy overlay, object-contain for transparent PNGs */}
+              <div className="relative aspect-[4/5] flex items-end justify-center">
                 <AnimatePresence mode="wait">
                   <motion.img
                     key={activeImage}
-                    src={heroImages[activeImage].src}
-                    alt={heroImages[activeImage].alt}
-                    className="w-full h-full object-cover"
+                    src={theme.src}
+                    alt={theme.alt}
+                    className="relative z-[2] w-full h-full object-contain drop-shadow-2xl"
                     loading="eager"
-                    initial={{ opacity: 0, scale: 1.05 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
+                    width={800}
+                    height={1024}
+                    initial={{ opacity: 0, scale: 1.05, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -20 }}
                     transition={{ duration: 0.6 }}
                   />
                 </AnimatePresence>
-                {/* Gradient overlay */}
-                <div className={`absolute inset-0 ${
-                  isDark
-                    ? 'bg-gradient-to-t from-[#09090B]/60 via-transparent to-transparent'
-                    : 'bg-gradient-to-t from-white/30 via-transparent to-transparent'
-                }`} />
               </div>
 
-              {/* Image selector dots */}
+              {/* Group label chip */}
+              <motion.div
+                className={`absolute top-4 right-4 z-10 px-4 py-1.5 rounded-full text-sm font-bold ${theme.chipBg} shadow-lg`}
+                key={`chip-${activeImage}`}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4, delay: 0.2 }}
+              >
+                {theme.ageLabel}
+              </motion.div>
+
+              {/* Image selector dots — active dot colored per group */}
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-                {heroImages.map((_, i) => (
+                {GROUP_THEMES.map((g, i) => (
                   <button
                     key={i}
                     onClick={() => setActiveImage(i)}
-                    className={`h-2 rounded-full transition-all duration-300 ${
+                    className={`h-2.5 rounded-full transition-all duration-500 ${
                       i === activeImage
-                        ? 'w-8 bg-white'
-                        : 'w-2 bg-white/50 hover:bg-white/70'
+                        ? `w-8 ${g.dotActive}`
+                        : `w-2.5 ${isDark ? 'bg-white/30 hover:bg-white/50' : 'bg-slate-300 hover:bg-slate-400'}`
                     }`}
-                    aria-label={`Show ${heroImages[i].label}`}
+                    aria-label={`Show ${g.label}`}
                   />
                 ))}
               </div>
 
-              {/* Floating stat card - Top left */}
+              {/* Floating card — Rating */}
               <motion.div
-                className={`absolute -left-4 top-8 lg:-left-12 backdrop-blur-xl rounded-2xl px-5 py-4 ${
+                className={`absolute -left-4 top-8 lg:-left-12 backdrop-blur-xl rounded-2xl px-5 py-4 z-10 ${
                   isDark
                     ? 'bg-slate-900/80 border border-white/10 shadow-xl'
                     : 'bg-white/90 border border-slate-200/60 shadow-xl shadow-slate-200/50'
@@ -245,9 +318,9 @@ export function HeroSection() {
                 <p className={`text-xs mt-1 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>from 1,200+ reviews</p>
               </motion.div>
 
-              {/* Floating stat card - Bottom right */}
+              {/* Floating card — Free Trial */}
               <motion.div
-                className={`absolute -right-4 bottom-20 lg:-right-12 backdrop-blur-xl rounded-2xl px-5 py-4 ${
+                className={`absolute -right-4 bottom-20 lg:-right-12 backdrop-blur-xl rounded-2xl px-5 py-4 z-10 ${
                   isDark
                     ? 'bg-slate-900/80 border border-white/10 shadow-xl'
                     : 'bg-white/90 border border-slate-200/60 shadow-xl shadow-slate-200/50'
@@ -256,7 +329,7 @@ export function HeroSection() {
                 transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut', delay: 1 }}
               >
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center`}>
+                  <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${theme.gradient} flex items-center justify-center transition-all duration-700`}>
                     <CheckCircle2 className="w-5 h-5 text-white" />
                   </div>
                   <div>
@@ -268,7 +341,7 @@ export function HeroSection() {
 
               {/* Active now indicator */}
               <motion.div
-                className={`absolute -left-2 bottom-32 lg:-left-8 backdrop-blur-xl rounded-xl px-4 py-3 ${
+                className={`absolute -left-2 bottom-32 lg:-left-8 backdrop-blur-xl rounded-xl px-4 py-3 z-10 ${
                   isDark
                     ? 'bg-slate-900/80 border border-white/10 shadow-lg'
                     : 'bg-white/90 border border-slate-200/60 shadow-lg'
@@ -277,7 +350,7 @@ export function HeroSection() {
                 transition={{ repeat: Infinity, duration: 3.5, ease: 'easeInOut', delay: 2 }}
               >
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <div className={`w-2 h-2 rounded-full animate-pulse transition-colors duration-700 ${theme.dotActive}`} />
                   <span className={`text-xs font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
                     <strong className={isDark ? 'text-white' : 'text-slate-900'}>127</strong> students online now
                   </span>
