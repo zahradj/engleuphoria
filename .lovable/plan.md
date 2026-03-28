@@ -1,37 +1,57 @@
 
 
-## Add Dark/Light Mode Toggle Across All Pages
+## Fix Content Creator Dashboard Access — Auth Init Race Condition
 
-### Problem
-The `ThemeModeToggle` component (sun/moon button with ripple animation) only appears on the auth pages. The homepage, About, Teach With Us, and all dashboard pages (Admin, Teacher, Student) have no way to switch between light and dark mode.
+### Root Cause
 
-### Plan
+In React StrictMode (used in development), the `AuthContext` double-mounts:
 
-**1. NavHeader (Landing, About, For Teachers pages)**
-Add `ThemeModeToggle` next to the `LanguageSwitcher` in both the desktop right section and the mobile drawer.
+1. **First mount**: `initializeAuth` runs, sets `initializedRef.current = true`, starts async DB fetches
+2. **Cleanup**: `mounted = false` — the async callbacks now skip `setUser`/`setLoading` because they check `if (!mounted) return`
+3. **Second mount**: `initializeAuth` returns early (guard: `if (initializedRef.current) return`) — nothing happens
+4. **Result**: `loading` stays `true` until the 10s safety timeout forces it to `false`, but by then `user` is still `null` → `ImprovedProtectedRoute` redirects to `/login`
 
-- **Desktop**: Insert toggle between `LanguageSwitcher` and the "Log In" button (line ~126)
-- **Mobile drawer**: Add a "Theme" row next to the "Language" row (line ~228)
+The console warning confirms this: *"Auth initialization timeout - forcing loading = false"*
 
-**2. ScrollHeader (Teacher & Admin dashboards)**
-This sticky header appears on scroll for dashboard pages. Add `ThemeModeToggle` next to the `Logo` in the flex container (line ~46-50).
+### Fix
 
-**3. AdminHeader**
-Add `ThemeModeToggle` in the right-side controls area, next to the Search button (line ~19).
+**File: `src/contexts/AuthContext.tsx`**
 
-**4. StudentSidebar**
-Add `ThemeModeToggle` at the bottom of the sidebar, near the logout button area.
+Reset `initializedRef.current = false` in the cleanup function so the second StrictMode mount can properly re-initialize:
 
-**5. TeacherDashboardShell top navigation**
-Add `ThemeModeToggle` in the top navigation bar area.
+```typescript
+return () => {
+  mounted = false;
+  initializedRef.current = false; // Allow re-init on StrictMode remount
+  clearTimeout(timeout);
+  if (cleanup instanceof Promise) {
+    cleanup.then(cleanupFn => cleanupFn?.());
+  }
+};
+```
+
+Also add a safety measure: when the timeout fires and there IS a valid session but no user yet, create a fallback user from the session instead of leaving `user` as `null`:
+
+```typescript
+const timeout = setTimeout(async () => {
+  if (signInRedirectRef.current) return;
+  if (initialFetchDoneRef.current) return;
+  if (mounted && loading) {
+    console.warn('Auth initialization timeout - forcing loading = false');
+    // Try to recover user from existing session
+    const { data: { session: currentSession } } = await supabase.auth.getSession();
+    if (currentSession?.user) {
+      const fallback = await createFallbackUser(currentSession.user);
+      setUser(fallback);
+    }
+    setLoading(false);
+  }
+}, 10000);
+```
 
 ### Files Changed
 
 | File | Action |
 |---|---|
-| `src/components/landing/NavHeader.tsx` | Import + add toggle in desktop nav and mobile drawer |
-| `src/components/navigation/ScrollHeader.tsx` | Import + add toggle next to logo |
-| `src/components/admin/AdminHeader.tsx` | Import + add toggle in header controls |
-| `src/components/student/StudentSidebar.tsx` | Import + add toggle near bottom |
-| `src/components/teacher/dashboard/TeacherDashboardShell.tsx` | Import + add toggle in top nav |
+| `src/contexts/AuthContext.tsx` | Reset `initializedRef` on cleanup; recover user in timeout handler |
 
