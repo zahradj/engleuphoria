@@ -3,6 +3,7 @@ import { UserPlus, Loader2 } from 'lucide-react';
 import { AuthPageLayout } from '@/components/auth/AuthPageLayout';
 import { SimpleAuthForm } from '@/components/auth/SimpleAuthForm';
 import { useAuth } from '@/contexts/AuthContext';
+import { HeroThemeProvider } from '@/contexts/HeroThemeContext';
 import { supabase } from '@/integrations/supabase/client';
 
 const SignUp = () => {
@@ -49,14 +50,16 @@ const SignUp = () => {
   }
 
   return (
-    <AuthPageLayout
-      title="Create Account"
-      subtitle="Join our community of English learners"
-      icon={UserPlus}
-      variant="default"
-    >
-      <SimpleAuthForm mode="signup" />
-    </AuthPageLayout>
+    <HeroThemeProvider>
+      <AuthPageLayout
+        title="Create Account"
+        subtitle="Join our community of English learners"
+        icon={UserPlus}
+        variant="default"
+      >
+        <SimpleAuthForm mode="signup" />
+      </AuthPageLayout>
+    </HeroThemeProvider>
   );
 };
 
