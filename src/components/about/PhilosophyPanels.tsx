@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, Rocket, Briefcase } from 'lucide-react';
+import { useThemeMode } from '@/hooks/useThemeMode';
 
 const panels = [
   {
@@ -9,7 +10,8 @@ const panels = [
     headline: 'For Kids, we believe in Magic.',
     body: "In our Playground, every lesson is an adventure. Kids explore a gamified forest world where learning English feels like playing their favorite game. Animated mascots guide them, rewards celebrate every milestone, and laughter is part of the curriculum.",
     gradient: 'from-yellow-400 via-green-400 to-emerald-500',
-    bgGradient: 'from-yellow-500/20 via-green-500/20 to-emerald-500/20',
+    bgGradientDark: 'from-yellow-500/20 via-green-500/20 to-emerald-500/20',
+    bgGradientLight: 'from-yellow-50 via-green-50 to-emerald-50',
     iconColor: 'text-yellow-400',
     image: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=600&h=400&fit=crop'
   },
@@ -19,7 +21,8 @@ const panels = [
     headline: 'For Teens, we believe in Agency.',
     body: "The Academy puts teens in the driver's seat. Project-based learning, real-world challenges, and creative expression help them build confidence. No boring textbooks - just skills that matter for their future.",
     gradient: 'from-violet-500 via-purple-500 to-fuchsia-500',
-    bgGradient: 'from-violet-500/20 via-purple-500/20 to-fuchsia-500/20',
+    bgGradientDark: 'from-violet-500/20 via-purple-500/20 to-fuchsia-500/20',
+    bgGradientLight: 'from-violet-50 via-purple-50 to-fuchsia-50',
     iconColor: 'text-violet-400',
     image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=400&fit=crop'
   },
@@ -29,7 +32,8 @@ const panels = [
     headline: 'For Adults, we believe in Results.',
     body: "The Professional Hub is designed for busy professionals who need English for career growth. Structured business English courses, interview preparation, and presentation skills - all delivered efficiently with measurable progress.",
     gradient: 'from-slate-400 via-blue-500 to-cyan-500',
-    bgGradient: 'from-slate-400/20 via-blue-500/20 to-cyan-500/20',
+    bgGradientDark: 'from-slate-400/20 via-blue-500/20 to-cyan-500/20',
+    bgGradientLight: 'from-slate-50 via-blue-50 to-cyan-50',
     iconColor: 'text-blue-400',
     image: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&h=400&fit=crop'
   }
@@ -38,6 +42,8 @@ const panels = [
 const PhilosophyPanels = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const { resolvedTheme } = useThemeMode();
+  const isDark = resolvedTheme === 'dark';
 
   useEffect(() => {
     const container = containerRef.current;
@@ -64,14 +70,14 @@ const PhilosophyPanels = () => {
   };
 
   return (
-    <section className="relative bg-slate-950">
+    <section className={`relative transition-colors duration-300 ${isDark ? 'bg-slate-950' : 'bg-white'}`}>
       {/* Section Header */}
       <div className="py-16 text-center">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-3xl md:text-5xl font-display font-bold text-white mb-4"
+          className={`text-3xl md:text-5xl font-display font-bold mb-4 ${isDark ? 'text-white' : 'text-slate-900'}`}
         >
           Our Philosophy
         </motion.h2>
@@ -80,7 +86,7 @@ const PhilosophyPanels = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.1 }}
-          className="text-white/60 text-lg"
+          className={`text-lg ${isDark ? 'text-white/60' : 'text-slate-500'}`}
         >
           Swipe to explore our three worlds
         </motion.p>
@@ -97,7 +103,9 @@ const PhilosophyPanels = () => {
             key={panel.id}
             className="min-w-full w-full snap-start flex-shrink-0"
           >
-            <div className={`min-h-[70vh] flex items-center bg-gradient-to-br ${panel.bgGradient} bg-slate-950`}>
+            <div className={`min-h-[70vh] flex items-center bg-gradient-to-br ${
+              isDark ? panel.bgGradientDark + ' bg-slate-950' : panel.bgGradientLight + ' bg-white'
+            }`}>
               <div className="container mx-auto px-6 py-12">
                 <div className="grid md:grid-cols-2 gap-12 items-center">
                   {/* Content */}
@@ -114,11 +122,15 @@ const PhilosophyPanels = () => {
                       </span>
                     </div>
                     
-                    <h3 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold text-white mb-6">
+                    <h3 className={`text-3xl md:text-4xl lg:text-5xl font-display font-bold mb-6 ${
+                      isDark ? 'text-white' : 'text-slate-900'
+                    }`}>
                       {panel.headline}
                     </h3>
                     
-                    <p className="text-lg md:text-xl text-white/70 leading-relaxed">
+                    <p className={`text-lg md:text-xl leading-relaxed ${
+                      isDark ? 'text-white/70' : 'text-slate-600'
+                    }`}>
                       {panel.body}
                     </p>
                   </motion.div>
@@ -146,15 +158,15 @@ const PhilosophyPanels = () => {
       </div>
 
       {/* Progress Dots */}
-      <div className="flex justify-center gap-3 py-8 bg-slate-950">
+      <div className={`flex justify-center gap-3 py-8 ${isDark ? 'bg-slate-950' : 'bg-white'}`}>
         {panels.map((_, index) => (
           <button
             key={index}
             onClick={() => scrollToPanel(index)}
             className={`w-3 h-3 rounded-full transition-all duration-300 ${
               activeIndex === index
-                ? 'bg-white w-8'
-                : 'bg-white/30 hover:bg-white/50'
+                ? `${isDark ? 'bg-white' : 'bg-slate-900'} w-8`
+                : `${isDark ? 'bg-white/30 hover:bg-white/50' : 'bg-slate-300 hover:bg-slate-400'}`
             }`}
             aria-label={`Go to panel ${index + 1}`}
           />
