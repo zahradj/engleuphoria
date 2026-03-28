@@ -81,6 +81,19 @@ export function NavHeader() {
                   {item.label}
                 </button>
               ))}
+              {navLinks.map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                    isDark
+                      ? 'text-slate-400 hover:text-white hover:bg-white/5'
+                      : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              ))}
               <Link
                 to="/for-teachers"
                 className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
