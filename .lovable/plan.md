@@ -1,42 +1,37 @@
 
 
-## Apply Theme-Aware Logo Swap Across All Pages
+## Add Dark/Light Mode Toggle Across All Pages
 
 ### Problem
-The auth pages already swap between white/black logos based on light/dark mode, but the rest of the platform still uses static logo assets — `logoDark` on NavHeader and TeachWithUsPage, `logoWhite` on FooterSection, and `logoImage` with CSS invert on AnimatedLogo. The user wants the same rule everywhere: **white logo in light mode, black logo in dark mode**, with no white background behind the logo.
+The `ThemeModeToggle` component (sun/moon button with ripple animation) only appears on the auth pages. The homepage, About, Teach With Us, and all dashboard pages (Admin, Teacher, Student) have no way to switch between light and dark mode.
 
-### Changes
+### Plan
 
-**1. `src/components/landing/NavHeader.tsx`**
-- Import both `logoBlack` and `logoWhite` (replace single `logoDark` import)
-- Swap `src={logoDark}` to `src={resolvedTheme === 'dark' ? logoBlack : logoWhite}`
-- Remove `bg-white/90 dark:bg-white/10` from the `<img>` class
+**1. NavHeader (Landing, About, For Teachers pages)**
+Add `ThemeModeToggle` next to the `LanguageSwitcher` in both the desktop right section and the mobile drawer.
 
-**2. `src/components/landing/FooterSection.tsx`**
-- Import `logoBlack` alongside existing `logoWhite`
-- Replace `src={logoWhite}` with `src={isDark ? logoWhite : logoBlack}`
-- Remove the `brightness-0` filter hack (`${!isDark ? 'brightness-0' : ''}`)
+- **Desktop**: Insert toggle between `LanguageSwitcher` and the "Log In" button (line ~126)
+- **Mobile drawer**: Add a "Theme" row next to the "Language" row (line ~228)
 
-**3. `src/pages/TeachWithUsPage.tsx`**
-- Import both `logoBlack` and `logoWhite`, add `useThemeMode` hook
-- Replace static `src={logoDark}` with `src={resolvedTheme === 'dark' ? logoBlack : logoWhite}`
+**2. ScrollHeader (Teacher & Admin dashboards)**
+This sticky header appears on scroll for dashboard pages. Add `ThemeModeToggle` next to the `Logo` in the flex container (line ~46-50).
 
-**4. `src/components/auth/ThemedSignupForm.tsx`**
-- Already imports both logos — just invert the logic to match the new convention
-- Change `src={isDarkMode ? logoWhite : logoDark}` → `src={isDarkMode ? logoBlack : logoWhite}`
+**3. AdminHeader**
+Add `ThemeModeToggle` in the right-side controls area, next to the Search button (line ~19).
 
-**5. `src/components/ui/AnimatedLogo.tsx`**
-- Import both `logoBlack` and `logoWhite`, add `useThemeMode` hook
-- Replace static `src={logoImage}` with theme-conditional logo
-- Remove the `filter brightness-0 invert` CSS hack
+**4. StudentSidebar**
+Add `ThemeModeToggle` at the bottom of the sidebar, near the logout button area.
+
+**5. TeacherDashboardShell top navigation**
+Add `ThemeModeToggle` in the top navigation bar area.
 
 ### Files Changed
 
 | File | Action |
 |---|---|
-| `src/components/landing/NavHeader.tsx` | Import both logos, swap by theme, remove bg |
-| `src/components/landing/FooterSection.tsx` | Import both logos, swap by theme, remove brightness hack |
-| `src/pages/TeachWithUsPage.tsx` | Import both logos + useThemeMode, swap by theme |
-| `src/components/auth/ThemedSignupForm.tsx` | Invert logo logic to match convention |
-| `src/components/ui/AnimatedLogo.tsx` | Import both logos + useThemeMode, remove CSS invert hack |
+| `src/components/landing/NavHeader.tsx` | Import + add toggle in desktop nav and mobile drawer |
+| `src/components/navigation/ScrollHeader.tsx` | Import + add toggle next to logo |
+| `src/components/admin/AdminHeader.tsx` | Import + add toggle in header controls |
+| `src/components/student/StudentSidebar.tsx` | Import + add toggle near bottom |
+| `src/components/teacher/dashboard/TeacherDashboardShell.tsx` | Import + add toggle in top nav |
 
