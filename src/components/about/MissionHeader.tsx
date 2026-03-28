@@ -1,34 +1,19 @@
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
-import { Bird, Sparkles, Briefcase, ArrowRight, Heart, Target, Users, Globe } from 'lucide-react';
+import { Heart, Target, Users, Globe } from 'lucide-react';
 import { useThemeMode } from '@/hooks/useThemeMode';
 import { useRef, useState, useEffect } from 'react';
 import { useInView } from 'framer-motion';
+import { useHeroTheme, GROUP_THEMES } from '@/contexts/HeroThemeContext';
+import heroKid from '@/assets/hero-kid.png';
+import heroTeen from '@/assets/hero-teen.png';
+import heroAdult from '@/assets/hero-adult.png';
 
-const GROUP_DATA = [
-  {
-    icon: Bird,
-    label: 'The Playground',
-    ageLabel: 'Kids 5–12',
-    gradient: 'from-[#FF9F1C] to-[#FFBF00]',
-    glowColor: 'bg-[#FF9F1C]',
-    dotActive: 'bg-[#FF9F1C]',
-  },
-  {
-    icon: Sparkles,
-    label: 'The Academy',
-    ageLabel: 'Teens 13–17',
-    gradient: 'from-[#6366F1] to-[#A855F7]',
-    glowColor: 'bg-[#6366F1]',
-    dotActive: 'bg-[#6366F1]',
-  },
-  {
-    icon: Briefcase,
-    label: 'The Hub',
-    ageLabel: 'Adults 18+',
-    gradient: 'from-[#10B981] to-[#059669]',
-    glowColor: 'bg-[#10B981]',
-    dotActive: 'bg-[#10B981]',
-  },
+const HERO_IMAGES = [heroKid, heroTeen, heroAdult];
+
+const GROUP_META = [
+  { label: 'The Playground', ageLabel: 'Kids 5–12', cssFrom: '#FF9F1C', cssTo: '#FFBF00' },
+  { label: 'The Academy', ageLabel: 'Teens 13–17', cssFrom: '#6366F1', cssTo: '#A855F7' },
+  { label: 'The Hub', ageLabel: 'Adults 18+', cssFrom: '#10B981', cssTo: '#059669' },
 ];
 
 function useCountUp(target: number, duration = 2000) {
@@ -55,8 +40,7 @@ const MissionHeader = () => {
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
   const sectionRef = useRef<HTMLElement>(null);
-  const [activeGroup, setActiveGroup] = useState(0);
-  const theme = GROUP_DATA[activeGroup];
+  const { activeIndex, setActiveIndex, theme } = useHeroTheme();
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -68,12 +52,15 @@ const MissionHeader = () => {
   const countries = useCountUp(45);
   const students = useCountUp(2500);
 
+  // Auto-rotate synced with global context
   useEffect(() => {
     const interval = setInterval(() => {
-      setActiveGroup((prev) => (prev + 1) % GROUP_DATA.length);
+      setActiveIndex((prev) => (prev + 1) % GROUP_THEMES.length);
     }, 4000);
     return () => clearInterval(interval);
-  }, []);
+  }, [setActiveIndex]);
+
+  const meta = GROUP_META[activeIndex];
 
   return (
     <section
@@ -84,14 +71,18 @@ const MissionHeader = () => {
     >
       {/* Decorative glows */}
       <div
-        className={`absolute bottom-0 left-0 w-96 h-96 rounded-full blur-[120px] transition-colors duration-700 ${theme.glowColor} ${
-          isDark ? 'opacity-[0.08]' : 'opacity-[0.06]'
-        }`}
+        className="absolute bottom-0 left-0 w-96 h-96 rounded-full blur-[120px] transition-all duration-700"
+        style={{
+          backgroundColor: meta.cssFrom,
+          opacity: isDark ? 0.08 : 0.06,
+        }}
       />
       <div
-        className={`absolute top-20 right-20 w-72 h-72 rounded-full blur-[100px] transition-colors duration-700 ${theme.glowColor} ${
-          isDark ? 'opacity-[0.06]' : 'opacity-[0.04]'
-        }`}
+        className="absolute top-20 right-20 w-72 h-72 rounded-full blur-[100px] transition-all duration-700"
+        style={{
+          backgroundColor: meta.cssTo,
+          opacity: isDark ? 0.06 : 0.04,
+        }}
       />
 
       <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-28 lg:py-0">
@@ -123,7 +114,12 @@ const MissionHeader = () => {
             >
               Learning,
               <br />
-              <span className={`bg-gradient-to-r ${theme.gradient} bg-clip-text text-transparent transition-all duration-700`}>
+              <span
+                className="bg-clip-text text-transparent transition-all duration-700"
+                style={{
+                  backgroundImage: `linear-gradient(to right, ${meta.cssFrom}, ${meta.cssTo})`,
+                }}
+              >
                 Reimagined.
               </span>
             </motion.h1>
@@ -169,7 +165,7 @@ const MissionHeader = () => {
             </motion.div>
           </div>
 
-          {/* Right: Animated mascot cards */}
+          {/* Right: Hero character carousel */}
           <motion.div
             className="order-1 lg:order-2 relative"
             initial={{ opacity: 0, x: 40 }}
@@ -177,80 +173,106 @@ const MissionHeader = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
             style={{ y: bgY }}
           >
-            <div className="relative mx-auto max-w-md lg:max-w-none">
-              <div
-                className={`absolute inset-0 rounded-full blur-[80px] transition-colors duration-700 ${theme.glowColor} ${
-                  isDark ? 'opacity-[0.15]' : 'opacity-[0.10]'
-                }`}
-                style={{ top: '10%', bottom: '10%', left: '10%', right: '10%' }}
+            <div className="relative mx-auto max-w-md lg:max-w-lg">
+              {/* Large radial glow behind active character */}
+              <motion.div
+                className="absolute inset-0 rounded-full blur-[100px] transition-all duration-700"
+                style={{
+                  background: `radial-gradient(circle, ${meta.cssFrom}${isDark ? '30' : '20'} 0%, transparent 70%)`,
+                  top: '5%',
+                  bottom: '5%',
+                  left: '5%',
+                  right: '5%',
+                }}
               />
 
-              {/* Mascot circles */}
-              <div className="relative aspect-square flex items-center justify-center">
-                {GROUP_DATA.map((group, i) => {
-                  const isActive = i === activeGroup;
-                  const angle = (Math.PI * 2 * i) / GROUP_DATA.length - Math.PI / 2;
-                  const radius = 120;
-                  const x = Math.cos(angle) * radius;
-                  const y = Math.sin(angle) * radius;
-
-                  return (
-                    <motion.button
-                      key={group.label}
-                      onClick={() => setActiveGroup(i)}
-                      className="absolute"
-                      animate={{
-                        x,
-                        y,
-                        scale: isActive ? 1.3 : 0.9,
-                        zIndex: isActive ? 10 : 1,
+              {/* Character images with crossfade */}
+              <div className="relative aspect-[3/4] flex items-center justify-center">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeIndex}
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                    transition={{ duration: 0.5, ease: 'easeInOut' }}
+                    className="absolute inset-0 flex items-center justify-center"
+                  >
+                    {/* Colored ring glow */}
+                    <div
+                      className="absolute w-[70%] h-[70%] rounded-full blur-[60px] transition-all duration-700"
+                      style={{
+                        background: `radial-gradient(circle, ${meta.cssFrom}${isDark ? '25' : '18'} 0%, ${meta.cssTo}${isDark ? '10' : '08'} 50%, transparent 70%)`,
                       }}
-                      transition={{ duration: 0.6, ease: 'easeInOut' }}
-                    >
-                      <motion.div
-                        className={`w-24 h-24 md:w-28 md:h-28 rounded-full bg-gradient-to-br ${group.gradient} flex items-center justify-center shadow-2xl cursor-pointer`}
-                        animate={isActive ? { y: [0, -10, 0] } : {}}
-                        transition={isActive ? { duration: 3, repeat: Infinity, ease: 'easeInOut' } : {}}
-                      >
-                        <group.icon className="w-10 h-10 md:w-12 md:h-12 text-white" />
-                      </motion.div>
-                      <AnimatePresence>
-                        {isActive && (
-                          <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -5 }}
-                            className="absolute -bottom-10 left-1/2 -translate-x-1/2 whitespace-nowrap"
-                          >
-                            <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{group.label}</span>
-                            <span className={`block text-xs ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>{group.ageLabel}</span>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </motion.button>
-                  );
-                })}
+                    />
+                    <motion.img
+                      src={HERO_IMAGES[activeIndex]}
+                      alt={meta.label}
+                      className="relative z-10 w-full h-full object-contain drop-shadow-2xl"
+                      animate={{ y: [0, -12, 0] }}
+                      transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                    />
+                  </motion.div>
+                </AnimatePresence>
 
-                {/* Center text */}
-                <div className={`text-center px-6 ${isDark ? 'text-white' : 'text-slate-900'}`}>
-                  <p className="text-sm font-medium opacity-60">Three Worlds</p>
-                  <p className="text-lg font-bold">One Mission</p>
-                </div>
+                {/* Label overlay */}
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={`label-${activeIndex}`}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                    transition={{ duration: 0.3 }}
+                    className="absolute bottom-4 left-1/2 -translate-x-1/2 text-center z-20"
+                  >
+                    <span
+                      className="inline-block px-4 py-1.5 rounded-full text-sm font-bold text-white shadow-lg"
+                      style={{
+                        background: `linear-gradient(135deg, ${meta.cssFrom}, ${meta.cssTo})`,
+                      }}
+                    >
+                      {meta.label}
+                    </span>
+                    <span className={`block text-xs mt-1 font-medium ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                      {meta.ageLabel}
+                    </span>
+                  </motion.div>
+                </AnimatePresence>
               </div>
 
-              {/* Dots */}
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-                {GROUP_DATA.map((g, i) => (
+              {/* Mini avatar thumbnails + dots */}
+              <div className="flex items-center justify-center gap-4 mt-4">
+                {GROUP_META.map((g, i) => (
                   <button
                     key={i}
-                    onClick={() => setActiveGroup(i)}
-                    className={`h-2.5 rounded-full transition-all duration-500 ${
-                      i === activeGroup
-                        ? `w-8 ${g.dotActive}`
-                        : `w-2.5 ${isDark ? 'bg-white/30 hover:bg-white/50' : 'bg-slate-300 hover:bg-slate-400'}`
-                    }`}
-                    aria-label={`Show ${g.label}`}
-                  />
+                    onClick={() => setActiveIndex(i)}
+                    className="flex flex-col items-center gap-1.5 group"
+                  >
+                    <div
+                      className={`w-12 h-12 rounded-full overflow-hidden border-2 transition-all duration-300 ${
+                        i === activeIndex
+                          ? 'scale-110 shadow-lg'
+                          : `scale-90 opacity-50 ${isDark ? 'border-white/10' : 'border-slate-200'}`
+                      }`}
+                      style={{
+                        borderColor: i === activeIndex ? g.cssFrom : undefined,
+                        boxShadow: i === activeIndex ? `0 0 20px ${g.cssFrom}40` : undefined,
+                      }}
+                    >
+                      <img
+                        src={HERO_IMAGES[i]}
+                        alt={g.label}
+                        className="w-full h-full object-cover object-top"
+                      />
+                    </div>
+                    <div
+                      className={`h-1 rounded-full transition-all duration-500 ${
+                        i === activeIndex ? 'w-6' : 'w-2'
+                      }`}
+                      style={{
+                        backgroundColor: i === activeIndex ? g.cssFrom : isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)',
+                      }}
+                    />
+                  </button>
                 ))}
               </div>
             </div>
