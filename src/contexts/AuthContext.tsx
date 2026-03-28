@@ -274,8 +274,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const cleanup = initializeAuth();
      
-    // Safety timeout - increased to 3000ms with redirect protection
-    const timeout = setTimeout(() => {
+    // Safety timeout with session recovery
+    const timeout = setTimeout(async () => {
       // Don't interfere if a SIGNED_IN redirect is in progress
       if (signInRedirectRef.current) {
         console.log('⏳ Safety timeout skipped - redirect in progress');
@@ -287,14 +287,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       if (mounted && loading) {
         console.warn('Auth initialization timeout - forcing loading = false');
-        setLoading(false);
+        // Try to recover user from existing session
+        try {
+          const { data: { session: currentSession } } = await supabase.auth.getSession();
+          if (currentSession?.user && mounted) {
+            const fallback = await createFallbackUser(currentSession.user);
+            setUser(fallback);
+          }
+        } catch (e) {
+          console.error('Session recovery failed:', e);
+        }
+        if (mounted) setLoading(false);
       }
     }, 10000);
 
     return () => {
       mounted = false;
-      // Do NOT reset initializedRef — StrictMode double-mount causes
-      // duplicate subscriptions and double redirects if we re-init.
+      initializedRef.current = false; // Allow re-init on StrictMode remount
       clearTimeout(timeout);
       if (cleanup instanceof Promise) {
         cleanup.then(cleanupFn => cleanupFn?.());
