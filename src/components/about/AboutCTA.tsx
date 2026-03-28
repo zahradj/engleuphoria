@@ -6,11 +6,11 @@ import { GlassButton } from '@/components/ui/glass-card';
 const AboutCTA = () => {
   return (
     <section className="relative py-24 overflow-hidden">
-      {/* Background */}
+      {/* Background — works in both modes */}
       <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-600 to-emerald-600" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent" />
       
-      {/* Floating particles effect */}
+      {/* Floating particles */}
       <div className="absolute inset-0 overflow-hidden">
         {[...Array(20)].map((_, i) => (
           <motion.div
