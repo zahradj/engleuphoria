@@ -8,6 +8,7 @@ import { Loader2, Eye, EyeOff, CheckCircle, XCircle, Mail, Lock, User, Graduatio
 import { supabase } from '@/integrations/supabase/client';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useHeroTheme } from '@/contexts/HeroThemeContext';
 
 interface SimpleAuthFormProps {
   mode: 'login' | 'signup';

@@ -1,9 +1,20 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ArrowLeft } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useHeroTheme, GROUP_THEMES } from '@/contexts/HeroThemeContext';
+import { useThemeMode } from '@/hooks/useThemeMode';
 import { ThemeModeToggle } from '@/components/ui/ThemeModeToggle';
 import logoDark from '@/assets/logo-dark.png';
+import heroKid from '@/assets/hero-kid.png';
+import heroTeen from '@/assets/hero-teen.png';
+import heroAdult from '@/assets/hero-adult.png';
+
+const HERO_IMAGES = [heroKid, heroTeen, heroAdult];
+const TAGLINES = [
+  'Where kids discover the joy of English!',
+  'Level up your English, level up your future.',
+  'Professional English for the real world.',
+];
 
 interface AuthPageLayoutProps {
   children: React.ReactNode;
@@ -22,130 +33,212 @@ export function AuthPageLayout({
   icon: Icon,
   variant = 'default',
   backLink = { to: '/', label: 'Back to Home' },
-  showProgress
+  showProgress,
 }: AuthPageLayoutProps) {
-  const getVariantColors = () => {
-    switch (variant) {
-      case 'teacher':
-        return {
-          iconGradient: 'from-emerald-400 to-teal-500',
-          titleGradient: 'from-emerald-500 to-teal-600',
-        };
-      case 'student':
-        return {
-          iconGradient: 'from-violet-400 to-purple-500',
-          titleGradient: 'from-violet-500 to-purple-600',
-        };
-      default:
-        return {
-          iconGradient: 'from-indigo-500 to-purple-600',
-          titleGradient: 'from-indigo-500 to-purple-600',
-        };
-    }
-  };
+  const { activeIndex, setActiveIndex, theme } = useHeroTheme();
+  const { isDark } = useThemeMode();
 
-  const colors = getVariantColors();
+  // Auto-rotate demographics
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % 3);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [setActiveIndex]);
 
   return (
-    <div className="relative flex flex-col min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 transition-colors duration-500">
-      {/* Circling purple light orbs */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <div className="relative min-h-screen flex flex-col lg:flex-row bg-white dark:bg-[#09090B] transition-colors duration-300">
+      {/* ── Left Panel: Branding & Hero Carousel ── */}
+      <div className="relative lg:w-[48%] flex flex-col items-center justify-center overflow-hidden p-8 lg:p-12">
+        {/* Ambient radial glows */}
         <motion.div
-          className="absolute -top-20 -right-20 w-[350px] h-[350px] rounded-full bg-gradient-to-bl from-purple-400/20 via-violet-300/15 to-transparent dark:from-purple-500/15 dark:via-violet-400/10 blur-3xl"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 12, repeat: Infinity, ease: 'linear' }}
-          style={{ transformOrigin: '70% 30%' }}
+          className="absolute inset-0 pointer-events-none"
+          animate={{
+            background: `radial-gradient(circle at 50% 40%, ${theme.cssFrom}22 0%, transparent 70%), radial-gradient(circle at 30% 80%, ${theme.cssTo}18 0%, transparent 60%)`,
+          }}
+          transition={{ duration: 1 }}
+        />
+
+        {/* Floating decorative dots */}
+        <motion.div
+          className="absolute top-16 right-16 w-3 h-3 rounded-full opacity-40"
+          style={{ backgroundColor: theme.cssFrom }}
+          animate={{ y: [0, -12, 0], opacity: [0.3, 0.6, 0.3] }}
+          transition={{ duration: 3, repeat: Infinity }}
         />
         <motion.div
-          className="absolute -bottom-20 -left-20 w-[300px] h-[300px] rounded-full bg-gradient-to-tr from-violet-400/20 via-purple-300/15 to-transparent dark:from-violet-500/15 dark:via-purple-400/10 blur-3xl"
-          animate={{ rotate: -360 }}
-          transition={{ duration: 16, repeat: Infinity, ease: 'linear' }}
-          style={{ transformOrigin: '30% 70%' }}
+          className="absolute bottom-24 left-12 w-2 h-2 rounded-full opacity-30"
+          style={{ backgroundColor: theme.cssTo }}
+          animate={{ y: [0, 10, 0], opacity: [0.2, 0.5, 0.2] }}
+          transition={{ duration: 4, repeat: Infinity, delay: 1 }}
         />
+
+        {/* Logo */}
+        <Link to="/" className="relative z-10 flex items-center gap-2.5 mb-8 lg:mb-12">
+          <img src={logoDark} alt="EnglEuphoria" className="w-9 h-9 object-contain bg-white/90 dark:bg-white/90 rounded-xl p-0.5" />
+          <span className="text-xl font-bold text-foreground">EnglEuphoria</span>
+        </Link>
+
+        {/* Character Image Carousel */}
+        <div className="relative z-10 w-56 h-56 sm:w-64 sm:h-64 lg:w-72 lg:h-72 mb-6">
+          {/* Glow ring behind character */}
+          <motion.div
+            className="absolute inset-0 rounded-full blur-2xl opacity-30"
+            animate={{
+              background: `radial-gradient(circle, ${theme.cssFrom}66, ${theme.cssTo}33, transparent)`,
+            }}
+            transition={{ duration: 0.8 }}
+          />
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={activeIndex}
+              src={HERO_IMAGES[activeIndex]}
+              alt={GROUP_THEMES[activeIndex].label}
+              className="relative z-10 w-full h-full object-contain drop-shadow-2xl"
+              initial={{ opacity: 0, scale: 0.85, y: 10 }}
+              animate={{
+                opacity: 1,
+                scale: 1,
+                y: [0, -6, 0],
+              }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{
+                opacity: { duration: 0.4 },
+                scale: { duration: 0.4 },
+                y: { duration: 3, repeat: Infinity, ease: 'easeInOut' },
+              }}
+            />
+          </AnimatePresence>
+        </div>
+
+        {/* Tagline */}
+        <AnimatePresence mode="wait">
+          <motion.p
+            key={activeIndex}
+            className="relative z-10 text-center text-lg font-medium text-foreground/80 max-w-xs"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.3 }}
+          >
+            {TAGLINES[activeIndex]}
+          </motion.p>
+        </AnimatePresence>
+
+        {/* Mini avatar selectors */}
+        <div className="relative z-10 flex items-center gap-3 mt-6">
+          {HERO_IMAGES.map((img, i) => (
+            <button
+              key={i}
+              onClick={() => setActiveIndex(i)}
+              className={`relative rounded-full transition-all duration-300 ${
+                i === activeIndex
+                  ? 'w-12 h-12 ring-2 scale-110'
+                  : 'w-9 h-9 opacity-50 hover:opacity-80 hover:scale-105'
+              }`}
+              style={{
+                ringColor: i === activeIndex ? theme.cssFrom : undefined,
+                borderColor: i === activeIndex ? theme.cssFrom : 'transparent',
+              }}
+            >
+              <img
+                src={img}
+                alt={GROUP_THEMES[i].label}
+                className="w-full h-full object-contain rounded-full"
+              />
+              {i === activeIndex && (
+                <motion.div
+                  layoutId="auth-avatar-ring"
+                  className="absolute -inset-0.5 rounded-full border-2"
+                  style={{ borderColor: theme.cssFrom }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                />
+              )}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Header */}
-      <header className="relative z-50 p-4 sm:p-6 flex items-center justify-between">
-        <Link
-          to={backLink.to}
-          className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span className="text-sm font-medium">{backLink.label}</span>
-        </Link>
-        <div className="flex items-center gap-3">
-          <Link to="/" className="flex items-center gap-2">
-            <img src={logoDark} alt="EnglEuphoria" className="w-7 h-7 object-contain bg-white/90 dark:bg-white/90 rounded-lg p-0.5" />
-            <span className="text-base font-bold text-foreground">EnglEuphoria</span>
-          </Link>
+      {/* ── Right Panel: Auth Form ── */}
+      <div className="relative flex-1 flex flex-col min-h-screen lg:min-h-0">
+        {/* Top bar */}
+        <div className="flex items-center justify-end p-4 sm:p-6">
           <ThemeModeToggle className="text-muted-foreground hover:text-foreground hover:bg-muted" />
         </div>
-      </header>
 
-      {/* Form area */}
-      <div className="relative z-10 flex-1 flex items-center justify-center p-4 sm:p-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: 'easeOut' }}
-          className="w-full max-w-md"
-        >
-          {showProgress && <div className="mb-4">{showProgress}</div>}
+        {/* Form container */}
+        <div className="flex-1 flex items-center justify-center px-4 sm:px-8 pb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+            className="w-full max-w-md"
+          >
+            {showProgress && <div className="mb-4">{showProgress}</div>}
 
-          {/* Card */}
-          <div className="relative bg-white/80 dark:bg-slate-900/70 backdrop-blur-xl border border-slate-200/60 dark:border-slate-700/40 rounded-2xl p-8 shadow-xl shadow-slate-200/40 dark:shadow-black/20">
-            {/* Subtle top border glow */}
-            <div className="absolute top-0 left-8 right-8 h-px bg-gradient-to-r from-transparent via-indigo-400/50 to-transparent" />
+            {/* Card */}
+            <div className="relative bg-white/80 dark:bg-slate-900/70 backdrop-blur-xl border border-slate-200/60 dark:border-slate-700/40 rounded-2xl p-8 shadow-xl shadow-slate-200/40 dark:shadow-black/20">
+              {/* Top border glow synced with theme */}
+              <motion.div
+                className="absolute top-0 left-8 right-8 h-px"
+                animate={{
+                  background: `linear-gradient(to right, transparent, ${theme.cssFrom}80, ${theme.cssTo}80, transparent)`,
+                }}
+                transition={{ duration: 0.8 }}
+              />
 
-            {/* Header */}
-            <div className="text-center mb-6">
-              {Icon && (
-                <div className="flex justify-center mb-4">
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', duration: 0.5, delay: 0.1 }}
-                    className={`w-14 h-14 bg-gradient-to-br ${colors.iconGradient} rounded-xl flex items-center justify-center shadow-lg`}
-                  >
-                    <Icon className="h-7 w-7 text-white" />
-                  </motion.div>
-                </div>
-              )}
-              <motion.h1
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.2 }}
-                className={`text-2xl font-bold bg-gradient-to-r ${colors.titleGradient} bg-clip-text text-transparent`}
-              >
-                {title}
-              </motion.h1>
-              {subtitle && (
-                <motion.p
+              {/* Header */}
+              <div className="text-center mb-6">
+                {Icon && (
+                  <div className="flex justify-center mb-4">
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', duration: 0.5, delay: 0.1 }}
+                      className="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg"
+                      style={{
+                        backgroundImage: `linear-gradient(135deg, ${theme.cssFrom}, ${theme.cssTo})`,
+                      }}
+                    >
+                      <Icon className="h-7 w-7 text-white" />
+                    </motion.div>
+                  </div>
+                )}
+                <motion.h1
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                  className="text-muted-foreground mt-2 text-sm"
+                  transition={{ delay: 0.2 }}
+                  className="text-2xl font-bold bg-clip-text text-transparent"
+                  style={{
+                    backgroundImage: `linear-gradient(to right, ${theme.cssFrom}, ${theme.cssTo})`,
+                  }}
                 >
-                  {subtitle}
-                </motion.p>
-              )}
+                  {title}
+                </motion.h1>
+                {subtitle && (
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                    className="text-muted-foreground mt-2 text-sm"
+                  >
+                    {subtitle}
+                  </motion.p>
+                )}
+              </div>
+
+              {/* Form Content */}
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
+                {children}
+              </motion.div>
             </div>
 
-            {/* Form Content */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-            >
-              {children}
-            </motion.div>
-          </div>
-
-          {/* Footer */}
-          <p className="text-center text-xs text-muted-foreground/60 mt-6">
-            By continuing, you agree to our Terms of Service and Privacy Policy
-          </p>
-        </motion.div>
+            {/* Footer */}
+            <p className="text-center text-xs text-muted-foreground/60 mt-6">
+              By continuing, you agree to our Terms of Service and Privacy Policy
+            </p>
+          </motion.div>
+        </div>
       </div>
     </div>
   );
