@@ -11,6 +11,7 @@ import { TeacherGuideTab } from './TeacherGuideTab';
 import { ScrollHeader } from '@/components/navigation/ScrollHeader';
 import { Loader2 } from 'lucide-react';
 import { FloatingHelpButton } from '@/components/support/FloatingHelpButton';
+import { ThemeModeToggle } from '@/components/ui/ThemeModeToggle';
 
 type TabType = 'dashboard' | 'schedule' | 'methodology' | 'account' | 'teacher-hub' | 'help';
 
@@ -72,6 +73,9 @@ export const TeacherDashboardShell = ({
       <ScrollHeader />
       
       {/* Top Navigation */}
+      <div className="flex items-center justify-end px-4 pt-2">
+        <ThemeModeToggle className="text-muted-foreground hover:text-foreground hover:bg-muted" />
+      </div>
       <TeacherTopNav
         teacherName={teacherName}
         activeTab={activeTab}
