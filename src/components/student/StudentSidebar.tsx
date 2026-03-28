@@ -28,6 +28,7 @@ import {
   SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { ThemeModeToggle } from '@/components/ui/ThemeModeToggle';
 
 interface StudentSidebarProps {
   activeTab: string;
@@ -122,6 +123,21 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
           </SidebarGroupContent>
         </SidebarGroup>
         
+        {/* Theme Toggle */}
+        <SidebarSeparator className="bg-border my-2" />
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <div className="mx-2 px-4 py-2 flex items-center gap-2">
+                  {!isCollapsed && <span className="text-sm text-text-muted">Theme</span>}
+                  <ThemeModeToggle className="text-text-muted hover:text-text" />
+                </div>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
         {/* Logout Section */}
         {onLogout && (
           <>

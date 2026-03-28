@@ -4,6 +4,7 @@ import { Menu, X, GraduationCap, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LanguageSwitcher } from '@/components/common/LanguageSwitcher';
+import { ThemeModeToggle } from '@/components/ui/ThemeModeToggle';
 import { useThemeMode } from '@/hooks/useThemeMode';
 import { useHeroTheme } from '@/contexts/HeroThemeContext';
 import logoBlack from '@/assets/logo-black.png';
@@ -124,6 +125,7 @@ export function NavHeader() {
               }>
                 <LanguageSwitcher />
               </div>
+              <ThemeModeToggle className={isDark ? 'text-white/70 hover:text-white hover:bg-white/10' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-100'} />
               <Link to="/login">
                 <Button variant="ghost" className={`text-sm font-medium ${
                   isDark ? 'text-slate-400 hover:text-white' : 'text-slate-500 hover:text-slate-900'
@@ -228,6 +230,10 @@ export function NavHeader() {
                   <div className="flex items-center justify-between px-4 mb-3">
                     <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Language</span>
                     <LanguageSwitcher />
+                  </div>
+                  <div className="flex items-center justify-between px-4 mb-3">
+                    <span className={`text-sm ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Theme</span>
+                    <ThemeModeToggle className={isDark ? 'text-white/70 hover:text-white' : 'text-slate-500 hover:text-slate-900'} />
                   </div>
                   <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="block">
                     <Button variant="outline" className={`w-full ${

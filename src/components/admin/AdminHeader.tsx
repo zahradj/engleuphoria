@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Bell, Search, UserCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AdminNotificationCenter } from './AdminNotificationCenter';
+import { ThemeModeToggle } from '@/components/ui/ThemeModeToggle';
 
 export const AdminHeader = () => {
   const { user, signOut } = useAuth();
@@ -22,6 +23,7 @@ export const AdminHeader = () => {
             Search
           </Button>
           
+          <ThemeModeToggle className="text-muted-foreground hover:text-foreground hover:bg-muted" />
           <AdminNotificationCenter />
           
           <div className="flex items-center gap-2">
