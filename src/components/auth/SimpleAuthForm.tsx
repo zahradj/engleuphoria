@@ -69,6 +69,7 @@ const fieldVariants = {
 };
 
 export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChange }) => {
+  const { theme } = useHeroTheme();
   const [searchParams] = useSearchParams();
   const refCode = searchParams.get('ref') || '';
   const [formData, setFormData] = useState<FormData>({
@@ -407,15 +408,34 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
       {mode === 'signup' && (
         <motion.div variants={fieldVariants} initial="hidden" animate="visible" custom={fieldIndex++} className="space-y-1.5">
           <label className="text-sm font-medium text-foreground/80">I am a...</label>
-          <select
-            value={formData.role}
-            onChange={e => handleInputChange('role', e.target.value as 'student' | 'teacher')}
-            className="w-full h-11 px-3 bg-muted/50 border border-border rounded-md text-foreground focus:ring-2 focus:ring-primary/30 transition-shadow"
-            disabled={loading}
-          >
-            <option value="student">Student - Learn & Grow</option>
-            <option value="teacher">Teacher - Inspire & Educate</option>
-          </select>
+          <div className="flex gap-2">
+            {([
+              { value: 'student' as const, label: 'Student', icon: BookOpen, desc: 'Learn & Grow' },
+              { value: 'teacher' as const, label: 'Teacher', icon: GraduationCap, desc: 'Inspire & Educate' },
+            ]).map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => handleInputChange('role', opt.value)}
+                className={`flex-1 flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 transition-all duration-300 text-sm font-medium ${
+                  formData.role === opt.value
+                    ? 'text-white shadow-lg scale-[1.02]'
+                    : 'border-border bg-muted/30 text-muted-foreground hover:bg-muted/60'
+                }`}
+                style={formData.role === opt.value ? {
+                  backgroundImage: `linear-gradient(135deg, ${theme.cssFrom}, ${theme.cssTo})`,
+                  borderColor: theme.cssFrom,
+                } : undefined}
+                disabled={loading}
+              >
+                <opt.icon className="h-4 w-4" />
+                <div className="text-left">
+                  <div>{opt.label}</div>
+                  <div className={`text-[10px] ${formData.role === opt.value ? 'text-white/80' : 'text-muted-foreground/60'}`}>{opt.desc}</div>
+                </div>
+              </button>
+            ))}
+          </div>
         </motion.div>
       )}
 
