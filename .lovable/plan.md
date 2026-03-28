@@ -1,38 +1,30 @@
 
 
-## Sync Auth Page Logo with Tri-Color Theme Gradient
+## Swap Logo by Light/Dark Mode + Remove White Background
 
 ### Problem
-The logo text "EnglEuphoria" on the auth pages (line 77 of `AuthPageLayout.tsx`) uses a static `text-foreground` color instead of the synchronized tri-color gradient that rotates on the homepage and other pages.
+The auth page logo always uses `logo-dark.png` (black logo) with a white `bg-white` background behind it, regardless of the page's light/dark mode. The user wants:
+- **Light mode** → black logo, no white background
+- **Dark mode** → white logo, no white background
 
-### Change
-In `src/components/auth/AuthPageLayout.tsx`, update the logo `<span>` on line 77 to use a dynamic gradient matching the active demographic theme — identical to how the title on line 209-211 already works.
+The user has uploaded both versions: `EnglEphoria_2.png` (black) and `EnglEphoria_in_white-2.png` (white).
 
-**Before:**
-```tsx
-<span className="text-xl font-bold text-foreground">EnglEuphoria</span>
-```
+### Plan
 
-**After:**
-```tsx
-<motion.span
-  className="text-xl font-bold bg-clip-text text-transparent"
-  animate={{
-    backgroundImage: `linear-gradient(to right, ${theme.cssFrom}, ${theme.cssTo})`,
-  }}
-  transition={{ duration: 0.8 }}
-  style={{
-    backgroundImage: `linear-gradient(to right, ${theme.cssFrom}, ${theme.cssTo})`,
-    WebkitBackgroundClip: 'text',
-  }}
->
-  EnglEuphoria
-</motion.span>
-```
+1. **Copy uploaded logos** to `src/assets/`:
+   - `user-uploads://EnglEphoria_2.png` → `src/assets/logo-black.png`
+   - `user-uploads://EnglEphoria_in_white-2.png` → `src/assets/logo-white.png`
+
+2. **Update `AuthPageLayout.tsx`**:
+   - Import both logos + `useThemeMode` hook
+   - Use `resolvedTheme` to pick the correct logo: `resolvedTheme === 'dark' ? logoWhite : logoBlack`
+   - Remove `bg-white dark:bg-white` from the `<img>` tag — make the background transparent
 
 ### Files Changed
 
 | File | Action |
 |---|---|
-| `src/components/auth/AuthPageLayout.tsx` | Replace static logo text color with animated theme-synced gradient |
+| `src/assets/logo-black.png` | Copy from uploads (black logo) |
+| `src/assets/logo-white.png` | Copy from uploads (white logo) |
+| `src/components/auth/AuthPageLayout.tsx` | Import both logos, swap based on `resolvedTheme`, remove white background |
 
