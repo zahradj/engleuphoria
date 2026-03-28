@@ -33,7 +33,7 @@ export const QuizReveal: React.FC<QuizRevealProps> = ({
   const [showResult, setShowResult] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [shakingOption, setShakingOption] = useState<number | null>(null);
-  const { refresh } = useStudentSkills();
+  const { refresh, incrementSkill } = useStudentSkills();
 
   const handleStart = () => {
     confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 } });
