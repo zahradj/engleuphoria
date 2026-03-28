@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useHeroTheme, GROUP_THEMES } from '@/contexts/HeroThemeContext';
 import { ThemeModeToggle } from '@/components/ui/ThemeModeToggle';
-import logoDark from '@/assets/logo-dark.png';
+import logoBlack from '@/assets/logo-black.png';
+import logoWhite from '@/assets/logo-white.png';
+import { useThemeMode } from '@/hooks/useThemeMode';
 import heroKid from '@/assets/hero-kid.png';
 import heroTeen from '@/assets/hero-teen.png';
 import heroAdult from '@/assets/hero-adult.png';
@@ -35,6 +37,7 @@ export function AuthPageLayout({
   showProgress,
 }: AuthPageLayoutProps) {
   const { activeIndex, setActiveIndex, theme } = useHeroTheme();
+  const { resolvedTheme } = useThemeMode();
 
   // Auto-rotate demographics
   useEffect(() => {
@@ -83,7 +86,7 @@ export function AuthPageLayout({
               background: `linear-gradient(135deg, ${theme.cssFrom}, ${theme.cssTo})`,
             }}
           >
-            <img src={logoDark} alt="EnglEuphoria" className="w-full h-full object-contain bg-white dark:bg-white rounded-[10px]" />
+            <img src={resolvedTheme === 'dark' ? logoWhite : logoBlack} alt="EnglEuphoria" className="w-full h-full object-contain rounded-[10px]" />
           </motion.div>
           <motion.span
             className="text-xl font-bold bg-clip-text text-transparent"
