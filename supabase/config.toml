@@ -172,3 +172,6 @@ verify_jwt = false
 
 [functions.studio-ai-copilot]
 verify_jwt = false
+
+[functions.ai-activity-generator]
+verify_jwt = false
