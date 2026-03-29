@@ -1,146 +1,110 @@
 
 
-## Gemini "2026 Powerhouse" Feature Set — Full Implementation Plan
+## Upgrade Platform: Canva Builder, AI Activities, Context-Aware Tutor, Instructor Analytics
 
-This plan implements all four major features described by Gemini: the Immersive Student Lesson Reader, Netflix-style Materials Gallery, Enhanced Skill Radar, and Mastery Badge system.
-
----
-
-### What Already Exists
-- **Creator Studio** with split-screen editor, Focus Mode, AI generation, cover image generation, "Magic Wand" AI tools, readability meter, and `MasteryBadge` component
-- **SkillsRadarChart** with Recharts radar, `student_skills` table, `useStudentSkills` hook, current/target comparison
-- **LessonPlayer** with slide-based playback, quiz scoring, XP, and `LessonCompletionModal` with confetti
-- **curriculum_lessons** table storing published content from Creator Studio
-
-### What Needs to Be Built
+This is a large cross-cutting upgrade touching the lesson builder, AI tutor, content generation, and teacher dashboard. I'll break it into four phases.
 
 ---
 
-### Phase 1: Immersive Student Lesson Reader Page
+### Phase 1: Canva-Style Drag-and-Drop Lesson Builder
 
-A new `/lesson/:id` route and `ImmersiveLessonReader` component — the "Focus Sanctuary."
+**Current state**: The `EditorCanvas` supports slide types (image, video, quiz, poll, draw) with form-based editing — no visual canvas or drag-and-drop positioning.
 
-**New file: `src/pages/student/LessonReaderPage.tsx`**
-- Route wrapper that fetches `curriculum_lessons` by ID via Supabase
-- Passes lesson data to `ImmersiveLessonReader`
+**Upgrade**: Transform the editor into a visual canvas where elements (text blocks, images, shapes, activity widgets) can be dragged, resized, and layered on a 1920x1080 slide.
 
-**New file: `src/components/student/lesson-reader/ImmersiveLessonReader.tsx`**
-- Full-screen centered narrow column (max-w-2xl) with large 18-20px body text
-- **Ambient glow background**: CSS mesh gradient that shifts color based on track (Mint/kids, Indigo/teens, Gold/adults)
-- **Glassmorphic hero header**: lesson title, CEFR level badge, estimated reading time (word count / 200 wpm)
-- Renders markdown content (reuse `markdownToHtml` from `CreatorStudioPreview`)
-- **Vertical scroll progress bar** on the left edge
-- **Floating bottom toolbar**: Listen (TTS via existing `useTextToSpeech`), Theme toggle, Font size toggle
-- **Quiz Reveal**: Hidden until scroll reaches end → confetti + "Challenge the Quiz" button appears → Bento card quiz UI with green glow/red shake feedback
-- On quiz completion → triggers `LessonCompletionModal` + skill XP update
+**Files to create/modify**:
+- **Create** `src/components/admin/lesson-builder/canvas/CanvasEditor.tsx` — Main canvas with 1920x1080 scaled viewport, element rendering, selection, and transform handles
+- **Create** `src/components/admin/lesson-builder/canvas/CanvasElement.tsx` — Draggable/resizable wrapper using pointer events for move + resize
+- **Create** `src/components/admin/lesson-builder/canvas/ElementToolbar.tsx` — Left sidebar with draggable element types (Text, Image, Shape, Quiz, Matching, Fill-blank, Audio)
+- **Create** `src/components/admin/lesson-builder/canvas/PropertiesPanel.tsx` — Right panel for editing selected element properties (font, color, size, quiz options)
+- **Update** `src/components/admin/lesson-builder/types.ts` — Add `CanvasElement` type with `x, y, width, height, rotation, zIndex, elementType, content`
+- **Update** `src/components/admin/lesson-builder/EditorCanvas.tsx` — Replace form-based editor with `CanvasEditor` import
+- **Update** `src/components/admin/lesson-builder/AdminLessonEditor.tsx` — Wire new canvas into the existing editor shell
 
-**New file: `src/components/student/lesson-reader/FloatingToolbar.tsx`**
-- Centered bottom toolbar with Listen, Theme, Font Size buttons
-- Glass panel styling
-
-**New file: `src/components/student/lesson-reader/QuizReveal.tsx`**
-- Intersection Observer triggers reveal animation
-- Bento-card MCQ layout with correct (glow green) / wrong (shake + hint) feedback
-- XP award on completion
-
-**New file: `src/components/student/lesson-reader/WordInsightPopup.tsx`**
-- `onMouseUp` selection handler → detects highlighted word
-- Glassmorphic popup showing: meaning, pronunciation (phonetic), example sentence
-- Uses existing `studio-ai-copilot` edge function with a new `mode: 'word-insight'`
-
-**Update: `src/App.tsx`** — Add route: `<Route path="/lesson/:id" element={<LessonReaderPage />} />`
-
-**Update: `supabase/functions/studio-ai-copilot/index.ts`** — Add `word-insight` mode that returns `{ meaning, pronunciation, example }` for a given word + context
+**Key technical decisions**:
+- Pure pointer-event based drag (no external DnD library needed)
+- Scale transform approach: `transform: scale(containerWidth/1920)` with `transform-origin: top left`
+- Elements stored as JSON array per slide in the existing `Slide` type
 
 ---
 
-### Phase 2: Netflix-Style Materials Gallery
+### Phase 2: AI Auto-Generation of Activities
 
-Replace or augment the student's lesson browsing with large glassmorphic vertical cards.
+**Current state**: The `studio-ai-copilot` generates markdown lessons. The `quiz-generator` creates MCQ quizzes. No auto-generation of interactive activities (matching, fill-blank, drag-drop, sorting).
 
-**New file: `src/components/student/MaterialsGallery.tsx`**
-- Fetches published `curriculum_lessons` filtered by student's track
-- Renders responsive grid of `LessonCard` components
-- Search/filter by level, track
+**Upgrade**: Add an "AI Generate Activities" button that takes lesson content and produces structured interactive activities automatically.
 
-**New file: `src/components/student/LessonCard.tsx`**
-- Large vertical card with glassmorphic overlay
-- Cover image from `ai_metadata.coverImageUrl` or gradient fallback
-- Track icon: 🚀 Playground, 🎮 Academy, 💼 Professional
-- CEFR level badge, title, estimated reading time
-- Thin neon progress bar at bottom (from `student_lesson_progress` if exists)
-- Click navigates to `/lesson/:id`
+**Files to create/modify**:
+- **Create** `supabase/functions/ai-activity-generator/index.ts` — Edge function that accepts lesson content + activity type preferences, returns structured activity JSON (matching pairs, fill-in-blank sentences, drag-drop categories, sorting sequences) using Lovable AI gateway
+- **Create** `src/components/admin/lesson-builder/AIActivityGenerator.tsx` — UI button + modal that lets creators select activity types and generates them from lesson content
+- **Update** `src/components/admin/lesson-builder/types.ts` — Add activity element types: `matching`, `fill-blank`, `drag-drop`, `sorting`, `sentence-builder`
+- **Update** `src/components/content-creator/CreatorStudioAITools.tsx` — Add "Generate Activities" to the Magic Wand toolset
 
-**Update: Student dashboards** (HubDashboard, AcademyDashboard, PlaygroundDashboard) — Add a "Lessons Library" section using `MaterialsGallery`
+**Edge function design**: Uses tool-calling to extract structured output (activity items with answers, distractors, instructions) rather than free-form text.
 
 ---
 
-### Phase 3: Enhanced Skill Radar ("Aurora Radar")
+### Phase 3: Enhanced Context-Aware AI Tutor
 
-Upgrade the existing `SkillsRadarChart` with premium visuals and comparison mode.
+**Current state**: The `ai-tutor` edge function uses OpenAI directly (not Lovable AI gateway), sends only CEFR level and recent 20 messages as context. No awareness of student's lesson history, weak areas, assignments, or mistake patterns.
 
-**Update: `src/components/student/hub/SkillsRadarChart.tsx`**
-- Replace flat fills with SVG `<defs>` radial/linear gradients (`#8B5CF6` → `#D946EF` at 30% opacity)
-- Add "grow from center" animation using Framer Motion (scale 0→1 on mount)
-- Add "Show Global Average" toggle — overlays a semi-transparent grey radar
-- Add 100% "ripple" pulse animation on axes where `current === 10` (CSS keyframe)
-- Dark mode: deep indigo web with neon-cyan pulses; Light mode: slate-grey with ink blue fills
-- Tooltip: "You are in the top X% of users this week" (computed or static initially)
+**Upgrade**: Make the tutor context-aware by injecting student profile data (recent lessons, skill scores, mistake history, pending assignments) into the system prompt, and migrate to Lovable AI gateway.
 
-**New DB function**: `get_global_skill_averages()` — returns average scores across all students for the 5 pillars (for the comparison overlay)
+**Files to modify**:
+- **Update** `supabase/functions/ai-tutor/index.ts` — Switch from direct OpenAI to Lovable AI gateway (`https://ai.gateway.lovable.dev/v1/chat/completions` with `LOVABLE_API_KEY`). Before calling AI, fetch student context: recent `interactive_lesson_progress`, `student_skills` scores, `homework_submissions` with grades, and `ai_tutoring_sessions` mistake patterns. Inject this as a "Student Context" block in the system prompt.
+- **Update** `src/hooks/useAITutor.ts` — Pass additional context (current lesson topic, recent mistakes) when calling the edge function
+- **Update** `src/components/ai/AITutorInterface.tsx` — Show a "Context" indicator showing what the tutor knows about the student, add streaming support for real-time responses
+
+**Context injection example**:
+```
+Student Context:
+- Skill Scores: Vocabulary 7/10, Grammar 4/10, Fluency 6/10
+- Recent Lessons: "Business Negotiations" (completed), "Email Writing" (in progress)
+- Weak Areas: Past tense irregular verbs, conditional sentences
+- Pending Homework: 2 assignments due
+- Mistake History: commonly confuses "their/there/they're"
+```
 
 ---
 
-### Phase 4: Mastery Badge + Reward System
+### Phase 4: Instructor Analytics & Reporting Dashboard
 
-Enhance the completion flow so finishing a content-creator lesson triggers a themed badge.
+**Current state**: `ReportsTab.tsx` exists but uses hardcoded mock data (3 fake students, static metrics).
 
-**Update: `src/components/content-creator/MasteryBadge.tsx`**
-- Add 3D rotation animation (Framer Motion `rotateY`)
-- Dark mode: neon glow medal; Light mode: metallic gold coin
-- Accept `skillName` prop to show "You've mastered {topic}"
+**Upgrade**: Replace mock data with real Supabase queries showing actual student progress, engagement, and completion rates.
 
-**Update: `src/components/student/lesson-reader/QuizReveal.tsx`**
-- On quiz pass → show rotating 3D `MasteryBadge` + message "Your Skill Radar has been updated"
-- Call `useStudentSkills.refresh()` to update radar
-
-**Update: `src/hooks/useStudentSkills.ts`**
-- Add `incrementSkill(skillName, amount)` function that UPSERTs `student_skills`
+**Files to create/modify**:
+- **Create** `src/components/teacher/analytics/StudentProgressChart.tsx` — Recharts line/bar chart showing student progress over time from `interactive_lesson_progress`
+- **Create** `src/components/teacher/analytics/EngagementMetrics.tsx` — Cards showing real attendance rate, homework completion rate, average quiz scores from actual DB data
+- **Create** `src/components/teacher/analytics/ClassOverview.tsx` — Summary grid with total students, lessons completed, average CEFR progress
+- **Create** `src/hooks/useTeacherAnalytics.ts` — Hook that queries `sessions`, `homework_submissions`, `interactive_lesson_progress`, `student_skills` filtered by the teacher's assigned students
+- **Update** `src/components/teacher/ReportsTab.tsx` — Replace hardcoded data with real components and the analytics hook
+- **Migration**: Create a DB function `get_teacher_student_stats(teacher_id UUID)` that aggregates student metrics for a given teacher
 
 ---
 
 ### Database Changes
 
-**Migration 1**: Add `get_global_skill_averages` function
+**Migration 1**: `get_teacher_student_stats` function
 ```sql
-CREATE OR REPLACE FUNCTION public.get_global_skill_averages()
-RETURNS TABLE(skill_name text, avg_score numeric)
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = 'public'
-AS $$
-  SELECT skill_name, ROUND(AVG(current_score), 1)
-  FROM student_skills
-  GROUP BY skill_name;
+CREATE OR REPLACE FUNCTION public.get_teacher_student_stats(p_teacher_id UUID)
+RETURNS TABLE(
+  student_id UUID, student_name TEXT, lessons_completed BIGINT,
+  avg_score NUMERIC, homework_completion_rate NUMERIC, last_active TIMESTAMPTZ
+) LANGUAGE sql STABLE SECURITY DEFINER SET search_path = 'public' AS $$
+  -- Aggregates from sessions, progress, and homework tables
+  -- filtered by teacher's students
 $$;
 ```
 
 ---
 
-### Files Summary
+### Summary
 
-| File | Action |
-|---|---|
-| `src/pages/student/LessonReaderPage.tsx` | Create — route wrapper |
-| `src/components/student/lesson-reader/ImmersiveLessonReader.tsx` | Create — main reader |
-| `src/components/student/lesson-reader/FloatingToolbar.tsx` | Create — bottom toolbar |
-| `src/components/student/lesson-reader/QuizReveal.tsx` | Create — quiz reveal + bento cards |
-| `src/components/student/lesson-reader/WordInsightPopup.tsx` | Create — AI word popup |
-| `src/components/student/MaterialsGallery.tsx` | Create — Netflix card grid |
-| `src/components/student/LessonCard.tsx` | Create — glassmorphic lesson card |
-| `src/components/student/hub/SkillsRadarChart.tsx` | Update — aurora gradients, comparison, animation |
-| `src/components/content-creator/MasteryBadge.tsx` | Update — 3D rotation, theme-aware |
-| `src/hooks/useStudentSkills.ts` | Update — add `incrementSkill` |
-| `supabase/functions/studio-ai-copilot/index.ts` | Update — add `word-insight` mode |
-| `src/App.tsx` | Update — add `/lesson/:id` route |
-| Student dashboards (Hub, Academy, Playground) | Update — add Materials Gallery section |
-| Database migration | Create — `get_global_skill_averages` function |
+| Phase | Files | Scope |
+|---|---|---|
+| 1. Canva Builder | 5 new + 3 modified | Visual drag-and-drop canvas editor |
+| 2. AI Activities | 1 edge fn + 2 components + 1 type update | Auto-generate matching/fill-blank/sorting |
+| 3. Context Tutor | 1 edge fn + 1 hook + 1 component | Student-aware AI with Lovable AI gateway |
+| 4. Analytics | 3 new components + 1 hook + 1 update + 1 migration | Real data teacher dashboard |
 
