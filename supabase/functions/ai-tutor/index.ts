@@ -15,7 +15,7 @@ serve(async (req) => {
   }
 
   try {
-    const { message, sessionId, studentId, cefrLevel, sessionType = 'text' } = await req.json();
+    const { message, sessionId, studentId, cefrLevel, sessionType = 'text', stream = false } = await req.json();
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
@@ -51,7 +51,6 @@ serve(async (req) => {
     // ─── Gather Student Context ───
     let studentContext = '';
     try {
-      // 1. Student skills
       const { data: skills } = await supabase
         .from('student_skills')
         .select('skill_name, skill_level')
@@ -62,7 +61,6 @@ serve(async (req) => {
         studentContext += `\nSkill Scores: ${skills.map(s => `${s.skill_name} ${s.skill_level}/10`).join(', ')}`;
       }
 
-      // 2. Recent lesson progress
       const { data: progress } = await supabase
         .from('interactive_lesson_progress')
         .select('lesson_title, progress_percentage, completed')
@@ -74,7 +72,6 @@ serve(async (req) => {
         studentContext += `\nRecent Lessons: ${progress.map(p => `"${p.lesson_title}" (${p.completed ? 'completed' : `${p.progress_percentage}%`})`).join(', ')}`;
       }
 
-      // 3. Homework performance
       const { data: homework } = await supabase
         .from('homework_submissions')
         .select('status, score')
@@ -92,7 +89,6 @@ serve(async (req) => {
         if (avgScore !== null) studentContext += `, avg score ${avgScore}%`;
       }
 
-      // 4. Previous session patterns (mistake areas from past feedback)
       const { data: pastSessions } = await supabase
         .from('ai_tutoring_sessions')
         .select('feedback_notes, completed_objectives')
@@ -143,6 +139,7 @@ Guidelines:
 - Limit responses to 2-3 sentences unless explaining complex concepts
 - If you know the student's weak areas from context, proactively practice those skills
 - Reference their recent lessons when relevant
+- Use markdown formatting: **bold** for key vocabulary, *italics* for emphasis, bullet lists for multiple points
 
 Focus Areas:
 - Grammar accuracy appropriate for ${cefrLevel}
@@ -157,7 +154,103 @@ Focus Areas:
       { role: 'user', content: message }
     ];
 
+    // Save user message immediately
+    await supabase.from('ai_conversation_messages').insert({
+      session_id: session.id,
+      message_type: 'user_text',
+      content: message,
+    });
+
     const startTime = Date.now();
+
+    // ─── STREAMING MODE ───
+    if (stream) {
+      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-3-flash-preview',
+          messages: apiMessages,
+          max_tokens: 500,
+          temperature: 0.7,
+          stream: true,
+        }),
+      });
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          return new Response(JSON.stringify({ error: 'Rate limit exceeded, please try again later.' }), {
+            status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        if (response.status === 402) {
+          return new Response(JSON.stringify({ error: 'Credits exhausted. Please add funds.' }), {
+            status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+        const text = await response.text();
+        console.error('AI gateway error:', response.status, text);
+        throw new Error('AI gateway error');
+      }
+
+      // Tee the stream: one for the client, one for saving
+      const [clientStream, saveStream] = response.body!.tee();
+
+      // Save the full response asynchronously after stream completes
+      const savePromise = (async () => {
+        const reader = saveStream.getReader();
+        const decoder = new TextDecoder();
+        let fullContent = '';
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            const chunk = decoder.decode(value, { stream: true });
+            for (const line of chunk.split('\n')) {
+              if (!line.startsWith('data: ') || line.includes('[DONE]')) continue;
+              try {
+                const parsed = JSON.parse(line.slice(6));
+                const content = parsed.choices?.[0]?.delta?.content;
+                if (content) fullContent += content;
+              } catch {}
+            }
+          }
+        } finally {
+          reader.releaseLock();
+        }
+
+        if (fullContent) {
+          const processingTime = Date.now() - startTime;
+          await supabase.from('ai_conversation_messages').insert({
+            session_id: session.id,
+            message_type: 'ai_text',
+            content: fullContent,
+            processing_time_ms: processingTime,
+            metadata: { hasContext: !!studentContext },
+          });
+          await supabase
+            .from('ai_tutoring_sessions')
+            .update({
+              messages_count: (session.messages_count || 0) + 2,
+              duration_seconds: Math.floor((Date.now() - new Date(session.started_at).getTime()) / 1000)
+            })
+            .eq('id', session.id);
+        }
+      })();
+
+      // Don't await savePromise - let it run in the background
+      savePromise.catch(err => console.error('Error saving streamed response:', err));
+
+      return new Response(clientStream, {
+        headers: { ...corsHeaders, 'Content-Type': 'text/event-stream' },
+      });
+    }
+
+    // ─── NON-STREAMING MODE ───
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -167,7 +260,7 @@ Focus Areas:
       body: JSON.stringify({
         model: 'google/gemini-3-flash-preview',
         messages: apiMessages,
-        max_tokens: 300,
+        max_tokens: 500,
         temperature: 0.7,
       }),
     });
@@ -192,15 +285,6 @@ Focus Areas:
     const aiResponse = data.choices[0].message.content;
     const processingTime = Date.now() - startTime;
     const tokensUsed = data.usage?.total_tokens || 0;
-
-    // Save user message
-    await supabase.from('ai_conversation_messages').insert({
-      session_id: session.id,
-      message_type: 'user_text',
-      content: message,
-      processing_time_ms: processingTime,
-      tokens_used: tokensUsed
-    });
 
     // Save AI response
     await supabase.from('ai_conversation_messages').insert({

@@ -3,11 +3,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FileText, Download } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 import type { StudentStat } from '@/hooks/useTeacherAnalytics';
 
 interface ClassOverviewProps {
   students: StudentStat[];
 }
+
+const getScoreColor = (score: number) => {
+  if (score >= 80) return 'text-green-600';
+  if (score >= 60) return 'text-yellow-600';
+  return 'text-red-600';
+};
 
 export const ClassOverview: React.FC<ClassOverviewProps> = ({ students }) => {
   if (students.length === 0) {
@@ -32,7 +39,14 @@ export const ClassOverview: React.FC<ClassOverviewProps> = ({ students }) => {
             <div className="flex items-center justify-between mb-3">
               <div>
                 <h3 className="font-semibold text-foreground">{student.student_name}</h3>
-                <Badge variant="outline">{student.cefr_level}</Badge>
+                <div className="flex items-center gap-2 mt-1">
+                  <Badge variant="outline">{student.cefr_level}</Badge>
+                  {student.last_active && (
+                    <span className="text-xs text-muted-foreground">
+                      Active {formatDistanceToNow(new Date(student.last_active), { addSuffix: true })}
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="flex gap-2">
                 <Button size="sm" variant="outline">
@@ -45,14 +59,18 @@ export const ClassOverview: React.FC<ClassOverviewProps> = ({ students }) => {
                 </Button>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-4 text-center">
+            <div className="grid grid-cols-4 gap-4 text-center">
               <div>
                 <p className="text-xl font-bold text-primary">{student.lessons_completed}</p>
                 <p className="text-xs text-muted-foreground">Lessons</p>
               </div>
               <div>
-                <p className="text-xl font-bold text-green-600">{student.avg_score}%</p>
+                <p className={`text-xl font-bold ${getScoreColor(student.avg_score)}`}>{student.avg_score}%</p>
                 <p className="text-xs text-muted-foreground">Avg Score</p>
+              </div>
+              <div>
+                <p className={`text-xl font-bold ${getScoreColor(student.homework_completion_rate)}`}>{student.homework_completion_rate}%</p>
+                <p className="text-xs text-muted-foreground">HW Rate</p>
               </div>
               <div>
                 <p className="text-xl font-bold text-blue-600">{student.total_sessions}</p>

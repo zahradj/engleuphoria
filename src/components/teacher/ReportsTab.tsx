@@ -1,16 +1,19 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download } from "lucide-react";
+import { Download, Loader2 } from "lucide-react";
 import { useTeacherAnalytics } from "@/hooks/useTeacherAnalytics";
 import { EngagementMetrics } from "./analytics/EngagementMetrics";
 import { StudentProgressChart } from "./analytics/StudentProgressChart";
 import { ClassOverview } from "./analytics/ClassOverview";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export const ReportsTab = () => {
+  const [levelFilter, setLevelFilter] = useState('all');
+  const { toast } = useToast();
+
   const { data: user } = useQuery({
     queryKey: ['current-user'],
     queryFn: async () => {
@@ -20,6 +23,29 @@ export const ReportsTab = () => {
   });
 
   const { studentStats, classMetrics, sessionData, isLoading } = useTeacherAnalytics(user?.id);
+
+  const filteredStudents = useMemo(() => {
+    if (levelFilter === 'all') return studentStats;
+    return studentStats.filter(s => s.cefr_level.toLowerCase() === levelFilter.toLowerCase());
+  }, [studentStats, levelFilter]);
+
+  const exportCSV = () => {
+    if (!filteredStudents.length) return;
+    const headers = ['Name', 'Email', 'CEFR Level', 'Lessons Completed', 'Avg Score', 'HW Completion %', 'Sessions', 'Last Active'];
+    const rows = filteredStudents.map(s => [
+      s.student_name, s.email, s.cefr_level, s.lessons_completed, s.avg_score,
+      s.homework_completion_rate, s.total_sessions, s.last_active || 'N/A'
+    ]);
+    const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'student-reports.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: "Exported", description: `Exported ${filteredStudents.length} student records.` });
+  };
 
   if (isLoading) {
     return (
@@ -34,18 +60,21 @@ export const ReportsTab = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">Reports & Analytics</h1>
         <div className="flex gap-2">
-          <Select>
+          <Select value={levelFilter} onValueChange={setLevelFilter}>
             <SelectTrigger className="w-40">
               <SelectValue placeholder="Filter by level" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Levels</SelectItem>
-              <SelectItem value="beginner">Beginner</SelectItem>
-              <SelectItem value="intermediate">Intermediate</SelectItem>
-              <SelectItem value="advanced">Advanced</SelectItem>
+              <SelectItem value="a1">A1</SelectItem>
+              <SelectItem value="a2">A2</SelectItem>
+              <SelectItem value="b1">B1</SelectItem>
+              <SelectItem value="b2">B2</SelectItem>
+              <SelectItem value="c1">C1</SelectItem>
+              <SelectItem value="c2">C2</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline">
+          <Button variant="outline" onClick={exportCSV} disabled={!filteredStudents.length}>
             <Download className="h-4 w-4 mr-2" />
             Export All
           </Button>
@@ -53,8 +82,8 @@ export const ReportsTab = () => {
       </div>
 
       <EngagementMetrics metrics={classMetrics} upcoming={sessionData?.upcoming || 0} />
-      <StudentProgressChart students={studentStats} />
-      <ClassOverview students={studentStats} />
+      <StudentProgressChart students={filteredStudents} />
+      <ClassOverview students={filteredStudents} />
     </div>
   );
 };
