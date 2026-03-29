@@ -5,8 +5,9 @@ import { LessonHeader } from './LessonHeader';
 import { SlideOrganizer } from './SlideOrganizer';
 import { EditorCanvas } from './EditorCanvas';
 import { TeacherGuide } from './TeacherGuide';
-import { Slide, LessonDeck } from './types';
+import { Slide, LessonDeck, CanvasElementData } from './types';
 import { AILessonWizard } from './ai-wizard';
+import { AIActivityGenerator } from './AIActivityGenerator';
 import { Button } from '@/components/ui/button';
 import { Wand2 } from 'lucide-react';
 
