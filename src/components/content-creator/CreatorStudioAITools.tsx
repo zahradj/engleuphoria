@@ -128,6 +128,24 @@ export const CreatorStudioAITools: React.FC<CreatorStudioAIToolsProps> = ({
     setOpen(false);
   };
 
+  const handleGenerateActivities = async () => {
+    if (!content.trim()) { toast.error('Write some content first'); return; }
+    setLoading('activities');
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-activity-generator', {
+        body: { content: content.slice(0, 3000), level, activityTypes: ['matching', 'fill-blank', 'quiz'], customInstructions: '' },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`Generated ${data.activities?.length || 0} interactive activities!`);
+      setOpen(false);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to generate activities');
+    } finally {
+      setLoading(null);
+    }
+  };
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
