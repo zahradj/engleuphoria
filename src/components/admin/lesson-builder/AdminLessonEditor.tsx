@@ -9,7 +9,9 @@ import { Slide, LessonDeck, CanvasElementData } from './types';
 import { AILessonWizard } from './ai-wizard';
 import { AIActivityGenerator } from './AIActivityGenerator';
 import { Button } from '@/components/ui/button';
-import { Wand2 } from 'lucide-react';
+import { Wand2, HelpCircle, ArrowLeft, ArrowRight } from 'lucide-react';
+import { QuizGenerator } from '@/components/content-creator/QuizGenerator';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 
 interface AdminLessonEditorProps {
   onFinish?: () => void;
@@ -131,7 +133,7 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
   }, [toast]);
 
   return (
-    <div className="h-screen flex flex-col bg-background">
+    <div className="h-full flex flex-col bg-background" style={{ minHeight: 'calc(100vh - 8rem)' }}>
       <LessonHeader
         title={lessonTitle}
         level={level}
@@ -169,6 +171,20 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
                 }
               }}
             />
+
+            {/* Quiz Generator Dialog */}
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="w-full gap-2">
+                  <HelpCircle className="h-4 w-4" />
+                  Generate Quiz
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                <QuizGenerator />
+              </DialogContent>
+            </Dialog>
+
             <Button
               onClick={() => setShowAIWizard(true)}
               className="w-full bg-gradient-to-r from-primary to-primary/80 shadow-lg"
@@ -195,6 +211,24 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
           />
         </div>
       </div>
+
+      {/* Navigation buttons for pipeline */}
+      {(onBack || onFinish) && (
+        <div className="flex items-center justify-between px-6 py-3 border-t border-border bg-card shrink-0">
+          {onBack ? (
+            <Button variant="outline" onClick={onBack} className="gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back: Lesson Generation
+            </Button>
+          ) : <div />}
+          {onFinish && (
+            <Button onClick={onFinish} size="lg" className="gap-2">
+              Finish & Save to Library
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      )}
 
       {/* AI Lesson Wizard Modal */}
       <AILessonWizard

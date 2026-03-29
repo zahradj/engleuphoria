@@ -12,14 +12,10 @@ import {
 } from 'lucide-react';
 
 export type ContentCreatorTab =
-  | 'curriculum-generator'
-  | 'curriculum-editor'
-  | 'lesson-generator'
-  | 'lesson-editor'
-  | 'quiz-generator'
-  | 'content-library'
-  | 'creator-studio'
-  | 'slide-builder';
+  | 'curriculum'
+  | 'lesson-generation'
+  | 'slide-builder'
+  | 'content-library';
 
 interface ContentCreatorSidebarProps {
   activeTab: ContentCreatorTab;
