@@ -8,6 +8,7 @@ import {
   HelpCircle,
   Library,
   PenTool,
+  LayoutDashboard,
 } from 'lucide-react';
 
 export type ContentCreatorTab =
@@ -17,7 +18,8 @@ export type ContentCreatorTab =
   | 'lesson-editor'
   | 'quiz-generator'
   | 'content-library'
-  | 'creator-studio';
+  | 'creator-studio'
+  | 'slide-builder';
 
 interface ContentCreatorSidebarProps {
   activeTab: ContentCreatorTab;
@@ -26,6 +28,7 @@ interface ContentCreatorSidebarProps {
 
 const TABS: { id: ContentCreatorTab; label: string; icon: React.ElementType; description: string }[] = [
   { id: 'creator-studio', label: 'Creator Studio', icon: PenTool, description: 'Write & preview lessons live' },
+  { id: 'slide-builder', label: 'Slide Builder', icon: LayoutDashboard, description: 'Canva-style visual lesson editor' },
   { id: 'curriculum-generator', label: 'Curriculum Generator', icon: Wand2, description: 'AI-powered curriculum creation' },
   { id: 'curriculum-editor', label: 'Curriculum Editor', icon: Edit3, description: 'View & edit curriculum structure' },
   { id: 'lesson-generator', label: 'Lesson Generator', icon: Sparkles, description: 'Generate lessons with AI' },
