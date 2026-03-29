@@ -38,12 +38,12 @@ export interface ConversationMessage {
 export const useAITutor = () => {
   const [currentSession, setCurrentSession] = useState<AITutoringSession | null>(null);
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
+  const [streamingContent, setStreamingContent] = useState<string>('');
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
-  // Start new tutoring session
   const startSession = async (
     studentId: string,
     cefrLevel: string,
@@ -60,7 +60,7 @@ export const useAITutor = () => {
           session_type: sessionType,
           topic,
           cefr_level: cefrLevel,
-          ai_model: 'gpt-4.1-2025-04-14',
+          ai_model: 'gemini-3-flash-preview',
           voice_model: sessionType !== 'text' ? 'alloy' : null,
           learning_objectives: ['conversational_practice', 'grammar_improvement', 'vocabulary_expansion']
         })
@@ -73,100 +73,138 @@ export const useAITutor = () => {
       setIsConnected(true);
       setMessages([]);
 
-      toast({
-        title: "AI Tutor Started",
-        description: `Started ${sessionType} session for ${cefrLevel} level`,
-      });
-
+      toast({ title: "AI Tutor Started", description: `Started ${sessionType} session for ${cefrLevel} level` });
       return data;
     } catch (error) {
       console.error('Error starting session:', error);
-      toast({
-        title: "Error",
-        description: "Failed to start AI tutoring session",
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: "Failed to start AI tutoring session", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // End current session
   const endSession = async (rating?: number, feedback?: string) => {
     if (!currentSession) return;
-
     try {
       const endTime = new Date().toISOString();
       const duration = Math.floor((new Date(endTime).getTime() - new Date(currentSession.started_at).getTime()) / 1000);
-
       const { error } = await supabase
         .from('ai_tutoring_sessions')
-        .update({
-          ended_at: endTime,
-          duration_seconds: duration,
-          session_rating: rating,
-          feedback_notes: feedback
-        })
+        .update({ ended_at: endTime, duration_seconds: duration, session_rating: rating, feedback_notes: feedback })
         .eq('id', currentSession.id);
-
       if (error) throw error;
-
       setCurrentSession(null);
       setIsConnected(false);
       setMessages([]);
-
-      toast({
-        title: "Session Ended",
-        description: "AI tutoring session completed successfully",
-      });
+      toast({ title: "Session Ended", description: "AI tutoring session completed successfully" });
     } catch (error) {
       console.error('Error ending session:', error);
-      toast({
-        title: "Error",
-        description: "Failed to end session properly",
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: "Failed to end session properly", variant: "destructive" });
     }
   };
 
-  // Send message to AI tutor
   const sendMessage = async (message: string) => {
-    if (!currentSession) {
-      throw new Error('No active session');
-    }
+    if (!currentSession) throw new Error('No active session');
 
     setIsProcessing(true);
+    setStreamingContent('');
+
+    // Optimistically add user message
+    const tempUserMsg: ConversationMessage = {
+      id: `temp-user-${Date.now()}`,
+      session_id: currentSession.id,
+      message_type: 'user_text',
+      content: message,
+      metadata: null,
+      created_at: new Date().toISOString(),
+    };
+    setMessages(prev => [...prev, tempUserMsg]);
+
     try {
-      const { data, error } = await supabase.functions.invoke('ai-tutor', {
-        body: {
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-tutor`;
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
           message,
           sessionId: currentSession.id,
           studentId: currentSession.student_id,
           cefrLevel: currentSession.cefr_level,
-          sessionType: currentSession.session_type
-        }
+          sessionType: currentSession.session_type,
+          stream: true,
+        }),
       });
 
-      if (error) throw error;
+      if (!resp.ok) {
+        const errData = await resp.json().catch(() => ({ error: 'Unknown error' }));
+        if (resp.status === 429) {
+          toast({ title: "Rate Limited", description: errData.error || "Please try again later.", variant: "destructive" });
+        } else if (resp.status === 402) {
+          toast({ title: "Credits Exhausted", description: errData.error || "Please add funds.", variant: "destructive" });
+        } else {
+          toast({ title: "Error", description: errData.error || "Failed to get AI response", variant: "destructive" });
+        }
+        throw new Error(errData.error);
+      }
 
-      // Refresh messages
+      if (!resp.body) throw new Error('No response body');
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let textBuffer = '';
+      let fullContent = '';
+      let hasContext = false;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        textBuffer += decoder.decode(value, { stream: true });
+
+        let newlineIndex: number;
+        while ((newlineIndex = textBuffer.indexOf('\n')) !== -1) {
+          let line = textBuffer.slice(0, newlineIndex);
+          textBuffer = textBuffer.slice(newlineIndex + 1);
+
+          if (line.endsWith('\r')) line = line.slice(0, -1);
+          if (line.startsWith(':') || line.trim() === '') continue;
+          if (!line.startsWith('data: ')) continue;
+
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === '[DONE]') break;
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (content) {
+              fullContent += content;
+              setStreamingContent(fullContent);
+            }
+          } catch {
+            textBuffer = line + '\n' + textBuffer;
+            break;
+          }
+        }
+      }
+
+      // Finalize: replace streaming content with a proper message
+      setStreamingContent('');
+      
+      // Reload messages from DB to get persisted versions
       await loadMessages(currentSession.id);
 
-      return data;
+      return { hasContext };
     } catch (error) {
       console.error('Error sending message:', error);
-      toast({
-        title: "Error",
-        description: "Failed to send message to AI tutor",
-        variant: "destructive"
-      });
       throw error;
     } finally {
       setIsProcessing(false);
+      setStreamingContent('');
     }
   };
 
-  // Load conversation messages
   const loadMessages = async (sessionId: string) => {
     try {
       const { data, error } = await supabase
@@ -174,20 +212,13 @@ export const useAITutor = () => {
         .select('*')
         .eq('session_id', sessionId)
         .order('created_at', { ascending: true });
-
       if (error) throw error;
       setMessages(data || []);
     } catch (error) {
       console.error('Error loading messages:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load conversation messages",
-        variant: "destructive"
-      });
     }
   };
 
-  // Get user's tutoring sessions history
   const getTutoringSessions = async (studentId: string, limit = 10) => {
     try {
       const { data, error } = await supabase
@@ -196,21 +227,14 @@ export const useAITutor = () => {
         .eq('student_id', studentId)
         .order('started_at', { ascending: false })
         .limit(limit);
-
       if (error) throw error;
       return data;
     } catch (error) {
       console.error('Error fetching sessions:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load tutoring sessions",
-        variant: "destructive"
-      });
       return [];
     }
   };
 
-  // Resume existing session
   const resumeSession = async (sessionId: string) => {
     try {
       const { data, error } = await supabase
@@ -218,79 +242,48 @@ export const useAITutor = () => {
         .select('*')
         .eq('id', sessionId)
         .single();
-
       if (error) throw error;
-
-      // Only resume if session hasn't ended
       if (!data.ended_at) {
         setCurrentSession(data);
         setIsConnected(true);
         await loadMessages(sessionId);
-
-        toast({
-          title: "Session Resumed",
-          description: "Continued your AI tutoring session",
-        });
+        toast({ title: "Session Resumed", description: "Continued your AI tutoring session" });
       } else {
-        toast({
-          title: "Session Ended",
-          description: "This session has already been completed",
-          variant: "destructive"
-        });
+        toast({ title: "Session Ended", description: "This session has already been completed", variant: "destructive" });
       }
-
       return data;
     } catch (error) {
       console.error('Error resuming session:', error);
-      toast({
-        title: "Error",
-        description: "Failed to resume session",
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: "Failed to resume session", variant: "destructive" });
     }
   };
 
-  // Mark learning objectives as completed
   const markObjectiveCompleted = async (objective: string) => {
     if (!currentSession) return;
-
     try {
       const updatedObjectives = [...(currentSession.completed_objectives || []), objective];
-      
       const { error } = await supabase
         .from('ai_tutoring_sessions')
-        .update({
-          completed_objectives: updatedObjectives
-        })
+        .update({ completed_objectives: updatedObjectives })
         .eq('id', currentSession.id);
-
       if (error) throw error;
-
-      setCurrentSession({
-        ...currentSession,
-        completed_objectives: updatedObjectives
-      });
+      setCurrentSession({ ...currentSession, completed_objectives: updatedObjectives });
     } catch (error) {
       console.error('Error marking objective completed:', error);
     }
   };
 
-  // Get session analytics
   const getSessionAnalytics = async (studentId: string, days = 30) => {
     try {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
-
       const { data, error } = await supabase
         .from('ai_tutoring_sessions')
         .select('*')
         .eq('student_id', studentId)
         .gte('started_at', startDate.toISOString())
         .not('ended_at', 'is', null);
-
       if (error) throw error;
-
-      // Calculate analytics
       const totalSessions = data.length;
       const totalTime = data.reduce((sum, session) => sum + (session.duration_seconds || 0), 0);
       const averageRating = data.filter(s => s.session_rating).reduce((sum, s) => sum + s.session_rating, 0) / data.filter(s => s.session_rating).length || 0;
@@ -298,7 +291,6 @@ export const useAITutor = () => {
         acc[session.session_type] = (acc[session.session_type] || 0) + 1;
         return acc;
       }, {} as Record<string, number>);
-
       return {
         totalSessions,
         totalTimeMinutes: Math.floor(totalTime / 60),
@@ -315,6 +307,7 @@ export const useAITutor = () => {
   return {
     currentSession,
     messages,
+    streamingContent,
     isConnected,
     isLoading,
     isProcessing,
