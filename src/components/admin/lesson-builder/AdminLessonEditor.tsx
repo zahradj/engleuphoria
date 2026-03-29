@@ -11,7 +11,12 @@ import { AIActivityGenerator } from './AIActivityGenerator';
 import { Button } from '@/components/ui/button';
 import { Wand2 } from 'lucide-react';
 
-export const AdminLessonEditor: React.FC = () => {
+interface AdminLessonEditorProps {
+  onFinish?: () => void;
+  onBack?: () => void;
+}
+
+export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, onBack }) => {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
   const [showAIWizard, setShowAIWizard] = useState(false);
