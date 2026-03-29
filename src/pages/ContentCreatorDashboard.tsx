@@ -6,6 +6,7 @@ import { CurriculumBuilder } from '@/components/admin/CurriculumBuilder';
 import { CurriculumLibrary } from '@/components/admin/CurriculumLibrary';
 import { NewLibrary } from '@/components/admin/NewLibrary';
 import { CreatorStudio } from '@/components/content-creator/CreatorStudio';
+import { AdminLessonEditor } from '@/components/admin/lesson-builder';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,18 @@ import { Button } from '@/components/ui/button';
 const ContentCreatorDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ContentCreatorTab>('creator-studio');
   const { user, signOut } = useAuth();
+
+  // Slide builder takes full screen (no padding wrapper)
+  if (activeTab === 'slide-builder') {
+    return (
+      <div className="flex min-h-screen bg-background">
+        <ContentCreatorSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        <div className="flex-1 min-w-0">
+          <AdminLessonEditor />
+        </div>
+      </div>
+    );
+  }
 
   const renderContent = () => {
     switch (activeTab) {
