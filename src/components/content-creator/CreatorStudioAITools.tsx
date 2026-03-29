@@ -186,6 +186,13 @@ export const CreatorStudioAITools: React.FC<CreatorStudioAIToolsProps> = ({
             {loading === 'vocab' ? <Loader2 className="h-4 w-4 animate-spin" /> : <BookOpen className="h-4 w-4" />}
             Extract Vocabulary
           </Button>
+
+          <div className="border-t border-border my-1" />
+
+          <Button variant="ghost" size="sm" className="w-full justify-start gap-2" onClick={handleGenerateActivities} disabled={!!loading}>
+            {loading === 'activities' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
+            Generate Activities
+          </Button>
         </div>
       </PopoverContent>
     </Popover>
