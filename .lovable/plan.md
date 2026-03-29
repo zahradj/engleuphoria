@@ -1,61 +1,87 @@
 
 
-## Plan: AI Tutor Streaming + Markdown & Teacher Analytics Improvements
+## Redesign: Unified Step-by-Step Content Creator Pipeline
 
-### Part A: Streaming + Markdown for AI Tutor
+### Current Problem
+The Content Creator Dashboard has 8 separate tabs in a sidebar, making the workflow fragmented. Users jump between disconnected sections without a clear production flow.
 
-**Current state**: The `ai-tutor` edge function returns a complete JSON response (non-streaming). The `useAITutor` hook uses `supabase.functions.invoke()` and waits for the full response. Messages render as plain text.
+### New Design: Linear Pipeline with 4 Steps
 
-**Changes**:
+Replace the sidebar navigation with a **horizontal stepper** at the top. Each step builds on the previous one, guiding content creators through a logical production pipeline:
 
-1. **Update `supabase/functions/ai-tutor/index.ts`**
-   - Add a `stream: true` query param / body flag
-   - When streaming: pass `stream: true` to the AI gateway, return the SSE stream directly (save messages after stream completes using a tee'd reader)
-   - Keep non-streaming path for backward compatibility
+```text
+Step 1              Step 2              Step 3              Step 4
+[Curriculum]  -->  [Lesson Gen]  -->  [Slide Builder]  -->  [Content Library]
+ Create/edit        Generate AI         Canva editor,        Browse, manage,
+ curriculum         lessons from        activities,          publish final
+ structure          curriculum          quizzes              content
+```
 
-2. **Update `src/hooks/useAITutor.ts`**
-   - Add a `sendMessageStreaming()` method that uses `fetch()` directly (not `supabase.functions.invoke`) to consume the SSE stream
-   - Parse SSE line-by-line, accumulate tokens into a "streaming message" state
-   - Optimistically add user message to `messages` array immediately
-   - Build assistant message progressively via `onDelta` pattern
-   - After stream completes, reload messages from DB to get persisted versions
+### Step Details
 
-3. **Update `src/components/ai/AITutorInterface.tsx`**
-   - Install and use `react-markdown` for rendering message content (already in deps via other components)
-   - Replace plain `{msg.content}` with `<ReactMarkdown>{msg.content}</ReactMarkdown>` wrapped in `prose prose-sm`
-   - Show streaming indicator (typing dots) that transitions to real content as tokens arrive
-   - Auto-scroll to bottom on new tokens
+**Step 1 -- Curriculum**
+- Combines the current Curriculum Generator (AI wizard) and Curriculum Editor into one view
+- Two sub-tabs: "Generate New" and "Edit Existing"
+- Once a curriculum is created/selected, a "Next: Generate Lessons" button advances to Step 2
 
-### Part B: Teacher Analytics — Fix Per-Student Stats
+**Step 2 -- Lesson Generation**
+- Shows the current NewLibrary lesson generator, pre-filtered to the curriculum from Step 1 (if coming from there)
+- Includes the lesson picker checklist, bulk generation, quality dashboard
+- "Next: Build Slides" button advances to Step 3
 
-**Current state**: `useTeacherAnalytics` fetches real data for class-level metrics but per-student `lessons_completed`, `homework_completion_rate`, `last_active`, and `total_sessions` are hardcoded to 0/null (line 127-137).
+**Step 3 -- Slide Builder** (full-width, no padding)
+- The Canva-style AdminLessonEditor takes over the content area
+- Integrates: AI Activity Generator, Quiz Generator, slide management
+- This is the main workspace where lessons get their visual slides, interactive activities, and quizzes
+- "Finish & Save to Library" button advances to Step 4
 
-**Changes**:
+**Step 4 -- Content Library**
+- The existing CurriculumLibrary showing all completed content
+- Browse, preview, publish, or go back to edit
 
-4. **Update `src/hooks/useTeacherAnalytics.ts`**
-   - Fetch `interactive_lesson_progress` grouped by student to get per-student `lessons_completed`
-   - Fetch `homework_submissions` grouped by student to calculate per-student `homework_completion_rate` and `avg_score`
-   - Fetch `class_bookings` grouped by student to get `total_sessions`
-   - Query each student's most recent activity timestamp for `last_active`
-   - Map all this data into the `StudentStat[]` array properly
+### UI Components
 
-5. **Update `src/components/teacher/analytics/ClassOverview.tsx`**
-   - Add `homework_completion_rate` display to each student card
-   - Show `last_active` as relative time ("2 days ago")
-   - Add color coding for low/medium/high performance
+**New file: `src/components/content-creator/ContentCreatorStepper.tsx`**
+- Horizontal step indicator (numbered circles with labels connected by lines)
+- Steps are clickable (users can jump back to previous steps)
+- Current step highlighted with primary color, completed steps show checkmarks
+- Replaces the sidebar entirely
 
-6. **Update `src/components/teacher/ReportsTab.tsx`**
-   - Make the level filter functional (filter `studentStats` by CEFR level)
-   - Wire "Export All" button to download CSV of student data
+**Modified: `src/pages/ContentCreatorDashboard.tsx`**
+- Remove sidebar layout, use full-width layout with stepper at top
+- State changes from `activeTab` to `currentStep: 1|2|3|4`
+- Step 3 renders full-width (no padding), others get standard padding
+- Pass `onNextStep` / `onPrevStep` callbacks to child components
+
+**Modified: `src/components/content-creator/ContentCreatorSidebar.tsx`**
+- Update the `ContentCreatorTab` type to `'curriculum' | 'lesson-generation' | 'slide-builder' | 'content-library'`
+- Keep the file for type exports but the sidebar component itself becomes unused (replaced by stepper)
+
+**New file: `src/components/content-creator/CurriculumStep.tsx`**
+- Wraps CurriculumGeneratorWizard and CurriculumBuilder in a tabbed view
+- "Generate New" tab and "Edit Existing" tab
+- "Next Step" button at the bottom
+
+**Modified: `src/components/content-creator/QuizGenerator.tsx`**
+- Will be embedded inside the Slide Builder step rather than standalone
+
+**Modified: `src/components/admin/lesson-builder/AdminLessonEditor.tsx`**
+- Add the AI Activity Generator and Quiz Generator as panel/modal options within the builder toolbar
+- Add "Save to Library" action
 
 ### Files Summary
 
 | File | Action |
 |---|---|
-| `supabase/functions/ai-tutor/index.ts` | Add streaming mode |
-| `src/hooks/useAITutor.ts` | Add `sendMessageStreaming` with SSE parsing |
-| `src/components/ai/AITutorInterface.tsx` | Markdown rendering + streaming UX |
-| `src/hooks/useTeacherAnalytics.ts` | Fix per-student stat aggregation |
-| `src/components/teacher/analytics/ClassOverview.tsx` | Show completion rate + last active |
-| `src/components/teacher/ReportsTab.tsx` | Functional level filter + CSV export |
+| `src/components/content-creator/ContentCreatorStepper.tsx` | **Create** -- Horizontal step navigation component |
+| `src/components/content-creator/CurriculumStep.tsx` | **Create** -- Combined curriculum generate + edit view |
+| `src/pages/ContentCreatorDashboard.tsx` | **Modify** -- Replace sidebar layout with stepper layout |
+| `src/components/content-creator/ContentCreatorSidebar.tsx` | **Modify** -- Update types, sidebar component becomes optional |
+| `src/components/admin/lesson-builder/AdminLessonEditor.tsx` | **Modify** -- Integrate quiz generator + activity generator into toolbar |
+
+### Navigation Flow
+- Steps are sequential but users can click any completed/current step to jump
+- Each step has a clear "Next" CTA at the bottom
+- Step 3 (Slide Builder) is full-bleed (no padding), the rest have standard `p-6` padding
+- The top bar with user greeting + sign out remains above the stepper
 
