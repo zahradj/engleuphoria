@@ -151,11 +151,22 @@ export const AdminLessonEditor: React.FC = () => {
             onReorderSlides={handleReorderSlides}
           />
           
-          {/* AI Wizard Button */}
-          <div className="absolute bottom-4 left-4 right-4">
+          {/* AI Buttons */}
+          <div className="absolute bottom-4 left-4 right-4 space-y-2">
+            <AIActivityGenerator
+              lessonContent={slides.map(s => s.title || '').join(' ')}
+              level={level}
+              onActivitiesGenerated={(newElements) => {
+                if (selectedSlide) {
+                  handleUpdateSlide({
+                    canvasElements: [...(selectedSlide.canvasElements || []), ...newElements]
+                  });
+                }
+              }}
+            />
             <Button
               onClick={() => setShowAIWizard(true)}
-              className="w-full bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 hover:from-purple-700 hover:via-pink-700 hover:to-purple-700 shadow-lg"
+              className="w-full bg-gradient-to-r from-primary to-primary/80 shadow-lg"
             >
               <Wand2 className="mr-2 h-4 w-4" />
               AI Generate Lesson
