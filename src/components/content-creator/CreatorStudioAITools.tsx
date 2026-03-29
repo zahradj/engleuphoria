@@ -128,6 +128,24 @@ export const CreatorStudioAITools: React.FC<CreatorStudioAIToolsProps> = ({
     setOpen(false);
   };
 
+  const handleGenerateActivities = async () => {
+    if (!content.trim()) { toast.error('Write some content first'); return; }
+    setLoading('activities');
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-activity-generator', {
+        body: { content: content.slice(0, 3000), level, activityTypes: ['matching', 'fill-blank', 'quiz'], customInstructions: '' },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast.success(`Generated ${data.activities?.length || 0} interactive activities!`);
+      setOpen(false);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to generate activities');
+    } finally {
+      setLoading(null);
+    }
+  };
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -167,6 +185,13 @@ export const CreatorStudioAITools: React.FC<CreatorStudioAIToolsProps> = ({
           <Button variant="ghost" size="sm" className="w-full justify-start gap-2" onClick={handleExtractVocabulary} disabled={!!loading}>
             {loading === 'vocab' ? <Loader2 className="h-4 w-4 animate-spin" /> : <BookOpen className="h-4 w-4" />}
             Extract Vocabulary
+          </Button>
+
+          <div className="border-t border-border my-1" />
+
+          <Button variant="ghost" size="sm" className="w-full justify-start gap-2" onClick={handleGenerateActivities} disabled={!!loading}>
+            {loading === 'activities' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
+            Generate Activities
           </Button>
         </div>
       </PopoverContent>

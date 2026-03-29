@@ -1,0 +1,145 @@
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+import { CanvasElement } from './CanvasElement';
+import { ElementToolbar } from './ElementToolbar';
+import { PropertiesPanel } from './PropertiesPanel';
+import type { CanvasElementData, CanvasElementType, Slide } from '../types';
+
+interface CanvasEditorProps {
+  slide: Slide | null;
+  onUpdateSlide: (updates: Partial<Slide>) => void;
+}
+
+const CANVAS_W = 1920;
+const CANVAS_H = 1080;
+
+const DEFAULT_SIZES: Record<CanvasElementType, { w: number; h: number }> = {
+  text: { w: 400, h: 80 },
+  image: { w: 400, h: 300 },
+  shape: { w: 200, h: 200 },
+  quiz: { w: 500, h: 300 },
+  matching: { w: 500, h: 300 },
+  'fill-blank': { w: 500, h: 120 },
+  'drag-drop': { w: 500, h: 300 },
+  sorting: { w: 400, h: 300 },
+  'sentence-builder': { w: 500, h: 200 },
+  audio: { w: 300, h: 80 },
+};
+
+export const CanvasEditor: React.FC<CanvasEditorProps> = ({ slide, onUpdateSlide }) => {
+  const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
+  const [scale, setScale] = useState(1);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const elements: CanvasElementData[] = slide?.canvasElements || [];
+  const selectedElement = elements.find(e => e.id === selectedElementId) || null;
+
+  // Compute scale to fit canvas in container
+  useEffect(() => {
+    const updateScale = () => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const scaleX = (rect.width - 32) / CANVAS_W;
+      const scaleY = (rect.height - 32) / CANVAS_H;
+      setScale(Math.min(scaleX, scaleY, 1));
+    };
+    updateScale();
+    const observer = new ResizeObserver(updateScale);
+    if (containerRef.current) observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  const addElement = useCallback((type: CanvasElementType) => {
+    const size = DEFAULT_SIZES[type] || { w: 300, h: 200 };
+    const newElement: CanvasElementData = {
+      id: uuidv4(),
+      elementType: type,
+      x: Math.round(CANVAS_W / 2 - size.w / 2),
+      y: Math.round(CANVAS_H / 2 - size.h / 2),
+      width: size.w,
+      height: size.h,
+      rotation: 0,
+      zIndex: elements.length + 1,
+      content: type === 'text' ? { text: 'New Text', fontSize: 32, bold: false, italic: false, align: 'center', color: '#000000' }
+        : type === 'quiz' ? { question: '', options: [] }
+        : type === 'matching' ? { title: 'Match the pairs', pairs: [{ left: '', right: '' }] }
+        : type === 'fill-blank' ? { sentence: '', answer: '' }
+        : type === 'shape' ? { shape: 'rounded', fill: '#6366f1', opacity: 1 }
+        : {},
+    };
+    onUpdateSlide({ canvasElements: [...elements, newElement] });
+    setSelectedElementId(newElement.id);
+  }, [elements, onUpdateSlide]);
+
+  const updateElement = useCallback((id: string, updates: Partial<CanvasElementData>) => {
+    const updated = elements.map(e => e.id === id ? { ...e, ...updates } : e);
+    onUpdateSlide({ canvasElements: updated });
+  }, [elements, onUpdateSlide]);
+
+  const deleteElement = useCallback((id: string) => {
+    onUpdateSlide({ canvasElements: elements.filter(e => e.id !== id) });
+    if (selectedElementId === id) setSelectedElementId(null);
+  }, [elements, selectedElementId, onUpdateSlide]);
+
+  if (!slide) {
+    return (
+      <div className="h-full flex items-center justify-center bg-muted/30">
+        <p className="text-muted-foreground">Select a slide to start editing</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full flex">
+      <ElementToolbar onAddElement={addElement} />
+
+      {/* Canvas viewport */}
+      <div ref={containerRef} className="flex-1 bg-muted/30 flex items-center justify-center overflow-hidden p-4"
+        onClick={() => setSelectedElementId(null)}>
+        <div
+          className="relative bg-white shadow-2xl rounded-lg overflow-hidden"
+          style={{
+            width: CANVAS_W,
+            height: CANVAS_H,
+            transform: `scale(${scale})`,
+            transformOrigin: 'center center',
+          }}
+          onClick={(e) => { if (e.target === e.currentTarget) setSelectedElementId(null); }}
+        >
+          {/* Slide background image if exists */}
+          {slide.imageUrl && (
+            <img src={slide.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          )}
+
+          {/* Canvas elements */}
+          {elements.map(element => (
+            <CanvasElement
+              key={element.id}
+              element={element}
+              isSelected={element.id === selectedElementId}
+              scale={scale}
+              onSelect={() => setSelectedElementId(element.id)}
+              onUpdate={(updates) => updateElement(element.id, updates)}
+              onDelete={() => deleteElement(element.id)}
+            />
+          ))}
+
+          {/* Empty state */}
+          {elements.length === 0 && !slide.imageUrl && (
+            <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/50">
+              <div className="text-center">
+                <p className="text-2xl font-light mb-2">Empty Canvas</p>
+                <p className="text-sm">Add elements from the left toolbar</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <PropertiesPanel
+        element={selectedElement}
+        onUpdate={(updates) => selectedElementId && updateElement(selectedElementId, updates)}
+      />
+    </div>
+  );
+};
