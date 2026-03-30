@@ -657,8 +657,19 @@ serve(async (req) => {
     // Parse and clean JSON
     let parsedData;
     try {
-      const cleanedContent = generatedContent.replace(/```json\n?|\n?```/g, '').trim();
-      parsedData = JSON.parse(cleanedContent);
+      let cleanedContent = generatedContent.replace(/```json\n?|\n?```/g, '').trim();
+      // Try to extract JSON object or array if surrounded by text
+      const jsonObjMatch = cleanedContent.match(/(\{[\s\S]*\})/);
+      const jsonArrMatch = cleanedContent.match(/(\[[\s\S]*\])/);
+      if (cleanedContent.startsWith('{') || cleanedContent.startsWith('[')) {
+        parsedData = JSON.parse(cleanedContent);
+      } else if (jsonObjMatch) {
+        parsedData = JSON.parse(jsonObjMatch[1]);
+      } else if (jsonArrMatch) {
+        parsedData = JSON.parse(jsonArrMatch[1]);
+      } else {
+        throw new Error('No JSON found in response');
+      }
     } catch (parseError) {
       console.error('❌ JSON parse error:', parseError);
       console.error('Raw content:', generatedContent);
