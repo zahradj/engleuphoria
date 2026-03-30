@@ -38,16 +38,17 @@ serve(async (req) => {
       );
     }
 
-    // Check if user is admin
+    // Check if user has an allowed role
+    const allowedRoles = ["admin", "content_creator"];
     const { data: userData, error: userError } = await supabase
       .from("users")
       .select("role")
       .eq("id", user.id)
       .single();
 
-    if (userError || !userData || userData.role !== "admin") {
+    if (userError || !userData || !allowedRoles.includes(userData.role)) {
       return new Response(
-        JSON.stringify({ error: "Admin access required" }),
+        JSON.stringify({ error: "Unauthorized: admin or content_creator role required" }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
