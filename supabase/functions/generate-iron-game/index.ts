@@ -275,9 +275,7 @@ Do not include any markdown, explanations, or extra text.`;
 
   } catch (error) {
     console.error('[IronLMS] Error:', error);
-    return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : "Unknown error" 
-    }), {
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" }
     });
