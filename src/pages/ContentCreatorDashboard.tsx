@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ContentCreatorStepper, PipelineStep } from '@/components/content-creator/ContentCreatorStepper';
-import { CurriculumStep } from '@/components/content-creator/CurriculumStep';
+import { CurriculumStep, CurriculumContext } from '@/components/content-creator/CurriculumStep';
 import { NewLibrary } from '@/components/admin/NewLibrary';
 import { AdminLessonEditor } from '@/components/admin/lesson-builder';
 import { CurriculumLibrary } from '@/components/admin/CurriculumLibrary';
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 
 const ContentCreatorDashboard: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<PipelineStep>(1);
+  const [curriculumContext, setCurriculumContext] = useState<CurriculumContext | null>(null);
   const { user, signOut } = useAuth();
 
   const goNext = () => setCurrentStep((s) => Math.min(s + 1, 4) as PipelineStep);
