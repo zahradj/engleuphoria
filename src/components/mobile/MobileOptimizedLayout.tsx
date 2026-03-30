@@ -33,7 +33,7 @@ export const MobileOptimizedLayout: React.FC<MobileOptimizedLayoutProps> = ({
       </main>
       
       {showNavigation && <MobileNavigation />}
-      <InstallPrompt />
+      <UpdatePrompt />
     </div>
   );
 };
