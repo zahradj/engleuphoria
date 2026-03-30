@@ -268,6 +268,10 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
       }
 
       toast.success(`Saved ${generatedUnits.length} units and ${generatedUnits.reduce((sum, u) => sum + u.lessons.length, 0)} lessons to database!`);
+      
+      // Notify parent of the curriculum context
+      const targetSystem = config.ageGroup === 'kids' ? 'kids' : config.ageGroup === 'teens' ? 'teens' : 'adults';
+      onCurriculumGenerated?.({ system: targetSystem, level: config.level, ageGroup: config.ageGroup });
     } catch (err: any) {
       console.error('Save error:', err);
       toast.error('Failed to save curriculum: ' + err.message);

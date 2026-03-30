@@ -29,7 +29,7 @@ const ContentCreatorDashboard: React.FC = () => {
                 Generate AI-powered lessons based on your curriculum, then build slides.
               </p>
             </div>
-            <NewLibrary onNavigate={() => {}} />
+            <NewLibrary onNavigate={() => {}} initialContext={curriculumContext} />
             <div className="flex justify-between pt-4 border-t border-border">
               <Button variant="outline" onClick={goPrev} className="gap-2">
                 <ArrowLeft className="h-4 w-4" />

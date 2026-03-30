@@ -52,9 +52,10 @@ interface CurriculumUnit {
 
 interface NewLibraryProps {
   onNavigate?: (tab: ContentCreatorTab | string) => void;
+  initialContext?: { system: string; level: string; ageGroup: string; levelId?: string } | null;
 }
 
-export const NewLibrary = ({ onNavigate }: NewLibraryProps) => {
+export const NewLibrary = ({ onNavigate, initialContext }: NewLibraryProps) => {
   const [topic, setTopic] = useState("");
   const [system, setSystem] = useState("kids");
   const [difficulty, setDifficulty] = useState("beginner");

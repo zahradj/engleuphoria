@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { CurriculumGeneratorWizard } from './CurriculumGeneratorWizard';
 import { CurriculumBuilder } from '@/components/admin/CurriculumBuilder';
+import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Wand2, Edit3 } from 'lucide-react';
 
 export interface CurriculumContext {
