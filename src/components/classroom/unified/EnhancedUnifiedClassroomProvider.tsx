@@ -45,50 +45,28 @@ export function EnhancedUnifiedClassroomProvider({ children }: EnhancedUnifiedCl
   const { roomId } = useParams();
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [hasShownWelcome, setHasShownWelcome] = useState(false);
   const [lessonContext, setLessonContext] = useState<LessonContext>({
     isValidated: false
   });
-  const userIdRef = useRef<string>();
-  
-  // Generate stable user ID only once
-  if (!userIdRef.current) {
-    userIdRef.current = `user-${Math.random().toString(36).substr(2, 9)}`;
-  }
 
-  // Enhanced role parameter extraction with stable memoization
+  // SECURITY: Derive classroom role from server-validated auth context
+  // Never trust URL params or client storage for role determination
   const currentUser = useMemo<UserProfile>(() => {
-    const roleParam = searchParams.get('role');
-    const nameParam = searchParams.get('name');
-    const userIdParam = searchParams.get('userId');
+    const authRole = user?.role;
+    const finalRole: 'teacher' | 'student' = 
+      (authRole === 'teacher' || authRole === 'admin') ? 'teacher' : 'student';
     
-    // Check session storage for persisted role
-    const persistedRole = sessionStorage.getItem('classroom-user-role') as 'teacher' | 'student' | null;
-    const persistedName = sessionStorage.getItem('classroom-user-name');
-    const persistedUserId = sessionStorage.getItem('classroom-user-id');
-
-    // Determine final values with fallback logic
-    const finalRole = roleParam as 'teacher' | 'student' || persistedRole || 'student';
-    const finalName = nameParam || persistedName || (finalRole === 'teacher' ? 'Teacher' : 'Student');
-    const finalUserId = userIdParam || persistedUserId || userIdRef.current!;
-
-    // Persist to session storage only if changed
-    if (sessionStorage.getItem('classroom-user-role') !== finalRole) {
-      sessionStorage.setItem('classroom-user-role', finalRole);
-    }
-    if (sessionStorage.getItem('classroom-user-name') !== finalName) {
-      sessionStorage.setItem('classroom-user-name', finalName);
-    }
-    if (sessionStorage.getItem('classroom-user-id') !== finalUserId) {
-      sessionStorage.setItem('classroom-user-id', finalUserId);
-    }
+    const finalName = user?.full_name || (finalRole === 'teacher' ? 'Teacher' : 'Student');
+    const finalUserId = user?.id || `anonymous-${Math.random().toString(36).substr(2, 9)}`;
 
     return {
       id: finalUserId,
       name: finalName,
       role: finalRole
     };
-  }, [searchParams]);
+  }, [user]);
 
   const finalRoomId = useMemo(() => roomId || "unified-classroom-1", [roomId]);
 
