@@ -1,40 +1,54 @@
 
 
-## Plan: Fix Teen Dashboard Routing + Set Up Branded Verification Email
+## Plan: Add App Version Tracking and Update Prompt
 
-### Issue 1: Teen Student Gets Wrong Dashboard
+### Current State
 
-**Root cause**: The `StudentDashboard` component (line 35) defaults `systemId` to `'kids'` and only overrides it if `users.current_system` is set in the DB. But the canonical student level lives in `student_profiles.student_level` (used by `useStudentLevel` for routing). If `users.current_system` is not populated for a teen, they land on `/academy` (correct route) but see the **Playground (kids) dashboard content**.
+- `package.json` version is `0.0.0` — never updated
+- `manifest.json` has no version field
+- The service worker (`sw.js`) handles cache versioning (`engleuphoria-v4`) and auto-reloads on `controllerchange`, but there is no user-facing version display or "update available" prompt
+- The `usePWA` hook tracks install/online state but not version or update status
+- Icons in `manifest.json` still use `placeholder.svg`
 
-**Fix**: Use `useStudentLevel()` inside `StudentDashboard` as the primary source for `systemId`, with `users.current_system` as a fallback. Map `student_level` values to `SystemId`:
-- `'academy'` -> `'teen'`
-- `'playground'` -> `'kids'`
-- `'professional'` -> `'adult'`
+### What This Plan Adds
 
-| File | Change |
-|---|---|
-| `src/pages/StudentDashboard.tsx` | Import `useStudentLevel`, use `studentLevel` to set `systemId` instead of only relying on `users.current_system` |
+1. **Semantic version** set to `1.0.0` across `package.json` and injected at build time via Vite's `define` config
+2. **"Update available" toast** — when the service worker detects a new version, users see a non-intrusive prompt to reload
+3. **Version display** in the app (e.g., settings/footer area) so users can confirm they're on the latest build
+4. **Service worker improvement** — listen for the `waiting` state and prompt the user instead of silently auto-reloading
 
-### Issue 2: Verification Email in Spam + No Branding
+### Files to Change
 
-**Root cause**: No email domain is configured for this project. Emails are sent from default Supabase/Lovable infrastructure without custom branding, which makes spam filters flag them.
+| File | Action | What |
+|---|---|---|
+| `package.json` | Modify | Set `"version": "1.0.0"` |
+| `vite.config.ts` | Modify | Add `define: { __APP_VERSION__: JSON.stringify(pkg.version) }` |
+| `src/vite-env.d.ts` | Modify | Declare `__APP_VERSION__` global |
+| `src/main.tsx` | Modify | Detect SW `waiting` state; post `SKIP_WAITING` message instead of blind reload |
+| `public/sw.js` | Modify | Listen for `SKIP_WAITING` message to call `self.skipWaiting()` on demand |
+| `src/hooks/usePWA.ts` | Modify | Add `appVersion` and `updateAvailable` + `applyUpdate()` to the hook |
+| `src/components/mobile/UpdatePrompt.tsx` | Create | Toast/banner component: "A new version is available — tap to update" |
+| `src/components/mobile/AppVersion.tsx` | Create | Small version badge component (`v1.0.0`) for settings/profile pages |
 
-**Fix**: Set up a custom email domain for `engleuphoria.com`, then scaffold branded auth email templates with the EnglEuphoria logo and brand colors (orange/amber primary from the landing page).
+### Technical Details
 
-**Steps**:
-1. Open the email domain setup dialog so the user can configure `engleuphoria.com`
-2. Once domain is configured, scaffold auth email templates with brand styling
-3. Upload the logo (`src/assets/logo-black.png`) to a storage bucket for use in email templates
-4. Apply EnglEuphoria brand colors (amber/orange primary `#F59E0B`, dark text) to all 6 auth templates
-5. Deploy the `auth-email-hook` edge function
+**Build-time version injection** — `vite.config.ts` reads `package.json` version and exposes it as `__APP_VERSION__`. No runtime API calls needed.
 
-**Note**: The domain setup must be completed by the user first (DNS configuration). After that, the branded templates will ensure emails are properly authenticated and less likely to hit spam.
+**Update flow**:
+1. New service worker installs → enters `waiting` state
+2. `usePWA` detects `registration.waiting` → sets `updateAvailable = true`
+3. `UpdatePrompt` renders a toast with "Update now" button
+4. On tap, posts `{ type: 'SKIP_WAITING' }` to the waiting SW
+5. SW calls `self.skipWaiting()` → takes control → `controllerchange` fires → page reloads
 
-### Files
+**Service worker `SKIP_WAITING` listener** (added to `sw.js`):
+```js
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+```
 
-| File | Action |
-|---|---|
-| `src/pages/StudentDashboard.tsx` | **Modify** -- use `useStudentLevel` as primary `systemId` source |
-| `supabase/functions/_shared/email-templates/*.tsx` | **Create** (via scaffold tool) -- branded auth email templates |
-| `supabase/functions/auth-email-hook/index.ts` | **Create** (via scaffold tool) -- auth email hook |
+This replaces the current unconditional `self.skipWaiting()` in the install handler, giving users control over when the update applies.
 
