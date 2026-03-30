@@ -1,33 +1,48 @@
 
 
-## Plan: Assign content_creator Role to Gmail Account
+## Plan: Fix Curriculum Save-to-Database Failure
 
-### What This Does
-Creates a database migration that assigns the `content_creator` role to `f.zahra.djaanine@gmail.com` in the `user_roles` table, ensuring the account can sign in and access the content creator dashboard.
+### Problem Summary
 
-### Prerequisites
-The account must already exist in Supabase Auth. If it doesn't, you need to either:
-- Sign up via the app first, OR
-- I create the account via an edge function (like the existing `admin-create` pattern)
+Two distinct bugs prevent the content creator from saving generated curriculum:
 
-### Migration (single SQL file)
+**Bug 1 — Edge function mode mismatch**: The wizard sends `mode: 'curriculum_structure'` but the edge function only handles `curriculum`, `lesson`, `unit`, etc. It falls through to the default lesson prompt, which causes the AI to return plain text instead of JSON, triggering the parse error.
 
-```sql
--- Assign content_creator role to f.zahra.djaanine@gmail.com
-INSERT INTO public.user_roles (user_id, role)
-SELECT id, 'content_creator'::app_role
-FROM auth.users
-WHERE email = 'f.zahra.djaanine@gmail.com'
-ON CONFLICT (user_id, role) DO NOTHING;
+**Bug 2 — Wrong column names in INSERT**: The `handleSaveToDB` function in `CurriculumGeneratorWizard.tsx` uses column names that don't exist in the `curriculum_units` table:
+- `name` → should be `title`
+- `unit_order` → should be `unit_number`
+- Missing required columns: `age_group`, `cefr_level`, `learning_objectives`
+
+### Changes
+
+**File 1: `src/components/content-creator/CurriculumGeneratorWizard.tsx`**
+
+Fix the `handleSaveToDB` function to use correct column names and include all required fields:
+
+```typescript
+const { data: unitData, error: unitError } = await supabase
+  .from('curriculum_units')
+  .insert({
+    title: unit.title,
+    unit_number: unit.unitNumber,
+    age_group: config.ageGroup,
+    cefr_level: cefrLevel,
+    learning_objectives: unit.lessons.flatMap(l => l.objectives || []),
+  })
+  .select()
+  .single();
 ```
 
-This is safe — it only acts if the account exists and doesn't duplicate the role if already assigned.
+Also fix the edge function invocation to use `mode: 'curriculum'` instead of `mode: 'curriculum_structure'`.
 
-### Important Security Note
-Passwords should never be stored in code or migrations. The password `Timosha1994@` should only be entered through the Supabase Auth signup flow (app UI or Supabase dashboard). I strongly recommend changing it after setup since it's now been shared in chat.
+**File 2: `supabase/functions/curriculum-expert-agent/index.ts`**
 
-### Files Changed
-| File | Action |
+Add `curriculum_structure` as a recognized alias for the curriculum mode in `getSystemPrompt`, `getModelForMode`, and `getMaxTokensForMode`. Also improve JSON extraction in the parse step to handle array-wrapped or markdown-fenced responses more robustly. Ensure the `buildUserPrompt` includes `unitCount` and `lessonsPerUnit` context when present.
+
+### Technical Details
+
+| File | Change |
 |---|---|
-| New migration SQL | Create — assigns `content_creator` role |
+| `CurriculumGeneratorWizard.tsx` | Fix column names (`title`, `unit_number`), add required fields (`age_group`, `cefr_level`, `learning_objectives`) |
+| `curriculum-expert-agent/index.ts` | Handle `curriculum_structure` mode, improve JSON extraction resilience |
 
