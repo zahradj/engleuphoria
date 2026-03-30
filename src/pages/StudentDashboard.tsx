@@ -65,25 +65,35 @@ const StudentDashboard = () => {
           setHasProfile(false);
         }
         
-        // Fetch user's current_system from database
+        // Determine systemId: prefer student_level from student_profiles, fall back to users.current_system
         if (user?.id) {
-          const { data: userData, error } = await supabase
-            .from('users')
-            .select('current_system')
-            .eq('id', user.id)
-            .single();
-          
-          if (!error && userData?.current_system) {
-            // Map database value to SystemId
-            const systemMap: Record<string, SystemId> = {
-              'KIDS': 'kids',
-              'TEENS': 'teen',
-              'ADULTS': 'adult',
-              'kids': 'kids',
-              'teen': 'teen',
-              'adult': 'adult'
-            };
-            setSystemId(systemMap[userData.current_system] || 'kids');
+          const studentLevelToSystem: Record<StudentLevel, SystemId> = {
+            'playground': 'kids',
+            'academy': 'teen',
+            'professional': 'adult',
+          };
+
+          if (studentLevel) {
+            setSystemId(studentLevelToSystem[studentLevel] || 'kids');
+          } else {
+            // Fallback: fetch from users.current_system
+            const { data: userData, error } = await supabase
+              .from('users')
+              .select('current_system')
+              .eq('id', user.id)
+              .single();
+            
+            if (!error && userData?.current_system) {
+              const systemMap: Record<string, SystemId> = {
+                'KIDS': 'kids',
+                'TEENS': 'teen',
+                'ADULTS': 'adult',
+                'kids': 'kids',
+                'teen': 'teen',
+                'adult': 'adult'
+              };
+              setSystemId(systemMap[userData.current_system] || 'kids');
+            }
           }
         }
         
