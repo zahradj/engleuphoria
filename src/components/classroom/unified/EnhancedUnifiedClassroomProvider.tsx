@@ -54,11 +54,11 @@ export function EnhancedUnifiedClassroomProvider({ children }: EnhancedUnifiedCl
   // SECURITY: Derive classroom role from server-validated auth context
   // Never trust URL params or client storage for role determination
   const currentUser = useMemo<UserProfile>(() => {
-    const authRole = user?.role;
+    const authRole = (user as any)?.role;
     const finalRole: 'teacher' | 'student' = 
       (authRole === 'teacher' || authRole === 'admin') ? 'teacher' : 'student';
     
-    const finalName = user?.full_name || (finalRole === 'teacher' ? 'Teacher' : 'Student');
+    const finalName = user?.user_metadata?.full_name || (finalRole === 'teacher' ? 'Teacher' : 'Student');
     const finalUserId = user?.id || `anonymous-${Math.random().toString(36).substr(2, 9)}`;
 
     return {
