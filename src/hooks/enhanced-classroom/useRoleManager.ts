@@ -135,92 +135,12 @@ export function useRoleManager({ initialRole, userId, userName }: UseRoleManager
     return hasPermission;
   }, [currentRole.permissions, toast]);
 
-  const switchRole = useCallback((newRole: 'teacher' | 'student') => {
-    if (newRole === currentRole.role) return;
-
-    const newPermissions = newRole === 'teacher' ? {
-      // Core permissions
-      canRecord: true,
-      canMuteOthers: true,
-      canControlWhiteboard: true,
-      canManageParticipants: true,
-      canUploadContent: true,
-      
-      // Communication permissions
-      canAccessChat: true,
-      canSendPrivateMessages: true,
-      canUseReactions: true,
-      
-      // Learning tools permissions
-      canAccessDictionary: true,
-      canAccessTranslation: true,
-      canTakeNotes: true,
-      
-      // Participation permissions
-      canParticipateInPolls: true,
-      canRaiseHand: true,
-      canShareScreen: true,
-      
-      // Advanced teacher permissions
-      canControlLessonFlow: true,
-      canCreateBreakoutRooms: true,
-      canViewAllProgress: true,
-      canModerateChat: true,
-      canSpotlightStudents: true,
-      canCreatePolls: true,
-    } : {
-      // Core permissions
-      canRecord: false,
-      canMuteOthers: false,
-      canControlWhiteboard: false,
-      canManageParticipants: false,
-      canUploadContent: false,
-      
-      // Communication permissions
-      canAccessChat: true,
-      canSendPrivateMessages: true,
-      canUseReactions: true,
-      
-      // Learning tools permissions
-      canAccessDictionary: true,
-      canAccessTranslation: true,
-      canTakeNotes: true,
-      
-      // Participation permissions
-      canParticipateInPolls: true,
-      canRaiseHand: true,
-      canShareScreen: false,
-      
-      // Advanced teacher permissions
-      canControlLessonFlow: false,
-      canCreateBreakoutRooms: false,
-      canViewAllProgress: false,
-      canModerateChat: false,
-      canSpotlightStudents: false,
-      canCreatePolls: false,
-    };
-
-    setCurrentRole(prev => ({
-      ...prev,
-      role: newRole,
-      permissions: newPermissions
-    }));
-
-    toast({
-      title: "Role Changed",
-      description: `You are now a ${newRole}`,
-    });
-  }, [currentRole.role, toast]);
-
-  // Persist role in localStorage
-  useEffect(() => {
-    localStorage.setItem('classroom-role', JSON.stringify(currentRole));
-  }, [currentRole]);
+  // SECURITY: switchRole removed — role is derived from server-validated auth context only.
+  // Runtime role switching is not permitted to prevent privilege escalation.
 
   return {
     currentRole,
     validatePermission,
-    switchRole,
     isTeacher: currentRole.role === 'teacher',
     isStudent: currentRole.role === 'student'
   };
