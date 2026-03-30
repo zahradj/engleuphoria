@@ -44,7 +44,11 @@ const AGE_GROUPS = [
   { value: 'adults', label: 'Adults (18+)' },
 ];
 
-export const CurriculumGeneratorWizard: React.FC = () => {
+interface CurriculumGeneratorWizardProps {
+  onCurriculumGenerated?: (ctx: { system: string; level: string; ageGroup: string }) => void;
+}
+
+export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps> = ({ onCurriculumGenerated }) => {
   const [config, setConfig] = useState<CurriculumConfig>({
     level: '',
     ageGroup: '',
