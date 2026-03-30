@@ -19,7 +19,7 @@ const ContentCreatorDashboard: React.FC = () => {
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
-        return <CurriculumStep onNextStep={goNext} />;
+        return <CurriculumStep onNextStep={goNext} onCurriculumSelected={setCurriculumContext} />;
       case 2:
         return (
           <div className="space-y-6">
