@@ -283,7 +283,7 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
         if (lessonsError) throw lessonsError;
       }
 
-      toast.success(`Saved ${generatedUnits.length} units and ${generatedUnits.reduce((sum, u) => sum + u.lessons.length, 0)} lessons to database!`);
+      toast.success(`Saved ${generatedUnits.length} units and ${generatedUnits.reduce((sum, u) => sum + (u.lessons?.length || 0), 0)} lessons to database!`);
       
       // Notify parent of the curriculum context
       const systemLabel = config.ageGroup === 'kids' ? 'kids' : config.ageGroup === 'teens' ? 'teens' : 'adults';
