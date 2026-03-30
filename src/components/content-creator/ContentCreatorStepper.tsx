@@ -26,7 +26,39 @@ const STEPS = [
 export const ContentCreatorStepper: React.FC<ContentCreatorStepperProps> = ({
   currentStep,
   onStepChange,
+  progress,
 }) => {
+  const getProgressBadge = (step: PipelineStep) => {
+    if (!progress) return null;
+    if (step === 2) {
+      const done = progress.generatedLessons;
+      const total = progress.totalLessons;
+      const isComplete = total > 0 && done >= total;
+      return (
+        <span className={cn(
+          'text-[10px] font-medium px-1.5 py-0.5 rounded-full leading-none',
+          isComplete ? 'bg-green-500/15 text-green-600' : 'bg-muted text-muted-foreground'
+        )}>
+          {done}/{total}
+        </span>
+      );
+    }
+    if (step === 3) {
+      const done = progress.lessonsWithSlides;
+      const total = progress.generatedLessons;
+      if (total === 0) return null;
+      const isComplete = done >= total;
+      return (
+        <span className={cn(
+          'text-[10px] font-medium px-1.5 py-0.5 rounded-full leading-none',
+          isComplete ? 'bg-green-500/15 text-green-600' : 'bg-muted text-muted-foreground'
+        )}>
+          {done}/{total}
+        </span>
+      );
+    }
+    return null;
+  };
   return (
     <div className="w-full px-6 py-4 bg-card border-b border-border">
       <div className="flex items-center justify-between max-w-4xl mx-auto">
