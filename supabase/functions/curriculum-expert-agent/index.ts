@@ -450,7 +450,8 @@ function getSystemPrompt(mode: string): string {
   switch(mode) {
     case 'lesson': return ECA_LESSON_PROMPT;
     case 'unit': return ECA_UNIT_PROMPT;
-    case 'curriculum': return ECA_CURRICULUM_PROMPT;
+    case 'curriculum':
+    case 'curriculum_structure': return ECA_CURRICULUM_PROMPT;
     case 'assessment': return ECA_ASSESSMENT_PROMPT;
     case 'mission': return ECA_MISSION_PROMPT;
     case 'resource': return ECA_RESOURCE_PROMPT;
