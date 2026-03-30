@@ -113,7 +113,7 @@ const StudentDashboard = () => {
     if (!authLoading) {
       initializeDashboard();
     }
-  }, [authLoading, toast, user?.id]);
+  }, [authLoading, toast, user?.id, studentLevel]);
 
   const handleLogout = async () => {
     try {
