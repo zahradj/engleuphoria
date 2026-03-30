@@ -470,7 +470,7 @@ function getModelForMode(mode: string): string {
 
 function getMaxTokensForMode(mode: string): number {
   // More tokens for complex outputs
-  if (mode === 'curriculum') return 8000;
+  if (mode === 'curriculum' || mode === 'curriculum_structure') return 8000;
   if (mode === 'unit') return 6000;
   if (mode === 'assessment') return 6000;
   return 4000;

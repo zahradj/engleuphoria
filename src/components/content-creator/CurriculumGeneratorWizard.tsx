@@ -235,9 +235,12 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
         const { data: unitData, error: unitError } = await supabase
           .from('curriculum_units')
           .insert({
-            name: unit.title,
-            unit_order: unit.unitNumber,
+            title: unit.title,
+            unit_number: unit.unitNumber,
             target_system: targetSystem,
+            age_group: config.ageGroup,
+            cefr_level: cefrLevel,
+            learning_objectives: unit.lessons.flatMap(l => l.objectives || []),
           })
           .select()
           .single();
