@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface PWACapabilities {
   isInstallable: boolean;
@@ -25,28 +25,53 @@ export const usePWA = () => {
   });
 
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null);
+
+  const appVersion = __APP_VERSION__;
 
   useEffect(() => {
-    // Check if app is installed
-    const isInstalled = window.matchMedia('(display-mode: standalone)').matches || 
+    const isInstalled = window.matchMedia('(display-mode: standalone)').matches ||
                        (window.navigator as any).standalone === true;
-    
+
     setCapabilities(prev => ({ ...prev, isInstalled }));
 
-    // Listen for install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setInstallPrompt(e as BeforeInstallPromptEvent);
       setCapabilities(prev => ({ ...prev, isInstallable: true }));
     };
 
-    // Listen for online/offline
     const handleOnline = () => setCapabilities(prev => ({ ...prev, isOnline: true }));
     const handleOffline = () => setCapabilities(prev => ({ ...prev, isOnline: false }));
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+
+    // Detect waiting service worker for update prompt
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistration().then((registration) => {
+        if (!registration) return;
+
+        if (registration.waiting) {
+          setWaitingWorker(registration.waiting);
+          setUpdateAvailable(true);
+        }
+
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          if (!newWorker) return;
+
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              setWaitingWorker(newWorker);
+              setUpdateAvailable(true);
+            }
+          });
+        });
+      });
+    }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -55,13 +80,21 @@ export const usePWA = () => {
     };
   }, []);
 
+  const applyUpdate = useCallback(() => {
+    if (!waitingWorker) return;
+    waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+    setUpdateAvailable(false);
+    setWaitingWorker(null);
+    // controllerchange listener in main.tsx will reload the page
+  }, [waitingWorker]);
+
   const installApp = async () => {
     if (!installPrompt) return false;
 
     try {
       await installPrompt.prompt();
       const choiceResult = await installPrompt.userChoice;
-      
+
       if (choiceResult.outcome === 'accepted') {
         setInstallPrompt(null);
         setCapabilities(prev => ({ ...prev, isInstallable: false, isInstalled: true }));
@@ -70,7 +103,7 @@ export const usePWA = () => {
     } catch (error) {
       console.error('Error installing PWA:', error);
     }
-    
+
     return false;
   };
 
@@ -100,6 +133,9 @@ export const usePWA = () => {
 
   return {
     capabilities,
+    appVersion,
+    updateAvailable,
+    applyUpdate,
     installApp,
     requestNotificationPermission,
     sendNotification

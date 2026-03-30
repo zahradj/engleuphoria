@@ -13,7 +13,7 @@ self.addEventListener('install', (event) => {
       .then((cache) => cache.addAll(ASSETS))
       .catch(() => {})
   );
-  self.skipWaiting();
+  // Do NOT call self.skipWaiting() here — let the client decide when to activate
 });
 
 self.addEventListener('activate', (event) => {
@@ -23,10 +23,16 @@ self.addEventListener('activate', (event) => {
     )
   );
   self.clients.claim();
-  // Notify clients a new SW is active
   self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
     clients.forEach((client) => client.postMessage({ type: 'SW_ACTIVATED', cache: CACHE_NAME }));
   });
+});
+
+// Listen for SKIP_WAITING from the client to activate the new SW on demand
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 // Strategies
@@ -68,20 +74,17 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
 
-  // Network-first for navigations (ensures latest app shell)
   const accept = request.headers.get('accept') || '';
   if (request.mode === 'navigate' || accept.includes('text/html')) {
     event.respondWith(networkFirst(request));
     return;
   }
 
-  // Cache-first for static assets
   const dest = request.destination;
   if (['script', 'style', 'font', 'image'].includes(dest)) {
     event.respondWith(cacheFirst(request));
     return;
   }
 
-  // Default: stale-while-revalidate
   event.respondWith(staleWhileRevalidate(request));
 });

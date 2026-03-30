@@ -1,7 +1,7 @@
 import React from 'react';
 import { MobileNavigation } from './MobileNavigation';
 import { MobileHeader } from './MobileHeader';
-import { InstallPrompt } from './InstallPrompt';
+import { UpdatePrompt } from './UpdatePrompt';
 import { cn } from '@/lib/utils';
 
 interface MobileOptimizedLayoutProps {
@@ -33,7 +33,7 @@ export const MobileOptimizedLayout: React.FC<MobileOptimizedLayoutProps> = ({
       </main>
       
       {showNavigation && <MobileNavigation />}
-      <InstallPrompt />
+      <UpdatePrompt />
     </div>
   );
 };
