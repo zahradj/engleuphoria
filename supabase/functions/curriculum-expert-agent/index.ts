@@ -482,7 +482,7 @@ function getMaxTokensForMode(mode: string): number {
 }
 
 function buildUserPrompt(requestData: GenerationRequest): string {
-  let userPrompt = requestData.prompt;
+  let userPrompt = requestData.prompt || `Generate a structured curriculum for ${requestData.ageGroup || 'young learners'} at ${requestData.cefrLevel || requestData.level || 'A1'} level.`;
   
   // Add context
   userPrompt += `\n\nContext:`;
