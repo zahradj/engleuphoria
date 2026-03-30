@@ -1,41 +1,35 @@
 
 
-## Plan: Pass Curriculum Context from Step 1 to Step 2
+## Plan: Pipeline Progress Tracker on Stepper
 
-### Problem
-Steps 1 and 2 are disconnected -- when a content creator generates or selects a curriculum in Step 1, they have to manually re-select the system, level, and age group in Step 2's lesson generator.
+### What
+Add live progress badges to the Content Creator Stepper showing real counts from Supabase: how many lessons are generated (Step 2) and how many have slides built (Step 3), relative to the total curriculum.
 
-### Solution
-Add shared state in the dashboard that captures curriculum context from Step 1 and pre-fills Step 2's filters automatically.
+### How
 
----
+**1. Create `src/hooks/usePipelineProgress.ts`**
+- Lightweight hook that queries:
+  - Total lessons from master curriculum (via `MASTER_CURRICULUM` data)
+  - Generated lessons count from `curriculum_lessons` table
+  - Lessons with slides count from `curriculum_lessons` where `slides` column is not null/empty
+- Returns `{ totalLessons, generatedLessons, lessonsWithSlides, isLoading }`
+- Uses `useQuery` with a reasonable stale time
 
-### Changes
+**2. Update `ContentCreatorStepper.tsx`**
+- Accept optional `progress` prop: `{ generatedLessons, totalLessons, lessonsWithSlides }`
+- Show small badge/chip under Step 2 label: `"12/45 generated"`
+- Show small badge/chip under Step 3 label: `"8/12 with slides"`
+- Badges use green tint when complete, muted otherwise
 
-**1. Define a `CurriculumContext` type and state in `ContentCreatorDashboard.tsx`**
-- Add state: `curriculumContext: { system, level, levelId, ageGroup } | null`
-- Pass setter to `CurriculumStep` and context to `NewLibrary`
-
-**2. Update `CurriculumStep.tsx`**
-- Accept `onCurriculumSelected: (ctx) => void` prop
-- When the wizard generates a curriculum or when the user selects an existing one in the editor, call the callback with `{ system, level, levelId, ageGroup }`
-- Show a visual indicator of the selected curriculum context (badge/chip)
-
-**3. Update `CurriculumGeneratorWizard.tsx`**
-- Accept `onCurriculumGenerated` callback prop
-- After successful save to DB, invoke callback with the config values (level, ageGroup, system)
-
-**4. Update `NewLibrary.tsx` props and initialization**
-- Add optional `initialContext?: { system, level, levelId, ageGroup }` prop
-- In a `useEffect`, when `initialContext` is provided, pre-set `system`, `difficulty`, `selectedLevelId` states
-- Show a dismissible banner: "Pre-filtered from your Step 1 curriculum"
+**3. Update `ContentCreatorDashboard.tsx`**
+- Call `usePipelineProgress()` hook
+- Pass progress data down to `ContentCreatorStepper`
 
 ### Files
 
 | File | Action |
 |---|---|
-| `src/pages/ContentCreatorDashboard.tsx` | Add `curriculumContext` state, wire props |
-| `src/components/content-creator/CurriculumStep.tsx` | Add `onCurriculumSelected` callback, forward to wizard/builder |
-| `src/components/content-creator/CurriculumGeneratorWizard.tsx` | Add `onCurriculumGenerated` callback prop |
-| `src/components/admin/NewLibrary.tsx` | Add `initialContext` prop, auto-fill filters |
+| `src/hooks/usePipelineProgress.ts` | **Create** -- query lesson + slide counts |
+| `src/components/content-creator/ContentCreatorStepper.tsx` | **Modify** -- render progress badges on steps 2 & 3 |
+| `src/pages/ContentCreatorDashboard.tsx` | **Modify** -- wire hook to stepper |
 
