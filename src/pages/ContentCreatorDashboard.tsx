@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ContentCreatorStepper, PipelineStep } from '@/components/content-creator/ContentCreatorStepper';
+import { usePipelineProgress } from '@/hooks/usePipelineProgress';
 import { CurriculumStep, CurriculumContext } from '@/components/content-creator/CurriculumStep';
 import { NewLibrary } from '@/components/admin/NewLibrary';
 import { AdminLessonEditor } from '@/components/admin/lesson-builder';
