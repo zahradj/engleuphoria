@@ -52,9 +52,10 @@ interface CurriculumUnit {
 
 interface NewLibraryProps {
   onNavigate?: (tab: ContentCreatorTab | string) => void;
+  initialContext?: { system: string; level: string; ageGroup: string; levelId?: string } | null;
 }
 
-export const NewLibrary = ({ onNavigate }: NewLibraryProps) => {
+export const NewLibrary = ({ onNavigate, initialContext }: NewLibraryProps) => {
   const [topic, setTopic] = useState("");
   const [system, setSystem] = useState("kids");
   const [difficulty, setDifficulty] = useState("beginner");
@@ -103,6 +104,15 @@ export const NewLibrary = ({ onNavigate }: NewLibraryProps) => {
     fetchLevels();
     fetchUnits();
   }, []);
+
+  // Auto-fill filters from curriculum context (Step 1)
+  useEffect(() => {
+    if (!initialContext) return;
+    const systemMap: Record<string, string> = { kids: 'kids', teens: 'teens', adults: 'adults' };
+    if (systemMap[initialContext.system]) setSystem(systemMap[initialContext.system]);
+    if (initialContext.level) setDifficulty(initialContext.level);
+    if (initialContext.levelId) setSelectedLevelId(initialContext.levelId);
+  }, [initialContext]);
 
   const fetchLevels = async () => {
     try {

@@ -44,7 +44,11 @@ const AGE_GROUPS = [
   { value: 'adults', label: 'Adults (18+)' },
 ];
 
-export const CurriculumGeneratorWizard: React.FC = () => {
+interface CurriculumGeneratorWizardProps {
+  onCurriculumGenerated?: (ctx: { system: string; level: string; ageGroup: string }) => void;
+}
+
+export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps> = ({ onCurriculumGenerated }) => {
   const [config, setConfig] = useState<CurriculumConfig>({
     level: '',
     ageGroup: '',
@@ -264,6 +268,10 @@ export const CurriculumGeneratorWizard: React.FC = () => {
       }
 
       toast.success(`Saved ${generatedUnits.length} units and ${generatedUnits.reduce((sum, u) => sum + u.lessons.length, 0)} lessons to database!`);
+      
+      // Notify parent of the curriculum context
+      const systemLabel = config.ageGroup === 'kids' ? 'kids' : config.ageGroup === 'teens' ? 'teens' : 'adults';
+      onCurriculumGenerated?.({ system: systemLabel, level: config.level, ageGroup: config.ageGroup });
     } catch (err: any) {
       console.error('Save error:', err);
       toast.error('Failed to save curriculum: ' + err.message);

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ContentCreatorStepper, PipelineStep } from '@/components/content-creator/ContentCreatorStepper';
-import { CurriculumStep } from '@/components/content-creator/CurriculumStep';
+import { CurriculumStep, CurriculumContext } from '@/components/content-creator/CurriculumStep';
 import { NewLibrary } from '@/components/admin/NewLibrary';
 import { AdminLessonEditor } from '@/components/admin/lesson-builder';
 import { CurriculumLibrary } from '@/components/admin/CurriculumLibrary';
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 
 const ContentCreatorDashboard: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<PipelineStep>(1);
+  const [curriculumContext, setCurriculumContext] = useState<CurriculumContext | null>(null);
   const { user, signOut } = useAuth();
 
   const goNext = () => setCurrentStep((s) => Math.min(s + 1, 4) as PipelineStep);
@@ -18,7 +19,7 @@ const ContentCreatorDashboard: React.FC = () => {
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
-        return <CurriculumStep onNextStep={goNext} />;
+        return <CurriculumStep onNextStep={goNext} onCurriculumSelected={setCurriculumContext} />;
       case 2:
         return (
           <div className="space-y-6">
@@ -28,7 +29,7 @@ const ContentCreatorDashboard: React.FC = () => {
                 Generate AI-powered lessons based on your curriculum, then build slides.
               </p>
             </div>
-            <NewLibrary onNavigate={() => {}} />
+            <NewLibrary onNavigate={() => {}} initialContext={curriculumContext} />
             <div className="flex justify-between pt-4 border-t border-border">
               <Button variant="outline" onClick={goPrev} className="gap-2">
                 <ArrowLeft className="h-4 w-4" />
