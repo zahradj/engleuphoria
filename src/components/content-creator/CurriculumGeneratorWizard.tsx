@@ -103,6 +103,19 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
         parsed = generateFallbackStructure();
       }
 
+      // Normalize: ensure every unit has a lessons array with safe fields
+      parsed = parsed.map((unit: any, i: number) => ({
+        unitNumber: unit.unitNumber ?? unit.unit_number ?? i + 1,
+        title: unit.title ?? `Unit ${i + 1}`,
+        lessons: (unit.lessons ?? []).map((lesson: any, li: number) => ({
+          lessonNumber: lesson.lessonNumber ?? lesson.lesson_number ?? li + 1,
+          title: lesson.title ?? `Lesson ${li + 1}`,
+          objectives: Array.isArray(lesson.objectives) ? lesson.objectives : [],
+          grammarFocus: lesson.grammarFocus ?? lesson.grammar_focus ?? '',
+          vocabularyTheme: lesson.vocabularyTheme ?? lesson.vocabulary_theme ?? '',
+        })),
+      }));
+
       setGeneratedUnits(parsed);
       setOpenUnits(new Set(parsed.map((_, i) => i)));
       toast.success(`Generated ${parsed.length} units with lessons!`);
@@ -270,7 +283,7 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
         if (lessonsError) throw lessonsError;
       }
 
-      toast.success(`Saved ${generatedUnits.length} units and ${generatedUnits.reduce((sum, u) => sum + u.lessons.length, 0)} lessons to database!`);
+      toast.success(`Saved ${generatedUnits.length} units and ${generatedUnits.reduce((sum, u) => sum + (u.lessons?.length || 0), 0)} lessons to database!`);
       
       // Notify parent of the curriculum context
       const systemLabel = config.ageGroup === 'kids' ? 'kids' : config.ageGroup === 'teens' ? 'teens' : 'adults';
@@ -383,7 +396,7 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
             <div>
               <CardTitle className="text-lg">Generated Curriculum</CardTitle>
               <CardDescription>
-                {generatedUnits.length} units · {generatedUnits.reduce((s, u) => s + u.lessons.length, 0)} lessons · Click to edit
+                {generatedUnits.length} units · {generatedUnits.reduce((s, u) => s + (u.lessons?.length || 0), 0)} lessons · Click to edit
               </CardDescription>
             </div>
             <Button onClick={handleSaveToDB} disabled={isSaving}>
@@ -401,7 +414,7 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
                   {openUnits.has(ui) ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
                   <GraduationCap className="h-4 w-4 text-primary" />
                   <span className="font-medium text-foreground">{unit.title}</span>
-                  <Badge variant="secondary" className="ml-auto">{unit.lessons.length} lessons</Badge>
+                  <Badge variant="secondary" className="ml-auto">{(unit.lessons || []).length} lessons</Badge>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="ml-6 mt-2 space-y-2">
                   {unit.lessons.map((lesson, li) => {
@@ -447,7 +460,7 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
                                 <Badge variant="outline" className="text-xs">🗣 {lesson.grammarFocus}</Badge>
                                 <Badge variant="outline" className="text-xs">📚 {lesson.vocabularyTheme}</Badge>
                               </div>
-                              {lesson.objectives.length > 0 && (
+                              {(lesson.objectives || []).length > 0 && (
                                 <ul className="mt-2 text-xs text-muted-foreground space-y-0.5">
                                   {lesson.objectives.map((obj, oi) => (
                                     <li key={oi}>• {obj}</li>
