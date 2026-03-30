@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SystemId } from "@/types/multiTenant";
 import { DashboardRouter } from "@/components/student/dashboards/DashboardRouter";
 import { ScrollHeader } from "@/components/navigation/ScrollHeader";
+import { useStudentLevel, StudentLevel } from "@/hooks/useStudentLevel";
 
 // Lazy load components to improve initial load time
 import { MinimalStudentHeader } from "@/components/student/MinimalStudentHeader";
@@ -33,6 +34,7 @@ const StudentDashboard = () => {
   const [studentProfile, setStudentProfile] = useState<any>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [systemId, setSystemId] = useState<SystemId>('kids');
+  const { studentLevel } = useStudentLevel();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, loading: authLoading, signOut } = useAuth();
@@ -63,25 +65,35 @@ const StudentDashboard = () => {
           setHasProfile(false);
         }
         
-        // Fetch user's current_system from database
+        // Determine systemId: prefer student_level from student_profiles, fall back to users.current_system
         if (user?.id) {
-          const { data: userData, error } = await supabase
-            .from('users')
-            .select('current_system')
-            .eq('id', user.id)
-            .single();
-          
-          if (!error && userData?.current_system) {
-            // Map database value to SystemId
-            const systemMap: Record<string, SystemId> = {
-              'KIDS': 'kids',
-              'TEENS': 'teen',
-              'ADULTS': 'adult',
-              'kids': 'kids',
-              'teen': 'teen',
-              'adult': 'adult'
-            };
-            setSystemId(systemMap[userData.current_system] || 'kids');
+          const studentLevelToSystem: Record<StudentLevel, SystemId> = {
+            'playground': 'kids',
+            'academy': 'teen',
+            'professional': 'adult',
+          };
+
+          if (studentLevel) {
+            setSystemId(studentLevelToSystem[studentLevel] || 'kids');
+          } else {
+            // Fallback: fetch from users.current_system
+            const { data: userData, error } = await supabase
+              .from('users')
+              .select('current_system')
+              .eq('id', user.id)
+              .single();
+            
+            if (!error && userData?.current_system) {
+              const systemMap: Record<string, SystemId> = {
+                'KIDS': 'kids',
+                'TEENS': 'teen',
+                'ADULTS': 'adult',
+                'kids': 'kids',
+                'teen': 'teen',
+                'adult': 'adult'
+              };
+              setSystemId(systemMap[userData.current_system] || 'kids');
+            }
           }
         }
         
@@ -101,7 +113,7 @@ const StudentDashboard = () => {
     if (!authLoading) {
       initializeDashboard();
     }
-  }, [authLoading, toast, user?.id]);
+  }, [authLoading, toast, user?.id, studentLevel]);
 
   const handleLogout = async () => {
     try {
