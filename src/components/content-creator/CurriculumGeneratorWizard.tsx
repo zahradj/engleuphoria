@@ -396,7 +396,7 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
             <div>
               <CardTitle className="text-lg">Generated Curriculum</CardTitle>
               <CardDescription>
-                {generatedUnits.length} units · {generatedUnits.reduce((s, u) => s + u.lessons.length, 0)} lessons · Click to edit
+                {generatedUnits.length} units · {generatedUnits.reduce((s, u) => s + (u.lessons?.length || 0), 0)} lessons · Click to edit
               </CardDescription>
             </div>
             <Button onClick={handleSaveToDB} disabled={isSaving}>
