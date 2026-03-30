@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SystemId } from "@/types/multiTenant";
 import { DashboardRouter } from "@/components/student/dashboards/DashboardRouter";
 import { ScrollHeader } from "@/components/navigation/ScrollHeader";
+import { useStudentLevel, StudentLevel } from "@/hooks/useStudentLevel";
 
 // Lazy load components to improve initial load time
 import { MinimalStudentHeader } from "@/components/student/MinimalStudentHeader";
