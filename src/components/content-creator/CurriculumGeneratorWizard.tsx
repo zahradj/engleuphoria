@@ -460,7 +460,7 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
                                 <Badge variant="outline" className="text-xs">🗣 {lesson.grammarFocus}</Badge>
                                 <Badge variant="outline" className="text-xs">📚 {lesson.vocabularyTheme}</Badge>
                               </div>
-                              {lesson.objectives.length > 0 && (
+                              {(lesson.objectives || []).length > 0 && (
                                 <ul className="mt-2 text-xs text-muted-foreground space-y-0.5">
                                   {lesson.objectives.map((obj, oi) => (
                                     <li key={oi}>• {obj}</li>
