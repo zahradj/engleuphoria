@@ -414,7 +414,7 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
                   {openUnits.has(ui) ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
                   <GraduationCap className="h-4 w-4 text-primary" />
                   <span className="font-medium text-foreground">{unit.title}</span>
-                  <Badge variant="secondary" className="ml-auto">{unit.lessons.length} lessons</Badge>
+                  <Badge variant="secondary" className="ml-auto">{(unit.lessons || []).length} lessons</Badge>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="ml-6 mt-2 space-y-2">
                   {unit.lessons.map((lesson, li) => {
