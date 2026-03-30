@@ -250,7 +250,6 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
           .insert({
             title: unit.title,
             unit_number: unit.unitNumber,
-            target_system: targetSystem,
             age_group: config.ageGroup,
             cefr_level: cefrLevel,
             learning_objectives: unit.lessons.flatMap(l => l.objectives || []),
