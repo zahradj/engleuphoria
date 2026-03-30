@@ -514,6 +514,18 @@ function buildUserPrompt(requestData: GenerationRequest): string {
   if (requestData.mode === 'curriculum' && requestData.curriculumMonths) {
     userPrompt += `\n- Curriculum duration: ${requestData.curriculumMonths} months`;
   }
+
+  if (requestData.mode === 'curriculum_structure') {
+    if (requestData.unitCount) {
+      userPrompt += `\n- Number of units: ${requestData.unitCount}`;
+    }
+    if (requestData.lessonsPerUnit) {
+      userPrompt += `\n- Lessons per unit: ${requestData.lessonsPerUnit}`;
+    }
+    if (requestData.level) {
+      userPrompt += `\n- Level: ${requestData.level}`;
+    }
+  }
   
   if (requestData.mode === 'assessment' && requestData.assessmentType) {
     userPrompt += `\n- Assessment type: ${requestData.assessmentType}`;
