@@ -13,6 +13,7 @@ const ContentCreatorDashboard: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<PipelineStep>(1);
   const [curriculumContext, setCurriculumContext] = useState<CurriculumContext | null>(null);
   const { user, signOut } = useAuth();
+  const progress = usePipelineProgress();
 
   const goNext = () => setCurrentStep((s) => Math.min(s + 1, 4) as PipelineStep);
   const goPrev = () => setCurrentStep((s) => Math.max(s - 1, 1) as PipelineStep);
