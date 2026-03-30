@@ -461,7 +461,7 @@ function getSystemPrompt(mode: string): string {
 
 function getModelForMode(mode: string): string {
   // Use Pro model for complex reasoning tasks
-  if (mode === 'curriculum' || mode === 'unit') {
+  if (mode === 'curriculum' || mode === 'curriculum_structure' || mode === 'unit') {
     return 'google/gemini-2.5-pro';
   }
   // Use Flash for faster generation
