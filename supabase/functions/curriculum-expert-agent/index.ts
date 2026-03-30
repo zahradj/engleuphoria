@@ -561,7 +561,8 @@ function validateOutput(mode: string, data: any): void {
       }
       break;
     case 'curriculum':
-      if (!data.curriculumTitle || !data.durationMonths || !data.units) {
+    case 'curriculum_structure':
+      if (!data.curriculumTitle || !data.units) {
         throw new Error('Missing required curriculum fields');
       }
       break;
