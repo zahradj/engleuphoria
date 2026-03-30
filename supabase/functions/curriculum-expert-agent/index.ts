@@ -440,6 +440,11 @@ interface GenerationRequest {
   missionChainLength?: number;
   resourceType?: 'worksheet' | 'reading' | 'listening' | 'flashcards';
   
+  // Curriculum structure params
+  unitCount?: number;
+  lessonsPerUnit?: number;
+  level?: string;
+  
   // Template selection
   templateId?: string;
 }
