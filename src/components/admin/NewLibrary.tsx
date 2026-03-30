@@ -105,6 +105,15 @@ export const NewLibrary = ({ onNavigate, initialContext }: NewLibraryProps) => {
     fetchUnits();
   }, []);
 
+  // Auto-fill filters from curriculum context (Step 1)
+  useEffect(() => {
+    if (!initialContext) return;
+    const systemMap: Record<string, string> = { kids: 'kids', teens: 'teens', adults: 'adults' };
+    if (systemMap[initialContext.system]) setSystem(systemMap[initialContext.system]);
+    if (initialContext.level) setDifficulty(initialContext.level);
+    if (initialContext.levelId) setSelectedLevelId(initialContext.levelId);
+  }, [initialContext]);
+
   const fetchLevels = async () => {
     try {
       const { data, error } = await supabase
