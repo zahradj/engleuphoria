@@ -1,10 +1,13 @@
 import React, { useState, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import { LessonHeader } from './LessonHeader';
 import { SlideOrganizer } from './SlideOrganizer';
 import { EditorCanvas } from './EditorCanvas';
 import { TeacherGuide } from './TeacherGuide';
+import { CurriculumBrowser } from './CurriculumBrowser';
+import { LessonPreviewDialog } from './LessonPreviewDialog';
 import { Slide, LessonDeck, CanvasElementData } from './types';
 import { AILessonWizard } from './ai-wizard';
 import { AIActivityGenerator } from './AIActivityGenerator';
@@ -12,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Wand2, HelpCircle, ArrowLeft, ArrowRight } from 'lucide-react';
 import { QuizGenerator } from '@/components/content-creator/QuizGenerator';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface AdminLessonEditorProps {
   onFinish?: () => void;
@@ -20,8 +24,11 @@ interface AdminLessonEditorProps {
 
 export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, onBack }) => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isSaving, setIsSaving] = useState(false);
   const [showAIWizard, setShowAIWizard] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
   
   // Lesson metadata
   const [lessonTitle, setLessonTitle] = useState('Untitled Lesson');
@@ -42,6 +49,49 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
 
   const selectedSlide = slides.find((s) => s.id === selectedSlideId) || null;
 
+  const handleSelectLesson = useCallback((lesson: any) => {
+    setActiveLessonId(lesson.id);
+    setLessonTitle(lesson.title || 'Untitled Lesson');
+    setLevel(lesson.difficulty_level || 'A1');
+
+    // Load existing slides from content JSON
+    if (lesson.content && Array.isArray(lesson.content)) {
+      const loadedSlides: Slide[] = lesson.content.map((s: any, idx: number) => ({
+        id: s.id || uuidv4(),
+        order: s.order ?? idx,
+        type: s.type || 'image',
+        imageUrl: s.imageUrl,
+        videoUrl: s.videoUrl,
+        quizQuestion: s.quizQuestion,
+        quizOptions: s.quizOptions,
+        pollQuestion: s.pollQuestion,
+        pollOptions: s.pollOptions,
+        teacherNotes: s.teacherNotes || '',
+        keywords: s.keywords || [],
+        title: s.title,
+        canvasElements: s.canvasElements,
+      }));
+      setSlides(loadedSlides);
+      setSelectedSlideId(loadedSlides[0]?.id || null);
+    } else {
+      // Start fresh for this lesson
+      const firstSlide: Slide = {
+        id: uuidv4(),
+        order: 0,
+        type: 'image',
+        teacherNotes: '',
+        keywords: [],
+      };
+      setSlides([firstSlide]);
+      setSelectedSlideId(firstSlide.id);
+    }
+
+    toast({
+      title: 'Lesson Loaded',
+      description: `Editing "${lesson.title}"`,
+    });
+  }, [toast]);
+
   const handleAddSlide = useCallback(() => {
     const newSlide: Slide = {
       id: uuidv4(),
@@ -57,7 +107,6 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
   const handleDeleteSlide = useCallback((id: string) => {
     setSlides((prev) => {
       const filtered = prev.filter((s) => s.id !== id);
-      // Reorder remaining slides
       return filtered.map((s, index) => ({ ...s, order: index }));
     });
     if (selectedSlideId === id) {
@@ -70,7 +119,6 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
       const result = Array.from(prev);
       const [removed] = result.splice(startIndex, 1);
       result.splice(endIndex, 0, removed);
-      // Update order property
       return result.map((s, index) => ({ ...s, order: index }));
     });
   }, []);
@@ -82,36 +130,57 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
     );
   }, [selectedSlideId]);
 
+  const handleImageUploaded = useCallback((slideId: string, imageUrl: string) => {
+    setSlides((prev) =>
+      prev.map((s) => (s.id === slideId ? { ...s, imageUrl } : s))
+    );
+  }, []);
+
   const handleSave = async () => {
     setIsSaving(true);
-    
-    const lessonDeck: LessonDeck = {
-      title: lessonTitle,
-      level,
-      ageGroup,
-      slides: slides.map((s) => ({ ...s })),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
 
-    // Log to console for now
-    console.log('Lesson Saved:', JSON.stringify(lessonDeck, null, 2));
+    try {
+      if (activeLessonId) {
+        // Save to database
+        const slidesJson = slides.map((s) => ({ ...s }));
+        const { error } = await supabase
+          .from('curriculum_lessons')
+          .update({
+            content: slidesJson as any,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', activeLessonId);
 
-    // Simulate save delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
+        if (error) throw error;
 
-    setIsSaving(false);
-    toast({
-      title: 'Lesson Saved!',
-      description: `"${lessonTitle}" with ${slides.length} slides has been saved.`,
-    });
+        // Invalidate browser query to show updated status
+        queryClient.invalidateQueries({ queryKey: ['curriculum-browser-units'] });
+
+        toast({
+          title: 'Lesson Saved!',
+          description: `"${lessonTitle}" with ${slides.length} slides saved to database.`,
+        });
+      } else {
+        // No lesson selected, just log
+        console.log('Lesson Saved (local):', JSON.stringify({ title: lessonTitle, slides }, null, 2));
+        toast({
+          title: 'Lesson Saved Locally',
+          description: 'Select a curriculum lesson to save to database.',
+        });
+      }
+    } catch (err: any) {
+      toast({
+        title: 'Save Failed',
+        description: err.message || 'Could not save lesson.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handlePreview = () => {
-    toast({
-      title: 'Preview Mode',
-      description: 'Opening lesson preview... (Coming soon)',
-    });
+    setShowPreview(true);
   };
 
   const handleAILessonGenerated = useCallback((
@@ -147,8 +216,16 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
       />
 
       <div className="flex-1 flex min-h-0">
-        {/* Left: Slide Organizer */}
-        <div className="w-64 shrink-0 relative">
+        {/* Left: Curriculum Browser */}
+        <div className="w-56 shrink-0">
+          <CurriculumBrowser
+            activeLessonId={activeLessonId}
+            onSelectLesson={handleSelectLesson}
+          />
+        </div>
+
+        {/* Slide Organizer */}
+        <div className="w-56 shrink-0 relative">
           <SlideOrganizer
             slides={slides}
             selectedSlideId={selectedSlideId}
@@ -156,6 +233,7 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
             onAddSlide={handleAddSlide}
             onDeleteSlide={handleDeleteSlide}
             onReorderSlides={handleReorderSlides}
+            onImageUploaded={handleImageUploaded}
           />
           
           {/* AI Buttons */}
@@ -172,7 +250,6 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
               }}
             />
 
-            {/* Quiz Generator Dialog */}
             <Dialog>
               <DialogTrigger asChild>
                 <Button variant="outline" className="w-full gap-2">
@@ -204,7 +281,7 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
         </div>
 
         {/* Right: Teacher Guide */}
-        <div className="w-80 shrink-0">
+        <div className="w-72 shrink-0">
           <TeacherGuide
             slide={selectedSlide}
             onUpdateSlide={handleUpdateSlide}
@@ -235,6 +312,14 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
         open={showAIWizard}
         onOpenChange={setShowAIWizard}
         onLessonGenerated={handleAILessonGenerated}
+      />
+
+      {/* Preview Dialog */}
+      <LessonPreviewDialog
+        open={showPreview}
+        onOpenChange={setShowPreview}
+        slides={slides}
+        lessonTitle={lessonTitle}
       />
     </div>
   );
