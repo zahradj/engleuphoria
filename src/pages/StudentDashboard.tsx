@@ -34,6 +34,7 @@ const StudentDashboard = () => {
   const [studentProfile, setStudentProfile] = useState<any>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [systemId, setSystemId] = useState<SystemId>('kids');
+  const { studentLevel } = useStudentLevel();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, loading: authLoading, signOut } = useAuth();
