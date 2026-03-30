@@ -103,6 +103,19 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
         parsed = generateFallbackStructure();
       }
 
+      // Normalize: ensure every unit has a lessons array with safe fields
+      parsed = parsed.map((unit: any, i: number) => ({
+        unitNumber: unit.unitNumber ?? unit.unit_number ?? i + 1,
+        title: unit.title ?? `Unit ${i + 1}`,
+        lessons: (unit.lessons ?? []).map((lesson: any, li: number) => ({
+          lessonNumber: lesson.lessonNumber ?? lesson.lesson_number ?? li + 1,
+          title: lesson.title ?? `Lesson ${li + 1}`,
+          objectives: Array.isArray(lesson.objectives) ? lesson.objectives : [],
+          grammarFocus: lesson.grammarFocus ?? lesson.grammar_focus ?? '',
+          vocabularyTheme: lesson.vocabularyTheme ?? lesson.vocabulary_theme ?? '',
+        })),
+      }));
+
       setGeneratedUnits(parsed);
       setOpenUnits(new Set(parsed.map((_, i) => i)));
       toast.success(`Generated ${parsed.length} units with lessons!`);
