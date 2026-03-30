@@ -424,7 +424,7 @@ Return valid JSON with this structure:
 // ============= TYPE DEFINITIONS =============
 
 interface GenerationRequest {
-  mode: 'lesson' | 'unit' | 'curriculum' | 'assessment' | 'mission' | 'resource';
+  mode: 'lesson' | 'unit' | 'curriculum' | 'curriculum_structure' | 'assessment' | 'mission' | 'resource';
   prompt: string;
   ageGroup: '5-7' | '8-11' | '12-14' | '15-17';
   cefrLevel: 'Pre-A1' | 'A1' | 'A2' | 'B1' | 'B2';
