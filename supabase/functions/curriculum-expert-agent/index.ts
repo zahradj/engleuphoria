@@ -424,7 +424,7 @@ Return valid JSON with this structure:
 // ============= TYPE DEFINITIONS =============
 
 interface GenerationRequest {
-  mode: 'lesson' | 'unit' | 'curriculum' | 'assessment' | 'mission' | 'resource';
+  mode: 'lesson' | 'unit' | 'curriculum' | 'curriculum_structure' | 'assessment' | 'mission' | 'resource';
   prompt: string;
   ageGroup: '5-7' | '8-11' | '12-14' | '15-17';
   cefrLevel: 'Pre-A1' | 'A1' | 'A2' | 'B1' | 'B2';
@@ -440,6 +440,11 @@ interface GenerationRequest {
   missionChainLength?: number;
   resourceType?: 'worksheet' | 'reading' | 'listening' | 'flashcards';
   
+  // Curriculum structure params
+  unitCount?: number;
+  lessonsPerUnit?: number;
+  level?: string;
+  
   // Template selection
   templateId?: string;
 }
@@ -450,7 +455,8 @@ function getSystemPrompt(mode: string): string {
   switch(mode) {
     case 'lesson': return ECA_LESSON_PROMPT;
     case 'unit': return ECA_UNIT_PROMPT;
-    case 'curriculum': return ECA_CURRICULUM_PROMPT;
+    case 'curriculum':
+    case 'curriculum_structure': return ECA_CURRICULUM_PROMPT;
     case 'assessment': return ECA_ASSESSMENT_PROMPT;
     case 'mission': return ECA_MISSION_PROMPT;
     case 'resource': return ECA_RESOURCE_PROMPT;
@@ -460,7 +466,7 @@ function getSystemPrompt(mode: string): string {
 
 function getModelForMode(mode: string): string {
   // Use Pro model for complex reasoning tasks
-  if (mode === 'curriculum' || mode === 'unit') {
+  if (mode === 'curriculum' || mode === 'curriculum_structure' || mode === 'unit') {
     return 'google/gemini-2.5-pro';
   }
   // Use Flash for faster generation
@@ -469,14 +475,14 @@ function getModelForMode(mode: string): string {
 
 function getMaxTokensForMode(mode: string): number {
   // More tokens for complex outputs
-  if (mode === 'curriculum') return 8000;
+  if (mode === 'curriculum' || mode === 'curriculum_structure') return 8000;
   if (mode === 'unit') return 6000;
   if (mode === 'assessment') return 6000;
   return 4000;
 }
 
 function buildUserPrompt(requestData: GenerationRequest): string {
-  let userPrompt = requestData.prompt;
+  let userPrompt = requestData.prompt || `Generate a structured curriculum for ${requestData.ageGroup || 'young learners'} at ${requestData.cefrLevel || requestData.level || 'A1'} level.`;
   
   // Add context
   userPrompt += `\n\nContext:`;
@@ -507,6 +513,18 @@ function buildUserPrompt(requestData: GenerationRequest): string {
   
   if (requestData.mode === 'curriculum' && requestData.curriculumMonths) {
     userPrompt += `\n- Curriculum duration: ${requestData.curriculumMonths} months`;
+  }
+
+  if (requestData.mode === 'curriculum_structure') {
+    if (requestData.unitCount) {
+      userPrompt += `\n- Number of units: ${requestData.unitCount}`;
+    }
+    if (requestData.lessonsPerUnit) {
+      userPrompt += `\n- Lessons per unit: ${requestData.lessonsPerUnit}`;
+    }
+    if (requestData.level) {
+      userPrompt += `\n- Level: ${requestData.level}`;
+    }
   }
   
   if (requestData.mode === 'assessment' && requestData.assessmentType) {
@@ -543,7 +561,8 @@ function validateOutput(mode: string, data: any): void {
       }
       break;
     case 'curriculum':
-      if (!data.curriculumTitle || !data.durationMonths || !data.units) {
+    case 'curriculum_structure':
+      if (!data.curriculumTitle || !data.units) {
         throw new Error('Missing required curriculum fields');
       }
       break;
@@ -638,8 +657,19 @@ serve(async (req) => {
     // Parse and clean JSON
     let parsedData;
     try {
-      const cleanedContent = generatedContent.replace(/```json\n?|\n?```/g, '').trim();
-      parsedData = JSON.parse(cleanedContent);
+      let cleanedContent = generatedContent.replace(/```json\n?|\n?```/g, '').trim();
+      // Try to extract JSON object or array if surrounded by text
+      const jsonObjMatch = cleanedContent.match(/(\{[\s\S]*\})/);
+      const jsonArrMatch = cleanedContent.match(/(\[[\s\S]*\])/);
+      if (cleanedContent.startsWith('{') || cleanedContent.startsWith('[')) {
+        parsedData = JSON.parse(cleanedContent);
+      } else if (jsonObjMatch) {
+        parsedData = JSON.parse(jsonObjMatch[1]);
+      } else if (jsonArrMatch) {
+        parsedData = JSON.parse(jsonArrMatch[1]);
+      } else {
+        throw new Error('No JSON found in response');
+      }
     } catch (parseError) {
       console.error('❌ JSON parse error:', parseError);
       console.error('Raw content:', generatedContent);
