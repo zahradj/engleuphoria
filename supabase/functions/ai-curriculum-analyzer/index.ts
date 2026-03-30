@@ -201,10 +201,7 @@ Provide a comprehensive analysis in JSON format with this structure:
 
   } catch (error) {
     console.error('Curriculum analysis error:', error);
-    return new Response(JSON.stringify({
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
-    }), {
+    return new Response(JSON.stringify({ success: false, error: "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });

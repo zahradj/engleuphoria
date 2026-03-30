@@ -85,10 +85,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Batch audio generation error:', error);
     return new Response(
-      JSON.stringify({ 
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error' 
-      }),
+      JSON.stringify({ success: false, error: "Internal server error" }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500

@@ -224,7 +224,7 @@ Return ONLY this exact JSON (no markdown, no explanation):
   } catch (error) {
     console.error("generate-daily-lesson error:", error);
     return new Response(
-      JSON.stringify({ success: false, error: error instanceof Error ? error.message : "Unknown error" }),
+      JSON.stringify({ success: false, error: "Internal server error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
