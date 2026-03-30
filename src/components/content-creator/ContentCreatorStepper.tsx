@@ -4,9 +4,16 @@ import { Check, BookOpen, Sparkles, LayoutDashboard, Library } from 'lucide-reac
 
 export type PipelineStep = 1 | 2 | 3 | 4;
 
+export interface PipelineProgressData {
+  totalLessons: number;
+  generatedLessons: number;
+  lessonsWithSlides: number;
+}
+
 interface ContentCreatorStepperProps {
   currentStep: PipelineStep;
   onStepChange: (step: PipelineStep) => void;
+  progress?: PipelineProgressData;
 }
 
 const STEPS = [
