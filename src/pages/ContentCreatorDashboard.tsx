@@ -88,7 +88,7 @@ const ContentCreatorDashboard: React.FC = () => {
       </header>
 
       {/* Stepper */}
-      <ContentCreatorStepper currentStep={currentStep} onStepChange={setCurrentStep} />
+      <ContentCreatorStepper currentStep={currentStep} onStepChange={setCurrentStep} progress={progress} />
 
       {/* Main Content */}
       {isFullBleed ? (

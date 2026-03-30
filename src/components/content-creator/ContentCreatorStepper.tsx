@@ -109,7 +109,10 @@ export const ContentCreatorStepper: React.FC<ContentCreatorStepperProps> = ({
                   >
                     {s.label}
                   </span>
-                  <span className="text-xs text-muted-foreground">{s.description}</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-muted-foreground">{s.description}</span>
+                    {getProgressBadge(s.step)}
+                  </div>
                 </div>
               </button>
 
