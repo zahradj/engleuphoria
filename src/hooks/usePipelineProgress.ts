@@ -12,7 +12,7 @@ export interface PipelineProgress {
 export const usePipelineProgress = (): PipelineProgress => {
   // Count total lessons from master curriculum
   const totalLessons = Object.values(MASTER_CURRICULUM).reduce((acc, system) => {
-    return acc + system.levels.reduce((lAcc, level) => {
+    return acc + Object.values(system.levels).reduce((lAcc, level) => {
       return lAcc + level.units.reduce((uAcc, unit) => uAcc + unit.lessons.length, 0);
     }, 0);
   }, 0);
