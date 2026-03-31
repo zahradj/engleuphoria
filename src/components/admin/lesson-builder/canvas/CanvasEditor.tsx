@@ -35,7 +35,6 @@ export const CanvasEditor: React.FC<CanvasEditorProps> = ({ slide, onUpdateSlide
   const elements: CanvasElementData[] = slide?.canvasElements || [];
   const selectedElement = elements.find(e => e.id === selectedElementId) || null;
 
-  // Compute scale to fit canvas in container
   useEffect(() => {
     const updateScale = () => {
       if (!containerRef.current) return;
@@ -66,6 +65,7 @@ export const CanvasEditor: React.FC<CanvasEditorProps> = ({ slide, onUpdateSlide
         : type === 'matching' ? { title: 'Match the pairs', pairs: [{ left: '', right: '' }] }
         : type === 'fill-blank' ? { sentence: '', answer: '' }
         : type === 'shape' ? { shape: 'rounded', fill: '#6366f1', opacity: 1 }
+        : type === 'audio' ? { label: 'Audio clip', src: '' }
         : {},
     };
     onUpdateSlide({ canvasElements: [...elements, newElement] });
@@ -95,7 +95,7 @@ export const CanvasEditor: React.FC<CanvasEditorProps> = ({ slide, onUpdateSlide
       <ElementToolbar onAddElement={addElement} />
 
       {/* Canvas viewport */}
-      <div ref={containerRef} className="flex-1 bg-muted/30 flex items-center justify-center overflow-hidden p-4"
+      <div ref={containerRef} className="flex-1 bg-muted/30 flex items-center justify-center overflow-hidden p-4 relative"
         onClick={() => setSelectedElementId(null)}>
         <div
           className="relative bg-white shadow-2xl rounded-lg overflow-hidden"
@@ -135,12 +135,19 @@ export const CanvasEditor: React.FC<CanvasEditorProps> = ({ slide, onUpdateSlide
             </div>
           )}
         </div>
-      </div>
 
-      <PropertiesPanel
-        element={selectedElement}
-        onUpdate={(updates) => selectedElementId && updateElement(selectedElementId, updates)}
-      />
+        {/* Floating Properties Panel */}
+        {selectedElement && (
+          <div className="absolute right-4 top-4 z-50" onClick={(e) => e.stopPropagation()}>
+            <PropertiesPanel
+              element={selectedElement}
+              onUpdate={(updates) => selectedElementId && updateElement(selectedElementId, updates)}
+              onClose={() => setSelectedElementId(null)}
+              floating
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 };

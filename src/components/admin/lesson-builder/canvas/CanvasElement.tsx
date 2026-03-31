@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Trash2, Maximize2 } from 'lucide-react';
+import { Trash2, Maximize2, Mic, Volume2 } from 'lucide-react';
 import type { CanvasElementData } from '../types';
 
 interface CanvasElementProps {
@@ -20,6 +20,9 @@ const convertVideoUrl = (url: string): string => {
   if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
   return url;
 };
+
+const getItemText = (item: any): string => typeof item === 'string' ? item : item?.text || '';
+const getItemImage = (item: any): string => (typeof item === 'object' && item !== null) ? item?.image || '' : '';
 
 export const CanvasElement: React.FC<CanvasElementProps> = ({
   element, isSelected, scale, onSelect, onUpdate, onDelete, readOnly = false,
@@ -118,13 +121,30 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
             }}
           />
         );
+      case 'audio':
+        return (
+          <div className="w-full h-full p-3 bg-gradient-to-r from-primary/10 to-accent/10 rounded border border-primary/30 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+              {element.content?.src ? <Volume2 className="h-5 w-5 text-primary" /> : <Mic className="h-5 w-5 text-primary" />}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs font-semibold text-foreground truncate">{element.content?.label || 'Audio Clip'}</p>
+              {element.content?.src ? (
+                <p className="text-[10px] text-muted-foreground">Audio ready</p>
+              ) : (
+                <p className="text-[10px] text-muted-foreground">No audio — record or generate</p>
+              )}
+            </div>
+          </div>
+        );
       case 'quiz':
         return (
           <div className="w-full h-full p-3 bg-primary/10 rounded border border-primary/30 flex flex-col justify-center">
             <p className="text-xs font-bold text-primary mb-1">QUIZ</p>
             <p className="text-sm">{element.content?.question || 'Quiz question...'}</p>
             {(element.content?.options || []).map((opt: any, i: number) => (
-              <div key={opt.id || i} className={`text-xs mt-1 px-2 py-1 rounded ${opt.isCorrect ? 'bg-green-100 text-green-800' : 'bg-muted'}`}>
+              <div key={opt.id || i} className={`text-xs mt-1 px-2 py-1 rounded flex items-center gap-2 ${opt.isCorrect ? 'bg-green-100 text-green-800' : 'bg-muted'}`}>
+                {opt.image && <img src={opt.image} alt="" className="h-6 w-8 object-cover rounded" />}
                 {String.fromCharCode(65 + i)}. {opt.text}
               </div>
             ))}
@@ -136,9 +156,11 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
             <p className="text-xs font-bold text-accent-foreground mb-1">MATCHING</p>
             <p className="text-sm">{element.content?.title || 'Matching pairs activity'}</p>
             {(element.content?.pairs || []).map((pair: any, i: number) => (
-              <div key={i} className="text-xs mt-1 flex gap-2">
+              <div key={i} className="text-xs mt-1 flex gap-2 items-center">
+                {pair.leftImage && <img src={pair.leftImage} alt="" className="h-6 w-8 object-cover rounded" />}
                 <span className="bg-muted px-1 rounded">{pair.left}</span>
                 <span>→</span>
+                {pair.rightImage && <img src={pair.rightImage} alt="" className="h-6 w-8 object-cover rounded" />}
                 <span className="bg-muted px-1 rounded">{pair.right}</span>
               </div>
             ))}
@@ -157,8 +179,11 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
             <p className="text-xs font-bold text-orange-700 mb-1">DRAG & DROP</p>
             <p className="text-sm">{element.content?.instruction || 'Drag items to the correct zone'}</p>
             <div className="flex flex-wrap gap-1 mt-1">
-              {(element.content?.items || []).map((item: string, i: number) => (
-                <span key={i} className="text-[10px] bg-orange-100 text-orange-800 px-1.5 py-0.5 rounded">{item}</span>
+              {(element.content?.items || []).map((item: any, i: number) => (
+                <div key={i} className="flex items-center gap-1 text-[10px] bg-orange-100 text-orange-800 px-1.5 py-0.5 rounded">
+                  {getItemImage(item) && <img src={getItemImage(item)} alt="" className="h-5 w-6 object-cover rounded" />}
+                  {getItemText(item)}
+                </div>
               ))}
             </div>
           </div>
@@ -185,12 +210,6 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                 <span key={i} className="text-[10px] bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">{word}</span>
               ))}
             </div>
-          </div>
-        );
-      case 'audio':
-        return (
-          <div className="w-full h-full p-3 bg-muted rounded border border-border flex items-center justify-center">
-            <p className="text-sm text-muted-foreground">🔊 Audio Player</p>
           </div>
         );
       default:
