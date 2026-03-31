@@ -1,64 +1,67 @@
 
 
-## Plan: Enhanced Slide Builder — Full Lesson Factory
+## Plan: Remove Lesson Generation Step & Add Lesson Blueprint Panel
 
-### What You Described
-You want the slide builder to be a complete lesson production environment where you can:
-1. Upload pre-made slides (e.g., from Canva)
-2. Embed videos via URL
-3. Create vocabulary slides with AI-generated content
-4. Add interactive activities (drag-and-drop, matching, quizzes, sorting)
-5. Add audio/sounds and phonics
-6. Ask AI to generate content per-slide (quiz, activity, images)
-7. Save lessons to the library, organized by system (Playground, Academy, Professional Hub)
-8. Curriculum browser filters by system so you work on one system at a time
+### Overview
+Three changes: (1) Remove Step 2 "Lesson Generation" from the pipeline, making it a 3-step flow (Curriculum → Slide Builder → Content Library). (2) Add a "Lesson Blueprint" tab next to Teacher's Guide in the Slide Builder — a scientifically grounded, slide-by-slide checklist showing what each slide should contain based on proven ESL/EFL pedagogy. (3) Make Teacher's Guide auto-generatable by AI after all slides are built.
 
-### Current State
-Most of the infrastructure already exists: canvas editor, element toolbar (text, image, shape, audio, quiz, matching, fill-blank, drag-drop), AI activity generator, curriculum browser, save-to-DB, and preview dialog. Key gaps to fill:
+### Pipeline Change: 4 Steps → 3 Steps
 
-### Changes
+```text
+BEFORE:  Curriculum → Lesson Generation → Slide Builder → Content Library
+AFTER:   Curriculum → Slide Builder → Content Library
+```
 
-**1. Curriculum Browser — Add system filter (Playground / Academy / Hub)**
-- **File**: `CurriculumBrowser.tsx`
-- Add a segmented control or dropdown at the top: "Playground", "Academy", "Professional Hub"
-- Filter units by `age_group` (kids ages → Playground, teen ages → Academy, adult ages → Hub)
-- This ensures each library is separate and organized
+**Files:**
+- `ContentCreatorStepper.tsx` — Change `PipelineStep` to `1 | 2 | 3`, update STEPS array to 3 items, adjust progress badges
+- `ContentCreatorDashboard.tsx` — Remove case 2 (NewLibrary), shift Slide Builder to step 2, Content Library to step 3, update `goNext`/`goPrev` bounds
+- `CurriculumStep.tsx` — Change "Next: Generate Lessons" to "Next: Slide Builder"
+- `AdminLessonEditor.tsx` — Change "Back: Lesson Generation" to "Back: Curriculum"
 
-**2. Video embed support**
-- **File**: `types.ts` — add `'video'` to `CanvasElementType`
-- **File**: `ElementToolbar.tsx` — add Video button to toolbar
-- **File**: `CanvasElement.tsx` — render embedded video (YouTube/Vimeo iframe) in the video element
-- **File**: `PropertiesPanel.tsx` — add video URL input field for video elements
-- **File**: `CanvasEditor.tsx` — add default size for video elements
+### Lesson Blueprint Panel (New)
 
-**3. Sorting & Sentence Builder element renderers**
-- **File**: `CanvasElement.tsx` — add render cases for `sorting`, `sentence-builder`, `drag-drop` (currently missing renderers)
-- **File**: `PropertiesPanel.tsx` — add property editors for sorting (items list), sentence-builder (words), drag-drop (items + zones)
-- **File**: `ElementToolbar.tsx` — add Sorting and Sentence Builder buttons (sorting exists in types but not in toolbar)
+A new `LessonBlueprint.tsx` component placed in a tabbed panel alongside Teacher's Guide. It shows a structured checklist for 20–25 slides based on the **PPP method** (Presentation → Practice → Production) combined with **spaced repetition** and **Bloom's taxonomy** progression:
 
-**4. Image upload for canvas image elements**
-- **File**: `PropertiesPanel.tsx` — for `image` elements, add an "Upload Image" button that uploads to `lesson-slides` bucket and sets the `src` content property (currently only accepts a URL input)
+| Slide Range | Phase | What to Include | Pedagogy |
+|---|---|---|---|
+| 1 | Warm-up | Title slide, lesson objective, engagement hook | Activate prior knowledge |
+| 2–3 | Presentation | New vocabulary with visuals + audio | Input hypothesis (Krashen) |
+| 4–5 | Guided Practice | Matching / drag-and-drop with the new vocabulary | Recognition → recall |
+| 6–7 | Presentation | Grammar/structure in context | Noticing hypothesis |
+| 8–9 | Controlled Practice | Fill-in-the-blank / sentence builder | Accuracy focus |
+| 10–11 | Freer Practice | Sorting / quiz activities | Fluency building |
+| 12–13 | Production | Role-play prompts / open-ended tasks | Communicative competence |
+| 14 | Review | Quick quiz covering all objectives | Spaced retrieval |
+| 15 | Wrap-up | Summary + self-assessment | Metacognition |
 
-**5. AI per-slide generation**
-- **File**: `AdminLessonEditor.tsx` — add a "Generate for this slide" context action that passes the current slide context to AI and populates the selected slide with generated elements
-- Reuse existing `AIActivityGenerator` but scope it to the active slide
+The blueprint dynamically maps to the actual slide count. Each entry shows:
+- A checkbox (auto-checked when the slide has matching content)
+- Recommended element types (e.g., "Add: vocabulary image + audio")
+- Phase label with color coding (Presentation = blue, Practice = amber, Production = green)
 
-**6. Preview dialog — render canvas elements**
-- **File**: `LessonPreviewDialog.tsx` — currently only shows `imageUrl` or title. Update to render `canvasElements` on the 1920x1080 viewport using the same rendering logic as `CanvasElement` (read-only mode, no drag/resize handles)
+Clicking a blueprint item selects that slide in the organizer.
 
-**7. Save to library flow**
-- **File**: `AdminLessonEditor.tsx` — the "Finish & Save to Library" button should mark the lesson as `is_published = true` in `curriculum_lessons` and show a success state
+**File:** `src/components/admin/lesson-builder/LessonBlueprint.tsx`
+
+### Right Panel: Tabbed Guide + Blueprint
+
+Replace the fixed TeacherGuide panel with a tabbed container:
+
+```text
+[ Teacher's Guide | Lesson Blueprint ]
+```
+
+Plus an "Auto-Generate Guide" button in the Teacher's Guide tab that sends all slide content to AI and populates teacher notes for every slide at once.
+
+**File:** `src/components/admin/lesson-builder/AdminLessonEditor.tsx` — wrap right panel in Tabs, add AI auto-generate button for Teacher's Guide
 
 ### Technical Details
 
 | File | Change |
 |---|---|
-| `CurriculumBrowser.tsx` | Add system filter (Playground/Academy/Hub) mapped to age_group ranges |
-| `types.ts` | Add `'video'` to `CanvasElementType` |
-| `ElementToolbar.tsx` | Add Video, Sorting, Sentence Builder buttons |
-| `CanvasEditor.tsx` | Add default sizes for new element types |
-| `CanvasElement.tsx` | Add renderers for video (iframe), sorting, sentence-builder, drag-drop |
-| `PropertiesPanel.tsx` | Add editors for video URL, sorting items, sentence-builder words, drag-drop zones; add image upload button |
-| `LessonPreviewDialog.tsx` | Render canvasElements in read-only mode on scaled viewport |
-| `AdminLessonEditor.tsx` | Wire "Finish" to publish lesson; per-slide AI generation |
+| `ContentCreatorStepper.tsx` | 3-step pipeline, updated type and STEPS array |
+| `ContentCreatorDashboard.tsx` | Remove case 2, renumber steps |
+| `CurriculumStep.tsx` | Update next button label |
+| `AdminLessonEditor.tsx` | Tabbed right panel (Guide + Blueprint), back button label, AI guide generation |
+| `LessonBlueprint.tsx` | New — slide-by-slide pedagogical checklist with auto-detection |
 
