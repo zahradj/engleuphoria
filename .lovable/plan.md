@@ -1,67 +1,50 @@
 
 
-## Plan: Remove Lesson Generation Step & Add Lesson Blueprint Panel
+## Plan: Audio Recording + AI Voice, Bigger Canvas, Images in Activities
 
-### Overview
-Three changes: (1) Remove Step 2 "Lesson Generation" from the pipeline, making it a 3-step flow (Curriculum → Slide Builder → Content Library). (2) Add a "Lesson Blueprint" tab next to Teacher's Guide in the Slide Builder — a scientifically grounded, slide-by-slide checklist showing what each slide should contain based on proven ESL/EFL pedagogy. (3) Make Teacher's Guide auto-generatable by AI after all slides are built.
+### Three Requests
 
-### Pipeline Change: 4 Steps → 3 Steps
+1. **Audio element with mic recording + AI voice enhancement** — Add a "Record" button (microphone) to the audio element. The creator records a word/phrase, it gets sent to an AI voice changer (using existing ElevenLabs TTS edge function), and the cleaned audio is saved to the slide.
 
-```text
-BEFORE:  Curriculum → Lesson Generation → Slide Builder → Content Library
-AFTER:   Curriculum → Slide Builder → Content Library
-```
+2. **Bigger slide canvas viewer** — The current layout squeezes the canvas between 4 panels (curriculum browser 224px + slide organizer 224px + properties panel 256px + blueprint panel 288px = ~992px taken). Collapse the properties panel into a floating popover that appears when an element is selected, and make the curriculum browser + blueprint panel collapsible. This gives the canvas the majority of the viewport.
 
-**Files:**
-- `ContentCreatorStepper.tsx` — Change `PipelineStep` to `1 | 2 | 3`, update STEPS array to 3 items, adjust progress badges
-- `ContentCreatorDashboard.tsx` — Remove case 2 (NewLibrary), shift Slide Builder to step 2, Content Library to step 3, update `goNext`/`goPrev` bounds
-- `CurriculumStep.tsx` — Change "Next: Generate Lessons" to "Next: Slide Builder"
-- `AdminLessonEditor.tsx` — Change "Back: Lesson Generation" to "Back: Curriculum"
+3. **Image support in game activities** — Add image upload fields to matching pairs (left/right can be text OR image), drag-and-drop items, and quiz options so creators can use picture-based activities.
 
-### Lesson Blueprint Panel (New)
+### Changes
 
-A new `LessonBlueprint.tsx` component placed in a tabbed panel alongside Teacher's Guide. It shows a structured checklist for 20–25 slides based on the **PPP method** (Presentation → Practice → Production) combined with **spaced repetition** and **Bloom's taxonomy** progression:
+**1. Audio element — mic + AI voice**
 
-| Slide Range | Phase | What to Include | Pedagogy |
-|---|---|---|---|
-| 1 | Warm-up | Title slide, lesson objective, engagement hook | Activate prior knowledge |
-| 2–3 | Presentation | New vocabulary with visuals + audio | Input hypothesis (Krashen) |
-| 4–5 | Guided Practice | Matching / drag-and-drop with the new vocabulary | Recognition → recall |
-| 6–7 | Presentation | Grammar/structure in context | Noticing hypothesis |
-| 8–9 | Controlled Practice | Fill-in-the-blank / sentence builder | Accuracy focus |
-| 10–11 | Freer Practice | Sorting / quiz activities | Fluency building |
-| 12–13 | Production | Role-play prompts / open-ended tasks | Communicative competence |
-| 14 | Review | Quick quiz covering all objectives | Spaced retrieval |
-| 15 | Wrap-up | Summary + self-assessment | Metacognition |
+- **`ElementToolbar.tsx`** — Change audio icon to `Mic` (from lucide)
+- **`PropertiesPanel.tsx`** — Audio section: add "Record" button that uses `MediaRecorder` API to capture audio, a "Generate AI Voice" button that takes a text input + sends to existing `elevenlabs-tts` edge function, stores result in Supabase `lesson-slides` bucket, and sets `content.src`
+- **`CanvasElement.tsx`** — Audio renderer: show mic icon + label + audio player when src exists
 
-The blueprint dynamically maps to the actual slide count. Each entry shows:
-- A checkbox (auto-checked when the slide has matching content)
-- Recommended element types (e.g., "Add: vocabulary image + audio")
-- Phase label with color coding (Presentation = blue, Practice = amber, Production = green)
+**2. Bigger canvas**
 
-Clicking a blueprint item selects that slide in the organizer.
+- **`AdminLessonEditor.tsx`** — Make curriculum browser and right panel (blueprint/guide) collapsible with toggle buttons. Default: collapsed. This frees ~500px for the canvas.
+- **`CanvasEditor.tsx`** — Remove the `PropertiesPanel` from the side layout. Instead, render it as a floating card (absolute positioned, right side of canvas viewport) that only appears when an element is selected. This eliminates the permanent 256px panel.
+- **`PropertiesPanel.tsx`** — Add a close button and make it a floating card with shadow/border
 
-**File:** `src/components/admin/lesson-builder/LessonBlueprint.tsx`
+**3. Images in game activities**
 
-### Right Panel: Tabbed Guide + Blueprint
-
-Replace the fixed TeacherGuide panel with a tabbed container:
-
-```text
-[ Teacher's Guide | Lesson Blueprint ]
-```
-
-Plus an "Auto-Generate Guide" button in the Teacher's Guide tab that sends all slide content to AI and populates teacher notes for every slide at once.
-
-**File:** `src/components/admin/lesson-builder/AdminLessonEditor.tsx` — wrap right panel in Tabs, add AI auto-generate button for Teacher's Guide
+- **`PropertiesPanel.tsx`** — For matching pairs: each pair gets an optional image upload (left image, right image) stored in `lesson-slides` bucket. For drag-drop items: each item can have an optional image. For quiz options: each option can have an optional image.
+- **`CanvasElement.tsx`** — Update matching, drag-drop, and quiz renderers to show images when present alongside text
+- **`types.ts`** — No changes needed; `content` is already `Record<string, any>`
 
 ### Technical Details
 
-| File | Change |
+| Area | Implementation |
 |---|---|
-| `ContentCreatorStepper.tsx` | 3-step pipeline, updated type and STEPS array |
-| `ContentCreatorDashboard.tsx` | Remove case 2, renumber steps |
-| `CurriculumStep.tsx` | Update next button label |
-| `AdminLessonEditor.tsx` | Tabbed right panel (Guide + Blueprint), back button label, AI guide generation |
-| `LessonBlueprint.tsx` | New — slide-by-slide pedagogical checklist with auto-detection |
+| Mic recording | `navigator.mediaDevices.getUserMedia({ audio: true })` → `MediaRecorder` → blob → upload to `lesson-slides` bucket |
+| AI voice | Text input → call existing `elevenlabs-tts` edge function → get audio blob → upload to bucket → set `content.src` |
+| Collapsible panels | State booleans `showBrowser` / `showRightPanel` with toggle icons in a mini toolbar |
+| Floating properties | `position: absolute; right: 16px; top: 16px` inside the canvas viewport container, with `z-50` |
+| Activity images | Matching pair becomes `{ left: string, right: string, leftImage?: string, rightImage?: string }` — upload reuses existing `handleImageUpload` pattern |
+
+### Files to modify
+
+- `src/components/admin/lesson-builder/canvas/ElementToolbar.tsx` — Mic icon for audio
+- `src/components/admin/lesson-builder/canvas/PropertiesPanel.tsx` — Mic recording, AI voice, activity image uploads, floating card style
+- `src/components/admin/lesson-builder/canvas/CanvasElement.tsx` — Audio renderer with mic icon, activity image rendering
+- `src/components/admin/lesson-builder/canvas/CanvasEditor.tsx` — Floating properties panel
+- `src/components/admin/lesson-builder/AdminLessonEditor.tsx` — Collapsible side panels
 
