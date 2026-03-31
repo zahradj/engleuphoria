@@ -70,7 +70,7 @@ export const CurriculumStep: React.FC<CurriculumStepProps> = ({ onNextStep, onCu
       {/* Next Step CTA */}
       <div className="flex justify-end pt-4 border-t border-border">
         <Button onClick={onNextStep} size="lg" className="gap-2">
-          Next: Generate Lessons
+          Next: Slide Builder
           <ArrowRight className="h-4 w-4" />
         </Button>
       </div>

@@ -8,11 +8,13 @@ import { EditorCanvas } from './EditorCanvas';
 import { TeacherGuide } from './TeacherGuide';
 import { CurriculumBrowser } from './CurriculumBrowser';
 import { LessonPreviewDialog } from './LessonPreviewDialog';
+import { LessonBlueprint } from './LessonBlueprint';
 import { Slide, LessonDeck, CanvasElementData } from './types';
 import { AILessonWizard } from './ai-wizard';
 import { AIActivityGenerator } from './AIActivityGenerator';
 import { Button } from '@/components/ui/button';
-import { Wand2, HelpCircle, ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Wand2, HelpCircle, ArrowLeft, ArrowRight, CheckCircle, BookOpen, ClipboardList } from 'lucide-react';
 import { QuizGenerator } from '@/components/content-creator/QuizGenerator';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { useQueryClient } from '@tanstack/react-query';
@@ -310,12 +312,33 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
           />
         </div>
 
-        {/* Right: Teacher Guide */}
-        <div className="w-72 shrink-0">
-          <TeacherGuide
-            slide={selectedSlide}
-            onUpdateSlide={handleUpdateSlide}
-          />
+        {/* Right: Teacher Guide + Blueprint Tabs */}
+        <div className="w-72 shrink-0 border-l border-border flex flex-col">
+          <Tabs defaultValue="blueprint" className="flex flex-col h-full">
+            <TabsList className="w-full rounded-none border-b border-border bg-card shrink-0">
+              <TabsTrigger value="blueprint" className="flex-1 gap-1.5 text-xs">
+                <ClipboardList className="h-3.5 w-3.5" />
+                Blueprint
+              </TabsTrigger>
+              <TabsTrigger value="guide" className="flex-1 gap-1.5 text-xs">
+                <BookOpen className="h-3.5 w-3.5" />
+                Guide
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="blueprint" className="flex-1 min-h-0 mt-0">
+              <LessonBlueprint
+                slides={slides}
+                selectedSlideIndex={slides.findIndex(s => s.id === selectedSlideId)}
+                onSelectSlide={(idx) => setSelectedSlideId(slides[idx]?.id || null)}
+              />
+            </TabsContent>
+            <TabsContent value="guide" className="flex-1 min-h-0 mt-0">
+              <TeacherGuide
+                slide={selectedSlide}
+                onUpdateSlide={handleUpdateSlide}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
 
@@ -323,9 +346,9 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
       {(onBack || onFinish) && (
         <div className="flex items-center justify-between px-6 py-3 border-t border-border bg-card shrink-0">
           {onBack ? (
-            <Button variant="outline" onClick={onBack} className="gap-2">
+             <Button variant="outline" onClick={onBack} className="gap-2">
               <ArrowLeft className="h-4 w-4" />
-              Back: Lesson Generation
+              Back: Curriculum
             </Button>
           ) : <div />}
           {onFinish && (

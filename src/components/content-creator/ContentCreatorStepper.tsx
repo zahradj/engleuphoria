@@ -1,8 +1,8 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { Check, BookOpen, Sparkles, LayoutDashboard, Library } from 'lucide-react';
+import { Check, BookOpen, LayoutDashboard, Library } from 'lucide-react';
 
-export type PipelineStep = 1 | 2 | 3 | 4;
+export type PipelineStep = 1 | 2 | 3;
 
 export interface PipelineProgressData {
   totalLessons: number;
@@ -18,9 +18,8 @@ interface ContentCreatorStepperProps {
 
 const STEPS = [
   { step: 1 as PipelineStep, label: 'Curriculum', icon: BookOpen, description: 'Create structure' },
-  { step: 2 as PipelineStep, label: 'Lesson Generation', icon: Sparkles, description: 'Generate with AI' },
-  { step: 3 as PipelineStep, label: 'Slide Builder', icon: LayoutDashboard, description: 'Build & design' },
-  { step: 4 as PipelineStep, label: 'Content Library', icon: Library, description: 'Manage & publish' },
+  { step: 2 as PipelineStep, label: 'Slide Builder', icon: LayoutDashboard, description: 'Build & design' },
+  { step: 3 as PipelineStep, label: 'Content Library', icon: Library, description: 'Manage & publish' },
 ];
 
 export const ContentCreatorStepper: React.FC<ContentCreatorStepperProps> = ({
@@ -31,21 +30,8 @@ export const ContentCreatorStepper: React.FC<ContentCreatorStepperProps> = ({
   const getProgressBadge = (step: PipelineStep) => {
     if (!progress) return null;
     if (step === 2) {
-      const done = progress.generatedLessons;
-      const total = progress.totalLessons;
-      const isComplete = total > 0 && done >= total;
-      return (
-        <span className={cn(
-          'text-[10px] font-medium px-1.5 py-0.5 rounded-full leading-none',
-          isComplete ? 'bg-green-500/15 text-green-600' : 'bg-muted text-muted-foreground'
-        )}>
-          {done}/{total}
-        </span>
-      );
-    }
-    if (step === 3) {
       const done = progress.lessonsWithSlides;
-      const total = progress.generatedLessons;
+      const total = progress.generatedLessons || progress.totalLessons;
       if (total === 0) return null;
       const isComplete = done >= total;
       return (
@@ -59,6 +45,7 @@ export const ContentCreatorStepper: React.FC<ContentCreatorStepperProps> = ({
     }
     return null;
   };
+
   return (
     <div className="w-full px-6 py-4 bg-card border-b border-border">
       <div className="flex items-center justify-between max-w-4xl mx-auto">
@@ -77,7 +64,6 @@ export const ContentCreatorStepper: React.FC<ContentCreatorStepperProps> = ({
                   isActive && 'scale-105'
                 )}
               >
-                {/* Circle */}
                 <div
                   className={cn(
                     'w-10 h-10 rounded-full flex items-center justify-center shrink-0 border-2 transition-all duration-200',
@@ -95,7 +81,6 @@ export const ContentCreatorStepper: React.FC<ContentCreatorStepperProps> = ({
                   )}
                 </div>
 
-                {/* Label */}
                 <div className="hidden sm:block text-left">
                   <span
                     className={cn(
@@ -116,7 +101,6 @@ export const ContentCreatorStepper: React.FC<ContentCreatorStepperProps> = ({
                 </div>
               </button>
 
-              {/* Connector line */}
               {!isLast && (
                 <div className="flex-1 mx-3 hidden sm:block">
                   <div
