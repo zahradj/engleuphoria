@@ -312,12 +312,33 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
           />
         </div>
 
-        {/* Right: Teacher Guide */}
-        <div className="w-72 shrink-0">
-          <TeacherGuide
-            slide={selectedSlide}
-            onUpdateSlide={handleUpdateSlide}
-          />
+        {/* Right: Teacher Guide + Blueprint Tabs */}
+        <div className="w-72 shrink-0 border-l border-border flex flex-col">
+          <Tabs defaultValue="blueprint" className="flex flex-col h-full">
+            <TabsList className="w-full rounded-none border-b border-border bg-card shrink-0">
+              <TabsTrigger value="blueprint" className="flex-1 gap-1.5 text-xs">
+                <ClipboardList className="h-3.5 w-3.5" />
+                Blueprint
+              </TabsTrigger>
+              <TabsTrigger value="guide" className="flex-1 gap-1.5 text-xs">
+                <BookOpen className="h-3.5 w-3.5" />
+                Guide
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="blueprint" className="flex-1 min-h-0 mt-0">
+              <LessonBlueprint
+                slides={slides}
+                selectedSlideIndex={slides.findIndex(s => s.id === selectedSlideId)}
+                onSelectSlide={(idx) => setSelectedSlideId(slides[idx]?.id || null)}
+              />
+            </TabsContent>
+            <TabsContent value="guide" className="flex-1 min-h-0 mt-0">
+              <TeacherGuide
+                slide={selectedSlide}
+                onUpdateSlide={handleUpdateSlide}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
 
