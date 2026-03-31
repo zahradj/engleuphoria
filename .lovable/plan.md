@@ -1,50 +1,80 @@
 
 
-## Plan: Audio Recording + AI Voice, Bigger Canvas, Images in Activities
+## Plan: Canva-Style Content Studio Redesign
 
-### Three Requests
+### Problem
+The current slide builder is cramped. The canvas competes with a 224px slide organizer, 64px element toolbar, browser toggle panels, and AI buttons stacked in the sidebar. The 1920x1080 canvas scales down to a tiny fraction of the viewport, making editing nearly impossible.
 
-1. **Audio element with mic recording + AI voice enhancement** — Add a "Record" button (microphone) to the audio element. The creator records a word/phrase, it gets sent to an AI voice changer (using existing ElevenLabs TTS edge function), and the cleaned audio is saved to the slide.
+### Solution
+Rebuild the layout to follow a Canva-like paradigm: maximize the canvas, collapse the slide strip to a thin filmstrip, move element tools into a compact left sidebar, and keep properties as a floating panel only when needed.
 
-2. **Bigger slide canvas viewer** — The current layout squeezes the canvas between 4 panels (curriculum browser 224px + slide organizer 224px + properties panel 256px + blueprint panel 288px = ~992px taken). Collapse the properties panel into a floating popover that appears when an element is selected, and make the curriculum browser + blueprint panel collapsible. This gives the canvas the majority of the viewport.
+### Layout Changes
 
-3. **Image support in game activities** — Add image upload fields to matching pairs (left/right can be text OR image), drag-and-drop items, and quiz options so creators can use picture-based activities.
+```text
+BEFORE:
+[toggle|CurriculumBrowser(224px)|SlideOrganizer(224px)+AI buttons|ElementToolbar(64px)|Canvas(remaining)|toggle|RightPanel(288px)]
 
-### Changes
+AFTER:
+[Slim Toolbar(56px) | Slide Filmstrip(100px) | ======= FULL CANVAS ======= ]
+                                                  (floating props when selected)
+                                                  (top action bar for AI/save/preview)
+```
 
-**1. Audio element — mic + AI voice**
+**1. Compact left sidebar — merge Element Toolbar + Slide Filmstrip**
+- **`AdminLessonEditor.tsx`** — Remove the separate `SlideOrganizer` (224px) and browser/right-panel toggle columns. Replace with a single slim left panel (~160px) containing:
+  - A mini filmstrip of slide thumbnails (small 16:9 cards, ~120px wide) at the top with add/reorder/delete
+  - The element toolbar buttons below the filmstrip (in a grid, 2 columns)
+  - AI generate buttons at the very bottom (compact icons)
+- Curriculum browser and blueprint/guide become overlay drawers triggered by top-bar buttons, not permanent sidebars
 
-- **`ElementToolbar.tsx`** — Change audio icon to `Mic` (from lucide)
-- **`PropertiesPanel.tsx`** — Audio section: add "Record" button that uses `MediaRecorder` API to capture audio, a "Generate AI Voice" button that takes a text input + sends to existing `elevenlabs-tts` edge function, stores result in Supabase `lesson-slides` bucket, and sets `content.src`
-- **`CanvasElement.tsx`** — Audio renderer: show mic icon + label + audio player when src exists
+**2. Maximize the canvas**
+- **`CanvasEditor.tsx`** — Remove the `ElementToolbar` from inside CanvasEditor (it moves to the parent layout). The canvas viewport now takes 100% of the remaining space. Remove the `max scale = 1` cap so the canvas can fill the viewport. Use absolute centering per the slides-app skill:
+  ```css
+  position: absolute; left: 50%; top: 50%;
+  margin-left: -960px; margin-top: -540px;
+  transform: scale(var(--scale));
+  ```
 
-**2. Bigger canvas**
+**3. Floating properties panel — already floating, just improve**
+- **`PropertiesPanel.tsx`** — Already floating. Make it draggable with a grip handle so the user can move it out of the way. Increase max-height to 80vh.
 
-- **`AdminLessonEditor.tsx`** — Make curriculum browser and right panel (blueprint/guide) collapsible with toggle buttons. Default: collapsed. This frees ~500px for the canvas.
-- **`CanvasEditor.tsx`** — Remove the `PropertiesPanel` from the side layout. Instead, render it as a floating card (absolute positioned, right side of canvas viewport) that only appears when an element is selected. This eliminates the permanent 256px panel.
-- **`PropertiesPanel.tsx`** — Add a close button and make it a floating card with shadow/border
+**4. Top action bar**
+- **`AdminLessonEditor.tsx`** — Merge `LessonHeader` actions + AI buttons + curriculum/blueprint toggles into a single compact top bar with icon buttons:
+  - Left: Lesson title (editable inline), level badge
+  - Center: Curriculum browser toggle, Blueprint toggle (open as slide-over drawers)
+  - Right: AI Generate, Save, Preview, Publish buttons
 
-**3. Images in game activities**
+**5. Slide filmstrip (replaces SlideOrganizer)**
+- Create a new slim `SlideFilmstrip.tsx` component (~160px wide) with:
+  - Vertical scroll of mini 16:9 thumbnails (~120px wide)
+  - Click to select, drag to reorder, hover to show delete
+  - "+" button at bottom to add slide
+  - Upload overlay on hover (same as current)
 
-- **`PropertiesPanel.tsx`** — For matching pairs: each pair gets an optional image upload (left image, right image) stored in `lesson-slides` bucket. For drag-drop items: each item can have an optional image. For quiz options: each option can have an optional image.
-- **`CanvasElement.tsx`** — Update matching, drag-drop, and quiz renderers to show images when present alongside text
-- **`types.ts`** — No changes needed; `content` is already `Record<string, any>`
+**6. Curriculum & Blueprint as overlay drawers**
+- Curriculum browser opens as a left slide-over drawer (over the canvas) when toggled
+- Blueprint/Guide opens as a right slide-over drawer when toggled
+- Both close with X or clicking outside
 
 ### Technical Details
 
-| Area | Implementation |
+| File | Change |
 |---|---|
-| Mic recording | `navigator.mediaDevices.getUserMedia({ audio: true })` → `MediaRecorder` → blob → upload to `lesson-slides` bucket |
-| AI voice | Text input → call existing `elevenlabs-tts` edge function → get audio blob → upload to bucket → set `content.src` |
-| Collapsible panels | State booleans `showBrowser` / `showRightPanel` with toggle icons in a mini toolbar |
-| Floating properties | `position: absolute; right: 16px; top: 16px` inside the canvas viewport container, with `z-50` |
-| Activity images | Matching pair becomes `{ left: string, right: string, leftImage?: string, rightImage?: string }` — upload reuses existing `handleImageUpload` pattern |
+| `AdminLessonEditor.tsx` | Restructure to: top action bar + left filmstrip + full canvas. Curriculum/Blueprint become overlay drawers. Move AI buttons to top bar. |
+| `SlideFilmstrip.tsx` (new) | Slim vertical filmstrip with mini thumbnails, drag-reorder, upload overlay |
+| `CanvasEditor.tsx` | Remove ElementToolbar render. Accept `onAddElement` via props or keep toolbar external. Remove scale cap. Use absolute centering. |
+| `ElementToolbar.tsx` | Refactor to horizontal/grid layout that fits inside the left panel below the filmstrip |
+| `PropertiesPanel.tsx` | Add drag handle for repositioning |
+| `SlideOrganizer.tsx` | Deprecated — replaced by SlideFilmstrip |
+| `CurriculumBrowser.tsx` | Wrap in a drawer/sheet component |
+| `LessonBlueprint.tsx` | Wrap in a drawer/sheet component |
+
+### Files to create
+- `src/components/admin/lesson-builder/SlideFilmstrip.tsx`
 
 ### Files to modify
-
-- `src/components/admin/lesson-builder/canvas/ElementToolbar.tsx` — Mic icon for audio
-- `src/components/admin/lesson-builder/canvas/PropertiesPanel.tsx` — Mic recording, AI voice, activity image uploads, floating card style
-- `src/components/admin/lesson-builder/canvas/CanvasElement.tsx` — Audio renderer with mic icon, activity image rendering
-- `src/components/admin/lesson-builder/canvas/CanvasEditor.tsx` — Floating properties panel
-- `src/components/admin/lesson-builder/AdminLessonEditor.tsx` — Collapsible side panels
+- `src/components/admin/lesson-builder/AdminLessonEditor.tsx`
+- `src/components/admin/lesson-builder/canvas/CanvasEditor.tsx`
+- `src/components/admin/lesson-builder/canvas/ElementToolbar.tsx`
+- `src/components/admin/lesson-builder/canvas/PropertiesPanel.tsx`
 
