@@ -14,7 +14,7 @@ import { AILessonWizard } from './ai-wizard';
 import { AIActivityGenerator } from './AIActivityGenerator';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Wand2, HelpCircle, ArrowLeft, ArrowRight, CheckCircle, BookOpen, ClipboardList } from 'lucide-react';
+import { Wand2, HelpCircle, ArrowLeft, ArrowRight, CheckCircle, BookOpen, ClipboardList, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import { QuizGenerator } from '@/components/content-creator/QuizGenerator';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { useQueryClient } from '@tanstack/react-query';
@@ -31,6 +31,8 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
   const [showAIWizard, setShowAIWizard] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
+  const [showBrowser, setShowBrowser] = useState(false);
+  const [showRightPanel, setShowRightPanel] = useState(false);
   
   const [lessonTitle, setLessonTitle] = useState('Untitled Lesson');
   const [level, setLevel] = useState('A1');
@@ -248,13 +250,28 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
       />
 
       <div className="flex-1 flex min-h-0">
-        {/* Left: Curriculum Browser */}
-        <div className="w-56 shrink-0">
-          <CurriculumBrowser
-            activeLessonId={activeLessonId}
-            onSelectLesson={handleSelectLesson}
-          />
+        {/* Toggle for left browser */}
+        <div className="flex flex-col border-r border-border bg-card">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 m-1"
+            onClick={() => setShowBrowser(!showBrowser)}
+            title={showBrowser ? 'Hide curriculum' : 'Show curriculum'}
+          >
+            {showBrowser ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
+          </Button>
         </div>
+
+        {/* Left: Curriculum Browser (collapsible) */}
+        {showBrowser && (
+          <div className="w-56 shrink-0">
+            <CurriculumBrowser
+              activeLessonId={activeLessonId}
+              onSelectLesson={handleSelectLesson}
+            />
+          </div>
+        )}
 
         {/* Slide Organizer */}
         <div className="w-56 shrink-0 relative">
@@ -312,34 +329,49 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
           />
         </div>
 
-        {/* Right: Teacher Guide + Blueprint Tabs */}
-        <div className="w-72 shrink-0 border-l border-border flex flex-col">
-          <Tabs defaultValue="blueprint" className="flex flex-col h-full">
-            <TabsList className="w-full rounded-none border-b border-border bg-card shrink-0">
-              <TabsTrigger value="blueprint" className="flex-1 gap-1.5 text-xs">
-                <ClipboardList className="h-3.5 w-3.5" />
-                Blueprint
-              </TabsTrigger>
-              <TabsTrigger value="guide" className="flex-1 gap-1.5 text-xs">
-                <BookOpen className="h-3.5 w-3.5" />
-                Guide
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="blueprint" className="flex-1 min-h-0 mt-0">
-              <LessonBlueprint
-                slides={slides}
-                selectedSlideIndex={slides.findIndex(s => s.id === selectedSlideId)}
-                onSelectSlide={(idx) => setSelectedSlideId(slides[idx]?.id || null)}
-              />
-            </TabsContent>
-            <TabsContent value="guide" className="flex-1 min-h-0 mt-0">
-              <TeacherGuide
-                slide={selectedSlide}
-                onUpdateSlide={handleUpdateSlide}
-              />
-            </TabsContent>
-          </Tabs>
+        {/* Toggle for right panel */}
+        <div className="flex flex-col border-l border-border bg-card">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 m-1"
+            onClick={() => setShowRightPanel(!showRightPanel)}
+            title={showRightPanel ? 'Hide panel' : 'Show blueprint/guide'}
+          >
+            {showRightPanel ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
+          </Button>
         </div>
+
+        {/* Right: Teacher Guide + Blueprint Tabs (collapsible) */}
+        {showRightPanel && (
+          <div className="w-72 shrink-0 border-l border-border flex flex-col">
+            <Tabs defaultValue="blueprint" className="flex flex-col h-full">
+              <TabsList className="w-full rounded-none border-b border-border bg-card shrink-0">
+                <TabsTrigger value="blueprint" className="flex-1 gap-1.5 text-xs">
+                  <ClipboardList className="h-3.5 w-3.5" />
+                  Blueprint
+                </TabsTrigger>
+                <TabsTrigger value="guide" className="flex-1 gap-1.5 text-xs">
+                  <BookOpen className="h-3.5 w-3.5" />
+                  Guide
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="blueprint" className="flex-1 min-h-0 mt-0">
+                <LessonBlueprint
+                  slides={slides}
+                  selectedSlideIndex={slides.findIndex(s => s.id === selectedSlideId)}
+                  onSelectSlide={(idx) => setSelectedSlideId(slides[idx]?.id || null)}
+                />
+              </TabsContent>
+              <TabsContent value="guide" className="flex-1 min-h-0 mt-0">
+                <TeacherGuide
+                  slide={selectedSlide}
+                  onUpdateSlide={handleUpdateSlide}
+                />
+              </TabsContent>
+            </Tabs>
+          </div>
+        )}
       </div>
 
       {/* Navigation buttons for pipeline */}

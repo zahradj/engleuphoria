@@ -1,5 +1,5 @@
 import React from 'react';
-import { Type, ImageIcon, Square, HelpCircle, Link2, FileText, Volume2, Puzzle, Video, ArrowDownUp, BookOpen } from 'lucide-react';
+import { Type, ImageIcon, Square, HelpCircle, Link2, FileText, Mic, Puzzle, Video, ArrowDownUp, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import type { CanvasElementType } from '../types';
@@ -13,7 +13,7 @@ const ELEMENTS: { type: CanvasElementType; label: string; icon: React.ElementTyp
   { type: 'image', label: 'Image', icon: ImageIcon, group: 'basic' },
   { type: 'shape', label: 'Shape', icon: Square, group: 'basic' },
   { type: 'video', label: 'Video', icon: Video, group: 'basic' },
-  { type: 'audio', label: 'Audio', icon: Volume2, group: 'basic' },
+  { type: 'audio', label: 'Audio', icon: Mic, group: 'basic' },
   { type: 'quiz', label: 'Quiz', icon: HelpCircle, group: 'activity' },
   { type: 'matching', label: 'Matching', icon: Link2, group: 'activity' },
   { type: 'fill-blank', label: 'Fill Blank', icon: FileText, group: 'activity' },
