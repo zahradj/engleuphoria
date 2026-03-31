@@ -3,6 +3,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { Slide } from './types';
+import { CanvasElement } from './canvas/CanvasElement';
 
 interface LessonPreviewDialogProps {
   open: boolean;
@@ -10,6 +11,9 @@ interface LessonPreviewDialogProps {
   slides: Slide[];
   lessonTitle: string;
 }
+
+const CANVAS_W = 1920;
+const CANVAS_H = 1080;
 
 export const LessonPreviewDialog: React.FC<LessonPreviewDialogProps> = ({
   open,
@@ -44,6 +48,12 @@ export const LessonPreviewDialog: React.FC<LessonPreviewDialogProps> = ({
 
   const currentSlide = slides[currentIndex];
 
+  // Compute scale to fit 1920x1080 into the viewport area
+  const viewportScale = Math.min(
+    (typeof window !== 'undefined' ? window.innerWidth * 0.85 : 960) / CANVAS_W,
+    (typeof window !== 'undefined' ? window.innerHeight * 0.7 : 540) / CANVAS_H
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full p-0 gap-0 bg-black border-none">
@@ -71,28 +81,43 @@ export const LessonPreviewDialog: React.FC<LessonPreviewDialogProps> = ({
             <div
               className="relative bg-white rounded shadow-2xl overflow-hidden"
               style={{
-                width: '960px',
-                height: '540px',
-                maxWidth: '90vw',
-                maxHeight: '75vh',
+                width: CANVAS_W,
+                height: CANVAS_H,
+                transform: `scale(${viewportScale})`,
+                transformOrigin: 'center center',
               }}
             >
-              {currentSlide.imageUrl ? (
+              {/* Background image */}
+              {currentSlide.imageUrl && (
                 <img
                   src={currentSlide.imageUrl}
                   alt={currentSlide.title || `Slide ${currentIndex + 1}`}
-                  className="w-full h-full object-contain"
+                  className="absolute inset-0 w-full h-full object-cover"
                 />
-              ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-muted to-muted/50 p-8">
-                  <h2 className="text-2xl font-bold text-foreground mb-2">
+              )}
+
+              {/* Canvas elements */}
+              {(currentSlide.canvasElements || []).map((el) => (
+                <CanvasElement
+                  key={el.id}
+                  element={el}
+                  isSelected={false}
+                  scale={1}
+                  onSelect={() => {}}
+                  onUpdate={() => {}}
+                  onDelete={() => {}}
+                  readOnly
+                />
+              ))}
+
+              {/* Fallback if no bg and no elements */}
+              {!currentSlide.imageUrl && (!currentSlide.canvasElements || currentSlide.canvasElements.length === 0) && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-muted to-muted/50 p-8">
+                  <h2 className="text-4xl font-bold text-foreground mb-2">
                     {currentSlide.title || `Slide ${currentIndex + 1}`}
                   </h2>
                   {currentSlide.type === 'quiz' && currentSlide.quizQuestion && (
-                    <p className="text-lg text-muted-foreground">{currentSlide.quizQuestion}</p>
-                  )}
-                  {currentSlide.type === 'poll' && currentSlide.pollQuestion && (
-                    <p className="text-lg text-muted-foreground">{currentSlide.pollQuestion}</p>
+                    <p className="text-2xl text-muted-foreground">{currentSlide.quizQuestion}</p>
                   )}
                 </div>
               )}

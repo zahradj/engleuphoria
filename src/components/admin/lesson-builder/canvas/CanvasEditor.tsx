@@ -24,6 +24,7 @@ const DEFAULT_SIZES: Record<CanvasElementType, { w: number; h: number }> = {
   sorting: { w: 400, h: 300 },
   'sentence-builder': { w: 500, h: 200 },
   audio: { w: 300, h: 80 },
+  video: { w: 640, h: 360 },
 };
 
 export const CanvasEditor: React.FC<CanvasEditorProps> = ({ slide, onUpdateSlide }) => {

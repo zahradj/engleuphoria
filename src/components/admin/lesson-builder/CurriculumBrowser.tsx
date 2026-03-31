@@ -7,6 +7,20 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Search, BookOpen, FileText, CheckCircle2, Circle, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+type SystemFilter = 'playground' | 'academy' | 'hub';
+
+const SYSTEM_TABS: { key: SystemFilter; label: string; color: string }[] = [
+  { key: 'playground', label: 'Playground', color: 'bg-orange-500' },
+  { key: 'academy', label: 'Academy', color: 'bg-blue-500' },
+  { key: 'hub', label: 'Pro Hub', color: 'bg-emerald-500' },
+];
+
+const AGE_GROUP_MAP: Record<SystemFilter, string[]> = {
+  playground: ['3-5', '4-6', '5-7', '6-8', '7-9', '8-10', '9-11', '3-6', '6-9', '9-12', 'kids'],
+  academy: ['10-12', '11-13', '12-14', '13-15', '14-16', '15-17', '12-17', 'teens', 'teen'],
+  hub: ['16-18', '18+', '18-25', '25+', 'adults', 'adult', 'professional'],
+};
+
 interface CurriculumLesson {
   id: string;
   title: string;
@@ -35,6 +49,7 @@ export const CurriculumBrowser: React.FC<CurriculumBrowserProps> = ({
   onSelectLesson,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeSystem, setActiveSystem] = useState<SystemFilter>('playground');
 
   const { data: units = [], isLoading } = useQuery({
     queryKey: ['curriculum-browser-units'],
@@ -73,6 +88,12 @@ export const CurriculumBrowser: React.FC<CurriculumBrowserProps> = ({
   });
 
   const filteredUnits = units.filter((unit) => {
+    // System filter
+    const allowedAges = AGE_GROUP_MAP[activeSystem];
+    const ageMatch = allowedAges.some((ag) => unit.age_group.toLowerCase().includes(ag.toLowerCase()));
+    if (!ageMatch) return false;
+
+    // Search filter
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return (
@@ -82,16 +103,35 @@ export const CurriculumBrowser: React.FC<CurriculumBrowserProps> = ({
   });
 
   const hasContent = (lesson: CurriculumLesson) => {
-    return lesson.content && Object.keys(lesson.content).length > 0;
+    return lesson.content && (Array.isArray(lesson.content) ? lesson.content.length > 0 : Object.keys(lesson.content).length > 0);
   };
 
   return (
     <div className="h-full flex flex-col bg-card border-r border-border">
-      <div className="p-3 border-b border-border">
-        <div className="flex items-center gap-2 mb-2">
+      <div className="p-3 border-b border-border space-y-2">
+        <div className="flex items-center gap-2">
           <BookOpen className="h-4 w-4 text-primary" />
           <h3 className="font-semibold text-foreground text-sm">Curriculum</h3>
         </div>
+
+        {/* System filter tabs */}
+        <div className="flex gap-1">
+          {SYSTEM_TABS.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveSystem(tab.key)}
+              className={cn(
+                "flex-1 text-[10px] font-semibold py-1.5 rounded-md transition-all",
+                activeSystem === tab.key
+                  ? `${tab.color} text-white shadow-sm`
+                  : "bg-muted text-muted-foreground hover:bg-muted/80"
+              )}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
         <div className="relative">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input
@@ -110,7 +150,7 @@ export const CurriculumBrowser: React.FC<CurriculumBrowserProps> = ({
           </div>
         ) : filteredUnits.length === 0 ? (
           <div className="p-4 text-center text-xs text-muted-foreground">
-            No units found
+            No units found for this system
           </div>
         ) : (
           <Accordion type="multiple" className="px-2 py-1">

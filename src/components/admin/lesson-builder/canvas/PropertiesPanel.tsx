@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { Bold, Italic, AlignLeft, AlignCenter, AlignRight, Plus, X, Check } from 'lucide-react';
+import { Bold, Italic, AlignLeft, AlignCenter, AlignRight, Plus, X, Check, Upload } from 'lucide-react';
 import type { CanvasElementData } from '../types';
 import { v4 as uuidv4 } from 'uuid';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface PropertiesPanelProps {
   element: CanvasElementData | null;
@@ -15,6 +17,9 @@ interface PropertiesPanelProps {
 }
 
 export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({ element, onUpdate }) => {
+  const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   if (!element) {
     return (
       <div className="w-64 bg-card border-l border-border p-4 flex items-center justify-center">
@@ -25,6 +30,36 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({ element, onUpd
 
   const updateContent = (key: string, value: any) => {
     onUpdate({ content: { ...element.content, [key]: value } });
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const ext = file.name.split('.').pop();
+    const filePath = `canvas/${element.id}/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from('lesson-slides').upload(filePath, file, { upsert: true });
+    if (error) {
+      toast({ title: 'Upload failed', description: error.message, variant: 'destructive' });
+      return;
+    }
+    const { data } = supabase.storage.from('lesson-slides').getPublicUrl(filePath);
+    updateContent('src', data.publicUrl);
+    toast({ title: 'Image uploaded' });
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const updateListItem = (key: string, index: number, value: string) => {
+    const items = [...(element.content?.[key] || [])];
+    items[index] = value;
+    updateContent(key, items);
+  };
+
+  const addListItem = (key: string, defaultVal = '') => {
+    updateContent(key, [...(element.content?.[key] || []), defaultVal]);
+  };
+
+  const removeListItem = (key: string, index: number) => {
+    updateContent(key, (element.content?.[key] || []).filter((_: any, i: number) => i !== index));
   };
 
   return (
@@ -99,8 +134,21 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({ element, onUpd
       {/* Image properties */}
       {element.elementType === 'image' && (
         <div className="space-y-2">
-          <Label className="text-xs text-muted-foreground">Image URL</Label>
-          <Input value={element.content?.src || ''} onChange={(e) => updateContent('src', e.target.value)} placeholder="https://..." className="text-xs" />
+          <Label className="text-xs text-muted-foreground">Image</Label>
+          <Button size="sm" variant="outline" className="w-full text-xs h-7 gap-1" onClick={() => fileInputRef.current?.click()}>
+            <Upload className="h-3 w-3" /> Upload Image
+          </Button>
+          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+          <Input value={element.content?.src || ''} onChange={(e) => updateContent('src', e.target.value)} placeholder="Or paste URL..." className="text-xs" />
+        </div>
+      )}
+
+      {/* Video properties */}
+      {element.elementType === 'video' && (
+        <div className="space-y-2">
+          <Label className="text-xs text-muted-foreground">Video URL</Label>
+          <Input value={element.content?.url || ''} onChange={(e) => updateContent('url', e.target.value)} placeholder="YouTube or Vimeo URL..." className="text-xs" />
+          <p className="text-[10px] text-muted-foreground">Supports YouTube & Vimeo links</p>
         </div>
       )}
 
@@ -201,6 +249,83 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({ element, onUpd
           <Textarea value={element.content?.sentence || ''} onChange={(e) => updateContent('sentence', e.target.value)} placeholder="The cat ___ on the mat." className="min-h-[60px] text-xs" />
           <Label className="text-xs text-muted-foreground">Answer</Label>
           <Input value={element.content?.answer || ''} onChange={(e) => updateContent('answer', e.target.value)} className="text-xs h-7" />
+        </div>
+      )}
+
+      {/* Drag & Drop properties */}
+      {element.elementType === 'drag-drop' && (
+        <div className="space-y-2">
+          <Label className="text-xs text-muted-foreground">Instruction</Label>
+          <Input value={element.content?.instruction || ''} onChange={(e) => updateContent('instruction', e.target.value)} className="text-xs h-7" />
+          <Label className="text-xs text-muted-foreground">Items</Label>
+          {(element.content?.items || []).map((item: string, i: number) => (
+            <div key={i} className="flex items-center gap-1">
+              <Input value={item} onChange={(e) => updateListItem('items', i, e.target.value)} className="h-6 text-xs" />
+              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => removeListItem('items', i)}><X className="h-3 w-3" /></Button>
+            </div>
+          ))}
+          <Button size="sm" variant="outline" className="w-full text-xs h-7" onClick={() => addListItem('items')}>
+            <Plus className="h-3 w-3 mr-1" /> Add Item
+          </Button>
+          <Label className="text-xs text-muted-foreground">Drop Zones</Label>
+          {(element.content?.zones || []).map((zone: string, i: number) => (
+            <div key={i} className="flex items-center gap-1">
+              <Input value={zone} onChange={(e) => updateListItem('zones', i, e.target.value)} className="h-6 text-xs" />
+              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => removeListItem('zones', i)}><X className="h-3 w-3" /></Button>
+            </div>
+          ))}
+          <Button size="sm" variant="outline" className="w-full text-xs h-7" onClick={() => addListItem('zones')}>
+            <Plus className="h-3 w-3 mr-1" /> Add Zone
+          </Button>
+        </div>
+      )}
+
+      {/* Sorting properties */}
+      {element.elementType === 'sorting' && (
+        <div className="space-y-2">
+          <Label className="text-xs text-muted-foreground">Instruction</Label>
+          <Input value={element.content?.instruction || ''} onChange={(e) => updateContent('instruction', e.target.value)} className="text-xs h-7" />
+          <Label className="text-xs text-muted-foreground">Items (correct order)</Label>
+          {(element.content?.items || []).map((item: string, i: number) => (
+            <div key={i} className="flex items-center gap-1">
+              <span className="text-[10px] text-muted-foreground w-4">{i + 1}.</span>
+              <Input value={item} onChange={(e) => updateListItem('items', i, e.target.value)} className="h-6 text-xs" />
+              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => removeListItem('items', i)}><X className="h-3 w-3" /></Button>
+            </div>
+          ))}
+          <Button size="sm" variant="outline" className="w-full text-xs h-7" onClick={() => addListItem('items')}>
+            <Plus className="h-3 w-3 mr-1" /> Add Item
+          </Button>
+        </div>
+      )}
+
+      {/* Sentence Builder properties */}
+      {element.elementType === 'sentence-builder' && (
+        <div className="space-y-2">
+          <Label className="text-xs text-muted-foreground">Instruction</Label>
+          <Input value={element.content?.instruction || ''} onChange={(e) => updateContent('instruction', e.target.value)} className="text-xs h-7" />
+          <Label className="text-xs text-muted-foreground">Correct Sentence</Label>
+          <Input value={element.content?.correctSentence || ''} onChange={(e) => updateContent('correctSentence', e.target.value)} placeholder="I am happy" className="text-xs h-7" />
+          <Label className="text-xs text-muted-foreground">Words (shuffled for student)</Label>
+          {(element.content?.words || []).map((word: string, i: number) => (
+            <div key={i} className="flex items-center gap-1">
+              <Input value={word} onChange={(e) => updateListItem('words', i, e.target.value)} className="h-6 text-xs" />
+              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => removeListItem('words', i)}><X className="h-3 w-3" /></Button>
+            </div>
+          ))}
+          <Button size="sm" variant="outline" className="w-full text-xs h-7" onClick={() => addListItem('words')}>
+            <Plus className="h-3 w-3 mr-1" /> Add Word
+          </Button>
+        </div>
+      )}
+
+      {/* Audio properties */}
+      {element.elementType === 'audio' && (
+        <div className="space-y-2">
+          <Label className="text-xs text-muted-foreground">Audio URL</Label>
+          <Input value={element.content?.src || ''} onChange={(e) => updateContent('src', e.target.value)} placeholder="https://..." className="text-xs" />
+          <Label className="text-xs text-muted-foreground">Label</Label>
+          <Input value={element.content?.label || ''} onChange={(e) => updateContent('label', e.target.value)} placeholder="Audio clip name" className="text-xs h-7" />
         </div>
       )}
     </div>
