@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { CanvasElement } from './CanvasElement';
-import { ElementToolbar } from './ElementToolbar';
 import { PropertiesPanel } from './PropertiesPanel';
 import type { CanvasElementData, CanvasElementType, Slide } from '../types';
 
 interface CanvasEditorProps {
   slide: Slide | null;
   onUpdateSlide: (updates: Partial<Slide>) => void;
+  onAddElement?: (type: CanvasElementType) => void;
 }
 
 const CANVAS_W = 1920;
@@ -39,9 +39,9 @@ export const CanvasEditor: React.FC<CanvasEditorProps> = ({ slide, onUpdateSlide
     const updateScale = () => {
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
-      const scaleX = (rect.width - 32) / CANVAS_W;
-      const scaleY = (rect.height - 32) / CANVAS_H;
-      setScale(Math.min(scaleX, scaleY, 1));
+      const scaleX = rect.width / CANVAS_W;
+      const scaleY = rect.height / CANVAS_H;
+      setScale(Math.min(scaleX, scaleY));
     };
     updateScale();
     const observer = new ResizeObserver(updateScale);
@@ -82,6 +82,14 @@ export const CanvasEditor: React.FC<CanvasEditorProps> = ({ slide, onUpdateSlide
     if (selectedElementId === id) setSelectedElementId(null);
   }, [elements, selectedElementId, onUpdateSlide]);
 
+  // Expose addElement for external toolbar via parent data-canvas-editor element
+  React.useEffect(() => {
+    const parent = containerRef.current?.closest('[data-canvas-editor]');
+    if (parent) {
+      (parent as any).__addElement = addElement;
+    }
+  }, [addElement]);
+
   if (!slide) {
     return (
       <div className="h-full flex items-center justify-center bg-muted/30">
@@ -91,63 +99,58 @@ export const CanvasEditor: React.FC<CanvasEditorProps> = ({ slide, onUpdateSlide
   }
 
   return (
-    <div className="h-full flex">
-      <ElementToolbar onAddElement={addElement} />
+    <div
+      ref={containerRef}
+      className="w-full h-full bg-muted/20 flex items-center justify-center overflow-hidden relative"
+      onClick={() => setSelectedElementId(null)}
+    >
+      <div
+        className="relative bg-white shadow-2xl rounded-lg overflow-hidden"
+        style={{
+          width: CANVAS_W,
+          height: CANVAS_H,
+          transform: `scale(${scale})`,
+          transformOrigin: 'center center',
+        }}
+        onClick={(e) => { if (e.target === e.currentTarget) setSelectedElementId(null); }}
+      >
+        {slide.imageUrl && (
+          <img src={slide.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        )}
 
-      {/* Canvas viewport */}
-      <div ref={containerRef} className="flex-1 bg-muted/30 flex items-center justify-center overflow-hidden p-4 relative"
-        onClick={() => setSelectedElementId(null)}>
-        <div
-          className="relative bg-white shadow-2xl rounded-lg overflow-hidden"
-          style={{
-            width: CANVAS_W,
-            height: CANVAS_H,
-            transform: `scale(${scale})`,
-            transformOrigin: 'center center',
-          }}
-          onClick={(e) => { if (e.target === e.currentTarget) setSelectedElementId(null); }}
-        >
-          {/* Slide background image if exists */}
-          {slide.imageUrl && (
-            <img src={slide.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
-          )}
+        {elements.map(element => (
+          <CanvasElement
+            key={element.id}
+            element={element}
+            isSelected={element.id === selectedElementId}
+            scale={scale}
+            onSelect={() => setSelectedElementId(element.id)}
+            onUpdate={(updates) => updateElement(element.id, updates)}
+            onDelete={() => deleteElement(element.id)}
+          />
+        ))}
 
-          {/* Canvas elements */}
-          {elements.map(element => (
-            <CanvasElement
-              key={element.id}
-              element={element}
-              isSelected={element.id === selectedElementId}
-              scale={scale}
-              onSelect={() => setSelectedElementId(element.id)}
-              onUpdate={(updates) => updateElement(element.id, updates)}
-              onDelete={() => deleteElement(element.id)}
-            />
-          ))}
-
-          {/* Empty state */}
-          {elements.length === 0 && !slide.imageUrl && (
-            <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/50">
-              <div className="text-center">
-                <p className="text-2xl font-light mb-2">Empty Canvas</p>
-                <p className="text-sm">Add elements from the left toolbar</p>
-              </div>
+        {elements.length === 0 && !slide.imageUrl && (
+          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground/50">
+            <div className="text-center">
+              <p className="text-2xl font-light mb-2">Empty Canvas</p>
+              <p className="text-sm">Add elements from the left toolbar</p>
             </div>
-          )}
-        </div>
-
-        {/* Floating Properties Panel */}
-        {selectedElement && (
-          <div className="absolute right-4 top-4 z-50" onClick={(e) => e.stopPropagation()}>
-            <PropertiesPanel
-              element={selectedElement}
-              onUpdate={(updates) => selectedElementId && updateElement(selectedElementId, updates)}
-              onClose={() => setSelectedElementId(null)}
-              floating
-            />
           </div>
         )}
       </div>
+
+      {/* Floating Properties Panel */}
+      {selectedElement && (
+        <div className="absolute right-4 top-4 z-50" onClick={(e) => e.stopPropagation()}>
+          <PropertiesPanel
+            element={selectedElement}
+            onUpdate={(updates) => selectedElementId && updateElement(selectedElementId, updates)}
+            onClose={() => setSelectedElementId(null)}
+            floating
+          />
+        </div>
+      )}
     </div>
   );
 };

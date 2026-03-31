@@ -2,19 +2,25 @@ import React, { useState, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { LessonHeader } from './LessonHeader';
-import { SlideOrganizer } from './SlideOrganizer';
+import { SlideFilmstrip } from './SlideFilmstrip';
 import { EditorCanvas } from './EditorCanvas';
 import { TeacherGuide } from './TeacherGuide';
 import { CurriculumBrowser } from './CurriculumBrowser';
 import { LessonPreviewDialog } from './LessonPreviewDialog';
 import { LessonBlueprint } from './LessonBlueprint';
-import { Slide, LessonDeck, CanvasElementData } from './types';
+import { ElementToolbar } from './canvas/ElementToolbar';
+import { Slide, LessonDeck, CanvasElementData, CanvasElementType } from './types';
 import { AILessonWizard } from './ai-wizard';
 import { AIActivityGenerator } from './AIActivityGenerator';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Wand2, HelpCircle, ArrowLeft, ArrowRight, CheckCircle, BookOpen, ClipboardList, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen } from 'lucide-react';
+import {
+  Wand2, HelpCircle, ArrowLeft, ArrowRight, CheckCircle,
+  BookOpen, ClipboardList, Save, Eye, FolderOpen, LayoutList
+} from 'lucide-react';
 import { QuizGenerator } from '@/components/content-creator/QuizGenerator';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { useQueryClient } from '@tanstack/react-query';
@@ -24,6 +30,9 @@ interface AdminLessonEditorProps {
   onBack?: () => void;
 }
 
+const levels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+const ageGroups = ['3-5', '6-8', '9-12', '13-17', '18+'];
+
 export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, onBack }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -31,87 +40,49 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
   const [showAIWizard, setShowAIWizard] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
-  const [showBrowser, setShowBrowser] = useState(false);
-  const [showRightPanel, setShowRightPanel] = useState(false);
-  
+  const canvasRef = React.useRef<HTMLDivElement>(null);
+
   const [lessonTitle, setLessonTitle] = useState('Untitled Lesson');
   const [level, setLevel] = useState('A1');
   const [ageGroup, setAgeGroup] = useState('6-8');
-  
+
   const [slides, setSlides] = useState<Slide[]>([
-    {
-      id: uuidv4(),
-      order: 0,
-      type: 'image',
-      teacherNotes: '',
-      keywords: [],
-    },
+    { id: uuidv4(), order: 0, type: 'image', teacherNotes: '', keywords: [] },
   ]);
   const [selectedSlideId, setSelectedSlideId] = useState<string | null>(slides[0]?.id || null);
-
   const selectedSlide = slides.find((s) => s.id === selectedSlideId) || null;
 
   const handleSelectLesson = useCallback((lesson: any) => {
     setActiveLessonId(lesson.id);
     setLessonTitle(lesson.title || 'Untitled Lesson');
     setLevel(lesson.difficulty_level || 'A1');
-
     if (lesson.content && Array.isArray(lesson.content)) {
       const loadedSlides: Slide[] = lesson.content.map((s: any, idx: number) => ({
-        id: s.id || uuidv4(),
-        order: s.order ?? idx,
-        type: s.type || 'image',
-        imageUrl: s.imageUrl,
-        videoUrl: s.videoUrl,
-        quizQuestion: s.quizQuestion,
-        quizOptions: s.quizOptions,
-        pollQuestion: s.pollQuestion,
-        pollOptions: s.pollOptions,
-        teacherNotes: s.teacherNotes || '',
-        keywords: s.keywords || [],
-        title: s.title,
-        canvasElements: s.canvasElements,
+        id: s.id || uuidv4(), order: s.order ?? idx, type: s.type || 'image',
+        imageUrl: s.imageUrl, videoUrl: s.videoUrl, quizQuestion: s.quizQuestion,
+        quizOptions: s.quizOptions, pollQuestion: s.pollQuestion, pollOptions: s.pollOptions,
+        teacherNotes: s.teacherNotes || '', keywords: s.keywords || [],
+        title: s.title, canvasElements: s.canvasElements,
       }));
       setSlides(loadedSlides);
       setSelectedSlideId(loadedSlides[0]?.id || null);
     } else {
-      const firstSlide: Slide = {
-        id: uuidv4(),
-        order: 0,
-        type: 'image',
-        teacherNotes: '',
-        keywords: [],
-      };
+      const firstSlide: Slide = { id: uuidv4(), order: 0, type: 'image', teacherNotes: '', keywords: [] };
       setSlides([firstSlide]);
       setSelectedSlideId(firstSlide.id);
     }
-
-    toast({
-      title: 'Lesson Loaded',
-      description: `Editing "${lesson.title}"`,
-    });
+    toast({ title: 'Lesson Loaded', description: `Editing "${lesson.title}"` });
   }, [toast]);
 
   const handleAddSlide = useCallback(() => {
-    const newSlide: Slide = {
-      id: uuidv4(),
-      order: slides.length,
-      type: 'image',
-      teacherNotes: '',
-      keywords: [],
-    };
+    const newSlide: Slide = { id: uuidv4(), order: slides.length, type: 'image', teacherNotes: '', keywords: [] };
     setSlides((prev) => [...prev, newSlide]);
     setSelectedSlideId(newSlide.id);
   }, [slides.length]);
 
   const handleDeleteSlide = useCallback((id: string) => {
-    setSlides((prev) => {
-      const filtered = prev.filter((s) => s.id !== id);
-      return filtered.map((s, index) => ({ ...s, order: index }));
-    });
-    if (selectedSlideId === id) {
-      setSelectedSlideId(slides[0]?.id !== id ? slides[0]?.id : slides[1]?.id || null);
-    }
+    setSlides((prev) => prev.filter((s) => s.id !== id).map((s, i) => ({ ...s, order: i })));
+    if (selectedSlideId === id) setSelectedSlideId(slides[0]?.id !== id ? slides[0]?.id : slides[1]?.id || null);
   }, [selectedSlideId, slides]);
 
   const handleReorderSlides = useCallback((startIndex: number, endIndex: number) => {
@@ -119,163 +90,167 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
       const result = Array.from(prev);
       const [removed] = result.splice(startIndex, 1);
       result.splice(endIndex, 0, removed);
-      return result.map((s, index) => ({ ...s, order: index }));
+      return result.map((s, i) => ({ ...s, order: i }));
     });
   }, []);
 
   const handleUpdateSlide = useCallback((updates: Partial<Slide>) => {
     if (!selectedSlideId) return;
-    setSlides((prev) =>
-      prev.map((s) => (s.id === selectedSlideId ? { ...s, ...updates } : s))
-    );
+    setSlides((prev) => prev.map((s) => (s.id === selectedSlideId ? { ...s, ...updates } : s)));
   }, [selectedSlideId]);
 
   const handleImageUploaded = useCallback((slideId: string, imageUrl: string) => {
-    setSlides((prev) =>
-      prev.map((s) => (s.id === slideId ? { ...s, imageUrl } : s))
-    );
+    setSlides((prev) => prev.map((s) => (s.id === slideId ? { ...s, imageUrl } : s)));
+  }, []);
+
+  const handleAddElement = useCallback((type: CanvasElementType) => {
+    // Delegate to canvas editor's addElement via ref
+    const el = document.querySelector('[data-canvas-editor]') as any;
+    if (el?.__addElement) el.__addElement(type);
   }, []);
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
       if (activeLessonId) {
-        const slidesJson = slides.map((s) => ({ ...s }));
-        const { error } = await supabase
-          .from('curriculum_lessons')
-          .update({
-            content: slidesJson as any,
-            updated_at: new Date().toISOString(),
-          })
+        const { error } = await supabase.from('curriculum_lessons')
+          .update({ content: slides.map(s => ({ ...s })) as any, updated_at: new Date().toISOString() })
           .eq('id', activeLessonId);
-
         if (error) throw error;
-
         queryClient.invalidateQueries({ queryKey: ['curriculum-browser-units'] });
-
-        toast({
-          title: 'Lesson Saved!',
-          description: `"${lessonTitle}" with ${slides.length} slides saved to database.`,
-        });
+        toast({ title: 'Lesson Saved!', description: `"${lessonTitle}" with ${slides.length} slides saved.` });
       } else {
-        toast({
-          title: 'No Lesson Selected',
-          description: 'Select a curriculum lesson from the browser to save.',
-          variant: 'destructive',
-        });
+        toast({ title: 'No Lesson Selected', description: 'Select a lesson from curriculum browser.', variant: 'destructive' });
       }
     } catch (err: any) {
-      toast({
-        title: 'Save Failed',
-        description: err.message || 'Could not save lesson.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSaving(false);
-    }
+      toast({ title: 'Save Failed', description: err.message, variant: 'destructive' });
+    } finally { setIsSaving(false); }
   };
 
   const handlePublish = async () => {
-    if (!activeLessonId) {
-      toast({ title: 'No lesson selected', variant: 'destructive' });
-      return;
-    }
+    if (!activeLessonId) { toast({ title: 'No lesson selected', variant: 'destructive' }); return; }
     setIsSaving(true);
     try {
-      const slidesJson = slides.map((s) => ({ ...s }));
-      const { error } = await supabase
-        .from('curriculum_lessons')
-        .update({
-          content: slidesJson as any,
-          is_published: true,
-          updated_at: new Date().toISOString(),
-        })
+      const { error } = await supabase.from('curriculum_lessons')
+        .update({ content: slides.map(s => ({ ...s })) as any, is_published: true, updated_at: new Date().toISOString() })
         .eq('id', activeLessonId);
-
       if (error) throw error;
-
       queryClient.invalidateQueries({ queryKey: ['curriculum-browser-units'] });
-
-      toast({
-        title: 'Lesson Published! 🎉',
-        description: `"${lessonTitle}" is now in the library.`,
-      });
-
+      toast({ title: 'Lesson Published! 🎉', description: `"${lessonTitle}" is now in the library.` });
       onFinish?.();
     } catch (err: any) {
-      toast({
-        title: 'Publish Failed',
-        description: err.message,
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSaving(false);
-    }
+      toast({ title: 'Publish Failed', description: err.message, variant: 'destructive' });
+    } finally { setIsSaving(false); }
   };
 
-  const handlePreview = () => {
-    setShowPreview(true);
-  };
-
-  const handleAILessonGenerated = useCallback((
-    generatedSlides: Slide[],
-    title: string,
-    newLevel: string,
-    newAgeGroup: string
-  ) => {
+  const handleAILessonGenerated = useCallback((generatedSlides: Slide[], title: string, newLevel: string, newAgeGroup: string) => {
     setSlides(generatedSlides);
     setLessonTitle(title);
     setLevel(newLevel);
     setAgeGroup(newAgeGroup);
     setSelectedSlideId(generatedSlides[0]?.id || null);
-    
-    toast({
-      title: 'Lesson Generated!',
-      description: `Created ${generatedSlides.length} slides using AI wizard.`,
-    });
+    toast({ title: 'Lesson Generated!', description: `Created ${generatedSlides.length} slides.` });
   }, [toast]);
 
   return (
     <div className="h-full flex flex-col bg-background" style={{ minHeight: 'calc(100vh - 8rem)' }}>
-      <LessonHeader
-        title={lessonTitle}
-        level={level}
-        ageGroup={ageGroup}
-        onTitleChange={setLessonTitle}
-        onLevelChange={setLevel}
-        onAgeGroupChange={setAgeGroup}
-        onSave={handleSave}
-        onPreview={handlePreview}
-        isSaving={isSaving}
-      />
-
-      <div className="flex-1 flex min-h-0">
-        {/* Toggle for left browser */}
-        <div className="flex flex-col border-r border-border bg-card">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 m-1"
-            onClick={() => setShowBrowser(!showBrowser)}
-            title={showBrowser ? 'Hide curriculum' : 'Show curriculum'}
-          >
-            {showBrowser ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeftOpen className="h-4 w-4" />}
+      {/* ─── Top Action Bar ─── */}
+      <div className="h-12 bg-card border-b border-border px-3 flex items-center gap-2 shrink-0">
+        {onBack && (
+          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={onBack}>
+            <ArrowLeft className="h-4 w-4" />
           </Button>
-        </div>
-
-        {/* Left: Curriculum Browser (collapsible) */}
-        {showBrowser && (
-          <div className="w-56 shrink-0">
-            <CurriculumBrowser
-              activeLessonId={activeLessonId}
-              onSelectLesson={handleSelectLesson}
-            />
-          </div>
         )}
 
-        {/* Slide Organizer */}
-        <div className="w-56 shrink-0 relative">
-          <SlideOrganizer
+        <Input
+          value={lessonTitle}
+          onChange={(e) => setLessonTitle(e.target.value)}
+          className="max-w-[200px] h-7 text-sm font-semibold border-none shadow-none focus-visible:ring-0 px-1"
+        />
+
+        <Select value={level} onValueChange={setLevel}>
+          <SelectTrigger className="w-16 h-7 text-xs"><SelectValue /></SelectTrigger>
+          <SelectContent>{levels.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}</SelectContent>
+        </Select>
+
+        <Select value={ageGroup} onValueChange={setAgeGroup}>
+          <SelectTrigger className="w-20 h-7 text-xs"><SelectValue /></SelectTrigger>
+          <SelectContent>{ageGroups.map(a => <SelectItem key={a} value={a}>{a}y</SelectItem>)}</SelectContent>
+        </Select>
+
+        <div className="flex-1" />
+
+        {/* Curriculum Browser Drawer */}
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-7 text-xs gap-1">
+              <FolderOpen className="h-3.5 w-3.5" /> Curriculum
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-80 p-0">
+            <SheetHeader className="p-3 border-b border-border">
+              <SheetTitle className="text-sm">Curriculum Browser</SheetTitle>
+            </SheetHeader>
+            <CurriculumBrowser activeLessonId={activeLessonId} onSelectLesson={handleSelectLesson} />
+          </SheetContent>
+        </Sheet>
+
+        {/* Blueprint/Guide Drawer */}
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-7 text-xs gap-1">
+              <ClipboardList className="h-3.5 w-3.5" /> Blueprint
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-80 p-0">
+            <Tabs defaultValue="blueprint" className="flex flex-col h-full">
+              <TabsList className="w-full rounded-none border-b border-border bg-card shrink-0 h-9">
+                <TabsTrigger value="blueprint" className="flex-1 gap-1 text-xs">
+                  <ClipboardList className="h-3 w-3" /> Blueprint
+                </TabsTrigger>
+                <TabsTrigger value="guide" className="flex-1 gap-1 text-xs">
+                  <BookOpen className="h-3 w-3" /> Guide
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="blueprint" className="flex-1 min-h-0 mt-0">
+                <LessonBlueprint slides={slides} selectedSlideIndex={slides.findIndex(s => s.id === selectedSlideId)} onSelectSlide={(idx) => setSelectedSlideId(slides[idx]?.id || null)} />
+              </TabsContent>
+              <TabsContent value="guide" className="flex-1 min-h-0 mt-0">
+                <TeacherGuide slide={selectedSlide} onUpdateSlide={handleUpdateSlide} />
+              </TabsContent>
+            </Tabs>
+          </SheetContent>
+        </Sheet>
+
+        {/* AI Buttons */}
+        <AIActivityGenerator
+          lessonContent={slides.map(s => s.title || '').join(' ')}
+          level={level}
+          onActivitiesGenerated={(newElements) => {
+            if (selectedSlide) {
+              handleUpdateSlide({ canvasElements: [...(selectedSlide.canvasElements || []), ...newElements] });
+            }
+          }}
+        />
+
+        <Button variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => setShowAIWizard(true)}>
+          <Wand2 className="h-3.5 w-3.5" /> AI
+        </Button>
+
+        <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={() => setShowPreview(true)}>
+          <Eye className="h-3.5 w-3.5" /> Preview
+        </Button>
+
+        <Button size="sm" className="h-7 text-xs gap-1" onClick={handleSave} disabled={isSaving}>
+          <Save className="h-3.5 w-3.5" /> {isSaving ? '...' : 'Save'}
+        </Button>
+      </div>
+
+      {/* ─── Main Content ─── */}
+      <div className="flex-1 flex min-h-0">
+        {/* Left: Filmstrip + Element Toolbar */}
+        <div className="flex shrink-0 h-full">
+          <SlideFilmstrip
             slides={slides}
             selectedSlideId={selectedSlideId}
             onSelectSlide={setSelectedSlideId}
@@ -284,129 +259,35 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
             onReorderSlides={handleReorderSlides}
             onImageUploaded={handleImageUploaded}
           />
-          
-          {/* AI Buttons */}
-          <div className="absolute bottom-4 left-4 right-4 space-y-2">
-            <AIActivityGenerator
-              lessonContent={slides.map(s => s.title || '').join(' ')}
-              level={level}
-              onActivitiesGenerated={(newElements) => {
-                if (selectedSlide) {
-                  handleUpdateSlide({
-                    canvasElements: [...(selectedSlide.canvasElements || []), ...newElements]
-                  });
-                }
-              }}
-            />
-
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="w-full gap-2">
-                  <HelpCircle className="h-4 w-4" />
-                  Generate Quiz
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                <QuizGenerator />
-              </DialogContent>
-            </Dialog>
-
-            <Button
-              onClick={() => setShowAIWizard(true)}
-              className="w-full bg-gradient-to-r from-primary to-primary/80 shadow-lg"
-            >
-              <Wand2 className="mr-2 h-4 w-4" />
-              AI Generate Lesson
-            </Button>
+          <div className="w-[120px] border-r border-border bg-card/30 overflow-y-auto">
+            <ElementToolbar onAddElement={handleAddElement} />
           </div>
         </div>
 
-        {/* Center: Editor Canvas */}
-        <div className="flex-1 min-w-0">
-          <EditorCanvas
-            slide={selectedSlide}
-            onUpdateSlide={handleUpdateSlide}
-          />
+        {/* Center: Full Canvas */}
+        <div className="flex-1 min-w-0" data-canvas-editor ref={canvasRef}>
+          <EditorCanvas slide={selectedSlide} onUpdateSlide={handleUpdateSlide} />
         </div>
-
-        {/* Toggle for right panel */}
-        <div className="flex flex-col border-l border-border bg-card">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 m-1"
-            onClick={() => setShowRightPanel(!showRightPanel)}
-            title={showRightPanel ? 'Hide panel' : 'Show blueprint/guide'}
-          >
-            {showRightPanel ? <PanelRightClose className="h-4 w-4" /> : <PanelRightOpen className="h-4 w-4" />}
-          </Button>
-        </div>
-
-        {/* Right: Teacher Guide + Blueprint Tabs (collapsible) */}
-        {showRightPanel && (
-          <div className="w-72 shrink-0 border-l border-border flex flex-col">
-            <Tabs defaultValue="blueprint" className="flex flex-col h-full">
-              <TabsList className="w-full rounded-none border-b border-border bg-card shrink-0">
-                <TabsTrigger value="blueprint" className="flex-1 gap-1.5 text-xs">
-                  <ClipboardList className="h-3.5 w-3.5" />
-                  Blueprint
-                </TabsTrigger>
-                <TabsTrigger value="guide" className="flex-1 gap-1.5 text-xs">
-                  <BookOpen className="h-3.5 w-3.5" />
-                  Guide
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="blueprint" className="flex-1 min-h-0 mt-0">
-                <LessonBlueprint
-                  slides={slides}
-                  selectedSlideIndex={slides.findIndex(s => s.id === selectedSlideId)}
-                  onSelectSlide={(idx) => setSelectedSlideId(slides[idx]?.id || null)}
-                />
-              </TabsContent>
-              <TabsContent value="guide" className="flex-1 min-h-0 mt-0">
-                <TeacherGuide
-                  slide={selectedSlide}
-                  onUpdateSlide={handleUpdateSlide}
-                />
-              </TabsContent>
-            </Tabs>
-          </div>
-        )}
       </div>
 
-      {/* Navigation buttons for pipeline */}
+      {/* ─── Bottom Pipeline Nav ─── */}
       {(onBack || onFinish) && (
-        <div className="flex items-center justify-between px-6 py-3 border-t border-border bg-card shrink-0">
+        <div className="flex items-center justify-between px-6 py-2 border-t border-border bg-card shrink-0">
           {onBack ? (
-             <Button variant="outline" onClick={onBack} className="gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Back: Curriculum
+            <Button variant="outline" onClick={onBack} className="gap-2" size="sm">
+              <ArrowLeft className="h-4 w-4" /> Back: Curriculum
             </Button>
           ) : <div />}
           {onFinish && (
-            <Button onClick={handlePublish} size="lg" className="gap-2" disabled={isSaving || !activeLessonId}>
-              <CheckCircle className="h-4 w-4" />
-              Finish & Publish to Library
-              <ArrowRight className="h-4 w-4" />
+            <Button onClick={handlePublish} className="gap-2" size="sm" disabled={isSaving || !activeLessonId}>
+              <CheckCircle className="h-4 w-4" /> Publish to Library <ArrowRight className="h-4 w-4" />
             </Button>
           )}
         </div>
       )}
 
-      {/* AI Lesson Wizard Modal */}
-      <AILessonWizard
-        open={showAIWizard}
-        onOpenChange={setShowAIWizard}
-        onLessonGenerated={handleAILessonGenerated}
-      />
-
-      {/* Preview Dialog */}
-      <LessonPreviewDialog
-        open={showPreview}
-        onOpenChange={setShowPreview}
-        slides={slides}
-        lessonTitle={lessonTitle}
-      />
+      <AILessonWizard open={showAIWizard} onOpenChange={setShowAIWizard} onLessonGenerated={handleAILessonGenerated} />
+      <LessonPreviewDialog open={showPreview} onOpenChange={setShowPreview} slides={slides} lessonTitle={lessonTitle} />
     </div>
   );
 };

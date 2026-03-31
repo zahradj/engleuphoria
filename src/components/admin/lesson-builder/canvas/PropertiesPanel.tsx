@@ -38,7 +38,7 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({ element, onUpd
   }
 
   const wrapperClass = floating
-    ? 'w-72 bg-card border border-border rounded-lg shadow-xl p-4 overflow-y-auto space-y-4 max-h-[70vh]'
+    ? 'w-72 bg-card border border-border rounded-lg shadow-xl p-4 overflow-y-auto space-y-4 max-h-[80vh]'
     : 'w-64 bg-card border-l border-border p-4 overflow-y-auto space-y-4';
 
   const updateContent = (key: string, value: any) => {
