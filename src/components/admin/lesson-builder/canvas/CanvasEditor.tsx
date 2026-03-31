@@ -82,10 +82,11 @@ export const CanvasEditor: React.FC<CanvasEditorProps> = ({ slide, onUpdateSlide
     if (selectedElementId === id) setSelectedElementId(null);
   }, [elements, selectedElementId, onUpdateSlide]);
 
-  // Expose addElement for external toolbar
+  // Expose addElement for external toolbar via parent data-canvas-editor element
   React.useEffect(() => {
-    if (containerRef.current) {
-      (containerRef.current as any).__addElement = addElement;
+    const parent = containerRef.current?.closest('[data-canvas-editor]');
+    if (parent) {
+      (parent as any).__addElement = addElement;
     }
   }, [addElement]);
 
