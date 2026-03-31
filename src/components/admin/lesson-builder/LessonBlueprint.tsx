@@ -127,7 +127,7 @@ function checkSlideContent(slide: Slide | undefined, recommended: string[]): boo
   const elements = slide.canvasElements || [];
   if (elements.length === 0 && !slide.imageUrl && !slide.videoUrl && !slide.title) return false;
 
-  const hasTypes = new Set(elements.map((e: CanvasElementData) => e.type));
+  const hasTypes = new Set(elements.map((e: CanvasElementData) => e.elementType));
   if (slide.imageUrl) hasTypes.add('image');
   if (slide.videoUrl) hasTypes.add('video');
   if (slide.title) hasTypes.add('text');

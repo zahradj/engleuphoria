@@ -346,9 +346,9 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
       {(onBack || onFinish) && (
         <div className="flex items-center justify-between px-6 py-3 border-t border-border bg-card shrink-0">
           {onBack ? (
-            <Button variant="outline" onClick={onBack} className="gap-2">
+             <Button variant="outline" onClick={onBack} className="gap-2">
               <ArrowLeft className="h-4 w-4" />
-              Back: Lesson Generation
+              Back: Curriculum
             </Button>
           ) : <div />}
           {onFinish && (
