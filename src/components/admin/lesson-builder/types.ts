@@ -1,6 +1,6 @@
 export type SlideType = 'image' | 'video' | 'quiz' | 'poll' | 'draw';
 
-export type CanvasElementType = 'text' | 'image' | 'shape' | 'quiz' | 'matching' | 'fill-blank' | 'drag-drop' | 'sorting' | 'sentence-builder' | 'audio';
+export type CanvasElementType = 'text' | 'image' | 'shape' | 'quiz' | 'matching' | 'fill-blank' | 'drag-drop' | 'sorting' | 'sentence-builder' | 'audio' | 'video';
 
 export interface CanvasElementData {
   id: string;

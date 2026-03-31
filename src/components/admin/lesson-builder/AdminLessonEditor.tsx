@@ -12,7 +12,7 @@ import { Slide, LessonDeck, CanvasElementData } from './types';
 import { AILessonWizard } from './ai-wizard';
 import { AIActivityGenerator } from './AIActivityGenerator';
 import { Button } from '@/components/ui/button';
-import { Wand2, HelpCircle, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Wand2, HelpCircle, ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
 import { QuizGenerator } from '@/components/content-creator/QuizGenerator';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { useQueryClient } from '@tanstack/react-query';
@@ -30,12 +30,10 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
   const [showPreview, setShowPreview] = useState(false);
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
   
-  // Lesson metadata
   const [lessonTitle, setLessonTitle] = useState('Untitled Lesson');
   const [level, setLevel] = useState('A1');
   const [ageGroup, setAgeGroup] = useState('6-8');
   
-  // Slides state
   const [slides, setSlides] = useState<Slide[]>([
     {
       id: uuidv4(),
@@ -54,7 +52,6 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
     setLessonTitle(lesson.title || 'Untitled Lesson');
     setLevel(lesson.difficulty_level || 'A1');
 
-    // Load existing slides from content JSON
     if (lesson.content && Array.isArray(lesson.content)) {
       const loadedSlides: Slide[] = lesson.content.map((s: any, idx: number) => ({
         id: s.id || uuidv4(),
@@ -74,7 +71,6 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
       setSlides(loadedSlides);
       setSelectedSlideId(loadedSlides[0]?.id || null);
     } else {
-      // Start fresh for this lesson
       const firstSlide: Slide = {
         id: uuidv4(),
         order: 0,
@@ -138,10 +134,8 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
 
   const handleSave = async () => {
     setIsSaving(true);
-
     try {
       if (activeLessonId) {
-        // Save to database
         const slidesJson = slides.map((s) => ({ ...s }));
         const { error } = await supabase
           .from('curriculum_lessons')
@@ -153,7 +147,6 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
 
         if (error) throw error;
 
-        // Invalidate browser query to show updated status
         queryClient.invalidateQueries({ queryKey: ['curriculum-browser-units'] });
 
         toast({
@@ -161,17 +154,54 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
           description: `"${lessonTitle}" with ${slides.length} slides saved to database.`,
         });
       } else {
-        // No lesson selected, just log
-        console.log('Lesson Saved (local):', JSON.stringify({ title: lessonTitle, slides }, null, 2));
         toast({
-          title: 'Lesson Saved Locally',
-          description: 'Select a curriculum lesson to save to database.',
+          title: 'No Lesson Selected',
+          description: 'Select a curriculum lesson from the browser to save.',
+          variant: 'destructive',
         });
       }
     } catch (err: any) {
       toast({
         title: 'Save Failed',
         description: err.message || 'Could not save lesson.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handlePublish = async () => {
+    if (!activeLessonId) {
+      toast({ title: 'No lesson selected', variant: 'destructive' });
+      return;
+    }
+    setIsSaving(true);
+    try {
+      const slidesJson = slides.map((s) => ({ ...s }));
+      const { error } = await supabase
+        .from('curriculum_lessons')
+        .update({
+          content: slidesJson as any,
+          is_published: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', activeLessonId);
+
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['curriculum-browser-units'] });
+
+      toast({
+        title: 'Lesson Published! 🎉',
+        description: `"${lessonTitle}" is now in the library.`,
+      });
+
+      onFinish?.();
+    } catch (err: any) {
+      toast({
+        title: 'Publish Failed',
+        description: err.message,
         variant: 'destructive',
       });
     } finally {
@@ -299,8 +329,9 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
             </Button>
           ) : <div />}
           {onFinish && (
-            <Button onClick={onFinish} size="lg" className="gap-2">
-              Finish & Save to Library
+            <Button onClick={handlePublish} size="lg" className="gap-2" disabled={isSaving || !activeLessonId}>
+              <CheckCircle className="h-4 w-4" />
+              Finish & Publish to Library
               <ArrowRight className="h-4 w-4" />
             </Button>
           )}
