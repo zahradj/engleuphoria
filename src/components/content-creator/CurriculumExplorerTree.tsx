@@ -468,6 +468,21 @@ export const CurriculumExplorerTree: React.FC<CurriculumExplorerTreeProps> = ({
                                   <Sparkles className="h-2.5 w-2.5" />
                                 </button>
                               )}
+                               {/* Delete button */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteTarget({ type: 'lesson', id: lesson.id, name: lesson.title });
+                                }}
+                                className={cn(
+                                  'opacity-0 group-hover:opacity-100 transition-opacity shrink-0',
+                                  'w-5 h-5 rounded-md flex items-center justify-center',
+                                  'bg-destructive/10 hover:bg-destructive/20 text-destructive'
+                                )}
+                                title="Delete lesson"
+                              >
+                                <Trash2 className="h-2.5 w-2.5" />
+                              </button>
                             </div>
                           );
                         })
