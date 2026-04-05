@@ -3,9 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { HubType, GeneratedSlide } from '@/components/admin/lesson-builder/ai-wizard/types';
 import { HUB_CONFIGS } from '@/components/admin/lesson-builder/ai-wizard/hubConfig';
 import DynamicSlideRenderer from './DynamicSlideRenderer';
+import FeedbackOverlay from './FeedbackOverlay';
 import { soundEffectsService } from '@/services/soundEffectsService';
 import { supabase } from '@/integrations/supabase/client';
-import { ChevronLeft, ChevronRight, Volume2, VolumeX } from 'lucide-react';
+import { X, Volume2, VolumeX } from 'lucide-react';
 
 interface LessonPlayerContainerProps {
   slides: GeneratedSlide[];
@@ -32,22 +33,37 @@ export default function LessonPlayerContainer({
   const [muted, setMuted] = useState(false);
   const [completed, setCompleted] = useState(false);
 
+  // Feedback overlay state
+  const [feedbackVisible, setFeedbackVisible] = useState(false);
+  const [feedbackCorrect, setFeedbackCorrect] = useState(false);
+  const [feedbackSolution, setFeedbackSolution] = useState('');
+
   const config = HUB_CONFIGS[hub];
   const totalSlides = slides.length;
   const currentSlide = slides[currentSlideIndex];
   const progress = ((currentSlideIndex + 1) / totalSlides) * 100;
 
+  const isActivitySlide = currentSlide?.slideType === 'activity' || !!currentSlide?.activityType;
+
   const handleCorrectAnswer = useCallback(() => {
     setLessonScore((p) => p + 10);
     setCorrectCount((p) => p + 1);
+    setFeedbackCorrect(true);
+    setFeedbackSolution('');
+    setFeedbackVisible(true);
     if (!muted) soundEffectsService.playCorrect();
   }, [muted]);
 
   const handleIncorrectAnswer = useCallback(() => {
+    setFeedbackCorrect(false);
+    const answer = currentSlide?.content?.correctAnswer || currentSlide?.interaction?.data?.correct_answer || '';
+    setFeedbackSolution(answer);
+    setFeedbackVisible(true);
     if (!muted) soundEffectsService.playIncorrect();
-  }, [muted]);
+  }, [muted, currentSlide]);
 
   const handleNextSlide = useCallback(() => {
+    setFeedbackVisible(false);
     if (currentSlideIndex >= totalSlides - 1) {
       completeLesson();
     } else {
@@ -56,19 +72,11 @@ export default function LessonPlayerContainer({
     }
   }, [currentSlideIndex, totalSlides, muted]);
 
-  const handlePrevSlide = useCallback(() => {
-    if (currentSlideIndex > 0) {
-      setCurrentSlideIndex((p) => p - 1);
-      if (!muted) soundEffectsService.playPageTurn();
-    }
-  }, [currentSlideIndex, muted]);
-
   const completeLesson = useCallback(async () => {
     setCompleted(true);
     if (!muted) soundEffectsService.playCelebration();
     onComplete?.(lessonScore);
 
-    // Persist to Supabase if we have context
     if (studentId && lessonId) {
       try {
         await supabase.from('student_progress').upsert({
@@ -90,41 +98,57 @@ export default function LessonPlayerContainer({
     soundEffectsService.setMuted(next);
   };
 
+  /* ──────────── Completion Screen ──────────── */
   if (completed) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-6 p-10" style={{ background: config.colorPalette.background }}>
-        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-7xl">
-          {hub === 'playground' ? '🏆' : hub === 'academy' ? '⚡' : '✅'}
-        </motion.div>
-        <h1 className="text-3xl font-bold" style={{ color: config.colorPalette.primary }}>
-          Lesson Complete!
-        </h1>
-        <div className="text-xl" style={{ color: config.colorPalette.text }}>
-          Score: <strong>{lessonScore} XP</strong> · {correctCount} correct answers
+      <div className="flex items-center justify-center min-h-screen" style={{ background: config.colorPalette.background }}>
+        <div className="w-full max-w-[600px] mx-auto flex flex-col items-center gap-6 p-10">
+          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="text-7xl">
+            {hub === 'playground' ? '🏆' : hub === 'academy' ? '⚡' : '✅'}
+          </motion.div>
+          <h1 className="text-3xl font-bold" style={{ color: config.colorPalette.primary }}>
+            Lesson Complete!
+          </h1>
+          <div className="text-xl" style={{ color: config.colorPalette.text }}>
+            Score: <strong>{lessonScore} XP</strong> · {correctCount} correct answers
+          </div>
+          <button
+            onClick={onExit}
+            className="px-8 py-3 rounded-xl font-bold text-lg mt-4 w-full"
+            style={{ background: config.colorPalette.primary, color: '#fff' }}
+          >
+            Continue
+          </button>
         </div>
-        <button
-          onClick={onExit}
-          className="px-8 py-3 rounded-xl font-bold text-lg mt-4"
-          style={{ background: config.colorPalette.primary, color: '#fff' }}
-        >
-          Continue
-        </button>
       </div>
     );
   }
 
+  /* ──────────── App-Shell Layout ──────────── */
   return (
-    <div className="flex flex-col h-full" style={{ background: config.colorPalette.background }}>
-      {/* Top Bar */}
-      <div className="flex items-center justify-between px-4 py-2 border-b" style={{ borderColor: config.colorPalette.highlight }}>
-        <button onClick={onExit} className="text-sm font-medium opacity-60 hover:opacity-100">
-          ← Exit
-        </button>
-        <span className="text-sm font-bold" style={{ color: config.colorPalette.primary }}>
-          {lessonTitle}
-        </span>
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-bold" style={{ color: config.colorPalette.primary }}>
+    <div className="flex flex-col min-h-screen" style={{ background: config.colorPalette.background }}>
+
+      {/* ── Fixed Top Bar ── */}
+      <div className="sticky top-0 z-30 flex items-center gap-3 px-4 py-2.5 backdrop-blur-md bg-white/80 dark:bg-black/60 border-b border-black/5">
+        <div className="w-full max-w-[600px] mx-auto flex items-center gap-3">
+          <button
+            onClick={onExit}
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/10 transition-colors"
+          >
+            <X size={20} style={{ color: config.colorPalette.text }} />
+          </button>
+
+          {/* Progress Bar */}
+          <div className="flex-1 h-3 rounded-full overflow-hidden" style={{ background: config.colorPalette.highlight }}>
+            <motion.div
+              className="h-full rounded-full"
+              style={{ background: '#58CC02' }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.3 }}
+            />
+          </div>
+
+          <span className="text-xs font-bold min-w-[48px] text-center" style={{ color: config.colorPalette.primary }}>
             {lessonScore} XP
           </span>
           <button onClick={toggleMute} className="opacity-60 hover:opacity-100">
@@ -133,52 +157,63 @@ export default function LessonPlayerContainer({
         </div>
       </div>
 
-      {/* Progress Bar */}
-      <div className="h-1.5 w-full" style={{ background: config.colorPalette.highlight }}>
-        <motion.div
-          className="h-full rounded-r-full"
-          style={{ background: config.colorPalette.primary }}
-          animate={{ width: `${progress}%` }}
-          transition={{ duration: 0.3 }}
-        />
-      </div>
-
-      {/* Slide Content */}
-      <div className="flex-1 overflow-auto">
-        <AnimatePresence mode="wait">
-          <DynamicSlideRenderer
-            key={currentSlide.id}
-            slide={currentSlide}
-            hub={hub}
-            onCorrectAnswer={handleCorrectAnswer}
-            onIncorrectAnswer={handleIncorrectAnswer}
-          />
-        </AnimatePresence>
-      </div>
-
-      {/* Navigation */}
-      <div className="flex items-center justify-between px-6 py-3 border-t" style={{ borderColor: config.colorPalette.highlight }}>
-        <button
-          onClick={handlePrevSlide}
-          disabled={currentSlideIndex === 0}
-          className="flex items-center gap-1 px-4 py-2 rounded-lg font-medium text-sm disabled:opacity-30"
-          style={{ color: config.colorPalette.text }}
+      {/* ── Main Content Area ── */}
+      <div className="flex-1 flex items-center justify-center px-4 py-6">
+        <div
+          className="w-full max-w-[600px] rounded-[20px] overflow-hidden"
+          style={{
+            background: hub === 'academy'
+              ? 'rgba(30, 27, 75, 0.85)'
+              : 'rgba(255, 255, 255, 0.85)',
+            backdropFilter: 'blur(20px)',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.1)',
+            border: hub === 'academy' ? '1px solid rgba(99, 102, 241, 0.3)' : '1px solid rgba(0,0,0,0.06)',
+          }}
         >
-          <ChevronLeft size={18} /> Back
-        </button>
-
-        <span className="text-sm opacity-60" style={{ color: config.colorPalette.text }}>
-          {currentSlideIndex + 1} / {totalSlides}
-        </span>
-
-        <button
-          onClick={handleNextSlide}
-          className="flex items-center gap-1 px-6 py-2 rounded-lg font-bold text-sm"
-          style={{ background: config.colorPalette.primary, color: '#fff' }}
-        >
-          {currentSlideIndex === totalSlides - 1 ? 'Finish' : 'Next'} <ChevronRight size={18} />
-        </button>
+          <AnimatePresence mode="wait">
+            <DynamicSlideRenderer
+              key={currentSlide.id}
+              slide={currentSlide}
+              hub={hub}
+              onCorrectAnswer={handleCorrectAnswer}
+              onIncorrectAnswer={handleIncorrectAnswer}
+            />
+          </AnimatePresence>
+        </div>
       </div>
+
+      {/* ── Feedback Overlay ── */}
+      <FeedbackOverlay
+        visible={feedbackVisible}
+        correct={feedbackCorrect}
+        solution={feedbackSolution}
+        hub={hub}
+        onContinue={handleNextSlide}
+      />
+
+      {/* ── Sticky Footer ── */}
+      {!feedbackVisible && (
+        <div className="sticky bottom-0 z-20 px-4 py-3 backdrop-blur-md bg-white/80 dark:bg-black/60 border-t border-black/5">
+          <div className="w-full max-w-[600px] mx-auto">
+            <button
+              onClick={isActivitySlide ? undefined : handleNextSlide}
+              disabled={isActivitySlide}
+              className="w-full py-3.5 rounded-2xl font-bold text-base tracking-wide uppercase transition-all disabled:opacity-40"
+              style={{
+                background: isActivitySlide ? config.colorPalette.highlight : '#58CC02',
+                color: isActivitySlide ? config.colorPalette.text : '#fff',
+                boxShadow: isActivitySlide ? 'none' : '0 4px 0 #46a302',
+              }}
+            >
+              {isActivitySlide
+                ? 'Answer to continue'
+                : currentSlideIndex === totalSlides - 1
+                  ? 'Finish'
+                  : 'Continue'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
