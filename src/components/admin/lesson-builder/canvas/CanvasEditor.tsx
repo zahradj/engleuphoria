@@ -25,6 +25,7 @@ const DEFAULT_SIZES: Record<CanvasElementType, { w: number; h: number }> = {
   'sentence-builder': { w: 500, h: 200 },
   audio: { w: 300, h: 80 },
   video: { w: 640, h: 360 },
+  character: { w: 250, h: 300 },
 };
 
 export const CanvasEditor: React.FC<CanvasEditorProps> = ({ slide, onUpdateSlide }) => {
@@ -66,6 +67,7 @@ export const CanvasEditor: React.FC<CanvasEditorProps> = ({ slide, onUpdateSlide
         : type === 'fill-blank' ? { sentence: '', answer: '' }
         : type === 'shape' ? { shape: 'rounded', fill: '#6366f1', opacity: 1 }
         : type === 'audio' ? { label: 'Audio clip', src: '' }
+        : type === 'character' ? { name: 'pip', animation: 'idle', src: '/pip-mascot.png', speechBubble: '' }
         : {},
     };
     onUpdateSlide({ canvasElements: [...elements, newElement] });
