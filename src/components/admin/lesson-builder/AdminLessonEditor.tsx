@@ -25,6 +25,7 @@ import { QuizGenerator } from '@/components/content-creator/QuizGenerator';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { useQueryClient } from '@tanstack/react-query';
 import type { CurriculumContext } from '@/components/content-creator/CurriculumStep';
+import { convertAILessonToCanvasSlides } from './utils/convertAILessonToCanvasSlides';
 
 interface AdminLessonEditorProps {
   onFinish?: () => void;
@@ -93,6 +94,7 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
     setLessonTitle(lesson.title || 'Untitled Lesson');
     setLevel(lesson.difficulty_level || 'A1');
     if (lesson.content && Array.isArray(lesson.content)) {
+      // Already in canvas slide format
       const loadedSlides: Slide[] = lesson.content.map((s: any, idx: number) => ({
         id: s.id || uuidv4(), order: s.order ?? idx, type: s.type || 'image',
         imageUrl: s.imageUrl, videoUrl: s.videoUrl, quizQuestion: s.quizQuestion,
@@ -102,6 +104,12 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
       }));
       setSlides(loadedSlides);
       setSelectedSlideId(loadedSlides[0]?.id || null);
+    } else if (lesson.content && typeof lesson.content === 'object') {
+      // AI-generated object format — convert to canvas slides
+      const converted = convertAILessonToCanvasSlides(lesson.content, lesson.title);
+      setSlides(converted);
+      setSelectedSlideId(converted[0]?.id || null);
+      toast({ title: 'Lesson Converted', description: `Created ${converted.length} slides from AI content.` });
     } else {
       const firstSlide: Slide = { id: uuidv4(), order: 0, type: 'image', teacherNotes: '', keywords: [] };
       setSlides([firstSlide]);
