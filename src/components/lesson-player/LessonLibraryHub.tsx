@@ -4,8 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { getLibraryLessons, LibraryLesson } from '@/services/lessonLibraryService';
 import { HUB_CONFIGS } from '@/components/admin/lesson-builder/ai-wizard/hubConfig';
 import { HubType } from '@/components/admin/lesson-builder/ai-wizard/types';
-import { BookOpen, Clock, Play, Filter, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { BookOpen, Clock, Play, Loader2, CheckCircle2, Library } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 const HUB_TABS = [
   { value: 'all', label: 'All', emoji: '📚' },
@@ -14,33 +15,68 @@ const HUB_TABS = [
   { value: 'professional', label: 'Professional', emoji: '🏢' },
 ];
 
-const HUB_CARD_STYLES: Record<string, { bg: string; border: string; badge: string }> = {
+const HUB_CARD_STYLES: Record<string, { bg: string; border: string; badge: string; glow: string }> = {
   playground: {
     bg: 'bg-gradient-to-br from-amber-50 to-orange-50',
     border: 'border-amber-200/60',
     badge: 'bg-amber-500 text-white',
+    glow: 'hover:shadow-[0_8px_30px_rgba(255,159,28,0.25)]',
   },
   academy: {
     bg: 'bg-gradient-to-br from-indigo-950 to-slate-900',
     border: 'border-indigo-500/30',
     badge: 'bg-violet-600 text-white',
+    glow: 'hover:shadow-[0_8px_30px_rgba(139,92,246,0.3)]',
   },
   professional: {
     bg: 'bg-gradient-to-br from-slate-50 to-gray-100',
     border: 'border-slate-200',
     badge: 'bg-slate-700 text-white',
+    glow: 'hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)]',
   },
+};
+
+/* ── Hub-specific hero backgrounds when no thumbnail ── */
+const HUB_HERO: Record<string, React.ReactNode> = {
+  playground: (
+    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-300 via-orange-200 to-yellow-100 relative overflow-hidden">
+      <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 30% 50%, #FF6B6B 0%, transparent 60%), radial-gradient(circle at 70% 30%, #4ECDC4 0%, transparent 50%)' }} />
+      <span className="text-6xl z-10 drop-shadow-lg animate-bounce">🐧</span>
+    </div>
+  ),
+  academy: (
+    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-900 via-violet-900 to-slate-900 relative overflow-hidden">
+      <div className="absolute inset-0 opacity-30" style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 20px, rgba(139,92,246,0.1) 20px, rgba(139,92,246,0.1) 21px), repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(139,92,246,0.1) 20px, rgba(139,92,246,0.1) 21px)' }} />
+      <div className="w-16 h-16 rounded-2xl bg-violet-500/30 border border-violet-400/40 backdrop-blur flex items-center justify-center z-10">
+        <Play className="h-8 w-8 text-violet-200 ml-1" />
+      </div>
+    </div>
+  ),
+  professional: (
+    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-200 via-gray-100 to-white relative overflow-hidden">
+      <div className="absolute inset-0 backdrop-blur-3xl opacity-60" style={{ backgroundImage: 'radial-gradient(ellipse at 50% 50%, rgba(16,185,129,0.1), transparent 70%)' }} />
+      <div className="w-14 h-14 rounded-xl bg-slate-800 flex items-center justify-center z-10 shadow-lg">
+        <Library className="h-7 w-7 text-emerald-400" />
+      </div>
+    </div>
+  ),
 };
 
 export default function LessonLibraryHub() {
   const [lessons, setLessons] = useState<LibraryLesson[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
+  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     loadLessons();
   }, [activeTab]);
+
+  useEffect(() => {
+    loadCompletedLessons();
+  }, [user]);
 
   const loadLessons = async () => {
     setLoading(true);
@@ -51,6 +87,22 @@ export default function LessonLibraryHub() {
       console.error('Failed to load lessons:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadCompletedLessons = async () => {
+    if (!user?.id) return;
+    try {
+      const { data } = await supabase
+        .from('lesson_progress' as any)
+        .select('lesson_id')
+        .eq('student_id', user.id)
+        .eq('is_completed', true);
+      if (data) {
+        setCompletedIds(new Set(data.map((d: any) => d.lesson_id)));
+      }
+    } catch {
+      // table may not exist yet, ignore
     }
   };
 
@@ -99,24 +151,24 @@ export default function LessonLibraryHub() {
           <p className="text-muted-foreground">No lessons found. Generate one in the AI Wizard!</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           <AnimatePresence>
             {lessons.map((lesson, i) => {
               const hub = (lesson.target_system || 'playground') as HubType;
               const cardStyle = HUB_CARD_STYLES[hub] || HUB_CARD_STYLES.playground;
-              const hubConfig = HUB_CONFIGS[hub];
               const slideCount = lesson.content?.slides?.length || 0;
+              const isCompleted = completedIds.has(lesson.id);
 
               return (
                 <motion.div
                   key={lesson.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05 }}
+                  transition={{ delay: i * 0.04 }}
                   onClick={() => openLesson(lesson)}
-                  className={`group cursor-pointer rounded-2xl border overflow-hidden transition-all hover:shadow-xl hover:scale-[1.02] ${cardStyle.bg} ${cardStyle.border}`}
+                  className={`group cursor-pointer rounded-[20px] border overflow-hidden transition-all hover:scale-[1.02] ${cardStyle.bg} ${cardStyle.border} ${cardStyle.glow}`}
                 >
-                  {/* Thumbnail / cover */}
+                  {/* Thumbnail / Dynamic Hero */}
                   <div className="relative h-36 overflow-hidden">
                     {lesson.thumbnail_url ? (
                       <img
@@ -126,25 +178,32 @@ export default function LessonLibraryHub() {
                         loading="lazy"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-5xl" style={{ background: hubConfig?.colorPalette?.highlight || '#f0f0f0' }}>
-                        {hubConfig?.emoji || '📖'}
-                      </div>
+                      HUB_HERO[hub] || HUB_HERO.playground
                     )}
 
                     {/* Play overlay */}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors flex items-center justify-center">
                       <motion.div
-                        className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
                         whileHover={{ scale: 1.1 }}
                       >
                         <Play className="h-5 w-5 text-slate-800 ml-0.5" />
                       </motion.div>
                     </div>
 
-                    {/* Hub badge */}
+                    {/* Badges */}
                     <span className={`absolute top-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${cardStyle.badge}`}>
                       {hub.toUpperCase()}
                     </span>
+
+                    {/* Completed checkmark */}
+                    {isCompleted && (
+                      <div className="absolute top-2 left-2">
+                        <div className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center shadow-md">
+                          <CheckCircle2 className="h-4 w-4 text-white" />
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Info */}
