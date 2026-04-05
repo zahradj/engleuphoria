@@ -50,7 +50,7 @@ export const UpcomingClassesTab = () => {
           status,
           completed_at,
           room_link,
-          users!inner(full_name)
+          users!lessons_teacher_id_fkey(full_name)
         `)
         .eq('student_id', user.user.id)
         .order('scheduled_at', { ascending: false });
