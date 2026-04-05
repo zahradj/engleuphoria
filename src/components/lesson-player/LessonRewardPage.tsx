@@ -1,7 +1,8 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { HubType } from '@/components/admin/lesson-builder/ai-wizard/types';
 import { HUB_CONFIGS } from '@/components/admin/lesson-builder/ai-wizard/hubConfig';
+import PipMascot from './PipMascot';
 import { Trophy, Clock, Target, ArrowRight, Zap, Star, Award } from 'lucide-react';
 
 interface LessonRewardPageProps {
@@ -13,7 +14,6 @@ interface LessonRewardPageProps {
   onExit: () => void;
 }
 
-/* ── Animated count-up hook ── */
 function useCountUp(target: number, duration = 1500, delay = 400) {
   const [value, setValue] = useState(0);
   useEffect(() => {
@@ -22,7 +22,6 @@ function useCountUp(target: number, duration = 1500, delay = 400) {
       const tick = () => {
         const elapsed = Date.now() - start;
         const progress = Math.min(elapsed / duration, 1);
-        // Ease-out cubic
         const eased = 1 - Math.pow(1 - progress, 3);
         setValue(Math.round(target * eased));
         if (progress < 1) requestAnimationFrame(tick);
@@ -34,7 +33,6 @@ function useCountUp(target: number, duration = 1500, delay = 400) {
   return value;
 }
 
-/* ── Circular progress ring ── */
 function AccuracyRing({ percentage, color, size = 100 }: { percentage: number; color: string; size?: number }) {
   const radius = (size - 10) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -42,15 +40,10 @@ function AccuracyRing({ percentage, color, size = 100 }: { percentage: number; c
 
   return (
     <svg width={size} height={size} className="transform -rotate-90">
-      <circle
-        cx={size / 2} cy={size / 2} r={radius}
-        fill="none" stroke="currentColor" strokeWidth={6}
-        className="text-muted/20"
-      />
+      <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="currentColor" strokeWidth={6} className="text-muted/20" />
       <motion.circle
         cx={size / 2} cy={size / 2} r={radius}
-        fill="none" stroke={color} strokeWidth={6}
-        strokeLinecap="round"
+        fill="none" stroke={color} strokeWidth={6} strokeLinecap="round"
         strokeDasharray={circumference}
         initial={{ strokeDashoffset: circumference }}
         animate={{ strokeDashoffset: offset }}
@@ -61,18 +54,12 @@ function AccuracyRing({ percentage, color, size = 100 }: { percentage: number; c
 }
 
 export default function LessonRewardPage({
-  hub,
-  xpEarned,
-  correctCount,
-  totalQuestions,
-  timeSpentSeconds,
-  onExit,
+  hub, xpEarned, correctCount, totalQuestions, timeSpentSeconds, onExit,
 }: LessonRewardPageProps) {
   const config = HUB_CONFIGS[hub];
   const animatedXp = useCountUp(xpEarned, 1500, 500);
   const accuracy = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 100;
   const animatedAccuracy = useCountUp(accuracy, 1200, 800);
-
   const minutes = Math.floor(timeSpentSeconds / 60);
   const seconds = timeSpentSeconds % 60;
 
@@ -113,33 +100,17 @@ export default function LessonRewardPage({
 
   return (
     <div className={`flex flex-col items-center justify-center min-h-[100dvh] px-4 ${style.bg}`}>
-      <div className="w-full max-w-[420px] flex flex-col items-center gap-6">
+      <div className="w-full max-w-[500px] flex flex-col items-center gap-6">
 
-        {/* Hero icon */}
+        {/* Hero */}
         <motion.div
           initial={{ scale: 0, rotate: -180 }}
           animate={{ scale: 1, rotate: 0 }}
           transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
         >
-          {hub === 'playground' && (
-            <div className="flex gap-2">
-              {['🎉', '⭐', '🏆', '⭐', '🎉'].map((e, i) => (
-                <motion.span
-                  key={i}
-                  className="text-4xl"
-                  initial={{ scale: 0, y: 20 }}
-                  animate={{ scale: 1, y: 0 }}
-                  transition={{ delay: 0.3 + i * 0.08, type: 'spring' }}
-                >
-                  {e}
-                </motion.span>
-              ))}
-            </div>
-          )}
+          {hub === 'playground' && <PipMascot size={100} animation="celebrate" />}
           {hub === 'academy' && (
-            <div className="text-7xl" style={{ filter: 'drop-shadow(0 0 20px rgba(139,92,246,0.6))' }}>
-              ⚡
-            </div>
+            <div className="text-7xl" style={{ filter: 'drop-shadow(0 0 20px rgba(139,92,246,0.6))' }}>⚡</div>
           )}
           {hub === 'professional' && (
             <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center">
@@ -149,45 +120,21 @@ export default function LessonRewardPage({
         </motion.div>
 
         {/* Title */}
-        <motion.div
-          className="text-center"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <h1 className="text-3xl font-bold" style={{ color: style.accent }}>
-            {style.title}
-          </h1>
-          <p className="text-sm mt-1" style={{ color: config.colorPalette.text, opacity: 0.7 }}>
-            {style.subtitle}
-          </p>
+        <motion.div className="text-center" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+          <h1 className="text-3xl font-bold" style={{ color: style.accent }}>{style.title}</h1>
+          <p className="text-sm mt-1" style={{ color: config.colorPalette.text, opacity: 0.7 }}>{style.subtitle}</p>
         </motion.div>
 
-        {/* ── Bento Grid Stats ── */}
-        <motion.div
-          className="w-full grid grid-cols-2 gap-3"
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-        >
-          {/* XP Earned — Large card spanning full width */}
-          <div
-            className={`col-span-2 rounded-2xl p-6 flex flex-col items-center gap-2 ${style.card}`}
-            style={{ boxShadow: style.xpGlow }}
-          >
+        {/* Bento Grid */}
+        <motion.div className="w-full grid grid-cols-2 gap-3" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+          <div className={`col-span-2 rounded-2xl p-6 flex flex-col items-center gap-2 ${style.card}`} style={{ boxShadow: style.xpGlow }}>
             <div className="flex items-center gap-2 text-sm font-medium opacity-60" style={{ color: config.colorPalette.text }}>
               {hub === 'playground' ? <Star size={16} /> : hub === 'academy' ? <Zap size={16} /> : <Trophy size={16} />}
               XP Earned
             </div>
-            <motion.span
-              className="text-5xl font-black tabular-nums"
-              style={{ color: style.accent }}
-            >
-              +{animatedXp}
-            </motion.span>
+            <motion.span className="text-5xl font-black tabular-nums" style={{ color: style.accent }}>+{animatedXp}</motion.span>
           </div>
 
-          {/* Accuracy Ring */}
           <div className={`rounded-2xl p-4 flex flex-col items-center gap-2 ${style.card}`}>
             <span className="text-xs font-medium opacity-50 flex items-center gap-1" style={{ color: config.colorPalette.text }}>
               <Target size={12} /> Accuracy
@@ -195,17 +142,12 @@ export default function LessonRewardPage({
             <div className="relative">
               <AccuracyRing percentage={accuracy} color={style.accent} size={80} />
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-lg font-bold" style={{ color: style.accent }}>
-                  {animatedAccuracy}%
-                </span>
+                <span className="text-lg font-bold" style={{ color: style.accent }}>{animatedAccuracy}%</span>
               </div>
             </div>
-            <span className="text-xs opacity-40" style={{ color: config.colorPalette.text }}>
-              {correctCount}/{totalQuestions} correct
-            </span>
+            <span className="text-xs opacity-40" style={{ color: config.colorPalette.text }}>{correctCount}/{totalQuestions} correct</span>
           </div>
 
-          {/* Time Spent */}
           <div className={`rounded-2xl p-4 flex flex-col items-center gap-2 ${style.card}`}>
             <span className="text-xs font-medium opacity-50 flex items-center gap-1" style={{ color: config.colorPalette.text }}>
               <Clock size={12} /> Time
@@ -213,24 +155,11 @@ export default function LessonRewardPage({
             <span className="text-2xl font-bold tabular-nums" style={{ color: config.colorPalette.text }}>
               {minutes}:{seconds.toString().padStart(2, '0')}
             </span>
-            <span className="text-xs opacity-40" style={{ color: config.colorPalette.text }}>
-              minutes
-            </span>
+            <span className="text-xs opacity-40" style={{ color: config.colorPalette.text }}>minutes</span>
           </div>
         </motion.div>
 
-        {/* Mascot for kids */}
-        {hub === 'playground' && (
-          <motion.div
-            className="text-5xl"
-            animate={{ y: [0, -8, 0], rotate: [0, 5, -5, 0] }}
-            transition={{ repeat: Infinity, duration: 2 }}
-          >
-            🐧
-          </motion.div>
-        )}
-
-        {/* CTA Button */}
+        {/* CTA */}
         <motion.button
           onClick={onExit}
           className={`w-full py-4 rounded-2xl font-bold text-lg text-white tracking-wide uppercase ${style.buttonBg}`}

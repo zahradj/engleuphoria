@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { GeneratedSlide, HubType } from '@/components/admin/lesson-builder/ai-wizard/types';
 import { HUB_CONFIGS } from '@/components/admin/lesson-builder/ai-wizard/hubConfig';
+import PipMascot from '../PipMascot';
 import { Volume2 } from 'lucide-react';
 
 interface Props {
@@ -18,26 +19,26 @@ export default function SlideVocabulary({ slide, hub }: Props) {
   const hasImage = slide.imageUrl && slide.imageUrl.length > 10;
 
   return (
-    <div className="flex flex-col items-center gap-6 p-8 w-full text-center">
-      <h2 className="text-lg font-bold uppercase tracking-widest opacity-60" style={{ color: config.colorPalette.primary }}>
+    <div className="flex flex-col items-center gap-5 p-6 w-full text-center">
+      <h2 className="text-sm font-bold uppercase tracking-widest opacity-60" style={{ color: config.colorPalette.primary }}>
         New Vocabulary
       </h2>
 
-      {/* 3D Flip Flashcard */}
+      {/* 3D Flip Flashcard — wider */}
       <div
         className="w-full cursor-pointer"
-        style={{ perspective: 1000, minHeight: hasImage ? 340 : 260 }}
+        style={{ perspective: 1000, minHeight: hasImage ? 380 : 280 }}
         onClick={() => setFlipped((f) => !f)}
       >
         <motion.div
           className="relative w-full"
-          style={{ transformStyle: 'preserve-3d', minHeight: hasImage ? 340 : 260 }}
+          style={{ transformStyle: 'preserve-3d', minHeight: hasImage ? 380 : 280 }}
           animate={{ rotateY: flipped ? 180 : 0 }}
           transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
         >
-          {/* ── FRONT: Word + AI Image ── */}
+          {/* ── FRONT: Word + Image ── */}
           <div
-            className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-[20px] p-6 overflow-hidden"
+            className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-[20px] p-6 overflow-hidden"
             style={{
               backfaceVisibility: 'hidden',
               background: hub === 'playground'
@@ -50,12 +51,11 @@ export default function SlideVocabulary({ slide, hub }: Props) {
               color: hub === 'playground' ? '#1a1a2e' : hub === 'academy' ? '#e2e8f0' : '#1e293b',
             }}
           >
-            {/* AI-generated image on the front */}
             {hasImage && (
               <motion.img
                 src={slide.imageUrl}
                 alt={word}
-                className="w-full max-h-36 object-cover rounded-xl"
+                className="w-full max-h-44 object-cover rounded-xl"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.4 }}
@@ -71,11 +71,12 @@ export default function SlideVocabulary({ slide, hub }: Props) {
               </button>
               <span className="text-xs opacity-40">Tap to flip</span>
             </div>
+            {hub === 'playground' && !hasImage && <PipMascot size={56} animation="wave" />}
           </div>
 
-          {/* ── BACK: Definition + Example Sentence + Image ── */}
+          {/* ── BACK: Definition + Example ── */}
           <div
-            className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-[20px] p-6 overflow-hidden"
+            className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-[20px] p-6 overflow-hidden"
             style={{
               backfaceVisibility: 'hidden',
               transform: 'rotateY(180deg)',
@@ -103,16 +104,16 @@ export default function SlideVocabulary({ slide, hub }: Props) {
               </div>
             )}
 
-            {/* Show AI image on back too if available */}
             {hasImage && (
               <img
                 src={slide.imageUrl}
                 alt={word}
-                className="w-24 h-24 object-cover rounded-xl opacity-80"
+                className="w-28 h-28 object-cover rounded-xl opacity-80"
+                loading="lazy"
               />
             )}
 
-            {hub === 'playground' && !hasImage && <span className="text-5xl mt-1">🐧</span>}
+            {hub === 'playground' && !hasImage && <PipMascot size={48} animation="celebrate" />}
             <span className="text-xs opacity-40">Tap to flip back</span>
           </div>
         </motion.div>
