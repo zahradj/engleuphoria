@@ -218,4 +218,11 @@ export const LEVEL1_LESSON_BLUEPRINT = {
       subjectPosition: "right",
     },
   ],
+  teacherNotes: {
+    summary: "This lesson introduces forest vocabulary (Tree, Leaf, Flower) and the 'I see a...' sentence structure. Students practice through flashcards, matching games, drag-and-drop, and a speed quiz.",
+    atHomeActivity: "Ask your child to point out 3 things they 'see' in the garden or park today using 'I see a ___'. Encourage them to draw their favorite forest word.",
+    vocabularyFocus: ["Tree", "Leaf", "Flower"],
+    grammarFocus: "I see a...",
+    expectedOutcome: "Student can identify and say 3 forest vocabulary words and use them in a simple sentence.",
+  },
 } as const;
