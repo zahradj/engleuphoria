@@ -303,7 +303,7 @@ The EnglEuphoria Hiring Team`,
     }
   };
 
-
+  const getStatusBadge = (stage: string) => {
     const config = stageConfig[stage] || stageConfig['application_submitted'];
     return (
       <Badge variant={config.variant} className={config.color}>
