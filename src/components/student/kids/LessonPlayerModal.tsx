@@ -399,6 +399,21 @@ export const LessonPlayerModal: React.FC<LessonPlayerModalProps> = ({
     </motion.div>
   );
 
+  // Route canvas-based lessons to the Canvas Lesson Player
+  if (isOpen && lesson?.canvasSlides && lesson.canvasSlides.length > 0) {
+    return (
+      <CanvasLessonPlayer
+        slides={lesson.canvasSlides}
+        lessonTitle={lesson.title}
+        onClose={handleClose}
+        onComplete={(score) => {
+          onComplete(lesson.id, score);
+          handleClose();
+        }}
+      />
+    );
+  }
+
   return (
     <AnimatePresence>
       {isOpen && lesson && (
