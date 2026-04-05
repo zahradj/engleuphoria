@@ -23,6 +23,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserProgress, useProgressStats } from '@/hooks/useProgress';
 import { LessonPlayer } from './LessonPlayer';
+import { CanvasLessonPlayer } from './CanvasLessonPlayer';
 import { ProgressOverview } from './ProgressOverview';
 
 interface CurriculumLesson {
@@ -201,17 +202,33 @@ export const LearningPathTab = () => {
 
   // If playing a lesson, show the player
   if (playingLesson && user) {
+    // Detect canvas-based lessons (slides with canvasElements)
+    const slides = playingLesson.content?.slides || [];
+    const isCanvasLesson = slides.some((s: any) => s.canvasElements && s.canvasElements.length > 0);
+
+    if (isCanvasLesson) {
+      return (
+        <CanvasLessonPlayer
+          slides={slides}
+          lessonTitle={playingLesson.title}
+          onClose={() => setPlayingLesson(null)}
+          onComplete={(score) => {
+            setPlayingLesson(null);
+          }}
+        />
+      );
+    }
+
     return (
       <LessonPlayer
         lessonId={playingLesson.id}
         lessonTitle={playingLesson.title}
-        slides={playingLesson.content?.slides || []}
+        slides={slides}
         userId={user.id}
         xpReward={playingLesson.xp_reward || 100}
         onClose={() => setPlayingLesson(null)}
         onComplete={() => {
           setPlayingLesson(null);
-          // Could navigate to next lesson here
         }}
       />
     );

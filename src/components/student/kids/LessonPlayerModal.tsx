@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2, Volume2, CheckCircle, Sparkles, Star } from 'lucide-react';
 import { playSound } from '@/constants/soundEffects';
 import confetti from 'canvas-confetti';
+import { CanvasLessonPlayer } from '@/components/student/CanvasLessonPlayer';
 import type { PlaygroundLesson } from '@/hooks/usePlaygroundLessons';
 
 interface LessonPlayerModalProps {
@@ -397,6 +398,21 @@ export const LessonPlayerModal: React.FC<LessonPlayerModalProps> = ({
       </motion.div>
     </motion.div>
   );
+
+  // Route canvas-based lessons to the Canvas Lesson Player
+  if (isOpen && lesson?.canvasSlides && lesson.canvasSlides.length > 0) {
+    return (
+      <CanvasLessonPlayer
+        slides={lesson.canvasSlides}
+        lessonTitle={lesson.title}
+        onClose={handleClose}
+        onComplete={(score) => {
+          onComplete(lesson.id, score);
+          handleClose();
+        }}
+      />
+    );
+  }
 
   return (
     <AnimatePresence>

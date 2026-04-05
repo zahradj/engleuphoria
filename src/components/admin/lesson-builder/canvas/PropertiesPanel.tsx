@@ -492,6 +492,24 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({ element, onUpd
         </div>
       )}
 
+      {/* Character properties */}
+      {element.elementType === 'character' && (
+        <div className="space-y-2">
+          <Label className="text-xs text-muted-foreground">Animation</Label>
+          <Select value={element.content?.animation || 'idle'} onValueChange={(v) => updateContent('animation', v)}>
+            <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="idle">Idle (Float)</SelectItem>
+              <SelectItem value="wave">Wave</SelectItem>
+              <SelectItem value="jump">Jump</SelectItem>
+              <SelectItem value="shake">Shake</SelectItem>
+            </SelectContent>
+          </Select>
+          <Label className="text-xs text-muted-foreground">Speech Bubble</Label>
+          <Input value={element.content?.speechBubble || ''} onChange={(e) => updateContent('speechBubble', e.target.value)} placeholder="Hello! I'm Pip!" className="text-xs h-7" />
+        </div>
+      )}
+
       {/* Audio properties with Mic + AI Voice */}
       {element.elementType === 'audio' && (
         <div className="space-y-3">
