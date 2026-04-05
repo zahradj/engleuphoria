@@ -37,7 +37,7 @@ export const StudentQuickActions = ({
       icon: Calendar,
       color: 'bg-blue-500 hover:bg-blue-600',
       textColor: 'text-white',
-      onClick: () => navigate('/discover-teachers')
+      onClick: () => navigate('/find-teacher')
     },
     {
       id: 'join-classroom',
