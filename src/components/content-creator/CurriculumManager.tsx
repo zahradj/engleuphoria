@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Progress } from '@/components/ui/progress';
-import { CurriculumExplorerTree, HubKey } from './CurriculumExplorerTree';
+import { CurriculumExplorerTree, HubKey, ExplorerLesson } from './CurriculumExplorerTree';
 
 interface CurriculumUnit {
   id: string;
