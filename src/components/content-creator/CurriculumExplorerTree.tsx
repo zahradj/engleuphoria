@@ -4,9 +4,20 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import {
   ChevronRight, ChevronDown, Gamepad2, GraduationCap, Briefcase,
-  CheckCircle2, AlertCircle, Trophy, Loader2, Sparkles, Circle,
+  CheckCircle2, AlertCircle, Trophy, Loader2, Sparkles, Circle, Trash2,
 } from 'lucide-react';
 
 export type HubKey = 'playground' | 'academy' | 'professional';
