@@ -152,7 +152,7 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
     }
 
     if (!formData.videoUrl.trim() || !isValidVideoUrl) {
-      toast({ title: 'Valid YouTube or Vimeo URL is required', variant: 'destructive' });
+      toast({ title: 'Valid YouTube link is required', variant: 'destructive' });
       return;
     }
 
@@ -169,20 +169,22 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
         updated_at: new Date().toISOString()
       };
 
-      const { data: existingProfile, error: fetchError } = await supabase
+      const { error: insertError } = await supabase
         .from('teacher_profiles')
-        .select('id')
-        .eq('user_id', teacherId)
-        .maybeSingle();
+        .insert(payload);
 
-      if (fetchError) throw fetchError;
+      if (insertError && insertError.code !== '23505') {
+        throw insertError;
+      }
 
-      const query = existingProfile
-        ? supabase.from('teacher_profiles').update(payload).eq('user_id', teacherId)
-        : supabase.from('teacher_profiles').insert(payload);
+      if (insertError?.code === '23505') {
+        const { error: updateError } = await supabase
+          .from('teacher_profiles')
+          .update(payload)
+          .eq('user_id', teacherId);
 
-      const { error } = await query;
-      if (error) throw error;
+        if (updateError) throw updateError;
+      }
 
       toast({
         title: 'Profile submitted for review!',
@@ -267,26 +269,29 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
             <p className="text-sm text-muted-foreground">{formData.bio.length}/500 characters</p>
           </div>
 
-          {/* Video URL */}
           <div className="space-y-2">
             <Label htmlFor="video" className="flex items-center gap-2">
               <Video className="w-4 h-4" />
-              Introduction Video URL *
+              YouTube Introduction Video Link *
             </Label>
             <Input
               id="video"
-              placeholder="https://www.youtube.com/watch?v=... or https://vimeo.com/..."
+              placeholder="https://www.youtube.com/watch?v=..."
               value={formData.videoUrl}
               onChange={(e) => setFormData(prev => ({ ...prev, videoUrl: e.target.value }))}
             />
-            <p className="text-sm text-muted-foreground">
-              Record a 2-3 minute introduction video to help students get to know you
-            </p>
+            <div className="rounded-lg border bg-muted/30 p-3 text-sm text-muted-foreground space-y-1">
+              <p><strong className="text-foreground">How to submit your YouTube video:</strong></p>
+              <p>1. Record a 1–3 minute introduction video.</p>
+              <p>2. Upload it to YouTube.</p>
+              <p>3. Set visibility to <strong className="text-foreground">Private</strong> and share access with reviewers, or use <strong className="text-foreground">Unlisted</strong> if private preview does not work.</p>
+              <p>4. Paste the YouTube link here.</p>
+            </div>
             
             {formData.videoUrl && !isValidVideoUrl && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
-                <AlertDescription>Please provide a valid YouTube or Vimeo URL</AlertDescription>
+                <AlertDescription>Please provide a valid YouTube link</AlertDescription>
               </Alert>
             )}
 

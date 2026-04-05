@@ -40,18 +40,35 @@ export const teacherProfileService = {
 
   async createOrUpdateProfile(userId: string, profileData: TeacherProfileData): Promise<TeacherProfile> {
     try {
-      const { data, error } = await supabase
+      const payload = {
+        user_id: userId,
+        ...profileData,
+        updated_at: new Date().toISOString()
+      };
+
+      const { data: insertedData, error: insertError } = await supabase
         .from('teacher_profiles')
-        .upsert({
-          user_id: userId,
-          ...profileData,
-          updated_at: new Date().toISOString()
-        })
+        .insert(payload)
         .select()
         .single();
 
-      if (error) throw error;
-      return data;
+      if (!insertError) {
+        return insertedData;
+      }
+
+      if ((insertError as { code?: string }).code !== '23505') {
+        throw insertError;
+      }
+
+      const { data: updatedData, error: updateError } = await supabase
+        .from('teacher_profiles')
+        .update(payload)
+        .eq('user_id', userId)
+        .select()
+        .single();
+
+      if (updateError) throw updateError;
+      return updatedData;
     } catch (error) {
       console.error('Error saving teacher profile:', error);
       throw error;
