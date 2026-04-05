@@ -48,7 +48,7 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
     level: 'beginner',
     ageGroup: 'kids',
   });
-  const [additionalNotes, setAdditionalNotes] = useState('');
+  const [lessonPrompt, setLessonPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [generatedPlan, setGeneratedPlan] = useState<PPPLessonPlan | null>(null);
