@@ -1,5 +1,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/Logo";
 import { useAuth } from "@/contexts/AuthContext";
 import { 
   LayoutDashboard, 
@@ -53,15 +54,8 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
     <aside className="w-64 bg-card border-r border-border h-full overflow-y-auto">
       <div className="p-4">
         <div className="mb-6 px-2">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-primary to-primary/70 rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold">🎛️</span>
-            </div>
-            <div>
-              <h2 className="font-bold text-foreground">Control Tower</h2>
-              <p className="text-xs text-muted-foreground">Master Admin</p>
-            </div>
-          </div>
+          <Logo size="small" />
+          <p className="text-xs text-muted-foreground mt-1">Control Tower — Master Admin</p>
         </div>
 
         <div className="space-y-1">

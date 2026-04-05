@@ -281,7 +281,7 @@ export const ProfileSetupTab = ({ teacherId, onProfileComplete }: ProfileSetupTa
     }
   };
 
-  const requiredFieldsComplete = profile.bio.trim() && profile.video_url.trim() && validateVideoUrl(profile.video_url);
+  const requiredFieldsComplete = profile.bio.trim() && profile.video_url.trim() && validateVideoUrl(profile.video_url) && profile.profile_image_url && profile.certificate_urls.length > 0;
 
   return (
     <div className="space-y-6">
@@ -474,7 +474,7 @@ export const ProfileSetupTab = ({ teacherId, onProfileComplete }: ProfileSetupTa
           <CardContent className="space-y-4">
             <div>
               <Label htmlFor="certificates">
-                Upload Certificates (Optional)
+                Upload Certificates *
               </Label>
               <Input
                 id="certificates"

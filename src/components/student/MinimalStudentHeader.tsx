@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Bell, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/Logo";
 
 interface MinimalStudentHeaderProps {
   studentName: string;
@@ -28,6 +29,8 @@ export const MinimalStudentHeader: React.FC<MinimalStudentHeaderProps> = ({
     <div className="sticky top-0 z-10 border-b border-border bg-white shadow-sm">
       <div className="flex items-center justify-between px-4 md:px-6 py-4">
         <div className="flex items-center gap-3">
+          <Logo size="small" />
+          <div className="w-px h-8 bg-border" />
           <Avatar className="h-10 w-10 border border-border">
             <AvatarFallback className="bg-lavender text-lavender-dark font-medium text-sm">
               {initials}
