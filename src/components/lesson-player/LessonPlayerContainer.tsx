@@ -9,7 +9,7 @@ import PipMascot from './PipMascot';
 import { soundEffectsService } from '@/services/soundEffectsService';
 import { triggerCelebration } from '@/services/celebration';
 import { supabase } from '@/integrations/supabase/client';
-import { X, Volume2, VolumeX, Zap, Star } from 'lucide-react';
+import { X, Volume2, VolumeX, Zap, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 
 /* ── Hub Skin Configuration ── */
 const HUB_SKINS = {
