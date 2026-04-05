@@ -4,9 +4,20 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import {
   ChevronRight, ChevronDown, Gamepad2, GraduationCap, Briefcase,
-  CheckCircle2, AlertCircle, Trophy, Loader2, Sparkles, Circle,
+  CheckCircle2, AlertCircle, Trophy, Loader2, Sparkles, Circle, Trash2,
 } from 'lucide-react';
 
 export type HubKey = 'playground' | 'academy' | 'professional';
@@ -143,6 +154,8 @@ export const CurriculumExplorerTree: React.FC<CurriculumExplorerTreeProps> = ({
   const [accessories, setAccessories] = useState<Accessory[]>([]);
   const [expandedLevels, setExpandedLevels] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState<{ type: 'lesson' | 'level'; id: string; name: string; lessonCount?: number } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -208,6 +221,30 @@ export const CurriculumExplorerTree: React.FC<CurriculumExplorerTreeProps> = ({
 
   const getLessonsForLevel = (levelId: string) => lessons.filter(l => l.level_id === levelId);
   const getAccessoryForLevel = (levelId: string) => accessories.find(a => a.level_id === levelId);
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      if (deleteTarget.type === 'lesson') {
+        const { error } = await supabase.from('curriculum_lessons').delete().eq('id', deleteTarget.id);
+        if (error) throw error;
+        toast.success(`Lesson "${deleteTarget.name}" deleted`);
+      } else {
+        // Delete all lessons under this level first, then the level won't be deleted (it's structural)
+        const { error } = await supabase.from('curriculum_lessons').delete().eq('level_id', deleteTarget.id);
+        if (error) throw error;
+        toast.success(`All lessons in "${deleteTarget.name}" deleted`);
+      }
+      fetchData();
+    } catch (err: any) {
+      console.error('Delete error:', err);
+      toast.error('Failed to delete: ' + (err.message || 'Unknown error'));
+    } finally {
+      setIsDeleting(false);
+      setDeleteTarget(null);
+    }
+  };
 
   const hubConfig = HUB_CONFIG[activeHub];
 
@@ -334,6 +371,19 @@ export const CurriculumExplorerTree: React.FC<CurriculumExplorerTreeProps> = ({
                           )}
                         </div>
                       )}
+                      {/* Delete all lessons in level */}
+                      {levelLessons.length > 0 && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteTarget({ type: 'level', id: level.id, name: level.name, lessonCount: levelLessons.length });
+                          }}
+                          className="shrink-0 w-6 h-6 rounded-lg flex items-center justify-center bg-destructive/10 hover:bg-destructive/20 text-destructive transition-colors"
+                          title="Delete all lessons in this level"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      )}
                     </button>
                   </CollapsibleTrigger>
 
@@ -431,6 +481,21 @@ export const CurriculumExplorerTree: React.FC<CurriculumExplorerTreeProps> = ({
                                   <Sparkles className="h-2.5 w-2.5" />
                                 </button>
                               )}
+                               {/* Delete button */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDeleteTarget({ type: 'lesson', id: lesson.id, name: lesson.title });
+                                }}
+                                className={cn(
+                                  'opacity-0 group-hover:opacity-100 transition-opacity shrink-0',
+                                  'w-5 h-5 rounded-md flex items-center justify-center',
+                                  'bg-destructive/10 hover:bg-destructive/20 text-destructive'
+                                )}
+                                title="Delete lesson"
+                              >
+                                <Trash2 className="h-2.5 w-2.5" />
+                              </button>
                             </div>
                           );
                         })
@@ -454,6 +519,32 @@ export const CurriculumExplorerTree: React.FC<CurriculumExplorerTreeProps> = ({
           </span>
         </div>
       </div>
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {deleteTarget?.type === 'lesson' ? 'Delete Lesson' : 'Delete All Lessons in Level'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteTarget?.type === 'lesson'
+                ? `Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`
+                : `Are you sure you want to delete all ${deleteTarget?.lessonCount} lessons in "${deleteTarget?.name}"? This action cannot be undone.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Trash2 className="h-4 w-4 mr-2" />}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
