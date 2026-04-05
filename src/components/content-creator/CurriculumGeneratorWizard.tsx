@@ -239,19 +239,34 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
     setIsSaving(true);
 
     try {
-      // Determine target_system from age group
-      const targetSystem = config.ageGroup === 'kids' ? 'playground' : config.ageGroup === 'teens' ? 'academy' : 'hub';
-      const cefrLevel = config.level === 'beginner' ? 'A1' : config.level === 'elementary' ? 'A2' : config.level === 'pre-intermediate' ? 'B1' : 'B2';
+      const targetSystem = config.ageGroup === 'kids'
+        ? 'playground'
+        : config.ageGroup === 'teens'
+          ? 'academy'
+          : 'professional';
+
+      const unitCefrLevel = config.level === 'beginner'
+        ? 'A1'
+        : config.level === 'elementary'
+          ? 'A2'
+          : config.level === 'pre-intermediate'
+            ? 'B1'
+            : 'B2';
+
+      const lessonDifficultyLevel = config.level === 'beginner' || config.level === 'elementary'
+        ? 'beginner'
+        : config.level === 'pre-intermediate'
+          ? 'intermediate'
+          : 'advanced';
 
       for (const unit of generatedUnits) {
-        // Insert unit
         const { data: unitData, error: unitError } = await supabase
           .from('curriculum_units')
           .insert({
             title: unit.title,
             unit_number: unit.unitNumber,
             age_group: config.ageGroup,
-            cefr_level: cefrLevel,
+            cefr_level: unitCefrLevel,
             learning_objectives: unit.lessons.flatMap(l => l.objectives || []),
           })
           .select()
@@ -259,18 +274,19 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
 
         if (unitError) throw unitError;
 
-        // Insert lessons for this unit
         const lessonInserts = unit.lessons.map((lesson) => ({
           title: lesson.title,
           unit_id: unitData.id,
           target_system: targetSystem,
-          difficulty_level: cefrLevel,
+          difficulty_level: lessonDifficultyLevel,
           sequence_order: lesson.lessonNumber,
           duration_minutes: 30,
           content: {
             objectives: lesson.objectives,
             grammarFocus: lesson.grammarFocus,
             vocabularyTheme: lesson.vocabularyTheme,
+            cefrLevel: unitCefrLevel,
+            sourceLevel: config.level,
           },
           is_published: false,
         }));
@@ -283,10 +299,7 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
       }
 
       toast.success(`Saved ${generatedUnits.length} units and ${generatedUnits.reduce((sum, u) => sum + (u.lessons?.length || 0), 0)} lessons to database!`);
-      
-      // Notify parent of the curriculum context
-      const systemLabel = config.ageGroup === 'kids' ? 'kids' : config.ageGroup === 'teens' ? 'teens' : 'adults';
-      onCurriculumGenerated?.({ system: systemLabel, level: config.level, ageGroup: config.ageGroup });
+      onCurriculumGenerated?.({ system: targetSystem, level: config.level, ageGroup: config.ageGroup });
     } catch (err: any) {
       console.error('Save error:', err);
       toast.error('Failed to save curriculum: ' + err.message);
