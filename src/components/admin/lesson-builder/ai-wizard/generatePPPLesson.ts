@@ -12,6 +12,7 @@ interface VocabEntry {
   exampleSentence: string;
   fillBlank: string;
   imageKeywords: string;
+  emoji?: string;
 }
 
 interface TopicPack {
