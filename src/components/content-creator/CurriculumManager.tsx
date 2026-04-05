@@ -449,18 +449,44 @@ const SkeletonPanel: React.FC<SkeletonPanelProps> = ({ plan, onClear, hub }) => 
   const [imageProgress, setImageProgress] = useState<SlideImageProgress[]>([]);
   const [isGeneratingImages, setIsGeneratingImages] = useState(false);
   const [generationResult, setGenerationResult] = useState<MassGenerationResult | null>(null);
+  const [slideTimers, setSlideTimers] = useState<Record<number, number>>({});
+
+  // Simulate per-slide percentage while generating
+  useEffect(() => {
+    if (!isGeneratingImages) return;
+    const interval = setInterval(() => {
+      setSlideTimers(prev => {
+        const next = { ...prev };
+        imageProgress.forEach(p => {
+          if (p.status === 'generating') {
+            next[p.slideNumber] = Math.min((next[p.slideNumber] || 0) + Math.random() * 15, 92);
+          } else if (p.status === 'done') {
+            next[p.slideNumber] = 100;
+          }
+        });
+        return next;
+      });
+    }, 400);
+    return () => clearInterval(interval);
+  }, [isGeneratingImages, imageProgress]);
 
   const handleMassGenerate = async () => {
     setIsGeneratingImages(true);
     setGenerationResult(null);
+    setSlideTimers({});
     try {
       const result = await massGenerateImages(plan, (progress) => {
         setImageProgress([...progress]);
       });
       setGenerationResult(result);
+      // Mark all done at 100%
+      const finalTimers: Record<number, number> = {};
+      result.images.forEach(p => { finalTimers[p.slideNumber] = p.status === 'done' ? 100 : 0; });
+      setSlideTimers(finalTimers);
+
       const seconds = Math.round(result.durationMs / 1000);
       if (result.successCount > 0) {
-        toast.success(`${result.successCount}/${result.totalSlides} cinematic assets rendered in ${seconds}s`, { icon: '🎨' });
+        toast.success(`🎨 ${result.successCount}/${result.totalSlides} cinematic assets rendered in ${seconds}s`);
       }
       if (result.failedCount > 0) {
         toast.error(`${result.failedCount} images failed — click to retry`);
@@ -471,6 +497,263 @@ const SkeletonPanel: React.FC<SkeletonPanelProps> = ({ plan, onClear, hub }) => 
       setIsGeneratingImages(false);
     }
   };
+
+  const getSlideStatus = (num: number): SlideImageProgress | undefined =>
+    imageProgress.find((p) => p.slideNumber === num);
+
+  const completedCount = imageProgress.filter((p) => p.status === 'done').length;
+  const allDone = generationResult && generationResult.successCount === plan.totalSlides;
+  const selectedSkeleton = selectedSlide ? plan.skeletons.find(s => s.slideNumber === selectedSlide) : null;
+  const selectedImgStatus = selectedSlide ? getSlideStatus(selectedSlide) : undefined;
+
+  return (
+    <Card className="h-full overflow-hidden flex flex-col">
+      {/* Header */}
+      <CardHeader className="pb-3 border-b border-border shrink-0">
+        <div className="flex items-center justify-between">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <Wand2 className="h-4 w-4 text-primary" />
+              <CardTitle className="text-base truncate">{plan.lessonTitle}</CardTitle>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge variant="outline" className="text-[10px] h-5">{plan.hub}</Badge>
+              <Badge variant="secondary" className="text-[10px] h-5">
+                <Layers className="h-3 w-3 mr-1" />{plan.totalSlides} slides
+              </Badge>
+              <Badge variant="secondary" className="text-[10px] h-5">
+                <Clock className="h-3 w-3 mr-1" />{plan.totalMinutes} min
+              </Badge>
+              {plan.accessoryName && (
+                <Badge variant="secondary" className="text-[10px] h-5">
+                  <Trophy className="h-3 w-3 mr-1" />{plan.accessoryName}
+                </Badge>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0 ml-3">
+            {allDone ? (
+              <Button size="sm" className="gap-1.5 text-xs h-9 bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20">
+                <CheckCircle2 className="h-3.5 w-3.5" /> Save to Library
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                className={cn(
+                  'gap-1.5 text-xs h-9 shadow-lg transition-all',
+                  !isGeneratingImages && 'animate-pulse hover:animate-none'
+                )}
+                onClick={handleMassGenerate}
+                disabled={isGeneratingImages}
+              >
+                {isGeneratingImages ? (
+                  <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Rendering {completedCount}/{plan.totalSlides}…</>
+                ) : (
+                  <><Rocket className="h-3.5 w-3.5" /> 🚀 Generate 12-Slide Lesson</>
+                )}
+              </Button>
+            )}
+            <Button size="sm" variant="ghost" onClick={onClear} className="text-xs h-8">✕</Button>
+          </div>
+        </div>
+
+        {isGeneratingImages && (
+          <div className="mt-3">
+            <Progress value={(completedCount / plan.totalSlides) * 100} className="h-2" />
+            <p className="text-[10px] text-muted-foreground mt-1.5 flex items-center gap-1.5">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+              Rendering Midjourney assets… {completedCount}/{plan.totalSlides} complete
+            </p>
+          </div>
+        )}
+      </CardHeader>
+
+      {/* 4x3 Grid + Detail Panel */}
+      <div className="flex-1 flex min-h-0">
+        {/* Grid */}
+        <div className="flex-1 p-3 overflow-y-auto">
+          <div className="grid grid-cols-4 gap-2">
+            {plan.skeletons.map((skeleton, i) => {
+              const phaseStyle = PHASE_STYLES[skeleton.phase] || PHASE_STYLES.hook;
+              const imgStatus = getSlideStatus(skeleton.slideNumber);
+              const isSelected = selectedSlide === skeleton.slideNumber;
+              const isDone = imgStatus?.status === 'done';
+              const isRendering = imgStatus?.status === 'generating';
+              const isError = imgStatus?.status === 'error';
+              const pct = Math.round(slideTimers[skeleton.slideNumber] || 0);
+
+              return (
+                <motion.button
+                  key={skeleton.slideNumber}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: i * 0.03 }}
+                  onClick={() => setSelectedSlide(isSelected ? null : skeleton.slideNumber)}
+                  className={cn(
+                    'relative rounded-xl border overflow-hidden transition-all duration-200 text-left group aspect-video',
+                    isSelected
+                      ? 'ring-2 ring-primary border-primary shadow-lg scale-[1.02]'
+                      : 'border-border hover:border-primary/40 hover:shadow-md'
+                  )}
+                >
+                  {/* Background */}
+                  {isDone && imgStatus?.imageUrl ? (
+                    <motion.img
+                      initial={{ opacity: 0, scale: 1.05 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.5 }}
+                      src={imgStatus.imageUrl}
+                      alt={`Slide ${skeleton.slideNumber}`}
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  ) : isRendering ? (
+                    <div className="absolute inset-0 bg-gradient-to-br from-muted/80 via-muted/40 to-muted/80">
+                      <motion.div
+                        animate={{ x: ['-100%', '100%'] }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent"
+                      />
+                      <div className="absolute inset-0 backdrop-blur-sm" />
+                    </div>
+                  ) : (
+                    <div className={cn('absolute inset-0', phaseStyle.bg)} />
+                  )}
+
+                  {/* Overlay */}
+                  <div className={cn(
+                    'relative h-full flex flex-col justify-between p-1.5',
+                    isDone && 'bg-gradient-to-t from-black/60 via-transparent to-transparent'
+                  )}>
+                    <div className="flex items-start justify-between">
+                      <div className={cn(
+                        'w-5 h-5 rounded-md flex items-center justify-center text-[8px] font-bold',
+                        isDone ? 'bg-emerald-500 text-white' :
+                        isRendering ? 'bg-amber-500/80 text-white' :
+                        isError ? 'bg-destructive text-white' :
+                        'bg-background/80 backdrop-blur-sm text-foreground'
+                      )}>
+                        {isRendering ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> :
+                         isDone ? <CheckCircle2 className="h-2.5 w-2.5" /> :
+                         isError ? <AlertCircle className="h-2.5 w-2.5" /> :
+                         skeleton.slideNumber}
+                      </div>
+                      {skeleton.accessoryReveal && (
+                        <span className="text-[8px] bg-amber-500/90 text-white px-1 py-0.5 rounded font-bold">🏆</span>
+                      )}
+                    </div>
+
+                    <div>
+                      {isRendering && (
+                        <div className="mb-0.5">
+                          <p className="text-[7px] text-foreground/70 font-medium animate-pulse">
+                            Midjourney Rendering… {pct}%
+                          </p>
+                          <div className="w-full h-0.5 bg-white/10 rounded-full overflow-hidden mt-0.5">
+                            <motion.div
+                              className="h-full bg-amber-400 rounded-full"
+                              animate={{ width: `${pct}%` }}
+                              transition={{ duration: 0.3 }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                      <p className={cn('text-[8px] font-semibold leading-tight truncate', isDone ? 'text-white' : 'text-foreground')}>
+                        {skeleton.objective}
+                      </p>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <span className={cn('text-[7px] font-bold uppercase tracking-wider', isDone ? 'text-white/70' : phaseStyle.text)}>
+                          {skeleton.phaseLabel}
+                        </span>
+                        {skeleton.mascotPosition !== 'hidden' && (
+                          <span className={cn('text-[7px]', isDone ? 'text-white/50' : 'text-muted-foreground')}>
+                            🐧{skeleton.mascotPosition === 'left' ? 'L' : 'R'}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {isDone && (
+                    <div className="absolute top-1 right-1">
+                      <motion.span
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: 'spring', damping: 8 }}
+                        className="text-[7px] bg-emerald-500 text-white px-1.5 py-0.5 rounded-full font-bold shadow-sm inline-block"
+                      >
+                        ✅ Ready
+                      </motion.span>
+                    </div>
+                  )}
+                </motion.button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Detail panel */}
+        <AnimatePresence>
+          {selectedSkeleton && (
+            <motion.div
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 260, opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="border-l border-border bg-muted/30 overflow-hidden shrink-0"
+            >
+              <ScrollArea className="h-full">
+                <div className="p-3 space-y-3">
+                  {selectedImgStatus?.status === 'done' && selectedImgStatus.imageUrl && (
+                    <div className="rounded-lg overflow-hidden border border-border shadow-sm">
+                      <img src={selectedImgStatus.imageUrl} alt={`Slide ${selectedSkeleton.slideNumber}`} className="w-full aspect-video object-cover" />
+                    </div>
+                  )}
+
+                  <div>
+                    <h4 className="text-xs font-bold text-foreground mb-1">
+                      Slide {selectedSkeleton.slideNumber}: {selectedSkeleton.objective}
+                    </h4>
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      <Badge variant="outline" className="text-[8px] h-4">{selectedSkeleton.phaseLabel}</Badge>
+                      {selectedSkeleton.activityType && (
+                        <Badge variant="outline" className="text-[8px] h-4">{selectedSkeleton.activityType.replace(/_/g, ' ')}</Badge>
+                      )}
+                      <Badge variant="outline" className="text-[8px] h-4">{Math.round(selectedSkeleton.durationSeconds / 60)}m</Badge>
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider">Cinematic Prompt</span>
+                    <p className="text-[10px] text-foreground mt-1 leading-relaxed bg-background p-2 rounded-lg font-mono border border-border">
+                      {selectedSkeleton.imagePrompt}
+                    </p>
+                  </div>
+
+                  <div className="space-y-1.5 text-[10px] text-muted-foreground">
+                    <div className="flex items-center gap-1.5">📐 Content: <strong className="text-foreground">{selectedSkeleton.contentPosition}</strong></div>
+                    <div className="flex items-center gap-1.5">🎯 Safe Zone: <strong className="text-foreground">{selectedSkeleton.safeZoneInstruction.slice(0, 60)}…</strong></div>
+                    {selectedSkeleton.mascotPosition !== 'hidden' && (
+                      <div className="flex items-center gap-1.5">🐧 Pip: <strong className="text-foreground">{selectedSkeleton.mascotPosition} side</strong></div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <Button size="sm" variant="outline" className="text-[10px] h-7 gap-1 w-full justify-start">
+                      <ImageIcon className="h-3 w-3" /> Regenerate Image
+                    </Button>
+                    <Button size="sm" variant="outline" className="text-[10px] h-7 gap-1 w-full justify-start">
+                      <Eye className="h-3 w-3" /> Edit Prompt
+                    </Button>
+                  </div>
+                </div>
+              </ScrollArea>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </Card>
+  );
+};
 
   const getSlideStatus = (num: number): SlideImageProgress | undefined =>
     imageProgress.find((p) => p.slideNumber === num);
