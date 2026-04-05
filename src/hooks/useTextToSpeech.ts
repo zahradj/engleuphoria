@@ -5,13 +5,6 @@ interface TTSOptions {
   speed?: number;
 }
 
-// Map to OpenAI TTS voices
-// Girl = nova (bright, young), Boy = fable (warm, young)
-const OPENAI_VOICE_MAP: Record<string, string> = {
-  'pFZP5JQG7iQjIQuC4Bku': 'nova',   // Lily -> nova
-  'IKne3meq5aSn9XLyUdCD': 'fable',   // Charlie -> fable
-};
-
 export function useTextToSpeech() {
   const [isLoading, setIsLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -39,13 +32,8 @@ export function useTextToSpeech() {
     setError(null);
 
     try {
-      // Map ElevenLabs voice IDs to OpenAI voices, default to 'nova'
-      const openaiVoice = options?.voiceId
-        ? (OPENAI_VOICE_MAP[options.voiceId] || options.voiceId)
-        : 'nova';
-
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/text-to-speech`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
         {
           method: "POST",
           headers: {
@@ -55,7 +43,8 @@ export function useTextToSpeech() {
           },
           body: JSON.stringify({
             text,
-            voice: openaiVoice,
+            voiceId: options?.voiceId,
+            speed: options?.speed,
           }),
           signal: abortControllerRef.current.signal,
         }
@@ -66,17 +55,21 @@ export function useTextToSpeech() {
         throw new Error(errorData.error || `TTS request failed: ${response.status}`);
       }
 
-      const data = await response.json();
-      const audioUrl = `data:audio/mpeg;base64,${data.audioContent}`;
+      const audioBlob = await response.blob();
+      const audioUrl = URL.createObjectURL(audioBlob);
 
       const audio = new Audio(audioUrl);
       audioRef.current = audio;
 
       audio.onplay = () => setIsPlaying(true);
-      audio.onended = () => setIsPlaying(false);
+      audio.onended = () => {
+        setIsPlaying(false);
+        URL.revokeObjectURL(audioUrl);
+      };
       audio.onerror = () => {
         setIsPlaying(false);
         setError("Failed to play audio");
+        URL.revokeObjectURL(audioUrl);
       };
 
       await audio.play();
@@ -102,15 +95,15 @@ export function useTextToSpeech() {
 
   const speakWord = useCallback((word: string, ipa?: string) => {
     const textToSpeak = ipa ? `${word}. ${word}.` : word;
-    return speak(textToSpeak);
+    return speak(textToSpeak, { speed: 0.9 });
   }, [speak]);
 
   const speakSlow = useCallback((text: string) => {
-    return speak(text);
+    return speak(text, { speed: 0.7 });
   }, [speak]);
 
   const speakNormal = useCallback((text: string) => {
-    return speak(text);
+    return speak(text, { speed: 1.0 });
   }, [speak]);
 
   return {
