@@ -45,6 +45,18 @@ const AGE_GROUPS = [
   { value: 'adults', label: 'Adults (18+)' },
 ];
 
+const AGE_GROUP_TO_DB_TARGET_SYSTEM: Record<string, string> = {
+  kids: 'kids',
+  teens: 'teen',
+  adults: 'adult',
+};
+
+const AGE_GROUP_TO_HUB_SYSTEM: Record<string, string> = {
+  kids: 'playground',
+  teens: 'academy',
+  adults: 'professional',
+};
+
 interface CurriculumGeneratorWizardProps {
   onCurriculumGenerated?: (ctx: { system: string; level: string; ageGroup: string }) => void;
 }
@@ -241,11 +253,8 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
     setIsSaving(true);
 
     try {
-      const targetSystem = config.ageGroup === 'kids'
-        ? 'playground'
-        : config.ageGroup === 'teens'
-          ? 'academy'
-          : 'professional';
+      const dbTargetSystem = AGE_GROUP_TO_DB_TARGET_SYSTEM[config.ageGroup] || 'kids';
+      const hubSystem = AGE_GROUP_TO_HUB_SYSTEM[config.ageGroup] || 'playground';
 
       const unitCefrLevel = config.level === 'beginner'
         ? 'A1'
@@ -260,6 +269,20 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
         : config.level === 'pre-intermediate'
           ? 'intermediate'
           : 'advanced';
+
+      const { data: levelOptions, error: levelsError } = await supabase
+        .from('curriculum_levels')
+        .select('id, cefr_level, level_order')
+        .eq('target_system', dbTargetSystem)
+        .order('level_order');
+
+      if (levelsError) throw levelsError;
+
+      const matchingLevel = (levelOptions || []).find((level) => (
+        level.cefr_level === unitCefrLevel ||
+        level.cefr_level.startsWith(unitCefrLevel) ||
+        unitCefrLevel.startsWith(level.cefr_level)
+      )) || levelOptions?.[0] || null;
 
       for (const unit of generatedUnits) {
         const { data: unitData, error: unitError } = await supabase
@@ -280,7 +303,8 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
         const lessonInserts = unit.lessons.map((lesson) => ({
           title: lesson.title,
           unit_id: unitData.id,
-          target_system: targetSystem,
+          level_id: matchingLevel?.id || null,
+          target_system: dbTargetSystem,
           difficulty_level: lessonDifficultyLevel,
           sequence_order: lesson.lessonNumber,
           duration_minutes: 30,
@@ -291,6 +315,8 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
             vocabularyTheme: lesson.vocabularyTheme,
             cefrLevel: unitCefrLevel,
             sourceLevel: config.level,
+            hub: hubSystem,
+            dbTargetSystem,
           },
           is_published: false,
         }));
@@ -303,7 +329,7 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
       }
 
       toast.success(`Saved ${generatedUnits.length} units and ${generatedUnits.reduce((sum, u) => sum + (u.lessons?.length || 0), 0)} lessons to database!`);
-      onCurriculumGenerated?.({ system: targetSystem, level: config.level, ageGroup: config.ageGroup });
+      onCurriculumGenerated?.({ system: hubSystem, level: config.level, ageGroup: config.ageGroup });
     } catch (err: any) {
       console.error('Save error:', err);
       toast.error('Failed to save curriculum: ' + err.message);

@@ -85,6 +85,25 @@ const HUB_CONFIG: Record<HubKey, {
   },
 };
 
+const HUB_TO_DB_TARGET_SYSTEM: Record<HubKey, string> = {
+  playground: 'kids',
+  academy: 'teen',
+  professional: 'adult',
+};
+
+const TARGET_SYSTEM_TO_HUB: Record<string, HubKey> = {
+  kids: 'playground',
+  teen: 'academy',
+  adult: 'professional',
+  playground: 'playground',
+  academy: 'academy',
+  professional: 'professional',
+};
+
+const normalizeTargetSystemToHub = (targetSystem: string): HubKey => {
+  return TARGET_SYSTEM_TO_HUB[targetSystem] || 'playground';
+};
+
 const STATUS_CONFIG: Record<LessonStatus, {
   icon: React.ElementType;
   color: string;
@@ -125,27 +144,22 @@ export const CurriculumExplorerTree: React.FC<CurriculumExplorerTreeProps> = ({
   const [expandedLevels, setExpandedLevels] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
 
-  const ageGroupMap: Record<HubKey, string> = {
-    playground: 'kids',
-    academy: 'teens',
-    professional: 'adults',
-  };
-
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const ageGroup = ageGroupMap[activeHub];
+      const dbTargetSystem = HUB_TO_DB_TARGET_SYSTEM[activeHub];
+      const lessonSystemFilters = Array.from(new Set([activeHub, dbTargetSystem]));
 
       const [levelsRes, lessonsRes, accessoriesRes] = await Promise.all([
         supabase
           .from('curriculum_levels')
           .select('id, name, level_order, cefr_level, age_group, target_system')
-          .eq('age_group', ageGroup)
+          .eq('target_system', dbTargetSystem)
           .order('level_order'),
         supabase
           .from('curriculum_lessons')
           .select('id, title, unit_id, level_id, target_system, difficulty_level, sequence_order, content, is_published')
-          .eq('target_system', activeHub)
+          .in('target_system', lessonSystemFilters)
           .order('sequence_order'),
         supabase
           .from('accessories')
@@ -205,7 +219,7 @@ export const CurriculumExplorerTree: React.FC<CurriculumExplorerTreeProps> = ({
           const config = HUB_CONFIG[hub];
           const Icon = config.icon;
           const isActive = activeHub === hub;
-          const hubLessonCount = lessons.filter(l => l.target_system === hub).length;
+          const hubLessonCount = lessons.filter(l => normalizeTargetSystemToHub(l.target_system) === hub).length;
 
           return (
             <button
