@@ -1,3 +1,4 @@
 export { AILessonWizard } from './AILessonWizard';
 export { generatePPPLesson } from './generatePPPLesson';
-export type { WizardFormData, GeneratedSlide, PPPLessonPlan } from './types';
+export { HUB_CONFIGS, resolveHub } from './hubConfig';
+export type { WizardFormData, GeneratedSlide, PPPLessonPlan, HubType } from './types';
