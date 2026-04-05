@@ -94,6 +94,53 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  // Auto-heal: ensure users + user_roles rows exist for authenticated user
+  const autoHealUserRows = async (authUser: any) => {
+    try {
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', authUser.id)
+        .maybeSingle();
+
+      if (!existingUser) {
+        const fullName = authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'User';
+        const role = authUser.user_metadata?.role || 'student';
+        
+        const { error: upsertErr } = await supabase.from('users').upsert({
+          id: authUser.id,
+          email: authUser.email,
+          full_name: fullName,
+          role: role
+        }, { onConflict: 'id' });
+        if (upsertErr) console.error('Auto-heal users upsert failed:', upsertErr);
+
+        try {
+          await supabase.rpc('ensure_user_role', { p_user_id: authUser.id, p_role: role });
+        } catch (e) { console.error('Auto-heal user_roles RPC failed:', e); }
+        
+        console.log('🔧 Auto-healed missing user rows for:', authUser.email);
+        return;
+      }
+
+      // User exists — check user_roles
+      const { data: existingRoles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', authUser.id);
+
+      if (!existingRoles || existingRoles.length === 0) {
+        const role = authUser.user_metadata?.role || 'student';
+        try {
+          await supabase.rpc('ensure_user_role', { p_user_id: authUser.id, p_role: role });
+          console.warn('🔧 Auto-healed missing user_roles for:', authUser.email);
+        } catch (e) { console.error('Auto-heal user_roles RPC failed:', e); }
+      }
+    } catch (err) {
+      console.error('Auto-heal error (non-fatal):', err);
+    }
+  };
+
   // Function to create fallback user from auth metadata
   const createFallbackUser = async (authUser: any): Promise<User> => {
     const role = (await fetchUserRoleFromDatabase(authUser.id)) ?? 'student';
@@ -163,11 +210,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                   })();
                   return;
                 }
-                // If somehow we get SIGNED_IN without signIn() handling it,
-                // just update state — Login.tsx will handle the redirect
+                // If we get SIGNED_IN without signIn() handling it (e.g. email verification),
+                // auto-heal then update state
                 (async () => {
                   if (!mounted) return;
                   try {
+                    await autoHealUserRows(currentSession.user);
                     const dbUser = await fetchUserFromDatabase(currentSession.user.id);
                     const finalUser = dbUser || await createFallbackUser(currentSession.user);
                     if (mounted) {
@@ -183,18 +231,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     }
                   }
                 })();
-              } else if (event === 'INITIAL_SESSION') {
-                // Page refresh with existing session - just update state, no redirect
-                // Let Dashboard.tsx handle the routing via React Router
+            } else if (event === 'INITIAL_SESSION') {
+                // Page refresh with existing session - update state + auto-heal
                 setTimeout(async () => {
                   if (!mounted) return;
                   
                   try {
+                    // Auto-heal: ensure users and user_roles rows exist
+                    await autoHealUserRows(currentSession.user);
+                    
                     const dbUser = await fetchUserFromDatabase(currentSession.user.id);
                     if (mounted) {
                       const finalUser = dbUser || await createFallbackUser(currentSession.user);
                       setUser(finalUser);
-                      // Do NOT redirect here - let components handle it
                     }
                   } catch (error) {
                     console.error('Error in INITIAL_SESSION user fetch:', error);
@@ -440,19 +489,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           const fullName = data.user.user_metadata?.full_name || sanitizedEmail.split('@')[0] || 'User';
           const role = data.user.user_metadata?.role || 'student';
           
-          // Create missing user profile
-          await supabase.from('users').insert({
+          // Create missing user profile (upsert to handle race conditions)
+          const { error: upsertErr } = await supabase.from('users').upsert({
             id: data.user.id,
             email: sanitizedEmail,
             full_name: fullName,
             role: role
-          }).single();
+          }, { onConflict: 'id' });
+          if (upsertErr) console.error('Auto-heal users upsert failed:', upsertErr);
           
-          // Create missing user_roles entry
-          await supabase.from('user_roles').insert({
-            user_id: data.user.id,
-            role: role
-          }).single();
+          // Create missing user_roles entry via RPC to bypass RLS
+          try {
+            await supabase.rpc('ensure_user_role', {
+              p_user_id: data.user.id,
+              p_role: role
+            });
+          } catch (rpcErr) {
+            console.error('Auto-heal user_roles RPC failed:', rpcErr);
+          }
           
           console.log('Auto-created missing user profile for:', sanitizedEmail);
         } else {
