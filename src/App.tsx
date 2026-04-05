@@ -43,6 +43,7 @@ const AssessmentResults = lazy(() => import("./components/assessment/AssessmentR
 const ContentCreatorDashboard = lazy(() => import("./pages/ContentCreatorDashboard"));
 const LessonReaderPage = lazy(() => import("./pages/student/LessonReaderPage"));
 const LessonLibraryPage = lazy(() => import("./pages/student/LessonLibraryPage"));
+const UnsubscribePage = lazy(() => import("./pages/UnsubscribePage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -92,6 +93,7 @@ const App = () => {
                       <Route path="/student-application" element={<Suspense fallback={<LoadingFallback />}><StudentApplication /></Suspense>} />
                       <Route path="/email-verification" element={<Suspense fallback={<LoadingFallback />}><EmailVerification /></Suspense>} />
                       <Route path="/reset-password" element={<Suspense fallback={<LoadingFallback />}><ResetPassword /></Suspense>} />
+                      <Route path="/unsubscribe" element={<Suspense fallback={<LoadingFallback />}><UnsubscribePage /></Suspense>} />
 
                       {/* Assessment Routes */}
                       <Route path="/assessment/:assessmentId" element={
