@@ -547,3 +547,30 @@
   animation: pulse-ring-expand 2.5s ease-in-out infinite;
 }
 
+/* Pip Character Animations */
+@keyframes pip-idle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes pip-wave {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(8deg); }
+  75% { transform: rotate(-8deg); }
+}
+@keyframes pip-jump {
+  0%, 100% { transform: translateY(0) scale(1); }
+  40% { transform: translateY(-24px) scale(1.05); }
+  60% { transform: translateY(-24px) scale(1.05); }
+}
+@keyframes pip-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+
+.animate-pip-idle { animation: pip-idle 2.5s ease-in-out infinite; }
+.animate-pip-wave { animation: pip-wave 1.5s ease-in-out infinite; }
+.animate-pip-jump { animation: pip-jump 1s ease-in-out infinite; }
+.animate-pip-shake { animation: pip-shake 0.5s ease-in-out infinite; }

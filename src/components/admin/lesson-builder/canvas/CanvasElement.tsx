@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { Trash2, Maximize2, Mic, Volume2 } from 'lucide-react';
+import { Trash2, Maximize2, Mic, Volume2, MessageCircle } from 'lucide-react';
+import pipMascotImg from '@/assets/pip-mascot.png';
 import type { CanvasElementData } from '../types';
 
 interface CanvasElementProps {
@@ -212,6 +213,30 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
             </div>
           </div>
         );
+      case 'character': {
+        const animation = element.content?.animation || 'idle';
+        const animClass = animation === 'wave' ? 'animate-pip-wave'
+          : animation === 'jump' ? 'animate-pip-jump'
+          : animation === 'shake' ? 'animate-pip-shake'
+          : 'animate-pip-idle';
+        return (
+          <div className="w-full h-full relative flex items-center justify-center">
+            <img
+              src={element.content?.src || pipMascotImg}
+              alt="Pip mascot"
+              className={`max-w-full max-h-full object-contain ${animClass}`}
+            />
+            {element.content?.speechBubble && (
+              <div className="absolute -top-2 left-1/2 -translate-x-1/2 -translate-y-full bg-white border-2 border-primary rounded-xl px-3 py-1.5 text-xs font-bold text-foreground shadow-lg max-w-[200px] text-center whitespace-pre-wrap">
+                {element.content.speechBubble}
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full w-3 h-3">
+                  <div className="w-3 h-3 bg-white border-r-2 border-b-2 border-primary rotate-45 -translate-y-1.5" />
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      }
       default:
         return <div className="w-full h-full bg-muted rounded" />;
     }
