@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GeneratedSlide } from '@/components/admin/lesson-builder/ai-wizard/types';
+import { soundEffectsService } from '@/services/soundEffectsService';
 
 interface Props {
   slide: GeneratedSlide;
@@ -24,6 +25,8 @@ export default function PlaygroundPopBubble({ slide, onCorrect, onIncorrect }: P
   const [bubbles, setBubbles] = useState<Bubble[]>([]);
   const [popped, setPopped] = useState<Set<string>>(new Set());
   const [score, setScore] = useState(0);
+  const [wrongPop, setWrongPop] = useState<string | null>(null);
+  const completedRef = useRef(false);
 
   const words = slide.content?.matchPairs?.map(p => p.word)
     || slide.content?.dragItems?.map(d => d.text)
@@ -48,18 +51,35 @@ export default function PlaygroundPopBubble({ slide, onCorrect, onIncorrect }: P
   }, []);
 
   const handlePop = useCallback((bubble: Bubble) => {
-    if (popped.has(bubble.id)) return;
-    setPopped(prev => new Set([...prev, bubble.id]));
+    if (popped.has(bubble.id) || completedRef.current) return;
+
+    const newPopped = new Set([...popped, bubble.id]);
+    setPopped(newPopped);
 
     if (bubble.isTarget) {
-      setScore(s => s + 10);
-      onCorrect();
+      const newScore = score + 10;
+      setScore(newScore);
+      soundEffectsService.playCorrect();
+
+      // Check if all targets are now popped
+      const remainingTargets = bubbles
+        .filter(b => b.isTarget && !newPopped.has(b.id));
+
+      if (remainingTargets.length === 0) {
+        completedRef.current = true;
+        // Small delay so the user sees the last pop animation
+        setTimeout(() => onCorrect(), 600);
+      }
     } else {
-      onIncorrect?.();
+      // Wrong bubble — show local shake feedback, no parent callback
+      setWrongPop(bubble.id);
+      soundEffectsService.playIncorrect();
+      setTimeout(() => setWrongPop(null), 600);
     }
-  }, [popped, onCorrect, onIncorrect]);
+  }, [popped, score, bubbles, onCorrect]);
 
   const activeBubbles = bubbles.filter(b => !popped.has(b.id));
+  const allTargetsPopped = activeBubbles.filter(b => b.isTarget).length === 0 && targetWords.length > 0;
 
   return (
     <div className="w-full h-full relative overflow-hidden rounded-3xl p-6" style={{ background: 'linear-gradient(180deg, #FFF7ED 0%, #fef3c7 100%)' }}>
@@ -93,7 +113,9 @@ export default function PlaygroundPopBubble({ slide, onCorrect, onIncorrect }: P
                 bottom: '5%',
                 width: '110px',
                 height: '110px',
-                background: `radial-gradient(circle at 35% 35%, white 0%, ${bubble.color} 50%, ${bubble.color}cc 100%)`,
+                background: wrongPop === bubble.id
+                  ? '#ef4444'
+                  : `radial-gradient(circle at 35% 35%, white 0%, ${bubble.color} 50%, ${bubble.color}cc 100%)`,
                 fontFamily: "'Quicksand', sans-serif",
                 fontWeight: 700,
                 fontSize: '1.1rem',
@@ -106,7 +128,7 @@ export default function PlaygroundPopBubble({ slide, onCorrect, onIncorrect }: P
         </AnimatePresence>
       </div>
 
-      {activeBubbles.filter(b => b.isTarget).length === 0 && targetWords.length > 0 && (
+      {allTargetsPopped && (
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
