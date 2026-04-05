@@ -128,6 +128,7 @@ export const usePlaygroundLessons = () => {
 
           // Check for canvas-based slides
           let canvasSlides: any[] | undefined;
+          let type: PlaygroundLesson['type'] = 'slide';
           if (lesson.content && typeof lesson.content === 'object') {
             const dbContent = lesson.content as Record<string, unknown>;
             const slides = dbContent.slides as any[] | undefined;
