@@ -44,6 +44,8 @@ project_id = "dcoxpyzoqjvmuuygvlme"
     verify_jwt = true
   [functions.ai-quality-checker]
     verify_jwt = true
+  [functions.ai-lesson-content-generator]
+    verify_jwt = false
   [functions.ai-slide-generator]
     verify_jwt = false
   [functions.ai-systematic-curriculum-batch]

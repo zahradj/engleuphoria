@@ -19,7 +19,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { generatePPPLesson } from './generatePPPLesson';
+import { generateTopicPackWithAI, buildPPPLessonFromPack } from './generatePPPLesson';
 import { WizardFormData, PPPLessonPlan, GeneratedSlide, HubType } from './types';
 import { Slide, CanvasElementData } from '../types';
 import { HUB_CONFIGS, resolveHub } from './hubConfig';
@@ -35,9 +35,9 @@ interface AILessonWizardProps {
 }
 
 const generationSteps = [
-  { id: 1, label: 'Analyzing topic & hub...', icon: BookOpen },
-  { id: 2, label: 'Creating vocabulary slides...', icon: GraduationCap },
-  { id: 3, label: 'Building hub-specific activities...', icon: Users },
+  { id: 1, label: 'Sending prompt to AI...', icon: BookOpen },
+  { id: 2, label: 'AI generating vocabulary & activities...', icon: GraduationCap },
+  { id: 3, label: 'Building slide structure...', icon: Users },
   { id: 4, label: 'Generating media prompts...', icon: Sparkles },
   { id: 5, label: 'Finalizing lesson plan...', icon: Check },
 ];
@@ -114,16 +114,44 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
     setIsGenerating(true);
     setCurrentStep(0);
 
-    for (let i = 0; i < generationSteps.length; i++) {
-      setCurrentStep(i + 1);
-      await new Promise(resolve => setTimeout(resolve, 600));
+    try {
+      // Step 1: Send to AI
+      setCurrentStep(1);
+      const hub = HUB_CONFIGS[resolveHub(formData.ageGroup)];
+
+      // Step 2: AI generates content
+      setCurrentStep(2);
+      const topicPack = await generateTopicPackWithAI(
+        formData.topic,
+        lessonPrompt.trim() || undefined,
+        formData.level,
+        formData.ageGroup,
+        hub
+      );
+
+      // Step 3: Build slides
+      setCurrentStep(3);
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // Step 4: Media prompts
+      setCurrentStep(4);
+      const plan = buildPPPLessonFromPack({ ...formData, lessonPrompt: lessonPrompt.trim() || undefined }, topicPack);
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      // Step 5: Finalize
+      setCurrentStep(5);
+      setGeneratedPlan(plan);
+      await new Promise(resolve => setTimeout(resolve, 400));
+    } catch (err) {
+      console.error('Generation failed:', err);
+      toast({
+        title: 'Generation Failed',
+        description: err instanceof Error ? err.message : 'Could not generate lesson content. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGenerating(false);
     }
-
-    const plan = generatePPPLesson({ ...formData, lessonPrompt: lessonPrompt.trim() || undefined });
-    setGeneratedPlan(plan);
-
-    await new Promise(resolve => setTimeout(resolve, 400));
-    setIsGenerating(false);
   };
 
   const handleGenerateImages = async () => {
