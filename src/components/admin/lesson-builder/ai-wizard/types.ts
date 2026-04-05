@@ -14,7 +14,8 @@ export type ActivityType =
   | 'case_study_input' | 'advanced_fill_blanks'
   | 'drag_and_drop_image' | 'match_sound_to_picture' | 'pop_the_word_bubble'
   | 'sentence_unscramble' | 'speed_quiz'
-  | 'case_study_analysis' | 'business_email_reply' | 'vocabulary_expansion';
+  | 'case_study_analysis' | 'business_email_reply' | 'vocabulary_expansion'
+  | 'word_bank' | 'visual_dictation' | 'time_attack' | 'executive_choice';
 
 export type SlideLayout = 'split' | 'centered' | 'bento';
 
