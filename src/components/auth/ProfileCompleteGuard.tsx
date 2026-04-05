@@ -15,6 +15,18 @@ export const ProfileCompleteGuard: React.FC<ProfileCompleteGuardProps> = ({ chil
   const [loading, setLoading] = useState(true);
   const [profileComplete, setProfileComplete] = useState(false);
 
+  // Safety timeout to prevent hanging indefinitely
+  useEffect(() => {
+    const safetyTimeout = setTimeout(() => {
+      if (loading) {
+        console.warn('⏱️ ProfileCompleteGuard safety timeout - allowing through');
+        setProfileComplete(true);
+        setLoading(false);
+      }
+    }, 8000);
+    return () => clearTimeout(safetyTimeout);
+  }, [loading]);
+
   useEffect(() => {
     const checkProfileStatus = async () => {
       if (!user || !isConfigured) {

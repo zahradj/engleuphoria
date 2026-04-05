@@ -275,19 +275,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const cleanup = initializeAuth();
      
     // Safety timeout with session recovery
+    // Reduced from 10s to 6s — faster fallback with role recovery
     const timeout = setTimeout(async () => {
-      // Don't interfere if a SIGNED_IN redirect is in progress
       if (signInRedirectRef.current) {
         console.log('⏳ Safety timeout skipped - redirect in progress');
         return;
       }
-      // Don't interfere if initial fetch already completed
       if (initialFetchDoneRef.current) {
         return;
       }
       if (mounted && loading) {
-        console.warn('Auth initialization timeout - forcing loading = false');
-        // Try to recover user from existing session
+        console.warn('Auth initialization timeout (6s) - forcing loading = false with fallback role');
         try {
           const { data: { session: currentSession } } = await supabase.auth.getSession();
           if (currentSession?.user && mounted) {
@@ -299,7 +297,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
         if (mounted) setLoading(false);
       }
-    }, 10000);
+    }, 6000);
 
     return () => {
       mounted = false;

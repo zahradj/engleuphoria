@@ -30,13 +30,16 @@ export const ImprovedProtectedRoute: React.FC<ImprovedProtectedRouteProps> = ({
   const [roleLoadTimeout, setRoleLoadTimeout] = useState(false);
   const timeoutTriggeredRef = useRef(false);
 
-  // Timeout for role loading - extended to 8 seconds to allow AuthContext to complete
+  // Timeout for role loading - fall back to metadata role instead of blocking
   useEffect(() => {
     if (user && !(user as any).role && requiredRole && requiredRole !== 'any' && !timeoutTriggeredRef.current) {
       const timeout = setTimeout(() => {
         if (!timeoutTriggeredRef.current) {
-          console.warn('⏱️ Role verification timeout - redirecting to login');
           timeoutTriggeredRef.current = true;
+          // Fall back to user metadata role or 'student' instead of redirecting to login
+          const fallbackRole = (user as any).user_metadata?.role || 'student';
+          console.warn('⏱️ Role verification timeout - falling back to:', fallbackRole);
+          (user as any).role = fallbackRole;
           setRoleLoadTimeout(true);
         }
       }, 8000);
@@ -106,10 +109,17 @@ export const ImprovedProtectedRoute: React.FC<ImprovedProtectedRouteProps> = ({
     );
   }
 
-  // If role verification timed out, redirect to login
+  // If role verification timed out but we have a fallback role, let them through
+  // Only redirect to login if there's genuinely no session
   if (requiredRole && requiredRole !== 'any' && !userRole && roleLoadTimeout) {
-    console.warn('🚫 Role verification failed - redirecting to login');
-    return <Navigate to="/login" replace />;
+    const fallbackRole = (user as any).user_metadata?.role || 'student';
+    console.warn('⏱️ Role timeout fallback to:', fallbackRole);
+    // If the fallback role matches the required role, proceed
+    if (fallbackRole === requiredRole) {
+      return <>{children}</>;
+    }
+    // Otherwise redirect to dashboard for re-routing
+    return <Navigate to="/dashboard" replace />;
   }
 
   // Check role if required
