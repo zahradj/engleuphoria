@@ -217,23 +217,3 @@ export async function massGenerateImages(
     durationMs: Date.now() - startTime,
   };
 }
-
-        await supabase
-          .from('curriculum_lessons')
-          .update({ content: updatedContent, duration_minutes: plan.totalMinutes } as any)
-          .eq('id', plan.lessonId);
-      }
-    } catch (err) {
-      console.error('Failed to save image URLs to lesson:', err);
-    }
-  }
-
-  return {
-    lessonId: plan.lessonId,
-    totalSlides: plan.totalSlides,
-    successCount,
-    failedCount,
-    images: progress,
-    durationMs: Date.now() - startTime,
-  };
-}
