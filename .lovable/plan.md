@@ -1,80 +1,79 @@
 
 
-## Plan: Canva-Style Content Studio Redesign
+## Plan: Pip Mascot + Interactive Canvas Lesson Player
 
-### Problem
-The current slide builder is cramped. The canvas competes with a 224px slide organizer, 64px element toolbar, browser toggle panels, and AI buttons stacked in the sidebar. The 1920x1080 canvas scales down to a tiny fraction of the viewport, making editing nearly impossible.
+### Overview
+Two major additions: (1) Add Pip as a placeable mascot character element in the Slide Builder with preset animations. (2) Build a new Canvas Lesson Player that renders slides created in the builder as interactive, game-like scenes with click-to-answer, drag-and-drop, feedback animations, sound effects, and progression tracking.
 
-### Solution
-Rebuild the layout to follow a Canva-like paradigm: maximize the canvas, collapse the slide strip to a thin filmstrip, move element tools into a compact left sidebar, and keep properties as a floating panel only when needed.
+### Part 1: Pip Mascot in the Slide Builder
 
-### Layout Changes
+**Copy the uploaded image** into `src/assets/pip-mascot.png` and make it available as a new canvas element type.
 
-```text
-BEFORE:
-[toggle|CurriculumBrowser(224px)|SlideOrganizer(224px)+AI buttons|ElementToolbar(64px)|Canvas(remaining)|toggle|RightPanel(288px)]
+- **`types.ts`** — Add `'character'` to `CanvasElementType`
+- **`ElementToolbar.tsx`** — Add a "Character" button (using a bird/mascot icon) that places Pip on the canvas
+- **`CanvasEditor.tsx`** — Add default size for `character` type (250x300), default content `{ name: 'pip', animation: 'wave', src: '/pip-mascot.png' }`
+- **`CanvasElement.tsx`** — Render `character` type: shows the Pip image with a CSS animation class (wave = rotate bounce, jump = translateY bounce, idle = subtle float)
+- **`PropertiesPanel.tsx`** — Character section: select animation preset (idle, wave, jump, shake), optional speech bubble text field
 
-AFTER:
-[Slim Toolbar(56px) | Slide Filmstrip(100px) | ======= FULL CANVAS ======= ]
-                                                  (floating props when selected)
-                                                  (top action bar for AI/save/preview)
-```
+### Part 2: Interactive Canvas Lesson Player
 
-**1. Compact left sidebar — merge Element Toolbar + Slide Filmstrip**
-- **`AdminLessonEditor.tsx`** — Remove the separate `SlideOrganizer` (224px) and browser/right-panel toggle columns. Replace with a single slim left panel (~160px) containing:
-  - A mini filmstrip of slide thumbnails (small 16:9 cards, ~120px wide) at the top with add/reorder/delete
-  - The element toolbar buttons below the filmstrip (in a grid, 2 columns)
-  - AI generate buttons at the very bottom (compact icons)
-- Curriculum browser and blueprint/guide become overlay drawers triggered by top-bar buttons, not permanent sidebars
+A new full-screen student-facing component that takes the slides created in the builder and renders them as interactive scenes.
 
-**2. Maximize the canvas**
-- **`CanvasEditor.tsx`** — Remove the `ElementToolbar` from inside CanvasEditor (it moves to the parent layout). The canvas viewport now takes 100% of the remaining space. Remove the `max scale = 1` cap so the canvas can fill the viewport. Use absolute centering per the slides-app skill:
-  ```css
-  position: absolute; left: 50%; top: 50%;
-  margin-left: -960px; margin-top: -540px;
-  transform: scale(var(--scale));
-  ```
+**New file: `src/components/student/CanvasLessonPlayer.tsx`**
 
-**3. Floating properties panel — already floating, just improve**
-- **`PropertiesPanel.tsx`** — Already floating. Make it draggable with a grip handle so the user can move it out of the way. Increase max-height to 80vh.
+This player:
+- Renders each slide at 1920x1080 scaled to viewport (reusing the same scaling logic)
+- Shows a progress bar at the top
+- Renders canvas elements but makes interactive ones (quiz, matching, drag-drop, fill-blank, sorting, sentence-builder) actually playable
+- Plays audio elements automatically or on click
+- Shows Pip character with animations
+- Provides immediate feedback (correct = confetti + sound + Pip jumps, wrong = shake + sound + Pip shakes)
+- Blocks "Next" until the interactive activity on the slide is completed
+- Tracks score across slides
+- Shows celebration screen at the end with stars based on score
 
-**4. Top action bar**
-- **`AdminLessonEditor.tsx`** — Merge `LessonHeader` actions + AI buttons + curriculum/blueprint toggles into a single compact top bar with icon buttons:
-  - Left: Lesson title (editable inline), level badge
-  - Center: Curriculum browser toggle, Blueprint toggle (open as slide-over drawers)
-  - Right: AI Generate, Save, Preview, Publish buttons
+**Rendering logic per element type:**
 
-**5. Slide filmstrip (replaces SlideOrganizer)**
-- Create a new slim `SlideFilmstrip.tsx` component (~160px wide) with:
-  - Vertical scroll of mini 16:9 thumbnails (~120px wide)
-  - Click to select, drag to reorder, hover to show delete
-  - "+" button at bottom to add slide
-  - Upload overlay on hover (same as current)
+| Element | Behavior in Player |
+|---|---|
+| text, image, shape, video | Static display (same as preview) |
+| character | Animated Pip with selected animation |
+| audio | Auto-play or tap-to-play with speaker icon |
+| quiz | Clickable options, green/red feedback, blocks progression until correct |
+| matching | Tap left item then tap right item to match, lines drawn between matched pairs |
+| drag-drop | Draggable items into drop zones |
+| fill-blank | Text input field in the blank, validate on submit |
+| sorting | Drag items to reorder, check button validates order |
+| sentence-builder | Tap words to build sentence in order, tap to remove |
 
-**6. Curriculum & Blueprint as overlay drawers**
-- Curriculum browser opens as a left slide-over drawer (over the canvas) when toggled
-- Blueprint/Guide opens as a right slide-over drawer when toggled
-- Both close with X or clicking outside
+**New file: `src/components/student/CanvasLessonPlayerModal.tsx`**
+- Wraps the player in a full-screen modal with close button
+- Accepts slides array + lesson metadata
+- Calls `onComplete` with score when finished
+
+**Integration:**
+- Update `LessonPlayerModal.tsx` (kids) to detect canvas-based lessons (those with `canvasElements`) and route to the new `CanvasLessonPlayer` instead of the current simple renderers
+- Update `LessonPlayer.tsx` similarly for teens/adults
 
 ### Technical Details
 
 | File | Change |
 |---|---|
-| `AdminLessonEditor.tsx` | Restructure to: top action bar + left filmstrip + full canvas. Curriculum/Blueprint become overlay drawers. Move AI buttons to top bar. |
-| `SlideFilmstrip.tsx` (new) | Slim vertical filmstrip with mini thumbnails, drag-reorder, upload overlay |
-| `CanvasEditor.tsx` | Remove ElementToolbar render. Accept `onAddElement` via props or keep toolbar external. Remove scale cap. Use absolute centering. |
-| `ElementToolbar.tsx` | Refactor to horizontal/grid layout that fits inside the left panel below the filmstrip |
-| `PropertiesPanel.tsx` | Add drag handle for repositioning |
-| `SlideOrganizer.tsx` | Deprecated — replaced by SlideFilmstrip |
-| `CurriculumBrowser.tsx` | Wrap in a drawer/sheet component |
-| `LessonBlueprint.tsx` | Wrap in a drawer/sheet component |
+| `src/assets/pip-mascot.png` | Copy uploaded Pip image |
+| `types.ts` | Add `'character'` to `CanvasElementType` |
+| `ElementToolbar.tsx` | Add Character button |
+| `CanvasEditor.tsx` | Default size + content for character |
+| `CanvasElement.tsx` | Character renderer with CSS animations |
+| `PropertiesPanel.tsx` | Animation selector + speech bubble for character |
+| `CanvasLessonPlayer.tsx` (new) | Full interactive player rendering canvas elements as playable activities |
+| `CanvasLessonPlayerModal.tsx` (new) | Modal wrapper with progress, score, celebration |
+| `LessonPlayerModal.tsx` | Route canvas-based lessons to new player |
+| `LessonPlayer.tsx` | Route canvas-based lessons to new player |
 
-### Files to create
-- `src/components/admin/lesson-builder/SlideFilmstrip.tsx`
-
-### Files to modify
-- `src/components/admin/lesson-builder/AdminLessonEditor.tsx`
-- `src/components/admin/lesson-builder/canvas/CanvasEditor.tsx`
-- `src/components/admin/lesson-builder/canvas/ElementToolbar.tsx`
-- `src/components/admin/lesson-builder/canvas/PropertiesPanel.tsx`
+### Animation CSS
+Add keyframes to `index.css` for character animations:
+- `@keyframes pip-wave` — gentle arm wave (rotate)
+- `@keyframes pip-jump` — bounce up and down
+- `@keyframes pip-idle` — subtle floating
+- `@keyframes pip-shake` — horizontal shake (wrong answer)
 
