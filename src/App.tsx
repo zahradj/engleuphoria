@@ -44,6 +44,7 @@ const ContentCreatorDashboard = lazy(() => import("./pages/ContentCreatorDashboa
 const LessonReaderPage = lazy(() => import("./pages/student/LessonReaderPage"));
 const LessonLibraryPage = lazy(() => import("./pages/student/LessonLibraryPage"));
 const UnsubscribePage = lazy(() => import("./pages/UnsubscribePage"));
+const FindTeacher = lazy(() => import("./pages/student/FindTeacher"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -121,6 +122,13 @@ const App = () => {
                       <Route path="/hub/*" element={
                         <ImprovedProtectedRoute requiredRole="student">
                           <Suspense fallback={<LoadingFallback />}><StudentDashboard /></Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
+                      
+                      {/* Find Teacher - Student Protected */}
+                      <Route path="/find-teacher" element={
+                        <ImprovedProtectedRoute requiredRole="student">
+                          <Suspense fallback={<LoadingFallback />}><FindTeacher /></Suspense>
                         </ImprovedProtectedRoute>
                       } />
                       

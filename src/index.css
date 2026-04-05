@@ -574,3 +574,9 @@
 .animate-pip-wave { animation: pip-wave 1.5s ease-in-out infinite; }
 .animate-pip-jump { animation: pip-jump 1s ease-in-out infinite; }
 .animate-pip-shake { animation: pip-shake 0.5s ease-in-out infinite; }
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}

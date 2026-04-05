@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { CalendarCore } from "./calendar/modern/CalendarCore";
 import { SlotManager } from "./calendar/modern/SlotManager";
 import { SyncStatusBadge } from "./calendar/SyncStatusBadge";
+import { LiveNowToggle } from "./LiveNowToggle";
 import { useTeacherAvailability } from "@/hooks/useTeacherAvailability";
 import { getWeekDays } from "@/utils/timezoneUtils";
 
@@ -63,9 +64,12 @@ export const EnhancedCalendarTab = ({ teacherId }: EnhancedCalendarTabProps) => 
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <h2 className="text-2xl font-bold">My Availability</h2>
-        <SyncStatusBadge teacherId={teacherId} />
+        <div className="flex items-center gap-3">
+          <LiveNowToggle teacherId={teacherId} />
+          <SyncStatusBadge teacherId={teacherId} />
+        </div>
       </div>
 
       <CalendarCore
