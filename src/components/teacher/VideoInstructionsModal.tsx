@@ -219,6 +219,19 @@ export const VideoInstructionsModal: React.FC<VideoInstructionsModalProps> = ({
           </Tabs>
         </div>
 
+        <div className="space-y-4 rounded-lg border bg-muted/30 p-4">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            📸 Professional Photo Requirements
+          </h3>
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <p>• Use a <strong className="text-foreground">plain white background</strong> — no patterns, no clutter.</p>
+            <p>• Wear <strong className="text-foreground">professional attire</strong> (business casual or smart casual).</p>
+            <p>• Ensure your face is <strong className="text-foreground">well-lit and clearly visible</strong> — natural daylight or a ring light works best.</p>
+            <p>• Frame from the chest up, centered, with a friendly and confident expression.</p>
+            <p>• Use a high-resolution image (minimum 400×400 px). No filters or heavy editing.</p>
+          </div>
+        </div>
+
         <div className="space-y-2">
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             💡 Top 5 Filming Tips

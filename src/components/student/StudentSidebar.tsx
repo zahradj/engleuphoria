@@ -1,5 +1,6 @@
 import React from 'react';
 import { Badge } from "@/components/ui/badge";
+import { Logo } from '@/components/Logo';
 import { 
   Home, 
   BookOpen, 
@@ -72,8 +73,8 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
     <Sidebar collapsible="icon" className="border-r border-border bg-white">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-sm font-medium text-text-muted uppercase tracking-wider px-4 py-4 bg-surface-soft mx-2 mt-2 rounded-lg">
-            🎓 Student Hub
+          <SidebarGroupLabel className="text-sm font-medium text-text-muted px-4 py-4 bg-surface-soft mx-2 mt-2 rounded-lg">
+            <Logo size="small" />
           </SidebarGroupLabel>
           <SidebarGroupContent className="mt-2">
             <SidebarMenu>

@@ -5,6 +5,7 @@ import { Bell, Search, UserCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AdminNotificationCenter } from './AdminNotificationCenter';
 import { ThemeModeToggle } from '@/components/ui/ThemeModeToggle';
+import { Logo } from '@/components/Logo';
 
 export const AdminHeader = () => {
   const { user, signOut } = useAuth();
@@ -12,9 +13,12 @@ export const AdminHeader = () => {
   return (
     <header className="bg-card border-b border-border px-6 py-4 shadow-sm">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Manage your English learning platform</p>
+        <div className="flex items-center gap-4">
+          <Logo size="small" />
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
+            <p className="text-muted-foreground">Manage your English learning platform</p>
+          </div>
         </div>
         
         <div className="flex items-center gap-4">

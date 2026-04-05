@@ -203,7 +203,7 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
-  const canSubmit = formData.bio.trim() && formData.videoUrl.trim() && isValidVideoUrl;
+  const canSubmit = formData.bio.trim() && formData.videoUrl.trim() && isValidVideoUrl && formData.profileImageUrl && formData.certificateUrls.length > 0;
 
   return (
     <Dialog open={true}>
@@ -249,7 +249,7 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
             </div>
             <div>
               <p className="font-medium">{teacherName}</p>
-              <p className="text-sm text-muted-foreground">Upload a professional photo</p>
+              <p className="text-sm text-muted-foreground">Upload a professional headshot with a plain white background *</p>
             </div>
           </div>
 
@@ -313,7 +313,7 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
               <FileCheck className="w-4 h-4" />
-              Certificates & Documents (Optional)
+              Certificates & Documents *
             </Label>
             <div className="border-2 border-dashed rounded-lg p-4 text-center">
               <input
