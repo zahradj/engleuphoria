@@ -287,7 +287,7 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
 
             <MaterialsGallery track="adults" />
 
-            <RecommendedTeachers isDarkMode={isDarkMode} />
+            <RecommendedTeachers isDarkMode={isDarkMode} hubLevel="professional" />
 
             {/* Schedule Executive Briefing CTA */}
             <button
