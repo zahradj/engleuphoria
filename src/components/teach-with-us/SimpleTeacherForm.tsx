@@ -168,6 +168,24 @@ const SimpleTeacherForm = forwardRef<HTMLDivElement>((_, ref) => {
 
       if (error) throw error;
 
+      // Send "Application Received" confirmation email
+      try {
+        const applicationId = crypto.randomUUID();
+        await supabase.functions.invoke('send-transactional-email', {
+          body: {
+            templateName: 'application-received',
+            recipientEmail: formData.email,
+            idempotencyKey: `app-received-${applicationId}`,
+            templateData: {
+              name: `${formData.firstName} ${formData.lastName}`,
+              hubSelection: formData.primaryLanguage || undefined,
+            },
+          },
+        });
+      } catch (emailError) {
+        console.log('Confirmation email could not be sent:', emailError);
+      }
+
       // Success!
       setIsSuccess(true);
       confetti({

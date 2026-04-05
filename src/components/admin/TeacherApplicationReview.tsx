@@ -66,12 +66,14 @@ interface InterviewEmailTemplate {
 }
 
 const stageConfig: Record<string, { label: string; color: string; variant: "default" | "destructive" | "outline" | "secondary" }> = {
+  'application_received': { label: 'New Application', color: 'bg-blue-100 text-blue-800', variant: 'outline' },
   'application_submitted': { label: 'Pending Review', color: 'bg-yellow-100 text-yellow-800', variant: 'outline' },
+  'under_review': { label: 'Under Review', color: 'bg-orange-100 text-orange-800', variant: 'secondary' },
   'documents_review': { label: 'Documents Under Review', color: 'bg-blue-100 text-blue-800', variant: 'secondary' },
   'interview_pending': { label: 'Interview Pending', color: 'bg-purple-100 text-purple-800', variant: 'secondary' },
   'interview_scheduled': { label: 'Interview Scheduled', color: 'bg-indigo-100 text-indigo-800', variant: 'secondary' },
   'interview_completed': { label: 'Interview Completed', color: 'bg-cyan-100 text-cyan-800', variant: 'secondary' },
-  'approved': { label: 'Approved', color: 'bg-green-100 text-green-800', variant: 'default' },
+  'approved': { label: 'Active', color: 'bg-green-100 text-green-800', variant: 'default' },
   'rejected': { label: 'Rejected', color: 'bg-red-100 text-red-800', variant: 'destructive' },
 };
 
