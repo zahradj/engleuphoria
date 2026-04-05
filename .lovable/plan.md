@@ -1,79 +1,44 @@
 
 
-## Plan: Pip Mascot + Interactive Canvas Lesson Player
+## Plan: Auto-Load Lessons in Slide Builder + Maximize Canvas
 
-### Overview
-Two major additions: (1) Add Pip as a placeable mascot character element in the Slide Builder with preset animations. (2) Build a new Canvas Lesson Player that renders slides created in the builder as interactive, game-like scenes with click-to-answer, drag-and-drop, feedback animations, sound effects, and progression tracking.
+### Problem
+1. When the user selects a curriculum in Step 1 and moves to Step 2 (Slide Builder), the slides don't appear — the builder opens empty. The curriculum context from Step 1 is never passed to the editor.
+2. The canvas is still too small because the filmstrip (140px) + element toolbar (120px) = 260px eaten from the left, plus the header and stepper take vertical space.
 
-### Part 1: Pip Mascot in the Slide Builder
+### Changes
 
-**Copy the uploaded image** into `src/assets/pip-mascot.png` and make it available as a new canvas element type.
+**1. Pass curriculum context to the Slide Builder and auto-load the first lesson**
 
-- **`types.ts`** — Add `'character'` to `CanvasElementType`
-- **`ElementToolbar.tsx`** — Add a "Character" button (using a bird/mascot icon) that places Pip on the canvas
-- **`CanvasEditor.tsx`** — Add default size for `character` type (250x300), default content `{ name: 'pip', animation: 'wave', src: '/pip-mascot.png' }`
-- **`CanvasElement.tsx`** — Render `character` type: shows the Pip image with a CSS animation class (wave = rotate bounce, jump = translateY bounce, idle = subtle float)
-- **`PropertiesPanel.tsx`** — Character section: select animation preset (idle, wave, jump, shake), optional speech bubble text field
+- **`ContentCreatorDashboard.tsx`** — Pass `curriculumContext` to `AdminLessonEditor` as a prop
+- **`AdminLessonEditor.tsx`** — Accept optional `curriculumContext` prop. On mount (or when context changes), auto-query `curriculum_lessons` filtered by the selected level/system and load the first lesson's slides into the editor. Also auto-open the Curriculum Browser sheet pre-filtered to the selected system so the user can pick a different lesson.
 
-### Part 2: Interactive Canvas Lesson Player
+**2. Collapse the element toolbar into the filmstrip**
 
-A new full-screen student-facing component that takes the slides created in the builder and renders them as interactive scenes.
+Instead of a separate 120px column for element tools, merge them into the filmstrip panel:
+- **`AdminLessonEditor.tsx`** — Remove the separate `ElementToolbar` column. Add element buttons as a compact row or expandable section at the bottom of the filmstrip.
+- **`SlideFilmstrip.tsx`** — Add an "Add Element" expandable section at the bottom with icon buttons in a single row. Reduce filmstrip width to 120px.
+- This saves 120px for the canvas.
 
-**New file: `src/components/student/CanvasLessonPlayer.tsx`**
+**3. Hide the stepper when in Slide Builder (Step 2)**
 
-This player:
-- Renders each slide at 1920x1080 scaled to viewport (reusing the same scaling logic)
-- Shows a progress bar at the top
-- Renders canvas elements but makes interactive ones (quiz, matching, drag-drop, fill-blank, sorting, sentence-builder) actually playable
-- Plays audio elements automatically or on click
-- Shows Pip character with animations
-- Provides immediate feedback (correct = confetti + sound + Pip jumps, wrong = shake + sound + Pip shakes)
-- Blocks "Next" until the interactive activity on the slide is completed
-- Tracks score across slides
-- Shows celebration screen at the end with stars based on score
+- **`ContentCreatorDashboard.tsx`** — When `currentStep === 2`, hide the `ContentCreatorStepper` component entirely. The slide builder already has its own top bar with Back/Publish navigation. This saves ~48px of vertical space.
 
-**Rendering logic per element type:**
+**4. Make the filmstrip collapsible**
 
-| Element | Behavior in Player |
-|---|---|
-| text, image, shape, video | Static display (same as preview) |
-| character | Animated Pip with selected animation |
-| audio | Auto-play or tap-to-play with speaker icon |
-| quiz | Clickable options, green/red feedback, blocks progression until correct |
-| matching | Tap left item then tap right item to match, lines drawn between matched pairs |
-| drag-drop | Draggable items into drop zones |
-| fill-blank | Text input field in the blank, validate on submit |
-| sorting | Drag items to reorder, check button validates order |
-| sentence-builder | Tap words to build sentence in order, tap to remove |
-
-**New file: `src/components/student/CanvasLessonPlayerModal.tsx`**
-- Wraps the player in a full-screen modal with close button
-- Accepts slides array + lesson metadata
-- Calls `onComplete` with score when finished
-
-**Integration:**
-- Update `LessonPlayerModal.tsx` (kids) to detect canvas-based lessons (those with `canvasElements`) and route to the new `CanvasLessonPlayer` instead of the current simple renderers
-- Update `LessonPlayer.tsx` similarly for teens/adults
+- **`AdminLessonEditor.tsx`** — Add a toggle button to collapse/expand the filmstrip panel. When collapsed, only show a thin strip (~32px) with a small expand arrow and the slide number. This gives the canvas nearly full width.
 
 ### Technical Details
 
 | File | Change |
 |---|---|
-| `src/assets/pip-mascot.png` | Copy uploaded Pip image |
-| `types.ts` | Add `'character'` to `CanvasElementType` |
-| `ElementToolbar.tsx` | Add Character button |
-| `CanvasEditor.tsx` | Default size + content for character |
-| `CanvasElement.tsx` | Character renderer with CSS animations |
-| `PropertiesPanel.tsx` | Animation selector + speech bubble for character |
-| `CanvasLessonPlayer.tsx` (new) | Full interactive player rendering canvas elements as playable activities |
-| `CanvasLessonPlayerModal.tsx` (new) | Modal wrapper with progress, score, celebration |
-| `LessonPlayerModal.tsx` | Route canvas-based lessons to new player |
-| `LessonPlayer.tsx` | Route canvas-based lessons to new player |
+| `ContentCreatorDashboard.tsx` | Pass `curriculumContext` to `AdminLessonEditor`, hide stepper on step 2 |
+| `AdminLessonEditor.tsx` | Accept `curriculumContext` prop, auto-load first lesson on mount, merge toolbar into filmstrip, add filmstrip collapse toggle |
+| `SlideFilmstrip.tsx` | Add element toolbar buttons at bottom, reduce width to 120px |
 
-### Animation CSS
-Add keyframes to `index.css` for character animations:
-- `@keyframes pip-wave` — gentle arm wave (rotate)
-- `@keyframes pip-jump` — bounce up and down
-- `@keyframes pip-idle` — subtle floating
-- `@keyframes pip-shake` — horizontal shake (wrong answer)
+### Result
+- Selecting a curriculum in Step 1 and clicking "Next" will immediately show the lesson's slides on the canvas
+- The canvas gets ~170px more horizontal space and ~48px more vertical space
+- Element tools are still accessible from the filmstrip panel
+- The filmstrip can be collapsed for even more canvas space
 
