@@ -24,83 +24,97 @@ export default function SlideVocabulary({ slide, hub }: Props) {
         New Vocabulary
       </h2>
 
-      {/* 3D Flip Flashcard — wider */}
+      {/* Vertical Rectangle Flashcard */}
       <div
-        className="w-full cursor-pointer"
-        style={{ perspective: 1000, minHeight: hasImage ? 380 : 280 }}
+        className="cursor-pointer"
+        style={{ perspective: 1200, width: 320, height: 460 }}
         onClick={() => setFlipped((f) => !f)}
       >
         <motion.div
-          className="relative w-full"
-          style={{ transformStyle: 'preserve-3d', minHeight: hasImage ? 380 : 280 }}
+          className="relative w-full h-full"
+          style={{ transformStyle: 'preserve-3d' }}
           animate={{ rotateY: flipped ? 180 : 0 }}
           transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
         >
           {/* ── FRONT: Word + Image ── */}
           <div
-            className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-[20px] p-6 overflow-hidden"
+            className="absolute inset-0 flex flex-col items-center justify-between rounded-2xl p-5 overflow-hidden"
             style={{
               backfaceVisibility: 'hidden',
               background: hub === 'playground'
-                ? 'linear-gradient(135deg, #FF9F1C, #FFBF00)'
+                ? '#fffcf0'
                 : hub === 'academy'
                   ? '#1e1b4b'
-                  : '#fff',
-              border: hub === 'academy' ? '2px solid #6366f1' : '1px solid rgba(0,0,0,0.06)',
-              boxShadow: '0 20px 50px rgba(0,0,0,0.1)',
+                  : '#ffffff',
+              border: hub === 'academy'
+                ? '1.5px solid #6366f1'
+                : '1.5px solid rgba(0,0,0,0.08)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.10)',
               color: hub === 'playground' ? '#1a1a2e' : hub === 'academy' ? '#e2e8f0' : '#1e293b',
             }}
           >
-            {hasImage && (
-              <motion.img
-                src={slide.imageUrl}
-                alt={word}
-                className="w-full max-h-44 object-cover rounded-xl"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4 }}
-              />
-            )}
-            <span className="text-4xl font-bold">{word}</span>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={(e) => { e.stopPropagation(); }}
-                className="w-9 h-9 rounded-full flex items-center justify-center bg-black/10 hover:bg-black/20 transition-colors"
-              >
-                <Volume2 size={18} />
-              </button>
-              <span className="text-xs opacity-40">Tap to flip</span>
+            {/* Image area — prominent */}
+            <div className="w-full flex-1 min-h-0 flex items-center justify-center rounded-xl overflow-hidden bg-black/5" style={{ maxHeight: 240 }}>
+              {hasImage ? (
+                <motion.img
+                  src={slide.imageUrl}
+                  alt={word}
+                  className="w-full h-full object-cover"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.4 }}
+                />
+              ) : (
+                <div className="flex items-center justify-center w-full h-full text-6xl opacity-30">📷</div>
+              )}
             </div>
-            {hub === 'playground' && !hasImage && <PipMascot size={56} animation="wave" />}
+
+            {/* Word */}
+            <div className="mt-3 flex flex-col items-center gap-1">
+              <span className="text-3xl font-bold leading-tight">{word}</span>
+              <div className="flex items-center gap-2 mt-1">
+                <button
+                  onClick={(e) => { e.stopPropagation(); }}
+                  className="w-8 h-8 rounded-full flex items-center justify-center bg-black/10 hover:bg-black/20 transition-colors"
+                >
+                  <Volume2 size={16} />
+                </button>
+                <span className="text-[11px] opacity-40">Tap to flip</span>
+              </div>
+            </div>
+
+            {hub === 'playground' && !hasImage && <PipMascot size={48} animation="wave" />}
           </div>
 
           {/* ── BACK: Definition + Example ── */}
           <div
-            className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-[20px] p-6 overflow-hidden"
+            className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-2xl p-5 overflow-hidden"
             style={{
               backfaceVisibility: 'hidden',
               transform: 'rotateY(180deg)',
               background: hub === 'playground'
-                ? 'linear-gradient(135deg, #FFBF00, #FF9F1C)'
+                ? '#fff8e1'
                 : hub === 'academy'
                   ? '#312e81'
                   : '#f8fafc',
-              border: hub === 'academy' ? '2px solid #818cf8' : '1px solid rgba(0,0,0,0.06)',
-              boxShadow: '0 20px 50px rgba(0,0,0,0.1)',
+              border: hub === 'academy'
+                ? '1.5px solid #818cf8'
+                : '1.5px solid rgba(0,0,0,0.08)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.10)',
               color: hub === 'playground' ? '#1a1a2e' : hub === 'academy' ? '#e2e8f0' : '#1e293b',
             }}
           >
             {definition && (
               <div className="text-center">
-                <span className="text-xs uppercase tracking-widest opacity-40 block mb-1">Definition</span>
-                <span className="text-xl font-semibold">{definition}</span>
+                <span className="text-[10px] uppercase tracking-widest opacity-40 block mb-1">Definition</span>
+                <span className="text-lg font-semibold leading-snug">{definition}</span>
               </div>
             )}
 
             {sentence && (
-              <div className="px-4 py-3 rounded-xl bg-black/10 w-full text-center">
-                <span className="text-xs uppercase tracking-widest opacity-40 block mb-1">Example</span>
-                <span className="text-base italic">"{sentence}"</span>
+              <div className="px-3 py-2.5 rounded-xl bg-black/8 w-full text-center">
+                <span className="text-[10px] uppercase tracking-widest opacity-40 block mb-1">Example</span>
+                <span className="text-sm italic leading-snug">"{sentence}"</span>
               </div>
             )}
 
@@ -108,13 +122,13 @@ export default function SlideVocabulary({ slide, hub }: Props) {
               <img
                 src={slide.imageUrl}
                 alt={word}
-                className="w-28 h-28 object-cover rounded-xl opacity-80"
+                className="w-24 h-24 object-cover rounded-xl opacity-80"
                 loading="lazy"
               />
             )}
 
-            {hub === 'playground' && !hasImage && <PipMascot size={48} animation="celebrate" />}
-            <span className="text-xs opacity-40">Tap to flip back</span>
+            {hub === 'playground' && !hasImage && <PipMascot size={40} animation="celebrate" />}
+            <span className="text-[10px] opacity-40">Tap to flip back</span>
           </div>
         </motion.div>
       </div>

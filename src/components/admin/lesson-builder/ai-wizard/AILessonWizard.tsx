@@ -161,10 +161,10 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
     setImageProgress({ completed: 0, total: 0, current: 'Starting...' });
 
     try {
-      // Collect slides that have media prompts (skip activity-only slides)
+      // Collect slides that have media prompts — include activities for AI images
       const slidesForImages = generatedPlan.slides
-        .filter(s => s.mediaPrompt && s.slideType !== 'activity' && s.slideType !== 'game')
-        .slice(0, 8); // Limit to 8 images to avoid rate limits
+        .filter(s => s.mediaPrompt)
+        .slice(0, 12); // Allow up to 12 images
 
       const imageMap = await generateLessonImages(
         slidesForImages.map(s => ({ id: s.id, mediaPrompt: s.mediaPrompt!, mediaType: s.mediaType })),
