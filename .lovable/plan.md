@@ -1,80 +1,135 @@
 
 
-# Fix: Teacher Profile Submission, Photo Upload, and Certificate Removal
+# Fix Profile Save, Mandatory Uploads, Photo Instructions, and Logo Everywhere
 
-## Problems Identified
+## Problem Analysis
 
-1. **Profile submission fails ("Failed to save profile")**: The `upsert` on `teacher_profiles` does an INSERT for new profiles. The `update_teacher_profile_completion` trigger references `OLD` which is NULL on INSERT, potentially causing errors. Additionally, the code sets `profile_complete: true` but the trigger overrides it by recalculating based on bio/video_url fields.
+### 1. Profile Save Still Failing
+After tracing through ~10+ migrations touching `teacher_profiles` RLS policies, the table has accumulated **multiple overlapping and potentially conflicting policies** from different migration waves. Key findings:
+- Migration `20250914225913` creates a `FOR ALL` policy with `WITH CHECK`
+- Migration `20250914230448` creates ANOTHER `FOR ALL` policy (without `CREATE POLICY IF NOT EXISTS`)
+- Multiple audit triggers (`audit_teacher_profiles`, `enhanced_audit_teacher_profiles`) both fire on INSERT
+- The `trigger_security_audit` function and `log_security_audit` function are both attached, potentially causing conflicts
 
-2. **Photo upload not displaying**: The `teacher-certificates` bucket is **private** (`public = false`), so `getPublicUrl()` returns a URL that is not accessible. The bucket also lacks an **UPDATE** storage policy, which the photo upload needs (it uses `upsert: true`).
+**Root cause**: Accumulated duplicate/conflicting RLS policies. PostgreSQL can behave unpredictably when multiple overlapping policies exist for the same role and operation.
 
-3. **No option to remove certificates**: The UI has no remove button, and there is no **DELETE** storage policy on the bucket.
+### 2. Certificates/Photo Not Mandatory
+Line 316 says "Certificates & Documents (Optional)" and line 206 `canSubmit` only checks `bio` and `videoUrl`.
+
+### 3. No Logo in School OS Pages
+- **TeacherTopNav**: Shows a `GraduationCap` icon + "School OS" text instead of the Engleuphoria logo
+- **AdminSidebar**: Shows a generic emoji icon + "Control Tower" text
+- **AdminHeader**: Shows "Admin Dashboard" text only
+- **StudentSidebar**: No logo present
+- **MinimalStudentHeader**: No logo present
+
+---
 
 ## Plan
 
-### Step 1: Database Migration — Fix Storage and Profile Policies
+### Step 1: Database Migration -- Clean RLS Policies
 
-A single migration to:
-- Make the `teacher-certificates` bucket **public** so `getPublicUrl()` works for displaying photos and certificates
-- Add an **UPDATE** storage policy so teachers can re-upload their profile photo (`upsert: true`)
-- Add a **DELETE** storage policy so teachers can remove uploaded certificates
-- Fix `update_teacher_profile_completion` trigger to handle INSERT (when `OLD` is NULL) gracefully
+Create a migration that:
+- **Drops ALL existing** `teacher_profiles` policies by name (list every known policy name from all migrations)
+- **Recreates exactly 3 clean policies**:
+  - `"Teachers can manage own profile"` FOR ALL with `USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid())`
+  - `"Authenticated users can view approved teachers"` FOR SELECT with proper conditions
+  - `"Admins can manage all teacher profiles"` FOR ALL using `public.has_role(auth.uid(), 'admin')` (avoids querying `users` table which has its own RLS)
 
-### Step 2: Fix ProfileOnboardingModal.tsx — Certificate Removal + Robust Submission
+### Step 2: Fix ProfileOnboardingModal.tsx -- Robust Save + Mandatory Uploads
 
-- Add a remove button (X) next to each uploaded certificate that:
-  - Deletes the file from Supabase Storage
-  - Removes the URL from the local state array
-- Improve the `handleSubmit` to handle potential trigger conflicts by not setting `profile_complete` directly — let the trigger handle it, or use a two-step approach (insert first, then update)
+- **Better error logging**: Add `.select()` to the insert call and log the actual error object to help debug
+- **Mandatory photo**: Add validation that `profileImageUrl` is set before submission
+- **Mandatory certificates**: Add validation that `certificateUrls` has at least one entry
+- **Update labels**: Change "Certificates & Documents (Optional)" to "Certificates & Documents *" (required)
+- **Update `canSubmit`**: Add `formData.profileImageUrl` and `formData.certificateUrls.length > 0` checks
+- **Photo instructions**: Add instruction text: "Upload a professional headshot with a plain white background"
 
-### Step 3: Fix Photo Display
+### Step 3: Fix ProfileSetupTab.tsx -- Matching Mandatory Requirements
 
-- Since making the bucket public resolves the URL issue, the existing `getPublicUrl()` logic will work correctly
-- No code changes needed beyond the migration
+- Mirror the same mandatory photo/certificate checks
+- Update the `requiredFieldsComplete` check to include photo and certificates
+
+### Step 4: Update VideoInstructionsModal.tsx -- Photo Guidelines
+
+- Add a new section for "Professional Photo Requirements" with instructions about white background, professional attire, good lighting
+
+### Step 5: Add Engleuphoria Logo to All School OS Pages
+
+Using the existing `Logo` component from `@/components/Logo`, update these files:
+
+| File | Current | Change |
+|------|---------|--------|
+| `TeacherTopNav.tsx` | GraduationCap icon + "School OS" | Replace with `<Logo size="small" />` |
+| `AdminSidebar.tsx` | Emoji + "Control Tower" | Replace header with `<Logo size="small" />` + "Control Tower" subtitle |
+| `AdminHeader.tsx` | "Admin Dashboard" text | Add `<Logo size="small" />` before the title |
+| `StudentSidebar.tsx` | No logo | Add `<Logo size="small" />` at the top of sidebar |
+| `MinimalStudentHeader.tsx` | No logo | Add `<Logo size="small" />` before the avatar |
+| `ScrollHeader.tsx` | Already has Logo | No change needed |
+| `EnhancedTeacherSidebar.tsx` | Already has Logo | No change needed |
+| `CleanWorkspaceHeader.tsx` | Already has Logo | No change needed |
+
+---
 
 ## Technical Details
 
-**Migration SQL:**
+**Migration SQL (Step 1):**
 ```sql
--- Make bucket public for getPublicUrl() to work
-UPDATE storage.buckets SET public = true WHERE id = 'teacher-certificates';
+-- Drop ALL known teacher_profiles policies
+DROP POLICY IF EXISTS "teacher_profiles_public_read" ON public.teacher_profiles;
+DROP POLICY IF EXISTS "teacher_profiles_own_write" ON public.teacher_profiles;
+DROP POLICY IF EXISTS "Anyone can view approved teacher profiles" ON public.teacher_profiles;
+DROP POLICY IF EXISTS "Teachers can view their own profile" ON public.teacher_profiles;
+DROP POLICY IF EXISTS "Teachers can update their own profile" ON public.teacher_profiles;
+DROP POLICY IF EXISTS "Teachers can update their own profiles" ON public.teacher_profiles;
+DROP POLICY IF EXISTS "Teachers can create their profile" ON public.teacher_profiles;
+DROP POLICY IF EXISTS "Teachers can view their own full profile" ON public.teacher_profiles;
+DROP POLICY IF EXISTS "Public can view approved teacher basic info" ON public.teacher_profiles;
+DROP POLICY IF EXISTS "Teachers can manage own profile" ON public.teacher_profiles;
+DROP POLICY IF EXISTS "Students can view approved teachers for booking" ON public.teacher_profiles;
+DROP POLICY IF EXISTS "Admins can manage all teacher profiles" ON public.teacher_profiles;
+DROP POLICY IF EXISTS "Authenticated students can view approved teachers" ON public.teacher_profiles;
+DROP POLICY IF EXISTS "Public can view approved teacher profiles" ON public.teacher_profiles;
 
--- Add UPDATE policy for photo re-upload (upsert)
-CREATE POLICY "Teachers can update their own files"
-ON storage.objects FOR UPDATE
-TO authenticated
+ALTER TABLE public.teacher_profiles ENABLE ROW LEVEL SECURITY;
+
+-- Clean policy: teachers manage their own profile (INSERT, UPDATE, DELETE, SELECT)
+CREATE POLICY "Teachers can manage own profile"
+ON public.teacher_profiles FOR ALL TO authenticated
+USING (user_id = auth.uid())
+WITH CHECK (user_id = auth.uid());
+
+-- Clean policy: authenticated users can view approved teachers
+CREATE POLICY "Authenticated users can view approved teachers"
+ON public.teacher_profiles FOR SELECT TO authenticated
 USING (
-  bucket_id = 'teacher-certificates'
-  AND (storage.foldername(name))[1] = auth.uid()::text
+  profile_complete = true AND can_teach = true AND profile_approved_by_admin = true
 );
 
--- Add DELETE policy for certificate removal
-CREATE POLICY "Teachers can delete their own files"
-ON storage.objects FOR DELETE
-TO authenticated
-USING (
-  bucket_id = 'teacher-certificates'
-  AND (storage.foldername(name))[1] = auth.uid()::text
-);
-
--- Fix trigger to handle INSERT (OLD is NULL)
-CREATE OR REPLACE FUNCTION public.update_teacher_profile_completion()
-RETURNS trigger
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $function$
-BEGIN
-  NEW.profile_complete = (
-    NEW.bio IS NOT NULL AND NEW.bio != '' AND
-    NEW.video_url IS NOT NULL AND NEW.video_url != ''
-  );
-  RETURN NEW;
-END;
-$function$;
+-- Clean policy: admins can manage all (uses has_role to avoid RLS recursion)
+CREATE POLICY "Admins can manage all teacher profiles"
+ON public.teacher_profiles FOR ALL TO authenticated
+USING (public.has_role(auth.uid(), 'admin'))
+WITH CHECK (public.has_role(auth.uid(), 'admin'));
 ```
 
-**UI Changes (ProfileOnboardingModal.tsx):**
-- Add an `X` button next to each certificate chip that calls `supabase.storage.from('teacher-certificates').remove([filePath])` and updates local state
-- Extract the storage file path from the public URL for deletion
+**Validation changes (ProfileOnboardingModal.tsx):**
+```typescript
+const canSubmit = formData.bio.trim() 
+  && formData.videoUrl.trim() 
+  && isValidVideoUrl 
+  && formData.profileImageUrl 
+  && formData.certificateUrls.length > 0;
+```
+
+**Files to modify:**
+1. New Supabase migration (RLS cleanup)
+2. `src/components/teacher/dashboard/ProfileOnboardingModal.tsx`
+3. `src/components/teacher/ProfileSetupTab.tsx`
+4. `src/components/teacher/VideoInstructionsModal.tsx`
+5. `src/components/teacher/dashboard/TeacherTopNav.tsx`
+6. `src/components/admin/AdminSidebar.tsx`
+7. `src/components/admin/AdminHeader.tsx`
+8. `src/components/student/StudentSidebar.tsx`
+9. `src/components/student/MinimalStudentHeader.tsx`
 
