@@ -166,7 +166,7 @@ function buildInteraction(type: string, question?: string, options?: string[], c
    ══════════════════════════════════════════════════════ */
 
 export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
-  const { topic, level, ageGroup } = formData;
+  const { topic, level, ageGroup, lessonPrompt } = formData;
   const hub = HUB_CONFIGS[resolveHub(ageGroup)];
   const pack = getTopicPack(topic, hub);
   const slides: GeneratedSlide[] = [];
@@ -174,6 +174,11 @@ export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
 
   const cefrMap: Record<string, string> = { beginner: 'Pre-A1 / A1', intermediate: 'B1', advanced: 'C1' };
   const cefrLevel = cefrMap[level] || 'A1';
+
+  // Use lesson prompt to enrich objectives and context
+  const promptContext = lessonPrompt
+    ? `\n\n📋 Lesson Focus: ${lessonPrompt}`
+    : '';
 
   // Helper — enforces professional tone
   const sanitizeTone = (text: string): string => {
@@ -233,7 +238,7 @@ export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
     slides.push(mkSlide('presentation', '🎬 Hook', 'hook', 'title',
       `✨ Let's Learn: ${topic}!`,
       `${topic} kids colorful claymation adventure`,
-      { prompt: `Welcome, little learners! 🌟\n\nToday Pip has a SUPER adventure for you!\n\n${pack.warmUpQuestion}` },
+      { prompt: `Welcome, little learners! 🌟\n\nToday Pip has a SUPER adventure for you!\n\n${pack.warmUpQuestion}${promptContext}` },
       'Welcome students warmly. Play upbeat music. Introduce Pip and the lesson topic with maximum enthusiasm! Use puppets or plushies if available.',
       [topic, 'hook', 'introduction'],
       undefined, 'centered',
@@ -242,7 +247,7 @@ export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
     slides.push(mkSlide('presentation', '🎯 Hook', 'hook', 'title',
       `🔥 ${topic} — Let's Go!`,
       `${topic} neon holographic 3d render teen`,
-      { prompt: `Hey! 👋 Ready for something interesting?\n\n${pack.warmUpQuestion}\n\nLet's find out together...` },
+      { prompt: `Hey! 👋 Ready for something interesting?\n\n${pack.warmUpQuestion}\n\nLet's find out together...${promptContext}` },
       'Start with an engaging hook. Ask students to share first impressions. Use relatable examples from social media or pop culture.',
       [topic, 'hook', 'introduction'],
       undefined, 'centered',
@@ -251,7 +256,7 @@ export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
     slides.push(mkSlide('presentation', '📋 Hook', 'hook', 'title',
       `${topic} — Professional Context`,
       `${topic} corporate meeting cinematic professional`,
-      { prompt: `Today's Focus: ${topic}\n\nObjective: ${pack.objectives[0]}\n\n${pack.warmUpQuestion}` },
+      { prompt: `Today's Focus: ${topic}\n\nObjective: ${pack.objectives[0]}\n\n${pack.warmUpQuestion}${promptContext}` },
       'Begin with a brief industry scenario. Ask participants to share their experience. Keep it focused and results-oriented.',
       [topic, 'hook', 'introduction'],
       undefined, 'centered',
@@ -264,8 +269,8 @@ export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
   slides.push(mkSlide('presentation', '🎯 Objectives', 'warmup', 'title',
     hub.hub === 'playground' ? '🎯 Today We Will Learn...' : hub.hub === 'academy' ? '🎯 Learning Goals' : '📋 Session Objectives',
     'learning objectives checklist',
-    { prompt: pack.objectives.map((o, i) => `${i + 1}. ${o}`).join('\n') },
-    `Read each objective aloud. Level: ${cefrLevel}. Duration: 30 minutes. ${hub.tone}`,
+    { prompt: pack.objectives.map((o, i) => `${i + 1}. ${o}`).join('\n') + promptContext },
+    `Read each objective aloud. Level: ${cefrLevel}. Duration: 30 minutes. ${hub.tone}${lessonPrompt ? ` Lesson prompt: ${lessonPrompt}` : ''}`,
     ['objectives', 'goals'],
     undefined, 'centered',
   ));

@@ -5,6 +5,7 @@ export interface WizardFormData {
   level: 'beginner' | 'intermediate' | 'advanced';
   ageGroup: 'kids' | 'teens' | 'adults';
   hub?: HubType;
+  lessonPrompt?: string;
 }
 
 export type MediaType = 'illustration' | 'cartoon' | '3d_render' | 'cyber_aesthetic' | 'real_photography';

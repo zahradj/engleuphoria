@@ -48,7 +48,7 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
     level: 'beginner',
     ageGroup: 'kids',
   });
-  const [additionalNotes, setAdditionalNotes] = useState('');
+  const [lessonPrompt, setLessonPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [generatedPlan, setGeneratedPlan] = useState<PPPLessonPlan | null>(null);
@@ -82,7 +82,7 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
       if (target === 'topic') {
         setFormData(prev => ({ ...prev, topic: prev.topic ? `${prev.topic} ${transcript}` : transcript }));
       } else {
-        setAdditionalNotes(prev => prev ? `${prev} ${transcript}` : transcript);
+        setLessonPrompt(prev => prev ? `${prev} ${transcript}` : transcript);
       }
     };
 
@@ -119,7 +119,7 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
       await new Promise(resolve => setTimeout(resolve, 600));
     }
 
-    const plan = generatePPPLesson(formData);
+    const plan = generatePPPLesson({ ...formData, lessonPrompt: lessonPrompt.trim() || undefined });
     setGeneratedPlan(plan);
 
     await new Promise(resolve => setTimeout(resolve, 400));
@@ -370,7 +370,7 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
 
     setGeneratedPlan(null);
     setFormData({ topic: '', level: 'beginner', ageGroup: 'kids' });
-    setAdditionalNotes('');
+    setLessonPrompt('');
     setImageCount(0);
     onOpenChange(false);
   };
@@ -379,7 +379,7 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
     if (!isGenerating && !isGeneratingImages) {
       setGeneratedPlan(null);
       setFormData({ topic: '', level: 'beginner', ageGroup: 'kids' });
-      setAdditionalNotes('');
+      setLessonPrompt('');
       setImageCount(0);
       onOpenChange(false);
     }
@@ -486,13 +486,13 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Additional Notes (optional)</Label>
+                <Label className="text-sm font-medium">Lesson Prompt <span className="text-muted-foreground font-normal">(describe what the lesson should teach)</span></Label>
                 <div className="relative">
                   <Textarea
-                    placeholder="e.g., Focus on food vocabulary, include roleplay at restaurant..."
-                    value={additionalNotes}
-                    onChange={(e) => setAdditionalNotes(e.target.value)}
-                    className="min-h-[60px] text-sm resize-none pr-12"
+                    placeholder="e.g., Teach students how to order food at a restaurant using polite expressions. Include vocabulary for common dishes, practice dialogues between waiter and customer, and a roleplay activity..."
+                    value={lessonPrompt}
+                    onChange={(e) => setLessonPrompt(e.target.value)}
+                    className="min-h-[100px] text-sm resize-none pr-12"
                   />
                   <Button
                     type="button"
