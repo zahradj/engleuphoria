@@ -1,88 +1,77 @@
 
 
-## Problem Analysis
+## Issues Identified
 
-There are **two distinct issues** to address:
+### 1. Lesson gets stuck after activity slides (no way to advance)
+**Root cause**: In `LessonPlayerContainer.tsx`, the `PopBubble` activity calls `onCorrect()` on **every single bubble pop** (line 56), which triggers the feedback overlay each time. The feedback overlay blocks the UI and requires clicking "Continue" for each bubble. But worse — the `handleCorrectAnswer` sets `answerSelected = true` and shows the feedback overlay, but this happens per-bubble. The user expects to pop all bubbles, then move on. The core problem: **activities that involve multiple interactions (pop bubbles, drag-drop) call onCorrect/onIncorrect per item**, which triggers the feedback overlay prematurely. After the first pop, the feedback covers the remaining bubbles.
 
-### Issue 1: Slide Generation Not Aligned with Lesson Prompt
-The current `generatePPPLesson.ts` is a **hardcoded template engine**, not an AI-driven generator. It uses static topic packs with generic vocabulary (e.g., "Learn", "Play", "Great") that have nothing to do with the user's lesson prompt. The `lessonPrompt` field is only appended as text to a few slides but does **not** influence the actual vocabulary, grammar, activities, or structure.
+Additionally, the `score` state inside `PlaygroundPopBubble` is a local state that doesn't communicate back to the parent's XP counter. The parent only gets `onCorrect()` calls which each add 10 XP and trigger a feedback overlay.
 
-**Root cause**: The generator picks from a small set of predefined `TopicPack` objects. If the topic doesn't match a known key (only "hello pip" exists for playground), it falls back to a completely generic pack with irrelevant vocabulary.
+### 2. Score shows 0 even after correct matches
+The score displayed inside `PlaygroundPopBubble` at line 26 (`const [score, setScore] = useState(0)`) is local. The `handlePop` callback has `onCorrect` in its dependency array (line 60), which causes the callback to be recreated when the parent's `handleCorrectAnswer` changes state. Since `handleCorrectAnswer` triggers `setAnswerSelected(true)` and shows the feedback overlay, the pop bubbles get covered and the local score may not visually update.
 
-### Issue 2: Remove the "Manager Review & Produce" page (Step 2)
-The user wants to remove the Curriculum Manager (Step 2) from the pipeline, going directly from Blueprint to Slide Builder.
+### 3. No vocabulary pronunciation audio
+The `SlideVocabulary.tsx` Volume2 button (line 77) has an empty `onClick` — it only calls `e.stopPropagation()` with no TTS call.
+
+### 4. No song/music audio playback on warm-up song slides
+The warm-up song slide renders as a `SlideHook` (since `slideType: 'warmup'`) which just shows text — no audio player.
 
 ---
 
 ## Plan
 
-### Step 1: Replace hardcoded generator with AI-powered generation
+### Step 1: Fix activity slide completion flow
+**Files**: `PlaygroundPopBubble.tsx`, `PlaygroundDragDrop.tsx`, `LessonPlayerContainer.tsx`
 
-**File: `src/components/admin/lesson-builder/ai-wizard/generatePPPLesson.ts`**
+- **Change the contract**: Activities with multiple items should NOT call `onCorrect/onIncorrect` per individual item. Instead, they should manage their own internal scoring and call a single `onCorrect()` only when the activity is **complete** (all bubbles popped or all items placed).
+- **PlaygroundPopBubble**: Remove the per-bubble `onCorrect()` call. Track internal score. When all target bubbles are popped, call `onCorrect()` once. If the user pops a wrong bubble, show local feedback (shake/flash) without calling `onIncorrect()` to the parent.
+- **PlaygroundDragDrop**: Same pattern — call `onCorrect()` only when `allPlaced === true`. Remove per-item `onCorrect()` call.
+- **LessonPlayerContainer**: No changes needed to the container itself; the fix is in the activity components.
 
-- Create a new function `generatePPPLessonWithAI` that sends the lesson prompt, topic, level, age group, and hub config to the **Gemini AI** (via the `studio-ai-copilot` edge function or the `ai-gateway` script pattern).
-- The AI will generate a properly structured `TopicPack` (vocabulary with contextual image keywords, grammar target, objectives, dialogue lines, activities) based on the **actual lesson prompt**.
-- The existing `generatePPPLesson` function will then use this AI-generated pack instead of the hardcoded one, preserving all the slide-building logic.
+### Step 2: Add TTS pronunciation to vocabulary flashcards
+**File**: `SlideVocabulary.tsx`
 
-**File: `src/components/admin/lesson-builder/ai-wizard/AILessonWizard.tsx`**
+- Import `useTextToSpeech` hook (already exists, uses ElevenLabs via `elevenlabs-tts` edge function).
+- Add a voice selector toggle (boy/girl) using two different ElevenLabs voice IDs:
+  - Girl voice: Use a young-sounding voice ID (e.g., Lily `pFZP5JQG7iQjIQuC4Bku`)
+  - Boy voice: Use a young-sounding voice ID (e.g., Charlie `IKne3meq5aSn9XLyUdCD`)
+- Wire the Volume2 button `onClick` to call `speakWord(word)` with the selected voice.
+- Add a small boy/girl toggle beside the speaker icon.
+- Show loading spinner while TTS generates.
 
-- Update `handleGenerate` to call the async AI-powered generation function.
-- Make the generation steps reflect actual AI progress (not fake timers).
+### Step 3: Add audio playback for warm-up song slides
+**Files**: `SlideHook.tsx` or new `SlideSong.tsx`, `DynamicSlideRenderer.tsx`
 
-**New edge function or use existing**: Use the existing `studio-ai-copilot` edge function's `generate` mode, or call the AI gateway directly from the client via a new dedicated function. The prompt will instruct the AI to return a JSON `TopicPack` with vocabulary, grammar, objectives, etc., all aligned with the lesson prompt.
+- Detect when `slide.slideType === 'warmup'` and `slide.keywords?.includes('song')` — render a dedicated song slide UI.
+- Add a prominent "Play Song" button that uses the `elevenlabs-tts` edge function to read the song lyrics aloud with an expressive, kid-friendly voice.
+- Display the song lyrics in a large, formatted text block with a musical theme.
+- The user chose "Play button only" — no auto-play.
 
-### Step 2: Remove the Manager page (Step 2) from the pipeline
+### Step 4: Add song audio to the song/chant slide in the presentation phase
+**File**: `DynamicSlideRenderer.tsx`, `SlideHook.tsx`
 
-**File: `src/pages/ContentCreatorDashboard.tsx`**
-- Remove the `CurriculumManager` import and its case in `renderStepContent`.
-- Change `PipelineStep` to go from 1 → 2 (Slide Builder) → 3 (Library), renumbering steps.
-
-**File: `src/components/content-creator/ContentCreatorStepper.tsx`**
-- Remove the "Manager" step from `STEPS` array.
-- Update `PipelineStep` type to `1 | 2 | 3`.
-
-**File: `src/pages/ContentCreatorDashboard.tsx`**
-- Adjust `goNext`/`goPrev` max to 3.
-- Update step 2 to render `AdminLessonEditor` and step 3 to render `LessonLibraryHub`.
+- For slides with `slideType === 'core_concept'` and `keywords?.includes('song')`, also show the play button.
+- Reuse the same TTS pattern from Step 3.
 
 ---
 
 ## Technical Details
 
-### AI-Powered TopicPack Generation
+### Voice IDs for kid pronunciation
+- Girl: Lily (`pFZP5JQG7iQjIQuC4Bku`) — clear, young-sounding
+- Boy: Charlie (`IKne3meq5aSn9XLyUdCD`) — clear, young-sounding
+- Both use `elevenlabs-tts` edge function already deployed with `ELEVENLABS_API_KEY_1`
 
-The system prompt sent to Gemini will be:
-
-```
-You are an ESL curriculum expert. Given a lesson topic, prompt, CEFR level, 
-and age group, generate a structured vocabulary and activity pack as JSON.
-
-Return ONLY valid JSON with this structure:
-{
-  "vocabulary": [{ "word", "definition", "exampleSentence", "fillBlank", "imageKeywords", "emoji" }],
-  "grammarTarget": "...",
-  "grammarExamples": ["..."],
-  "warmUpQuestion": "...",
-  "objectives": ["..."],
-  "dialogueLines": ["..."],
-  "gameDescription": "...",
-  "productionTask": "...",
-  "songOrChant": "..."
-}
-```
-
-The lesson prompt will be the primary driver of content. This ensures vocabulary, grammar, and activities are all relevant to the stated objectives.
-
-### Pipeline Simplification
-
+### Activity completion pattern
 ```text
-BEFORE:  Blueprint → Manager → Slide Builder → Library
-AFTER:   Blueprint → Slide Builder → Library
+BEFORE: Pop bubble → onCorrect() → feedback overlay → blocked
+AFTER:  Pop bubble → internal score++ → all done? → onCorrect() once → feedback → continue
 ```
 
 ### Files Modified
-1. `src/components/admin/lesson-builder/ai-wizard/generatePPPLesson.ts` — Add AI-powered TopicPack generation
-2. `src/components/admin/lesson-builder/ai-wizard/AILessonWizard.tsx` — Wire async AI generation
-3. `src/pages/ContentCreatorDashboard.tsx` — Remove step 2, renumber
-4. `src/components/content-creator/ContentCreatorStepper.tsx` — Remove Manager step, update type
+1. `src/components/lesson-player/activities/PlaygroundPopBubble.tsx` — Single completion callback
+2. `src/components/lesson-player/activities/PlaygroundDragDrop.tsx` — Single completion callback
+3. `src/components/lesson-player/slides/SlideVocabulary.tsx` — Add TTS with voice toggle
+4. `src/components/lesson-player/slides/SlideHook.tsx` — Add song play button for song slides
+5. `src/components/lesson-player/DynamicSlideRenderer.tsx` — Route song slides to enhanced component
 
