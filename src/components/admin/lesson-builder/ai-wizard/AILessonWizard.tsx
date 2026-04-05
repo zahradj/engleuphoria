@@ -413,13 +413,24 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
             >
               <div className="space-y-2">
                 <Label htmlFor="topic" className="text-sm font-medium">Lesson Topic</Label>
-                <Input
-                  id="topic"
-                  placeholder="e.g., Hello Pip, Zoo Animals, Business Negotiations"
-                  value={formData.topic}
-                  onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
-                  className="h-12 text-base"
-                />
+                <div className="relative">
+                  <Input
+                    id="topic"
+                    placeholder="e.g., Hello Pip, Zoo Animals, Business Negotiations"
+                    value={formData.topic}
+                    onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
+                    className="h-12 text-base pr-12"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className={`absolute right-1 top-1 h-10 w-10 rounded-lg transition-colors ${activeListening === 'topic' ? 'bg-red-500/10 text-red-500 animate-pulse' : 'text-muted-foreground hover:text-primary'}`}
+                    onClick={() => activeListening === 'topic' ? stopListening() : startListening('topic')}
+                  >
+                    {activeListening === 'topic' ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                  </Button>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
