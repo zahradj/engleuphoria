@@ -8,6 +8,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { SlideSkeleton, LessonSkeletonPlan } from './slideSkeletonEngine';
+import { runPicsartPipeline, PicsartSlideResult, PicsartPipelineResult, HubFilter } from './picsartPipelineService';
 
 export type SlideImageStatus = 'pending' | 'generating' | 'done' | 'error';
 
@@ -24,6 +25,7 @@ export interface MassGenerationResult {
   successCount: number;
   failedCount: number;
   images: SlideImageProgress[];
+  picsartResult: PicsartPipelineResult | null;
   durationMs: number;
 }
 
@@ -160,12 +162,58 @@ export async function massGenerateImages(
     }
   }
 
+  // ── Stage 2: Picsart Post-Processing Pipeline ──────────────────
+  let picsartResult: PicsartPipelineResult | null = null;
+
+  if (successCount > 0) {
+    try {
+      console.log('Starting Picsart post-processing pipeline...');
+      const hubMap: Record<string, HubFilter> = {
+        playground: 'playground',
+        academy: 'academy',
+        professional: 'professional',
+      };
+      const hubFilter = hubMap[plan.hub] || 'playground';
+
+      // Collect successful slides with their image URLs and word bank text
+      const slideInputs = progress
+        .filter((p) => p.status === 'done' && p.imageUrl)
+        .map((p) => {
+          const skeleton = plan.skeletons.find((s) => s.slideNumber === p.slideNumber);
+          return {
+            slideNumber: p.slideNumber,
+            imageUrl: p.imageUrl!,
+            wordBankText: skeleton?.title || null,
+          };
+        });
+
+      // Get current user ID
+      const { data: { user } } = await supabase.auth.getUser();
+      const userId = user?.id || 'system';
+
+      picsartResult = await runPicsartPipeline(
+        plan.lessonId,
+        hubFilter,
+        slideInputs,
+        userId,
+        (picsartSlides) => {
+          console.log(`Picsart: ${picsartSlides.length} slides processed`);
+        },
+      );
+
+      console.log(`Picsart pipeline complete: ${picsartResult.totalProcessed} processed, ${picsartResult.totalErrors} errors in ${picsartResult.durationMs}ms`);
+    } catch (err) {
+      console.error('Picsart pipeline failed (non-blocking):', err);
+    }
+  }
+
   return {
     lessonId: plan.lessonId,
     totalSlides: plan.totalSlides,
     successCount,
     failedCount,
     images: progress,
+    picsartResult,
     durationMs: Date.now() - startTime,
   };
 }
