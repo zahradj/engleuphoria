@@ -222,6 +222,30 @@ export const CurriculumExplorerTree: React.FC<CurriculumExplorerTreeProps> = ({
   const getLessonsForLevel = (levelId: string) => lessons.filter(l => l.level_id === levelId);
   const getAccessoryForLevel = (levelId: string) => accessories.find(a => a.level_id === levelId);
 
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      if (deleteTarget.type === 'lesson') {
+        const { error } = await supabase.from('curriculum_lessons').delete().eq('id', deleteTarget.id);
+        if (error) throw error;
+        toast.success(`Lesson "${deleteTarget.name}" deleted`);
+      } else {
+        // Delete all lessons under this level first, then the level won't be deleted (it's structural)
+        const { error } = await supabase.from('curriculum_lessons').delete().eq('level_id', deleteTarget.id);
+        if (error) throw error;
+        toast.success(`All lessons in "${deleteTarget.name}" deleted`);
+      }
+      fetchData();
+    } catch (err: any) {
+      console.error('Delete error:', err);
+      toast.error('Failed to delete: ' + (err.message || 'Unknown error'));
+    } finally {
+      setIsDeleting(false);
+      setDeleteTarget(null);
+    }
+  };
+
   const hubConfig = HUB_CONFIG[activeHub];
 
   return (
