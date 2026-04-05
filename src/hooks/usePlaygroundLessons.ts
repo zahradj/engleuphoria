@@ -17,6 +17,7 @@ export interface PlaygroundLesson {
     quizOptions: string[];
     quizAnswer: string;
   };
+  canvasSlides?: any[];
   score?: number;
   completedAt?: string;
 }
@@ -125,19 +126,32 @@ export const usePlaygroundLessons = () => {
             };
           }
 
+          // Check for canvas-based slides
+          let canvasSlides: any[] | undefined;
+          if (lesson.content && typeof lesson.content === 'object') {
+            const dbContent = lesson.content as Record<string, unknown>;
+            const slides = dbContent.slides as any[] | undefined;
+            if (slides && slides.some((s: any) => s.canvasElements?.length > 0)) {
+              canvasSlides = slides;
+              type = 'interactive';
+            }
+          }
+
           // Determine lesson type based on content
-          let type: PlaygroundLesson['type'] = 'slide';
-          if (content.videoUrl) type = 'video';
-          if (lesson.difficulty_level === 'game') type = 'game';
+          if (!canvasSlides) {
+            if (content.videoUrl) type = 'video';
+            if (lesson.difficulty_level === 'game') type = 'game';
+          }
 
           return {
             id: lesson.id,
             number: index + 1,
             title: lesson.title,
             type,
-            status: 'locked' as const, // Will be computed below
+            status: 'locked' as const,
             position,
             content,
+            canvasSlides,
             score: progress?.score ?? undefined,
             completedAt: progress?.completed_at ?? undefined,
           };
