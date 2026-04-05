@@ -499,6 +499,42 @@ const SkeletonPanel: React.FC<SkeletonPanelProps> = ({ plan, onClear, hub }) => 
     }
   };
 
+  const handleSaveToLibrary = async () => {
+    if (!generationResult) return;
+    setIsSaving(true);
+    try {
+      const slides = plan.skeletons.map((skeleton) => {
+        const imgStatus = getSlideStatus(skeleton.slideNumber);
+        return {
+          id: `slide-${skeleton.slideNumber}`,
+          slideNumber: skeleton.slideNumber,
+          phase: skeleton.phase,
+          phaseLabel: skeleton.phaseLabel,
+          objective: skeleton.objective,
+          activityType: skeleton.activityType,
+          imageUrl: imgStatus?.imageUrl || null,
+          imagePrompt: skeleton.imagePrompt,
+          durationSeconds: skeleton.durationSeconds,
+          contentPosition: skeleton.contentPosition,
+          mascotPosition: skeleton.mascotPosition,
+        };
+      }) as any[];
+
+      await saveToLibrary(
+        plan.lessonTitle,
+        plan.hub as HubType,
+        'beginner',
+        slides,
+        imageProgress.find(p => p.slideNumber === 1)?.imageUrl || undefined
+      );
+      toast.success('Lesson saved to Library! 📚');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to save');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const getSlideStatus = (num: number): SlideImageProgress | undefined =>
     imageProgress.find((p) => p.slideNumber === num);
 
@@ -534,8 +570,14 @@ const SkeletonPanel: React.FC<SkeletonPanelProps> = ({ plan, onClear, hub }) => 
           </div>
           <div className="flex items-center gap-2 shrink-0 ml-3">
             {allDone ? (
-              <Button size="sm" className="gap-1.5 text-xs h-9 bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20">
-                <CheckCircle2 className="h-3.5 w-3.5" /> Save to Library
+              <Button
+                size="sm"
+                className="gap-1.5 text-xs h-9 bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20"
+                onClick={handleSaveToLibrary}
+                disabled={isSaving}
+              >
+                {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+                {isSaving ? 'Saving…' : 'Save to Library'}
               </Button>
             ) : (
               <Button
