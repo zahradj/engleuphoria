@@ -40,24 +40,11 @@ function getVocabularyForTopic(topic: string): string[] {
   ];
 }
 
-// Build Unsplash URL with style modifications based on age group
+// Build a reliable placeholder image URL based on keyword and age group
 function buildImageUrl(keyword: string, ageGroup: string): string {
-  let styleKeywords = '';
-  
-  switch (ageGroup) {
-    case 'kids':
-      styleKeywords = ',illustration,cartoon,colorful';
-      break;
-    case 'teens':
-      styleKeywords = ',modern,vibrant';
-      break;
-    case 'adults':
-      styleKeywords = ',professional,minimal';
-      break;
-  }
-  
-  const searchQuery = encodeURIComponent(`${keyword}${styleKeywords}`);
-  return `https://source.unsplash.com/1600x900/?${searchQuery}`;
+  // Use picsum.photos with a deterministic seed based on keyword for consistent images
+  const seed = keyword.toLowerCase().replace(/[^a-z0-9]/g, '');
+  return `https://picsum.photos/seed/${seed}/1600/900`;
 }
 
 // Generate vocabulary definitions
