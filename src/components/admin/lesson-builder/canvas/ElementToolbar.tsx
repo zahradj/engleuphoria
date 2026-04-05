@@ -74,7 +74,7 @@ export const ElementToolbar: React.FC<ElementToolbarProps> = ({ onAddElement }) 
                 key={type}
                 variant="ghost"
                 size="sm"
-                className="h-9 w-full flex flex-col gap-0 px-1 hover:bg-yellow-100"
+                className="h-9 w-full flex flex-col gap-0 px-1 hover:bg-accent/30"
                 onClick={() => onAddElement(type)}
                 title={label}
               >
