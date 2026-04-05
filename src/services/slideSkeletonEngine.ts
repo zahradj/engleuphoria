@@ -111,7 +111,38 @@ const SEQUENCES: Record<HubType, typeof PLAYGROUND_SEQUENCE> = {
   professional: PROFESSIONAL_SEQUENCE,
 };
 
-// ─── Image Prompt Builder ─────────────────────────────────────────
+// ─── Midjourney Style-Wrapper Tokens ──────────────────────────────
+const MIDJOURNEY_STYLES: Record<HubType, {
+  renderEngine: string;
+  aesthetic: string;
+  lighting: string;
+  lens: string;
+  suffix: string;
+}> = {
+  playground: {
+    renderEngine: 'Octane Render, Unreal Engine 5',
+    aesthetic: 'Masterpiece, 3D claymation, soft toy aesthetic, Disney-Pixar quality',
+    lighting: 'Soft studio lights, volumetric fog, warm rim light',
+    lens: 'f/2.8, shallow depth of field, bokeh background',
+    suffix: 'extremely detailed textures, vibrant saturated colors, whimsical atmosphere --ar 16:9',
+  },
+  academy: {
+    renderEngine: 'Blender Cycles, Cinema 4D',
+    aesthetic: 'Vaporwave, Synthwave, holographic glass, digital art',
+    lighting: 'Neon backlight, anamorphic lens flare, cyberpunk volumetric',
+    lens: 'anamorphic lens, wide angle, chromatic aberration',
+    suffix: 'trending on ArtStation, cyber-retro aesthetic, glassmorphism --ar 16:9',
+  },
+  professional: {
+    renderEngine: 'photorealistic',
+    aesthetic: 'Modern architecture, interior design, clean luxury, editorial',
+    lighting: 'Golden hour, natural window light, subtle fill',
+    lens: 'Leica 50mm, 35mm wide angle, f/4 sharp focus',
+    suffix: 'minimalist composition, high-end stock photography, corporate elegance --ar 16:9',
+  },
+};
+
+// ─── Image Prompt Builder (Midjourney-Tier) ───────────────────────
 function buildImagePrompt(
   hub: HubType,
   topic: string,
@@ -121,32 +152,38 @@ function buildImagePrompt(
   accessoryName: string | null,
   levelName: string,
 ): string {
+  const style = MIDJOURNEY_STYLES[hub];
   const config = HUB_CONFIGS[hub];
 
-  // Base cinematic prompt per hub
-  const basePrompts: Record<HubType, string> = {
-    playground: `3D stylized environment for a kids' educational app. Topic: "${topic}". Scene: ${slideObjective}. Style: High-quality Disney-Pixar render, vibrant lighting, soft shadows, ${config.imageStyleSuffix}. Layout: ${safeZone}. No text in image. 8k resolution.`,
-    academy: `Futuristic digital learning environment. Topic: "${topic}". Scene: ${slideObjective}. Style: Holographic UI elements, neon accents, ${config.imageStyleSuffix}. Layout: ${safeZone}. No text in image. 8k resolution.`,
-    professional: `Modern corporate environment. Topic: "${topic}". Scene: ${slideObjective}. Style: Clean, executive, ${config.imageStyleSuffix}. Layout: ${safeZone}. No text in image. 8k resolution.`,
+  // Compose the cinematic wrapper
+  const wrapPrompt = (subject: string): string => {
+    return `${subject}. ${style.aesthetic}, ${style.renderEngine}, ${style.lighting}, ${style.lens}, ${config.imageStyleSuffix}. Layout: ${safeZone}. No text in image. 8k resolution. ${style.suffix}`;
   };
 
-  let prompt = basePrompts[hub];
+  // Base cinematic prompt per hub
+  const baseSubjects: Record<HubType, string> = {
+    playground: `${slideObjective} in a whimsical 3D "${topic}" world, stylized claymation environment`,
+    academy: `${slideObjective} in a futuristic digital "${topic}" arena, holographic UI elements`,
+    professional: `${slideObjective} in an elegant modern "${topic}" setting, corporate environment`,
+  };
+
+  let prompt = wrapPrompt(baseSubjects[hub]);
 
   // Accessory reveal on slide 11
   if (slideNumber === 11 && accessoryName) {
     if (hub === 'playground') {
-      prompt = `3D stylized scene of Pip the Penguin holding a glowing "${accessoryName}" to celebrate. Topic: "${topic}". Style: Disney-Pixar celebration render, confetti, golden lighting, ${config.imageStyleSuffix}. No text in image. 8k resolution.`;
+      prompt = wrapPrompt(`Pip the Penguin holding a glowing "${accessoryName}" trophy, celebration scene with confetti and sparkles, topic: "${topic}"`);
     } else if (hub === 'academy') {
-      prompt = `Holographic achievement unlock screen showing a floating "${accessoryName}" reward. Topic: "${topic}". Style: Neon glow, ${config.imageStyleSuffix}. No text in image. 8k resolution.`;
+      prompt = wrapPrompt(`Holographic achievement unlock: floating "${accessoryName}" reward materializing from digital particles, topic: "${topic}"`);
     } else {
-      prompt = `Elegant certificate or badge presentation: "${accessoryName}". Corporate achievement style, ${config.imageStyleSuffix}. No text in image. 8k resolution.`;
+      prompt = wrapPrompt(`Elegant award ceremony: "${accessoryName}" certificate on a luxurious desk, topic: "${topic}"`);
     }
   }
 
-  // Mascot-specific prompts for Playground
+  // Mascot-specific prompts for Playground intro slides
   if (hub === 'playground' && slideNumber <= 2) {
-    const position = slideNumber % 2 === 1 ? 'on the LEFT side' : 'on the RIGHT side';
-    prompt = `3D stylized scene: Pip the Penguin ${position}, waving hello in a "${levelName}" world. Topic: "${topic}". Style: Disney-Pixar render, vibrant lighting, ${config.imageStyleSuffix}. No text in image. 8k resolution.`;
+    const position = slideNumber % 2 === 1 ? 'on the LEFT third of frame' : 'on the RIGHT third of frame';
+    prompt = wrapPrompt(`Pip the Penguin ${position}, waving hello in a magical "${levelName}" world, topic: "${topic}", cinematic establishing shot`);
   }
 
   return prompt;
