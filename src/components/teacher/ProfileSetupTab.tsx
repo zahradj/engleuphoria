@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
-import { User, Upload, Video, FileCheck, AlertCircle, CheckCircle, Clapperboard, CheckCircle2 } from 'lucide-react';
+import { User, Upload, Video, FileCheck, AlertCircle, CheckCircle, Clapperboard, CheckCircle2, X } from 'lucide-react';
 import { VideoInstructionsModal } from './VideoInstructionsModal';
 import { VideoPreCheck } from './VideoPreCheck';
 
@@ -159,6 +159,29 @@ export const ProfileSetupTab = ({ teacherId, onProfileComplete }: ProfileSetupTa
     }
   };
 
+  const handleRemoveCertificate = async (index: number) => {
+    const url = profile.certificate_urls[index];
+    try {
+      const bucketUrl = '/storage/v1/object/public/teacher-certificates/';
+      const pathIndex = url.indexOf(bucketUrl);
+      if (pathIndex !== -1) {
+        const filePath = decodeURIComponent(url.substring(pathIndex + bucketUrl.length));
+        await supabase.storage.from('teacher-certificates').remove([filePath]);
+      }
+    } catch (error) {
+      console.error('Error deleting certificate file:', error);
+    }
+
+    setProfile(prev => ({
+      ...prev,
+      certificate_urls: prev.certificate_urls.filter((_, i) => i !== index)
+    }));
+
+    toast({
+      title: 'Certificate removed'
+    });
+  };
+
   const handleSave = async () => {
     if (!profile.bio.trim()) {
       toast({
@@ -172,7 +195,7 @@ export const ProfileSetupTab = ({ teacherId, onProfileComplete }: ProfileSetupTa
     if (!profile.video_url.trim()) {
       toast({
         title: "Video URL required",
-        description: "Please provide a YouTube or Vimeo introduction video",
+        description: "Please provide a YouTube introduction video",
         variant: "destructive",
       });
       return;
@@ -181,7 +204,7 @@ export const ProfileSetupTab = ({ teacherId, onProfileComplete }: ProfileSetupTa
     if (!validateVideoUrl(profile.video_url)) {
       toast({
         title: "Invalid video URL",
-        description: "Please provide a valid YouTube or Vimeo URL",
+        description: "Please provide a valid YouTube link",
         variant: "destructive",
       });
       return;
@@ -190,32 +213,60 @@ export const ProfileSetupTab = ({ teacherId, onProfileComplete }: ProfileSetupTa
     setLoading(true);
 
     try {
-      const { data, error } = await supabase
+      const payload = {
+        user_id: teacherId,
+        bio: profile.bio,
+        video_url: profile.video_url,
+        specializations: profile.specializations,
+        languages_spoken: profile.languages_spoken,
+        years_experience: profile.years_experience,
+        certificate_urls: profile.certificate_urls,
+        updated_at: new Date().toISOString()
+      };
+
+      const { data: insertedData, error: insertError } = await supabase
         .from('teacher_profiles')
-        .upsert({
-          user_id: teacherId,
-          bio: profile.bio,
-          video_url: profile.video_url,
-          specializations: profile.specializations,
-          languages_spoken: profile.languages_spoken,
-          years_experience: profile.years_experience,
-          certificate_urls: profile.certificate_urls,
-          updated_at: new Date().toISOString()
-        })
+        .insert(payload)
         .select()
         .single();
 
-      if (error) throw error;
+      if (!insertError) {
+        setProfile(insertedData);
+        if (onProfileComplete) {
+          onProfileComplete(insertedData.profile_complete);
+        }
 
-      setProfile(data);
+        toast({
+          title: "Profile saved successfully",
+          description: insertedData.profile_complete
+            ? "Your profile is now complete! You can start teaching."
+            : "Profile saved. Complete all required fields to start teaching.",
+        });
+        return;
+      }
+
+      if (insertError.code !== '23505') {
+        throw insertError;
+      }
+
+      const { data: updatedData, error: updateError } = await supabase
+        .from('teacher_profiles')
+        .update(payload)
+        .eq('user_id', teacherId)
+        .select()
+        .single();
+
+      if (updateError) throw updateError;
+
+      setProfile(updatedData);
       if (onProfileComplete) {
-        onProfileComplete(data.profile_complete);
+        onProfileComplete(updatedData.profile_complete);
       }
 
       toast({
         title: "Profile saved successfully",
-        description: data.profile_complete 
-          ? "Your profile is now complete! You can start teaching." 
+        description: updatedData.profile_complete
+          ? "Your profile is now complete! You can start teaching."
           : "Profile saved. Complete all required fields to start teaching.",
       });
     } catch (error) {
@@ -331,7 +382,7 @@ export const ProfileSetupTab = ({ teacherId, onProfileComplete }: ProfileSetupTa
             <div>
               <div className="flex items-center justify-between">
                 <Label htmlFor="video-url">
-                  YouTube or Vimeo Video URL *
+                  YouTube Video Link *
                 </Label>
                 <Button
                   type="button"
@@ -345,14 +396,18 @@ export const ProfileSetupTab = ({ teacherId, onProfileComplete }: ProfileSetupTa
               </div>
               <Input
                 id="video-url"
-                placeholder="https://www.youtube.com/watch?v=... or https://vimeo.com/..."
+                placeholder="https://www.youtube.com/watch?v=..."
                 value={profile.video_url}
                 onChange={(e) => handleVideoUrlChange(e.target.value)}
                 className="mt-1"
               />
-              <p className="text-sm text-muted-foreground mt-1">
-                Record a 2-3 minute introduction video to help students get to know you
-              </p>
+              <div className="mt-2 rounded-lg border bg-muted/30 p-3 text-sm text-muted-foreground space-y-1">
+                <p><strong className="text-foreground">How to upload on YouTube:</strong></p>
+                <p>1. Record a 1–3 minute introduction video.</p>
+                <p>2. Upload it to YouTube.</p>
+                <p>3. Set the video to <strong className="text-foreground">Private</strong> and share access with reviewers, or use <strong className="text-foreground">Unlisted</strong> if private preview is blocked.</p>
+                <p>4. Paste the YouTube link here.</p>
+              </div>
             </div>
 
             {selfReviewComplete && (
@@ -362,8 +417,8 @@ export const ProfileSetupTab = ({ teacherId, onProfileComplete }: ProfileSetupTa
                   'Lighting verified',
                   'Script structure followed',
                 ].map((label) => (
-                  <div key={label} className="flex items-center gap-2 text-sm text-green-600">
-                    <CheckCircle2 className="h-4 w-4" />
+                  <div key={label} className="flex items-center gap-2 text-sm text-foreground">
+                    <CheckCircle2 className="h-4 w-4 text-primary" />
                     {label}
                   </div>
                 ))}
@@ -371,8 +426,8 @@ export const ProfileSetupTab = ({ teacherId, onProfileComplete }: ProfileSetupTa
             )}
 
             {!selfReviewComplete && profile.video_url && (
-              <p className="text-sm text-amber-600">
-                💡 We recommend completing the filming checklist for the best first impression.
+              <p className="text-sm text-muted-foreground">
+                Complete the filming checklist to improve your approval chances.
               </p>
             )}
 
@@ -390,7 +445,6 @@ export const ProfileSetupTab = ({ teacherId, onProfileComplete }: ProfileSetupTa
               </div>
             )}
 
-            {/* AI Video Pre-Check for file uploads */}
             <VideoPreCheck
               onCheckComplete={(passed, results) => {
                 if (passed) {
@@ -403,7 +457,7 @@ export const ProfileSetupTab = ({ teacherId, onProfileComplete }: ProfileSetupTa
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  Please provide a valid YouTube or Vimeo URL
+                  Please provide a valid YouTube link
                 </AlertDescription>
               </Alert>
             )}
@@ -442,8 +496,16 @@ export const ProfileSetupTab = ({ teacherId, onProfileComplete }: ProfileSetupTa
                 <div className="space-y-2">
                   {profile.certificate_urls.map((url, index) => (
                     <div key={index} className="flex items-center gap-2 text-sm">
-                      <FileCheck className="w-4 h-4 text-green-500" />
+                      <FileCheck className="w-4 h-4 text-primary" />
                       <span>Certificate {index + 1}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveCertificate(index)}
+                        className="rounded-full p-1 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                        aria-label={`Remove certificate ${index + 1}`}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
                     </div>
                   ))}
                 </div>

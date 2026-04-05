@@ -18,6 +18,20 @@ interface ScriptSegment {
   text: string;
 }
 
+const YOUTUBE_STEPS = [
+  'Record a clear 1–3 minute introduction video.',
+  'Upload the video to your YouTube channel.',
+  'Set visibility to Private and share access with reviewers, or switch to Unlisted if private preview is blocked.',
+  'Copy the YouTube link and paste it into your Engleuphoria profile.',
+];
+
+const INTRO_VIDEO_SUCCESS_TIPS = [
+  'Start with your name, teaching style, and who you teach best.',
+  'Keep your camera stable, your face well-lit, and your audio clean.',
+  'Speak slowly, smile, and show the same energy students will feel in class.',
+  'Mention your experience, specialties, and what students will gain from learning with you.',
+];
+
 const PROFESSIONAL_SCRIPT: ScriptSegment[] = [
   {
     time: '0:00–0:10',
@@ -161,11 +175,32 @@ export const VideoInstructionsModal: React.FC<VideoInstructionsModalProps> = ({
             Teacher Success Guide
           </DialogTitle>
           <DialogDescription>
-            Follow this script template and filming checklist to create a video that gets approved on the first try.
+            Follow these YouTube upload steps, script ideas, and filming tips to create a strong introduction video for review.
           </DialogDescription>
         </DialogHeader>
 
-        {/* Script Templates */}
+        <div className="space-y-4 rounded-lg border bg-muted/30 p-4">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            📺 How to upload your video on YouTube
+          </h3>
+          <div className="space-y-2 text-sm text-muted-foreground">
+            {YOUTUBE_STEPS.map((step) => (
+              <p key={step}>{step}</p>
+            ))}
+          </div>
+        </div>
+
+        <div className="space-y-4 rounded-lg border bg-muted/30 p-4">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            🎯 What makes a successful introduction video
+          </h3>
+          <div className="space-y-2 text-sm text-muted-foreground">
+            {INTRO_VIDEO_SUCCESS_TIPS.map((tip) => (
+              <p key={tip}>{tip}</p>
+            ))}
+          </div>
+        </div>
+
         <div className="space-y-4">
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             🎬 The "60-Second Mastery" Script
@@ -184,7 +219,6 @@ export const VideoInstructionsModal: React.FC<VideoInstructionsModalProps> = ({
           </Tabs>
         </div>
 
-        {/* Filming Checklist */}
         <div className="space-y-2">
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             💡 Top 5 Filming Tips
@@ -209,7 +243,6 @@ export const VideoInstructionsModal: React.FC<VideoInstructionsModalProps> = ({
           </Accordion>
         </div>
 
-        {/* Self-Review Checklist */}
         <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             ✅ Self-Review Checklist
