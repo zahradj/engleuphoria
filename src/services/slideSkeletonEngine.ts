@@ -112,34 +112,16 @@ const SEQUENCES: Record<HubType, typeof PLAYGROUND_SEQUENCE> = {
 };
 
 // ─── Midjourney Style-Wrapper Tokens ──────────────────────────────
-const MIDJOURNEY_STYLES: Record<HubType, {
-  renderEngine: string;
-  aesthetic: string;
-  lighting: string;
-  lens: string;
-  suffix: string;
-}> = {
-  playground: {
-    renderEngine: 'Octane Render, Unreal Engine 5',
-    aesthetic: 'Masterpiece, 3D claymation, soft toy aesthetic, Disney-Pixar quality',
-    lighting: 'Soft studio lights, volumetric fog, warm rim light',
-    lens: 'f/2.8, shallow depth of field, bokeh background',
-    suffix: 'extremely detailed textures, vibrant saturated colors, whimsical atmosphere --ar 16:9',
-  },
-  academy: {
-    renderEngine: 'Blender Cycles, Cinema 4D',
-    aesthetic: 'Vaporwave, Synthwave, holographic glass, digital art',
-    lighting: 'Neon backlight, anamorphic lens flare, cyberpunk volumetric',
-    lens: 'anamorphic lens, wide angle, chromatic aberration',
-    suffix: 'trending on ArtStation, cyber-retro aesthetic, glassmorphism --ar 16:9',
-  },
-  professional: {
-    renderEngine: 'photorealistic',
-    aesthetic: 'Modern architecture, interior design, clean luxury, editorial',
-    lighting: 'Golden hour, natural window light, subtle fill',
-    lens: 'Leica 50mm, 35mm wide angle, f/4 sharp focus',
-    suffix: 'minimalist composition, high-end stock photography, corporate elegance --ar 16:9',
-  },
+const MIDJOURNEY_WRAPPERS: Record<HubType, string> = {
+  playground: 'High-end 3D claymation, Octane Render, whimsical atmosphere, cinematic lighting, soft shadows, vibrant colors, 8k, Unreal Engine 5 aesthetic, bokeh background --ar 16:9',
+  academy: 'Cyberpunk neon aesthetic, digital 3D render, holographic glassmorphism, sharp directional lighting, Synthwave color palette, ArtStation trending --ar 16:9',
+  professional: 'Minimalist editorial photography, luxury corporate aesthetic, shot on 35mm Leica, natural soft lighting, neutral tones, high-end professional stock style --ar 16:9',
+};
+
+const HUB_LENS: Record<HubType, string> = {
+  playground: 'Soft Studio Lights, f/2.8, shallow depth of field',
+  academy: 'Neon backlight, anamorphic lens flare',
+  professional: 'Golden hour, wide angle, 35mm',
 };
 
 // ─── Image Prompt Builder (Midjourney-Tier) ───────────────────────
@@ -152,41 +134,50 @@ function buildImagePrompt(
   accessoryName: string | null,
   levelName: string,
 ): string {
-  const style = MIDJOURNEY_STYLES[hub];
-  const config = HUB_CONFIGS[hub];
+  const wrapper = MIDJOURNEY_WRAPPERS[hub];
+  const lens = HUB_LENS[hub];
 
-  // Compose the cinematic wrapper
-  const wrapPrompt = (subject: string): string => {
-    return `${subject}. ${style.aesthetic}, ${style.renderEngine}, ${style.lighting}, ${style.lens}, ${config.imageStyleSuffix}. Layout: ${safeZone}. No text in image. 8k resolution. ${style.suffix}`;
-  };
+  const safeZoneInstruction = safeZone.includes('LEFT')
+    ? 'Subject strictly on the LEFT third, negative space on right'
+    : safeZone.includes('RIGHT')
+    ? 'Subject strictly on the RIGHT third, negative space on left'
+    : safeZone;
 
-  // Base cinematic prompt per hub
+  const buildPrompt = (subject: string): string =>
+    `${subject}, ${safeZoneInstruction}, ${lens}, ${wrapper}. No text in image. 8k resolution.`;
+
+  // Slide 12: Special "Reward Reveal" close-up
+  if (slideNumber === 12 && accessoryName) {
+    return buildPrompt(
+      `Close up of ${accessoryName}, floating in a magical beam of light, Midjourney 3D style, matching the lesson's color palette, topic: "${topic}"`
+    );
+  }
+
+  // Slide 11: Accessory celebration
+  if (slideNumber === 11 && accessoryName) {
+    if (hub === 'playground') {
+      return buildPrompt(`Pip the Penguin holding a glowing "${accessoryName}" trophy, celebration scene with confetti and sparkles, topic: "${topic}"`);
+    } else if (hub === 'academy') {
+      return buildPrompt(`Holographic achievement unlock: floating "${accessoryName}" reward materializing from digital particles, topic: "${topic}"`);
+    } else {
+      return buildPrompt(`Elegant award ceremony: "${accessoryName}" certificate on a luxurious desk, topic: "${topic}"`);
+    }
+  }
+
+  // Playground mascot intro slides
+  if (hub === 'playground' && slideNumber <= 2) {
+    const position = slideNumber % 2 === 1 ? 'on the LEFT third of frame' : 'on the RIGHT third of frame';
+    return buildPrompt(`Pip the Penguin ${position}, waving hello in a magical "${levelName}" world, topic: "${topic}", cinematic establishing shot`);
+  }
+
+  // Default cinematic prompt
   const baseSubjects: Record<HubType, string> = {
     playground: `${slideObjective} in a whimsical 3D "${topic}" world, stylized claymation environment`,
     academy: `${slideObjective} in a futuristic digital "${topic}" arena, holographic UI elements`,
     professional: `${slideObjective} in an elegant modern "${topic}" setting, corporate environment`,
   };
 
-  let prompt = wrapPrompt(baseSubjects[hub]);
-
-  // Accessory reveal on slide 11
-  if (slideNumber === 11 && accessoryName) {
-    if (hub === 'playground') {
-      prompt = wrapPrompt(`Pip the Penguin holding a glowing "${accessoryName}" trophy, celebration scene with confetti and sparkles, topic: "${topic}"`);
-    } else if (hub === 'academy') {
-      prompt = wrapPrompt(`Holographic achievement unlock: floating "${accessoryName}" reward materializing from digital particles, topic: "${topic}"`);
-    } else {
-      prompt = wrapPrompt(`Elegant award ceremony: "${accessoryName}" certificate on a luxurious desk, topic: "${topic}"`);
-    }
-  }
-
-  // Mascot-specific prompts for Playground intro slides
-  if (hub === 'playground' && slideNumber <= 2) {
-    const position = slideNumber % 2 === 1 ? 'on the LEFT third of frame' : 'on the RIGHT third of frame';
-    prompt = wrapPrompt(`Pip the Penguin ${position}, waving hello in a magical "${levelName}" world, topic: "${topic}", cinematic establishing shot`);
-  }
-
-  return prompt;
+  return buildPrompt(baseSubjects[hub]);
 }
 
 // ─── Safe Zone Logic ──────────────────────────────────────────────
