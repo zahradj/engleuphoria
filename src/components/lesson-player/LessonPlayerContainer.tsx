@@ -206,10 +206,10 @@ export default function LessonPlayerContainer({
 
   /* ──────────── Fixed-Height App-Shell ──────────── */
   return (
-    <div className={`flex flex-col h-full min-h-screen ${skin.shell}`}>
+    <div className={`flex flex-col h-full min-h-[100dvh] ${skin.shell}`} style={{ position: 'relative' }}>
 
       {/* ── Fixed Top Bar ── */}
-      <div className={`sticky top-0 z-30 px-4 py-2.5 ${skin.header}`}>
+      <div className={`fixed top-0 left-0 right-0 z-30 px-4 py-2.5 ${skin.header}`}>
         <div className="w-full max-w-[500px] mx-auto flex items-center gap-3">
           <button
             onClick={onExit}

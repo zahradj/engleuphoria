@@ -123,9 +123,10 @@ function getTopicPack(topic: string, hub: HubConfig): TopicPack {
 
 /* ── Image URL with hub-specific style ── */
 
-function buildImageUrl(keyword: string): string {
-  const seed = keyword.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 30);
-  return `https://picsum.photos/seed/${seed}/1600/900`;
+function buildImageUrl(_keyword: string): string {
+  // No longer using picsum.photos placeholders.
+  // Images are generated via Gemini AI after lesson structure is created.
+  return '';
 }
 
 function buildMediaPrompt(keyword: string, hub: HubConfig): string {
