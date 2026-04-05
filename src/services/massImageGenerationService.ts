@@ -25,6 +25,7 @@ export interface MassGenerationResult {
   successCount: number;
   failedCount: number;
   images: SlideImageProgress[];
+  picsartResult: PicsartPipelineResult | null;
   durationMs: number;
 }
 
