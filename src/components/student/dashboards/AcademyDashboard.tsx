@@ -415,7 +415,7 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
 
             <MaterialsGallery track="teens" />
 
-            <RecommendedTeachers isDarkMode={isDarkMode} />
+            <RecommendedTeachers isDarkMode={isDarkMode} hubLevel="academy" />
 
             {onLevelUp && (
               <motion.div

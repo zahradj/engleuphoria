@@ -6,12 +6,45 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTeacherMatchmaker } from '@/hooks/useTeacherMatchmaker';
 import { toast } from 'sonner';
 
+type HubLevel = 'playground' | 'academy' | 'professional';
+
 interface RecommendedTeachersProps {
   isDarkMode?: boolean;
+  hubLevel?: HubLevel;
 }
 
-export const RecommendedTeachers: React.FC<RecommendedTeachersProps> = ({ isDarkMode = false }) => {
+const HUB_STYLES: Record<HubLevel, {
+  badgeBg: string; badgeText: string; btnGradient: string; avatarGradient: string; title: string;
+}> = {
+  playground: {
+    badgeBg: 'bg-orange-100 text-orange-700',
+    badgeText: 'text-orange-600',
+    btnGradient: 'from-orange-500 to-pink-500',
+    avatarGradient: 'from-orange-400 to-pink-400',
+    title: 'Meet Your Teachers! 🎉',
+  },
+  academy: {
+    badgeBg: 'bg-purple-500/20 text-purple-300',
+    badgeText: 'text-purple-400',
+    btnGradient: 'from-purple-600 to-cyan-600',
+    avatarGradient: 'from-purple-500 to-cyan-500',
+    title: 'Recommended Mentors ⚡',
+  },
+  professional: {
+    badgeBg: 'bg-emerald-100 text-emerald-700',
+    badgeText: 'text-emerald-600',
+    btnGradient: 'from-[#1A2B3C] to-[#2A3D50]',
+    avatarGradient: 'from-emerald-500 to-teal-500',
+    title: 'Expert Instructors',
+  },
+};
+
+export const RecommendedTeachers: React.FC<RecommendedTeachersProps> = ({
+  isDarkMode = false,
+  hubLevel = 'academy',
+}) => {
   const { teachers, loading, hasBookings, bookTrialLesson } = useTeacherMatchmaker();
+  const styles = HUB_STYLES[hubLevel];
 
   if (loading || hasBookings || teachers.length === 0) return null;
 
@@ -32,8 +65,8 @@ export const RecommendedTeachers: React.FC<RecommendedTeachersProps> = ({ isDark
     <Card className={cardBg}>
       <CardHeader>
         <CardTitle className={`text-lg flex items-center gap-2 ${textColor}`}>
-          <BookOpen className="w-5 h-5 text-violet-500" />
-          Recommended Teachers for You
+          <BookOpen className={`w-5 h-5 ${isDarkMode ? styles.badgeText : styles.badgeText}`} />
+          {styles.title}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -49,7 +82,7 @@ export const RecommendedTeachers: React.FC<RecommendedTeachersProps> = ({ isDark
               }`}
             >
               {/* Avatar */}
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-violet-400 to-fuchsia-400 flex items-center justify-center text-white text-2xl font-bold">
+              <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${styles.avatarGradient} flex items-center justify-center text-white text-2xl font-bold`}>
                 {(teacher.full_name || 'T')[0]}
               </div>
 
@@ -70,7 +103,7 @@ export const RecommendedTeachers: React.FC<RecommendedTeachersProps> = ({ isDark
                   <span
                     key={j}
                     className={`text-xs px-2 py-0.5 rounded-full ${
-                      isDarkMode ? 'bg-violet-500/20 text-violet-300' : 'bg-violet-100 text-violet-700'
+                      isDarkMode ? styles.badgeBg : styles.badgeBg
                     }`}
                   >
                     {spec}
@@ -86,10 +119,10 @@ export const RecommendedTeachers: React.FC<RecommendedTeachersProps> = ({ isDark
 
               <Button
                 size="sm"
-                className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white hover:opacity-90"
+                className={`w-full bg-gradient-to-r ${styles.btnGradient} text-white hover:opacity-90`}
                 onClick={() => handleBook(teacher.user_id, teacher.full_name || 'Teacher')}
               >
-                Book Trial Lesson
+                {hubLevel === 'professional' ? 'Schedule Session' : 'Book Trial Lesson'}
               </Button>
             </motion.div>
           ))}
