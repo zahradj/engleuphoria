@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, BookOpen, Users, GraduationCap, Wand2, Loader2, Check, ArrowRight, Image, AlertTriangle } from 'lucide-react';
+import { Sparkles, BookOpen, Users, GraduationCap, Wand2, Loader2, Check, ArrowRight, Image, AlertTriangle, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,6 +24,7 @@ import { WizardFormData, PPPLessonPlan, GeneratedSlide, HubType } from './types'
 import { Slide, CanvasElementData } from '../types';
 import { HUB_CONFIGS, resolveHub } from './hubConfig';
 import { generateLessonImages } from '@/services/lessonImageService';
+import { saveToLibrary } from '@/services/lessonLibraryService';
 import { v4 as uuidv4 } from 'uuid';
 import { useToast } from '@/hooks/use-toast';
 
@@ -54,6 +55,7 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
   const [isGeneratingImages, setIsGeneratingImages] = useState(false);
   const [imageProgress, setImageProgress] = useState({ completed: 0, total: 0, current: '' });
   const [imageCount, setImageCount] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
   const handleGenerate = async () => {
@@ -666,13 +668,43 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
                 </div>
               </div>
 
-              <Button
-                onClick={handleApplyLesson}
-                className="w-full h-12 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-              >
-                Open in Editor
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
+              <div className="flex gap-3">
+                <Button
+                  onClick={async () => {
+                    if (!generatedPlan) return;
+                    setIsSaving(true);
+                    try {
+                      const thumbnail = generatedPlan.slides.find(s => s.imageUrl)?.imageUrl || undefined;
+                      await saveToLibrary(
+                        generatedPlan.topic,
+                        generatedPlan.lessonMeta.hub,
+                        generatedPlan.lessonMeta.level,
+                        generatedPlan.slides,
+                        thumbnail
+                      );
+                      toast({ title: '📚 Saved to Library!', description: 'Lesson is now available in the Library Hub.' });
+                    } catch (err) {
+                      console.error(err);
+                      toast({ title: 'Save Failed', description: 'Could not save to library.', variant: 'destructive' });
+                    } finally {
+                      setIsSaving(false);
+                    }
+                  }}
+                  variant="outline"
+                  className="flex-1 h-12"
+                  disabled={isSaving}
+                >
+                  {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+                  Save to Library
+                </Button>
+                <Button
+                  onClick={handleApplyLesson}
+                  className="flex-1 h-12 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                >
+                  Open in Editor
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

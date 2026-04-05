@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { GeneratedSlide, HubType } from '@/components/admin/lesson-builder/ai-wizard/types';
 import { HUB_CONFIGS } from '@/components/admin/lesson-builder/ai-wizard/hubConfig';
+import PipMascot from '../PipMascot';
 
 interface Props {
   slide: GeneratedSlide;
@@ -12,7 +13,7 @@ export default function SlideSummary({ slide, hub }: Props) {
   const config = HUB_CONFIGS[hub];
 
   return (
-    <div className="flex flex-col items-center gap-6 p-10 w-full max-w-2xl mx-auto text-center">
+    <div className="flex flex-col items-center gap-6 p-8 w-full text-center">
       <motion.h2
         className="text-3xl font-bold"
         style={{ color: config.colorPalette.primary }}
@@ -30,7 +31,7 @@ export default function SlideSummary({ slide, hub }: Props) {
       )}
 
       {slide.keywords?.length > 0 && (
-        <div className="flex gap-2 flex-wrap justify-center mt-4">
+        <div className="flex gap-2 flex-wrap justify-center mt-2">
           {slide.keywords.map((kw, i) => (
             <motion.span
               key={kw}
@@ -46,15 +47,7 @@ export default function SlideSummary({ slide, hub }: Props) {
         </div>
       )}
 
-      {hub === 'playground' && (
-        <motion.div
-          className="text-6xl mt-4"
-          animate={{ rotate: [0, 10, -10, 0] }}
-          transition={{ repeat: Infinity, duration: 2 }}
-        >
-          🎉
-        </motion.div>
-      )}
+      {hub === 'playground' && <PipMascot size={80} animation="celebrate" />}
     </div>
   );
 }

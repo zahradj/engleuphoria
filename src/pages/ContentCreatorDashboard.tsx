@@ -3,7 +3,7 @@ import { ContentCreatorStepper, PipelineStep } from '@/components/content-creato
 import { usePipelineProgress } from '@/hooks/usePipelineProgress';
 import { CurriculumStep, CurriculumContext } from '@/components/content-creator/CurriculumStep';
 import { AdminLessonEditor } from '@/components/admin/lesson-builder';
-import { CurriculumLibrary } from '@/components/admin/CurriculumLibrary';
+import LessonLibraryHub from '@/components/lesson-player/LessonLibraryHub';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogOut, ArrowRight, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -32,7 +32,7 @@ const ContentCreatorDashboard: React.FC = () => {
                 Browse, manage, and publish your completed content.
               </p>
             </div>
-            <CurriculumLibrary />
+            <LessonLibraryHub />
             <div className="flex justify-start pt-4 border-t border-border">
               <Button variant="outline" onClick={goPrev} className="gap-2">
                 <ArrowLeft className="h-4 w-4" />

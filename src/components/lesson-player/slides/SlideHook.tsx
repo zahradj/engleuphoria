@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { GeneratedSlide, HubType } from '@/components/admin/lesson-builder/ai-wizard/types';
 import { HUB_CONFIGS } from '@/components/admin/lesson-builder/ai-wizard/hubConfig';
+import PipMascot from '../PipMascot';
 
 interface Props {
   slide: GeneratedSlide;
@@ -14,21 +15,22 @@ export default function SlideHook({ slide, hub }: Props) {
   const hasImage = slide.imageUrl && slide.imageUrl.length > 5;
 
   return (
-    <div className="flex flex-col items-center justify-center gap-6 p-10 w-full max-w-3xl mx-auto text-center">
+    <div className="flex flex-col items-center justify-center gap-6 p-8 w-full text-center">
       {hasImage && (
         <motion.img
           src={slide.imageUrl}
           alt={slide.title}
-          className="w-full max-w-md rounded-2xl object-cover"
-          style={{ maxHeight: 280 }}
+          className="w-full max-w-lg rounded-2xl object-cover"
+          style={{ maxHeight: 300 }}
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
+          loading="lazy"
         />
       )}
 
       <motion.h1
-        className="text-4xl font-bold"
+        className="text-3xl font-bold"
         style={{ color: config.colorPalette.primary, fontFamily: hub === 'playground' ? "'Quicksand', sans-serif" : undefined }}
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -37,7 +39,7 @@ export default function SlideHook({ slide, hub }: Props) {
       </motion.h1>
 
       <motion.p
-        className="text-xl leading-relaxed max-w-xl whitespace-pre-line"
+        className="text-lg leading-relaxed max-w-xl whitespace-pre-line"
         style={{ color: config.colorPalette.text }}
         initial={{ y: 10, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -47,13 +49,7 @@ export default function SlideHook({ slide, hub }: Props) {
       </motion.p>
 
       {hub === 'playground' && config.mascot && (
-        <motion.div
-          className="text-6xl"
-          animate={{ y: [0, -8, 0] }}
-          transition={{ repeat: Infinity, duration: 2 }}
-        >
-          🐣
-        </motion.div>
+        <PipMascot size={80} animation="wave" />
       )}
     </div>
   );

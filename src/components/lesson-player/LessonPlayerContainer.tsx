@@ -5,6 +5,7 @@ import { HUB_CONFIGS } from '@/components/admin/lesson-builder/ai-wizard/hubConf
 import DynamicSlideRenderer from './DynamicSlideRenderer';
 import FeedbackOverlay from './FeedbackOverlay';
 import LessonRewardPage from './LessonRewardPage';
+import PipMascot from './PipMascot';
 import { soundEffectsService } from '@/services/soundEffectsService';
 import { triggerCelebration } from '@/services/celebration';
 import { supabase } from '@/integrations/supabase/client';
@@ -81,7 +82,6 @@ export default function LessonPlayerContainer({
   const [answerSelected, setAnswerSelected] = useState(false);
   const startTimeRef = useRef(Date.now());
 
-  // Feedback overlay state
   const [feedbackVisible, setFeedbackVisible] = useState(false);
   const [feedbackCorrect, setFeedbackCorrect] = useState(false);
   const [feedbackSolution, setFeedbackSolution] = useState('');
@@ -94,17 +94,13 @@ export default function LessonPlayerContainer({
 
   const isActivitySlide = currentSlide?.slideType === 'activity' || !!currentSlide?.activityType;
 
-  // Count total questions on mount
   useEffect(() => {
     const qCount = slides.filter(s => s.slideType === 'activity' || !!s.activityType).length;
     setTotalQuestions(qCount);
   }, [slides]);
 
-  // Auto-trigger celebration at 100%
   useEffect(() => {
-    if (completed) {
-      triggerCelebration(hub);
-    }
+    if (completed) triggerCelebration(hub);
   }, [completed, hub]);
 
   const handleCorrectAnswer = useCallback(() => {
@@ -163,7 +159,7 @@ export default function LessonPlayerContainer({
     soundEffectsService.setMuted(next);
   };
 
-  /* ──────────── Reward Page (100% moment) ──────────── */
+  /* ──────────── Reward Page ──────────── */
   if (completed) {
     const timeSpent = Math.round((Date.now() - startTimeRef.current) / 1000);
     return (
@@ -178,13 +174,13 @@ export default function LessonPlayerContainer({
     );
   }
 
-  /* ──────────── Fixed-Height App-Shell ──────────── */
+  /* ──────────── App-Shell — wider max-w ──────────── */
   return (
     <div className={`flex flex-col h-full min-h-[100dvh] ${skin.shell}`} style={{ position: 'relative' }}>
 
       {/* ── Fixed Top Bar ── */}
       <div className={`fixed top-0 left-0 right-0 z-30 px-4 py-2.5 ${skin.header}`}>
-        <div className="w-full max-w-[500px] mx-auto flex items-center gap-3">
+        <div className="w-full max-w-[720px] mx-auto flex items-center gap-3">
           <button
             onClick={onExit}
             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/10 transition-colors shrink-0"
@@ -192,7 +188,7 @@ export default function LessonPlayerContainer({
             <X size={20} style={{ color: config.colorPalette.text }} />
           </button>
 
-          {/* Hub-Skinned Progress Bar */}
+          {/* Progress Bar */}
           <div className={`flex-1 h-4 rounded-full overflow-hidden relative ${skin.progressTrack}`}>
             <motion.div
               className={`h-full rounded-full ${skin.progressBar}`}
@@ -203,11 +199,11 @@ export default function LessonPlayerContainer({
             />
             {hub === 'playground' && (
               <motion.div
-                className="absolute text-sm top-[-4px]"
-                animate={{ left: `calc(${Math.min(progress, 92)}% - 8px)` }}
+                className="absolute top-[-6px]"
+                animate={{ left: `calc(${Math.min(progress, 90)}% - 12px)` }}
                 transition={{ type: 'spring', stiffness: 50 }}
               >
-                🐧
+                <PipMascot size={24} animation="bounce" />
               </motion.div>
             )}
           </div>
@@ -230,9 +226,9 @@ export default function LessonPlayerContainer({
         </div>
       </div>
 
-      {/* ── Centered Content Area ── */}
-      <div className="flex-1 flex items-center justify-center px-4 py-4 overflow-auto" style={{ paddingTop: 60, paddingBottom: 80 }}>
-        <div className={`w-full max-w-[500px] rounded-[20px] overflow-hidden ${skin.card}`}>
+      {/* ── Centered Content Area — wider container ── */}
+      <div className="flex-1 flex items-center justify-center px-4 py-4 overflow-auto" style={{ paddingTop: 64, paddingBottom: 88 }}>
+        <div className={`w-full max-w-[720px] rounded-[20px] overflow-hidden ${skin.card}`}>
           <AnimatePresence mode="wait">
             <DynamicSlideRenderer
               key={currentSlide.id}
@@ -257,7 +253,7 @@ export default function LessonPlayerContainer({
       {/* ── Fixed Bottom Footer ── */}
       {!feedbackVisible && (
         <div className={`fixed bottom-0 left-0 right-0 z-20 px-4 py-3 ${skin.footer}`}>
-          <div className="w-full max-w-[500px] mx-auto">
+          <div className="w-full max-w-[720px] mx-auto">
             {isActivitySlide ? (
               <button
                 onClick={answerSelected ? handleNextSlide : undefined}
