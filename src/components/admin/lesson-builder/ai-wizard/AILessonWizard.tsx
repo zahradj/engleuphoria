@@ -119,7 +119,7 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
       await new Promise(resolve => setTimeout(resolve, 600));
     }
 
-    const plan = generatePPPLesson(formData);
+    const plan = generatePPPLesson({ ...formData, lessonPrompt: lessonPrompt.trim() || undefined });
     setGeneratedPlan(plan);
 
     await new Promise(resolve => setTimeout(resolve, 400));
