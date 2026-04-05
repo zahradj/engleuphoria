@@ -2,8 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { ImmersiveLessonReader } from '@/components/student/lesson-reader/ImmersiveLessonReader';
+import LessonPlayerContainer from '@/components/lesson-player/LessonPlayerContainer';
+import { useAuth } from '@/contexts/AuthContext';
 import { Loader2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { HubType, GeneratedSlide } from '@/components/admin/lesson-builder/ai-wizard/types';
 
 interface LessonData {
   id: string;
@@ -19,6 +22,7 @@ interface LessonData {
 const LessonReaderPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [lesson, setLesson] = useState<LessonData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +66,27 @@ const LessonReaderPage: React.FC = () => {
     );
   }
 
-  // Extract markdown content from the lesson content field
+  // ── Detect slide-based (App-Shell) lessons ──
+  const slides: GeneratedSlide[] | null = lesson.content?.slides || null;
+  const hub: HubType = (lesson.content?.hub || lesson.target_system || 'playground') as HubType;
+
+  if (slides && slides.length > 0) {
+    return (
+      <LessonPlayerContainer
+        slides={slides}
+        hub={hub}
+        lessonTitle={lesson.title}
+        lessonId={lesson.id}
+        studentId={user?.id}
+        onComplete={(score) => {
+          console.log('Lesson completed with score:', score);
+        }}
+        onExit={() => navigate(-1)}
+      />
+    );
+  }
+
+  // ── Fallback: markdown-based immersive reader ──
   const markdownContent = typeof lesson.content === 'string'
     ? lesson.content
     : lesson.content?.markdown || lesson.content?.text || JSON.stringify(lesson.content, null, 2);
