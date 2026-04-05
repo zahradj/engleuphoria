@@ -178,8 +178,15 @@ export const CurriculumManager: React.FC<CurriculumManagerProps> = ({
       const topic = lesson.content?.vocabularyTheme || lesson.title.replace(/^\d+\.\d+\s*/, '');
 
       const levelMap: Record<string, 'beginner' | 'intermediate' | 'advanced'> = {
-        beginner: 'beginner', elementary: 'beginner', 'pre-intermediate': 'intermediate',
-        intermediate: 'intermediate', A1: 'beginner', A2: 'beginner', B1: 'intermediate', B2: 'advanced',
+        beginner: 'beginner',
+        elementary: 'beginner',
+        'pre-intermediate': 'intermediate',
+        intermediate: 'intermediate',
+        advanced: 'advanced',
+        A1: 'beginner',
+        A2: 'beginner',
+        B1: 'intermediate',
+        B2: 'advanced',
       };
       const ageMap: Record<string, 'kids' | 'teens' | 'adults'> = {
         kids: 'kids', teens: 'teens', adults: 'adults',
