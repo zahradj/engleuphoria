@@ -72,8 +72,73 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
   const handleApplyLesson = () => {
     if (!generatedPlan) return;
 
-    // Convert generated slides to the editor's Slide format
+    // Convert generated slides to the editor's Slide format with canvas elements
     const editorSlides: Slide[] = generatedPlan.slides.map((gs, index) => {
+      const canvasElements: any[] = [];
+      let zIndex = 1;
+
+      // Title element on every slide
+      canvasElements.push({
+        id: uuidv4(),
+        elementType: 'text' as const,
+        x: 60, y: 40, width: 800, height: 60, rotation: 0, zIndex: zIndex++,
+        content: { text: gs.title, fontSize: 36, fontWeight: 'bold', color: '#1a1a2e' },
+      });
+
+      // Image element if available
+      if (gs.imageUrl) {
+        canvasElements.push({
+          id: uuidv4(),
+          elementType: 'image' as const,
+          x: 580, y: 140, width: 360, height: 240, rotation: 0, zIndex: zIndex++,
+          content: { src: gs.imageUrl, alt: gs.imageKeywords || gs.title },
+        });
+      }
+
+      // Content-specific elements
+      if (gs.type === 'vocabulary' && gs.content) {
+        canvasElements.push({
+          id: uuidv4(),
+          elementType: 'text' as const,
+          x: 60, y: 160, width: 480, height: 50, rotation: 0, zIndex: zIndex++,
+          content: { text: gs.content.word || '', fontSize: 48, fontWeight: 'bold', color: '#6c3ce0' },
+        });
+        canvasElements.push({
+          id: uuidv4(),
+          elementType: 'text' as const,
+          x: 60, y: 230, width: 480, height: 40, rotation: 0, zIndex: zIndex++,
+          content: { text: gs.content.definition || '', fontSize: 20, color: '#444' },
+        });
+      }
+
+      if (gs.type === 'fill-blank' && gs.content) {
+        canvasElements.push({
+          id: uuidv4(),
+          elementType: 'text' as const,
+          x: 60, y: 200, width: 600, height: 50, rotation: 0, zIndex: zIndex++,
+          content: { text: gs.content.sentence || '', fontSize: 28, color: '#1a1a2e' },
+        });
+      }
+
+      if (gs.type === 'matching' && gs.content?.matchPairs) {
+        canvasElements.push({
+          id: uuidv4(),
+          elementType: 'matching' as const,
+          x: 60, y: 140, width: 860, height: 380, rotation: 0, zIndex: zIndex++,
+          content: { pairs: gs.content.matchPairs.map((p: any) => ({ word: p.word, image: p.image })) },
+        });
+      }
+
+      if (gs.type === 'roleplay' && gs.content?.prompt) {
+        canvasElements.push({
+          id: uuidv4(),
+          elementType: 'text' as const,
+          x: 60, y: 180, width: 700, height: 80, rotation: 0, zIndex: zIndex++,
+          content: { text: gs.content.prompt, fontSize: 22, color: '#333' },
+        });
+      }
+
+      // Quiz element
       const slide: Slide = {
         id: gs.id,
         order: index,
@@ -82,9 +147,9 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
         title: gs.title,
         teacherNotes: gs.teacherNotes,
         keywords: gs.keywords,
+        canvasElements,
       };
 
-      // Add quiz-specific data
       if (gs.type === 'quiz' && gs.content?.quizQuestion) {
         slide.type = 'quiz';
         slide.quizQuestion = gs.content.quizQuestion;
@@ -93,6 +158,22 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
           text: opt.text,
           isCorrect: opt.isCorrect,
         }));
+        canvasElements.push({
+          id: uuidv4(),
+          elementType: 'quiz' as const,
+          x: 60, y: 140, width: 860, height: 380, rotation: 0, zIndex: zIndex++,
+          content: { question: gs.content.quizQuestion, options: slide.quizOptions },
+        });
+      }
+
+      // Add Pip mascot on title and game slides
+      if (gs.type === 'title' || gs.type === 'matching' || gs.type === 'roleplay') {
+        canvasElements.push({
+          id: uuidv4(),
+          elementType: 'character' as const,
+          x: 800, y: 400, width: 120, height: 120, rotation: 0, zIndex: zIndex++,
+          content: { characterId: 'pip', animation: gs.type === 'title' ? 'wave' : 'idle' },
+        });
       }
 
       return slide;
