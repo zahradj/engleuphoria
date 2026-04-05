@@ -1,10 +1,11 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { Plus, Trash2, GripVertical, Upload } from 'lucide-react';
+import { Plus, Trash2, GripVertical, Upload, ChevronDown, ChevronUp, Type, ImageIcon, Square, HelpCircle, Link2, FileText, Mic, Puzzle, Video, ArrowDownUp, BookOpen, Bird } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
-import { Slide } from './types';
+import { Slide, CanvasElementType } from './types';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -16,7 +17,23 @@ interface SlideFilmstripProps {
   onDeleteSlide: (id: string) => void;
   onReorderSlides: (startIndex: number, endIndex: number) => void;
   onImageUploaded?: (slideId: string, imageUrl: string) => void;
+  onAddElement?: (type: CanvasElementType) => void;
 }
+
+const ELEMENTS: { type: CanvasElementType; icon: React.ElementType; label: string }[] = [
+  { type: 'text', icon: Type, label: 'Text' },
+  { type: 'image', icon: ImageIcon, label: 'Image' },
+  { type: 'shape', icon: Square, label: 'Shape' },
+  { type: 'video', icon: Video, label: 'Video' },
+  { type: 'audio', icon: Mic, label: 'Audio' },
+  { type: 'quiz', icon: HelpCircle, label: 'Quiz' },
+  { type: 'matching', icon: Link2, label: 'Match' },
+  { type: 'fill-blank', icon: FileText, label: 'Fill' },
+  { type: 'drag-drop', icon: Puzzle, label: 'Drag' },
+  { type: 'sorting', icon: ArrowDownUp, label: 'Sort' },
+  { type: 'sentence-builder', icon: BookOpen, label: 'Sentence' },
+  { type: 'character', icon: Bird, label: 'Mascot' },
+];
 
 export const SlideFilmstrip: React.FC<SlideFilmstripProps> = ({
   slides,
@@ -26,9 +43,11 @@ export const SlideFilmstrip: React.FC<SlideFilmstripProps> = ({
   onDeleteSlide,
   onReorderSlides,
   onImageUploaded,
+  onAddElement,
 }) => {
   const { toast } = useToast();
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const [elementsOpen, setElementsOpen] = useState(false);
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
@@ -57,7 +76,7 @@ export const SlideFilmstrip: React.FC<SlideFilmstripProps> = ({
   };
 
   return (
-    <div className="h-full flex flex-col bg-card/50 border-r border-border" style={{ width: 140 }}>
+    <div className="h-full flex flex-col bg-card/50 border-r border-border" style={{ width: 120 }}>
       <ScrollArea className="flex-1">
         <DragDropContext onDragEnd={handleDragEnd}>
           <Droppable droppableId="filmstrip">
@@ -65,7 +84,7 @@ export const SlideFilmstrip: React.FC<SlideFilmstripProps> = ({
               <div
                 {...provided.droppableProps}
                 ref={provided.innerRef}
-                className="p-1.5 space-y-1.5"
+                className="p-1 space-y-1"
               >
                 {slides.map((slide, index) => (
                   <Draggable key={slide.id} draggableId={slide.id} index={index}>
@@ -82,22 +101,22 @@ export const SlideFilmstrip: React.FC<SlideFilmstripProps> = ({
                         )}
                         onClick={() => onSelectSlide(slide.id)}
                       >
-                        <div className="p-1">
-                          <div className="flex items-center gap-1 mb-0.5">
+                        <div className="p-0.5">
+                          <div className="flex items-center gap-0.5 mb-0.5">
                             <div
                               {...provided.dragHandleProps}
                               className="cursor-grab active:cursor-grabbing text-muted-foreground"
                             >
-                              <GripVertical className="h-3 w-3" />
+                              <GripVertical className="h-2.5 w-2.5" />
                             </div>
-                            <span className="text-[9px] font-medium text-muted-foreground">{index + 1}</span>
+                            <span className="text-[8px] font-medium text-muted-foreground">{index + 1}</span>
                           </div>
                           <div className="aspect-video bg-muted rounded-sm overflow-hidden relative group/thumb">
                             {slide.imageUrl ? (
                               <img src={slide.imageUrl} alt="" className="w-full h-full object-cover" />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
-                                <span className="text-[8px] text-muted-foreground/50">Empty</span>
+                                <span className="text-[7px] text-muted-foreground/50">Empty</span>
                               </div>
                             )}
                             <button
@@ -118,10 +137,10 @@ export const SlideFilmstrip: React.FC<SlideFilmstripProps> = ({
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="absolute top-0.5 right-0.5 h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute top-0 right-0 h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={(e) => { e.stopPropagation(); onDeleteSlide(slide.id); }}
                         >
-                          <Trash2 className="h-2.5 w-2.5 text-destructive" />
+                          <Trash2 className="h-2 w-2 text-destructive" />
                         </Button>
                       </div>
                     )}
@@ -133,11 +152,42 @@ export const SlideFilmstrip: React.FC<SlideFilmstripProps> = ({
           </Droppable>
         </DragDropContext>
       </ScrollArea>
-      <div className="p-1.5 border-t border-border">
-        <Button onClick={onAddSlide} size="sm" variant="outline" className="w-full h-7 text-[10px] gap-1">
-          <Plus className="h-3 w-3" /> Add Slide
+
+      {/* Add Slide button */}
+      <div className="px-1 py-1 border-t border-border">
+        <Button onClick={onAddSlide} size="sm" variant="outline" className="w-full h-6 text-[9px] gap-0.5">
+          <Plus className="h-2.5 w-2.5" /> Slide
         </Button>
       </div>
+
+      {/* Merged Element Toolbar */}
+      {onAddElement && (
+        <Collapsible open={elementsOpen} onOpenChange={setElementsOpen}>
+          <CollapsibleTrigger asChild>
+            <button className="w-full flex items-center justify-between px-2 py-1 border-t border-border text-[9px] font-semibold text-muted-foreground uppercase tracking-wider hover:bg-accent/20 transition-colors">
+              Elements
+              {elementsOpen ? <ChevronDown className="h-2.5 w-2.5" /> : <ChevronUp className="h-2.5 w-2.5" />}
+            </button>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="grid grid-cols-3 gap-0.5 p-1 border-t border-border">
+              {ELEMENTS.map(({ type, icon: Icon, label }) => (
+                <Button
+                  key={type}
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-full flex flex-col gap-0 px-0 hover:bg-primary/10"
+                  onClick={() => onAddElement(type)}
+                  title={label}
+                >
+                  <Icon className="h-3 w-3" />
+                  <span className="text-[7px] leading-none">{label}</span>
+                </Button>
+              ))}
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      )}
     </div>
   );
 };

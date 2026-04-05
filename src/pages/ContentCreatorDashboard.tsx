@@ -22,7 +22,7 @@ const ContentCreatorDashboard: React.FC = () => {
       case 1:
         return <CurriculumStep onNextStep={goNext} onCurriculumSelected={setCurriculumContext} />;
       case 2:
-        return <AdminLessonEditor onFinish={goNext} onBack={goPrev} />;
+        return <AdminLessonEditor onFinish={goNext} onBack={goPrev} curriculumContext={curriculumContext} />;
       case 3:
         return (
           <div className="space-y-6">
@@ -63,7 +63,10 @@ const ContentCreatorDashboard: React.FC = () => {
         </Button>
       </header>
 
-      <ContentCreatorStepper currentStep={currentStep} onStepChange={setCurrentStep} progress={progress} />
+      {/* Hide stepper on Step 2 to maximize canvas space */}
+      {currentStep !== 2 && (
+        <ContentCreatorStepper currentStep={currentStep} onStepChange={setCurrentStep} progress={progress} />
+      )}
 
       {isFullBleed ? (
         <div className="flex-1 min-h-0">{renderStepContent()}</div>

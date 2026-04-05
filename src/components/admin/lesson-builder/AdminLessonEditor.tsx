@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,7 +8,6 @@ import { TeacherGuide } from './TeacherGuide';
 import { CurriculumBrowser } from './CurriculumBrowser';
 import { LessonPreviewDialog } from './LessonPreviewDialog';
 import { LessonBlueprint } from './LessonBlueprint';
-import { ElementToolbar } from './canvas/ElementToolbar';
 import { Slide, LessonDeck, CanvasElementData, CanvasElementType } from './types';
 import { AILessonWizard } from './ai-wizard';
 import { AIActivityGenerator } from './AIActivityGenerator';
@@ -19,27 +18,31 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Wand2, HelpCircle, ArrowLeft, ArrowRight, CheckCircle,
-  BookOpen, ClipboardList, Save, Eye, FolderOpen, LayoutList
+  BookOpen, ClipboardList, Save, Eye, FolderOpen, LayoutList,
+  PanelLeftClose, PanelLeftOpen
 } from 'lucide-react';
 import { QuizGenerator } from '@/components/content-creator/QuizGenerator';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { useQueryClient } from '@tanstack/react-query';
+import type { CurriculumContext } from '@/components/content-creator/CurriculumStep';
 
 interface AdminLessonEditorProps {
   onFinish?: () => void;
   onBack?: () => void;
+  curriculumContext?: CurriculumContext | null;
 }
 
 const levels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 const ageGroups = ['3-5', '6-8', '9-12', '13-17', '18+'];
 
-export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, onBack }) => {
+export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, onBack, curriculumContext }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSaving, setIsSaving] = useState(false);
   const [showAIWizard, setShowAIWizard] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
+  const [filmstripCollapsed, setFilmstripCollapsed] = useState(false);
   const canvasRef = React.useRef<HTMLDivElement>(null);
 
   const [lessonTitle, setLessonTitle] = useState('Untitled Lesson');
@@ -51,6 +54,39 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
   ]);
   const [selectedSlideId, setSelectedSlideId] = useState<string | null>(slides[0]?.id || null);
   const selectedSlide = slides.find((s) => s.id === selectedSlideId) || null;
+
+  // Auto-load first lesson when curriculum context is provided
+  useEffect(() => {
+    if (!curriculumContext) return;
+    
+    const loadFirstLesson = async () => {
+      try {
+        let query = supabase
+          .from('curriculum_lessons')
+          .select('*')
+          .eq('target_system', curriculumContext.system)
+          .order('sequence_order', { ascending: true })
+          .limit(1);
+        
+        if (curriculumContext.levelId) {
+          query = query.eq('level_id', curriculumContext.levelId);
+        }
+
+        const { data, error } = await query;
+        if (error) throw error;
+        if (data && data.length > 0) {
+          handleSelectLesson(data[0]);
+        }
+        // Set level/ageGroup from context
+        if (curriculumContext.level) setLevel(curriculumContext.level);
+        if (curriculumContext.ageGroup) setAgeGroup(curriculumContext.ageGroup);
+      } catch (err) {
+        console.error('Auto-load lesson failed:', err);
+      }
+    };
+
+    loadFirstLesson();
+  }, [curriculumContext]);
 
   const handleSelectLesson = useCallback((lesson: any) => {
     setActiveLessonId(lesson.id);
@@ -104,7 +140,6 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
   }, []);
 
   const handleAddElement = useCallback((type: CanvasElementType) => {
-    // Delegate to canvas editor's addElement via ref
     const el = document.querySelector('[data-canvas-editor]') as any;
     if (el?.__addElement) el.__addElement(type);
   }, []);
@@ -153,11 +188,11 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
   }, [toast]);
 
   return (
-    <div className="h-full flex flex-col bg-background" style={{ minHeight: 'calc(100vh - 8rem)' }}>
+    <div className="h-full flex flex-col bg-background" style={{ minHeight: 'calc(100vh - 4rem)' }}>
       {/* ─── Top Action Bar ─── */}
-      <div className="h-12 bg-card border-b border-border px-3 flex items-center gap-2 shrink-0">
+      <div className="h-11 bg-card border-b border-border px-3 flex items-center gap-2 shrink-0">
         {onBack && (
-          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={onBack}>
+          <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={onBack}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
         )}
@@ -248,20 +283,44 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
 
       {/* ─── Main Content ─── */}
       <div className="flex-1 flex min-h-0">
-        {/* Left: Filmstrip + Element Toolbar */}
+        {/* Left: Collapsible Filmstrip with merged element toolbar */}
         <div className="flex shrink-0 h-full">
-          <SlideFilmstrip
-            slides={slides}
-            selectedSlideId={selectedSlideId}
-            onSelectSlide={setSelectedSlideId}
-            onAddSlide={handleAddSlide}
-            onDeleteSlide={handleDeleteSlide}
-            onReorderSlides={handleReorderSlides}
-            onImageUploaded={handleImageUploaded}
-          />
-          <div className="w-[120px] border-r border-border bg-card/30 overflow-y-auto">
-            <ElementToolbar onAddElement={handleAddElement} />
-          </div>
+          {filmstripCollapsed ? (
+            <div className="w-8 bg-card/50 border-r border-border flex flex-col items-center pt-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={() => setFilmstripCollapsed(false)}
+              >
+                <PanelLeftOpen className="h-3.5 w-3.5" />
+              </Button>
+              <div className="mt-2 text-[9px] text-muted-foreground font-medium writing-vertical">
+                {slides.findIndex(s => s.id === selectedSlideId) + 1}/{slides.length}
+              </div>
+            </div>
+          ) : (
+            <div className="relative">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-1 right-1 z-10 h-5 w-5"
+                onClick={() => setFilmstripCollapsed(true)}
+              >
+                <PanelLeftClose className="h-3 w-3" />
+              </Button>
+              <SlideFilmstrip
+                slides={slides}
+                selectedSlideId={selectedSlideId}
+                onSelectSlide={setSelectedSlideId}
+                onAddSlide={handleAddSlide}
+                onDeleteSlide={handleDeleteSlide}
+                onReorderSlides={handleReorderSlides}
+                onImageUploaded={handleImageUploaded}
+                onAddElement={handleAddElement}
+              />
+            </div>
+          )}
         </div>
 
         {/* Center: Full Canvas */}
