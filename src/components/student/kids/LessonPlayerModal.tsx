@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Loader2, Volume2, CheckCircle, Sparkles, Star } from 'lucide-react';
 import { playSound } from '@/constants/soundEffects';
 import confetti from 'canvas-confetti';
+import { CanvasLessonPlayer } from '@/components/student/CanvasLessonPlayer';
 import type { PlaygroundLesson } from '@/hooks/usePlaygroundLessons';
 
 interface LessonPlayerModalProps {
