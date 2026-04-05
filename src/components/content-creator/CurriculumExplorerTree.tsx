@@ -152,8 +152,9 @@ export const CurriculumExplorerTree: React.FC<CurriculumExplorerTreeProps> = ({
   const [levels, setLevels] = useState<CurriculumLevel[]>([]);
   const [lessons, setLessons] = useState<ExplorerLesson[]>([]);
   const [accessories, setAccessories] = useState<Accessory[]>([]);
-  const [expandedLevels, setExpandedLevels] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState<{ type: 'lesson' | 'level'; id: string; name: string; lessonCount?: number } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
