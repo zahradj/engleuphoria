@@ -21,6 +21,7 @@ export interface TopicPack {
   grammarTarget: string;
   grammarExamples: string[];
   warmUpQuestion: string;
+  warmUpSong?: string;
   objectives: string[];
   dialogueLines: string[];
   gameDescription: string;
