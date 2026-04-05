@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, BookOpen, Users, GraduationCap, Wand2, Loader2, Check, ArrowRight, Image, AlertTriangle } from 'lucide-react';
+import { Sparkles, BookOpen, Users, GraduationCap, Wand2, Loader2, Check, ArrowRight, Image, AlertTriangle, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,6 +24,7 @@ import { WizardFormData, PPPLessonPlan, GeneratedSlide, HubType } from './types'
 import { Slide, CanvasElementData } from '../types';
 import { HUB_CONFIGS, resolveHub } from './hubConfig';
 import { generateLessonImages } from '@/services/lessonImageService';
+import { saveToLibrary } from '@/services/lessonLibraryService';
 import { v4 as uuidv4 } from 'uuid';
 import { useToast } from '@/hooks/use-toast';
 
@@ -54,6 +55,7 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
   const [isGeneratingImages, setIsGeneratingImages] = useState(false);
   const [imageProgress, setImageProgress] = useState({ completed: 0, total: 0, current: '' });
   const [imageCount, setImageCount] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
   const handleGenerate = async () => {
