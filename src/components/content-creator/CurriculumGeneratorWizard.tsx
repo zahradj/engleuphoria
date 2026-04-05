@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Loader2, Wand2, ChevronDown, ChevronRight, Save, BookOpen, GraduationCap, Edit2, Check, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
 interface GeneratedUnit {
@@ -49,6 +50,7 @@ interface CurriculumGeneratorWizardProps {
 }
 
 export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps> = ({ onCurriculumGenerated }) => {
+  const { user } = useAuth();
   const [config, setConfig] = useState<CurriculumConfig>({
     level: '',
     ageGroup: '',
@@ -268,6 +270,7 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
             age_group: config.ageGroup,
             cefr_level: unitCefrLevel,
             learning_objectives: unit.lessons.flatMap(l => l.objectives || []),
+            created_by: user?.id || null,
           })
           .select()
           .single();
@@ -281,6 +284,7 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
           difficulty_level: lessonDifficultyLevel,
           sequence_order: lesson.lessonNumber,
           duration_minutes: 30,
+          created_by: user?.id || null,
           content: {
             objectives: lesson.objectives,
             grammarFocus: lesson.grammarFocus,
