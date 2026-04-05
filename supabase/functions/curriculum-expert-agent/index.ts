@@ -527,15 +527,21 @@ function buildUserPrompt(requestData: GenerationRequest): string {
   }
 
   if (requestData.mode === 'curriculum_structure') {
-    if (requestData.unitCount) {
-      userPrompt += `\n- Number of units: ${requestData.unitCount}`;
-    }
-    if (requestData.lessonsPerUnit) {
-      userPrompt += `\n- Lessons per unit: ${requestData.lessonsPerUnit}`;
-    }
-    if (requestData.level) {
-      userPrompt += `\n- Level: ${requestData.level}`;
-    }
+    const unitCount = requestData.unitCount || 4;
+    const lessonsPerUnit = requestData.lessonsPerUnit || 3;
+    const level = requestData.level || 'beginner';
+    const ageGroup = requestData.ageGroup || 'kids';
+    userPrompt = `Generate a complete curriculum structure for ${ageGroup} learners at ${level} level.
+
+Requirements:
+- Generate exactly ${unitCount} units
+- Each unit must have exactly ${lessonsPerUnit} lessons
+- Each lesson needs: title, 3 objectives, grammarFocus, vocabularyTheme
+- Lessons should be 30 minutes each
+- Content must be age-appropriate for ${ageGroup}
+- Grammar and vocabulary should progress logically across units
+
+Return ONLY a JSON array of ${unitCount} unit objects, each with a "lessons" array of ${lessonsPerUnit} lesson objects.`;
   }
   
   if (requestData.mode === 'assessment' && requestData.assessmentType) {
