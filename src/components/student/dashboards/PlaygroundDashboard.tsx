@@ -167,7 +167,7 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
 
               <MaterialsGallery track="kids" />
 
-              <RecommendedTeachers />
+              <RecommendedTeachers hubLevel="playground" />
             </div>
           </div>
         </div>
