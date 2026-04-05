@@ -1,10 +1,12 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HubType, GeneratedSlide } from '@/components/admin/lesson-builder/ai-wizard/types';
 import { HUB_CONFIGS } from '@/components/admin/lesson-builder/ai-wizard/hubConfig';
 import DynamicSlideRenderer from './DynamicSlideRenderer';
 import FeedbackOverlay from './FeedbackOverlay';
+import LessonRewardPage from './LessonRewardPage';
 import { soundEffectsService } from '@/services/soundEffectsService';
+import { triggerCelebration } from '@/services/celebration';
 import { supabase } from '@/integrations/supabase/client';
 import { X, Volume2, VolumeX, Zap, Star } from 'lucide-react';
 
@@ -22,7 +24,6 @@ const HUB_SKINS = {
     checkShadow: '0 4px 0 #16a34a',
     checkDisabled: 'bg-amber-200/60',
     xpColor: '#FF9F1C',
-    mascotEmoji: '🐧',
   },
   academy: {
     shell: 'bg-gradient-to-b from-indigo-950 to-slate-950',
@@ -36,7 +37,6 @@ const HUB_SKINS = {
     checkShadow: '0 4px 0 #4338ca',
     checkDisabled: 'bg-indigo-800/40',
     xpColor: '#A855F7',
-    mascotEmoji: '⚡',
   },
   professional: {
     shell: 'bg-gradient-to-b from-slate-50 to-gray-100',
@@ -50,7 +50,6 @@ const HUB_SKINS = {
     checkShadow: '0 4px 0 #1e293b',
     checkDisabled: 'bg-slate-200',
     xpColor: '#10B981',
-    mascotEmoji: '',
   },
 } as const;
 
@@ -76,9 +75,11 @@ export default function LessonPlayerContainer({
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [lessonScore, setLessonScore] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
+  const [totalQuestions, setTotalQuestions] = useState(0);
   const [muted, setMuted] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [answerSelected, setAnswerSelected] = useState(false);
+  const startTimeRef = useRef(Date.now());
 
   // Feedback overlay state
   const [feedbackVisible, setFeedbackVisible] = useState(false);
@@ -92,6 +93,19 @@ export default function LessonPlayerContainer({
   const progress = ((currentSlideIndex + 1) / totalSlides) * 100;
 
   const isActivitySlide = currentSlide?.slideType === 'activity' || !!currentSlide?.activityType;
+
+  // Count total questions on mount
+  useEffect(() => {
+    const qCount = slides.filter(s => s.slideType === 'activity' || !!s.activityType).length;
+    setTotalQuestions(qCount);
+  }, [slides]);
+
+  // Auto-trigger celebration at 100%
+  useEffect(() => {
+    if (completed) {
+      triggerCelebration(hub);
+    }
+  }, [completed, hub]);
 
   const handleCorrectAnswer = useCallback(() => {
     setLessonScore((p) => p + 10);
@@ -149,58 +163,18 @@ export default function LessonPlayerContainer({
     soundEffectsService.setMuted(next);
   };
 
-  /* ──────────── Completion Screen ──────────── */
+  /* ──────────── Reward Page (100% moment) ──────────── */
   if (completed) {
+    const timeSpent = Math.round((Date.now() - startTimeRef.current) / 1000);
     return (
-      <div className={`flex items-center justify-center h-full min-h-screen ${skin.shell}`}>
-        <div className="w-full max-w-[500px] mx-auto flex flex-col items-center gap-6 p-10">
-          {/* Hub-specific celebration */}
-          {hub === 'playground' && (
-            <motion.div className="flex gap-2">
-              {['🎉', '⭐', '🏆', '⭐', '🎉'].map((e, i) => (
-                <motion.span
-                  key={i}
-                  className="text-4xl"
-                  initial={{ scale: 0, rotate: -180 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ delay: i * 0.1, type: 'spring' }}
-                >
-                  {e}
-                </motion.span>
-              ))}
-            </motion.div>
-          )}
-          {hub === 'academy' && (
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className="text-7xl"
-              style={{ filter: 'drop-shadow(0 0 20px rgba(139,92,246,0.6))' }}
-            >
-              ⚡
-            </motion.div>
-          )}
-          {hub === 'professional' && (
-            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center">
-              <Star className="w-8 h-8 text-emerald-600" />
-            </motion.div>
-          )}
-
-          <h1 className="text-3xl font-bold" style={{ color: skin.xpColor }}>
-            {hub === 'playground' ? '🌟 Awesome Job!' : hub === 'academy' ? 'Mission Complete!' : 'Lesson Complete'}
-          </h1>
-          <div className="text-xl" style={{ color: config.colorPalette.text }}>
-            Score: <strong>{lessonScore} XP</strong> · {correctCount} correct
-          </div>
-          <button
-            onClick={onExit}
-            className={`px-8 py-3.5 rounded-2xl font-bold text-lg mt-4 w-full text-white ${skin.checkActive}`}
-            style={{ boxShadow: skin.checkShadow }}
-          >
-            Continue
-          </button>
-        </div>
-      </div>
+      <LessonRewardPage
+        hub={hub}
+        xpEarned={lessonScore}
+        correctCount={correctCount}
+        totalQuestions={totalQuestions}
+        timeSpentSeconds={timeSpent}
+        onExit={onExit || (() => {})}
+      />
     );
   }
 
@@ -219,7 +193,7 @@ export default function LessonPlayerContainer({
           </button>
 
           {/* Hub-Skinned Progress Bar */}
-          <div className={`flex-1 h-4 rounded-full overflow-hidden ${skin.progressTrack}`}>
+          <div className={`flex-1 h-4 rounded-full overflow-hidden relative ${skin.progressTrack}`}>
             <motion.div
               className={`h-full rounded-full ${skin.progressBar}`}
               style={{ boxShadow: skin.progressGlow }}
@@ -227,13 +201,11 @@ export default function LessonPlayerContainer({
               animate={{ width: `${progress}%` }}
               transition={{ type: 'spring', stiffness: 50 }}
             />
-            {/* Playground: character on progress bar */}
             {hub === 'playground' && (
               <motion.div
-                className="absolute text-sm -mt-5"
-                animate={{ left: `calc(${Math.min(progress, 95)}% - 8px)` }}
+                className="absolute text-sm top-[-4px]"
+                animate={{ left: `calc(${Math.min(progress, 92)}% - 8px)` }}
                 transition={{ type: 'spring', stiffness: 50 }}
-                style={{ position: 'relative' }}
               >
                 🐧
               </motion.div>
@@ -282,7 +254,7 @@ export default function LessonPlayerContainer({
         onContinue={handleNextSlide}
       />
 
-      {/* ── Fixed Bottom Footer with Smart CHECK/CONTINUE Button ── */}
+      {/* ── Fixed Bottom Footer ── */}
       {!feedbackVisible && (
         <div className={`fixed bottom-0 left-0 right-0 z-20 px-4 py-3 ${skin.footer}`}>
           <div className="w-full max-w-[500px] mx-auto">
