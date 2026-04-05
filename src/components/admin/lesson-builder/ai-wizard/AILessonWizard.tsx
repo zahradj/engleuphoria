@@ -72,108 +72,148 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
   const handleApplyLesson = () => {
     if (!generatedPlan) return;
 
-    // Convert generated slides to the editor's Slide format with canvas elements
+    // Convert generated slides to editor Slide format with rich canvas elements
     const editorSlides: Slide[] = generatedPlan.slides.map((gs, index) => {
-      const canvasElements: any[] = [];
-      let zIndex = 1;
+      const els: CanvasElementData[] = [];
+      let z = 1;
 
-      // Title element on every slide
-      canvasElements.push({
-        id: uuidv4(),
-        elementType: 'text' as const,
-        x: 60, y: 40, width: 800, height: 60, rotation: 0, zIndex: zIndex++,
-        content: { text: gs.title, fontSize: 36, fontWeight: 'bold', color: '#1a1a2e' },
+      const txt = (x: number, y: number, w: number, h: number, text: string, fontSize: number, color: string, bold = false, align: 'left' | 'center' = 'left'): CanvasElementData => ({
+        id: uuidv4(), elementType: 'text', x, y, width: w, height: h, rotation: 0, zIndex: z++,
+        content: { text, fontSize, bold, italic: false, align, color },
       });
 
-      // Image element if available
-      if (gs.imageUrl) {
-        canvasElements.push({
-          id: uuidv4(),
-          elementType: 'image' as const,
-          x: 580, y: 140, width: 360, height: 240, rotation: 0, zIndex: zIndex++,
-          content: { src: gs.imageUrl, alt: gs.imageKeywords || gs.title },
-        });
+      const shape = (x: number, y: number, w: number, h: number, fill: string, opacity = 0.5): CanvasElementData => ({
+        id: uuidv4(), elementType: 'shape', x, y, width: w, height: h, rotation: 0, zIndex: z++,
+        content: { shape: 'rounded', fill, opacity },
+      });
+
+      const pip = (x: number, y: number, anim = 'idle'): CanvasElementData => ({
+        id: uuidv4(), elementType: 'character', x, y, width: 200, height: 240, rotation: 0, zIndex: z++,
+        content: { name: 'pip', animation: anim, src: '/pip-mascot.png', speechBubble: '' },
+      });
+
+      const img = (x: number, y: number, w: number, h: number, src: string, alt: string): CanvasElementData => ({
+        id: uuidv4(), elementType: 'image', x, y, width: w, height: h, rotation: 0, zIndex: z++,
+        content: { src, alt },
+      });
+
+      // Phase badge (top-left)
+      const phaseColors: Record<string, string> = {
+        '🎬 Welcome': '#6366f1', '🎯 Objectives': '#0891b2', '☀️ Warm-Up': '#f59e0b',
+        '📖 Presentation': '#8b5cf6', '✏️ Practice': '#059669', '🎮 Game Time': '#dc2626',
+        '🎤 Production': '#d946ef', '📋 Review': '#0284c7', '👋 Goodbye': '#f97316',
+      };
+      const phaseColor = phaseColors[gs.phaseLabel] || '#6366f1';
+      els.push(shape(40, 30, 280, 42, phaseColor, 0.9));
+      els.push(txt(55, 36, 250, 32, gs.phaseLabel, 16, '#ffffff', true));
+
+      // Title
+      els.push(txt(120, 90, 1680, 70, gs.title, 42, '#1a1a2e', true, 'center'));
+
+      // Image on right side for most slides
+      if (gs.imageUrl && gs.type !== 'matching') {
+        els.push(img(1200, 200, 600, 400, gs.imageUrl, gs.imageKeywords || gs.title));
       }
 
-      // Content-specific elements
-      if (gs.type === 'vocabulary' && gs.content) {
-        canvasElements.push({
-          id: uuidv4(),
-          elementType: 'text' as const,
-          x: 60, y: 160, width: 480, height: 50, rotation: 0, zIndex: zIndex++,
-          content: { text: gs.content.word || '', fontSize: 48, fontWeight: 'bold', color: '#6c3ce0' },
-        });
-        canvasElements.push({
-          id: uuidv4(),
-          elementType: 'text' as const,
-          x: 60, y: 230, width: 480, height: 40, rotation: 0, zIndex: zIndex++,
-          content: { text: gs.content.definition || '', fontSize: 20, color: '#444' },
-        });
+      // Content by type
+      switch (gs.type) {
+        case 'title': {
+          if (gs.content?.prompt) {
+            els.push(shape(120, 200, 1000, 400, '#f0f4ff', 0.5));
+            const lines = gs.content.prompt.split('\n');
+            lines.forEach((line: string, i: number) => {
+              els.push(txt(160, 220 + i * 48, 920, 44, line, 24, '#333333'));
+            });
+          }
+          els.push(pip(1500, 620, 'wave'));
+          break;
+        }
+        case 'vocabulary': {
+          els.push(shape(100, 180, 1000, 500, '#fef9c3', 0.4));
+          els.push(txt(140, 200, 920, 80, gs.content?.word || '', 72, '#7c3aed', true, 'center'));
+          els.push(txt(140, 310, 920, 50, gs.content?.definition || '', 26, '#555555', false, 'center'));
+          if (gs.content?.sentence) {
+            els.push(shape(200, 400, 800, 60, '#e9d5ff', 0.4));
+            els.push(txt(220, 408, 760, 50, `"${gs.content.sentence}"`, 22, '#6b21a8', false, 'center'));
+          }
+          els.push(pip(140, 530, 'jump'));
+          break;
+        }
+        case 'fill-blank': {
+          els.push(shape(100, 200, 1000, 300, '#ecfdf5', 0.5));
+          els.push(txt(160, 220, 880, 40, 'Complete the sentence:', 22, '#059669', true));
+          els.push(txt(160, 290, 880, 60, gs.content?.sentence || '', 36, '#1a1a2e', true, 'center'));
+          els.push(shape(160, 380, 880, 50, '#d1fae5', 0.6));
+          els.push(txt(180, 388, 840, 40, `Answer: ${gs.content?.blankWord || ''}`, 20, '#065f46'));
+          els.push(pip(1500, 580, 'idle'));
+          break;
+        }
+        case 'matching': {
+          els.push(shape(100, 180, 1720, 580, '#fef3c7', 0.3));
+          els.push(txt(160, 200, 400, 40, 'Match the words to pictures!', 22, '#b45309', true));
+          const pairs = gs.content?.matchPairs || [];
+          pairs.forEach((p: any, i: number) => {
+            const col = i % 2;
+            const row = Math.floor(i / 2);
+            els.push(shape(160 + col * 450, 280 + row * 200, 400, 160, '#fffbeb', 0.7));
+            els.push(txt(180 + col * 450, 300 + row * 200, 360, 50, p.word, 28, '#92400e', true, 'center'));
+            if (p.image) {
+              els.push(img(1060 + col * 350, 280 + row * 200, 300, 160, p.image, p.word));
+            }
+          });
+          els.push(pip(1550, 620, 'jump'));
+          break;
+        }
+        case 'roleplay': {
+          els.push(shape(100, 200, 1000, 480, '#fdf2f8', 0.4));
+          if (gs.content?.prompt) {
+            const lines = gs.content.prompt.split('\n');
+            lines.forEach((line: string, i: number) => {
+              const isDialogue = line.includes(':');
+              els.push(txt(160, 230 + i * 42, 920, 40, line, isDialogue ? 22 : 20, isDialogue ? '#1a1a2e' : '#555', isDialogue));
+            });
+          }
+          els.push(pip(1500, 550, 'wave'));
+          break;
+        }
+        case 'quiz': {
+          els.push(shape(100, 200, 1000, 500, '#eff6ff', 0.5));
+          els.push(txt(160, 220, 880, 50, gs.content?.quizQuestion || '', 28, '#1e40af', true));
+          const opts = gs.content?.quizOptions || [];
+          const optColors = ['#dbeafe', '#fce7f3', '#dcfce7', '#fef9c3'];
+          opts.forEach((opt: any, i: number) => {
+            els.push(shape(180, 300 + i * 80, 860, 65, optColors[i % 4], 0.6));
+            els.push(txt(220, 312 + i * 80, 780, 45, `${String.fromCharCode(65 + i)}. ${opt.text}`, 22, '#333', false));
+          });
+          els.push(pip(1500, 580, 'idle'));
+          break;
+        }
+        default: {
+          if (gs.content?.prompt) {
+            els.push(shape(100, 200, 1000, 400, '#f5f3ff', 0.4));
+            const lines = gs.content.prompt.split('\n');
+            lines.forEach((line: string, i: number) => {
+              els.push(txt(160, 230 + i * 42, 920, 40, line, 22, '#444'));
+            });
+          }
+          els.push(pip(1500, 600, 'idle'));
+          break;
+        }
       }
 
-      if (gs.type === 'fill-blank' && gs.content) {
-        canvasElements.push({
-          id: uuidv4(),
-          elementType: 'text' as const,
-          x: 60, y: 200, width: 600, height: 50, rotation: 0, zIndex: zIndex++,
-          content: { text: gs.content.sentence || '', fontSize: 28, color: '#1a1a2e' },
-        });
-      }
-
-      if (gs.type === 'matching' && gs.content?.matchPairs) {
-        canvasElements.push({
-          id: uuidv4(),
-          elementType: 'matching' as const,
-          x: 60, y: 140, width: 860, height: 380, rotation: 0, zIndex: zIndex++,
-          content: { pairs: gs.content.matchPairs.map((p: any) => ({ word: p.word, image: p.image })) },
-        });
-      }
-
-      if (gs.type === 'roleplay' && gs.content?.prompt) {
-        canvasElements.push({
-          id: uuidv4(),
-          elementType: 'text' as const,
-          x: 60, y: 180, width: 700, height: 80, rotation: 0, zIndex: zIndex++,
-          content: { text: gs.content.prompt, fontSize: 22, color: '#333' },
-        });
-      }
-
-      // Quiz element
       const slide: Slide = {
-        id: gs.id,
-        order: index,
+        id: gs.id, order: index,
         type: gs.type === 'quiz' ? 'quiz' : 'image',
-        imageUrl: gs.imageUrl,
-        title: gs.title,
-        teacherNotes: gs.teacherNotes,
-        keywords: gs.keywords,
-        canvasElements,
+        imageUrl: gs.imageUrl, title: gs.title,
+        teacherNotes: gs.teacherNotes, keywords: gs.keywords,
+        canvasElements: els,
       };
 
       if (gs.type === 'quiz' && gs.content?.quizQuestion) {
-        slide.type = 'quiz';
         slide.quizQuestion = gs.content.quizQuestion;
-        slide.quizOptions = gs.content.quizOptions?.map(opt => ({
-          id: uuidv4(),
-          text: opt.text,
-          isCorrect: opt.isCorrect,
+        slide.quizOptions = gs.content.quizOptions?.map((opt: any) => ({
+          id: uuidv4(), text: opt.text, isCorrect: opt.isCorrect,
         }));
-        canvasElements.push({
-          id: uuidv4(),
-          elementType: 'quiz' as const,
-          x: 60, y: 140, width: 860, height: 380, rotation: 0, zIndex: zIndex++,
-          content: { question: gs.content.quizQuestion, options: slide.quizOptions },
-        });
-      }
-
-      // Add Pip mascot on title and game slides
-      if (gs.type === 'title' || gs.type === 'matching' || gs.type === 'roleplay') {
-        canvasElements.push({
-          id: uuidv4(),
-          elementType: 'character' as const,
-          x: 800, y: 400, width: 120, height: 120, rotation: 0, zIndex: zIndex++,
-          content: { characterId: 'pip', animation: gs.type === 'title' ? 'wave' : 'idle' },
-        });
       }
 
       return slide;
