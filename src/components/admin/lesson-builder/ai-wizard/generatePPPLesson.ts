@@ -12,6 +12,7 @@ interface VocabEntry {
   exampleSentence: string;
   fillBlank: string;
   imageKeywords: string;
+  emoji?: string;
 }
 
 interface TopicPack {
@@ -97,10 +98,10 @@ function getDefaultTopicPack(topic: string, hub: HubConfig): TopicPack {
   // Playground default
   return {
     vocabulary: [
-      { word: cap, definition: `A key word about ${topic}`, exampleSentence: `I like ${mainWord}.`, fillBlank: `I like ____.`, imageKeywords: `${topic} cartoon illustration cute kids claymation` },
-      { word: 'Learn', definition: 'To get new knowledge', exampleSentence: `Let's learn about ${topic}!`, fillBlank: `Let's ____ about ${topic}!`, imageKeywords: `kids learning cartoon colorful claymation` },
-      { word: 'Play', definition: 'To do something for enjoyment', exampleSentence: `${topic} is great to play with!`, fillBlank: `${topic} is great to ____ with!`, imageKeywords: `kids playing cartoon vibrant claymation` },
-      { word: 'Great', definition: 'Very good, wonderful', exampleSentence: 'You did a great job!', fillBlank: 'You did a ____ job!', imageKeywords: `thumbs up cartoon kids celebration claymation` },
+      { word: cap, definition: `A key word about ${topic}`, exampleSentence: `I like ${mainWord}.`, fillBlank: `I like ____.`, imageKeywords: `${topic} cartoon illustration cute kids claymation`, emoji: '🌟' },
+      { word: 'Learn', definition: 'To get new knowledge', exampleSentence: `Let's learn about ${topic}!`, fillBlank: `Let's ____ about ${topic}!`, imageKeywords: `kids learning cartoon colorful claymation`, emoji: '📚' },
+      { word: 'Play', definition: 'To do something for enjoyment', exampleSentence: `${topic} is great to play with!`, fillBlank: `${topic} is great to ____ with!`, imageKeywords: `kids playing cartoon vibrant claymation`, emoji: '🎮' },
+      { word: 'Great', definition: 'Very good, wonderful', exampleSentence: 'You did a great job!', fillBlank: 'You did a ____ job!', imageKeywords: `thumbs up cartoon kids celebration claymation`, emoji: '👍' },
     ],
     grammarTarget: 'I am / You are',
     grammarExamples: [`I like ${topic}.`, `You are learning about ${topic}.`],
@@ -377,7 +378,7 @@ export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
       `${topic} drag drop game kids claymation`,
       {
         prompt: pack.gameDescription,
-        dragItems: pack.vocabulary.map(v => ({ text: v.word, target: v.definition })),
+        dragItems: pack.vocabulary.map(v => ({ text: v.word, target: v.definition, emoji: v.emoji || '🔤', imageKeywords: v.imageKeywords })),
       },
       'Interactive drag & drop: students drag words to matching pictures. Help younger students as needed.',
       ['drag-drop', 'activity', 'game'],
@@ -392,7 +393,7 @@ export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
       '🫧 Pop the Bubbles!',
       `${topic} bubbles floating cartoon kids`,
       {
-        matchPairs: pack.vocabulary.map(v => ({ word: v.word, image: buildImageUrl(v.imageKeywords) })),
+        matchPairs: pack.vocabulary.map(v => ({ word: v.word, image: v.emoji || '🔤', imageKeywords: v.imageKeywords })),
       },
       'Pop the correct word bubbles! Tap the right words before they float away. Stars for correct pops!',
       ['pop-bubble', 'game', 'practice'],
