@@ -1,67 +1,88 @@
 
 
-## Plan: Integrate Master Orchestrator System into Lesson Engine
+## Problem Analysis
 
-### What Changes
+There are **two distinct issues** to address:
 
-The user's "Master Orchestrator" prompt defines a refined, psychologically-grounded lesson architecture with updated visual styles, new activity types, and stricter image prompt rules per hub. The current codebase partially implements this but has mismatches in animation types, activity types, image prompts, and persona details. This plan aligns all layers.
+### Issue 1: Slide Generation Not Aligned with Lesson Prompt
+The current `generatePPPLesson.ts` is a **hardcoded template engine**, not an AI-driven generator. It uses static topic packs with generic vocabulary (e.g., "Learn", "Play", "Great") that have nothing to do with the user's lesson prompt. The `lessonPrompt` field is only appended as text to a few slides but does **not** influence the actual vocabulary, grammar, activities, or structure.
 
-### 1. Update Types (`types.ts`)
+**Root cause**: The generator picks from a small set of predefined `TopicPack` objects. If the topic doesn't match a known key (only "hello pip" exists for playground), it falls back to a completely generic pack with irrelevant vocabulary.
 
-Add new animation and activity types from the Master Orchestrator spec:
-- **AnimationType**: Add `'float'`, `'glitch'`, `'slide_fast'`, `'neon_pulse'`
-- **ActivityType**: Add `'drag_and_drop_image'`, `'match_sound_to_picture'`, `'pop_the_word_bubble'`, `'sentence_unscramble'`, `'speed_quiz'`, `'case_study_analysis'`, `'business_email_reply'`, `'vocabulary_expansion'`
-- **GeneratedSlide**: Add `visuals` field with `image_prompt`, `animation_style`, `layout` (`'split' | 'centered' | 'bento'`), and `interaction` field with `type` and `data`
+### Issue 2: Remove the "Manager Review & Produce" page (Step 2)
+The user wants to remove the Curriculum Manager (Step 2) from the pipeline, going directly from Blueprint to Slide Builder.
 
-### 2. Update Hub Configs (`hubConfig.ts`)
+---
 
-Align each hub with the Master Orchestrator's persona and constraints:
+## Plan
 
-| Hub | Tone Update | Media | Animations | Activities | Image Prompt Suffix |
-|---|---|---|---|---|---|
-| **Playground** | "Enthusiastic, magical, adventurous. Pip the Penguin as guide." | `cartoon` | `bounce`, `float`, `wiggle` | `drag_and_drop_image`, `match_sound_to_picture`, `pop_the_word_bubble` | "High-quality 3D character illustration, vibrant colors, soft clay textures, isolated on white/transparent background" |
-| **Academy** | "Relatable, dynamic, hacker-cool." | `3d_render` | `glitch`, `slide_fast`, `neon_pulse` | `fill_in_blanks`, `sentence_unscramble`, `speed_quiz` | "Digital 3D render, holographic elements, neon lighting, trending artstation style" |
-| **Professional** | "Executive, concise, high-stakes." | `real_photography` | `none` | `case_study_analysis`, `business_email_reply`, `vocabulary_expansion` | "Hyper-realistic professional photography, cinematic lighting, corporate setting, 8k resolution" |
+### Step 1: Replace hardcoded generator with AI-powered generation
 
-### 3. Update Lesson Generator (`generatePPPLesson.ts`)
+**File: `src/components/admin/lesson-builder/ai-wizard/generatePPPLesson.ts`**
 
-Restructure slide generation to follow the Master Orchestrator's strict 5-type sequence while keeping the expanded 20-24 slide count:
+- Create a new function `generatePPPLessonWithAI` that sends the lesson prompt, topic, level, age group, and hub config to the **Gemini AI** (via the `studio-ai-copilot` edge function or the `ai-gateway` script pattern).
+- The AI will generate a properly structured `TopicPack` (vocabulary with contextual image keywords, grammar target, objectives, dialogue lines, activities) based on the **actual lesson prompt**.
+- The existing `generatePPPLesson` function will then use this AI-generated pack instead of the hardcoded one, preserving all the slide-building logic.
 
-- **Every slide** gets a `visuals` object with hub-specific `image_prompt` (using the new suffix rules) and `layout` field
-- **Every activity slide** gets an `interaction` object with `type` and `data` (question/options/correct_answer)
-- **Image prompts** must be contextually relevant (e.g., "Ordering Food" = restaurant scene, never generic)
-- **Tone enforcement**: Professional hub never uses "Fun" or "Awesome" — uses "Efficient", "Effective", "Strategic"
-- Update `buildMediaPrompt()` to use the new Master Orchestrator image prompt templates per hub
+**File: `src/components/admin/lesson-builder/ai-wizard/AILessonWizard.tsx`**
 
-### 4. Update Animation Variants (`DynamicSlideRenderer.tsx`)
+- Update `handleGenerate` to call the async AI-powered generation function.
+- Make the generation steps reflect actual AI progress (not fake timers).
 
-Add Framer Motion variants for new animation types:
-- `float`: gentle up/down oscillation (y: [0, -6, 0], duration: 3s, infinite)
-- `glitch`: rapid x/opacity flicker with skew transform
-- `slide_fast`: x: 100 → 0 with aggressive spring (stiffness: 300)
-- `neon_pulse`: boxShadow pulse with neon glow color cycling
+**New edge function or use existing**: Use the existing `studio-ai-copilot` edge function's `generate` mode, or call the AI gateway directly from the client via a new dedicated function. The prompt will instruct the AI to return a JSON `TopicPack` with vocabulary, grammar, objectives, etc., all aligned with the lesson prompt.
 
-### 5. Add New Activity Components
+### Step 2: Remove the Manager page (Step 2) from the pipeline
 
-Create 3 new activity components to match the Master Orchestrator spec:
+**File: `src/pages/ContentCreatorDashboard.tsx`**
+- Remove the `CurriculumManager` import and its case in `renderStepContent`.
+- Change `PipelineStep` to go from 1 → 2 (Slide Builder) → 3 (Library), renumbering steps.
 
-| Component | Hub | Description |
-|---|---|---|
-| `PlaygroundPopBubble.tsx` | Playground | Floating word bubbles that kids tap/click to pop — correct words earn points |
-| `AcademySentenceUnscramble.tsx` | Academy | Draggable word tiles to reorder into correct sentence, neon aesthetic |
-| `ProBusinessEmail.tsx` | Professional | Email scenario with reply textarea, AI-evaluated feedback |
+**File: `src/components/content-creator/ContentCreatorStepper.tsx`**
+- Remove the "Manager" step from `STEPS` array.
+- Update `PipelineStep` type to `1 | 2 | 3`.
 
-Wire these into `DynamicSlideRenderer.tsx`'s switch statement.
+**File: `src/pages/ContentCreatorDashboard.tsx`**
+- Adjust `goNext`/`goPrev` max to 3.
+- Update step 2 to render `AdminLessonEditor` and step 3 to render `LessonLibraryHub`.
 
-### Files Changed
+---
 
-| File | Change |
-|---|---|
-| `ai-wizard/types.ts` | Add new animation/activity types, `visuals` and `interaction` fields to `GeneratedSlide` |
-| `ai-wizard/hubConfig.ts` | Update all 3 hub configs with Master Orchestrator personas, prompts, activities, animations |
-| `ai-wizard/generatePPPLesson.ts` | Update `buildMediaPrompt`, tone, image prompts, add `visuals`/`interaction` to every slide |
-| `lesson-player/DynamicSlideRenderer.tsx` | Add `float`, `glitch`, `slide_fast`, `neon_pulse` variants; wire new activity components |
-| `lesson-player/activities/PlaygroundPopBubble.tsx` | New: tap-to-pop word bubble game |
-| `lesson-player/activities/AcademySentenceUnscramble.tsx` | New: drag-to-reorder sentence builder |
-| `lesson-player/activities/ProBusinessEmail.tsx` | New: email reply with professional feedback |
+## Technical Details
+
+### AI-Powered TopicPack Generation
+
+The system prompt sent to Gemini will be:
+
+```
+You are an ESL curriculum expert. Given a lesson topic, prompt, CEFR level, 
+and age group, generate a structured vocabulary and activity pack as JSON.
+
+Return ONLY valid JSON with this structure:
+{
+  "vocabulary": [{ "word", "definition", "exampleSentence", "fillBlank", "imageKeywords", "emoji" }],
+  "grammarTarget": "...",
+  "grammarExamples": ["..."],
+  "warmUpQuestion": "...",
+  "objectives": ["..."],
+  "dialogueLines": ["..."],
+  "gameDescription": "...",
+  "productionTask": "...",
+  "songOrChant": "..."
+}
+```
+
+The lesson prompt will be the primary driver of content. This ensures vocabulary, grammar, and activities are all relevant to the stated objectives.
+
+### Pipeline Simplification
+
+```text
+BEFORE:  Blueprint → Manager → Slide Builder → Library
+AFTER:   Blueprint → Slide Builder → Library
+```
+
+### Files Modified
+1. `src/components/admin/lesson-builder/ai-wizard/generatePPPLesson.ts` — Add AI-powered TopicPack generation
+2. `src/components/admin/lesson-builder/ai-wizard/AILessonWizard.tsx` — Wire async AI generation
+3. `src/pages/ContentCreatorDashboard.tsx` — Remove step 2, renumber
+4. `src/components/content-creator/ContentCreatorStepper.tsx` — Remove Manager step, update type
 
