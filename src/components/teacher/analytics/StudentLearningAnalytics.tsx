@@ -141,25 +141,47 @@ export const StudentLearningAnalytics: React.FC<StudentLearningAnalyticsProps> =
 
   return (
     <div className="space-y-6">
-      {/* Student Selector */}
+      {/* Student Selector + Gift Button */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
           <TrendingUp className="h-6 w-6 text-primary" />
           Learning Analytics
         </h2>
-        <Select value={activeStudentId || ''} onValueChange={setSelectedStudentId}>
-          <SelectTrigger className="w-[240px]">
-            <SelectValue placeholder="Select student" />
-          </SelectTrigger>
-          <SelectContent>
-            {students.map((s: any) => (
-              <SelectItem key={s.id} value={s.id}>
-                {s.display_name || s.email || 'Student'}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          {activeStudentId && (
+            <GiftAccessoryButton
+              studentId={activeStudentId}
+              studentName={activeStudent?.display_name || 'Student'}
+            />
+          )}
+          <Select value={activeStudentId || ''} onValueChange={setSelectedStudentId}>
+            <SelectTrigger className="w-[240px]">
+              <SelectValue placeholder="Select student" />
+            </SelectTrigger>
+            <SelectContent>
+              {students.map((s: any) => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.display_name || s.email || 'Student'}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
+
+      {/* Student Status Card */}
+      {activeStudentId && (
+        <StudentStatusCard
+          studentId={activeStudentId}
+          studentName={activeStudent?.display_name || 'Student'}
+          cefrLevel={activeStudent?.current_level || 'Pre-A1'}
+        />
+      )}
+
+      {/* Weekly Streak Calendar */}
+      {activeStudentId && (
+        <WeeklyStreakCalendar studentId={activeStudentId} />
+      )}
 
       {/* Top Stats Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
