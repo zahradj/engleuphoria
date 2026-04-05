@@ -466,8 +466,8 @@ function getSystemPrompt(mode: string): string {
   switch(mode) {
     case 'lesson': return ECA_LESSON_PROMPT;
     case 'unit': return ECA_UNIT_PROMPT;
-    case 'curriculum':
-    case 'curriculum_structure': return ECA_CURRICULUM_PROMPT;
+    case 'curriculum': return ECA_CURRICULUM_PROMPT;
+    case 'curriculum_structure': return ECA_CURRICULUM_STRUCTURE_PROMPT;
     case 'assessment': return ECA_ASSESSMENT_PROMPT;
     case 'mission': return ECA_MISSION_PROMPT;
     case 'resource': return ECA_RESOURCE_PROMPT;
@@ -572,9 +572,19 @@ function validateOutput(mode: string, data: any): void {
       }
       break;
     case 'curriculum':
-    case 'curriculum_structure':
       if (!data.curriculumTitle || !data.units) {
         throw new Error('Missing required curriculum fields');
+      }
+      break;
+    case 'curriculum_structure':
+      // curriculum_structure returns an array of units directly, or an object with units
+      if (Array.isArray(data)) {
+        if (data.length === 0) throw new Error('No units generated');
+        if (!data[0].lessons || data[0].lessons.length === 0) throw new Error('Units must contain lessons');
+      } else if (data.units) {
+        // Also valid
+      } else {
+        throw new Error('Missing curriculum structure data');
       }
       break;
     case 'assessment':
