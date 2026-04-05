@@ -445,7 +445,40 @@ interface SkeletonPanelProps {
 
 const SkeletonPanel: React.FC<SkeletonPanelProps> = ({ plan, onClear, hub }) => {
   const [expandedSlide, setExpandedSlide] = useState<number | null>(null);
+  const [imageProgress, setImageProgress] = useState<SlideImageProgress[]>([]);
+  const [isGeneratingImages, setIsGeneratingImages] = useState(false);
+  const [generationResult, setGenerationResult] = useState<MassGenerationResult | null>(null);
   const hubConfig = HUB_CONFIGS[hub as HubType];
+
+  const handleMassGenerate = async () => {
+    setIsGeneratingImages(true);
+    setGenerationResult(null);
+
+    try {
+      const result = await massGenerateImages(plan, (progress) => {
+        setImageProgress([...progress]);
+      });
+      setGenerationResult(result);
+      const seconds = Math.round(result.durationMs / 1000);
+      if (result.successCount > 0) {
+        toast.success(`Generated ${result.successCount}/${result.totalSlides} images in ${seconds}s`, { icon: '🎨' });
+      }
+      if (result.failedCount > 0) {
+        toast.error(`${result.failedCount} images failed — retry individually`);
+      }
+    } catch (err) {
+      toast.error('Mass generation failed');
+    } finally {
+      setIsGeneratingImages(false);
+    }
+  };
+
+  const getSlideImageStatus = (slideNumber: number): SlideImageProgress | undefined => {
+    return imageProgress.find((p) => p.slideNumber === slideNumber);
+  };
+
+  const completedCount = imageProgress.filter((p) => p.status === 'done').length;
+  const allDone = generationResult && generationResult.successCount === plan.totalSlides;
 
   return (
     <Card className="h-full overflow-hidden">
@@ -473,14 +506,39 @@ const SkeletonPanel: React.FC<SkeletonPanelProps> = ({ plan, onClear, hub }) => 
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0 ml-3">
-            <Button size="sm" className="gap-1.5 text-xs h-8">
-              <ImageIcon className="h-3 w-3" /> Generate All Images
-            </Button>
+            {allDone ? (
+              <Button size="sm" className="gap-1.5 text-xs h-8 bg-emerald-600 hover:bg-emerald-700">
+                <CheckCircle2 className="h-3 w-3" /> Save to Library
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                className="gap-1.5 text-xs h-8"
+                onClick={handleMassGenerate}
+                disabled={isGeneratingImages}
+              >
+                {isGeneratingImages ? (
+                  <><Loader2 className="h-3 w-3 animate-spin" /> {completedCount}/{plan.totalSlides}…</>
+                ) : (
+                  <><Rocket className="h-3 w-3" /> Generate All Midjourney Assets</>
+                )}
+              </Button>
+            )}
             <Button size="sm" variant="ghost" onClick={onClear} className="text-xs h-8">
               ✕
             </Button>
           </div>
         </div>
+
+        {/* Mass generation progress bar */}
+        {isGeneratingImages && (
+          <div className="mt-3">
+            <Progress value={(completedCount / plan.totalSlides) * 100} className="h-1.5" />
+            <p className="text-[10px] text-muted-foreground mt-1">
+              Generating cinematic assets… {completedCount}/{plan.totalSlides} complete
+            </p>
+          </div>
+        )}
       </CardHeader>
 
       {/* Skeleton Grid */}
@@ -489,6 +547,7 @@ const SkeletonPanel: React.FC<SkeletonPanelProps> = ({ plan, onClear, hub }) => 
           {plan.skeletons.map((skeleton, i) => {
             const phaseStyle = PHASE_STYLES[skeleton.phase] || PHASE_STYLES.hook;
             const isExpanded = expandedSlide === skeleton.slideNumber;
+            const imgStatus = getSlideImageStatus(skeleton.slideNumber);
 
             return (
               <motion.div
@@ -507,12 +566,28 @@ const SkeletonPanel: React.FC<SkeletonPanelProps> = ({ plan, onClear, hub }) => 
                   )}
                 >
                   <div className="flex items-center gap-3 px-3 py-2.5">
-                    {/* Slide number */}
-                    <div className={cn(
-                      'w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold shrink-0',
-                      phaseStyle.bg, phaseStyle.text
-                    )}>
-                      {skeleton.slideNumber}
+                    {/* Slide number + status ring */}
+                    <div className="relative">
+                      <div className={cn(
+                        'w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold shrink-0',
+                        imgStatus?.status === 'done'
+                          ? 'bg-emerald-500/15 text-emerald-600'
+                          : imgStatus?.status === 'generating'
+                          ? 'bg-amber-500/15 text-amber-600'
+                          : imgStatus?.status === 'error'
+                          ? 'bg-destructive/15 text-destructive'
+                          : `${phaseStyle.bg} ${phaseStyle.text}`
+                      )}>
+                        {imgStatus?.status === 'generating' ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : imgStatus?.status === 'done' ? (
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                        ) : imgStatus?.status === 'error' ? (
+                          <AlertCircle className="h-3.5 w-3.5" />
+                        ) : (
+                          skeleton.slideNumber
+                        )}
+                      </div>
                     </div>
 
                     {/* Info */}
@@ -535,7 +610,7 @@ const SkeletonPanel: React.FC<SkeletonPanelProps> = ({ plan, onClear, hub }) => 
                       </div>
                     </div>
 
-                    {/* Positioning indicator */}
+                    {/* Positioning + timing */}
                     <div className="flex items-center gap-1 shrink-0">
                       {skeleton.mascotPosition !== 'hidden' && (
                         <span className="text-[9px] text-muted-foreground">
@@ -553,7 +628,7 @@ const SkeletonPanel: React.FC<SkeletonPanelProps> = ({ plan, onClear, hub }) => 
                   </div>
                 </button>
 
-                {/* Expanded: Image Prompt */}
+                {/* Expanded: Image Prompt + Generated Preview */}
                 <AnimatePresence>
                   {isExpanded && (
                     <motion.div
@@ -565,9 +640,20 @@ const SkeletonPanel: React.FC<SkeletonPanelProps> = ({ plan, onClear, hub }) => 
                     >
                       <div className={cn('mx-2 mb-1 p-3 rounded-b-xl border-x border-b', phaseStyle.border)}>
                         <div className="space-y-2">
+                          {/* Generated image preview */}
+                          {imgStatus?.status === 'done' && imgStatus.imageUrl && (
+                            <div className="rounded-lg overflow-hidden border border-border">
+                              <img
+                                src={imgStatus.imageUrl}
+                                alt={`Slide ${skeleton.slideNumber}`}
+                                className="w-full h-32 object-cover"
+                              />
+                            </div>
+                          )}
+
                           <div>
                             <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider">
-                              Image Prompt
+                              Cinematic Prompt
                             </span>
                             <p className="text-[11px] text-foreground mt-1 leading-relaxed bg-muted/50 p-2 rounded-lg font-mono">
                               {skeleton.imagePrompt}
