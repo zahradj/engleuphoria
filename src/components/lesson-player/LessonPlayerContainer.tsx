@@ -122,6 +122,15 @@ export default function LessonPlayerContainer({
     if (!muted) soundEffectsService.playIncorrect();
   }, [muted, currentSlide]);
 
+  const handlePrevSlide = useCallback(() => {
+    if (currentSlideIndex > 0) {
+      setCurrentSlideIndex((p) => p - 1);
+      setAnswerSelected(false);
+      setFeedbackVisible(false);
+      if (!muted) soundEffectsService.playPageTurn();
+    }
+  }, [currentSlideIndex, muted]);
+
   const handleNextSlide = useCallback(() => {
     setFeedbackVisible(false);
     setAnswerSelected(false);
