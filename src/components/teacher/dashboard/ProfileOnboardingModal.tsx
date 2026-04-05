@@ -16,7 +16,8 @@ import {
   AlertCircle, 
   Loader2,
   Camera,
-  GraduationCap
+  GraduationCap,
+  X
 } from 'lucide-react';
 
 interface ProfileOnboardingModalProps {
@@ -124,6 +125,26 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
     }
   };
 
+  const handleRemoveCertificate = async (index: number) => {
+    const url = formData.certificateUrls[index];
+    try {
+      // Extract storage path from public URL
+      const bucketUrl = '/storage/v1/object/public/teacher-certificates/';
+      const pathIndex = url.indexOf(bucketUrl);
+      if (pathIndex !== -1) {
+        const filePath = decodeURIComponent(url.substring(pathIndex + bucketUrl.length));
+        await supabase.storage.from('teacher-certificates').remove([filePath]);
+      }
+    } catch (error) {
+      console.error('Error deleting certificate file:', error);
+    }
+    setFormData(prev => ({
+      ...prev,
+      certificateUrls: prev.certificateUrls.filter((_, i) => i !== index)
+    }));
+    toast({ title: 'Certificate removed' });
+  };
+
   const handleSubmit = async () => {
     if (!formData.bio.trim()) {
       toast({ title: 'Bio is required', variant: 'destructive' });
@@ -145,7 +166,6 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
           video_url: formData.videoUrl,
           profile_image_url: formData.profileImageUrl || null,
           certificate_urls: formData.certificateUrls,
-          profile_complete: true,
           profile_approved_by_admin: false,
           can_teach: false,
           updated_at: new Date().toISOString()
@@ -307,6 +327,14 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
                   <div key={index} className="flex items-center gap-1 bg-muted px-2 py-1 rounded text-sm">
                     <FileCheck className="w-3 h-3 text-green-500" />
                     Certificate {index + 1}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveCertificate(index)}
+                      className="ml-1 p-0.5 rounded-full hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-colors"
+                      aria-label={`Remove certificate ${index + 1}`}
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
                   </div>
                 ))}
               </div>
