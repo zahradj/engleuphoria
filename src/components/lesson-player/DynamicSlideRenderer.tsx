@@ -11,6 +11,10 @@ import AcademySentenceUnscramble from './activities/AcademySentenceUnscramble';
 import ProCaseStudy from './activities/ProCaseStudy';
 import ProAdvancedFill from './activities/ProAdvancedFill';
 import ProBusinessEmail from './activities/ProBusinessEmail';
+import WordBank from './activities/WordBank';
+import TimeAttack from './activities/TimeAttack';
+import VisualDictation from './activities/VisualDictation';
+import ExecutiveChoice from './activities/ExecutiveChoice';
 import SlideHook from './slides/SlideHook';
 import SlideVocabulary from './slides/SlideVocabulary';
 import SlideConcept from './slides/SlideConcept';
@@ -101,12 +105,10 @@ export default function DynamicSlideRenderer({
   const variants = ANIMATION_VARIANTS[animKey] || ANIMATION_VARIANTS.none;
 
   const renderContent = () => {
-    // Activity slides use hub-specific components
     if (slide.slideType === 'activity' || slide.activityType) {
       return renderActivity();
     }
 
-    // Content slides
     switch (slide.slideType) {
       case 'hook':
       case 'warmup':
@@ -128,8 +130,16 @@ export default function DynamicSlideRenderer({
   const renderActivity = () => {
     const actType = slide.activityType || slide.type;
 
+    // Cross-hub activities
+    if (actType === 'word_bank') {
+      return <WordBank slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    }
+
     switch (hub) {
       case 'playground':
+        if (actType === 'visual_dictation') {
+          return <VisualDictation slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+        }
         if (actType === 'pop_the_word_bubble') {
           return <PlaygroundPopBubble slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
         }
@@ -139,15 +149,21 @@ export default function DynamicSlideRenderer({
         return <PlaygroundDragDrop slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
 
       case 'academy':
+        if (actType === 'time_attack' || actType === 'speed_quiz') {
+          return <TimeAttack slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+        }
         if (actType === 'sentence_unscramble') {
           return <AcademySentenceUnscramble slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
         }
-        if (actType === 'fill_in_blanks') {
-          return <AcademyFillBlanks slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+        if (actType === 'fill_in_blanks' || actType === 'word_bank') {
+          return <WordBank slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
         }
         return <AcademyQuiz slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
 
       case 'professional':
+        if (actType === 'executive_choice') {
+          return <ExecutiveChoice slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+        }
         if (actType === 'business_email_reply') {
           return <ProBusinessEmail slide={slide} onCorrect={onCorrectAnswer} onComplete={onComplete} />;
         }
@@ -167,8 +183,7 @@ export default function DynamicSlideRenderer({
       variants={variants}
       initial="initial"
       animate="animate"
-      className="w-full h-full flex items-center justify-center"
-      style={{ background: config.colorPalette.background, color: config.colorPalette.text }}
+      className="w-full flex items-center justify-center"
     >
       {renderContent()}
     </motion.div>
