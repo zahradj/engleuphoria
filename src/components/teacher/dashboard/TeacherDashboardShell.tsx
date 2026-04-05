@@ -8,6 +8,7 @@ import { ClassScheduler } from '@/components/teacher/scheduler';
 import { ProfileSetupTab } from '@/components/teacher/ProfileSetupTab';
 import { StudentsPlaceholder } from './StudentsPlaceholder';
 import { TeacherGuideTab } from './TeacherGuideTab';
+import { StudentLearningAnalytics } from '@/components/teacher/analytics/StudentLearningAnalytics';
 import { ScrollHeader } from '@/components/navigation/ScrollHeader';
 import { Loader2 } from 'lucide-react';
 import { FloatingHelpButton } from '@/components/support/FloatingHelpButton';
@@ -51,6 +52,8 @@ export const TeacherDashboardShell = ({
           return <NovakidDashboard teacherId={teacherId} />;
         case 'schedule':
           return <ClassScheduler teacherName={teacherName} teacherId={teacherId} />;
+        case 'analytics':
+          return <StudentLearningAnalytics teacherId={teacherId} />;
         case 'account':
           return <ProfileSetupTab teacherId={teacherId} />;
         case 'help':
