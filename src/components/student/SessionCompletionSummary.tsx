@@ -96,13 +96,13 @@ export const SessionCompletionSummary: React.FC<SessionCompletionProps> = ({
       prefix: config.xpIcon,
     },
     {
-      icon: <Target className="h-5 w-5 text-blue-500" />,
+      icon: <Target className={cn('h-5 w-5', config.accent)} />,
       label: 'Accuracy',
       value: `${accuracy}%`,
       prefix: '🎯',
     },
     {
-      icon: <TrendingUp className="h-5 w-5 text-emerald-500" />,
+      icon: <TrendingUp className={cn('h-5 w-5', config.accent)} />,
       label: 'Time Spent',
       value: timeSpent,
       prefix: '⏱️',

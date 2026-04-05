@@ -104,7 +104,7 @@ export const DynamicAvatar: React.FC<DynamicAvatarProps> = ({
                 y: Math.sin((i / 6) * Math.PI * 2) * 40,
               }}
               transition={{ duration: 1, delay: i * 0.1 }}
-              className="absolute w-2 h-2 bg-yellow-400 rounded-full z-30"
+              className="absolute w-2 h-2 bg-primary rounded-full z-30"
               style={{ top: '50%', left: '50%' }}
             />
           ))}
