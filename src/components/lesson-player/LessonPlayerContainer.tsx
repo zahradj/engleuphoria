@@ -262,31 +262,47 @@ export default function LessonPlayerContainer({
       {/* ── Fixed Bottom Footer ── */}
       {!feedbackVisible && (
         <div className={`fixed bottom-0 left-0 right-0 z-20 px-4 py-3 ${skin.footer}`}>
-          <div className="w-full max-w-[720px] mx-auto">
-            {isActivitySlide ? (
-              <button
-                onClick={answerSelected ? handleNextSlide : undefined}
-                disabled={!answerSelected}
-                className={`w-full py-3.5 rounded-2xl font-bold text-base tracking-wide uppercase transition-all ${
-                  answerSelected ? `${skin.checkActive} text-white` : `${skin.checkDisabled}`
-                }`}
-                style={{
-                  boxShadow: answerSelected ? skin.checkShadow : 'none',
-                  color: answerSelected ? '#fff' : config.colorPalette.text,
-                  opacity: answerSelected ? 1 : 0.5,
-                }}
-              >
-                Check
-              </button>
-            ) : (
-              <button
-                onClick={handleNextSlide}
-                className={`w-full py-3.5 rounded-2xl font-bold text-base tracking-wide uppercase text-white ${skin.checkActive}`}
-                style={{ boxShadow: skin.checkShadow }}
-              >
-                {currentSlideIndex === totalSlides - 1 ? 'Finish' : 'Continue'}
-              </button>
-            )}
+          <div className="w-full max-w-[720px] mx-auto flex items-center justify-between gap-3">
+            {/* Back Button */}
+            <button
+              onClick={handlePrevSlide}
+              disabled={currentSlideIndex === 0}
+              className={`flex items-center gap-1.5 px-5 py-3 rounded-2xl font-bold text-sm tracking-wide uppercase transition-all ${
+                currentSlideIndex === 0
+                  ? `${skin.checkDisabled} opacity-40 cursor-not-allowed`
+                  : `${skin.checkActive} text-white`
+              }`}
+              style={{
+                boxShadow: currentSlideIndex === 0 ? 'none' : skin.checkShadow,
+                color: currentSlideIndex === 0 ? config.colorPalette.text : '#fff',
+              }}
+            >
+              <ChevronLeft size={18} />
+              Back
+            </button>
+
+            {/* Slide indicator */}
+            <span className="text-xs font-medium opacity-60">
+              {currentSlideIndex + 1} / {totalSlides}
+            </span>
+
+            {/* Next Button */}
+            <button
+              onClick={isActivitySlide && !answerSelected ? undefined : handleNextSlide}
+              disabled={isActivitySlide && !answerSelected}
+              className={`flex items-center gap-1.5 px-5 py-3 rounded-2xl font-bold text-sm tracking-wide uppercase transition-all ${
+                isActivitySlide && !answerSelected
+                  ? `${skin.checkDisabled} opacity-40 cursor-not-allowed`
+                  : `${skin.checkActive} text-white`
+              }`}
+              style={{
+                boxShadow: isActivitySlide && !answerSelected ? 'none' : skin.checkShadow,
+                color: isActivitySlide && !answerSelected ? config.colorPalette.text : '#fff',
+              }}
+            >
+              {currentSlideIndex === totalSlides - 1 ? 'Finish' : 'Next'}
+              <ChevronRight size={18} />
+            </button>
           </div>
         </div>
       )}
