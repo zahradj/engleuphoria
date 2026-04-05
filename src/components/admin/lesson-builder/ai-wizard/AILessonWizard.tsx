@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/dialog';
 import { generatePPPLesson } from './generatePPPLesson';
 import { WizardFormData, PPPLessonPlan } from './types';
-import { Slide } from '../types';
+import { Slide, CanvasElementData } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
 interface AILessonWizardProps {
