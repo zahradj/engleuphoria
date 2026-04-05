@@ -158,19 +158,30 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('teacher_profiles')
-        .upsert({
-          user_id: teacherId,
-          bio: formData.bio,
-          video_url: formData.videoUrl,
-          profile_image_url: formData.profileImageUrl || null,
-          certificate_urls: formData.certificateUrls,
-          profile_approved_by_admin: false,
-          can_teach: false,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id' });
+      const payload = {
+        user_id: teacherId,
+        bio: formData.bio,
+        video_url: formData.videoUrl,
+        profile_image_url: formData.profileImageUrl || null,
+        certificate_urls: formData.certificateUrls,
+        profile_approved_by_admin: false,
+        can_teach: false,
+        updated_at: new Date().toISOString()
+      };
 
+      const { data: existingProfile, error: fetchError } = await supabase
+        .from('teacher_profiles')
+        .select('id')
+        .eq('user_id', teacherId)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+
+      const query = existingProfile
+        ? supabase.from('teacher_profiles').update(payload).eq('user_id', teacherId)
+        : supabase.from('teacher_profiles').insert(payload);
+
+      const { error } = await query;
       if (error) throw error;
 
       toast({

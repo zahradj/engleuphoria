@@ -190,20 +190,30 @@ export const ProfileSetupTab = ({ teacherId, onProfileComplete }: ProfileSetupTa
     setLoading(true);
 
     try {
-      const { data, error } = await supabase
+      const payload = {
+        user_id: teacherId,
+        bio: profile.bio,
+        video_url: profile.video_url,
+        specializations: profile.specializations,
+        languages_spoken: profile.languages_spoken,
+        years_experience: profile.years_experience,
+        certificate_urls: profile.certificate_urls,
+        updated_at: new Date().toISOString()
+      };
+
+      const { data: existingProfile, error: fetchError } = await supabase
         .from('teacher_profiles')
-        .upsert({
-          user_id: teacherId,
-          bio: profile.bio,
-          video_url: profile.video_url,
-          specializations: profile.specializations,
-          languages_spoken: profile.languages_spoken,
-          years_experience: profile.years_experience,
-          certificate_urls: profile.certificate_urls,
-          updated_at: new Date().toISOString()
-        })
-        .select()
-        .single();
+        .select('id')
+        .eq('user_id', teacherId)
+        .maybeSingle();
+
+      if (fetchError) throw fetchError;
+
+      const query = existingProfile
+        ? supabase.from('teacher_profiles').update(payload).eq('user_id', teacherId).select().single()
+        : supabase.from('teacher_profiles').insert(payload).select().single();
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
