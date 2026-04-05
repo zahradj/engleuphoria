@@ -32,7 +32,7 @@ const ContentCreatorDashboard: React.FC = () => {
                 Browse, manage, and publish your completed content.
               </p>
             </div>
-            <CurriculumLibrary />
+            <LessonLibraryHub />
             <div className="flex justify-start pt-4 border-t border-border">
               <Button variant="outline" onClick={goPrev} className="gap-2">
                 <ArrowLeft className="h-4 w-4" />
