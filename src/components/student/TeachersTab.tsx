@@ -29,7 +29,7 @@ export const TeachersTab = () => {
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Card className="hover:shadow-md transition-shadow cursor-pointer" 
-              onClick={() => navigate('/discover-teachers')}>
+              onClick={() => navigate('/find-teacher')}>
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <div className="bg-purple-100 p-3 rounded-lg">
@@ -45,7 +45,7 @@ export const TeachersTab = () => {
         </Card>
 
         <Card className="hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => navigate('/discover-teachers')}>
+              onClick={() => navigate('/find-teacher')}>
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
               <div className="bg-blue-100 p-3 rounded-lg">
@@ -76,7 +76,7 @@ export const TeachersTab = () => {
               <h3 className="text-lg font-semibold text-gray-700 mb-2">No Teachers Found</h3>
               <p className="text-gray-500 mb-6">You haven't connected with any teachers yet.</p>
               <Button 
-                onClick={() => navigate('/discover-teachers')}
+                onClick={() => navigate('/find-teacher')}
                 className="px-8"
               >
                 Discover Teachers
@@ -120,7 +120,7 @@ export const TeachersTab = () => {
                   <Button 
                     className="w-full" 
                     size="sm"
-                    onClick={() => navigate('/discover-teachers')}
+                    onClick={() => navigate('/find-teacher')}
                   >
                     View Profile
                   </Button>
