@@ -125,6 +125,13 @@ const App = () => {
                         </ImprovedProtectedRoute>
                       } />
                       
+                      {/* Find Teacher - Student Protected */}
+                      <Route path="/find-teacher" element={
+                        <ImprovedProtectedRoute requiredRole="student">
+                          <Suspense fallback={<LoadingFallback />}><FindTeacher /></Suspense>
+                        </ImprovedProtectedRoute>
+                      } />
+                      
                       {/* Teacher Dashboard - Protected */}
                       <Route path="/admin/*" element={
                         <ImprovedProtectedRoute requiredRole="teacher">
