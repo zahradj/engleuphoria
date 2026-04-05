@@ -210,11 +210,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                   })();
                   return;
                 }
-                // If somehow we get SIGNED_IN without signIn() handling it,
-                // just update state — Login.tsx will handle the redirect
+                // If we get SIGNED_IN without signIn() handling it (e.g. email verification),
+                // auto-heal then update state
                 (async () => {
                   if (!mounted) return;
                   try {
+                    await autoHealUserRows(currentSession.user);
                     const dbUser = await fetchUserFromDatabase(currentSession.user.id);
                     const finalUser = dbUser || await createFallbackUser(currentSession.user);
                     if (mounted) {
