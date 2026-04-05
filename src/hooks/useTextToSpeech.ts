@@ -5,6 +5,13 @@ interface TTSOptions {
   speed?: number;
 }
 
+// Map to OpenAI TTS voices
+// Girl = nova (bright, young), Boy = fable (warm, young)
+const OPENAI_VOICE_MAP: Record<string, string> = {
+  'pFZP5JQG7iQjIQuC4Bku': 'nova',   // Lily -> nova
+  'IKne3meq5aSn9XLyUdCD': 'fable',   // Charlie -> fable
+};
+
 export function useTextToSpeech() {
   const [isLoading, setIsLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -18,13 +25,11 @@ export function useTextToSpeech() {
       return;
     }
 
-    // Stop any currently playing audio
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current = null;
     }
 
-    // Cancel any pending requests
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -34,8 +39,13 @@ export function useTextToSpeech() {
     setError(null);
 
     try {
+      // Map ElevenLabs voice IDs to OpenAI voices, default to 'nova'
+      const openaiVoice = options?.voiceId
+        ? (OPENAI_VOICE_MAP[options.voiceId] || options.voiceId)
+        : 'nova';
+
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/text-to-speech`,
         {
           method: "POST",
           headers: {
@@ -45,8 +55,7 @@ export function useTextToSpeech() {
           },
           body: JSON.stringify({
             text,
-            voiceId: options?.voiceId,
-            speed: options?.speed,
+            voice: openaiVoice,
           }),
           signal: abortControllerRef.current.signal,
         }
@@ -57,28 +66,22 @@ export function useTextToSpeech() {
         throw new Error(errorData.error || `TTS request failed: ${response.status}`);
       }
 
-      const audioBlob = await response.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
-      
+      const data = await response.json();
+      const audioUrl = `data:audio/mpeg;base64,${data.audioContent}`;
+
       const audio = new Audio(audioUrl);
       audioRef.current = audio;
 
       audio.onplay = () => setIsPlaying(true);
-      audio.onended = () => {
-        setIsPlaying(false);
-        URL.revokeObjectURL(audioUrl);
-      };
+      audio.onended = () => setIsPlaying(false);
       audio.onerror = () => {
         setIsPlaying(false);
         setError("Failed to play audio");
-        URL.revokeObjectURL(audioUrl);
       };
 
       await audio.play();
     } catch (err) {
-      if (err instanceof Error && err.name === 'AbortError') {
-        return; // Cancelled, not an error
-      }
+      if (err instanceof Error && err.name === 'AbortError') return;
       console.error("TTS error:", err);
       setError(err instanceof Error ? err.message : "Failed to generate speech");
     } finally {
@@ -98,19 +101,16 @@ export function useTextToSpeech() {
   }, []);
 
   const speakWord = useCallback((word: string, ipa?: string) => {
-    // If IPA is provided, speak both word and pronunciation
-    const textToSpeak = ipa 
-      ? `${word}. ${word}.` // Repeat for clarity
-      : word;
-    return speak(textToSpeak, { speed: 0.9 });
+    const textToSpeak = ipa ? `${word}. ${word}.` : word;
+    return speak(textToSpeak);
   }, [speak]);
 
   const speakSlow = useCallback((text: string) => {
-    return speak(text, { speed: 0.7 });
+    return speak(text);
   }, [speak]);
 
   const speakNormal = useCallback((text: string) => {
-    return speak(text, { speed: 1.0 });
+    return speak(text);
   }, [speak]);
 
   return {
