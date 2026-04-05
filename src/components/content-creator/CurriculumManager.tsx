@@ -276,7 +276,12 @@ export const CurriculumManager: React.FC<CurriculumManagerProps> = ({
                 const unit = units.find(u => lessons.some(l => l.unit_id === u.id && l.id === lesson.id));
                 if (unit) setSelectedUnitId(unit.id);
               }}
+              onGenerateLesson={(lesson) => {
+                const matched = lessons.find(l => l.id === lesson.id);
+                if (matched) handleGenerateSingle(matched);
+              }}
               selectedLessonId={null}
+              generatingLessonIds={new Set(generatingLessonId ? [generatingLessonId] : [])}
               onHubChange={(hub) => {
                 // Optionally update context when hub changes
               }}
