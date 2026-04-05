@@ -785,7 +785,7 @@ const ApplicationGrid: React.FC<ApplicationGridProps> = ({
               <Eye className="h-4 w-4 mr-1" />
               View
             </Button>
-            {application.current_stage === 'application_submitted' && (
+            {(application.current_stage === 'application_submitted' || application.current_stage === 'application_received') && (
               <>
                 <Button 
                   variant="outline" 
