@@ -19,7 +19,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { generatePPPLesson } from './generatePPPLesson';
-import { WizardFormData, PPPLessonPlan } from './types';
+import { WizardFormData, PPPLessonPlan, GeneratedSlide, HubType } from './types';
 import { Slide, CanvasElementData } from '../types';
 import { HUB_CONFIGS, resolveHub } from './hubConfig';
 import { v4 as uuidv4 } from 'uuid';
@@ -27,7 +27,7 @@ import { v4 as uuidv4 } from 'uuid';
 interface AILessonWizardProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onLessonGenerated: (slides: Slide[], title: string, level: string, ageGroup: string) => void;
+  onLessonGenerated: (slides: Slide[], title: string, level: string, ageGroup: string, rawSlides?: GeneratedSlide[], hub?: HubType) => void;
 }
 
 const generationSteps = [
@@ -273,7 +273,9 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
       editorSlides,
       generatedPlan.lessonMeta.title,
       levelMap[formData.level] || 'A1',
-      ageGroupMap[formData.ageGroup] || '6-8'
+      ageGroupMap[formData.ageGroup] || '6-8',
+      generatedPlan.slides,
+      generatedPlan.lessonMeta.hub
     );
 
     setGeneratedPlan(null);
