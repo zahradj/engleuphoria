@@ -15,7 +15,7 @@ export default function SlideVocabulary({ slide, hub }: Props) {
   const word = slide.content?.word || slide.title;
   const definition = slide.content?.definition || '';
   const sentence = slide.content?.sentence || '';
-  const hasImage = slide.imageUrl && slide.imageUrl.length > 5;
+  const hasImage = slide.imageUrl && slide.imageUrl.length > 10;
 
   return (
     <div className="flex flex-col items-center gap-6 p-8 w-full text-center">
@@ -26,18 +26,18 @@ export default function SlideVocabulary({ slide, hub }: Props) {
       {/* 3D Flip Flashcard */}
       <div
         className="w-full cursor-pointer"
-        style={{ perspective: 1000, minHeight: 260 }}
+        style={{ perspective: 1000, minHeight: hasImage ? 340 : 260 }}
         onClick={() => setFlipped((f) => !f)}
       >
         <motion.div
           className="relative w-full"
-          style={{ transformStyle: 'preserve-3d', minHeight: 260 }}
+          style={{ transformStyle: 'preserve-3d', minHeight: hasImage ? 340 : 260 }}
           animate={{ rotateY: flipped ? 180 : 0 }}
           transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
         >
-          {/* Front */}
+          {/* ── FRONT: Word + AI Image ── */}
           <div
-            className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-[20px] p-6"
+            className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-[20px] p-6 overflow-hidden"
             style={{
               backfaceVisibility: 'hidden',
               background: hub === 'playground'
@@ -50,18 +50,30 @@ export default function SlideVocabulary({ slide, hub }: Props) {
               color: hub === 'playground' ? '#1a1a2e' : hub === 'academy' ? '#e2e8f0' : '#1e293b',
             }}
           >
+            {/* AI-generated image on the front */}
+            {hasImage && (
+              <motion.img
+                src={slide.imageUrl}
+                alt={word}
+                className="w-full max-h-36 object-cover rounded-xl"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4 }}
+              />
+            )}
             <span className="text-4xl font-bold">{word}</span>
-            {definition && <span className="text-base opacity-70">{definition}</span>}
-            <button
-              onClick={(e) => { e.stopPropagation(); }}
-              className="mt-2 w-10 h-10 rounded-full flex items-center justify-center bg-black/10 hover:bg-black/20 transition-colors"
-            >
-              <Volume2 size={20} />
-            </button>
-            <span className="text-xs opacity-40 mt-1">Tap to flip</span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={(e) => { e.stopPropagation(); }}
+                className="w-9 h-9 rounded-full flex items-center justify-center bg-black/10 hover:bg-black/20 transition-colors"
+              >
+                <Volume2 size={18} />
+              </button>
+              <span className="text-xs opacity-40">Tap to flip</span>
+            </div>
           </div>
 
-          {/* Back — shows AI image if available */}
+          {/* ── BACK: Definition + Example Sentence + Image ── */}
           <div
             className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-[20px] p-6 overflow-hidden"
             style={{
@@ -77,16 +89,31 @@ export default function SlideVocabulary({ slide, hub }: Props) {
               color: hub === 'playground' ? '#1a1a2e' : hub === 'academy' ? '#e2e8f0' : '#1e293b',
             }}
           >
+            {definition && (
+              <div className="text-center">
+                <span className="text-xs uppercase tracking-widest opacity-40 block mb-1">Definition</span>
+                <span className="text-xl font-semibold">{definition}</span>
+              </div>
+            )}
+
+            {sentence && (
+              <div className="px-4 py-3 rounded-xl bg-black/10 w-full text-center">
+                <span className="text-xs uppercase tracking-widest opacity-40 block mb-1">Example</span>
+                <span className="text-base italic">"{sentence}"</span>
+              </div>
+            )}
+
+            {/* Show AI image on back too if available */}
             {hasImage && (
               <img
                 src={slide.imageUrl}
                 alt={word}
-                className="w-full max-h-28 object-cover rounded-xl mb-2"
+                className="w-24 h-24 object-cover rounded-xl opacity-80"
               />
             )}
-            {sentence && <span className="text-lg italic opacity-80">"{sentence}"</span>}
-            {hub === 'playground' && !hasImage && <span className="text-5xl mt-2">🐧</span>}
-            <span className="text-xs opacity-40 mt-1">Tap to flip back</span>
+
+            {hub === 'playground' && !hasImage && <span className="text-5xl mt-1">🐧</span>}
+            <span className="text-xs opacity-40">Tap to flip back</span>
           </div>
         </motion.div>
       </div>

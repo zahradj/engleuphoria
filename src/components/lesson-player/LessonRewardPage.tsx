@@ -1,0 +1,251 @@
+import React, { useEffect, useState, useRef } from 'react';
+import { motion } from 'framer-motion';
+import { HubType } from '@/components/admin/lesson-builder/ai-wizard/types';
+import { HUB_CONFIGS } from '@/components/admin/lesson-builder/ai-wizard/hubConfig';
+import { Trophy, Clock, Target, ArrowRight, Zap, Star, Award } from 'lucide-react';
+
+interface LessonRewardPageProps {
+  hub: HubType;
+  xpEarned: number;
+  correctCount: number;
+  totalQuestions: number;
+  timeSpentSeconds: number;
+  onExit: () => void;
+}
+
+/* ── Animated count-up hook ── */
+function useCountUp(target: number, duration = 1500, delay = 400) {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      const start = Date.now();
+      const tick = () => {
+        const elapsed = Date.now() - start;
+        const progress = Math.min(elapsed / duration, 1);
+        // Ease-out cubic
+        const eased = 1 - Math.pow(1 - progress, 3);
+        setValue(Math.round(target * eased));
+        if (progress < 1) requestAnimationFrame(tick);
+      };
+      tick();
+    }, delay);
+    return () => clearTimeout(timeout);
+  }, [target, duration, delay]);
+  return value;
+}
+
+/* ── Circular progress ring ── */
+function AccuracyRing({ percentage, color, size = 100 }: { percentage: number; color: string; size?: number }) {
+  const radius = (size - 10) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (percentage / 100) * circumference;
+
+  return (
+    <svg width={size} height={size} className="transform -rotate-90">
+      <circle
+        cx={size / 2} cy={size / 2} r={radius}
+        fill="none" stroke="currentColor" strokeWidth={6}
+        className="text-muted/20"
+      />
+      <motion.circle
+        cx={size / 2} cy={size / 2} r={radius}
+        fill="none" stroke={color} strokeWidth={6}
+        strokeLinecap="round"
+        strokeDasharray={circumference}
+        initial={{ strokeDashoffset: circumference }}
+        animate={{ strokeDashoffset: offset }}
+        transition={{ duration: 1.5, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      />
+    </svg>
+  );
+}
+
+export default function LessonRewardPage({
+  hub,
+  xpEarned,
+  correctCount,
+  totalQuestions,
+  timeSpentSeconds,
+  onExit,
+}: LessonRewardPageProps) {
+  const config = HUB_CONFIGS[hub];
+  const animatedXp = useCountUp(xpEarned, 1500, 500);
+  const accuracy = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 100;
+  const animatedAccuracy = useCountUp(accuracy, 1200, 800);
+
+  const minutes = Math.floor(timeSpentSeconds / 60);
+  const seconds = timeSpentSeconds % 60;
+
+  const hubStyles = {
+    playground: {
+      bg: 'bg-gradient-to-b from-amber-50 via-orange-50 to-yellow-50',
+      card: 'bg-white/90 border-2 border-amber-200/60',
+      xpGlow: '0 0 30px rgba(255, 159, 28, 0.4)',
+      accent: '#FF9F1C',
+      buttonBg: 'bg-gradient-to-r from-emerald-400 to-green-500',
+      buttonShadow: '0 4px 0 #16a34a',
+      title: '🌟 Awesome Job!',
+      subtitle: 'Pip is SO proud of you!',
+    },
+    academy: {
+      bg: 'bg-gradient-to-b from-indigo-950 via-slate-950 to-indigo-950',
+      card: 'bg-indigo-900/60 border border-indigo-500/30',
+      xpGlow: '0 0 30px rgba(168, 85, 247, 0.5)',
+      accent: '#A855F7',
+      buttonBg: 'bg-gradient-to-r from-indigo-500 to-violet-500',
+      buttonShadow: '0 4px 0 #4338ca',
+      title: '⚡ Mission Complete!',
+      subtitle: 'You crushed it. Level up!',
+    },
+    professional: {
+      bg: 'bg-gradient-to-b from-slate-50 to-gray-100',
+      card: 'bg-white border border-slate-200',
+      xpGlow: 'none',
+      accent: '#10B981',
+      buttonBg: 'bg-slate-900',
+      buttonShadow: '0 4px 0 #1e293b',
+      title: 'Session Complete',
+      subtitle: 'Progress recorded successfully.',
+    },
+  };
+
+  const style = hubStyles[hub];
+
+  return (
+    <div className={`flex flex-col items-center justify-center min-h-[100dvh] px-4 ${style.bg}`}>
+      <div className="w-full max-w-[420px] flex flex-col items-center gap-6">
+
+        {/* Hero icon */}
+        <motion.div
+          initial={{ scale: 0, rotate: -180 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
+        >
+          {hub === 'playground' && (
+            <div className="flex gap-2">
+              {['🎉', '⭐', '🏆', '⭐', '🎉'].map((e, i) => (
+                <motion.span
+                  key={i}
+                  className="text-4xl"
+                  initial={{ scale: 0, y: 20 }}
+                  animate={{ scale: 1, y: 0 }}
+                  transition={{ delay: 0.3 + i * 0.08, type: 'spring' }}
+                >
+                  {e}
+                </motion.span>
+              ))}
+            </div>
+          )}
+          {hub === 'academy' && (
+            <div className="text-7xl" style={{ filter: 'drop-shadow(0 0 20px rgba(139,92,246,0.6))' }}>
+              ⚡
+            </div>
+          )}
+          {hub === 'professional' && (
+            <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center">
+              <Award className="w-8 h-8 text-emerald-600" />
+            </div>
+          )}
+        </motion.div>
+
+        {/* Title */}
+        <motion.div
+          className="text-center"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <h1 className="text-3xl font-bold" style={{ color: style.accent }}>
+            {style.title}
+          </h1>
+          <p className="text-sm mt-1" style={{ color: config.colorPalette.text, opacity: 0.7 }}>
+            {style.subtitle}
+          </p>
+        </motion.div>
+
+        {/* ── Bento Grid Stats ── */}
+        <motion.div
+          className="w-full grid grid-cols-2 gap-3"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+        >
+          {/* XP Earned — Large card spanning full width */}
+          <div
+            className={`col-span-2 rounded-2xl p-6 flex flex-col items-center gap-2 ${style.card}`}
+            style={{ boxShadow: style.xpGlow }}
+          >
+            <div className="flex items-center gap-2 text-sm font-medium opacity-60" style={{ color: config.colorPalette.text }}>
+              {hub === 'playground' ? <Star size={16} /> : hub === 'academy' ? <Zap size={16} /> : <Trophy size={16} />}
+              XP Earned
+            </div>
+            <motion.span
+              className="text-5xl font-black tabular-nums"
+              style={{ color: style.accent }}
+            >
+              +{animatedXp}
+            </motion.span>
+          </div>
+
+          {/* Accuracy Ring */}
+          <div className={`rounded-2xl p-4 flex flex-col items-center gap-2 ${style.card}`}>
+            <span className="text-xs font-medium opacity-50 flex items-center gap-1" style={{ color: config.colorPalette.text }}>
+              <Target size={12} /> Accuracy
+            </span>
+            <div className="relative">
+              <AccuracyRing percentage={accuracy} color={style.accent} size={80} />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-lg font-bold" style={{ color: style.accent }}>
+                  {animatedAccuracy}%
+                </span>
+              </div>
+            </div>
+            <span className="text-xs opacity-40" style={{ color: config.colorPalette.text }}>
+              {correctCount}/{totalQuestions} correct
+            </span>
+          </div>
+
+          {/* Time Spent */}
+          <div className={`rounded-2xl p-4 flex flex-col items-center gap-2 ${style.card}`}>
+            <span className="text-xs font-medium opacity-50 flex items-center gap-1" style={{ color: config.colorPalette.text }}>
+              <Clock size={12} /> Time
+            </span>
+            <span className="text-2xl font-bold tabular-nums" style={{ color: config.colorPalette.text }}>
+              {minutes}:{seconds.toString().padStart(2, '0')}
+            </span>
+            <span className="text-xs opacity-40" style={{ color: config.colorPalette.text }}>
+              minutes
+            </span>
+          </div>
+        </motion.div>
+
+        {/* Mascot for kids */}
+        {hub === 'playground' && (
+          <motion.div
+            className="text-5xl"
+            animate={{ y: [0, -8, 0], rotate: [0, 5, -5, 0] }}
+            transition={{ repeat: Infinity, duration: 2 }}
+          >
+            🐧
+          </motion.div>
+        )}
+
+        {/* CTA Button */}
+        <motion.button
+          onClick={onExit}
+          className={`w-full py-4 rounded-2xl font-bold text-lg text-white tracking-wide uppercase ${style.buttonBg}`}
+          style={{ boxShadow: style.buttonShadow }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1 }}
+          whileTap={{ scale: 0.97 }}
+        >
+          <span className="flex items-center justify-center gap-2">
+            Back to Dashboard
+            <ArrowRight size={20} />
+          </span>
+        </motion.button>
+      </div>
+    </div>
+  );
+}
