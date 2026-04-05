@@ -8,6 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Clock, BookOpen, Trophy, Star, Target, Sparkles, TrendingUp } from 'lucide-react';
 import { DynamicAvatar } from '@/components/student/DynamicAvatar';
+import { StudentStatusCard } from './StudentStatusCard';
+import { WeeklyStreakCalendar } from './WeeklyStreakCalendar';
+import { GiftAccessoryButton } from './GiftAccessoryButton';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface StudentLearningAnalyticsProps {
