@@ -262,7 +262,48 @@ The EnglEuphoria Hiring Team`,
     }
   };
 
-  const getStatusBadge = (stage: string) => {
+  const handleFinalApprove = async (application: TeacherApplication) => {
+    setActionLoading(true);
+    try {
+      // Update application to approved
+      const { error } = await supabase
+        .from('teacher_applications')
+        .update({ 
+          current_stage: 'approved',
+          status: 'approved',
+        })
+        .eq('id', application.id);
+
+      if (error) throw error;
+
+      // If teacher has a user_id, update their teacher_profiles
+      if ((application as any).user_id) {
+        await supabase
+          .from('teacher_profiles')
+          .update({ 
+            can_teach: true, 
+            is_available: true, 
+            profile_approved_by_admin: true 
+          })
+          .eq('user_id', (application as any).user_id);
+      }
+
+      toast.success('Teacher Approved! 🎉', {
+        description: `${application.full_name} is now an active teacher and can receive bookings.`,
+        duration: 5000,
+      });
+
+      setSelectedApplication(null);
+      fetchApplications();
+    } catch (error) {
+      console.error('Error approving teacher:', error);
+      toast.error('Failed to approve teacher');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+
     const config = stageConfig[stage] || stageConfig['application_submitted'];
     return (
       <Badge variant={config.variant} className={config.color}>
