@@ -18,6 +18,7 @@ import { NewLibrary } from '@/components/admin/NewLibrary';
 import { CurriculumLibrary } from '@/components/admin/CurriculumLibrary';
 import { CurriculumProgressDashboard } from '@/components/admin/generator/CurriculumProgressDashboard';
 import { CurriculumExportDashboard } from '@/components/admin/generator/CurriculumExportDashboard';
+import { AdminBroadcastCenter } from '@/components/admin/AdminBroadcastCenter';
 import { ScrollHeader } from '@/components/navigation/ScrollHeader';
 import { Loader2, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -88,6 +89,8 @@ const AdminDashboard = () => {
         return <CurriculumProgressDashboard />;
       case 'curriculum-export':
         return <CurriculumExportDashboard />;
+      case 'communications':
+        return <AdminBroadcastCenter />;
       default:
         return <AdminOverview />;
     }
