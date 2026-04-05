@@ -8,6 +8,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { SlideSkeleton, LessonSkeletonPlan } from './slideSkeletonEngine';
+import { runPicsartPipeline, PicsartSlideResult, PicsartPipelineResult, HubFilter } from './picsartPipelineService';
 
 export type SlideImageStatus = 'pending' | 'generating' | 'done' | 'error';
 
