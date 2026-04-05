@@ -207,9 +207,7 @@ export const CurriculumManager: React.FC<CurriculumManagerProps> = ({
 
       if (error) throw error;
 
-      try {
-        await saveToLibrary(lesson.title, hub, cefrLevel, plan.slides, undefined);
-      } catch { /* optional */ }
+      // Note: Save to library is handled separately via the SkeletonPanel "Save to Library" button
 
       return plan.slides;
     } catch (err) {
