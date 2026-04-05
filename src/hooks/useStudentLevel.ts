@@ -55,6 +55,19 @@ export function useStudentLevel(): StudentLevelData {
 
   useEffect(() => {
     fetchStudentLevel();
+
+    // Safety timeout — if fetch hangs, stop loading after 5s
+    const safetyTimeout = setTimeout(() => {
+      setLoading(prev => {
+        if (prev) {
+          console.warn('⏱️ useStudentLevel safety timeout — forcing loading=false');
+          return false;
+        }
+        return prev;
+      });
+    }, 5000);
+
+    return () => clearTimeout(safetyTimeout);
   }, [user?.id]);
 
   return {

@@ -440,19 +440,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           const fullName = data.user.user_metadata?.full_name || sanitizedEmail.split('@')[0] || 'User';
           const role = data.user.user_metadata?.role || 'student';
           
-          // Create missing user profile
-          await supabase.from('users').insert({
+          // Create missing user profile (upsert to handle race conditions)
+          const { error: upsertErr } = await supabase.from('users').upsert({
             id: data.user.id,
             email: sanitizedEmail,
             full_name: fullName,
             role: role
-          }).single();
+          }, { onConflict: 'id' });
+          if (upsertErr) console.error('Auto-heal users upsert failed:', upsertErr);
           
-          // Create missing user_roles entry
-          await supabase.from('user_roles').insert({
-            user_id: data.user.id,
-            role: role
-          }).single();
+          // Create missing user_roles entry via RPC to bypass RLS
+          try {
+            await supabase.rpc('ensure_user_role', {
+              p_user_id: data.user.id,
+              p_role: role
+            });
+          } catch (rpcErr) {
+            console.error('Auto-heal user_roles RPC failed:', rpcErr);
+          }
           
           console.log('Auto-created missing user profile for:', sanitizedEmail);
         } else {
