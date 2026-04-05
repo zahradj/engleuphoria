@@ -6564,6 +6564,38 @@ export type Database = {
           },
         ]
       }
+      student_inventory: {
+        Row: {
+          accessory_id: string
+          id: string
+          is_equipped: boolean
+          student_id: string
+          unlocked_at: string
+        }
+        Insert: {
+          accessory_id: string
+          id?: string
+          is_equipped?: boolean
+          student_id: string
+          unlocked_at?: string
+        }
+        Update: {
+          accessory_id?: string
+          id?: string
+          is_equipped?: boolean
+          student_id?: string
+          unlocked_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_inventory_accessory_id_fkey"
+            columns: ["accessory_id"]
+            isOneToOne: false
+            referencedRelation: "accessories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_learning_streaks: {
         Row: {
           bonus_coins_earned: number
