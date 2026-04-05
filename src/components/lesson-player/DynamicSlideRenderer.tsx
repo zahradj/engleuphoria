@@ -155,7 +155,7 @@ export default function DynamicSlideRenderer({
         if (actType === 'sentence_unscramble') {
           return <AcademySentenceUnscramble slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
         }
-        if (actType === 'fill_in_blanks' || actType === 'word_bank') {
+        if (actType === 'fill_in_blanks') {
           return <WordBank slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
         }
         return <AcademyQuiz slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
