@@ -16,7 +16,8 @@ import {
   AlertCircle, 
   Loader2,
   Camera,
-  GraduationCap
+  GraduationCap,
+  X
 } from 'lucide-react';
 
 interface ProfileOnboardingModalProps {
