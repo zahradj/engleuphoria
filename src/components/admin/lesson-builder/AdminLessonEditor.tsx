@@ -10,6 +10,8 @@ import { LessonPreviewDialog } from './LessonPreviewDialog';
 import { LessonBlueprint } from './LessonBlueprint';
 import { Slide, LessonDeck, CanvasElementData, CanvasElementType } from './types';
 import { AILessonWizard } from './ai-wizard';
+import { GeneratedSlide, HubType } from './ai-wizard/types';
+import { resolveHub } from './ai-wizard/hubConfig';
 import { AIActivityGenerator } from './AIActivityGenerator';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,6 +46,8 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
   const [showPreview, setShowPreview] = useState(false);
   const [activeLessonId, setActiveLessonId] = useState<string | null>(null);
   const [filmstripCollapsed, setFilmstripCollapsed] = useState(false);
+  const [rawGeneratedSlides, setRawGeneratedSlides] = useState<GeneratedSlide[]>([]);
+  const [currentHub, setCurrentHub] = useState<HubType>('playground');
   const canvasRef = React.useRef<HTMLDivElement>(null);
 
   const [lessonTitle, setLessonTitle] = useState('Untitled Lesson');
@@ -186,12 +190,14 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
     } finally { setIsSaving(false); }
   };
 
-  const handleAILessonGenerated = useCallback((generatedSlides: Slide[], title: string, newLevel: string, newAgeGroup: string) => {
+  const handleAILessonGenerated = useCallback((generatedSlides: Slide[], title: string, newLevel: string, newAgeGroup: string, rawSlides?: GeneratedSlide[], hub?: HubType) => {
     setSlides(generatedSlides);
     setLessonTitle(title);
     setLevel(newLevel);
     setAgeGroup(newAgeGroup);
     setSelectedSlideId(generatedSlides[0]?.id || null);
+    if (rawSlides) setRawGeneratedSlides(rawSlides);
+    if (hub) setCurrentHub(hub);
     toast({ title: 'Lesson Generated!', description: `Created ${generatedSlides.length} slides.` });
   }, [toast]);
 
@@ -354,7 +360,7 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
       )}
 
       <AILessonWizard open={showAIWizard} onOpenChange={setShowAIWizard} onLessonGenerated={handleAILessonGenerated} />
-      <LessonPreviewDialog open={showPreview} onOpenChange={setShowPreview} slides={slides} lessonTitle={lessonTitle} />
+      <LessonPreviewDialog open={showPreview} onOpenChange={setShowPreview} slides={slides} lessonTitle={lessonTitle} generatedSlides={rawGeneratedSlides} hub={currentHub} />
     </div>
   );
 };
