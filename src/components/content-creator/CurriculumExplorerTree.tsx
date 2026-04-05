@@ -371,6 +371,19 @@ export const CurriculumExplorerTree: React.FC<CurriculumExplorerTreeProps> = ({
                           )}
                         </div>
                       )}
+                      {/* Delete all lessons in level */}
+                      {levelLessons.length > 0 && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteTarget({ type: 'level', id: level.id, name: level.name, lessonCount: levelLessons.length });
+                          }}
+                          className="shrink-0 w-6 h-6 rounded-lg flex items-center justify-center bg-destructive/10 hover:bg-destructive/20 text-destructive transition-colors"
+                          title="Delete all lessons in this level"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      )}
                     </button>
                   </CollapsibleTrigger>
 
