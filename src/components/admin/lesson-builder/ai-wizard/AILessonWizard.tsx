@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, BookOpen, Users, GraduationCap, Wand2, Loader2, Check, ArrowRight } from 'lucide-react';
+import { Sparkles, BookOpen, Users, GraduationCap, Wand2, Loader2, Check, ArrowRight, Image, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -22,7 +23,9 @@ import { generatePPPLesson } from './generatePPPLesson';
 import { WizardFormData, PPPLessonPlan, GeneratedSlide, HubType } from './types';
 import { Slide, CanvasElementData } from '../types';
 import { HUB_CONFIGS, resolveHub } from './hubConfig';
+import { generateLessonImages } from '@/services/lessonImageService';
 import { v4 as uuidv4 } from 'uuid';
+import { useToast } from '@/hooks/use-toast';
 
 interface AILessonWizardProps {
   open: boolean;
@@ -44,9 +47,14 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
     level: 'beginner',
     ageGroup: 'kids',
   });
+  const [additionalNotes, setAdditionalNotes] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [generatedPlan, setGeneratedPlan] = useState<PPPLessonPlan | null>(null);
+  const [isGeneratingImages, setIsGeneratingImages] = useState(false);
+  const [imageProgress, setImageProgress] = useState({ completed: 0, total: 0, current: '' });
+  const [imageCount, setImageCount] = useState(0);
+  const { toast } = useToast();
 
   const handleGenerate = async () => {
     if (!formData.topic.trim()) return;
@@ -64,6 +72,53 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
 
     await new Promise(resolve => setTimeout(resolve, 400));
     setIsGenerating(false);
+  };
+
+  const handleGenerateImages = async () => {
+    if (!generatedPlan) return;
+
+    setIsGeneratingImages(true);
+    setImageProgress({ completed: 0, total: 0, current: 'Starting...' });
+
+    try {
+      // Collect slides that have media prompts (skip activity-only slides)
+      const slidesForImages = generatedPlan.slides
+        .filter(s => s.mediaPrompt && s.slideType !== 'activity' && s.slideType !== 'game')
+        .slice(0, 8); // Limit to 8 images to avoid rate limits
+
+      const imageMap = await generateLessonImages(
+        slidesForImages.map(s => ({ id: s.id, mediaPrompt: s.mediaPrompt!, mediaType: s.mediaType })),
+        (completed, total, current) => {
+          setImageProgress({ completed, total, current });
+        }
+      );
+
+      // Apply generated images back to the plan
+      const updatedSlides = generatedPlan.slides.map(slide => {
+        const aiImage = imageMap.get(slide.id);
+        if (aiImage) {
+          return { ...slide, imageUrl: aiImage };
+        }
+        return slide;
+      });
+
+      setGeneratedPlan({ ...generatedPlan, slides: updatedSlides });
+      setImageCount(imageMap.size);
+
+      toast({
+        title: '🎨 Images Generated!',
+        description: `${imageMap.size} AI images created for your lesson.`,
+      });
+    } catch (err) {
+      console.error('Image generation failed:', err);
+      toast({
+        title: 'Image Generation Issue',
+        description: 'Some images could not be generated. You can still use the lesson.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGeneratingImages(false);
+    }
   };
 
   const handleApplyLesson = () => {
@@ -96,38 +151,25 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
         content: { src, alt },
       });
 
-      // Phase badge colors by slideType
       const slideTypeColors: Record<string, string> = {
-        hook: '#ef4444',
-        warmup: '#f59e0b',
-        vocabulary: colors.accent,
-        core_concept: colors.primary,
-        dialogue: '#0891b2',
-        activity: '#059669',
-        game: '#dc2626',
-        speaking: '#d946ef',
-        creative: '#ec4899',
-        summary: '#0284c7',
-        review: '#0284c7',
-        goodbye: '#f97316',
+        hook: '#ef4444', warmup: '#f59e0b', vocabulary: colors.accent,
+        core_concept: colors.primary, dialogue: '#0891b2', activity: '#059669',
+        game: '#dc2626', speaking: '#d946ef', creative: '#ec4899',
+        summary: '#0284c7', review: '#0284c7', goodbye: '#f97316',
       };
       const badgeColor = slideTypeColors[gs.slideType] || colors.primary;
       els.push(shape(40, 30, 300, 42, badgeColor, 0.9));
       els.push(txt(55, 36, 280, 32, gs.phaseLabel, 16, '#ffffff', true));
 
-      // Hub badge (top-right)
       els.push(shape(1600, 30, 260, 36, colors.primary, 0.7));
       els.push(txt(1615, 35, 230, 28, `${hubConfig.emoji} ${hubConfig.label}`, 13, '#ffffff', true));
 
-      // Title
       els.push(txt(120, 90, 1680, 70, gs.title, hubConfig.hub === 'professional' ? 36 : 42, colors.text, true, 'center'));
 
-      // Image on right side
       if (gs.imageUrl && gs.type !== 'matching') {
         els.push(img(1200, 200, 600, 400, gs.imageUrl, gs.imageKeywords || gs.title));
       }
 
-      // Content by slide type
       switch (gs.type) {
         case 'title': {
           if (gs.content?.prompt) {
@@ -148,7 +190,6 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
             els.push(shape(200, 400, 800, 60, colors.secondary + '33', 0.4));
             els.push(txt(220, 408, 760, 50, `"${gs.content.sentence}"`, 22, colors.accent, false, 'center'));
           }
-          // Media type label
           els.push(shape(140, 490, 200, 30, colors.secondary, 0.3));
           els.push(txt(150, 494, 180, 24, `📷 ${gs.mediaType}`, 12, colors.text));
           if (hubConfig.mascot) els.push(pip(140, 550, 'jump'));
@@ -173,10 +214,8 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
           items.forEach((item: any, i: number) => {
             const col = i % 2;
             const row = Math.floor(i / 2);
-            // Source (left)
             els.push(shape(160 + col * 450, 280 + row * 140, 180, 50, colors.primary, 0.7));
             els.push(txt(170 + col * 450, 290 + row * 140, 160, 40, item.text, 22, '#ffffff', true, 'center'));
-            // Target (right)
             els.push(shape(370 + col * 450, 280 + row * 140, 220, 50, colors.secondary + '33', 0.5));
             els.push(txt(380 + col * 450, 290 + row * 140, 200, 40, item.target, 16, colors.text, false, 'center'));
           });
@@ -239,7 +278,6 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
         }
       }
 
-      // Animation label (bottom-right) for non-static
       if (gs.animation && gs.animation !== 'none') {
         els.push(shape(1640, 750, 200, 28, colors.secondary, 0.3));
         els.push(txt(1650, 753, 180, 24, `✨ ${gs.animation}`, 11, colors.text));
@@ -280,13 +318,17 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
 
     setGeneratedPlan(null);
     setFormData({ topic: '', level: 'beginner', ageGroup: 'kids' });
+    setAdditionalNotes('');
+    setImageCount(0);
     onOpenChange(false);
   };
 
   const handleClose = () => {
-    if (!isGenerating) {
+    if (!isGenerating && !isGeneratingImages) {
       setGeneratedPlan(null);
       setFormData({ topic: '', level: 'beginner', ageGroup: 'kids' });
+      setAdditionalNotes('');
+      setImageCount(0);
       onOpenChange(false);
     }
   };
@@ -295,7 +337,7 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
             <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500">
@@ -304,7 +346,7 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
             AI Lesson Wizard
           </DialogTitle>
           <DialogDescription>
-            Generate a hub-adaptive PPP lesson with interactive slides.
+            Generate a hub-adaptive PPP lesson with AI-generated images and interactive slides.
           </DialogDescription>
         </DialogHeader>
 
@@ -328,79 +370,82 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Student Level</Label>
-                <Select
-                  value={formData.level}
-                  onValueChange={(value: 'beginner' | 'intermediate' | 'advanced') =>
-                    setFormData({ ...formData, level: value })
-                  }
-                >
-                  <SelectTrigger className="h-12">
-                    <SelectValue placeholder="Select level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="beginner">
-                      <div className="flex items-center gap-2">
-                        <span className="text-green-500">●</span> Beginner (A1-A2)
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="intermediate">
-                      <div className="flex items-center gap-2">
-                        <span className="text-yellow-500">●</span> Intermediate (B1-B2)
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="advanced">
-                      <div className="flex items-center gap-2">
-                        <span className="text-red-500">●</span> Advanced (C1-C2)
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Student Level</Label>
+                  <Select
+                    value={formData.level}
+                    onValueChange={(value: 'beginner' | 'intermediate' | 'advanced') =>
+                      setFormData({ ...formData, level: value })
+                    }
+                  >
+                    <SelectTrigger className="h-12">
+                      <SelectValue placeholder="Select level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="beginner">
+                        <div className="flex items-center gap-2">
+                          <span className="text-green-500">●</span> Beginner (A1-A2)
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="intermediate">
+                        <div className="flex items-center gap-2">
+                          <span className="text-yellow-500">●</span> Intermediate (B1-B2)
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="advanced">
+                        <div className="flex items-center gap-2">
+                          <span className="text-red-500">●</span> Advanced (C1-C2)
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Target Hub</Label>
+                  <Select
+                    value={formData.ageGroup}
+                    onValueChange={(value: 'kids' | 'teens' | 'adults') =>
+                      setFormData({ ...formData, ageGroup: value })
+                    }
+                  >
+                    <SelectTrigger className="h-12">
+                      <SelectValue placeholder="Select hub" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="kids">🛝 Playground — Kids</SelectItem>
+                      <SelectItem value="teens">🏫 Academy — Teens</SelectItem>
+                      <SelectItem value="adults">🏢 Professional — Adults</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Target Hub</Label>
-                <Select
-                  value={formData.ageGroup}
-                  onValueChange={(value: 'kids' | 'teens' | 'adults') =>
-                    setFormData({ ...formData, ageGroup: value })
-                  }
-                >
-                  <SelectTrigger className="h-12">
-                    <SelectValue placeholder="Select hub" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="kids">
-                      <div className="flex items-center gap-2">
-                        🛝 Playground — Kids (6-11)
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="teens">
-                      <div className="flex items-center gap-2">
-                        🏫 Academy — Teens (12-17)
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="adults">
-                      <div className="flex items-center gap-2">
-                        🏢 Professional — Adults (18+)
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label className="text-sm font-medium">Additional Notes (optional)</Label>
+                <Textarea
+                  placeholder="e.g., Focus on food vocabulary, include roleplay at restaurant..."
+                  value={additionalNotes}
+                  onChange={(e) => setAdditionalNotes(e.target.value)}
+                  className="min-h-[60px] text-sm resize-none"
+                />
               </div>
 
               {/* Hub Preview Card */}
-              <div className="rounded-lg border p-3 text-sm" style={{ borderColor: currentHub.colorPalette.primary + '44' }}>
-                <div className="flex items-center gap-2 font-medium mb-1">
+              <div className="rounded-xl border p-4 text-sm" style={{ 
+                borderColor: currentHub.colorPalette.primary + '44',
+                background: currentHub.colorPalette.highlight + '33',
+              }}>
+                <div className="flex items-center gap-2 font-semibold mb-2">
                   {currentHub.emoji} {currentHub.label}
                 </div>
-                <p className="text-muted-foreground text-xs mb-2">{currentHub.tone}</p>
+                <p className="text-muted-foreground text-xs mb-3">{currentHub.tone}</p>
                 <div className="flex gap-2 flex-wrap">
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-muted">📷 {currentHub.mediaType}</span>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-muted">✨ {currentHub.defaultAnimation}</span>
+                  <span className="text-xs px-2.5 py-1 rounded-full bg-background/80 border">📷 {currentHub.mediaType}</span>
+                  <span className="text-xs px-2.5 py-1 rounded-full bg-background/80 border">✨ {currentHub.defaultAnimation}</span>
                   {currentHub.permittedActivities.slice(0, 2).map(a => (
-                    <span key={a} className="text-xs px-2 py-0.5 rounded-full bg-muted">🎯 {a.replace(/_/g, ' ')}</span>
+                    <span key={a} className="text-xs px-2.5 py-1 rounded-full bg-background/80 border">🎯 {a.replace(/_/g, ' ')}</span>
                   ))}
                 </div>
               </div>
@@ -475,7 +520,45 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
             </motion.div>
           )}
 
-          {generatedPlan && !isGenerating && (
+          {/* Image Generation Progress */}
+          {isGeneratingImages && (
+            <motion.div
+              key="images"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="py-8"
+            >
+              <div className="flex flex-col items-center mb-6">
+                <motion.div
+                  animate={{ scale: [1, 1.1, 1] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                  className="p-4 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 mb-4"
+                >
+                  <Image className="h-8 w-8 text-white" />
+                </motion.div>
+                <h3 className="text-lg font-semibold">Generating AI Images</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {imageProgress.completed} / {imageProgress.total} images
+                </p>
+              </div>
+
+              {/* Progress bar */}
+              <div className="w-full bg-muted rounded-full h-3 overflow-hidden mb-4">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${imageProgress.total > 0 ? (imageProgress.completed / imageProgress.total) * 100 : 0}%` }}
+                  transition={{ type: 'spring', stiffness: 30 }}
+                />
+              </div>
+
+              <p className="text-xs text-muted-foreground text-center truncate px-4">
+                {imageProgress.current}
+              </p>
+            </motion.div>
+          )}
+
+          {generatedPlan && !isGenerating && !isGeneratingImages && (
             <motion.div
               key="success"
               initial={{ opacity: 0, scale: 0.95 }}
@@ -501,6 +584,24 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
                 </p>
               </div>
 
+              {/* Slide preview strip */}
+              <div className="flex gap-2 overflow-x-auto pb-3 mb-4 scrollbar-thin">
+                {generatedPlan.slides.slice(0, 8).map((slide, i) => (
+                  <div key={slide.id} className="shrink-0 w-20 rounded-lg overflow-hidden border bg-muted/30">
+                    {slide.imageUrl && !slide.imageUrl.includes('picsum') ? (
+                      <img src={slide.imageUrl} alt="" className="w-full h-12 object-cover" />
+                    ) : (
+                      <div className="w-full h-12 flex items-center justify-center text-lg bg-muted/50">
+                        {slide.slideType === 'hook' ? '🎬' : slide.slideType === 'vocabulary' ? '📝' : slide.slideType === 'activity' ? '🎮' : '📋'}
+                      </div>
+                    )}
+                    <div className="px-1.5 py-1 text-[9px] text-muted-foreground truncate">
+                      {slide.phaseLabel}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
               <div className="bg-muted/50 rounded-lg p-4 mb-4">
                 <h4 className="text-sm font-medium mb-3">Lesson Structure:</h4>
                 <div className="space-y-2 text-sm">
@@ -515,6 +616,39 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
                     );
                   })}
                 </div>
+              </div>
+
+              {/* AI Images Section */}
+              <div className="rounded-lg border border-dashed p-4 mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Image className="h-4 w-4 text-blue-500" />
+                    <span className="text-sm font-medium">AI-Generated Images</span>
+                  </div>
+                  {imageCount > 0 && (
+                    <span className="text-xs text-green-600 font-medium">{imageCount} generated ✓</span>
+                  )}
+                </div>
+                {imageCount === 0 ? (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Generate relevant, topic-specific illustrations using Gemini AI instead of generic stock photos.
+                    </p>
+                    <Button
+                      onClick={handleGenerateImages}
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                    >
+                      <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+                      Generate AI Images
+                    </Button>
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    ✨ {imageCount} contextual illustrations added to your slides.
+                  </p>
+                )}
               </div>
 
               <div className="bg-muted/30 rounded-lg p-3 mb-6 text-xs space-y-1">

@@ -206,10 +206,10 @@ export default function LessonPlayerContainer({
 
   /* ──────────── Fixed-Height App-Shell ──────────── */
   return (
-    <div className={`flex flex-col h-full min-h-screen ${skin.shell}`}>
+    <div className={`flex flex-col h-full min-h-[100dvh] ${skin.shell}`} style={{ position: 'relative' }}>
 
       {/* ── Fixed Top Bar ── */}
-      <div className={`sticky top-0 z-30 px-4 py-2.5 ${skin.header}`}>
+      <div className={`fixed top-0 left-0 right-0 z-30 px-4 py-2.5 ${skin.header}`}>
         <div className="w-full max-w-[500px] mx-auto flex items-center gap-3">
           <button
             onClick={onExit}
@@ -259,7 +259,7 @@ export default function LessonPlayerContainer({
       </div>
 
       {/* ── Centered Content Area ── */}
-      <div className="flex-1 flex items-center justify-center px-4 py-4 overflow-auto">
+      <div className="flex-1 flex items-center justify-center px-4 py-4 overflow-auto" style={{ paddingTop: 60, paddingBottom: 80 }}>
         <div className={`w-full max-w-[500px] rounded-[20px] overflow-hidden ${skin.card}`}>
           <AnimatePresence mode="wait">
             <DynamicSlideRenderer
@@ -282,9 +282,9 @@ export default function LessonPlayerContainer({
         onContinue={handleNextSlide}
       />
 
-      {/* ── Sticky Footer with Smart CHECK Button ── */}
+      {/* ── Fixed Bottom Footer with Smart CHECK/CONTINUE Button ── */}
       {!feedbackVisible && (
-        <div className={`sticky bottom-0 z-20 px-4 py-3 ${skin.footer}`}>
+        <div className={`fixed bottom-0 left-0 right-0 z-20 px-4 py-3 ${skin.footer}`}>
           <div className="w-full max-w-[500px] mx-auto">
             {isActivitySlide ? (
               <button

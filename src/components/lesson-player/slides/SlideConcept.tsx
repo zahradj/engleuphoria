@@ -11,6 +11,7 @@ interface Props {
 export default function SlideConcept({ slide, hub }: Props) {
   const config = HUB_CONFIGS[hub];
   const prompt = slide.content?.prompt || slide.teacherNotes || '';
+  const hasImage = slide.imageUrl && slide.imageUrl.length > 5;
 
   return (
     <div className="flex flex-col items-center gap-6 p-10 w-full max-w-3xl mx-auto">
@@ -23,12 +24,12 @@ export default function SlideConcept({ slide, hub }: Props) {
         {slide.title}
       </motion.h2>
 
-      {slide.imageUrl && (
+      {hasImage && (
         <img src={slide.imageUrl} alt={slide.title} className="w-full max-w-lg rounded-xl object-cover" style={{ maxHeight: 260 }} />
       )}
 
       <motion.div
-        className="w-full p-6 rounded-xl text-lg leading-relaxed"
+        className="w-full p-6 rounded-xl text-lg leading-relaxed whitespace-pre-line"
         style={{
           background: config.colorPalette.highlight,
           color: config.colorPalette.text,

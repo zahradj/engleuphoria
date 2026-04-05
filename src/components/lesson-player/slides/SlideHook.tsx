@@ -11,10 +11,11 @@ interface Props {
 export default function SlideHook({ slide, hub }: Props) {
   const config = HUB_CONFIGS[hub];
   const content = slide.content?.prompt || slide.title;
+  const hasImage = slide.imageUrl && slide.imageUrl.length > 5;
 
   return (
     <div className="flex flex-col items-center justify-center gap-6 p-10 w-full max-w-3xl mx-auto text-center">
-      {slide.imageUrl && (
+      {hasImage && (
         <motion.img
           src={slide.imageUrl}
           alt={slide.title}
@@ -36,7 +37,7 @@ export default function SlideHook({ slide, hub }: Props) {
       </motion.h1>
 
       <motion.p
-        className="text-xl leading-relaxed max-w-xl"
+        className="text-xl leading-relaxed max-w-xl whitespace-pre-line"
         style={{ color: config.colorPalette.text }}
         initial={{ y: 10, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}

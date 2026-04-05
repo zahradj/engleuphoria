@@ -15,6 +15,7 @@ export default function SlideVocabulary({ slide, hub }: Props) {
   const word = slide.content?.word || slide.title;
   const definition = slide.content?.definition || '';
   const sentence = slide.content?.sentence || '';
+  const hasImage = slide.imageUrl && slide.imageUrl.length > 5;
 
   return (
     <div className="flex flex-col items-center gap-6 p-8 w-full text-center">
@@ -25,12 +26,12 @@ export default function SlideVocabulary({ slide, hub }: Props) {
       {/* 3D Flip Flashcard */}
       <div
         className="w-full cursor-pointer"
-        style={{ perspective: 1000, minHeight: 220 }}
+        style={{ perspective: 1000, minHeight: 260 }}
         onClick={() => setFlipped((f) => !f)}
       >
         <motion.div
           className="relative w-full"
-          style={{ transformStyle: 'preserve-3d', minHeight: 220 }}
+          style={{ transformStyle: 'preserve-3d', minHeight: 260 }}
           animate={{ rotateY: flipped ? 180 : 0 }}
           transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
         >
@@ -60,9 +61,9 @@ export default function SlideVocabulary({ slide, hub }: Props) {
             <span className="text-xs opacity-40 mt-1">Tap to flip</span>
           </div>
 
-          {/* Back */}
+          {/* Back — shows AI image if available */}
           <div
-            className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-[20px] p-6"
+            className="absolute inset-0 flex flex-col items-center justify-center gap-3 rounded-[20px] p-6 overflow-hidden"
             style={{
               backfaceVisibility: 'hidden',
               transform: 'rotateY(180deg)',
@@ -76,8 +77,15 @@ export default function SlideVocabulary({ slide, hub }: Props) {
               color: hub === 'playground' ? '#1a1a2e' : hub === 'academy' ? '#e2e8f0' : '#1e293b',
             }}
           >
+            {hasImage && (
+              <img
+                src={slide.imageUrl}
+                alt={word}
+                className="w-full max-h-28 object-cover rounded-xl mb-2"
+              />
+            )}
             {sentence && <span className="text-lg italic opacity-80">"{sentence}"</span>}
-            {hub === 'playground' && <span className="text-5xl mt-2">🐧</span>}
+            {hub === 'playground' && !hasImage && <span className="text-5xl mt-2">🐧</span>}
             <span className="text-xs opacity-40 mt-1">Tap to flip back</span>
           </div>
         </motion.div>
