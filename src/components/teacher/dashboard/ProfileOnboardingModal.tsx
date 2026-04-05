@@ -327,6 +327,14 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
                   <div key={index} className="flex items-center gap-1 bg-muted px-2 py-1 rounded text-sm">
                     <FileCheck className="w-3 h-3 text-green-500" />
                     Certificate {index + 1}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveCertificate(index)}
+                      className="ml-1 p-0.5 rounded-full hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-colors"
+                      aria-label={`Remove certificate ${index + 1}`}
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
                   </div>
                 ))}
               </div>
