@@ -56,7 +56,57 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
   const [imageProgress, setImageProgress] = useState({ completed: 0, total: 0, current: '' });
   const [imageCount, setImageCount] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
+  const [activeListening, setActiveListening] = useState<'topic' | 'notes' | null>(null);
+  const recognitionRef = useRef<any>(null);
   const { toast } = useToast();
+
+  const startListening = useCallback((target: 'topic' | 'notes') => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast({ title: 'Not supported', description: 'Speech recognition is not available in this browser.', variant: 'destructive' });
+      return;
+    }
+
+    // Stop any existing recognition
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.continuous = false;
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      if (target === 'topic') {
+        setFormData(prev => ({ ...prev, topic: prev.topic ? `${prev.topic} ${transcript}` : transcript }));
+      } else {
+        setAdditionalNotes(prev => prev ? `${prev} ${transcript}` : transcript);
+      }
+    };
+
+    recognition.onend = () => {
+      setActiveListening(null);
+      recognitionRef.current = null;
+    };
+
+    recognition.onerror = () => {
+      setActiveListening(null);
+      recognitionRef.current = null;
+    };
+
+    recognitionRef.current = recognition;
+    setActiveListening(target);
+    recognition.start();
+  }, [toast]);
+
+  const stopListening = useCallback(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    setActiveListening(null);
+  }, []);
 
   const handleGenerate = async () => {
     if (!formData.topic.trim()) return;
