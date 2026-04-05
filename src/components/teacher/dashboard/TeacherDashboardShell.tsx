@@ -13,7 +13,7 @@ import { Loader2 } from 'lucide-react';
 import { FloatingHelpButton } from '@/components/support/FloatingHelpButton';
 import { ThemeModeToggle } from '@/components/ui/ThemeModeToggle';
 
-type TabType = 'dashboard' | 'schedule' | 'methodology' | 'account' | 'teacher-hub' | 'help';
+type TabType = 'dashboard' | 'schedule' | 'analytics' | 'methodology' | 'account' | 'teacher-hub' | 'help';
 
 interface TeacherDashboardShellProps {
   teacherName: string;
