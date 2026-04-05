@@ -1,77 +1,70 @@
 
 
-## Issues Identified
+# EnglEuphoria Email & Auth Fixes — Implementation Plan
 
-### 1. Lesson gets stuck after activity slides (no way to advance)
-**Root cause**: In `LessonPlayerContainer.tsx`, the `PopBubble` activity calls `onCorrect()` on **every single bubble pop** (line 56), which triggers the feedback overlay each time. The feedback overlay blocks the UI and requires clicking "Continue" for each bubble. But worse — the `handleCorrectAnswer` sets `answerSelected = true` and shows the feedback overlay, but this happens per-bubble. The user expects to pop all bubbles, then move on. The core problem: **activities that involve multiple interactions (pop bubbles, drag-drop) call onCorrect/onIncorrect per item**, which triggers the feedback overlay prematurely. After the first pop, the feedback covers the remaining bubbles.
+## Current State Summary
 
-Additionally, the `score` state inside `PlaygroundPopBubble` is a local state that doesn't communicate back to the parent's XP counter. The parent only gets `onCorrect()` calls which each add 10 XP and trigger a feedback overlay.
+Your project **already has** a solid foundation:
+- **Branded auth email templates** exist (signup, recovery, magic-link, invite, email-change, reauthentication) with EnglEuphoria logo, purple/indigo styling, and the queue-based `auth-email-hook`
+- **Email domain** is configured on `notify.engleuphoria.com` with Lovable's built-in email infrastructure
+- **Auth redirect logic** has timeouts and fallback mechanisms already in place
 
-### 2. Score shows 0 even after correct matches
-The score displayed inside `PlaygroundPopBubble` at line 26 (`const [score, setScore] = useState(0)`) is local. The `handlePop` callback has `onCorrect` in its dependency array (line 60), which causes the callback to be recreated when the parent's `handleCorrectAnswer` changes state. Since `handleCorrectAnswer` triggers `setAnswerSelected(true)` and shows the feedback overlay, the pop bubbles get covered and the local score may not visually update.
-
-### 3. No vocabulary pronunciation audio
-The `SlideVocabulary.tsx` Volume2 button (line 77) has an empty `onClick` — it only calls `e.stopPropagation()` with no TTS call.
-
-### 4. No song/music audio playback on warm-up song slides
-The warm-up song slide renders as a `SlideHook` (since `slideType: 'warmup'`) which just shows text — no audio player.
+This means we don't need to switch to Resend or Postmark — your emails already go through Lovable's managed email infrastructure with proper SPF/DKIM via the `notify.engleuphoria.com` subdomain. The plan focuses on **upgrading what exists** and **fixing real issues**.
 
 ---
 
-## Plan
+## Part 1: Upgrade Email Templates to Match Your "Master" Design
 
-### Step 1: Fix activity slide completion flow
-**Files**: `PlaygroundPopBubble.tsx`, `PlaygroundDragDrop.tsx`, `LessonPlayerContainer.tsx`
+The current templates use EnglEuphoria branding but can be elevated to match the premium design you shared (dark footer, hub references, stronger CTAs).
 
-- **Change the contract**: Activities with multiple items should NOT call `onCorrect/onIncorrect` per individual item. Instead, they should manage their own internal scoring and call a single `onCorrect()` only when the activity is **complete** (all bubbles popped or all items placed).
-- **PlaygroundPopBubble**: Remove the per-bubble `onCorrect()` call. Track internal score. When all target bubbles are popped, call `onCorrect()` once. If the user pops a wrong bubble, show local feedback (shake/flash) without calling `onIncorrect()` to the parent.
-- **PlaygroundDragDrop**: Same pattern — call `onCorrect()` only when `allPlaced === true`. Remove per-item `onCorrect()` call.
-- **LessonPlayerContainer**: No changes needed to the container itself; the fix is in the activity components.
+**Changes to all 6 templates** in `supabase/functions/_shared/email-templates/`:
 
-### Step 2: Add TTS pronunciation to vocabulary flashcards
-**File**: `SlideVocabulary.tsx`
+- Add a dark footer (`#111827` background) with "© 2026 Engleuphoria. The Future of Learning."
+- Update button styling to use the indigo-600 (`#4f46e5`) accent with bolder `14px 28px` padding
+- Use Inter font family consistently across all templates
+- Add hub-aware welcome copy to the signup template (Playground / Academy / Professional references)
+- Ensure recovery template has a clear "Reset My Password" branded button
+- Redeploy `auth-email-hook` after template changes
 
-- Import `useTextToSpeech` hook (already exists, uses ElevenLabs via `elevenlabs-tts` edge function).
-- Add a voice selector toggle (boy/girl) using two different ElevenLabs voice IDs:
-  - Girl voice: Use a young-sounding voice ID (e.g., Lily `pFZP5JQG7iQjIQuC4Bku`)
-  - Boy voice: Use a young-sounding voice ID (e.g., Charlie `IKne3meq5aSn9XLyUdCD`)
-- Wire the Volume2 button `onClick` to call `speakWord(word)` with the selected voice.
-- Add a small boy/girl toggle beside the speaker icon.
-- Show loading spinner while TTS generates.
+## Part 2: Fix the "Verifying Access" Infinite Loop
 
-### Step 3: Add audio playback for warm-up song slides
-**Files**: `SlideHook.tsx` or new `SlideSong.tsx`, `DynamicSlideRenderer.tsx`
+The issue is in `ImprovedProtectedRoute.tsx` — when a user's role isn't loaded from the database fast enough, they see "Verifying your access... Please wait a moment" indefinitely (up to 8 seconds, then forced to login).
 
-- Detect when `slide.slideType === 'warmup'` and `slide.keywords?.includes('song')` — render a dedicated song slide UI.
-- Add a prominent "Play Song" button that uses the `elevenlabs-tts` edge function to read the song lyrics aloud with an expressive, kid-friendly voice.
-- Display the song lyrics in a large, formatted text block with a musical theme.
-- The user chose "Play button only" — no auto-play.
+**Root cause:** The `fetchUserRoleFromDatabase` call in `AuthContext` can fail silently or return slowly if the `user_roles` table doesn't have a row for the user yet (race condition between signup trigger and first page load).
 
-### Step 4: Add song audio to the song/chant slide in the presentation phase
-**File**: `DynamicSlideRenderer.tsx`, `SlideHook.tsx`
+**Fixes:**
 
-- For slides with `slideType === 'core_concept'` and `keywords?.includes('song')`, also show the play button.
-- Reuse the same TTS pattern from Step 3.
+1. **AuthContext.tsx** — Add a defensive timeout that forces `loading = false` with a fallback role if the DB fetch hangs beyond 6 seconds (the current 10s timeout exists but doesn't always resolve the role)
+
+2. **ImprovedProtectedRoute.tsx** — When role timeout fires (8s), instead of redirecting to `/login`, fall back to the user's metadata role or default to `student` and let them proceed. Only redirect to login if there's genuinely no session.
+
+3. **Dashboard.tsx** — The 5-second timeout already defaults to `/playground`, which is correct. Ensure it also sets the user role in state so downstream guards don't re-block.
+
+4. **ProfileCompleteGuard.tsx** — Add a safety timeout (8s) so it never hangs forever on "Checking profile status..."
+
+## Part 3: Add Booking Confirmation & Victory Notification Emails
+
+Create two new **transactional email templates** for app-triggered emails:
+
+1. **Booking Confirmation** — Sent when a student books a lesson with a teacher. Includes teacher name, lesson time, and a "Join Lesson" button. Uses the same branded wrapper.
+
+2. **Victory Notification** — Sent when a student earns a reward/accessory in the classroom. Celebratory tone with the achievement details.
+
+These will use Lovable's transactional email infrastructure (`send-transactional-email` Edge Function) with proper templates, suppression handling, and unsubscribe support.
+
+**Requires:** Scaffolding transactional email infrastructure if not already present, creating template files, registering them, and wiring up the trigger points in the booking and reward flows.
+
+## Part 4: Deliverability — SPF/DKIM Verification
+
+Your domain `notify.engleuphoria.com` is already delegated to Lovable's nameservers, which manage SPF and DKIM records automatically. We'll verify the domain status is `active` and confirm DNS records are properly propagated. If anything is pending, we'll surface the exact steps needed.
 
 ---
 
-## Technical Details
+## Implementation Order
 
-### Voice IDs for kid pronunciation
-- Girl: Lily (`pFZP5JQG7iQjIQuC4Bku`) — clear, young-sounding
-- Boy: Charlie (`IKne3meq5aSn9XLyUdCD`) — clear, young-sounding
-- Both use `elevenlabs-tts` edge function already deployed with `ELEVENLABS_API_KEY_1`
-
-### Activity completion pattern
-```text
-BEFORE: Pop bubble → onCorrect() → feedback overlay → blocked
-AFTER:  Pop bubble → internal score++ → all done? → onCorrect() once → feedback → continue
-```
-
-### Files Modified
-1. `src/components/lesson-player/activities/PlaygroundPopBubble.tsx` — Single completion callback
-2. `src/components/lesson-player/activities/PlaygroundDragDrop.tsx` — Single completion callback
-3. `src/components/lesson-player/slides/SlideVocabulary.tsx` — Add TTS with voice toggle
-4. `src/components/lesson-player/slides/SlideHook.tsx` — Add song play button for song slides
-5. `src/components/lesson-player/DynamicSlideRenderer.tsx` — Route song slides to enhanced component
+1. Fix auth redirect loop (highest impact — users are getting stuck)
+2. Upgrade the 6 auth email templates with premium branding
+3. Deploy updated `auth-email-hook`
+4. Set up transactional email infrastructure + booking & victory templates
+5. Verify email domain status and deliverability
 
