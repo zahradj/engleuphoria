@@ -94,6 +94,53 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  // Auto-heal: ensure users + user_roles rows exist for authenticated user
+  const autoHealUserRows = async (authUser: any) => {
+    try {
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('id', authUser.id)
+        .maybeSingle();
+
+      if (!existingUser) {
+        const fullName = authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'User';
+        const role = authUser.user_metadata?.role || 'student';
+        
+        const { error: upsertErr } = await supabase.from('users').upsert({
+          id: authUser.id,
+          email: authUser.email,
+          full_name: fullName,
+          role: role
+        }, { onConflict: 'id' });
+        if (upsertErr) console.error('Auto-heal users upsert failed:', upsertErr);
+
+        try {
+          await supabase.rpc('ensure_user_role', { p_user_id: authUser.id, p_role: role });
+        } catch (e) { console.error('Auto-heal user_roles RPC failed:', e); }
+        
+        console.log('🔧 Auto-healed missing user rows for:', authUser.email);
+        return;
+      }
+
+      // User exists — check user_roles
+      const { data: existingRoles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', authUser.id);
+
+      if (!existingRoles || existingRoles.length === 0) {
+        const role = authUser.user_metadata?.role || 'student';
+        try {
+          await supabase.rpc('ensure_user_role', { p_user_id: authUser.id, p_role: role });
+          console.warn('🔧 Auto-healed missing user_roles for:', authUser.email);
+        } catch (e) { console.error('Auto-heal user_roles RPC failed:', e); }
+      }
+    } catch (err) {
+      console.error('Auto-heal error (non-fatal):', err);
+    }
+  };
+
   // Function to create fallback user from auth metadata
   const createFallbackUser = async (authUser: any): Promise<User> => {
     const role = (await fetchUserRoleFromDatabase(authUser.id)) ?? 'student';
