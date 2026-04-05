@@ -3,7 +3,14 @@ import { motion } from 'framer-motion';
 import { GeneratedSlide, HubType } from '@/components/admin/lesson-builder/ai-wizard/types';
 import { HUB_CONFIGS } from '@/components/admin/lesson-builder/ai-wizard/hubConfig';
 import PipMascot from '../PipMascot';
-import { Volume2 } from 'lucide-react';
+import { Volume2, Loader2 } from 'lucide-react';
+import { useTextToSpeech } from '@/hooks/useTextToSpeech';
+
+// Kid-friendly voice IDs from ElevenLabs
+const VOICE_IDS = {
+  girl: 'pFZP5JQG7iQjIQuC4Bku', // Lily
+  boy: 'IKne3meq5aSn9XLyUdCD',  // Charlie
+};
 
 interface Props {
   slide: GeneratedSlide;
@@ -13,16 +20,40 @@ interface Props {
 export default function SlideVocabulary({ slide, hub }: Props) {
   const config = HUB_CONFIGS[hub];
   const [flipped, setFlipped] = useState(false);
+  const [voiceType, setVoiceType] = useState<'girl' | 'boy'>('girl');
+  const { speak, isLoading, isPlaying } = useTextToSpeech();
+
   const word = slide.content?.word || slide.title;
   const definition = slide.content?.definition || '';
   const sentence = slide.content?.sentence || '';
   const hasImage = slide.imageUrl && slide.imageUrl.length > 10;
+
+  const handleSpeak = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    speak(word, { voiceId: VOICE_IDS[voiceType], speed: 0.9 });
+  };
 
   return (
     <div className="flex flex-col items-center gap-5 p-6 w-full text-center">
       <h2 className="text-sm font-bold uppercase tracking-widest opacity-60" style={{ color: config.colorPalette.primary }}>
         New Vocabulary
       </h2>
+
+      {/* Voice Toggle */}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => setVoiceType('girl')}
+          className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${voiceType === 'girl' ? 'bg-pink-400 text-white shadow-md scale-105' : 'bg-pink-100 text-pink-500'}`}
+        >
+          👧 Girl
+        </button>
+        <button
+          onClick={() => setVoiceType('boy')}
+          className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${voiceType === 'boy' ? 'bg-blue-400 text-white shadow-md scale-105' : 'bg-blue-100 text-blue-500'}`}
+        >
+          👦 Boy
+        </button>
+      </div>
 
       {/* Vertical Rectangle Flashcard */}
       <div
@@ -41,19 +72,12 @@ export default function SlideVocabulary({ slide, hub }: Props) {
             className="absolute inset-0 flex flex-col items-center justify-between rounded-2xl p-5 overflow-hidden"
             style={{
               backfaceVisibility: 'hidden',
-              background: hub === 'playground'
-                ? '#fffcf0'
-                : hub === 'academy'
-                  ? '#1e1b4b'
-                  : '#ffffff',
-              border: hub === 'academy'
-                ? '1.5px solid #6366f1'
-                : '1.5px solid rgba(0,0,0,0.08)',
+              background: hub === 'playground' ? '#fffcf0' : hub === 'academy' ? '#1e1b4b' : '#ffffff',
+              border: hub === 'academy' ? '1.5px solid #6366f1' : '1.5px solid rgba(0,0,0,0.08)',
               boxShadow: '0 8px 32px rgba(0,0,0,0.10)',
               color: hub === 'playground' ? '#1a1a2e' : hub === 'academy' ? '#e2e8f0' : '#1e293b',
             }}
           >
-            {/* Image area — prominent */}
             <div className="w-full flex-1 min-h-0 flex items-center justify-center rounded-xl overflow-hidden bg-black/5" style={{ maxHeight: 240 }}>
               {hasImage ? (
                 <motion.img
@@ -69,15 +93,19 @@ export default function SlideVocabulary({ slide, hub }: Props) {
               )}
             </div>
 
-            {/* Word */}
             <div className="mt-3 flex flex-col items-center gap-1">
               <span className="text-3xl font-bold leading-tight">{word}</span>
               <div className="flex items-center gap-2 mt-1">
                 <button
-                  onClick={(e) => { e.stopPropagation(); }}
-                  className="w-8 h-8 rounded-full flex items-center justify-center bg-black/10 hover:bg-black/20 transition-colors"
+                  onClick={handleSpeak}
+                  disabled={isLoading || isPlaying}
+                  className="w-8 h-8 rounded-full flex items-center justify-center bg-black/10 hover:bg-black/20 transition-colors disabled:opacity-50"
                 >
-                  <Volume2 size={16} />
+                  {isLoading ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <Volume2 size={16} className={isPlaying ? 'text-green-500' : ''} />
+                  )}
                 </button>
                 <span className="text-[11px] opacity-40">Tap to flip</span>
               </div>
@@ -92,14 +120,8 @@ export default function SlideVocabulary({ slide, hub }: Props) {
             style={{
               backfaceVisibility: 'hidden',
               transform: 'rotateY(180deg)',
-              background: hub === 'playground'
-                ? '#fff8e1'
-                : hub === 'academy'
-                  ? '#312e81'
-                  : '#f8fafc',
-              border: hub === 'academy'
-                ? '1.5px solid #818cf8'
-                : '1.5px solid rgba(0,0,0,0.08)',
+              background: hub === 'playground' ? '#fff8e1' : hub === 'academy' ? '#312e81' : '#f8fafc',
+              border: hub === 'academy' ? '1.5px solid #818cf8' : '1.5px solid rgba(0,0,0,0.08)',
               boxShadow: '0 8px 32px rgba(0,0,0,0.10)',
               color: hub === 'playground' ? '#1a1a2e' : hub === 'academy' ? '#e2e8f0' : '#1e293b',
             }}
@@ -119,12 +141,7 @@ export default function SlideVocabulary({ slide, hub }: Props) {
             )}
 
             {hasImage && (
-              <img
-                src={slide.imageUrl}
-                alt={word}
-                className="w-24 h-24 object-cover rounded-xl opacity-80"
-                loading="lazy"
-              />
+              <img src={slide.imageUrl} alt={word} className="w-24 h-24 object-cover rounded-xl opacity-80" loading="lazy" />
             )}
 
             {hub === 'playground' && !hasImage && <PipMascot size={40} animation="celebrate" />}
@@ -133,7 +150,6 @@ export default function SlideVocabulary({ slide, hub }: Props) {
         </motion.div>
       </div>
 
-      {/* Keywords */}
       {slide.keywords?.length > 0 && (
         <div className="flex gap-2 flex-wrap justify-center">
           {slide.keywords.map((kw) => (

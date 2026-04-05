@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, PanInfo } from 'framer-motion';
 import { GeneratedSlide } from '@/components/admin/lesson-builder/ai-wizard/types';
 import { soundEffectsService } from '@/services/soundEffectsService';
@@ -25,8 +25,8 @@ export default function PlaygroundDragDrop({ slide, onCorrect, onIncorrect }: Pr
 
   const [placed, setPlaced] = useState<Record<string, string>>({});
   const [celebrating, setCelebrating] = useState<string | null>(null);
+  const completedRef = useRef(false);
 
-  // Build unique targets with their matching image/emoji
   const targets = [...new Set(items.map((i) => i.target))];
   const targetImages = targets.reduce<Record<string, string>>((acc, t) => {
     const item = items.find(i => i.target === t);
@@ -35,6 +35,8 @@ export default function PlaygroundDragDrop({ slide, onCorrect, onIncorrect }: Pr
   }, {});
 
   const handleDragEnd = (item: DragItem, info: PanInfo) => {
+    if (completedRef.current) return;
+
     const targetEls = document.querySelectorAll('[data-droptarget]');
     targetEls.forEach((t) => {
       const rect = t.getBoundingClientRect();
@@ -43,14 +45,19 @@ export default function PlaygroundDragDrop({ slide, onCorrect, onIncorrect }: Pr
       if (cx >= rect.left && cx <= rect.right && cy >= rect.top && cy <= rect.bottom) {
         const targetId = t.getAttribute('data-droptarget');
         if (targetId === item.target) {
-          setPlaced((p) => ({ ...p, [item.text]: targetId! }));
+          const newPlaced = { ...placed, [item.text]: targetId! };
+          setPlaced(newPlaced);
           setCelebrating(item.text);
           soundEffectsService.playCorrect();
-          onCorrect();
           setTimeout(() => setCelebrating(null), 1200);
+
+          // Check if all items are now placed
+          if (Object.keys(newPlaced).length === items.length) {
+            completedRef.current = true;
+            setTimeout(() => onCorrect(), 800);
+          }
         } else {
           soundEffectsService.playIncorrect();
-          onIncorrect?.();
         }
       }
     });
@@ -69,7 +76,6 @@ export default function PlaygroundDragDrop({ slide, onCorrect, onIncorrect }: Pr
         </p>
       )}
 
-      {/* Drop Targets with images */}
       <div className="flex gap-4 flex-wrap justify-center">
         {targets.map((t) => {
           const isPlaced = Object.values(placed).includes(t);
@@ -104,7 +110,6 @@ export default function PlaygroundDragDrop({ slide, onCorrect, onIncorrect }: Pr
         })}
       </div>
 
-      {/* Draggable Word Items */}
       <div className="flex gap-3 flex-wrap justify-center mt-2">
         {items
           .filter((i) => !placed[i.text])
