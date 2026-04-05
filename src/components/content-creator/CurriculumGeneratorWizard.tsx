@@ -284,6 +284,7 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
           difficulty_level: lessonDifficultyLevel,
           sequence_order: lesson.lessonNumber,
           duration_minutes: 30,
+          created_by: user?.id || null,
           content: {
             objectives: lesson.objectives,
             grammarFocus: lesson.grammarFocus,
