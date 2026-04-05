@@ -487,12 +487,23 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
 
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Additional Notes (optional)</Label>
-                <Textarea
-                  placeholder="e.g., Focus on food vocabulary, include roleplay at restaurant..."
-                  value={additionalNotes}
-                  onChange={(e) => setAdditionalNotes(e.target.value)}
-                  className="min-h-[60px] text-sm resize-none"
-                />
+                <div className="relative">
+                  <Textarea
+                    placeholder="e.g., Focus on food vocabulary, include roleplay at restaurant..."
+                    value={additionalNotes}
+                    onChange={(e) => setAdditionalNotes(e.target.value)}
+                    className="min-h-[60px] text-sm resize-none pr-12"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className={`absolute right-1 top-1 h-8 w-8 rounded-lg transition-colors ${activeListening === 'notes' ? 'bg-red-500/10 text-red-500 animate-pulse' : 'text-muted-foreground hover:text-primary'}`}
+                    onClick={() => activeListening === 'notes' ? stopListening() : startListening('notes')}
+                  >
+                    {activeListening === 'notes' ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
+                  </Button>
+                </div>
               </div>
 
               {/* Hub Preview Card */}
