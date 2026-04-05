@@ -6,6 +6,7 @@ import { resolveHub, HUB_CONFIGS } from '@/components/admin/lesson-builder/ai-wi
 import { saveToLibrary } from '@/services/lessonLibraryService';
 import { WizardFormData, GeneratedSlide, HubType } from '@/components/admin/lesson-builder/ai-wizard/types';
 import { generateSlideSkeletons, LessonSkeletonPlan, SlideSkeleton } from '@/services/slideSkeletonEngine';
+import { massGenerateImages, SlideImageProgress, MassGenerationResult } from '@/services/massImageGenerationService';
 import { CurriculumContext } from './CurriculumStep';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +15,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   BookOpen, ChevronRight, Loader2, Sparkles, CheckCircle2,
   AlertCircle, Play, ArrowLeft, ArrowRight, Zap, FileSliders,
-  ImageIcon, Clock, Wand2, Layers, Trophy, Eye,
+  ImageIcon, Clock, Wand2, Layers, Trophy, Eye, Rocket,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Progress } from '@/components/ui/progress';
