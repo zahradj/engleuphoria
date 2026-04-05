@@ -1,44 +1,53 @@
 
 
-## Plan: Auto-Load Lessons in Slide Builder + Maximize Canvas
+## Plan: Convert AI-Generated Lessons to Canvas Slides on Load
 
 ### Problem
-1. When the user selects a curriculum in Step 1 and moves to Step 2 (Slide Builder), the slides don't appear — the builder opens empty. The curriculum context from Step 1 is never passed to the editor.
-2. The canvas is still too small because the filmstrip (140px) + element toolbar (120px) = 260px eaten from the left, plus the header and stepper take vertical space.
+The "Hello, Pip!" lesson exists in the database with rich content, but its `content` field is an **object** (with keys like `slides`, `presentation`, `practice`, `production`, `cefrLevel`) — not an array of canvas slides. The `handleSelectLesson` function checks `Array.isArray(lesson.content)`, which fails, so it creates a blank slide.
 
-### Changes
+### Solution
+Update `handleSelectLesson` in `AdminLessonEditor.tsx` to detect the AI-generated lesson format (object with a `slides` array inside) and convert each text-based slide into a canvas slide with auto-positioned elements.
 
-**1. Pass curriculum context to the Slide Builder and auto-load the first lesson**
+### Conversion Logic
 
-- **`ContentCreatorDashboard.tsx`** — Pass `curriculumContext` to `AdminLessonEditor` as a prop
-- **`AdminLessonEditor.tsx`** — Accept optional `curriculumContext` prop. On mount (or when context changes), auto-query `curriculum_lessons` filtered by the selected level/system and load the first lesson's slides into the editor. Also auto-open the Curriculum Browser sheet pre-filtered to the selected system so the user can pick a different lesson.
+When `lesson.content` is an object with `lesson.content.slides` array, transform each slide into the canvas format:
 
-**2. Collapse the element toolbar into the filmstrip**
+1. **Title slides** → Create a large text element for the title, centered on the 1920x1080 canvas
+2. **Vocabulary slides** → Create text elements for the word, IPA, definition, and example sentence, plus a placeholder image area. Pull vocabulary data from `lesson.content.presentation.vocabulary` matching the slide title
+3. **Grammar slides** → Create text elements with the grammar rule from `lesson.content.presentation.grammar_rule`
+4. **Practice/drill slides** → Create quiz-type canvas elements from `lesson.content.practice.exercises`
+5. **Game slides** → Create an activity element with the game description from `lesson.content.practice.game_mechanic`
+6. **Production slides** → Create text elements with the creative task
+7. **All slides** → Include `teacherNotes` from the slide data
 
-Instead of a separate 120px column for element tools, merge them into the filmstrip panel:
-- **`AdminLessonEditor.tsx`** — Remove the separate `ElementToolbar` column. Add element buttons as a compact row or expandable section at the bottom of the filmstrip.
-- **`SlideFilmstrip.tsx`** — Add an "Add Element" expandable section at the bottom with icon buttons in a single row. Reduce filmstrip width to 120px.
-- This saves 120px for the canvas.
+Each generated canvas slide gets:
+- A title text element (top, large font)
+- Content elements positioned in a clean layout
+- The Pip character element on introductory/game slides
+- Teacher notes preserved in the slide's `teacherNotes` field
 
-**3. Hide the stepper when in Slide Builder (Step 2)**
-
-- **`ContentCreatorDashboard.tsx`** — When `currentStep === 2`, hide the `ContentCreatorStepper` component entirely. The slide builder already has its own top bar with Back/Publish navigation. This saves ~48px of vertical space.
-
-**4. Make the filmstrip collapsible**
-
-- **`AdminLessonEditor.tsx`** — Add a toggle button to collapse/expand the filmstrip panel. When collapsed, only show a thin strip (~32px) with a small expand arrow and the slide number. This gives the canvas nearly full width.
-
-### Technical Details
+### File Changes
 
 | File | Change |
 |---|---|
-| `ContentCreatorDashboard.tsx` | Pass `curriculumContext` to `AdminLessonEditor`, hide stepper on step 2 |
-| `AdminLessonEditor.tsx` | Accept `curriculumContext` prop, auto-load first lesson on mount, merge toolbar into filmstrip, add filmstrip collapse toggle |
-| `SlideFilmstrip.tsx` | Add element toolbar buttons at bottom, reduce width to 120px |
+| `AdminLessonEditor.tsx` | Update `handleSelectLesson` to detect object-format content and call a converter function. Add `convertAILessonToCanvasSlides()` helper that maps the AI content structure to `Slide[]` with `canvasElements`. |
 
-### Result
-- Selecting a curriculum in Step 1 and clicking "Next" will immediately show the lesson's slides on the canvas
-- The canvas gets ~170px more horizontal space and ~48px more vertical space
-- Element tools are still accessible from the filmstrip panel
-- The filmstrip can be collapsed for even more canvas space
+### Detail
+
+The converter function will:
+```
+convertAILessonToCanvasSlides(content: object) → Slide[]
+```
+
+- Iterate over `content.slides[]`
+- For each slide, create a `Slide` with `canvasElements: CanvasElementData[]`
+- Position elements using a simple template per slide type:
+  - Title: centered text at y=100, full width
+  - Body content: text at y=300, left-aligned with padding
+  - Vocabulary word: large text center, definition below, example below that
+  - Quiz: quiz element with options from `content.practice.exercises`
+- Set `lessonTitle` from the lesson title
+- Set `level` from `content.cefrLevel` or `lesson.difficulty_level`
+
+This means when you select "Hello, Pip!" from the curriculum browser, all 40 slides will load into the canvas with editable text, vocabulary cards, grammar rules, and quiz activities — ready to refine visually.
 
