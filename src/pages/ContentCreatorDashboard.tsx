@@ -3,7 +3,7 @@ import { ContentCreatorStepper, PipelineStep } from '@/components/content-creato
 import { usePipelineProgress } from '@/hooks/usePipelineProgress';
 import { CurriculumStep, CurriculumContext } from '@/components/content-creator/CurriculumStep';
 import { AdminLessonEditor } from '@/components/admin/lesson-builder';
-import { CurriculumLibrary } from '@/components/admin/CurriculumLibrary';
+import LessonLibraryHub from '@/components/lesson-player/LessonLibraryHub';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogOut, ArrowRight, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
