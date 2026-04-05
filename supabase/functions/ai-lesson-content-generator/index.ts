@@ -35,6 +35,7 @@ CRITICAL RULES:
 - Grammar target must support the communicative goal of the lesson.
 - Dialogues must simulate real scenarios described in the prompt.
 - Activities must practice the specific skills mentioned in the prompt.
+- For kids hub: ALWAYS generate a fun, catchy warm-up song/chant (4-8 lines) related to the topic. The song should be simple, rhythmic, and easy to sing along.
 
 Hub context: ${hubContext[hub] || hubContext.playground}
 CEFR Level: ${level}
@@ -47,13 +48,14 @@ You MUST return valid JSON with this EXACT structure (no markdown, no code block
       "definition": "string (clear, age-appropriate definition)",
       "exampleSentence": "string (contextual sentence using the word)",
       "fillBlank": "string (same sentence with the word replaced by ____)",
-      "imageKeywords": "string (descriptive keywords for generating an illustration of this word)",
+      "imageKeywords": "string (5-8 descriptive keywords for AI image generation of this word, be specific and visual, e.g. 'red apple fruit on wooden table bright colorful cartoon')",
       "emoji": "string (single relevant emoji)"
     }
   ],
   "grammarTarget": "string (specific grammar structure, e.g. 'Present Simple: I like / Do you like...?')",
   "grammarExamples": ["string (3-4 example sentences using the grammar in context)"],
   "warmUpQuestion": "string (engaging opening question related to the topic)",
+  "warmUpSong": "string (a fun, catchy 4-8 line song or chant for kids about the lesson topic. Include clapping/action cues in brackets like [clap clap]. For teens/adults use empty string.)",
   "objectives": ["string (4 specific, measurable learning objectives)"],
   "dialogueLines": ["string (6-8 lines of realistic dialogue practicing the lesson content)"],
   "gameDescription": "string (description of an interactive game/activity)",
@@ -80,6 +82,7 @@ Generate exactly ${vocabularyCount || 4} vocabulary items.`;
           { role: "user", content: userPrompt },
         ],
         temperature: 0.7,
+        max_tokens: 8192,
       }),
     });
 
