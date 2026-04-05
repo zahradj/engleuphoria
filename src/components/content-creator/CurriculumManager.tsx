@@ -437,7 +437,7 @@ export const CurriculumManager: React.FC<CurriculumManagerProps> = ({
   );
 };
 
-// ─── Skeleton Panel Component ──────────────────────────────────
+// ─── Skeleton Panel: 4x3 Visual Grid with Glassmorphic Shimmer ──
 interface SkeletonPanelProps {
   plan: LessonSkeletonPlan;
   onClear: () => void;
@@ -445,16 +445,14 @@ interface SkeletonPanelProps {
 }
 
 const SkeletonPanel: React.FC<SkeletonPanelProps> = ({ plan, onClear, hub }) => {
-  const [expandedSlide, setExpandedSlide] = useState<number | null>(null);
+  const [selectedSlide, setSelectedSlide] = useState<number | null>(null);
   const [imageProgress, setImageProgress] = useState<SlideImageProgress[]>([]);
   const [isGeneratingImages, setIsGeneratingImages] = useState(false);
   const [generationResult, setGenerationResult] = useState<MassGenerationResult | null>(null);
-  const hubConfig = HUB_CONFIGS[hub as HubType];
 
   const handleMassGenerate = async () => {
     setIsGeneratingImages(true);
     setGenerationResult(null);
-
     try {
       const result = await massGenerateImages(plan, (progress) => {
         setImageProgress([...progress]);
@@ -462,29 +460,30 @@ const SkeletonPanel: React.FC<SkeletonPanelProps> = ({ plan, onClear, hub }) => 
       setGenerationResult(result);
       const seconds = Math.round(result.durationMs / 1000);
       if (result.successCount > 0) {
-        toast.success(`Generated ${result.successCount}/${result.totalSlides} images in ${seconds}s`, { icon: '🎨' });
+        toast.success(`${result.successCount}/${result.totalSlides} cinematic assets rendered in ${seconds}s`, { icon: '🎨' });
       }
       if (result.failedCount > 0) {
-        toast.error(`${result.failedCount} images failed — retry individually`);
+        toast.error(`${result.failedCount} images failed — click to retry`);
       }
-    } catch (err) {
+    } catch {
       toast.error('Mass generation failed');
     } finally {
       setIsGeneratingImages(false);
     }
   };
 
-  const getSlideImageStatus = (slideNumber: number): SlideImageProgress | undefined => {
-    return imageProgress.find((p) => p.slideNumber === slideNumber);
-  };
+  const getSlideStatus = (num: number): SlideImageProgress | undefined =>
+    imageProgress.find((p) => p.slideNumber === num);
 
   const completedCount = imageProgress.filter((p) => p.status === 'done').length;
   const allDone = generationResult && generationResult.successCount === plan.totalSlides;
+  const selectedSkeleton = selectedSlide ? plan.skeletons.find(s => s.slideNumber === selectedSlide) : null;
+  const selectedImgStatus = selectedSlide ? getSlideStatus(selectedSlide) : undefined;
 
   return (
-    <Card className="h-full overflow-hidden">
+    <Card className="h-full overflow-hidden flex flex-col">
       {/* Header */}
-      <CardHeader className="pb-3 border-b border-border">
+      <CardHeader className="pb-3 border-b border-border shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
@@ -508,180 +507,196 @@ const SkeletonPanel: React.FC<SkeletonPanelProps> = ({ plan, onClear, hub }) => 
           </div>
           <div className="flex items-center gap-2 shrink-0 ml-3">
             {allDone ? (
-              <Button size="sm" className="gap-1.5 text-xs h-8 bg-emerald-600 hover:bg-emerald-700">
-                <CheckCircle2 className="h-3 w-3" /> Save to Library
+              <Button size="sm" className="gap-1.5 text-xs h-9 bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20">
+                <CheckCircle2 className="h-3.5 w-3.5" /> Save to Library
               </Button>
             ) : (
               <Button
                 size="sm"
-                className="gap-1.5 text-xs h-8"
+                className={cn(
+                  'gap-1.5 text-xs h-9 shadow-lg transition-all',
+                  !isGeneratingImages && 'animate-pulse hover:animate-none'
+                )}
                 onClick={handleMassGenerate}
                 disabled={isGeneratingImages}
               >
                 {isGeneratingImages ? (
-                  <><Loader2 className="h-3 w-3 animate-spin" /> {completedCount}/{plan.totalSlides}…</>
+                  <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Rendering {completedCount}/{plan.totalSlides}…</>
                 ) : (
-                  <><Rocket className="h-3 w-3" /> Generate All Midjourney Assets</>
+                  <><Rocket className="h-3.5 w-3.5" /> Generate 12-Slide Lesson</>
                 )}
               </Button>
             )}
-            <Button size="sm" variant="ghost" onClick={onClear} className="text-xs h-8">
-              ✕
-            </Button>
+            <Button size="sm" variant="ghost" onClick={onClear} className="text-xs h-8">✕</Button>
           </div>
         </div>
 
-        {/* Mass generation progress bar */}
         {isGeneratingImages && (
           <div className="mt-3">
-            <Progress value={(completedCount / plan.totalSlides) * 100} className="h-1.5" />
-            <p className="text-[10px] text-muted-foreground mt-1">
-              Generating cinematic assets… {completedCount}/{plan.totalSlides} complete
+            <Progress value={(completedCount / plan.totalSlides) * 100} className="h-2" />
+            <p className="text-[10px] text-muted-foreground mt-1.5 flex items-center gap-1.5">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+              Rendering Midjourney assets… {completedCount}/{plan.totalSlides} complete
             </p>
           </div>
         )}
       </CardHeader>
 
-      {/* Skeleton Grid */}
-      <ScrollArea className="h-[430px]">
-        <div className="p-3 space-y-1.5">
-          {plan.skeletons.map((skeleton, i) => {
-            const phaseStyle = PHASE_STYLES[skeleton.phase] || PHASE_STYLES.hook;
-            const isExpanded = expandedSlide === skeleton.slideNumber;
-            const imgStatus = getSlideImageStatus(skeleton.slideNumber);
+      {/* 4x3 Grid + Detail Panel */}
+      <div className="flex-1 flex min-h-0">
+        {/* Grid */}
+        <div className="flex-1 p-3 overflow-y-auto">
+          <div className="grid grid-cols-4 gap-2">
+            {plan.skeletons.map((skeleton, i) => {
+              const phaseStyle = PHASE_STYLES[skeleton.phase] || PHASE_STYLES.hook;
+              const imgStatus = getSlideStatus(skeleton.slideNumber);
+              const isSelected = selectedSlide === skeleton.slideNumber;
+              const isDone = imgStatus?.status === 'done';
+              const isRendering = imgStatus?.status === 'generating';
+              const isError = imgStatus?.status === 'error';
 
-            return (
-              <motion.div
-                key={skeleton.slideNumber}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.02 }}
-              >
-                <button
-                  onClick={() => setExpandedSlide(isExpanded ? null : skeleton.slideNumber)}
+              return (
+                <motion.button
+                  key={skeleton.slideNumber}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: i * 0.03 }}
+                  onClick={() => setSelectedSlide(isSelected ? null : skeleton.slideNumber)}
                   className={cn(
-                    'w-full text-left rounded-xl border transition-all duration-150',
-                    isExpanded
-                      ? `${phaseStyle.bg} ${phaseStyle.border} shadow-sm`
-                      : 'border-border hover:bg-muted/40'
+                    'relative rounded-xl border overflow-hidden transition-all duration-200 text-left group aspect-video',
+                    isSelected
+                      ? 'ring-2 ring-primary border-primary shadow-lg scale-[1.02]'
+                      : 'border-border hover:border-primary/40 hover:shadow-md'
                   )}
                 >
-                  <div className="flex items-center gap-3 px-3 py-2.5">
-                    {/* Slide number + status ring */}
-                    <div className="relative">
+                  {/* Background */}
+                  {isDone && imgStatus?.imageUrl ? (
+                    <img src={imgStatus.imageUrl} alt={`Slide ${skeleton.slideNumber}`} className="absolute inset-0 w-full h-full object-cover" />
+                  ) : isRendering ? (
+                    <div className="absolute inset-0 bg-gradient-to-br from-muted/80 via-muted/40 to-muted/80">
+                      <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                      <div className="absolute inset-0 backdrop-blur-sm" />
+                    </div>
+                  ) : (
+                    <div className={cn('absolute inset-0', phaseStyle.bg)} />
+                  )}
+
+                  {/* Overlay */}
+                  <div className={cn(
+                    'relative h-full flex flex-col justify-between p-1.5',
+                    isDone && 'bg-gradient-to-t from-black/60 via-transparent to-transparent'
+                  )}>
+                    <div className="flex items-start justify-between">
                       <div className={cn(
-                        'w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold shrink-0',
-                        imgStatus?.status === 'done'
-                          ? 'bg-emerald-500/15 text-emerald-600'
-                          : imgStatus?.status === 'generating'
-                          ? 'bg-amber-500/15 text-amber-600'
-                          : imgStatus?.status === 'error'
-                          ? 'bg-destructive/15 text-destructive'
-                          : `${phaseStyle.bg} ${phaseStyle.text}`
+                        'w-5 h-5 rounded-md flex items-center justify-center text-[8px] font-bold',
+                        isDone ? 'bg-emerald-500 text-white' :
+                        isRendering ? 'bg-amber-500/80 text-white' :
+                        isError ? 'bg-destructive text-white' :
+                        'bg-background/80 backdrop-blur-sm text-foreground'
                       )}>
-                        {imgStatus?.status === 'generating' ? (
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                        ) : imgStatus?.status === 'done' ? (
-                          <CheckCircle2 className="h-3.5 w-3.5" />
-                        ) : imgStatus?.status === 'error' ? (
-                          <AlertCircle className="h-3.5 w-3.5" />
-                        ) : (
-                          skeleton.slideNumber
-                        )}
+                        {isRendering ? <Loader2 className="h-2.5 w-2.5 animate-spin" /> :
+                         isDone ? <CheckCircle2 className="h-2.5 w-2.5" /> :
+                         isError ? <AlertCircle className="h-2.5 w-2.5" /> :
+                         skeleton.slideNumber}
                       </div>
+                      {skeleton.accessoryReveal && (
+                        <span className="text-[8px] bg-amber-500/90 text-white px-1 py-0.5 rounded font-bold">🏆</span>
+                      )}
                     </div>
 
-                    {/* Info */}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-foreground truncate">{skeleton.objective}</p>
-                      <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className={cn('text-[9px] font-semibold uppercase tracking-wider', phaseStyle.text)}>
+                    <div>
+                      {isRendering && (
+                        <p className="text-[7px] text-foreground/60 mb-0.5 animate-pulse">Rendering…</p>
+                      )}
+                      <p className={cn('text-[8px] font-semibold leading-tight truncate', isDone ? 'text-white' : 'text-foreground')}>
+                        {skeleton.objective}
+                      </p>
+                      <div className="flex items-center gap-1 mt-0.5">
+                        <span className={cn('text-[7px] font-bold uppercase tracking-wider', isDone ? 'text-white/70' : phaseStyle.text)}>
                           {skeleton.phaseLabel}
                         </span>
-                        {skeleton.activityType && (
-                          <Badge variant="outline" className="text-[8px] h-3.5 px-1">
-                            {skeleton.activityType.replace(/_/g, ' ')}
-                          </Badge>
-                        )}
-                        {skeleton.accessoryReveal && (
-                          <Badge className="text-[8px] h-3.5 px-1 bg-amber-500/15 text-amber-600 border-amber-500/20">
-                            🏆 Reward
-                          </Badge>
+                        {skeleton.mascotPosition !== 'hidden' && (
+                          <span className={cn('text-[7px]', isDone ? 'text-white/50' : 'text-muted-foreground')}>
+                            🐧{skeleton.mascotPosition === 'left' ? 'L' : 'R'}
+                          </span>
                         )}
                       </div>
-                    </div>
-
-                    {/* Positioning + timing */}
-                    <div className="flex items-center gap-1 shrink-0">
-                      {skeleton.mascotPosition !== 'hidden' && (
-                        <span className="text-[9px] text-muted-foreground">
-                          🐧 {skeleton.mascotPosition === 'left' ? 'L' : 'R'}
-                        </span>
-                      )}
-                      <span className="text-[9px] text-muted-foreground">
-                        {Math.round(skeleton.durationSeconds / 60)}m
-                      </span>
-                      <ChevronRight className={cn(
-                        'h-3 w-3 text-muted-foreground transition-transform',
-                        isExpanded && 'rotate-90'
-                      )} />
                     </div>
                   </div>
-                </button>
 
-                {/* Expanded: Image Prompt + Generated Preview */}
-                <AnimatePresence>
-                  {isExpanded && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.15 }}
-                      className="overflow-hidden"
-                    >
-                      <div className={cn('mx-2 mb-1 p-3 rounded-b-xl border-x border-b', phaseStyle.border)}>
-                        <div className="space-y-2">
-                          {/* Generated image preview */}
-                          {imgStatus?.status === 'done' && imgStatus.imageUrl && (
-                            <div className="rounded-lg overflow-hidden border border-border">
-                              <img
-                                src={imgStatus.imageUrl}
-                                alt={`Slide ${skeleton.slideNumber}`}
-                                className="w-full h-32 object-cover"
-                              />
-                            </div>
-                          )}
-
-                          <div>
-                            <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider">
-                              Cinematic Prompt
-                            </span>
-                            <p className="text-[11px] text-foreground mt-1 leading-relaxed bg-muted/50 p-2 rounded-lg font-mono">
-                              {skeleton.imagePrompt}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
-                            <span>📐 Content: <strong>{skeleton.contentPosition}</strong></span>
-                            <span>🎯 Safe Zone: <strong>{skeleton.safeZoneInstruction.slice(0, 50)}…</strong></span>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="outline" className="text-[10px] h-6 px-2 gap-1">
-                              <Eye className="h-2.5 w-2.5" /> Preview Prompt
-                            </Button>
-                            <Button size="sm" variant="outline" className="text-[10px] h-6 px-2 gap-1">
-                              <ImageIcon className="h-2.5 w-2.5" /> Generate Image
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
+                  {isDone && (
+                    <div className="absolute top-1 right-1">
+                      <span className="text-[7px] bg-emerald-500 text-white px-1.5 py-0.5 rounded-full font-bold shadow-sm">
+                        ✅ Ready
+                      </span>
+                    </div>
                   )}
-                </AnimatePresence>
-              </motion.div>
-            );
-          })}
+                </motion.button>
+              );
+            })}
+          </div>
         </div>
-      </ScrollArea>
+
+        {/* Detail panel */}
+        <AnimatePresence>
+          {selectedSkeleton && (
+            <motion.div
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: 260, opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="border-l border-border bg-muted/30 overflow-hidden shrink-0"
+            >
+              <ScrollArea className="h-full">
+                <div className="p-3 space-y-3">
+                  {selectedImgStatus?.status === 'done' && selectedImgStatus.imageUrl && (
+                    <div className="rounded-lg overflow-hidden border border-border shadow-sm">
+                      <img src={selectedImgStatus.imageUrl} alt={`Slide ${selectedSkeleton.slideNumber}`} className="w-full aspect-video object-cover" />
+                    </div>
+                  )}
+
+                  <div>
+                    <h4 className="text-xs font-bold text-foreground mb-1">
+                      Slide {selectedSkeleton.slideNumber}: {selectedSkeleton.objective}
+                    </h4>
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      <Badge variant="outline" className="text-[8px] h-4">{selectedSkeleton.phaseLabel}</Badge>
+                      {selectedSkeleton.activityType && (
+                        <Badge variant="outline" className="text-[8px] h-4">{selectedSkeleton.activityType.replace(/_/g, ' ')}</Badge>
+                      )}
+                      <Badge variant="outline" className="text-[8px] h-4">{Math.round(selectedSkeleton.durationSeconds / 60)}m</Badge>
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-wider">Cinematic Prompt</span>
+                    <p className="text-[10px] text-foreground mt-1 leading-relaxed bg-background p-2 rounded-lg font-mono border border-border">
+                      {selectedSkeleton.imagePrompt}
+                    </p>
+                  </div>
+
+                  <div className="space-y-1.5 text-[10px] text-muted-foreground">
+                    <div className="flex items-center gap-1.5">📐 Content: <strong className="text-foreground">{selectedSkeleton.contentPosition}</strong></div>
+                    <div className="flex items-center gap-1.5">🎯 Safe Zone: <strong className="text-foreground">{selectedSkeleton.safeZoneInstruction.slice(0, 60)}…</strong></div>
+                    {selectedSkeleton.mascotPosition !== 'hidden' && (
+                      <div className="flex items-center gap-1.5">🐧 Pip: <strong className="text-foreground">{selectedSkeleton.mascotPosition} side</strong></div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <Button size="sm" variant="outline" className="text-[10px] h-7 gap-1 w-full justify-start">
+                      <ImageIcon className="h-3 w-3" /> Regenerate Image
+                    </Button>
+                    <Button size="sm" variant="outline" className="text-[10px] h-7 gap-1 w-full justify-start">
+                      <Eye className="h-3 w-3" /> Edit Prompt
+                    </Button>
+                  </div>
+                </div>
+              </ScrollArea>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </Card>
   );
 };
