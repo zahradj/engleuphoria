@@ -288,16 +288,11 @@ export default function LessonPlayerContainer({
 
             {/* Next Button */}
             <button
-              onClick={isActivitySlide && !answerSelected ? undefined : handleNextSlide}
-              disabled={isActivitySlide && !answerSelected}
-              className={`flex items-center gap-1.5 px-5 py-3 rounded-2xl font-bold text-sm tracking-wide uppercase transition-all ${
-                isActivitySlide && !answerSelected
-                  ? `${skin.checkDisabled} opacity-40 cursor-not-allowed`
-                  : `${skin.checkActive} text-white`
-              }`}
+              onClick={handleNextSlide}
+              className={`flex items-center gap-1.5 px-5 py-3 rounded-2xl font-bold text-sm tracking-wide uppercase transition-all ${skin.checkActive} text-white`}
               style={{
-                boxShadow: isActivitySlide && !answerSelected ? 'none' : skin.checkShadow,
-                color: isActivitySlide && !answerSelected ? config.colorPalette.text : '#fff',
+                boxShadow: skin.checkShadow,
+                color: '#fff',
               }}
             >
               {currentSlideIndex === totalSlides - 1 ? 'Finish' : 'Next'}
