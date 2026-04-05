@@ -1096,6 +1096,53 @@ export type Database = {
           },
         ]
       }
+      broadcasts: {
+        Row: {
+          admin_id: string
+          created_at: string
+          delivery_method: string[]
+          id: string
+          message: string
+          metadata: Json | null
+          recipients_count: number
+          status: string
+          target_audience: string
+          title: string
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string
+          delivery_method?: string[]
+          id?: string
+          message: string
+          metadata?: Json | null
+          recipients_count?: number
+          status?: string
+          target_audience: string
+          title: string
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string
+          delivery_method?: string[]
+          id?: string
+          message?: string
+          metadata?: Json | null
+          recipients_count?: number
+          status?: string
+          target_audience?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "broadcasts_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       certificate_templates: {
         Row: {
           created_at: string

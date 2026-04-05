@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Logo } from '@/components/Logo';
 import { ThemeModeToggle } from '@/components/ui/ThemeModeToggle';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
+import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 
 interface ScrollHeaderProps {
@@ -15,6 +17,7 @@ export const ScrollHeader: React.FC<ScrollHeaderProps> = ({
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -49,7 +52,10 @@ export const ScrollHeader: React.FC<ScrollHeaderProps> = ({
             onClick={() => navigate('/')}
             className="cursor-pointer"
           />
-          <ThemeModeToggle className="text-muted-foreground hover:text-foreground hover:bg-muted" />
+          <div className="flex items-center gap-2">
+            {user && <NotificationBell />}
+            <ThemeModeToggle className="text-muted-foreground hover:text-foreground hover:bg-muted" />
+          </div>
         </div>
       </div>
     </div>

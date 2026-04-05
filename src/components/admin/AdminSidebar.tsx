@@ -17,7 +17,8 @@ import {
   Wand2,
   Library,
   PieChart,
-  Package
+  Package,
+  Radio
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -44,6 +45,7 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
     { id: "students", label: "Students", icon: Users },
     { id: "analytics", label: "Analytics", icon: TrendingUp },
     { id: "payments", label: "Payments", icon: CreditCard },
+    { id: "communications", label: "Communications", icon: Radio },
     { id: "settings", label: "Settings", icon: Settings },
   ];
 
