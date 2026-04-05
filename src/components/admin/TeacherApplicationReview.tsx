@@ -516,7 +516,7 @@ The EnglEuphoria Hiring Team`,
               </div>
 
               <DialogFooter className="gap-2 sm:gap-0 mt-6">
-                {selectedApplication.current_stage === 'application_submitted' && (
+                {(selectedApplication.current_stage === 'application_submitted' || selectedApplication.current_stage === 'application_received') && (
                   <>
                     <Button 
                       variant="destructive" 
@@ -530,7 +530,30 @@ The EnglEuphoria Hiring Team`,
                       className="bg-green-600 hover:bg-green-700"
                     >
                       <CalendarCheck className="h-4 w-4 mr-2" />
-                      Approve for Interview
+                      Send Interview Invite
+                    </Button>
+                  </>
+                )}
+                {(selectedApplication.current_stage === 'interview_pending' || selectedApplication.current_stage === 'interview_scheduled' || selectedApplication.current_stage === 'interview_completed') && (
+                  <>
+                    <Button 
+                      variant="destructive" 
+                      onClick={() => { setShowRejectDialog(true); }}
+                    >
+                      <XCircle className="h-4 w-4 mr-2" />
+                      Reject
+                    </Button>
+                    <Button 
+                      onClick={() => handleFinalApprove(selectedApplication)}
+                      disabled={actionLoading}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {actionLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : (
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                      )}
+                      Approve as Teacher
                     </Button>
                   </>
                 )}
