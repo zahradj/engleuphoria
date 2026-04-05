@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Progress } from '@/components/ui/progress';
+import { CurriculumExplorerTree, HubKey } from './CurriculumExplorerTree';
 
 interface CurriculumUnit {
   id: string;
@@ -266,51 +267,20 @@ export const CurriculumManager: React.FC<CurriculumManagerProps> = ({
 
       {/* Main Layout: Sidebar + Content */}
       <div className="grid grid-cols-12 gap-4" style={{ minHeight: 480 }}>
-        {/* Sidebar: Units */}
+        {/* Sidebar: Curriculum Explorer Tree */}
         <div className="col-span-4 lg:col-span-3">
-          <Card className="h-full">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Units</CardTitle>
-            </CardHeader>
-            <ScrollArea className="h-[420px]">
-              <div className="px-3 pb-3 space-y-1">
-                {units.map((unit) => {
-                  const unitLessonCount = lessons.filter(l => l.unit_id === unit.id).length;
-                  const unitReadyCount = lessons.filter(l => l.unit_id === unit.id && getLessonStatus(l) === 'ready').length;
-                  const isSelected = selectedUnitId === unit.id;
-                  const allReady = unitReadyCount === unitLessonCount && unitLessonCount > 0;
-
-                  return (
-                    <button
-                      key={unit.id}
-                      onClick={() => setSelectedUnitId(unit.id)}
-                      className={`w-full text-left p-3 rounded-xl transition-all group ${
-                        isSelected
-                          ? 'bg-primary/10 border border-primary/30 shadow-sm'
-                          : 'hover:bg-muted/60 border border-transparent'
-                      }`}
-                    >
-                      <div className="flex items-start gap-2">
-                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 ${
-                          allReady ? 'bg-emerald-500 text-white' : 'bg-muted text-muted-foreground'
-                        }`}>
-                          {allReady ? <CheckCircle2 className="h-3.5 w-3.5" /> : unit.unit_number}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className={`text-sm font-medium truncate ${isSelected ? 'text-primary' : 'text-foreground'}`}>
-                            {unit.title}
-                          </p>
-                          <p className="text-[11px] text-muted-foreground mt-0.5">
-                            {unitReadyCount}/{unitLessonCount} ready
-                          </p>
-                        </div>
-                        <ChevronRight className={`h-4 w-4 shrink-0 mt-1 transition-transform ${isSelected ? 'text-primary rotate-90' : 'text-muted-foreground'}`} />
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </ScrollArea>
+          <Card className="h-full overflow-hidden">
+            <CurriculumExplorerTree
+              onLessonSelect={(lesson) => {
+                // Find the unit for this lesson and select it
+                const unit = units.find(u => lessons.some(l => l.unit_id === u.id && l.id === lesson.id));
+                if (unit) setSelectedUnitId(unit.id);
+              }}
+              selectedLessonId={null}
+              onHubChange={(hub) => {
+                // Optionally update context when hub changes
+              }}
+            />
           </Card>
         </div>
 

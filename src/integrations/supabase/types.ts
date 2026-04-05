@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      accessories: {
+        Row: {
+          created_at: string
+          description: string | null
+          hub_requirement: string
+          id: string
+          image_url: string | null
+          level_id: string
+          name: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          hub_requirement: string
+          id?: string
+          image_url?: string | null
+          level_id: string
+          name: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          hub_requirement?: string
+          id?: string
+          image_url?: string | null
+          level_id?: string
+          name?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accessories_level_id_fkey"
+            columns: ["level_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_levels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       achievement_shares: {
         Row: {
           achievement_id: string
@@ -6190,6 +6234,38 @@ export type Database = {
           xp_earned?: number
         }
         Relationships: []
+      }
+      student_accessories: {
+        Row: {
+          accessory_id: string
+          id: string
+          is_equipped: boolean | null
+          student_id: string
+          unlocked_at: string
+        }
+        Insert: {
+          accessory_id: string
+          id?: string
+          is_equipped?: boolean | null
+          student_id: string
+          unlocked_at?: string
+        }
+        Update: {
+          accessory_id?: string
+          id?: string
+          is_equipped?: boolean | null
+          student_id?: string
+          unlocked_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_accessories_accessory_id_fkey"
+            columns: ["accessory_id"]
+            isOneToOne: false
+            referencedRelation: "accessories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       student_achievement_tiers: {
         Row: {
