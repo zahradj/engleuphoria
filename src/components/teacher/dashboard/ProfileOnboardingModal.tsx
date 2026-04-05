@@ -169,7 +169,7 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
           profile_approved_by_admin: false,
           can_teach: false,
           updated_at: new Date().toISOString()
-        });
+        }, { onConflict: 'user_id' });
 
       if (error) throw error;
 
