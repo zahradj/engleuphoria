@@ -449,18 +449,44 @@ const SkeletonPanel: React.FC<SkeletonPanelProps> = ({ plan, onClear, hub }) => 
   const [imageProgress, setImageProgress] = useState<SlideImageProgress[]>([]);
   const [isGeneratingImages, setIsGeneratingImages] = useState(false);
   const [generationResult, setGenerationResult] = useState<MassGenerationResult | null>(null);
+  const [slideTimers, setSlideTimers] = useState<Record<number, number>>({});
+
+  // Simulate per-slide percentage while generating
+  useEffect(() => {
+    if (!isGeneratingImages) return;
+    const interval = setInterval(() => {
+      setSlideTimers(prev => {
+        const next = { ...prev };
+        imageProgress.forEach(p => {
+          if (p.status === 'generating') {
+            next[p.slideNumber] = Math.min((next[p.slideNumber] || 0) + Math.random() * 15, 92);
+          } else if (p.status === 'done') {
+            next[p.slideNumber] = 100;
+          }
+        });
+        return next;
+      });
+    }, 400);
+    return () => clearInterval(interval);
+  }, [isGeneratingImages, imageProgress]);
 
   const handleMassGenerate = async () => {
     setIsGeneratingImages(true);
     setGenerationResult(null);
+    setSlideTimers({});
     try {
       const result = await massGenerateImages(plan, (progress) => {
         setImageProgress([...progress]);
       });
       setGenerationResult(result);
+      // Mark all done at 100%
+      const finalTimers: Record<number, number> = {};
+      result.images.forEach(p => { finalTimers[p.slideNumber] = p.status === 'done' ? 100 : 0; });
+      setSlideTimers(finalTimers);
+
       const seconds = Math.round(result.durationMs / 1000);
       if (result.successCount > 0) {
-        toast.success(`${result.successCount}/${result.totalSlides} cinematic assets rendered in ${seconds}s`, { icon: '🎨' });
+        toast.success(`🎨 ${result.successCount}/${result.totalSlides} cinematic assets rendered in ${seconds}s`);
       }
       if (result.failedCount > 0) {
         toast.error(`${result.failedCount} images failed — click to retry`);
@@ -523,7 +549,7 @@ const SkeletonPanel: React.FC<SkeletonPanelProps> = ({ plan, onClear, hub }) => 
                 {isGeneratingImages ? (
                   <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Rendering {completedCount}/{plan.totalSlides}…</>
                 ) : (
-                  <><Rocket className="h-3.5 w-3.5" /> Generate 12-Slide Lesson</>
+                  <><Rocket className="h-3.5 w-3.5" /> 🚀 Generate 12-Slide Lesson</>
                 )}
               </Button>
             )}
@@ -554,6 +580,7 @@ const SkeletonPanel: React.FC<SkeletonPanelProps> = ({ plan, onClear, hub }) => 
               const isDone = imgStatus?.status === 'done';
               const isRendering = imgStatus?.status === 'generating';
               const isError = imgStatus?.status === 'error';
+              const pct = Math.round(slideTimers[skeleton.slideNumber] || 0);
 
               return (
                 <motion.button
@@ -571,10 +598,21 @@ const SkeletonPanel: React.FC<SkeletonPanelProps> = ({ plan, onClear, hub }) => 
                 >
                   {/* Background */}
                   {isDone && imgStatus?.imageUrl ? (
-                    <img src={imgStatus.imageUrl} alt={`Slide ${skeleton.slideNumber}`} className="absolute inset-0 w-full h-full object-cover" />
+                    <motion.img
+                      initial={{ opacity: 0, scale: 1.05 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.5 }}
+                      src={imgStatus.imageUrl}
+                      alt={`Slide ${skeleton.slideNumber}`}
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
                   ) : isRendering ? (
                     <div className="absolute inset-0 bg-gradient-to-br from-muted/80 via-muted/40 to-muted/80">
-                      <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                      <motion.div
+                        animate={{ x: ['-100%', '100%'] }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent"
+                      />
                       <div className="absolute inset-0 backdrop-blur-sm" />
                     </div>
                   ) : (
@@ -606,7 +644,18 @@ const SkeletonPanel: React.FC<SkeletonPanelProps> = ({ plan, onClear, hub }) => 
 
                     <div>
                       {isRendering && (
-                        <p className="text-[7px] text-foreground/60 mb-0.5 animate-pulse">Rendering…</p>
+                        <div className="mb-0.5">
+                          <p className="text-[7px] text-foreground/70 font-medium animate-pulse">
+                            Midjourney Rendering… {pct}%
+                          </p>
+                          <div className="w-full h-0.5 bg-white/10 rounded-full overflow-hidden mt-0.5">
+                            <motion.div
+                              className="h-full bg-amber-400 rounded-full"
+                              animate={{ width: `${pct}%` }}
+                              transition={{ duration: 0.3 }}
+                            />
+                          </div>
+                        </div>
                       )}
                       <p className={cn('text-[8px] font-semibold leading-tight truncate', isDone ? 'text-white' : 'text-foreground')}>
                         {skeleton.objective}
@@ -626,9 +675,14 @@ const SkeletonPanel: React.FC<SkeletonPanelProps> = ({ plan, onClear, hub }) => 
 
                   {isDone && (
                     <div className="absolute top-1 right-1">
-                      <span className="text-[7px] bg-emerald-500 text-white px-1.5 py-0.5 rounded-full font-bold shadow-sm">
+                      <motion.span
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: 'spring', damping: 8 }}
+                        className="text-[7px] bg-emerald-500 text-white px-1.5 py-0.5 rounded-full font-bold shadow-sm inline-block"
+                      >
                         ✅ Ready
-                      </span>
+                      </motion.span>
                     </div>
                   )}
                 </motion.button>
