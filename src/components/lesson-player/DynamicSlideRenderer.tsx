@@ -4,10 +4,13 @@ import { HubType, AnimationType, GeneratedSlide } from '@/components/admin/lesso
 import { HUB_CONFIGS } from '@/components/admin/lesson-builder/ai-wizard/hubConfig';
 import PlaygroundDragDrop from './activities/PlaygroundDragDrop';
 import PlaygroundMatchPictures from './activities/PlaygroundMatchPictures';
+import PlaygroundPopBubble from './activities/PlaygroundPopBubble';
 import AcademyQuiz from './activities/AcademyQuiz';
 import AcademyFillBlanks from './activities/AcademyFillBlanks';
+import AcademySentenceUnscramble from './activities/AcademySentenceUnscramble';
 import ProCaseStudy from './activities/ProCaseStudy';
 import ProAdvancedFill from './activities/ProAdvancedFill';
+import ProBusinessEmail from './activities/ProBusinessEmail';
 import SlideHook from './slides/SlideHook';
 import SlideVocabulary from './slides/SlideVocabulary';
 import SlideConcept from './slides/SlideConcept';
@@ -35,6 +38,14 @@ const ANIMATION_VARIANTS: Record<string, Variants> = {
       transition: { rotate: { repeat: Infinity, duration: 3, ease: 'easeInOut' }, opacity: { duration: 0.3 } },
     },
   },
+  float: {
+    initial: { opacity: 0, y: 10 },
+    animate: {
+      opacity: 1,
+      y: [0, -6, 0],
+      transition: { y: { repeat: Infinity, duration: 3, ease: 'easeInOut' }, opacity: { duration: 0.4 } },
+    },
+  },
   smooth_slide: {
     initial: { opacity: 0, x: 60 },
     animate: { opacity: 1, x: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
@@ -42,6 +53,27 @@ const ANIMATION_VARIANTS: Record<string, Variants> = {
   fade_up: {
     initial: { opacity: 0, y: 30 },
     animate: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
+  },
+  glitch: {
+    initial: { opacity: 0, x: -5, skewX: -2 },
+    animate: {
+      opacity: [0, 1, 0.8, 1],
+      x: [-5, 3, -2, 0],
+      skewX: [-2, 1, -1, 0],
+      transition: { duration: 0.4, ease: 'easeOut' },
+    },
+  },
+  slide_fast: {
+    initial: { opacity: 0, x: 100 },
+    animate: { opacity: 1, x: 0, transition: { type: 'spring', stiffness: 300, damping: 25 } },
+  },
+  neon_pulse: {
+    initial: { opacity: 0, scale: 0.95 },
+    animate: {
+      opacity: 1,
+      scale: [1, 1.01, 1],
+      transition: { scale: { repeat: Infinity, duration: 2, ease: 'easeInOut' }, opacity: { duration: 0.3 } },
+    },
   },
   none: {
     initial: { opacity: 1 },
@@ -98,19 +130,28 @@ export default function DynamicSlideRenderer({
 
     switch (hub) {
       case 'playground':
-        if (actType === 'match_pictures') {
+        if (actType === 'pop_the_word_bubble') {
+          return <PlaygroundPopBubble slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+        }
+        if (actType === 'match_pictures' || actType === 'match_sound_to_picture') {
           return <PlaygroundMatchPictures slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
         }
         return <PlaygroundDragDrop slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
 
       case 'academy':
+        if (actType === 'sentence_unscramble') {
+          return <AcademySentenceUnscramble slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+        }
         if (actType === 'fill_in_blanks') {
           return <AcademyFillBlanks slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
         }
         return <AcademyQuiz slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
 
       case 'professional':
-        if (actType === 'advanced_fill_blanks') {
+        if (actType === 'business_email_reply') {
+          return <ProBusinessEmail slide={slide} onCorrect={onCorrectAnswer} onComplete={onComplete} />;
+        }
+        if (actType === 'advanced_fill_blanks' || actType === 'vocabulary_expansion') {
           return <ProAdvancedFill slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
         }
         return <ProCaseStudy slide={slide} onCorrect={onCorrectAnswer} onComplete={onComplete} />;

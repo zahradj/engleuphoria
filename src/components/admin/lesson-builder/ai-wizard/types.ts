@@ -8,8 +8,32 @@ export interface WizardFormData {
 }
 
 export type MediaType = 'illustration' | 'cartoon' | '3d_render' | 'cyber_aesthetic' | 'real_photography';
-export type AnimationType = 'bounce' | 'zoom_in' | 'wiggle' | 'smooth_slide' | 'fade_up' | 'none';
-export type ActivityType = 'drag_and_drop' | 'match_pictures' | 'fill_in_blanks' | 'match_terms' | 'multiple_choice' | 'case_study_input' | 'advanced_fill_blanks';
+export type AnimationType = 'bounce' | 'zoom_in' | 'wiggle' | 'smooth_slide' | 'fade_up' | 'none' | 'float' | 'glitch' | 'slide_fast' | 'neon_pulse';
+export type ActivityType =
+  | 'drag_and_drop' | 'match_pictures' | 'fill_in_blanks' | 'match_terms' | 'multiple_choice'
+  | 'case_study_input' | 'advanced_fill_blanks'
+  | 'drag_and_drop_image' | 'match_sound_to_picture' | 'pop_the_word_bubble'
+  | 'sentence_unscramble' | 'speed_quiz'
+  | 'case_study_analysis' | 'business_email_reply' | 'vocabulary_expansion';
+
+export type SlideLayout = 'split' | 'centered' | 'bento';
+
+export interface SlideVisuals {
+  image_prompt: string;
+  animation_style: AnimationType;
+  layout: SlideLayout;
+}
+
+export interface SlideInteraction {
+  type: string;
+  data: {
+    question?: string;
+    options?: string[];
+    correct_answer?: string;
+    scrambled_words?: string[];
+    email_scenario?: string;
+  };
+}
 
 export interface GeneratedSlide {
   id: string;
@@ -25,6 +49,8 @@ export interface GeneratedSlide {
   mediaType?: MediaType;
   animation?: AnimationType;
   activityType?: ActivityType;
+  visuals?: SlideVisuals;
+  interaction?: SlideInteraction;
   content?: {
     word?: string;
     definition?: string;
