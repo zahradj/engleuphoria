@@ -378,7 +378,7 @@ export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
       `${topic} drag drop game kids claymation`,
       {
         prompt: pack.gameDescription,
-        dragItems: pack.vocabulary.map(v => ({ text: v.word, target: v.definition, emoji: (v as any).emoji || '🔤', imageKeywords: v.imageKeywords })),
+        dragItems: pack.vocabulary.map(v => ({ text: v.word, target: v.definition, emoji: v.emoji || '🔤', imageKeywords: v.imageKeywords })),
       },
       'Interactive drag & drop: students drag words to matching pictures. Help younger students as needed.',
       ['drag-drop', 'activity', 'game'],
@@ -393,7 +393,7 @@ export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
       '🫧 Pop the Bubbles!',
       `${topic} bubbles floating cartoon kids`,
       {
-        matchPairs: pack.vocabulary.map(v => ({ word: v.word, image: (v as any).emoji || '🔤', imageKeywords: v.imageKeywords })),
+        matchPairs: pack.vocabulary.map(v => ({ word: v.word, image: v.emoji || '🔤', imageKeywords: v.imageKeywords })),
       },
       'Pop the correct word bubbles! Tap the right words before they float away. Stars for correct pops!',
       ['pop-bubble', 'game', 'practice'],
