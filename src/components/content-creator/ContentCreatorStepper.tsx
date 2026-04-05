@@ -1,8 +1,8 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { Check, BookOpen, LayoutDashboard, Library, FileSliders } from 'lucide-react';
+import { Check, BookOpen, LayoutDashboard, Library } from 'lucide-react';
 
-export type PipelineStep = 1 | 2 | 3 | 4;
+export type PipelineStep = 1 | 2 | 3;
 
 export interface PipelineProgressData {
   totalLessons: number;
@@ -18,9 +18,8 @@ interface ContentCreatorStepperProps {
 
 const STEPS = [
   { step: 1 as PipelineStep, label: 'Blueprint', icon: BookOpen, description: 'Generate curriculum' },
-  { step: 2 as PipelineStep, label: 'Manager', icon: FileSliders, description: 'Review & produce' },
-  { step: 3 as PipelineStep, label: 'Slide Builder', icon: LayoutDashboard, description: 'Build & design' },
-  { step: 4 as PipelineStep, label: 'Library', icon: Library, description: 'Manage & publish' },
+  { step: 2 as PipelineStep, label: 'Slide Builder', icon: LayoutDashboard, description: 'Build & design' },
+  { step: 3 as PipelineStep, label: 'Library', icon: Library, description: 'Manage & publish' },
 ];
 
 export const ContentCreatorStepper: React.FC<ContentCreatorStepperProps> = ({
@@ -28,25 +27,6 @@ export const ContentCreatorStepper: React.FC<ContentCreatorStepperProps> = ({
   onStepChange,
   progress,
 }) => {
-  const getProgressBadge = (step: PipelineStep) => {
-    if (!progress) return null;
-    if (step === 2) {
-      const done = progress.lessonsWithSlides;
-      const total = progress.generatedLessons || progress.totalLessons;
-      if (total === 0) return null;
-      const isComplete = done >= total;
-      return (
-        <span className={cn(
-          'text-[10px] font-medium px-1.5 py-0.5 rounded-full leading-none',
-          isComplete ? 'bg-green-500/15 text-green-600' : 'bg-muted text-muted-foreground'
-        )}>
-          {done}/{total}
-        </span>
-      );
-    }
-    return null;
-  };
-
   return (
     <div className="w-full px-6 py-4 bg-card border-b border-border">
       <div className="flex items-center justify-between max-w-5xl mx-auto">
@@ -95,10 +75,7 @@ export const ContentCreatorStepper: React.FC<ContentCreatorStepperProps> = ({
                   >
                     {s.label}
                   </span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs text-muted-foreground">{s.description}</span>
-                    {getProgressBadge(s.step)}
-                  </div>
+                  <span className="text-xs text-muted-foreground">{s.description}</span>
                 </div>
               </button>
 

@@ -1,12 +1,13 @@
 import { v4 as uuidv4 } from 'uuid';
 import { WizardFormData, GeneratedSlide, PPPLessonPlan, HubType, SlideVisuals, SlideInteraction, AnimationType } from './types';
 import { HUB_CONFIGS, resolveHub, HubConfig } from './hubConfig';
+import { supabase } from '@/integrations/supabase/client';
 
 /* ──────────────────────────────────────────────────
    Topic-specific content banks
    ────────────────────────────────────────────────── */
 
-interface VocabEntry {
+export interface VocabEntry {
   word: string;
   definition: string;
   exampleSentence: string;
@@ -15,7 +16,7 @@ interface VocabEntry {
   emoji?: string;
 }
 
-interface TopicPack {
+export interface TopicPack {
   vocabulary: VocabEntry[];
   grammarTarget: string;
   grammarExamples: string[];
@@ -27,111 +28,45 @@ interface TopicPack {
   songOrChant: string;
 }
 
-/* ── Hub-specific topic packs ── */
+/* ── AI-Powered TopicPack Generation ── */
 
-const PLAYGROUND_TOPICS: Record<string, TopicPack> = {
-  'hello pip': {
-    vocabulary: [
-      { word: 'Hello', definition: 'A greeting you say when you meet someone', exampleSentence: 'Hello! My name is Pip.', fillBlank: '____! My name is Pip.', imageKeywords: 'kids waving hello cartoon cute' },
-      { word: 'Name', definition: 'What people call you', exampleSentence: 'My name is Anna.', fillBlank: 'My ____ is Anna.', imageKeywords: 'name tag cartoon kids colorful' },
-      { word: 'Friend', definition: 'Someone you like and play with', exampleSentence: 'Pip is my friend.', fillBlank: 'Pip is my ____.', imageKeywords: 'kids friends cartoon hugging' },
-      { word: 'Goodbye', definition: 'What you say when you leave', exampleSentence: 'Goodbye! See you tomorrow!', fillBlank: '____! See you tomorrow!', imageKeywords: 'kids waving goodbye cartoon cute' },
-    ],
-    grammarTarget: 'I am / You are (To Be)',
-    grammarExamples: ['I am Pip.', 'You are my friend.', 'I am happy.', 'You are great!'],
-    warmUpQuestion: 'Can you wave and say "Hello" to Pip? 👋🐣',
-    objectives: ['Greet others using "Hello" and "Goodbye"', 'Introduce themselves: "My name is ___"', 'Use "I am" and "You are" in simple sentences', 'Identify and say 4 new vocabulary words'],
-    dialogueLines: ['Pip: Hello! I am Pip! 🐣', 'Student: Hello! I am ___!', 'Pip: What is your name?', 'Student: My name is ___.', 'Pip: Nice to meet you! You are my friend!', 'Student: You are my friend too!'],
-    gameDescription: '🎯 Pop the Bubble: Pop the bubbles with the correct greeting words! Tap "Hello" and "Goodbye" bubbles before they float away!',
-    productionTask: 'Draw a picture of yourself and Pip. Write "Hello! My name is ___. I am ___." under your drawing. 🎨',
-    songOrChant: '🎵 Hello, hello, what\'s your name?\nHello, hello, let\'s play a game!\nI am ___, you are ___,\nWe are friends, let\'s all have fun! 🎵',
-  },
-};
+export async function generateTopicPackWithAI(
+  topic: string,
+  lessonPrompt: string | undefined,
+  level: string,
+  ageGroup: string,
+  hub: HubConfig
+): Promise<TopicPack> {
+  const { data, error } = await supabase.functions.invoke('ai-lesson-content-generator', {
+    body: {
+      topic,
+      lessonPrompt: lessonPrompt || '',
+      level,
+      ageGroup,
+      hub: hub.hub,
+      vocabularyCount: hub.vocabularyCount,
+    },
+  });
 
-const ACADEMY_TOPICS: Record<string, TopicPack> = {};
-const PROFESSIONAL_TOPICS: Record<string, TopicPack> = {};
-
-function getDefaultTopicPack(topic: string, hub: HubConfig): TopicPack {
-  const mainWord = topic.split(' ').filter(w => w.length > 2)[0] || topic;
-  const cap = mainWord.charAt(0).toUpperCase() + mainWord.slice(1);
-
-  if (hub.hub === 'professional') {
-    return {
-      vocabulary: [
-        { word: cap, definition: `A key professional term related to ${topic}`, exampleSentence: `We need to discuss ${mainWord} in the meeting.`, fillBlank: `We need to discuss ____ in the meeting.`, imageKeywords: `${topic} professional business office corporate meeting` },
-        { word: 'Strategy', definition: 'A plan of action to achieve a goal', exampleSentence: `Our ${topic} strategy is effective.`, fillBlank: `Our ${topic} ____ is effective.`, imageKeywords: `business strategy planning ${topic} professional boardroom` },
-        { word: 'Outcome', definition: 'The result of an action or process', exampleSentence: 'The outcome was positive.', fillBlank: 'The ____ was positive.', imageKeywords: `business results graph ${topic} analytics` },
-        { word: 'Stakeholder', definition: 'A person with interest in a business', exampleSentence: 'We must inform the stakeholders.', fillBlank: 'We must inform the ____.', imageKeywords: `business meeting stakeholders ${topic} conference` },
-        { word: 'Implement', definition: 'To put a plan into action', exampleSentence: `Let's implement the new ${topic} policy.`, fillBlank: `Let's ____ the new ${topic} policy.`, imageKeywords: `business implementation ${topic} workflow office` },
-      ],
-      grammarTarget: 'Formal register: Modal verbs for suggestions',
-      grammarExamples: [`We should consider the ${topic} implications.`, 'Could you elaborate on that point?', 'We might want to revisit the strategy.'],
-      warmUpQuestion: `What are the key challenges in ${topic} for your organization?`,
-      objectives: [`Master 5 professional terms related to ${topic}`, 'Use modal verbs for formal suggestions', 'Analyze a case study scenario', 'Compose a professional email response'],
-      dialogueLines: [`Manager: Let's discuss the ${topic} report.`, 'Employee: I have some insights to share.', 'Manager: What do you recommend?', 'Employee: We should consider ___.'],
-      gameDescription: `Business Email Reply: Read the scenario about ${topic} and compose a professional email response using the target vocabulary.`,
-      productionTask: `Write a brief executive summary (3-4 sentences) recommending a ${topic} strategy for your organization.`,
-      songOrChant: '',
-    };
+  if (error) {
+    console.error('AI generation error:', error);
+    throw new Error(error.message || 'Failed to generate lesson content');
   }
 
-  if (hub.hub === 'academy') {
-    return {
-      vocabulary: [
-        { word: cap, definition: `A key term about ${topic}`, exampleSentence: `${cap} is an interesting topic to study.`, fillBlank: `____ is an interesting topic to study.`, imageKeywords: `${topic} 3d render holographic neon` },
-        { word: 'Analyze', definition: 'To examine something in detail', exampleSentence: `Let's analyze this ${topic} example.`, fillBlank: `Let's ____ this ${topic} example.`, imageKeywords: `analysis 3d render neon holographic` },
-        { word: 'Context', definition: 'The circumstances around an event', exampleSentence: 'Context helps us understand meaning.', fillBlank: '____ helps us understand meaning.', imageKeywords: `context puzzle pieces 3d neon` },
-        { word: 'Perspective', definition: 'A point of view', exampleSentence: 'Everyone has a different perspective.', fillBlank: 'Everyone has a different ____.', imageKeywords: `perspective viewpoint 3d render neon` },
-        { word: 'Express', definition: 'To communicate thoughts or feelings', exampleSentence: `Express your ideas about ${topic}.`, fillBlank: `____ your ideas about ${topic}.`, imageKeywords: `expression communication 3d neon teen` },
-      ],
-      grammarTarget: 'Present Perfect: Have/Has + Past Participle',
-      grammarExamples: [`I have studied ${topic} before.`, 'She has completed the assignment.', 'They have discussed the topic.'],
-      warmUpQuestion: `What's the first thing that comes to mind when you hear "${topic}"? 🤔`,
-      objectives: [`Learn 5 key terms related to ${topic}`, 'Use Present Perfect in context', 'Unscramble sentences with new vocabulary', 'Express opinions using new vocabulary'],
-      dialogueLines: [`A: Have you heard about ${topic}?`, 'B: Yes, I have! It\'s really interesting.', 'A: What\'s your perspective?', 'B: I think ___.'],
-      gameDescription: `Sentence Unscramble: Rearrange the scrambled words to form correct sentences about ${topic}. Race against the clock! ⏱️`,
-      productionTask: `Create a short social media post about ${topic} using at least 3 new vocabulary words. Be creative! 📱`,
-      songOrChant: '',
-    };
+  if (data?.error) {
+    throw new Error(data.error);
   }
 
-  // Playground default
-  return {
-    vocabulary: [
-      { word: cap, definition: `A key word about ${topic}`, exampleSentence: `I like ${mainWord}.`, fillBlank: `I like ____.`, imageKeywords: `${topic} cartoon illustration cute kids claymation`, emoji: '🌟' },
-      { word: 'Learn', definition: 'To get new knowledge', exampleSentence: `Let's learn about ${topic}!`, fillBlank: `Let's ____ about ${topic}!`, imageKeywords: `kids learning cartoon colorful claymation`, emoji: '📚' },
-      { word: 'Play', definition: 'To do something for enjoyment', exampleSentence: `${topic} is great to play with!`, fillBlank: `${topic} is great to ____ with!`, imageKeywords: `kids playing cartoon vibrant claymation`, emoji: '🎮' },
-      { word: 'Great', definition: 'Very good, wonderful', exampleSentence: 'You did a great job!', fillBlank: 'You did a ____ job!', imageKeywords: `thumbs up cartoon kids celebration claymation`, emoji: '👍' },
-    ],
-    grammarTarget: 'I am / You are',
-    grammarExamples: [`I like ${topic}.`, `You are learning about ${topic}.`],
-    warmUpQuestion: `What do you know about ${topic}? Tell Pip! 🐣`,
-    objectives: [`Learn 4 new words about ${topic}`, `Use simple sentences about ${topic}`, 'Practice speaking with a partner', `Complete a drag & drop activity about ${topic}`],
-    dialogueLines: [`Pip: Today we learn about ${topic}! 🐣`, `Student: I like ${topic}!`, `Pip: What is your favorite ${mainWord}?`, 'Student: My favorite is ___.'],
-    gameDescription: `🎯 Pop the Bubble: Pop the bubbles with the correct ${topic} words before they float away!`,
-    productionTask: `Draw your favorite thing about ${topic} and tell the class about it using "I like ___" and "This is a ___."`,
-    songOrChant: `🎵 ${topic}, ${topic}, let's have a blast!\n${topic}, ${topic}, everyone!\nI can say it, you can too,\n${topic}, ${topic}, me and you! 🎵`,
-  };
-}
-
-function getTopicPack(topic: string, hub: HubConfig): TopicPack {
-  const key = topic.toLowerCase().trim();
-  const hubPacks = hub.hub === 'playground' ? PLAYGROUND_TOPICS
-    : hub.hub === 'academy' ? ACADEMY_TOPICS
-    : PROFESSIONAL_TOPICS;
-  return hubPacks[key] || getDefaultTopicPack(topic, hub);
+  return data.topicPack as TopicPack;
 }
 
 /* ── Image URL with hub-specific style ── */
 
 function buildImageUrl(_keyword: string): string {
-  // No longer using picsum.photos placeholders.
-  // Images are generated via Gemini AI after lesson structure is created.
   return '';
 }
 
 function buildMediaPrompt(keyword: string, hub: HubConfig): string {
-  // Contextually relevant prompt following Master Orchestrator rules
   return `${keyword}, ${hub.imageStyleSuffix}`;
 }
 
@@ -162,25 +97,22 @@ function buildInteraction(type: string, question?: string, options?: string[], c
 
 /* ══════════════════════════════════════════════════════
    MAIN GENERATOR — Hub-Adaptive PPP Lesson
-   Follows the Master Orchestrator schema
+   Now uses AI-generated TopicPack
    ══════════════════════════════════════════════════════ */
 
-export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
+export function buildPPPLessonFromPack(formData: WizardFormData, pack: TopicPack): PPPLessonPlan {
   const { topic, level, ageGroup, lessonPrompt } = formData;
   const hub = HUB_CONFIGS[resolveHub(ageGroup)];
-  const pack = getTopicPack(topic, hub);
   const slides: GeneratedSlide[] = [];
   let order = 0;
 
   const cefrMap: Record<string, string> = { beginner: 'Pre-A1 / A1', intermediate: 'B1', advanced: 'C1' };
   const cefrLevel = cefrMap[level] || 'A1';
 
-  // Use lesson prompt to enrich objectives and context
   const promptContext = lessonPrompt
     ? `\n\n📋 Lesson Focus: ${lessonPrompt}`
     : '';
 
-  // Helper — enforces professional tone
   const sanitizeTone = (text: string): string => {
     if (hub.hub !== 'professional' || !hub.forbiddenWords) return text;
     let result = text;
@@ -190,7 +122,6 @@ export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
     return result;
   };
 
-  // Helper to create a slide with required fields + visuals/interaction
   const mkSlide = (
     phase: GeneratedSlide['phase'],
     phaseLabel: string,
@@ -232,14 +163,14 @@ export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
   };
 
   // ═══════════════════════════════════════════════════
-  // SLIDE 1: HOOK — Introduce objective with engaging scenario
+  // SLIDE 1: HOOK
   // ═══════════════════════════════════════════════════
   if (hub.hub === 'playground') {
     slides.push(mkSlide('presentation', '🎬 Hook', 'hook', 'title',
       `✨ Let's Learn: ${topic}!`,
       `${topic} kids colorful claymation adventure`,
       { prompt: `Welcome, little learners! 🌟\n\nToday Pip has a SUPER adventure for you!\n\n${pack.warmUpQuestion}${promptContext}` },
-      'Welcome students warmly. Play upbeat music. Introduce Pip and the lesson topic with maximum enthusiasm! Use puppets or plushies if available.',
+      'Welcome students warmly. Play upbeat music. Introduce Pip and the lesson topic with maximum enthusiasm!',
       [topic, 'hook', 'introduction'],
       undefined, 'centered',
     ));
@@ -248,7 +179,7 @@ export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
       `🔥 ${topic} — Let's Go!`,
       `${topic} neon holographic 3d render teen`,
       { prompt: `Hey! 👋 Ready for something interesting?\n\n${pack.warmUpQuestion}\n\nLet's find out together...${promptContext}` },
-      'Start with an engaging hook. Ask students to share first impressions. Use relatable examples from social media or pop culture.',
+      'Start with an engaging hook. Ask students to share first impressions.',
       [topic, 'hook', 'introduction'],
       undefined, 'centered',
     ));
@@ -257,52 +188,46 @@ export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
       `${topic} — Professional Context`,
       `${topic} corporate meeting cinematic professional`,
       { prompt: `Today's Focus: ${topic}\n\nObjective: ${pack.objectives[0]}\n\n${pack.warmUpQuestion}${promptContext}` },
-      'Begin with a brief industry scenario. Ask participants to share their experience. Keep it focused and results-oriented.',
+      'Begin with a brief industry scenario. Ask participants to share their experience.',
       [topic, 'hook', 'introduction'],
       undefined, 'centered',
     ));
   }
 
-  // ═══════════════════════════════════════════════════
-  // OBJECTIVES SLIDE
-  // ═══════════════════════════════════════════════════
+  // OBJECTIVES
   slides.push(mkSlide('presentation', '🎯 Objectives', 'warmup', 'title',
     hub.hub === 'playground' ? '🎯 Today We Will Learn...' : hub.hub === 'academy' ? '🎯 Learning Goals' : '📋 Session Objectives',
     'learning objectives checklist',
-    { prompt: pack.objectives.map((o, i) => `${i + 1}. ${o}`).join('\n') + promptContext },
-    `Read each objective aloud. Level: ${cefrLevel}. Duration: 30 minutes. ${hub.tone}${lessonPrompt ? ` Lesson prompt: ${lessonPrompt}` : ''}`,
+    { prompt: pack.objectives.map((o, i) => `${i + 1}. ${o}`).join('\n') },
+    `Read each objective aloud. Level: ${cefrLevel}. Duration: 30 minutes. ${hub.tone}`,
     ['objectives', 'goals'],
     undefined, 'centered',
   ));
 
-  // ═══════════════════════════════════════════════════
-  // WARM-UP ACTIVITY
-  // ═══════════════════════════════════════════════════
+  // WARM-UP
   slides.push(mkSlide('presentation', '☀️ Warm-Up', 'warmup', 'roleplay',
     hub.hub === 'playground' ? '☀️ Warm-Up Time!' : hub.hub === 'academy' ? '💡 Quick Think' : '🔄 Warm-Up Discussion',
     `${topic} warm up activity`,
     { prompt: pack.warmUpQuestion },
-    'Get students talking! Accept all answers. Build excitement. Use TPR for kids.',
+    'Get students talking! Accept all answers. Build excitement.',
     ['warm-up', 'activation'],
     undefined, 'centered',
   ));
 
-  // ═══════════════════════════════════════════════════
-  // MASCOT / INTRO (Playground only)
-  // ═══════════════════════════════════════════════════
+  // MASCOT (Playground only)
   if (hub.mascot) {
     slides.push(mkSlide('presentation', '📖 Presentation', 'warmup', 'title',
       '🐣 Meet Pip!',
       'cute penguin mascot claymation vibrant 3d character',
       { prompt: 'Say hello to Pip! 🐣✨\nPip will help us learn today!\nWave to Pip and say: "Hello Pip!"' },
-      'Introduce Pip the mascot. Have students wave and greet Pip. Use a puppet or toy if available.',
+      'Introduce Pip the mascot. Have students wave and greet Pip.',
       ['pip', 'mascot', 'introduction'],
       undefined, 'centered',
     ));
   }
 
   // ═══════════════════════════════════════════════════
-  // SLIDE 2 (TYPE): VOCABULARY — 3-5 key words
+  // VOCABULARY SLIDES
   // ═══════════════════════════════════════════════════
   pack.vocabulary.slice(0, hub.vocabularyCount).forEach((vocab, idx) => {
     slides.push(mkSlide('presentation', '📖 Vocabulary', 'vocabulary', 'vocabulary',
@@ -313,7 +238,7 @@ export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
         : `📝 Term ${idx + 1}: ${vocab.word}`,
       vocab.imageKeywords,
       { word: vocab.word, definition: vocab.definition, sentence: vocab.exampleSentence },
-      `Teach "${vocab.word}": 1) Show image. 2) Say word 3x (students repeat). 3) Explain: "${vocab.definition}". 4) Practice: "${vocab.exampleSentence}". ${hub.hub === 'playground' ? 'Use gestures and TPR.' : hub.hub === 'academy' ? 'Relate to teen context.' : 'Use professional scenarios.'}`,
+      `Teach "${vocab.word}": 1) Show image. 2) Say word 3x (students repeat). 3) Explain: "${vocab.definition}". 4) Practice: "${vocab.exampleSentence}".`,
       [vocab.word.toLowerCase(), 'vocabulary'],
       undefined, 'split',
     ));
@@ -330,7 +255,7 @@ export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
   ));
 
   // ═══════════════════════════════════════════════════
-  // SLIDE 3 (TYPE): CORE CONCEPT — Grammar / Speaking rule
+  // CORE CONCEPT — Grammar
   // ═══════════════════════════════════════════════════
   slides.push(mkSlide('presentation', '🎯 Core Concept', 'core_concept', 'title',
     hub.hub === 'playground'
@@ -340,28 +265,26 @@ export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
       : `📐 Structure: ${pack.grammarTarget}`,
     `grammar rules education ${topic}`,
     { prompt: pack.grammarExamples.map(ex => `• ${ex}`).join('\n') },
-    `Teach "${pack.grammarTarget}". ${hub.hub === 'playground' ? 'Use the board, drilling, and gestures.' : hub.hub === 'academy' ? 'Use examples from teen life.' : 'Use workplace scenarios.'}`,
+    `Teach "${pack.grammarTarget}". Use contextual examples.`,
     ['grammar', pack.grammarTarget.toLowerCase()],
     undefined, 'centered',
   ));
 
-  // Song/Chant (Playground) or Additional Example (others)
+  // Song/Chant (Playground only)
   if (hub.hub === 'playground' && pack.songOrChant) {
     slides.push(mkSlide('presentation', '🎵 Song', 'core_concept', 'image',
       '🎵 Let\'s Sing!',
       'kids singing music classroom cartoon claymation',
       { prompt: pack.songOrChant },
-      'Sing/chant together 2-3 times. Add clapping or actions. Reinforces vocabulary!',
+      'Sing/chant together 2-3 times. Add clapping or actions.',
       ['song', 'chant'],
       undefined, 'centered',
     ));
   }
 
   // ═══════════════════════════════════════════════════
-  // PRACTICE PHASE — Dialogue + Controlled Practice
+  // PRACTICE PHASE — Dialogue
   // ═══════════════════════════════════════════════════
-
-  // Dialogue
   slides.push(mkSlide('practice', '💬 Dialogue', 'dialogue', 'roleplay',
     hub.hub === 'playground' ? '💬 Talk with Pip!' : hub.hub === 'academy' ? '💬 Conversation Practice' : '💬 Professional Dialogue',
     `${topic} dialogue conversation`,
@@ -372,12 +295,9 @@ export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
   ));
 
   // ═══════════════════════════════════════════════════
-  // SLIDE 4 (TYPE): INTERACTIVE ACTIVITIES
-  // Hub-specific permitted activities
+  // INTERACTIVE ACTIVITIES (Hub-specific)
   // ═══════════════════════════════════════════════════
-
   if (hub.hub === 'playground') {
-    // Drag & Drop Image Activity
     slides.push(mkSlide('practice', '🎮 Activity', 'activity', 'drag-drop',
       '🎯 Drag & Drop!',
       `${topic} drag drop game kids claymation`,
@@ -385,30 +305,26 @@ export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
         prompt: pack.gameDescription,
         dragItems: pack.vocabulary.map(v => ({ text: v.word, target: v.definition, emoji: v.emoji || '🔤', imageKeywords: v.imageKeywords })),
       },
-      'Interactive drag & drop: students drag words to matching pictures. Help younger students as needed.',
+      'Interactive drag & drop: students drag words to matching pictures.',
       ['drag-drop', 'activity', 'game'],
-      'drag_and_drop_image',
-      'bento',
+      'drag_and_drop_image', 'bento',
       buildInteraction('drag_and_drop_image', 'Drag each word to the matching picture!',
         pack.vocabulary.map(v => v.word), pack.vocabulary[0].word),
     ));
 
-    // Pop the Word Bubble
     slides.push(mkSlide('practice', '🎮 Activity', 'activity', 'matching',
       '🫧 Pop the Bubbles!',
       `${topic} bubbles floating cartoon kids`,
       {
         matchPairs: pack.vocabulary.map(v => ({ word: v.word, image: v.emoji || '🔤', imageKeywords: v.imageKeywords })),
       },
-      'Pop the correct word bubbles! Tap the right words before they float away. Stars for correct pops!',
+      'Pop the correct word bubbles! Tap the right words before they float away.',
       ['pop-bubble', 'game', 'practice'],
-      'pop_the_word_bubble',
-      'centered',
+      'pop_the_word_bubble', 'centered',
       buildInteraction('pop_the_word_bubble', 'Pop the bubbles with the correct words!',
         pack.vocabulary.map(v => v.word), pack.vocabulary[0].word),
     ));
   } else if (hub.hub === 'academy') {
-    // Fill in the Blanks
     pack.vocabulary.slice(0, 3).forEach((vocab, idx) => {
       slides.push(mkSlide('practice', '✏️ Activity', 'activity', 'fill-blank',
         `✏️ Fill the Gap ${idx + 1}`,
@@ -416,32 +332,28 @@ export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
         { sentence: vocab.fillBlank, blankWord: vocab.word },
         `Complete: "${vocab.fillBlank}" → Answer: "${vocab.word}".`,
         ['fill-blank', vocab.word.toLowerCase()],
-        'fill_in_blanks',
-        'split',
+        'fill_in_blanks', 'split',
         buildInteraction('fill_in_blanks', vocab.fillBlank, undefined, vocab.word),
       ));
     });
 
-    // Sentence Unscramble
     const scrambleSentence = pack.grammarExamples[0] || `I have studied ${topic} before.`;
     const scrambledWords = scrambleSentence.split(' ').sort(() => Math.random() - 0.5);
     slides.push(mkSlide('practice', '🧩 Activity', 'activity', 'sorting',
       '🧩 Unscramble the Sentence!',
-      `sentence puzzle neon 3d render`,
+      'sentence puzzle neon 3d render',
       {
         prompt: `Rearrange these words:\n${scrambledWords.join(' / ')}`,
         options: scrambledWords,
         correctAnswer: scrambleSentence,
       },
-      `Unscramble: "${scrambleSentence}". Students drag words into correct order.`,
+      `Unscramble: "${scrambleSentence}".`,
       ['unscramble', 'sentence', 'grammar'],
-      'sentence_unscramble',
-      'centered',
+      'sentence_unscramble', 'centered',
       buildInteraction('sentence_unscramble', 'Rearrange the words to form a correct sentence!',
         scrambledWords, scrambleSentence, { scrambled_words: scrambledWords }),
     ));
 
-    // Speed Quiz
     const quizWord = pack.vocabulary[0];
     slides.push(mkSlide('practice', '❓ Activity', 'activity', 'quiz',
       '⚡ Speed Quiz!',
@@ -450,51 +362,45 @@ export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
         quizQuestion: `What does "${quizWord.word}" mean?`,
         quizOptions: [
           { text: quizWord.definition, isCorrect: true },
-          { text: 'Something unrelated', isCorrect: false },
-          { text: 'A different concept', isCorrect: false },
+          { text: pack.vocabulary.length > 1 ? pack.vocabulary[1].definition : 'Something unrelated', isCorrect: false },
+          { text: pack.vocabulary.length > 2 ? pack.vocabulary[2].definition : 'A different concept', isCorrect: false },
           { text: 'None of the above', isCorrect: false },
         ].sort(() => Math.random() - 0.5),
       },
-      `Quiz: Correct answer is "${quizWord.definition}". Discuss why other options are wrong.`,
+      `Quiz: Correct answer is "${quizWord.definition}".`,
       ['quiz', 'assessment', 'speed'],
-      'speed_quiz',
-      'centered',
+      'speed_quiz', 'centered',
       buildInteraction('speed_quiz', `What does "${quizWord.word}" mean?`,
         [quizWord.definition, 'Something unrelated', 'A different concept', 'None of the above'],
         quizWord.definition),
     ));
   } else {
-    // Professional: Case Study Analysis
     slides.push(mkSlide('practice', '📊 Activity', 'activity', 'roleplay',
       '📊 Case Study Analysis',
       `${topic} case study business corporate cinematic`,
       {
         prompt: `Scenario:\nA company is facing challenges with ${topic}. As a consultant, analyze the situation and recommend a course of action.\n\nConsider:\n• What are the key issues?\n• What data would you need?\n• What would you recommend?`,
-        caseStudy: `A mid-size corporation needs to improve their ${topic} strategy. Revenue is declining 15% YoY.`,
+        caseStudy: `A mid-size corporation needs to improve their ${topic} strategy.`,
       },
-      'Present the case study. Give participants 5 minutes to analyze. Discuss in small groups, then share with the class.',
+      'Present the case study. Give participants 5 minutes to analyze.',
       ['case-study', 'analysis', 'professional'],
-      'case_study_analysis',
-      'split',
+      'case_study_analysis', 'split',
       buildInteraction('case_study_analysis', `Analyze the ${topic} case study and provide your recommendation.`),
     ));
 
-    // Business Email Reply
     slides.push(mkSlide('practice', '📧 Activity', 'activity', 'roleplay',
       '📧 Business Email Response',
       `${topic} email business professional laptop`,
       {
         prompt: `You received this email from a client:\n\n"Dear Team,\n\nI would like to discuss our ${topic} strategy for Q3. Could you provide your analysis and recommendations by Friday?\n\nBest regards,\nSarah Chen"\n\nCompose a professional reply.`,
       },
-      'Guide participants through email structure: greeting, acknowledgment, content, close. Review formal register.',
+      'Guide participants through email structure: greeting, acknowledgment, content, close.',
       ['email', 'writing', 'professional'],
-      'business_email_reply',
-      'split',
+      'business_email_reply', 'split',
       buildInteraction('business_email_reply', 'Compose a professional email reply.',
         undefined, undefined, { email_scenario: `Client requests ${topic} analysis for Q3.` }),
     ));
 
-    // Vocabulary Expansion
     pack.vocabulary.slice(0, 3).forEach((vocab, idx) => {
       slides.push(mkSlide('practice', '✏️ Activity', 'activity', 'fill-blank',
         `✏️ Complete the Statement ${idx + 1}`,
@@ -502,8 +408,7 @@ export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
         { sentence: vocab.fillBlank, blankWord: vocab.word },
         `Professional context: "${vocab.fillBlank}" → "${vocab.word}".`,
         ['fill-blank', vocab.word.toLowerCase()],
-        'vocabulary_expansion',
-        'split',
+        'vocabulary_expansion', 'split',
         buildInteraction('vocabulary_expansion', vocab.fillBlank, undefined, vocab.word),
       ));
     });
@@ -515,17 +420,15 @@ export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
       hub.hub === 'playground' ? '🎮 Game Time!' : '🎮 Challenge Time!',
       `${topic} game activity`,
       { prompt: pack.gameDescription },
-      `Game: ${pack.gameDescription}\nKeep energy high! Award points.`,
+      `Game: ${pack.gameDescription}\nKeep energy high!`,
       ['game', 'activity'],
       undefined, 'centered',
     ));
   }
 
   // ═══════════════════════════════════════════════════
-  // PRODUCTION PHASE — Free Practice & Output
+  // PRODUCTION PHASE
   // ═══════════════════════════════════════════════════
-
-  // Speaking/Presentation
   slides.push(mkSlide('production', '🎤 Production', 'speaking', 'roleplay',
     hub.hub === 'playground' ? '🎤 Your Turn to Talk!' : hub.hub === 'academy' ? '🎤 Express Yourself!' : '🎤 Professional Presentation',
     `${topic} speaking presenting`,
@@ -541,7 +444,6 @@ export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
     undefined, 'centered',
   ));
 
-  // Creative Task
   slides.push(mkSlide('production', '🎨 Creative', 'creative', 'image',
     hub.hub === 'playground' ? '🎨 Creative Time!' : hub.hub === 'academy' ? '🎨 Create Something!' : '📝 Written Task',
     `${topic} creative task`,
@@ -552,10 +454,8 @@ export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
   ));
 
   // ═══════════════════════════════════════════════════
-  // SLIDE 5 (TYPE): SUMMARY — Recap + XP reward
+  // SUMMARY
   // ═══════════════════════════════════════════════════
-
-  // Review
   slides.push(mkSlide('production', '📋 Summary', 'summary', 'title',
     hub.hub === 'playground' ? '📋 What Did We Learn? 🌟' : hub.hub === 'academy' ? '📋 Key Takeaways' : '📋 Session Summary',
     'review summary checklist',
@@ -565,7 +465,6 @@ export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
     undefined, 'centered',
   ));
 
-  // Self-Assessment / XP Reward
   slides.push(mkSlide('production', '⭐ XP Reward', 'summary', 'quiz',
     hub.hub === 'playground' ? '⭐ You Earned XP! How Did You Do?' : hub.hub === 'academy' ? '🏆 Rate Your Progress' : '📊 Self-Assessment',
     'achievement reward stars celebration',
@@ -583,12 +482,11 @@ export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
             { text: 'Need review — I\'d like to revisit this', isCorrect: true },
           ],
     },
-    'All answers valid. This builds metacognition. Note students needing support.',
+    'All answers valid. This builds metacognition.',
     ['self-assessment', 'xp', 'reward'],
     undefined, 'centered',
   ));
 
-  // Goodbye
   slides.push(mkSlide('production', '👋 Goodbye', 'goodbye', 'title',
     hub.hub === 'playground' ? '👋 Great Job! See You Next Time! 🌟' : hub.hub === 'academy' ? '✌️ See You Next Time!' : '👋 Thank You — See You Next Session',
     `${topic} goodbye farewell`,
@@ -617,4 +515,31 @@ export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
     slides,
     generatedAt: new Date().toISOString(),
   };
+}
+
+// Legacy synchronous wrapper (kept for backward compatibility but no longer used by wizard)
+export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
+  // This is a fallback with a generic pack — the wizard now uses generateTopicPackWithAI + buildPPPLessonFromPack
+  const hub = HUB_CONFIGS[resolveHub(formData.ageGroup)];
+  const mainWord = formData.topic.split(' ').filter(w => w.length > 2)[0] || formData.topic;
+  const cap = mainWord.charAt(0).toUpperCase() + mainWord.slice(1);
+  
+  const fallbackPack: TopicPack = {
+    vocabulary: [
+      { word: cap, definition: `A key word about ${formData.topic}`, exampleSentence: `I like ${mainWord}.`, fillBlank: `I like ____.`, imageKeywords: `${formData.topic} illustration`, emoji: '🌟' },
+      { word: 'Learn', definition: 'To get new knowledge', exampleSentence: `Let's learn about ${formData.topic}!`, fillBlank: `Let's ____ about ${formData.topic}!`, imageKeywords: 'learning education', emoji: '📚' },
+      { word: 'Practice', definition: 'To do something again and again to improve', exampleSentence: 'Practice makes perfect!', fillBlank: '____ makes perfect!', imageKeywords: 'practice training', emoji: '🎯' },
+      { word: 'Understand', definition: 'To know the meaning of something', exampleSentence: `I understand ${formData.topic} now!`, fillBlank: `I ____ ${formData.topic} now!`, imageKeywords: 'understanding knowledge', emoji: '💡' },
+    ],
+    grammarTarget: 'Simple Present',
+    grammarExamples: [`I like ${formData.topic}.`, `You learn about ${formData.topic}.`],
+    warmUpQuestion: `What do you know about ${formData.topic}?`,
+    objectives: [`Learn key vocabulary about ${formData.topic}`, 'Practice using new words in sentences', 'Complete interactive activities', 'Express ideas about the topic'],
+    dialogueLines: [`A: What is ${formData.topic}?`, `B: ${formData.topic} is interesting!`, 'A: Tell me more.', 'B: Let me explain...'],
+    gameDescription: `Match the ${formData.topic} vocabulary with their definitions!`,
+    productionTask: `Create a short presentation about ${formData.topic} using the new vocabulary.`,
+    songOrChant: '',
+  };
+
+  return buildPPPLessonFromPack(formData, fallbackPack);
 }

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { ContentCreatorStepper, PipelineStep } from '@/components/content-creator/ContentCreatorStepper';
 import { usePipelineProgress } from '@/hooks/usePipelineProgress';
 import { CurriculumStep, CurriculumContext } from '@/components/content-creator/CurriculumStep';
-import { CurriculumManager } from '@/components/content-creator/CurriculumManager';
 import { AdminLessonEditor } from '@/components/admin/lesson-builder';
 import LessonLibraryHub from '@/components/lesson-player/LessonLibraryHub';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,7 +14,7 @@ const ContentCreatorDashboard: React.FC = () => {
   const { user, signOut } = useAuth();
   const progress = usePipelineProgress();
 
-  const goNext = () => setCurrentStep((s) => Math.min(s + 1, 4) as PipelineStep);
+  const goNext = () => setCurrentStep((s) => Math.min(s + 1, 3) as PipelineStep);
   const goPrev = () => setCurrentStep((s) => Math.max(s - 1, 1) as PipelineStep);
 
   const renderStepContent = () => {
@@ -23,20 +22,12 @@ const ContentCreatorDashboard: React.FC = () => {
       case 1:
         return <CurriculumStep onNextStep={goNext} onCurriculumSelected={setCurriculumContext} />;
       case 2:
-        return (
-          <CurriculumManager
-            curriculumContext={curriculumContext}
-            onBack={goPrev}
-            onNext={goNext}
-          />
-        );
-      case 3:
         return <AdminLessonEditor onFinish={goNext} onBack={goPrev} curriculumContext={curriculumContext} />;
-      case 4:
+      case 3:
         return (
           <div className="space-y-6">
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Step 4: Content Library</h1>
+              <h1 className="text-2xl font-bold text-foreground">Step 3: Content Library</h1>
               <p className="text-muted-foreground mt-1">
                 Browse, manage, and publish your completed content.
               </p>
@@ -55,7 +46,7 @@ const ContentCreatorDashboard: React.FC = () => {
     }
   };
 
-  const isFullBleed = currentStep === 3;
+  const isFullBleed = currentStep === 2;
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -72,8 +63,8 @@ const ContentCreatorDashboard: React.FC = () => {
         </Button>
       </header>
 
-      {/* Hide stepper on Step 3 (full-bleed editor) */}
-      {currentStep !== 3 && (
+      {/* Hide stepper on Step 2 (full-bleed editor) */}
+      {currentStep !== 2 && (
         <ContentCreatorStepper currentStep={currentStep} onStepChange={setCurrentStep} progress={progress} />
       )}
 
