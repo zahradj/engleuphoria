@@ -183,18 +183,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     }
                   }
                 })();
-              } else if (event === 'INITIAL_SESSION') {
-                // Page refresh with existing session - just update state, no redirect
-                // Let Dashboard.tsx handle the routing via React Router
+            } else if (event === 'INITIAL_SESSION') {
+                // Page refresh with existing session - update state + auto-heal
                 setTimeout(async () => {
                   if (!mounted) return;
                   
                   try {
+                    // Auto-heal: ensure users and user_roles rows exist
+                    await autoHealUserRows(currentSession.user);
+                    
                     const dbUser = await fetchUserFromDatabase(currentSession.user.id);
                     if (mounted) {
                       const finalUser = dbUser || await createFallbackUser(currentSession.user);
                       setUser(finalUser);
-                      // Do NOT redirect here - let components handle it
                     }
                   } catch (error) {
                     console.error('Error in INITIAL_SESSION user fetch:', error);
