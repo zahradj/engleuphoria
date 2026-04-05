@@ -166,7 +166,7 @@ function buildInteraction(type: string, question?: string, options?: string[], c
    ══════════════════════════════════════════════════════ */
 
 export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
-  const { topic, level, ageGroup } = formData;
+  const { topic, level, ageGroup, lessonPrompt } = formData;
   const hub = HUB_CONFIGS[resolveHub(ageGroup)];
   const pack = getTopicPack(topic, hub);
   const slides: GeneratedSlide[] = [];
@@ -174,6 +174,11 @@ export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
 
   const cefrMap: Record<string, string> = { beginner: 'Pre-A1 / A1', intermediate: 'B1', advanced: 'C1' };
   const cefrLevel = cefrMap[level] || 'A1';
+
+  // Use lesson prompt to enrich objectives and context
+  const promptContext = lessonPrompt
+    ? `\n\n📋 Lesson Focus: ${lessonPrompt}`
+    : '';
 
   // Helper — enforces professional tone
   const sanitizeTone = (text: string): string => {
