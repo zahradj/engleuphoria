@@ -1,70 +1,67 @@
 
 
-# EnglEuphoria Email & Auth Fixes — Implementation Plan
+# Fix: "Verifying Your Access" Infinite Loading
 
-## Current State Summary
+## Problem
 
-Your project **already has** a solid foundation:
-- **Branded auth email templates** exist (signup, recovery, magic-link, invite, email-change, reauthentication) with EnglEuphoria logo, purple/indigo styling, and the queue-based `auth-email-hook`
-- **Email domain** is configured on `notify.engleuphoria.com` with Lovable's built-in email infrastructure
-- **Auth redirect logic** has timeouts and fallback mechanisms already in place
+After signing up and signing in for the first time, the `/dashboard` page gets stuck showing "Verifying your access... Please wait a moment" and never redirects.
 
-This means we don't need to switch to Resend or Postmark — your emails already go through Lovable's managed email infrastructure with proper SPF/DKIM via the `notify.engleuphoria.com` subdomain. The plan focuses on **upgrading what exists** and **fixing real issues**.
+## Root Causes
 
----
+**1. Dashboard.tsx has no escape from its fallback state (primary issue)**
+The component has a 5-second timeout (line 33-43) that sets `redirectPath = '/playground'`, but it only fires when `redirectPath` is null. If the Navigate on line 132 fires (setting `redirectExecutedRef.current = true`) but the user ends up back on `/dashboard` due to a transient routing issue, the fallback spinner on lines 136-144 renders forever with no timeout.
 
-## Part 1: Upgrade Email Templates to Match Your "Master" Design
+**2. signIn() auto-heal may silently fail**
+The `signIn()` function tries to create missing `users` and `user_roles` rows (lines 444-455), but uses `.insert().single()` which can fail silently if RLS blocks the insert. If this fails, there are no database rows for the user, and subsequent data fetches return empty results.
 
-The current templates use EnglEuphoria branding but can be elevated to match the premium design you shared (dark footer, hub references, stronger CTAs).
+**3. Email verification flow skips auto-heal entirely**
+When a user verifies their email and arrives via `SIGNED_IN` event in the auth listener, the auto-heal logic (which only lives in `signIn()`) never runs. So the user can be authenticated but missing their `users`, `user_roles`, and `student_profiles` rows.
 
-**Changes to all 6 templates** in `supabase/functions/_shared/email-templates/`:
+## Implementation Plan
 
-- Add a dark footer (`#111827` background) with "© 2026 Engleuphoria. The Future of Learning."
-- Update button styling to use the indigo-600 (`#4f46e5`) accent with bolder `14px 28px` padding
-- Use Inter font family consistently across all templates
-- Add hub-aware welcome copy to the signup template (Playground / Academy / Professional references)
-- Ensure recovery template has a clear "Reset My Password" branded button
-- Redeploy `auth-email-hook` after template changes
+### Step 1: Fix Dashboard.tsx fallback escape hatch
+- Remove `redirectExecutedRef` — it's preventing re-navigation on remounts
+- Change the 5-second timeout to apply unconditionally: if no redirect has happened within 5 seconds of having a user with role, force navigate to `/playground`
+- Add a secondary hard timeout (10s) that forces redirect regardless of state
 
-## Part 2: Fix the "Verifying Access" Infinite Loop
+### Step 2: Add auto-heal to AuthContext's INITIAL_SESSION handler
+- In the `INITIAL_SESSION` and `SIGNED_IN` event handlers (lines 186-226), after fetching/creating the user, check if `users` and `user_roles` rows exist
+- If missing, create them using the same logic from `signIn()` (lines 432-483)
+- Use `supabase.rpc('ensure_user_role', ...)` for the role insert (bypasses RLS)
 
-The issue is in `ImprovedProtectedRoute.tsx` — when a user's role isn't loaded from the database fast enough, they see "Verifying your access... Please wait a moment" indefinitely (up to 8 seconds, then forced to login).
+### Step 3: Make signIn() auto-heal more robust
+- Replace `.insert().single()` with `.upsert()` to handle race conditions
+- Add error handling so failures are logged (not swallowed)
 
-**Root cause:** The `fetchUserRoleFromDatabase` call in `AuthContext` can fail silently or return slowly if the `user_roles` table doesn't have a row for the user yet (race condition between signup trigger and first page load).
+### Step 4: Ensure student_profiles fallback works
+- In `useStudentLevel`, when `student_profiles` has no row, explicitly set `loading = false` and `studentLevel = null` (already works, but add a defensive timeout of 5s)
 
-**Fixes:**
+## Files Changed
 
-1. **AuthContext.tsx** — Add a defensive timeout that forces `loading = false` with a fallback role if the DB fetch hangs beyond 6 seconds (the current 10s timeout exists but doesn't always resolve the role)
+| File | Change |
+|------|--------|
+| `src/pages/Dashboard.tsx` | Remove `redirectExecutedRef`, add hard fallback timeout, simplify redirect logic |
+| `src/contexts/AuthContext.tsx` | Add auto-heal to INITIAL_SESSION handler, make signIn auto-heal use upsert |
+| `src/hooks/useStudentLevel.ts` | Add 5s safety timeout |
 
-2. **ImprovedProtectedRoute.tsx** — When role timeout fires (8s), instead of redirecting to `/login`, fall back to the user's metadata role or default to `student` and let them proceed. Only redirect to login if there's genuinely no session.
+## Technical Details
 
-3. **Dashboard.tsx** — The 5-second timeout already defaults to `/playground`, which is correct. Ensure it also sets the user role in state so downstream guards don't re-block.
+```text
+Current broken flow:
+  signIn() → window.location.href='/dashboard' → full reload
+    → AuthContext INITIAL_SESSION fires
+    → fetchUserFromDatabase() → no rows (auto-heal was in signIn, not here)
+    → createFallbackUser() → role='student'
+    → Dashboard: role='student', studentLevel=null → redirectPath='/playground'
+    → Navigate fires, ref=true → somehow loops → fallback forever
 
-4. **ProfileCompleteGuard.tsx** — Add a safety timeout (8s) so it never hangs forever on "Checking profile status..."
-
-## Part 3: Add Booking Confirmation & Victory Notification Emails
-
-Create two new **transactional email templates** for app-triggered emails:
-
-1. **Booking Confirmation** — Sent when a student books a lesson with a teacher. Includes teacher name, lesson time, and a "Join Lesson" button. Uses the same branded wrapper.
-
-2. **Victory Notification** — Sent when a student earns a reward/accessory in the classroom. Celebratory tone with the achievement details.
-
-These will use Lovable's transactional email infrastructure (`send-transactional-email` Edge Function) with proper templates, suppression handling, and unsubscribe support.
-
-**Requires:** Scaffolding transactional email infrastructure if not already present, creating template files, registering them, and wiring up the trigger points in the booking and reward flows.
-
-## Part 4: Deliverability — SPF/DKIM Verification
-
-Your domain `notify.engleuphoria.com` is already delegated to Lovable's nameservers, which manage SPF and DKIM records automatically. We'll verify the domain status is `active` and confirm DNS records are properly propagated. If anything is pending, we'll surface the exact steps needed.
-
----
-
-## Implementation Order
-
-1. Fix auth redirect loop (highest impact — users are getting stuck)
-2. Upgrade the 6 auth email templates with premium branding
-3. Deploy updated `auth-email-hook`
-4. Set up transactional email infrastructure + booking & victory templates
-5. Verify email domain status and deliverability
+Fixed flow:
+  signIn() → window.location.href='/dashboard' → full reload
+    → AuthContext INITIAL_SESSION fires
+    → auto-heal creates missing users/user_roles rows
+    → fetchUserFromDatabase() → returns user with role
+    → Dashboard: role='student' → redirectPath='/playground'
+    → Navigate fires → /playground loads
+    → Hard timeout (10s) as safety net if anything fails
+```
 
