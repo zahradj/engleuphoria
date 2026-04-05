@@ -1,67 +1,80 @@
 
 
-# Fix: "Verifying Your Access" Infinite Loading
+# Fix: Teacher Profile Submission, Photo Upload, and Certificate Removal
 
-## Problem
+## Problems Identified
 
-After signing up and signing in for the first time, the `/dashboard` page gets stuck showing "Verifying your access... Please wait a moment" and never redirects.
+1. **Profile submission fails ("Failed to save profile")**: The `upsert` on `teacher_profiles` does an INSERT for new profiles. The `update_teacher_profile_completion` trigger references `OLD` which is NULL on INSERT, potentially causing errors. Additionally, the code sets `profile_complete: true` but the trigger overrides it by recalculating based on bio/video_url fields.
 
-## Root Causes
+2. **Photo upload not displaying**: The `teacher-certificates` bucket is **private** (`public = false`), so `getPublicUrl()` returns a URL that is not accessible. The bucket also lacks an **UPDATE** storage policy, which the photo upload needs (it uses `upsert: true`).
 
-**1. Dashboard.tsx has no escape from its fallback state (primary issue)**
-The component has a 5-second timeout (line 33-43) that sets `redirectPath = '/playground'`, but it only fires when `redirectPath` is null. If the Navigate on line 132 fires (setting `redirectExecutedRef.current = true`) but the user ends up back on `/dashboard` due to a transient routing issue, the fallback spinner on lines 136-144 renders forever with no timeout.
+3. **No option to remove certificates**: The UI has no remove button, and there is no **DELETE** storage policy on the bucket.
 
-**2. signIn() auto-heal may silently fail**
-The `signIn()` function tries to create missing `users` and `user_roles` rows (lines 444-455), but uses `.insert().single()` which can fail silently if RLS blocks the insert. If this fails, there are no database rows for the user, and subsequent data fetches return empty results.
+## Plan
 
-**3. Email verification flow skips auto-heal entirely**
-When a user verifies their email and arrives via `SIGNED_IN` event in the auth listener, the auto-heal logic (which only lives in `signIn()`) never runs. So the user can be authenticated but missing their `users`, `user_roles`, and `student_profiles` rows.
+### Step 1: Database Migration — Fix Storage and Profile Policies
 
-## Implementation Plan
+A single migration to:
+- Make the `teacher-certificates` bucket **public** so `getPublicUrl()` works for displaying photos and certificates
+- Add an **UPDATE** storage policy so teachers can re-upload their profile photo (`upsert: true`)
+- Add a **DELETE** storage policy so teachers can remove uploaded certificates
+- Fix `update_teacher_profile_completion` trigger to handle INSERT (when `OLD` is NULL) gracefully
 
-### Step 1: Fix Dashboard.tsx fallback escape hatch
-- Remove `redirectExecutedRef` — it's preventing re-navigation on remounts
-- Change the 5-second timeout to apply unconditionally: if no redirect has happened within 5 seconds of having a user with role, force navigate to `/playground`
-- Add a secondary hard timeout (10s) that forces redirect regardless of state
+### Step 2: Fix ProfileOnboardingModal.tsx — Certificate Removal + Robust Submission
 
-### Step 2: Add auto-heal to AuthContext's INITIAL_SESSION handler
-- In the `INITIAL_SESSION` and `SIGNED_IN` event handlers (lines 186-226), after fetching/creating the user, check if `users` and `user_roles` rows exist
-- If missing, create them using the same logic from `signIn()` (lines 432-483)
-- Use `supabase.rpc('ensure_user_role', ...)` for the role insert (bypasses RLS)
+- Add a remove button (X) next to each uploaded certificate that:
+  - Deletes the file from Supabase Storage
+  - Removes the URL from the local state array
+- Improve the `handleSubmit` to handle potential trigger conflicts by not setting `profile_complete` directly — let the trigger handle it, or use a two-step approach (insert first, then update)
 
-### Step 3: Make signIn() auto-heal more robust
-- Replace `.insert().single()` with `.upsert()` to handle race conditions
-- Add error handling so failures are logged (not swallowed)
+### Step 3: Fix Photo Display
 
-### Step 4: Ensure student_profiles fallback works
-- In `useStudentLevel`, when `student_profiles` has no row, explicitly set `loading = false` and `studentLevel = null` (already works, but add a defensive timeout of 5s)
-
-## Files Changed
-
-| File | Change |
-|------|--------|
-| `src/pages/Dashboard.tsx` | Remove `redirectExecutedRef`, add hard fallback timeout, simplify redirect logic |
-| `src/contexts/AuthContext.tsx` | Add auto-heal to INITIAL_SESSION handler, make signIn auto-heal use upsert |
-| `src/hooks/useStudentLevel.ts` | Add 5s safety timeout |
+- Since making the bucket public resolves the URL issue, the existing `getPublicUrl()` logic will work correctly
+- No code changes needed beyond the migration
 
 ## Technical Details
 
-```text
-Current broken flow:
-  signIn() → window.location.href='/dashboard' → full reload
-    → AuthContext INITIAL_SESSION fires
-    → fetchUserFromDatabase() → no rows (auto-heal was in signIn, not here)
-    → createFallbackUser() → role='student'
-    → Dashboard: role='student', studentLevel=null → redirectPath='/playground'
-    → Navigate fires, ref=true → somehow loops → fallback forever
+**Migration SQL:**
+```sql
+-- Make bucket public for getPublicUrl() to work
+UPDATE storage.buckets SET public = true WHERE id = 'teacher-certificates';
 
-Fixed flow:
-  signIn() → window.location.href='/dashboard' → full reload
-    → AuthContext INITIAL_SESSION fires
-    → auto-heal creates missing users/user_roles rows
-    → fetchUserFromDatabase() → returns user with role
-    → Dashboard: role='student' → redirectPath='/playground'
-    → Navigate fires → /playground loads
-    → Hard timeout (10s) as safety net if anything fails
+-- Add UPDATE policy for photo re-upload (upsert)
+CREATE POLICY "Teachers can update their own files"
+ON storage.objects FOR UPDATE
+TO authenticated
+USING (
+  bucket_id = 'teacher-certificates'
+  AND (storage.foldername(name))[1] = auth.uid()::text
+);
+
+-- Add DELETE policy for certificate removal
+CREATE POLICY "Teachers can delete their own files"
+ON storage.objects FOR DELETE
+TO authenticated
+USING (
+  bucket_id = 'teacher-certificates'
+  AND (storage.foldername(name))[1] = auth.uid()::text
+);
+
+-- Fix trigger to handle INSERT (OLD is NULL)
+CREATE OR REPLACE FUNCTION public.update_teacher_profile_completion()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $function$
+BEGIN
+  NEW.profile_complete = (
+    NEW.bio IS NOT NULL AND NEW.bio != '' AND
+    NEW.video_url IS NOT NULL AND NEW.video_url != ''
+  );
+  RETURN NEW;
+END;
+$function$;
 ```
+
+**UI Changes (ProfileOnboardingModal.tsx):**
+- Add an `X` button next to each certificate chip that calls `supabase.storage.from('teacher-certificates').remove([filePath])` and updates local state
+- Extract the storage file path from the public URL for deletion
 
