@@ -450,6 +450,7 @@ const SkeletonPanel: React.FC<SkeletonPanelProps> = ({ plan, onClear, hub }) => 
   const [isGeneratingImages, setIsGeneratingImages] = useState(false);
   const [generationResult, setGenerationResult] = useState<MassGenerationResult | null>(null);
   const [slideTimers, setSlideTimers] = useState<Record<number, number>>({});
+  const [isSaving, setIsSaving] = useState(false);
 
   // Simulate per-slide percentage while generating
   useEffect(() => {
