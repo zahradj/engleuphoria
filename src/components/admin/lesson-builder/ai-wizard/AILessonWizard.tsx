@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, BookOpen, Users, GraduationCap, Wand2, Loader2, Check, ArrowRight, Image, AlertTriangle, Save } from 'lucide-react';
+import { Sparkles, BookOpen, Users, GraduationCap, Wand2, Loader2, Check, ArrowRight, Image, AlertTriangle, Save, Mic, MicOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -56,7 +56,57 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
   const [imageProgress, setImageProgress] = useState({ completed: 0, total: 0, current: '' });
   const [imageCount, setImageCount] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
+  const [activeListening, setActiveListening] = useState<'topic' | 'notes' | null>(null);
+  const recognitionRef = useRef<any>(null);
   const { toast } = useToast();
+
+  const startListening = useCallback((target: 'topic' | 'notes') => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast({ title: 'Not supported', description: 'Speech recognition is not available in this browser.', variant: 'destructive' });
+      return;
+    }
+
+    // Stop any existing recognition
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.continuous = false;
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      if (target === 'topic') {
+        setFormData(prev => ({ ...prev, topic: prev.topic ? `${prev.topic} ${transcript}` : transcript }));
+      } else {
+        setAdditionalNotes(prev => prev ? `${prev} ${transcript}` : transcript);
+      }
+    };
+
+    recognition.onend = () => {
+      setActiveListening(null);
+      recognitionRef.current = null;
+    };
+
+    recognition.onerror = () => {
+      setActiveListening(null);
+      recognitionRef.current = null;
+    };
+
+    recognitionRef.current = recognition;
+    setActiveListening(target);
+    recognition.start();
+  }, [toast]);
+
+  const stopListening = useCallback(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    setActiveListening(null);
+  }, []);
 
   const handleGenerate = async () => {
     if (!formData.topic.trim()) return;
@@ -363,13 +413,24 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
             >
               <div className="space-y-2">
                 <Label htmlFor="topic" className="text-sm font-medium">Lesson Topic</Label>
-                <Input
-                  id="topic"
-                  placeholder="e.g., Hello Pip, Zoo Animals, Business Negotiations"
-                  value={formData.topic}
-                  onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
-                  className="h-12 text-base"
-                />
+                <div className="relative">
+                  <Input
+                    id="topic"
+                    placeholder="e.g., Hello Pip, Zoo Animals, Business Negotiations"
+                    value={formData.topic}
+                    onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
+                    className="h-12 text-base pr-12"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className={`absolute right-1 top-1 h-10 w-10 rounded-lg transition-colors ${activeListening === 'topic' ? 'bg-red-500/10 text-red-500 animate-pulse' : 'text-muted-foreground hover:text-primary'}`}
+                    onClick={() => activeListening === 'topic' ? stopListening() : startListening('topic')}
+                  >
+                    {activeListening === 'topic' ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                  </Button>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -426,12 +487,23 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
 
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Additional Notes (optional)</Label>
-                <Textarea
-                  placeholder="e.g., Focus on food vocabulary, include roleplay at restaurant..."
-                  value={additionalNotes}
-                  onChange={(e) => setAdditionalNotes(e.target.value)}
-                  className="min-h-[60px] text-sm resize-none"
-                />
+                <div className="relative">
+                  <Textarea
+                    placeholder="e.g., Focus on food vocabulary, include roleplay at restaurant..."
+                    value={additionalNotes}
+                    onChange={(e) => setAdditionalNotes(e.target.value)}
+                    className="min-h-[60px] text-sm resize-none pr-12"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className={`absolute right-1 top-1 h-8 w-8 rounded-lg transition-colors ${activeListening === 'notes' ? 'bg-red-500/10 text-red-500 animate-pulse' : 'text-muted-foreground hover:text-primary'}`}
+                    onClick={() => activeListening === 'notes' ? stopListening() : startListening('notes')}
+                  >
+                    {activeListening === 'notes' ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
+                  </Button>
+                </div>
               </div>
 
               {/* Hub Preview Card */}
