@@ -6,11 +6,19 @@ import { useHeroTheme } from '@/contexts/HeroThemeContext';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_TYPES = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+
+const ageGroupOptions = [
+  { value: 'kids', label: 'Kids (4–12)' },
+  { value: 'teens', label: 'Teens (13–17)' },
+  { value: 'adults', label: 'Adults (18+)' },
+  { value: 'all', label: 'All Ages' },
+];
 
 const TeacherApplicationForm = () => {
   const { resolvedTheme } = useThemeMode();
@@ -24,7 +32,8 @@ const TeacherApplicationForm = () => {
     email: '',
     phone: '',
     country: '',
-    experience: '',
+    experienceYears: '',
+    preferredAgeGroup: '',
     certifications: '',
     motivation: '',
   });
@@ -67,7 +76,6 @@ const TeacherApplicationForm = () => {
     try {
       let cvUrl: string | null = null;
 
-      // Upload CV if provided
       if (cvFile) {
         const fileExt = cvFile.name.split('.').pop();
         const filePath = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
@@ -82,19 +90,19 @@ const TeacherApplicationForm = () => {
         cvUrl = urlData.publicUrl;
       }
 
-      // Split full name into first/last
       const nameParts = formData.fullName.trim().split(/\s+/);
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
 
-      // Parse experience text into years (extract first number found, default 0)
-      const yearsMatch = formData.experience.match(/\d+/);
-      const experienceYears = yearsMatch ? parseInt(yearsMatch[0], 10) : 0;
+      const experienceYears = parseInt(formData.experienceYears, 10) || 0;
 
-      // Convert certifications comma-separated string into text[]
       const certificationsArray = formData.certifications
         ? formData.certifications.split(',').map(c => c.trim()).filter(Boolean)
         : null;
+
+      const preferredAgeGroups = formData.preferredAgeGroup === 'all'
+        ? ['kids', 'teens', 'adults']
+        : formData.preferredAgeGroup ? [formData.preferredAgeGroup] : null;
 
       const { error: insertError } = await supabase
         .from('teacher_applications')
@@ -105,9 +113,9 @@ const TeacherApplicationForm = () => {
           phone: formData.phone || null,
           nationality: formData.country,
           teaching_experience_years: experienceYears,
+          preferred_age_groups: preferredAgeGroups,
           certifications: certificationsArray,
           motivation: formData.motivation,
-          cover_letter: formData.experience,
           cv_url: cvUrl,
           current_stage: 'application_submitted',
           status: 'pending',
@@ -119,7 +127,7 @@ const TeacherApplicationForm = () => {
         title: 'Application Submitted! 🎉',
         description: "We'll review your application and get back to you within 5 business days.",
       });
-      setFormData({ fullName: '', email: '', phone: '', country: '', experience: '', certifications: '', motivation: '' });
+      setFormData({ fullName: '', email: '', phone: '', country: '', experienceYears: '', preferredAgeGroup: '', certifications: '', motivation: '' });
       setCvFile(null);
     } catch (error: any) {
       console.error('Application submission error:', error);
@@ -198,14 +206,47 @@ const TeacherApplicationForm = () => {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="experience" className={isDark ? 'text-slate-200' : 'text-slate-700'}>Teaching Experience *</Label>
-            <Textarea id="experience" required value={formData.experience} onChange={(e) => setFormData({ ...formData, experience: e.target.value })} className={`min-h-[100px] ${inputClasses}`} placeholder="Describe your teaching experience..." />
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="experienceYears" className={isDark ? 'text-slate-200' : 'text-slate-700'}>Years of Experience *</Label>
+              <Input
+                id="experienceYears"
+                type="number"
+                min="0"
+                max="50"
+                required
+                value={formData.experienceYears}
+                onChange={(e) => setFormData({ ...formData, experienceYears: e.target.value })}
+                className={inputClasses}
+                placeholder="e.g., 5"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="certifications" className={isDark ? 'text-slate-200' : 'text-slate-700'}>Certifications</Label>
+              <Input id="certifications" value={formData.certifications} onChange={(e) => setFormData({ ...formData, certifications: e.target.value })} className={inputClasses} placeholder="TEFL, CELTA, TESOL, etc." />
+            </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="certifications" className={isDark ? 'text-slate-200' : 'text-slate-700'}>Certifications</Label>
-            <Input id="certifications" value={formData.certifications} onChange={(e) => setFormData({ ...formData, certifications: e.target.value })} className={inputClasses} placeholder="TEFL, CELTA, TESOL, etc." />
+            <Label className={isDark ? 'text-slate-200' : 'text-slate-700'}>Preferred Age Group *</Label>
+            <RadioGroup
+              value={formData.preferredAgeGroup}
+              onValueChange={(v) => setFormData({ ...formData, preferredAgeGroup: v })}
+              className="grid grid-cols-2 gap-3 mt-1"
+            >
+              {ageGroupOptions.map((ag) => (
+                <div key={ag.value} className={`flex items-center space-x-2 rounded-lg border px-4 py-3 transition-colors ${
+                  formData.preferredAgeGroup === ag.value
+                    ? (isDark ? 'border-violet-500 bg-violet-500/10' : 'border-violet-500 bg-violet-50')
+                    : (isDark ? 'border-white/10 bg-white/5' : 'border-slate-200 bg-white')
+                }`}>
+                  <RadioGroupItem value={ag.value} id={`for-teachers-age-${ag.value}`} />
+                  <Label htmlFor={`for-teachers-age-${ag.value}`} className={`cursor-pointer text-sm ${isDark ? 'text-white' : 'text-slate-700'}`}>
+                    {ag.label}
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
           </div>
 
           <div className="space-y-2">

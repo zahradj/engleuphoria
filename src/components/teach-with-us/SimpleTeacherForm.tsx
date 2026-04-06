@@ -46,6 +46,13 @@ const classroomStyles = [
   'Other'
 ];
 
+const ageGroups = [
+  { value: 'kids', label: 'Kids (4–12)' },
+  { value: 'teens', label: 'Teens (13–17)' },
+  { value: 'adults', label: 'Adults (18+)' },
+  { value: 'all', label: 'All Ages' },
+];
+
 interface FormData {
   firstName: string;
   lastName: string;
@@ -55,6 +62,7 @@ interface FormData {
   hasCertification: boolean;
   primaryLanguage: string;
   education: string;
+  preferredAgeGroup: string;
   teachingMethodology: string;
   classroomManagement: string;
   videoDescription: string;
@@ -71,6 +79,7 @@ const initialFormData: FormData = {
   hasCertification: false,
   primaryLanguage: '',
   education: '',
+  preferredAgeGroup: '',
   teachingMethodology: '',
   classroomManagement: '',
   videoDescription: '',
@@ -112,6 +121,7 @@ const SimpleTeacherForm = forwardRef<HTMLDivElement>((_, ref) => {
       if (!formData.yearsExperience) newErrors.yearsExperience = 'Please enter years of experience';
       if (!formData.primaryLanguage) newErrors.primaryLanguage = 'Please select your primary language';
       if (!formData.education) newErrors.education = 'Please select your education level';
+      if (!formData.preferredAgeGroup) newErrors.preferredAgeGroup = 'Please select a preferred age group';
     }
 
     if (step === 3) {
@@ -204,6 +214,9 @@ const SimpleTeacherForm = forwardRef<HTMLDivElement>((_, ref) => {
         education: formData.education,
         teaching_methodology: formData.teachingMethodology,
         classroom_management: formData.classroomManagement,
+        preferred_age_groups: formData.preferredAgeGroup === 'all' 
+          ? ['kids', 'teens', 'adults'] 
+          : [formData.preferredAgeGroup],
         video_description: formData.videoDescription,
         cover_letter: formData.whyTeaching,
         cv_url: cvUrl,
@@ -463,6 +476,21 @@ const SimpleTeacherForm = forwardRef<HTMLDivElement>((_, ref) => {
                       </SelectContent>
                     </Select>
                     {errors.primaryLanguage && <p className="text-red-400 text-sm mt-1">{errors.primaryLanguage}</p>}
+                  </div>
+
+                  <div>
+                    <Label className="text-white/80">Preferred Age Group to Teach</Label>
+                    <Select value={formData.preferredAgeGroup} onValueChange={(v) => updateField('preferredAgeGroup', v)}>
+                      <SelectTrigger className="bg-white/5 border-white/10 text-white mt-1">
+                        <SelectValue placeholder="Select preferred age group" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ageGroups.map((ag) => (
+                          <SelectItem key={ag.value} value={ag.value}>{ag.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.preferredAgeGroup && <p className="text-red-400 text-sm mt-1">{errors.preferredAgeGroup}</p>}
                   </div>
                 </motion.div>
               )}
