@@ -672,27 +672,34 @@ The EnglEuphoria Hiring Team`,
           </DialogHeader>
           
           <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Email Subject</label>
-              <Input
-                value={emailTemplate.subject}
-                onChange={(e) => setEmailTemplate(prev => ({ ...prev, subject: e.target.value }))}
-              />
+            <div className="bg-muted/50 rounded-lg p-3 flex items-center gap-3">
+              <Video className="h-5 w-5 text-primary" />
+              <div>
+                <p className="font-medium text-sm">Internal Interview Room</p>
+                <p className="text-xs text-muted-foreground">
+                  A private EnglEuphoria interview room with Jitsi video will be created automatically.
+                  The link will be sent to the teacher.
+                </p>
+              </div>
             </div>
             <div>
-              <label className="text-sm font-medium">Scheduling Link</label>
+              <label className="text-sm font-medium">Or use external link instead (optional)</label>
               <Input
                 value={emailTemplate.meetingLink}
-                onChange={(e) => setEmailTemplate(prev => ({ ...prev, meetingLink: e.target.value }))}
-                placeholder="https://calendly.com/..."
+                onChange={(e) => setEmailTemplate(prev => ({ 
+                  ...prev, 
+                  meetingLink: e.target.value,
+                  useInternalRoom: !e.target.value 
+                }))}
+                placeholder="Leave empty to use internal room, or paste Calendly/Zoom link..."
               />
             </div>
             <div>
-              <label className="text-sm font-medium">Email Body</label>
+              <label className="text-sm font-medium">Email Preview</label>
               <Textarea
                 value={emailTemplate.body}
                 onChange={(e) => setEmailTemplate(prev => ({ ...prev, body: e.target.value }))}
-                rows={12}
+                rows={10}
                 className="font-mono text-sm"
               />
             </div>
