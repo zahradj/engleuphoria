@@ -179,12 +179,34 @@ The EnglEuphoria Hiring Team`,
     
     setActionLoading(true);
     try {
+      const hubType = selectedApplication.target_age_group === 'kids' ? 'Playground' :
+                      selectedApplication.target_age_group === 'teens' ? 'Academy' : 'Professional';
+
+      // Create interview record with internal room
+      const { data: interviewData, error: interviewError } = await supabase
+        .from('interviews')
+        .insert({
+          application_id: selectedApplication.id,
+          admin_id: (await supabase.auth.getUser()).data.user?.id,
+          teacher_email: selectedApplication.email,
+          teacher_name: selectedApplication.full_name,
+          scheduled_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(), // Default 48h from now
+          hub_type: hubType,
+        })
+        .select('room_token')
+        .single();
+
+      if (interviewError) throw interviewError;
+
+      const interviewUrl = `${window.location.origin}/interview/${interviewData.room_token}`;
+      const meetingLink = emailTemplate.useInternalRoom ? interviewUrl : emailTemplate.meetingLink;
+
       // Update application status
       const { error } = await supabase
         .from('teacher_applications')
         .update({ 
-          current_stage: 'interview_pending',
-          status: 'in_review'
+          current_stage: 'interview_scheduled',
+          status: 'under_review'
         })
         .eq('id', selectedApplication.id);
 
@@ -199,9 +221,8 @@ The EnglEuphoria Hiring Team`,
             idempotencyKey: `interview-invite-${selectedApplication.id}`,
             templateData: {
               name: selectedApplication.first_name || selectedApplication.full_name?.split(' ')[0],
-              hubType: selectedApplication.target_age_group === 'kids' ? 'Playground' :
-                       selectedApplication.target_age_group === 'teens' ? 'Academy' : 'Professional',
-              meetingLink: emailTemplate.meetingLink,
+              hubType,
+              meetingLink,
             },
           },
         });
@@ -209,8 +230,8 @@ The EnglEuphoria Hiring Team`,
         console.log('Interview email could not be sent via transactional system:', emailError);
       }
 
-      toast.success('Interview Invitation Sent! 📨', {
-        description: `${selectedApplication.full_name} has been notified to schedule their interview.`,
+      toast.success('Interview Scheduled & Invitation Sent! 📨', {
+        description: `${selectedApplication.full_name} has been invited. Internal room created.`,
         duration: 5000,
       });
 
@@ -218,8 +239,8 @@ The EnglEuphoria Hiring Team`,
       setSelectedApplication(null);
       fetchApplications();
     } catch (error) {
-      console.error('Error approving for interview:', error);
-      toast.error('Failed to send interview invitation');
+      console.error('Error scheduling interview:', error);
+      toast.error('Failed to schedule interview');
     } finally {
       setActionLoading(false);
     }
