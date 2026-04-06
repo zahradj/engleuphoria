@@ -14,6 +14,9 @@ import { template as victoryNotification } from './victory-notification.tsx'
 import { template as applicationReceived } from './application-received.tsx'
 import { template as interviewInvitation } from './interview-invitation.tsx'
 import { template as finalWelcome } from './final-welcome.tsx'
+import { template as applicationRejected } from './application-rejected.tsx'
+import { template as videoRejected } from './video-rejected.tsx'
+import { template as videoApproved } from './video-approved.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'booking-confirmation': bookingConfirmation,
@@ -21,4 +24,7 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'application-received': applicationReceived,
   'interview-invitation': interviewInvitation,
   'final-welcome': finalWelcome,
+  'application-rejected': applicationRejected,
+  'video-rejected': videoRejected,
+  'video-approved': videoApproved,
 }
