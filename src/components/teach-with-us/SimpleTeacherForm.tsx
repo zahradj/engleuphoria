@@ -1,6 +1,6 @@
 import { useState, forwardRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Upload, CheckCircle, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Upload, CheckCircle, Loader2, FileText, X } from 'lucide-react';
 import { GlassCard, GlassButton } from '@/components/ui/glass-card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -22,6 +22,30 @@ const languages = [
   'Mandarin', 'Japanese', 'Korean', 'Arabic', 'Hindi', 'Other'
 ];
 
+const educationLevels = [
+  "Bachelor's Degree", "Master's Degree", "PhD / Doctorate",
+  "TEFL/TESOL Certificate", "CELTA/DELTA", "Other Certification"
+];
+
+const methodologies = [
+  'Communicative Language Teaching (CLT)',
+  'Task-Based Learning (TBL)',
+  'Total Physical Response (TPR)',
+  'PPP (Presentation, Practice, Production)',
+  'Dogme / Unplugged',
+  'Blended / Hybrid',
+  'Other'
+];
+
+const classroomStyles = [
+  'Student-centered & collaborative',
+  'Structured & curriculum-driven',
+  'Game-based & interactive',
+  'Conversation-focused & immersive',
+  'Project-based learning',
+  'Other'
+];
+
 interface FormData {
   firstName: string;
   lastName: string;
@@ -30,6 +54,10 @@ interface FormData {
   yearsExperience: string;
   hasCertification: boolean;
   primaryLanguage: string;
+  education: string;
+  teachingMethodology: string;
+  classroomManagement: string;
+  videoDescription: string;
   whyTeaching: string;
   cvFile: File | null;
 }
@@ -42,6 +70,10 @@ const initialFormData: FormData = {
   yearsExperience: '',
   hasCertification: false,
   primaryLanguage: '',
+  education: '',
+  teachingMethodology: '',
+  classroomManagement: '',
+  videoDescription: '',
   whyTeaching: '',
   cvFile: null
 };
@@ -54,7 +86,7 @@ const SimpleTeacherForm = forwardRef<HTMLDivElement>((_, ref) => {
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({});
   const { toast } = useToast();
 
-  const totalSteps = 4;
+  const totalSteps = 5;
 
   const updateField = (field: keyof FormData, value: string | boolean | File | null) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -79,9 +111,19 @@ const SimpleTeacherForm = forwardRef<HTMLDivElement>((_, ref) => {
     if (step === 2) {
       if (!formData.yearsExperience) newErrors.yearsExperience = 'Please enter years of experience';
       if (!formData.primaryLanguage) newErrors.primaryLanguage = 'Please select your primary language';
+      if (!formData.education) newErrors.education = 'Please select your education level';
     }
 
     if (step === 3) {
+      if (!formData.teachingMethodology) newErrors.teachingMethodology = 'Please select your teaching methodology';
+      if (!formData.classroomManagement) newErrors.classroomManagement = 'Please select your classroom style';
+    }
+
+    if (step === 4) {
+      if (!formData.videoDescription.trim()) newErrors.videoDescription = 'Please describe your intro video plan';
+      else if (formData.videoDescription.length < 30) {
+        newErrors.videoDescription = 'Please write at least 30 characters';
+      }
       if (!formData.whyTeaching.trim()) newErrors.whyTeaching = 'Please tell us why you love teaching';
       else if (formData.whyTeaching.length < 50) {
         newErrors.whyTeaching = 'Please write at least 50 characters';
@@ -105,10 +147,11 @@ const SimpleTeacherForm = forwardRef<HTMLDivElement>((_, ref) => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.type !== 'application/pdf') {
+      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      if (!allowedTypes.includes(file.type)) {
         toast({
           title: 'Invalid file type',
-          description: 'Please upload a PDF file only.',
+          description: 'Please upload a PDF or Word document.',
           variant: 'destructive'
         });
         return;
@@ -133,12 +176,11 @@ const SimpleTeacherForm = forwardRef<HTMLDivElement>((_, ref) => {
     try {
       let cvUrl = null;
 
-      // Upload CV if provided
       if (formData.cvFile) {
         const fileExt = formData.cvFile.name.split('.').pop();
         const fileName = `${Date.now()}-${formData.email.replace(/[^a-z0-9]/gi, '_')}.${fileExt}`;
         
-        const { error: uploadError, data } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
           .from('teacher-applications')
           .upload(fileName, formData.cvFile);
 
@@ -151,7 +193,6 @@ const SimpleTeacherForm = forwardRef<HTMLDivElement>((_, ref) => {
         cvUrl = publicUrl;
       }
 
-      // Insert application
       const { error } = await supabase.from('teacher_applications').insert({
         first_name: formData.firstName,
         last_name: formData.lastName,
@@ -160,6 +201,10 @@ const SimpleTeacherForm = forwardRef<HTMLDivElement>((_, ref) => {
         teaching_experience_years: parseInt(formData.yearsExperience) || 0,
         esl_certification: formData.hasCertification ? 'Yes' : 'No',
         languages_spoken: [formData.primaryLanguage],
+        education: formData.education,
+        teaching_methodology: formData.teachingMethodology,
+        classroom_management: formData.classroomManagement,
+        video_description: formData.videoDescription,
         cover_letter: formData.whyTeaching,
         cv_url: cvUrl,
         status: 'new',
@@ -168,7 +213,6 @@ const SimpleTeacherForm = forwardRef<HTMLDivElement>((_, ref) => {
 
       if (error) throw error;
 
-      // Send "Application Received" confirmation email
       try {
         const applicationId = crypto.randomUUID();
         await supabase.functions.invoke('send-transactional-email', {
@@ -186,7 +230,6 @@ const SimpleTeacherForm = forwardRef<HTMLDivElement>((_, ref) => {
         console.log('Confirmation email could not be sent:', emailError);
       }
 
-      // Success!
       setIsSuccess(true);
       confetti({
         particleCount: 100,
@@ -246,6 +289,8 @@ const SimpleTeacherForm = forwardRef<HTMLDivElement>((_, ref) => {
     );
   }
 
+  const stepLabels = ['Basics', 'Experience', 'Methodology', 'About You', 'CV Upload'];
+
   return (
     <div ref={ref} id="application-form" className="py-24 bg-gradient-to-b from-slate-950 to-slate-900">
       <div className="container mx-auto px-6">
@@ -267,7 +312,7 @@ const SimpleTeacherForm = forwardRef<HTMLDivElement>((_, ref) => {
           {/* Progress Bar */}
           <div className="mb-8">
             <div className="flex justify-between text-sm text-white/60 mb-2">
-              <span>Step {currentStep} of {totalSteps}</span>
+              <span>Step {currentStep}: {stepLabels[currentStep - 1]}</span>
               <span>{Math.round((currentStep / totalSteps) * 100)}% Complete</span>
             </div>
             <div className="h-2 bg-white/10 rounded-full overflow-hidden">
@@ -350,7 +395,7 @@ const SimpleTeacherForm = forwardRef<HTMLDivElement>((_, ref) => {
                 </motion.div>
               )}
 
-              {/* Step 2: Experience */}
+              {/* Step 2: Experience & Education */}
               {currentStep === 2 && (
                 <motion.div
                   key="step2"
@@ -360,7 +405,7 @@ const SimpleTeacherForm = forwardRef<HTMLDivElement>((_, ref) => {
                   className="space-y-6"
                 >
                   <h3 className="text-xl font-display font-bold text-white mb-4">
-                    Your Experience
+                    Experience & Education
                   </h3>
 
                   <div>
@@ -376,6 +421,21 @@ const SimpleTeacherForm = forwardRef<HTMLDivElement>((_, ref) => {
                       placeholder="e.g., 5"
                     />
                     {errors.yearsExperience && <p className="text-red-400 text-sm mt-1">{errors.yearsExperience}</p>}
+                  </div>
+
+                  <div>
+                    <Label className="text-white/80">Education / Certification</Label>
+                    <Select value={formData.education} onValueChange={(v) => updateField('education', v)}>
+                      <SelectTrigger className="bg-white/5 border-white/10 text-white mt-1">
+                        <SelectValue placeholder="Select your highest qualification" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {educationLevels.map((level) => (
+                          <SelectItem key={level} value={level}>{level}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.education && <p className="text-red-400 text-sm mt-1">{errors.education}</p>}
                   </div>
 
                   <div className="flex items-center space-x-3">
@@ -406,10 +466,57 @@ const SimpleTeacherForm = forwardRef<HTMLDivElement>((_, ref) => {
                 </motion.div>
               )}
 
-              {/* Step 3: The Pitch */}
+              {/* Step 3: Teaching Methodology & Classroom Style */}
               {currentStep === 3 && (
                 <motion.div
                   key="step3"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="space-y-6"
+                >
+                  <h3 className="text-xl font-display font-bold text-white mb-4">
+                    Teaching Style
+                  </h3>
+
+                  <div>
+                    <Label className="text-white/80">Teaching Methodology</Label>
+                    <p className="text-white/40 text-sm mb-2">What approach best describes your teaching?</p>
+                    <Select value={formData.teachingMethodology} onValueChange={(v) => updateField('teachingMethodology', v)}>
+                      <SelectTrigger className="bg-white/5 border-white/10 text-white mt-1">
+                        <SelectValue placeholder="Select your methodology" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {methodologies.map((m) => (
+                          <SelectItem key={m} value={m}>{m}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.teachingMethodology && <p className="text-red-400 text-sm mt-1">{errors.teachingMethodology}</p>}
+                  </div>
+
+                  <div>
+                    <Label className="text-white/80">Classroom Management Style</Label>
+                    <p className="text-white/40 text-sm mb-2">How do you keep students engaged?</p>
+                    <Select value={formData.classroomManagement} onValueChange={(v) => updateField('classroomManagement', v)}>
+                      <SelectTrigger className="bg-white/5 border-white/10 text-white mt-1">
+                        <SelectValue placeholder="Select your style" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {classroomStyles.map((s) => (
+                          <SelectItem key={s} value={s}>{s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.classroomManagement && <p className="text-red-400 text-sm mt-1">{errors.classroomManagement}</p>}
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Step 4: Video & Motivation */}
+              {currentStep === 4 && (
+                <motion.div
+                  key="step4"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
@@ -420,6 +527,28 @@ const SimpleTeacherForm = forwardRef<HTMLDivElement>((_, ref) => {
                   </h3>
 
                   <div>
+                    <Label htmlFor="videoDescription" className="text-white/80">
+                      AI Video Pre-check: Describe Your Intro Video
+                    </Label>
+                    <p className="text-white/40 text-sm mb-2">
+                      We'll ask you to record a 60-second intro video. Describe what you'd cover (e.g., greeting style, teaching energy, topic preview).
+                    </p>
+                    <Textarea
+                      id="videoDescription"
+                      value={formData.videoDescription}
+                      onChange={(e) => updateField('videoDescription', e.target.value)}
+                      className="bg-white/5 border-white/10 text-white mt-1 min-h-[100px]"
+                      placeholder="I would introduce myself warmly, show my classroom setup, and demonstrate a quick vocabulary game..."
+                    />
+                    <div className="flex justify-between mt-1">
+                      {errors.videoDescription && <p className="text-red-400 text-sm">{errors.videoDescription}</p>}
+                      <p className="text-white/40 text-sm ml-auto">
+                        {formData.videoDescription.length} / 30 min
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
                     <Label htmlFor="whyTeaching" className="text-white/80">
                       Why do you love teaching?
                     </Label>
@@ -427,96 +556,115 @@ const SimpleTeacherForm = forwardRef<HTMLDivElement>((_, ref) => {
                       id="whyTeaching"
                       value={formData.whyTeaching}
                       onChange={(e) => updateField('whyTeaching', e.target.value)}
-                      className="bg-white/5 border-white/10 text-white mt-1 min-h-[150px]"
+                      className="bg-white/5 border-white/10 text-white mt-1 min-h-[120px]"
                       placeholder="Share your passion for teaching and what makes you a great educator..."
                     />
                     <div className="flex justify-between mt-1">
                       {errors.whyTeaching && <p className="text-red-400 text-sm">{errors.whyTeaching}</p>}
                       <p className="text-white/40 text-sm ml-auto">
-                        {formData.whyTeaching.length} / 50 min characters
+                        {formData.whyTeaching.length} / 50 min
                       </p>
                     </div>
                   </div>
                 </motion.div>
               )}
 
-              {/* Step 4: Upload */}
-              {currentStep === 4 && (
+              {/* Step 5: CV Upload */}
+              {currentStep === 5 && (
                 <motion.div
-                  key="step4"
+                  key="step5"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   className="space-y-6"
                 >
                   <h3 className="text-xl font-display font-bold text-white mb-4">
-                    Upload Your Resume
+                    Upload Your CV / Resume
                   </h3>
 
                   <div className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center hover:border-white/40 transition-colors">
                     <input
                       type="file"
-                      accept=".pdf"
+                      id="cvUpload"
+                      accept=".pdf,.doc,.docx"
                       onChange={handleFileChange}
                       className="hidden"
-                      id="cv-upload"
                     />
-                    <label htmlFor="cv-upload" className="cursor-pointer">
-                      <Upload className="w-12 h-12 text-white/40 mx-auto mb-4" />
-                      {formData.cvFile ? (
-                        <div>
+
+                    {formData.cvFile ? (
+                      <div className="flex items-center justify-center gap-3">
+                        <FileText className="w-8 h-8 text-emerald-400" />
+                        <div className="text-left">
                           <p className="text-white font-medium">{formData.cvFile.name}</p>
-                          <p className="text-white/60 text-sm mt-1">Click to change file</p>
+                          <p className="text-white/50 text-sm">
+                            {(formData.cvFile.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
                         </div>
-                      ) : (
-                        <div>
-                          <p className="text-white/80">Click to upload your CV/Resume</p>
-                          <p className="text-white/40 text-sm mt-1">PDF only, max 10MB (optional)</p>
-                        </div>
-                      )}
-                    </label>
+                        <button
+                          onClick={() => updateField('cvFile', null)}
+                          className="ml-4 p-1 rounded-full hover:bg-white/10 transition-colors"
+                        >
+                          <X className="w-5 h-5 text-white/60" />
+                        </button>
+                      </div>
+                    ) : (
+                      <label htmlFor="cvUpload" className="cursor-pointer">
+                        <Upload className="w-12 h-12 text-white/40 mx-auto mb-4" />
+                        <p className="text-white/70 mb-2">
+                          Click to upload your CV
+                        </p>
+                        <p className="text-white/40 text-sm">
+                          PDF or Word document, max 10MB
+                        </p>
+                      </label>
+                    )}
                   </div>
 
-                  <p className="text-white/50 text-sm text-center">
-                    Don't have your CV ready? No problem! You can submit it later.
+                  <p className="text-white/40 text-sm text-center">
+                    CV upload is optional but highly recommended
                   </p>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {/* Navigation Buttons */}
+            {/* Navigation */}
             <div className="flex justify-between mt-8 pt-6 border-t border-white/10">
-              <button
-                onClick={handleBack}
-                disabled={currentStep === 1}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                  currentStep === 1
-                    ? 'text-white/30 cursor-not-allowed'
-                    : 'text-white/70 hover:text-white hover:bg-white/10'
-                }`}
-              >
-                <ChevronLeft className="w-5 h-5" />
-                Back
-              </button>
+              {currentStep > 1 ? (
+                <GlassButton
+                  onClick={handleBack}
+                  className="bg-white/5 hover:bg-white/10"
+                >
+                  <ChevronLeft className="w-4 h-4 mr-2" />
+                  Back
+                </GlassButton>
+              ) : (
+                <div />
+              )}
 
               {currentStep < totalSteps ? (
-                <GlassButton onClick={handleNext} className="bg-violet-500 hover:bg-violet-600">
+                <GlassButton
+                  onClick={handleNext}
+                  className="bg-gradient-to-r from-violet-600 to-emerald-600 hover:from-violet-500 hover:to-emerald-500"
+                >
                   Next
-                  <ChevronRight className="w-5 h-5 ml-1" />
+                  <ChevronRight className="w-4 h-4 ml-2" />
                 </GlassButton>
               ) : (
                 <GlassButton
                   onClick={handleSubmit}
                   disabled={isSubmitting}
-                  className="bg-gradient-to-r from-violet-500 to-emerald-500 hover:from-violet-600 hover:to-emerald-600"
+                  className="bg-gradient-to-r from-violet-600 to-emerald-600 hover:from-violet-500 hover:to-emerald-500"
                 >
                   {isSubmitting ? (
                     <>
-                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                       Submitting...
                     </>
                   ) : (
-                    'Submit Application'
+                    <>
+                      Submit Application
+                      <CheckCircle className="w-4 h-4 ml-2" />
+                    </>
                   )}
                 </GlassButton>
               )}
