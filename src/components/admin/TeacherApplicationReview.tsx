@@ -187,6 +187,14 @@ The EnglEuphoria Hiring Team`,
     
     setActionLoading(true);
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      const adminId = userData.user?.id;
+      if (!adminId) {
+        toast.error('You must be logged in to schedule interviews');
+        setActionLoading(false);
+        return;
+      }
+
       const ageGroup = selectedApplication.preferred_age_groups?.[0] || 'adults';
       const hubType = ageGroup === 'kids' ? 'Playground' :
                       ageGroup === 'teens' ? 'Academy' : 'Professional';
@@ -196,16 +204,19 @@ The EnglEuphoria Hiring Team`,
         .from('interviews')
         .insert({
           application_id: selectedApplication.id,
-          admin_id: (await supabase.auth.getUser()).data.user?.id,
+          admin_id: adminId,
           teacher_email: selectedApplication.email,
           teacher_name: getDisplayName(selectedApplication),
-          scheduled_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(), // Default 48h from now
+          scheduled_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
           hub_type: hubType,
         })
         .select('room_token')
         .single();
 
-      if (interviewError) throw interviewError;
+      if (interviewError) {
+        console.error('Interview insert error:', interviewError);
+        throw interviewError;
+      }
 
       const interviewUrl = `${window.location.origin}/interview/${interviewData.room_token}`;
       const meetingLink = emailTemplate.useInternalRoom ? interviewUrl : emailTemplate.meetingLink;
@@ -555,16 +566,49 @@ The EnglEuphoria Hiring Team`,
                       <FileDown className="h-4 w-4" />
                       Curriculum Vitae
                     </h4>
-                    <a
-                      href={selectedApplication.cv_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          // Extract the storage path from the public URL
+                          const url = selectedApplication.cv_url!;
+                          const pathMatch = url.match(/\/object\/public\/teacher-applications\/(.+)$/);
+                          if (pathMatch) {
+                            const { data, error } = await supabase.storage
+                              .from('teacher-applications')
+                              .download(pathMatch[1]);
+                            if (error) throw error;
+                            const blobUrl = URL.createObjectURL(data);
+                            const a = document.createElement('a');
+                            a.href = blobUrl;
+                            a.download = pathMatch[1].split('/').pop() || 'cv';
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(blobUrl);
+                          } else {
+                            // Fallback: fetch directly
+                            const res = await fetch(url);
+                            const blob = await res.blob();
+                            const blobUrl = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = blobUrl;
+                            a.download = 'cv';
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(blobUrl);
+                          }
+                        } catch (err) {
+                          console.error('CV download error:', err);
+                          toast.error('Failed to download CV');
+                        }
+                      }}
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-sm font-medium"
                     >
                       <FileDown className="h-4 w-4" />
                       Download CV
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
+                    </button>
                   </div>
                 )}
                 {selectedApplication.teaching_philosophy && (
