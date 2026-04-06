@@ -56,7 +56,7 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
   const fetchSlots = useCallback(async () => {
     setLoadingSlots(true);
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('teacher_availability')
         .select(`
           id,
@@ -65,13 +65,29 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
           end_time,
           duration,
           is_available,
-          is_booked
+          is_booked,
+          hub_specialty
         `)
         .eq('is_available', true)
         .eq('is_booked', false)
         .gt('start_time', new Date().toISOString())
         .order('start_time', { ascending: true })
         .limit(60);
+
+      // Filter by hub if student has a level
+      if (studentLevel) {
+        const hubMap: Record<string, string> = {
+          playground: 'Playground',
+          academy: 'Academy',
+          professional: 'Professional',
+        };
+        const hubValue = hubMap[studentLevel];
+        if (hubValue) {
+          query = query.or(`hub_specialty.eq.${hubValue},hub_specialty.is.null`);
+        }
+      }
+
+      const { data, error } = await query;
 
       if (error) throw error;
 
@@ -102,7 +118,7 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
     } finally {
       setLoadingSlots(false);
     }
-  }, []);
+  }, [studentLevel]);
 
   useEffect(() => {
     if (isOpen) {
