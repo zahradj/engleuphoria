@@ -46,6 +46,13 @@ const classroomStyles = [
   'Other'
 ];
 
+const ageGroups = [
+  { value: 'kids', label: 'Kids (4–12)' },
+  { value: 'teens', label: 'Teens (13–17)' },
+  { value: 'adults', label: 'Adults (18+)' },
+  { value: 'all', label: 'All Ages' },
+];
+
 interface FormData {
   firstName: string;
   lastName: string;
@@ -55,6 +62,7 @@ interface FormData {
   hasCertification: boolean;
   primaryLanguage: string;
   education: string;
+  preferredAgeGroup: string;
   teachingMethodology: string;
   classroomManagement: string;
   videoDescription: string;
@@ -71,6 +79,7 @@ const initialFormData: FormData = {
   hasCertification: false,
   primaryLanguage: '',
   education: '',
+  preferredAgeGroup: '',
   teachingMethodology: '',
   classroomManagement: '',
   videoDescription: '',
