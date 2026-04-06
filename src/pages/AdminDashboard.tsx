@@ -6,6 +6,7 @@ import { AdminOverview } from '@/components/admin/AdminOverview';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { TeacherManagement } from '@/components/admin/TeacherManagement';
 import { TeacherApplicationReview } from '@/components/admin/TeacherApplicationReview';
+import { InterviewManagement } from '@/components/admin/InterviewManagement';
 import { StudentManagement } from '@/components/admin/StudentManagement';
 import { AnalyticsDashboard } from '@/components/admin/AnalyticsDashboard';
 import { ScheduleManager } from '@/components/admin/ScheduleManager';
@@ -59,6 +60,8 @@ const AdminDashboard = () => {
         return <TeacherManagement />;
       case 'teacher-applications':
         return <TeacherApplicationReview />;
+      case 'interviews':
+        return <InterviewManagement />;
       case 'students':
         return <StudentManagement />;
       case 'analytics':
