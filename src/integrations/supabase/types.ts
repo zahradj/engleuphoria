@@ -7598,6 +7598,7 @@ export type Database = {
           languages_spoken: string[] | null
           last_contact_date: string | null
           last_name: string
+          motivation: string | null
           nationality: string | null
           phone: string | null
           portfolio_url: string | null
@@ -7645,6 +7646,7 @@ export type Database = {
           languages_spoken?: string[] | null
           last_contact_date?: string | null
           last_name: string
+          motivation?: string | null
           nationality?: string | null
           phone?: string | null
           portfolio_url?: string | null
@@ -7692,6 +7694,7 @@ export type Database = {
           languages_spoken?: string[] | null
           last_contact_date?: string | null
           last_name?: string
+          motivation?: string | null
           nationality?: string | null
           phone?: string | null
           portfolio_url?: string | null
