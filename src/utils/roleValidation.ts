@@ -12,20 +12,22 @@ import { supabase } from '@/lib/supabase';
  */
 export async function validateUserRole(userId: string): Promise<string | null> {
   try {
-    // First check user_roles table (most secure)
-    const { data: userRole, error } = await supabase
+    // Fetch all roles for user (a user may have multiple roles)
+    const ROLE_PRIORITY = ['admin', 'content_creator', 'teacher', 'student'];
+    const { data: userRoles, error } = await supabase
       .from('user_roles')
       .select('role')
-      .eq('user_id', userId)
-      .maybeSingle();
+      .eq('user_id', userId);
 
     if (error) {
       console.error('Error validating user role:', error);
       return null;
     }
 
-    if (userRole?.role) {
-      return userRole.role;
+    if (userRoles && userRoles.length > 0) {
+      // Return highest-priority role
+      const roles = userRoles.map(r => r.role);
+      return ROLE_PRIORITY.find(r => roles.includes(r)) || roles[0];
     }
 
     // Fallback to users table if user_roles doesn't have entry
