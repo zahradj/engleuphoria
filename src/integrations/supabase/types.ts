@@ -3631,6 +3631,65 @@ export type Database = {
         }
         Relationships: []
       }
+      interviews: {
+        Row: {
+          admin_id: string
+          admin_notes: string | null
+          application_id: string
+          checklist: Json | null
+          created_at: string | null
+          duration_minutes: number | null
+          hub_type: string | null
+          id: string
+          room_token: string
+          scheduled_at: string
+          status: string | null
+          teacher_email: string
+          teacher_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          admin_id: string
+          admin_notes?: string | null
+          application_id: string
+          checklist?: Json | null
+          created_at?: string | null
+          duration_minutes?: number | null
+          hub_type?: string | null
+          id?: string
+          room_token?: string
+          scheduled_at: string
+          status?: string | null
+          teacher_email: string
+          teacher_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          admin_id?: string
+          admin_notes?: string | null
+          application_id?: string
+          checklist?: Json | null
+          created_at?: string | null
+          duration_minutes?: number | null
+          hub_type?: string | null
+          id?: string
+          room_token?: string
+          scheduled_at?: string
+          status?: string | null
+          teacher_email?: string
+          teacher_name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interviews_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "teacher_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       iron_curriculums: {
         Row: {
           cefr_level: string
