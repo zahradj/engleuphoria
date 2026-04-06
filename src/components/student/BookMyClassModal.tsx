@@ -178,6 +178,18 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
         .select('session_id, meeting_link')
         .single();
 
+      // Also insert into appointments table (the handshake record)
+      await supabase.from('appointments').insert({
+        student_id: user.id,
+        teacher_id: slot.teacherId,
+        availability_id: slot.id,
+        status: 'confirmed',
+        hub_type: studentLevel ? studentLevel.charAt(0).toUpperCase() + studentLevel.slice(1) : null,
+        scheduled_at: slot.startTime.toISOString(),
+        duration: slot.duration,
+        meeting_link: bookingData?.meeting_link || null,
+      });
+
       if (bookingError) {
         console.error('Booking insert failed:', bookingError);
         await supabase
