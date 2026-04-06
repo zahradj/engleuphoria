@@ -69,26 +69,14 @@ const AdminDashboard = () => {
         return <StudentManagement />;
       case 'analytics':
         return <AnalyticsDashboard />;
-      case 'curriculum':
-        return <CurriculumBuilder />;
       case 'schedule':
         return <ScheduleManager />;
       case 'payments':
         return <PaymentsPanel />;
       case 'settings':
         return <SettingsPanel />;
-      case 'ai-tools':
-        return <AIToolsDashboard />;
       case 'super-control':
         return <SuperAdminControlCenter />;
-      case 'ai-generator':
-        return <NewLibrary onNavigate={handleTabChange} />;
-      case 'curriculum-library':
-        return <CurriculumLibrary />;
-      case 'curriculum-progress':
-        return <CurriculumProgressDashboard />;
-      case 'curriculum-export':
-        return <CurriculumExportDashboard />;
       case 'communications':
         return <AdminBroadcastCenter />;
       default:
