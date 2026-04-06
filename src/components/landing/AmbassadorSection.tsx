@@ -65,7 +65,7 @@ export const AmbassadorSection: React.FC = () => {
         </div>
 
         {/* CTA */}
-        <Link to={user ? '/student-dashboard' : '/signup'}>
+        <Link to={user ? '/student-dashboard' : '/student-signup'}>
           <Button
             size="lg"
             className="bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-500 hover:to-cyan-500 text-white px-8 py-6 text-lg font-semibold rounded-xl shadow-lg shadow-violet-500/25 transition-all hover:shadow-violet-500/40 gap-2"

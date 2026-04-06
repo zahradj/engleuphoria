@@ -188,7 +188,7 @@ const TeacherSignUp = () => {
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50">
       <div className="container mx-auto px-4 py-8">
         <div className="w-full max-w-md mx-auto">
-          <BackNavigation to="/signup" label="Back to Sign Up Options" className="mb-4" />
+          <BackNavigation to="/" label="Back to Home" className="mb-4" />
           
           <ProgressIndicator 
             currentStep={1} 
