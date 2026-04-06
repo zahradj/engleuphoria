@@ -8158,6 +8158,7 @@ export type Database = {
           video_rejection_reason: string | null
           video_status: string | null
           video_url: string | null
+          welcome_shown: boolean
           years_experience: number | null
         }
         Insert: {
@@ -8186,6 +8187,7 @@ export type Database = {
           video_rejection_reason?: string | null
           video_status?: string | null
           video_url?: string | null
+          welcome_shown?: boolean
           years_experience?: number | null
         }
         Update: {
@@ -8214,6 +8216,7 @@ export type Database = {
           video_rejection_reason?: string | null
           video_status?: string | null
           video_url?: string | null
+          welcome_shown?: boolean
           years_experience?: number | null
         }
         Relationships: [
