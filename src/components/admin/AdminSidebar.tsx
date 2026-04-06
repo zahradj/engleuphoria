@@ -11,14 +11,8 @@ import {
   CreditCard, 
   Settings,
   LogOut,
-  BookOpen,
   Calendar,
   GraduationCap,
-  Brain,
-  Wand2,
-  Library,
-  PieChart,
-  Package,
   Radio
 } from "lucide-react";
 
