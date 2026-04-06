@@ -114,17 +114,28 @@ export const TeacherApplicationsManagement = () => {
 
   const sendEmail = async (type: 'approval' | 'rejection' | 'interview_invite', application: TeacherApplication, interviewDate?: Date, interviewTime?: string, rejectionReason?: string) => {
     try {
-      const emailData = {
-        type,
-        teacherName: application.full_name,
-        teacherEmail: application.email,
-        interviewDate: interviewDate ? format(interviewDate, 'EEEE, MMMM do, yyyy') : undefined,
-        interviewTime,
-        rejectionReason
-      };
+      let templateName = '';
+      let templateData: Record<string, any> = { name: application.full_name };
 
-      const { error } = await supabase.functions.invoke('send-teacher-emails', {
-        body: emailData
+      if (type === 'approval') {
+        templateName = 'final-welcome';
+        templateData.hubType = application.target_age_group || 'General';
+      } else if (type === 'rejection') {
+        templateName = 'application-rejected';
+        templateData.reason = rejectionReason;
+      } else if (type === 'interview_invite') {
+        templateName = 'interview-invitation';
+        templateData.interviewDate = interviewDate ? format(interviewDate, 'EEEE, MMMM do, yyyy') : undefined;
+        templateData.interviewTime = interviewTime;
+      }
+
+      const { error } = await supabase.functions.invoke('send-transactional-email', {
+        body: {
+          templateName,
+          recipientEmail: application.email,
+          idempotencyKey: `${templateName}-${application.id}`,
+          templateData,
+        }
       });
 
       if (error) throw error;

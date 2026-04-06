@@ -145,18 +145,7 @@ const InterviewRoom = () => {
         .eq('id', interview.application_id);
       if (error) throw error;
 
-      // Update teacher profile to active
-      await supabase
-        .from('teacher_profiles')
-        .update({
-          can_teach: true,
-          is_available: true,
-          profile_approved_by_admin: true,
-          welcome_shown: false,
-        })
-        .eq('user_id', interview.admin_id); // We need the teacher's user_id
-
-      // Try to get teacher user_id from application
+      // Get teacher user_id from application and update their profile
       const { data: appData } = await supabase
         .from('teacher_applications')
         .select('user_id')

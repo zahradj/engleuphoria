@@ -71,12 +71,12 @@ export const VideoReviewPanel: React.FC<VideoReviewPanelProps> = ({
 
       // Send rejection email
       try {
-        await supabase.functions.invoke('send-teacher-emails', {
+        await supabase.functions.invoke('send-transactional-email', {
           body: {
-            type: 'video_rejection',
-            teacherName,
-            teacherEmail,
-            rejectionReason: fullReason,
+            templateName: 'video-rejected',
+            recipientEmail: teacherEmail,
+            idempotencyKey: `video-rejected-${teacherProfileId}-${Date.now()}`,
+            templateData: { name: teacherName, reason: fullReason },
           }
         });
       } catch (emailErr) {
@@ -118,11 +118,12 @@ export const VideoReviewPanel: React.FC<VideoReviewPanelProps> = ({
 
       // Send approval email
       try {
-        await supabase.functions.invoke('send-teacher-emails', {
+        await supabase.functions.invoke('send-transactional-email', {
           body: {
-            type: 'video_approved',
-            teacherName,
-            teacherEmail,
+            templateName: 'video-approved',
+            recipientEmail: teacherEmail,
+            idempotencyKey: `video-approved-${teacherProfileId}`,
+            templateData: { name: teacherName },
           }
         });
       } catch (emailErr) {
