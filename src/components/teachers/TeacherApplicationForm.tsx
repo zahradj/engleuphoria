@@ -87,6 +87,15 @@ const TeacherApplicationForm = () => {
       const firstName = nameParts[0] || '';
       const lastName = nameParts.slice(1).join(' ') || '';
 
+      // Parse experience text into years (extract first number found, default 0)
+      const yearsMatch = formData.experience.match(/\d+/);
+      const experienceYears = yearsMatch ? parseInt(yearsMatch[0], 10) : 0;
+
+      // Convert certifications comma-separated string into text[]
+      const certificationsArray = formData.certifications
+        ? formData.certifications.split(',').map(c => c.trim()).filter(Boolean)
+        : null;
+
       const { error: insertError } = await supabase
         .from('teacher_applications')
         .insert({
@@ -95,11 +104,13 @@ const TeacherApplicationForm = () => {
           email: formData.email,
           phone: formData.phone || null,
           nationality: formData.country,
-          teaching_experience: formData.experience,
-          certifications: formData.certifications || null,
+          teaching_experience_years: experienceYears,
+          certifications: certificationsArray,
           motivation: formData.motivation,
+          cover_letter: formData.experience,
           cv_url: cvUrl,
           current_stage: 'application_submitted',
+          status: 'pending',
         });
 
       if (insertError) throw insertError;
