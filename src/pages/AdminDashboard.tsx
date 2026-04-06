@@ -14,8 +14,6 @@ import { SettingsPanel } from '@/components/admin/SettingsPanel';
 import { SuperAdminControlCenter } from '@/components/admin/SuperAdminControlCenter';
 import { AdminBroadcastCenter } from '@/components/admin/AdminBroadcastCenter';
 import { ScrollHeader } from '@/components/navigation/ScrollHeader';
-import { AdminBroadcastCenter } from '@/components/admin/AdminBroadcastCenter';
-import { ScrollHeader } from '@/components/navigation/ScrollHeader';
 import { Loader2, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
