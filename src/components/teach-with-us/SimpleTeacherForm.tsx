@@ -214,6 +214,9 @@ const SimpleTeacherForm = forwardRef<HTMLDivElement>((_, ref) => {
         education: formData.education,
         teaching_methodology: formData.teachingMethodology,
         classroom_management: formData.classroomManagement,
+        preferred_age_groups: formData.preferredAgeGroup === 'all' 
+          ? ['kids', 'teens', 'adults'] 
+          : [formData.preferredAgeGroup],
         video_description: formData.videoDescription,
         cover_letter: formData.whyTeaching,
         cv_url: cvUrl,
