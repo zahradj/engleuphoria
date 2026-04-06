@@ -37,27 +37,29 @@ interface TeacherApplication {
   email: string;
   first_name: string;
   last_name: string;
-  nationality: string;
-  time_zone: string;
-  phone: string;
-  bio: string;
-  education_level: string;
-  education: string;
-  teaching_experience_years: number;
-  esl_certification: string;
-  teaching_philosophy: string;
-  teaching_methodology: string;
-  classroom_management: string;
-  target_age_group: string;
-  video_url: string;
-  video_description: string;
+  nationality: string | null;
+  phone: string | null;
+  bio: string | null;
+  education: string | null;
+  teaching_experience_years: number | null;
+  esl_certification: string | null;
+  teaching_philosophy: string | null;
+  teaching_methodology: string | null;
+  classroom_management: string | null;
+  video_description: string | null;
+  preferred_age_groups: string[] | null;
   professional_photo_url?: string;
-  cv_url?: string;
+  cv_url?: string | null;
   current_stage: string;
   status: string;
   created_at: string;
   updated_at: string;
-  availability: string;
+  availability: string | null;
+  cover_letter: string | null;
+  motivation: string | null;
+  certifications: string[] | null;
+  languages_spoken: string[] | null;
+  video_url?: string;
 }
 
 interface InterviewEmailTemplate {
@@ -86,8 +88,10 @@ const ageGroupLabels: Record<string, string> = {
   'all': '🌟 All Ages',
 };
 
-const getDisplayName = (app: TeacherApplication) => 
-  `${app.first_name || ''} ${app.last_name || ''}`.trim() || 'Unknown';
+const getDisplayName = (app: TeacherApplication | null) => {
+  if (!app) return 'Unknown';
+  return `${app.first_name || ''} ${app.last_name || ''}`.trim() || 'Unknown';
+};
 
 export const TeacherApplicationReview: React.FC = () => {
   const [applications, setApplications] = useState<TeacherApplication[]>([]);
@@ -810,7 +814,7 @@ const ApplicationGrid: React.FC<ApplicationGridProps> = ({
               </div>
               <div className="flex items-center gap-2">
                 <User className="h-4 w-4 text-muted-foreground" />
-                <span>{ageGroupLabels[application.target_age_group] || application.target_age_group || 'Not specified'}</span>
+                <span>{application.preferred_age_groups?.length ? application.preferred_age_groups.map(g => ageGroupLabels[g] || g).join(', ') : 'Not specified'}</span>
               </div>
               {application.video_url && (
                 <div className="flex items-center gap-2 text-primary">
