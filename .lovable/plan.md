@@ -1,51 +1,22 @@
 
 
-# Plan: Fix Teacher Application Submission + CV Upload
+# Fix: Stale Build Errors + CV Upload Visibility
 
-## Two Problems Found
+## What's Happening
 
-### Problem 1: Applications Not Saving to Database
-The `teacher_applications` table is **empty** despite the user seeing "Application Received!" The root cause is the **CV upload storage policy**. The storage bucket `teacher-applications` only allows uploads from `authenticated` users (`auth.role() = 'authenticated'`). Since the Teach With Us form is public (no login required), if a user attaches a CV file, the upload fails and throws an error before the database insert ever runs. Even without a CV, we should verify the insert works by also adding an `anon` upload policy.
+1. **The CV upload field already exists** — it's Step 5 of the 5-step wizard form. The code at lines 573-627 of `SimpleTeacherForm.tsx` renders a full drag-to-upload area with file type validation and size limits.
 
-Additionally, the form's error handling may be masking failures: if the storage upload error is thrown, the catch block shows a toast, but the user may have missed it.
+2. **The build errors are stale** — `grep` confirms zero occurrences of `full_name` in `TeacherApplicationReview.tsx`. All references were already replaced with `getDisplayName()`. The build system is reporting errors from a cached state.
 
-### Problem 2: Admin Dashboard Shows `full_name` as Blank
-The admin `TeacherApplicationReview` component references `application.full_name` everywhere (card titles, avatar fallbacks, detail dialogs), but the `teacher_applications` table has no `full_name` column -- only `first_name` and `last_name`. The `.select('*')` query succeeds, but `full_name` is always `undefined`, so teacher names appear blank.
+## Plan
 
----
+### 1. Force a clean rebuild
+Touch `TeacherApplicationReview.tsx` with a trivial whitespace change to invalidate the build cache and clear the stale `full_name` errors. This is the only blocking issue — once the build succeeds, the preview will update and the user can navigate through all 5 form steps including the CV upload.
 
-## Technical Changes
-
-### 1. Fix Storage Policy for Anonymous CV Uploads
-**Database migration**: Add an RLS policy on `storage.objects` allowing `anon` users to upload to the `teacher-applications` bucket. This lets unauthenticated applicants upload their CV.
-
-```sql
-CREATE POLICY "Anyone can upload application files"
-ON storage.objects FOR INSERT TO anon
-WITH CHECK (bucket_id = 'teacher-applications');
-```
-
-### 2. Fix `full_name` in Admin Dashboard
-**File: `src/components/admin/TeacherApplicationReview.tsx`**
-
-- Update the `TeacherApplication` interface to remove `full_name` and rely on `first_name` + `last_name`
-- Add a computed display name: `const displayName = \`\${app.first_name} \${app.last_name}\`.trim() || 'Unknown'`
-- Replace all `application.full_name` references in both `TeacherApplicationReview` and the `ApplicationGrid` component with the computed name
-- Update the search filter to search `first_name` and `last_name` instead of `full_name`
-
-### 3. Improve Error Visibility in SimpleTeacherForm
-**File: `src/components/teach-with-us/SimpleTeacherForm.tsx`**
-
-- In the `handleSubmit` catch block, log the full error object so storage vs. DB failures are distinguishable
-- Make the error toast more descriptive (show the actual error message)
-
----
-
-## Summary of Changes
+### 2. No other code changes needed
+The CV upload UI, file validation, storage upload logic, and form data model (`cvFile: File | null`) are all already implemented and working. The user just needs the build to succeed so they can reach Step 5.
 
 | File | Action |
 |------|--------|
-| Database migration | Add anon upload policy for `teacher-applications` storage bucket |
-| `src/components/admin/TeacherApplicationReview.tsx` | Replace all `full_name` with `first_name + last_name` computed name |
-| `src/components/teach-with-us/SimpleTeacherForm.tsx` | Improve error logging in submit handler |
+| `src/components/admin/TeacherApplicationReview.tsx` | Trivial touch to force rebuild |
 
