@@ -34,7 +34,6 @@ import { cn } from "@/lib/utils";
 interface TeacherApplication {
   id: string;
   email: string;
-  full_name: string;
   first_name: string;
   last_name: string;
   nationality: string;
@@ -85,6 +84,9 @@ const ageGroupLabels: Record<string, string> = {
   'all': '🌟 All Ages',
 };
 
+const getDisplayName = (app: TeacherApplication) => 
+  `${app.first_name || ''} ${app.last_name || ''}`.trim() || 'Unknown';
+
 export const TeacherApplicationReview: React.FC = () => {
   const [applications, setApplications] = useState<TeacherApplication[]>([]);
   const [filteredApplications, setFilteredApplications] = useState<TeacherApplication[]>([]);
@@ -134,7 +136,7 @@ export const TeacherApplicationReview: React.FC = () => {
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(app => 
-        app.full_name?.toLowerCase().includes(term) ||
+        getDisplayName(app)?.toLowerCase().includes(term) ||
         app.email?.toLowerCase().includes(term) ||
         app.nationality?.toLowerCase().includes(term)
       );
@@ -150,7 +152,7 @@ export const TeacherApplicationReview: React.FC = () => {
   const handleApproveForInterview = async (application: TeacherApplication) => {
     setEmailTemplate({
       subject: `Interview Invitation - EnglEuphoria Teaching Position`,
-      body: `Dear ${application.first_name || application.full_name?.split(' ')[0]},
+      body: `Dear ${application.first_name || getDisplayName(application)?.split(' ')[0]},
 
 Thank you for your interest in joining EnglEuphoria as an ESL teacher!
 
@@ -189,7 +191,7 @@ The EnglEuphoria Hiring Team`,
           application_id: selectedApplication.id,
           admin_id: (await supabase.auth.getUser()).data.user?.id,
           teacher_email: selectedApplication.email,
-          teacher_name: selectedApplication.full_name,
+          teacher_name: getDisplayName(selectedApplication),
           scheduled_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(), // Default 48h from now
           hub_type: hubType,
         })
@@ -220,7 +222,7 @@ The EnglEuphoria Hiring Team`,
             recipientEmail: selectedApplication.email,
             idempotencyKey: `interview-invite-${selectedApplication.id}`,
             templateData: {
-              name: selectedApplication.first_name || selectedApplication.full_name?.split(' ')[0],
+              name: selectedApplication.first_name || getDisplayName(selectedApplication)?.split(' ')[0],
               hubType,
               meetingLink,
             },
@@ -231,7 +233,7 @@ The EnglEuphoria Hiring Team`,
       }
 
       toast.success('Interview Scheduled & Invitation Sent! 📨', {
-        description: `${selectedApplication.full_name} has been invited. Internal room created.`,
+        description: `${getDisplayName(selectedApplication)} has been invited. Internal room created.`,
         duration: 5000,
       });
 
@@ -263,10 +265,10 @@ The EnglEuphoria Hiring Team`,
       if (error) throw error;
 
       // Send rejection notification (mock for now)
-      console.log('Rejection processed for:', selectedApplication.full_name);
+      console.log('Rejection processed for:', getDisplayName(selectedApplication));
 
       toast.success('Application Rejected', {
-        description: `${selectedApplication.full_name} has been notified.`,
+        description: `${getDisplayName(selectedApplication)} has been notified.`,
       });
 
       setShowRejectDialog(false);
@@ -308,7 +310,7 @@ The EnglEuphoria Hiring Team`,
       }
 
       toast.success('Teacher Approved! 🎉', {
-        description: `${application.full_name} is now an active teacher and can receive bookings.`,
+        description: `${getDisplayName(application)} is now an active teacher and can receive bookings.`,
         duration: 5000,
       });
 
@@ -468,11 +470,11 @@ The EnglEuphoria Hiring Team`,
                   <Avatar className="h-16 w-16">
                     <AvatarImage src={selectedApplication.professional_photo_url} />
                     <AvatarFallback className="bg-primary text-primary-foreground text-xl">
-                      {selectedApplication.full_name?.charAt(0) || 'T'}
+                      {getDisplayName(selectedApplication)?.charAt(0) || 'T'}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <DialogTitle className="text-2xl">{selectedApplication.full_name}</DialogTitle>
+                    <DialogTitle className="text-2xl">{getDisplayName(selectedApplication)}</DialogTitle>
                     <DialogDescription className="flex items-center gap-4 mt-1">
                       <span className="flex items-center gap-1">
                         <Mail className="h-4 w-4" />
@@ -555,7 +557,7 @@ The EnglEuphoria Hiring Team`,
                   <VideoReviewPanel
                     teacherProfileId={selectedApplication.id}
                     teacherUserId={selectedApplication.id}
-                    teacherName={selectedApplication.full_name}
+                    teacherName={getDisplayName(selectedApplication)}
                     teacherEmail={selectedApplication.email}
                     videoUrl={selectedApplication.video_url}
                     videoStatus={(selectedApplication as any).video_status || 'pending'}
@@ -629,7 +631,7 @@ The EnglEuphoria Hiring Team`,
           <DialogHeader>
             <DialogTitle>Reject Application</DialogTitle>
             <DialogDescription>
-              Please provide a reason for rejecting {selectedApplication?.full_name}'s application.
+              Please provide a reason for rejecting {getDisplayName(selectedApplication!)}'s application.
             </DialogDescription>
           </DialogHeader>
           <Textarea
@@ -667,7 +669,7 @@ The EnglEuphoria Hiring Team`,
               Send Interview Invitation
             </DialogTitle>
             <DialogDescription>
-              Review and customize the interview invitation email for {selectedApplication?.full_name}
+              Review and customize the interview invitation email for {getDisplayName(selectedApplication!)}
             </DialogDescription>
           </DialogHeader>
           
@@ -766,11 +768,11 @@ const ApplicationGrid: React.FC<ApplicationGridProps> = ({
                 <Avatar className="h-12 w-12">
                   <AvatarImage src={application.professional_photo_url} />
                   <AvatarFallback className="bg-primary/10 text-primary">
-                    {application.full_name?.charAt(0) || 'T'}
+                    {getDisplayName(application)?.charAt(0) || 'T'}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <CardTitle className="text-lg">{application.full_name}</CardTitle>
+                  <CardTitle className="text-lg">{getDisplayName(application)}</CardTitle>
                   <CardDescription className="text-sm">{application.email}</CardDescription>
                 </div>
               </div>

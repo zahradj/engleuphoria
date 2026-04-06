@@ -238,10 +238,11 @@ const SimpleTeacherForm = forwardRef<HTMLDivElement>((_, ref) => {
       });
 
     } catch (error: unknown) {
-      console.error('Application error:', error);
+      const errMsg = error instanceof Error ? error.message : String(error);
+      console.error('Application submission error:', { error, message: errMsg });
       toast({
         title: 'Application Failed',
-        description: 'There was an error submitting your application. Please try again.',
+        description: errMsg || 'There was an error submitting your application. Please try again.',
         variant: 'destructive'
       });
     } finally {
