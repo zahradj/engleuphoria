@@ -1,90 +1,51 @@
 
 
-# Plan: Finalize Post-Interview Approval & First Login Welcome
+# Plan: Fix Teacher Application Submission + CV Upload
 
-## What We're Building
+## Two Problems Found
 
-Three interconnected pieces to complete the teacher hiring pipeline:
+### Problem 1: Applications Not Saving to Database
+The `teacher_applications` table is **empty** despite the user seeing "Application Received!" The root cause is the **CV upload storage policy**. The storage bucket `teacher-applications` only allows uploads from `authenticated` users (`auth.role() = 'authenticated'`). Since the Teach With Us form is public (no login required), if a user attaches a CV file, the upload fails and throws an error before the database insert ever runs. Even without a CV, we should verify the insert works by also adding an `anon` upload policy.
 
-1. **Enhanced Evaluation Sidebar** in the Interview Room with additional checklist items and hub re-tagging
-2. **"Final Welcome" transactional email** sent on approval
-3. **First-login welcome experience** on the Teacher Dashboard with confetti and a guided tour
+Additionally, the form's error handling may be masking failures: if the storage upload error is thrown, the catch block shows a toast, but the user may have missed it.
 
----
-
-## Technical Details
-
-### 1. Enhance Interview Room Evaluation Sidebar
-
-**File: `src/pages/InterviewRoom.tsx`**
-
-- **Expand checklist** to include: Camera/Lighting Quality, Background (Professional/Playground-friendly), Energy & Tone (replace current 4 items with the requested ones plus Subject Knowledge, Tech Stability, Demo Performance — 7 total)
-- **Add Hub Re-tagging**: A dropdown/toggle group below the checklist letting the admin override the hub assignment (Playground / Academy / Professional) even if the teacher originally applied for a different one
-- **Update `handleApprove`** to:
-  - Save the overridden hub type to the interview record
-  - Update `teacher_profiles` (set `can_teach: true`, `is_available: true`, `profile_approved_by_admin: true`)
-  - Send the "Final Welcome" transactional email
-  - Set a `welcome_shown` flag to `false` in `teacher_profiles` (for first-login detection)
-
-### 2. Create "Final Welcome" Email Template
-
-**New file: `supabase/functions/_shared/transactional-email-templates/final-welcome.tsx`**
-
-- Subject: "Welcome to the Team! Your EnglEuphoria Teacher Dashboard is Live."
-- Body includes: congratulations message with teacher name and hub, link to `/teacher-dashboard`, next steps (review curriculum, sync calendar)
-- Branded with indigo-600 buttons, dark footer, Inter font (matching existing templates)
-
-**Update: `supabase/functions/_shared/transactional-email-templates/registry.ts`**
-- Import and register `final-welcome` template
-
-**Deploy**: `send-transactional-email` edge function after template changes
-
-### 3. Database Migration
-
-Add a `welcome_shown` boolean column to `teacher_profiles` (default `false`). This tracks whether the teacher has seen the first-login celebration. When the approve action fires, it stays `false`; after the teacher dismisses the welcome popup, it gets set to `true`.
-
-### 4. First-Login Welcome Experience on Teacher Dashboard
-
-**New file: `src/components/teacher/dashboard/WelcomeSuccessModal.tsx`**
-
-- Triggers when teacher status is `APPROVED` and `profile.welcome_shown === false`
-- Shows a modal with:
-  - Confetti animation (using existing `triggerCelebration` from `services/celebration.ts`)
-  - "Welcome to EnglEuphoria!" heading
-  - 3-step "Studio Guide" cards: (1) Enter your Dashboard, (2) Review your first lesson, (3) Sync your calendar
-  - Profile preview showing their photo and bio as students see it
-  - "Get Started" dismiss button
-- On dismiss: updates `teacher_profiles.welcome_shown = true`
-
-**Update: `src/components/teacher/dashboard/TeacherDashboardShell.tsx`**
-- Import and render `WelcomeSuccessModal` when `status === 'APPROVED'` and `profile?.welcome_shown === false`
-
-### 5. Wire Approval in InterviewRoom to Send Email
-
-**Update: `src/pages/InterviewRoom.tsx` → `handleApprove`**
-
-After updating `teacher_applications` and `teacher_profiles`:
-```
-supabase.functions.invoke('send-transactional-email', {
-  body: {
-    templateName: 'final-welcome',
-    recipientEmail: interview.teacher_email,
-    idempotencyKey: `final-welcome-${interview.application_id}`,
-    templateData: { name: interview.teacher_name, hubType: selectedHub },
-  }
-})
-```
+### Problem 2: Admin Dashboard Shows `full_name` as Blank
+The admin `TeacherApplicationReview` component references `application.full_name` everywhere (card titles, avatar fallbacks, detail dialogs), but the `teacher_applications` table has no `full_name` column -- only `first_name` and `last_name`. The `.select('*')` query succeeds, but `full_name` is always `undefined`, so teacher names appear blank.
 
 ---
 
-## Summary of File Changes
+## Technical Changes
+
+### 1. Fix Storage Policy for Anonymous CV Uploads
+**Database migration**: Add an RLS policy on `storage.objects` allowing `anon` users to upload to the `teacher-applications` bucket. This lets unauthenticated applicants upload their CV.
+
+```sql
+CREATE POLICY "Anyone can upload application files"
+ON storage.objects FOR INSERT TO anon
+WITH CHECK (bucket_id = 'teacher-applications');
+```
+
+### 2. Fix `full_name` in Admin Dashboard
+**File: `src/components/admin/TeacherApplicationReview.tsx`**
+
+- Update the `TeacherApplication` interface to remove `full_name` and rely on `first_name` + `last_name`
+- Add a computed display name: `const displayName = \`\${app.first_name} \${app.last_name}\`.trim() || 'Unknown'`
+- Replace all `application.full_name` references in both `TeacherApplicationReview` and the `ApplicationGrid` component with the computed name
+- Update the search filter to search `first_name` and `last_name` instead of `full_name`
+
+### 3. Improve Error Visibility in SimpleTeacherForm
+**File: `src/components/teach-with-us/SimpleTeacherForm.tsx`**
+
+- In the `handleSubmit` catch block, log the full error object so storage vs. DB failures are distinguishable
+- Make the error toast more descriptive (show the actual error message)
+
+---
+
+## Summary of Changes
 
 | File | Action |
 |------|--------|
-| `src/pages/InterviewRoom.tsx` | Expand checklist, add hub re-tag, wire email + profile updates |
-| `supabase/functions/_shared/transactional-email-templates/final-welcome.tsx` | New template |
-| `supabase/functions/_shared/transactional-email-templates/registry.ts` | Register new template |
-| `src/components/teacher/dashboard/WelcomeSuccessModal.tsx` | New first-login component |
-| `src/components/teacher/dashboard/TeacherDashboardShell.tsx` | Render welcome modal |
-| Database migration | Add `welcome_shown` boolean to `teacher_profiles` |
+| Database migration | Add anon upload policy for `teacher-applications` storage bucket |
+| `src/components/admin/TeacherApplicationReview.tsx` | Replace all `full_name` with `first_name + last_name` computed name |
+| `src/components/teach-with-us/SimpleTeacherForm.tsx` | Improve error logging in submit handler |
 
