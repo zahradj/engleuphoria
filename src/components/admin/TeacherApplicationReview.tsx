@@ -543,7 +543,25 @@ The EnglEuphoria Hiring Team`,
                   </div>
                 </div>
 
-                {/* Teaching Philosophy */}
+                {/* CV Download */}
+                {selectedApplication.cv_url && (
+                  <div>
+                    <h4 className="font-semibold flex items-center gap-2 mb-2">
+                      <FileDown className="h-4 w-4" />
+                      Curriculum Vitae
+                    </h4>
+                    <a
+                      href={selectedApplication.cv_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors text-sm font-medium"
+                    >
+                      <FileDown className="h-4 w-4" />
+                      Download CV
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                )}
                 {selectedApplication.teaching_philosophy && (
                   <div>
                     <h4 className="font-semibold flex items-center gap-2 mb-2">
