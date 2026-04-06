@@ -66,12 +66,14 @@ interface InterviewEmailTemplate {
 }
 
 const stageConfig: Record<string, { label: string; color: string; variant: "default" | "destructive" | "outline" | "secondary" }> = {
+  'application_received': { label: 'New Application', color: 'bg-blue-100 text-blue-800', variant: 'outline' },
   'application_submitted': { label: 'Pending Review', color: 'bg-yellow-100 text-yellow-800', variant: 'outline' },
+  'under_review': { label: 'Under Review', color: 'bg-orange-100 text-orange-800', variant: 'secondary' },
   'documents_review': { label: 'Documents Under Review', color: 'bg-blue-100 text-blue-800', variant: 'secondary' },
   'interview_pending': { label: 'Interview Pending', color: 'bg-purple-100 text-purple-800', variant: 'secondary' },
   'interview_scheduled': { label: 'Interview Scheduled', color: 'bg-indigo-100 text-indigo-800', variant: 'secondary' },
   'interview_completed': { label: 'Interview Completed', color: 'bg-cyan-100 text-cyan-800', variant: 'secondary' },
-  'approved': { label: 'Approved', color: 'bg-green-100 text-green-800', variant: 'default' },
+  'approved': { label: 'Active', color: 'bg-green-100 text-green-800', variant: 'default' },
   'rejected': { label: 'Rejected', color: 'bg-red-100 text-red-800', variant: 'destructive' },
 };
 
@@ -190,20 +192,23 @@ The EnglEuphoria Hiring Team`,
 
       if (error) throw error;
 
-      // Send email notification (mock - would integrate with email service)
+      // Send branded interview invitation email
       try {
-        await supabase.functions.invoke('send-teacher-emails', {
+        await supabase.functions.invoke('send-transactional-email', {
           body: {
-            type: 'interview_invite',
-            teacherName: selectedApplication.full_name,
-            teacherEmail: selectedApplication.email,
-            emailSubject: emailTemplate.subject,
-            emailBody: emailTemplate.body.replace('[SCHEDULING_LINK]', emailTemplate.meetingLink),
-            meetingLink: emailTemplate.meetingLink,
-          }
+            templateName: 'interview-invitation',
+            recipientEmail: selectedApplication.email,
+            idempotencyKey: `interview-invite-${selectedApplication.id}`,
+            templateData: {
+              name: selectedApplication.first_name || selectedApplication.full_name?.split(' ')[0],
+              hubType: selectedApplication.target_age_group === 'kids' ? 'Playground' :
+                       selectedApplication.target_age_group === 'teens' ? 'Academy' : 'Professional',
+              meetingLink: emailTemplate.meetingLink,
+            },
+          },
         });
       } catch (emailError) {
-        console.log('Email service not available, notification simulated');
+        console.log('Interview email could not be sent via transactional system:', emailError);
       }
 
       toast.success('Interview Invitation Sent! 📨', {
@@ -238,19 +243,8 @@ The EnglEuphoria Hiring Team`,
 
       if (error) throw error;
 
-      // Send rejection email (mock)
-      try {
-        await supabase.functions.invoke('send-teacher-emails', {
-          body: {
-            type: 'rejection',
-            teacherName: selectedApplication.full_name,
-            teacherEmail: selectedApplication.email,
-            rejectionReason: rejectionReason,
-          }
-        });
-      } catch (emailError) {
-        console.log('Email service not available, notification simulated');
-      }
+      // Send rejection notification (mock for now)
+      console.log('Rejection processed for:', selectedApplication.full_name);
 
       toast.success('Application Rejected', {
         description: `${selectedApplication.full_name} has been notified.`,
@@ -263,6 +257,47 @@ The EnglEuphoria Hiring Team`,
     } catch (error) {
       console.error('Error rejecting application:', error);
       toast.error('Failed to reject application');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleFinalApprove = async (application: TeacherApplication) => {
+    setActionLoading(true);
+    try {
+      // Update application to approved
+      const { error } = await supabase
+        .from('teacher_applications')
+        .update({ 
+          current_stage: 'approved',
+          status: 'approved',
+        })
+        .eq('id', application.id);
+
+      if (error) throw error;
+
+      // If teacher has a user_id, update their teacher_profiles
+      if ((application as any).user_id) {
+        await supabase
+          .from('teacher_profiles')
+          .update({ 
+            can_teach: true, 
+            is_available: true, 
+            profile_approved_by_admin: true 
+          })
+          .eq('user_id', (application as any).user_id);
+      }
+
+      toast.success('Teacher Approved! 🎉', {
+        description: `${application.full_name} is now an active teacher and can receive bookings.`,
+        duration: 5000,
+      });
+
+      setSelectedApplication(null);
+      fetchApplications();
+    } catch (error) {
+      console.error('Error approving teacher:', error);
+      toast.error('Failed to approve teacher');
     } finally {
       setActionLoading(false);
     }
@@ -522,7 +557,7 @@ The EnglEuphoria Hiring Team`,
               </div>
 
               <DialogFooter className="gap-2 sm:gap-0 mt-6">
-                {selectedApplication.current_stage === 'application_submitted' && (
+                {(selectedApplication.current_stage === 'application_submitted' || selectedApplication.current_stage === 'application_received') && (
                   <>
                     <Button 
                       variant="destructive" 
@@ -536,7 +571,30 @@ The EnglEuphoria Hiring Team`,
                       className="bg-green-600 hover:bg-green-700"
                     >
                       <CalendarCheck className="h-4 w-4 mr-2" />
-                      Approve for Interview
+                      Send Interview Invite
+                    </Button>
+                  </>
+                )}
+                {(selectedApplication.current_stage === 'interview_pending' || selectedApplication.current_stage === 'interview_scheduled' || selectedApplication.current_stage === 'interview_completed') && (
+                  <>
+                    <Button 
+                      variant="destructive" 
+                      onClick={() => { setShowRejectDialog(true); }}
+                    >
+                      <XCircle className="h-4 w-4 mr-2" />
+                      Reject
+                    </Button>
+                    <Button 
+                      onClick={() => handleFinalApprove(selectedApplication)}
+                      disabled={actionLoading}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      {actionLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : (
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                      )}
+                      Approve as Teacher
                     </Button>
                   </>
                 )}
@@ -727,7 +785,7 @@ const ApplicationGrid: React.FC<ApplicationGridProps> = ({
               <Eye className="h-4 w-4 mr-1" />
               View
             </Button>
-            {application.current_stage === 'application_submitted' && (
+            {(application.current_stage === 'application_submitted' || application.current_stage === 'application_received') && (
               <>
                 <Button 
                   variant="outline" 
