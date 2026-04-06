@@ -378,7 +378,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onModeChange }) => {
                 </button>
               ) : (
                 <Link 
-                  to={mode === 'login' ? '/signup' : '/login'} 
+                  to={mode === 'login' ? '/student-signup' : '/login'} 
                   className="text-blue-600 hover:underline"
                 >
                   {mode === 'login' ? 'Sign up' : 'Sign in'}

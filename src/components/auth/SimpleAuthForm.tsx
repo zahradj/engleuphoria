@@ -615,7 +615,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
             </button>
           ) : (
             <Link
-              to={mode === 'login' ? '/signup' : '/login'}
+              to={mode === 'login' ? '/student-signup' : '/login'}
               className="font-medium text-primary hover:underline"
             >
               {mode === 'login' ? 'Sign up' : 'Sign in'}

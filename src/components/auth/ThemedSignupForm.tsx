@@ -143,7 +143,7 @@ export const ThemedSignupForm: React.FC = () => {
 
   const handleSwitchSystem = () => {
     setSelectedSystem(null);
-    navigate('/signup');
+    navigate('/student-signup');
   };
 
   const validateForm = (): boolean => {

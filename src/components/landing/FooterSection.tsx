@@ -10,7 +10,7 @@ const footerLinks = {
   worlds: [
     { label: 'The Playground (Kids)', href: '/student-signup' },
     { label: 'The Academy (Teens)', href: '/student-signup' },
-    { label: 'Professional Hub', href: '/signup' },
+    { label: 'Professional Hub', href: '/student-signup' },
   ],
   learn: [
     { label: 'Methodology', href: '/methodology' },
@@ -122,7 +122,7 @@ export function FooterSection() {
               Teacher Login
             </Link>
             <Link
-              to="/signup"
+              to="/student-signup"
               className="px-6 py-2.5 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 text-white text-sm font-semibold hover:opacity-90 transition-opacity"
             >
               Get Started Free
