@@ -207,8 +207,8 @@ const SimpleTeacherForm = forwardRef<HTMLDivElement>((_, ref) => {
         video_description: formData.videoDescription,
         cover_letter: formData.whyTeaching,
         cv_url: cvUrl,
-        status: 'new',
-        current_stage: 'application_received'
+        status: 'pending',
+        current_stage: 'application_submitted'
       });
 
       if (error) throw error;
