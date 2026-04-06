@@ -187,8 +187,9 @@ The EnglEuphoria Hiring Team`,
     
     setActionLoading(true);
     try {
-      const hubType = selectedApplication.target_age_group === 'kids' ? 'Playground' :
-                      selectedApplication.target_age_group === 'teens' ? 'Academy' : 'Professional';
+      const ageGroup = selectedApplication.preferred_age_groups?.[0] || 'adults';
+      const hubType = ageGroup === 'kids' ? 'Playground' :
+                      ageGroup === 'teens' ? 'Academy' : 'Professional';
 
       // Create interview record with internal room
       const { data: interviewData, error: interviewError } = await supabase
@@ -511,7 +512,7 @@ The EnglEuphoria Hiring Team`,
                   </div>
                   <div className="bg-muted/50 rounded-lg p-3">
                     <p className="text-xs text-muted-foreground">Age Group</p>
-                    <p className="font-medium">{ageGroupLabels[selectedApplication.target_age_group] || selectedApplication.target_age_group}</p>
+                    <p className="font-medium">{selectedApplication.preferred_age_groups?.map(g => ageGroupLabels[g] || g).join(', ') || 'Not specified'}</p>
                   </div>
                   <div className="bg-muted/50 rounded-lg p-3">
                     <p className="text-xs text-muted-foreground">Applied</p>
@@ -537,7 +538,7 @@ The EnglEuphoria Hiring Team`,
                     Education & Qualifications
                   </h4>
                   <div className="bg-muted/30 rounded-lg p-4">
-                    <p className="font-medium">{selectedApplication.education_level}</p>
+                    <p className="font-medium">{selectedApplication.education || 'Not specified'}</p>
                     {selectedApplication.education && (
                       <p className="text-sm text-muted-foreground mt-1">{selectedApplication.education}</p>
                     )}
