@@ -773,6 +773,62 @@ export type Database = {
           },
         ]
       }
+      appointments: {
+        Row: {
+          availability_id: string | null
+          created_at: string | null
+          duration: number | null
+          hub_type: string | null
+          id: string
+          lesson_id: string | null
+          meeting_link: string | null
+          notes: string | null
+          scheduled_at: string
+          status: string | null
+          student_id: string
+          teacher_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          availability_id?: string | null
+          created_at?: string | null
+          duration?: number | null
+          hub_type?: string | null
+          id?: string
+          lesson_id?: string | null
+          meeting_link?: string | null
+          notes?: string | null
+          scheduled_at: string
+          status?: string | null
+          student_id: string
+          teacher_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          availability_id?: string | null
+          created_at?: string | null
+          duration?: number | null
+          hub_type?: string | null
+          id?: string
+          lesson_id?: string | null
+          meeting_link?: string | null
+          notes?: string | null
+          scheduled_at?: string
+          status?: string | null
+          student_id?: string
+          teacher_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_availability_id_fkey"
+            columns: ["availability_id"]
+            isOneToOne: false
+            referencedRelation: "teacher_availability"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assessment_answers: {
         Row: {
           answer_audio_url: string | null
@@ -7602,6 +7658,7 @@ export type Database = {
           created_at: string
           duration: number
           end_time: string
+          hub_specialty: string | null
           id: string
           is_available: boolean
           is_booked: boolean
@@ -7620,6 +7677,7 @@ export type Database = {
           created_at?: string
           duration?: number
           end_time: string
+          hub_specialty?: string | null
           id?: string
           is_available?: boolean
           is_booked?: boolean
@@ -7638,6 +7696,7 @@ export type Database = {
           created_at?: string
           duration?: number
           end_time?: string
+          hub_specialty?: string | null
           id?: string
           is_available?: boolean
           is_booked?: boolean

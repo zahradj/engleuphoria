@@ -12,6 +12,7 @@ interface SlotControlPanelProps {
   slotsForDay: AvailabilitySlot[];
   onSaveSchedule: () => void;
   onClearSlots: () => void;
+  isSaving?: boolean;
 }
 
 export const SlotControlPanel: React.FC<SlotControlPanelProps> = ({
@@ -21,7 +22,8 @@ export const SlotControlPanel: React.FC<SlotControlPanelProps> = ({
   setSelectedDay,
   slotsForDay,
   onSaveSchedule,
-  onClearSlots
+  onClearSlots,
+  isSaving = false
 }) => {
   const openSlots = slotsForDay.filter(s => s.status === 'open');
   const bookedSlots = slotsForDay.filter(s => s.status === 'booked');
@@ -174,9 +176,10 @@ export const SlotControlPanel: React.FC<SlotControlPanelProps> = ({
         <Button
           onClick={onSaveSchedule}
           className="w-full bg-primary hover:bg-primary/90"
+          disabled={isSaving}
         >
           <Save className="h-4 w-4 mr-2" />
-          Save Schedule
+          {isSaving ? 'Saving...' : 'Save Schedule'}
         </Button>
         <Button
           onClick={onClearSlots}
