@@ -234,7 +234,7 @@ const StudentSignUp = () => {
       subtitle="Create your student account and begin your learning journey"
       icon={BookOpen}
       variant="student"
-      backLink={{ to: '/signup', label: 'Back to Sign Up Options' }}
+      backLink={{ to: '/', label: 'Back to Home' }}
       showProgress={progressIndicator}
     >
       <Form {...form}>
