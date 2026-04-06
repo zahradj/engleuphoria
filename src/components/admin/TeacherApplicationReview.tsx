@@ -84,6 +84,9 @@ const ageGroupLabels: Record<string, string> = {
   'all': '🌟 All Ages',
 };
 
+const getDisplayName = (app: TeacherApplication) => 
+  `${app.first_name || ''} ${app.last_name || ''}`.trim() || 'Unknown';
+
 export const TeacherApplicationReview: React.FC = () => {
   const [applications, setApplications] = useState<TeacherApplication[]>([]);
   const [filteredApplications, setFilteredApplications] = useState<TeacherApplication[]>([]);
