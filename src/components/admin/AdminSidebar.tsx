@@ -13,7 +13,8 @@ import {
   LogOut,
   Calendar,
   GraduationCap,
-  Radio
+  Radio,
+  Video
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -31,6 +32,7 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
     { id: "schedule", label: "Schedule", icon: Calendar },
     { id: "teachers", label: "Teachers", icon: GraduationCap },
     { id: "teacher-applications", label: "Applications", icon: FileText },
+    { id: "interviews", label: "Interviews", icon: Video },
     { id: "students", label: "Students", icon: Users },
     { id: "analytics", label: "Analytics", icon: TrendingUp },
     { id: "payments", label: "Payments", icon: CreditCard },

@@ -63,6 +63,7 @@ interface InterviewEmailTemplate {
   subject: string;
   body: string;
   meetingLink: string;
+  useInternalRoom: boolean;
 }
 
 const stageConfig: Record<string, { label: string; color: string; variant: "default" | "destructive" | "outline" | "secondary" }> = {
@@ -99,6 +100,7 @@ export const TeacherApplicationReview: React.FC = () => {
     subject: '',
     body: '',
     meetingLink: '',
+    useInternalRoom: true,
   });
 
   useEffect(() => {
@@ -146,7 +148,6 @@ export const TeacherApplicationReview: React.FC = () => {
   };
 
   const handleApproveForInterview = async (application: TeacherApplication) => {
-    // Prepare email template
     setEmailTemplate({
       subject: `Interview Invitation - EnglEuphoria Teaching Position`,
       body: `Dear ${application.first_name || application.full_name?.split(' ')[0]},
@@ -155,22 +156,19 @@ Thank you for your interest in joining EnglEuphoria as an ESL teacher!
 
 We have reviewed your application and are pleased to invite you for an interview. Your experience and teaching philosophy align well with our mission.
 
-Please use the scheduling link below to book your interview at a time that works for you:
-
-[SCHEDULING_LINK]
-
-The interview will last approximately 30 minutes and will include:
+The interview will last approximately 15 minutes and will include:
 • Discussion of your teaching experience
 • A brief demo lesson (5 minutes)
 • Q&A about our platform and expectations
 
-If you have any questions, please don't hesitate to reach out.
+You will receive a link to join the interview room at the scheduled time.
 
 We look forward to speaking with you!
 
 Best regards,
 The EnglEuphoria Hiring Team`,
-      meetingLink: 'https://calendly.com/engleuphoria/teacher-interview',
+      meetingLink: '',
+      useInternalRoom: true,
     });
     setSelectedApplication(application);
     setShowInterviewDialog(true);
@@ -181,12 +179,34 @@ The EnglEuphoria Hiring Team`,
     
     setActionLoading(true);
     try {
+      const hubType = selectedApplication.target_age_group === 'kids' ? 'Playground' :
+                      selectedApplication.target_age_group === 'teens' ? 'Academy' : 'Professional';
+
+      // Create interview record with internal room
+      const { data: interviewData, error: interviewError } = await supabase
+        .from('interviews')
+        .insert({
+          application_id: selectedApplication.id,
+          admin_id: (await supabase.auth.getUser()).data.user?.id,
+          teacher_email: selectedApplication.email,
+          teacher_name: selectedApplication.full_name,
+          scheduled_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(), // Default 48h from now
+          hub_type: hubType,
+        })
+        .select('room_token')
+        .single();
+
+      if (interviewError) throw interviewError;
+
+      const interviewUrl = `${window.location.origin}/interview/${interviewData.room_token}`;
+      const meetingLink = emailTemplate.useInternalRoom ? interviewUrl : emailTemplate.meetingLink;
+
       // Update application status
       const { error } = await supabase
         .from('teacher_applications')
         .update({ 
-          current_stage: 'interview_pending',
-          status: 'in_review'
+          current_stage: 'interview_scheduled',
+          status: 'under_review'
         })
         .eq('id', selectedApplication.id);
 
@@ -201,9 +221,8 @@ The EnglEuphoria Hiring Team`,
             idempotencyKey: `interview-invite-${selectedApplication.id}`,
             templateData: {
               name: selectedApplication.first_name || selectedApplication.full_name?.split(' ')[0],
-              hubType: selectedApplication.target_age_group === 'kids' ? 'Playground' :
-                       selectedApplication.target_age_group === 'teens' ? 'Academy' : 'Professional',
-              meetingLink: emailTemplate.meetingLink,
+              hubType,
+              meetingLink,
             },
           },
         });
@@ -211,8 +230,8 @@ The EnglEuphoria Hiring Team`,
         console.log('Interview email could not be sent via transactional system:', emailError);
       }
 
-      toast.success('Interview Invitation Sent! 📨', {
-        description: `${selectedApplication.full_name} has been notified to schedule their interview.`,
+      toast.success('Interview Scheduled & Invitation Sent! 📨', {
+        description: `${selectedApplication.full_name} has been invited. Internal room created.`,
         duration: 5000,
       });
 
@@ -220,8 +239,8 @@ The EnglEuphoria Hiring Team`,
       setSelectedApplication(null);
       fetchApplications();
     } catch (error) {
-      console.error('Error approving for interview:', error);
-      toast.error('Failed to send interview invitation');
+      console.error('Error scheduling interview:', error);
+      toast.error('Failed to schedule interview');
     } finally {
       setActionLoading(false);
     }
@@ -653,27 +672,34 @@ The EnglEuphoria Hiring Team`,
           </DialogHeader>
           
           <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Email Subject</label>
-              <Input
-                value={emailTemplate.subject}
-                onChange={(e) => setEmailTemplate(prev => ({ ...prev, subject: e.target.value }))}
-              />
+            <div className="bg-muted/50 rounded-lg p-3 flex items-center gap-3">
+              <Video className="h-5 w-5 text-primary" />
+              <div>
+                <p className="font-medium text-sm">Internal Interview Room</p>
+                <p className="text-xs text-muted-foreground">
+                  A private EnglEuphoria interview room with Jitsi video will be created automatically.
+                  The link will be sent to the teacher.
+                </p>
+              </div>
             </div>
             <div>
-              <label className="text-sm font-medium">Scheduling Link</label>
+              <label className="text-sm font-medium">Or use external link instead (optional)</label>
               <Input
                 value={emailTemplate.meetingLink}
-                onChange={(e) => setEmailTemplate(prev => ({ ...prev, meetingLink: e.target.value }))}
-                placeholder="https://calendly.com/..."
+                onChange={(e) => setEmailTemplate(prev => ({ 
+                  ...prev, 
+                  meetingLink: e.target.value,
+                  useInternalRoom: !e.target.value 
+                }))}
+                placeholder="Leave empty to use internal room, or paste Calendly/Zoom link..."
               />
             </div>
             <div>
-              <label className="text-sm font-medium">Email Body</label>
+              <label className="text-sm font-medium">Email Preview</label>
               <Textarea
                 value={emailTemplate.body}
                 onChange={(e) => setEmailTemplate(prev => ({ ...prev, body: e.target.value }))}
-                rows={12}
+                rows={10}
                 className="font-mono text-sm"
               />
             </div>

@@ -45,6 +45,7 @@ const LessonReaderPage = lazy(() => import("./pages/student/LessonReaderPage"));
 const LessonLibraryPage = lazy(() => import("./pages/student/LessonLibraryPage"));
 const UnsubscribePage = lazy(() => import("./pages/UnsubscribePage"));
 const FindTeacher = lazy(() => import("./pages/student/FindTeacher"));
+const InterviewRoom = lazy(() => import("./pages/InterviewRoom"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -162,6 +163,15 @@ const App = () => {
                         <Suspense fallback={<LoadingFallback />}>
                           <TeacherClassroomPage />
                         </Suspense>
+                      } />
+
+                      {/* Interview Room - Auth Required */}
+                      <Route path="/interview/:token" element={
+                        <ImprovedProtectedRoute>
+                          <Suspense fallback={<LoadingFallback />}>
+                            <InterviewRoom />
+                          </Suspense>
+                        </ImprovedProtectedRoute>
                       } />
 
                       {/* Super Admin Dashboard - Protected */}
