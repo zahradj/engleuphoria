@@ -174,23 +174,23 @@ export const EnhancedTeacherApplicationForm: React.FC<EnhancedTeacherApplication
       const applicationData = {
         first_name: formData.firstName,
         last_name: formData.lastName,
-        full_name: `${formData.firstName} ${formData.lastName}`,
         email: formData.email,
         phone: formData.phone,
         nationality: formData.nationality,
         bio: formData.bio,
-        education_level: formData.educationLevel,
-        education: formData.educationDetails,
+        education: formData.educationLevel + (formData.educationDetails ? ` — ${formData.educationDetails}` : ''),
         teaching_experience_years: formData.teachingExperienceYears,
         esl_certification: formData.eslCertifications,
         teaching_philosophy: formData.teachingPhilosophy,
         teaching_methodology: formData.teachingMethodology,
         classroom_management: formData.classroomManagement,
-        video_url: formData.videoUrl,
-        video_description: formData.videoDescription,
-        target_age_group: formData.preferredAgeGroup,
-        availability: formData.availability,
-        time_zone: formData.timeZone,
+        video_description: formData.videoUrl
+          ? `Video: ${formData.videoUrl}${formData.videoDescription ? ` — ${formData.videoDescription}` : ''}`
+          : formData.videoDescription || null,
+        preferred_age_groups: formData.preferredAgeGroup ? [formData.preferredAgeGroup] : null,
+        availability: formData.availability
+          ? `${formData.availability} (${formData.timeZone})`
+          : formData.timeZone || null,
         current_stage: 'application_submitted',
         status: 'pending',
       };
