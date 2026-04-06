@@ -11,14 +11,8 @@ import {
   CreditCard, 
   Settings,
   LogOut,
-  BookOpen,
   Calendar,
   GraduationCap,
-  Brain,
-  Wand2,
-  Library,
-  PieChart,
-  Package,
   Radio
 } from "lucide-react";
 
@@ -34,12 +28,6 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
     { id: "overview", label: "Overview", icon: LayoutDashboard },
     { id: "super-control", label: "Super Control Center", icon: Activity },
     { id: "users", label: "User Manager", icon: Users },
-    { id: "curriculum", label: "Curriculum", icon: BookOpen },
-    { id: "curriculum-library", label: "Lesson Library", icon: Library },
-    { id: "curriculum-progress", label: "Curriculum Progress", icon: PieChart },
-    { id: "curriculum-export", label: "Export Curriculum", icon: Package },
-    { id: "ai-generator", label: "AI Generator", icon: Wand2 },
-    { id: "ai-tools", label: "AI Tools", icon: Brain },
     { id: "schedule", label: "Schedule", icon: Calendar },
     { id: "teachers", label: "Teachers", icon: GraduationCap },
     { id: "teacher-applications", label: "Applications", icon: FileText },

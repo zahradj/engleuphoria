@@ -8,16 +8,10 @@ import { TeacherManagement } from '@/components/admin/TeacherManagement';
 import { TeacherApplicationReview } from '@/components/admin/TeacherApplicationReview';
 import { StudentManagement } from '@/components/admin/StudentManagement';
 import { AnalyticsDashboard } from '@/components/admin/AnalyticsDashboard';
-import { CurriculumBuilder } from '@/components/admin/CurriculumBuilder';
 import { ScheduleManager } from '@/components/admin/ScheduleManager';
 import { PaymentsPanel } from '@/components/admin/PaymentsPanel';
 import { SettingsPanel } from '@/components/admin/SettingsPanel';
-import { AIToolsDashboard } from '@/components/admin/ai-tools/AIToolsDashboard';
 import { SuperAdminControlCenter } from '@/components/admin/SuperAdminControlCenter';
-import { NewLibrary } from '@/components/admin/NewLibrary';
-import { CurriculumLibrary } from '@/components/admin/CurriculumLibrary';
-import { CurriculumProgressDashboard } from '@/components/admin/generator/CurriculumProgressDashboard';
-import { CurriculumExportDashboard } from '@/components/admin/generator/CurriculumExportDashboard';
 import { AdminBroadcastCenter } from '@/components/admin/AdminBroadcastCenter';
 import { ScrollHeader } from '@/components/navigation/ScrollHeader';
 import { Loader2, Menu, X } from 'lucide-react';
@@ -69,26 +63,14 @@ const AdminDashboard = () => {
         return <StudentManagement />;
       case 'analytics':
         return <AnalyticsDashboard />;
-      case 'curriculum':
-        return <CurriculumBuilder />;
       case 'schedule':
         return <ScheduleManager />;
       case 'payments':
         return <PaymentsPanel />;
       case 'settings':
         return <SettingsPanel />;
-      case 'ai-tools':
-        return <AIToolsDashboard />;
       case 'super-control':
         return <SuperAdminControlCenter />;
-      case 'ai-generator':
-        return <NewLibrary onNavigate={handleTabChange} />;
-      case 'curriculum-library':
-        return <CurriculumLibrary />;
-      case 'curriculum-progress':
-        return <CurriculumProgressDashboard />;
-      case 'curriculum-export':
-        return <CurriculumExportDashboard />;
       case 'communications':
         return <AdminBroadcastCenter />;
       default:
