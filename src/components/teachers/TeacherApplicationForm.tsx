@@ -1,18 +1,23 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Send, Sparkles } from 'lucide-react';
+import { Send, Sparkles, Upload, FileText, X } from 'lucide-react';
 import { useThemeMode } from '@/hooks/useThemeMode';
 import { useHeroTheme } from '@/contexts/HeroThemeContext';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_TYPES = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
 
 const TeacherApplicationForm = () => {
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
   const { theme } = useHeroTheme();
   const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     fullName: '',
@@ -23,18 +28,98 @@ const TeacherApplicationForm = () => {
     certifications: '',
     motivation: '',
   });
+  const [cvFile, setCvFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      toast({ title: 'Invalid file type', description: 'Please upload a PDF or Word document.', variant: 'destructive' });
+      return;
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      toast({ title: 'File too large', description: 'Maximum file size is 5MB.', variant: 'destructive' });
+      return;
+    }
+    setCvFile(file);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      toast({ title: 'Invalid file type', description: 'Please upload a PDF or Word document.', variant: 'destructive' });
+      return;
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      toast({ title: 'File too large', description: 'Maximum file size is 5MB.', variant: 'destructive' });
+      return;
+    }
+    setCvFile(file);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    toast({
-      title: 'Application Submitted!',
-      description: "We'll review your application and get back to you within 5 business days.",
-    });
-    setFormData({ fullName: '', email: '', phone: '', country: '', experience: '', certifications: '', motivation: '' });
-    setIsSubmitting(false);
+
+    try {
+      let cvUrl: string | null = null;
+
+      // Upload CV if provided
+      if (cvFile) {
+        const fileExt = cvFile.name.split('.').pop();
+        const filePath = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from('teacher-applications')
+          .upload(filePath, cvFile);
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from('teacher-applications')
+          .getPublicUrl(filePath);
+        cvUrl = urlData.publicUrl;
+      }
+
+      // Split full name into first/last
+      const nameParts = formData.fullName.trim().split(/\s+/);
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      const { error: insertError } = await supabase
+        .from('teacher_applications')
+        .insert({
+          first_name: firstName,
+          last_name: lastName,
+          email: formData.email,
+          phone: formData.phone || null,
+          nationality: formData.country,
+          teaching_experience: formData.experience,
+          certifications: formData.certifications || null,
+          motivation: formData.motivation,
+          cv_url: cvUrl,
+          current_stage: 'application_submitted',
+        });
+
+      if (insertError) throw insertError;
+
+      toast({
+        title: 'Application Submitted! 🎉',
+        description: "We'll review your application and get back to you within 5 business days.",
+      });
+      setFormData({ fullName: '', email: '', phone: '', country: '', experience: '', certifications: '', motivation: '' });
+      setCvFile(null);
+    } catch (error: any) {
+      console.error('Application submission error:', error);
+      toast({
+        title: 'Submission Failed',
+        description: error?.message || 'Something went wrong. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const inputClasses = `transition-colors duration-300 ${
@@ -115,6 +200,52 @@ const TeacherApplicationForm = () => {
           <div className="space-y-2">
             <Label htmlFor="motivation" className={isDark ? 'text-slate-200' : 'text-slate-700'}>Why do you want to teach with us? *</Label>
             <Textarea id="motivation" required value={formData.motivation} onChange={(e) => setFormData({ ...formData, motivation: e.target.value })} className={`min-h-[100px] ${inputClasses}`} placeholder="Tell us why you're passionate about teaching..." />
+          </div>
+
+          {/* Upload CV */}
+          <div className="space-y-2">
+            <Label className={isDark ? 'text-slate-200' : 'text-slate-700'}>Upload Your CV</Label>
+            <div
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+              className={`relative cursor-pointer rounded-xl border-2 border-dashed p-6 text-center transition-colors duration-300 ${
+                isDark
+                  ? 'border-white/10 hover:border-white/25 bg-slate-900/30'
+                  : 'border-slate-300 hover:border-slate-400 bg-white'
+              }`}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.doc,.docx"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              {cvFile ? (
+                <div className="flex items-center justify-center gap-3">
+                  <FileText className={`w-6 h-6 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
+                  <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{cvFile.name}</span>
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setCvFile(null); }}
+                    className={`p-1 rounded-full transition-colors ${isDark ? 'hover:bg-white/10 text-slate-400' : 'hover:bg-slate-100 text-slate-500'}`}
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Upload className={`w-8 h-8 mx-auto ${isDark ? 'text-slate-500' : 'text-slate-400'}`} />
+                  <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                    Drag & drop your CV here, or <span className="underline font-medium">browse</span>
+                  </p>
+                  <p className={`text-xs ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>
+                    PDF or Word · Max 5MB
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
 
           <button
