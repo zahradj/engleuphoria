@@ -13,6 +13,7 @@ import { ScrollHeader } from '@/components/navigation/ScrollHeader';
 import { Loader2 } from 'lucide-react';
 import { FloatingHelpButton } from '@/components/support/FloatingHelpButton';
 import { ThemeModeToggle } from '@/components/ui/ThemeModeToggle';
+import { WelcomeSuccessModal } from './WelcomeSuccessModal';
 
 type TabType = 'dashboard' | 'schedule' | 'analytics' | 'methodology' | 'account' | 'teacher-hub' | 'help';
 
@@ -92,6 +93,17 @@ export const TeacherDashboardShell = ({
           teacherId={teacherId}
           teacherName={teacherName}
           onComplete={refetch}
+        />
+      )}
+
+      {/* Welcome Modal for newly approved teachers */}
+      {status === 'APPROVED' && profile && !(profile as any).welcome_shown && (
+        <WelcomeSuccessModal
+          teacherId={teacherId}
+          teacherName={teacherName}
+          profileImageUrl={profile.profile_image_url || undefined}
+          bio={profile.bio || undefined}
+          onDismiss={refetch}
         />
       )}
 

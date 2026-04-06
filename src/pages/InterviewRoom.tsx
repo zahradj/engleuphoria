@@ -9,7 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { Loader2, CheckCircle, XCircle, Mic, Camera, MonitorPlay, Star } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Loader2, CheckCircle, XCircle, Mic, Camera, MonitorPlay, Star, Tags } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Interview {
@@ -27,6 +28,18 @@ interface Interview {
   hub_type: string | null;
 }
 
+const CHECKLIST_ITEMS = [
+  { key: 'camera_lighting', label: '📷 Camera/Lighting Quality' },
+  { key: 'background', label: '🏠 Background (Professional/Playground-friendly)' },
+  { key: 'energy_tone', label: '⚡ Energy & Tone' },
+  { key: 'subject_knowledge', label: '📚 Subject Knowledge' },
+  { key: 'tech_stability', label: '🖥️ Tech Stability' },
+  { key: 'demo_performance', label: '🎭 Demo Performance' },
+  { key: 'communication_clarity', label: '🗣️ Communication Clarity' },
+];
+
+const HUB_OPTIONS = ['Playground', 'Academy', 'Professional'];
+
 const InterviewRoom = () => {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
@@ -35,12 +48,12 @@ const InterviewRoom = () => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [notes, setNotes] = useState('');
-  const [checklist, setChecklist] = useState({
-    energy_level: false,
-    subject_knowledge: false,
-    tech_stability: false,
-    demo_performance: false,
+  const [checklist, setChecklist] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    CHECKLIST_ITEMS.forEach(item => { initial[item.key] = false; });
+    return initial;
   });
+  const [selectedHub, setSelectedHub] = useState<string>('');
   const [showApprovalPrompt, setShowApprovalPrompt] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -73,13 +86,13 @@ const InterviewRoom = () => {
       if (error) throw error;
       setInterview(data);
       setNotes(data.admin_notes || '');
+      setSelectedHub(data.hub_type || '');
       if (data.checklist) {
-        setChecklist({
-          energy_level: data.checklist.energy_level ?? false,
-          subject_knowledge: data.checklist.subject_knowledge ?? false,
-          tech_stability: data.checklist.tech_stability ?? false,
-          demo_performance: data.checklist.demo_performance ?? false,
+        const restored: Record<string, boolean> = {};
+        CHECKLIST_ITEMS.forEach(item => {
+          restored[item.key] = data.checklist[item.key] ?? false;
         });
+        setChecklist(restored);
       }
     } catch (error) {
       console.error('Error fetching interview:', error);
@@ -120,18 +133,62 @@ const InterviewRoom = () => {
     if (!interview) return;
     setActionLoading(true);
     try {
-      // Update interview status
-      await updateInterview({ status: 'passed', admin_notes: notes, checklist });
+      const finalHub = selectedHub || interview.hub_type || 'General';
+
+      // Update interview status + hub override
+      await updateInterview({ status: 'passed', admin_notes: notes, checklist, hub_type: finalHub });
 
       // Update teacher application to approved
       const { error } = await supabase
         .from('teacher_applications')
         .update({ current_stage: 'approved', status: 'accepted' })
         .eq('id', interview.application_id);
-
       if (error) throw error;
 
-      toast.success('🎉 Teacher Approved! They are now active and bookable.');
+      // Update teacher profile to active
+      await supabase
+        .from('teacher_profiles')
+        .update({
+          can_teach: true,
+          is_available: true,
+          profile_approved_by_admin: true,
+          welcome_shown: false,
+        })
+        .eq('user_id', interview.admin_id); // We need the teacher's user_id
+
+      // Try to get teacher user_id from application
+      const { data: appData } = await supabase
+        .from('teacher_applications')
+        .select('user_id')
+        .eq('id', interview.application_id)
+        .single();
+
+      if (appData?.user_id) {
+        await supabase
+          .from('teacher_profiles')
+          .update({
+            can_teach: true,
+            is_available: true,
+            profile_approved_by_admin: true,
+            welcome_shown: false,
+          })
+          .eq('user_id', appData.user_id);
+      }
+
+      // Send Final Welcome email
+      await supabase.functions.invoke('send-transactional-email', {
+        body: {
+          templateName: 'final-welcome',
+          recipientEmail: interview.teacher_email,
+          idempotencyKey: `final-welcome-${interview.application_id}`,
+          templateData: {
+            name: interview.teacher_name,
+            hubType: finalHub,
+          },
+        },
+      });
+
+      toast.success('🎉 Teacher Approved! Welcome email sent.');
       setShowApprovalPrompt(false);
       navigate('/super-admin');
     } catch (error) {
@@ -171,6 +228,8 @@ const InterviewRoom = () => {
     }
   };
 
+  const checkedCount = Object.values(checklist).filter(Boolean).length;
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -194,21 +253,18 @@ const InterviewRoom = () => {
   }
 
   const displayName = isAdmin ? 'Admin Interviewer' : interview.teacher_name;
-  const userRole = isAdmin ? 'teacher' : 'student'; // admin gets moderator controls
+  const userRole = isAdmin ? 'teacher' : 'student';
 
   return (
     <div className="min-h-screen bg-gray-950 flex">
       {/* Video Area */}
       <div className={`flex-1 flex flex-col ${isAdmin ? 'mr-80' : ''}`}>
-        {/* Header */}
         <div className="bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <h1 className="text-white font-semibold">
-              EnglEuphoria Interview
-            </h1>
+            <h1 className="text-white font-semibold">EnglEuphoria Interview</h1>
             <Badge variant="secondary" className="bg-indigo-600/20 text-indigo-300 border-indigo-500/30">
-              {interview.hub_type || 'General'}
+              {selectedHub || interview.hub_type || 'General'}
             </Badge>
           </div>
           <div className="flex items-center gap-4 text-gray-400 text-sm">
@@ -218,7 +274,6 @@ const InterviewRoom = () => {
           </div>
         </div>
 
-        {/* Jitsi Video */}
         <div className="flex-1">
           <JitsiMeeting
             roomName={`engleuphoria-interview-${interview.room_token}`}
@@ -229,7 +284,6 @@ const InterviewRoom = () => {
           />
         </div>
 
-        {/* Teacher Welcome Banner (non-admin) */}
         {!isAdmin && (
           <div className="bg-gradient-to-r from-indigo-900/50 to-purple-900/50 border-t border-indigo-500/20 px-6 py-3">
             <p className="text-indigo-200 text-sm text-center">
@@ -251,36 +305,59 @@ const InterviewRoom = () => {
                 <p className="text-gray-400 text-sm">{interview.teacher_email}</p>
               </CardHeader>
               <CardContent>
-                <Badge className="bg-indigo-600">{interview.hub_type || 'General'} Hub</Badge>
+                <Badge className="bg-indigo-600">{selectedHub || interview.hub_type || 'General'} Hub</Badge>
               </CardContent>
             </Card>
 
             {/* Vetting Checklist */}
             <Card className="bg-gray-800/50 border-gray-700">
               <CardHeader className="pb-2">
-                <CardTitle className="text-white text-base flex items-center gap-2">
-                  <Star className="h-4 w-4 text-yellow-500" />
-                  Vetting Checklist
+                <CardTitle className="text-white text-base flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <Star className="h-4 w-4 text-yellow-500" />
+                    Vetting Checklist
+                  </span>
+                  <span className="text-xs text-gray-400 font-normal">
+                    {checkedCount}/{CHECKLIST_ITEMS.length}
+                  </span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {[
-                  { key: 'energy_level', label: '⚡ Energy Level' },
-                  { key: 'subject_knowledge', label: '📚 Subject Knowledge' },
-                  { key: 'tech_stability', label: '🖥️ Tech Stability' },
-                  { key: 'demo_performance', label: '🎭 Demo Performance' },
-                ].map(({ key, label }) => (
+                {CHECKLIST_ITEMS.map(({ key, label }) => (
                   <div key={key} className="flex items-center gap-3">
                     <Checkbox
                       id={key}
-                      checked={checklist[key as keyof typeof checklist]}
+                      checked={checklist[key]}
                       onCheckedChange={(checked) => handleChecklistChange(key, !!checked)}
                     />
-                    <Label htmlFor={key} className="text-gray-300 cursor-pointer">
+                    <Label htmlFor={key} className="text-gray-300 cursor-pointer text-sm">
                       {label}
                     </Label>
                   </div>
                 ))}
+              </CardContent>
+            </Card>
+
+            {/* Hub Re-tagging */}
+            <Card className="bg-gray-800/50 border-gray-700">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-white text-base flex items-center gap-2">
+                  <Tags className="h-4 w-4 text-indigo-400" />
+                  Hub Assignment
+                </CardTitle>
+                <p className="text-gray-500 text-xs">Override the hub if needed</p>
+              </CardHeader>
+              <CardContent>
+                <Select value={selectedHub} onValueChange={setSelectedHub}>
+                  <SelectTrigger className="bg-gray-700 border-gray-600 text-gray-200">
+                    <SelectValue placeholder="Select hub" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {HUB_OPTIONS.map(hub => (
+                      <SelectItem key={hub} value={hub}>{hub}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </CardContent>
             </Card>
 
@@ -310,7 +387,7 @@ const InterviewRoom = () => {
                 className="w-full bg-green-600 hover:bg-green-700 text-white"
               >
                 {actionLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CheckCircle className="h-4 w-4 mr-2" />}
-                Approve Teacher
+                Approve & Onboard
               </Button>
               <Button
                 variant="destructive"
@@ -338,7 +415,7 @@ const InterviewRoom = () => {
                       className="w-full bg-green-600 hover:bg-green-700"
                     >
                       {actionLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CheckCircle className="h-4 w-4 mr-2" />}
-                      Approve as Teacher
+                      Approve & Onboard
                     </Button>
                     <Button
                       variant="destructive"
