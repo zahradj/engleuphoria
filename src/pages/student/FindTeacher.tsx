@@ -52,7 +52,31 @@ const FindTeacher: React.FC = () => {
     try {
       const { data, error } = await supabase.rpc('get_approved_teachers');
       if (error) throw error;
-      setTeachers((data as any[]) || []);
+
+      // Enrich with hub_specialty from their availability slots
+      const teacherList = (data as any[]) || [];
+      if (teacherList.length > 0) {
+        const teacherIds = teacherList.map(t => t.user_id);
+        const { data: hubData } = await supabase
+          .from('teacher_availability')
+          .select('teacher_id, hub_specialty')
+          .in('teacher_id', teacherIds)
+          .not('hub_specialty', 'is', null)
+          .limit(500);
+
+        if (hubData) {
+          const hubMap: Record<string, Set<string>> = {};
+          hubData.forEach(h => {
+            if (!hubMap[h.teacher_id]) hubMap[h.teacher_id] = new Set();
+            if (h.hub_specialty) hubMap[h.teacher_id].add(h.hub_specialty);
+          });
+          teacherList.forEach(t => {
+            (t as any)._hubs = hubMap[t.user_id] ? Array.from(hubMap[t.user_id]) : [];
+          });
+        }
+      }
+
+      setTeachers(teacherList);
     } catch (err) {
       console.error('Error fetching teachers:', err);
     } finally {
@@ -66,7 +90,14 @@ const FindTeacher: React.FC = () => {
       t.specializations?.some(s => s.toLowerCase().includes(searchTerm.toLowerCase())) ||
       t.accent?.toLowerCase().includes(searchTerm.toLowerCase());
 
+    const hubFilterMap: Record<string, string> = {
+      playground: 'Playground',
+      academy: 'Academy', 
+      professional: 'Professional',
+    };
+
     const matchesHub = hubFilter === 'all' ||
+      ((t as any)._hubs || []).includes(hubFilterMap[hubFilter]) ||
       t.specializations?.some(s => s.toLowerCase().includes(hubFilter));
 
     return matchesSearch && matchesHub;
