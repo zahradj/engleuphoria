@@ -88,25 +88,8 @@ export const SignUpForm = () => {
                 <BookOpen className="h-7 w-7 text-white relative z-10" />
               </div>
               <div className="text-left">
-                <div className="font-bold text-xl text-blue-700 group-hover:text-blue-800">📚 I'm a Student</div>
+                <div className="font-bold text-xl text-blue-700 group-hover:text-blue-800">📚 Get Started</div>
                 <div className="text-base text-slate-600 font-medium">Start your magical learning journey!</div>
-              </div>
-            </div>
-          </Button>
-          
-          <Button 
-            onClick={() => handleRoleSelection('teacher')}
-            className="w-full h-20 text-left bg-gradient-to-r from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 border-2 border-emerald-200 hover:border-emerald-300 text-gray-800 hover:shadow-xl hover:scale-[1.02] transition-all duration-300 rounded-2xl group"
-            variant="outline"
-          >
-            <div className="flex items-center space-x-5">
-              <div className="relative w-14 h-14 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
-                <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-full"></div>
-                <GraduationCap className="h-7 w-7 text-white relative z-10" />
-              </div>
-              <div className="text-left">
-                <div className="font-bold text-xl text-emerald-700 group-hover:text-emerald-800">🎓 I'm a Teacher</div>
-                <div className="text-base text-slate-600 font-medium">Join our inspiring community!</div>
               </div>
             </div>
           </Button>
