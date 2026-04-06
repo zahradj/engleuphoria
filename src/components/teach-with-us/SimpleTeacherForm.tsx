@@ -121,6 +121,7 @@ const SimpleTeacherForm = forwardRef<HTMLDivElement>((_, ref) => {
       if (!formData.yearsExperience) newErrors.yearsExperience = 'Please enter years of experience';
       if (!formData.primaryLanguage) newErrors.primaryLanguage = 'Please select your primary language';
       if (!formData.education) newErrors.education = 'Please select your education level';
+      if (!formData.preferredAgeGroup) newErrors.preferredAgeGroup = 'Please select a preferred age group';
     }
 
     if (step === 3) {
@@ -472,6 +473,21 @@ const SimpleTeacherForm = forwardRef<HTMLDivElement>((_, ref) => {
                       </SelectContent>
                     </Select>
                     {errors.primaryLanguage && <p className="text-red-400 text-sm mt-1">{errors.primaryLanguage}</p>}
+                  </div>
+
+                  <div>
+                    <Label className="text-white/80">Preferred Age Group to Teach</Label>
+                    <Select value={formData.preferredAgeGroup} onValueChange={(v) => updateField('preferredAgeGroup', v)}>
+                      <SelectTrigger className="bg-white/5 border-white/10 text-white mt-1">
+                        <SelectValue placeholder="Select preferred age group" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ageGroups.map((ag) => (
+                          <SelectItem key={ag.value} value={ag.value}>{ag.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.preferredAgeGroup && <p className="text-red-400 text-sm mt-1">{errors.preferredAgeGroup}</p>}
                   </div>
                 </motion.div>
               )}
