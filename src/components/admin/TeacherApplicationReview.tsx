@@ -51,6 +51,7 @@ interface TeacherApplication {
   video_url: string;
   video_description: string;
   professional_photo_url?: string;
+  cv_url?: string;
   current_stage: string;
   status: string;
   created_at: string;
