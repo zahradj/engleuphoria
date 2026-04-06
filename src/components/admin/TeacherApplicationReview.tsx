@@ -63,6 +63,7 @@ interface InterviewEmailTemplate {
   subject: string;
   body: string;
   meetingLink: string;
+  useInternalRoom: boolean;
 }
 
 const stageConfig: Record<string, { label: string; color: string; variant: "default" | "destructive" | "outline" | "secondary" }> = {
@@ -99,6 +100,7 @@ export const TeacherApplicationReview: React.FC = () => {
     subject: '',
     body: '',
     meetingLink: '',
+    useInternalRoom: true,
   });
 
   useEffect(() => {
@@ -146,7 +148,6 @@ export const TeacherApplicationReview: React.FC = () => {
   };
 
   const handleApproveForInterview = async (application: TeacherApplication) => {
-    // Prepare email template
     setEmailTemplate({
       subject: `Interview Invitation - EnglEuphoria Teaching Position`,
       body: `Dear ${application.first_name || application.full_name?.split(' ')[0]},
@@ -155,22 +156,19 @@ Thank you for your interest in joining EnglEuphoria as an ESL teacher!
 
 We have reviewed your application and are pleased to invite you for an interview. Your experience and teaching philosophy align well with our mission.
 
-Please use the scheduling link below to book your interview at a time that works for you:
-
-[SCHEDULING_LINK]
-
-The interview will last approximately 30 minutes and will include:
+The interview will last approximately 15 minutes and will include:
 • Discussion of your teaching experience
 • A brief demo lesson (5 minutes)
 • Q&A about our platform and expectations
 
-If you have any questions, please don't hesitate to reach out.
+You will receive a link to join the interview room at the scheduled time.
 
 We look forward to speaking with you!
 
 Best regards,
 The EnglEuphoria Hiring Team`,
-      meetingLink: 'https://calendly.com/engleuphoria/teacher-interview',
+      meetingLink: '',
+      useInternalRoom: true,
     });
     setSelectedApplication(application);
     setShowInterviewDialog(true);
