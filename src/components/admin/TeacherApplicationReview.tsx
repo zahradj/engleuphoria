@@ -873,6 +873,8 @@ interface ApplicationGridProps {
   onApprove: (app: TeacherApplication) => void;
   onReject: (app: TeacherApplication) => void;
   getStatusBadge: (stage: string) => React.ReactNode;
+  onDelete?: (app: TeacherApplication) => void;
+  onResendInvite?: (app: TeacherApplication) => void;
 }
 
 const ApplicationGrid: React.FC<ApplicationGridProps> = ({ 
@@ -880,7 +882,9 @@ const ApplicationGrid: React.FC<ApplicationGridProps> = ({
   onView, 
   onApprove, 
   onReject,
-  getStatusBadge 
+  getStatusBadge,
+  onDelete,
+  onResendInvite,
 }) => {
   if (applications.length === 0) {
     return (
@@ -967,6 +971,27 @@ const ApplicationGrid: React.FC<ApplicationGridProps> = ({
                   <CalendarCheck className="h-4 w-4" />
                 </Button>
               </>
+            )}
+            {application.current_stage === 'interview_scheduled' && onResendInvite && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => onResendInvite(application)}
+              >
+                <Send className="h-4 w-4 mr-1" />
+                Resend
+              </Button>
+            )}
+            {application.current_stage === 'rejected' && onDelete && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="text-destructive hover:bg-destructive/10"
+                onClick={() => onDelete(application)}
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                Delete
+              </Button>
             )}
           </CardFooter>
         </Card>
