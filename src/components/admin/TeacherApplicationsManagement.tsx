@@ -46,7 +46,9 @@ import { format } from "date-fns";
 interface TeacherApplication {
   id: string;
   email: string;
-  full_name: string;
+  first_name: string;
+  last_name: string;
+  full_name: string; // computed
   nationality: string;
   time_zone: string;
   languages_spoken: string[];
