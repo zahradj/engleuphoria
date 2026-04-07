@@ -24,8 +24,21 @@ import {
   Globe,
   Award,
   Download,
-  Send
+  Send,
+  Trash2,
+  RefreshCw
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -33,7 +46,9 @@ import { format } from "date-fns";
 interface TeacherApplication {
   id: string;
   email: string;
-  full_name: string;
+  first_name: string;
+  last_name: string;
+  full_name: string; // computed
   nationality: string;
   time_zone: string;
   languages_spoken: string[];
@@ -82,7 +97,12 @@ export const TeacherApplicationsManagement = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setApplications(data || []);
+      // Compute full_name from first_name + last_name
+      const enriched = (data || []).map((app: any) => ({
+        ...app,
+        full_name: `${app.first_name || ''} ${app.last_name || ''}`.trim(),
+      }));
+      setApplications(enriched);
     } catch (error) {
       console.error('Error fetching applications:', error);
       toast({
@@ -213,6 +233,92 @@ export const TeacherApplicationsManagement = () => {
     }
   };
 
+  const deleteApplication = async (applicationId: string) => {
+    try {
+      // Delete related interviews first
+      await supabase
+        .from('teacher_interviews')
+        .delete()
+        .eq('application_id', applicationId);
+
+      const { error } = await supabase
+        .from('teacher_applications')
+        .delete()
+        .eq('id', applicationId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Application Deleted",
+        description: "The rejected application has been removed.",
+      });
+
+      fetchApplications();
+      setSelectedApplication(null);
+    } catch (error) {
+      console.error('Error deleting application:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete application",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const resendInterviewInvite = async (application: TeacherApplication) => {
+    try {
+      // Fetch the interview details
+      const { data: interview, error: fetchError } = await supabase
+        .from('teacher_interviews')
+        .select('*')
+        .eq('application_id', application.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (fetchError || !interview) {
+        toast({
+          title: "No Interview Found",
+          description: "No scheduled interview found for this applicant.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const interviewDate = new Date(interview.scheduled_at);
+      const formattedDate = format(interviewDate, 'EEEE, MMMM do, yyyy');
+      const formattedTime = format(interviewDate, 'HH:mm');
+
+      // Use a unique idempotency key with timestamp to allow resends
+      const { error } = await supabase.functions.invoke('send-transactional-email', {
+        body: {
+          templateName: 'interview-invitation',
+          recipientEmail: application.email,
+          idempotencyKey: `interview-resend-${application.id}-${Date.now()}`,
+          templateData: {
+            name: `${application.first_name} ${application.last_name}`,
+            interviewDate: formattedDate,
+            interviewTime: formattedTime,
+          },
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Invitation Resent",
+        description: `Interview invitation resent to ${application.first_name} ${application.last_name}`,
+      });
+    } catch (error) {
+      console.error('Error resending invite:', error);
+      toast({
+        title: "Error",
+        description: "Failed to resend interview invitation",
+        variant: "destructive",
+      });
+    }
+  };
+
   const updateApplicationStage = async (applicationId: string, stage: string, approved: boolean = false) => {
     const application = applications.find(app => app.id === applicationId);
     if (!application) return;
@@ -299,13 +405,19 @@ export const TeacherApplicationsManagement = () => {
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <TabsList>
             <TabsTrigger value="all" onClick={() => setStatusFilter('all')}>
-              All Applications ({applications.length})
+              All ({applications.length})
             </TabsTrigger>
             <TabsTrigger value="pending" onClick={() => setStatusFilter('application_submitted')}>
-              Pending Review
+              Pending
+            </TabsTrigger>
+            <TabsTrigger value="interview" onClick={() => setStatusFilter('interview_scheduled')}>
+              Interviews ({applications.filter(a => a.current_stage === 'interview_scheduled').length})
             </TabsTrigger>
             <TabsTrigger value="approved" onClick={() => setStatusFilter('approved')}>
               Approved
+            </TabsTrigger>
+            <TabsTrigger value="rejected" onClick={() => setStatusFilter('rejected')}>
+              Rejected ({applications.filter(a => a.current_stage === 'rejected').length})
             </TabsTrigger>
           </TabsList>
 
@@ -346,6 +458,40 @@ export const TeacherApplicationsManagement = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       {getStatusBadge(application.current_stage)}
+                      {application.current_stage === 'interview_scheduled' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => resendInterviewInvite(application)}
+                        >
+                          <RefreshCw className="h-4 w-4 mr-1" />
+                          Resend Invite
+                        </Button>
+                      )}
+                      {application.current_stage === 'rejected' && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="destructive" size="sm">
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              Delete
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Application</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to permanently delete {application.full_name}'s application? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => deleteApplication(application.id)}>
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
                       <Button
                         variant="outline"
                         size="sm"

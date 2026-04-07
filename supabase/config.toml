@@ -138,3 +138,5 @@ project_id = "dcoxpyzoqjvmuuygvlme"
     verify_jwt = false
   [functions.picsart-process]
     verify_jwt = false
+  [functions.send-interview-reminders]
+    verify_jwt = false
