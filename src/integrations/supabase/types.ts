@@ -3003,6 +3003,159 @@ export type Database = {
         }
         Relationships: []
       }
+      email_queue_dlq: {
+        Row: {
+          attempts: number
+          created_at: string
+          error_message: string | null
+          id: number
+          original_message_id: number | null
+          payload: Json
+          queue_name: string
+        }
+        Insert: {
+          attempts: number
+          created_at?: string
+          error_message?: string | null
+          id?: number
+          original_message_id?: number | null
+          payload: Json
+          queue_name: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          error_message?: string | null
+          id?: number
+          original_message_id?: number | null
+          payload?: Json
+          queue_name?: string
+        }
+        Relationships: []
+      }
+      email_queue_messages: {
+        Row: {
+          attempts: number
+          claimed_at: string | null
+          created_at: string
+          expires_at: string
+          id: number
+          max_attempts: number
+          payload: Json
+          queue_name: string
+          visible_at: string
+        }
+        Insert: {
+          attempts?: number
+          claimed_at?: string | null
+          created_at?: string
+          expires_at: string
+          id?: number
+          max_attempts?: number
+          payload: Json
+          queue_name: string
+          visible_at?: string
+        }
+        Update: {
+          attempts?: number
+          claimed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: number
+          max_attempts?: number
+          payload?: Json
+          queue_name?: string
+          visible_at?: string
+        }
+        Relationships: []
+      }
+      email_send_log: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          message_id: string | null
+          metadata: Json | null
+          recipient_email: string
+          status: string
+          template_name: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message_id?: string | null
+          metadata?: Json | null
+          recipient_email: string
+          status: string
+          template_name: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message_id?: string | null
+          metadata?: Json | null
+          recipient_email?: string
+          status?: string
+          template_name?: string
+        }
+        Relationships: []
+      }
+      email_send_state: {
+        Row: {
+          auth_email_ttl_minutes: number
+          batch_size: number
+          id: number
+          last_rate_limit_reason: string | null
+          retry_after_until: string | null
+          send_delay_ms: number
+          transactional_email_ttl_minutes: number
+          updated_at: string
+        }
+        Insert: {
+          auth_email_ttl_minutes?: number
+          batch_size?: number
+          id: number
+          last_rate_limit_reason?: string | null
+          retry_after_until?: string | null
+          send_delay_ms?: number
+          transactional_email_ttl_minutes?: number
+          updated_at?: string
+        }
+        Update: {
+          auth_email_ttl_minutes?: number
+          batch_size?: number
+          id?: number
+          last_rate_limit_reason?: string | null
+          retry_after_until?: string | null
+          send_delay_ms?: number
+          transactional_email_ttl_minutes?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      email_unsubscribe_tokens: {
+        Row: {
+          created_at: string
+          email: string
+          token: string
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          token: string
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          token?: string
+          used_at?: string | null
+        }
+        Relationships: []
+      }
       feature_flags: {
         Row: {
           conditions: Json | null
@@ -7373,6 +7526,30 @@ export type Database = {
         }
         Relationships: []
       }
+      suppressed_emails: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          metadata: Json | null
+          reason: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          metadata?: Json | null
+          reason: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          metadata?: Json | null
+          reason?: string
+        }
+        Relationships: []
+      }
       system_transitions: {
         Row: {
           from_system: string | null
@@ -8785,6 +8962,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      delete_email: {
+        Args: { _message_id: number; _queue_name: string }
+        Returns: boolean
+      }
+      enqueue_email: {
+        Args: { _payload: Json; _queue_name: string }
+        Returns: number
+      }
       ensure_user_role: {
         Args: { p_role: string; p_user_id: string }
         Returns: undefined
@@ -8969,6 +9154,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      move_to_dlq: {
+        Args: {
+          _error_message?: string
+          _message_id: number
+          _queue_name: string
+        }
+        Returns: boolean
+      }
       process_lesson_completion: {
         Args: {
           failure_reason?: string
@@ -8980,6 +9173,16 @@ export type Database = {
       purchase_virtual_reward: {
         Args: { reward_uuid: string; student_uuid: string }
         Returns: Json
+      }
+      read_email_batch: {
+        Args: { _batch_size?: number; _queue_name: string }
+        Returns: {
+          attempts: number
+          created_at: string
+          expires_at: string
+          id: number
+          payload: Json
+        }[]
       }
       refund_credit: { Args: { p_student_id: string }; Returns: undefined }
       reset_monthly_class_usage: { Args: never; Returns: undefined }
