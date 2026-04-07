@@ -405,13 +405,19 @@ export const TeacherApplicationsManagement = () => {
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <TabsList>
             <TabsTrigger value="all" onClick={() => setStatusFilter('all')}>
-              All Applications ({applications.length})
+              All ({applications.length})
             </TabsTrigger>
             <TabsTrigger value="pending" onClick={() => setStatusFilter('application_submitted')}>
-              Pending Review
+              Pending
+            </TabsTrigger>
+            <TabsTrigger value="interview" onClick={() => setStatusFilter('interview_scheduled')}>
+              Interviews ({applications.filter(a => a.current_stage === 'interview_scheduled').length})
             </TabsTrigger>
             <TabsTrigger value="approved" onClick={() => setStatusFilter('approved')}>
               Approved
+            </TabsTrigger>
+            <TabsTrigger value="rejected" onClick={() => setStatusFilter('rejected')}>
+              Rejected ({applications.filter(a => a.current_stage === 'rejected').length})
             </TabsTrigger>
           </TabsList>
 
