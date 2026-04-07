@@ -482,6 +482,7 @@ The EnglEuphoria Hiring Team`,
             <TabsTrigger value="application_submitted">Pending ({pendingCount})</TabsTrigger>
             <TabsTrigger value="interview_pending">Interview ({interviewCount})</TabsTrigger>
             <TabsTrigger value="approved">Approved ({approvedCount})</TabsTrigger>
+            <TabsTrigger value="rejected">Rejected ({rejectedCount})</TabsTrigger>
           </TabsList>
 
           <div className="relative w-full sm:w-72">
