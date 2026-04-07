@@ -458,6 +458,40 @@ export const TeacherApplicationsManagement = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       {getStatusBadge(application.current_stage)}
+                      {application.current_stage === 'interview_scheduled' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => resendInterviewInvite(application)}
+                        >
+                          <RefreshCw className="h-4 w-4 mr-1" />
+                          Resend Invite
+                        </Button>
+                      )}
+                      {application.current_stage === 'rejected' && (
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="destructive" size="sm">
+                              <Trash2 className="h-4 w-4 mr-1" />
+                              Delete
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Application</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to permanently delete {application.full_name}'s application? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => deleteApplication(application.id)}>
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      )}
                       <Button
                         variant="outline"
                         size="sm"
