@@ -140,3 +140,5 @@ project_id = "dcoxpyzoqjvmuuygvlme"
     verify_jwt = false
   [functions.send-interview-reminders]
     verify_jwt = false
+  [functions.process-email-queue]
+    verify_jwt = false
