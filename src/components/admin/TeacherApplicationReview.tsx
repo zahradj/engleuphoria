@@ -24,7 +24,10 @@ import {
   ExternalLink,
   Loader2,
   CalendarCheck,
-  FileDown
+  FileDown,
+  Trash2,
+  Send,
+  AlertTriangle,
 } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
@@ -351,9 +354,61 @@ The EnglEuphoria Hiring Team`,
     );
   };
 
+  const rejectedCount = applications.filter(a => a.current_stage === 'rejected').length;
   const pendingCount = applications.filter(a => a.current_stage === 'application_submitted').length;
   const interviewCount = applications.filter(a => ['interview_pending', 'interview_scheduled'].includes(a.current_stage)).length;
   const approvedCount = applications.filter(a => a.current_stage === 'approved').length;
+
+  const handleDeleteApplication = async (application: TeacherApplication) => {
+    if (!confirm(`Permanently delete ${getDisplayName(application)}'s application? This cannot be undone.`)) return;
+    try {
+      // Delete associated interviews first
+      await supabase.from('interviews').delete().eq('application_id', application.id);
+      const { error } = await supabase.from('teacher_applications').delete().eq('id', application.id);
+      if (error) throw error;
+      toast.success('Application deleted', { description: `${getDisplayName(application)}'s record has been removed.` });
+      fetchApplications();
+    } catch (error) {
+      console.error('Error deleting application:', error);
+      toast.error('Failed to delete application');
+    }
+  };
+
+  const handleResendInvite = async (application: TeacherApplication) => {
+    try {
+      const { data: interview } = await supabase
+        .from('interviews')
+        .select('id, room_token, hub_type')
+        .eq('application_id', application.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (!interview) {
+        toast.error('No interview found for this application');
+        return;
+      }
+
+      const meetingLink = `${window.location.origin}/interview/${interview.room_token}`;
+      await supabase.functions.invoke('send-transactional-email', {
+        body: {
+          templateName: 'interview-invitation',
+          recipientEmail: application.email,
+          idempotencyKey: `interview-resend-${interview.id}-${Date.now()}`,
+          templateData: {
+            name: application.first_name || getDisplayName(application)?.split(' ')[0],
+            hubType: interview.hub_type || 'Professional',
+            meetingLink,
+          },
+        },
+      });
+
+      toast.success('Invitation resent! 📨', { description: `Email sent to ${application.email}` });
+    } catch (error) {
+      console.error('Error resending invite:', error);
+      toast.error('Failed to resend invitation');
+    }
+  };
 
   if (loading) {
     return (
@@ -427,6 +482,7 @@ The EnglEuphoria Hiring Team`,
             <TabsTrigger value="application_submitted">Pending ({pendingCount})</TabsTrigger>
             <TabsTrigger value="interview_pending">Interview ({interviewCount})</TabsTrigger>
             <TabsTrigger value="approved">Approved ({approvedCount})</TabsTrigger>
+            <TabsTrigger value="rejected">Rejected ({rejectedCount})</TabsTrigger>
           </TabsList>
 
           <div className="relative w-full sm:w-72">
@@ -447,6 +503,8 @@ The EnglEuphoria Hiring Team`,
             onApprove={handleApproveForInterview}
             onReject={(app) => { setSelectedApplication(app); setShowRejectDialog(true); }}
             getStatusBadge={getStatusBadge}
+            onDelete={handleDeleteApplication}
+            onResendInvite={handleResendInvite}
           />
         </TabsContent>
         <TabsContent value="application_submitted" className="mt-6">
@@ -465,6 +523,7 @@ The EnglEuphoria Hiring Team`,
             onApprove={handleApproveForInterview}
             onReject={(app) => { setSelectedApplication(app); setShowRejectDialog(true); }}
             getStatusBadge={getStatusBadge}
+            onResendInvite={handleResendInvite}
           />
         </TabsContent>
         <TabsContent value="approved" className="mt-6">
@@ -474,6 +533,17 @@ The EnglEuphoria Hiring Team`,
             onApprove={handleApproveForInterview}
             onReject={(app) => { setSelectedApplication(app); setShowRejectDialog(true); }}
             getStatusBadge={getStatusBadge}
+            onResendInvite={handleResendInvite}
+          />
+        </TabsContent>
+        <TabsContent value="rejected" className="mt-6">
+          <ApplicationGrid 
+            applications={filteredApplications}
+            onView={setSelectedApplication}
+            onApprove={handleApproveForInterview}
+            onReject={(app) => { setSelectedApplication(app); setShowRejectDialog(true); }}
+            getStatusBadge={getStatusBadge}
+            onDelete={handleDeleteApplication}
           />
         </TabsContent>
       </Tabs>
@@ -806,6 +876,8 @@ interface ApplicationGridProps {
   onApprove: (app: TeacherApplication) => void;
   onReject: (app: TeacherApplication) => void;
   getStatusBadge: (stage: string) => React.ReactNode;
+  onDelete?: (app: TeacherApplication) => void;
+  onResendInvite?: (app: TeacherApplication) => void;
 }
 
 const ApplicationGrid: React.FC<ApplicationGridProps> = ({ 
@@ -813,7 +885,9 @@ const ApplicationGrid: React.FC<ApplicationGridProps> = ({
   onView, 
   onApprove, 
   onReject,
-  getStatusBadge 
+  getStatusBadge,
+  onDelete,
+  onResendInvite,
 }) => {
   if (applications.length === 0) {
     return (
@@ -900,6 +974,27 @@ const ApplicationGrid: React.FC<ApplicationGridProps> = ({
                   <CalendarCheck className="h-4 w-4" />
                 </Button>
               </>
+            )}
+            {application.current_stage === 'interview_scheduled' && onResendInvite && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => onResendInvite(application)}
+              >
+                <Send className="h-4 w-4 mr-1" />
+                Resend
+              </Button>
+            )}
+            {application.current_stage === 'rejected' && onDelete && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="text-destructive hover:bg-destructive/10"
+                onClick={() => onDelete(application)}
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                Delete
+              </Button>
             )}
           </CardFooter>
         </Card>
