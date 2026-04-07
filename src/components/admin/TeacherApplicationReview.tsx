@@ -530,6 +530,17 @@ The EnglEuphoria Hiring Team`,
             onApprove={handleApproveForInterview}
             onReject={(app) => { setSelectedApplication(app); setShowRejectDialog(true); }}
             getStatusBadge={getStatusBadge}
+            onResendInvite={handleResendInvite}
+          />
+        </TabsContent>
+        <TabsContent value="rejected" className="mt-6">
+          <ApplicationGrid 
+            applications={filteredApplications}
+            onView={setSelectedApplication}
+            onApprove={handleApproveForInterview}
+            onReject={(app) => { setSelectedApplication(app); setShowRejectDialog(true); }}
+            getStatusBadge={getStatusBadge}
+            onDelete={handleDeleteApplication}
           />
         </TabsContent>
       </Tabs>
