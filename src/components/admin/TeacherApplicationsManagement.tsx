@@ -97,7 +97,12 @@ export const TeacherApplicationsManagement = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setApplications(data || []);
+      // Compute full_name from first_name + last_name
+      const enriched = (data || []).map((app: any) => ({
+        ...app,
+        full_name: `${app.first_name || ''} ${app.last_name || ''}`.trim(),
+      }));
+      setApplications(enriched);
     } catch (error) {
       console.error('Error fetching applications:', error);
       toast({
