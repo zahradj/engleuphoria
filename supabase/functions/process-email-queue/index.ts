@@ -227,7 +227,7 @@ Deno.serve(async (req) => {
             template_name: payload.label || queueName,
             recipient_email: payload.to,
             status: 'dlq',
-            error_message,
+            error_message: errorMessage,
           })
           totalFailed++
         } else {
