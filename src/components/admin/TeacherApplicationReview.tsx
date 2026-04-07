@@ -354,9 +354,61 @@ The EnglEuphoria Hiring Team`,
     );
   };
 
+  const rejectedCount = applications.filter(a => a.current_stage === 'rejected').length;
   const pendingCount = applications.filter(a => a.current_stage === 'application_submitted').length;
   const interviewCount = applications.filter(a => ['interview_pending', 'interview_scheduled'].includes(a.current_stage)).length;
   const approvedCount = applications.filter(a => a.current_stage === 'approved').length;
+
+  const handleDeleteApplication = async (application: TeacherApplication) => {
+    if (!confirm(`Permanently delete ${getDisplayName(application)}'s application? This cannot be undone.`)) return;
+    try {
+      // Delete associated interviews first
+      await supabase.from('interviews').delete().eq('application_id', application.id);
+      const { error } = await supabase.from('teacher_applications').delete().eq('id', application.id);
+      if (error) throw error;
+      toast.success('Application deleted', { description: `${getDisplayName(application)}'s record has been removed.` });
+      fetchApplications();
+    } catch (error) {
+      console.error('Error deleting application:', error);
+      toast.error('Failed to delete application');
+    }
+  };
+
+  const handleResendInvite = async (application: TeacherApplication) => {
+    try {
+      const { data: interview } = await supabase
+        .from('interviews')
+        .select('id, room_token, hub_type')
+        .eq('application_id', application.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (!interview) {
+        toast.error('No interview found for this application');
+        return;
+      }
+
+      const meetingLink = `${window.location.origin}/interview/${interview.room_token}`;
+      await supabase.functions.invoke('send-transactional-email', {
+        body: {
+          templateName: 'interview-invitation',
+          recipientEmail: application.email,
+          idempotencyKey: `interview-resend-${interview.id}-${Date.now()}`,
+          templateData: {
+            name: application.first_name || getDisplayName(application)?.split(' ')[0],
+            hubType: interview.hub_type || 'Professional',
+            meetingLink,
+          },
+        },
+      });
+
+      toast.success('Invitation resent! 📨', { description: `Email sent to ${application.email}` });
+    } catch (error) {
+      console.error('Error resending invite:', error);
+      toast.error('Failed to resend invitation');
+    }
+  };
 
   if (loading) {
     return (
