@@ -226,6 +226,92 @@ export const TeacherApplicationsManagement = () => {
     }
   };
 
+  const deleteApplication = async (applicationId: string) => {
+    try {
+      // Delete related interviews first
+      await supabase
+        .from('teacher_interviews')
+        .delete()
+        .eq('application_id', applicationId);
+
+      const { error } = await supabase
+        .from('teacher_applications')
+        .delete()
+        .eq('id', applicationId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Application Deleted",
+        description: "The rejected application has been removed.",
+      });
+
+      fetchApplications();
+      setSelectedApplication(null);
+    } catch (error) {
+      console.error('Error deleting application:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete application",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const resendInterviewInvite = async (application: TeacherApplication) => {
+    try {
+      // Fetch the interview details
+      const { data: interview, error: fetchError } = await supabase
+        .from('teacher_interviews')
+        .select('*')
+        .eq('application_id', application.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (fetchError || !interview) {
+        toast({
+          title: "No Interview Found",
+          description: "No scheduled interview found for this applicant.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const interviewDate = new Date(interview.scheduled_at);
+      const formattedDate = format(interviewDate, 'EEEE, MMMM do, yyyy');
+      const formattedTime = format(interviewDate, 'HH:mm');
+
+      // Use a unique idempotency key with timestamp to allow resends
+      const { error } = await supabase.functions.invoke('send-transactional-email', {
+        body: {
+          templateName: 'interview-invitation',
+          recipientEmail: application.email,
+          idempotencyKey: `interview-resend-${application.id}-${Date.now()}`,
+          templateData: {
+            name: `${application.first_name} ${application.last_name}`,
+            interviewDate: formattedDate,
+            interviewTime: formattedTime,
+          },
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Invitation Resent",
+        description: `Interview invitation resent to ${application.first_name} ${application.last_name}`,
+      });
+    } catch (error) {
+      console.error('Error resending invite:', error);
+      toast({
+        title: "Error",
+        description: "Failed to resend interview invitation",
+        variant: "destructive",
+      });
+    }
+  };
+
   const updateApplicationStage = async (applicationId: string, stage: string, approved: boolean = false) => {
     const application = applications.find(app => app.id === applicationId);
     if (!application) return;
