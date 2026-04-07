@@ -503,6 +503,8 @@ The EnglEuphoria Hiring Team`,
             onApprove={handleApproveForInterview}
             onReject={(app) => { setSelectedApplication(app); setShowRejectDialog(true); }}
             getStatusBadge={getStatusBadge}
+            onDelete={handleDeleteApplication}
+            onResendInvite={handleResendInvite}
           />
         </TabsContent>
         <TabsContent value="application_submitted" className="mt-6">
@@ -521,6 +523,7 @@ The EnglEuphoria Hiring Team`,
             onApprove={handleApproveForInterview}
             onReject={(app) => { setSelectedApplication(app); setShowRejectDialog(true); }}
             getStatusBadge={getStatusBadge}
+            onResendInvite={handleResendInvite}
           />
         </TabsContent>
         <TabsContent value="approved" className="mt-6">
