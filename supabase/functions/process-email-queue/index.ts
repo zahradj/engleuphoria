@@ -32,6 +32,21 @@ interface QueueMessage {
   created_at: string
 }
 
+async function releaseClaim(
+  supabase: ReturnType<typeof createClient>,
+  messageId: number,
+  visibleAt: string,
+) {
+  const { error } = await supabase
+    .from('email_queue_messages')
+    .update({ claimed_at: null, visible_at: visibleAt })
+    .eq('id', messageId)
+
+  if (error) {
+    console.error('Failed to release claimed message', { error, messageId })
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -53,7 +68,7 @@ Deno.serve(async (req) => {
   // Check rate-limit backoff
   const { data: state } = await supabase
     .from('email_send_state')
-    .select('retry_after_until, send_delay_ms')
+    .select('retry_after_until, send_delay_ms, batch_size')
     .eq('id', 1)
     .single()
 
@@ -65,14 +80,21 @@ Deno.serve(async (req) => {
   }
 
   const sendDelayMs = state?.send_delay_ms ?? 200
+  const batchSize = state?.batch_size ?? 10
   let totalSent = 0
   let totalFailed = 0
 
   // Process auth_emails queue first (higher priority)
   for (const queueName of ['auth_emails', 'transactional_emails']) {
-    const { data: messages, error: readError } = await supabase.rpc('read_email_batch', {
-      _queue_name: queueName,
-    })
+    const nowIso = new Date().toISOString()
+    const { data: messages, error: readError } = await supabase
+      .from('email_queue_messages')
+      .select('id, payload, attempts, expires_at, created_at')
+      .eq('queue_name', queueName)
+      .is('claimed_at', null)
+      .lte('visible_at', nowIso)
+      .order('created_at', { ascending: true })
+      .limit(batchSize)
 
     if (readError) {
       console.error(`Failed to read ${queueName} queue`, readError)
@@ -83,8 +105,35 @@ Deno.serve(async (req) => {
 
     console.log(`Processing ${messages.length} messages from ${queueName}`)
 
-    for (const msg of messages as QueueMessage[]) {
-      const payload = msg.payload
+    for (const candidate of messages as QueueMessage[]) {
+      const claimVisibleAt = new Date(Date.now() + 30_000).toISOString()
+      const { data: msg, error: claimError } = await supabase
+        .from('email_queue_messages')
+        .update({
+          attempts: candidate.attempts + 1,
+          claimed_at: new Date().toISOString(),
+          visible_at: claimVisibleAt,
+        })
+        .eq('id', candidate.id)
+        .eq('attempts', candidate.attempts)
+        .is('claimed_at', null)
+        .select('id, payload, attempts, expires_at, created_at')
+        .maybeSingle()
+
+      if (claimError) {
+        console.error('Failed to claim queued email', {
+          error: claimError,
+          queueName,
+          message_id: candidate.id,
+        })
+        continue
+      }
+
+      if (!msg) {
+        continue
+      }
+
+      const payload = (msg as QueueMessage).payload
 
       // Check TTL expiry
       if (new Date(msg.expires_at) < new Date()) {
@@ -142,6 +191,7 @@ Deno.serve(async (req) => {
           const retryAfter = err.retryAfterSeconds ?? 60
           const retryUntil = new Date(Date.now() + retryAfter * 1000).toISOString()
           console.warn('Rate limited, backing off until', retryUntil)
+          await releaseClaim(supabase, msg.id, retryUntil)
           await supabase
             .from('email_send_state')
             .update({
@@ -180,6 +230,12 @@ Deno.serve(async (req) => {
             error_message,
           })
           totalFailed++
+        } else {
+          await releaseClaim(
+            supabase,
+            msg.id,
+            new Date(Date.now() + 30_000).toISOString(),
+          )
         }
       }
 
