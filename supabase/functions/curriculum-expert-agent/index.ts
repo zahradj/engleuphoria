@@ -659,6 +659,24 @@ For Lesson 1 of units after Unit 1, also include: reviewWords, bridgeRetrieval.
 Return ONLY the JSON array, no extra text.\`;
   }
   
+  if (requestData.mode === 'mastery_milestone') {
+    const vocabWords = requestData.vocabularyWords?.join(', ') || 'cat, dog, bird, fish, frog';
+    const grammarPats = requestData.grammarPatterns?.join('; ') || 'It is a ___; It is a big ___';
+    const phoneme = requestData.phonemeFocus || '/æ/';
+    const targetQ = requestData.targetQuestion || 'What is it?';
+    userPrompt = `Generate a Mastery Milestone for the unit "${requestData.unitTitle || 'Animals'}".
+
+Unit Details:
+- CEFR Level: ${requestData.cefrLevel || 'A1'}
+- Age Group: ${requestData.ageGroup || '5-7'}
+- Vocabulary Words: ${vocabWords}
+- Grammar Patterns: ${grammarPats}
+- Phoneme Focus: ${phoneme}
+- Target Question (Lesson 3 Bridge): ${targetQ}
+
+Generate the complete Review + Integrated Quiz JSON. Return ONLY valid JSON, no extra text.`;
+  }
+
   if (requestData.mode === 'assessment' && requestData.assessmentType) {
     userPrompt += `\n- Assessment type: ${requestData.assessmentType}`;
   }
@@ -716,6 +734,11 @@ function validateOutput(mode: string, data: any): void {
     case 'mission':
       if (!data.missionTitle || !data.quests) {
         throw new Error('Missing required mission fields');
+      }
+      break;
+    case 'mastery_milestone':
+      if (!data.part1_review || !data.part2_quiz) {
+        throw new Error('Missing required mastery milestone fields');
       }
       break;
     case 'resource':
