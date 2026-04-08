@@ -1,125 +1,99 @@
 
 
-## Plan: Smart Sequence Engine — Interleaved Review, Mastery Milestone, and Vocabulary Vault
+## Plan: Parent Mastery Report, Teacher Unit Report, and Quiz-Triggered Communication
 
-This plan adds the missing "smart" layers on top of the existing 3-lesson cycle: spaced repetition logic, the end-of-unit Mastery Milestone (Review + Integrated Quiz), a Vocabulary Vault tracker, and the certification sticker system.
-
----
-
-### What Already Exists (No Changes)
-
-- 3-lesson cycle (Discovery/Ladder/Bridge) with `cycle_type` in `curriculum_lessons`
-- `mastery_check_passed` on `interactive_lesson_progress`
-- `is_review` flag on `curriculum_lessons`
-- `student_phonics_progress` with mastery trigger
-- `UnitRoadmap.tsx` with 3-star system and mastery gate
-- `MapOfSounds.tsx` with phoneme grid
-- `curriculum-expert-agent` with 80% focus ratios and review lesson mode
+This adds the automated parent notification email, the teacher's diagnostic Unit Report with one-click PDF + send, and the celebration/retry UI on the student dashboard.
 
 ---
 
-### Step 1 — Vocabulary Vault (Database + UI)
+### Step 1 — Parent Mastery Report Email Template
 
-**Migration**: Create `student_vocabulary_progress` table:
-- `id`, `student_id` (references auth.users), `word`, `unit_id`, `first_seen_at`, `times_reviewed` (int), `last_reviewed_at`, `mastered` (boolean)
+**New file**: `supabase/functions/_shared/transactional-email-templates/unit-mastery-report.tsx`
 
-**Trigger**: When a lesson is completed, insert/update vocabulary entries from the lesson's `vocabulary_list` JSON column.
+A branded React Email template matching existing style (indigo-600 buttons, dark footer, Inter font). Props:
 
-**UI**: New `VocabularyVault.tsx` component showing all learned words grouped by unit, with mastery badges. Integrate into `StudentPanel.tsx`.
+- `studentName`, `unitName`, `overallScore`
+- `phonicsSummary`, `vocabularyCount`, `vocabularyWords[]`, `grammarPattern`
+- `realWorldWin` (e.g., "They can now ask: 'What is it?'")
+- `homeActivity` (mission for parent + child)
+- `skillScores` (listening/speaking/reading/writing/phonics/grammar percentages)
 
----
+The email displays: a Victory Badge header, skill breakdown table with status icons, the "Real-World Win" highlight, and a Home Activity mission box.
 
-### Step 2 — Interleaved Review in AI Prompt
-
-**File**: `supabase/functions/curriculum-expert-agent/index.ts`
-
-Update `ECA_CURRICULUM_STRUCTURE_PROMPT` to add:
-
-```text
-INTERLEAVED REVIEW RULE:
-Every Lesson 1 (Discovery) of a NEW unit MUST include 2 vocabulary words 
-from the PREVIOUS unit in its warm-up activities to ensure long-term retention.
-Include a "reviewWords" field in the lesson JSON with 2 words from the prior unit.
-```
-
-Also add the **Balanced Skill Output** requirement — every lesson must specify tasks for all 4 skills:
-- `listeningTask`: a decoding task
-- `speakingTask`: a "Record & Compare" task
-- `readingTask`: a CVC word blending task
-- `writingTask`: a tracing or typing task
+**Update**: `registry.ts` — add `unit-mastery-report` entry.
 
 ---
 
-### Step 3 — Mastery Milestone (End-of-Unit Review + Quiz)
+### Step 2 — Auto-Trigger Email on Quiz Pass
 
-**AI Prompt**: Add a new mode `mastery_milestone` to the edge function that generates a two-part session:
+**New file**: `src/utils/sendMasteryReport.ts`
 
-**Part 1 — Systematic Review** (10 min):
-- Rapid-fire review of 15 vocabulary words (5 per lesson)
-- 3 grammar pattern checks
-- Phoneme identification under time pressure
+A utility function that:
+1. Fetches the student's `parent_email` from `student_profiles`
+2. Pulls vocabulary from `student_vocabulary_progress` for the unit
+3. Pulls phonics data from `student_phonics_progress`
+4. Pulls milestone result from `mastery_milestone_results`
+5. Calls `supabase.functions.invoke('send-transactional-email', ...)` with `templateName: 'unit-mastery-report'`
 
-**Part 2 — Integrated Quiz** (20 min):
-- Listening: Minimal pair testing (e.g., "Pin" vs "Pen")
-- Speaking: Student must initiate a conversation using Lesson 3's target question
-- Reading: CVC word decoding check
-- Writing: Fill-in missing letter
-- Grammar: Sentence unscrambling
-
-**Scoring**: Calculate percentage across all skills. Store in a new `mastery_milestone_results` table with `student_id`, `unit_id`, `score`, `passed` (>=80%), `skill_scores` (JSON), `completed_at`.
-
-**Data Lock Logic**: If score >= 80%, set `mastery_check_passed = true` on the Bridge lesson progress, unlock next unit, turn Map of Sounds island Gold. If < 80%, flag the weakest skill and auto-suggest a Reinforcement Lesson targeting that skill.
+This function is called from the existing quiz completion flow (wherever `mastery_milestone_results` is inserted and `passed = true`).
 
 ---
 
-### Step 4 — Quiz Icon on UnitRoadmap
+### Step 3 — Teacher's Final Unit Report Component
 
-**File**: `src/components/student/curriculum/UnitRoadmap.tsx`
+**New file**: `src/components/teacher/dashboard/UnitMasteryReport.tsx`
 
-After the 3 lesson stars, add a 4th icon: a trophy/quiz badge that appears at the end of each unit's path. States:
-- Grey/locked: lessons not all completed
-- Blue/available: all 3 lessons done, quiz not taken
-- Gold: quiz passed (>=80%)
-- Red flag: quiz failed, reinforcement needed
+A diagnostic report view accessible from the Teacher Dashboard Students tab. Features:
 
----
-
-### Step 5 — Unit Mastery Sticker / Certificate
-
-**Migration**: Create `student_achievements` table: `id`, `student_id`, `unit_id`, `achievement_type` (enum: 'unit_mastery', 'phoneme_mastery'), `earned_at`, `sticker_name`.
-
-When a student passes the Mastery Milestone (>=80%), insert an achievement record and display a celebratory sticker on their profile/dashboard.
-
-**UI**: Add an `Achievements` section to the student dashboard showing earned stickers.
+- **Student selector** dropdown to pick a student
+- **Unit selector** showing completed units
+- Auto-populated data: quiz scores, skill breakdown, vocabulary list, phonics mastery, grammar patterns
+- **AI-Assisted Summary**: Calls the `curriculum-expert-agent` with a `generate_report_summary` mode to draft a professional narrative ("Overall, Alex has shown 85% Mastery...")
+- **Editable fields**: Teacher can edit the AI-generated summary, add "Voice of the Teacher" notes (Win + Work), and customize the Home Activity
+- **"Approve & Send" button**: Generates a PDF (using browser print/html2canvas), emails it to the parent via `send-transactional-email`, and marks the unit as archived in the roadmap
 
 ---
 
-### Step 6 — Bridge Retrieval Pop Quiz
+### Step 4 — Student Dashboard Celebration + Retry UI
 
-Update the AI prompt so that every Lesson 1 of a new unit begins with a 5-minute "Bridge Retrieval" pop quiz — 5 quick questions from the previous unit to activate spaced repetition before introducing new content. Add `bridgeRetrieval` field to the lesson JSON.
+**Modify**: `src/components/student/curriculum/UnitRoadmap.tsx`
+
+- When a milestone is passed (score >= 80%): show a confetti/celebration animation and an "unlocked" badge on the next unit
+- When failed (< 80%): show a "Let's Practice More" button that navigates to the review lesson
 
 ---
 
-### Summary of Changes
+### Step 5 — Teacher Dashboard Integration
+
+**Modify**: `src/components/teacher/dashboard/TeacherDashboardContent.tsx` or navigation
+
+- Add a "Reports" tab or a "Generate Report" button on the Students tab
+- Link to the `UnitMasteryReport` component
+- Show real-time quiz results feed (query `mastery_milestone_results` for the teacher's students)
+
+---
+
+### Summary
 
 | Area | Action |
 |------|--------|
-| Migration | `student_vocabulary_progress`, `mastery_milestone_results`, `student_achievements` tables |
-| Edge Function | Interleaved review rule, balanced skills, mastery milestone mode, bridge retrieval |
-| `UnitRoadmap.tsx` | Quiz icon at end of unit path |
-| New: `VocabularyVault.tsx` | Word tracker with mastery badges |
-| New: `MasteryMilestone.tsx` | Review + Quiz UI component |
-| New: `Achievements.tsx` | Sticker display on student dashboard |
-| `StudentPanel.tsx` | Integrate Vocabulary Vault and Achievements |
+| Email template | `unit-mastery-report.tsx` — branded parent report with skill breakdown |
+| Registry | Add to `registry.ts` |
+| Utility | `sendMasteryReport.ts` — auto-trigger on quiz pass |
+| Teacher UI | `UnitMasteryReport.tsx` — diagnostic report with AI summary + send |
+| Student UI | Celebration animation on pass, retry button on fail |
+| Teacher Dashboard | Reports tab / Generate Report button |
+| Edge Function | Add `generate_report_summary` mode to `curriculum-expert-agent` |
+| Deploy | `send-transactional-email` + `curriculum-expert-agent` |
 
 ### Files to Create
-- `src/components/student/curriculum/VocabularyVault.tsx`
-- `src/components/student/curriculum/MasteryMilestone.tsx`
-- `src/components/student/curriculum/Achievements.tsx`
-- Database migration (3 new tables + vocabulary trigger)
+- `supabase/functions/_shared/transactional-email-templates/unit-mastery-report.tsx`
+- `src/utils/sendMasteryReport.ts`
+- `src/components/teacher/dashboard/UnitMasteryReport.tsx`
 
 ### Files to Modify
-- `src/components/student/curriculum/UnitRoadmap.tsx` — add quiz icon
-- `supabase/functions/curriculum-expert-agent/index.ts` — interleaved review, balanced skills, milestone mode
-- `src/components/student/StudentPanel.tsx` — integrate new widgets
+- `supabase/functions/_shared/transactional-email-templates/registry.ts`
+- `src/components/student/curriculum/UnitRoadmap.tsx`
+- `src/components/teacher/dashboard/TeacherDashboardContent.tsx` (or nav)
+- `supabase/functions/curriculum-expert-agent/index.ts`
 
