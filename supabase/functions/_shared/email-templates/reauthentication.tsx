@@ -19,7 +19,7 @@ interface ReauthenticationEmailProps {
 export const ReauthenticationEmail = ({ token }: ReauthenticationEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Your verification code for EnglEuphoria</Preview>
+    <Preview>Your verification code</Preview>
     <Body style={main}>
       <Container style={container}>
         <Heading style={h1}>Confirm reauthentication</Heading>
@@ -36,25 +36,25 @@ export const ReauthenticationEmail = ({ token }: ReauthenticationEmailProps) => 
 
 export default ReauthenticationEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: "'Inter', Arial, sans-serif" }
-const container = { padding: '30px 25px', maxWidth: '480px', margin: '0 auto' }
+const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
+const container = { padding: '20px 25px' }
 const h1 = {
-  fontSize: '24px',
+  fontSize: '22px',
   fontWeight: 'bold' as const,
-  color: '#1e293b',
+  color: '#000000',
   margin: '0 0 20px',
 }
 const text = {
-  fontSize: '15px',
-  color: '#64748b',
-  lineHeight: '1.6',
+  fontSize: '14px',
+  color: '#55575d',
+  lineHeight: '1.5',
   margin: '0 0 25px',
 }
 const codeStyle = {
   fontFamily: 'Courier, monospace',
-  fontSize: '24px',
+  fontSize: '22px',
   fontWeight: 'bold' as const,
-  color: '#9b6dba',
+  color: '#000000',
   margin: '0 0 30px',
 }
-const footer = { fontSize: '12px', color: '#94a3b8', margin: '30px 0 0' }
+const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
