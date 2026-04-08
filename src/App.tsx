@@ -46,6 +46,7 @@ const LessonLibraryPage = lazy(() => import("./pages/student/LessonLibraryPage")
 const UnsubscribePage = lazy(() => import("./pages/UnsubscribePage"));
 const FindTeacher = lazy(() => import("./pages/student/FindTeacher"));
 const InterviewRoom = lazy(() => import("./pages/InterviewRoom"));
+const SetPassword = lazy(() => import("./pages/SetPassword"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
