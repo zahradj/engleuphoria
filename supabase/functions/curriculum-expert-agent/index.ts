@@ -652,11 +652,11 @@ Every generated lesson MUST include these 4 task fields:
 Every Lesson 1 of a NEW unit (unit number > 1) MUST begin with a 5-minute "Bridge Retrieval" pop quiz — 5 quick questions from the previous unit to activate spaced repetition before introducing new content.
 Include a "bridgeRetrieval" field with 5 question objects: [{question, expectedAnswer}].
 
-OUTPUT: Return ONLY a JSON array of \${unitCount} unit objects. Each unit has a "lessons" array.
+OUTPUT: Return ONLY a JSON array of ${unitCount} unit objects. Each unit has a "lessons" array.
 Each lesson object MUST include: title, objectives, grammarFocus, vocabularyTheme, cycleType, phonicsFocus (if discovery), vocabularyList, grammarPattern, skillsFocus, listeningTask, speakingTask, readingTask, writingTask.
 For Lesson 1 of units after Unit 1, also include: reviewWords, bridgeRetrieval.
 
-Return ONLY the JSON array, no extra text.\`;
+Return ONLY the JSON array, no extra text.`;
   }
   
   if (requestData.mode === 'mastery_milestone') {
