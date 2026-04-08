@@ -9,6 +9,8 @@ import { ChatTab } from "./ChatTab";
 import { BillingTab } from "./BillingTab";
 import { CertificatesTab } from "./CertificatesTab";
 import { SettingsTab } from "./SettingsTab";
+import { UnitRoadmap } from "./curriculum/UnitRoadmap";
+import { MapOfSounds } from "./curriculum/MapOfSounds";
 
 interface StudentPanelProps {
   studentId?: string;
@@ -34,6 +36,10 @@ export const StudentPanel = ({
         return <ProfileTab studentName={studentName} />;
       case "classes":
         return <EnhancedUpcomingClassesTab studentId={studentId} />;
+      case "learning-path":
+        return <UnitRoadmap />;
+      case "sounds":
+        return <MapOfSounds />;
       case "chat":
         return <ChatTab />;
       case "billing":
