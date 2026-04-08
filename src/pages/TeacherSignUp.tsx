@@ -99,7 +99,7 @@ const TeacherSignUp = () => {
       });
       
       setIsLoading(false);
-      navigate("/teacher-application");
+      navigate("/for-teachers");
       return;
     }
 
@@ -165,7 +165,7 @@ const TeacherSignUp = () => {
         });
         
         // Redirect to teacher application
-        navigate("/teacher-application");
+        navigate("/for-teachers");
       }
     } catch (error: any) {
       toast({
