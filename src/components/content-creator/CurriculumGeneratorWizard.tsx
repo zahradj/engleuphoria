@@ -23,6 +23,11 @@ interface GeneratedLesson {
   objectives: string[];
   grammarFocus: string;
   vocabularyTheme: string;
+  cycleType?: 'discovery' | 'ladder' | 'bridge';
+  phonicsFocus?: string;
+  vocabularyList?: any[];
+  grammarPattern?: string;
+  skillsFocus?: string[];
 }
 
 interface CurriculumConfig {
@@ -127,6 +132,11 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
           objectives: Array.isArray(lesson.objectives) ? lesson.objectives : [],
           grammarFocus: lesson.grammarFocus ?? lesson.grammar_focus ?? '',
           vocabularyTheme: lesson.vocabularyTheme ?? lesson.vocabulary_theme ?? '',
+          cycleType: lesson.cycleType ?? lesson.cycle_type ?? null,
+          phonicsFocus: lesson.phonicsFocus ?? lesson.phonics_focus ?? null,
+          vocabularyList: Array.isArray(lesson.vocabularyList ?? lesson.vocabulary_list) ? (lesson.vocabularyList ?? lesson.vocabulary_list) : [],
+          grammarPattern: lesson.grammarPattern ?? lesson.grammar_pattern ?? null,
+          skillsFocus: Array.isArray(lesson.skillsFocus ?? lesson.skills_focus) ? (lesson.skillsFocus ?? lesson.skills_focus) : [],
         })),
       }));
 
@@ -309,6 +319,11 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
           sequence_order: lesson.lessonNumber,
           duration_minutes: 30,
           created_by: user?.id || null,
+          cycle_type: lesson.cycleType || null,
+          phonics_focus: lesson.phonicsFocus || null,
+          vocabulary_list: lesson.vocabularyList || [],
+          grammar_pattern: lesson.grammarPattern || null,
+          skills_focus: lesson.skillsFocus || [],
           content: {
             objectives: lesson.objectives,
             grammarFocus: lesson.grammarFocus,

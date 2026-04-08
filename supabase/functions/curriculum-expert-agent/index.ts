@@ -535,13 +535,40 @@ function buildUserPrompt(requestData: GenerationRequest): string {
 
 Requirements:
 - Generate exactly ${unitCount} units
-- Each unit must have exactly ${lessonsPerUnit} lessons
+- Each unit must have exactly ${lessonsPerUnit} lessons (ideally 3 per unit for the "Slowly-Slowly" cycle)
 - Each lesson needs: title, 3 objectives, grammarFocus, vocabularyTheme
-- Lessons should be 30 minutes each
-- Content must be age-appropriate for ${ageGroup}
-- Grammar and vocabulary should progress logically across units
 
-Return ONLY a JSON array of ${unitCount} unit objects, each with a "lessons" array of ${lessonsPerUnit} lesson objects.`;
+🎯 THE "SLOWLY-SLOWLY" 3-LESSON CYCLE (apply to every unit):
+If a unit has 3 lessons, enforce this cycle exactly:
+  Lesson 1 — "Discovery" (cycleType: "discovery"):
+    - Focus: 1 phoneme (short sound) + exactly 5 nouns
+    - Skills: Listening & Reading
+    - phoncsFocus: the IPA symbol (e.g. "/æ/")
+    - vocabularyList: array of 5 noun objects [{word, definition}]
+    - grammarPattern: simple recognition pattern (e.g. "It is a ___")
+    - skillsFocus: ["listening", "reading"]
+  Lesson 2 — "The Ladder" (cycleType: "ladder"):
+    - Focus: Verbs + Adjectives, build Sentence Ladders
+    - Skills: Writing & Grammar
+    - vocabularyList: verbs + adjectives (max 5 words)
+    - grammarPattern: sentence ladder pattern (e.g. "It is a dog" → "It is a big dog")
+    - skillsFocus: ["writing", "grammar"]
+  Lesson 3 — "The Bridge" (cycleType: "bridge"):
+    - Focus: Questions + Real-Life Use
+    - Skills: Speaking & Fluency
+    - grammarPattern: question pattern (e.g. "What is it?", "Do you have a ___?")
+    - skillsFocus: ["speaking", "fluency"]
+    - Include a "realWorldMission" in the lesson content
+
+🧠 COGNITIVE LOAD RULES:
+- NEVER introduce more than 1 new phoneme per lesson
+- NEVER introduce more than 5 new words per lesson
+- Every lesson must scaffold from Recognition → Production
+
+OUTPUT: Return ONLY a JSON array of ${unitCount} unit objects. Each unit has a "lessons" array.
+Each lesson object MUST include: title, objectives, grammarFocus, vocabularyTheme, cycleType, phonicsFocus (if discovery), vocabularyList, grammarPattern, skillsFocus.
+
+Return ONLY the JSON array, no extra text.`;
   }
   
   if (requestData.mode === 'assessment' && requestData.assessmentType) {
