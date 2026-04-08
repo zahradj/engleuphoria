@@ -663,8 +663,8 @@ Return ONLY the JSON array, no extra text.\`;
     const vocabWords = requestData.vocabularyWords?.join(', ') || 'cat, dog, bird, fish, frog';
     const grammarPats = requestData.grammarPatterns?.join('; ') || 'It is a ___; It is a big ___';
     const phoneme = requestData.phonemeFocus || '/æ/';
-    const targetQ = requestData.targetQuestion || 'What is it?';
-    userPrompt = `Generate a Mastery Milestone for the unit "${requestData.unitTitle || 'Animals'}".
+    const unitTitle = requestData.unitTitle || 'Animals';
+    userPrompt = `Generate a Mastery Milestone for the unit called ${unitTitle}.
 
 Unit Details:
 - CEFR Level: ${requestData.cefrLevel || 'A1'}
