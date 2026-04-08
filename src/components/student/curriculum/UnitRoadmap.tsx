@@ -9,6 +9,7 @@ import { Map, Loader2, Lock, Star, Trophy, AlertCircle, RefreshCw, Sun, Moon } f
 import { cn } from '@/lib/utils';
 import { ConfettiEffect } from '@/components/gamification/ConfettiEffect';
 import { useTimeOfDay } from '@/hooks/useTimeOfDay';
+import { useReinforcementLesson } from '@/hooks/useReinforcementLesson';
 
 interface UnitWithLessons {
   id: string;
@@ -37,6 +38,7 @@ const Firefly = ({ delay, x, y }: { delay: number; x: number; y: number }) => (
 export const UnitRoadmap: React.FC = () => {
   const { user } = useAuth();
   const { timeOfDay, isDaytime } = useTimeOfDay();
+  const { generate: generateReinforcement, isGenerating: isGeneratingReinforcement } = useReinforcementLesson();
   const [showConfetti, setShowConfetti] = useState(false);
   const [celebratedUnit, setCelebratedUnit] = useState<string | null>(null);
 
@@ -377,9 +379,23 @@ export const UnitRoadmap: React.FC = () => {
                           variant="outline"
                           size="sm"
                           className="text-destructive border-destructive/30 hover:bg-destructive/5"
+                          disabled={isGeneratingReinforcement}
+                          onClick={() => {
+                            if (user?.id) {
+                              generateReinforcement({
+                                unitId: unit.id,
+                                weakestSkill: unit.milestoneResult.weakest_skill || 'speaking',
+                                studentId: user.id,
+                              });
+                            }
+                          }}
                         >
-                          <RefreshCw className="h-3 w-3 mr-1" />
-                          Let's Practice More
+                          {isGeneratingReinforcement ? (
+                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                          ) : (
+                            <RefreshCw className="h-3 w-3 mr-1" />
+                          )}
+                          {isGeneratingReinforcement ? 'Generating...' : "Let's Practice More"}
                         </Button>
                       </div>
                     )}
