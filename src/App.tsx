@@ -18,16 +18,13 @@ import LandingPage from "./pages/LandingPage";
 
 // All other pages are lazy-loaded for bundle optimization
 const AboutPage = lazy(() => import("./pages/AboutPage"));
-const TeachWithUsPage = lazy(() => import("./pages/TeachWithUsPage"));
 const ForTeachersPage = lazy(() => import("./pages/ForTeachersPage"));
 const Login = lazy(() => import("./pages/Login"));
 const SignUp = lazy(() => import("./pages/SignUp"));
 const StudentDashboard = lazy(() => import("./pages/StudentDashboard"));
 const TeacherDashboard = lazy(() => import("./pages/TeacherDashboard"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
-const TeacherSignUp = lazy(() => import("./pages/TeacherSignUp"));
 const StudentSignUp = lazy(() => import("./pages/StudentSignUp"));
-const TeacherApplication = lazy(() => import("./pages/TeacherApplication"));
 const StudentApplication = lazy(() => import("./pages/StudentApplication"));
 const EmailVerification = lazy(() => import("./pages/EmailVerification"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
