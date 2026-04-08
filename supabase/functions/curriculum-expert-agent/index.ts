@@ -736,7 +736,24 @@ Unit Details:
 Generate the complete Review + Integrated Quiz JSON. Return ONLY valid JSON, no extra text.`;
   }
 
-  if (requestData.mode === 'assessment' && requestData.assessmentType) {
+  if (requestData.mode === 'reinforcement_lesson') {
+    const vocabWords = requestData.vocabularyWords?.join(', ') || 'cat, dog, bird';
+    const grammarPats = requestData.grammarPatterns?.join('; ') || 'It is a ___';
+    const phoneme = requestData.phonemeFocus || '/æ/';
+    const unitTitle = requestData.unitTitle || 'Review Unit';
+    const weakSkill = requestData.weakestSkill || 'speaking';
+    userPrompt = `Generate a Reinforcement Lesson targeting the "${weakSkill}" skill for the unit "${unitTitle}".
+
+Unit Details:
+- CEFR Level: ${requestData.cefrLevel || 'A1'}
+- Age Group: ${requestData.ageGroup || '5-7'}
+- Weakest Skill: ${weakSkill}
+- Vocabulary Words: ${vocabWords}
+- Grammar Patterns: ${grammarPats}
+- Phoneme Focus: ${phoneme}
+
+Remember: 80% of activities must target "${weakSkill}". Return ONLY valid JSON.`;
+  }
     userPrompt += `\n- Assessment type: ${requestData.assessmentType}`;
   }
   
