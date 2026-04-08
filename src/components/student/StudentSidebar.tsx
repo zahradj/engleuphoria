@@ -53,7 +53,8 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
   };
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Home },
-    ...(hasProfile ? [{ id: 'learning-path', label: 'My Learning Path', icon: Map, badge: 'New' }] : []),
+    { id: 'learning-path', label: 'My Learning Path', icon: Map, badge: 'New' },
+    { id: 'sounds', label: 'Map of Sounds', icon: Sparkles, badge: 'New' },
     { id: 'lessons', label: 'My Lessons', icon: BookOpen },
     { id: 'classroom', label: 'Join Classroom', icon: Video, action: handleEnterClassroom, badge: 'Live' },
     { id: 'assessments', label: 'Assessments', icon: ClipboardList },
