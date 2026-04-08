@@ -524,6 +524,7 @@ The EnglEuphoria Hiring Team`,
             onApprove={handleApproveForInterview}
             onReject={(app) => { setSelectedApplication(app); setShowRejectDialog(true); }}
             getStatusBadge={getStatusBadge}
+            onDelete={handleDeleteApplication}
             onResendInvite={handleResendInvite}
           />
         </TabsContent>
@@ -976,7 +977,7 @@ const ApplicationGrid: React.FC<ApplicationGridProps> = ({
                 Resend
               </Button>
             )}
-            {application.current_stage === 'rejected' && onDelete && (
+            {(application.current_stage === 'rejected' || application.current_stage === 'approved') && onDelete && (
               <Button 
                 variant="outline" 
                 size="sm"
