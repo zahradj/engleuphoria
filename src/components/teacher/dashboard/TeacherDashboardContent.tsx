@@ -5,6 +5,7 @@ import { DashboardTab } from "../DashboardTab";
 import { StudentsTab } from "./StudentsTab";
 import { EnhancedCalendarTab } from "../EnhancedCalendarTab";
 import { UnitMasteryReport } from "./UnitMasteryReport";
+import { MasteryOverview } from "./MasteryOverview";
 import { Users, Calendar, BarChart3, FileText } from "lucide-react";
 
 interface TeacherDashboardContentProps {
@@ -76,8 +77,9 @@ export const TeacherDashboardContent = ({ lessonPlans, teacherName = "Teacher", 
             />
           </TabsContent>
 
-          <TabsContent value="reports" className="animate-fade-in">
+          <TabsContent value="reports" className="animate-fade-in space-y-8">
             <UnitMasteryReport teacherId={teacherId} />
+            <MasteryOverview teacherId={teacherId} />
           </TabsContent>
           
           <TabsContent value="schedule" className="animate-fade-in">

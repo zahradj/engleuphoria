@@ -432,6 +432,57 @@ Return valid JSON with this structure:
   "extensionActivities": ["Activity 1", "Activity 2", "Activity 3"]
 }`;
 
+// ============= REINFORCEMENT LESSON PROMPT =============
+
+const ECA_REINFORCEMENT_LESSON_PROMPT = `You are EngCurriculum Expert (ECA). Generate a focused 30-minute Reinforcement Lesson that targets a student's WEAKEST SKILL after failing a Mastery Milestone quiz.
+
+KEY PRINCIPLE: 80% of activities MUST target the weak skill. 20% can review other areas.
+
+The lesson should:
+- Revisit the unit's vocabulary and phoneme
+- Focus heavily on the weak skill
+- Use scaffolded progression from simple to complex
+- Include confidence-building warm-ups before challenging tasks
+- End with a mini-assessment of the weak skill
+
+OUTPUT FORMAT:
+Return valid JSON:
+{
+  "title": "Reinforcement: [Skill] Practice - [Unit Title]",
+  "targetSkill": "speaking|listening|reading|writing|grammar",
+  "durationMinutes": 30,
+  "objectives": ["objective1", "objective2", "objective3"],
+  "warmUp": {
+    "durationMinutes": 5,
+    "activity": "Description of confidence-building warm-up"
+  },
+  "activities": [
+    {
+      "activityNumber": 1,
+      "title": "Activity title",
+      "skill": "the skill being practiced",
+      "durationMinutes": 8,
+      "instructions": "Step-by-step instructions",
+      "materials": "What is needed",
+      "scaffolding": "How to help struggling students"
+    }
+  ],
+  "miniAssessment": {
+    "type": "quiz|oral|written",
+    "questions": [
+      {"question": "Q1", "expectedAnswer": "A1"}
+    ],
+    "passingCriteria": "3 out of 5 correct"
+  },
+  "teacherNotes": "Tips for delivery"
+}
+
+IMPORTANT:
+- Return ONLY valid JSON, no extra text
+- Activities must directly address the weak skill
+- Use the unit vocabulary words in all activities
+- Keep cognitive load low - this is remediation, not new content`;
+
 // ============= MASTERY MILESTONE PROMPT =============
 
 const ECA_MASTERY_MILESTONE_PROMPT = `You are EngCurriculum Expert (ECA). Generate a Mastery Milestone — an end-of-unit Review + Integrated Quiz session.
@@ -489,7 +540,7 @@ IMPORTANT:
 // ============= TYPE DEFINITIONS =============
 
 interface GenerationRequest {
-  mode: 'lesson' | 'unit' | 'curriculum' | 'curriculum_structure' | 'assessment' | 'mission' | 'resource' | 'mastery_milestone' | 'generate_report_summary';
+  mode: 'lesson' | 'unit' | 'curriculum' | 'curriculum_structure' | 'assessment' | 'mission' | 'resource' | 'mastery_milestone' | 'generate_report_summary' | 'reinforcement_lesson';
   prompt: string;
   ageGroup: '5-7' | '8-11' | '12-14' | '15-17';
   cefrLevel: 'Pre-A1' | 'A1' | 'A2' | 'B1' | 'B2';
@@ -516,6 +567,9 @@ interface GenerationRequest {
   grammarPatterns?: string[];
   phonemeFocus?: string;
   targetQuestion?: string;
+
+  // Reinforcement lesson params
+  weakestSkill?: string;
   
   // Template selection
   templateId?: string;
@@ -533,6 +587,7 @@ function getSystemPrompt(mode: string): string {
     case 'mission': return ECA_MISSION_PROMPT;
     case 'resource': return ECA_RESOURCE_PROMPT;
     case 'mastery_milestone': return ECA_MASTERY_MILESTONE_PROMPT;
+    case 'reinforcement_lesson': return ECA_REINFORCEMENT_LESSON_PROMPT;
     case 'generate_report_summary': return `You are a professional ESL teacher writing a diagnostic summary for a parent. Write in a warm, encouraging, professional tone. Return a JSON object: {"summary": "your 2-3 sentence summary"}. Return ONLY valid JSON.`;
     default: return ECA_LESSON_PROMPT;
   }
@@ -542,7 +597,7 @@ function getModelForMode(mode: string): string {
   if (mode === 'curriculum' || mode === 'curriculum_structure' || mode === 'unit' || mode === 'mastery_milestone') {
     return 'google/gemini-2.5-pro';
   }
-  if (mode === 'generate_report_summary') return 'google/gemini-2.5-flash';
+  if (mode === 'generate_report_summary' || mode === 'reinforcement_lesson') return 'google/gemini-2.5-flash';
   return 'google/gemini-2.5-flash';
 }
 
@@ -551,6 +606,7 @@ function getMaxTokensForMode(mode: string): number {
   if (mode === 'unit' || mode === 'mastery_milestone') return 6000;
   if (mode === 'assessment') return 6000;
   if (mode === 'generate_report_summary') return 500;
+  if (mode === 'reinforcement_lesson') return 4000;
   return 4000;
 }
 
@@ -680,6 +736,25 @@ Unit Details:
 Generate the complete Review + Integrated Quiz JSON. Return ONLY valid JSON, no extra text.`;
   }
 
+  if (requestData.mode === 'reinforcement_lesson') {
+    const vocabWords = requestData.vocabularyWords?.join(', ') || 'cat, dog, bird';
+    const grammarPats = requestData.grammarPatterns?.join('; ') || 'It is a ___';
+    const phoneme = requestData.phonemeFocus || '/æ/';
+    const unitTitle = requestData.unitTitle || 'Review Unit';
+    const weakSkill = requestData.weakestSkill || 'speaking';
+    userPrompt = `Generate a Reinforcement Lesson targeting the "${weakSkill}" skill for the unit "${unitTitle}".
+
+Unit Details:
+- CEFR Level: ${requestData.cefrLevel || 'A1'}
+- Age Group: ${requestData.ageGroup || '5-7'}
+- Weakest Skill: ${weakSkill}
+- Vocabulary Words: ${vocabWords}
+- Grammar Patterns: ${grammarPats}
+- Phoneme Focus: ${phoneme}
+
+Remember: 80% of activities must target "${weakSkill}". Return ONLY valid JSON.`;
+  }
+
   if (requestData.mode === 'assessment' && requestData.assessmentType) {
     userPrompt += `\n- Assessment type: ${requestData.assessmentType}`;
   }
@@ -744,7 +819,11 @@ function validateOutput(mode: string, data: any): void {
         throw new Error('Missing required mastery milestone fields');
       }
       break;
-    case 'generate_report_summary':
+    case 'reinforcement_lesson':
+      if (!data.title || !data.targetSkill || !data.activities) {
+        throw new Error('Missing required reinforcement lesson fields');
+      }
+      break;
       if (!data.summary) {
         throw new Error('Missing summary field');
       }
