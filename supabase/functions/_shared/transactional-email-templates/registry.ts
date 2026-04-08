@@ -17,6 +17,13 @@ import { template as finalWelcome } from './final-welcome.tsx'
 import { template as applicationRejected } from './application-rejected.tsx'
 import { template as videoRejected } from './video-rejected.tsx'
 import { template as videoApproved } from './video-approved.tsx'
+import { template as welcomeStudent } from './welcome-student.tsx'
+import { template as welcomeTeacher } from './welcome-teacher.tsx'
+import { template as adminNewRegistration } from './admin-new-registration.tsx'
+import { template as adminNewStudent } from './admin-new-student.tsx'
+import { template as teacherBooking } from './teacher-booking.tsx'
+import { template as studentLessonReady } from './student-lesson-ready.tsx'
+import { template as lessonReminder } from './lesson-reminder.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'booking-confirmation': bookingConfirmation,
@@ -27,4 +34,11 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'application-rejected': applicationRejected,
   'video-rejected': videoRejected,
   'video-approved': videoApproved,
+  'welcome-student': welcomeStudent,
+  'welcome-teacher': welcomeTeacher,
+  'admin-new-registration': adminNewRegistration,
+  'admin-new-student': adminNewStudent,
+  'teacher-booking': teacherBooking,
+  'student-lesson-ready': studentLessonReady,
+  'lesson-reminder': lessonReminder,
 }
