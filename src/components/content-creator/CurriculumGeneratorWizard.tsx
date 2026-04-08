@@ -23,6 +23,11 @@ interface GeneratedLesson {
   objectives: string[];
   grammarFocus: string;
   vocabularyTheme: string;
+  cycleType?: 'discovery' | 'ladder' | 'bridge';
+  phonicsFocus?: string;
+  vocabularyList?: any[];
+  grammarPattern?: string;
+  skillsFocus?: string[];
 }
 
 interface CurriculumConfig {
@@ -127,6 +132,11 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
           objectives: Array.isArray(lesson.objectives) ? lesson.objectives : [],
           grammarFocus: lesson.grammarFocus ?? lesson.grammar_focus ?? '',
           vocabularyTheme: lesson.vocabularyTheme ?? lesson.vocabulary_theme ?? '',
+          cycleType: lesson.cycleType ?? lesson.cycle_type ?? null,
+          phonicsFocus: lesson.phonicsFocus ?? lesson.phonics_focus ?? null,
+          vocabularyList: Array.isArray(lesson.vocabularyList ?? lesson.vocabulary_list) ? (lesson.vocabularyList ?? lesson.vocabulary_list) : [],
+          grammarPattern: lesson.grammarPattern ?? lesson.grammar_pattern ?? null,
+          skillsFocus: Array.isArray(lesson.skillsFocus ?? lesson.skills_focus) ? (lesson.skillsFocus ?? lesson.skills_focus) : [],
         })),
       }));
 
@@ -309,6 +319,11 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
           sequence_order: lesson.lessonNumber,
           duration_minutes: 30,
           created_by: user?.id || null,
+          cycle_type: lesson.cycleType || null,
+          phonics_focus: lesson.phonicsFocus || null,
+          vocabulary_list: lesson.vocabularyList || [],
+          grammar_pattern: lesson.grammarPattern || null,
+          skills_focus: lesson.skillsFocus || [],
           content: {
             objectives: lesson.objectives,
             grammarFocus: lesson.grammarFocus,
@@ -499,6 +514,18 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
                                 </span>
                               </div>
                               <div className="mt-2 flex flex-wrap gap-1.5">
+                                {lesson.cycleType && (
+                                  <Badge className={`text-xs ${
+                                    lesson.cycleType === 'discovery' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' :
+                                    lesson.cycleType === 'ladder' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' :
+                                    'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+                                  }`}>
+                                    {lesson.cycleType === 'discovery' ? '🔍' : lesson.cycleType === 'ladder' ? '🪜' : '🌉'} {lesson.cycleType}
+                                  </Badge>
+                                )}
+                                {lesson.phonicsFocus && (
+                                  <Badge variant="outline" className="text-xs">🔊 {lesson.phonicsFocus}</Badge>
+                                )}
                                 <Badge variant="outline" className="text-xs">🗣 {lesson.grammarFocus}</Badge>
                                 <Badge variant="outline" className="text-xs">📚 {lesson.vocabularyTheme}</Badge>
                               </div>

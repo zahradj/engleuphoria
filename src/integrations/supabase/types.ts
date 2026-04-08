@@ -2212,20 +2212,25 @@ export type Database = {
           content: Json | null
           created_at: string | null
           created_by: string | null
+          cycle_type: string | null
           description: string | null
           difficulty_level: string
           duration_minutes: number | null
+          grammar_pattern: string | null
           id: string
           is_published: boolean | null
           language: string | null
           level_id: string | null
           order_index: number | null
+          phonics_focus: string | null
           sequence_order: number | null
+          skills_focus: string[] | null
           target_system: string
           thumbnail_url: string | null
           title: string
           unit_id: string | null
           updated_at: string | null
+          vocabulary_list: Json | null
           xp_reward: number | null
         }
         Insert: {
@@ -2233,20 +2238,25 @@ export type Database = {
           content?: Json | null
           created_at?: string | null
           created_by?: string | null
+          cycle_type?: string | null
           description?: string | null
           difficulty_level: string
           duration_minutes?: number | null
+          grammar_pattern?: string | null
           id?: string
           is_published?: boolean | null
           language?: string | null
           level_id?: string | null
           order_index?: number | null
+          phonics_focus?: string | null
           sequence_order?: number | null
+          skills_focus?: string[] | null
           target_system: string
           thumbnail_url?: string | null
           title: string
           unit_id?: string | null
           updated_at?: string | null
+          vocabulary_list?: Json | null
           xp_reward?: number | null
         }
         Update: {
@@ -2254,20 +2264,25 @@ export type Database = {
           content?: Json | null
           created_at?: string | null
           created_by?: string | null
+          cycle_type?: string | null
           description?: string | null
           difficulty_level?: string
           duration_minutes?: number | null
+          grammar_pattern?: string | null
           id?: string
           is_published?: boolean | null
           language?: string | null
           level_id?: string | null
           order_index?: number | null
+          phonics_focus?: string | null
           sequence_order?: number | null
+          skills_focus?: string[] | null
           target_system?: string
           thumbnail_url?: string | null
           title?: string
           unit_id?: string | null
           updated_at?: string | null
+          vocabulary_list?: Json | null
           xp_reward?: number | null
         }
         Relationships: [
@@ -7098,6 +7113,44 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_phonics_progress: {
+        Row: {
+          created_at: string | null
+          id: string
+          lesson_id: string | null
+          mastered_at: string | null
+          mastery_level: string | null
+          phoneme: string
+          student_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          lesson_id?: string | null
+          mastered_at?: string | null
+          mastery_level?: string | null
+          phoneme: string
+          student_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          lesson_id?: string | null
+          mastered_at?: string | null
+          mastery_level?: string | null
+          phoneme?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_phonics_progress_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_lessons"
             referencedColumns: ["id"]
           },
         ]
