@@ -34,7 +34,7 @@ export const SignUpForm = () => {
 
   const handleRoleSelection = (role: 'teacher' | 'student') => {
     if (role === 'teacher') {
-      navigate('/teacher-signup');
+      navigate('/for-teachers');
     } else if (role === 'student') {
       navigate('/student-signup');
     }

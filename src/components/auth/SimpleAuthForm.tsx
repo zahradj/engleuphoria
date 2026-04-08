@@ -244,7 +244,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
           }).catch(err => console.error('Failed to notify admin:', err));
 
           if (formData.role === 'teacher') {
-            navigate('/teacher-application');
+            navigate('/for-teachers');
           } else if (formData.role === 'student' && systemTag) {
             navigate(getRedirectPath('student', systemTag));
           } else {
@@ -631,7 +631,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => navigate('/teacher-signup')}
+                onClick={() => navigate('/for-teachers')}
                 className="flex-1 text-xs"
               >
                 <GraduationCap className="mr-1 h-3 w-3" />
