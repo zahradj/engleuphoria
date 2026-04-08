@@ -14,7 +14,8 @@ import {
   Sparkles,
   LogOut,
   Video,
-  Gift
+  Gift,
+  Trophy
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -55,6 +56,8 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
     { id: 'dashboard', label: 'Dashboard', icon: Home },
     { id: 'learning-path', label: 'My Learning Path', icon: Map, badge: 'New' },
     { id: 'sounds', label: 'Map of Sounds', icon: Sparkles, badge: 'New' },
+    { id: 'vocabulary', label: 'Vocabulary Vault', icon: BookOpen, badge: 'New' },
+    { id: 'milestones', label: 'Mastery Milestones', icon: Trophy, badge: 'New' },
     { id: 'lessons', label: 'My Lessons', icon: BookOpen },
     { id: 'classroom', label: 'Join Classroom', icon: Video, action: handleEnterClassroom, badge: 'Live' },
     { id: 'assessments', label: 'Assessments', icon: ClipboardList },
