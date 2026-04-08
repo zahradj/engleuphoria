@@ -538,18 +538,15 @@ function getSystemPrompt(mode: string): string {
 }
 
 function getModelForMode(mode: string): string {
-  // Use Pro model for complex reasoning tasks
-  if (mode === 'curriculum' || mode === 'curriculum_structure' || mode === 'unit') {
+  if (mode === 'curriculum' || mode === 'curriculum_structure' || mode === 'unit' || mode === 'mastery_milestone') {
     return 'google/gemini-2.5-pro';
   }
-  // Use Flash for faster generation
   return 'google/gemini-2.5-flash';
 }
 
 function getMaxTokensForMode(mode: string): number {
-  // More tokens for complex outputs
   if (mode === 'curriculum' || mode === 'curriculum_structure') return 8000;
-  if (mode === 'unit') return 6000;
+  if (mode === 'unit' || mode === 'mastery_milestone') return 6000;
   if (mode === 'assessment') return 6000;
   return 4000;
 }
