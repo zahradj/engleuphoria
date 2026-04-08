@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Map, Loader2, Lock, Star } from 'lucide-react';
+import { Map, Loader2, Lock, Star, Trophy, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface UnitWithLessons {
@@ -20,6 +20,7 @@ interface UnitWithLessons {
     completed: boolean;
   }[];
   masteryPassed: boolean;
+  milestoneResult: { score: number; passed: boolean; weakest_skill: string | null } | null;
 }
 
 export const UnitRoadmap: React.FC = () => {
@@ -54,12 +55,26 @@ export const UnitRoadmap: React.FC = () => {
           .from('interactive_lesson_progress')
           .select('lesson_id, mastery_check_passed')
           .eq('student_id', user.id)
-          .eq('status', 'completed');
+          .eq('lesson_status', 'completed');
         if (progressData) {
-          completedLessonIds = new Set(progressData.map((p) => p.lesson_id));
+          completedLessonIds = new Set(progressData.map((p: any) => p.lesson_id));
           masteryPassedLessonIds = new Set(
-            progressData.filter((p) => p.mastery_check_passed).map((p) => p.lesson_id)
+            progressData.filter((p: any) => p.mastery_check_passed).map((p: any) => p.lesson_id)
           );
+        }
+      }
+
+      // Fetch milestone results
+      let milestoneMap: Record<string, { score: number; passed: boolean; weakest_skill: string | null }> = {};
+      if (user?.id) {
+        const { data: milestones } = await supabase
+          .from('mastery_milestone_results')
+          .select('unit_id, score, passed, weakest_skill')
+          .eq('student_id', user.id);
+        if (milestones) {
+          for (const m of milestones) {
+            milestoneMap[m.unit_id] = { score: Number(m.score), passed: m.passed, weakest_skill: m.weakest_skill };
+          }
         }
       }
 
@@ -79,6 +94,7 @@ export const UnitRoadmap: React.FC = () => {
           ...unit,
           lessons: unitLessons,
           masteryPassed,
+          milestoneResult: milestoneMap[unit.id] || null,
         };
       });
     },
@@ -205,11 +221,55 @@ export const UnitRoadmap: React.FC = () => {
                     })}
                   </div>
 
+                  {/* Quiz / Milestone icon (4th position) */}
+                  <div className="flex items-center gap-3 ml-2 mt-2">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-6 h-0.5 bg-border" />
+                      {(() => {
+                        const milestone = unit.milestoneResult;
+                        if (unitGold || (milestone && milestone.passed)) {
+                          return (
+                            <div className="flex flex-col items-center gap-0.5">
+                              <Trophy className="h-6 w-6 text-amber-500 fill-amber-100" />
+                              <span className="text-[10px] text-amber-600 font-medium">
+                                {milestone ? `${Math.round(milestone.score)}%` : 'Passed'}
+                              </span>
+                            </div>
+                          );
+                        }
+                        if (milestone && !milestone.passed) {
+                          return (
+                            <div className="flex flex-col items-center gap-0.5">
+                              <AlertCircle className="h-6 w-6 text-destructive" />
+                              <span className="text-[10px] text-destructive font-medium">
+                                {Math.round(milestone.score)}% — Review {milestone.weakest_skill || 'needed'}
+                              </span>
+                            </div>
+                          );
+                        }
+                        if (allCompleted) {
+                          return (
+                            <div className="flex flex-col items-center gap-0.5">
+                              <Trophy className="h-6 w-6 text-primary fill-primary/20" />
+                              <span className="text-[10px] text-primary font-medium">Take Quiz</span>
+                            </div>
+                          );
+                        }
+                        return (
+                          <div className="flex flex-col items-center gap-0.5">
+                            <Trophy className="h-6 w-6 text-muted-foreground/30" />
+                            <span className="text-[10px] text-muted-foreground">Quiz</span>
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  </div>
+
                   {/* Mastery gate indicator */}
-                  {allCompleted && !unit.masteryPassed && (
+                  {allCompleted && !unit.masteryPassed && !unit.milestoneResult && (
                     <div className="mt-2 ml-2 text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
                       <Lock className="h-3 w-3" />
-                      Pass the Bridge mastery check to unlock the next unit
+                      Pass the Mastery Milestone quiz to unlock the next unit
                     </div>
                   )}
                 </div>

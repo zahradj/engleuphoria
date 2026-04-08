@@ -11,6 +11,9 @@ import { CertificatesTab } from "./CertificatesTab";
 import { SettingsTab } from "./SettingsTab";
 import { UnitRoadmap } from "./curriculum/UnitRoadmap";
 import { MapOfSounds } from "./curriculum/MapOfSounds";
+import { VocabularyVault } from "./curriculum/VocabularyVault";
+import { MasteryMilestone } from "./curriculum/MasteryMilestone";
+import { StudentAchievements } from "./curriculum/StudentAchievements";
 
 interface StudentPanelProps {
   studentId?: string;
@@ -40,6 +43,15 @@ export const StudentPanel = ({
         return <UnitRoadmap />;
       case "sounds":
         return <MapOfSounds />;
+      case "vocabulary":
+        return <VocabularyVault />;
+      case "milestones":
+        return (
+          <div className="space-y-6">
+            <MasteryMilestone />
+            <StudentAchievements />
+          </div>
+        );
       case "chat":
         return <ChatTab />;
       case "billing":
