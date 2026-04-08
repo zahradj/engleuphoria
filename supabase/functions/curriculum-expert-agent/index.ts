@@ -640,10 +640,26 @@ If the request includes "reviewMode: true", generate a condensed 30-minute Revie
 - NEVER introduce more than 5 new words per lesson
 - Every lesson must scaffold from Recognition → Production
 
-OUTPUT: Return ONLY a JSON array of ${unitCount} unit objects. Each unit has a "lessons" array.
-Each lesson object MUST include: title, objectives, grammarFocus, vocabularyTheme, cycleType, phonicsFocus (if discovery), vocabularyList, grammarPattern, skillsFocus.
+🔁 INTERLEAVED REVIEW RULE:
+Every Lesson 1 (Discovery) of a NEW unit (unit number > 1) MUST include 2 vocabulary words from the PREVIOUS unit in its warm-up activities to ensure long-term retention.
+Include a "reviewWords" field in the lesson JSON with 2 words from the prior unit.
 
-Return ONLY the JSON array, no extra text.`;
+📚 BALANCED SKILL OUTPUT:
+Every generated lesson MUST include these 4 task fields:
+- "listeningTask": a decoding or sound-matching task
+- "speakingTask": a "Record & Compare" or oral production task
+- "readingTask": a CVC word blending or sight-word task
+- "writingTask": a tracing, typing, or fill-in-the-blank task
+
+🔗 BRIDGE RETRIEVAL:
+Every Lesson 1 of a NEW unit (unit number > 1) MUST begin with a 5-minute "Bridge Retrieval" pop quiz — 5 quick questions from the previous unit to activate spaced repetition before introducing new content.
+Include a "bridgeRetrieval" field with 5 question objects: [{question, expectedAnswer}].
+
+OUTPUT: Return ONLY a JSON array of \${unitCount} unit objects. Each unit has a "lessons" array.
+Each lesson object MUST include: title, objectives, grammarFocus, vocabularyTheme, cycleType, phonicsFocus (if discovery), vocabularyList, grammarPattern, skillsFocus, listeningTask, speakingTask, readingTask, writingTask.
+For Lesson 1 of units after Unit 1, also include: reviewWords, bridgeRetrieval.
+
+Return ONLY the JSON array, no extra text.\`;
   }
   
   if (requestData.mode === 'assessment' && requestData.assessmentType) {
