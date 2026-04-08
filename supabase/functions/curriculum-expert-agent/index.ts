@@ -541,24 +541,37 @@ Requirements:
 🎯 THE "SLOWLY-SLOWLY" 3-LESSON CYCLE (apply to every unit):
 If a unit has 3 lessons, enforce this cycle exactly:
   Lesson 1 — "Discovery" (cycleType: "discovery"):
+    - FOCUS RATIO: 80% Phonics/Noun accuracy, 20% basic recognition activities
     - Focus: 1 phoneme (short sound) + exactly 5 nouns
     - Skills: Listening & Reading
-    - phoncsFocus: the IPA symbol (e.g. "/æ/")
+    - phonicsFocus: the IPA symbol (e.g. "/æ/")
     - vocabularyList: array of 5 noun objects [{word, definition}]
     - grammarPattern: simple recognition pattern (e.g. "It is a ___")
     - skillsFocus: ["listening", "reading"]
   Lesson 2 — "The Ladder" (cycleType: "ladder"):
+    - FOCUS RATIO: 80% Sentence building/Grammar, 20% vocabulary reinforcement
     - Focus: Verbs + Adjectives, build Sentence Ladders
     - Skills: Writing & Grammar
     - vocabularyList: verbs + adjectives (max 5 words)
     - grammarPattern: sentence ladder pattern (e.g. "It is a dog" → "It is a big dog")
     - skillsFocus: ["writing", "grammar"]
   Lesson 3 — "The Bridge" (cycleType: "bridge"):
-    - Focus: Questions + Real-Life Use
+    - FOCUS RATIO: 80% Student production/Speaking, 20% teacher guidance
+    - Focus: Questions + Real-Life Use. The teacher should speak LESS and the student should speak MORE.
     - Skills: Speaking & Fluency
     - grammarPattern: question pattern (e.g. "What is it?", "Do you have a ___?")
     - skillsFocus: ["speaking", "fluency"]
     - Include a "realWorldMission" in the lesson content
+    - MANDATORY: Include a "masteryCheck" field with the exact target question the student must independently produce (e.g. "What is it?" or "Do you have a cat?"). If the student cannot produce this question independently, flag for a Review Lesson before advancing to the next unit.
+
+🔄 REVIEW LESSON MODE:
+If the request includes "reviewMode: true", generate a condensed 30-minute Review Lesson that:
+  - Revisits the unit's phoneme with 3 quick recognition activities
+  - Reviews all 5 core nouns from Lesson 1
+  - Practices the sentence ladder from Lesson 2
+  - Re-tests the target question from Lesson 3's masteryCheck
+  - cycleType: "review"
+  - Mark as isReview: true in the output
 
 🧠 COGNITIVE LOAD RULES:
 - NEVER introduce more than 1 new phoneme per lesson

@@ -2219,6 +2219,7 @@ export type Database = {
           grammar_pattern: string | null
           id: string
           is_published: boolean | null
+          is_review: boolean
           language: string | null
           level_id: string | null
           order_index: number | null
@@ -2245,6 +2246,7 @@ export type Database = {
           grammar_pattern?: string | null
           id?: string
           is_published?: boolean | null
+          is_review?: boolean
           language?: string | null
           level_id?: string | null
           order_index?: number | null
@@ -2271,6 +2273,7 @@ export type Database = {
           grammar_pattern?: string | null
           id?: string
           is_published?: boolean | null
+          is_review?: boolean
           language?: string | null
           level_id?: string | null
           order_index?: number | null
@@ -3668,6 +3671,7 @@ export type Database = {
           last_slide_completed: number | null
           lesson_id: string
           lesson_status: string
+          mastery_check_passed: boolean
           session_data: Json | null
           stars_earned: number
           started_at: string | null
@@ -3685,6 +3689,7 @@ export type Database = {
           last_slide_completed?: number | null
           lesson_id: string
           lesson_status?: string
+          mastery_check_passed?: boolean
           session_data?: Json | null
           stars_earned?: number
           started_at?: string | null
@@ -3702,6 +3707,7 @@ export type Database = {
           last_slide_completed?: number | null
           lesson_id?: string
           lesson_status?: string
+          mastery_check_passed?: boolean
           session_data?: Json | null
           stars_earned?: number
           started_at?: string | null
