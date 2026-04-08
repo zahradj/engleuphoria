@@ -817,7 +817,11 @@ function validateOutput(mode: string, data: any): void {
         throw new Error('Missing required mastery milestone fields');
       }
       break;
-    case 'generate_report_summary':
+    case 'reinforcement_lesson':
+      if (!data.title || !data.targetSkill || !data.activities) {
+        throw new Error('Missing required reinforcement lesson fields');
+      }
+      break;
       if (!data.summary) {
         throw new Error('Missing summary field');
       }
