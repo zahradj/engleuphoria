@@ -489,7 +489,7 @@ IMPORTANT:
 // ============= TYPE DEFINITIONS =============
 
 interface GenerationRequest {
-  mode: 'lesson' | 'unit' | 'curriculum' | 'curriculum_structure' | 'assessment' | 'mission' | 'resource' | 'mastery_milestone';
+  mode: 'lesson' | 'unit' | 'curriculum' | 'curriculum_structure' | 'assessment' | 'mission' | 'resource' | 'mastery_milestone' | 'generate_report_summary';
   prompt: string;
   ageGroup: '5-7' | '8-11' | '12-14' | '15-17';
   cefrLevel: 'Pre-A1' | 'A1' | 'A2' | 'B1' | 'B2';
@@ -533,6 +533,7 @@ function getSystemPrompt(mode: string): string {
     case 'mission': return ECA_MISSION_PROMPT;
     case 'resource': return ECA_RESOURCE_PROMPT;
     case 'mastery_milestone': return ECA_MASTERY_MILESTONE_PROMPT;
+    case 'generate_report_summary': return `You are a professional ESL teacher writing a diagnostic summary for a parent. Write in a warm, encouraging, professional tone. Return a JSON object: {"summary": "your 2-3 sentence summary"}. Return ONLY valid JSON.`;
     default: return ECA_LESSON_PROMPT;
   }
 }
@@ -541,6 +542,7 @@ function getModelForMode(mode: string): string {
   if (mode === 'curriculum' || mode === 'curriculum_structure' || mode === 'unit' || mode === 'mastery_milestone') {
     return 'google/gemini-2.5-pro';
   }
+  if (mode === 'generate_report_summary') return 'google/gemini-2.5-flash';
   return 'google/gemini-2.5-flash';
 }
 
@@ -548,6 +550,7 @@ function getMaxTokensForMode(mode: string): number {
   if (mode === 'curriculum' || mode === 'curriculum_structure') return 8000;
   if (mode === 'unit' || mode === 'mastery_milestone') return 6000;
   if (mode === 'assessment') return 6000;
+  if (mode === 'generate_report_summary') return 500;
   return 4000;
 }
 
@@ -739,6 +742,11 @@ function validateOutput(mode: string, data: any): void {
     case 'mastery_milestone':
       if (!data.part1_review || !data.part2_quiz) {
         throw new Error('Missing required mastery milestone fields');
+      }
+      break;
+    case 'generate_report_summary':
+      if (!data.summary) {
+        throw new Error('Missing summary field');
       }
       break;
     case 'resource':
