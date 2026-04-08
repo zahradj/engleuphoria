@@ -307,39 +307,30 @@ The EnglEuphoria Hiring Team`,
   const handleFinalApprove = async (application: TeacherApplication) => {
     setActionLoading(true);
     try {
-      // Update application to approved
-      const { error } = await supabase
-        .from('teacher_applications')
-        .update({ 
-          current_stage: 'approved',
-          status: 'accepted',
-        })
-        .eq('id', application.id);
+      const { data, error } = await supabase.functions.invoke('approve-teacher', {
+        body: {
+          applicationId: application.id,
+          email: application.email,
+          firstName: application.first_name,
+          lastName: application.last_name,
+        },
+      });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
-      // If teacher has a user_id, update their teacher_profiles
-      if ((application as any).user_id) {
-        await supabase
-          .from('teacher_profiles')
-          .update({ 
-            can_teach: true, 
-            is_available: true, 
-            profile_approved_by_admin: true 
-          })
-          .eq('user_id', (application as any).user_id);
-      }
-
-      toast.success('Teacher Approved! 🎉', {
-        description: `${getDisplayName(application)} is now an active teacher and can receive bookings.`,
+      toast.success('Teacher Approved & Invited! 🎉', {
+        description: `${getDisplayName(application)} will receive an email to set their password and access the platform.`,
         duration: 5000,
       });
 
       setSelectedApplication(null);
       fetchApplications();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error approving teacher:', error);
-      toast.error('Failed to approve teacher');
+      toast.error('Failed to approve teacher', {
+        description: error.message || 'An unexpected error occurred',
+      });
     } finally {
       setActionLoading(false);
     }

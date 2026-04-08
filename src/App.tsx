@@ -46,6 +46,7 @@ const LessonLibraryPage = lazy(() => import("./pages/student/LessonLibraryPage")
 const UnsubscribePage = lazy(() => import("./pages/UnsubscribePage"));
 const FindTeacher = lazy(() => import("./pages/student/FindTeacher"));
 const InterviewRoom = lazy(() => import("./pages/InterviewRoom"));
+const SetPassword = lazy(() => import("./pages/SetPassword"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -95,6 +96,7 @@ const App = () => {
                       <Route path="/student-application" element={<Suspense fallback={<LoadingFallback />}><StudentApplication /></Suspense>} />
                       <Route path="/email-verification" element={<Suspense fallback={<LoadingFallback />}><EmailVerification /></Suspense>} />
                       <Route path="/reset-password" element={<Suspense fallback={<LoadingFallback />}><ResetPassword /></Suspense>} />
+                      <Route path="/set-password" element={<Suspense fallback={<LoadingFallback />}><SetPassword /></Suspense>} />
                       <Route path="/unsubscribe" element={<Suspense fallback={<LoadingFallback />}><UnsubscribePage /></Suspense>} />
 
                       {/* Assessment Routes */}
