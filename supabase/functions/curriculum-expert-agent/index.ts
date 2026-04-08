@@ -435,7 +435,7 @@ Return valid JSON with this structure:
 // ============= TYPE DEFINITIONS =============
 
 interface GenerationRequest {
-  mode: 'lesson' | 'unit' | 'curriculum' | 'curriculum_structure' | 'assessment' | 'mission' | 'resource';
+  mode: 'lesson' | 'unit' | 'curriculum' | 'curriculum_structure' | 'assessment' | 'mission' | 'resource' | 'mastery_milestone';
   prompt: string;
   ageGroup: '5-7' | '8-11' | '12-14' | '15-17';
   cefrLevel: 'Pre-A1' | 'A1' | 'A2' | 'B1' | 'B2';
@@ -455,6 +455,13 @@ interface GenerationRequest {
   unitCount?: number;
   lessonsPerUnit?: number;
   level?: string;
+
+  // Mastery milestone params
+  unitTitle?: string;
+  vocabularyWords?: string[];
+  grammarPatterns?: string[];
+  phonemeFocus?: string;
+  targetQuestion?: string;
   
   // Template selection
   templateId?: string;
@@ -471,6 +478,7 @@ function getSystemPrompt(mode: string): string {
     case 'assessment': return ECA_ASSESSMENT_PROMPT;
     case 'mission': return ECA_MISSION_PROMPT;
     case 'resource': return ECA_RESOURCE_PROMPT;
+    case 'mastery_milestone': return ECA_MASTERY_MILESTONE_PROMPT;
     default: return ECA_LESSON_PROMPT;
   }
 }
