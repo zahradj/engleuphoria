@@ -312,7 +312,7 @@ The EnglEuphoria Hiring Team`,
         .from('teacher_applications')
         .update({ 
           current_stage: 'approved',
-          status: 'approved',
+          status: 'accepted',
         })
         .eq('id', application.id);
 
