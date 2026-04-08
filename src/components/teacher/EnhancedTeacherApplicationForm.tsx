@@ -203,6 +203,22 @@ export const EnhancedTeacherApplicationForm: React.FC<EnhancedTeacherApplication
 
       if (error) throw error;
 
+      // Send "Application Received" confirmation email
+      try {
+        await supabase.functions.invoke('send-transactional-email', {
+          body: {
+            templateName: 'application-received',
+            recipientEmail: formData.email,
+            idempotencyKey: `application-received-${data.id}`,
+            templateData: {
+              name: `${formData.firstName} ${formData.lastName}`.trim(),
+            },
+          },
+        });
+      } catch (emailErr) {
+        console.error('Failed to send confirmation email:', emailErr);
+      }
+
       toast({
         title: "Application Submitted! 🎉",
         description: "We'll review your application and contact you within 3-5 business days.",

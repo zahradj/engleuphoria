@@ -104,9 +104,11 @@ const TeacherApplicationForm = () => {
         ? ['kids', 'teens', 'adults']
         : formData.preferredAgeGroup ? [formData.preferredAgeGroup] : null;
 
+      const appId = crypto.randomUUID();
       const { error: insertError } = await supabase
         .from('teacher_applications')
         .insert({
+          id: appId,
           first_name: firstName,
           last_name: lastName,
           email: formData.email,
@@ -122,6 +124,22 @@ const TeacherApplicationForm = () => {
         });
 
       if (insertError) throw insertError;
+
+      // Send "Application Received" confirmation email
+      try {
+        await supabase.functions.invoke('send-transactional-email', {
+          body: {
+            templateName: 'application-received',
+            recipientEmail: formData.email,
+            idempotencyKey: `application-received-${appId}`,
+            templateData: {
+              name: formData.fullName.trim(),
+            },
+          },
+        });
+      } catch (emailErr) {
+        console.error('Failed to send confirmation email:', emailErr);
+      }
 
       toast({
         title: 'Application Submitted! 🎉',
