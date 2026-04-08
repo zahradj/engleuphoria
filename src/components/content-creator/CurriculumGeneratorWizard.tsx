@@ -514,6 +514,18 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
                                 </span>
                               </div>
                               <div className="mt-2 flex flex-wrap gap-1.5">
+                                {lesson.cycleType && (
+                                  <Badge className={`text-xs ${
+                                    lesson.cycleType === 'discovery' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' :
+                                    lesson.cycleType === 'ladder' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' :
+                                    'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+                                  }`}>
+                                    {lesson.cycleType === 'discovery' ? '🔍' : lesson.cycleType === 'ladder' ? '🪜' : '🌉'} {lesson.cycleType}
+                                  </Badge>
+                                )}
+                                {lesson.phonicsFocus && (
+                                  <Badge variant="outline" className="text-xs">🔊 {lesson.phonicsFocus}</Badge>
+                                )}
                                 <Badge variant="outline" className="text-xs">🗣 {lesson.grammarFocus}</Badge>
                                 <Badge variant="outline" className="text-xs">📚 {lesson.vocabularyTheme}</Badge>
                               </div>
