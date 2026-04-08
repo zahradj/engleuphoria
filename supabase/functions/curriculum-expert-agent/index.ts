@@ -432,6 +432,60 @@ Return valid JSON with this structure:
   "extensionActivities": ["Activity 1", "Activity 2", "Activity 3"]
 }`;
 
+// ============= MASTERY MILESTONE PROMPT =============
+
+const ECA_MASTERY_MILESTONE_PROMPT = `You are EngCurriculum Expert (ECA). Generate a Mastery Milestone — an end-of-unit Review + Integrated Quiz session.
+
+OUTPUT: Return valid JSON with this structure:
+{
+  "milestoneTitle": "Unit Mastery Milestone: [Unit Title]",
+  "part1_review": {
+    "durationMinutes": 10,
+    "rapidFireVocabulary": ["word1", "word2", ...],
+    "grammarPatternChecks": [
+      {"pattern": "It is a ___", "correctExample": "It is a cat"}
+    ],
+    "phonemeIdentification": {
+      "targetPhoneme": "/æ/",
+      "minimalPairs": [["cat", "cut"], ["bat", "but"]]
+    }
+  },
+  "part2_quiz": {
+    "durationMinutes": 20,
+    "listening": {
+      "instructions": "Listen and choose the correct word",
+      "questions": [{"audio_prompt": "Is it pin or pen?", "correct": "pin", "options": ["pin", "pen"]}]
+    },
+    "speaking": {
+      "instructions": "Look at the picture. Ask a question about it.",
+      "targetQuestion": "What is it?",
+      "rubric": "Student must produce the question independently"
+    },
+    "reading": {
+      "instructions": "Which word is correct?",
+      "questions": [{"prompt": "Point to the word CAT", "options": ["CAT", "CUT", "COT"], "correct": "CAT"}]
+    },
+    "writing": {
+      "instructions": "Type the missing letter",
+      "questions": [{"prompt": "C_T", "correct": "A"}]
+    },
+    "grammar": {
+      "instructions": "Put the words in order",
+      "questions": [{"scrambled": ["is", "it", "big", "a", "dog"], "correct": "It is a big dog"}]
+    }
+  },
+  "passingScore": 80,
+  "reinforcementSkill": null
+}
+
+IMPORTANT:
+- Base all content on the unit's vocabulary, grammar, and phonics provided in the prompt
+- Listening section: use minimal pairs from the target phoneme
+- Speaking: test the Lesson 3 target question
+- Reading: use CVC words from the unit vocabulary
+- Writing: fill-in-the-blank from unit vocabulary
+- Grammar: sentence unscrambling from unit patterns`;
+
 // ============= TYPE DEFINITIONS =============
 
 interface GenerationRequest {
