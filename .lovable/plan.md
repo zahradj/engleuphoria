@@ -1,90 +1,102 @@
 
 
-## Plan: Refine the Curriculum Engine — Stars, Mastery Gate, and Review Lessons
+## Plan: Smart Sequence Engine — Interleaved Review, Mastery Milestone, and Vocabulary Vault
 
-Most of the infrastructure you described is already built (3-lesson cycle, Map of Sounds, Unit Roadmap, AI Wizard prompts). This plan focuses on the **gaps**: the star-based progress visualization, the Mastery Check gate at Lesson 3, and the Review Lesson mechanism.
-
----
-
-### What Already Exists (No Changes Needed)
-
-- Database: `curriculum_lessons` has `cycle_type`, `phonics_focus`, `vocabulary_list`, `grammar_pattern`, `skills_focus`
-- `student_phonics_progress` table with mastery tracking trigger
-- `MapOfSounds.tsx` with phoneme grid and gold mastery indicators
-- `LessonCyclePreview.tsx` (Teacher Guide view)
-- `curriculum-expert-agent` with the "Slowly-Slowly" 3-lesson cycle prompt
-- `CurriculumGeneratorWizard` saving cycle metadata to DB
+This plan adds the missing "smart" layers on top of the existing 3-lesson cycle: spaced repetition logic, the end-of-unit Mastery Milestone (Review + Integrated Quiz), a Vocabulary Vault tracker, and the certification sticker system.
 
 ---
 
-### Step 1 — Star-Based Unit Progress (UnitRoadmap Enhancement)
+### What Already Exists (No Changes)
 
-**File**: `src/components/student/curriculum/UnitRoadmap.tsx`
-
-Replace the current dot/circle icons with a **3-star system**:
-- Empty star = lesson not completed
-- Filled gold star = lesson completed
-- When all 3 stars are filled, the entire unit card turns gold with a trophy icon (already partially implemented)
-
-This is a visual-only change to the existing component.
-
----
-
-### Step 2 — Mastery Check Gate (Database + UI)
-
-**Migration**: Add a `mastery_check_passed` boolean column to `interactive_lesson_progress` for Bridge lessons (Lesson 3).
-
-**Logic**: When a student completes Lesson 3 (Bridge):
-- Check if the student can independently produce the target question pattern (e.g., "What is it?")
-- If passed → unit marked complete, next unit unlocked
-- If failed → flag for "Review Lesson" before advancing
-
-**UI**: Add a mastery gate indicator on the UnitRoadmap — a lock icon on the next unit if the previous unit's Bridge lesson mastery check hasn't passed.
-
-**Files**:
-- `src/components/student/curriculum/UnitRoadmap.tsx` — add gate logic between units
-- New migration for `mastery_check_passed` column
+- 3-lesson cycle (Discovery/Ladder/Bridge) with `cycle_type` in `curriculum_lessons`
+- `mastery_check_passed` on `interactive_lesson_progress`
+- `is_review` flag on `curriculum_lessons`
+- `student_phonics_progress` with mastery trigger
+- `UnitRoadmap.tsx` with 3-star system and mastery gate
+- `MapOfSounds.tsx` with phoneme grid
+- `curriculum-expert-agent` with 80% focus ratios and review lesson mode
 
 ---
 
-### Step 3 — Review Lesson Flagging
+### Step 1 — Vocabulary Vault (Database + UI)
 
-**Migration**: Add `is_review` boolean to `curriculum_lessons` (default false).
+**Migration**: Create `student_vocabulary_progress` table:
+- `id`, `student_id` (references auth.users), `word`, `unit_id`, `first_seen_at`, `times_reviewed` (int), `last_reviewed_at`, `mastered` (boolean)
 
-When the AI Wizard detects a mastery check failure, it suggests inserting a "Review Lesson" — a condensed recap of the unit's phonics, vocabulary, and grammar before allowing progression.
+**Trigger**: When a lesson is completed, insert/update vocabulary entries from the lesson's `vocabulary_list` JSON column.
 
-**AI Prompt Update**: Add to the `curriculum-expert-agent` Edge Function:
-- "If a student fails the Mastery Check at Lesson 3, generate a Review Lesson that revisits the unit's phoneme, 5 core nouns, and question pattern in a single 30-minute session."
-
-**Files**:
-- `supabase/functions/curriculum-expert-agent/index.ts` — add review lesson generation mode
-- `src/components/student/curriculum/UnitRoadmap.tsx` — show review lesson node when flagged
+**UI**: New `VocabularyVault.tsx` component showing all learned words grouped by unit, with mastery badges. Integrate into `StudentPanel.tsx`.
 
 ---
 
-### Step 4 — Sharpen AI Focus Ratios
+### Step 2 — Interleaved Review in AI Prompt
 
 **File**: `supabase/functions/curriculum-expert-agent/index.ts`
 
-Update the `ECA_CURRICULUM_STRUCTURE_PROMPT` to explicitly encode the 80% focus ratios:
+Update `ECA_CURRICULUM_STRUCTURE_PROMPT` to add:
 
 ```text
-Lesson 1 (Discovery): 80% Phonics/Noun accuracy, 20% basic recognition
-Lesson 2 (Ladder): 80% Sentence building/Grammar, 20% vocabulary reinforcement  
-Lesson 3 (Bridge): 80% Student production/Speaking, 20% teacher guidance
+INTERLEAVED REVIEW RULE:
+Every Lesson 1 (Discovery) of a NEW unit MUST include 2 vocabulary words 
+from the PREVIOUS unit in its warm-up activities to ensure long-term retention.
+Include a "reviewWords" field in the lesson JSON with 2 words from the prior unit.
 ```
 
-Also add the Mastery Check instruction: "At the end of every Lesson 3, include a `masteryCheck` field with the target question the student must independently produce."
+Also add the **Balanced Skill Output** requirement — every lesson must specify tasks for all 4 skills:
+- `listeningTask`: a decoding task
+- `speakingTask`: a "Record & Compare" task
+- `readingTask`: a CVC word blending task
+- `writingTask`: a tracing or typing task
 
 ---
 
-### Step 5 — Map of Sounds Integration with Unit Completion
+### Step 3 — Mastery Milestone (End-of-Unit Review + Quiz)
 
-When all 3 lessons in a unit are completed AND mastery check is passed:
-- The corresponding phoneme in the Map of Sounds turns Gold
-- This is already partially wired via the `update_phonics_on_lesson_complete` trigger, but needs refinement to only set `mastered` after Lesson 3 passes
+**AI Prompt**: Add a new mode `mastery_milestone` to the edge function that generates a two-part session:
 
-**File**: Migration to update the trigger logic to check `mastery_check_passed` before advancing to `mastered` level.
+**Part 1 — Systematic Review** (10 min):
+- Rapid-fire review of 15 vocabulary words (5 per lesson)
+- 3 grammar pattern checks
+- Phoneme identification under time pressure
+
+**Part 2 — Integrated Quiz** (20 min):
+- Listening: Minimal pair testing (e.g., "Pin" vs "Pen")
+- Speaking: Student must initiate a conversation using Lesson 3's target question
+- Reading: CVC word decoding check
+- Writing: Fill-in missing letter
+- Grammar: Sentence unscrambling
+
+**Scoring**: Calculate percentage across all skills. Store in a new `mastery_milestone_results` table with `student_id`, `unit_id`, `score`, `passed` (>=80%), `skill_scores` (JSON), `completed_at`.
+
+**Data Lock Logic**: If score >= 80%, set `mastery_check_passed = true` on the Bridge lesson progress, unlock next unit, turn Map of Sounds island Gold. If < 80%, flag the weakest skill and auto-suggest a Reinforcement Lesson targeting that skill.
+
+---
+
+### Step 4 — Quiz Icon on UnitRoadmap
+
+**File**: `src/components/student/curriculum/UnitRoadmap.tsx`
+
+After the 3 lesson stars, add a 4th icon: a trophy/quiz badge that appears at the end of each unit's path. States:
+- Grey/locked: lessons not all completed
+- Blue/available: all 3 lessons done, quiz not taken
+- Gold: quiz passed (>=80%)
+- Red flag: quiz failed, reinforcement needed
+
+---
+
+### Step 5 — Unit Mastery Sticker / Certificate
+
+**Migration**: Create `student_achievements` table: `id`, `student_id`, `unit_id`, `achievement_type` (enum: 'unit_mastery', 'phoneme_mastery'), `earned_at`, `sticker_name`.
+
+When a student passes the Mastery Milestone (>=80%), insert an achievement record and display a celebratory sticker on their profile/dashboard.
+
+**UI**: Add an `Achievements` section to the student dashboard showing earned stickers.
+
+---
+
+### Step 6 — Bridge Retrieval Pop Quiz
+
+Update the AI prompt so that every Lesson 1 of a new unit begins with a 5-minute "Bridge Retrieval" pop quiz — 5 quick questions from the previous unit to activate spaced repetition before introducing new content. Add `bridgeRetrieval` field to the lesson JSON.
 
 ---
 
@@ -92,15 +104,22 @@ When all 3 lessons in a unit are completed AND mastery check is passed:
 
 | Area | Action |
 |------|--------|
-| `UnitRoadmap.tsx` | Stars instead of dots, mastery gate between units |
-| Migration | Add `mastery_check_passed` to progress, `is_review` to lessons |
-| Edge Function | Add 80% focus ratios, mastery check field, review lesson mode |
-| Phonics trigger | Gate `mastered` level behind mastery check |
-
-### Files to Modify
-- `src/components/student/curriculum/UnitRoadmap.tsx`
-- `supabase/functions/curriculum-expert-agent/index.ts`
+| Migration | `student_vocabulary_progress`, `mastery_milestone_results`, `student_achievements` tables |
+| Edge Function | Interleaved review rule, balanced skills, mastery milestone mode, bridge retrieval |
+| `UnitRoadmap.tsx` | Quiz icon at end of unit path |
+| New: `VocabularyVault.tsx` | Word tracker with mastery badges |
+| New: `MasteryMilestone.tsx` | Review + Quiz UI component |
+| New: `Achievements.tsx` | Sticker display on student dashboard |
+| `StudentPanel.tsx` | Integrate Vocabulary Vault and Achievements |
 
 ### Files to Create
-- Database migration (mastery_check_passed + is_review columns)
+- `src/components/student/curriculum/VocabularyVault.tsx`
+- `src/components/student/curriculum/MasteryMilestone.tsx`
+- `src/components/student/curriculum/Achievements.tsx`
+- Database migration (3 new tables + vocabulary trigger)
+
+### Files to Modify
+- `src/components/student/curriculum/UnitRoadmap.tsx` — add quiz icon
+- `supabase/functions/curriculum-expert-agent/index.ts` — interleaved review, balanced skills, milestone mode
+- `src/components/student/StudentPanel.tsx` — integrate new widgets
 
