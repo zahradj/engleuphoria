@@ -1,73 +1,61 @@
 
 
-## Plan: Migrate All Emails to Lovable Cloud + Fix Confirmation Emails
+## Plan: Fix Teacher Email Flow (Application → Interview)
 
-### Problem Summary
+### Root Cause
 
-There are **8 Edge Functions still using the old Resend SDK** (`npm:resend@2.0.0` with `RESEND_API_KEY`). These bypass Lovable's email infrastructure entirely and will fail because there's no active Resend domain. Meanwhile, the `auth-email-hook` and `send-transactional-email` functions are correctly using Lovable Cloud's queue system — but the domain (`notify.engleuphoria.com`) is still pending DNS verification.
+**All transactional emails are failing.** The edge function logs show this error:
 
-**MX records / Google Workspace safety**: Lovable's email system uses the subdomain `notify.engleuphoria.com` (delegated via NS records to Lovable's nameservers). It does **not** touch MX records on the root `engleuphoria.com` domain, so your Google Workspace inbox is completely safe.
+```
+Could not find the function public.enqueue_email(payload, queue_name)
+```
 
-### Functions That Need Migration (Resend → Lovable Transactional)
+The database function is `enqueue_email(_queue_name, _payload)` (with underscore prefixes), but the `send-transactional-email` Edge Function calls it with `enqueue_email(payload, queue_name)` (no underscores). PostgREST requires exact parameter name matching, so every email — application-received, interview-invitation, welcome emails — silently fails.
 
-| Function | Purpose | Current Sender |
-|---|---|---|
-| `send-welcome-email` | Welcome email after signup | `welcome@engleuphoria.com` (Resend) |
-| `send-user-emails` | General user notifications | `noreply@engleuphoria.com` (Resend) |
-| `send-teacher-emails` | Teacher lifecycle emails | `noreply@engleuphoria.com` (Resend) |
-| `notify-admin-new-registration` | Admin alert on new signup | `notifications@engleuphoria.com` (Resend) |
-| `notify-admin-new-student` | Admin alert on new student | `noreply@engleuphoria.com` (Resend) |
-| `notify-teacher-booking` | Teacher gets booking alert | `noreply@engleuphoria.com` (Resend) |
-| `notify-student-lesson` | Student lesson-ready alert | `noreply@engleuphoria.com` (Resend) |
-| `send-lesson-reminders` | Upcoming lesson reminders | `noreply@engleuphoria.com` (Resend) |
+Additionally, the `auth-email-hook` uses the old direct-send pattern (`@lovable.dev/email-js`) instead of the queue-based pattern, meaning auth emails (teacher invitations, password resets) may also not be delivering reliably.
 
-### Functions Already Correct (No Changes)
+### What's Affected
 
-- `auth-email-hook` — uses Lovable queue, `support@engleuphoria.com`
-- `send-transactional-email` — uses Lovable queue, correct `SENDER_DOMAIN`
-- `process-email-queue` — queue dispatcher
-- `approve-teacher` — uses `inviteUserByEmail` which triggers `auth-email-hook`
+- "Application Received" confirmation email (sent from `SimpleTeacherForm`)
+- Interview invitation email (sent from admin panel)
+- All other transactional emails (welcome, booking, reminders)
+- Auth emails (invite, password reset) via the old hook pattern
 
-### Implementation Steps
+### Fix Steps
 
-**Step 1 — Create missing transactional email templates**
+**Step 1 — Fix the parameter mismatch in `send-transactional-email`**
 
-Add new templates to `_shared/transactional-email-templates/` for:
-- `welcome-student` — student welcome email
-- `welcome-teacher` — teacher welcome/signup confirmation
-- `admin-new-registration` — admin notification for new signups
-- `admin-new-student` — admin notification for new students
-- `teacher-booking` — teacher booking notification
-- `student-lesson-ready` — student lesson-ready notification
-- `lesson-reminder` — upcoming lesson reminder
+Change line 311 from:
+```typescript
+await supabase.rpc('enqueue_email', { queue_name: '...', payload: {...} })
+```
+to:
+```typescript
+await supabase.rpc('enqueue_email', { _queue_name: '...', _payload: {...} })
+```
 
-Register all in `registry.ts`.
+This single fix unblocks ALL transactional emails immediately.
 
-**Step 2 — Rewrite all 8 Resend functions → use `send-transactional-email`**
+**Step 2 — Re-scaffold `auth-email-hook` to use the queue**
 
-Each function will be rewritten to call `supabase.functions.invoke('send-transactional-email', ...)` instead of using the Resend SDK directly. This routes all emails through the Lovable queue with retry safety, suppression handling, and the verified sender domain.
+The current hook imports `@lovable.dev/email-js` and sends directly. It needs to be upgraded to the queue-based pattern using `enqueue_email` for retry safety. Will use the scaffolding tool and apply existing brand styling.
 
-**Step 3 — Update frontend callers**
+**Step 3 — Add missing "Application Received" email to the other forms**
 
-The 7 frontend files that invoke these functions will be updated to pass the correct payload format expected by the rewritten functions.
+`SimpleTeacherForm` already sends the confirmation email, but `TeacherApplicationForm` and `EnhancedTeacherApplicationForm` do not. Add the same `send-transactional-email` call after successful submission.
 
-**Step 4 — Re-scaffold auth email templates**
+**Step 4 — Deploy all updated Edge Functions**
 
-Use the Lovable scaffolding tool to ensure the `auth-email-hook` is using the latest queue-based pattern, then apply the existing brand styling (purple `#9b6dba`, Inter font).
-
-**Step 5 — Deploy all modified Edge Functions**
-
-Deploy all updated functions in a single batch.
-
-### DNS / MX Safety Note
-
-Lovable only manages the `notify.engleuphoria.com` subdomain via NS delegation. Your root domain MX records (pointing to Google Workspace) are untouched. Regular email to `@engleuphoria.com` addresses will continue working normally.
-
-### Files to Create
-- 7 new transactional email templates in `_shared/transactional-email-templates/`
+Deploy `send-transactional-email` and `auth-email-hook` so the fixes take effect.
 
 ### Files to Modify
-- 8 Edge Function `index.ts` files (remove Resend, use transactional queue)
-- `_shared/transactional-email-templates/registry.ts` (register new templates)
-- 7 frontend files (update payloads to match new function signatures)
+
+- `supabase/functions/send-transactional-email/index.ts` — fix RPC parameter names
+- `supabase/functions/auth-email-hook/index.ts` — re-scaffold to queue pattern
+- `src/components/teachers/TeacherApplicationForm.tsx` — add confirmation email
+- `src/components/teacher/EnhancedTeacherApplicationForm.tsx` — add confirmation email
+
+### DNS Note
+
+The email domain (`notify.engleuphoria.com`) is still pending DNS verification. Once you complete the NS record setup in your domain registrar, emails will start flowing. You can monitor progress in **Cloud → Emails**. The code fixes are still necessary regardless — they ensure emails get enqueued correctly once DNS is verified.
 
