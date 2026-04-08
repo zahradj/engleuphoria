@@ -9,7 +9,7 @@ import PipMascot from './PipMascot';
 import { soundEffectsService } from '@/services/soundEffectsService';
 import { triggerCelebration } from '@/services/celebration';
 import { supabase } from '@/integrations/supabase/client';
-import { X, Volume2, VolumeX, Zap, Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, Volume2, VolumeX, Zap, Star, ChevronLeft, ChevronRight, Focus } from 'lucide-react';
 
 /* ── Hub Skin Configuration ── */
 const HUB_SKINS = {
@@ -80,6 +80,7 @@ export default function LessonPlayerContainer({
   const [muted, setMuted] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [answerSelected, setAnswerSelected] = useState(false);
+  const [spotlightActive, setSpotlightActive] = useState(false);
   const startTimeRef = useRef(Date.now());
 
   const [feedbackVisible, setFeedbackVisible] = useState(false);
@@ -187,6 +188,16 @@ export default function LessonPlayerContainer({
   return (
     <div className={`flex flex-col h-full min-h-[100dvh] ${skin.shell}`} style={{ position: 'relative' }}>
 
+      {/* Spotlight overlay */}
+      {spotlightActive && (
+        <div
+          className="fixed inset-0 z-15 pointer-events-none transition-opacity duration-500"
+          style={{
+            background: 'radial-gradient(circle at 50% 50%, transparent 320px, rgba(0,0,0,0.45) 320px)',
+          }}
+        />
+      )}
+
       {/* ── Fixed Top Bar ── */}
       <div className={`fixed top-0 left-0 right-0 z-30 px-4 py-2.5 ${skin.header}`}>
         <div className="w-full max-w-[720px] mx-auto flex items-center gap-3">
@@ -229,15 +240,24 @@ export default function LessonPlayerContainer({
             </span>
           </div>
 
+          {/* Spotlight toggle */}
+          <button
+            onClick={() => setSpotlightActive((p) => !p)}
+            className={`opacity-50 hover:opacity-100 shrink-0 transition-opacity ${spotlightActive ? '!opacity-100' : ''}`}
+            title="Toggle focus mode"
+          >
+            <Focus size={16} />
+          </button>
+
           <button onClick={toggleMute} className="opacity-50 hover:opacity-100 shrink-0">
             {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
           </button>
         </div>
       </div>
 
-      {/* ── Centered Content Area — wider container ── */}
+      {/* ── Centered Content Area ── */}
       <div className="flex-1 flex items-center justify-center px-4 py-4 overflow-auto" style={{ paddingTop: 64, paddingBottom: 88 }}>
-        <div className={`w-full max-w-[720px] rounded-[20px] overflow-hidden ${skin.card}`}>
+        <div className={`w-full max-w-[720px] rounded-[20px] overflow-hidden relative z-20 ${skin.card}`}>
           <AnimatePresence mode="wait">
             <DynamicSlideRenderer
               key={currentSlide.id}

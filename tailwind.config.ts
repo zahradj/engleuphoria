@@ -190,6 +190,18 @@ export default {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.85" }
         },
+        "firefly": {
+          "0%, 100%": { opacity: "0", transform: "translateY(0) scale(0.5)" },
+          "50%": { opacity: "0.7", transform: "translateY(-15px) scale(1)" },
+        },
+        "sway": {
+          "0%, 100%": { transform: "rotate(-3deg)" },
+          "50%": { transform: "rotate(3deg)" },
+        },
+        "lantern-glow": {
+          "0%, 100%": { boxShadow: "0 0 10px rgba(251,191,36,0.15)" },
+          "50%": { boxShadow: "0 0 25px rgba(251,191,36,0.35)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -212,6 +224,9 @@ export default {
         "gradient-text": "gradient-text 3s ease infinite",
         "shine": "shine 3s ease-in-out infinite",
         "pulse-slow": "pulse-slow 3s ease-in-out infinite",
+        "firefly": "firefly 3s ease-in-out infinite",
+        "sway": "sway 3s ease-in-out infinite",
+        "lantern-glow": "lantern-glow 3s ease-in-out infinite",
       },
     },
   },
