@@ -432,6 +432,57 @@ Return valid JSON with this structure:
   "extensionActivities": ["Activity 1", "Activity 2", "Activity 3"]
 }`;
 
+// ============= REINFORCEMENT LESSON PROMPT =============
+
+const ECA_REINFORCEMENT_LESSON_PROMPT = `You are EngCurriculum Expert (ECA). Generate a focused 30-minute Reinforcement Lesson that targets a student's WEAKEST SKILL after failing a Mastery Milestone quiz.
+
+KEY PRINCIPLE: 80% of activities MUST target the weak skill. 20% can review other areas.
+
+The lesson should:
+- Revisit the unit's vocabulary and phoneme
+- Focus heavily on the weak skill
+- Use scaffolded progression from simple to complex
+- Include confidence-building warm-ups before challenging tasks
+- End with a mini-assessment of the weak skill
+
+OUTPUT FORMAT:
+Return valid JSON:
+{
+  "title": "Reinforcement: [Skill] Practice - [Unit Title]",
+  "targetSkill": "speaking|listening|reading|writing|grammar",
+  "durationMinutes": 30,
+  "objectives": ["objective1", "objective2", "objective3"],
+  "warmUp": {
+    "durationMinutes": 5,
+    "activity": "Description of confidence-building warm-up"
+  },
+  "activities": [
+    {
+      "activityNumber": 1,
+      "title": "Activity title",
+      "skill": "the skill being practiced",
+      "durationMinutes": 8,
+      "instructions": "Step-by-step instructions",
+      "materials": "What is needed",
+      "scaffolding": "How to help struggling students"
+    }
+  ],
+  "miniAssessment": {
+    "type": "quiz|oral|written",
+    "questions": [
+      {"question": "Q1", "expectedAnswer": "A1"}
+    ],
+    "passingCriteria": "3 out of 5 correct"
+  },
+  "teacherNotes": "Tips for delivery"
+}
+
+IMPORTANT:
+- Return ONLY valid JSON, no extra text
+- Activities must directly address the weak skill
+- Use the unit vocabulary words in all activities
+- Keep cognitive load low - this is remediation, not new content`;
+
 // ============= MASTERY MILESTONE PROMPT =============
 
 const ECA_MASTERY_MILESTONE_PROMPT = `You are EngCurriculum Expert (ECA). Generate a Mastery Milestone — an end-of-unit Review + Integrated Quiz session.
