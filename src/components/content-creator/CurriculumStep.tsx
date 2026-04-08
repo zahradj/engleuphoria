@@ -17,7 +17,6 @@ interface CurriculumStepProps {
 }
 
 export const CurriculumStep: React.FC<CurriculumStepProps> = ({ onNextStep, onCurriculumSelected }) => {
-  const [activeSubTab, setActiveSubTab] = useState<string>('generate');
   const [selectedContext, setSelectedContext] = useState<CurriculumContext | null>(null);
 
   const handleCurriculumGenerated = (ctx: { system: string; level: string; ageGroup: string }) => {
@@ -31,7 +30,7 @@ export const CurriculumStep: React.FC<CurriculumStepProps> = ({ onNextStep, onCu
       <div>
         <h1 className="text-2xl font-bold text-foreground">Step 1: Curriculum</h1>
         <p className="text-muted-foreground mt-1">
-          Create a new curriculum with AI or edit an existing one, then move on to generate lessons.
+          Generate a new curriculum with AI, then move on to generate lessons.
         </p>
       </div>
 
@@ -44,26 +43,7 @@ export const CurriculumStep: React.FC<CurriculumStepProps> = ({ onNextStep, onCu
         </div>
       )}
 
-      <Tabs value={activeSubTab} onValueChange={setActiveSubTab} className="w-full">
-        <TabsList className="w-full max-w-md">
-          <TabsTrigger value="generate" className="flex-1 gap-2">
-            <Wand2 className="h-4 w-4" />
-            Generate New
-          </TabsTrigger>
-          <TabsTrigger value="edit" className="flex-1 gap-2">
-            <Edit3 className="h-4 w-4" />
-            Edit Existing
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="generate" className="mt-6">
-          <CurriculumGeneratorWizard onCurriculumGenerated={handleCurriculumGenerated} />
-        </TabsContent>
-
-        <TabsContent value="edit" className="mt-6">
-          <CurriculumBuilder />
-        </TabsContent>
-      </Tabs>
+      <CurriculumGeneratorWizard onCurriculumGenerated={handleCurriculumGenerated} />
 
       {/* Next Step CTA */}
       <div className="flex justify-end pt-4 border-t border-border">
