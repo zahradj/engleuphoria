@@ -539,7 +539,7 @@ IMPORTANT:
 
 // ============= TYPE DEFINITIONS =============
 
-  interface GenerationRequest {
+interface GenerationRequest {
   mode: 'lesson' | 'unit' | 'curriculum' | 'curriculum_structure' | 'assessment' | 'mission' | 'resource' | 'mastery_milestone' | 'generate_report_summary' | 'reinforcement_lesson';
   prompt: string;
   ageGroup: '5-7' | '8-11' | '12-14' | '15-17';
