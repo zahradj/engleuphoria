@@ -539,8 +539,8 @@ IMPORTANT:
 
 // ============= TYPE DEFINITIONS =============
 
-interface GenerationRequest {
-  mode: 'lesson' | 'unit' | 'curriculum' | 'curriculum_structure' | 'assessment' | 'mission' | 'resource' | 'mastery_milestone' | 'generate_report_summary';
+  interface GenerationRequest {
+  mode: 'lesson' | 'unit' | 'curriculum' | 'curriculum_structure' | 'assessment' | 'mission' | 'resource' | 'mastery_milestone' | 'generate_report_summary' | 'reinforcement_lesson';
   prompt: string;
   ageGroup: '5-7' | '8-11' | '12-14' | '15-17';
   cefrLevel: 'Pre-A1' | 'A1' | 'A2' | 'B1' | 'B2';
@@ -567,6 +567,9 @@ interface GenerationRequest {
   grammarPatterns?: string[];
   phonemeFocus?: string;
   targetQuestion?: string;
+
+  // Reinforcement lesson params
+  weakestSkill?: string;
   
   // Template selection
   templateId?: string;
@@ -584,6 +587,7 @@ function getSystemPrompt(mode: string): string {
     case 'mission': return ECA_MISSION_PROMPT;
     case 'resource': return ECA_RESOURCE_PROMPT;
     case 'mastery_milestone': return ECA_MASTERY_MILESTONE_PROMPT;
+    case 'reinforcement_lesson': return ECA_REINFORCEMENT_LESSON_PROMPT;
     case 'generate_report_summary': return `You are a professional ESL teacher writing a diagnostic summary for a parent. Write in a warm, encouraging, professional tone. Return a JSON object: {"summary": "your 2-3 sentence summary"}. Return ONLY valid JSON.`;
     default: return ECA_LESSON_PROMPT;
   }
@@ -593,7 +597,7 @@ function getModelForMode(mode: string): string {
   if (mode === 'curriculum' || mode === 'curriculum_structure' || mode === 'unit' || mode === 'mastery_milestone') {
     return 'google/gemini-2.5-pro';
   }
-  if (mode === 'generate_report_summary') return 'google/gemini-2.5-flash';
+  if (mode === 'generate_report_summary' || mode === 'reinforcement_lesson') return 'google/gemini-2.5-flash';
   return 'google/gemini-2.5-flash';
 }
 
@@ -602,6 +606,7 @@ function getMaxTokensForMode(mode: string): number {
   if (mode === 'unit' || mode === 'mastery_milestone') return 6000;
   if (mode === 'assessment') return 6000;
   if (mode === 'generate_report_summary') return 500;
+  if (mode === 'reinforcement_lesson') return 4000;
   return 4000;
 }
 
