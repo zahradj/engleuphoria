@@ -18,16 +18,13 @@ import LandingPage from "./pages/LandingPage";
 
 // All other pages are lazy-loaded for bundle optimization
 const AboutPage = lazy(() => import("./pages/AboutPage"));
-const TeachWithUsPage = lazy(() => import("./pages/TeachWithUsPage"));
 const ForTeachersPage = lazy(() => import("./pages/ForTeachersPage"));
 const Login = lazy(() => import("./pages/Login"));
 const SignUp = lazy(() => import("./pages/SignUp"));
 const StudentDashboard = lazy(() => import("./pages/StudentDashboard"));
 const TeacherDashboard = lazy(() => import("./pages/TeacherDashboard"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
-const TeacherSignUp = lazy(() => import("./pages/TeacherSignUp"));
 const StudentSignUp = lazy(() => import("./pages/StudentSignUp"));
-const TeacherApplication = lazy(() => import("./pages/TeacherApplication"));
 const StudentApplication = lazy(() => import("./pages/StudentApplication"));
 const EmailVerification = lazy(() => import("./pages/EmailVerification"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
@@ -86,13 +83,13 @@ const App = () => {
                       {/* Public Entry Point - Landing Page */}
                       <Route path="/" element={<LandingPage />} />
                       <Route path="/about" element={<Suspense fallback={<LoadingFallback />}><AboutPage /></Suspense>} />
-                      <Route path="/teach-with-us" element={<Suspense fallback={<LoadingFallback />}><TeachWithUsPage /></Suspense>} />
+                      <Route path="/teach-with-us" element={<Navigate to="/for-teachers" replace />} />
                       <Route path="/for-teachers" element={<Suspense fallback={<LoadingFallback />}><ForTeachersPage /></Suspense>} />
                       <Route path="/login" element={<Suspense fallback={<LoadingFallback />}><Login /></Suspense>} />
                       <Route path="/signup" element={<Navigate to="/student-signup" replace />} />
-                      <Route path="/teacher-signup" element={<Suspense fallback={<LoadingFallback />}><TeacherSignUp /></Suspense>} />
+                      <Route path="/teacher-signup" element={<Navigate to="/for-teachers" replace />} />
                       <Route path="/student-signup" element={<Suspense fallback={<LoadingFallback />}><StudentSignUp /></Suspense>} />
-                      <Route path="/teacher-application" element={<Suspense fallback={<LoadingFallback />}><TeacherApplication /></Suspense>} />
+                      <Route path="/teacher-application" element={<Navigate to="/for-teachers" replace />} />
                       <Route path="/student-application" element={<Suspense fallback={<LoadingFallback />}><StudentApplication /></Suspense>} />
                       <Route path="/email-verification" element={<Suspense fallback={<LoadingFallback />}><EmailVerification /></Suspense>} />
                       <Route path="/reset-password" element={<Suspense fallback={<LoadingFallback />}><ResetPassword /></Suspense>} />

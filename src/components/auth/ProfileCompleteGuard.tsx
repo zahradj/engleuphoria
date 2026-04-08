@@ -55,7 +55,7 @@ export const ProfileCompleteGuard: React.FC<ProfileCompleteGuardProps> = ({ chil
             console.error('Error checking profile status:', error);
             // If profile doesn't exist, redirect to application
             if (error.code === 'PGRST116') {
-              navigate('/teacher-application');
+              navigate('/for-teachers');
               return;
             }
             // For other errors, allow to proceed to avoid blocking

@@ -181,7 +181,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({ mode, onModeChange }) => {
           // Navigate based on role after a short delay to ensure state is set
           setTimeout(() => {
             if (formData.role === 'teacher') {
-              navigate('/teacher-application');
+              navigate('/for-teachers');
             } else if (formData.role === 'student') {
               navigate('/student-application');
             } else {
