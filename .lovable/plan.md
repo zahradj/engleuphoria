@@ -1,60 +1,73 @@
 
 
-## Plan: Living Roadmap — Time-Aware Theme System
+## Plan: Reinforcement Lesson Generator + Teacher Mastery Dashboard
 
-Adds a timezone-synced "Living Roadmap" that shifts visuals between Day (6AM–6PM) and Night (6PM–6AM) modes, plus a spotlight effect for the lesson player.
-
----
-
-### Step 1 — Time-of-Day Hook
-
-**New file**: `src/hooks/useTimeOfDay.ts`
-
-A lightweight hook that reads `new Date().getHours()` and returns `'day' | 'night'` (day = 6–17, night = 18–5). Re-checks every 60 seconds via `setInterval`. Also exposes `isDaytime` boolean and `currentHour`.
+This plan adds two features: (1) an auto-triggered Reinforcement Lesson generator that targets a student's weakest skill after a failed Mastery Milestone, and (2) a dedicated teacher dashboard view showing all students' milestone scores and vocabulary progress across units.
 
 ---
 
-### Step 2 — Living Roadmap Visuals
+### Step 1 — Reinforcement Lesson Mode in Edge Function
+
+**Modify**: `supabase/functions/curriculum-expert-agent/index.ts`
+
+Add a new `reinforcement_lesson` mode:
+
+- **System prompt**: A specialized prompt instructing the AI to generate a focused 30-minute remediation lesson targeting a single weak skill (e.g., "speaking" or "grammar"). The lesson should revisit the unit's vocabulary and phoneme but emphasize the weak skill with 80% of activities.
+- **`getSystemPrompt`**: Add case for `'reinforcement_lesson'`
+- **`getModelForMode`**: Use `gemini-2.5-flash` (fast, focused output)
+- **`getMaxTokensForMode`**: 4000 tokens
+- **`buildUserPrompt`**: Accept `weakestSkill`, `unitTitle`, `vocabularyWords`, `grammarPatterns`, `phonemeFocus` and build a targeted prompt
+- **`validateOutput`**: Validate for required fields (`title`, `targetSkill`, `activities`)
+- **`GenerationRequest`**: Add `weakestSkill` field
+
+---
+
+### Step 2 — Reinforcement Lesson UI Trigger on Student Dashboard
 
 **Modify**: `src/components/student/curriculum/UnitRoadmap.tsx`
 
-- Import `useTimeOfDay`
-- Wrap the Card in a container with conditional classes:
-  - **Day**: `bg-gradient-to-b from-sky-50 to-amber-50` with warm border accents. Add subtle SVG/emoji ambient elements (birds, sun icon in header).
-  - **Night**: `bg-gradient-to-b from-indigo-950 to-slate-900` with glow effects on completed stars (`drop-shadow-[0_0_6px_rgba(251,191,36,0.6)]`). Add moon icon, firefly-like animated dots.
-- Gold-completed unit cards get a lantern glow at night (`shadow-[0_0_20px_rgba(251,191,36,0.3)]`).
-- Add a small Sun/Moon indicator in the card header showing current mode.
+When a milestone result has `passed: false`:
+- The existing "Let's Practice More" button now triggers a reinforcement lesson generation
+- On click: call `curriculum-expert-agent` with `mode: 'reinforcement_lesson'`, passing the `weakest_skill` from the milestone result plus the unit's vocabulary/grammar data
+- Show a loading state, then navigate to the generated lesson or display it inline
+
+**New file**: `src/hooks/useReinforcementLesson.ts`
+
+A mutation hook that:
+1. Takes `unitId`, `weakestSkill`, `studentId`
+2. Fetches unit vocabulary and grammar from `student_vocabulary_progress` and `curriculum_units`
+3. Calls `curriculum-expert-agent` with `mode: 'reinforcement_lesson'`
+4. Returns the generated lesson content
 
 ---
 
-### Step 3 — Map of Sounds Night Glow
+### Step 3 — Teacher Mastery Overview Dashboard
 
-**Modify**: `src/components/student/curriculum/MapOfSounds.tsx`
+**New file**: `src/components/teacher/dashboard/MasteryOverview.tsx`
 
-- Import `useTimeOfDay`
-- At night: mastered phonemes get a constellation-style glow effect (subtle animated `box-shadow` pulse). Card background shifts to deep blues.
-- At day: standard bright palette, no changes from current.
+A comprehensive view showing all students' mastery data:
 
----
-
-### Step 4 — Lesson Player Spotlight Effect
-
-**Modify**: `src/components/lesson-player/LessonPlayerContainer.tsx`
-
-- Add a `spotlightActive` state that dims the shell background and adds a radial gradient "focus ring" around the main content card when active.
-- The spotlight can be toggled by the teacher or auto-enabled during interactive slides.
-- CSS: overlay `bg-black/40` with a `radial-gradient(circle at center, transparent 300px, rgba(0,0,0,0.5) 300px)` effect.
+- **Summary cards**: Total milestones completed, average scores, pass rate
+- **Student table**: Sortable table with columns: Student Name, Unit, Score, Pass/Fail, Weakest Skill, Date
+  - Data source: `mastery_milestone_results` joined with `profiles` and `curriculum_units` for students assigned to this teacher
+- **Vocabulary progress**: Expandable section per student showing word counts by unit and mastery level
+  - Data source: `student_vocabulary_progress` grouped by unit
+- **Filter controls**: Filter by student, unit, pass/fail status
 
 ---
 
-### Step 5 — Ambient Animations in Tailwind
+### Step 4 — Integrate Mastery Overview into Teacher Dashboard
 
-**Modify**: `tailwind.config.ts`
+**Modify**: `src/components/teacher/dashboard/TeacherDashboardContent.tsx`
 
-Add keyframes and animation classes:
-- `firefly`: subtle floating glow dots for night mode
-- `sway`: gentle tree/element swaying for day mode
-- `lantern-glow`: pulsing warm glow for night unit cards
+- Add a 5th tab "Mastery" (or merge into existing "Reports" tab as a sub-section alongside UnitMasteryReport)
+- Decision: Add as a sub-section in the Reports tab to avoid overcrowding tabs. The Reports tab will show both the "Generate & Send Report" form and the "Mastery Overview" table below it.
+
+---
+
+### Step 5 — Deploy Edge Function
+
+Deploy `curriculum-expert-agent` with the new `reinforcement_lesson` mode.
 
 ---
 
@@ -62,18 +75,19 @@ Add keyframes and animation classes:
 
 | Area | Action |
 |------|--------|
-| New hook | `useTimeOfDay.ts` — returns day/night based on local time |
-| UnitRoadmap | Day/night gradient backgrounds, ambient icons, star glow at night |
-| MapOfSounds | Constellation glow on mastered phonemes at night |
-| LessonPlayer | Spotlight/focus ring effect on content card |
-| Tailwind config | `firefly`, `sway`, `lantern-glow` animation keyframes |
+| Edge Function | Add `reinforcement_lesson` mode with weak-skill-targeted prompt |
+| Student Hook | `useReinforcementLesson.ts` — fetch unit data + invoke agent |
+| UnitRoadmap | "Let's Practice More" triggers reinforcement generation |
+| Teacher UI | `MasteryOverview.tsx` — table of all students' milestone scores + vocab |
+| Dashboard | Integrate into Reports tab |
+| Deploy | `curriculum-expert-agent` |
 
 ### Files to Create
-- `src/hooks/useTimeOfDay.ts`
+- `src/hooks/useReinforcementLesson.ts`
+- `src/components/teacher/dashboard/MasteryOverview.tsx`
 
 ### Files to Modify
+- `supabase/functions/curriculum-expert-agent/index.ts`
 - `src/components/student/curriculum/UnitRoadmap.tsx`
-- `src/components/student/curriculum/MapOfSounds.tsx`
-- `src/components/lesson-player/LessonPlayerContainer.tsx`
-- `tailwind.config.ts`
+- `src/components/teacher/dashboard/TeacherDashboardContent.tsx`
 
