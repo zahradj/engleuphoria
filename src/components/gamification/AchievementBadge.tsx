@@ -1,5 +1,5 @@
 
-import { Card } from "@/components/ui/card";
+import { ClayCard, ClayIcon, ClayProgress, ClayBadge, type ClaySubject } from "@/components/ui/clay";
 
 export interface AchievementBadgeProps {
   id: string;
@@ -13,6 +13,13 @@ export interface AchievementBadgeProps {
   className?: string;
 }
 
+const levelToSubject: Record<string, ClaySubject> = {
+  bronze: 'neutral',
+  silver: 'grammar',
+  gold: 'gold',
+  platinum: 'vocab',
+};
+
 export function AchievementBadge({
   name,
   description,
@@ -23,90 +30,44 @@ export function AchievementBadge({
   pointsAwarded,
   className = "",
 }: AchievementBadgeProps) {
-  // Define background colors based on badge level
-  const levelColors = {
-    bronze: {
-      bg: "bg-amber-100",
-      border: "border-amber-300",
-      iconBg: "bg-amber-200",
-      text: "text-amber-800",
-    },
-    silver: {
-      bg: "bg-gray-100",
-      border: "border-gray-300",
-      iconBg: "bg-gray-200", 
-      text: "text-gray-800",
-    },
-    gold: {
-      bg: "bg-yellow-100",
-      border: "border-yellow-300",
-      iconBg: "bg-yellow-200",
-      text: "text-yellow-800",
-    },
-    platinum: {
-      bg: "bg-indigo-100",
-      border: "border-indigo-300", 
-      iconBg: "bg-indigo-200",
-      text: "text-indigo-800",
-    },
-  };
+  const subject = unlocked ? levelToSubject[level] : 'neutral';
 
-  const colors = levelColors[level];
-  
   return (
-    <Card 
-      className={`p-4 flex items-center ${unlocked ? colors.bg : "bg-gray-100"} 
-        ${unlocked ? colors.border : "border-gray-200"} 
-        ${unlocked ? "" : "opacity-70"} ${className}`}
+    <ClayCard
+      subject={subject}
+      className={`flex items-center gap-4 ${!unlocked ? 'opacity-60 grayscale' : ''} ${className}`}
     >
-      <div 
-        className={`rounded-full p-3 mr-4 flex items-center justify-center ${
-          unlocked ? colors.iconBg : "bg-gray-200"
-        }`}
-        style={{ minWidth: "3.5rem", height: "3.5rem" }}
-      >
+      <ClayIcon subject={subject} size="lg">
         {typeof icon === 'string' ? (
-          <img 
-            src={icon} 
-            alt={name} 
-            className={`w-full h-full ${!unlocked ? "grayscale" : ""}`} 
-          />
+          <img src={icon} alt={name} className={`w-8 h-8 ${!unlocked ? 'grayscale' : ''}`} />
         ) : (
-          <div className={unlocked ? colors.text : "text-gray-500"}>
-            {icon}
-          </div>
+          icon
         )}
-      </div>
-      
-      <div className="flex-1">
-        <div className="flex justify-between items-start">
-          <h4 className={`font-bold ${unlocked ? colors.text : "text-gray-500"}`}>
+      </ClayIcon>
+
+      <div className="flex-1 min-w-0">
+        <div className="flex justify-between items-start gap-2">
+          <h4 className={`font-bold text-sm ${unlocked ? 'text-foreground' : 'text-muted-foreground'}`}>
             {name}
           </h4>
-          
-          <div className="text-sm font-medium bg-yellow-dark/10 text-yellow-dark px-2 py-1 rounded-full">
-            +{pointsAwarded}
-          </div>
+          <ClayBadge subject="gold" label={`+${pointsAwarded}`} unlocked={unlocked} />
         </div>
-        
-        <p className={`text-sm ${unlocked ? "text-muted-foreground" : "text-gray-500"}`}>
-          {description}
-        </p>
-        
+
+        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{description}</p>
+
         {progress && (
           <div className="mt-2">
-            <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-              <div 
-                className={`h-full ${unlocked ? "bg-green-500" : colors.border}`}
-                style={{width: `${Math.min(100, (progress.current / progress.total) * 100)}%`}}
-              />
-            </div>
-            <div className="text-xs text-muted-foreground mt-1">
+            <ClayProgress
+              value={(progress.current / progress.total) * 100}
+              subject={subject}
+              height={6}
+            />
+            <div className="text-[10px] text-muted-foreground mt-1">
               {progress.current}/{progress.total}
             </div>
           </div>
         )}
       </div>
-    </Card>
+    </ClayCard>
   );
 }

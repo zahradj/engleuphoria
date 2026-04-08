@@ -1,4 +1,4 @@
-// Mascot Configuration for Early Learners
+// Mascot Configuration for Early Learners — Claymorphism Style
 
 export interface MascotEmotion {
   name: string;
@@ -21,6 +21,8 @@ export interface Mascot {
     secondary: string;
     accent: string;
   };
+  /** Claymorphism subject color for consistent theming */
+  claySubject: 'phonics' | 'vocab' | 'grammar' | 'neutral';
 }
 
 export const BENNY_THE_BEAR: Mascot = {
@@ -31,6 +33,7 @@ export const BENNY_THE_BEAR: Mascot = {
   description: 'A friendly, curious bear who loves learning English and making new friends!',
   catchphrase: 'Let\'s learn together!',
   defaultEmotion: 'happy',
+  claySubject: 'phonics',
   emotions: {
     happy: {
       name: 'Happy',
@@ -82,9 +85,9 @@ export const BENNY_THE_BEAR: Mascot = {
     }
   },
   colors: {
-    primary: 'hsl(30, 60%, 45%)', // Warm brown
-    secondary: 'hsl(40, 70%, 60%)', // Golden tan
-    accent: 'hsl(45, 90%, 55%)' // Honey yellow
+    primary: 'hsl(45, 95%, 55%)',  // Clay Yellow (Phonics)
+    secondary: 'hsl(40, 90%, 70%)', // Warm amber matte
+    accent: 'hsl(42, 100%, 80%)'   // Soft honey
   }
 };
 
