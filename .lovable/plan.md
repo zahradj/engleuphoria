@@ -1,66 +1,73 @@
 
 
-## Plan: Teacher Invite Flow + Student Visibility Fix
+## Plan: Migrate All Emails to Lovable Cloud + Fix Confirmation Emails
 
 ### Problem Summary
 
-1. **Teachers can't log in**: Teachers apply via a form (no password), so they have no Supabase Auth account. The "Approve" button only updates a database row — it never creates an auth user or sends an invite.
-2. **Students can't see teachers**: The `get_approved_teachers` RPC checks `profile_complete = true AND can_teach = true AND is_available = true`, but the approve flow only sets these flags if a `user_id` exists on the application (which it doesn't, since no auth account was created).
+There are **8 Edge Functions still using the old Resend SDK** (`npm:resend@2.0.0` with `RESEND_API_KEY`). These bypass Lovable's email infrastructure entirely and will fail because there's no active Resend domain. Meanwhile, the `auth-email-hook` and `send-transactional-email` functions are correctly using Lovable Cloud's queue system — but the domain (`notify.engleuphoria.com`) is still pending DNS verification.
 
-### Phase 1: Teacher Invite & Set Password
+**MX records / Google Workspace safety**: Lovable's email system uses the subdomain `notify.engleuphoria.com` (delegated via NS records to Lovable's nameservers). It does **not** touch MX records on the root `engleuphoria.com` domain, so your Google Workspace inbox is completely safe.
 
-**Step 1 — Create an Edge Function `approve-teacher`**
+### Functions That Need Migration (Resend → Lovable Transactional)
 
-A new Edge Function that uses the service role key to:
-- Accept `{ applicationId, email, firstName, lastName }` from the admin client
-- Call `supabaseClient.auth.admin.inviteUserByEmail(email, { data: { full_name, role: 'teacher' }, redirectTo: 'https://engleuphoria.lovable.app/set-password' })`
-- Create a row in `public.users` with `id = authUser.id, email, full_name, role = 'teacher'`
-- Insert into `user_roles` with `role = 'teacher'`
-- Create an initial `teacher_profiles` row linked to the new `user_id`
-- Update `teacher_applications` to `current_stage = 'approved', status = 'accepted'`
-- Send a branded welcome email via the transactional email system
+| Function | Purpose | Current Sender |
+|---|---|---|
+| `send-welcome-email` | Welcome email after signup | `welcome@engleuphoria.com` (Resend) |
+| `send-user-emails` | General user notifications | `noreply@engleuphoria.com` (Resend) |
+| `send-teacher-emails` | Teacher lifecycle emails | `noreply@engleuphoria.com` (Resend) |
+| `notify-admin-new-registration` | Admin alert on new signup | `notifications@engleuphoria.com` (Resend) |
+| `notify-admin-new-student` | Admin alert on new student | `noreply@engleuphoria.com` (Resend) |
+| `notify-teacher-booking` | Teacher gets booking alert | `noreply@engleuphoria.com` (Resend) |
+| `notify-student-lesson` | Student lesson-ready alert | `noreply@engleuphoria.com` (Resend) |
+| `send-lesson-reminders` | Upcoming lesson reminders | `noreply@engleuphoria.com` (Resend) |
 
-**Step 2 — Create `/set-password` page**
+### Functions Already Correct (No Changes)
 
-A new page (reusing the existing `ResetPassword` pattern) that:
-- Listens for the `SIGNED_IN` or `PASSWORD_RECOVERY` auth event from the invite link token
-- Shows a "Welcome to EnglEuphoria — Set Your Password" form
-- Calls `supabase.auth.updateUser({ password })` to set the password
-- Redirects to `/teacher` (Teacher Dashboard) after success
+- `auth-email-hook` — uses Lovable queue, `support@engleuphoria.com`
+- `send-transactional-email` — uses Lovable queue, correct `SENDER_DOMAIN`
+- `process-email-queue` — queue dispatcher
+- `approve-teacher` — uses `inviteUserByEmail` which triggers `auth-email-hook`
 
-**Step 3 — Update `handleFinalApprove` in `TeacherApplicationReview.tsx`**
+### Implementation Steps
 
-Replace the current direct DB update with a call to the new `approve-teacher` Edge Function. This removes the need for client-side admin API access.
+**Step 1 — Create missing transactional email templates**
 
-**Step 4 — Add route in `App.tsx`**
+Add new templates to `_shared/transactional-email-templates/` for:
+- `welcome-student` — student welcome email
+- `welcome-teacher` — teacher welcome/signup confirmation
+- `admin-new-registration` — admin notification for new signups
+- `admin-new-student` — admin notification for new students
+- `teacher-booking` — teacher booking notification
+- `student-lesson-ready` — student lesson-ready notification
+- `lesson-reminder` — upcoming lesson reminder
 
-Register `/set-password` as a public route pointing to the new `SetPassword` page.
+Register all in `registry.ts`.
 
-### Phase 2: Student Dashboard Visibility
+**Step 2 — Rewrite all 8 Resend functions → use `send-transactional-email`**
 
-**Step 5 — Update `get_approved_teachers` RPC**
+Each function will be rewritten to call `supabase.functions.invoke('send-transactional-email', ...)` instead of using the Resend SDK directly. This routes all emails through the Lovable queue with retry safety, suppression handling, and the verified sender domain.
 
-The existing function filters on `profile_complete = true AND can_teach = true AND is_available = true`. The Edge Function from Step 1 will set `can_teach = true`, `is_available = true`, and `profile_complete = true` on the new teacher profile, so teachers will appear automatically.
+**Step 3 — Update frontend callers**
 
-**Step 6 — Verify RLS on `teacher_profiles`**
+The 7 frontend files that invoke these functions will be updated to pass the correct payload format expected by the rewritten functions.
 
-Confirm the existing RLS policy allows authenticated students to SELECT approved teacher profiles (per the memory note, this is already standardized with 3 policies including one for authenticated users to view approved profiles).
+**Step 4 — Re-scaffold auth email templates**
 
-### Database Migration
+Use the Lovable scaffolding tool to ensure the `auth-email-hook` is using the latest queue-based pattern, then apply the existing brand styling (purple `#9b6dba`, Inter font).
 
-Add a `SET PASSWORD` redirect URL to Supabase config — no schema changes needed since `users`, `user_roles`, and `teacher_profiles` tables already exist.
+**Step 5 — Deploy all modified Edge Functions**
 
-### Technical Details
+Deploy all updated functions in a single batch.
 
-- The `approve-teacher` Edge Function uses `SUPABASE_SERVICE_ROLE_KEY` (already available in Edge Functions by default)
-- The invite email link will contain a token that auto-signs the teacher in when they visit `/set-password`
-- The `set-password` page detects the session via `onAuthStateChange` and enables the password form
-- After password set, the teacher is redirected to their dashboard where the existing first-login welcome flow (confetti + Studio Guide) triggers
+### DNS / MX Safety Note
 
-### Files to Create/Modify
+Lovable only manages the `notify.engleuphoria.com` subdomain via NS delegation. Your root domain MX records (pointing to Google Workspace) are untouched. Regular email to `@engleuphoria.com` addresses will continue working normally.
 
-- **Create**: `supabase/functions/approve-teacher/index.ts`
-- **Create**: `src/pages/SetPassword.tsx`
-- **Modify**: `src/components/admin/TeacherApplicationReview.tsx` — call Edge Function instead of direct DB update
-- **Modify**: `src/App.tsx` — add `/set-password` route
+### Files to Create
+- 7 new transactional email templates in `_shared/transactional-email-templates/`
+
+### Files to Modify
+- 8 Edge Function `index.ts` files (remove Resend, use transactional queue)
+- `_shared/transactional-email-templates/registry.ts` (register new templates)
+- 7 frontend files (update payloads to match new function signatures)
 
