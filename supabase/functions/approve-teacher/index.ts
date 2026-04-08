@@ -78,7 +78,7 @@ Deno.serve(async (req) => {
       console.log(`User already exists in auth: ${authUserId}`);
     } else {
       // Step 2: Invite user by email (creates auth account + sends invite email)
-      const siteUrl = Deno.env.get("SITE_URL") || "https://engleuphoria.lovable.app";
+      const siteUrl = Deno.env.get("SITE_URL") || "https://engleuphoria.com";
       const { data: inviteData, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(
         email,
         {
@@ -145,6 +145,7 @@ Deno.serve(async (req) => {
         profile_image_url: appData?.professional_photo_url || "",
         profile_complete: true,
         can_teach: true,
+        is_available: true,
         profile_approved_by_admin: true,
       },
       { onConflict: "user_id" }
