@@ -351,10 +351,21 @@ The EnglEuphoria Hiring Team`,
   const approvedCount = applications.filter(a => a.current_stage === 'approved').length;
 
   const handleDeleteApplication = async (application: TeacherApplication) => {
-    if (!confirm(`Permanently delete ${getDisplayName(application)}'s application? This cannot be undone.`)) return;
+    const isApproved = application.current_stage === 'approved';
+    const confirmMsg = isApproved
+      ? `Permanently delete ${getDisplayName(application)}'s application AND their teacher profile? This cannot be undone.`
+      : `Permanently delete ${getDisplayName(application)}'s application? This cannot be undone.`;
+    if (!confirm(confirmMsg)) return;
     try {
       // Delete associated interviews first
       await supabase.from('interviews').delete().eq('application_id', application.id);
+      
+      // If approved, also clean up teacher_profiles and profiles
+      if (isApproved && application.user_id) {
+        await supabase.from('teacher_profiles').delete().eq('user_id', application.user_id);
+        await supabase.from('profiles').update({ role: 'student', status: 'inactive' }).eq('id', application.user_id);
+      }
+      
       const { error } = await supabase.from('teacher_applications').delete().eq('id', application.id);
       if (error) throw error;
       toast.success('Application deleted', { description: `${getDisplayName(application)}'s record has been removed.` });
