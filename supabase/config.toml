@@ -8,7 +8,7 @@ project_id = "dcoxpyzoqjvmuuygvlme"
   schemas = ["public", "graphql_public"]
 
 [auth]
-  additional_redirect_urls = ["https://engleuphoria.lovable.app"]
+  additional_redirect_urls = ["https://engleuphoria.lovable.app", "https://engleuphoria.com/set-password", "https://engleuphoria.lovable.app/set-password"]
   enable_signup = true
   enabled = true
   jwt_expiry = 3600
