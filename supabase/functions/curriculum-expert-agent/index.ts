@@ -754,6 +754,8 @@ Unit Details:
 
 Remember: 80% of activities must target "${weakSkill}". Return ONLY valid JSON.`;
   }
+
+  if (requestData.mode === 'assessment' && requestData.assessmentType) {
     userPrompt += `\n- Assessment type: ${requestData.assessmentType}`;
   }
   
