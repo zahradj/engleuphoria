@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Map, Loader2, Lock, Star, Trophy, AlertCircle } from 'lucide-react';
+import { Map, Loader2, Lock, Star, Trophy, AlertCircle, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ConfettiEffect } from '@/components/gamification/ConfettiEffect';
 
 interface UnitWithLessons {
   id: string;
@@ -25,6 +27,15 @@ interface UnitWithLessons {
 
 export const UnitRoadmap: React.FC = () => {
   const { user } = useAuth();
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [celebratedUnit, setCelebratedUnit] = useState<string | null>(null);
+
+  const handleCelebrate = useCallback((unitId: string) => {
+    if (celebratedUnit !== unitId) {
+      setCelebratedUnit(unitId);
+      setShowConfetti(true);
+    }
+  }, [celebratedUnit]);
 
   const { data: units = [], isLoading } = useQuery({
     queryKey: ['unit-roadmap', user?.id],
@@ -137,6 +148,8 @@ export const UnitRoadmap: React.FC = () => {
   };
 
   return (
+    <>
+    <ConfettiEffect trigger={showConfetti} onComplete={() => setShowConfetti(false)} />
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
@@ -272,6 +285,34 @@ export const UnitRoadmap: React.FC = () => {
                       Pass the Mastery Milestone quiz to unlock the next unit
                     </div>
                   )}
+
+                  {/* Celebration for passed milestone */}
+                  {unit.milestoneResult?.passed && celebratedUnit !== unit.id && (
+                    <div className="mt-3 ml-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-amber-600 border-amber-300 hover:bg-amber-50"
+                        onClick={() => handleCelebrate(unit.id)}
+                      >
+                        🎉 Celebrate!
+                      </Button>
+                    </div>
+                  )}
+
+                  {/* Retry for failed milestone */}
+                  {unit.milestoneResult && !unit.milestoneResult.passed && (
+                    <div className="mt-3 ml-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-destructive border-destructive/30 hover:bg-destructive/5"
+                      >
+                        <RefreshCw className="h-3 w-3 mr-1" />
+                        Let's Practice More
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -279,5 +320,6 @@ export const UnitRoadmap: React.FC = () => {
         </div>
       </CardContent>
     </Card>
+    </>
   );
 };

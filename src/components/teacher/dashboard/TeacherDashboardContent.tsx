@@ -4,7 +4,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { DashboardTab } from "../DashboardTab";
 import { StudentsTab } from "./StudentsTab";
 import { EnhancedCalendarTab } from "../EnhancedCalendarTab";
-import { Users, Calendar, BarChart3 } from "lucide-react";
+import { UnitMasteryReport } from "./UnitMasteryReport";
+import { Users, Calendar, BarChart3, FileText } from "lucide-react";
 
 interface TeacherDashboardContentProps {
   lessonPlans: any[];
@@ -31,7 +32,7 @@ export const TeacherDashboardContent = ({ lessonPlans, teacherName = "Teacher", 
   return (
     <main className="flex-1 container max-w-7xl mx-auto px-4 py-8">
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 h-14 bg-white border border-gray-200 rounded-xl p-1 shadow-sm">
+        <TabsList className="grid w-full grid-cols-4 h-14 bg-white border border-gray-200 rounded-xl p-1 shadow-sm">
           <TabsTrigger 
             value="overview" 
             className="flex items-center gap-2 text-sm font-medium text-gray-600 data-[state=active]:text-primary data-[state=active]:bg-transparent rounded-lg transition-all data-[state=active]:border-b-2 data-[state=active]:border-primary"
@@ -45,6 +46,13 @@ export const TeacherDashboardContent = ({ lessonPlans, teacherName = "Teacher", 
           >
             <Users className="h-4 w-4" />
             {languageText.students}
+          </TabsTrigger>
+          <TabsTrigger 
+            value="reports" 
+            className="flex items-center gap-2 text-sm font-medium text-gray-600 data-[state=active]:text-primary data-[state=active]:bg-transparent rounded-lg transition-all data-[state=active]:border-b-2 data-[state=active]:border-primary"
+          >
+            <FileText className="h-4 w-4" />
+            Reports
           </TabsTrigger>
           <TabsTrigger 
             value="schedule" 
@@ -66,6 +74,10 @@ export const TeacherDashboardContent = ({ lessonPlans, teacherName = "Teacher", 
               onAddStudent={handlers.handleAddStudent}
               onViewStudentDetails={handlers.handleViewStudentDetails}
             />
+          </TabsContent>
+
+          <TabsContent value="reports" className="animate-fade-in">
+            <UnitMasteryReport teacherId={teacherId} />
           </TabsContent>
           
           <TabsContent value="schedule" className="animate-fade-in">
