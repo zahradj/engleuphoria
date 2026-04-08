@@ -1,9 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { StudentLearningStreak } from "@/types/gamification";
 import { Flame, Calendar, Award, TrendingUp } from "lucide-react";
+import { ClayCard, ClayIcon, ClayBadge, ClayProgress } from "@/components/ui/clay";
 
 interface StreakCardProps {
   streaks: StudentLearningStreak[];
@@ -23,49 +23,49 @@ export function StreakCard({ streaks, onUpdateStreak }: StreakCardProps) {
     return { coins: 0, level: 'none' };
   };
 
-  const getStreakColor = (streak: number) => {
-    if (streak >= 30) return 'from-purple-500 to-pink-500';
-    if (streak >= 14) return 'from-blue-500 to-purple-500';
-    if (streak >= 7) return 'from-green-500 to-blue-500';
-    if (streak >= 3) return 'from-yellow-500 to-orange-500';
-    return 'from-gray-400 to-gray-500';
-  };
-
   const isToday = (dateString: string) => {
     const today = new Date().toDateString();
     const streakDate = new Date(dateString).toDateString();
     return today === streakDate;
   };
 
+  const streakProgress = () => {
+    const s = dailyStreak?.current_streak || 0;
+    if (s >= 30) return 100;
+    if (s >= 14) return ((s - 14) / 16) * 100;
+    if (s >= 7) return ((s - 7) / 7) * 100;
+    if (s >= 3) return ((s - 3) / 4) * 100;
+    return (s / 3) * 100;
+  };
+
   return (
-    <Card className="bg-gradient-to-br from-orange-50 to-red-50 border-orange-200">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-orange-800">
-          <Flame className="h-5 w-5" />
-          Learning Streaks
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
+    <ClayCard subject="streak" className="p-0">
+      <div className="p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <ClayIcon subject="streak" size="sm">
+            <Flame className="h-4 w-4 text-white" />
+          </ClayIcon>
+          <h3 className="font-bold text-orange-800">Learning Streaks</h3>
+        </div>
+
         {/* Daily Streak */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className={`w-8 h-8 rounded-full bg-gradient-to-r ${getStreakColor(dailyStreak?.current_streak || 0)} flex items-center justify-center`}>
-                <Calendar className="h-4 w-4 text-white" />
-              </div>
+            <div className="flex items-center gap-3">
+              <ClayIcon subject="phonics" size="sm">
+                <Calendar className="h-3.5 w-3.5 text-amber-800" />
+              </ClayIcon>
               <div>
-                <p className="font-medium">Daily Streak</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="font-semibold text-sm">Daily Streak</p>
+                <p className="text-xs text-muted-foreground">
                   Current: {dailyStreak?.current_streak || 0} days
                 </p>
               </div>
             </div>
             <div className="text-right">
-              <Badge variant={dailyStreak?.current_streak && dailyStreak.current_streak > 0 ? "default" : "secondary"}>
-                🔥 {dailyStreak?.current_streak || 0}
-              </Badge>
+              <ClayBadge subject="streak" label={`🔥 ${dailyStreak?.current_streak || 0}`} />
               {dailyStreak && getStreakReward(dailyStreak.current_streak).coins > 0 && (
-                <p className="text-xs text-yellow-600 mt-1">
+                <p className="text-[10px] text-amber-700 mt-1">
                   +{getStreakReward(dailyStreak.current_streak).coins} coins
                 </p>
               )}
@@ -73,70 +73,63 @@ export function StreakCard({ streaks, onUpdateStreak }: StreakCardProps) {
           </div>
 
           {dailyStreak && !isToday(dailyStreak.last_activity_date || dailyStreak.lastActivityDate as any) && (
-            <Button 
+            <Button
               onClick={() => onUpdateStreak('daily')}
-              className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+              className="w-full clay-phonics border-none text-amber-900 font-semibold hover:brightness-105"
             >
               Continue Streak
             </Button>
           )}
 
           {dailyStreak && isToday((dailyStreak.last_activity_date || dailyStreak.lastActivityDate) as any) && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-              <p className="text-sm text-green-700 flex items-center gap-1">
-                <Award className="h-4 w-4" />
+            <div className="clay-vocab p-3">
+              <p className="text-xs text-emerald-800 flex items-center gap-1 font-medium">
+                <Award className="h-3.5 w-3.5" />
                 Streak updated today! Keep it up tomorrow.
               </p>
             </div>
           )}
         </div>
 
-        {/* Progress to next milestone */}
+        {/* Progress */}
         {dailyStreak && (
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
+          <div className="mt-4 space-y-1.5">
+            <div className="flex justify-between text-[10px] text-muted-foreground">
               <span>Progress to next reward</span>
               <span>
-                {dailyStreak.current_streak >= 30 ? 'Max reward!' : 
+                {dailyStreak.current_streak >= 30 ? 'Max reward!' :
                  dailyStreak.current_streak >= 14 ? `${30 - dailyStreak.current_streak} days to epic` :
                  dailyStreak.current_streak >= 7 ? `${14 - dailyStreak.current_streak} days to rare` :
                  dailyStreak.current_streak >= 3 ? `${7 - dailyStreak.current_streak} days to uncommon` :
                  `${3 - dailyStreak.current_streak} days to first reward`}
               </span>
             </div>
-            <Progress 
-              value={dailyStreak.current_streak >= 30 ? 100 : 
-                     dailyStreak.current_streak >= 14 ? ((dailyStreak.current_streak - 14) / 16) * 100 :
-                     dailyStreak.current_streak >= 7 ? ((dailyStreak.current_streak - 7) / 7) * 100 :
-                     dailyStreak.current_streak >= 3 ? ((dailyStreak.current_streak - 3) / 4) * 100 :
-                     (dailyStreak.current_streak / 3) * 100}
-              className="h-2"
-            />
+            <ClayProgress value={streakProgress()} subject="phonics" height={8} />
           </div>
         )}
 
-        {/* Longest Streak Achievement */}
+        {/* Longest Streak */}
         {dailyStreak && dailyStreak.longest_streak > 0 && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-            <p className="text-sm text-yellow-700 flex items-center gap-1">
-              <TrendingUp className="h-4 w-4" />
+          <div className="clay-phonics p-3 mt-3">
+            <p className="text-xs text-amber-800 flex items-center gap-1 font-medium">
+              <TrendingUp className="h-3.5 w-3.5" />
               Your longest streak: {dailyStreak.longest_streak} days
             </p>
           </div>
         )}
 
-        {/* Weekly and Monthly Streaks */}
-        <div className="grid grid-cols-2 gap-3 pt-2 border-t">
-          <div className="text-center">
-            <p className="text-sm font-medium">Weekly</p>
-            <p className="text-lg font-bold text-blue-600">{weeklyStreak?.current_streak || 0}</p>
+        {/* Weekly + Monthly */}
+        <div className="grid grid-cols-2 gap-3 mt-4 pt-3 border-t border-orange-200/40">
+          <div className="clay text-center p-3">
+            <p className="text-[10px] font-medium text-muted-foreground">Weekly</p>
+            <p className="text-lg font-bold text-blue-700">{weeklyStreak?.current_streak || 0}</p>
           </div>
-          <div className="text-center">
-            <p className="text-sm font-medium">Monthly</p>
-            <p className="text-lg font-bold text-purple-600">{monthlyStreak?.current_streak || 0}</p>
+          <div className="clay text-center p-3">
+            <p className="text-[10px] font-medium text-muted-foreground">Monthly</p>
+            <p className="text-lg font-bold text-violet-700">{monthlyStreak?.current_streak || 0}</p>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </ClayCard>
   );
 }

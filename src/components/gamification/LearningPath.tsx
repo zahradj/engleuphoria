@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { CheckCircle, Lock, Play } from "lucide-react";
+import { ClayCard, ClayIcon, ClayProgress, ClayBadge, type ClaySubject } from "@/components/ui/clay";
 
 export interface LearningMilestone {
   id: string;
@@ -18,7 +19,7 @@ export interface LearningMilestone {
     title: string;
     type: "quiz" | "game" | "video" | "reading" | "practice";
     isCompleted: boolean;
-    duration: number; // in minutes
+    duration: number;
   }[];
 }
 
@@ -32,157 +33,136 @@ interface LearningPathProps {
   className?: string;
 }
 
-export function LearningPath({
-  path,
-  onStartActivity,
-  className = "",
-}: LearningPathProps) {
+const activitySubject: Record<string, ClaySubject> = {
+  quiz: 'grammar',
+  game: 'phonics',
+  video: 'vocab',
+  reading: 'grammar',
+  practice: 'phonics',
+};
+
+const activityIcons: Record<string, string> = {
+  quiz: '🧩',
+  game: '🎮',
+  video: '🎬',
+  reading: '📖',
+  practice: '✏️',
+};
+
+export function LearningPath({ path, onStartActivity, className = "" }: LearningPathProps) {
   const [expandedMilestone, setExpandedMilestone] = useState<string | null>(null);
   const { languageText } = useLanguage();
 
   const toggleMilestone = (milestoneId: string) => {
     setExpandedMilestone(expandedMilestone === milestoneId ? null : milestoneId);
   };
-  
-  // Calculate completion percentage for a milestone
-  const calculateCompletionPercentage = (milestone: LearningMilestone) => {
-    if (milestone.activities.length === 0) return 0;
-    const completedActivities = milestone.activities.filter(a => a.isCompleted).length;
-    return Math.round((completedActivities / milestone.activities.length) * 100);
-  };
 
-  // Get the appropriate activity icon
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case "quiz": return "🧩";
-      case "game": return "🎮";
-      case "video": return "🎬";
-      case "reading": return "📖";
-      case "practice": return "✏️";
-      default: return "📝";
-    }
+  const completionPct = (m: LearningMilestone) => {
+    if (!m.activities.length) return 0;
+    return Math.round((m.activities.filter(a => a.isCompleted).length / m.activities.length) * 100);
   };
 
   return (
     <Card className={className}>
       <CardHeader>
         <CardTitle>{path.title}</CardTitle>
-        <p className="text-muted-foreground">{path.description}</p>
+        <p className="text-muted-foreground text-sm">{path.description}</p>
       </CardHeader>
-      
       <CardContent>
         <div className="space-y-4">
-          {path.milestones.map((milestone, index) => (
-            <div 
-              key={milestone.id} 
-              className={`border rounded-lg overflow-hidden ${
-                milestone.isLocked ? "opacity-70" : ""
-              }`}
-            >
-              {/* Milestone header */}
-              <div 
-                className={`flex items-center p-4 cursor-pointer ${
-                  milestone.isCompleted ? "bg-green-50" : (
-                    milestone.isLocked ? "bg-gray-50" : "bg-blue-50"
-                  )
-                }`}
+          {path.milestones.map((milestone, index) => {
+            const subject: ClaySubject = milestone.isCompleted ? 'vocab' : milestone.isLocked ? 'neutral' : 'grammar';
+            const pct = completionPct(milestone);
+
+            return (
+              <ClayCard
+                key={milestone.id}
+                subject={subject}
+                className={`${milestone.isLocked ? 'opacity-60' : ''}`}
                 onClick={() => !milestone.isLocked && toggleMilestone(milestone.id)}
               >
-                {/* Status indicator */}
-                <div className="mr-3">
-                  {milestone.isCompleted ? (
-                    <CheckCircle className="h-6 w-6 text-green-600" />
-                  ) : milestone.isLocked ? (
-                    <Lock className="h-6 w-6 text-gray-400" />
-                  ) : (
-                    <div className="h-6 w-6 rounded-full border-2 border-blue-500 flex items-center justify-center text-blue-500 font-bold text-sm">
-                      {index + 1}
+                <div className="flex items-center gap-3">
+                  <ClayIcon subject={subject} size="md">
+                    {milestone.isCompleted ? (
+                      <CheckCircle className="h-5 w-5 text-white" />
+                    ) : milestone.isLocked ? (
+                      <Lock className="h-5 w-5 text-slate-500" />
+                    ) : (
+                      <span className="font-bold text-white text-sm">{index + 1}</span>
+                    )}
+                  </ClayIcon>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start gap-2">
+                      <h3 className={`font-semibold text-sm ${milestone.isLocked ? 'text-muted-foreground' : ''}`}>
+                        {milestone.title}
+                      </h3>
+                      <ClayBadge subject="gold" label={`${milestone.points} ${languageText.points}`} />
                     </div>
-                  )}
-                </div>
-                
-                {/* Title and progress */}
-                <div className="flex-1">
-                  <div className="flex justify-between items-start">
-                    <h3 className={`font-medium ${
-                      milestone.isLocked ? "text-gray-500" : ""
-                    }`}>
-                      {milestone.title}
-                    </h3>
-                    
-                    <div className="text-sm font-medium bg-yellow-dark/10 text-yellow-dark px-2 py-1 rounded-full ml-2">
-                      {milestone.points} {languageText.points}
-                    </div>
-                  </div>
-                  
-                  <p className={`text-sm ${
-                    milestone.isLocked ? "text-gray-400" : "text-muted-foreground"
-                  }`}>
-                    {milestone.description}
-                  </p>
-                  
-                  {/* Progress bar */}
-                  {!milestone.isLocked && (
-                    <div className="mt-2">
-                      <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                        <span>
-                          {calculateCompletionPercentage(milestone)}% {languageText.complete}
-                        </span>
-                        <span>
-                          {milestone.activities.filter(a => a.isCompleted).length}/{milestone.activities.length} {languageText.activities}
-                        </span>
-                      </div>
-                      <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                        <div 
-                          className={`h-full ${milestone.isCompleted ? "bg-green-500" : "bg-blue-500"}`}
-                          style={{width: `${calculateCompletionPercentage(milestone)}%`}}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-              
-              {/* Activities list (expanded) */}
-              {!milestone.isLocked && expandedMilestone === milestone.id && (
-                <div className="border-t p-2 divide-y divide-gray-100">
-                  {milestone.activities.map((activity) => (
-                    <div 
-                      key={activity.id}
-                      className="flex items-center justify-between py-2 px-3"
-                    >
-                      <div className="flex items-center">
-                        <span className="mr-3 text-xl" role="img" aria-label={activity.type}>
-                          {getActivityIcon(activity.type)}
-                        </span>
-                        <div>
-                          <h4 className="text-sm font-medium">
-                            {activity.title}
-                          </h4>
-                          <p className="text-xs text-muted-foreground">
-                            {activity.type} • {activity.duration} {languageText.min}
-                          </p>
+
+                    <p className={`text-xs mt-0.5 ${milestone.isLocked ? 'text-muted-foreground/60' : 'text-muted-foreground'}`}>
+                      {milestone.description}
+                    </p>
+
+                    {!milestone.isLocked && (
+                      <div className="mt-2">
+                        <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+                          <span>{pct}% {languageText.complete}</span>
+                          <span>
+                            {milestone.activities.filter(a => a.isCompleted).length}/{milestone.activities.length} {languageText.activities}
+                          </span>
                         </div>
+                        <ClayProgress value={pct} subject={subject} height={6} />
                       </div>
-                      
-                      {activity.isCompleted ? (
-                        <CheckCircle className="h-5 w-5 text-green-600" />
-                      ) : (
-                        <Button
-                          size="sm"
-                          className="h-8 gap-1"
-                          onClick={() => onStartActivity(milestone.id, activity.id)}
-                        >
-                          <Play className="h-3.5 w-3.5" />
-                          {languageText.start}
-                        </Button>
-                      )}
-                    </div>
-                  ))}
+                    )}
+                  </div>
                 </div>
-              )}
-            </div>
-          ))}
+
+                {/* Activities list */}
+                {!milestone.isLocked && expandedMilestone === milestone.id && (
+                  <div className="mt-3 pt-3 border-t border-black/5 space-y-2">
+                    {milestone.activities.map(activity => {
+                      const actSubject = activitySubject[activity.type] || 'neutral';
+                      return (
+                        <div
+                          key={activity.id}
+                          className="clay flex items-center justify-between px-3 py-2"
+                          onClick={e => e.stopPropagation()}
+                        >
+                          <div className="flex items-center gap-2">
+                            <ClayIcon subject={actSubject} size="sm">
+                              <span className="text-xs">{activityIcons[activity.type] || '📝'}</span>
+                            </ClayIcon>
+                            <div>
+                              <h4 className="text-xs font-medium">{activity.title}</h4>
+                              <p className="text-[10px] text-muted-foreground">
+                                {activity.type} • {activity.duration} {languageText.min}
+                              </p>
+                            </div>
+                          </div>
+
+                          {activity.isCompleted ? (
+                            <ClayIcon subject="vocab" size="sm">
+                              <CheckCircle className="h-3.5 w-3.5 text-white" />
+                            </ClayIcon>
+                          ) : (
+                            <Button
+                              size="sm"
+                              className="h-7 gap-1 text-xs clay-grammar border-none text-blue-900"
+                              onClick={() => onStartActivity(milestone.id, activity.id)}
+                            >
+                              <Play className="h-3 w-3" />
+                              {languageText.start}
+                            </Button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </ClayCard>
+            );
+          })}
         </div>
       </CardContent>
     </Card>
