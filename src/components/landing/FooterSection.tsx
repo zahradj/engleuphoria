@@ -20,7 +20,7 @@ const footerLinks = {
   ],
   company: [
     { label: 'About Us', href: '/about' },
-    { label: 'Careers', href: '/teach-with-us' },
+    { label: 'Careers', href: '/for-teachers' },
     { label: 'Blog', href: '/blog' },
     { label: 'Contact', href: 'mailto:hello@engleuphoria.com' },
   ],

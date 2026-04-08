@@ -86,13 +86,13 @@ const App = () => {
                       {/* Public Entry Point - Landing Page */}
                       <Route path="/" element={<LandingPage />} />
                       <Route path="/about" element={<Suspense fallback={<LoadingFallback />}><AboutPage /></Suspense>} />
-                      <Route path="/teach-with-us" element={<Suspense fallback={<LoadingFallback />}><TeachWithUsPage /></Suspense>} />
+                      <Route path="/teach-with-us" element={<Navigate to="/for-teachers" replace />} />
                       <Route path="/for-teachers" element={<Suspense fallback={<LoadingFallback />}><ForTeachersPage /></Suspense>} />
                       <Route path="/login" element={<Suspense fallback={<LoadingFallback />}><Login /></Suspense>} />
                       <Route path="/signup" element={<Navigate to="/student-signup" replace />} />
-                      <Route path="/teacher-signup" element={<Suspense fallback={<LoadingFallback />}><TeacherSignUp /></Suspense>} />
+                      <Route path="/teacher-signup" element={<Navigate to="/for-teachers" replace />} />
                       <Route path="/student-signup" element={<Suspense fallback={<LoadingFallback />}><StudentSignUp /></Suspense>} />
-                      <Route path="/teacher-application" element={<Suspense fallback={<LoadingFallback />}><TeacherApplication /></Suspense>} />
+                      <Route path="/teacher-application" element={<Navigate to="/for-teachers" replace />} />
                       <Route path="/student-application" element={<Suspense fallback={<LoadingFallback />}><StudentApplication /></Suspense>} />
                       <Route path="/email-verification" element={<Suspense fallback={<LoadingFallback />}><EmailVerification /></Suspense>} />
                       <Route path="/reset-password" element={<Suspense fallback={<LoadingFallback />}><ResetPassword /></Suspense>} />
