@@ -80,6 +80,7 @@ export default function LessonPlayerContainer({
   const [muted, setMuted] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [answerSelected, setAnswerSelected] = useState(false);
+  const [spotlightActive, setSpotlightActive] = useState(false);
   const startTimeRef = useRef(Date.now());
 
   const [feedbackVisible, setFeedbackVisible] = useState(false);
