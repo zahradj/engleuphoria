@@ -361,9 +361,13 @@ The EnglEuphoria Hiring Team`,
       await supabase.from('interviews').delete().eq('application_id', application.id);
       
       // If approved, also clean up teacher_profiles and profiles
-      if (isApproved && application.user_id) {
-        await supabase.from('teacher_profiles').delete().eq('user_id', application.user_id);
-        await supabase.from('profiles').update({ role: 'student', status: 'inactive' }).eq('id', application.user_id);
+      if (isApproved) {
+        // Look up user by email to clean up their teacher data
+        const { data: profile } = await supabase.from('profiles').select('id').eq('email', application.email).maybeSingle();
+        if (profile) {
+          await supabase.from('teacher_profiles').delete().eq('user_id', profile.id);
+          await supabase.from('profiles').update({ role: 'student', status: 'inactive' }).eq('id', profile.id);
+        }
       }
       
       const { error } = await supabase.from('teacher_applications').delete().eq('id', application.id);
