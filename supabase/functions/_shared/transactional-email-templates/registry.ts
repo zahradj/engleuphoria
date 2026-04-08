@@ -24,6 +24,7 @@ import { template as adminNewStudent } from './admin-new-student.tsx'
 import { template as teacherBooking } from './teacher-booking.tsx'
 import { template as studentLessonReady } from './student-lesson-ready.tsx'
 import { template as lessonReminder } from './lesson-reminder.tsx'
+import { template as unitMasteryReport } from './unit-mastery-report.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'booking-confirmation': bookingConfirmation,
@@ -41,4 +42,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'teacher-booking': teacherBooking,
   'student-lesson-ready': studentLessonReady,
   'lesson-reminder': lessonReminder,
+  'unit-mastery-report': unitMasteryReport,
 }
