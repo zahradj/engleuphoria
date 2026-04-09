@@ -14,6 +14,7 @@ export default {
     },
     extend: {
       fontFamily: {
+        'inter': ['Inter', 'system-ui', 'sans-serif'],
         'jakarta': ['Outfit', 'system-ui', 'sans-serif'],
         'nunito': ['Nunito', 'system-ui', 'sans-serif'],
         'fredoka': ['Fredoka', 'Comic Neue', 'Comic Sans MS', 'cursive'],
