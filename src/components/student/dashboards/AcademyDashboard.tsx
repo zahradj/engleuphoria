@@ -4,14 +4,13 @@ import { AcademySkeleton } from '@/components/shared/DashboardSkeleton';
 import { useLiveClassroomStatus } from '@/hooks/useLiveClassroomStatus';
 import { LiveSessionBadge } from '@/components/shared/LiveSessionBadge';
 import { 
-  Home, BookOpen, Calendar, Trophy, User, Moon, Sun, 
-  Flame, ChevronRight, Clock, Users, Zap, Sparkles, TrendingUp, TrendingDown
+  Home, BookOpen, Calendar, Trophy, User, 
+  Flame, ChevronRight, Clock, Users, Sparkles, TrendingUp, TrendingDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useCurriculumLessons } from '@/hooks/useCurriculumLessons';
-import { CurriculumLesson } from '@/types/multiTenant';
 import { DailyStreakCard } from '../academy/DailyStreakCard';
 import { DailyChallengeCard } from '../academy/DailyChallengeCard';
 import { SocialLounge } from '../academy/SocialLounge';
@@ -22,7 +21,7 @@ import { AIPersonalizedLessonCard } from '../AIPersonalizedLessonCard';
 import { MaterialsGallery } from '../MaterialsGallery';
 import { AILessonAgent } from '../AILessonAgent';
 import { WeeklyGoalWidget } from '../WeeklyGoalWidget';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RecommendedTeachers } from '../RecommendedTeachers';
 import { BookMyClassModal } from '../BookMyClassModal';
 
@@ -46,7 +45,6 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
   onLevelUp,
 }) => {
   const [activeTab, setActiveTab] = useState<TabId>('home');
-  const [isDarkMode, setIsDarkMode] = useState(true);
   const [leaderboardPeriod, setLeaderboardPeriod] = useState<'weekly' | 'monthly' | 'all'>('weekly');
   const [bookingOpen, setBookingOpen] = useState(false);
   const { data: lessons = [], isLoading } = useCurriculumLessons('teen');
@@ -60,173 +58,128 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
     { id: 'profile', icon: <User className="w-5 h-5" />, label: 'Profile' },
   ];
 
-  // Mock schedule data
   const schedule = [
-    { day: 'Mon', time: '3:00 PM', subject: 'Grammar' },
-    { day: 'Wed', time: '4:30 PM', subject: 'Speaking' },
-    { day: 'Fri', time: '2:00 PM', subject: 'Reading' },
+    { day: 'Mon', time: '3:00 PM', subject: 'Grammar', color: 'bg-blue-50 text-blue-700' },
+    { day: 'Wed', time: '4:30 PM', subject: 'Speaking', color: 'bg-emerald-50 text-emerald-700' },
+    { day: 'Fri', time: '2:00 PM', subject: 'Reading', color: 'bg-amber-50 text-amber-700' },
   ];
 
-  // Mock leaderboard data with rank changes
   const leaderboard = [
-    { rank: 1, name: 'Sarah K.', xp: 4520, avatar: '👩', change: 0 },
-    { rank: 2, name: 'Mike T.', xp: 3890, avatar: '👨', change: 1 },
-    { rank: 3, name: studentName, xp: totalXp, avatar: '🧑', isYou: true, change: -1 },
-    { rank: 4, name: 'Emma L.', xp: 2100, avatar: '👧', change: 2 },
-    { rank: 5, name: 'Jake R.', xp: 1850, avatar: '🧒', change: 0 },
+    { rank: 1, name: 'Sarah K.', xp: 4520, avatar: 'SK', change: 0 },
+    { rank: 2, name: 'Mike T.', xp: 3890, avatar: 'MT', change: 1 },
+    { rank: 3, name: studentName, xp: totalXp, avatar: studentName.slice(0, 2).toUpperCase(), isYou: true, change: -1 },
+    { rank: 4, name: 'Emma L.', xp: 2100, avatar: 'EL', change: 2 },
+    { rank: 5, name: 'Jake R.', xp: 1850, avatar: 'JR', change: 0 },
   ];
 
-  const currentLesson = lessons[2] || lessons[0]; // Current lesson is third one
+  const currentLesson = lessons[2] || lessons[0];
 
   if (isLoading) return <AcademySkeleton />;
 
   return (
-    <div className={`min-h-screen flex ${isDarkMode ? 'bg-[#0f0f1a] text-white' : 'bg-gray-50 text-gray-900'}`}>
-      {/* Sidebar */}
-      <motion.aside 
+    <div className="min-h-screen flex bg-[#FAFBFC]" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
+      {/* Sidebar — clean navy */}
+      <motion.aside
         initial={{ x: -20, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
-        className={`w-20 md:w-64 ${isDarkMode ? 'bg-[#1a1a2e]' : 'bg-white'} border-r ${isDarkMode ? 'border-purple-900/30' : 'border-gray-200'} flex flex-col`}
+        className="w-20 md:w-60 bg-white border-r border-slate-200 flex flex-col"
       >
-        {/* Logo */}
         <div className="p-4 flex items-center justify-center md:justify-start gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center">
-            <Zap className="w-6 h-6 text-white" />
+          <div className="w-10 h-10 rounded-lg bg-[#1A237E] flex items-center justify-center">
+            <BookOpen className="w-5 h-5 text-white" />
           </div>
-          <span className="hidden md:block text-xl font-bold bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
+          <span className="hidden md:block text-lg font-semibold text-[#1A237E]">
             Academy
           </span>
         </div>
 
-        {/* Nav Items */}
         <nav className="flex-1 py-4">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`w-full flex items-center gap-3 px-4 py-3 transition-all ${
-                activeTab === tab.id 
-                  ? isDarkMode 
-                    ? 'bg-purple-600/20 text-purple-400 border-r-2 border-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]' 
-                    : 'bg-purple-50 text-purple-600 border-r-2 border-purple-500'
-                  : isDarkMode 
-                    ? 'text-gray-400 hover:text-white hover:bg-white/5' 
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-all ${
+                activeTab === tab.id
+                  ? 'bg-[#1A237E]/5 text-[#1A237E] border-r-2 border-[#1A237E] font-medium'
+                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
               }`}
             >
               {tab.icon}
-              <span className="hidden md:block font-medium">{tab.label}</span>
+              <span className="hidden md:block">{tab.label}</span>
             </button>
           ))}
         </nav>
-
-        {/* Dark Mode Toggle */}
-        <div className="p-4 border-t border-purple-900/30">
-          <button
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className={`w-full flex items-center justify-center md:justify-start gap-3 px-4 py-2 rounded-lg transition-all ${
-              isDarkMode ? 'bg-purple-600/20 text-purple-400' : 'bg-yellow-100 text-yellow-600'
-            }`}
-          >
-            {isDarkMode ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-            <span className="hidden md:block font-medium">
-              {isDarkMode ? 'Dark' : 'Light'}
-            </span>
-          </button>
-        </div>
       </motion.aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-4 md:p-6 overflow-y-auto">
-        {/* LIVE Session Banner — appears automatically when teacher opens the room */}
+      <main className="flex-1 p-6 overflow-y-auto">
+        {/* LIVE Session Banner */}
         {liveStatus.isLive && liveStatus.classroomUrl && (
           <div className="mb-4">
-            <LiveSessionBadge
-              classroomUrl={liveStatus.classroomUrl}
-              variant="banner"
-              isDarkMode={isDarkMode}
-            />
+            <LiveSessionBadge classroomUrl={liveStatus.classroomUrl} variant="banner" />
           </div>
         )}
 
         {/* Header */}
-        <motion.div 
-          initial={{ y: -20, opacity: 0 }}
+        <motion.div
+          initial={{ y: -10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           className="flex justify-between items-center mb-6"
         >
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold">
-              Welcome back, <span className="bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">{studentName}!</span>
+            <h1 className="text-2xl font-semibold text-[#1A237E]">
+              Welcome back, {studentName}
             </h1>
-            <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>
-              Level {level} • {totalXp.toLocaleString()} XP
+            <p className="text-slate-500 text-sm mt-0.5">
+              Level {level} · {totalXp.toLocaleString()} XP
             </p>
           </div>
-          <div className="flex items-center gap-4">
-            {/* Streak Badge */}
-            <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${isDarkMode ? 'bg-orange-500/20' : 'bg-orange-100'}`}>
-              <Flame className="w-5 h-5 text-orange-500" fill="currentColor" />
-              <span className="font-bold text-orange-500">{currentStreak}</span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-50 border border-orange-200">
+              <Flame className="w-4 h-4 text-orange-500" fill="currentColor" />
+              <span className="font-semibold text-sm text-orange-600">{currentStreak}</span>
             </div>
           </div>
         </motion.div>
 
-        {/* Daily Streak Card - Full Width */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.05 }}
-          className="mb-6"
-        >
+        {/* Streak Card */}
+        <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.05 }} className="mb-6">
           <DailyStreakCard
             currentStreak={currentStreak}
             longestStreak={14}
             weeklyActivity={weeklyActivity}
             hasStreakFreeze={true}
-            isDarkMode={isDarkMode}
           />
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column - Schedule & Continue */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* My Schedule */}
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.1 }}
-            >
-              <Card className={isDarkMode ? 'bg-[#1a1a2e] border-purple-900/30' : ''}>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calendar className="w-5 h-5 text-cyan-500" />
+          {/* Left Column */}
+          <div className="lg:col-span-2 space-y-5">
+            {/* Schedule */}
+            <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }}>
+              <Card className="border border-slate-200 shadow-sm bg-white rounded-lg">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-[#1A237E] text-base font-semibold">
+                    <Calendar className="w-4 h-4" />
                     My Schedule
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {schedule.map((item, index) => (
-                      <div 
-                        key={index}
-                        className={`flex items-center justify-between p-3 rounded-lg ${
-                          isDarkMode ? 'bg-[#0f0f1a]' : 'bg-gray-50'
-                        }`}
-                      >
+                      <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
                         <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                            isDarkMode ? 'bg-purple-600/20' : 'bg-purple-100'
-                          }`}>
-                            <span className="font-bold text-purple-500">{item.day}</span>
+                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold ${item.color}`}>
+                            {item.day}
                           </div>
                           <div>
-                            <p className="font-medium">{item.subject}</p>
-                            <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                              <Clock className="w-3 h-3 inline mr-1" />{item.time}
+                            <p className="font-medium text-sm text-slate-800">{item.subject}</p>
+                            <p className="text-xs text-slate-400 flex items-center gap-1">
+                              <Clock className="w-3 h-3" />{item.time}
                             </p>
                           </div>
                         </div>
-                        <ChevronRight className="w-5 h-5 text-gray-400" />
+                        <ChevronRight className="w-4 h-4 text-slate-300" />
                       </div>
                     ))}
                   </div>
@@ -234,107 +187,77 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
               </Card>
             </motion.div>
 
-            {/* Continue Learning - Using CurrentLessonCard */}
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2 }}
-            >
-              <Card className={`overflow-hidden ${isDarkMode ? 'bg-gradient-to-br from-purple-900/50 to-cyan-900/50 border border-purple-500/50 shadow-[0_0_20px_rgba(168,85,247,0.3)]' : 'bg-gradient-to-br from-purple-50 to-cyan-50'}`}>
-                <CardContent className="p-6">
+            {/* Continue Learning */}
+            <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.15 }}>
+              <Card className="border border-[#1A237E]/10 shadow-sm bg-white rounded-lg overflow-hidden">
+                <CardContent className="p-5">
                   <div className="flex items-center justify-between">
-                    <div className="space-y-2">
-                      <p className={`text-sm mb-1 ${isDarkMode ? 'text-purple-300' : 'text-purple-600'}`}>Continue where you left off</p>
-                      
-                      {/* Unit & Lesson info from currentLesson */}
+                    <div className="space-y-1.5">
+                      <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Continue where you left off</p>
                       {currentLesson && (
                         <>
-                          <div className="flex items-center gap-2 text-xs opacity-75">
+                          <div className="flex items-center gap-2 text-xs text-slate-400">
                             {(currentLesson as any).unit && (
                               <span>Unit {(currentLesson as any).unit.unit_number}: {(currentLesson as any).unit.title}</span>
                             )}
                             {currentLesson.sequence_order && (
-                              <span>• Lesson {currentLesson.sequence_order}</span>
+                              <span>· Lesson {currentLesson.sequence_order}</span>
                             )}
                           </div>
-                          <h3 className="text-xl font-bold">
+                          <h3 className="text-lg font-semibold text-slate-800">
                             {currentLesson.title || 'Writing Workshop'}
                           </h3>
                         </>
                       )}
-                      
-                      {!currentLesson && (
-                        <h3 className="text-xl font-bold">No lessons available</h3>
-                      )}
-                      
-                      <p className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>
-                        {currentLesson?.duration_minutes || 35} min
-                      </p>
-                      {/* Progress bar */}
-                      <div className="mt-3 h-2 w-48 bg-gray-700/50 rounded-full overflow-hidden">
-                        <div className="h-full w-3/5 bg-gradient-to-r from-purple-500 to-cyan-500 rounded-full" />
+                      {!currentLesson && <h3 className="text-lg font-semibold text-slate-800">No lessons available</h3>}
+                      <p className="text-sm text-slate-400">{currentLesson?.duration_minutes || 35} min</p>
+                      <div className="mt-2 h-1.5 w-48 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full w-3/5 bg-[#4CAF50] rounded-full" />
                       </div>
                     </div>
-                    <Button className="bg-gradient-to-r from-purple-500 to-cyan-500 text-white px-6">
-                      Continue
-                      <ChevronRight className="w-4 h-4 ml-1" />
+                    <Button className="bg-[#1A237E] hover:bg-[#1A237E]/90 text-white px-5 rounded-lg text-sm font-medium">
+                      Continue <ChevronRight className="w-4 h-4 ml-1" />
                     </Button>
                   </div>
                 </CardContent>
               </Card>
             </motion.div>
 
-            {/* Daily AI Lesson Card */}
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.25 }}
-            >
-              <AIPersonalizedLessonCard isDarkMode={isDarkMode} />
+            {/* AI Lesson Card */}
+            <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }}>
+              <AIPersonalizedLessonCard />
             </motion.div>
 
-            {/* Record a Clip Widget */}
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.28 }}
-            >
-              <RecordClipWidget isDarkMode={isDarkMode} />
+            {/* Record Clip */}
+            <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.22 }}>
+              <RecordClipWidget />
             </motion.div>
           </div>
 
-          {/* Right Column - Leaderboard */}
-          <motion.div
-            initial={{ x: 20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="space-y-6"
-          >
-            {/* Book a Slot CTA */}
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
+          {/* Right Column */}
+          <motion.div initial={{ x: 10, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.25 }} className="space-y-5">
+            {/* Book a Slot */}
+            <Button
               onClick={() => setBookingOpen(true)}
-              className="w-full py-3 px-5 rounded-xl font-bold text-white text-sm shadow-lg transition-all"
-              style={{ background: 'linear-gradient(135deg, #8b5cf6, #06b6d4)' }}
+              className="w-full bg-[#1A237E] hover:bg-[#1A237E]/90 text-white rounded-lg font-medium py-2.5 text-sm"
             >
-              ⚡ Book a Slot with a Teacher
-            </motion.button>
+              Book a Slot with a Teacher
+            </Button>
 
-            {/* Skill XP Bars — above Leaderboard */}
-            <SkillXPBars isDarkMode={isDarkMode} />
+            {/* Skill XP */}
+            <SkillXPBars />
 
-            <Card className={isDarkMode ? 'bg-[#1a1a2e] border-purple-900/30' : ''}>
+            {/* Leaderboard */}
+            <Card className="border border-slate-200 shadow-sm bg-white rounded-lg">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <Trophy className="w-5 h-5 text-yellow-500" />
+                  <CardTitle className="flex items-center gap-2 text-[#1A237E] text-base font-semibold">
+                    <Trophy className="w-4 h-4 text-amber-500" />
                     Leaderboard
                   </CardTitle>
                 </div>
-                {/* Period Tabs */}
                 <Tabs value={leaderboardPeriod} onValueChange={(v) => setLeaderboardPeriod(v as any)} className="mt-2">
-                  <TabsList className={`grid grid-cols-3 ${isDarkMode ? 'bg-[#0f0f1a]' : ''}`}>
+                  <TabsList className="grid grid-cols-3 bg-slate-100">
                     <TabsTrigger value="weekly" className="text-xs">Weekly</TabsTrigger>
                     <TabsTrigger value="monthly" className="text-xs">Monthly</TabsTrigger>
                     <TabsTrigger value="all" className="text-xs">All Time</TabsTrigger>
@@ -342,92 +265,69 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
                 </Tabs>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {leaderboard.map((user) => (
-                    <div 
+                    <div
                       key={user.rank}
-                      className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
-                        user.isYou 
-                          ? isDarkMode 
-                            ? 'bg-purple-600/20 border border-purple-500/50 shadow-lg shadow-purple-500/20' 
-                            : 'bg-purple-50 border border-purple-200'
-                          : isDarkMode 
-                            ? 'bg-[#0f0f1a]' 
-                            : 'bg-gray-50'
+                      className={`flex items-center gap-3 p-2.5 rounded-lg transition-all text-sm ${
+                        user.isYou
+                          ? 'bg-[#1A237E]/5 border border-[#1A237E]/15'
+                          : 'bg-slate-50'
                       }`}
                     >
-                      <span className={`w-6 text-center font-bold ${
-                        user.rank === 1 ? 'text-yellow-500 drop-shadow-[0_0_6px_rgba(234,179,8,0.6)]' : 
-                        user.rank === 2 ? 'text-gray-400 drop-shadow-[0_0_4px_rgba(156,163,175,0.4)]' : 
-                        user.rank === 3 ? 'text-amber-600 drop-shadow-[0_0_4px_rgba(217,119,6,0.4)]' : 'text-gray-500'
+                      <span className={`w-6 text-center font-bold text-xs ${
+                        user.rank === 1 ? 'text-amber-500' :
+                        user.rank === 2 ? 'text-slate-400' :
+                        user.rank === 3 ? 'text-amber-700' : 'text-slate-400'
                       }`}>
                         #{user.rank}
                       </span>
-                      <Avatar className="w-8 h-8">
-                        <AvatarFallback className={isDarkMode ? 'bg-purple-600/30' : 'bg-purple-100'}>
+                      <Avatar className="w-7 h-7">
+                        <AvatarFallback className="bg-slate-100 text-slate-600 text-xs font-medium">
                           {user.avatar}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
-                        <p className="font-medium">
-                          {user.name} {user.isYou && <span className="text-purple-400 text-sm">(You)</span>}
+                        <p className="font-medium text-slate-700">
+                          {user.name} {user.isYou && <span className="text-[#1A237E] text-xs">(You)</span>}
                         </p>
                       </div>
-                      {/* Rank Change Indicator */}
                       {user.change !== 0 && (
-                        <div className={`flex items-center gap-0.5 text-xs ${
-                          user.change > 0 ? 'text-green-400' : 'text-red-400'
-                        }`}>
+                        <div className={`flex items-center gap-0.5 text-xs ${user.change > 0 ? 'text-[#4CAF50]' : 'text-red-400'}`}>
                           {user.change > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                           {Math.abs(user.change)}
                         </div>
                       )}
-                      <span className={`font-bold ${isDarkMode ? 'text-cyan-400' : 'text-cyan-600'}`}>
-                        {user.xp.toLocaleString()}
-                      </span>
+                      <span className="font-semibold text-[#1A237E] text-xs">{user.xp.toLocaleString()}</span>
                     </div>
                   ))}
                 </div>
-                
-                {/* Challenge Button */}
-                <Button
-                  variant="outline"
-                  className={`w-full mt-4 ${isDarkMode ? 'border-purple-500/30 text-purple-300 hover:bg-purple-600/20' : ''}`}
-                >
-                  <Users className="w-4 h-4 mr-2" />
+                <Button variant="outline" className="w-full mt-3 text-xs border-slate-200 text-slate-500 hover:text-[#1A237E]">
+                  <Users className="w-3.5 h-3.5 mr-1.5" />
                   Challenge a Friend
                 </Button>
               </CardContent>
             </Card>
 
             {/* Social Lounge */}
-            <SocialLounge isDarkMode={isDarkMode} />
+            <SocialLounge />
 
             {/* Weekly Goal */}
-            <WeeklyGoalWidget studentLevel="academy" isDarkMode={isDarkMode} />
+            <WeeklyGoalWidget studentLevel="academy" />
 
             {/* AI Lesson Agent */}
-            <AILessonAgent
-              studentLevel="academy"
-              studentInterests={['gaming', 'social media', 'music']}
-              cefrLevel="A2"
-            />
+            <AILessonAgent studentLevel="academy" studentInterests={['gaming', 'social media', 'music']} cefrLevel="A2" />
 
             <MaterialsGallery track="teens" />
-
-            <RecommendedTeachers isDarkMode={isDarkMode} hubLevel="academy" />
+            <RecommendedTeachers hubLevel="academy" />
 
             {onLevelUp && (
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.4 }}
-              >
+              <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.35 }}>
                 <Button
                   onClick={onLevelUp}
-                  className="w-full bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all"
+                  className="w-full bg-[#4CAF50] hover:bg-[#43A047] text-white font-medium py-2.5 rounded-lg text-sm"
                 >
-                  <Sparkles className="w-5 h-5 mr-2" />
+                  <Sparkles className="w-4 h-4 mr-1.5" />
                   Graduate to The Hub!
                 </Button>
               </motion.div>
@@ -436,12 +336,7 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
         </div>
       </main>
 
-      {/* Booking Modal */}
-      <BookMyClassModal
-        isOpen={bookingOpen}
-        onClose={() => setBookingOpen(false)}
-        studentLevel="academy"
-      />
+      <BookMyClassModal isOpen={bookingOpen} onClose={() => setBookingOpen(false)} studentLevel="academy" />
     </div>
   );
 };
