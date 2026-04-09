@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { BookOpen, Target, CheckCircle2, ChevronLeft, ToggleLeft, ToggleRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import DynamicSlideRenderer from '@/components/lesson-player/DynamicSlideRenderer';
-import { GeneratedSlide } from '@/components/admin/lesson-builder/ai-wizard/types';
+import { GeneratedSlide, HubType } from '@/components/admin/lesson-builder/ai-wizard/types';
 
 interface AcademyLessonLayoutProps {
   lessonTitle: string;
@@ -48,10 +48,8 @@ export const AcademyLessonLayout: React.FC<AcademyLessonLayoutProps> = ({
             {currentSlide && (
               <DynamicSlideRenderer
                 slide={currentSlide}
-                slideIndex={currentSlideIndex}
-                totalSlides={slides.length}
-                onAnswer={() => {}}
-                studentLevel="academy"
+                hub={'academy' as HubType}
+                onCorrectAnswer={() => {}}
               />
             )}
           </div>
