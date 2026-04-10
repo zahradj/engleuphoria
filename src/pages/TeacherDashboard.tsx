@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { TeacherDashboardShell } from "@/components/teacher/dashboard";
+import { ProfessionalHub } from "@/components/teacher/professional/ProfessionalHub";
 
 const TeacherDashboard = () => {
   const { user } = useAuth();
@@ -38,7 +38,7 @@ const TeacherDashboard = () => {
     );
   }
 
-  return <TeacherDashboardShell teacherName={teacherName} teacherId={teacherId} />;
+  return <ProfessionalHub teacherName={teacherName} teacherId={teacherId} />;
 }
 
 export default TeacherDashboard;
