@@ -278,11 +278,7 @@ export const StudentEntityDashboard: React.FC<StudentEntityDashboardProps> = ({ 
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <MapOfSounds
-                  studentId={selectedStudentId}
-                  hub="academy"
-                  compact
-                />
+                <MapOfSounds hub="academy" />
               </CardContent>
             </Card>
           </div>
