@@ -1,111 +1,100 @@
 
 
-# Scaffolded Mastery + Anti-3D Image Pipeline + Phonetic Mimic Engine
+# Expand Practice Layers to 4+ Interactive Activities Each
 
 ## Overview
-Three interconnected upgrades to transform lesson quality: (1) replace the current 4-phase skeleton with a 5-phase "Epic Arc" mastery structure, (2) inject Anti-3D negative prompts into all image generation, and (3) build a phonetic accuracy feedback engine for the Mimic phase.
+Each of the three practice layers (Phonics, Vocabulary, Grammar) currently has 1-2 activities in the skeleton sequences. We will expand each layer to 4+ distinct interactive activity types, create the missing layer-specific components, wire them into the `DynamicSlideRenderer`, and update the skeleton sequences to accommodate the richer activity set.
 
 ---
 
-## Part 1: Anti-3D Image Generation Refactor
+## The 12 New Activities (4 per layer)
 
-**Problem**: The `slideSkeletonEngine.ts` MIDJOURNEY_WRAPPERS explicitly request "3D claymation, Octane Render, Unreal Engine 5" for Playground and "Cyberpunk neon, digital 3D render" for Academy. The `ai-image-generation` edge function has no negative constraints.
+### Layer 1: Phonics Foundation (4 activities)
+| Activity | Component | Description |
+|----------|-----------|-------------|
+| `phonics_slider` | `PhonicsSlider.tsx` | Student holds record button, waveform compared to master sound |
+| `phoneme_tap` | `PhonemeTap.tsx` | Grid of phoneme cards — tap the one matching the audio played |
+| `sound_sort` | `SoundSort.tsx` | Drag words into buckets by their target sound (e.g., short /a/ vs short /i/) |
+| `mouth_mirror` | `MouthMirror.tsx` | 2D mouth cross-section animation — student watches articulation + records voice to match |
 
-**Changes**:
+### Layer 2: Vocabulary Bridge (4 activities)
+| Activity | Component | Description |
+|----------|-----------|-------------|
+| `sound_to_letter` | `SoundToLetter.tsx` | Word displayed with tappable letters — tap the letter containing the target phoneme |
+| `word_builder` | `WordBuilder.tsx` | Drag individual letters to build the target word from a scrambled set |
+| `picture_label` | `PictureLabel.tsx` | Flat 2.0 image shown — student types or selects the correct word label |
+| `odd_one_out` | `OddOneOut.tsx` | Four Flat 2.0 images shown — student taps the one that doesn't share the target sound |
 
-1. **`supabase/functions/ai-image-generation/index.ts`** — Add a new `flat2d` style and accept a `negativePrompt` parameter. When style is `flat2d`, prepend: *"Professional 2D flat vector illustration, clean bold lines, solid colors with subtle layering, white background, isolated object"* and append negative constraint: *"No 3D, no render, no depth, no shadows, no gradients, no photorealism, no fuzzy textures."*
-
-2. **`src/services/slideSkeletonEngine.ts`** — Replace `MIDJOURNEY_WRAPPERS`:
-   - **Playground**: `"Minimalist 2D flat vector, friendly character design, solid pastel colors, clean bold outlines, white background, Engleuphoria Navy accents"`
-   - **Academy**: `"Professional 2D illustration, clean geometric style, bold colors, modern infographic aesthetic, white background"`
-   - **Professional**: Keep current editorial photography style (already appropriate)
-
-3. **`src/services/imageGeneration.ts`** — Add `flat2d` to the `ImageGenerationOptions.style` union. Update `getStylePrompt` to include the flat vector description.
-
-4. **`src/services/massImageGenerationService.ts`** — Pass `style: 'flat2d'` (for Playground/Academy) instead of `'cinematic'`.
-
-5. **Content Creator UI** — In the AI Wizard (`AILessonWizard.tsx`), rename "Generate Images" button to **"Generate Flat 2.0 Vectors"** for Playground/Academy hubs. Add a visual indicator showing the active style preset.
+### Layer 3: Grammar Extension (4 activities)
+| Activity | Component | Description |
+|----------|-----------|-------------|
+| `grammar_blocks` | `GrammarBlocks.tsx` | Slot-based sentence builder — drag blocks (Article, Noun, Verb) into correct slots |
+| `sentence_scramble` | Reuses `AcademySentenceUnscramble.tsx` | Reorder jumbled words into a correct sentence |
+| `article_picker` | `ArticlePicker.tsx` | Given a noun + image, choose "a" or "an" (connected to vowel phoneme logic) |
+| `sentence_transform` | `SentenceTransform.tsx` | Transform a statement into a question or negative form by rearranging/adding blocks |
 
 ---
 
-## Part 2: Scaffolded 5-Phase Lesson Structure
+## File Changes
 
-**Problem**: Current skeleton uses a 4-phase loop (Hook → Discovery → Active Play → Recap). Missing the critical Warm-Up/Song phase and Brain Break/Cool-Off phase.
+### 1. New Activity Components (10 new files)
+Create in `src/components/lesson-player/activities/`:
+- `PhonicsSlider.tsx`, `PhonemeTap.tsx`, `SoundSort.tsx`, `MouthMirror.tsx`
+- `SoundToLetter.tsx`, `WordBuilder.tsx`, `PictureLabel.tsx`, `OddOneOut.tsx`
+- `GrammarBlocks.tsx`, `ArticlePicker.tsx`, `SentenceTransform.tsx`
 
-**Changes**:
+Each follows the existing pattern: accepts `slide`, `onCorrect`, `onIncorrect` props. Uses Flat 2.0 styling (rounded corners, navy accents, white backgrounds). Includes immediate feedback with animation (green glow / red shake) and XP reward trigger.
 
-1. **`src/services/slideSkeletonEngine.ts`** — Expand `SlidePhase` type to `'warmup' | 'prime' | 'mimic' | 'produce' | 'cooloff'` and rebuild the 12-slide sequences:
+### 2. Update `DynamicSlideRenderer.tsx`
+Import all 11 new components. Add activity type mappings in the `renderActivity()` switch for each hub:
+- Playground: all phonics + vocabulary activities
+- Academy: all vocabulary + grammar activities + phonics
+- Professional: grammar activities + vocabulary expansion
 
-```text
-Playground (12 slides, 30 min):
-1. Warm-Up: AI Song / Tap the Beat         (60s)
-2. Warm-Up: Hello Chant animation           (60s)
-3. Prime: Word #1 — Visual only, no text    (120s)
-4. Prime: Word #2 — Visual only, no text    (120s)
-5. Mimic: Voice record word #1              (150s)
-6. Mimic: Voice record word #2              (150s)
-7. Produce: Mystery silhouette #1           (150s)
-8. Produce: Drag & Drop activity            (180s)
-9. Produce: Pop the Word Bubble             (150s)
-10. Cool-Off: Breathing Balloon / mini-game (60s)
-11. Recap: Accessory celebration            (90s)
-12. Recap: Goodbye wave                     (60s)
+### 3. Update `slideSkeletonEngine.ts`
+Expand each hub's sequence to include the three practice layers with varied activities. The 12-slide structure adjusts to use practice sub-layers:
+
+**Playground (12 slides):**
+```
+1.  warmup  — tap_the_beat
+2.  warmup  — hello chant
+3.  prime   — visual priming word #1
+4.  prime   — visual priming word #2
+5.  mimic   — phonics_slider (Phonics Layer)
+6.  mimic   — phoneme_tap (Phonics Layer)
+7.  produce — sound_to_letter (Vocab Layer)
+8.  produce — word_builder (Vocab Layer)
+9.  produce — grammar_blocks (Grammar Layer)
+10. produce — article_picker (Grammar Layer)
+11. cooloff — celebration
+12. cooloff — goodbye
 ```
 
-   Academy and Professional get equivalent restructuring with age-appropriate activities.
+Each sequence rotates through the 4 activities per layer across lessons (using a `practiceVariant` index) so students experience all 4+ activities across consecutive sessions — no two lessons feel the same.
 
-2. **`src/services/slidePromptTemplates.ts`** — Update `MASTER_SLIDE_PROMPT_TEMPLATE` to reflect the 5-phase structure and enforce: "Every unit must include a Prime slide (recognition) and a Mimic slide (phonetic accuracy) before any Production or Quiz slide."
+**Academy (12 slides):**
+```
+1.  warmup  — challenge intro
+2.  warmup  — speed_quiz
+3.  prime   — vocabulary deep-dive #1
+4.  prime   — vocabulary deep-dive #2
+5.  mimic   — sound_sort (Phonics)
+6.  mimic   — mouth_mirror (Phonics)
+7.  produce — picture_label (Vocab)
+8.  produce — odd_one_out (Vocab)
+9.  produce — sentence_scramble (Grammar)
+10. produce — sentence_transform (Grammar)
+11. cooloff — achievement unlock
+12. cooloff — next mission teaser
+```
 
-3. **Slide Builder UI** — Add a **"Phase"** badge on each slide thumbnail in the filmstrip showing which mastery phase it belongs to (color-coded: Warm-Up=amber, Prime=blue, Mimic=green, Produce=purple, Cool-Off=teal).
+**Professional (12 slides):** similar pattern with age-appropriate grammar activities.
 
-4. **Science Check sidebar** — Add a `LessonStructureValidator` component that checks the slide sequence. If a Mimic slide is missing before a Produce slide, show a warning: *"Warning: Students may struggle without a Mimic phase before Production."*
+### 4. Add `practiceLayer` field to `SlideSkeleton`
+Add `practiceLayer?: 'phonics' | 'vocabulary' | 'grammar'` to the `SlideSkeleton` interface. This feeds the Success Hub's layer-level tracking.
 
----
-
-## Part 3: Phonetic Mimic Engine
-
-**Problem**: Voice recording exists (`useSpeechRecognition`, `speech-to-text` edge function) but only does word recognition — no phoneme-level accuracy scoring.
-
-**Changes**:
-
-1. **New Edge Function: `supabase/functions/phonetic-analysis/index.ts`**
-   - Accepts: `{ studentAudio: base64, targetWord: string, targetPhonemes: string[] }`
-   - Uses Lovable AI (Gemini) to analyze the transcription against the target phonemes
-   - Returns: `{ masteryScore: number, phonemeBreakdown: [{phoneme, accuracy, feedback}], overallFeedback: string }`
-   - Scoring: 85%+ = Gold Star, 50-84% = Soft Correction, <50% = Replay Prime
-
-2. **New component: `src/components/lesson/MimicPhaseSlide.tsx`**
-   - Shows the Flat 2.0 vector image + phoneme target
-   - Record button using existing Web Audio / `useAudioProcessing`
-   - After recording, calls `phonetic-analysis` function
-   - Displays a clean waveform visualization (green glow when matching)
-   - Wizard feedback: substitution → mouth cross-section tip, omission → pulsing letter, distortion → "try again" prompt
-
-3. **New component: `src/components/lesson/PrimePhaseSlide.tsx`**
-   - Image-only view (no text labels)
-   - Auto-plays TTS pronunciation via existing `ttsService`
-   - Color-coded glow: nouns = blue border, verbs = green border
-
-4. **New component: `src/components/lesson/ProducePhaseSlide.tsx`**
-   - Shows silhouette/blurred version of the image
-   - Student types or selects the correct word
-   - Progressive reveal on correct answer
-
-5. **New component: `src/components/lesson/WarmUpSlide.tsx`**
-   - Integrates with existing ElevenLabs music service for the intro song
-   - "Tap the Beat" simple rhythm mini-game
-
-6. **New component: `src/components/lesson/CoolOffSlide.tsx`**
-   - Breathing balloon animation or bubble-pop mini-game
-   - No language pressure, purely motor/relaxation
-
-7. **Update `LessonRenderer`** — Map the new phase types to these new slide components.
-
----
-
-## Part 4: Phoneme Target Field
-
-Add a **"Phoneme Target"** input field to the slide editor properties panel in the Content Creator. This field maps to existing `phoneme_tag` data and ensures every slide has an explicit phonetic focus (e.g., `/l/`, `/æ/`). Pre-populate from the `PHONEME_MAP` data.
+### 5. Update `getSafeZone()` function
+Add safe zone rules for the new activity types (e.g., `sound_sort` needs bottom space for buckets, `grammar_blocks` needs bottom space for the formula bar).
 
 ---
 
@@ -113,10 +102,9 @@ Add a **"Phoneme Target"** input field to the slide editor properties panel in t
 
 | Area | Files Modified | Files Created |
 |------|---------------|---------------|
-| Anti-3D Images | `ai-image-generation/index.ts`, `slideSkeletonEngine.ts`, `imageGeneration.ts`, `massImageGenerationService.ts`, `AILessonWizard.tsx` | — |
-| 5-Phase Structure | `slideSkeletonEngine.ts`, `slidePromptTemplates.ts` | `LessonStructureValidator.tsx` |
-| Mimic Engine | — | `phonetic-analysis/index.ts`, `MimicPhaseSlide.tsx`, `PrimePhaseSlide.tsx`, `ProducePhaseSlide.tsx`, `WarmUpSlide.tsx`, `CoolOffSlide.tsx` |
-| Phoneme Field | Slide editor properties panel | — |
+| Activities | — | 11 new components in `activities/` |
+| Renderer | `DynamicSlideRenderer.tsx` | — |
+| Skeleton Engine | `slideSkeletonEngine.ts` | — |
 
-No database migrations required — leverages existing `student_phonics_progress` and `phoneme_tag` columns.
+No database changes required.
 
