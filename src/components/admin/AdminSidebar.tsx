@@ -15,7 +15,8 @@ import {
   GraduationCap,
   Radio,
   Video,
-  Mail
+  Mail,
+  Briefcase
 } from "lucide-react";
 
 interface AdminSidebarProps {
@@ -26,9 +27,13 @@ interface AdminSidebarProps {
 export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
   const { signOut } = useAuth();
   
-  const menuItems = [
+  const mainItems = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
     { id: "super-control", label: "Super Control Center", icon: Activity },
+    { id: "professional-hub", label: "Professional Hub", icon: Briefcase },
+  ];
+
+  const managementItems = [
     { id: "users", label: "User Manager", icon: Users },
     { id: "schedule", label: "Schedule", icon: Calendar },
     { id: "teachers", label: "Teachers", icon: GraduationCap },
