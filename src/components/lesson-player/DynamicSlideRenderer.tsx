@@ -165,6 +165,11 @@ export default function DynamicSlideRenderer({
     if (actType === 'grammar_blocks') return <GrammarBlocks slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
     if (actType === 'article_picker') return <ArticlePicker slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
     if (actType === 'sentence_transform') return <SentenceTransform slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    // Four-Skill Activities
+    if (actType === 'sound_spotting') return <SoundSpotting slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    if (actType === 'tactile_tracing') return <TactileTracing slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    if (actType === 'letter_hunt') return <LetterHunt slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    if (actType === 'sound_trigger') return <SoundTrigger slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
 
     // ── Cross-hub generic activities ─────────────────────────────
     if (actType === 'word_bank') return <WordBank slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
