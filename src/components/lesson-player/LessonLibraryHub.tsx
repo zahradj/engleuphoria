@@ -146,14 +146,41 @@ export default function LessonLibraryHub() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
-          <BookOpen className="h-6 w-6" />
-          Lesson Library
-        </h2>
-        <p className="text-muted-foreground text-sm mt-1">
-          Browse and play AI-generated lessons. Click any card to start.
-        </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <BookOpen className="h-6 w-6" />
+            Lesson Library
+          </h2>
+          <p className="text-muted-foreground text-sm mt-1">
+            Browse and play AI-generated lessons. Click any card to start.
+          </p>
+        </div>
+        {lessons.length > 0 && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm" className="gap-2 shrink-0" disabled={isClearing}>
+                {isClearing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                Clear Library
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Clear Lesson Library?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will permanently delete <strong>all published lessons</strong> from the library.
+                  This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleClearLibrary} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Yes, Clear All
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </div>
 
       {/* Hub filter tabs */}
