@@ -10,6 +10,7 @@ import { FivePhaseProgressTracker, PhaseProgress } from './diagnostics/FivePhase
 import { WizardDiagnosticCard } from './diagnostics/WizardDiagnosticCard';
 import { MemoryHeatmap } from './diagnostics/MemoryHeatmap';
 import { RecoveryPlanCard } from './diagnostics/RecoveryPlanCard';
+import { DiagnosticReportGenerator } from './diagnostics/DiagnosticReportGenerator';
 import { SkillHexagon } from './SkillHexagon';
 import { Search, GraduationCap, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -17,6 +18,8 @@ import { toast } from 'sonner';
 interface StudentSuccessHubProps {
   teacherId: string;
 }
+
+// Re-export for ProfessionalHub
 
 export const StudentSuccessHub: React.FC<StudentSuccessHubProps> = ({ teacherId }) => {
   const [selectedStudentId, setSelectedStudentId] = useState('');
@@ -282,6 +285,9 @@ export const StudentSuccessHub: React.FC<StudentSuccessHubProps> = ({ teacherId 
             vocabulary={diagnostics.vocabulary}
             studentName={selectedStudent?.display_name}
           />
+
+          {/* Row 5: Teacher-Parent Bridge Report */}
+          <DiagnosticReportGenerator teacherId={teacherId} />
         </div>
       )}
     </div>
