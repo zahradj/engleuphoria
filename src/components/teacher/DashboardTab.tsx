@@ -49,6 +49,22 @@ export const DashboardTab = ({ teacherName, teacherId }: DashboardTabProps) => {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium">📄 Unit Mastery Reports</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-xs text-muted-foreground">
+            Generate Professional Flat 2.0 diagnostic reports for completed units.
+          </p>
+          <UnitMasteryReportButton
+            studentName="Noah Rodriguez"
+            unitName="Animals — Island 1"
+            score={95}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 };
