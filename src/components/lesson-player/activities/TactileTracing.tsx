@@ -26,7 +26,7 @@ const TactileTracing: React.FC<TactileTracingProps> = ({ slide, onCorrect, onInc
   const [tracedPoints, setTracedPoints] = useState<Point[]>([]);
   const [phase, setPhase] = useState<'tracing' | 'scored'>('tracing');
 
-  const targetLetter = slide.content?.targetWord?.charAt(0)?.toUpperCase() || 'L';
+  const targetLetter = (slide.content?.word || 'L').charAt(0).toUpperCase();
   const imageUrl = slide.content?.imageUrl;
 
   // Draw the dotted guide letter

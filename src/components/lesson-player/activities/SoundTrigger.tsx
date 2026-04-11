@@ -24,7 +24,7 @@ const SoundTrigger: React.FC<SoundTriggerProps> = ({ slide, onCorrect, onIncorre
   const [soundPlayed, setSoundPlayed] = useState(false);
 
   const phonemeTarget = slide.content?.phonemeTarget || '/l/';
-  const options = slide.content?.vocabularyWords || ['Lion', 'Apple', 'Cat', 'Dog'];
+  const options = slide.content?.options || ['Lion', 'Apple', 'Cat', 'Dog'];
   const correctIndex = 0; // First option is correct by convention
 
   // Listen for teacher's sound trigger via Realtime

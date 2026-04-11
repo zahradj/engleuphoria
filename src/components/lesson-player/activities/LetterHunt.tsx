@@ -19,10 +19,10 @@ const LetterHunt: React.FC<LetterHuntProps> = ({ slide, onCorrect, onIncorrect }
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [attempts, setAttempts] = useState(0);
 
-  const targetWord = slide.content?.targetWord || 'Lion';
+  const targetWord = slide.content?.word || 'Lion';
   const missingIndex = slide.content?.targetLetterIndex ?? 0;
   const correctLetter = targetWord[missingIndex]?.toLowerCase() || 'l';
-  const imageUrl = slide.content?.imageUrl || slide.content?.backgroundUrl;
+  const imageUrl = slide.content?.imageUrl || slide.imageUrl;
 
   const displayWord = targetWord.split('').map((char, i) => ({
     char,

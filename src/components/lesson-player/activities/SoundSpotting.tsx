@@ -24,8 +24,8 @@ const SoundSpotting: React.FC<SoundSpottingProps> = ({ slide, onCorrect, onIncor
   const timerRef = useRef<NodeJS.Timeout>();
 
   const phonemeTarget = slide.content?.phonemeTarget || '/a/';
-  const targetWord = slide.content?.targetWord || 'Apple';
-  const imageUrl = slide.content?.imageUrl || slide.content?.backgroundUrl;
+  const targetWord = slide.content?.word || 'Apple';
+  const imageUrl = slide.content?.imageUrl || slide.imageUrl;
 
   // Simulate phoneme windows (in a real implementation, these would come from audio analysis)
   const phonemeWindows = useRef([2000, 5000, 8000, 11000]); // ms timestamps when phoneme appears
