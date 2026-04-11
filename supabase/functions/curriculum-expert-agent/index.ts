@@ -591,6 +591,7 @@ interface GenerationRequest {
   unitCount?: number;
   lessonsPerUnit?: number;
   level?: string;
+  spiralDependencyContext?: string;
 
   // Mastery milestone params
   unitTitle?: string;
