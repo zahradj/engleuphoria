@@ -86,15 +86,15 @@ export const UnitRoadmap: React.FC = () => {
         }
       }
 
-      let milestoneMap: Record<string, { score: number; passed: boolean; weakest_skill: string | null }> = {};
+      let milestoneMap: Record<string, { id: string; score: number; passed: boolean; weakest_skill: string | null }> = {};
       if (user?.id) {
         const { data: milestones } = await supabase
           .from('mastery_milestone_results')
-          .select('unit_id, score, passed, weakest_skill')
+          .select('id, unit_id, score, passed, weakest_skill')
           .eq('student_id', user.id);
         if (milestones) {
           for (const m of milestones) {
-            milestoneMap[m.unit_id] = { score: Number(m.score), passed: m.passed, weakest_skill: m.weakest_skill };
+            milestoneMap[m.unit_id] = { id: m.id, score: Number(m.score), passed: m.passed, weakest_skill: m.weakest_skill };
           }
         }
       }

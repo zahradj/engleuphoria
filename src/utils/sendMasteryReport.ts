@@ -6,6 +6,24 @@ interface MasteryReportParams {
   milestoneResultId: string;
 }
 
+async function logNotification(params: {
+  studentId: string;
+  unitId: string;
+  recipientEmail: string;
+  templateName: string;
+  status: 'sent' | 'failed' | 'pending';
+  errorMessage?: string;
+}) {
+  await supabase.from('notification_logs').insert({
+    student_id: params.studentId,
+    unit_id: params.unitId,
+    recipient_email: params.recipientEmail,
+    template_name: params.templateName,
+    status: params.status,
+    error_message: params.errorMessage || null,
+  });
+}
+
 export async function sendMasteryReport({ studentId, unitId, milestoneResultId }: MasteryReportParams) {
   // 1. Fetch student profile for parent email and name
   const { data: profile } = await supabase
@@ -19,23 +37,23 @@ export async function sendMasteryReport({ studentId, unitId, milestoneResultId }
     return { sent: false, reason: 'no_parent_email' };
   }
 
-  // 2. Fetch unit info
-  const { data: unit } = await supabase
-    .from('curriculum_units')
-    .select('title, cefr_level')
-    .eq('id', unitId)
-    .single();
-
-  // 3. Fetch milestone result
+  // 2. Fetch milestone result and gate on score >= 80
   const { data: milestone } = await supabase
     .from('mastery_milestone_results')
     .select('score, passed, skill_scores, weakest_skill')
     .eq('id', milestoneResultId)
     .single();
 
-  if (!milestone?.passed) {
-    return { sent: false, reason: 'not_passed' };
+  if (!milestone || Number(milestone.score) < 80) {
+    return { sent: false, reason: 'score_below_threshold' };
   }
+
+  // 3. Fetch unit info
+  const { data: unit } = await supabase
+    .from('curriculum_units')
+    .select('title, cefr_level')
+    .eq('id', unitId)
+    .single();
 
   // 4. Fetch vocabulary for this unit
   const { data: vocabData } = await supabase
@@ -60,7 +78,7 @@ export async function sendMasteryReport({ studentId, unitId, milestoneResultId }
     ? `Your child mastered the ${masteredPhonemes.join(', ')} sound${masteredPhonemes.length > 1 ? 's' : ''} in this unit!`
     : 'Your child is developing their phonics skills.';
 
-  // 6. Build skill scores from milestone data
+  // 6. Build skill scores
   const rawSkillScores = milestone.skill_scores as Record<string, number> | null;
   const skillScores = rawSkillScores
     ? Object.entries(rawSkillScores).map(([name, score]) => ({
@@ -71,31 +89,63 @@ export async function sendMasteryReport({ studentId, unitId, milestoneResultId }
       }))
     : [];
 
-  // 7. Send the email
-  const { error } = await supabase.functions.invoke('send-transactional-email', {
-    body: {
-      templateName: 'unit-mastery-report',
-      recipientEmail: profile.parent_email,
-      idempotencyKey: `mastery-report-${milestoneResultId}`,
-      templateData: {
-        studentName: profile.display_name || 'Your child',
-        unitName: unit?.title || 'Unit',
-        overallScore: Math.round(Number(milestone.score)),
-        phonicsSummary,
-        vocabularyCount: vocabularyWords.length,
-        vocabularyWords,
-        grammarPattern: '',
-        realWorldWin: '',
-        homeActivity: '',
-        skillScores,
-      },
-    },
-  });
+  // 7. Attempt to send (with one retry on failure)
+  const templateName = 'unit-mastery-report';
+  const idempotencyKey = `mastery-report-${milestoneResultId}`;
 
-  if (error) {
-    console.error('Failed to send mastery report email:', error);
-    return { sent: false, reason: 'send_error', error };
+  const attemptSend = async (): Promise<{ success: boolean; error?: any }> => {
+    const { error } = await supabase.functions.invoke('send-transactional-email', {
+      body: {
+        templateName,
+        recipientEmail: profile.parent_email,
+        idempotencyKey,
+        templateData: {
+          studentName: profile.display_name || 'Your child',
+          unitName: unit?.title || 'Unit',
+          overallScore: Math.round(Number(milestone.score)),
+          phonicsSummary,
+          vocabularyCount: vocabularyWords.length,
+          vocabularyWords,
+          grammarPattern: '',
+          realWorldWin: '',
+          homeActivity: '',
+          skillScores,
+        },
+      },
+    });
+    return error ? { success: false, error } : { success: true };
+  };
+
+  // First attempt
+  let result = await attemptSend();
+
+  // Retry once on failure
+  if (!result.success) {
+    console.warn('First email attempt failed, retrying once...', result.error);
+    result = await attemptSend();
   }
 
-  return { sent: true };
+  // Log to notification_logs
+  if (result.success) {
+    await logNotification({
+      studentId,
+      unitId,
+      recipientEmail: profile.parent_email,
+      templateName,
+      status: 'sent',
+    });
+    return { sent: true };
+  } else {
+    const errorMsg = result.error?.message || JSON.stringify(result.error) || 'Unknown error';
+    console.error('Failed to send mastery report email after retry:', errorMsg);
+    await logNotification({
+      studentId,
+      unitId,
+      recipientEmail: profile.parent_email,
+      templateName,
+      status: 'failed',
+      errorMessage: errorMsg,
+    });
+    return { sent: false, reason: 'send_error', error: result.error };
+  }
 }
