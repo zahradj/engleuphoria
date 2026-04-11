@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Calendar, DollarSign } from "lucide-react";
+import { UnitMasteryReportButton } from "@/components/teacher/reports/UnitMasteryReportButton";
 
 interface DashboardTabProps {
   teacherName: string;
