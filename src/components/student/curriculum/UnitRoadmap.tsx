@@ -286,6 +286,60 @@ export const UnitRoadmap: React.FC = () => {
                       {isDaytime && unitGold && <span className="text-sm animate-sway">🐦</span>}
                     </div>
 
+                    {/* Vocabulary Hero + Phonics Video for Animals unit */}
+                    {unit.title?.toLowerCase().includes('animal') && unlocked && (
+                      <div className={cn(
+                        'flex items-center gap-3 mb-3 p-3 rounded-lg border',
+                        isDaytime
+                          ? 'bg-emerald-50/60 border-emerald-200/50'
+                          : 'bg-emerald-950/20 border-emerald-700/30'
+                      )}>
+                        <img
+                          src={lionHero}
+                          alt="Lion - vocabulary hero"
+                          className="w-16 h-16 object-contain drop-shadow-sm"
+                          loading="lazy"
+                          width={64}
+                          height={64}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className={cn(
+                            'text-xs font-semibold',
+                            isDaytime ? 'text-emerald-700' : 'text-emerald-300'
+                          )}>🦁 Vocabulary Hero: Lion</p>
+                          <p className={cn(
+                            'text-[10px] mt-0.5',
+                            isDaytime ? 'text-emerald-600/80' : 'text-emerald-400/70'
+                          )}>Phonics Focus: /l/ sound</p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            const videoEl = document.getElementById('phonics-l-video') as HTMLVideoElement;
+                            if (videoEl) {
+                              videoEl.paused ? videoEl.play() : videoEl.pause();
+                            }
+                          }}
+                          className={cn(
+                            'flex items-center justify-center w-9 h-9 rounded-full transition-colors',
+                            isDaytime
+                              ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700'
+                              : 'bg-emerald-800/40 hover:bg-emerald-700/50 text-emerald-300'
+                          )}
+                          title="Play /l/ sound"
+                        >
+                          <Volume2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    )}
+                    {unit.title?.toLowerCase().includes('animal') && unlocked && (
+                      <video
+                        id="phonics-l-video"
+                        src={lSoundVideo.url}
+                        className="hidden"
+                        preload="none"
+                      />
+                    )}
+
                     {/* 3-Star lesson progress */}
                     <div className="flex items-center gap-3 ml-2">
                       {unit.lessons.map((lesson: any, li: number) => {
