@@ -91,6 +91,8 @@ export default function LessonLibraryHub() {
     loadCompletedLessons();
   }, [user]);
 
+  const [isClearing, setIsClearing] = useState(false);
+
   const loadLessons = async () => {
     setLoading(true);
     try {
@@ -100,6 +102,24 @@ export default function LessonLibraryHub() {
       console.error('Failed to load lessons:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleClearLibrary = async () => {
+    setIsClearing(true);
+    try {
+      const { error } = await supabase
+        .from('curriculum_lessons')
+        .delete()
+        .eq('is_published', true);
+      if (error) throw error;
+      setLessons([]);
+      toast.success('All published lessons cleared from the library.');
+    } catch (err: any) {
+      console.error('Clear library error:', err);
+      toast.error('Failed to clear library: ' + err.message);
+    } finally {
+      setIsClearing(false);
     }
   };
 
