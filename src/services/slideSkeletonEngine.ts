@@ -216,7 +216,7 @@ function getSafeZone(activityType: string | null, mascotPosition: MascotPosition
   if (activityType === 'multiple_choice' || activityType === 'speed_quiz') {
     return 'Subject framed in the upper-third, clean background, 50% empty space at the bottom for answer options';
   }
-  if (activityType === 'voice_record') {
+  if (activityType === 'voice_record' || activityType === 'phonics_slider' || activityType === 'mouth_mirror') {
     return 'Subject centered, clean white background, 30% empty space at the bottom for recording UI';
   }
   if (activityType === 'mystery_silhouette') {
@@ -224,6 +224,18 @@ function getSafeZone(activityType: string | null, mascotPosition: MascotPosition
   }
   if (activityType === 'breathing_balloon') {
     return 'Centered calming scene, soft colors, lots of white space, no complex elements';
+  }
+  if (activityType === 'sound_sort' || activityType === 'grammar_blocks' || activityType === 'sentence_transform') {
+    return 'Subject framed in the top-center, minimalist background, 50% empty space at the bottom for sorting buckets / block UI';
+  }
+  if (activityType === 'phoneme_tap' || activityType === 'odd_one_out' || activityType === 'picture_label') {
+    return 'Subject framed in the upper-third, clean background, 50% empty space at the bottom for grid options';
+  }
+  if (activityType === 'sound_to_letter' || activityType === 'word_builder' || activityType === 'article_picker') {
+    return 'Subject centered, clean background, 40% empty space at the bottom for letter / word UI';
+  }
+  if (activityType === 'sentence_unscramble') {
+    return 'Subject framed in the top-center, minimalist background, 50% empty space at the bottom for word tiles';
   }
   if (mascotPosition === 'left') {
     return 'Main subject positioned on the RIGHT side, 40% empty space on the LEFT for mascot overlay';
@@ -283,6 +295,7 @@ export function generateSlideSkeletons(params: {
       activityType: step.activityType,
       durationSeconds: step.durationSeconds,
       accessoryReveal: slideNumber === 11 && !!accessoryName,
+      practiceLayer: step.practiceLayer,
     };
   });
 
