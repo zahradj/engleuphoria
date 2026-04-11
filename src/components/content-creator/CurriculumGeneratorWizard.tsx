@@ -144,6 +144,10 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
       parsed = parsed.map((unit: any, i: number) => ({
         unitNumber: unit.unitNumber ?? unit.unit_number ?? i + 1,
         title: unit.title ?? `Unit ${i + 1}`,
+        anchorPhoneme: unit.anchorPhoneme ?? unit.anchor_phoneme ?? null,
+        grammarGoal: unit.grammarGoal ?? unit.grammar_goal ?? null,
+        prerequisiteUnit: unit.prerequisiteUnit ?? unit.prerequisite_unit ?? (i > 0 ? i : null),
+        skillsMix: unit.skillsMix ?? unit.skills_mix ?? null,
         lessons: (unit.lessons ?? []).map((lesson: any, li: number) => ({
           lessonNumber: lesson.lessonNumber ?? lesson.lesson_number ?? li + 1,
           title: lesson.title ?? `Lesson ${li + 1}`,
@@ -155,6 +159,14 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
           vocabularyList: Array.isArray(lesson.vocabularyList ?? lesson.vocabulary_list) ? (lesson.vocabularyList ?? lesson.vocabulary_list) : [],
           grammarPattern: lesson.grammarPattern ?? lesson.grammar_pattern ?? null,
           skillsFocus: Array.isArray(lesson.skillsFocus ?? lesson.skills_focus) ? (lesson.skillsFocus ?? lesson.skills_focus) : [],
+          skillTags: Array.isArray(lesson.skillTags ?? lesson.skill_tags) ? (lesson.skillTags ?? lesson.skill_tags) : [],
+          listeningTask: lesson.listeningTask ?? lesson.listening_task ?? null,
+          speakingTask: lesson.speakingTask ?? lesson.speaking_task ?? null,
+          readingTask: lesson.readingTask ?? lesson.reading_task ?? null,
+          writingTask: lesson.writingTask ?? lesson.writing_task ?? null,
+          reviewWords: Array.isArray(lesson.reviewWords) ? lesson.reviewWords : [],
+          bridgeRetrieval: Array.isArray(lesson.bridgeRetrieval) ? lesson.bridgeRetrieval : [],
+          masteryCheck: lesson.masteryCheck ?? null,
         })),
       }));
 
