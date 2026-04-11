@@ -7701,6 +7701,57 @@ export type Database = {
         }
         Relationships: []
       }
+      system_emails: {
+        Row: {
+          created_at: string
+          delivery_status: string
+          email_type: string
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          recipient_email: string
+          recipient_name: string | null
+          related_entity_id: string | null
+          related_entity_type: string | null
+          resend_count: number
+          sent_at: string | null
+          subject: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_status?: string
+          email_type: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          recipient_email: string
+          recipient_name?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          resend_count?: number
+          sent_at?: string | null
+          subject?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          delivery_status?: string
+          email_type?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          recipient_email?: string
+          recipient_name?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          resend_count?: number
+          sent_at?: string | null
+          subject?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       system_transitions: {
         Row: {
           from_system: string | null

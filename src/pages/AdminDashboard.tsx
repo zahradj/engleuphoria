@@ -14,6 +14,7 @@ import { PaymentsPanel } from '@/components/admin/PaymentsPanel';
 import { SettingsPanel } from '@/components/admin/SettingsPanel';
 import { SuperAdminControlCenter } from '@/components/admin/SuperAdminControlCenter';
 import { AdminBroadcastCenter } from '@/components/admin/AdminBroadcastCenter';
+import { SystemEmailLog } from '@/components/admin/SystemEmailLog';
 import { ScrollHeader } from '@/components/navigation/ScrollHeader';
 import { Loader2, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -76,6 +77,8 @@ const AdminDashboard = () => {
         return <SuperAdminControlCenter />;
       case 'communications':
         return <AdminBroadcastCenter />;
+      case 'email-log':
+        return <SystemEmailLog />;
       default:
         return <AdminOverview />;
     }
