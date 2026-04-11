@@ -29,6 +29,7 @@ export interface SlideSkeleton {
   durationSeconds: number;
   accessoryReveal: boolean;
   phonemeTarget?: string;
+  practiceLayer?: 'phonics' | 'vocabulary' | 'grammar';
 }
 
 export interface LessonSkeletonPlan {
@@ -59,17 +60,18 @@ const PLAYGROUND_SEQUENCE: Array<{
   objective: string;
   activityType: string | null;
   durationSeconds: number;
+  practiceLayer?: 'phonics' | 'vocabulary' | 'grammar';
 }> = [
   { phase: 'warmup', phaseLabel: 'Warm-Up', objective: 'AI Song / Tap the Beat', activityType: 'tap_the_beat', durationSeconds: 60 },
   { phase: 'warmup', phaseLabel: 'Warm-Up', objective: 'Hello Chant animation', activityType: null, durationSeconds: 60 },
   { phase: 'prime', phaseLabel: 'Prime', objective: 'Word #1 — Visual only, no text', activityType: null, durationSeconds: 120 },
   { phase: 'prime', phaseLabel: 'Prime', objective: 'Word #2 — Visual only, no text', activityType: null, durationSeconds: 120 },
-  { phase: 'mimic', phaseLabel: 'Mimic', objective: 'Voice record word #1', activityType: 'voice_record', durationSeconds: 150 },
-  { phase: 'mimic', phaseLabel: 'Mimic', objective: 'Voice record word #2', activityType: 'voice_record', durationSeconds: 150 },
-  { phase: 'produce', phaseLabel: 'Produce', objective: 'Mystery silhouette — identify word', activityType: 'mystery_silhouette', durationSeconds: 150 },
-  { phase: 'produce', phaseLabel: 'Produce', objective: 'Drag & Drop activity', activityType: 'drag_and_drop', durationSeconds: 180 },
-  { phase: 'produce', phaseLabel: 'Produce', objective: 'Pop the Word Bubble', activityType: 'pop_the_word_bubble', durationSeconds: 150 },
-  { phase: 'cooloff', phaseLabel: 'Cool-Off', objective: 'Breathing Balloon / Brain Break', activityType: 'breathing_balloon', durationSeconds: 60 },
+  { phase: 'mimic', phaseLabel: 'Mimic', objective: 'Phonics Slider — record & compare sound', activityType: 'phonics_slider', durationSeconds: 150, practiceLayer: 'phonics' },
+  { phase: 'mimic', phaseLabel: 'Mimic', objective: 'Phoneme Tap — identify the sound', activityType: 'phoneme_tap', durationSeconds: 150, practiceLayer: 'phonics' },
+  { phase: 'produce', phaseLabel: 'Produce', objective: 'Sound to Letter — tap target letter', activityType: 'sound_to_letter', durationSeconds: 150, practiceLayer: 'vocabulary' },
+  { phase: 'produce', phaseLabel: 'Produce', objective: 'Word Builder — spell the word', activityType: 'word_builder', durationSeconds: 180, practiceLayer: 'vocabulary' },
+  { phase: 'produce', phaseLabel: 'Produce', objective: 'Grammar Blocks — build a sentence', activityType: 'grammar_blocks', durationSeconds: 150, practiceLayer: 'grammar' },
+  { phase: 'produce', phaseLabel: 'Produce', objective: 'Article Picker — a vs an', activityType: 'article_picker', durationSeconds: 120, practiceLayer: 'grammar' },
   { phase: 'cooloff', phaseLabel: 'Cool-Off', objective: 'Celebration — Accessory reveal', activityType: null, durationSeconds: 90 },
   { phase: 'cooloff', phaseLabel: 'Cool-Off', objective: 'Goodbye wave', activityType: null, durationSeconds: 60 },
 ];
@@ -80,17 +82,18 @@ const ACADEMY_SEQUENCE: Array<{
   objective: string;
   activityType: string | null;
   durationSeconds: number;
+  practiceLayer?: 'phonics' | 'vocabulary' | 'grammar';
 }> = [
   { phase: 'warmup', phaseLabel: 'Warm-Up', objective: 'Challenge intro music + mission brief', activityType: null, durationSeconds: 120 },
   { phase: 'warmup', phaseLabel: 'Warm-Up', objective: 'Quick fire warm-up quiz', activityType: 'speed_quiz', durationSeconds: 120 },
   { phase: 'prime', phaseLabel: 'Prime', objective: 'Vocabulary deep-dive #1 — Visual priming', activityType: null, durationSeconds: 150 },
   { phase: 'prime', phaseLabel: 'Prime', objective: 'Vocabulary deep-dive #2 — Visual priming', activityType: null, durationSeconds: 150 },
-  { phase: 'mimic', phaseLabel: 'Mimic', objective: 'Pronunciation drill — record & compare', activityType: 'voice_record', durationSeconds: 150 },
-  { phase: 'mimic', phaseLabel: 'Mimic', objective: 'Grammar pattern spotlight + repeat', activityType: 'voice_record', durationSeconds: 180 },
-  { phase: 'produce', phaseLabel: 'Produce', objective: 'Sentence Unscramble', activityType: 'sentence_unscramble', durationSeconds: 180 },
-  { phase: 'produce', phaseLabel: 'Produce', objective: 'Fill-in-the-Blanks challenge', activityType: 'fill_in_blanks', durationSeconds: 150 },
-  { phase: 'produce', phaseLabel: 'Produce', objective: 'Listening comprehension', activityType: null, durationSeconds: 150 },
-  { phase: 'cooloff', phaseLabel: 'Cool-Off', objective: 'Brain break mini-game', activityType: 'breathing_balloon', durationSeconds: 60 },
+  { phase: 'mimic', phaseLabel: 'Mimic', objective: 'Sound Sort — categorize by phoneme', activityType: 'sound_sort', durationSeconds: 150, practiceLayer: 'phonics' },
+  { phase: 'mimic', phaseLabel: 'Mimic', objective: 'Mouth Mirror — articulation drill', activityType: 'mouth_mirror', durationSeconds: 180, practiceLayer: 'phonics' },
+  { phase: 'produce', phaseLabel: 'Produce', objective: 'Picture Label — identify the image', activityType: 'picture_label', durationSeconds: 150, practiceLayer: 'vocabulary' },
+  { phase: 'produce', phaseLabel: 'Produce', objective: 'Odd One Out — sound discrimination', activityType: 'odd_one_out', durationSeconds: 150, practiceLayer: 'vocabulary' },
+  { phase: 'produce', phaseLabel: 'Produce', objective: 'Sentence Unscramble — build sentence', activityType: 'sentence_unscramble', durationSeconds: 180, practiceLayer: 'grammar' },
+  { phase: 'produce', phaseLabel: 'Produce', objective: 'Sentence Transform — statement to question', activityType: 'sentence_transform', durationSeconds: 180, practiceLayer: 'grammar' },
   { phase: 'cooloff', phaseLabel: 'Cool-Off', objective: 'Achievement unlock', activityType: null, durationSeconds: 90 },
   { phase: 'cooloff', phaseLabel: 'Cool-Off', objective: 'Next mission teaser', activityType: null, durationSeconds: 60 },
 ];
@@ -101,18 +104,19 @@ const PROFESSIONAL_SEQUENCE: Array<{
   objective: string;
   activityType: string | null;
   durationSeconds: number;
+  practiceLayer?: 'phonics' | 'vocabulary' | 'grammar';
 }> = [
   { phase: 'warmup', phaseLabel: 'Context', objective: 'Scenario introduction', activityType: null, durationSeconds: 150 },
   { phase: 'warmup', phaseLabel: 'Context', objective: 'Learning objectives', activityType: null, durationSeconds: 120 },
   { phase: 'prime', phaseLabel: 'Input', objective: 'Key terminology #1 — Visual priming', activityType: 'vocabulary_expansion', durationSeconds: 180 },
   { phase: 'prime', phaseLabel: 'Input', objective: 'Key terminology #2 — Visual priming', activityType: 'vocabulary_expansion', durationSeconds: 180 },
-  { phase: 'mimic', phaseLabel: 'Model', objective: 'Pronunciation & intonation drill', activityType: 'voice_record', durationSeconds: 180 },
-  { phase: 'mimic', phaseLabel: 'Model', objective: 'Framework / structure review', activityType: null, durationSeconds: 180 },
-  { phase: 'produce', phaseLabel: 'Application', objective: 'Case study analysis', activityType: 'case_study_analysis', durationSeconds: 240 },
-  { phase: 'produce', phaseLabel: 'Application', objective: 'Business email reply', activityType: 'business_email_reply', durationSeconds: 210 },
-  { phase: 'produce', phaseLabel: 'Application', objective: 'Executive choice scenario', activityType: 'executive_choice', durationSeconds: 180 },
-  { phase: 'cooloff', phaseLabel: 'Summary', objective: 'Key outcomes review', activityType: null, durationSeconds: 120 },
-  { phase: 'cooloff', phaseLabel: 'Summary', objective: 'Action items', activityType: null, durationSeconds: 90 },
+  { phase: 'mimic', phaseLabel: 'Model', objective: 'Phonics Slider — pronunciation accuracy', activityType: 'phonics_slider', durationSeconds: 180, practiceLayer: 'phonics' },
+  { phase: 'mimic', phaseLabel: 'Model', objective: 'Phoneme Tap — sound identification', activityType: 'phoneme_tap', durationSeconds: 150, practiceLayer: 'phonics' },
+  { phase: 'produce', phaseLabel: 'Application', objective: 'Word Builder — spelling drill', activityType: 'word_builder', durationSeconds: 180, practiceLayer: 'vocabulary' },
+  { phase: 'produce', phaseLabel: 'Application', objective: 'Picture Label — vocabulary check', activityType: 'picture_label', durationSeconds: 150, practiceLayer: 'vocabulary' },
+  { phase: 'produce', phaseLabel: 'Application', objective: 'Grammar Blocks — sentence construction', activityType: 'grammar_blocks', durationSeconds: 210, practiceLayer: 'grammar' },
+  { phase: 'produce', phaseLabel: 'Application', objective: 'Sentence Transform — form manipulation', activityType: 'sentence_transform', durationSeconds: 180, practiceLayer: 'grammar' },
+  { phase: 'cooloff', phaseLabel: 'Summary', objective: 'Key outcomes review', activityType: null, durationSeconds: 90 },
   { phase: 'cooloff', phaseLabel: 'Summary', objective: 'Professional badge reveal', activityType: null, durationSeconds: 60 },
 ];
 
@@ -212,7 +216,7 @@ function getSafeZone(activityType: string | null, mascotPosition: MascotPosition
   if (activityType === 'multiple_choice' || activityType === 'speed_quiz') {
     return 'Subject framed in the upper-third, clean background, 50% empty space at the bottom for answer options';
   }
-  if (activityType === 'voice_record') {
+  if (activityType === 'voice_record' || activityType === 'phonics_slider' || activityType === 'mouth_mirror') {
     return 'Subject centered, clean white background, 30% empty space at the bottom for recording UI';
   }
   if (activityType === 'mystery_silhouette') {
@@ -220,6 +224,18 @@ function getSafeZone(activityType: string | null, mascotPosition: MascotPosition
   }
   if (activityType === 'breathing_balloon') {
     return 'Centered calming scene, soft colors, lots of white space, no complex elements';
+  }
+  if (activityType === 'sound_sort' || activityType === 'grammar_blocks' || activityType === 'sentence_transform') {
+    return 'Subject framed in the top-center, minimalist background, 50% empty space at the bottom for sorting buckets / block UI';
+  }
+  if (activityType === 'phoneme_tap' || activityType === 'odd_one_out' || activityType === 'picture_label') {
+    return 'Subject framed in the upper-third, clean background, 50% empty space at the bottom for grid options';
+  }
+  if (activityType === 'sound_to_letter' || activityType === 'word_builder' || activityType === 'article_picker') {
+    return 'Subject centered, clean background, 40% empty space at the bottom for letter / word UI';
+  }
+  if (activityType === 'sentence_unscramble') {
+    return 'Subject framed in the top-center, minimalist background, 50% empty space at the bottom for word tiles';
   }
   if (mascotPosition === 'left') {
     return 'Main subject positioned on the RIGHT side, 40% empty space on the LEFT for mascot overlay';
@@ -279,6 +295,7 @@ export function generateSlideSkeletons(params: {
       activityType: step.activityType,
       durationSeconds: step.durationSeconds,
       accessoryReveal: slideNumber === 11 && !!accessoryName,
+      practiceLayer: step.practiceLayer,
     };
   });
 
