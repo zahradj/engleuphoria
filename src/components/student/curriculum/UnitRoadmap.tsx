@@ -127,6 +127,29 @@ export const UnitRoadmap: React.FC = () => {
     staleTime: 3 * 60 * 1000,
   });
 
+  // Trigger mastery report emails for newly passed milestones (score >= 80%)
+  useEffect(() => {
+    if (!user?.id || units.length === 0) return;
+    
+    for (const unit of units) {
+      const milestone = (unit as any).milestoneResult;
+      if (
+        milestone &&
+        milestone.passed &&
+        Number(milestone.score) >= 80 &&
+        milestone.id &&
+        !sentReportsRef.current.has(milestone.id)
+      ) {
+        sentReportsRef.current.add(milestone.id);
+        sendMasteryReport({
+          studentId: user.id,
+          unitId: (unit as any).id,
+          milestoneResultId: milestone.id,
+        }).catch((err) => console.error('Mastery report send error:', err));
+      }
+    }
+  }, [units, user?.id]);
+
   if (isLoading) {
     return (
       <Card>
