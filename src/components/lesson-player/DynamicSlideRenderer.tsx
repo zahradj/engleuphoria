@@ -125,6 +125,28 @@ export default function DynamicSlideRenderer({
   const variants = ANIMATION_VARIANTS[animKey] || ANIMATION_VARIANTS.none;
 
   const renderContent = () => {
+    // ── Skill-flag routing (highest priority) ─────────────────────
+    // If the slide has explicit skill flags, route to the corresponding component
+    if (slide.has_writing && slide.activityType === 'tactile_tracing') {
+      return <TactileTracing slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    }
+    if (slide.has_writing && slide.activityType === 'letter_hunt') {
+      return <LetterHunt slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    }
+    if (slide.has_listening && slide.activityType === 'sound_spotting') {
+      return <SoundSpotting slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    }
+    if (slide.has_listening && slide.activityType === 'sound_trigger') {
+      return <SoundTrigger slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    }
+    if (slide.has_grammar_blocks && slide.activityType === 'grammar_blocks') {
+      return <GrammarBlocks slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    }
+    if (slide.has_phonics && slide.activityType === 'phonics_slider') {
+      return <PhonicsSlider slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    }
+
+    // ── Activity type routing ─────────────────────────────────────
     if (slide.slideType === 'activity' || slide.activityType) {
       return renderActivity();
     }

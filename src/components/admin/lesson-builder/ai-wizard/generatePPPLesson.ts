@@ -51,7 +51,6 @@ export async function generateTopicPackWithAI(
 
   if (error) {
     console.error('AI generation error:', error);
-    // Try to extract the real error message from the response body
     const detailedMsg = data?.error || error.message || 'Failed to generate lesson content';
     throw new Error(detailedMsg);
   }
@@ -99,9 +98,28 @@ function buildInteraction(type: string, question?: string, options?: string[], c
 }
 
 /* ══════════════════════════════════════════════════════
-   MAIN GENERATOR — Hub-Adaptive PPP Lesson
-   Now uses AI-generated TopicPack
+   STRICT 4-SKILL PROGRESSIVE SLIDE GENERATOR
+   
+   Every lesson follows the Scaffolded Mastery Structure:
+   
+   SLIDE 1 (Listening)  → Sound Intro — "Listen and find the sound"
+   SLIDE 2 (Speaking)   → Mimic — Microphone + Phonetic Waveform
+   SLIDE 3 (Reading)    → Word Prime — Flat 2.0 Visual Asset, no distracting bg
+   SLIDE 4 (Grammar)    → Builder — Draggable Grammar Blocks
+   SLIDE 5 (Writing)    → Memory Trace — Ghost Vector + Letter Tracing
+   SLIDE 6 (Cool-Off)   → Brain Break / Celebration
+   
+   STYLE OVERRIDE: Flat 2.0 Vector, white background, no 3D, no shadows.
    ══════════════════════════════════════════════════════ */
+
+const FLAT_NEGATIVE = 'No 3D, no render, no depth, no shadows, no gradients, no photorealism, no Octane Render, no Unreal Engine.';
+
+function flatImagePrompt(subject: string, hub: HubConfig): string {
+  if (hub.hub === 'professional') {
+    return `${subject}, Minimalist editorial photography, luxury corporate aesthetic, natural soft lighting, neutral tones --ar 16:9`;
+  }
+  return `${subject}, Isolated 2D Vector, Flat Illustration, White Background, clean bold outlines, solid pastel colors --ar 16:9. NEGATIVE: ${FLAT_NEGATIVE}`;
+}
 
 export function buildPPPLessonFromPack(formData: WizardFormData, pack: TopicPack): PPPLessonPlan {
   const { topic, level, ageGroup, lessonPrompt } = formData;
@@ -112,9 +130,7 @@ export function buildPPPLessonFromPack(formData: WizardFormData, pack: TopicPack
   const cefrMap: Record<string, string> = { beginner: 'Pre-A1 / A1', intermediate: 'B1', advanced: 'C1' };
   const cefrLevel = cefrMap[level] || 'A1';
 
-  const promptContext = lessonPrompt
-    ? `\n\n📋 Lesson Focus: ${lessonPrompt}`
-    : '';
+  const promptContext = lessonPrompt ? `\n\n📋 Lesson Focus: ${lessonPrompt}` : '';
 
   const sanitizeTone = (text: string): string => {
     if (hub.hub !== 'professional' || !hub.forbiddenWords) return text;
@@ -138,6 +154,7 @@ export function buildPPPLessonFromPack(formData: WizardFormData, pack: TopicPack
     activityType?: GeneratedSlide['activityType'],
     layout: 'split' | 'centered' | 'bento' = 'split',
     interaction?: SlideInteraction,
+    skillOverrides?: Partial<GeneratedSlide>,
   ): GeneratedSlide => {
     const idx = order;
     return {
@@ -150,7 +167,7 @@ export function buildPPPLessonFromPack(formData: WizardFormData, pack: TopicPack
       title: sanitizeTone(title),
       imageUrl: buildImageUrl(imgKeywords),
       imageKeywords: imgKeywords,
-      mediaPrompt: buildMediaPrompt(imgKeywords, hub),
+      mediaPrompt: flatImagePrompt(imgKeywords, hub),
       mediaType: hub.mediaType,
       animation: pickAnimation(hub, idx),
       activityType,
@@ -162,160 +179,310 @@ export function buildPPPLessonFromPack(formData: WizardFormData, pack: TopicPack
       } : undefined,
       teacherNotes: sanitizeTone(teacherNotes),
       keywords,
+      // Skill flags default to false unless overridden
+      has_listening: false,
+      has_speaking: false,
+      has_reading: false,
+      has_writing: false,
+      has_phonics: false,
+      has_audio_match: false,
+      has_grammar_blocks: false,
+      ...skillOverrides,
     };
   };
 
+  // Extract first vocab word and its first letter for tracing
+  const primaryWord = pack.vocabulary[0];
+  const tracingLetter = primaryWord?.word?.charAt(0)?.toUpperCase() || 'A';
+  const phonemeTarget = primaryWord?.word ? `/${primaryWord.word.charAt(0).toLowerCase()}/` : '/a/';
+
   // ═══════════════════════════════════════════════════
-  // SLIDE 1: HOOK
+  // SLIDE 1: WARM-UP — Get Ready + AI Song
   // ═══════════════════════════════════════════════════
-  if (hub.hub === 'playground') {
-    slides.push(mkSlide('presentation', '🎬 Hook', 'hook', 'title',
-      `✨ Let's Learn: ${topic}!`,
-      `${topic} kids colorful claymation adventure`,
-      { prompt: `Welcome, little learners! 🌟\n\nToday Pip has a SUPER adventure for you!\n\n${pack.warmUpQuestion}${promptContext}` },
-      'Welcome students warmly. Play upbeat music. Introduce Pip and the lesson topic with maximum enthusiasm!',
-      [topic, 'hook', 'introduction'],
-      undefined, 'centered',
-    ));
-  } else if (hub.hub === 'academy') {
-    slides.push(mkSlide('presentation', '🎯 Hook', 'hook', 'title',
-      `🔥 ${topic} — Let's Go!`,
-      `${topic} neon holographic 3d render teen`,
-      { prompt: `Hey! 👋 Ready for something interesting?\n\n${pack.warmUpQuestion}\n\nLet's find out together...${promptContext}` },
-      'Start with an engaging hook. Ask students to share first impressions.',
-      [topic, 'hook', 'introduction'],
-      undefined, 'centered',
-    ));
-  } else {
-    slides.push(mkSlide('presentation', '📋 Hook', 'hook', 'title',
-      `${topic} — Professional Context`,
-      `${topic} corporate meeting cinematic professional`,
-      { prompt: `Today's Focus: ${topic}\n\nObjective: ${pack.objectives[0]}\n\n${pack.warmUpQuestion}${promptContext}` },
-      'Begin with a brief industry scenario. Ask participants to share their experience.',
-      [topic, 'hook', 'introduction'],
-      undefined, 'centered',
-    ));
-  }
+  slides.push(mkSlide('presentation', '🎵 Warm-Up', 'warmup', 'title',
+    hub.hub === 'playground' ? `🎵 Let's Learn: ${topic}!` : `🎯 ${topic}`,
+    flatImagePrompt(`${topic} welcome scene, friendly`, hub),
+    {
+      prompt: hub.hub === 'playground'
+        ? `Welcome, little learners! 🌟\n\nToday Pip has a SUPER adventure for you!\n\n${pack.warmUpQuestion}${promptContext}`
+        : `${pack.warmUpQuestion}${promptContext}`,
+    },
+    'Play the AI Song placeholder. Get students ready. Build excitement!',
+    [topic, 'warm-up', 'song'],
+    undefined, 'centered',
+    undefined,
+    { has_listening: true, skillFocus: 'listening' },
+  ));
 
   // OBJECTIVES
   slides.push(mkSlide('presentation', '🎯 Objectives', 'warmup', 'title',
-    hub.hub === 'playground' ? '🎯 Today We Will Learn...' : hub.hub === 'academy' ? '🎯 Learning Goals' : '📋 Session Objectives',
+    hub.hub === 'playground' ? '🎯 Today We Will Learn...' : '📋 Session Objectives',
     'learning objectives checklist',
     { prompt: pack.objectives.map((o, i) => `${i + 1}. ${o}`).join('\n') },
-    `Read each objective aloud. Level: ${cefrLevel}. Duration: 30 minutes. ${hub.tone}`,
+    `Read each objective aloud. Level: ${cefrLevel}. Duration: 30 minutes.`,
     ['objectives', 'goals'],
     undefined, 'centered',
+    undefined,
+    { has_reading: true },
   ));
 
-  // WARM-UP
-  slides.push(mkSlide('presentation', '☀️ Warm-Up', 'warmup', 'roleplay',
-    hub.hub === 'playground' ? '☀️ Warm-Up Time!' : hub.hub === 'academy' ? '💡 Quick Think' : '🔄 Warm-Up Discussion',
-    `${topic} warm up activity`,
-    { prompt: pack.warmUpQuestion },
-    'Get students talking! Accept all answers. Build excitement.',
-    ['warm-up', 'activation'],
-    undefined, 'centered',
-  ));
-
-  // WARM-UP SONG (generated by AI)
+  // WARM-UP SONG (if generated)
   if (pack.warmUpSong && pack.warmUpSong.trim()) {
     slides.push(mkSlide('presentation', '🎵 Warm-Up Song', 'warmup', 'image',
-      hub.hub === 'playground' ? '🎵 Let\'s Sing & Move!' : '🎵 Warm-Up Song',
+      '🎵 Let\'s Sing & Move!',
       'kids singing music classroom cartoon colorful joyful',
       { prompt: pack.warmUpSong },
-      'Sing/chant the warm-up song 2-3 times. Add clapping, stomping, or actions. Make it fun and energetic!',
+      'Sing/chant the warm-up song 2-3 times. Add clapping, stomping, or actions.',
       ['song', 'warm-up', 'music'],
       undefined, 'centered',
-    ));
-  }
-
-  // MASCOT (Playground only)
-  if (hub.mascot) {
-    slides.push(mkSlide('presentation', '📖 Presentation', 'warmup', 'title',
-      '🐣 Meet Pip!',
-      'cute penguin mascot claymation vibrant 3d character',
-      { prompt: 'Say hello to Pip! 🐣✨\nPip will help us learn today!\nWave to Pip and say: "Hello Pip!"' },
-      'Introduce Pip the mascot. Have students wave and greet Pip.',
-      ['pip', 'mascot', 'introduction'],
-      undefined, 'centered',
+      undefined,
+      { has_listening: true, has_speaking: true, skillFocus: 'listening' },
     ));
   }
 
   // ═══════════════════════════════════════════════════
-  // VOCABULARY SLIDES
+  // SLIDE 2: LISTENING FOCUS — "The Sound Intro"
+  // Play the phoneme sound isolated from the word.
+  // ═══════════════════════════════════════════════════
+  slides.push(mkSlide('presentation', '👂 Listening', 'activity', 'image',
+    hub.hub === 'playground' ? `👂 Listen! Can you hear the sound?` : `👂 Sound Focus: ${phonemeTarget}`,
+    flatImagePrompt(`ear listening to sound waves, phonics, ${topic}`, hub),
+    {
+      prompt: `🔊 Listen carefully!\n\nCan you hear the sound ${phonemeTarget} in "${primaryWord?.word}"?\n\nTap the Play button to hear it again!`,
+      phonemeTarget,
+    },
+    `Play the isolated phoneme ${phonemeTarget}. Students listen and identify the sound in the word "${primaryWord?.word}".`,
+    ['listening', 'phonics', 'sound'],
+    'sound_spotting', 'centered',
+    buildInteraction('sound_spotting', `Find the sound ${phonemeTarget}`, [primaryWord?.word || topic], primaryWord?.word),
+    {
+      has_listening: true,
+      has_audio_match: true,
+      has_phonics: true,
+      skillFocus: 'listening',
+      phonemeTarget,
+    },
+  ));
+
+  // ═══════════════════════════════════════════════════
+  // SLIDE 3: SPEAKING FOCUS — "The Mimic"
+  // Microphone + Phonetic Waveform for pronunciation
+  // ═══════════════════════════════════════════════════
+  slides.push(mkSlide('practice', '🎤 Speaking', 'activity', 'roleplay',
+    hub.hub === 'playground' ? `🎤 Say it! "${primaryWord?.word}"` : `🎤 Pronunciation: ${primaryWord?.word}`,
+    flatImagePrompt(`microphone waveform phonetic pronunciation, ${topic}`, hub),
+    {
+      prompt: `🎤 Your Turn!\n\nSay: "${primaryWord?.word}"\n\nListen to the waveform — does your voice match?`,
+      phonemeTarget,
+    },
+    `Students record themselves saying "${primaryWord?.word}". Compare waveform to model. Target: pronunciation accuracy.`,
+    ['speaking', 'pronunciation', 'mimic'],
+    'phonics_slider', 'centered',
+    buildInteraction('phonics_slider', `Say "${primaryWord?.word}" clearly`, [primaryWord?.word || ''], primaryWord?.word),
+    {
+      has_speaking: true,
+      has_phonics: true,
+      skillFocus: 'speaking',
+      phonemeTarget,
+    },
+  ));
+
+  // ═══════════════════════════════════════════════════
+  // SLIDE 4: READING FOCUS — "The Word Prime"
+  // Visual Only — Flat 2.0 Asset, NO distracting backgrounds
   // ═══════════════════════════════════════════════════
   pack.vocabulary.slice(0, hub.vocabularyCount).forEach((vocab, idx) => {
-    slides.push(mkSlide('presentation', '📖 Vocabulary', 'vocabulary', 'vocabulary',
+    slides.push(mkSlide('presentation', '📖 Reading', 'vocabulary', 'vocabulary',
       hub.hub === 'playground'
-        ? `📝 New Word ${idx + 1}: ${vocab.word} ✨`
-        : hub.hub === 'academy'
-        ? `📝 Key Term ${idx + 1}: ${vocab.word}`
-        : `📝 Term ${idx + 1}: ${vocab.word}`,
-      vocab.imageKeywords,
-      { word: vocab.word, definition: vocab.definition, sentence: vocab.exampleSentence },
-      `Teach "${vocab.word}": 1) Show image. 2) Say word 3x (students repeat). 3) Explain: "${vocab.definition}". 4) Practice: "${vocab.exampleSentence}".`,
-      [vocab.word.toLowerCase(), 'vocabulary'],
+        ? `📖 Word ${idx + 1}: ${vocab.word} ✨`
+        : `📖 Term ${idx + 1}: ${vocab.word}`,
+      flatImagePrompt(`${vocab.imageKeywords}, isolated subject, white background`, hub),
+      {
+        word: vocab.word,
+        definition: vocab.definition,
+        sentence: vocab.exampleSentence,
+      },
+      `Show the Flat 2.0 image ONLY first. No text distractions. Then reveal: "${vocab.word}" = "${vocab.definition}". Students repeat 3x.`,
+      [vocab.word.toLowerCase(), 'vocabulary', 'reading'],
       undefined, 'split',
+      undefined,
+      {
+        has_reading: true,
+        skillFocus: 'reading',
+      },
     ));
   });
 
-  // Vocabulary review
-  slides.push(mkSlide('presentation', '📖 Vocabulary', 'vocabulary', 'image',
-    hub.hub === 'playground' ? '⚡ Quick Flash Review!' : hub.hub === 'academy' ? '⚡ Speed Round!' : '📋 Vocabulary Review',
-    'flashcard review game',
-    { prompt: `Review:\n${pack.vocabulary.map(v => `• ${v.word} — ${v.definition}`).join('\n')}` },
-    hub.hub === 'playground' ? 'Flash each word quickly. Students shout the answer!' : 'Quick review of all terms before moving to grammar.',
-    ['review', 'flashcards'],
-    undefined, 'centered',
+  // ═══════════════════════════════════════════════════
+  // SLIDE 5: GRAMMAR/READING — "The Builder"
+  // Grammar Building Blocks — drag words to form sentences
+  // ═══════════════════════════════════════════════════
+  const grammarSentence = pack.grammarExamples[0] || `It is a ${primaryWord?.word?.toLowerCase()}.`;
+  const grammarWords = grammarSentence.replace(/[.!?]/g, '').split(' ');
+  const grammarBlockItems = grammarWords.map(w => w.trim()).filter(Boolean);
+
+  slides.push(mkSlide('practice', '🧱 Grammar', 'activity', 'sorting',
+    hub.hub === 'playground' ? `🧱 Build the Sentence!` : `🧱 Structure: ${pack.grammarTarget}`,
+    flatImagePrompt(`grammar building blocks sentence construction, ${topic}`, hub),
+    {
+      prompt: `🧱 Drag the blocks to build:\n\n"${grammarSentence}"`,
+      grammarPattern: pack.grammarTarget,
+      grammarSlots: grammarBlockItems.map((word, i) => ({
+        label: `Slot ${i + 1}`,
+        correctAnswer: word,
+        filled: null,
+      })),
+      grammarBlocks: [...grammarBlockItems].sort(() => Math.random() - 0.5),
+      options: [...grammarBlockItems].sort(() => Math.random() - 0.5),
+      correctAnswer: grammarSentence,
+    },
+    `Students drag grammar blocks to form: "${grammarSentence}". Target structure: ${pack.grammarTarget}.`,
+    ['grammar', 'building-blocks', 'reading'],
+    'grammar_blocks', 'bento',
+    buildInteraction('grammar_blocks', `Build the sentence: "${grammarSentence}"`,
+      grammarBlockItems, grammarSentence),
+    {
+      has_reading: true,
+      has_grammar_blocks: true,
+      skillFocus: 'reading',
+      grammarSlots: grammarBlockItems.map((word, i) => ({
+        label: `Slot ${i + 1}`,
+        correctAnswer: word,
+        filled: null,
+      })),
+      grammarBlocks: [...grammarBlockItems].sort(() => Math.random() - 0.5),
+    },
   ));
 
-  // ═══════════════════════════════════════════════════
-  // CORE CONCEPT — Grammar
-  // ═══════════════════════════════════════════════════
-  slides.push(mkSlide('presentation', '🎯 Core Concept', 'core_concept', 'title',
-    hub.hub === 'playground'
-      ? `🎯 Grammar: ${pack.grammarTarget}`
-      : hub.hub === 'academy'
-      ? `💡 Language Focus: ${pack.grammarTarget}`
-      : `📐 Structure: ${pack.grammarTarget}`,
-    `grammar rules education ${topic}`,
-    { prompt: pack.grammarExamples.map(ex => `• ${ex}`).join('\n') },
-    `Teach "${pack.grammarTarget}". Use contextual examples.`,
-    ['grammar', pack.grammarTarget.toLowerCase()],
-    undefined, 'centered',
-  ));
-
-  // Song/Chant (Playground only)
-  if (hub.hub === 'playground' && pack.songOrChant) {
-    slides.push(mkSlide('presentation', '🎵 Song', 'core_concept', 'image',
-      '🎵 Let\'s Sing!',
-      'kids singing music classroom cartoon claymation',
-      { prompt: pack.songOrChant },
-      'Sing/chant together 2-3 times. Add clapping or actions.',
-      ['song', 'chant'],
-      undefined, 'centered',
+  // Additional grammar practice: Article Picker (Playground) or Sentence Transform (Academy/Pro)
+  if (hub.hub === 'playground') {
+    slides.push(mkSlide('practice', '🧱 Grammar', 'activity', 'quiz',
+      '🅰️ A or An?',
+      flatImagePrompt(`articles a an grammar kids, ${topic}`, hub),
+      {
+        quizQuestion: `Which one? ___ ${primaryWord?.word?.toLowerCase()}`,
+        quizOptions: [
+          { text: `a ${primaryWord?.word?.toLowerCase()}`, isCorrect: !/^[aeiou]/i.test(primaryWord?.word || '') },
+          { text: `an ${primaryWord?.word?.toLowerCase()}`, isCorrect: /^[aeiou]/i.test(primaryWord?.word || '') },
+        ],
+      },
+      `Article practice: "a" vs "an" with "${primaryWord?.word}".`,
+      ['grammar', 'articles'],
+      'article_picker', 'centered',
+      buildInteraction('article_picker', `Choose the correct article for "${primaryWord?.word}"`,
+        ['a', 'an'], /^[aeiou]/i.test(primaryWord?.word || '') ? 'an' : 'a'),
+      { has_grammar_blocks: true, has_reading: true },
+    ));
+  } else {
+    const transformSentence = pack.grammarExamples[1] || pack.grammarExamples[0] || `They use ${topic} daily.`;
+    slides.push(mkSlide('practice', '🔄 Grammar', 'activity', 'sorting',
+      '🔄 Transform the Sentence',
+      flatImagePrompt(`sentence transformation grammar, ${topic}`, hub),
+      {
+        originalSentence: transformSentence,
+        transformType: 'statement_to_question',
+        prompt: `Transform this statement into a question:\n\n"${transformSentence}"`,
+      },
+      `Students transform: "${transformSentence}" → question form.`,
+      ['grammar', 'transform'],
+      'sentence_transform', 'centered',
+      buildInteraction('sentence_transform', `Transform: "${transformSentence}"`,
+        undefined, undefined),
+      { has_grammar_blocks: true, has_reading: true },
     ));
   }
 
   // ═══════════════════════════════════════════════════
-  // PRACTICE PHASE — Dialogue
+  // SLIDE 6: WRITING FOCUS — "The Memory Trace"
+  // Ghost Vector (Silhouette) + Letter Tracing Canvas
   // ═══════════════════════════════════════════════════
-  slides.push(mkSlide('practice', '💬 Dialogue', 'dialogue', 'roleplay',
-    hub.hub === 'playground' ? '💬 Talk with Pip!' : hub.hub === 'academy' ? '💬 Conversation Practice' : '💬 Professional Dialogue',
-    `${topic} dialogue conversation`,
-    { prompt: pack.dialogueLines.join('\n') },
-    'Model the dialogue. Students practice in pairs. Monitor and provide feedback.',
-    ['dialogue', 'speaking', 'practice'],
-    undefined, 'split',
+  slides.push(mkSlide('production', '✍️ Writing', 'activity', 'image',
+    hub.hub === 'playground'
+      ? `✍️ Trace the Letter: ${tracingLetter}`
+      : `✍️ Write: ${primaryWord?.word}`,
+    flatImagePrompt(`ghost silhouette outline of ${primaryWord?.word}, dotted tracing path for letter ${tracingLetter}, white background`, hub),
+    {
+      prompt: hub.hub === 'playground'
+        ? `✍️ Trace the letter "${tracingLetter}"!\n\nCan you see the shadow of the ${primaryWord?.word}? Trace over the dotted line!`
+        : `✍️ Write your answer:\n\nUse the word "${primaryWord?.word}" in a complete sentence using ${pack.grammarTarget}.`,
+    },
+    `Writing activity: Students trace letter "${tracingLetter}" (Playground) or write sentences (Academy/Pro). Ghost vector silhouette of ${primaryWord?.word} visible.`,
+    ['writing', 'tracing', 'memory'],
+    'tactile_tracing', 'centered',
+    buildInteraction('tactile_tracing', `Trace the letter "${tracingLetter}"`,
+      [tracingLetter], tracingLetter),
+    {
+      has_writing: true,
+      skillFocus: 'writing',
+      tracingLetter,
+      ghostVectorSubject: primaryWord?.word,
+    },
+  ));
+
+  // Letter Hunt — Writing/Recall (find the missing letter)
+  slides.push(mkSlide('production', '🔍 Writing', 'activity', 'quiz',
+    `🔍 Find the Missing Letter!`,
+    flatImagePrompt(`missing letter puzzle, ghost vector silhouette, ${topic}`, hub),
+    {
+      prompt: `Which letter is missing?\n\n${primaryWord?.word?.replace(primaryWord.word[0], '_')}`,
+      phonemeTarget,
+      targetLetterIndex: 0,
+      distractors: ['B', 'D', 'P', 'M'].filter(l => l !== tracingLetter).slice(0, 3),
+    },
+    `Letter Hunt: Students identify the missing letter in "${primaryWord?.word}". Ghost Vector silhouette visible.`,
+    ['writing', 'letter-hunt', 'recall'],
+    'letter_hunt', 'centered',
+    buildInteraction('letter_hunt', `What letter is missing?`,
+      [tracingLetter, 'B', 'D', 'P'].sort(() => Math.random() - 0.5), tracingLetter),
+    {
+      has_writing: true,
+      skillFocus: 'writing',
+      tracingLetter,
+      ghostVectorSubject: primaryWord?.word,
+    },
   ));
 
   // ═══════════════════════════════════════════════════
-  // INTERACTIVE ACTIVITIES (Hub-specific)
+  // PRACTICE PHASE — Additional Vocabulary Activities
   // ═══════════════════════════════════════════════════
+
+  // Word Builder — Spell the word
+  if (pack.vocabulary.length > 1) {
+    const wordToSpell = pack.vocabulary[1];
+    slides.push(mkSlide('practice', '🔤 Vocabulary', 'activity', 'sorting',
+      `🔤 Spell It: ${wordToSpell.word}`,
+      flatImagePrompt(`${wordToSpell.imageKeywords}, isolated, white background`, hub),
+      {
+        prompt: `Arrange the letters to spell: ${wordToSpell.word}`,
+        options: wordToSpell.word.split('').sort(() => Math.random() - 0.5),
+        correctAnswer: wordToSpell.word,
+      },
+      `Students spell "${wordToSpell.word}" by arranging letter tiles.`,
+      ['vocabulary', 'spelling'],
+      'word_builder', 'centered',
+      buildInteraction('word_builder', `Spell "${wordToSpell.word}"`,
+        wordToSpell.word.split(''), wordToSpell.word),
+      { has_reading: true, has_writing: true },
+    ));
+  }
+
+  // Dialogue Practice
+  slides.push(mkSlide('practice', '💬 Dialogue', 'dialogue', 'roleplay',
+    hub.hub === 'playground' ? '💬 Talk with Pip!' : '💬 Conversation Practice',
+    flatImagePrompt(`${topic} dialogue conversation`, hub),
+    { prompt: pack.dialogueLines.join('\n') },
+    'Model the dialogue. Students practice in pairs.',
+    ['dialogue', 'speaking', 'practice'],
+    undefined, 'split',
+    undefined,
+    { has_speaking: true, has_listening: true },
+  ));
+
+  // Hub-specific interactive activity
   if (hub.hub === 'playground') {
-    slides.push(mkSlide('practice', '🎮 Activity', 'activity', 'drag-drop',
+    slides.push(mkSlide('practice', '🎮 Game', 'game', 'drag-drop',
       '🎯 Drag & Drop!',
-      `${topic} drag drop game kids claymation`,
+      flatImagePrompt(`${topic} drag drop game kids`, hub),
       {
         prompt: pack.gameDescription,
         dragItems: pack.vocabulary.map(v => ({ text: v.word, target: v.definition, emoji: v.emoji || '🔤', imageKeywords: v.imageKeywords })),
@@ -325,54 +492,13 @@ export function buildPPPLessonFromPack(formData: WizardFormData, pack: TopicPack
       'drag_and_drop_image', 'bento',
       buildInteraction('drag_and_drop_image', 'Drag each word to the matching picture!',
         pack.vocabulary.map(v => v.word), pack.vocabulary[0].word),
-    ));
-
-    slides.push(mkSlide('practice', '🎮 Activity', 'activity', 'matching',
-      '🫧 Pop the Bubbles!',
-      `${topic} bubbles floating cartoon kids`,
-      {
-        matchPairs: pack.vocabulary.map(v => ({ word: v.word, image: v.emoji || '🔤', imageKeywords: v.imageKeywords })),
-      },
-      'Pop the correct word bubbles! Tap the right words before they float away.',
-      ['pop-bubble', 'game', 'practice'],
-      'pop_the_word_bubble', 'centered',
-      buildInteraction('pop_the_word_bubble', 'Pop the bubbles with the correct words!',
-        pack.vocabulary.map(v => v.word), pack.vocabulary[0].word),
+      { has_reading: true },
     ));
   } else if (hub.hub === 'academy') {
-    pack.vocabulary.slice(0, 3).forEach((vocab, idx) => {
-      slides.push(mkSlide('practice', '✏️ Activity', 'activity', 'fill-blank',
-        `✏️ Fill the Gap ${idx + 1}`,
-        vocab.imageKeywords,
-        { sentence: vocab.fillBlank, blankWord: vocab.word },
-        `Complete: "${vocab.fillBlank}" → Answer: "${vocab.word}".`,
-        ['fill-blank', vocab.word.toLowerCase()],
-        'fill_in_blanks', 'split',
-        buildInteraction('fill_in_blanks', vocab.fillBlank, undefined, vocab.word),
-      ));
-    });
-
-    const scrambleSentence = pack.grammarExamples[0] || `I have studied ${topic} before.`;
-    const scrambledWords = scrambleSentence.split(' ').sort(() => Math.random() - 0.5);
-    slides.push(mkSlide('practice', '🧩 Activity', 'activity', 'sorting',
-      '🧩 Unscramble the Sentence!',
-      'sentence puzzle neon 3d render',
-      {
-        prompt: `Rearrange these words:\n${scrambledWords.join(' / ')}`,
-        options: scrambledWords,
-        correctAnswer: scrambleSentence,
-      },
-      `Unscramble: "${scrambleSentence}".`,
-      ['unscramble', 'sentence', 'grammar'],
-      'sentence_unscramble', 'centered',
-      buildInteraction('sentence_unscramble', 'Rearrange the words to form a correct sentence!',
-        scrambledWords, scrambleSentence, { scrambled_words: scrambledWords }),
-    ));
-
     const quizWord = pack.vocabulary[0];
-    slides.push(mkSlide('practice', '❓ Activity', 'activity', 'quiz',
+    slides.push(mkSlide('practice', '⚡ Quiz', 'activity', 'quiz',
       '⚡ Speed Quiz!',
-      'quiz question neon holographic teen',
+      flatImagePrompt(`quiz question neon teen, ${topic}`, hub),
       {
         quizQuestion: `What does "${quizWord.word}" mean?`,
         quizOptions: [
@@ -382,97 +508,52 @@ export function buildPPPLessonFromPack(formData: WizardFormData, pack: TopicPack
           { text: 'None of the above', isCorrect: false },
         ].sort(() => Math.random() - 0.5),
       },
-      `Quiz: Correct answer is "${quizWord.definition}".`,
-      ['quiz', 'assessment', 'speed'],
+      `Speed Quiz: Correct answer is "${quizWord.definition}".`,
+      ['quiz', 'speed'],
       'speed_quiz', 'centered',
       buildInteraction('speed_quiz', `What does "${quizWord.word}" mean?`,
-        [quizWord.definition, 'Something unrelated', 'A different concept', 'None of the above'],
-        quizWord.definition),
+        [quizWord.definition, 'Something unrelated'], quizWord.definition),
+      { has_reading: true },
     ));
   } else {
-    slides.push(mkSlide('practice', '📊 Activity', 'activity', 'roleplay',
+    slides.push(mkSlide('practice', '📊 Case Study', 'activity', 'roleplay',
       '📊 Case Study Analysis',
-      `${topic} case study business corporate cinematic`,
+      flatImagePrompt(`${topic} case study business corporate`, hub),
       {
-        prompt: `Scenario:\nA company is facing challenges with ${topic}. As a consultant, analyze the situation and recommend a course of action.\n\nConsider:\n• What are the key issues?\n• What data would you need?\n• What would you recommend?`,
+        prompt: `Scenario:\nA company is facing challenges with ${topic}. As a consultant, analyze and recommend.\n\nConsider: Key issues, data needed, recommendation.`,
         caseStudy: `A mid-size corporation needs to improve their ${topic} strategy.`,
       },
       'Present the case study. Give participants 5 minutes to analyze.',
-      ['case-study', 'analysis', 'professional'],
+      ['case-study', 'analysis'],
       'case_study_analysis', 'split',
-      buildInteraction('case_study_analysis', `Analyze the ${topic} case study and provide your recommendation.`),
-    ));
-
-    slides.push(mkSlide('practice', '📧 Activity', 'activity', 'roleplay',
-      '📧 Business Email Response',
-      `${topic} email business professional laptop`,
-      {
-        prompt: `You received this email from a client:\n\n"Dear Team,\n\nI would like to discuss our ${topic} strategy for Q3. Could you provide your analysis and recommendations by Friday?\n\nBest regards,\nSarah Chen"\n\nCompose a professional reply.`,
-      },
-      'Guide participants through email structure: greeting, acknowledgment, content, close.',
-      ['email', 'writing', 'professional'],
-      'business_email_reply', 'split',
-      buildInteraction('business_email_reply', 'Compose a professional email reply.',
-        undefined, undefined, { email_scenario: `Client requests ${topic} analysis for Q3.` }),
-    ));
-
-    pack.vocabulary.slice(0, 3).forEach((vocab, idx) => {
-      slides.push(mkSlide('practice', '✏️ Activity', 'activity', 'fill-blank',
-        `✏️ Complete the Statement ${idx + 1}`,
-        vocab.imageKeywords,
-        { sentence: vocab.fillBlank, blankWord: vocab.word },
-        `Professional context: "${vocab.fillBlank}" → "${vocab.word}".`,
-        ['fill-blank', vocab.word.toLowerCase()],
-        'vocabulary_expansion', 'split',
-        buildInteraction('vocabulary_expansion', vocab.fillBlank, undefined, vocab.word),
-      ));
-    });
-  }
-
-  // Game (Playground & Academy)
-  if (hub.hub !== 'professional') {
-    slides.push(mkSlide('practice', '🎮 Game Time', 'game', 'roleplay',
-      hub.hub === 'playground' ? '🎮 Game Time!' : '🎮 Challenge Time!',
-      `${topic} game activity`,
-      { prompt: pack.gameDescription },
-      `Game: ${pack.gameDescription}\nKeep energy high!`,
-      ['game', 'activity'],
-      undefined, 'centered',
+      buildInteraction('case_study_analysis', `Analyze the ${topic} case study.`),
+      { has_reading: true, has_writing: true, has_speaking: true },
     ));
   }
 
   // ═══════════════════════════════════════════════════
-  // PRODUCTION PHASE
+  // PRODUCTION PHASE — Free Speaking
   // ═══════════════════════════════════════════════════
   slides.push(mkSlide('production', '🎤 Production', 'speaking', 'roleplay',
-    hub.hub === 'playground' ? '🎤 Your Turn to Talk!' : hub.hub === 'academy' ? '🎤 Express Yourself!' : '🎤 Professional Presentation',
-    `${topic} speaking presenting`,
+    hub.hub === 'playground' ? '🎤 Your Turn to Talk!' : '🎤 Express Yourself!',
+    flatImagePrompt(`${topic} speaking presenting`, hub),
     {
       prompt: hub.hub === 'playground'
-        ? `Use these words to talk to your partner:\n${pack.vocabulary.map(v => `✅ ${v.word}`).join('\n')}\n\nTry to use "${pack.grammarTarget}"!`
-        : hub.hub === 'academy'
-        ? `Share your opinion about ${topic} using at least 3 new terms.\n\nStructure:\n1. State your view\n2. Give a reason\n3. Use an example`
-        : `Present a 2-minute recommendation on ${topic} to the group.\n\nUse formal register and include:\n• Key terminology\n• Modal verbs for suggestions\n• A clear conclusion`,
+        ? `Use these words:\n${pack.vocabulary.map(v => `✅ ${v.word}`).join('\n')}\n\nTry to use "${pack.grammarTarget}"!`
+        : `Share your opinion about ${topic} using at least 3 new terms.`,
     },
-    'Free speaking practice. Monitor and note errors for feedback later.',
-    ['speaking', 'production', 'fluency'],
+    'Free speaking practice. Monitor and note errors for feedback.',
+    ['speaking', 'production'],
     undefined, 'centered',
-  ));
-
-  slides.push(mkSlide('production', '🎨 Creative', 'creative', 'image',
-    hub.hub === 'playground' ? '🎨 Creative Time!' : hub.hub === 'academy' ? '🎨 Create Something!' : '📝 Written Task',
-    `${topic} creative task`,
-    { prompt: pack.productionTask },
-    `Production task: ${pack.productionTask}. Give 5-7 minutes.`,
-    ['creative', 'production', 'writing'],
-    undefined, 'centered',
+    undefined,
+    { has_speaking: true, skillFocus: 'speaking' },
   ));
 
   // ═══════════════════════════════════════════════════
-  // SUMMARY
+  // COOL-OFF — Brain Break + Celebration
   // ═══════════════════════════════════════════════════
   slides.push(mkSlide('production', '📋 Summary', 'summary', 'title',
-    hub.hub === 'playground' ? '📋 What Did We Learn? 🌟' : hub.hub === 'academy' ? '📋 Key Takeaways' : '📋 Session Summary',
+    hub.hub === 'playground' ? '📋 What Did We Learn? 🌟' : '📋 Key Takeaways',
     'review summary checklist',
     { prompt: pack.objectives.map((o, i) => `${i + 1}. ✅ ${o}`).join('\n') },
     'Review each objective. Celebrate progress!',
@@ -481,38 +562,30 @@ export function buildPPPLessonFromPack(formData: WizardFormData, pack: TopicPack
   ));
 
   slides.push(mkSlide('production', '⭐ XP Reward', 'summary', 'quiz',
-    hub.hub === 'playground' ? '⭐ You Earned XP! How Did You Do?' : hub.hub === 'academy' ? '🏆 Rate Your Progress' : '📊 Self-Assessment',
+    hub.hub === 'playground' ? '⭐ You Earned XP!' : '🏆 Rate Your Progress',
     'achievement reward stars celebration',
     {
-      quizQuestion: hub.hub === 'playground' ? 'How well did you learn today?' : hub.hub === 'academy' ? 'How confident do you feel?' : 'Rate your understanding:',
-      quizOptions: hub.hub === 'playground'
-        ? [
-            { text: '⭐⭐⭐ I can do it perfectly! (+30 XP)', isCorrect: true },
-            { text: '⭐⭐ I can do it with some help (+20 XP)', isCorrect: true },
-            { text: '⭐ I need more practice (+10 XP)', isCorrect: true },
-          ]
-        : [
-            { text: 'Confident — I can use this independently', isCorrect: true },
-            { text: 'Getting there — I need a bit more practice', isCorrect: true },
-            { text: 'Need review — I\'d like to revisit this', isCorrect: true },
-          ],
+      quizQuestion: hub.hub === 'playground' ? 'How well did you learn today?' : 'Rate your understanding:',
+      quizOptions: [
+        { text: '⭐⭐⭐ I can do it perfectly! (+30 XP)', isCorrect: true },
+        { text: '⭐⭐ I can do it with some help (+20 XP)', isCorrect: true },
+        { text: '⭐ I need more practice (+10 XP)', isCorrect: true },
+      ],
     },
     'All answers valid. This builds metacognition.',
-    ['self-assessment', 'xp', 'reward'],
+    ['self-assessment', 'xp'],
     undefined, 'centered',
   ));
 
   slides.push(mkSlide('production', '👋 Goodbye', 'goodbye', 'title',
-    hub.hub === 'playground' ? '👋 Great Job! See You Next Time! 🌟' : hub.hub === 'academy' ? '✌️ See You Next Time!' : '👋 Thank You — See You Next Session',
+    hub.hub === 'playground' ? '👋 Great Job! See You Next Time! 🌟' : '👋 See You Next Session',
     `${topic} goodbye farewell`,
     {
       prompt: hub.hub === 'playground'
         ? 'Goodbye, everyone! You are INCREDIBLE! 🌟\n\nPip says: "See you next time, friends!" 🐣💛\n\n+50 XP earned! 🎉'
-        : hub.hub === 'academy'
-        ? 'Great work today! 🔥\n\nKeep practicing — you\'re making real progress!\n\n+40 XP earned! 🏆'
-        : `Thank you for today's session on ${topic}.\n\nKey takeaway: Apply what you learned in your next meeting.\n\nSession complete. ✓`,
+        : `Great work on ${topic} today!\n\nKeep practicing — you\'re making real progress!\n\n+40 XP earned! 🏆`,
     },
-    hub.hub === 'playground' ? 'Celebrate! High-fives, stickers, or stamps.' : 'Thank participants. Assign follow-up if needed.',
+    'Celebrate! High-fives, stickers, or stamps.',
     ['goodbye', 'celebration'],
     undefined, 'centered',
   ));
@@ -532,13 +605,12 @@ export function buildPPPLessonFromPack(formData: WizardFormData, pack: TopicPack
   };
 }
 
-// Legacy synchronous wrapper (kept for backward compatibility but no longer used by wizard)
+// Legacy synchronous wrapper
 export function generatePPPLesson(formData: WizardFormData): PPPLessonPlan {
-  // This is a fallback with a generic pack — the wizard now uses generateTopicPackWithAI + buildPPPLessonFromPack
   const hub = HUB_CONFIGS[resolveHub(formData.ageGroup)];
   const mainWord = formData.topic.split(' ').filter(w => w.length > 2)[0] || formData.topic;
   const cap = mainWord.charAt(0).toUpperCase() + mainWord.slice(1);
-  
+
   const fallbackPack: TopicPack = {
     vocabulary: [
       { word: cap, definition: `A key word about ${formData.topic}`, exampleSentence: `I like ${mainWord}.`, fillBlank: `I like ____.`, imageKeywords: `${formData.topic} illustration`, emoji: '🌟' },
