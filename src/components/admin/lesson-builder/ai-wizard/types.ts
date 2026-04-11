@@ -61,6 +61,22 @@ export interface GeneratedSlide {
   activityType?: ActivityType;
   visuals?: SlideVisuals;
   interaction?: SlideInteraction;
+  // ── Four-Skill Flags ──────────────────────────────────
+  // When true, the renderer activates the corresponding skill component
+  has_listening?: boolean;
+  has_speaking?: boolean;
+  has_reading?: boolean;
+  has_writing?: boolean;
+  has_phonics?: boolean;
+  has_audio_match?: boolean;
+  has_grammar_blocks?: boolean;
+  // Skill-specific metadata
+  skillFocus?: 'listening' | 'speaking' | 'reading' | 'writing';
+  phonemeTarget?: string;
+  tracingLetter?: string;
+  ghostVectorSubject?: string;
+  grammarSlots?: Array<{ label: string; correctAnswer: string; filled: string | null }>;
+  grammarBlocks?: string[];
   content?: {
     word?: string;
     definition?: string;
