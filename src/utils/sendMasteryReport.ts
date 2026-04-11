@@ -85,7 +85,7 @@ export async function sendMasteryReport({ studentId, unitId, milestoneResultId }
     ? `Your child mastered the ${masteredPhonemes.join(', ')} sound${masteredPhonemes.length > 1 ? 's' : ''} in this unit!`
     : 'Your child is developing their phonics skills.';
 
-  // 6. Build skill scores
+  // 7. Build skill scores
   const rawSkillScores = milestone.skill_scores as Record<string, number> | null;
   const skillScores = rawSkillScores
     ? Object.entries(rawSkillScores).map(([name, score]) => ({
