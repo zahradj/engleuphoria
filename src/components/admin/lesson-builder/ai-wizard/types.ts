@@ -16,7 +16,13 @@ export type ActivityType =
   | 'drag_and_drop_image' | 'match_sound_to_picture' | 'pop_the_word_bubble'
   | 'sentence_unscramble' | 'speed_quiz'
   | 'case_study_analysis' | 'business_email_reply' | 'vocabulary_expansion'
-  | 'word_bank' | 'visual_dictation' | 'time_attack' | 'executive_choice';
+  | 'word_bank' | 'visual_dictation' | 'time_attack' | 'executive_choice'
+  // Practice Layer — Phonics
+  | 'phonics_slider' | 'phoneme_tap' | 'sound_sort' | 'mouth_mirror'
+  // Practice Layer — Vocabulary
+  | 'sound_to_letter' | 'word_builder' | 'picture_label' | 'odd_one_out'
+  // Practice Layer — Grammar
+  | 'grammar_blocks' | 'article_picker' | 'sentence_transform';
 
 export type SlideLayout = 'split' | 'centered' | 'bento';
 
