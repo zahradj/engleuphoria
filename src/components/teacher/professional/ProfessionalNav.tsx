@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +20,7 @@ import {
   ChevronDown,
   User,
   Settings,
+  HeartPulse,
   DollarSign,
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
@@ -26,6 +28,7 @@ import { Logo } from '@/components/Logo';
 export type ProfessionalTab =
   | 'command-center'
   | 'diagnostic-lab'
+  | 'success-hub'
   | 'reports'
   | 'schedule'
   | 'analytics'
@@ -44,6 +47,7 @@ interface ProfessionalNavProps {
 const navItems: { id: ProfessionalTab; label: string; icon: React.ElementType }[] = [
   { id: 'command-center', label: 'Command Center', icon: LayoutDashboard },
   { id: 'diagnostic-lab', label: 'Diagnostic Lab', icon: Users },
+  { id: 'success-hub', label: 'Success Hub', icon: HeartPulse },
   { id: 'lesson-architect', label: 'Lesson Architect', icon: Sparkles },
   { id: 'reports', label: 'Reports', icon: FileText },
   { id: 'schedule', label: 'Schedule', icon: Calendar },
