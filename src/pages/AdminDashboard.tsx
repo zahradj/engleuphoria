@@ -23,7 +23,7 @@ import { Button } from '@/components/ui/button';
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const { isAdmin, isLoading } = useAdminAuth();
+  const { isAdmin, isLoading, user } = useAdminAuth();
 
   if (isLoading) {
     return (
