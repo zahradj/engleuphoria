@@ -5,12 +5,14 @@ import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Map, Loader2, Lock, Star, Trophy, AlertCircle, RefreshCw, Sun, Moon } from 'lucide-react';
+import { Map, Loader2, Lock, Star, Trophy, AlertCircle, RefreshCw, Sun, Moon, Volume2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ConfettiEffect } from '@/components/gamification/ConfettiEffect';
 import { useTimeOfDay } from '@/hooks/useTimeOfDay';
 import { useReinforcementLesson } from '@/hooks/useReinforcementLesson';
 import { sendMasteryReport } from '@/utils/sendMasteryReport';
+import lionHero from '@/assets/vocabulary/lion.png';
+import lSoundVideo from '@/assets/phonics/l-sound-mechanism.mp4.asset.json';
 
 interface UnitWithLessons {
   id: string;
