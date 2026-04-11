@@ -8679,6 +8679,44 @@ export type Database = {
           },
         ]
       }
+      unit_missions: {
+        Row: {
+          created_at: string
+          goal_description: string | null
+          id: string
+          mission_text: string
+          mission_tip: string | null
+          unit_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          goal_description?: string | null
+          id?: string
+          mission_text: string
+          mission_tip?: string | null
+          unit_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          goal_description?: string | null
+          id?: string
+          mission_text?: string
+          mission_tip?: string | null
+          unit_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unit_missions_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: true
+            referencedRelation: "curriculum_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_community_stats: {
         Row: {
           badges_earned: string[] | null
