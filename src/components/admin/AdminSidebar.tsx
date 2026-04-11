@@ -31,6 +31,7 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
     { id: "overview", label: "Overview", icon: LayoutDashboard },
     { id: "super-control", label: "Super Control Center", icon: Activity },
     { id: "professional-hub", label: "Professional Hub", icon: Briefcase },
+    { id: "hiring-pipeline", label: "Hiring Pipeline", icon: Users },
   ];
 
   const managementItems = [
