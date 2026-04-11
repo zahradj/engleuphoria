@@ -16,6 +16,7 @@ import { SuperAdminControlCenter } from '@/components/admin/SuperAdminControlCen
 import { AdminBroadcastCenter } from '@/components/admin/AdminBroadcastCenter';
 import { SystemEmailLog } from '@/components/admin/SystemEmailLog';
 import { ProfessionalHub } from '@/components/teacher/professional/ProfessionalHub';
+import { HiringKanbanBoard } from '@/components/admin/HiringKanbanBoard';
 import { ScrollHeader } from '@/components/navigation/ScrollHeader';
 import { Loader2, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -87,6 +88,8 @@ const AdminDashboard = () => {
             teacherId={user?.id || ''} 
           />
         );
+      case 'hiring-pipeline':
+        return <HiringKanbanBoard />;
       default:
         return <AdminOverview />;
     }
