@@ -6,6 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 import { Slide, CanvasElementType } from './types';
+import { SlidePhase, PHASE_COLORS } from '@/services/slideSkeletonEngine';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -110,6 +111,19 @@ export const SlideFilmstrip: React.FC<SlideFilmstripProps> = ({
                               <GripVertical className="h-2.5 w-2.5" />
                             </div>
                             <span className="text-[8px] font-medium text-muted-foreground">{index + 1}</span>
+                            {/* Phase badge from skeleton */}
+                            {(() => {
+                              const phaseKey = (slide as any).phase as SlidePhase | undefined;
+                              if (phaseKey && PHASE_COLORS[phaseKey]) {
+                                const phaseConfig = PHASE_COLORS[phaseKey];
+                                return (
+                                  <span className={cn('text-[6px] px-1 py-0 rounded-full font-medium ml-auto leading-tight', phaseConfig.bg, phaseConfig.text)}>
+                                    {phaseConfig.label.split(' ')[0]}
+                                  </span>
+                                );
+                              }
+                              return null;
+                            })()}
                           </div>
                           <div className="aspect-video bg-muted rounded-sm overflow-hidden relative group/thumb">
                             {slide.imageUrl ? (
