@@ -7,8 +7,12 @@ import { AlertTriangle, ArrowRight, Zap } from 'lucide-react';
 interface RecoveryItem {
   phoneme: string;
   errorRate: number;
-  errorType: 'articulation' | 'recognition';
+  errorType: 'articulation' | 'recognition' | 'grammar' | 'vocabulary';
   suggestedAction: string;
+  layerRecommendation?: {
+    repeatLayers: ('phonics' | 'vocabulary' | 'grammar')[];
+    advanceLayers: ('phonics' | 'vocabulary' | 'grammar')[];
+  };
 }
 
 interface RecoveryPlanCardProps {
@@ -62,9 +66,26 @@ export const RecoveryPlanCard: React.FC<RecoveryPlanCardProps> = ({
                   Error Rate: {item.errorRate}%
                 </p>
                 <p className="text-[10px] text-muted-foreground">
-                  Type: {item.errorType === 'articulation' ? '🗣 Articulation (sound production)' : '👁 Recognition (visual mapping)'}
+                  Type: {item.errorType === 'articulation' ? '🗣 Articulation (sound production)'
+                    : item.errorType === 'grammar' ? '📝 Grammar (structure/rules)'
+                    : item.errorType === 'vocabulary' ? '📖 Vocabulary (word mapping)'
+                    : '👁 Recognition (visual mapping)'}
                 </p>
                 <p className="text-[10px] text-muted-foreground mt-0.5">{item.suggestedAction}</p>
+                {item.layerRecommendation && (
+                  <div className="flex gap-2 mt-1">
+                    {item.layerRecommendation.repeatLayers.length > 0 && (
+                      <span className="text-[9px] bg-[#EF5350]/10 text-[#EF5350] px-1.5 py-0.5 rounded-full">
+                        Repeat: {item.layerRecommendation.repeatLayers.join(', ')}
+                      </span>
+                    )}
+                    {item.layerRecommendation.advanceLayers.length > 0 && (
+                      <span className="text-[9px] bg-[#4CAF50]/10 text-[#2E7D32] px-1.5 py-0.5 rounded-full">
+                        Advance: {item.layerRecommendation.advanceLayers.join(', ')}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
             <Button
