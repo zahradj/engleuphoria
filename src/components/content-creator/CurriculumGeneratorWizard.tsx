@@ -10,6 +10,7 @@ import { Loader2, Wand2, ChevronDown, ChevronRight, Save, BookOpen, GraduationCa
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { getSpiralSkeleton, buildFullCurriculumMapContext } from '@/data/spiralCurriculumSkeleton';
 
 interface GeneratedUnit {
   unitNumber: number;
