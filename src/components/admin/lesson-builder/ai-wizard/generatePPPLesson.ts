@@ -51,7 +51,9 @@ export async function generateTopicPackWithAI(
 
   if (error) {
     console.error('AI generation error:', error);
-    throw new Error(error.message || 'Failed to generate lesson content');
+    // Try to extract the real error message from the response body
+    const detailedMsg = data?.error || error.message || 'Failed to generate lesson content';
+    throw new Error(detailedMsg);
   }
 
   if (data?.error) {
