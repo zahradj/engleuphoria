@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { ConfettiEffect } from '@/components/gamification/ConfettiEffect';
 import { useTimeOfDay } from '@/hooks/useTimeOfDay';
 import { useReinforcementLesson } from '@/hooks/useReinforcementLesson';
+import { sendMasteryReport } from '@/utils/sendMasteryReport';
 
 interface UnitWithLessons {
   id: string;
@@ -24,7 +25,7 @@ interface UnitWithLessons {
     completed: boolean;
   }[];
   masteryPassed: boolean;
-  milestoneResult: { score: number; passed: boolean; weakest_skill: string | null } | null;
+  milestoneResult: { id: string; score: number; passed: boolean; weakest_skill: string | null } | null;
 }
 
 /* Firefly dot for night mode */
@@ -48,6 +49,11 @@ export const UnitRoadmap: React.FC = () => {
       setShowConfetti(true);
     }
   }, [celebratedUnit]);
+
+  // Track which milestones we've already sent reports for this session
+  const sentReportsRef = useRef<Set<string>>(new Set());
+
+
 
   const { data: units = [], isLoading } = useQuery({
     queryKey: ['unit-roadmap', user?.id],
@@ -86,15 +92,15 @@ export const UnitRoadmap: React.FC = () => {
         }
       }
 
-      let milestoneMap: Record<string, { score: number; passed: boolean; weakest_skill: string | null }> = {};
+      let milestoneMap: Record<string, { id: string; score: number; passed: boolean; weakest_skill: string | null }> = {};
       if (user?.id) {
         const { data: milestones } = await supabase
           .from('mastery_milestone_results')
-          .select('unit_id, score, passed, weakest_skill')
+          .select('id, unit_id, score, passed, weakest_skill')
           .eq('student_id', user.id);
         if (milestones) {
           for (const m of milestones) {
-            milestoneMap[m.unit_id] = { score: Number(m.score), passed: m.passed, weakest_skill: m.weakest_skill };
+            milestoneMap[m.unit_id] = { id: m.id, score: Number(m.score), passed: m.passed, weakest_skill: m.weakest_skill };
           }
         }
       }
@@ -120,6 +126,29 @@ export const UnitRoadmap: React.FC = () => {
     },
     staleTime: 3 * 60 * 1000,
   });
+
+  // Trigger mastery report emails for newly passed milestones (score >= 80%)
+  useEffect(() => {
+    if (!user?.id || units.length === 0) return;
+    
+    for (const unit of units) {
+      const milestone = (unit as any).milestoneResult;
+      if (
+        milestone &&
+        milestone.passed &&
+        Number(milestone.score) >= 80 &&
+        milestone.id &&
+        !sentReportsRef.current.has(milestone.id)
+      ) {
+        sentReportsRef.current.add(milestone.id);
+        sendMasteryReport({
+          studentId: user.id,
+          unitId: (unit as any).id,
+          milestoneResultId: milestone.id,
+        }).catch((err) => console.error('Mastery report send error:', err));
+      }
+    }
+  }, [units, user?.id]);
 
   if (isLoading) {
     return (

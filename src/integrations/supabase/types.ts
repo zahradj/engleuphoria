@@ -5248,6 +5248,42 @@ export type Database = {
           },
         ]
       }
+      notification_logs: {
+        Row: {
+          created_at: string | null
+          email_sent_at: string | null
+          error_message: string | null
+          id: string
+          recipient_email: string
+          status: string
+          student_id: string
+          template_name: string
+          unit_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email_sent_at?: string | null
+          error_message?: string | null
+          id?: string
+          recipient_email: string
+          status?: string
+          student_id: string
+          template_name: string
+          unit_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email_sent_at?: string | null
+          error_message?: string | null
+          id?: string
+          recipient_email?: string
+          status?: string
+          student_id?: string
+          template_name?: string
+          unit_id?: string | null
+        }
+        Relationships: []
+      }
       notification_templates: {
         Row: {
           body_html: string

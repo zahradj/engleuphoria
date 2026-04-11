@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,8 @@ import {
   ChevronRight,
   Zap,
   Globe,
+  Mail,
+  Filter,
 } from 'lucide-react';
 
 interface CommandCenterProps {
@@ -28,6 +30,8 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
   teacherName,
   onViewStudent,
 }) => {
+  const [logFilter, setLogFilter] = useState<'all' | 'sent' | 'failed'>('all');
+
   // Fetch live metrics
   const { data: metrics } = useQuery({
     queryKey: ['command-center-metrics', teacherId],
@@ -98,6 +102,43 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
       };
     },
     staleTime: 60_000,
+  });
+
+  // Fetch notification logs
+  const { data: notificationLogs = [] } = useQuery({
+    queryKey: ['notification-logs', logFilter],
+    queryFn: async () => {
+      let query = supabase
+        .from('notification_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (logFilter !== 'all') {
+        query = query.eq('status', logFilter);
+      }
+
+      const { data } = await query;
+
+      if (!data?.length) return [];
+
+      // Enrich with student names
+      const studentIds = [...new Set(data.map((l: any) => l.student_id))];
+      const { data: profiles } = await supabase
+        .from('student_profiles')
+        .select('user_id, display_name')
+        .in('user_id', studentIds.length ? studentIds : ['none']);
+
+      const profileMap = Object.fromEntries(
+        (profiles || []).map((p: any) => [p.user_id, p.display_name])
+      );
+
+      return data.map((log: any) => ({
+        ...log,
+        studentName: profileMap[log.student_id] || 'Unknown',
+      }));
+    },
+    staleTime: 30_000,
   });
 
   const { totalStudents = 0, sessionsToday = 0, atRiskStudents = [], recentActivity = [] } =
@@ -246,6 +287,102 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
           </CardContent>
         </Card>
       </div>
+
+      {/* Notification Log */}
+      <Card className="border border-border bg-card shadow-sm">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm font-semibold text-[#1A237E] flex items-center gap-2">
+              <Mail className="h-4 w-4 text-[#1A237E]" />
+              Notification Log
+            </CardTitle>
+            <div className="flex items-center gap-1.5">
+              <Filter className="h-3.5 w-3.5 text-muted-foreground" />
+              {(['all', 'sent', 'failed'] as const).map((filter) => (
+                <Button
+                  key={filter}
+                  variant={logFilter === filter ? 'default' : 'ghost'}
+                  size="sm"
+                  className={`h-7 text-xs px-2.5 ${
+                    logFilter === filter
+                      ? filter === 'failed'
+                        ? 'bg-[#EF5350] hover:bg-[#EF5350]/90 text-white'
+                        : 'bg-[#1A237E] hover:bg-[#1A237E]/90 text-white'
+                      : ''
+                  }`}
+                  onClick={() => setLogFilter(filter)}
+                >
+                  {filter.charAt(0).toUpperCase() + filter.slice(1)}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {notificationLogs.length === 0 ? (
+            <div className="flex items-center gap-3 py-6 justify-center text-[#9E9E9E]">
+              <Mail className="h-5 w-5" />
+              <p className="text-sm">No notification logs yet</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border text-left">
+                    <th className="pb-2 font-medium text-muted-foreground text-xs">Student</th>
+                    <th className="pb-2 font-medium text-muted-foreground text-xs">Template</th>
+                    <th className="pb-2 font-medium text-muted-foreground text-xs">Recipient</th>
+                    <th className="pb-2 font-medium text-muted-foreground text-xs">Status</th>
+                    <th className="pb-2 font-medium text-muted-foreground text-xs">Sent At</th>
+                    <th className="pb-2 font-medium text-muted-foreground text-xs">Error</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {notificationLogs.map((log: any) => (
+                    <tr
+                      key={log.id}
+                      className={`border-b border-border/50 ${
+                        log.status === 'failed' ? 'bg-[#EF5350]/5' : ''
+                      }`}
+                    >
+                      <td className="py-2.5 text-foreground font-medium">{log.studentName}</td>
+                      <td className="py-2.5 text-muted-foreground">{log.template_name}</td>
+                      <td className="py-2.5 text-muted-foreground text-xs">{log.recipient_email}</td>
+                      <td className="py-2.5">
+                        <Badge
+                          variant="outline"
+                          className={`text-[10px] ${
+                            log.status === 'sent'
+                              ? 'border-[#4CAF50]/30 bg-[#4CAF50]/5 text-[#2E7D32]'
+                              : log.status === 'failed'
+                              ? 'border-[#EF5350]/30 bg-[#EF5350]/5 text-[#EF5350]'
+                              : 'border-amber-500/30 bg-amber-500/5 text-amber-600'
+                          }`}
+                        >
+                          {log.status}
+                        </Badge>
+                      </td>
+                      <td className="py-2.5 text-muted-foreground text-xs">
+                        {log.email_sent_at
+                          ? new Date(log.email_sent_at).toLocaleString('en-GB', {
+                              day: 'numeric',
+                              month: 'short',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })
+                          : '—'}
+                      </td>
+                      <td className="py-2.5 text-[#EF5350] text-xs max-w-[200px] truncate">
+                        {log.error_message || '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
