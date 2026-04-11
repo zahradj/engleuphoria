@@ -76,7 +76,7 @@ export const UnitRoadmap: React.FC = () => {
     }
   }, [units, user?.id]);
 
-
+  const { data: units = [], isLoading } = useQuery({
     queryKey: ['unit-roadmap', user?.id],
     queryFn: async () => {
       const { data: unitsData, error: unitsError } = await supabase
