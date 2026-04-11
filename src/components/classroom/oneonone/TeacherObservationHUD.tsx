@@ -8,7 +8,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
   Eye, Mic, Brain, Ear, AlertTriangle, CheckCircle2,
-  Send, RotateCcw, Sparkles, Clock,
+  Send, RotateCcw, Sparkles, Clock, Lightbulb,
+  BookOpen, PenTool, Languages,
 } from 'lucide-react';
 
 // Pedagogical quick-tap tags
@@ -17,6 +18,16 @@ const PEDAGOGICAL_TAGS = [
   { id: 'vocab-strong', label: 'Vocabulary Strong', icon: Brain, color: '#2E7D32', category: 'positive' },
   { id: 'listening-good', label: 'Good Listening', icon: Ear, color: '#2E7D32', category: 'positive' },
   { id: 'engaged', label: 'High Engagement', icon: Eye, color: '#2E7D32', category: 'positive' },
+  // Practice Layer — Phonics
+  { id: 'phonics-accurate', label: 'Phonics Accurate', icon: Mic, color: '#2E7D32', category: 'layer-phonics' },
+  { id: 'phonics-needs-work', label: 'Phonics Needs Work', icon: Mic, color: '#EF5350', category: 'layer-phonics' },
+  // Practice Layer — Vocabulary
+  { id: 'vocabulary-connected', label: 'Vocab Connected', icon: BookOpen, color: '#2E7D32', category: 'layer-vocab' },
+  { id: 'vocabulary-gap', label: 'Vocab Gap', icon: BookOpen, color: '#EF5350', category: 'layer-vocab' },
+  // Practice Layer — Grammar
+  { id: 'grammar-understood', label: 'Grammar Understood', icon: Languages, color: '#2E7D32', category: 'layer-grammar' },
+  { id: 'grammar-confused', label: 'Grammar Confused', icon: Languages, color: '#EF5350', category: 'layer-grammar' },
+  // Corrections
   { id: 'tongue-placement', label: 'Tongue Placement Issue', icon: AlertTriangle, color: '#EF5350', category: 'correction' },
   { id: 'needs-memory', label: 'Needs Memory Reinforcement', icon: Brain, color: '#F59E0B', category: 'correction' },
   { id: 'phonetic-low', label: 'Phonetic Accuracy Low', icon: Mic, color: '#EF5350', category: 'correction' },
@@ -158,6 +169,26 @@ export const TeacherObservationHUD: React.FC<TeacherObservationHUDProps> = ({
             })}
           </div>
 
+          <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mt-2">Practice Layers</p>
+          <div className="flex flex-wrap gap-1.5">
+            {PEDAGOGICAL_TAGS.filter(t => t.category.startsWith('layer-')).map(tag => {
+              const Icon = tag.icon;
+              return (
+                <Button
+                  key={tag.id}
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-[10px] gap-1 px-2"
+                  style={{ borderColor: `${tag.color}30`, color: tag.color }}
+                  onClick={() => addTag(tag)}
+                >
+                  <Icon className="h-3 w-3" />
+                  {tag.label}
+                </Button>
+              );
+            })}
+          </div>
+
           <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mt-2">Corrections</p>
           <div className="flex flex-wrap gap-1.5">
             {PEDAGOGICAL_TAGS.filter(t => t.category === 'correction').map(tag => {
@@ -178,6 +209,25 @@ export const TeacherObservationHUD: React.FC<TeacherObservationHUDProps> = ({
             })}
           </div>
         </div>
+
+        {/* Hint Toggle */}
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full gap-1.5 border-amber-300 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20"
+          onClick={async () => {
+            const channel = supabase.channel(`hint-${sessionId}`);
+            channel.send({
+              type: 'broadcast',
+              event: 'grammar-hint',
+              payload: { active: true, timestamp: new Date().toISOString() },
+            });
+            toast.success('Hint sent — correct block is glowing on student screen');
+          }}
+        >
+          <Lightbulb className="h-3.5 w-3.5" />
+          Send Grammar Hint
+        </Button>
 
         {/* Free-form note */}
         <Textarea
