@@ -66,6 +66,19 @@ export interface GeneratedSlide {
     correctAnswer?: string;
     dragItems?: Array<{ text: string; target: string }>;
     caseStudy?: string;
+    // Practice layer fields
+    title?: string;
+    imageUrl?: string;
+    phonemeTarget?: string;
+    targetLetterIndex?: number;
+    distractors?: string[];
+    oddOneOutCards?: Array<{ word: string; emoji: string; isOdd: boolean }>;
+    grammarPattern?: string;
+    grammarSlots?: Array<{ label: string; correctAnswer: string; filled: string | null }>;
+    grammarBlocks?: string[];
+    originalSentence?: string;
+    transformType?: string;
+    correctTransform?: string[];
   };
   teacherNotes: string;
   keywords: string[];

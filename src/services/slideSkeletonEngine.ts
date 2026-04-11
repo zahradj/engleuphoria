@@ -29,6 +29,7 @@ export interface SlideSkeleton {
   durationSeconds: number;
   accessoryReveal: boolean;
   phonemeTarget?: string;
+  practiceLayer?: 'phonics' | 'vocabulary' | 'grammar';
 }
 
 export interface LessonSkeletonPlan {
