@@ -286,25 +286,29 @@ export const UnitRoadmap: React.FC = () => {
                       {isDaytime && unitGold && <span className="text-sm animate-sway">🐦</span>}
                     </div>
 
-                    {/* Vocabulary Hero + Phonics Video for Animals unit */}
+                    {/* Gold Standard: Vocabulary Hero + Phonics Mechanism */}
                     {unit.title?.toLowerCase().includes('animal') && unlocked && (
                       <div className={cn(
-                        'flex items-center gap-3 mb-3 p-3 rounded-lg border',
+                        'flex items-center gap-3 mb-3 p-3 rounded-2xl border',
+                        'shadow-[0_4px_16px_rgba(0,0,0,0.06)]',
                         isDaytime
-                          ? 'bg-emerald-50/60 border-emerald-200/50'
-                          : 'bg-emerald-950/20 border-emerald-700/30'
+                          ? 'bg-gradient-to-r from-emerald-50/80 to-amber-50/40 border-emerald-200/50'
+                          : 'bg-gradient-to-r from-emerald-950/20 to-amber-950/10 border-emerald-700/30'
                       )}>
-                        <img
-                          src={lionHero}
-                          alt="Lion - vocabulary hero"
-                          className="w-16 h-16 object-contain drop-shadow-sm"
-                          loading="lazy"
-                          width={64}
-                          height={64}
-                        />
+                        {/* Professional Flat 2.0 wrapper */}
+                        <div className="relative rounded-xl overflow-hidden shadow-[0_3px_10px_rgba(0,0,0,0.1)] bg-white dark:bg-gray-900 p-1.5 flex-shrink-0">
+                          <img
+                            src={lionHero}
+                            alt="Lion - vocabulary hero"
+                            className="w-14 h-14 object-contain"
+                            loading="lazy"
+                            width={56}
+                            height={56}
+                          />
+                        </div>
                         <div className="flex-1 min-w-0">
                           <p className={cn(
-                            'text-xs font-semibold',
+                            'text-xs font-bold',
                             isDaytime ? 'text-emerald-700' : 'text-emerald-300'
                           )}>🦁 Vocabulary Hero: Lion</p>
                           <p className={cn(
@@ -312,25 +316,29 @@ export const UnitRoadmap: React.FC = () => {
                             isDaytime ? 'text-emerald-600/80' : 'text-emerald-400/70'
                           )}>Phonics Focus: /l/ sound</p>
                         </div>
-                        <button
-                          onClick={() => {
-                            const videoEl = document.getElementById('phonics-l-video') as HTMLVideoElement;
-                            if (videoEl) {
-                              videoEl.paused ? videoEl.play() : videoEl.pause();
-                            }
-                          }}
-                          className={cn(
-                            'flex items-center justify-center w-9 h-9 rounded-full transition-colors',
-                            isDaytime
-                              ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700'
-                              : 'bg-emerald-800/40 hover:bg-emerald-700/50 text-emerald-300'
-                          )}
-                          title="Play /l/ sound"
-                        >
-                          <Volume2 className="h-4 w-4" />
-                        </button>
+                        <div className="flex gap-1.5">
+                          {/* Audio play button */}
+                          <button
+                            onClick={() => {
+                              const videoEl = document.getElementById('phonics-l-video') as HTMLVideoElement;
+                              if (videoEl) {
+                                videoEl.paused ? videoEl.play() : videoEl.pause();
+                              }
+                            }}
+                            className={cn(
+                              'flex items-center justify-center w-9 h-9 rounded-xl transition-colors',
+                              isDaytime
+                                ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700'
+                                : 'bg-emerald-800/40 hover:bg-emerald-700/50 text-emerald-300'
+                            )}
+                            title="Play /l/ sound"
+                          >
+                            <Volume2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </div>
                     )}
+                    {/* Phonics video (hidden, audio-only for now — replace with Veo render) */}
                     {unit.title?.toLowerCase().includes('animal') && unlocked && (
                       <video
                         id="phonics-l-video"
