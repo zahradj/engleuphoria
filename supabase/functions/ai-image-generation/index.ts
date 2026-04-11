@@ -5,14 +5,57 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// ─── Style Presets ────────────────────────────────────────────────
+const STYLE_PRESETS: Record<string, { prefix: string; suffix: string; negative: string }> = {
+  flat2d: {
+    prefix: 'Professional 2D flat vector illustration for a children\'s educational app. Use the Professional Flat 2.0 style: clean bold lines, solid colors with subtle layering, white background (#FFFFFF), isolated object, Engleuphoria Navy accents.',
+    suffix: 'high quality, clean composition, educational',
+    negative: 'No 3D, no render, no depth, no shadows, no gradients, no photorealism, no fuzzy textures, no messy lines, no background scenery, no blender, no 3ds max, no Octane Render, no Unreal Engine.',
+  },
+  educational: {
+    prefix: 'clean educational illustration, simple and clear, perfect for learning, professional style',
+    suffix: 'high quality illustration for English language learning',
+    negative: '',
+  },
+  cartoon: {
+    prefix: 'colorful cartoon style, friendly and engaging, suitable for children',
+    suffix: 'high quality illustration for English language learning',
+    negative: '',
+  },
+  minimalist: {
+    prefix: 'minimal line art, clean and simple, modern design',
+    suffix: 'high quality illustration for English language learning',
+    negative: '',
+  },
+  realistic: {
+    prefix: 'photorealistic style, high quality and detailed',
+    suffix: 'high quality illustration for English language learning',
+    negative: '',
+  },
+  'hand-drawn': {
+    prefix: 'hand-drawn sketch style, artistic and creative',
+    suffix: 'high quality illustration for English language learning',
+    negative: '',
+  },
+  cinematic: {
+    prefix: 'cinematic professional illustration, dramatic lighting, high-end production quality',
+    suffix: 'high quality, 8k resolution',
+    negative: '',
+  },
+  editorial: {
+    prefix: 'Minimalist editorial photography, luxury corporate aesthetic, shot on 35mm Leica, natural soft lighting, neutral tones',
+    suffix: 'high-end professional stock style',
+    negative: '',
+  },
+};
+
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { prompt, style = 'educational', aspectRatio = '1:1' } = await req.json();
+    const { prompt, style = 'educational', negativePrompt, aspectRatio = '1:1' } = await req.json();
     
     if (!prompt) {
       return new Response(
@@ -30,18 +73,19 @@ serve(async (req) => {
       );
     }
 
-    // Style-specific prompt enhancements
-    const stylePrompts = {
-      educational: 'clean educational illustration, simple and clear, perfect for learning, professional style',
-      cartoon: 'colorful cartoon style, friendly and engaging, suitable for children',
-      minimalist: 'minimal line art, clean and simple, modern design',
-      realistic: 'photorealistic style, high quality and detailed',
-      'hand-drawn': 'hand-drawn sketch style, artistic and creative'
-    };
+    // Resolve style preset
+    const preset = STYLE_PRESETS[style] || STYLE_PRESETS.educational;
+    
+    // Build enhanced prompt with style prefix, user prompt, suffix, and negative constraints
+    let enhancedPrompt = `${preset.prefix}. ${prompt}, ${preset.suffix}`;
+    
+    // Append negative prompt constraints
+    const allNegative = [preset.negative, negativePrompt].filter(Boolean).join(' ');
+    if (allNegative) {
+      enhancedPrompt += `. NEGATIVE: ${allNegative}`;
+    }
 
-    const enhancedPrompt = `${prompt}, ${stylePrompts[style as keyof typeof stylePrompts] || stylePrompts.educational}, high quality illustration for English language learning`;
-
-    console.log('Generating image with Gemini:', enhancedPrompt);
+    console.log('Generating image with style:', style, '| Prompt:', enhancedPrompt.slice(0, 200));
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -71,7 +115,6 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    
     const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
     
     if (!imageUrl) {
@@ -82,15 +125,10 @@ serve(async (req) => {
       );
     }
 
-    console.log('Image generated successfully with Gemini');
+    console.log('Image generated successfully with style:', style);
 
     return new Response(
-      JSON.stringify({ 
-        imageUrl,
-        prompt: enhancedPrompt,
-        style,
-        aspectRatio
-      }),
+      JSON.stringify({ imageUrl, prompt: enhancedPrompt, style, aspectRatio }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
