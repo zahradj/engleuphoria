@@ -4,9 +4,22 @@ import { useNavigate } from 'react-router-dom';
 import { getLibraryLessons, LibraryLesson } from '@/services/lessonLibraryService';
 import { HUB_CONFIGS } from '@/components/admin/lesson-builder/ai-wizard/hubConfig';
 import { HubType } from '@/components/admin/lesson-builder/ai-wizard/types';
-import { BookOpen, Clock, Play, Loader2, CheckCircle2, Library } from 'lucide-react';
+import { BookOpen, Clock, Play, Loader2, CheckCircle2, Library, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const HUB_TABS = [
   { value: 'all', label: 'All', emoji: '📚' },
