@@ -680,72 +680,61 @@ function buildUserPrompt(requestData: GenerationRequest): string {
     const lessonsPerUnit = requestData.lessonsPerUnit || 3;
     const level = requestData.level || 'beginner';
     const ageGroup = requestData.ageGroup || 'kids';
-    userPrompt = `Generate a complete curriculum structure for ${ageGroup} learners at ${level} level.
+    
+    // Inject the spiral dependency context if provided
+    const spiralContext = requestData.spiralDependencyContext || '';
+    
+    userPrompt = `Generate a PROGRESSIVE SPIRAL curriculum structure for ${ageGroup} learners at ${level} level.
 
 Requirements:
 - Generate exactly ${unitCount} units
-- Each unit must have exactly ${lessonsPerUnit} lessons (ideally 3 per unit for the "Slowly-Slowly" cycle)
-- Each lesson needs: title, 3 objectives, grammarFocus, vocabularyTheme
+- Each unit must have exactly ${lessonsPerUnit} lessons
+- Each lesson needs: title, 3 objectives, grammarFocus, vocabularyTheme, cycleType, skillTags, listeningTask, speakingTask, readingTask, writingTask
+- EVERY unit must define: anchorPhoneme, grammarGoal, prerequisiteUnit, skillsMix
+
+🚨 MANDATORY SPIRAL RULES:
+1. Unit N Lesson 1 MUST review Unit N-1's phoneme and include 2 vocabulary words from the previous unit
+2. Writing % MUST increase from ~5% (Unit 1) to ~40% (Unit ${unitCount})
+3. Phonics MUST follow: Individual Sounds → Blends → Digraphs
+4. Grammar MUST follow: Nouns → Articles → Plurals → Adjectives → Questions → Has/Have
+5. Every lesson MUST have explicit skill tags: L (Listening), S (Speaking), R (Reading), W (Writing)
+
+${spiralContext ? `\n🗺️ DEPENDENCY TREE CONTEXT (follow this exactly):\n${spiralContext}` : ''}
 
 🎯 THE "SLOWLY-SLOWLY" 3-LESSON CYCLE (apply to every unit):
-If a unit has 3 lessons, enforce this cycle exactly:
   Lesson 1 — "Discovery" (cycleType: "discovery"):
-    - FOCUS RATIO: 80% Phonics/Noun accuracy, 20% basic recognition activities
-    - Focus: 1 phoneme (short sound) + exactly 5 nouns
-    - Skills: Listening & Reading
-    - phonicsFocus: the IPA symbol (e.g. "/æ/")
+    - FOCUS RATIO: 80% Phonics/Noun accuracy, 20% basic recognition
+    - 1 phoneme + exactly 5 nouns
+    - skillsFocus: ["listening", "speaking"]
+    - phonicsFocus: the IPA symbol
     - vocabularyList: array of 5 noun objects [{word, definition}]
-    - grammarPattern: simple recognition pattern (e.g. "It is a ___")
-    - skillsFocus: ["listening", "reading"]
+    - grammarPattern: simple recognition pattern
   Lesson 2 — "The Ladder" (cycleType: "ladder"):
     - FOCUS RATIO: 80% Sentence building/Grammar, 20% vocabulary reinforcement
-    - Focus: Verbs + Adjectives, build Sentence Ladders
-    - Skills: Writing & Grammar
-    - vocabularyList: verbs + adjectives (max 5 words)
-    - grammarPattern: sentence ladder pattern (e.g. "It is a dog" → "It is a big dog")
-    - skillsFocus: ["writing", "grammar"]
+    - Verbs + Adjectives, build Sentence Ladders
+    - skillsFocus: ["reading", "writing", "grammar"]
   Lesson 3 — "The Bridge" (cycleType: "bridge"):
     - FOCUS RATIO: 80% Student production/Speaking, 20% teacher guidance
-    - Focus: Questions + Real-Life Use. The teacher should speak LESS and the student should speak MORE.
-    - Skills: Speaking & Fluency
-    - grammarPattern: question pattern (e.g. "What is it?", "Do you have a ___?")
+    - Questions + Real-Life Use
     - skillsFocus: ["speaking", "fluency"]
-    - Include a "realWorldMission" in the lesson content
-    - MANDATORY: Include a "masteryCheck" field with the exact target question the student must independently produce (e.g. "What is it?" or "Do you have a cat?"). If the student cannot produce this question independently, flag for a Review Lesson before advancing to the next unit.
-
-🔄 REVIEW LESSON MODE:
-If the request includes "reviewMode: true", generate a condensed 30-minute Review Lesson that:
-  - Revisits the unit's phoneme with 3 quick recognition activities
-  - Reviews all 5 core nouns from Lesson 1
-  - Practices the sentence ladder from Lesson 2
-  - Re-tests the target question from Lesson 3's masteryCheck
-  - cycleType: "review"
-  - Mark as isReview: true in the output
+    - MANDATORY: Include a "masteryCheck" target question
 
 🧠 COGNITIVE LOAD RULES:
-- NEVER introduce more than 1 new phoneme per lesson
-- NEVER introduce more than 5 new words per lesson
-- Every lesson must scaffold from Recognition → Production
+- NEVER more than 1 new phoneme per lesson
+- NEVER more than 5 new words per lesson
 
-🔁 INTERLEAVED REVIEW RULE:
-Every Lesson 1 (Discovery) of a NEW unit (unit number > 1) MUST include 2 vocabulary words from the PREVIOUS unit in its warm-up activities to ensure long-term retention.
-Include a "reviewWords" field in the lesson JSON with 2 words from the prior unit.
+🔁 INTERLEAVED REVIEW:
+Every Lesson 1 of a NEW unit (unit > 1) MUST include 2 vocabulary words from the PREVIOUS unit.
+Include a "reviewWords" field and a "bridgeRetrieval" field with 5 questions from the prior unit.
 
-📚 BALANCED SKILL OUTPUT:
-Every generated lesson MUST include these 4 task fields:
+📊 BALANCED SKILL OUTPUT:
+Every lesson MUST include:
 - "listeningTask": a decoding or sound-matching task
 - "speakingTask": a "Record & Compare" or oral production task
 - "readingTask": a CVC word blending or sight-word task
 - "writingTask": a tracing, typing, or fill-in-the-blank task
 
-🔗 BRIDGE RETRIEVAL:
-Every Lesson 1 of a NEW unit (unit number > 1) MUST begin with a 5-minute "Bridge Retrieval" pop quiz — 5 quick questions from the previous unit to activate spaced repetition before introducing new content.
-Include a "bridgeRetrieval" field with 5 question objects: [{question, expectedAnswer}].
-
-OUTPUT: Return ONLY a JSON array of ${unitCount} unit objects. Each unit has a "lessons" array.
-Each lesson object MUST include: title, objectives, grammarFocus, vocabularyTheme, cycleType, phonicsFocus (if discovery), vocabularyList, grammarPattern, skillsFocus, listeningTask, speakingTask, readingTask, writingTask.
-For Lesson 1 of units after Unit 1, also include: reviewWords, bridgeRetrieval.
-
+OUTPUT: Return ONLY a JSON array of ${unitCount} unit objects.
 Return ONLY the JSON array, no extra text.`;
   }
   
