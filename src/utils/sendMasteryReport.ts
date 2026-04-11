@@ -55,7 +55,14 @@ export async function sendMasteryReport({ studentId, unitId, milestoneResultId }
     .eq('id', unitId)
     .single();
 
-  // 4. Fetch vocabulary for this unit
+  // 4. Fetch Home Mission for this unit
+  const { data: mission } = await supabase
+    .from('unit_missions')
+    .select('mission_text, mission_tip, goal_description')
+    .eq('unit_id', unitId)
+    .single();
+
+  // 5. Fetch vocabulary for this unit
   const { data: vocabData } = await supabase
     .from('student_vocabulary_progress')
     .select('word')
@@ -64,7 +71,7 @@ export async function sendMasteryReport({ studentId, unitId, milestoneResultId }
 
   const vocabularyWords = (vocabData || []).map((v: any) => v.word);
 
-  // 5. Fetch phonics progress
+  // 6. Fetch phonics progress
   const { data: phonicsData } = await supabase
     .from('student_phonics_progress')
     .select('phoneme, mastery_level')
@@ -78,7 +85,7 @@ export async function sendMasteryReport({ studentId, unitId, milestoneResultId }
     ? `Your child mastered the ${masteredPhonemes.join(', ')} sound${masteredPhonemes.length > 1 ? 's' : ''} in this unit!`
     : 'Your child is developing their phonics skills.';
 
-  // 6. Build skill scores
+  // 7. Build skill scores
   const rawSkillScores = milestone.skill_scores as Record<string, number> | null;
   const skillScores = rawSkillScores
     ? Object.entries(rawSkillScores).map(([name, score]) => ({
@@ -89,7 +96,7 @@ export async function sendMasteryReport({ studentId, unitId, milestoneResultId }
       }))
     : [];
 
-  // 7. Attempt to send (with one retry on failure)
+  // 8. Attempt to send (with one retry on failure)
   const templateName = 'unit-mastery-report';
   const idempotencyKey = `mastery-report-${milestoneResultId}`;
 
@@ -108,7 +115,9 @@ export async function sendMasteryReport({ studentId, unitId, milestoneResultId }
           vocabularyWords,
           grammarPattern: '',
           realWorldWin: '',
-          homeActivity: '',
+          homeActivity: mission
+            ? `${mission.mission_text}${mission.mission_tip ? ' ' + mission.mission_tip : ''}`
+            : '',
           skillScores,
         },
       },
