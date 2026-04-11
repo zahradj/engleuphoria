@@ -71,7 +71,7 @@ export async function sendMasteryReport({ studentId, unitId, milestoneResultId }
 
   const vocabularyWords = (vocabData || []).map((v: any) => v.word);
 
-  // 5. Fetch phonics progress
+  // 6. Fetch phonics progress
   const { data: phonicsData } = await supabase
     .from('student_phonics_progress')
     .select('phoneme, mastery_level')
