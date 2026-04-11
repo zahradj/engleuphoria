@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Calendar, DollarSign } from "lucide-react";
+import { UnitMasteryReportButton } from "@/components/teacher/reports/UnitMasteryReportButton";
 
 interface DashboardTabProps {
   teacherName: string;
@@ -48,6 +49,22 @@ export const DashboardTab = ({ teacherName, teacherId }: DashboardTabProps) => {
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-medium">📄 Unit Mastery Reports</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-xs text-muted-foreground">
+            Generate Professional Flat 2.0 diagnostic reports for completed units.
+          </p>
+          <UnitMasteryReportButton
+            studentName="Noah Rodriguez"
+            unitName="Animals — Island 1"
+            score={95}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 };
