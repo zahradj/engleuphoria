@@ -15,8 +15,8 @@ import { SettingsPanel } from '@/components/admin/SettingsPanel';
 import { SuperAdminControlCenter } from '@/components/admin/SuperAdminControlCenter';
 import { AdminBroadcastCenter } from '@/components/admin/AdminBroadcastCenter';
 import { SystemEmailLog } from '@/components/admin/SystemEmailLog';
-import { ProfessionalHub } from '@/components/teacher/professional/ProfessionalHub';
 import { HiringKanbanBoard } from '@/components/admin/HiringKanbanBoard';
+import { StaffOperations } from '@/components/admin/StaffOperations';
 import { ScrollHeader } from '@/components/navigation/ScrollHeader';
 import { Loader2, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -81,13 +81,8 @@ const AdminDashboard = () => {
         return <AdminBroadcastCenter />;
       case 'email-log':
         return <SystemEmailLog />;
-      case 'professional-hub':
-        return (
-          <ProfessionalHub 
-            teacherName="Admin" 
-            teacherId={user?.id || ''} 
-          />
-        );
+      case 'staff-operations':
+        return <StaffOperations />;
       case 'hiring-pipeline':
         return <HiringKanbanBoard />;
       default:
