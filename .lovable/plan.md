@@ -1,110 +1,61 @@
 
 
-# Expand Practice Layers to 4+ Interactive Activities Each
+# Fix: Force Progressive Dependency-Linked Curriculum Generation
 
-## Overview
-Each of the three practice layers (Phonics, Vocabulary, Grammar) currently has 1-2 activities in the skeleton sequences. We will expand each layer to 4+ distinct interactive activity types, create the missing layer-specific components, wire them into the `DynamicSlideRenderer`, and update the skeleton sequences to accommodate the richer activity set.
+## Problem
+The curriculum generator sends the spiral skeleton as "context" to the AI, but the AI ignores it and generates random independent units. The fallback structure (used on AI failure) is also completely generic with no spiral logic. There is no validation that the AI output actually follows the dependency tree.
 
----
+## Root Cause
+1. The spiral skeleton is passed as a suggestion in the prompt, not enforced in code
+2. The fallback generator creates random theme-based units with no phonics/grammar progression
+3. No post-generation validation checks that Unit N references Unit N-1
 
-## The 12 New Activities (4 per layer)
+## Solution: Skeleton-First Generation
 
-### Layer 1: Phonics Foundation (4 activities)
-| Activity | Component | Description |
-|----------|-----------|-------------|
-| `phonics_slider` | `PhonicsSlider.tsx` | Student holds record button, waveform compared to master sound |
-| `phoneme_tap` | `PhonemeTap.tsx` | Grid of phoneme cards — tap the one matching the audio played |
-| `sound_sort` | `SoundSort.tsx` | Drag words into buckets by their target sound (e.g., short /a/ vs short /i/) |
-| `mouth_mirror` | `MouthMirror.tsx` | 2D mouth cross-section animation — student watches articulation + records voice to match |
+Instead of asking the AI to "invent" a progressive structure, **use the hard-coded skeleton as the structural backbone** and only ask the AI to flesh out creative details (titles, vocabulary words, activity descriptions). The skeleton IS the curriculum map — the AI just decorates it.
 
-### Layer 2: Vocabulary Bridge (4 activities)
-| Activity | Component | Description |
-|----------|-----------|-------------|
-| `sound_to_letter` | `SoundToLetter.tsx` | Word displayed with tappable letters — tap the letter containing the target phoneme |
-| `word_builder` | `WordBuilder.tsx` | Drag individual letters to build the target word from a scrambled set |
-| `picture_label` | `PictureLabel.tsx` | Flat 2.0 image shown — student types or selects the correct word label |
-| `odd_one_out` | `OddOneOut.tsx` | Four Flat 2.0 images shown — student taps the one that doesn't share the target sound |
+### 1. Refactor `handleGenerate` in `CurriculumGeneratorWizard.tsx`
 
-### Layer 3: Grammar Extension (4 activities)
-| Activity | Component | Description |
-|----------|-----------|-------------|
-| `grammar_blocks` | `GrammarBlocks.tsx` | Slot-based sentence builder — drag blocks (Article, Noun, Verb) into correct slots |
-| `sentence_scramble` | Reuses `AcademySentenceUnscramble.tsx` | Reorder jumbled words into a correct sentence |
-| `article_picker` | `ArticlePicker.tsx` | Given a noun + image, choose "a" or "an" (connected to vowel phoneme logic) |
-| `sentence_transform` | `SentenceTransform.tsx` | Transform a statement into a question or negative form by rearranging/adding blocks |
+- Load the spiral skeleton for the selected age group/level
+- Slice it to `config.unitCount` units, each with `config.lessonsPerUnit` lessons
+- Send each unit to the AI individually (or in batch) with the skeleton fields pre-filled, asking only for: creative title, 5 vocabulary words, activity descriptions, and objectives
+- Merge AI-generated details back into the skeleton structure
+- If AI fails, the skeleton itself IS the fallback — it already has phonics goals, grammar goals, skill mixes, cycle types, and dependency links
 
----
+### 2. Replace `generateFallbackStructure()` in `CurriculumGeneratorWizard.tsx`
 
-## File Changes
+- Instead of random themes, map directly from `BEGINNER_KIDS_SKELETON` (or the appropriate skeleton for the selected level)
+- Each fallback unit inherits `anchorPhoneme`, `grammarGoal`, `prerequisiteUnit`, `skillsMix` from the skeleton
+- Each fallback lesson inherits `cycleType`, `skillTags`, and `activities` from the skeleton
 
-### 1. New Activity Components (10 new files)
-Create in `src/components/lesson-player/activities/`:
-- `PhonicsSlider.tsx`, `PhonemeTap.tsx`, `SoundSort.tsx`, `MouthMirror.tsx`
-- `SoundToLetter.tsx`, `WordBuilder.tsx`, `PictureLabel.tsx`, `OddOneOut.tsx`
-- `GrammarBlocks.tsx`, `ArticlePicker.tsx`, `SentenceTransform.tsx`
+### 3. Add post-generation validation in `CurriculumGeneratorWizard.tsx`
 
-Each follows the existing pattern: accepts `slide`, `onCorrect`, `onIncorrect` props. Uses Flat 2.0 styling (rounded corners, navy accents, white backgrounds). Includes immediate feedback with animation (green glow / red shake) and XP reward trigger.
+After AI returns data, validate:
+- Unit N has `prerequisiteUnit === N-1` (for N > 1)
+- Phonics progression follows the skeleton order
+- Writing % increases across units
+- Lesson 1 of Unit N>1 has `cycleType === 'discovery'` and includes `reviewWords`
 
-### 2. Update `DynamicSlideRenderer.tsx`
-Import all 11 new components. Add activity type mappings in the `renderActivity()` switch for each hub:
-- Playground: all phonics + vocabulary activities
-- Academy: all vocabulary + grammar activities + phonics
-- Professional: grammar activities + vocabulary expansion
+If validation fails, override with skeleton values (keep AI-generated titles/vocab but fix the structural fields).
 
-### 3. Update `slideSkeletonEngine.ts`
-Expand each hub's sequence to include the three practice layers with varied activities. The 12-slide structure adjusts to use practice sub-layers:
+### 4. Update the UI preview to show dependencies
 
-**Playground (12 slides):**
-```
-1.  warmup  — tap_the_beat
-2.  warmup  — hello chant
-3.  prime   — visual priming word #1
-4.  prime   — visual priming word #2
-5.  mimic   — phonics_slider (Phonics Layer)
-6.  mimic   — phoneme_tap (Phonics Layer)
-7.  produce — sound_to_letter (Vocab Layer)
-8.  produce — word_builder (Vocab Layer)
-9.  produce — grammar_blocks (Grammar Layer)
-10. produce — article_picker (Grammar Layer)
-11. cooloff — celebration
-12. cooloff — goodbye
-```
+In the generated curriculum preview (the Collapsible list), add visual indicators:
+- Show a "← requires Unit N-1" badge on each unit header
+- Show the anchor phoneme and grammar goal prominently
+- Show skill mix as a mini bar chart or percentage badges
+- Color-code cycle types (Discovery=blue, Ladder=amber, Bridge=green) — already done, but make it more prominent
 
-Each sequence rotates through the 4 activities per layer across lessons (using a `practiceVariant` index) so students experience all 4+ activities across consecutive sessions — no two lessons feel the same.
+### 5. Update edge function prompt (`curriculum-expert-agent`)
 
-**Academy (12 slides):**
-```
-1.  warmup  — challenge intro
-2.  warmup  — speed_quiz
-3.  prime   — vocabulary deep-dive #1
-4.  prime   — vocabulary deep-dive #2
-5.  mimic   — sound_sort (Phonics)
-6.  mimic   — mouth_mirror (Phonics)
-7.  produce — picture_label (Vocab)
-8.  produce — odd_one_out (Vocab)
-9.  produce — sentence_scramble (Grammar)
-10. produce — sentence_transform (Grammar)
-11. cooloff — achievement unlock
-12. cooloff — next mission teaser
-```
+Change the `curriculum_structure` mode prompt to be more constrained:
+- Instead of "generate 10 units following this tree", say "here are the exact units with their phonics/grammar goals — generate ONLY the creative content (titles, vocabulary, activity descriptions)"
+- This reduces the chance of AI going off-script
 
-**Professional (12 slides):** similar pattern with age-appropriate grammar activities.
-
-### 4. Add `practiceLayer` field to `SlideSkeleton`
-Add `practiceLayer?: 'phonics' | 'vocabulary' | 'grammar'` to the `SlideSkeleton` interface. This feeds the Success Hub's layer-level tracking.
-
-### 5. Update `getSafeZone()` function
-Add safe zone rules for the new activity types (e.g., `sound_sort` needs bottom space for buckets, `grammar_blocks` needs bottom space for the formula bar).
-
----
-
-## Technical Summary
-
-| Area | Files Modified | Files Created |
-|------|---------------|---------------|
-| Activities | — | 11 new components in `activities/` |
-| Renderer | `DynamicSlideRenderer.tsx` | — |
-| Skeleton Engine | `slideSkeletonEngine.ts` | — |
-
-No database changes required.
+## Files Modified
+| File | Change |
+|------|--------|
+| `src/components/content-creator/CurriculumGeneratorWizard.tsx` | Skeleton-first generation, validated fallback, dependency UI |
+| `src/data/spiralCurriculumSkeleton.ts` | Add skeletons for teens/adults, add `toGeneratedUnit()` helper |
+| `supabase/functions/curriculum-expert-agent/index.ts` | Constrain `curriculum_structure` prompt to decoration-only |
 
