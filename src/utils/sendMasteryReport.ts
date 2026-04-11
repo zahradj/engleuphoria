@@ -115,7 +115,9 @@ export async function sendMasteryReport({ studentId, unitId, milestoneResultId }
           vocabularyWords,
           grammarPattern: '',
           realWorldWin: '',
-          homeActivity: '',
+          homeActivity: mission
+            ? `${mission.mission_text}${mission.mission_tip ? ' ' + mission.mission_tip : ''}`
+            : '',
           skillScores,
         },
       },
