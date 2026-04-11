@@ -29,6 +29,11 @@ import OddOneOut from './activities/OddOneOut';
 import GrammarBlocks from './activities/GrammarBlocks';
 import ArticlePicker from './activities/ArticlePicker';
 import SentenceTransform from './activities/SentenceTransform';
+// Four-Skill Activities
+import SoundSpotting from './activities/SoundSpotting';
+import TactileTracing from './activities/TactileTracing';
+import LetterHunt from './activities/LetterHunt';
+import SoundTrigger from './activities/SoundTrigger';
 // Slide types
 import SlideHook from './slides/SlideHook';
 import SlideVocabulary from './slides/SlideVocabulary';
