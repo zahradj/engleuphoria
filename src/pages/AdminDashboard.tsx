@@ -88,6 +88,8 @@ const AdminDashboard = () => {
             teacherId={user?.id || ''} 
           />
         );
+      case 'hiring-pipeline':
+        return <HiringKanbanBoard />;
       default:
         return <AdminOverview />;
     }
