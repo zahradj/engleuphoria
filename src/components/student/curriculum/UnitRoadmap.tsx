@@ -24,7 +24,7 @@ interface UnitWithLessons {
     completed: boolean;
   }[];
   masteryPassed: boolean;
-  milestoneResult: { score: number; passed: boolean; weakest_skill: string | null } | null;
+  milestoneResult: { id: string; score: number; passed: boolean; weakest_skill: string | null } | null;
 }
 
 /* Firefly dot for night mode */
