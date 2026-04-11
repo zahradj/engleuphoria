@@ -29,6 +29,11 @@ import OddOneOut from './activities/OddOneOut';
 import GrammarBlocks from './activities/GrammarBlocks';
 import ArticlePicker from './activities/ArticlePicker';
 import SentenceTransform from './activities/SentenceTransform';
+// Four-Skill Activities
+import SoundSpotting from './activities/SoundSpotting';
+import TactileTracing from './activities/TactileTracing';
+import LetterHunt from './activities/LetterHunt';
+import SoundTrigger from './activities/SoundTrigger';
 // Slide types
 import SlideHook from './slides/SlideHook';
 import SlideVocabulary from './slides/SlideVocabulary';
@@ -160,6 +165,11 @@ export default function DynamicSlideRenderer({
     if (actType === 'grammar_blocks') return <GrammarBlocks slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
     if (actType === 'article_picker') return <ArticlePicker slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
     if (actType === 'sentence_transform') return <SentenceTransform slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    // Four-Skill Activities
+    if (actType === 'sound_spotting') return <SoundSpotting slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    if (actType === 'tactile_tracing') return <TactileTracing slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    if (actType === 'letter_hunt') return <LetterHunt slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
+    if (actType === 'sound_trigger') return <SoundTrigger slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;
 
     // ── Cross-hub generic activities ─────────────────────────────
     if (actType === 'word_bank') return <WordBank slide={slide} onCorrect={onCorrectAnswer} onIncorrect={onIncorrectAnswer} />;

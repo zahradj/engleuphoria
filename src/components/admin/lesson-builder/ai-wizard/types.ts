@@ -22,7 +22,9 @@ export type ActivityType =
   // Practice Layer — Vocabulary
   | 'sound_to_letter' | 'word_builder' | 'picture_label' | 'odd_one_out'
   // Practice Layer — Grammar
-  | 'grammar_blocks' | 'article_picker' | 'sentence_transform';
+  | 'grammar_blocks' | 'article_picker' | 'sentence_transform'
+  // Four-Skill Activities
+  | 'sound_spotting' | 'tactile_tracing' | 'letter_hunt' | 'sound_trigger';
 
 export type SlideLayout = 'split' | 'centered' | 'bento';
 
