@@ -5722,6 +5722,66 @@ export type Database = {
           },
         ]
       }
+      payroll_records: {
+        Row: {
+          base_pay: number
+          bonus_amount: number
+          created_at: string
+          hourly_rate: number
+          id: string
+          month: number
+          notes: string | null
+          payment_method: string | null
+          payment_status: string
+          processed_at: string | null
+          teacher_id: string
+          teacher_name: string | null
+          total_earned: number
+          total_hours: number
+          total_lessons: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          base_pay?: number
+          bonus_amount?: number
+          created_at?: string
+          hourly_rate?: number
+          id?: string
+          month: number
+          notes?: string | null
+          payment_method?: string | null
+          payment_status?: string
+          processed_at?: string | null
+          teacher_id: string
+          teacher_name?: string | null
+          total_earned?: number
+          total_hours?: number
+          total_lessons?: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          base_pay?: number
+          bonus_amount?: number
+          created_at?: string
+          hourly_rate?: number
+          id?: string
+          month?: number
+          notes?: string | null
+          payment_method?: string | null
+          payment_status?: string
+          processed_at?: string | null
+          teacher_id?: string
+          teacher_name?: string | null
+          total_earned?: number
+          total_hours?: number
+          total_lessons?: number
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
       performance_alerts: {
         Row: {
           alert_message: string
@@ -6604,6 +6664,54 @@ export type Database = {
           session_type?: string
           student_id?: string
           xp_earned?: number
+        }
+        Relationships: []
+      }
+      staff_contracts: {
+        Row: {
+          base_rate_eur: number
+          bonus_structure: Json | null
+          contract_pdf_url: string | null
+          contract_status: string
+          contract_type: string
+          created_at: string
+          end_date: string | null
+          id: string
+          signed_at: string | null
+          start_date: string
+          teacher_id: string
+          teacher_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          base_rate_eur?: number
+          bonus_structure?: Json | null
+          contract_pdf_url?: string | null
+          contract_status?: string
+          contract_type?: string
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          signed_at?: string | null
+          start_date: string
+          teacher_id: string
+          teacher_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          base_rate_eur?: number
+          bonus_structure?: Json | null
+          contract_pdf_url?: string | null
+          contract_status?: string
+          contract_type?: string
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          signed_at?: string | null
+          start_date?: string
+          teacher_id?: string
+          teacher_name?: string | null
+          updated_at?: string
         }
         Relationships: []
       }

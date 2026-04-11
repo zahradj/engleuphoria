@@ -19,6 +19,7 @@ import {
   ChevronDown,
   User,
   Settings,
+  DollarSign,
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 
@@ -29,6 +30,7 @@ export type ProfessionalTab =
   | 'schedule'
   | 'analytics'
   | 'lesson-architect'
+  | 'earnings'
   | 'account';
 
 interface ProfessionalNavProps {
@@ -46,6 +48,7 @@ const navItems: { id: ProfessionalTab; label: string; icon: React.ElementType }[
   { id: 'reports', label: 'Reports', icon: FileText },
   { id: 'schedule', label: 'Schedule', icon: Calendar },
   { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+  { id: 'earnings', label: 'My Earnings', icon: DollarSign },
 ];
 
 export const ProfessionalNav: React.FC<ProfessionalNavProps> = ({

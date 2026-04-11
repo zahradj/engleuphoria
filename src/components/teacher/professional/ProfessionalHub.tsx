@@ -9,6 +9,7 @@ import { ProfileOnboardingModal } from '../dashboard/ProfileOnboardingModal';
 import { PendingReviewBanner } from '../dashboard/PendingReviewBanner';
 import { ProfileSetupTab } from '../ProfileSetupTab';
 import { StudentLearningAnalytics } from '../analytics/StudentLearningAnalytics';
+import { TeacherEarnings } from '../TeacherEarnings';
 import { ClassScheduler } from '../scheduler';
 import { UnitMasteryReport } from '../dashboard/UnitMasteryReport';
 import { MasteryOverview } from '../dashboard/MasteryOverview';
@@ -77,6 +78,8 @@ export const ProfessionalHub: React.FC<ProfessionalHubProps> = ({
           return <ClassScheduler teacherName={teacherName} teacherId={teacherId} />;
         case 'analytics':
           return <StudentLearningAnalytics teacherId={teacherId} />;
+        case 'earnings':
+          return <TeacherEarnings teacherId={teacherId} />;
         case 'account':
           return <ProfileSetupTab teacherId={teacherId} />;
         case 'lesson-architect':
