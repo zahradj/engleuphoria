@@ -7172,6 +7172,77 @@ export type Database = {
           },
         ]
       }
+      student_mastery: {
+        Row: {
+          created_at: string | null
+          grammar_score: number | null
+          id: string
+          last_assessed_at: string | null
+          listening_score: number | null
+          phonics_score: number | null
+          reading_score: number | null
+          scaffold_level: Database["public"]["Enums"]["scaffold_level"] | null
+          speaking_score: number | null
+          student_id: string
+          teacher_override_notes: string | null
+          teacher_override_scaffold:
+            | Database["public"]["Enums"]["scaffold_level"]
+            | null
+          unit_id: string
+          updated_at: string | null
+          vocab_score: number | null
+          writing_score: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          grammar_score?: number | null
+          id?: string
+          last_assessed_at?: string | null
+          listening_score?: number | null
+          phonics_score?: number | null
+          reading_score?: number | null
+          scaffold_level?: Database["public"]["Enums"]["scaffold_level"] | null
+          speaking_score?: number | null
+          student_id: string
+          teacher_override_notes?: string | null
+          teacher_override_scaffold?:
+            | Database["public"]["Enums"]["scaffold_level"]
+            | null
+          unit_id: string
+          updated_at?: string | null
+          vocab_score?: number | null
+          writing_score?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          grammar_score?: number | null
+          id?: string
+          last_assessed_at?: string | null
+          listening_score?: number | null
+          phonics_score?: number | null
+          reading_score?: number | null
+          scaffold_level?: Database["public"]["Enums"]["scaffold_level"] | null
+          speaking_score?: number | null
+          student_id?: string
+          teacher_override_notes?: string | null
+          teacher_override_scaffold?:
+            | Database["public"]["Enums"]["scaffold_level"]
+            | null
+          unit_id?: string
+          updated_at?: string | null
+          vocab_score?: number | null
+          writing_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_mastery_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_package_purchases: {
         Row: {
           expires_at: string | null
@@ -9619,6 +9690,7 @@ export type Database = {
         | "general_discussion"
       community_privacy: "public" | "private" | "invite_only"
       community_role: "owner" | "moderator" | "member" | "guest"
+      scaffold_level: "heavy" | "medium" | "light" | "independent"
       student_level: "playground" | "academy" | "professional"
     }
     CompositeTypes: {
@@ -9760,6 +9832,7 @@ export const Constants = {
       ],
       community_privacy: ["public", "private", "invite_only"],
       community_role: ["owner", "moderator", "member", "guest"],
+      scaffold_level: ["heavy", "medium", "light", "independent"],
       student_level: ["playground", "academy", "professional"],
     },
   },
