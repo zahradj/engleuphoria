@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { ConfettiEffect } from '@/components/gamification/ConfettiEffect';
 import { useTimeOfDay } from '@/hooks/useTimeOfDay';
 import { useReinforcementLesson } from '@/hooks/useReinforcementLesson';
+import { sendMasteryReport } from '@/utils/sendMasteryReport';
 
 interface UnitWithLessons {
   id: string;
