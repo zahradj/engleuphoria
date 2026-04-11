@@ -7504,6 +7504,62 @@ export type Database = {
         }
         Relationships: []
       }
+      student_vocabulary_progress: {
+        Row: {
+          audio_url: string | null
+          created_at: string | null
+          first_seen_at: string | null
+          id: string
+          last_reviewed_at: string | null
+          mastered: boolean | null
+          mastery_level: number | null
+          phoneme_tag: string | null
+          sticker_image_url: string | null
+          student_id: string
+          times_reviewed: number | null
+          unit_id: string | null
+          word: string
+        }
+        Insert: {
+          audio_url?: string | null
+          created_at?: string | null
+          first_seen_at?: string | null
+          id?: string
+          last_reviewed_at?: string | null
+          mastered?: boolean | null
+          mastery_level?: number | null
+          phoneme_tag?: string | null
+          sticker_image_url?: string | null
+          student_id: string
+          times_reviewed?: number | null
+          unit_id?: string | null
+          word: string
+        }
+        Update: {
+          audio_url?: string | null
+          created_at?: string | null
+          first_seen_at?: string | null
+          id?: string
+          last_reviewed_at?: string | null
+          mastered?: boolean | null
+          mastery_level?: number | null
+          phoneme_tag?: string | null
+          sticker_image_url?: string | null
+          student_id?: string
+          times_reviewed?: number | null
+          unit_id?: string | null
+          word?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_vocabulary_progress_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_xp: {
         Row: {
           created_at: string
