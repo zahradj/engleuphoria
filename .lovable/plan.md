@@ -1,96 +1,74 @@
 
 
-## Plan: Professional Hub Separation — Academy, Playground, Map of Sounds, and Lesson Layout Upgrade
+## Plan: Refactor Automated Email System — Clean Architecture with Notification Logging
 
-This plan refactors the three student hubs into distinct, polished interfaces while preserving the shared systematic curriculum DNA. Each hub gets its own design language, and shared components (Map of Sounds, Lesson Player) adapt per-hub context.
-
----
-
-### Step 1 — Academy Hub: "Core School" Apple-Style Redesign
-
-**Modify**: `src/components/student/dashboards/AcademyDashboard.tsx`
-
-Full visual overhaul to a clean, professional EdTech aesthetic:
-
-- **Typography**: Switch from current neon/cyberpunk style to Inter font family with generous whitespace
-- **Color system**: `#1A237E` (Deep Navy) for headers, `#4CAF50` (Forest Green) for success states, white/slate backgrounds — replace all purple/cyan neon gradients
-- **Layout**: Remove dark-mode-first design. Use a light, minimal sidebar with navy icons. Clean card borders with subtle shadows instead of glow effects
-- **Unit Roadmap integration**: Add a minimalist "Unit Path" section with lock/unlock icons using the existing `UnitRoadmap` data
-- **Leaderboard**: Restyle with navy/white palette, remove neon glow effects
-- **Schedule**: Clean table-style layout with green accent for upcoming sessions
-- **Overall**: Zero visual noise — no gradients, no glow, no neon. Professional flat cards with 8px radius
+The existing email infrastructure (Lovable's queue-based `send-transactional-email` Edge Function, the `unit-mastery-report` template, and the verified `notify.engleuphoria.com` domain) is already solid and production-ready. This refactor cleans up the trigger logic, adds a `notification_logs` tracking table, and ensures the mastery report fires reliably from a single, well-defined trigger point.
 
 ---
 
-### Step 2 — Playground Hub: "Flat 2.0" with Time-Sync Polish
+### What Already Works (No Changes Needed)
 
-**Modify**: `src/components/student/dashboards/PlaygroundDashboard.tsx`
-
-Enhance the existing Playground with the "Flat 2.0" design language:
-
-- **Corners**: Increase border-radius to 24px on all interactive cards
-- **Time-Sync integration**: Import `useTimeOfDay` and apply:
-  - **Day Mode** (6AM–6PM): Sky blues (`#87CEEB`), bright energy colors, vibrant icons
-  - **Night Mode** (6PM–6AM): Deep purples (`#2D1B69`), glowing icons with subtle amber glow
-- **Interactive Stage**: Add a prominent "Sound Lab" button in the right panel that links to `MapOfSounds`
-- **Star Meter**: Add a bottom progress bar with smooth `transition-all duration-700` animation that fills as tasks complete
-- **Feedback**: Snappy scale animations on task completion (using Framer Motion `whileTap={{ scale: 0.95 }}`)
-- **Overall**: Keep playful but elevate to sophisticated — remove Fredoka font dependency from main layout, use rounded modern sans-serif
+- **Email delivery**: The `send-transactional-email` Edge Function handles rendering, suppression checks, queuing, retries, and dead-letter routing via `process-email-queue`
+- **Email template**: `unit-mastery-report.tsx` is a professional, branded template with skill breakdowns, phonics, and vocabulary sections
+- **Sender identity**: Emails send from `support@engleuphoria.com` via verified `notify.engleuphoria.com`
 
 ---
 
-### Step 3 — Academy Lesson Layout: 2-Column "Learning Stage"
+### Step 1 — Create `notification_logs` Table
 
-**New file**: `src/components/student/academy/AcademyLessonLayout.tsx`
-
-A dedicated lesson view component for Academy students:
-
-- **Left column (75%)**: "Learning Stage" — centered hero area for vocabulary images, sentence building, and interactive content. Uses the existing `DynamicSlideRenderer`
-- **Right column (25%)**: "Teacher Sidebar" — displays:
-  - Current lesson objectives (from curriculum data)
-  - The II Wizard's script/prompts panel
-  - A "Student Success" toggle (marks engagement level)
-- **Color**: Navy headers, green success indicators, white content area
-- **Responsive**: Collapses to single column on mobile
-
----
-
-### Step 4 — Map of Sounds: Professional Tile Grid
-
-**Modify**: `src/components/student/curriculum/MapOfSounds.tsx`
-
-Upgrade to match the "Professional Flat 2.0" style:
-
-- **Tiles**: Replace current cards with minimalist square tiles (equal size grid)
-- **States**: Unseen = light gray, In-progress = outlined, Mastered = gold fill with subtle shadow
-- **Night mode**: Mastered tiles get a soft amber `box-shadow` glow (already partially implemented — refine the effect)
-- **Hub adaptation**: Accept an optional `hub` prop. Academy uses navy/green palette. Playground uses amber/purple palette
-- **Placement**: Ensure the component is prominently placed in both Academy and Playground dashboards
-
----
-
-### Step 5 — Design Tokens: Hub Color Constants
-
-**New file**: `src/constants/hubDesignTokens.ts`
-
-Centralized design tokens for each hub:
+**Migration**: Add a tracking table so teachers can see email status in the Professional Hub.
 
 ```text
-academy:  { primary: '#1A237E', success: '#4CAF50', bg: '#FAFBFC', text: '#1E293B', radius: '8px' }
-playground: { primary: '#FF9F1C', success: '#4CAF50', bg: { day: '#E3F2FD', night: '#1A1040' }, text: '#1A1A2E', radius: '24px' }
-professional: { primary: '#059669', success: '#059669', bg: '#F8FAFC', text: '#1E293B', radius: '8px' }
+notification_logs (
+  id UUID PK,
+  student_id UUID NOT NULL,
+  unit_id UUID,
+  recipient_email TEXT NOT NULL,
+  template_name TEXT NOT NULL,
+  status TEXT CHECK ('sent', 'failed', 'pending'),
+  error_message TEXT,
+  email_sent_at TIMESTAMPTZ DEFAULT NOW(),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+)
 ```
 
-Import these tokens in all hub-specific components to ensure palette consistency.
+RLS: Teachers can read logs for their students. Students can read their own.
 
 ---
 
-### Step 6 — Tailwind Config: Inter Font + Academy Utilities
+### Step 2 — Rewrite `sendMasteryReport.ts`
 
-**Modify**: `tailwind.config.ts`
+**Modify**: `src/utils/sendMasteryReport.ts`
 
-- Add `'inter': ['Inter', 'system-ui', 'sans-serif']` to `fontFamily`
-- Add academy-specific color aliases: `academy-navy: '#1A237E'`, `academy-green: '#4CAF50'`
+Clean rewrite with proper error handling and `notification_logs` integration:
+
+1. Accept `studentId`, `unitId`, `milestoneResultId`
+2. Fetch profile, unit, milestone data, vocabulary, and phonics progress (same as current)
+3. Gate on score >= 80% (not just `passed`)
+4. Call `send-transactional-email` with the `unit-mastery-report` template
+5. **Insert into `notification_logs`** with status `sent` or `failed`
+6. On failure: retry once, then log `failed` with `error_message`
+7. Return structured result for the caller
+
+---
+
+### Step 3 — Wire Trigger in UnitRoadmap
+
+**Modify**: `src/components/student/curriculum/UnitRoadmap.tsx`
+
+Ensure `sendMasteryReport` is called when a milestone result is recorded with score >= 80%. Currently the function exists but is never imported or called anywhere. Add the call at the point where milestone completion is confirmed.
+
+---
+
+### Step 4 — Teacher Notification Log View
+
+**Modify**: `src/components/teacher/professional/CommandCenter.tsx`
+
+Add a "Notification Log" section showing recent email sends:
+- Table with columns: Student, Template, Recipient, Status, Sent At, Error
+- Filter by status (Sent/Failed)
+- Data source: `notification_logs` table
+- Failed emails highlighted in soft red (`#EF5350`)
 
 ---
 
@@ -98,20 +76,16 @@ Import these tokens in all hub-specific components to ensure palette consistency
 
 | Area | Action |
 |------|--------|
-| AcademyDashboard | Full redesign: Apple-style, navy/green, Inter font, zero noise |
-| PlaygroundDashboard | Flat 2.0 polish: 24px radius, time-sync day/night, Star Meter |
-| AcademyLessonLayout | New 2-column lesson view (75% stage + 25% teacher sidebar) |
-| MapOfSounds | Professional tile grid, hub-aware palette, refined night glow |
-| Design tokens | New `hubDesignTokens.ts` for centralized palette management |
-| Tailwind | Add Inter font, academy color aliases |
+| Migration | Create `notification_logs` table with RLS |
+| `sendMasteryReport.ts` | Rewrite with retry logic + notification logging |
+| UnitRoadmap | Wire the trigger on score >= 80% |
+| CommandCenter | Add notification log view for teachers |
 
 ### Files to Create
-- `src/components/student/academy/AcademyLessonLayout.tsx`
-- `src/constants/hubDesignTokens.ts`
+- Database migration for `notification_logs`
 
 ### Files to Modify
-- `src/components/student/dashboards/AcademyDashboard.tsx`
-- `src/components/student/dashboards/PlaygroundDashboard.tsx`
-- `src/components/student/curriculum/MapOfSounds.tsx`
-- `tailwind.config.ts`
+- `src/utils/sendMasteryReport.ts`
+- `src/components/student/curriculum/UnitRoadmap.tsx`
+- `src/components/teacher/professional/CommandCenter.tsx`
 
