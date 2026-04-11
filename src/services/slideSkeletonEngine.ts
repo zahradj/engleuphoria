@@ -246,6 +246,32 @@ function getSafeZone(activityType: string | null, mascotPosition: MascotPosition
   return 'Centered composition, balanced negative space for text overlay';
 }
 
+// ─── Lesson Focus Ratio (Progressive Unit Logic) ──────────────────
+export type LessonFocusType = 'introduction' | 'expansion' | 'mastery';
+
+const FOCUS_RATIOS: Record<LessonFocusType, { phonics: number; vocabulary: number; grammar: number }> = {
+  introduction: { phonics: 70, vocabulary: 30, grammar: 0 },
+  expansion:    { phonics: 30, vocabulary: 35, grammar: 35 },
+  mastery:      { phonics: 20, vocabulary: 30, grammar: 50 },
+};
+
+// Activity pools for rotation across consecutive lessons
+const PHONICS_ACTIVITIES: string[] = ['phonics_slider', 'phoneme_tap', 'sound_sort', 'mouth_mirror'];
+const VOCAB_ACTIVITIES: string[] = ['sound_to_letter', 'word_builder', 'picture_label', 'odd_one_out'];
+const GRAMMAR_ACTIVITIES: string[] = ['grammar_blocks', 'article_picker', 'sentence_transform', 'sentence_unscramble'];
+
+function selectActivities(
+  pool: string[],
+  count: number,
+  variantIndex: number,
+): string[] {
+  const result: string[] = [];
+  for (let i = 0; i < count; i++) {
+    result.push(pool[(variantIndex + i) % pool.length]);
+  }
+  return result;
+}
+
 // ─── Main Generator ───────────────────────────────────────────────
 export function generateSlideSkeletons(params: {
   lessonId: string;
@@ -254,9 +280,46 @@ export function generateSlideSkeletons(params: {
   levelName: string;
   accessoryName: string | null;
   topic: string;
+  lessonFocus?: LessonFocusType;
+  practiceVariant?: number;
 }): LessonSkeletonPlan {
-  const { lessonId, lessonTitle, hub, levelName, accessoryName, topic } = params;
-  const sequence = SEQUENCES[hub];
+  const {
+    lessonId, lessonTitle, hub, levelName, accessoryName, topic,
+    lessonFocus = 'expansion',
+    practiceVariant = 0,
+  } = params;
+
+  const baseSequence = SEQUENCES[hub];
+  const ratio = FOCUS_RATIOS[lessonFocus];
+
+  // Calculate how many practice slides per layer (out of the 4 practice slots: slides 5-6 mimic + 7-10 produce = 6 practice slots)
+  const totalPracticeSlots = baseSequence.filter(s => s.practiceLayer).length;
+  const phonicsSlots = Math.max(1, Math.round((ratio.phonics / 100) * totalPracticeSlots));
+  const grammarSlots = Math.max(ratio.grammar > 0 ? 1 : 0, Math.round((ratio.grammar / 100) * totalPracticeSlots));
+  const vocabSlots = Math.max(1, totalPracticeSlots - phonicsSlots - grammarSlots);
+
+  // Select rotated activities for this lesson variant
+  const phonicsActs = selectActivities(PHONICS_ACTIVITIES, phonicsSlots, practiceVariant);
+  const vocabActs = selectActivities(VOCAB_ACTIVITIES, vocabSlots, practiceVariant);
+  const grammarActs = selectActivities(GRAMMAR_ACTIVITIES, grammarSlots, practiceVariant);
+
+  // Replace practice activities in the sequence based on focus ratio
+  let phonicsIdx = 0, vocabIdx = 0, grammarIdx = 0;
+
+  const sequence = baseSequence.map(step => {
+    if (!step.practiceLayer) return step;
+
+    if (step.practiceLayer === 'phonics' && phonicsIdx < phonicsActs.length) {
+      return { ...step, activityType: phonicsActs[phonicsIdx++] };
+    }
+    if (step.practiceLayer === 'vocabulary' && vocabIdx < vocabActs.length) {
+      return { ...step, activityType: vocabActs[vocabIdx++] };
+    }
+    if (step.practiceLayer === 'grammar' && grammarIdx < grammarActs.length) {
+      return { ...step, activityType: grammarActs[grammarIdx++] };
+    }
+    return step;
+  });
 
   const skeletons: SlideSkeleton[] = sequence.map((step, index) => {
     const slideNumber = index + 1;
