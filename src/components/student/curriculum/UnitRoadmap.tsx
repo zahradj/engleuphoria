@@ -50,7 +50,33 @@ export const UnitRoadmap: React.FC = () => {
     }
   }, [celebratedUnit]);
 
-  const { data: units = [], isLoading } = useQuery({
+  // Track which milestones we've already sent reports for this session
+  const sentReportsRef = useRef<Set<string>>(new Set());
+
+  // Trigger mastery report emails for newly passed milestones (score >= 80%)
+  useEffect(() => {
+    if (!user?.id || units.length === 0) return;
+    
+    for (const unit of units) {
+      const milestone = (unit as any).milestoneResult;
+      if (
+        milestone &&
+        milestone.passed &&
+        Number(milestone.score) >= 80 &&
+        milestone.id &&
+        !sentReportsRef.current.has(milestone.id)
+      ) {
+        sentReportsRef.current.add(milestone.id);
+        sendMasteryReport({
+          studentId: user.id,
+          unitId: (unit as any).id,
+          milestoneResultId: milestone.id,
+        }).catch((err) => console.error('Mastery report send error:', err));
+      }
+    }
+  }, [units, user?.id]);
+
+
     queryKey: ['unit-roadmap', user?.id],
     queryFn: async () => {
       const { data: unitsData, error: unitsError } = await supabase
