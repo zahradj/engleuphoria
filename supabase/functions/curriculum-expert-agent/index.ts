@@ -173,24 +173,47 @@ Return valid JSON with this structure:
   "implementationGuide": "Start with diagnostic assessment. Follow unit sequence."
 }`;
 
-const ECA_CURRICULUM_STRUCTURE_PROMPT = `You are EngCurriculum Expert (ECA) — a professional English Curriculum Specialist. Your task is to generate a detailed curriculum structure with UNITS and LESSONS for each unit.
+const ECA_CURRICULUM_STRUCTURE_PROMPT = `You are EngCurriculum Expert (ECA) — a SENIOR Curriculum Architect building a SPIRAL CURRICULUM where each unit builds on the previous one.
 
-🎯 CRITICAL REQUIREMENTS:
-- Every unit MUST contain its full list of lessons
-- Each lesson MUST have a title, learning objectives, grammar focus, and vocabulary theme
-- Lessons should follow a logical pedagogical progression within the unit
-- Content must be age-appropriate and CEFR-aligned
+🚨 CRITICAL: You are NOT a flashcard generator. You are a Curriculum Designer enforcing a DEPENDENCY TREE.
 
-GRAMMAR RANGE BY LEVEL:
-- beginner (A1): be verbs, simple present, can/can't, this/that, plurals, prepositions, there is/are
-- elementary (A2): past simple, comparatives, future (going to), present continuous, some/any, modals
-- pre-intermediate (B1): present perfect, past continuous, first conditional, passive voice, relative clauses
-- intermediate (B2): second conditional, past perfect, gerunds/infinitives, narrative tenses, mixed conditionals
+🏛️ THE SPIRAL STAIRCASE RULES (MANDATORY):
+1. PHONICS PROGRESSION: Individual Sounds → Blends → Digraphs. Each unit introduces exactly ONE new phoneme.
+2. GRAMMAR PROGRESSION: Nouns → "It is a..." → "Is it a...?" (Questions) → Plurals → Adjectives → Has/Have → Possessives → Prepositions → Present Simple.
+3. SKILL PROGRESSION: Writing % MUST increase as units progress (Unit 1: 5% writing → Unit 10: 40% writing).
+4. DEPENDENCY: Unit N MUST reference Unit N-1. Lesson 1 of every unit after Unit 1 MUST include a "Bridge Retrieval" review of the previous unit.
 
-VOCABULARY THEMES BY AGE:
-- kids: animals, food, family, school, clothes, weather, toys, colors, daily routines, hobbies
-- teens: social media, technology, environment, identity, travel, careers, health, entertainment
-- adults: business, finance, professional development, global issues, culture, academic topics
+📋 THE 10-UNIT DEPENDENCY TREE:
+Unit 1: /s/ → Noun ID ("It is a...") | L=40% S=40% R=15% W=5%
+Unit 2: /m/ → Articles (a vs an) | L=30% S=30% R=25% W=15% ← requires Unit 1
+Unit 3: /t/ → Plurals (-s) | L=25% S=30% R=25% W=20% ← requires Unit 2
+Unit 4: /æ/ → Adjective+Noun | L=20% S=30% R=25% W=25% ← requires Unit 3
+Unit 5: /p/ → Questions ("Do you like?") | L=20% S=30% R=25% W=25% ← requires Unit 4
+Unit 6: /ɪ/ → Has/Have | L=15% S=25% R=30% W=30% ← requires Unit 5
+Unit 7: /n/ → Possessives (my/your) | L=15% S=25% R=30% W=30% ← requires Unit 6
+Unit 8: /ɒ/ → Prepositions (in/on/under) | L=10% S=25% R=30% W=35% ← requires Unit 7
+Unit 9: /ʃ/ → Present Simple | L=10% S=20% R=30% W=40% ← requires Unit 8
+Unit 10: /tʃ/ → Grand Review | L=10% S=20% R=30% W=40% ← requires Unit 9
+
+🎯 EACH UNIT MUST DEFINE:
+- "anchorPhoneme": the IPA symbol for this unit's new sound
+- "grammarGoal": the structural target
+- "prerequisiteUnit": the unit number that must be completed first (null for Unit 1)
+- "skillsMix": { listening: %, speaking: %, reading: %, writing: % } — must sum to 100
+- "reviewWordsFromPrevUnit": 2 words from the previous unit's vocabulary
+
+🎯 EACH LESSON MUST INCLUDE SKILL TAGS:
+Every slide/activity must be tagged with one of: L (Listening), S (Speaking), R (Reading), W (Writing).
+- Slide 1 MUST be Listening (Sound Awareness)
+- Slide 2 MUST be Speaking (Physical Accuracy)
+- Slide 3 MUST be Reading (Visual Recognition)
+- Slide 4 MUST be Grammar/Reading (Building Blocks)
+- Slide 5 MUST be Writing (Motor Memory / Tracing)
+
+🔗 LESSON CYCLE per unit (if 3 lessons per unit):
+  Lesson 1 — "Discovery": 80% Phonics focus, introduce the anchor phoneme + 5 nouns
+  Lesson 2 — "Ladder": 80% Grammar/Sentence building
+  Lesson 3 — "Bridge": 80% Student production/Speaking
 
 OUTPUT FORMAT:
 Return a valid JSON ARRAY of units. Each unit contains a lessons array.
@@ -199,17 +222,25 @@ Return a valid JSON ARRAY of units. Each unit contains a lessons array.
   {
     "unitNumber": 1,
     "title": "Unit Title: Thematic Name",
+    "anchorPhoneme": "/s/",
+    "grammarGoal": "Noun Identification (It is a...)",
+    "prerequisiteUnit": null,
+    "skillsMix": { "listening": 40, "speaking": 40, "reading": 15, "writing": 5 },
     "lessons": [
       {
         "lessonNumber": 1,
         "title": "Lesson title (engaging and specific)",
-        "objectives": [
-          "Students will be able to ...",
-          "Students will learn ... new vocabulary items",
-          "Students will practise ... skills"
-        ],
+        "objectives": ["Students will be able to ..."],
         "grammarFocus": "specific grammar point",
-        "vocabularyTheme": "specific vocabulary category"
+        "vocabularyTheme": "specific vocabulary category",
+        "cycleType": "discovery",
+        "phonicsFocus": "/s/",
+        "skillsFocus": ["listening", "speaking"],
+        "skillTags": ["L", "S", "R"],
+        "listeningTask": "Sound recognition task",
+        "speakingTask": "Mimic/pronunciation task",
+        "readingTask": "Visual recognition task",
+        "writingTask": "Tracing/typing task"
       }
     ]
   }
@@ -217,10 +248,10 @@ Return a valid JSON ARRAY of units. Each unit contains a lessons array.
 
 IMPORTANT:
 - Return ONLY the JSON array, no extra text
-- Each unit must have EXACTLY the requested number of lessons
-- Lesson titles should be creative, engaging, and topic-specific (NOT generic like "Lesson 1")
-- Grammar focus should progress logically across lessons
-- Vocabulary themes should be varied and age-appropriate`;
+- Each unit MUST have the dependency fields (anchorPhoneme, grammarGoal, prerequisiteUnit, skillsMix)
+- Lesson titles must be creative and topic-specific (NOT generic)
+- Grammar and phonics MUST follow the progression tree above — DO NOT skip or randomize`;
+
 
 const ECA_ASSESSMENT_PROMPT = `You are EngCurriculum Expert (ECA) — a professional English Curriculum Specialist creating assessments for young learners and teens aged 5–17 (Pre-A1 to B2).
 
@@ -560,6 +591,7 @@ interface GenerationRequest {
   unitCount?: number;
   lessonsPerUnit?: number;
   level?: string;
+  spiralDependencyContext?: string;
 
   // Mastery milestone params
   unitTitle?: string;
@@ -649,72 +681,61 @@ function buildUserPrompt(requestData: GenerationRequest): string {
     const lessonsPerUnit = requestData.lessonsPerUnit || 3;
     const level = requestData.level || 'beginner';
     const ageGroup = requestData.ageGroup || 'kids';
-    userPrompt = `Generate a complete curriculum structure for ${ageGroup} learners at ${level} level.
+    
+    // Inject the spiral dependency context if provided
+    const spiralContext = requestData.spiralDependencyContext || '';
+    
+    userPrompt = `Generate a PROGRESSIVE SPIRAL curriculum structure for ${ageGroup} learners at ${level} level.
 
 Requirements:
 - Generate exactly ${unitCount} units
-- Each unit must have exactly ${lessonsPerUnit} lessons (ideally 3 per unit for the "Slowly-Slowly" cycle)
-- Each lesson needs: title, 3 objectives, grammarFocus, vocabularyTheme
+- Each unit must have exactly ${lessonsPerUnit} lessons
+- Each lesson needs: title, 3 objectives, grammarFocus, vocabularyTheme, cycleType, skillTags, listeningTask, speakingTask, readingTask, writingTask
+- EVERY unit must define: anchorPhoneme, grammarGoal, prerequisiteUnit, skillsMix
+
+🚨 MANDATORY SPIRAL RULES:
+1. Unit N Lesson 1 MUST review Unit N-1's phoneme and include 2 vocabulary words from the previous unit
+2. Writing % MUST increase from ~5% (Unit 1) to ~40% (Unit ${unitCount})
+3. Phonics MUST follow: Individual Sounds → Blends → Digraphs
+4. Grammar MUST follow: Nouns → Articles → Plurals → Adjectives → Questions → Has/Have
+5. Every lesson MUST have explicit skill tags: L (Listening), S (Speaking), R (Reading), W (Writing)
+
+${spiralContext ? `\n🗺️ DEPENDENCY TREE CONTEXT (follow this exactly):\n${spiralContext}` : ''}
 
 🎯 THE "SLOWLY-SLOWLY" 3-LESSON CYCLE (apply to every unit):
-If a unit has 3 lessons, enforce this cycle exactly:
   Lesson 1 — "Discovery" (cycleType: "discovery"):
-    - FOCUS RATIO: 80% Phonics/Noun accuracy, 20% basic recognition activities
-    - Focus: 1 phoneme (short sound) + exactly 5 nouns
-    - Skills: Listening & Reading
-    - phonicsFocus: the IPA symbol (e.g. "/æ/")
+    - FOCUS RATIO: 80% Phonics/Noun accuracy, 20% basic recognition
+    - 1 phoneme + exactly 5 nouns
+    - skillsFocus: ["listening", "speaking"]
+    - phonicsFocus: the IPA symbol
     - vocabularyList: array of 5 noun objects [{word, definition}]
-    - grammarPattern: simple recognition pattern (e.g. "It is a ___")
-    - skillsFocus: ["listening", "reading"]
+    - grammarPattern: simple recognition pattern
   Lesson 2 — "The Ladder" (cycleType: "ladder"):
     - FOCUS RATIO: 80% Sentence building/Grammar, 20% vocabulary reinforcement
-    - Focus: Verbs + Adjectives, build Sentence Ladders
-    - Skills: Writing & Grammar
-    - vocabularyList: verbs + adjectives (max 5 words)
-    - grammarPattern: sentence ladder pattern (e.g. "It is a dog" → "It is a big dog")
-    - skillsFocus: ["writing", "grammar"]
+    - Verbs + Adjectives, build Sentence Ladders
+    - skillsFocus: ["reading", "writing", "grammar"]
   Lesson 3 — "The Bridge" (cycleType: "bridge"):
     - FOCUS RATIO: 80% Student production/Speaking, 20% teacher guidance
-    - Focus: Questions + Real-Life Use. The teacher should speak LESS and the student should speak MORE.
-    - Skills: Speaking & Fluency
-    - grammarPattern: question pattern (e.g. "What is it?", "Do you have a ___?")
+    - Questions + Real-Life Use
     - skillsFocus: ["speaking", "fluency"]
-    - Include a "realWorldMission" in the lesson content
-    - MANDATORY: Include a "masteryCheck" field with the exact target question the student must independently produce (e.g. "What is it?" or "Do you have a cat?"). If the student cannot produce this question independently, flag for a Review Lesson before advancing to the next unit.
-
-🔄 REVIEW LESSON MODE:
-If the request includes "reviewMode: true", generate a condensed 30-minute Review Lesson that:
-  - Revisits the unit's phoneme with 3 quick recognition activities
-  - Reviews all 5 core nouns from Lesson 1
-  - Practices the sentence ladder from Lesson 2
-  - Re-tests the target question from Lesson 3's masteryCheck
-  - cycleType: "review"
-  - Mark as isReview: true in the output
+    - MANDATORY: Include a "masteryCheck" target question
 
 🧠 COGNITIVE LOAD RULES:
-- NEVER introduce more than 1 new phoneme per lesson
-- NEVER introduce more than 5 new words per lesson
-- Every lesson must scaffold from Recognition → Production
+- NEVER more than 1 new phoneme per lesson
+- NEVER more than 5 new words per lesson
 
-🔁 INTERLEAVED REVIEW RULE:
-Every Lesson 1 (Discovery) of a NEW unit (unit number > 1) MUST include 2 vocabulary words from the PREVIOUS unit in its warm-up activities to ensure long-term retention.
-Include a "reviewWords" field in the lesson JSON with 2 words from the prior unit.
+🔁 INTERLEAVED REVIEW:
+Every Lesson 1 of a NEW unit (unit > 1) MUST include 2 vocabulary words from the PREVIOUS unit.
+Include a "reviewWords" field and a "bridgeRetrieval" field with 5 questions from the prior unit.
 
-📚 BALANCED SKILL OUTPUT:
-Every generated lesson MUST include these 4 task fields:
+📊 BALANCED SKILL OUTPUT:
+Every lesson MUST include:
 - "listeningTask": a decoding or sound-matching task
 - "speakingTask": a "Record & Compare" or oral production task
 - "readingTask": a CVC word blending or sight-word task
 - "writingTask": a tracing, typing, or fill-in-the-blank task
 
-🔗 BRIDGE RETRIEVAL:
-Every Lesson 1 of a NEW unit (unit number > 1) MUST begin with a 5-minute "Bridge Retrieval" pop quiz — 5 quick questions from the previous unit to activate spaced repetition before introducing new content.
-Include a "bridgeRetrieval" field with 5 question objects: [{question, expectedAnswer}].
-
-OUTPUT: Return ONLY a JSON array of ${unitCount} unit objects. Each unit has a "lessons" array.
-Each lesson object MUST include: title, objectives, grammarFocus, vocabularyTheme, cycleType, phonicsFocus (if discovery), vocabularyList, grammarPattern, skillsFocus, listeningTask, speakingTask, readingTask, writingTask.
-For Lesson 1 of units after Unit 1, also include: reviewWords, bridgeRetrieval.
-
+OUTPUT: Return ONLY a JSON array of ${unitCount} unit objects.
 Return ONLY the JSON array, no extra text.`;
   }
   

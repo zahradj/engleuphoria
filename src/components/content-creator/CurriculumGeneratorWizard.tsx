@@ -10,10 +10,15 @@ import { Loader2, Wand2, ChevronDown, ChevronRight, Save, BookOpen, GraduationCa
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { getSpiralSkeleton, buildFullCurriculumMapContext } from '@/data/spiralCurriculumSkeleton';
 
 interface GeneratedUnit {
   unitNumber: number;
   title: string;
+  anchorPhoneme?: string;
+  grammarGoal?: string;
+  prerequisiteUnit?: number | null;
+  skillsMix?: { listening: number; speaking: number; reading: number; writing: number };
   lessons: GeneratedLesson[];
 }
 
@@ -28,6 +33,14 @@ interface GeneratedLesson {
   vocabularyList?: any[];
   grammarPattern?: string;
   skillsFocus?: string[];
+  skillTags?: string[];
+  listeningTask?: string;
+  speakingTask?: string;
+  readingTask?: string;
+  writingTask?: string;
+  reviewWords?: string[];
+  bridgeRetrieval?: any[];
+  masteryCheck?: string;
 }
 
 interface CurriculumConfig {
@@ -89,6 +102,10 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
     setGeneratedUnits([]);
 
     try {
+      // Build spiral dependency context for progressive generation
+      const spiralSkeleton = getSpiralSkeleton(config.ageGroup, config.level);
+      const spiralContext = buildFullCurriculumMapContext(spiralSkeleton);
+
       const { data, error } = await supabase.functions.invoke('curriculum-expert-agent', {
         body: {
           mode: 'curriculum_structure',
@@ -96,6 +113,7 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
           ageGroup: config.ageGroup,
           unitCount: config.unitCount,
           lessonsPerUnit: config.lessonsPerUnit,
+          spiralDependencyContext: spiralContext,
         },
       });
 
@@ -126,6 +144,10 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
       parsed = parsed.map((unit: any, i: number) => ({
         unitNumber: unit.unitNumber ?? unit.unit_number ?? i + 1,
         title: unit.title ?? `Unit ${i + 1}`,
+        anchorPhoneme: unit.anchorPhoneme ?? unit.anchor_phoneme ?? null,
+        grammarGoal: unit.grammarGoal ?? unit.grammar_goal ?? null,
+        prerequisiteUnit: unit.prerequisiteUnit ?? unit.prerequisite_unit ?? (i > 0 ? i : null),
+        skillsMix: unit.skillsMix ?? unit.skills_mix ?? null,
         lessons: (unit.lessons ?? []).map((lesson: any, li: number) => ({
           lessonNumber: lesson.lessonNumber ?? lesson.lesson_number ?? li + 1,
           title: lesson.title ?? `Lesson ${li + 1}`,
@@ -137,6 +159,14 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
           vocabularyList: Array.isArray(lesson.vocabularyList ?? lesson.vocabulary_list) ? (lesson.vocabularyList ?? lesson.vocabulary_list) : [],
           grammarPattern: lesson.grammarPattern ?? lesson.grammar_pattern ?? null,
           skillsFocus: Array.isArray(lesson.skillsFocus ?? lesson.skills_focus) ? (lesson.skillsFocus ?? lesson.skills_focus) : [],
+          skillTags: Array.isArray(lesson.skillTags ?? lesson.skill_tags) ? (lesson.skillTags ?? lesson.skill_tags) : [],
+          listeningTask: lesson.listeningTask ?? lesson.listening_task ?? null,
+          speakingTask: lesson.speakingTask ?? lesson.speaking_task ?? null,
+          readingTask: lesson.readingTask ?? lesson.reading_task ?? null,
+          writingTask: lesson.writingTask ?? lesson.writing_task ?? null,
+          reviewWords: Array.isArray(lesson.reviewWords) ? lesson.reviewWords : [],
+          bridgeRetrieval: Array.isArray(lesson.bridgeRetrieval) ? lesson.bridgeRetrieval : [],
+          masteryCheck: lesson.masteryCheck ?? null,
         })),
       }));
 
@@ -332,6 +362,19 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
             sourceLevel: config.level,
             hub: hubSystem,
             dbTargetSystem,
+            // Spiral curriculum metadata
+            anchorPhoneme: unit.anchorPhoneme || null,
+            grammarGoal: unit.grammarGoal || null,
+            prerequisiteUnit: unit.prerequisiteUnit || null,
+            skillsMix: unit.skillsMix || null,
+            skillTags: lesson.skillTags || [],
+            listeningTask: lesson.listeningTask || null,
+            speakingTask: lesson.speakingTask || null,
+            readingTask: lesson.readingTask || null,
+            writingTask: lesson.writingTask || null,
+            reviewWords: lesson.reviewWords || [],
+            bridgeRetrieval: lesson.bridgeRetrieval || [],
+            masteryCheck: lesson.masteryCheck || null,
           },
           is_published: false,
         }));
