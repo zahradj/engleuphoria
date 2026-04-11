@@ -96,7 +96,7 @@ export async function sendMasteryReport({ studentId, unitId, milestoneResultId }
       }))
     : [];
 
-  // 7. Attempt to send (with one retry on failure)
+  // 8. Attempt to send (with one retry on failure)
   const templateName = 'unit-mastery-report';
   const idempotencyKey = `mastery-report-${milestoneResultId}`;
 
