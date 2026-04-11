@@ -15,6 +15,10 @@ import { getSpiralSkeleton, buildFullCurriculumMapContext } from '@/data/spiralC
 interface GeneratedUnit {
   unitNumber: number;
   title: string;
+  anchorPhoneme?: string;
+  grammarGoal?: string;
+  prerequisiteUnit?: number | null;
+  skillsMix?: { listening: number; speaking: number; reading: number; writing: number };
   lessons: GeneratedLesson[];
 }
 
@@ -29,6 +33,14 @@ interface GeneratedLesson {
   vocabularyList?: any[];
   grammarPattern?: string;
   skillsFocus?: string[];
+  skillTags?: string[];
+  listeningTask?: string;
+  speakingTask?: string;
+  readingTask?: string;
+  writingTask?: string;
+  reviewWords?: string[];
+  bridgeRetrieval?: any[];
+  masteryCheck?: string;
 }
 
 interface CurriculumConfig {
