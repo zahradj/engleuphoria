@@ -56,19 +56,14 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
         </div>
 
         <div className="space-y-1">
-          {menuItems.map((item) => {
+          {mainItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
-            
             return (
               <Button
                 key={item.id}
                 variant={isActive ? "default" : "ghost"}
-                className={`w-full justify-start ${
-                  isActive 
-                    ? "" 
-                    : ""
-                }`}
+                className="w-full justify-start"
                 onClick={() => onTabChange(item.id)}
               >
                 <Icon className="h-4 w-4 mr-3" />
@@ -76,6 +71,27 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
               </Button>
             );
           })}
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-border">
+          <p className="text-[10px] uppercase tracking-wider text-muted-foreground px-3 mb-2 font-semibold">Management</p>
+          <div className="space-y-1">
+            {managementItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              return (
+                <Button
+                  key={item.id}
+                  variant={isActive ? "default" : "ghost"}
+                  className="w-full justify-start"
+                  onClick={() => onTabChange(item.id)}
+                >
+                  <Icon className="h-4 w-4 mr-3" />
+                  {item.label}
+                </Button>
+              );
+            })}
+          </div>
         </div>
         
         <div className="mt-8 pt-4 border-t border-border">
