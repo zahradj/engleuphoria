@@ -5,6 +5,7 @@ import { useTeacherStatus } from '@/hooks/useTeacherStatus';
 import { ProfessionalNav, ProfessionalTab } from './ProfessionalNav';
 import { CommandCenter } from './CommandCenter';
 import { StudentEntityDashboard } from './StudentEntityDashboard';
+import { StudentSuccessHub } from './StudentSuccessHub';
 import { ProfileOnboardingModal } from '../dashboard/ProfileOnboardingModal';
 import { PendingReviewBanner } from '../dashboard/PendingReviewBanner';
 import { ProfileSetupTab } from '../ProfileSetupTab';
@@ -59,6 +60,8 @@ export const ProfessionalHub: React.FC<ProfessionalHubProps> = ({
           return <CommandCenter teacherId={teacherId} teacherName={teacherName} />;
         case 'diagnostic-lab':
           return <StudentEntityDashboard teacherId={teacherId} />;
+        case 'success-hub':
+          return <StudentSuccessHub teacherId={teacherId} />;
         case 'reports':
           return (
             <div className="space-y-8">
