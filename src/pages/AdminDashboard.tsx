@@ -15,6 +15,7 @@ import { SettingsPanel } from '@/components/admin/SettingsPanel';
 import { SuperAdminControlCenter } from '@/components/admin/SuperAdminControlCenter';
 import { AdminBroadcastCenter } from '@/components/admin/AdminBroadcastCenter';
 import { SystemEmailLog } from '@/components/admin/SystemEmailLog';
+import { ProfessionalHub } from '@/components/teacher/professional/ProfessionalHub';
 import { ScrollHeader } from '@/components/navigation/ScrollHeader';
 import { Loader2, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -22,7 +23,7 @@ import { Button } from '@/components/ui/button';
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const { isAdmin, isLoading } = useAdminAuth();
+  const { isAdmin, isLoading, user } = useAdminAuth();
 
   if (isLoading) {
     return (
@@ -79,6 +80,13 @@ const AdminDashboard = () => {
         return <AdminBroadcastCenter />;
       case 'email-log':
         return <SystemEmailLog />;
+      case 'professional-hub':
+        return (
+          <ProfessionalHub 
+            teacherName="Admin" 
+            teacherId={user?.id || ''} 
+          />
+        );
       default:
         return <AdminOverview />;
     }
