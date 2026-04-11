@@ -90,6 +90,10 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
     setGeneratedUnits([]);
 
     try {
+      // Build spiral dependency context for progressive generation
+      const spiralSkeleton = getSpiralSkeleton(config.ageGroup, config.level);
+      const spiralContext = buildFullCurriculumMapContext(spiralSkeleton);
+
       const { data, error } = await supabase.functions.invoke('curriculum-expert-agent', {
         body: {
           mode: 'curriculum_structure',
@@ -97,6 +101,7 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
           ageGroup: config.ageGroup,
           unitCount: config.unitCount,
           lessonsPerUnit: config.lessonsPerUnit,
+          spiralDependencyContext: spiralContext,
         },
       });
 
