@@ -734,16 +734,16 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
                 {imageCount === 0 ? (
                   <div>
                     <p className="text-xs text-muted-foreground mb-3">
-                      Generate relevant, topic-specific illustrations using Gemini AI instead of generic stock photos.
+                      Generate Professional Flat 2.0 vector illustrations — clean, 2D, no 3D effects.
                     </p>
-                    <Button
+                   <Button
                       onClick={handleGenerateImages}
                       variant="outline"
                       size="sm"
                       className="w-full"
                     >
                       <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-                      Generate AI Images
+                      Generate Flat 2.0 Vectors
                     </Button>
                   </div>
                 ) : (

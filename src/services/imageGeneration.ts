@@ -2,10 +2,11 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface ImageGenerationOptions {
   prompt: string;
-  style?: 'educational' | 'cartoon' | 'minimalist' | 'realistic' | 'hand-drawn';
+  style?: 'educational' | 'cartoon' | 'minimalist' | 'realistic' | 'hand-drawn' | 'flat2d' | 'cinematic' | 'editorial';
   aspectRatio?: '1:1' | '16:9' | '4:3' | '3:4';
   quality?: 'high' | 'medium' | 'low';
   background?: 'transparent' | 'white' | 'colored';
+  negativePrompt?: string;
 }
 
 export interface GeneratedImage {
@@ -19,14 +20,17 @@ class ImageGenerationService {
   private cache = new Map<string, GeneratedImage>();
   
   private getStylePrompt(style: string): string {
-    const styleMap = {
+    const styleMap: Record<string, string> = {
       educational: 'clean educational illustration, simple and clear, perfect for learning',
       cartoon: 'colorful cartoon style, friendly and engaging, suitable for children',
       minimalist: 'minimal line art, clean and simple, modern design',
       realistic: 'photorealistic style, high quality and detailed',
-      'hand-drawn': 'hand-drawn sketch style, artistic and creative'
+      'hand-drawn': 'hand-drawn sketch style, artistic and creative',
+      flat2d: 'Professional 2D flat vector illustration, clean bold lines, solid colors with subtle layering, white background, isolated object, Engleuphoria Navy accents',
+      cinematic: 'cinematic professional illustration, dramatic lighting, high-end production quality',
+      editorial: 'Minimalist editorial photography, luxury corporate aesthetic, natural soft lighting',
     };
-    return styleMap[style as keyof typeof styleMap] || '';
+    return styleMap[style] || '';
   }
 
   private generateCacheKey(options: ImageGenerationOptions): string {
@@ -36,7 +40,6 @@ class ImageGenerationService {
   async generateImage(options: ImageGenerationOptions): Promise<GeneratedImage> {
     const cacheKey = this.generateCacheKey(options);
     
-    // Check cache first
     if (this.cache.has(cacheKey)) {
       return { ...this.cache.get(cacheKey)!, cached: true };
     }
@@ -44,14 +47,14 @@ class ImageGenerationService {
     try {
       const fullPrompt = `${options.prompt}, educational illustration for English learning`;
 
-      console.log('Generating AI image with prompt:', fullPrompt);
+      console.log('Generating AI image with style:', options.style, '| prompt:', fullPrompt.slice(0, 100));
       
-      // Call the Supabase edge function for AI image generation
       const response = await supabase.functions.invoke('ai-image-generation', {
         body: {
           prompt: fullPrompt,
           style: options.style || 'educational',
-          aspectRatio: options.aspectRatio || '1:1'
+          aspectRatio: options.aspectRatio || '1:1',
+          negativePrompt: options.negativePrompt || undefined,
         }
       });
 
@@ -72,13 +75,11 @@ class ImageGenerationService {
         cached: false
       };
 
-      // Cache the result
       this.cache.set(cacheKey, result);
       
       return result;
     } catch (error) {
       console.error('Image generation failed:', error);
-      // Return placeholder with better error handling
       return {
         url: `https://via.placeholder.com/400x400/e3e3e3/666666?text=${encodeURIComponent(options.prompt.slice(0, 20))}`,
         prompt: options.prompt,
@@ -96,10 +97,8 @@ class ImageGenerationService {
   }): string {
     const { prompt, type, level } = slideContent;
     
-    // Base educational context
     let contextPrompt = `Educational illustration for ${level} level English learning: `;
     
-    // Add type-specific context
     switch (type) {
       case 'vocabulary':
         contextPrompt += `Visual representation of "${prompt}" for vocabulary learning`;

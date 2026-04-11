@@ -41,11 +41,12 @@ async function generateSingleImage(
     const response = await supabase.functions.invoke('ai-image-generation', {
       body: {
         prompt,
-        style: 'cinematic',
+        style: 'flat2d',
         width: 1920,
         height: 1080,
         lessonId,
         slideNumber,
+        negativePrompt: 'No 3D, no render, no depth, no shadows, no gradients, no photorealism.',
       },
     });
 
