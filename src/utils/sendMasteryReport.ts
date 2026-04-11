@@ -55,7 +55,14 @@ export async function sendMasteryReport({ studentId, unitId, milestoneResultId }
     .eq('id', unitId)
     .single();
 
-  // 4. Fetch vocabulary for this unit
+  // 4. Fetch Home Mission for this unit
+  const { data: mission } = await supabase
+    .from('unit_missions')
+    .select('mission_text, mission_tip, goal_description')
+    .eq('unit_id', unitId)
+    .single();
+
+  // 5. Fetch vocabulary for this unit
   const { data: vocabData } = await supabase
     .from('student_vocabulary_progress')
     .select('word')
