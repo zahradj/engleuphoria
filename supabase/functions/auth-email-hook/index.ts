@@ -18,7 +18,7 @@ const corsHeaders = {
 
 const EMAIL_SUBJECTS: Record<string, string> = {
   signup: 'Confirm your email',
-  invite: 'Welcome to the EnglEuphoria Family! 🌟',
+  invite: "You've been invited",
   magiclink: 'Your login link',
   recovery: 'Reset your password',
   email_change: 'Confirm your new email',
@@ -39,7 +39,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 const SITE_NAME = "engleuphoria"
 const SENDER_DOMAIN = "notify.engleuphoria.com"
 const ROOT_DOMAIN = "engleuphoria.com"
-const FROM_DOMAIN = "notify.engleuphoria.com" // Domain shown in From address (may be root or sender subdomain)
+const FROM_DOMAIN = "engleuphoria.com" // Domain shown in From address (may be root or sender subdomain)
 
 // Sample data for preview mode ONLY (not used in actual email sending).
 // URLs are baked in at scaffold time from the project's real data.
@@ -251,8 +251,8 @@ async function handleWebhook(req: Request): Promise<Response> {
   })
 
   const { error: enqueueError } = await supabase.rpc('enqueue_email', {
-    _queue_name: 'auth_emails',
-    _payload: {
+    queue_name: 'auth_emails',
+    payload: {
       run_id,
       message_id: messageId,
       to: payload.data.email,
