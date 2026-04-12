@@ -10,6 +10,7 @@ import { LessonPreviewDialog } from './LessonPreviewDialog';
 import { LessonBlueprint } from './LessonBlueprint';
 import { Slide, LessonDeck, CanvasElementData, CanvasElementType } from './types';
 import { AILessonWizard } from './ai-wizard';
+import type { WizardLessonContext } from './ai-wizard';
 import { GeneratedSlide, HubType } from './ai-wizard/types';
 import { resolveHub } from './ai-wizard/hubConfig';
 import { AIActivityGenerator } from './AIActivityGenerator';
@@ -48,6 +49,7 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
   const [filmstripCollapsed, setFilmstripCollapsed] = useState(false);
   const [rawGeneratedSlides, setRawGeneratedSlides] = useState<GeneratedSlide[]>([]);
   const [currentHub, setCurrentHub] = useState<HubType>('playground');
+  const [wizardContext, setWizardContext] = useState<WizardLessonContext | null>(null);
   const canvasRef = React.useRef<HTMLDivElement>(null);
 
   const [lessonTitle, setLessonTitle] = useState('Untitled Lesson');
@@ -97,8 +99,35 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
     setActiveLessonId(lesson.id);
     setLessonTitle(lesson.title || 'Untitled Lesson');
     setLevel(lesson.difficulty_level || 'A1');
+
+    // ─── AUTO-FILL WIZARD CONTEXT from lesson DNA ──────────────
+    const content = lesson.content || {};
+    const manifest = content?.ai_wizard_manifest;
+    const levelMap: Record<string, 'beginner' | 'intermediate' | 'advanced'> = {
+      A1: 'beginner', A2: 'beginner', B1: 'intermediate', B2: 'advanced', C1: 'advanced', C2: 'advanced',
+      beginner: 'beginner', intermediate: 'intermediate', advanced: 'advanced',
+    };
+    const ageGroupFromSystem: Record<string, 'kids' | 'teens' | 'adults'> = {
+      playground: 'kids', academy: 'teens', professional: 'adults',
+    };
+
+    setWizardContext({
+      unitNumber: manifest?.unitNumber || content?.unitNumber,
+      lessonNumber: manifest?.lessonNumber || content?.lessonNumber || lesson.sequence_order,
+      cycleType: manifest?.cycleType || content?.cycle_type || lesson.cycle_type,
+      phonicsTarget: manifest?.anchorPhoneme || content?.anchorPhoneme || lesson.phonics_focus,
+      grammarTarget: manifest?.grammarGoal || content?.grammarGoal || lesson.grammar_pattern,
+      vocabularyList: manifest?.vocabularyList || (lesson.vocabulary_list ? Object.keys(lesson.vocabulary_list) : undefined),
+      skillsFocus: manifest?.skillsRequired || lesson.skills_focus,
+      hintsDisabled: manifest?.hintsDisabled || false,
+      highSupport: manifest?.highSupport || false,
+      topic: lesson.title?.replace(/^\d+(\.\d+)?\s*[-:.]?\s*/, '') || '',
+      level: levelMap[lesson.difficulty_level] || 'beginner',
+      ageGroup: ageGroupFromSystem[lesson.target_system] || 'kids',
+      wizardScript: manifest?.wizardScript,
+    });
+
     if (lesson.content && Array.isArray(lesson.content)) {
-      // Already in canvas slide format
       const loadedSlides: Slide[] = lesson.content.map((s: any, idx: number) => ({
         id: s.id || uuidv4(), order: s.order ?? idx, type: s.type || 'image',
         imageUrl: s.imageUrl, videoUrl: s.videoUrl, quizQuestion: s.quizQuestion,
@@ -109,7 +138,6 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
       setSlides(loadedSlides);
       setSelectedSlideId(loadedSlides[0]?.id || null);
     } else if (lesson.content && typeof lesson.content === 'object') {
-      // AI-generated object format — convert to canvas slides
       const converted = convertAILessonToCanvasSlides(lesson.content, lesson.title);
       setSlides(converted);
       setSelectedSlideId(converted[0]?.id || null);
@@ -359,7 +387,7 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
         </div>
       )}
 
-      <AILessonWizard open={showAIWizard} onOpenChange={setShowAIWizard} onLessonGenerated={handleAILessonGenerated} />
+      <AILessonWizard open={showAIWizard} onOpenChange={setShowAIWizard} onLessonGenerated={handleAILessonGenerated} lessonContext={wizardContext} />
       <LessonPreviewDialog open={showPreview} onOpenChange={setShowPreview} slides={slides} lessonTitle={lessonTitle} generatedSlides={rawGeneratedSlides} hub={currentHub} />
     </div>
   );
