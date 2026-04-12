@@ -277,6 +277,8 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
             reviewWords: lesson.reviewWords || [],
             bridgeRetrieval: lesson.bridgeRetrieval || [],
             masteryCheck: lesson.masteryCheck || null,
+            hintsDisabled: lesson.hintsDisabled || false,
+            highSupport: lesson.highSupport || false,
           },
           is_published: false,
         }));
