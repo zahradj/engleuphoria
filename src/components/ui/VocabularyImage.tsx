@@ -5,10 +5,12 @@ import { Loader2 } from 'lucide-react';
 interface VocabularyImageProps {
   prompt: string;
   alt: string;
-  style?: 'educational' | 'cartoon' | 'minimalist' | 'realistic' | 'hand-drawn';
+  style?: 'educational' | 'cartoon' | 'minimalist' | 'realistic' | 'hand-drawn' | 'flat2d';
   aspectRatio?: '1:1' | '16:9' | '4:3' | '3:4';
   className?: string;
   fallbackSrc?: string;
+  /** Enable Picsart background removal + enhancement (default: true for flat2d/minimalist) */
+  postProcess?: boolean;
 }
 
 export const VocabularyImage: React.FC<VocabularyImageProps> = ({
@@ -17,11 +19,15 @@ export const VocabularyImage: React.FC<VocabularyImageProps> = ({
   style = 'educational',
   aspectRatio = '1:1',
   className = '',
-  fallbackSrc
+  fallbackSrc,
+  postProcess,
 }) => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Auto-enable post-processing for flat2d and minimalist styles
+  const shouldPostProcess = postProcess ?? (style === 'flat2d' || style === 'minimalist');
 
   useEffect(() => {
     const generateImage = async () => {
@@ -32,7 +38,8 @@ export const VocabularyImage: React.FC<VocabularyImageProps> = ({
         const result = await imageGenerationService.generateImage({
           prompt,
           style,
-          aspectRatio
+          aspectRatio,
+          postProcess: shouldPostProcess,
         });
         
         setImageUrl(result.url);
@@ -40,7 +47,6 @@ export const VocabularyImage: React.FC<VocabularyImageProps> = ({
         console.error('Failed to generate vocabulary image:', err);
         setError(err instanceof Error ? err.message : 'Failed to generate image');
         
-        // Use fallback if provided
         if (fallbackSrc) {
           setImageUrl(fallbackSrc);
         }
@@ -50,7 +56,7 @@ export const VocabularyImage: React.FC<VocabularyImageProps> = ({
     };
 
     generateImage();
-  }, [prompt, style, aspectRatio, fallbackSrc]);
+  }, [prompt, style, aspectRatio, fallbackSrc, shouldPostProcess]);
 
   if (isLoading) {
     return (
@@ -75,7 +81,7 @@ export const VocabularyImage: React.FC<VocabularyImageProps> = ({
       src={imageUrl || ''}
       alt={alt}
       className={`rounded-lg object-cover ${className}`}
-      onError={(e) => {
+      onError={() => {
         console.error('Image failed to load:', imageUrl);
         if (fallbackSrc && imageUrl !== fallbackSrc) {
           setImageUrl(fallbackSrc);
