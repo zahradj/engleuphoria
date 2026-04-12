@@ -106,7 +106,6 @@ Deno.serve(async (req) => {
         email,
         full_name: fullName,
         role: "teacher",
-        status: "active",
       },
       { onConflict: "id" }
     );
