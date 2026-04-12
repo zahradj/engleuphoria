@@ -40,6 +40,25 @@ export interface SpiralLessonTemplate {
   highSupport?: boolean;
 }
 
+// ─── Wizard Manifest Types ────────────────────────────────────────
+export interface AIWizardManifest {
+  unitNumber: number;
+  lessonNumber: number;
+  cycleType: 'discovery' | 'ladder' | 'bridge' | 'review' | 'quiz';
+  anchorPhoneme: string;
+  grammarGoal: string;
+  vocabularyList: any[];
+  prerequisiteUnit: number | null;
+  reviewFromUnit: number | null;
+  skillsRequired: string[];
+  hintsDisabled: boolean;
+  highSupport: boolean;
+  masteryCriteria: string | null;
+  wizardScript: string;
+  wizardActions: string[];
+  interactionTriggers: string[];
+}
+
 // ─── Generated unit/lesson types (output of skeleton → generated) ──
 export interface SkeletonGeneratedUnit {
   unitNumber: number;
@@ -72,6 +91,7 @@ export interface SkeletonGeneratedLesson {
   masteryCheck: string | null;
   hintsDisabled?: boolean;
   highSupport?: boolean;
+  aiWizardManifest?: AIWizardManifest;
 }
 
 // ─── The 10-Unit Progressive Skeleton (Beginner/Kids) ─────────────
@@ -288,6 +308,67 @@ export function getSpiralSkeleton(ageGroup: string, _level: string): SpiralUnit[
   }
 }
 
+// ─── Helper: Build Wizard Manifest for a lesson ─────────────────────
+function buildWizardManifest(
+  skelUnit: SpiralUnit,
+  tpl: SpiralLessonTemplate,
+  lessonNumber: number,
+  prevUnit: SpiralUnit | null,
+): AIWizardManifest {
+  const skillMap: Record<string, string> = { L: 'listening', S: 'speaking', R: 'reading', W: 'writing' };
+  
+  let wizardScript = '';
+  let wizardActions: string[] = [];
+  let interactionTriggers: string[] = [];
+
+  switch (tpl.cycleType) {
+    case 'discovery':
+      wizardScript = `Welcome to Unit ${skelUnit.unit}! Today we discover the ${skelUnit.phonicsGoal} sound. ${prevUnit ? `First, let's review what we learned about ${prevUnit.phonicsGoal}.` : 'Let\'s begin!'}`;
+      wizardActions = ['Wizard points to the sound card', 'Wizard listens with cupped ear', 'Wizard celebrates correct answer'];
+      interactionTriggers = ['activate_bridge_retrieval', 'activate_phonics_slider', 'activate_sound_sort'];
+      break;
+    case 'ladder':
+      wizardScript = `Now let's build sentences! We use "${skelUnit.grammarGoal}" with our new words.`;
+      wizardActions = ['Wizard shows grammar pattern', 'Wizard guides block placement', 'Wizard nods encouragingly'];
+      interactionTriggers = ['activate_grammar_blocks', 'activate_word_builder', 'activate_sentence_ladder'];
+      break;
+    case 'bridge':
+      wizardScript = `You're ready to speak on your own! Show me what you've learned about ${skelUnit.phonicsGoal} and "${skelUnit.grammarGoal}".`;
+      wizardActions = ['Wizard steps back', 'Wizard gives thumbs up', 'Wizard records speaking'];
+      interactionTriggers = ['activate_free_speaking', 'activate_writing_canvas', 'activate_mastery_check'];
+      break;
+    case 'review':
+      wizardScript = `The Grand Review! Let's go through everything from this unit before the big quiz. I'll help you every step of the way.`;
+      wizardActions = ['Wizard provides hints', 'Wizard highlights correct answers', 'Wizard replays difficult items'];
+      interactionTriggers = ['activate_review_carousel', 'activate_speed_mimicry', 'activate_grammar_fix'];
+      break;
+    case 'quiz':
+      wizardScript = `Mastery Quiz time! No hints — show me what you know. You need 80% to unlock the next unit!`;
+      wizardActions = ['Wizard observes silently', 'Wizard records scores', 'Wizard reveals final score'];
+      interactionTriggers = ['activate_speaking_test', 'activate_dictation', 'activate_grammar_fix_no_hints'];
+      break;
+  }
+
+  return {
+    unitNumber: skelUnit.unit,
+    lessonNumber,
+    cycleType: tpl.cycleType,
+    anchorPhoneme: skelUnit.phonicsGoal,
+    grammarGoal: skelUnit.grammarGoal,
+    vocabularyList: [],
+    prerequisiteUnit: skelUnit.prerequisiteUnit,
+    reviewFromUnit: tpl.cycleType === 'discovery' && prevUnit ? prevUnit.unit : null,
+    skillsRequired: tpl.skillTags.map(t => skillMap[t] || t),
+    hintsDisabled: tpl.hintsDisabled || false,
+    highSupport: tpl.highSupport || false,
+    masteryCriteria: tpl.cycleType === 'quiz' ? 'Score >80% across all skills to unlock next unit' :
+                     tpl.cycleType === 'bridge' ? `Independent use of "${skelUnit.grammarGoal}"` : null,
+    wizardScript,
+    wizardActions,
+    interactionTriggers,
+  };
+}
+
 // ─── Helper: Convert a skeleton unit into a GeneratedUnit ──────────
 export function skeletonToGeneratedUnit(
   skelUnit: SpiralUnit,
@@ -303,33 +384,37 @@ export function skeletonToGeneratedUnit(
     grammarGoal: skelUnit.grammarGoal,
     prerequisiteUnit: skelUnit.prerequisiteUnit,
     skillsMix: { ...skelUnit.skillsMix },
-    lessons: lessons.map((tpl, li) => ({
-      lessonNumber: li + 1,
-      title: `${getCycleEmoji(tpl.cycleType)} ${tpl.focus}`,
-      objectives: buildDefaultObjectives(skelUnit, tpl),
-      grammarFocus: skelUnit.grammarGoal,
-      vocabularyTheme: skelUnit.theme,
-      cycleType: tpl.cycleType,
-      phonicsFocus: skelUnit.phonicsGoal,
-      vocabularyList: [],
-      grammarPattern: skelUnit.grammarGoal,
-      skillsFocus: tpl.skillTags.map(t => ({ L: 'listening', S: 'speaking', R: 'reading', W: 'writing' }[t] || t)),
-      skillTags: [...tpl.skillTags],
-      listeningTask: tpl.activities.find(a => a.toLowerCase().includes('listen') || a.toLowerCase().includes('sound')) || `Listen for the ${skelUnit.phonicsGoal} sound`,
-      speakingTask: tpl.activities.find(a => a.toLowerCase().includes('speak') || a.toLowerCase().includes('mimic')) || `Say words with ${skelUnit.phonicsGoal}`,
-      readingTask: tpl.activities.find(a => a.toLowerCase().includes('read') || a.toLowerCase().includes('grammar') || a.toLowerCase().includes('block')) || `Read words with ${skelUnit.phonicsGoal}`,
-      writingTask: tpl.activities.find(a => a.toLowerCase().includes('trac') || a.toLowerCase().includes('writ') || a.toLowerCase().includes('dictat')) || `Trace the letter for ${skelUnit.phonicsGoal}`,
-      reviewWords: prevUnit && tpl.cycleType === 'discovery'
-        ? [`[word from Unit ${prevUnit.unit}]`, `[word from Unit ${prevUnit.unit}]`]
-        : [],
-      bridgeRetrieval: prevUnit && tpl.cycleType === 'discovery'
-        ? [{ question: `Review: What sound does ${prevUnit.phonicsGoal} make?`, type: 'recall' }]
-        : [],
-      masteryCheck: tpl.cycleType === 'bridge' ? `Can the student use "${skelUnit.grammarGoal}" independently?` : 
-                     tpl.cycleType === 'quiz' ? `Mastery Score > 80% to unlock next Unit` : null,
-      hintsDisabled: tpl.hintsDisabled || false,
-      highSupport: tpl.highSupport || false,
-    })),
+    lessons: lessons.map((tpl, li) => {
+      const lessonNumber = li + 1;
+      return {
+        lessonNumber,
+        title: `${getCycleEmoji(tpl.cycleType)} ${tpl.focus}`,
+        objectives: buildDefaultObjectives(skelUnit, tpl),
+        grammarFocus: skelUnit.grammarGoal,
+        vocabularyTheme: skelUnit.theme,
+        cycleType: tpl.cycleType,
+        phonicsFocus: skelUnit.phonicsGoal,
+        vocabularyList: [],
+        grammarPattern: skelUnit.grammarGoal,
+        skillsFocus: tpl.skillTags.map(t => ({ L: 'listening', S: 'speaking', R: 'reading', W: 'writing' }[t] || t)),
+        skillTags: [...tpl.skillTags],
+        listeningTask: tpl.activities.find(a => a.toLowerCase().includes('listen') || a.toLowerCase().includes('sound')) || `Listen for the ${skelUnit.phonicsGoal} sound`,
+        speakingTask: tpl.activities.find(a => a.toLowerCase().includes('speak') || a.toLowerCase().includes('mimic')) || `Say words with ${skelUnit.phonicsGoal}`,
+        readingTask: tpl.activities.find(a => a.toLowerCase().includes('read') || a.toLowerCase().includes('grammar') || a.toLowerCase().includes('block')) || `Read words with ${skelUnit.phonicsGoal}`,
+        writingTask: tpl.activities.find(a => a.toLowerCase().includes('trac') || a.toLowerCase().includes('writ') || a.toLowerCase().includes('dictat')) || `Trace the letter for ${skelUnit.phonicsGoal}`,
+        reviewWords: prevUnit && tpl.cycleType === 'discovery'
+          ? [`[word from Unit ${prevUnit.unit}]`, `[word from Unit ${prevUnit.unit}]`]
+          : [],
+        bridgeRetrieval: prevUnit && tpl.cycleType === 'discovery'
+          ? [{ question: `Review: What sound does ${prevUnit.phonicsGoal} make?`, type: 'recall' }]
+          : [],
+        masteryCheck: tpl.cycleType === 'bridge' ? `Can the student use "${skelUnit.grammarGoal}" independently?` : 
+                       tpl.cycleType === 'quiz' ? `Mastery Score > 80% to unlock next Unit` : null,
+        hintsDisabled: tpl.hintsDisabled || false,
+        highSupport: tpl.highSupport || false,
+        aiWizardManifest: buildWizardManifest(skelUnit, tpl, lessonNumber, prevUnit),
+      };
+    }),
   };
 }
 
@@ -370,25 +455,56 @@ function buildDefaultObjectives(unit: SpiralUnit, lesson: SpiralLessonTemplate):
   return base;
 }
 
-// ─── Helper: Validate AI output against skeleton ───────────────────
+// ─── Helper: Validate AI output against skeleton (by unitNumber/lessonNumber) ──
 export function validateAndEnforceProgression(
   aiUnits: any[],
   skeleton: SpiralUnit[],
   unitCount: number,
 ): SkeletonGeneratedUnit[] {
   const slicedSkeleton = skeleton.slice(0, unitCount);
+
+  // Build a lookup of AI units by unitNumber (not array index)
+  const aiUnitMap = new Map<number, any>();
+  if (Array.isArray(aiUnits)) {
+    for (const aiUnit of aiUnits) {
+      const num = aiUnit?.unitNumber ?? aiUnit?.unit_number;
+      if (typeof num === 'number' && num >= 1 && num <= unitCount) {
+        // Only accept first occurrence — reject duplicates (e.g. repeated Unit 1)
+        if (!aiUnitMap.has(num)) {
+          aiUnitMap.set(num, aiUnit);
+        } else {
+          console.warn(`⚠️ Duplicate AI unit #${num} rejected — keeping first occurrence`);
+        }
+      }
+    }
+  }
   
   return slicedSkeleton.map((skelUnit, i) => {
-    const aiUnit = aiUnits[i];
     const prevSkel = i > 0 ? slicedSkeleton[i - 1] : null;
     
-    // If no AI unit for this index, use pure skeleton
+    // Match AI unit by unitNumber, not by array index
+    const aiUnit = aiUnitMap.get(skelUnit.unit);
+    
+    // If no AI unit for this skeleton unit, use pure skeleton
     if (!aiUnit) {
       return skeletonToGeneratedUnit(skelUnit, prevSkel, skelUnit.lessons.length);
     }
     
     // Merge: keep AI creative content but ENFORCE skeleton structure
     const baseSkel = skeletonToGeneratedUnit(skelUnit, prevSkel, skelUnit.lessons.length);
+
+    // Build AI lesson lookup by lessonNumber
+    const aiLessonMap = new Map<number, any>();
+    if (Array.isArray(aiUnit.lessons)) {
+      for (const aiLesson of aiUnit.lessons) {
+        const lNum = aiLesson?.lessonNumber ?? aiLesson?.lesson_number;
+        if (typeof lNum === 'number' && lNum >= 1 && lNum <= 6) {
+          if (!aiLessonMap.has(lNum)) {
+            aiLessonMap.set(lNum, aiLesson);
+          }
+        }
+      }
+    }
     
     return {
       ...baseSkel,
@@ -400,8 +516,9 @@ export function validateAndEnforceProgression(
       grammarGoal: skelUnit.grammarGoal,
       prerequisiteUnit: skelUnit.prerequisiteUnit,
       skillsMix: { ...skelUnit.skillsMix },
-      lessons: baseSkel.lessons.map((skelLesson, li) => {
-        const aiLesson = aiUnit.lessons?.[li];
+      lessons: baseSkel.lessons.map((skelLesson) => {
+        // Match by lessonNumber, not array index
+        const aiLesson = aiLessonMap.get(skelLesson.lessonNumber);
         if (!aiLesson) return skelLesson;
         
         return {
@@ -429,6 +546,8 @@ export function validateAndEnforceProgression(
           masteryCheck: skelLesson.masteryCheck,
           hintsDisabled: skelLesson.hintsDisabled,
           highSupport: skelLesson.highSupport,
+          // Preserve the wizard manifest (already built from skeleton)
+          aiWizardManifest: skelLesson.aiWizardManifest,
         };
       }),
     };

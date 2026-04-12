@@ -152,10 +152,13 @@ export const CurriculumManager: React.FC<CurriculumManagerProps> = ({
       if (accessoryRes.data) accessoryName = accessoryRes.data.name;
     }
 
-    // Extract topic from lesson
+    // Extract topic and manifest from lesson content
+    const lessonRecord = lessons.find(l => l.id === lesson.id);
+    const content = lessonRecord?.content || {};
+    const manifest = content?.ai_wizard_manifest;
     const topic = lesson.title.replace(/^\d+(\.\d+)?\s*[-:.]?\s*/, '');
 
-    // Generate the skeleton plan
+    // Generate the skeleton plan with manifest data
     const plan = generateSlideSkeletons({
       lessonId: lesson.id,
       lessonTitle: lesson.title,
@@ -163,6 +166,16 @@ export const CurriculumManager: React.FC<CurriculumManagerProps> = ({
       levelName,
       accessoryName,
       topic,
+      // Pass manifest-driven fields
+      cycleType: content?.cycle_type || manifest?.cycleType,
+      phonicsTarget: content?.anchorPhoneme || manifest?.anchorPhoneme,
+      grammarTarget: content?.grammarGoal || manifest?.grammarGoal,
+      skillsFocus: content?.skillTags || manifest?.skillsRequired,
+      hintsDisabled: content?.hintsDisabled || manifest?.hintsDisabled || false,
+      highSupport: content?.highSupport || manifest?.highSupport || false,
+      lessonFocus: manifest?.cycleType === 'discovery' ? 'introduction' :
+                   manifest?.cycleType === 'bridge' || manifest?.cycleType === 'quiz' ? 'mastery' : 'expansion',
+      practiceVariant: (content?.sequence_order || 0) % 4,
     });
 
     setSkeletonPlan(plan);
@@ -175,7 +188,10 @@ export const CurriculumManager: React.FC<CurriculumManagerProps> = ({
     try {
       const hub = resolveHubFromContext();
       const cefrLevel = lesson.difficulty_level || curriculumContext?.level || 'beginner';
-      const topic = lesson.content?.vocabularyTheme || lesson.title.replace(/^\d+\.\d+\s*/, '');
+      const manifest = lesson.content?.ai_wizard_manifest;
+      const topic = manifest?.anchorPhoneme
+        ? `${lesson.content?.vocabularyTheme || lesson.title.replace(/^\d+\.\d+\s*/, '')} (${manifest.anchorPhoneme})`
+        : lesson.content?.vocabularyTheme || lesson.title.replace(/^\d+\.\d+\s*/, '');
 
       const levelMap: Record<string, 'beginner' | 'intermediate' | 'advanced'> = {
         beginner: 'beginner',

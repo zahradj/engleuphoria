@@ -668,7 +668,7 @@ function buildUserPrompt(requestData: GenerationRequest): string {
 
   if (requestData.mode === 'curriculum_structure') {
     const unitCount = requestData.unitCount || 4;
-    const lessonsPerUnit = requestData.lessonsPerUnit || 3;
+    const lessonsPerUnit = requestData.lessonsPerUnit || 6;
     const level = requestData.level || 'beginner';
     const ageGroup = requestData.ageGroup || 'kids';
     
@@ -685,6 +685,13 @@ Your job is to ADD ONLY:
 - reviewWords (2 words from the previous unit for Discovery lessons of Unit > 1)
 
 DO NOT change: anchorPhoneme, grammarGoal, prerequisiteUnit, skillsMix, cycleType, phonicsFocus, skillTags, skillsFocus, or the unit ordering.
+
+🚨 NUMBERING FIDELITY (MANDATORY):
+- Each unit object MUST include "unitNumber" matching the skeleton (1, 2, 3, ..., ${unitCount}).
+- Each lesson object MUST include "lessonNumber" matching the skeleton (1, 2, 3, 4, 5, 6).
+- You MUST NOT repeat any unitNumber. Unit 1 appears EXACTLY ONCE.
+- You MUST NOT skip any unitNumber. If ${unitCount} units are requested, return exactly ${unitCount}.
+- The order MUST be Unit 1, Unit 2, ..., Unit ${unitCount}. Never restart at Unit 1.
 
 ${spiralContext ? `\n🗺️ SKELETON STRUCTURE (decorate this, do not deviate):\n${spiralContext}` : ''}
 
@@ -771,6 +778,12 @@ function validateOutput(mode: string, data: any): void {
       if (Array.isArray(data)) {
         if (data.length === 0) throw new Error('No units generated');
         if (!data[0].lessons || data[0].lessons.length === 0) throw new Error('Units must contain lessons');
+        // Validate unique unitNumbers — reject repeated Unit 1
+        const unitNumbers = data.map((u: any) => u.unitNumber ?? u.unit_number);
+        const uniqueNumbers = new Set(unitNumbers.filter((n: any) => typeof n === 'number'));
+        if (uniqueNumbers.size < data.length) {
+          console.warn('⚠️ AI returned duplicate unit numbers — client will deduplicate');
+        }
       } else if (data.units) {
         // Also valid
       } else {

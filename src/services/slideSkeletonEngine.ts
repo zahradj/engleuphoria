@@ -282,15 +282,36 @@ export function generateSlideSkeletons(params: {
   topic: string;
   lessonFocus?: LessonFocusType;
   practiceVariant?: number;
+  // ─── Wizard Manifest Fields ──────────────────────────
+  cycleType?: string;
+  phonicsTarget?: string;
+  grammarTarget?: string;
+  skillsFocus?: string[];
+  hintsDisabled?: boolean;
+  highSupport?: boolean;
 }): LessonSkeletonPlan {
   const {
     lessonId, lessonTitle, hub, levelName, accessoryName, topic,
     lessonFocus = 'expansion',
     practiceVariant = 0,
+    cycleType,
+    phonicsTarget,
+    grammarTarget,
+    hintsDisabled = false,
+    highSupport = false,
   } = params;
 
+  // ─── Derive lesson focus from cycleType if not explicitly set ──
+  let effectiveFocus = lessonFocus;
+  if (cycleType) {
+    if (cycleType === 'discovery') effectiveFocus = 'introduction';
+    else if (cycleType === 'bridge' || cycleType === 'review') effectiveFocus = 'mastery';
+    else if (cycleType === 'quiz') effectiveFocus = 'mastery';
+    else effectiveFocus = 'expansion'; // ladder
+  }
+
   const baseSequence = SEQUENCES[hub];
-  const ratio = FOCUS_RATIOS[lessonFocus];
+  const ratio = FOCUS_RATIOS[effectiveFocus];
 
   // Calculate how many practice slides per layer (out of the 4 practice slots: slides 5-6 mimic + 7-10 produce = 6 practice slots)
   const totalPracticeSlots = baseSequence.filter(s => s.practiceLayer).length;
