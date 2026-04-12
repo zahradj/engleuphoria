@@ -7,6 +7,12 @@ export interface ImageGenerationOptions {
   quality?: 'high' | 'medium' | 'low';
   background?: 'transparent' | 'white' | 'colored';
   negativePrompt?: string;
+  /** Enable Picsart background removal + upscaling */
+  postProcess?: boolean;
+  /** Persist final image to Supabase Storage */
+  persist?: boolean;
+  /** Storage path when persist=true (e.g. "unit_1/lesson_2/lion.png") */
+  storagePath?: string;
 }
 
 export interface GeneratedImage {
@@ -14,27 +20,15 @@ export interface GeneratedImage {
   prompt: string;
   style: string;
   cached?: boolean;
+  picsartApplied?: boolean;
+  persisted?: boolean;
 }
 
 class ImageGenerationService {
   private cache = new Map<string, GeneratedImage>();
   
-  private getStylePrompt(style: string): string {
-    const styleMap: Record<string, string> = {
-      educational: 'clean educational illustration, simple and clear, perfect for learning',
-      cartoon: 'colorful cartoon style, friendly and engaging, suitable for children',
-      minimalist: 'minimal line art, clean and simple, modern design',
-      realistic: 'photorealistic style, high quality and detailed',
-      'hand-drawn': 'hand-drawn sketch style, artistic and creative',
-      flat2d: 'Professional 2D flat vector illustration, clean bold lines, solid colors with subtle layering, white background, isolated object, Engleuphoria Navy accents',
-      cinematic: 'cinematic professional illustration, dramatic lighting, high-end production quality',
-      editorial: 'Minimalist editorial photography, luxury corporate aesthetic, natural soft lighting',
-    };
-    return styleMap[style] || '';
-  }
-
   private generateCacheKey(options: ImageGenerationOptions): string {
-    return `${options.prompt}-${options.style}-${options.aspectRatio}`;
+    return `${options.prompt}-${options.style}-${options.aspectRatio}-${options.postProcess ? 'pp' : 'raw'}`;
   }
 
   async generateImage(options: ImageGenerationOptions): Promise<GeneratedImage> {
@@ -47,7 +41,7 @@ class ImageGenerationService {
     try {
       const fullPrompt = `${options.prompt}, educational illustration for English learning`;
 
-      console.log('Generating AI image with style:', options.style, '| prompt:', fullPrompt.slice(0, 100));
+      console.log('Generating AI image | style:', options.style, '| postProcess:', !!options.postProcess, '| prompt:', fullPrompt.slice(0, 100));
       
       const response = await supabase.functions.invoke('ai-image-generation', {
         body: {
@@ -55,6 +49,9 @@ class ImageGenerationService {
           style: options.style || 'educational',
           aspectRatio: options.aspectRatio || '1:1',
           negativePrompt: options.negativePrompt || undefined,
+          postProcess: options.postProcess ?? false,
+          persist: options.persist ?? false,
+          storagePath: options.storagePath,
         }
       });
 
@@ -72,7 +69,9 @@ class ImageGenerationService {
         url: response.data.imageUrl,
         prompt: options.prompt,
         style: options.style || 'educational',
-        cached: false
+        cached: false,
+        picsartApplied: response.data.picsartApplied || false,
+        persisted: response.data.persisted || false,
       };
 
       this.cache.set(cacheKey, result);
@@ -84,7 +83,7 @@ class ImageGenerationService {
         url: `https://via.placeholder.com/400x400/e3e3e3/666666?text=${encodeURIComponent(options.prompt.slice(0, 20))}`,
         prompt: options.prompt,
         style: options.style || 'educational',
-        cached: false
+        cached: false,
       };
     }
   }
