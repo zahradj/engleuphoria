@@ -133,7 +133,7 @@ Deno.serve(async (req) => {
       .eq("id", applicationId)
       .single();
 
-    // Step 6: Create/update teacher_profiles with visibility flags
+    // Step 6: Create/update teacher_profiles — teacher still needs to complete their profile
     const { error: profileError } = await adminClient.from("teacher_profiles").upsert(
       {
         user_id: authUserId,
@@ -143,10 +143,10 @@ Deno.serve(async (req) => {
         languages_spoken: appData?.languages_spoken || ["English"],
         years_experience: appData?.teaching_experience_years || 0,
         profile_image_url: appData?.professional_photo_url || "",
-        profile_complete: true,
-        can_teach: true,
-        is_available: true,
-        profile_approved_by_admin: true,
+        profile_complete: false,
+        can_teach: false,
+        is_available: false,
+        profile_approved_by_admin: false,
       },
       { onConflict: "user_id" }
     );
@@ -154,11 +154,11 @@ Deno.serve(async (req) => {
       console.error("Profile upsert error:", profileError);
     }
 
-    // Step 7: Update teacher_applications status
+    // Step 7: Update teacher_applications status — accepted but awaiting profile completion
     const { error: appUpdateError } = await adminClient
       .from("teacher_applications")
       .update({
-        current_stage: "approved",
+        current_stage: "interview_completed",
         status: "accepted",
         user_id: authUserId,
       })

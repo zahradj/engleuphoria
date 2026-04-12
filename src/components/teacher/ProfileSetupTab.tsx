@@ -213,14 +213,19 @@ export const ProfileSetupTab = ({ teacherId, onProfileComplete }: ProfileSetupTa
     setLoading(true);
 
     try {
+      const isComplete = !!(profile.bio.trim() && profile.video_url.trim() && validateVideoUrl(profile.video_url) && profile.profile_image_url && profile.certificate_urls.length > 0);
+
       const payload = {
         user_id: teacherId,
         bio: profile.bio,
         video_url: profile.video_url,
+        profile_image_url: profile.profile_image_url || null,
         specializations: profile.specializations,
         languages_spoken: profile.languages_spoken,
         years_experience: profile.years_experience,
         certificate_urls: profile.certificate_urls,
+        profile_complete: isComplete,
+        profile_approved_by_admin: false,
         updated_at: new Date().toISOString()
       };
 
@@ -236,11 +241,19 @@ export const ProfileSetupTab = ({ teacherId, onProfileComplete }: ProfileSetupTa
           onProfileComplete(insertedData.profile_complete);
         }
 
+        // If profile is now complete, update application stage to final_review
+        if (insertedData.profile_complete) {
+          await supabase
+            .from('teacher_applications')
+            .update({ current_stage: 'final_review' })
+            .eq('user_id', teacherId);
+        }
+
         toast({
           title: "Profile saved successfully",
           description: insertedData.profile_complete
-            ? "Your profile is now complete! You can start teaching."
-            : "Profile saved. Complete all required fields to start teaching.",
+            ? "Your profile has been submitted for review!"
+            : "Profile saved. Complete all required fields to submit for review.",
         });
         return;
       }
@@ -263,11 +276,19 @@ export const ProfileSetupTab = ({ teacherId, onProfileComplete }: ProfileSetupTa
         onProfileComplete(updatedData.profile_complete);
       }
 
+      // If profile is now complete, update application stage to final_review
+      if (updatedData.profile_complete) {
+        await supabase
+          .from('teacher_applications')
+          .update({ current_stage: 'final_review' })
+          .eq('user_id', teacherId);
+      }
+
       toast({
         title: "Profile saved successfully",
         description: updatedData.profile_complete
-          ? "Your profile is now complete! You can start teaching."
-          : "Profile saved. Complete all required fields to start teaching.",
+          ? "Your profile has been submitted for review!"
+          : "Profile saved. Complete all required fields to submit for review.",
       });
     } catch (error) {
       console.error('Error saving profile:', error);
@@ -340,8 +361,8 @@ export const ProfileSetupTab = ({ teacherId, onProfileComplete }: ProfileSetupTa
                 rows={4}
                 className="mt-1"
               />
-              <p className="text-sm text-muted-foreground mt-1">
-                {profile.bio.length}/500 characters
+              <p className={`text-sm mt-1 ${profile.bio.length > 2000 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                {profile.bio.length}/2000 characters
               </p>
             </div>
 

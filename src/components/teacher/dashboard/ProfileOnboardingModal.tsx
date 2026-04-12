@@ -249,10 +249,27 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
       }
 
       // Update the teacher's application stage to final_review so admins see them
-      await supabase
-        .from('teacher_applications')
-        .update({ current_stage: 'final_review' })
-        .eq('email', (await supabase.auth.getUser()).data.user?.email || '');
+      // Use user_id first (reliable), fall back to email if user_id not set on application
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData.user?.id;
+      const userEmail = userData.user?.email;
+
+      if (userId) {
+        const { data: appByUserId } = await supabase
+          .from('teacher_applications')
+          .update({ current_stage: 'final_review' })
+          .eq('user_id', userId)
+          .select('id')
+          .maybeSingle();
+
+        // If no application found by user_id, try email as fallback
+        if (!appByUserId && userEmail) {
+          await supabase
+            .from('teacher_applications')
+            .update({ current_stage: 'final_review' })
+            .eq('email', userEmail);
+        }
+      }
 
       setSubmitted(true);
     } catch (error: any) {
