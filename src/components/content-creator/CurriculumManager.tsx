@@ -188,7 +188,10 @@ export const CurriculumManager: React.FC<CurriculumManagerProps> = ({
     try {
       const hub = resolveHubFromContext();
       const cefrLevel = lesson.difficulty_level || curriculumContext?.level || 'beginner';
-      const topic = lesson.content?.vocabularyTheme || lesson.title.replace(/^\d+\.\d+\s*/, '');
+      const manifest = lesson.content?.ai_wizard_manifest;
+      const topic = manifest?.anchorPhoneme
+        ? `${lesson.content?.vocabularyTheme || lesson.title.replace(/^\d+\.\d+\s*/, '')} (${manifest.anchorPhoneme})`
+        : lesson.content?.vocabularyTheme || lesson.title.replace(/^\d+\.\d+\s*/, '');
 
       const levelMap: Record<string, 'beginner' | 'intermediate' | 'advanced'> = {
         beginner: 'beginner',
