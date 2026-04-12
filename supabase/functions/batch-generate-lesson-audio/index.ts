@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -56,9 +57,7 @@ serve(async (req) => {
         }
 
         const arrayBuffer = await response.arrayBuffer();
-        const base64Audio = btoa(
-          String.fromCharCode(...new Uint8Array(arrayBuffer))
-        );
+        const base64Audio = base64Encode(arrayBuffer);
         
         results[slideId] = `data:audio/mp3;base64,${base64Audio}`;
         console.log(`✓ Generated audio for ${slideId}`);

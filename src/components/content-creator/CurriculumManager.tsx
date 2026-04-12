@@ -7,6 +7,7 @@ import { saveToLibrary } from '@/services/lessonLibraryService';
 import { WizardFormData, GeneratedSlide, HubType } from '@/components/admin/lesson-builder/ai-wizard/types';
 import { generateSlideSkeletons, LessonSkeletonPlan, SlideSkeleton } from '@/services/slideSkeletonEngine';
 import { massGenerateImages, SlideImageProgress, MassGenerationResult } from '@/services/massImageGenerationService';
+import { generateLessonMedia, MediaManifest, MediaGenerationResult } from '@/services/lessonMediaService';
 import { CurriculumContext } from './CurriculumStep';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -234,11 +235,40 @@ export const CurriculumManager: React.FC<CurriculumManagerProps> = ({
 
       const plan = generatePPPLesson(formData);
 
+      // ─── Media Generation (ElevenLabs Audio & Song) ──────────
+      const mediaManifest: MediaManifest = {
+        unitNumber: manifest?.unitNumber || 1,
+        lessonNumber: manifest?.lessonNumber || (lesson.sequence_order || 1),
+        phonicsTarget: phoneme || undefined,
+        vocabularyList: manifest?.vocabularyList || content?.vocabulary_list?.map((v: any) => v.word || v) || [],
+        grammarTarget: grammar || undefined,
+        unitTheme: vocabTheme,
+        cycleType: cycleType || undefined,
+      };
+
+      let mediaResult: MediaGenerationResult | null = null;
+      try {
+        mediaResult = await generateLessonMedia(mediaManifest, (p) => {
+          console.log(`[Media] ${p.step} (${p.current}/${p.total})`);
+        });
+        if (mediaResult.errors.length > 0) {
+          console.warn('Media generation warnings:', mediaResult.errors);
+        }
+      } catch (mediaErr) {
+        console.warn('Media generation failed (non-blocking):', mediaErr);
+      }
+
       const updatedContent = {
         ...content,
         slides: plan.slides,
         hub,
         generatedAt: new Date().toISOString(),
+        // Persist media URLs for the renderer
+        mediaAssets: mediaResult ? {
+          phonicsAudioUrl: mediaResult.phonicsAudioUrl,
+          vocabAudioUrls: mediaResult.vocabAudioUrls,
+          songUrl: mediaResult.songUrl,
+        } : content?.mediaAssets,
       };
 
       const { error } = await supabase

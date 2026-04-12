@@ -43,6 +43,12 @@ export interface WizardLessonContext {
   level?: 'beginner' | 'intermediate' | 'advanced';
   ageGroup?: 'kids' | 'teens' | 'adults';
   wizardScript?: string;
+  // ─── Media Generation Hooks ─────────────────────────────────
+  audioEngine?: 'elevenlabs' | 'none';
+  videoEngine?: 'ai_video' | 'none';
+  unitTheme?: string;
+  shouldGenerateSong?: boolean;
+  shouldGenerateAudio?: boolean;
 }
 
 interface AILessonWizardProps {
