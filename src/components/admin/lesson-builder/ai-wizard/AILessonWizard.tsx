@@ -507,6 +507,30 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated, lessonCo
               exit={{ opacity: 0, y: -10 }}
               className="space-y-5 py-4"
             >
+              {/* ─── Injected Context Banner ─── */}
+              {lessonContext && lessonContext.unitNumber != null && (
+                <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-1">
+                  <p className="text-xs font-semibold text-primary flex items-center gap-1.5">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    Context Loaded — Unit {lessonContext.unitNumber}, Lesson {lessonContext.lessonNumber}
+                    {lessonContext.cycleType && <span className="ml-1 text-muted-foreground">({lessonContext.cycleType})</span>}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {lessonContext.phonicsTarget && (
+                      <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">🔤 {lessonContext.phonicsTarget}</span>
+                    )}
+                    {lessonContext.grammarTarget && (
+                      <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">📐 {lessonContext.grammarTarget}</span>
+                    )}
+                    {lessonContext.hintsDisabled && (
+                      <span className="inline-flex items-center rounded-md bg-destructive/10 px-2 py-0.5 text-[11px] font-medium text-destructive">🧪 Quiz Mode</span>
+                    )}
+                    {lessonContext.highSupport && (
+                      <span className="inline-flex items-center rounded-md bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-600">🛡️ Review Mode</span>
+                    )}
+                  </div>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="topic" className="text-sm font-medium">Lesson Topic</Label>
                 <div className="relative">
