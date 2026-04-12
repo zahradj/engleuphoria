@@ -213,14 +213,19 @@ export const ProfileSetupTab = ({ teacherId, onProfileComplete }: ProfileSetupTa
     setLoading(true);
 
     try {
+      const isComplete = !!(profile.bio.trim() && profile.video_url.trim() && validateVideoUrl(profile.video_url) && profile.profile_image_url && profile.certificate_urls.length > 0);
+
       const payload = {
         user_id: teacherId,
         bio: profile.bio,
         video_url: profile.video_url,
+        profile_image_url: profile.profile_image_url || null,
         specializations: profile.specializations,
         languages_spoken: profile.languages_spoken,
         years_experience: profile.years_experience,
         certificate_urls: profile.certificate_urls,
+        profile_complete: isComplete,
+        profile_approved_by_admin: false,
         updated_at: new Date().toISOString()
       };
 
@@ -340,8 +345,8 @@ export const ProfileSetupTab = ({ teacherId, onProfileComplete }: ProfileSetupTa
                 rows={4}
                 className="mt-1"
               />
-              <p className="text-sm text-muted-foreground mt-1">
-                {profile.bio.length}/500 characters
+              <p className={`text-sm mt-1 ${profile.bio.length > 2000 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                {profile.bio.length}/2000 characters
               </p>
             </div>
 
