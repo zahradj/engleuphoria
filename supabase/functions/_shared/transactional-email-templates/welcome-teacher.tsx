@@ -15,32 +15,42 @@ interface WelcomeTeacherProps {
 const WelcomeTeacherEmail = ({ name }: WelcomeTeacherProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Welcome to the {SITE_NAME} teaching team!</Preview>
+    <Preview>Congratulations! Welcome to the {SITE_NAME} Family 🌟</Preview>
     <Body style={main}>
       <Container style={container}>
         <Section style={headerSection}>
           <Heading style={logoText}>{SITE_NAME}</Heading>
+          <Text style={headerSubtitle}>Teaching Excellence Community</Text>
         </Section>
         <Section style={contentSection}>
-          <Heading style={h1}>Welcome, {name || 'Teacher'}! 🎓</Heading>
+          <div style={celebrationBanner}>🌟 🎓 🌟</div>
+          <Heading style={h1}>Congratulations, {name || 'Teacher'}!</Heading>
+          <Text style={highlightText}>
+            We were highly impressed by your application. You are one step closer to joining our elite team of educators who are transforming the way English is learned around the world.
+          </Text>
           <Text style={text}>
-            Thank you for applying to join our teaching community! We're excited to review your application and help you start making a difference in students' lives.
+            Welcome to the {SITE_NAME} family! We are thrilled to have you on board. Your expertise and passion for teaching will make a real difference in our students' lives.
           </Text>
           <Section style={cardSection}>
-            <Text style={cardTitle}>📋 Next Steps</Text>
-            <Text style={cardText}>• Complete your teaching profile</Text>
-            <Text style={cardText}>• Add your photo, bio, and experience</Text>
-            <Text style={cardText}>• Our team will review your application</Text>
-            <Text style={cardText}>• Once approved, start accepting students!</Text>
+            <Text style={cardTitle}>🚀 Your Onboarding Journey</Text>
+            <Text style={cardText}>✅ Application Approved — You made it!</Text>
+            <Text style={cardText}>📋 Complete Your Professional Profile</Text>
+            <Text style={cardText}>📸 Upload your headshot, bio & certificates</Text>
+            <Text style={cardText}>🎬 Add your introduction video</Text>
+            <Text style={cardText}>🏫 Start accepting students!</Text>
           </Section>
           <Section style={ctaSection}>
             <Button style={button} href="https://engleuphoria.lovable.app/teacher-application">
-              Complete Your Profile
+              Set Up Your Profile
             </Button>
           </Section>
+          <Text style={motivationText}>
+            "The best teachers don't give you the answer — they spark the desire to find it yourself."
+          </Text>
         </Section>
         <Hr style={hr} />
-        <Text style={footer}>{SITE_NAME} — Your English Learning Journey</Text>
+        <Text style={footer}>With gratitude,</Text>
+        <Text style={footerBrand}>The {SITE_NAME} Team 💜</Text>
       </Container>
     </Body>
   </Html>
@@ -48,22 +58,27 @@ const WelcomeTeacherEmail = ({ name }: WelcomeTeacherProps) => (
 
 export const template = {
   component: WelcomeTeacherEmail,
-  subject: '👩‍🏫 Welcome to EnglEuphoria Teaching Team!',
-  displayName: 'Teacher welcome',
+  subject: '🌟 Congratulations! Welcome to the EnglEuphoria Family!',
+  displayName: 'Teacher welcome (congratulatory)',
   previewData: { name: 'Maria' },
 } satisfies TemplateEntry
 
 const main = { backgroundColor: '#ffffff', fontFamily: 'Inter, Arial, sans-serif' }
 const container = { padding: '0', maxWidth: '600px', margin: '0 auto' }
-const headerSection = { backgroundColor: '#9b6dba', padding: '32px 24px', textAlign: 'center' as const }
-const logoText = { color: '#ffffff', fontSize: '28px', fontWeight: '700' as const, margin: '0' }
+const headerSection = { backgroundColor: '#9b6dba', padding: '40px 24px 32px', textAlign: 'center' as const }
+const logoText = { color: '#ffffff', fontSize: '32px', fontWeight: '700' as const, margin: '0' }
+const headerSubtitle = { color: '#e8d5f5', fontSize: '14px', margin: '8px 0 0', letterSpacing: '1px', textTransform: 'uppercase' as const }
 const contentSection = { padding: '32px 24px' }
-const h1 = { fontSize: '24px', fontWeight: '700' as const, color: '#111827', margin: '0 0 16px' }
+const celebrationBanner = { textAlign: 'center' as const, fontSize: '32px', margin: '0 0 16px' }
+const h1 = { fontSize: '26px', fontWeight: '700' as const, color: '#111827', margin: '0 0 16px', textAlign: 'center' as const }
+const highlightText = { fontSize: '16px', color: '#4b5563', lineHeight: '1.7', margin: '0 0 20px', backgroundColor: '#f5f0fa', padding: '16px', borderRadius: '8px', borderLeft: '4px solid #9b6dba' }
 const text = { fontSize: '15px', color: '#4b5563', lineHeight: '1.6', margin: '0 0 20px' }
-const cardSection = { backgroundColor: '#f5f0fa', padding: '20px', borderRadius: '8px', margin: '0 0 24px' }
-const cardTitle = { fontSize: '16px', fontWeight: '600' as const, color: '#7c3aed', margin: '0 0 12px' }
-const cardText = { fontSize: '14px', color: '#4b5563', margin: '0 0 6px', lineHeight: '1.5' }
-const ctaSection = { textAlign: 'center' as const, margin: '0 0 24px' }
-const button = { backgroundColor: '#9b6dba', color: '#ffffff', padding: '14px 32px', borderRadius: '8px', fontWeight: '600' as const, fontSize: '16px', textDecoration: 'none' }
+const cardSection = { backgroundColor: '#f9fafb', padding: '20px', borderRadius: '12px', margin: '0 0 24px', border: '1px solid #e5e7eb' }
+const cardTitle = { fontSize: '17px', fontWeight: '600' as const, color: '#7c3aed', margin: '0 0 14px' }
+const cardText = { fontSize: '14px', color: '#4b5563', margin: '0 0 8px', lineHeight: '1.6' }
+const ctaSection = { textAlign: 'center' as const, margin: '8px 0 28px' }
+const button = { backgroundColor: '#9b6dba', color: '#ffffff', padding: '16px 40px', borderRadius: '10px', fontWeight: '600' as const, fontSize: '16px', textDecoration: 'none' }
+const motivationText = { fontSize: '14px', color: '#9ca3af', lineHeight: '1.6', fontStyle: 'italic' as const, textAlign: 'center' as const, margin: '0 0 8px', padding: '0 16px' }
 const hr = { borderColor: '#e5e7eb', margin: '24px 0' }
-const footer = { fontSize: '13px', color: '#9ca3af', textAlign: 'center' as const, margin: '0' }
+const footer = { fontSize: '13px', color: '#6b7280', textAlign: 'center' as const, margin: '0' }
+const footerBrand = { fontSize: '14px', color: '#9b6dba', textAlign: 'center' as const, fontWeight: '600' as const, margin: '4px 0 0' }
