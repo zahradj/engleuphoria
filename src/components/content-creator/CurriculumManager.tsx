@@ -188,21 +188,38 @@ export const CurriculumManager: React.FC<CurriculumManagerProps> = ({
     try {
       const hub = resolveHubFromContext();
       const cefrLevel = lesson.difficulty_level || curriculumContext?.level || 'beginner';
-      const manifest = lesson.content?.ai_wizard_manifest;
-      const topic = manifest?.anchorPhoneme
-        ? `${lesson.content?.vocabularyTheme || lesson.title.replace(/^\d+\.\d+\s*/, '')} (${manifest.anchorPhoneme})`
-        : lesson.content?.vocabularyTheme || lesson.title.replace(/^\d+\.\d+\s*/, '');
+      const content = lesson.content || {};
+      const manifest = content?.ai_wizard_manifest;
+
+      // ─── Manifest-First Topic Resolution ─────────────────────
+      // Build a rich topic from manifest data, not just the lesson title
+      const vocabTheme = content?.vocabularyTheme || lesson.title.replace(/^\d+\.\d+\s*/, '');
+      const phoneme = manifest?.anchorPhoneme || content?.anchorPhoneme || '';
+      const grammar = manifest?.grammarGoal || content?.grammarGoal || '';
+      const cycleType = manifest?.cycleType || content?.cycle_type || '';
+
+      let topic = vocabTheme;
+      if (phoneme) topic += ` (Phonics: ${phoneme})`;
+      if (grammar) topic += ` — Grammar: ${grammar}`;
+
+      // ─── Build Lesson Prompt from Manifest ───────────────────
+      let lessonPrompt = '';
+      if (manifest) {
+        const parts = [
+          `Unit ${manifest.unitNumber}, Lesson ${manifest.lessonNumber} [${cycleType}].`,
+          manifest.wizardScript || '',
+          `Skills: ${(manifest.skillsRequired || []).join(', ')}.`,
+        ];
+        if (manifest.hintsDisabled) parts.push('QUIZ MODE: No hints, no scaffolding. Clinical assessment only.');
+        if (manifest.highSupport) parts.push('REVIEW MODE: High teacher support. Wizard hints active. Review all vocabulary from Lessons 1-4.');
+        if (manifest.masteryCriteria) parts.push(`Mastery: ${manifest.masteryCriteria}`);
+        lessonPrompt = parts.filter(Boolean).join(' ');
+      }
 
       const levelMap: Record<string, 'beginner' | 'intermediate' | 'advanced'> = {
-        beginner: 'beginner',
-        elementary: 'beginner',
-        'pre-intermediate': 'intermediate',
-        intermediate: 'intermediate',
-        advanced: 'advanced',
-        A1: 'beginner',
-        A2: 'beginner',
-        B1: 'intermediate',
-        B2: 'advanced',
+        beginner: 'beginner', elementary: 'beginner',
+        'pre-intermediate': 'intermediate', intermediate: 'intermediate',
+        advanced: 'advanced', A1: 'beginner', A2: 'beginner', B1: 'intermediate', B2: 'advanced',
       };
       const ageMap: Record<string, 'kids' | 'teens' | 'adults'> = {
         kids: 'kids', teens: 'teens', adults: 'adults',
@@ -212,12 +229,13 @@ export const CurriculumManager: React.FC<CurriculumManagerProps> = ({
         topic,
         level: levelMap[cefrLevel] || 'beginner',
         ageGroup: ageMap[curriculumContext?.ageGroup || 'kids'] || 'kids',
+        lessonPrompt: lessonPrompt || undefined,
       };
 
       const plan = generatePPPLesson(formData);
 
       const updatedContent = {
-        ...lesson.content,
+        ...content,
         slides: plan.slides,
         hub,
         generatedAt: new Date().toISOString(),
@@ -229,8 +247,6 @@ export const CurriculumManager: React.FC<CurriculumManagerProps> = ({
         .eq('id', lesson.id);
 
       if (error) throw error;
-
-      // Note: Save to library is handled separately via the SkeletonPanel "Save to Library" button
 
       return plan.slides;
     } catch (err) {
