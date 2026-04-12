@@ -61,10 +61,28 @@ export const EmailChangeEmail = ({
 
 export default EmailChangeEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Inter, Arial, sans-serif' }
-const container = { padding: '20px 25px' }
-const h1 = { fontSize: '22px', fontWeight: 'bold' as const, color: '#111827', margin: '0 0 20px' }
-const text = { fontSize: '14px', color: '#55575d', lineHeight: '1.5', margin: '0 0 25px' }
-const link = { color: '#9b6dba', textDecoration: 'underline' }
-const button = { backgroundColor: '#9b6dba', color: '#ffffff', fontSize: '14px', borderRadius: '8px', padding: '12px 24px', textDecoration: 'none' }
+const main = { backgroundColor: '#f8fafc', fontFamily: "'Inter', Arial, sans-serif" }
+const container = { padding: '40px 25px', maxWidth: '480px', margin: '0 auto' }
+const h1 = {
+  fontSize: '24px',
+  fontWeight: 'bold' as const,
+  color: 'hsl(222, 47%, 11%)',
+  margin: '0 0 20px',
+}
+const text = {
+  fontSize: '15px',
+  color: 'hsl(240, 4%, 46%)',
+  lineHeight: '1.6',
+  margin: '0 0 25px',
+}
+const link = { color: 'hsl(280, 60%, 65%)', textDecoration: 'underline' }
+const button = {
+  backgroundColor: 'hsl(280, 60%, 65%)',
+  color: '#ffffff',
+  fontSize: '15px',
+  fontWeight: '600' as const,
+  borderRadius: '0.75rem',
+  padding: '14px 28px',
+  textDecoration: 'none',
+}
 const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
