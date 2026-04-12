@@ -197,7 +197,8 @@ export const TeacherApplicationsManagement = () => {
           scheduled_at: scheduledAt.toISOString(),
           duration: 20,
           interview_type: 'video_call',
-          status: 'scheduled'
+          status: 'scheduled',
+          zoom_link: `${window.location.origin}/interview-room/${application.id}`
         }]);
 
       if (interviewError) throw interviewError;

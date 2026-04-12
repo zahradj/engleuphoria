@@ -89,17 +89,9 @@ Deno.serve(async (req) => {
     const app = (interview as any).teacher_applications
     const candidateName = `${app.first_name || ''} ${app.last_name || ''}`.trim() || 'Candidate'
 
-    // Validate meeting link exists before sending
-    if (!interview.zoom_link && !interview.meeting_link) {
-      return new Response(JSON.stringify({
-        error: 'Interview has no meeting link. Please add a Zoom/meeting link before sending the invite.',
-      }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
-
-    const meetingLink = interview.zoom_link || interview.meeting_link || ''
+    // Use internal interview room as fallback if no external link provided
+    const internalLink = `${SITE_URL}/interview-room/${interview.application_id || interview.id}`
+    const meetingLink = interview.zoom_link || interview.meeting_link || internalLink
     const scheduledDate = new Date(interview.scheduled_at)
 
     const interviewDate = scheduledDate.toLocaleDateString('en-US', {
