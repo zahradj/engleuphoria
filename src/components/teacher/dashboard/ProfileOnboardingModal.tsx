@@ -171,8 +171,8 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
       errors.bio = 'Bio is required';
     } else if (formData.bio.trim().length < 50) {
       errors.bio = 'Bio must be at least 50 characters';
-    } else if (formData.bio.trim().length > 500) {
-      errors.bio = 'Bio must be under 500 characters';
+    } else if (formData.bio.trim().length > 2000) {
+      errors.bio = 'Bio must be under 2000 characters';
     }
 
     if (!formData.videoUrl.trim()) {
@@ -272,7 +272,7 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
-  const canSubmit = formData.bio.trim().length >= 50 && formData.videoUrl.trim() && isValidVideoUrl && formData.profileImageUrl && formData.certificateUrls.length > 0;
+  const canSubmit = formData.bio.trim().length >= 50 && formData.bio.trim().length <= 2000 && formData.videoUrl.trim() && isValidVideoUrl && formData.profileImageUrl && formData.certificateUrls.length > 0;
 
   // Success state after submission
   if (submitted) {
@@ -375,8 +375,8 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
               ) : (
                 <p className="text-sm text-muted-foreground">Minimum 50 characters</p>
               )}
-              <p className={`text-sm ${formData.bio.length > 500 ? 'text-destructive' : 'text-muted-foreground'}`}>
-                {formData.bio.length}/500
+              <p className={`text-sm ${formData.bio.length > 2000 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                {formData.bio.length}/2000
               </p>
             </div>
           </div>
