@@ -342,17 +342,36 @@ export function generateSlideSkeletons(params: {
     return step;
   });
 
-  const skeletons: SlideSkeleton[] = sequence.map((step, index) => {
+  // ─── Quiz Mode: strip warm-up/cool-off, replace with assessment slides ──
+  // ─── Review Mode: add wizard hint annotations ──────────────────────────
+  const finalSequence = sequence.map(step => {
+    if (hintsDisabled && (step.phase === 'warmup' || step.phase === 'cooloff')) {
+      // Quiz mode: convert warm-up to brief intro, cool-off to score reveal
+      if (step.phase === 'warmup') {
+        return { ...step, objective: 'Quiz Introduction — No warm-up. Read instructions.', activityType: null, durationSeconds: 30 };
+      }
+      return { ...step, objective: 'Score Reveal — Final results', activityType: null, durationSeconds: 60 };
+    }
+    if (highSupport && step.practiceLayer) {
+      // Review mode: annotate with wizard hint activation
+      return { ...step, objective: `[Wizard Hints ON] ${step.objective}` };
+    }
+    return step;
+  });
+
+  const skeletons: SlideSkeleton[] = finalSequence.map((step, index) => {
     const slideNumber = index + 1;
 
     // Alternating mascot position for playground
     let mascotPosition: MascotPosition = 'hidden';
     if (hub === 'playground') {
       mascotPosition = slideNumber % 2 === 1 ? 'left' : 'right';
-      // Hide mascot during intense activities
+      // Hide mascot during intense activities or quiz mode
       if ((step.phase === 'produce' || step.phase === 'mimic') && step.activityType) {
         mascotPosition = 'hidden';
       }
+      // Quiz: wizard observes silently (hidden)
+      if (hintsDisabled) mascotPosition = 'hidden';
     }
 
     const contentPosition: 'left' | 'right' | 'center' =
@@ -380,6 +399,7 @@ export function generateSlideSkeletons(params: {
       durationSeconds: step.durationSeconds,
       accessoryReveal: slideNumber === 11 && !!accessoryName,
       practiceLayer: step.practiceLayer,
+      phonemeTarget: phonicsTarget || undefined,
     };
   });
 

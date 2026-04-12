@@ -711,7 +711,7 @@ Unit Details:
 - Vocabulary Words: ${vocabWords}
 - Grammar Patterns: ${grammarPats}
 - Phoneme Focus: ${phoneme}
-- Target Question (Lesson 3 Bridge): ${targetQ}
+- Target Question (Lesson 3 Bridge): ${requestData.targetQuestion || 'What is it?'}
 
 Generate the complete Review + Integrated Quiz JSON. Return ONLY valid JSON, no extra text.`;
   }
