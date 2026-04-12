@@ -6,42 +6,21 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Loader2, Wand2, ChevronDown, ChevronRight, Save, BookOpen, GraduationCap, Edit2, Check, X } from 'lucide-react';
+import { Loader2, Wand2, ChevronDown, ChevronRight, Save, BookOpen, GraduationCap, Edit2, Check, X, Link, Music } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { getSpiralSkeleton, buildFullCurriculumMapContext } from '@/data/spiralCurriculumSkeleton';
+import {
+  getSpiralSkeleton,
+  buildFullCurriculumMapContext,
+  skeletonToGeneratedUnit,
+  validateAndEnforceProgression,
+  type SkeletonGeneratedUnit,
+  type SkeletonGeneratedLesson,
+} from '@/data/spiralCurriculumSkeleton';
 
-interface GeneratedUnit {
-  unitNumber: number;
-  title: string;
-  anchorPhoneme?: string;
-  grammarGoal?: string;
-  prerequisiteUnit?: number | null;
-  skillsMix?: { listening: number; speaking: number; reading: number; writing: number };
-  lessons: GeneratedLesson[];
-}
-
-interface GeneratedLesson {
-  lessonNumber: number;
-  title: string;
-  objectives: string[];
-  grammarFocus: string;
-  vocabularyTheme: string;
-  cycleType?: 'discovery' | 'ladder' | 'bridge';
-  phonicsFocus?: string;
-  vocabularyList?: any[];
-  grammarPattern?: string;
-  skillsFocus?: string[];
-  skillTags?: string[];
-  listeningTask?: string;
-  speakingTask?: string;
-  readingTask?: string;
-  writingTask?: string;
-  reviewWords?: string[];
-  bridgeRetrieval?: any[];
-  masteryCheck?: string;
-}
+type GeneratedUnit = SkeletonGeneratedUnit;
+type GeneratedLesson = SkeletonGeneratedLesson;
 
 interface CurriculumConfig {
   level: string;
@@ -96,15 +75,19 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
 
   const canGenerate = config.level && config.ageGroup && config.unitCount > 0 && config.lessonsPerUnit > 0;
 
+  // ─── SKELETON-FIRST GENERATION ──────────────────────────────────
   const handleGenerate = async () => {
     if (!canGenerate) return;
     setIsGenerating(true);
     setGeneratedUnits([]);
 
+    // 1. Load the skeleton for the selected age group
+    const skeleton = getSpiralSkeleton(config.ageGroup, config.level);
+    const slicedSkeleton = skeleton.slice(0, config.unitCount);
+
     try {
-      // Build spiral dependency context for progressive generation
-      const spiralSkeleton = getSpiralSkeleton(config.ageGroup, config.level);
-      const spiralContext = buildFullCurriculumMapContext(spiralSkeleton);
+      // 2. Ask AI to DECORATE the skeleton (not invent structure)
+      const spiralContext = buildFullCurriculumMapContext(slicedSkeleton);
 
       const { data, error } = await supabase.functions.invoke('curriculum-expert-agent', {
         body: {
@@ -119,134 +102,54 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
 
       if (error) throw error;
 
-      // Parse response - the edge function returns structured content
+      // 3. Parse AI response
       const content = data?.content || data?.result || data;
-      let parsed: GeneratedUnit[];
+      let aiUnits: any[] = [];
 
       if (typeof content === 'string') {
-        // Try to extract JSON from the response
         const jsonMatch = content.match(/\[[\s\S]*\]/);
         if (jsonMatch) {
-          parsed = JSON.parse(jsonMatch[0]);
-        } else {
-          throw new Error('Could not parse curriculum structure from AI response');
+          aiUnits = JSON.parse(jsonMatch[0]);
         }
       } else if (Array.isArray(content)) {
-        parsed = content;
+        aiUnits = content;
       } else if (content?.units) {
-        parsed = content.units;
-      } else {
-        // Generate fallback structure
-        parsed = generateFallbackStructure();
+        aiUnits = content.units;
       }
 
-      // Normalize: ensure every unit has a lessons array with safe fields
-      parsed = parsed.map((unit: any, i: number) => ({
-        unitNumber: unit.unitNumber ?? unit.unit_number ?? i + 1,
-        title: unit.title ?? `Unit ${i + 1}`,
-        anchorPhoneme: unit.anchorPhoneme ?? unit.anchor_phoneme ?? null,
-        grammarGoal: unit.grammarGoal ?? unit.grammar_goal ?? null,
-        prerequisiteUnit: unit.prerequisiteUnit ?? unit.prerequisite_unit ?? (i > 0 ? i : null),
-        skillsMix: unit.skillsMix ?? unit.skills_mix ?? null,
-        lessons: (unit.lessons ?? []).map((lesson: any, li: number) => ({
-          lessonNumber: lesson.lessonNumber ?? lesson.lesson_number ?? li + 1,
-          title: lesson.title ?? `Lesson ${li + 1}`,
-          objectives: Array.isArray(lesson.objectives) ? lesson.objectives : [],
-          grammarFocus: lesson.grammarFocus ?? lesson.grammar_focus ?? '',
-          vocabularyTheme: lesson.vocabularyTheme ?? lesson.vocabulary_theme ?? '',
-          cycleType: lesson.cycleType ?? lesson.cycle_type ?? null,
-          phonicsFocus: lesson.phonicsFocus ?? lesson.phonics_focus ?? null,
-          vocabularyList: Array.isArray(lesson.vocabularyList ?? lesson.vocabulary_list) ? (lesson.vocabularyList ?? lesson.vocabulary_list) : [],
-          grammarPattern: lesson.grammarPattern ?? lesson.grammar_pattern ?? null,
-          skillsFocus: Array.isArray(lesson.skillsFocus ?? lesson.skills_focus) ? (lesson.skillsFocus ?? lesson.skills_focus) : [],
-          skillTags: Array.isArray(lesson.skillTags ?? lesson.skill_tags) ? (lesson.skillTags ?? lesson.skill_tags) : [],
-          listeningTask: lesson.listeningTask ?? lesson.listening_task ?? null,
-          speakingTask: lesson.speakingTask ?? lesson.speaking_task ?? null,
-          readingTask: lesson.readingTask ?? lesson.reading_task ?? null,
-          writingTask: lesson.writingTask ?? lesson.writing_task ?? null,
-          reviewWords: Array.isArray(lesson.reviewWords) ? lesson.reviewWords : [],
-          bridgeRetrieval: Array.isArray(lesson.bridgeRetrieval) ? lesson.bridgeRetrieval : [],
-          masteryCheck: lesson.masteryCheck ?? null,
-        })),
+      // 4. VALIDATE & ENFORCE: merge AI creative content with skeleton structure
+      const validated = validateAndEnforceProgression(aiUnits, skeleton, config.unitCount);
+      
+      // Trim lessons per unit
+      const trimmed = validated.map(u => ({
+        ...u,
+        lessons: u.lessons.slice(0, config.lessonsPerUnit),
       }));
 
-      setGeneratedUnits(parsed);
-      setOpenUnits(new Set(parsed.map((_, i) => i)));
-      toast.success(`Generated ${parsed.length} units with lessons!`);
+      setGeneratedUnits(trimmed);
+      setOpenUnits(new Set(trimmed.map((_, i) => i)));
+      toast.success(`Generated ${trimmed.length} progressive units with dependency links!`);
     } catch (err: any) {
       console.error('Curriculum generation error:', err);
-      // Use fallback generation
-      const fallback = generateFallbackStructure();
+      
+      // 5. FALLBACK: skeleton itself IS the fallback — no random themes
+      const fallback = generateSkeletonFallback(slicedSkeleton);
       setGeneratedUnits(fallback);
       setOpenUnits(new Set(fallback.map((_, i) => i)));
-      toast.info('Generated curriculum structure (offline mode)');
+      toast.info('Generated progressive curriculum from skeleton (offline mode)');
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const generateFallbackStructure = (): GeneratedUnit[] => {
-    const levelThemes: Record<string, string[][]> = {
-      beginner: [
-        ['Greetings & Introductions', 'Saying Hello', 'Introducing Yourself', 'Asking Someone\'s Name', 'Classroom Language'],
-        ['My Family & Friends', 'Family Members', 'Describing People', 'Talking About Friends', 'Family Activities'],
-        ['Daily Routines', 'Morning Routine', 'At School', 'After School', 'Bedtime'],
-        ['Food & Drink', 'Fruits & Vegetables', 'Meals of the Day', 'At the Restaurant', 'My Favourite Food'],
-        ['Animals & Nature', 'Farm Animals', 'Wild Animals', 'Pets', 'In the Garden'],
-        ['My Home', 'Rooms in the House', 'Furniture', 'My Bedroom', 'Household Chores'],
-      ],
-      elementary: [
-        ['Hobbies & Interests', 'Sports & Games', 'Music & Art', 'Reading & Writing', 'Weekend Activities'],
-        ['Travel & Transport', 'Getting Around', 'At the Airport', 'Holiday Plans', 'Giving Directions'],
-        ['Health & Body', 'Parts of the Body', 'Feeling Unwell', 'At the Doctor', 'Healthy Habits'],
-        ['Shopping & Money', 'At the Shop', 'Clothes Shopping', 'Comparing Prices', 'Pocket Money'],
-        ['Weather & Seasons', 'Types of Weather', 'Four Seasons', 'Weather Forecast', 'Seasonal Activities'],
-        ['Technology', 'Computers & Phones', 'The Internet', 'Social Media', 'Digital Safety'],
-      ],
-      'pre-intermediate': [
-        ['Life Experiences', 'Memorable Moments', 'Achievements', 'Challenges', 'Future Goals'],
-        ['The Environment', 'Climate Change', 'Recycling', 'Wildlife Conservation', 'Green Living'],
-        ['Culture & Traditions', 'Festivals Around the World', 'Food Culture', 'Music & Dance', 'Cultural Differences'],
-        ['Education & Careers', 'School Systems', 'Dream Jobs', 'Job Skills', 'Work Experience'],
-        ['Media & Communication', 'News & Journalism', 'Advertising', 'Social Media Influence', 'Public Speaking'],
-        ['Science & Innovation', 'Inventions', 'Space Exploration', 'Medical Science', 'Future Technology'],
-      ],
-      intermediate: [
-        ['Global Issues', 'Poverty & Inequality', 'Migration', 'Human Rights', 'International Cooperation'],
-        ['Business & Economics', 'Entrepreneurship', 'Marketing', 'Global Trade', 'Financial Literacy'],
-        ['Literature & Arts', 'Famous Authors', 'Poetry Analysis', 'Film & Theatre', 'Art Movements'],
-        ['Psychology & Society', 'Motivation', 'Social Behaviour', 'Cultural Identity', 'Stereotypes'],
-        ['Advanced Communication', 'Debate Skills', 'Persuasive Writing', 'Academic Presentations', 'Negotiation'],
-        ['Future & Innovation', 'AI & Robotics', 'Sustainable Cities', 'Space Colonization', 'Ethics in Technology'],
-      ],
-    };
-
-    const themes = levelThemes[config.level] || levelThemes.beginner;
-    const grammarByLevel: Record<string, string[]> = {
-      beginner: ['be verbs', 'simple present', 'can/can\'t', 'this/that', 'plurals', 'prepositions'],
-      elementary: ['past simple', 'comparatives', 'future (going to)', 'present continuous', 'some/any', 'modal verbs'],
-      'pre-intermediate': ['present perfect', 'past continuous', 'first conditional', 'passive voice', 'relative clauses', 'reported speech'],
-      intermediate: ['second conditional', 'past perfect', 'gerunds/infinitives', 'advanced passive', 'narrative tenses', 'mixed conditionals'],
-    };
-
-    const grammar = grammarByLevel[config.level] || grammarByLevel.beginner;
-
-    return Array.from({ length: config.unitCount }, (_, ui) => {
-      const themeSet = themes[ui % themes.length];
+  // ─── SKELETON-BASED FALLBACK (replaces old random themes) ───────
+  const generateSkeletonFallback = (slicedSkeleton: ReturnType<typeof getSpiralSkeleton>): GeneratedUnit[] => {
+    return slicedSkeleton.map((skelUnit, i) => {
+      const prevUnit = i > 0 ? slicedSkeleton[i - 1] : null;
+      const generated = skeletonToGeneratedUnit(skelUnit, prevUnit, config.lessonsPerUnit);
       return {
-        unitNumber: ui + 1,
-        title: `Unit ${ui + 1}: ${themeSet[0]}`,
-        lessons: Array.from({ length: config.lessonsPerUnit }, (_, li) => ({
-          lessonNumber: li + 1,
-          title: themeSet[(li + 1) % themeSet.length] || `Lesson ${li + 1}`,
-          objectives: [
-            `Students will be able to use ${grammar[ui % grammar.length]} in context`,
-            `Students will learn ${5 + li * 2} new vocabulary items`,
-            `Students will practise speaking and listening skills`,
-          ],
-          grammarFocus: grammar[ui % grammar.length],
-          vocabularyTheme: themeSet[0],
-        })),
+        ...generated,
+        lessons: generated.lessons.slice(0, config.lessonsPerUnit),
       };
     });
   };
@@ -362,7 +265,6 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
             sourceLevel: config.level,
             hub: hubSystem,
             dbTargetSystem,
-            // Spiral curriculum metadata
             anchorPhoneme: unit.anchorPhoneme || null,
             grammarGoal: unit.grammarGoal || null,
             prerequisiteUnit: unit.prerequisiteUnit || null,
@@ -405,7 +307,7 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
           Curriculum Generator
         </h1>
         <p className="text-muted-foreground mt-1">
-          Generate a structured English learning curriculum with AI. Configure the parameters below and let AI create units, lessons, objectives, and grammar focus.
+          Generate a progressive, dependency-linked English curriculum. The AI decorates a proven spiral skeleton — no random generation.
         </p>
       </div>
 
@@ -450,9 +352,9 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
               <Input
                 type="number"
                 min={1}
-                max={12}
+                max={10}
                 value={config.unitCount}
-                onChange={(e) => setConfig((p) => ({ ...p, unitCount: parseInt(e.target.value) || 1 }))}
+                onChange={(e) => setConfig((p) => ({ ...p, unitCount: Math.min(10, parseInt(e.target.value) || 1) }))}
               />
             </div>
 
@@ -461,9 +363,9 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
               <Input
                 type="number"
                 min={1}
-                max={10}
+                max={3}
                 value={config.lessonsPerUnit}
-                onChange={(e) => setConfig((p) => ({ ...p, lessonsPerUnit: parseInt(e.target.value) || 1 }))}
+                onChange={(e) => setConfig((p) => ({ ...p, lessonsPerUnit: Math.min(3, parseInt(e.target.value) || 1) }))}
               />
             </div>
           </div>
@@ -477,12 +379,12 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
             {isGenerating ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Generating Curriculum...
+                Generating Progressive Curriculum...
               </>
             ) : (
               <>
                 <Wand2 className="h-4 w-4 mr-2" />
-                Generate Curriculum
+                Generate Spiral Curriculum
               </>
             )}
           </Button>
@@ -494,9 +396,9 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-lg">Generated Curriculum</CardTitle>
+              <CardTitle className="text-lg">Generated Spiral Curriculum</CardTitle>
               <CardDescription>
-                {generatedUnits.length} units · {generatedUnits.reduce((s, u) => s + (u.lessons?.length || 0), 0)} lessons · Click to edit
+                {generatedUnits.length} units · {generatedUnits.reduce((s, u) => s + (u.lessons?.length || 0), 0)} lessons · Progressive dependency chain
               </CardDescription>
             </div>
             <Button onClick={handleSaveToDB} disabled={isSaving}>
@@ -514,8 +416,41 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
                   {openUnits.has(ui) ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
                   <GraduationCap className="h-4 w-4 text-primary" />
                   <span className="font-medium text-foreground">{unit.title}</span>
-                  <Badge variant="secondary" className="ml-auto">{(unit.lessons || []).length} lessons</Badge>
+                  
+                  {/* Dependency badge */}
+                  {unit.prerequisiteUnit && (
+                    <Badge variant="outline" className="text-xs gap-1 ml-1">
+                      <Link className="h-3 w-3" />
+                      ← Unit {unit.prerequisiteUnit}
+                    </Badge>
+                  )}
+                  
+                  {/* Phoneme badge */}
+                  <Badge className="text-xs bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300 ml-auto">
+                    <Music className="h-3 w-3 mr-1" />
+                    {unit.anchorPhoneme}
+                  </Badge>
+                  
+                  {/* Skills mix mini-bar */}
+                  {unit.skillsMix && (
+                    <div className="flex gap-0.5 items-center" title={`L:${unit.skillsMix.listening}% S:${unit.skillsMix.speaking}% R:${unit.skillsMix.reading}% W:${unit.skillsMix.writing}%`}>
+                      <div className="h-2 rounded-l bg-blue-400" style={{ width: `${unit.skillsMix.listening / 5}px` }} />
+                      <div className="h-2 bg-green-400" style={{ width: `${unit.skillsMix.speaking / 5}px` }} />
+                      <div className="h-2 bg-amber-400" style={{ width: `${unit.skillsMix.reading / 5}px` }} />
+                      <div className="h-2 rounded-r bg-red-400" style={{ width: `${unit.skillsMix.writing / 5}px` }} />
+                    </div>
+                  )}
+                  
+                  <Badge variant="secondary">{(unit.lessons || []).length} lessons</Badge>
                 </CollapsibleTrigger>
+                
+                {/* Unit meta row */}
+                <div className="ml-6 mt-1 flex flex-wrap gap-1.5 text-xs text-muted-foreground px-3">
+                  <span>🎯 Grammar: <strong className="text-foreground">{unit.grammarGoal}</strong></span>
+                  <span className="mx-1">·</span>
+                  <span>L:{unit.skillsMix?.listening}% S:{unit.skillsMix?.speaking}% R:{unit.skillsMix?.reading}% W:{unit.skillsMix?.writing}%</span>
+                </div>
+                
                 <CollapsibleContent className="ml-6 mt-2 space-y-2">
                   {unit.lessons.map((lesson, li) => {
                     const isEditing = editingLesson?.unitIdx === ui && editingLesson?.lessonIdx === li;
@@ -571,7 +506,17 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
                                 )}
                                 <Badge variant="outline" className="text-xs">🗣 {lesson.grammarFocus}</Badge>
                                 <Badge variant="outline" className="text-xs">📚 {lesson.vocabularyTheme}</Badge>
+                                {lesson.skillTags?.length > 0 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    Skills: {lesson.skillTags.join(', ')}
+                                  </Badge>
+                                )}
                               </div>
+                              {lesson.reviewWords?.length > 0 && (
+                                <div className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                                  🔁 Review: {lesson.reviewWords.join(', ')}
+                                </div>
+                              )}
                               {(lesson.objectives || []).length > 0 && (
                                 <ul className="mt-2 text-xs text-muted-foreground space-y-0.5">
                                   {lesson.objectives.map((obj, oi) => (
