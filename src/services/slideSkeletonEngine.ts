@@ -282,6 +282,13 @@ export function generateSlideSkeletons(params: {
   topic: string;
   lessonFocus?: LessonFocusType;
   practiceVariant?: number;
+  // ─── Wizard Manifest Fields ──────────────────────────
+  cycleType?: string;
+  phonicsTarget?: string;
+  grammarTarget?: string;
+  skillsFocus?: string[];
+  hintsDisabled?: boolean;
+  highSupport?: boolean;
 }): LessonSkeletonPlan {
   const {
     lessonId, lessonTitle, hub, levelName, accessoryName, topic,

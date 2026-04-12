@@ -118,6 +118,7 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
       }
 
       // 4. VALIDATE & ENFORCE: merge AI creative content with skeleton structure
+      // Now matches by unitNumber/lessonNumber, not array index
       const validated = validateAndEnforceProgression(aiUnits, skeleton, config.unitCount);
       
       // Trim lessons per unit
@@ -227,7 +228,35 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
         unitCefrLevel.startsWith(level.cefr_level)
       )) || levelOptions?.[0] || null;
 
+      // ─── DUPLICATE PREVENTION: Check for existing units ─────────
+      const { data: existingUnits } = await supabase
+        .from('curriculum_units')
+        .select('id, unit_number')
+        .eq('age_group', config.ageGroup)
+        .eq('cefr_level', unitCefrLevel);
+
+      const existingUnitNumbers = new Set((existingUnits || []).map(u => u.unit_number));
+
+      let savedCount = 0;
+      let skippedCount = 0;
+
       for (const unit of generatedUnits) {
+        // Skip if a unit with this number already exists for this context
+        if (existingUnitNumbers.has(unit.unitNumber)) {
+          console.warn(`⚠️ Unit ${unit.unitNumber} already exists for ${config.ageGroup}/${unitCefrLevel} — skipping`);
+          skippedCount++;
+          continue;
+        }
+
+        // Build unit_data manifest
+        const unitManifest = {
+          anchorPhoneme: unit.anchorPhoneme,
+          grammarGoal: unit.grammarGoal,
+          prerequisiteUnit: unit.prerequisiteUnit,
+          skillsMix: unit.skillsMix,
+          generatedAt: new Date().toISOString(),
+        };
+
         const { data: unitData, error: unitError } = await supabase
           .from('curriculum_units')
           .insert({
@@ -236,6 +265,7 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
             age_group: config.ageGroup,
             cefr_level: unitCefrLevel,
             learning_objectives: unit.lessons.flatMap(l => l.objectives || []),
+            unit_data: unitManifest,
             created_by: user?.id || null,
           })
           .select()
@@ -279,6 +309,8 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
             masteryCheck: lesson.masteryCheck || null,
             hintsDisabled: lesson.hintsDisabled || false,
             highSupport: lesson.highSupport || false,
+            // ─── WIZARD MANIFEST ─────────────────────────────
+            ai_wizard_manifest: lesson.aiWizardManifest || null,
           },
           is_published: false,
         }));
@@ -288,9 +320,14 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
           .insert(lessonInserts);
 
         if (lessonsError) throw lessonsError;
+        savedCount++;
       }
 
-      toast.success(`Saved ${generatedUnits.length} units and ${generatedUnits.reduce((sum, u) => sum + (u.lessons?.length || 0), 0)} lessons to database!`);
+      if (skippedCount > 0) {
+        toast.warning(`Saved ${savedCount} new units. Skipped ${skippedCount} units that already exist.`);
+      } else {
+        toast.success(`Saved ${savedCount} units and ${generatedUnits.reduce((sum, u) => sum + (u.lessons?.length || 0), 0)} lessons to database!`);
+      }
       onCurriculumGenerated?.({ system: hubSystem, level: config.level, ageGroup: config.ageGroup });
     } catch (err: any) {
       console.error('Save error:', err);
@@ -449,96 +486,97 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
                 {/* Unit meta row */}
                 <div className="ml-6 mt-1 flex flex-wrap gap-1.5 text-xs text-muted-foreground px-3">
                   <span>🎯 Grammar: <strong className="text-foreground">{unit.grammarGoal}</strong></span>
-                  <span className="mx-1">·</span>
-                  <span>L:{unit.skillsMix?.listening}% S:{unit.skillsMix?.speaking}% R:{unit.skillsMix?.reading}% W:{unit.skillsMix?.writing}%</span>
+                  <span>·</span>
+                  <span>Skills: L:{unit.skillsMix?.listening}% S:{unit.skillsMix?.speaking}% R:{unit.skillsMix?.reading}% W:{unit.skillsMix?.writing}%</span>
                 </div>
-                
-                <CollapsibleContent className="ml-6 mt-2 space-y-2">
-                  {unit.lessons.map((lesson, li) => {
+
+                <CollapsibleContent className="pl-6 pr-3 pb-3 space-y-2 mt-2">
+                  {(unit.lessons || []).map((lesson, li) => {
                     const isEditing = editingLesson?.unitIdx === ui && editingLesson?.lessonIdx === li;
+                    const cycleColor = lesson.cycleType === 'discovery' ? 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300'
+                      : lesson.cycleType === 'ladder' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
+                      : lesson.cycleType === 'bridge' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+                      : lesson.cycleType === 'review' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+                      : lesson.cycleType === 'quiz' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300'
+                      : 'bg-muted text-muted-foreground';
+
                     return (
-                      <div key={li} className="rounded-lg border border-border p-3">
+                      <div key={li} className="border border-border rounded-lg p-3 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Badge className={`text-[10px] px-1.5 ${cycleColor}`}>{lesson.cycleType}</Badge>
+                          <span className="text-sm font-medium text-foreground flex-1">
+                            L{lesson.lessonNumber}: {lesson.title}
+                          </span>
+                          
+                          {/* Wizard manifest indicator */}
+                          {lesson.aiWizardManifest && (
+                            <Badge variant="outline" className="text-[10px] gap-0.5">
+                              🧙 Manifest
+                            </Badge>
+                          )}
+
+                          {lesson.hintsDisabled && (
+                            <Badge variant="destructive" className="text-[10px]">No Hints</Badge>
+                          )}
+                          {lesson.highSupport && (
+                            <Badge className="text-[10px] bg-purple-500 text-white">High Support</Badge>
+                          )}
+                          
+                          {!isEditing && (
+                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => startEdit(ui, li)}>
+                              <Edit2 className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
+
                         {isEditing && editBuffer ? (
-                          <div className="space-y-3">
-                            <Input
-                              value={editBuffer.title}
-                              onChange={(e) => setEditBuffer({ ...editBuffer, title: e.target.value })}
-                              className="font-medium"
-                            />
-                            <div className="space-y-1">
-                              <Label className="text-xs">Grammar Focus</Label>
+                          <div className="space-y-2 border-t border-border pt-2">
+                            <div>
+                              <Label className="text-xs">Title</Label>
                               <Input
-                                value={editBuffer.grammarFocus}
-                                onChange={(e) => setEditBuffer({ ...editBuffer, grammarFocus: e.target.value })}
+                                value={editBuffer.title}
+                                onChange={(e) => setEditBuffer({ ...editBuffer, title: e.target.value })}
+                                className="h-8 text-sm"
                               />
                             </div>
-                            <div className="space-y-1">
-                              <Label className="text-xs">Vocabulary Theme</Label>
+                            <div>
+                              <Label className="text-xs">Objectives (comma-separated)</Label>
                               <Input
-                                value={editBuffer.vocabularyTheme}
-                                onChange={(e) => setEditBuffer({ ...editBuffer, vocabularyTheme: e.target.value })}
+                                value={editBuffer.objectives.join(', ')}
+                                onChange={(e) => setEditBuffer({ ...editBuffer, objectives: e.target.value.split(',').map(s => s.trim()) })}
+                                className="h-8 text-sm"
                               />
                             </div>
                             <div className="flex gap-2">
-                              <Button size="sm" onClick={saveEdit}><Check className="h-3 w-3 mr-1" />Save</Button>
-                              <Button size="sm" variant="ghost" onClick={cancelEdit}><X className="h-3 w-3 mr-1" />Cancel</Button>
+                              <Button size="sm" onClick={saveEdit} className="h-7 gap-1">
+                                <Check className="h-3 w-3" /> Save
+                              </Button>
+                              <Button size="sm" variant="outline" onClick={cancelEdit} className="h-7 gap-1">
+                                <X className="h-3 w-3" /> Cancel
+                              </Button>
                             </div>
                           </div>
                         ) : (
-                          <div className="flex items-start justify-between">
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <BookOpen className="h-4 w-4 text-muted-foreground" />
-                                <span className="font-medium text-sm text-foreground">
-                                  Lesson {lesson.lessonNumber}: {lesson.title}
-                                </span>
-                              </div>
-                              <div className="mt-2 flex flex-wrap gap-1.5">
-                                {lesson.cycleType && (
-                                  <Badge className={`text-xs ${
-                                    lesson.cycleType === 'discovery' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' :
-                                    lesson.cycleType === 'ladder' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' :
-                                    lesson.cycleType === 'review' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' :
-                                    lesson.cycleType === 'quiz' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300' :
-                                    'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
-                                  }`}>
-                                    {lesson.cycleType === 'discovery' ? '🔍' : lesson.cycleType === 'ladder' ? '🪜' : lesson.cycleType === 'review' ? '📋' : lesson.cycleType === 'quiz' ? '🏆' : '🌉'} {lesson.cycleType}
-                                  </Badge>
-                                )}
-                                {lesson.hintsDisabled && (
-                                  <Badge variant="destructive" className="text-xs">🚫 No Hints</Badge>
-                                )}
-                                {lesson.highSupport && (
-                                  <Badge className="text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">🧙 High Support</Badge>
-                                )}
-                                {lesson.phonicsFocus && (
-                                  <Badge variant="outline" className="text-xs">🔊 {lesson.phonicsFocus}</Badge>
-                                )}
-                                <Badge variant="outline" className="text-xs">🗣 {lesson.grammarFocus}</Badge>
-                                <Badge variant="outline" className="text-xs">📚 {lesson.vocabularyTheme}</Badge>
-                                {lesson.skillTags?.length > 0 && (
-                                  <Badge variant="outline" className="text-xs">
-                                    Skills: {lesson.skillTags.join(', ')}
-                                  </Badge>
-                                )}
-                              </div>
-                              {lesson.reviewWords?.length > 0 && (
-                                <div className="mt-1 text-xs text-amber-600 dark:text-amber-400">
-                                  🔁 Review: {lesson.reviewWords.join(', ')}
+                          <>
+                            <div className="text-xs text-muted-foreground space-y-0.5">
+                              {lesson.objectives.map((obj, oi) => (
+                                <div key={oi} className="flex items-start gap-1">
+                                  <BookOpen className="h-3 w-3 mt-0.5 shrink-0 text-primary/60" />
+                                  <span>{obj}</span>
                                 </div>
-                              )}
-                              {(lesson.objectives || []).length > 0 && (
-                                <ul className="mt-2 text-xs text-muted-foreground space-y-0.5">
-                                  {lesson.objectives.map((obj, oi) => (
-                                    <li key={oi}>• {obj}</li>
-                                  ))}
-                                </ul>
-                              )}
+                              ))}
                             </div>
-                            <Button size="sm" variant="ghost" onClick={() => startEdit(ui, li)}>
-                              <Edit2 className="h-3 w-3" />
-                            </Button>
-                          </div>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {lesson.skillTags.map(tag => (
+                                <Badge key={tag} variant="outline" className="text-[10px] h-4">
+                                  {tag === 'L' ? '👂 Listen' : tag === 'S' ? '🗣️ Speak' : tag === 'R' ? '📖 Read' : '✍️ Write'}
+                                </Badge>
+                              ))}
+                              <Badge variant="outline" className="text-[10px] h-4">
+                                🔤 {lesson.phonicsFocus}
+                              </Badge>
+                            </div>
+                          </>
                         )}
                       </div>
                     );
