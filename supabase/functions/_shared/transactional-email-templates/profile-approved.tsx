@@ -8,14 +8,14 @@ import type { TemplateEntry } from './registry.ts'
 
 const SITE_NAME = 'EnglEuphoria'
 
-interface WelcomeTeacherProps {
+interface ProfileApprovedProps {
   name?: string
 }
 
-const WelcomeTeacherEmail = ({ name }: WelcomeTeacherProps) => (
+const ProfileApprovedEmail = ({ name }: ProfileApprovedProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Congratulations! Welcome to the {SITE_NAME} Family 🌟</Preview>
+    <Preview>You're Live on {SITE_NAME}! Your profile has been approved 🚀</Preview>
     <Body style={main}>
       <Container style={container}>
         <Section style={headerSection}>
@@ -23,33 +23,34 @@ const WelcomeTeacherEmail = ({ name }: WelcomeTeacherProps) => (
           <Text style={headerSubtitle}>Teaching Excellence Community</Text>
         </Section>
         <Section style={contentSection}>
-          <div style={celebrationBanner}>🌟 🎓 🌟</div>
-          <Heading style={h1}>Congratulations, {name || 'Teacher'}!</Heading>
+          <div style={celebrationBanner}>🚀 🎉 🌟</div>
+          <Heading style={h1}>You're Live, {name || 'Teacher'}!</Heading>
           <Text style={highlightText}>
-            We were highly impressed by your application. You are one step closer to joining our elite team of educators who are transforming the way English is learned around the world.
+            Great news! Your professional profile has been reviewed and <strong>approved</strong> by our team.
+            You are now visible to students and ready to start teaching on {SITE_NAME}.
           </Text>
           <Text style={text}>
-            Welcome to the {SITE_NAME} family! We are thrilled to have you on board. Your expertise and passion for teaching will make a real difference in our students' lives.
+            Students can now discover your profile, view your introduction video, and book lessons with you.
+            Make sure your availability is up to date so students can find the perfect time to learn with you.
           </Text>
           <Section style={cardSection}>
-            <Text style={cardTitle}>🚀 Your Onboarding Journey</Text>
-            <Text style={cardText}>✅ Application Approved — You made it!</Text>
-            <Text style={cardText}>📋 Complete Your Professional Profile</Text>
-            <Text style={cardText}>📸 Upload your headshot, bio & certificates</Text>
-            <Text style={cardText}>🎬 Add your introduction video</Text>
-            <Text style={cardText}>🏫 Start accepting students!</Text>
+            <Text style={cardTitle}>✅ What You Can Do Now</Text>
+            <Text style={cardText}>📅 Set your teaching availability</Text>
+            <Text style={cardText}>📚 Browse and prepare lesson materials</Text>
+            <Text style={cardText}>🎯 Start accepting student bookings</Text>
+            <Text style={cardText}>💬 Join the teacher community</Text>
           </Section>
           <Section style={ctaSection}>
-            <Button style={button} href="https://engleuphoria.lovable.app/teacher-application">
-              Set Up Your Profile
+            <Button style={button} href="https://engleuphoria.lovable.app/teacher-dashboard">
+              Go to Your Dashboard
             </Button>
           </Section>
           <Text style={motivationText}>
-            "The best teachers don't give you the answer — they spark the desire to find it yourself."
+            "Teaching is the greatest act of optimism." — We're so glad you're here!
           </Text>
         </Section>
         <Hr style={hr} />
-        <Text style={footer}>With gratitude,</Text>
+        <Text style={footer}>With excitement,</Text>
         <Text style={footerBrand}>The {SITE_NAME} Team 💙</Text>
       </Container>
     </Body>
@@ -57,9 +58,9 @@ const WelcomeTeacherEmail = ({ name }: WelcomeTeacherProps) => (
 )
 
 export const template = {
-  component: WelcomeTeacherEmail,
-  subject: '🌟 Congratulations! Welcome to the EnglEuphoria Family!',
-  displayName: 'Teacher welcome (congratulatory)',
+  component: ProfileApprovedEmail,
+  subject: "🚀 You're Live! Your EnglEuphoria Profile is Approved",
+  displayName: 'Teacher profile approved',
   previewData: { name: 'Maria' },
 } satisfies TemplateEntry
 
@@ -71,7 +72,7 @@ const headerSubtitle = { color: '#a8c8f0', fontSize: '13px', margin: '8px 0 0', 
 const contentSection = { padding: '32px 24px' }
 const celebrationBanner = { textAlign: 'center' as const, fontSize: '32px', margin: '0 0 16px' }
 const h1 = { fontSize: '26px', fontWeight: '700' as const, color: '#111827', margin: '0 0 16px', textAlign: 'center' as const }
-const highlightText = { fontSize: '16px', color: '#4b5563', lineHeight: '1.7', margin: '0 0 20px', backgroundColor: '#eef4fc', padding: '16px', borderRadius: '8px', borderLeft: '4px solid #0047AB' }
+const highlightText = { fontSize: '16px', color: '#374151', lineHeight: '1.7', margin: '0 0 20px', backgroundColor: '#eef4fc', padding: '16px', borderRadius: '8px', borderLeft: '4px solid #0047AB' }
 const text = { fontSize: '15px', color: '#4b5563', lineHeight: '1.6', margin: '0 0 20px' }
 const cardSection = { backgroundColor: '#f9fafb', padding: '20px', borderRadius: '12px', margin: '0 0 24px', border: '1px solid #e5e7eb' }
 const cardTitle = { fontSize: '17px', fontWeight: '600' as const, color: '#0047AB', margin: '0 0 14px' }

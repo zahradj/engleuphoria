@@ -20,7 +20,7 @@ const WelcomeStudentEmail = ({ name, studentLevel }: WelcomeStudentProps) => {
   return (
     <Html lang="en" dir="ltr">
       <Head />
-      <Preview>Welcome to {SITE_NAME} — your English journey starts now!</Preview>
+      <Preview>Welcome to {SITE_NAME} — your English adventure starts today! 🎈</Preview>
       <Body style={main}>
         <Container style={container}>
           <Section style={headerSection}>
@@ -29,7 +29,8 @@ const WelcomeStudentEmail = ({ name, studentLevel }: WelcomeStudentProps) => {
           <Section style={contentSection}>
             <Heading style={h1}>Welcome, {firstName}! 🎉</Heading>
             <Text style={text}>
-              We're thrilled to have you join {SITE_NAME}. You've been placed in <strong>{levelLabel}</strong> — your personalized learning path is ready.
+              We're thrilled to have you join {SITE_NAME}! Your language adventure starts today.
+              You've been placed in <strong>{levelLabel}</strong> — your personalized learning path is ready.
             </Text>
             <Section style={cardSection}>
               <Text style={cardTitle}>🚀 What's Next?</Text>
@@ -40,13 +41,13 @@ const WelcomeStudentEmail = ({ name, studentLevel }: WelcomeStudentProps) => {
             </Section>
             <Section style={ctaSection}>
               <Button style={button} href="https://engleuphoria.lovable.app/student-dashboard">
-                Get Started
+                Let's Go!
               </Button>
             </Section>
           </Section>
           <Hr style={hr} />
           <Text style={footer}>
-            {SITE_NAME} — Your English Learning Journey
+            {SITE_NAME} — Your English Learning Journey 💙
           </Text>
         </Container>
       </Body>
@@ -56,22 +57,22 @@ const WelcomeStudentEmail = ({ name, studentLevel }: WelcomeStudentProps) => {
 
 export const template = {
   component: WelcomeStudentEmail,
-  subject: '🎓 Welcome to EnglEuphoria!',
+  subject: '🎈 Welcome to EnglEuphoria! Your language adventure starts today',
   displayName: 'Student welcome',
   previewData: { name: 'Sarah', studentLevel: 'academy' },
 } satisfies TemplateEntry
 
 const main = { backgroundColor: '#ffffff', fontFamily: 'Inter, Arial, sans-serif' }
 const container = { padding: '0', maxWidth: '600px', margin: '0 auto' }
-const headerSection = { backgroundColor: '#9b6dba', padding: '32px 24px', textAlign: 'center' as const }
+const headerSection = { backgroundColor: '#0047AB', padding: '32px 24px', textAlign: 'center' as const }
 const logoText = { color: '#ffffff', fontSize: '28px', fontWeight: '700' as const, margin: '0' }
 const contentSection = { padding: '32px 24px' }
 const h1 = { fontSize: '24px', fontWeight: '700' as const, color: '#111827', margin: '0 0 16px' }
 const text = { fontSize: '15px', color: '#4b5563', lineHeight: '1.6', margin: '0 0 20px' }
-const cardSection = { backgroundColor: '#f5f0fa', padding: '20px', borderRadius: '8px', margin: '0 0 24px' }
-const cardTitle = { fontSize: '16px', fontWeight: '600' as const, color: '#7c3aed', margin: '0 0 12px' }
+const cardSection = { backgroundColor: '#eef4fc', padding: '20px', borderRadius: '8px', margin: '0 0 24px' }
+const cardTitle = { fontSize: '16px', fontWeight: '600' as const, color: '#0047AB', margin: '0 0 12px' }
 const cardText = { fontSize: '14px', color: '#4b5563', margin: '0 0 6px', lineHeight: '1.5' }
 const ctaSection = { textAlign: 'center' as const, margin: '0 0 24px' }
-const button = { backgroundColor: '#9b6dba', color: '#ffffff', padding: '14px 32px', borderRadius: '8px', fontWeight: '600' as const, fontSize: '16px', textDecoration: 'none' }
+const button = { backgroundColor: '#0047AB', color: '#ffffff', padding: '14px 32px', borderRadius: '8px', fontWeight: '600' as const, fontSize: '16px', textDecoration: 'none' }
 const hr = { borderColor: '#e5e7eb', margin: '24px 0' }
 const footer = { fontSize: '13px', color: '#9ca3af', textAlign: 'center' as const, margin: '0' }
