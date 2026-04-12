@@ -4,24 +4,14 @@
  * This is the "Hard Schema" that forces the AI generator to produce
  * a PROGRESSIVE curriculum rather than random independent lessons.
  * 
- * Each unit defines:
- *   - anchor phoneme (the new sound introduced)
- *   - grammar goal (the structural target)
- *   - prerequisite unit (what must be mastered first)
- *   - skills mix (% allocation of L/S/R/W — Writing increases over time)
- *   - vocabulary constraints (5 words using current phoneme + 1 review word)
- *   - lesson cycle (Discovery → Ladder → Bridge)
- * 
- * PROGRESSION RULES:
- *   Phonics:  Individual Sounds → Blends → Digraphs
- *   Grammar:  Nouns → "It is a..." → "Is it a...?" → Plurals → Adjectives
- *   Skills:   Listening/Speaking (80%) → Reading (growing) → Writing (growing)
+ * The skeleton IS the curriculum structure. The AI only decorates it
+ * with creative titles, vocabulary words, and activity descriptions.
  */
 
 export interface SpiralUnit {
   unit: number;
   theme: string;
-  phonicsGoal: string;        // IPA symbol
+  phonicsGoal: string;
   phonicsCategory: 'consonant' | 'short_vowel' | 'long_vowel' | 'blend' | 'digraph';
   grammarGoal: string;
   prerequisiteUnit: number | null;
@@ -34,7 +24,7 @@ export interface SpiralUnit {
   vocabularyConstraints: {
     newWords: number;
     reviewWordsFromPrevUnit: number;
-    phonemeFilter: string;     // words must contain this sound
+    phonemeFilter: string;
   };
   lessons: SpiralLessonTemplate[];
 }
@@ -45,6 +35,38 @@ export interface SpiralLessonTemplate {
   cycleType: 'discovery' | 'ladder' | 'bridge';
   activities: string[];
   skillTags: ('L' | 'S' | 'R' | 'W')[];
+}
+
+// ─── Generated unit/lesson types (output of skeleton → generated) ──
+export interface SkeletonGeneratedUnit {
+  unitNumber: number;
+  title: string;
+  anchorPhoneme: string;
+  grammarGoal: string;
+  prerequisiteUnit: number | null;
+  skillsMix: { listening: number; speaking: number; reading: number; writing: number };
+  lessons: SkeletonGeneratedLesson[];
+}
+
+export interface SkeletonGeneratedLesson {
+  lessonNumber: number;
+  title: string;
+  objectives: string[];
+  grammarFocus: string;
+  vocabularyTheme: string;
+  cycleType: 'discovery' | 'ladder' | 'bridge';
+  phonicsFocus: string;
+  vocabularyList: any[];
+  grammarPattern: string;
+  skillsFocus: string[];
+  skillTags: string[];
+  listeningTask: string;
+  speakingTask: string;
+  readingTask: string;
+  writingTask: string;
+  reviewWords: string[];
+  bridgeRetrieval: any[];
+  masteryCheck: string | null;
 }
 
 // ─── The 10-Unit Progressive Skeleton (Beginner/Kids) ─────────────
@@ -201,13 +223,157 @@ export const BEGINNER_KIDS_SKELETON: SpiralUnit[] = [
   },
 ];
 
-// ─── Helper: Get the skeleton for a given hub/level ─────────────────
-export type SkeletonKey = 'beginner_kids' | 'beginner_teens' | 'beginner_adults';
+// ─── Teens Skeleton (adapted themes, same phonics/grammar progression) ──
+export const BEGINNER_TEENS_SKELETON: SpiralUnit[] = BEGINNER_KIDS_SKELETON.map(u => ({
+  ...u,
+  theme: [
+    'First Impressions', 'Sports & Action', 'My Digital World', 'Style & Identity',
+    'Food Culture', 'Wildlife & Nature', 'Family Dynamics', 'My Space',
+    'Daily Life & Routines', 'The Big Review'
+  ][u.unit - 1] || u.theme,
+}));
 
+// ─── Adults Skeleton (adapted themes, same progression) ──
+export const BEGINNER_ADULTS_SKELETON: SpiralUnit[] = BEGINNER_KIDS_SKELETON.map(u => ({
+  ...u,
+  theme: [
+    'Meeting People', 'Getting Around', 'The Workplace', 'Describing Things',
+    'Dining Out', 'The Natural World', 'Relationships', 'At Home & Office',
+    'Daily Routine & Habits', 'Comprehensive Review'
+  ][u.unit - 1] || u.theme,
+}));
+
+// ─── Helper: Get the skeleton for a given hub/level ─────────────────
 export function getSpiralSkeleton(ageGroup: string, _level: string): SpiralUnit[] {
-  // For now, return the kids skeleton as the base template.
-  // The AI will adapt the themes/vocabulary for teens and adults.
-  return BEGINNER_KIDS_SKELETON;
+  switch (ageGroup) {
+    case 'teens': return BEGINNER_TEENS_SKELETON;
+    case 'adults': return BEGINNER_ADULTS_SKELETON;
+    default: return BEGINNER_KIDS_SKELETON;
+  }
+}
+
+// ─── Helper: Convert a skeleton unit into a GeneratedUnit ──────────
+export function skeletonToGeneratedUnit(
+  skelUnit: SpiralUnit,
+  prevUnit: SpiralUnit | null,
+  lessonsPerUnit: number,
+): SkeletonGeneratedUnit {
+  const lessons = skelUnit.lessons.slice(0, lessonsPerUnit);
+  
+  return {
+    unitNumber: skelUnit.unit,
+    title: `Unit ${skelUnit.unit}: ${skelUnit.theme}`,
+    anchorPhoneme: skelUnit.phonicsGoal,
+    grammarGoal: skelUnit.grammarGoal,
+    prerequisiteUnit: skelUnit.prerequisiteUnit,
+    skillsMix: { ...skelUnit.skillsMix },
+    lessons: lessons.map((tpl, li) => ({
+      lessonNumber: li + 1,
+      title: `${tpl.cycleType === 'discovery' ? '🔍' : tpl.cycleType === 'ladder' ? '🪜' : '🌉'} ${tpl.focus}`,
+      objectives: buildDefaultObjectives(skelUnit, tpl),
+      grammarFocus: skelUnit.grammarGoal,
+      vocabularyTheme: skelUnit.theme,
+      cycleType: tpl.cycleType,
+      phonicsFocus: skelUnit.phonicsGoal,
+      vocabularyList: [],
+      grammarPattern: skelUnit.grammarGoal,
+      skillsFocus: tpl.skillTags.map(t => ({ L: 'listening', S: 'speaking', R: 'reading', W: 'writing' }[t] || t)),
+      skillTags: [...tpl.skillTags],
+      listeningTask: tpl.activities.find(a => a.toLowerCase().includes('listen') || a.toLowerCase().includes('sound')) || `Listen for the ${skelUnit.phonicsGoal} sound`,
+      speakingTask: tpl.activities.find(a => a.toLowerCase().includes('speak') || a.toLowerCase().includes('mimic')) || `Say words with ${skelUnit.phonicsGoal}`,
+      readingTask: tpl.activities.find(a => a.toLowerCase().includes('read') || a.toLowerCase().includes('grammar') || a.toLowerCase().includes('block')) || `Read words with ${skelUnit.phonicsGoal}`,
+      writingTask: tpl.activities.find(a => a.toLowerCase().includes('trac') || a.toLowerCase().includes('writ')) || `Trace the letter for ${skelUnit.phonicsGoal}`,
+      reviewWords: prevUnit && tpl.cycleType === 'discovery'
+        ? [`[word from Unit ${prevUnit.unit}]`, `[word from Unit ${prevUnit.unit}]`]
+        : [],
+      bridgeRetrieval: prevUnit && tpl.cycleType === 'discovery'
+        ? [{ question: `Review: What sound does ${prevUnit.phonicsGoal} make?`, type: 'recall' }]
+        : [],
+      masteryCheck: tpl.cycleType === 'bridge' ? `Can the student use "${skelUnit.grammarGoal}" independently?` : null,
+    })),
+  };
+}
+
+function buildDefaultObjectives(unit: SpiralUnit, lesson: SpiralLessonTemplate): string[] {
+  const base = [];
+  if (lesson.cycleType === 'discovery') {
+    base.push(`Recognize and produce the ${unit.phonicsGoal} sound`);
+    base.push(`Identify 5 new vocabulary words containing ${unit.vocabularyConstraints.phonemeFilter}`);
+    base.push(`Respond to simple questions using "${unit.grammarGoal}"`);
+  } else if (lesson.cycleType === 'ladder') {
+    base.push(`Build sentences using the pattern: ${unit.grammarGoal}`);
+    base.push(`Read and match vocabulary words to images`);
+    base.push(`Write simple words and sentences with support`);
+  } else {
+    base.push(`Produce spoken sentences using ${unit.grammarGoal} independently`);
+    base.push(`Demonstrate mastery of ${unit.phonicsGoal} in context`);
+    base.push(`Complete a mastery check for this unit's targets`);
+  }
+  return base;
+}
+
+// ─── Helper: Validate AI output against skeleton ───────────────────
+export function validateAndEnforceProgression(
+  aiUnits: any[],
+  skeleton: SpiralUnit[],
+  unitCount: number,
+): SkeletonGeneratedUnit[] {
+  const slicedSkeleton = skeleton.slice(0, unitCount);
+  
+  return slicedSkeleton.map((skelUnit, i) => {
+    const aiUnit = aiUnits[i];
+    const prevSkel = i > 0 ? slicedSkeleton[i - 1] : null;
+    
+    // If no AI unit for this index, use pure skeleton
+    if (!aiUnit) {
+      return skeletonToGeneratedUnit(skelUnit, prevSkel, skelUnit.lessons.length);
+    }
+    
+    // Merge: keep AI creative content but ENFORCE skeleton structure
+    const baseSkel = skeletonToGeneratedUnit(skelUnit, prevSkel, skelUnit.lessons.length);
+    
+    return {
+      ...baseSkel,
+      // Allow AI to override title if it provided one (but keep unit number prefix)
+      title: aiUnit.title && !aiUnit.title.startsWith('Unit')
+        ? `Unit ${skelUnit.unit}: ${aiUnit.title}`
+        : aiUnit.title || baseSkel.title,
+      // ENFORCE structural fields from skeleton (never from AI)
+      anchorPhoneme: skelUnit.phonicsGoal,
+      grammarGoal: skelUnit.grammarGoal,
+      prerequisiteUnit: skelUnit.prerequisiteUnit,
+      skillsMix: { ...skelUnit.skillsMix },
+      lessons: baseSkel.lessons.map((skelLesson, li) => {
+        const aiLesson = aiUnit.lessons?.[li];
+        if (!aiLesson) return skelLesson;
+        
+        return {
+          ...skelLesson,
+          // Allow AI creative overrides for these fields only:
+          title: aiLesson.title || skelLesson.title,
+          objectives: (aiLesson.objectives?.length > 0) ? aiLesson.objectives : skelLesson.objectives,
+          vocabularyTheme: aiLesson.vocabularyTheme || aiLesson.vocabulary_theme || skelLesson.vocabularyTheme,
+          vocabularyList: (aiLesson.vocabularyList?.length > 0 || aiLesson.vocabulary_list?.length > 0)
+            ? (aiLesson.vocabularyList || aiLesson.vocabulary_list)
+            : skelLesson.vocabularyList,
+          listeningTask: aiLesson.listeningTask || aiLesson.listening_task || skelLesson.listeningTask,
+          speakingTask: aiLesson.speakingTask || aiLesson.speaking_task || skelLesson.speakingTask,
+          readingTask: aiLesson.readingTask || aiLesson.reading_task || skelLesson.readingTask,
+          writingTask: aiLesson.writingTask || aiLesson.writing_task || skelLesson.writingTask,
+          reviewWords: aiLesson.reviewWords?.length > 0 ? aiLesson.reviewWords : skelLesson.reviewWords,
+          // ENFORCE structural fields from skeleton:
+          cycleType: skelLesson.cycleType,
+          phonicsFocus: skelLesson.phonicsFocus,
+          grammarFocus: skelLesson.grammarFocus,
+          grammarPattern: skelLesson.grammarPattern,
+          skillsFocus: skelLesson.skillsFocus,
+          skillTags: skelLesson.skillTags,
+          bridgeRetrieval: skelLesson.bridgeRetrieval,
+          masteryCheck: skelLesson.masteryCheck,
+        };
+      }),
+    };
+  });
 }
 
 // ─── Helper: Build dependency context string for AI ────────────────
