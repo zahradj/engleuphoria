@@ -210,8 +210,19 @@ export const TeacherApplicationsManagement = () => {
 
       if (updateError) throw updateError;
 
-      // Send interview email
-      await sendEmail('interview_invite', application, selectedDate, selectedTime);
+      // Send interview email via dedicated Edge Function (handles system_emails logging)
+      const { error: emailError } = await supabase.functions.invoke('send-interview-invite', {
+        body: { applicationId: application.id }
+      });
+
+      if (emailError) {
+        console.error('Interview email failed:', emailError);
+        toast({
+          title: "Interview Scheduled (email failed)",
+          description: "Interview was scheduled but the invitation email could not be sent. Use 'Resend Invite' to try again.",
+          variant: "destructive",
+        });
+      }
 
       toast({
         title: "Interview Scheduled",
@@ -289,18 +300,9 @@ export const TeacherApplicationsManagement = () => {
       const formattedDate = format(interviewDate, 'EEEE, MMMM do, yyyy');
       const formattedTime = format(interviewDate, 'HH:mm');
 
-      // Use a unique idempotency key with timestamp to allow resends
-      const { error } = await supabase.functions.invoke('send-transactional-email', {
-        body: {
-          templateName: 'interview-invitation',
-          recipientEmail: application.email,
-          idempotencyKey: `interview-resend-${application.id}-${Date.now()}`,
-          templateData: {
-            name: `${application.first_name} ${application.last_name}`,
-            interviewDate: formattedDate,
-            interviewTime: formattedTime,
-          },
-        }
+      // Use the dedicated Edge Function for proper logging and data lookup
+      const { error } = await supabase.functions.invoke('send-interview-invite', {
+        body: { applicationId: application.id }
       });
 
       if (error) throw error;
