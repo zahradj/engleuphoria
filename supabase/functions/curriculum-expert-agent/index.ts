@@ -175,7 +175,16 @@ Return valid JSON with this structure:
 
 const ECA_CURRICULUM_STRUCTURE_PROMPT = `You are EngCurriculum Expert (ECA) — a Curriculum DECORATOR, not a Curriculum Inventor.
 
-🚨 CRITICAL: The curriculum STRUCTURE (units, phonics progression, grammar goals, skill mixes, cycle types, dependency links) is ALREADY DEFINED by the hard-coded Spiral Skeleton. You MUST NOT change, skip, reorder, or override any structural field.
+🚨 CRITICAL: The curriculum STRUCTURE is ALREADY DEFINED by the hard-coded Spiral Skeleton with a 6-LESSON UNIT ARCHITECTURE. You MUST NOT change, skip, reorder, or override any structural field.
+
+📐 6-LESSON UNIT ARCHITECTURE:
+  Lessons 1-4: Progressive Build-Up
+    L1 [discovery]: Sound Recognition + Bridge Retrieval from previous unit
+    L2 [ladder]: Grammar Practice + Sentence Building  
+    L3 [ladder]: Extended Practice + Writing Integration
+    L4 [bridge]: Independent Production + Free Speaking
+  Lesson 5 [review]: "The Grand Review" — ALL 4 skills with HIGH teacher support (Wizard hints ON)
+  Lesson 6 [quiz]: "Mastery Quiz" — NO hints, clinical assessment (Speaking Test, Dictation, Grammar Fix)
 
 Your ONLY job is to add CREATIVE DETAILS to each pre-defined unit and lesson:
 1. A creative, engaging unit title (keep it thematic and age-appropriate)
@@ -183,14 +192,17 @@ Your ONLY job is to add CREATIVE DETAILS to each pre-defined unit and lesson:
 3. Creative activity descriptions for listeningTask, speakingTask, readingTask, writingTask
 4. 3 specific learning objectives per lesson
 5. reviewWords: 2 actual vocabulary words from the previous unit (for units > 1)
+6. For Lesson 5 (review): creative review activity descriptions that cover ALL vocabulary from L1-L4
+7. For Lesson 6 (quiz): specific test prompts (which 5 words for speaking test, which words for dictation, which sentence for grammar fix)
 
 🛑 DO NOT CHANGE these fields — they come from the skeleton:
 - anchorPhoneme, grammarGoal, prerequisiteUnit, skillsMix
 - cycleType, phonicsFocus, skillTags, skillsFocus
+- hintsDisabled (true for quiz lessons), highSupport (true for review lessons)
 - The ORDER of units (Unit 1 → 2 → 3 → ... → N)
 
 📋 OUTPUT FORMAT:
-Return a valid JSON ARRAY. Each unit MUST include ALL skeleton fields plus your creative additions.
+Return a valid JSON ARRAY. Each unit MUST have exactly 6 lessons.
 
 [
   {
@@ -205,28 +217,30 @@ Return a valid JSON ARRAY. Each unit MUST include ALL skeleton fields plus your 
         "lessonNumber": 1,
         "title": "Creative Lesson Title",
         "objectives": ["Specific objective 1", "Specific objective 2", "Specific objective 3"],
-        "grammarFocus": "It is a...",
-        "vocabularyTheme": "Sounds Around Us",
         "cycleType": "discovery",
-        "phonicsFocus": "/s/",
-        "skillsFocus": ["listening", "speaking"],
-        "skillTags": ["L", "S"],
+        "vocabularyList": [{"word": "sun", "definition": "the star in the sky"}],
         "listeningTask": "Listen to 5 animal sounds and identify which ones start with /s/",
-        "speakingTask": "Repeat each /s/ word after the teacher: sun, sock, sand, sit, six",
+        "speakingTask": "Repeat each /s/ word after the teacher",
         "readingTask": "Match /s/ word cards to pictures",
         "writingTask": "Trace the letter S with finger paint",
-        "reviewWords": [],
-        "vocabularyList": [{"word": "sun", "definition": "the star in the sky"}, {"word": "sock", "definition": "you wear it on your foot"}]
-      }
+        "reviewWords": []
+      },
+      { "lessonNumber": 2, "title": "...", "cycleType": "ladder", "..." : "..." },
+      { "lessonNumber": 3, "title": "...", "cycleType": "ladder", "..." : "..." },
+      { "lessonNumber": 4, "title": "...", "cycleType": "bridge", "..." : "..." },
+      { "lessonNumber": 5, "title": "The Grand Review: [Creative Name]", "cycleType": "review", "highSupport": true, "..." : "..." },
+      { "lessonNumber": 6, "title": "Mastery Quiz: [Creative Name]", "cycleType": "quiz", "hintsDisabled": true, "..." : "..." }
     ]
   }
 ]
 
 IMPORTANT:
 - Return ONLY the JSON array, no extra text
-- Keep unit numbers exactly as given in the skeleton context
+- Each unit MUST have exactly 6 lessons in the order: discovery, ladder, ladder, bridge, review, quiz
 - Vocabulary words MUST contain the anchor phoneme sound
-- Review words in Discovery lessons of Unit > 1 must be real words from the previous unit's vocabulary`;
+- Review words in Discovery lessons of Unit > 1 must be real words from the previous unit's vocabulary
+- Lesson 5 (review) must reference ALL vocabulary from Lessons 1-4
+- Lesson 6 (quiz) must specify exact test items (no generic descriptions)`;
 
 
 const ECA_ASSESSMENT_PROMPT = `You are EngCurriculum Expert (ECA) — a professional English Curriculum Specialist creating assessments for young learners and teens aged 5–17 (Pre-A1 to B2).

@@ -1,11 +1,10 @@
 /**
  * Spiral Curriculum Skeleton — The Dependency Tree
  * 
- * This is the "Hard Schema" that forces the AI generator to produce
- * a PROGRESSIVE curriculum rather than random independent lessons.
- * 
- * The skeleton IS the curriculum structure. The AI only decorates it
- * with creative titles, vocabulary words, and activity descriptions.
+ * 6-Lesson Unit Architecture:
+ *   Lessons 1-4: Progressive build-up (Phonics → Vocab → Grammar → Production)
+ *   Lesson 5: The Grand Review (integrated L/S/R/W with high teacher support)
+ *   Lesson 6: The Mastery Quiz (clinical assessment, no hints)
  */
 
 export interface SpiralUnit {
@@ -32,9 +31,13 @@ export interface SpiralUnit {
 export interface SpiralLessonTemplate {
   id: string;
   focus: string;
-  cycleType: 'discovery' | 'ladder' | 'bridge';
+  cycleType: 'discovery' | 'ladder' | 'bridge' | 'review' | 'quiz';
   activities: string[];
   skillTags: ('L' | 'S' | 'R' | 'W')[];
+  /** If true, all scaffold hints are disabled (quiz mode) */
+  hintsDisabled?: boolean;
+  /** If true, this is a high-support lesson with wizard hints active */
+  highSupport?: boolean;
 }
 
 // ─── Generated unit/lesson types (output of skeleton → generated) ──
@@ -54,7 +57,7 @@ export interface SkeletonGeneratedLesson {
   objectives: string[];
   grammarFocus: string;
   vocabularyTheme: string;
-  cycleType: 'discovery' | 'ladder' | 'bridge';
+  cycleType: 'discovery' | 'ladder' | 'bridge' | 'review' | 'quiz';
   phonicsFocus: string;
   vocabularyList: any[];
   grammarPattern: string;
@@ -67,9 +70,12 @@ export interface SkeletonGeneratedLesson {
   reviewWords: string[];
   bridgeRetrieval: any[];
   masteryCheck: string | null;
+  hintsDisabled?: boolean;
+  highSupport?: boolean;
 }
 
 // ─── The 10-Unit Progressive Skeleton (Beginner/Kids) ─────────────
+// Each unit = 6 lessons: 4 build-up + 1 review + 1 quiz
 export const BEGINNER_KIDS_SKELETON: SpiralUnit[] = [
   {
     unit: 1,
@@ -82,8 +88,11 @@ export const BEGINNER_KIDS_SKELETON: SpiralUnit[] = [
     vocabularyConstraints: { newWords: 5, reviewWordsFromPrevUnit: 0, phonemeFilter: 's' },
     lessons: [
       { id: '1.1', focus: 'Sound Recognition /s/', cycleType: 'discovery', activities: ['Phonetic Slider', 'Listening Spotting', 'Sound Sort'], skillTags: ['L', 'S'] },
-      { id: '1.2', focus: 'Word Integration', cycleType: 'ladder', activities: ['Grammar Blocks: "It is a ___"', 'Flat 2.0 Mapping', 'Word Builder'], skillTags: ['R', 'W'] },
-      { id: '1.3', focus: 'Sentence Production', cycleType: 'bridge', activities: ['Tracing Letter S', 'Speaking: "What is it?"', 'Mastery Check'], skillTags: ['S', 'W'] },
+      { id: '1.2', focus: 'Word Integration', cycleType: 'ladder', activities: ['Grammar Blocks: "It is a ___"', 'Flat 2.0 Mapping', 'Word Builder'], skillTags: ['R', 'S'] },
+      { id: '1.3', focus: 'Sentence Building', cycleType: 'ladder', activities: ['Sentence Ladder', 'Picture Label', 'Grammar Blocks'], skillTags: ['R', 'W'] },
+      { id: '1.4', focus: 'Sentence Production', cycleType: 'bridge', activities: ['Speaking: "What is it?"', 'Tracing Letter S', 'Free Speaking'], skillTags: ['S', 'W'] },
+      { id: '1.5', focus: 'The Grand Review', cycleType: 'review', activities: ['Multi-choice Sound Matching (all vocab)', 'Speed Mimicry', 'Full Word Tracing (hardest words)', 'Grammar Fix'], skillTags: ['L', 'S', 'R', 'W'], highSupport: true },
+      { id: '1.6', focus: 'Mastery Quiz', cycleType: 'quiz', activities: ['Speaking Test: 5 words >85% accuracy', 'Dictation: write from scratch', 'Grammar Fix: "Fix the Wizard"'], skillTags: ['L', 'S', 'R', 'W'], hintsDisabled: true },
     ],
   },
   {
@@ -97,8 +106,11 @@ export const BEGINNER_KIDS_SKELETON: SpiralUnit[] = [
     vocabularyConstraints: { newWords: 5, reviewWordsFromPrevUnit: 2, phonemeFilter: 'm' },
     lessons: [
       { id: '2.1', focus: 'Review /s/ + Intro /m/', cycleType: 'discovery', activities: ['Bridge Retrieval Quiz', 'Contrastive Listening', 'Phoneme Tap'], skillTags: ['L', 'S'] },
-      { id: '2.2', focus: 'Complex Vocabulary', cycleType: 'ladder', activities: ['Ghost Vector Retrieval', 'Article Picker: a vs an', 'Sentence Ladder'], skillTags: ['R', 'W'] },
-      { id: '2.3', focus: 'Structural Writing', cycleType: 'bridge', activities: ['Block Snapping', 'Full Word Tracing', 'Speaking Production'], skillTags: ['W', 'S'] },
+      { id: '2.2', focus: 'Article Practice', cycleType: 'ladder', activities: ['Article Picker: a vs an', 'Grammar Blocks', 'Sentence Ladder'], skillTags: ['R', 'S'] },
+      { id: '2.3', focus: 'Complex Vocabulary', cycleType: 'ladder', activities: ['Ghost Vector Retrieval', 'Word Builder', 'Picture Label'], skillTags: ['R', 'W'] },
+      { id: '2.4', focus: 'Structural Writing', cycleType: 'bridge', activities: ['Block Snapping', 'Full Word Tracing', 'Speaking Production'], skillTags: ['W', 'S'] },
+      { id: '2.5', focus: 'The Grand Review', cycleType: 'review', activities: ['Multi-choice Sound Matching (all vocab)', 'Speed Mimicry', 'Full Word Tracing (hardest words)', 'Grammar Fix'], skillTags: ['L', 'S', 'R', 'W'], highSupport: true },
+      { id: '2.6', focus: 'Mastery Quiz', cycleType: 'quiz', activities: ['Speaking Test: 5 words >85% accuracy', 'Dictation: write from scratch', 'Grammar Fix: "Fix the Wizard"'], skillTags: ['L', 'S', 'R', 'W'], hintsDisabled: true },
     ],
   },
   {
@@ -112,8 +124,11 @@ export const BEGINNER_KIDS_SKELETON: SpiralUnit[] = [
     vocabularyConstraints: { newWords: 5, reviewWordsFromPrevUnit: 2, phonemeFilter: 't' },
     lessons: [
       { id: '3.1', focus: 'Review /m/ + Intro /t/', cycleType: 'discovery', activities: ['Bridge Retrieval Quiz', 'Sound Sort /s/ vs /m/ vs /t/', 'Odd One Out'], skillTags: ['L', 'S'] },
-      { id: '3.2', focus: 'Plural Nouns', cycleType: 'ladder', activities: ['Grammar Blocks: "They are ___s"', 'Picture Label Plural', 'Sentence Transform'], skillTags: ['R', 'W'] },
-      { id: '3.3', focus: 'Question Formation', cycleType: 'bridge', activities: ['Speaking: "Are they ___s?"', 'Letter Hunt', 'Mastery Check'], skillTags: ['S', 'W'] },
+      { id: '3.2', focus: 'Plural Nouns', cycleType: 'ladder', activities: ['Grammar Blocks: "They are ___s"', 'Picture Label Plural', 'Sentence Transform'], skillTags: ['R', 'S'] },
+      { id: '3.3', focus: 'Plural Sentences', cycleType: 'ladder', activities: ['Sentence Ladder + plurals', 'Word Builder', 'Grammar Blocks'], skillTags: ['R', 'W'] },
+      { id: '3.4', focus: 'Question Formation', cycleType: 'bridge', activities: ['Speaking: "Are they ___s?"', 'Letter Hunt', 'Free Production'], skillTags: ['S', 'W'] },
+      { id: '3.5', focus: 'The Grand Review', cycleType: 'review', activities: ['Multi-choice Sound Matching (all vocab)', 'Speed Mimicry', 'Full Word Tracing (hardest words)', 'Grammar Fix'], skillTags: ['L', 'S', 'R', 'W'], highSupport: true },
+      { id: '3.6', focus: 'Mastery Quiz', cycleType: 'quiz', activities: ['Speaking Test: 5 words >85% accuracy', 'Dictation: write from scratch', 'Grammar Fix: "Fix the Wizard"'], skillTags: ['L', 'S', 'R', 'W'], hintsDisabled: true },
     ],
   },
   {
@@ -127,8 +142,11 @@ export const BEGINNER_KIDS_SKELETON: SpiralUnit[] = [
     vocabularyConstraints: { newWords: 5, reviewWordsFromPrevUnit: 2, phonemeFilter: 'a' },
     lessons: [
       { id: '4.1', focus: 'Review /t/ + Intro /æ/', cycleType: 'discovery', activities: ['Bridge Retrieval Quiz', 'Minimal Pairs: cat/cut', 'Phonics Slider'], skillTags: ['L', 'S'] },
-      { id: '4.2', focus: 'Adjective Placement', cycleType: 'ladder', activities: ['Grammar Blocks: "It is a ___ ___"', 'Sentence Ladder +adjective', 'Word Builder'], skillTags: ['R', 'W'] },
-      { id: '4.3', focus: 'Descriptive Speaking', cycleType: 'bridge', activities: ['Speaking: "What color is it?"', 'Tactile Tracing', 'Mastery Check'], skillTags: ['S', 'W'] },
+      { id: '4.2', focus: 'Adjective Placement', cycleType: 'ladder', activities: ['Grammar Blocks: "It is a ___ ___"', 'Sentence Ladder +adjective', 'Word Builder'], skillTags: ['R', 'S'] },
+      { id: '4.3', focus: 'Descriptive Sentences', cycleType: 'ladder', activities: ['Picture Label + adjective', 'Sentence Transform', 'Grammar Blocks'], skillTags: ['R', 'W'] },
+      { id: '4.4', focus: 'Descriptive Speaking', cycleType: 'bridge', activities: ['Speaking: "What color is it?"', 'Tactile Tracing', 'Free Production'], skillTags: ['S', 'W'] },
+      { id: '4.5', focus: 'The Grand Review', cycleType: 'review', activities: ['Multi-choice Sound Matching (all vocab)', 'Speed Mimicry', 'Full Word Tracing (hardest words)', 'Grammar Fix'], skillTags: ['L', 'S', 'R', 'W'], highSupport: true },
+      { id: '4.6', focus: 'Mastery Quiz', cycleType: 'quiz', activities: ['Speaking Test: 5 words >85% accuracy', 'Dictation: write from scratch', 'Grammar Fix: "Fix the Wizard"'], skillTags: ['L', 'S', 'R', 'W'], hintsDisabled: true },
     ],
   },
   {
@@ -142,8 +160,11 @@ export const BEGINNER_KIDS_SKELETON: SpiralUnit[] = [
     vocabularyConstraints: { newWords: 5, reviewWordsFromPrevUnit: 2, phonemeFilter: 'p' },
     lessons: [
       { id: '5.1', focus: 'Review /æ/ + Intro /p/', cycleType: 'discovery', activities: ['Bridge Retrieval Quiz', 'Sound Spotting', 'Phoneme Tap'], skillTags: ['L', 'S'] },
-      { id: '5.2', focus: 'Question Building', cycleType: 'ladder', activities: ['Grammar Blocks: "Do you like ___?"', 'Sentence Transform', 'Picture Label'], skillTags: ['R', 'W'] },
-      { id: '5.3', focus: 'Real Conversation', cycleType: 'bridge', activities: ['Dialogue Practice', 'Word Tracing', 'Mastery Check'], skillTags: ['S', 'W'] },
+      { id: '5.2', focus: 'Question Building', cycleType: 'ladder', activities: ['Grammar Blocks: "Do you like ___?"', 'Sentence Transform', 'Picture Label'], skillTags: ['R', 'S'] },
+      { id: '5.3', focus: 'Question & Answer', cycleType: 'ladder', activities: ['Dialogue Practice', 'Sentence Ladder', 'Grammar Blocks'], skillTags: ['R', 'W'] },
+      { id: '5.4', focus: 'Real Conversation', cycleType: 'bridge', activities: ['Speaking: Free Dialogue', 'Word Tracing', 'Free Production'], skillTags: ['S', 'W'] },
+      { id: '5.5', focus: 'The Grand Review', cycleType: 'review', activities: ['Multi-choice Sound Matching (all vocab)', 'Speed Mimicry', 'Full Word Tracing (hardest words)', 'Grammar Fix'], skillTags: ['L', 'S', 'R', 'W'], highSupport: true },
+      { id: '5.6', focus: 'Mastery Quiz', cycleType: 'quiz', activities: ['Speaking Test: 5 words >85% accuracy', 'Dictation: write from scratch', 'Grammar Fix: "Fix the Wizard"'], skillTags: ['L', 'S', 'R', 'W'], hintsDisabled: true },
     ],
   },
   {
@@ -157,8 +178,11 @@ export const BEGINNER_KIDS_SKELETON: SpiralUnit[] = [
     vocabularyConstraints: { newWords: 5, reviewWordsFromPrevUnit: 2, phonemeFilter: 'i' },
     lessons: [
       { id: '6.1', focus: 'Review /p/ + Intro /ɪ/', cycleType: 'discovery', activities: ['Bridge Retrieval Quiz', 'Minimal Pairs: pin/pen', 'Sound Sort'], skillTags: ['L', 'S'] },
-      { id: '6.2', focus: 'Has/Have Structure', cycleType: 'ladder', activities: ['Grammar Blocks: "It has ___"', 'Sentence Ladder + has/have', 'Odd One Out'], skillTags: ['R', 'W'] },
-      { id: '6.3', focus: 'Animal Description', cycleType: 'bridge', activities: ['Speaking: "Does it have ___?"', 'Letter Hunt', 'Mastery Check'], skillTags: ['S', 'W'] },
+      { id: '6.2', focus: 'Has/Have Structure', cycleType: 'ladder', activities: ['Grammar Blocks: "It has ___"', 'Sentence Ladder + has/have', 'Odd One Out'], skillTags: ['R', 'S'] },
+      { id: '6.3', focus: 'Animal Descriptions', cycleType: 'ladder', activities: ['Picture Label + has/have', 'Word Builder', 'Sentence Transform'], skillTags: ['R', 'W'] },
+      { id: '6.4', focus: 'Animal Presentation', cycleType: 'bridge', activities: ['Speaking: "Does it have ___?"', 'Letter Hunt', 'Free Production'], skillTags: ['S', 'W'] },
+      { id: '6.5', focus: 'The Grand Review', cycleType: 'review', activities: ['Multi-choice Sound Matching (all vocab)', 'Speed Mimicry', 'Full Word Tracing (hardest words)', 'Grammar Fix'], skillTags: ['L', 'S', 'R', 'W'], highSupport: true },
+      { id: '6.6', focus: 'Mastery Quiz', cycleType: 'quiz', activities: ['Speaking Test: 5 words >85% accuracy', 'Dictation: write from scratch', 'Grammar Fix: "Fix the Wizard"'], skillTags: ['L', 'S', 'R', 'W'], hintsDisabled: true },
     ],
   },
   {
@@ -172,8 +196,11 @@ export const BEGINNER_KIDS_SKELETON: SpiralUnit[] = [
     vocabularyConstraints: { newWords: 5, reviewWordsFromPrevUnit: 2, phonemeFilter: 'n' },
     lessons: [
       { id: '7.1', focus: 'Review /ɪ/ + Intro /n/', cycleType: 'discovery', activities: ['Bridge Retrieval Quiz', 'Sound Spotting', 'Phonics Slider'], skillTags: ['L', 'S'] },
-      { id: '7.2', focus: 'Possessive Pronouns', cycleType: 'ladder', activities: ['Grammar Blocks: "This is my ___"', 'Article Picker: my/your', 'Sentence Transform'], skillTags: ['R', 'W'] },
-      { id: '7.3', focus: 'Family Presentation', cycleType: 'bridge', activities: ['Speaking: "Who is this?"', 'Tactile Tracing', 'Mastery Check'], skillTags: ['S', 'W'] },
+      { id: '7.2', focus: 'Possessive Pronouns', cycleType: 'ladder', activities: ['Grammar Blocks: "This is my ___"', 'Article Picker: my/your', 'Sentence Transform'], skillTags: ['R', 'S'] },
+      { id: '7.3', focus: 'Possessive Sentences', cycleType: 'ladder', activities: ['Sentence Ladder + possessives', 'Word Builder', 'Picture Label'], skillTags: ['R', 'W'] },
+      { id: '7.4', focus: 'Family Presentation', cycleType: 'bridge', activities: ['Speaking: "Who is this?"', 'Tactile Tracing', 'Free Production'], skillTags: ['S', 'W'] },
+      { id: '7.5', focus: 'The Grand Review', cycleType: 'review', activities: ['Multi-choice Sound Matching (all vocab)', 'Speed Mimicry', 'Full Word Tracing (hardest words)', 'Grammar Fix'], skillTags: ['L', 'S', 'R', 'W'], highSupport: true },
+      { id: '7.6', focus: 'Mastery Quiz', cycleType: 'quiz', activities: ['Speaking Test: 5 words >85% accuracy', 'Dictation: write from scratch', 'Grammar Fix: "Fix the Wizard"'], skillTags: ['L', 'S', 'R', 'W'], hintsDisabled: true },
     ],
   },
   {
@@ -187,8 +214,11 @@ export const BEGINNER_KIDS_SKELETON: SpiralUnit[] = [
     vocabularyConstraints: { newWords: 5, reviewWordsFromPrevUnit: 2, phonemeFilter: 'o' },
     lessons: [
       { id: '8.1', focus: 'Review /n/ + Intro /ɒ/', cycleType: 'discovery', activities: ['Bridge Retrieval Quiz', 'Minimal Pairs: hot/hat', 'Phoneme Tap'], skillTags: ['L', 'S'] },
-      { id: '8.2', focus: 'Preposition Sentences', cycleType: 'ladder', activities: ['Grammar Blocks: "The ___ is on the ___"', 'Picture Label + prep', 'Word Builder'], skillTags: ['R', 'W'] },
-      { id: '8.3', focus: 'Room Description', cycleType: 'bridge', activities: ['Speaking: "Where is the ___?"', 'Letter Hunt', 'Mastery Check'], skillTags: ['S', 'W'] },
+      { id: '8.2', focus: 'Preposition Sentences', cycleType: 'ladder', activities: ['Grammar Blocks: "The ___ is on the ___"', 'Picture Label + prep', 'Word Builder'], skillTags: ['R', 'S'] },
+      { id: '8.3', focus: 'Location Descriptions', cycleType: 'ladder', activities: ['Sentence Ladder + prepositions', 'Sentence Transform', 'Grammar Blocks'], skillTags: ['R', 'W'] },
+      { id: '8.4', focus: 'Room Description', cycleType: 'bridge', activities: ['Speaking: "Where is the ___?"', 'Letter Hunt', 'Free Production'], skillTags: ['S', 'W'] },
+      { id: '8.5', focus: 'The Grand Review', cycleType: 'review', activities: ['Multi-choice Sound Matching (all vocab)', 'Speed Mimicry', 'Full Word Tracing (hardest words)', 'Grammar Fix'], skillTags: ['L', 'S', 'R', 'W'], highSupport: true },
+      { id: '8.6', focus: 'Mastery Quiz', cycleType: 'quiz', activities: ['Speaking Test: 5 words >85% accuracy', 'Dictation: write from scratch', 'Grammar Fix: "Fix the Wizard"'], skillTags: ['L', 'S', 'R', 'W'], hintsDisabled: true },
     ],
   },
   {
@@ -202,8 +232,11 @@ export const BEGINNER_KIDS_SKELETON: SpiralUnit[] = [
     vocabularyConstraints: { newWords: 5, reviewWordsFromPrevUnit: 2, phonemeFilter: 'sh' },
     lessons: [
       { id: '9.1', focus: 'Review /ɒ/ + Intro /ʃ/', cycleType: 'discovery', activities: ['Bridge Retrieval Quiz', 'Sound Sort: /s/ vs /ʃ/', 'Mouth Mirror'], skillTags: ['L', 'S'] },
-      { id: '9.2', focus: 'Routine Sentences', cycleType: 'ladder', activities: ['Grammar Blocks: "I ___ every day"', 'Sentence Ladder + time', 'Sentence Transform'], skillTags: ['R', 'W'] },
-      { id: '9.3', focus: 'Describing Your Day', cycleType: 'bridge', activities: ['Speaking: "What do you do?"', 'Paragraph Writing', 'Mastery Check'], skillTags: ['S', 'W'] },
+      { id: '9.2', focus: 'Routine Sentences', cycleType: 'ladder', activities: ['Grammar Blocks: "I ___ every day"', 'Sentence Ladder + time', 'Sentence Transform'], skillTags: ['R', 'S'] },
+      { id: '9.3', focus: 'Time Expressions', cycleType: 'ladder', activities: ['Word Builder', 'Picture Label + routine', 'Grammar Blocks'], skillTags: ['R', 'W'] },
+      { id: '9.4', focus: 'Describing Your Day', cycleType: 'bridge', activities: ['Speaking: "What do you do?"', 'Paragraph Writing', 'Free Production'], skillTags: ['S', 'W'] },
+      { id: '9.5', focus: 'The Grand Review', cycleType: 'review', activities: ['Multi-choice Sound Matching (all vocab)', 'Speed Mimicry', 'Full Word Tracing (hardest words)', 'Grammar Fix'], skillTags: ['L', 'S', 'R', 'W'], highSupport: true },
+      { id: '9.6', focus: 'Mastery Quiz', cycleType: 'quiz', activities: ['Speaking Test: 5 words >85% accuracy', 'Dictation: write from scratch', 'Grammar Fix: "Fix the Wizard"'], skillTags: ['L', 'S', 'R', 'W'], hintsDisabled: true },
     ],
   },
   {
@@ -217,8 +250,11 @@ export const BEGINNER_KIDS_SKELETON: SpiralUnit[] = [
     vocabularyConstraints: { newWords: 3, reviewWordsFromPrevUnit: 5, phonemeFilter: 'ch' },
     lessons: [
       { id: '10.1', focus: 'Phonics Grand Review', cycleType: 'discovery', activities: ['All-Sound Sort', 'Minimal Pairs Marathon', 'Contrastive Listening'], skillTags: ['L', 'S'] },
-      { id: '10.2', focus: 'Grammar Grand Review', cycleType: 'ladder', activities: ['Grammar Blocks: all patterns', 'Sentence Transform: all types', 'Writing Task'], skillTags: ['R', 'W'] },
-      { id: '10.3', focus: 'Final Presentation', cycleType: 'bridge', activities: ['Speaking: free production', 'Portfolio Review', 'Celebration'], skillTags: ['S', 'W'] },
+      { id: '10.2', focus: 'Grammar Grand Review', cycleType: 'ladder', activities: ['Grammar Blocks: all patterns', 'Sentence Transform: all types', 'Word Builder'], skillTags: ['R', 'S'] },
+      { id: '10.3', focus: 'Writing Grand Review', cycleType: 'ladder', activities: ['Paragraph Writing', 'Sentence Ladder: complex', 'Letter Hunt'], skillTags: ['R', 'W'] },
+      { id: '10.4', focus: 'Final Presentation', cycleType: 'bridge', activities: ['Speaking: free production', 'Portfolio Showcase', 'Peer Feedback'], skillTags: ['S', 'W'] },
+      { id: '10.5', focus: 'The Grand Review', cycleType: 'review', activities: ['Multi-choice Sound Matching (all vocab)', 'Speed Mimicry', 'Full Word Tracing (hardest words)', 'Grammar Fix'], skillTags: ['L', 'S', 'R', 'W'], highSupport: true },
+      { id: '10.6', focus: 'Final Mastery Quiz', cycleType: 'quiz', activities: ['Speaking Test: 5 words >85% accuracy', 'Dictation: write from scratch', 'Grammar Fix: "Fix the Wizard"', 'Celebration & Certificate'], skillTags: ['L', 'S', 'R', 'W'], hintsDisabled: true },
     ],
   },
 ];
@@ -269,7 +305,7 @@ export function skeletonToGeneratedUnit(
     skillsMix: { ...skelUnit.skillsMix },
     lessons: lessons.map((tpl, li) => ({
       lessonNumber: li + 1,
-      title: `${tpl.cycleType === 'discovery' ? '🔍' : tpl.cycleType === 'ladder' ? '🪜' : '🌉'} ${tpl.focus}`,
+      title: `${getCycleEmoji(tpl.cycleType)} ${tpl.focus}`,
       objectives: buildDefaultObjectives(skelUnit, tpl),
       grammarFocus: skelUnit.grammarGoal,
       vocabularyTheme: skelUnit.theme,
@@ -282,16 +318,30 @@ export function skeletonToGeneratedUnit(
       listeningTask: tpl.activities.find(a => a.toLowerCase().includes('listen') || a.toLowerCase().includes('sound')) || `Listen for the ${skelUnit.phonicsGoal} sound`,
       speakingTask: tpl.activities.find(a => a.toLowerCase().includes('speak') || a.toLowerCase().includes('mimic')) || `Say words with ${skelUnit.phonicsGoal}`,
       readingTask: tpl.activities.find(a => a.toLowerCase().includes('read') || a.toLowerCase().includes('grammar') || a.toLowerCase().includes('block')) || `Read words with ${skelUnit.phonicsGoal}`,
-      writingTask: tpl.activities.find(a => a.toLowerCase().includes('trac') || a.toLowerCase().includes('writ')) || `Trace the letter for ${skelUnit.phonicsGoal}`,
+      writingTask: tpl.activities.find(a => a.toLowerCase().includes('trac') || a.toLowerCase().includes('writ') || a.toLowerCase().includes('dictat')) || `Trace the letter for ${skelUnit.phonicsGoal}`,
       reviewWords: prevUnit && tpl.cycleType === 'discovery'
         ? [`[word from Unit ${prevUnit.unit}]`, `[word from Unit ${prevUnit.unit}]`]
         : [],
       bridgeRetrieval: prevUnit && tpl.cycleType === 'discovery'
         ? [{ question: `Review: What sound does ${prevUnit.phonicsGoal} make?`, type: 'recall' }]
         : [],
-      masteryCheck: tpl.cycleType === 'bridge' ? `Can the student use "${skelUnit.grammarGoal}" independently?` : null,
+      masteryCheck: tpl.cycleType === 'bridge' ? `Can the student use "${skelUnit.grammarGoal}" independently?` : 
+                     tpl.cycleType === 'quiz' ? `Mastery Score > 80% to unlock next Unit` : null,
+      hintsDisabled: tpl.hintsDisabled || false,
+      highSupport: tpl.highSupport || false,
     })),
   };
+}
+
+function getCycleEmoji(cycleType: string): string {
+  switch (cycleType) {
+    case 'discovery': return '🔍';
+    case 'ladder': return '🪜';
+    case 'bridge': return '🌉';
+    case 'review': return '📋';
+    case 'quiz': return '🏆';
+    default: return '📖';
+  }
 }
 
 function buildDefaultObjectives(unit: SpiralUnit, lesson: SpiralLessonTemplate): string[] {
@@ -304,10 +354,18 @@ function buildDefaultObjectives(unit: SpiralUnit, lesson: SpiralLessonTemplate):
     base.push(`Build sentences using the pattern: ${unit.grammarGoal}`);
     base.push(`Read and match vocabulary words to images`);
     base.push(`Write simple words and sentences with support`);
-  } else {
+  } else if (lesson.cycleType === 'bridge') {
     base.push(`Produce spoken sentences using ${unit.grammarGoal} independently`);
     base.push(`Demonstrate mastery of ${unit.phonicsGoal} in context`);
     base.push(`Complete a mastery check for this unit's targets`);
+  } else if (lesson.cycleType === 'review') {
+    base.push(`Review all vocabulary from Lessons 1–4 with high teacher support`);
+    base.push(`Re-trace phonics and grammar rules from the unit`);
+    base.push(`Achieve 100% confidence before the Mastery Quiz`);
+  } else if (lesson.cycleType === 'quiz') {
+    base.push(`Demonstrate >85% speaking accuracy on unit vocabulary`);
+    base.push(`Write dictated words without tracing support`);
+    base.push(`Correct grammar errors independently (no hints)`);
   }
   return base;
 }
@@ -334,7 +392,6 @@ export function validateAndEnforceProgression(
     
     return {
       ...baseSkel,
-      // Allow AI to override title if it provided one (but keep unit number prefix)
       title: aiUnit.title && !aiUnit.title.startsWith('Unit')
         ? `Unit ${skelUnit.unit}: ${aiUnit.title}`
         : aiUnit.title || baseSkel.title,
@@ -370,6 +427,8 @@ export function validateAndEnforceProgression(
           skillTags: skelLesson.skillTags,
           bridgeRetrieval: skelLesson.bridgeRetrieval,
           masteryCheck: skelLesson.masteryCheck,
+          hintsDisabled: skelLesson.hintsDisabled,
+          highSupport: skelLesson.highSupport,
         };
       }),
     };
@@ -403,7 +462,10 @@ export function buildDependencyContext(
     context += `Bridge Retrieval: MANDATORY 5-question pop quiz from Unit ${prevUnit.unit} content\n`;
   }
 
-  context += `\n--- LESSON CYCLE ---\n`;
+  context += `\n--- LESSON CYCLE (6 LESSONS PER UNIT) ---\n`;
+  context += `  Lessons 1-4: Progressive Build-Up (Discovery → Ladder → Ladder → Bridge)\n`;
+  context += `  Lesson 5: The Grand Review (High Support, Wizard Hints ON)\n`;
+  context += `  Lesson 6: Mastery Quiz (No Hints, Clinical Assessment)\n\n`;
   currentUnit.lessons.forEach(l => {
     context += `  ${l.id} [${l.cycleType}] — ${l.focus} | Skills: ${l.skillTags.join(',')} | Activities: ${l.activities.join(', ')}\n`;
   });
@@ -414,14 +476,24 @@ export function buildDependencyContext(
 // ─── Helper: Build full curriculum map context ─────────────────────
 export function buildFullCurriculumMapContext(skeleton: SpiralUnit[]): string {
   let context = `\n══════════════════════════════════════════\n`;
-  context += `  SPIRAL CURRICULUM MAP — 10-Unit Dependency Tree\n`;
+  context += `  SPIRAL CURRICULUM MAP — 6-Lesson Unit Architecture\n`;
   context += `══════════════════════════════════════════\n\n`;
+
+  context += `UNIT STRUCTURE (6 LESSONS EACH):\n`;
+  context += `  Lessons 1-4: Progressive Build-Up\n`;
+  context += `    L1 [discovery]: Sound Recognition + Bridge Retrieval from prev unit\n`;
+  context += `    L2 [ladder]: Grammar Practice + Sentence Building\n`;
+  context += `    L3 [ladder]: Extended Practice + Writing Integration\n`;
+  context += `    L4 [bridge]: Independent Production + Free Speaking\n`;
+  context += `  Lesson 5 [review]: The Grand Review — ALL skills with HIGH teacher support\n`;
+  context += `  Lesson 6 [quiz]: Mastery Quiz — NO hints, clinical assessment, >80% to pass\n\n`;
 
   context += `PROGRESSION RULES (MANDATORY):\n`;
   context += `  Phonics:  Individual Sounds → Blends → Digraphs\n`;
   context += `  Grammar:  Nouns → "It is a..." → "Is it a...?" → Plurals → Adjectives → Has/Have → Possessives → Prepositions → Present Simple\n`;
   context += `  Skills:   Writing % MUST increase from 5% (Unit 1) to 40% (Unit 10)\n`;
-  context += `  Review:   Unit N Lesson 1 MUST include Bridge Retrieval from Unit N-1\n\n`;
+  context += `  Review:   Unit N Lesson 1 MUST include Bridge Retrieval from Unit N-1\n`;
+  context += `  Mastery:  Lesson 6 score >80% required to unlock next unit\n\n`;
 
   skeleton.forEach(unit => {
     const prereq = unit.prerequisiteUnit ? `← requires Unit ${unit.prerequisiteUnit}` : '(start)';
@@ -429,7 +501,11 @@ export function buildFullCurriculumMapContext(skeleton: SpiralUnit[]): string {
     context += `  Phoneme: ${unit.phonicsGoal} | Grammar: ${unit.grammarGoal}\n`;
     context += `  Skills: L=${unit.skillsMix.listening}% S=${unit.skillsMix.speaking}% R=${unit.skillsMix.reading}% W=${unit.skillsMix.writing}%\n`;
     unit.lessons.forEach(l => {
-      context += `    ${l.id} [${l.cycleType}] ${l.focus} (${l.skillTags.join(',')})\n`;
+      const flags = [];
+      if (l.highSupport) flags.push('HIGH-SUPPORT');
+      if (l.hintsDisabled) flags.push('NO-HINTS');
+      const flagStr = flags.length > 0 ? ` [${flags.join(', ')}]` : '';
+      context += `    ${l.id} [${l.cycleType}] ${l.focus} (${l.skillTags.join(',')})${flagStr}\n`;
     });
     context += `\n`;
   });
