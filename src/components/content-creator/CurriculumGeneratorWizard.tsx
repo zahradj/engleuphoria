@@ -64,7 +64,7 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
     level: '',
     ageGroup: '',
     unitCount: 4,
-    lessonsPerUnit: 3,
+    lessonsPerUnit: 6,
   });
   const [generatedUnits, setGeneratedUnits] = useState<GeneratedUnit[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -363,9 +363,9 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
               <Input
                 type="number"
                 min={1}
-                max={3}
+                max={6}
                 value={config.lessonsPerUnit}
-                onChange={(e) => setConfig((p) => ({ ...p, lessonsPerUnit: Math.min(3, parseInt(e.target.value) || 1) }))}
+                onChange={(e) => setConfig((p) => ({ ...p, lessonsPerUnit: Math.min(6, parseInt(e.target.value) || 1) }))}
               />
             </div>
           </div>
@@ -496,10 +496,18 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
                                   <Badge className={`text-xs ${
                                     lesson.cycleType === 'discovery' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' :
                                     lesson.cycleType === 'ladder' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' :
+                                    lesson.cycleType === 'review' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' :
+                                    lesson.cycleType === 'quiz' ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300' :
                                     'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
                                   }`}>
-                                    {lesson.cycleType === 'discovery' ? '🔍' : lesson.cycleType === 'ladder' ? '🪜' : '🌉'} {lesson.cycleType}
+                                    {lesson.cycleType === 'discovery' ? '🔍' : lesson.cycleType === 'ladder' ? '🪜' : lesson.cycleType === 'review' ? '📋' : lesson.cycleType === 'quiz' ? '🏆' : '🌉'} {lesson.cycleType}
                                   </Badge>
+                                )}
+                                {lesson.hintsDisabled && (
+                                  <Badge variant="destructive" className="text-xs">🚫 No Hints</Badge>
+                                )}
+                                {lesson.highSupport && (
+                                  <Badge className="text-xs bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300">🧙 High Support</Badge>
                                 )}
                                 {lesson.phonicsFocus && (
                                   <Badge variant="outline" className="text-xs">🔊 {lesson.phonicsFocus}</Badge>
