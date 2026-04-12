@@ -89,7 +89,7 @@ export default function PlaygroundDragDrop({ slide, onCorrect, onIncorrect }: Pr
               }}
             >
               <VocabularyImage
-                prompt={`Simple flat 2D illustration of the category "${t}" for young ESL students, white background, minimal, professional educational asset`}
+                prompt={`Colorful flat 2D vector icon of "${t}", vibrant saturated colors, bold clean outlines, isolated on a pure transparent background, no shadows, no gradients, no 3D, professional educational asset for kids`}
                 alt={t}
                 style="minimalist"
                 className="w-20 h-20"
@@ -134,7 +134,7 @@ export default function PlaygroundDragDrop({ slide, onCorrect, onIncorrect }: Pr
             >
               <div className="w-full h-24 bg-muted/30">
                 <VocabularyImage
-                  prompt={`Simple flat 2D illustration of "${item.text}" for young ESL students, isolated object, white background, professional educational, no text, no shadows`}
+                  prompt={`Colorful flat 2D vector illustration of "${item.text}", vibrant bright colors, bold clean outlines, isolated on a pure transparent background, no shadows, no gradients, no 3D, clear and simple, professional educational asset for young children`}
                   alt={item.text}
                   style="minimalist"
                   className="w-full h-full object-contain"
