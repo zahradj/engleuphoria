@@ -111,20 +111,31 @@ export const AdminLessonEditor: React.FC<AdminLessonEditorProps> = ({ onFinish, 
       playground: 'kids', academy: 'teens', professional: 'adults',
     };
 
+    const lessonNum = manifest?.lessonNumber || content?.lessonNumber || lesson.sequence_order;
+    const isQuiz = lessonNum === 6 || manifest?.cycleType === 'quiz';
+    const isReview = lessonNum === 5 || manifest?.cycleType === 'review';
+    const shouldSong = lessonNum === 1 || lessonNum === 5;
+
     setWizardContext({
       unitNumber: manifest?.unitNumber || content?.unitNumber,
-      lessonNumber: manifest?.lessonNumber || content?.lessonNumber || lesson.sequence_order,
+      lessonNumber: lessonNum,
       cycleType: manifest?.cycleType || content?.cycle_type || lesson.cycle_type,
       phonicsTarget: manifest?.anchorPhoneme || content?.anchorPhoneme || lesson.phonics_focus,
       grammarTarget: manifest?.grammarGoal || content?.grammarGoal || lesson.grammar_pattern,
       vocabularyList: manifest?.vocabularyList || (lesson.vocabulary_list ? Object.keys(lesson.vocabulary_list) : undefined),
       skillsFocus: manifest?.skillsRequired || lesson.skills_focus,
-      hintsDisabled: manifest?.hintsDisabled || false,
-      highSupport: manifest?.highSupport || false,
+      hintsDisabled: manifest?.hintsDisabled || isQuiz,
+      highSupport: manifest?.highSupport || isReview,
       topic: lesson.title?.replace(/^\d+(\.\d+)?\s*[-:.]?\s*/, '') || '',
       level: levelMap[lesson.difficulty_level] || 'beginner',
       ageGroup: ageGroupFromSystem[lesson.target_system] || 'kids',
       wizardScript: manifest?.wizardScript,
+      // ─── Media Generation Hooks ────────────────────────────
+      audioEngine: isQuiz ? 'none' : 'elevenlabs',
+      videoEngine: shouldSong ? 'ai_video' : 'none',
+      unitTheme: content?.vocabularyTheme || lesson.title,
+      shouldGenerateSong: shouldSong && !isQuiz,
+      shouldGenerateAudio: !isQuiz,
     });
 
     if (lesson.content && Array.isArray(lesson.content)) {
