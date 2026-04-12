@@ -120,13 +120,23 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated, lessonCo
       parts.push(`Skills: ${lessonContext.skillsFocus.join(', ')}.`);
     }
     if (lessonContext.hintsDisabled) {
-      parts.push('QUIZ MODE: No hints, no scaffolding. Clinical assessment only.');
+      parts.push('QUIZ MODE: No hints, no scaffolding. Clinical assessment only. No ElevenLabs audio hints.');
     }
     if (lessonContext.highSupport) {
       parts.push('REVIEW MODE: High support. Wizard hints active. Review all vocabulary from previous lessons.');
     }
     if (lessonContext.wizardScript) {
       parts.push(lessonContext.wizardScript);
+    }
+    // Media engine directives
+    if (lessonContext.audioEngine === 'elevenlabs') {
+      parts.push('AUDIO ENGINE: ElevenLabs TTS will auto-generate phonics & vocabulary audio.');
+    }
+    if (lessonContext.shouldGenerateSong) {
+      parts.push('SONG ENGINE: AI Music will generate a phonics song for this lesson.');
+    }
+    if (lessonContext.audioEngine === 'none') {
+      parts.push('AUDIO DISABLED: Quiz mode — no audio hints will be generated.');
     }
 
     if (parts.length > 0) {
