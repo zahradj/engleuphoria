@@ -143,7 +143,7 @@ export const CurriculumGeneratorWizard: React.FC<CurriculumGeneratorWizardProps>
   };
 
   // ─── SKELETON-BASED FALLBACK (replaces old random themes) ───────
-  const generateSkeletonFallback = (slicedSkeleton: typeof BEGINNER_KIDS_SKELETON): GeneratedUnit[] => {
+  const generateSkeletonFallback = (slicedSkeleton: ReturnType<typeof getSpiralSkeleton>): GeneratedUnit[] => {
     return slicedSkeleton.map((skelUnit, i) => {
       const prevUnit = i > 0 ? slicedSkeleton[i - 1] : null;
       const generated = skeletonToGeneratedUnit(skelUnit, prevUnit, config.lessonsPerUnit);
