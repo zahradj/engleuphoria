@@ -17,7 +17,9 @@ import {
   Loader2,
   Camera,
   GraduationCap,
-  X
+  X,
+  CheckCircle2,
+  PartyPopper
 } from 'lucide-react';
 
 interface ProfileOnboardingModalProps {
@@ -35,6 +37,7 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [uploadingCerts, setUploadingCerts] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
   
   const [formData, setFormData] = useState({
     bio: '',
@@ -42,6 +45,8 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
     profileImageUrl: '',
     certificateUrls: [] as string[]
   });
+
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const getEmbedUrl = (url: string): string | null => {
     const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
@@ -62,7 +67,13 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (file.size > 5 * 1024 * 1024) {
+      setFieldErrors(prev => ({ ...prev, photo: 'Photo must be under 5MB' }));
+      return;
+    }
+
     setUploadingPhoto(true);
+    setFieldErrors(prev => ({ ...prev, photo: '' }));
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${teacherId}/profile.${fileExt}`;
@@ -81,7 +92,7 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
       toast({ title: 'Photo uploaded successfully' });
     } catch (error) {
       console.error('Error uploading photo:', error);
-      toast({ title: 'Failed to upload photo', variant: 'destructive' });
+      setFieldErrors(prev => ({ ...prev, photo: 'Failed to upload photo. Please try again.' }));
     } finally {
       setUploadingPhoto(false);
     }
@@ -91,7 +102,16 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
+    // Validate file sizes
+    for (const file of files) {
+      if (file.size > 10 * 1024 * 1024) {
+        setFieldErrors(prev => ({ ...prev, certs: `"${file.name}" exceeds 10MB limit` }));
+        return;
+      }
+    }
+
     setUploadingCerts(true);
+    setFieldErrors(prev => ({ ...prev, certs: '' }));
     const uploadedUrls: string[] = [];
 
     try {
@@ -119,7 +139,7 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
       toast({ title: `${uploadedUrls.length} certificate(s) uploaded` });
     } catch (error) {
       console.error('Error uploading certificates:', error);
-      toast({ title: 'Failed to upload certificates', variant: 'destructive' });
+      setFieldErrors(prev => ({ ...prev, certs: 'Failed to upload certificates. Please try again.' }));
     } finally {
       setUploadingCerts(false);
     }
@@ -128,7 +148,6 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
   const handleRemoveCertificate = async (index: number) => {
     const url = formData.certificateUrls[index];
     try {
-      // Extract storage path from public URL
       const bucketUrl = '/storage/v1/object/public/teacher-certificates/';
       const pathIndex = url.indexOf(bucketUrl);
       if (pathIndex !== -1) {
@@ -145,25 +164,65 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
     toast({ title: 'Certificate removed' });
   };
 
-  const handleSubmit = async () => {
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
     if (!formData.bio.trim()) {
-      toast({ title: 'Bio is required', variant: 'destructive' });
-      return;
+      errors.bio = 'Bio is required';
+    } else if (formData.bio.trim().length < 50) {
+      errors.bio = 'Bio must be at least 50 characters';
+    } else if (formData.bio.trim().length > 500) {
+      errors.bio = 'Bio must be under 500 characters';
     }
 
-    if (!formData.videoUrl.trim() || !isValidVideoUrl) {
-      toast({ title: 'Valid YouTube link is required', variant: 'destructive' });
-      return;
+    if (!formData.videoUrl.trim()) {
+      errors.video = 'YouTube video link is required';
+    } else if (!isValidVideoUrl) {
+      errors.video = 'Please provide a valid YouTube or Vimeo link';
     }
+
+    if (!formData.profileImageUrl) {
+      errors.photo = 'Professional headshot is required';
+    }
+
+    if (formData.certificateUrls.length === 0) {
+      errors.certs = 'At least one certificate is required';
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const parseSupabaseError = (error: any): string => {
+    if (!error) return 'An unexpected error occurred';
+    
+    const msg = error.message || error.details || String(error);
+    
+    if (msg.includes('violates row-level security')) {
+      return 'Permission denied. Please ensure you are logged in with the correct account.';
+    }
+    if (msg.includes('duplicate key') || error.code === '23505') {
+      return 'Profile already exists. Attempting to update instead...';
+    }
+    if (msg.includes('value too long') || msg.includes('check constraint')) {
+      return 'One of your fields exceeds the allowed length. Please shorten your bio or other text fields.';
+    }
+    
+    return `Save failed: ${msg}`;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
 
     setLoading(true);
     try {
       const payload = {
         user_id: teacherId,
-        bio: formData.bio,
-        video_url: formData.videoUrl,
+        bio: formData.bio.trim(),
+        video_url: formData.videoUrl.trim(),
         profile_image_url: formData.profileImageUrl || null,
         certificate_urls: formData.certificateUrls,
+        profile_complete: true,
         profile_approved_by_admin: false,
         can_teach: false,
         updated_at: new Date().toISOString()
@@ -180,20 +239,30 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
       if (insertError?.code === '23505') {
         const { error: updateError } = await supabase
           .from('teacher_profiles')
-          .update(payload)
+          .update({
+            ...payload,
+            profile_complete: true,
+          })
           .eq('user_id', teacherId);
 
         if (updateError) throw updateError;
       }
 
-      toast({
-        title: 'Profile submitted for review!',
-        description: 'Our team will review your profile and notify you once approved.'
-      });
-      onComplete();
-    } catch (error) {
+      // Update the teacher's application stage to final_review so admins see them
+      await supabase
+        .from('teacher_applications')
+        .update({ current_stage: 'final_review' })
+        .eq('email', (await supabase.auth.getUser()).data.user?.email || '');
+
+      setSubmitted(true);
+    } catch (error: any) {
       console.error('Error saving profile:', error);
-      toast({ title: 'Failed to save profile', variant: 'destructive' });
+      const friendlyMessage = parseSupabaseError(error);
+      toast({ 
+        title: 'Profile submission failed', 
+        description: friendlyMessage,
+        variant: 'destructive' 
+      });
     } finally {
       setLoading(false);
     }
@@ -203,7 +272,34 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
-  const canSubmit = formData.bio.trim() && formData.videoUrl.trim() && isValidVideoUrl && formData.profileImageUrl && formData.certificateUrls.length > 0;
+  const canSubmit = formData.bio.trim().length >= 50 && formData.videoUrl.trim() && isValidVideoUrl && formData.profileImageUrl && formData.certificateUrls.length > 0;
+
+  // Success state after submission
+  if (submitted) {
+    return (
+      <Dialog open={true}>
+        <DialogContent className="max-w-md" onPointerDownOutside={(e) => e.preventDefault()}>
+          <div className="flex flex-col items-center text-center py-8 space-y-4">
+            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+              <PartyPopper className="w-8 h-8 text-green-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-foreground">Profile Submitted!</h2>
+            <p className="text-muted-foreground max-w-sm">
+              Congratulations, {teacherName}! Your profile has been submitted for review. 
+              Our team will review your profile and notify you once approved.
+            </p>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted rounded-lg px-4 py-2">
+              <CheckCircle2 className="w-4 h-4 text-green-500" />
+              Status: Pending Review
+            </div>
+            <Button onClick={onComplete} className="mt-4">
+              Continue to Dashboard
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={true}>
@@ -250,6 +346,9 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
             <div>
               <p className="font-medium">{teacherName}</p>
               <p className="text-sm text-muted-foreground">Upload a professional headshot with a plain white background *</p>
+              {fieldErrors.photo && (
+                <p className="text-sm text-destructive mt-1">{fieldErrors.photo}</p>
+              )}
             </div>
           </div>
 
@@ -263,10 +362,23 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
               id="bio"
               placeholder="Tell students about your teaching experience, qualifications, and what makes you a great teacher..."
               value={formData.bio}
-              onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
+              onChange={(e) => {
+                setFormData(prev => ({ ...prev, bio: e.target.value }));
+                if (fieldErrors.bio) setFieldErrors(prev => ({ ...prev, bio: '' }));
+              }}
               rows={4}
+              className={fieldErrors.bio ? 'border-destructive' : ''}
             />
-            <p className="text-sm text-muted-foreground">{formData.bio.length}/500 characters</p>
+            <div className="flex justify-between">
+              {fieldErrors.bio ? (
+                <p className="text-sm text-destructive">{fieldErrors.bio}</p>
+              ) : (
+                <p className="text-sm text-muted-foreground">Minimum 50 characters</p>
+              )}
+              <p className={`text-sm ${formData.bio.length > 500 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                {formData.bio.length}/500
+              </p>
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -278,8 +390,15 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
               id="video"
               placeholder="https://www.youtube.com/watch?v=..."
               value={formData.videoUrl}
-              onChange={(e) => setFormData(prev => ({ ...prev, videoUrl: e.target.value }))}
+              onChange={(e) => {
+                setFormData(prev => ({ ...prev, videoUrl: e.target.value }));
+                if (fieldErrors.video) setFieldErrors(prev => ({ ...prev, video: '' }));
+              }}
+              className={fieldErrors.video ? 'border-destructive' : ''}
             />
+            {fieldErrors.video && (
+              <p className="text-sm text-destructive">{fieldErrors.video}</p>
+            )}
             <div className="rounded-lg border bg-muted/30 p-3 text-sm text-muted-foreground space-y-1">
               <p><strong className="text-foreground">How to submit your YouTube video:</strong></p>
               <p>1. Record a 1–3 minute introduction video.</p>
@@ -288,10 +407,10 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
               <p>4. Paste the YouTube link here.</p>
             </div>
             
-            {formData.videoUrl && !isValidVideoUrl && (
+            {formData.videoUrl && !isValidVideoUrl && formData.videoUrl.length > 5 && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
-                <AlertDescription>Please provide a valid YouTube link</AlertDescription>
+                <AlertDescription>Please provide a valid YouTube or Vimeo link</AlertDescription>
               </Alert>
             )}
 
@@ -315,7 +434,7 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
               <FileCheck className="w-4 h-4" />
               Certificates & Documents *
             </Label>
-            <div className="border-2 border-dashed rounded-lg p-4 text-center">
+            <div className={`border-2 border-dashed rounded-lg p-4 text-center ${fieldErrors.certs ? 'border-destructive' : ''}`}>
               <input
                 type="file"
                 multiple
@@ -332,10 +451,13 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
                   <Upload className="w-8 h-8 mx-auto text-muted-foreground" />
                 )}
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Click to upload certificates (PDF, JPG, PNG)
+                  Click to upload certificates (PDF, JPG, PNG — max 10MB each)
                 </p>
               </label>
             </div>
+            {fieldErrors.certs && (
+              <p className="text-sm text-destructive">{fieldErrors.certs}</p>
+            )}
             
             {formData.certificateUrls.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
