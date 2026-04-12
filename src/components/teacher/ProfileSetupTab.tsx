@@ -241,11 +241,19 @@ export const ProfileSetupTab = ({ teacherId, onProfileComplete }: ProfileSetupTa
           onProfileComplete(insertedData.profile_complete);
         }
 
+        // If profile is now complete, update application stage to final_review
+        if (insertedData.profile_complete) {
+          await supabase
+            .from('teacher_applications')
+            .update({ current_stage: 'final_review' })
+            .eq('user_id', teacherId);
+        }
+
         toast({
           title: "Profile saved successfully",
           description: insertedData.profile_complete
-            ? "Your profile is now complete! You can start teaching."
-            : "Profile saved. Complete all required fields to start teaching.",
+            ? "Your profile has been submitted for review!"
+            : "Profile saved. Complete all required fields to submit for review.",
         });
         return;
       }
@@ -268,11 +276,19 @@ export const ProfileSetupTab = ({ teacherId, onProfileComplete }: ProfileSetupTa
         onProfileComplete(updatedData.profile_complete);
       }
 
+      // If profile is now complete, update application stage to final_review
+      if (updatedData.profile_complete) {
+        await supabase
+          .from('teacher_applications')
+          .update({ current_stage: 'final_review' })
+          .eq('user_id', teacherId);
+      }
+
       toast({
         title: "Profile saved successfully",
         description: updatedData.profile_complete
-          ? "Your profile is now complete! You can start teaching."
-          : "Profile saved. Complete all required fields to start teaching.",
+          ? "Your profile has been submitted for review!"
+          : "Profile saved. Complete all required fields to submit for review.",
       });
     } catch (error) {
       console.error('Error saving profile:', error);
