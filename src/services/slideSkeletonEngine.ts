@@ -310,6 +310,7 @@ export function generateSlideSkeletons(params: {
     else effectiveFocus = 'expansion'; // ladder
   }
 
+  const baseSequence = SEQUENCES[hub];
   const ratio = FOCUS_RATIOS[effectiveFocus];
 
   // Calculate how many practice slides per layer (out of the 4 practice slots: slides 5-6 mimic + 7-10 produce = 6 practice slots)
