@@ -28,10 +28,29 @@ import { saveToLibrary } from '@/services/lessonLibraryService';
 import { v4 as uuidv4 } from 'uuid';
 import { useToast } from '@/hooks/use-toast';
 
+/** Context injected from the curriculum selection to pre-fill the Wizard */
+export interface WizardLessonContext {
+  unitNumber?: number;
+  lessonNumber?: number;
+  cycleType?: string;
+  phonicsTarget?: string;
+  grammarTarget?: string;
+  vocabularyList?: string[];
+  skillsFocus?: string[];
+  hintsDisabled?: boolean;
+  highSupport?: boolean;
+  topic?: string;
+  level?: 'beginner' | 'intermediate' | 'advanced';
+  ageGroup?: 'kids' | 'teens' | 'adults';
+  wizardScript?: string;
+}
+
 interface AILessonWizardProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onLessonGenerated: (slides: Slide[], title: string, level: string, ageGroup: string, rawSlides?: GeneratedSlide[], hub?: HubType) => void;
+  /** Pre-filled context from the selected curriculum lesson */
+  lessonContext?: WizardLessonContext | null;
 }
 
 const generationSteps = [
@@ -42,7 +61,7 @@ const generationSteps = [
   { id: 5, label: 'Finalizing lesson plan...', icon: Check },
 ];
 
-export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILessonWizardProps) {
+export function AILessonWizard({ open, onOpenChange, onLessonGenerated, lessonContext }: AILessonWizardProps) {
   const [formData, setFormData] = useState<WizardFormData>({
     topic: '',
     level: 'beginner',
@@ -59,6 +78,55 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
   const [activeListening, setActiveListening] = useState<'topic' | 'notes' | null>(null);
   const recognitionRef = useRef<any>(null);
   const { toast } = useToast();
+
+  // ─── Auto-Fill from Curriculum Context ──────────────────────
+  React.useEffect(() => {
+    if (!open || !lessonContext) return;
+
+    // Pre-fill topic
+    if (lessonContext.topic) {
+      setFormData(prev => ({
+        ...prev,
+        topic: lessonContext.topic!,
+        level: lessonContext.level || prev.level,
+        ageGroup: lessonContext.ageGroup || prev.ageGroup,
+      }));
+    }
+
+    // Build a rich lesson prompt from the injected DNA
+    const parts: string[] = [];
+    if (lessonContext.unitNumber != null && lessonContext.lessonNumber != null) {
+      parts.push(`Unit ${lessonContext.unitNumber}, Lesson ${lessonContext.lessonNumber}.`);
+    }
+    if (lessonContext.cycleType) {
+      parts.push(`Cycle type: ${lessonContext.cycleType}.`);
+    }
+    if (lessonContext.phonicsTarget) {
+      parts.push(`Phonics focus: ${lessonContext.phonicsTarget}.`);
+    }
+    if (lessonContext.grammarTarget) {
+      parts.push(`Grammar goal: ${lessonContext.grammarTarget}.`);
+    }
+    if (lessonContext.vocabularyList?.length) {
+      parts.push(`Vocabulary: ${lessonContext.vocabularyList.join(', ')}.`);
+    }
+    if (lessonContext.skillsFocus?.length) {
+      parts.push(`Skills: ${lessonContext.skillsFocus.join(', ')}.`);
+    }
+    if (lessonContext.hintsDisabled) {
+      parts.push('QUIZ MODE: No hints, no scaffolding. Clinical assessment only.');
+    }
+    if (lessonContext.highSupport) {
+      parts.push('REVIEW MODE: High support. Wizard hints active. Review all vocabulary from previous lessons.');
+    }
+    if (lessonContext.wizardScript) {
+      parts.push(lessonContext.wizardScript);
+    }
+
+    if (parts.length > 0) {
+      setLessonPrompt(parts.join(' '));
+    }
+  }, [open, lessonContext]);
 
   const startListening = useCallback((target: 'topic' | 'notes') => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -439,6 +507,30 @@ export function AILessonWizard({ open, onOpenChange, onLessonGenerated }: AILess
               exit={{ opacity: 0, y: -10 }}
               className="space-y-5 py-4"
             >
+              {/* ─── Injected Context Banner ─── */}
+              {lessonContext && lessonContext.unitNumber != null && (
+                <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-1">
+                  <p className="text-xs font-semibold text-primary flex items-center gap-1.5">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    Context Loaded — Unit {lessonContext.unitNumber}, Lesson {lessonContext.lessonNumber}
+                    {lessonContext.cycleType && <span className="ml-1 text-muted-foreground">({lessonContext.cycleType})</span>}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {lessonContext.phonicsTarget && (
+                      <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">🔤 {lessonContext.phonicsTarget}</span>
+                    )}
+                    {lessonContext.grammarTarget && (
+                      <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">📐 {lessonContext.grammarTarget}</span>
+                    )}
+                    {lessonContext.hintsDisabled && (
+                      <span className="inline-flex items-center rounded-md bg-destructive/10 px-2 py-0.5 text-[11px] font-medium text-destructive">🧪 Quiz Mode</span>
+                    )}
+                    {lessonContext.highSupport && (
+                      <span className="inline-flex items-center rounded-md bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-600">🛡️ Review Mode</span>
+                    )}
+                  </div>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="topic" className="text-sm font-medium">Lesson Topic</Label>
                 <div className="relative">
