@@ -1,69 +1,38 @@
 
-Goal: stop the repeated “Unit 1” behavior and make the AI Wizard the real source of truth for lesson generation.
 
-What I found
-- The current curriculum generator is not using a broken `for (... i++)` loop. It generates from `getSpiralSkeleton(...).slice(...).map(...)`.
-- The real weak points are:
-  1. AI output is merged by array index, not by `unitNumber` / `lessonNumber`, so malformed AI output can still cause wrong unit decoration.
-  2. Saving inserts units blindly, so repeated same-context saves can duplicate Unit 1 data in the database.
-  3. Lesson slide generation later ignores most curriculum DNA and rebuilds lessons from a generic `topic`, so the Wizard is not the single source of truth yet.
+## Teacher Onboarding Pipeline Fix
 
-Implementation plan
+### Problems Identified
 
-1. Harden unit progression so repetition cannot leak through
-- Update `validateAndEnforceProgression()` to match AI units by `unitNumber` and lessons by `lessonNumber`, not just by array position.
-- Reject or ignore duplicate/misnumbered AI units (especially repeated Unit 1), and fall back to the skeleton for invalid entries.
-- Keep skeleton order authoritative: Unit 1 → Unit 2 → … → Unit N, always.
+1. **"Failed to save profile"**: The `ProfileOnboardingModal` never sets `profile_complete = true` after submission. The teacher profile stays invisible because `profile_complete`, `can_teach`, and `profile_approved_by_admin` are all `false`. There's also a duplicate INSERT RLS policy (`secure_teacher_profiles_insert`) that could cause confusion.
 
-2. Introduce a real “Wizard Manifest” using existing JSON fields
-- Add a structured `aiWizardManifest` object to the generated unit/lesson data in `src/data/spiralCurriculumSkeleton.ts`.
-- Store:
-  - `unitNumber`, `lessonNumber`, `cycleType`
-  - `anchorPhoneme`, `grammarGoal`, `vocabularyList`
-  - `prerequisiteUnit`, `reviewFromUnit`
-  - `skillsRequired`, `hintsDisabled`, `highSupport`
-  - `masteryCriteria`
-  - `wizardScript`, `wizardActions`, `interactionTriggers`
-- Persist unit-level manifest into `curriculum_units.unit_data`.
-- Persist lesson-level manifest into `curriculum_lessons.content.ai_wizard_manifest` (and/or `ai_metadata` when helpful).
+2. **Interview email silently fails**: The `TeacherApplicationsManagement.tsx` calls `sendEmail('interview_invite', ...)` which invokes `send-transactional-email` directly from the client. Meanwhile, there's also a dedicated `send-interview-invite` Edge Function that does the same thing server-side. The client call may fail silently without proper error surfacing. The `interviewLink` is never populated (no zoom_link or internal room link is passed from this component).
 
-3. Make save behavior safe and non-duplicating
-- Before saving, check for existing curriculum units in the same context (`age_group` + CEFR/level + `unit_number`).
-- Replace or block duplicate saves instead of silently inserting another Unit 1 set.
-- Also preserve lesson order by treating `sequence_order` as authoritative per unit.
-- If needed, add a follow-up DB safeguard (unique constraint/index) after cleaning existing duplicate rows.
+3. **No status progression after profile submission**: After a teacher submits their profile, there's no mechanism to update the application status to reflect "profile submitted / pending review." The teacher just sees a generic success toast.
 
-4. Make lesson generation Wizard-first
-- Refactor `CurriculumManager.generateSlidesForLesson()` so it reads the saved manifest instead of generating from only `topic`.
-- Pass manifest data into slide generation:
-  - discovery/ladder/bridge get different focus ratios
-  - review lessons get high-support integrated recap behavior
-  - quiz lessons remove hints and enforce speaking/dictation/grammar-check flow
-- Extend `slideSkeletonEngine` so it accepts lesson type, skill focus, phonics target, grammar target, and support mode.
+4. **Generic error messages**: The profile save error is a catch-all "Failed to save profile" with no specifics about what went wrong.
 
-5. Tighten the curriculum edge prompt
-- Update `supabase/functions/curriculum-expert-agent/index.ts` so the AI must return exact `unitNumber` / `lessonNumber` mappings and never reissue Unit 1 once Unit 2+ exists in the requested skeleton.
-- Keep the AI in decoration-only mode, but now require explicit numbering fidelity.
+### Plan
 
-6. End-to-end verification
-- Generate a 6-unit curriculum and confirm units display 1–6 exactly once.
-- Save the curriculum twice and confirm duplicates are prevented.
-- Open Unit 2 / Lesson 6 and verify the manifest shows quiz mode, no hints, and correct prerequisite linkage.
-- Confirm Lesson 5 is review mode with high support and carries forward unit vocabulary.
+**Step 1: Fix ProfileOnboardingModal submission logic**
+- After successful insert/update to `teacher_profiles`, set `profile_complete = true` in the same payload
+- Add specific field-level validation with descriptive error messages (bio length, video URL format, missing photo/certs)
+- Show a loading spinner during submission (already exists) and a branded success state after completion
+- Update the teacher's application `current_stage` to `'final_review'` after profile submission so admins see them in the review queue
 
-Technical details
-- I do not recommend adding new physical DB columns like `wizard_script`, `wizard_animation`, or `skill_type` yet, because your schema already has `unit_data`, `content`, and `ai_metadata` JSON fields that can hold the manifest cleanly.
-- The likely root cause is architectural, not a literal missing increment operator: index-based AI merge + blind DB inserts + generic downstream lesson generation.
+**Step 2: Fix interview email trigger in TeacherApplicationsManagement**
+- Replace the direct `send-transactional-email` client call with a call to the existing `send-interview-invite` Edge Function (which has proper admin auth, interview data lookup, and system_emails logging)
+- Ensure the interview link is populated: use the internal room URL when available, or pass the zoom_link from the interview dialog
 
-Files likely involved
-- `src/data/spiralCurriculumSkeleton.ts`
-- `src/components/content-creator/CurriculumGeneratorWizard.tsx`
-- `src/components/content-creator/CurriculumManager.tsx`
-- `src/services/slideSkeletonEngine.ts`
-- `src/components/admin/lesson-builder/ai-wizard/types.ts`
-- `src/components/admin/lesson-builder/ai-wizard/generatePPPLesson.ts`
-- `supabase/functions/curriculum-expert-agent/index.ts`
+**Step 3: Remove duplicate RLS policy**
+- Drop the `secure_teacher_profiles_insert` policy (duplicate of "Teachers can insert their profile")
 
-Possible database work
-- Maybe not required for manifest storage.
-- May be required for duplicate-prevention constraints after existing repeated rows are normalized.
+**Step 4: Improve error specificity**
+- Replace the generic "Failed to save profile" toast with parsed error details from Supabase (e.g., "Bio is required", "File too large", "Invalid video URL")
+- Add a visual success state in the modal after submission showing "Profile submitted for review"
+
+### Files to modify
+- `src/components/teacher/dashboard/ProfileOnboardingModal.tsx` — fix submission logic, validation, error messages
+- `src/components/admin/TeacherApplicationsManagement.tsx` — fix interview email to use the Edge Function
+- One database migration to drop the duplicate RLS policy
+
