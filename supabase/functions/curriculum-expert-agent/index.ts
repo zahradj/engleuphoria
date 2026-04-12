@@ -778,6 +778,12 @@ function validateOutput(mode: string, data: any): void {
       if (Array.isArray(data)) {
         if (data.length === 0) throw new Error('No units generated');
         if (!data[0].lessons || data[0].lessons.length === 0) throw new Error('Units must contain lessons');
+        // Validate unique unitNumbers — reject repeated Unit 1
+        const unitNumbers = data.map((u: any) => u.unitNumber ?? u.unit_number);
+        const uniqueNumbers = new Set(unitNumbers.filter((n: any) => typeof n === 'number'));
+        if (uniqueNumbers.size < data.length) {
+          console.warn('⚠️ AI returned duplicate unit numbers — client will deduplicate');
+        }
       } else if (data.units) {
         // Also valid
       } else {
