@@ -361,8 +361,8 @@ export const ProfileSetupTab = ({ teacherId, onProfileComplete }: ProfileSetupTa
                 rows={4}
                 className="mt-1"
               />
-              <p className={`text-sm mt-1 ${profile.bio.length > 2000 ? 'text-destructive' : 'text-muted-foreground'}`}>
-                {profile.bio.length}/2000 characters
+              <p className="text-sm mt-1 text-muted-foreground">
+                {profile.bio.length} characters
               </p>
             </div>
 
