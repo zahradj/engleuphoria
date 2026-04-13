@@ -15,44 +15,41 @@ import type { TemplateEntry } from './registry.ts'
 
 const LOGO_WHITE_URL = 'https://dcoxpyzoqjvmuuygvlme.supabase.co/storage/v1/object/public/email-assets/logo-white.png'
 
-interface ApplicationReceivedProps {
+interface PostInterviewRejectionProps {
   name?: string
-  hubSelection?: string
+  reason?: string
 }
 
-function ApplicationReceivedEmail({ name, hubSelection }: ApplicationReceivedProps) {
+function PostInterviewRejection({
+  name = 'Candidate',
+  reason,
+}: PostInterviewRejectionProps) {
   return (
     <Html lang="en">
       <Head />
-      <Preview>Application Received - EnglEuphoria</Preview>
+      <Preview>Final Decision - EnglEuphoria Application</Preview>
       <Body style={{ margin: '0', padding: '0', background: '#f4f5f7', fontFamily: "'Inter','Segoe UI',Arial,sans-serif" }}>
         <Container style={{ maxWidth: '600px', margin: '0 auto', background: '#ffffff', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
-          {/* Navy Header */}
+          {/* Navy Header — white logo */}
           <Section style={{ background: '#0047AB', padding: '28px 32px', textAlign: 'center' as const }}>
             <Img src={LOGO_WHITE_URL} width="160" height="44" alt="EnglEuphoria" style={{ margin: '0 auto', display: 'block' }} />
           </Section>
-          {/* Gold Seal */}
-          <Section style={{ background: '#FFF8E1', padding: '12px 32px', textAlign: 'center' as const, borderBottom: '2px solid #F9A825' }}>
-            <Text style={{ fontSize: '14px', fontWeight: '700', color: '#F57F17', letterSpacing: '2px', textTransform: 'uppercase' as const, margin: '0' }}>📝 APPLICATION RECEIVED</Text>
-          </Section>
           {/* Content */}
           <Section style={{ padding: '32px' }}>
-            <Text style={{ fontSize: '18px', fontWeight: '700', color: '#0047AB', margin: '0 0 16px' }}>Thank you, {name || 'Teacher'}! 📝</Text>
+            <Text style={{ fontSize: '16px', fontWeight: '600', color: '#0047AB', margin: '0 0 20px' }}>Dear {name},</Text>
             <Text style={{ fontSize: '15px', color: '#37474F', lineHeight: '1.7', margin: '0 0 16px' }}>
-              Thank you for applying to <strong>EnglEuphoria</strong>. We have received your application and our academic team is currently reviewing your profile.
+              Thank you for taking the time to meet with us and for your demo lesson. We truly appreciate the effort and preparation you put into the interview process.
             </Text>
-            {hubSelection && (
-              <Section style={{ background: '#F5F5F5', borderRadius: '10px', padding: '16px 20px', margin: '16px 0', border: '1px solid #E0E0E0' }}>
-                <Text style={{ fontSize: '14px', color: '#455A64', lineHeight: '1.6', margin: '0 0 6px' }}>🎯 <strong>Hub Applied For:</strong> {hubSelection}</Text>
-                <Text style={{ fontSize: '14px', color: '#455A64', lineHeight: '1.6', margin: '0 0 6px' }}>📋 <strong>Status:</strong> Under Review</Text>
-                <Text style={{ fontSize: '14px', color: '#455A64', lineHeight: '1.6', margin: '0' }}>⏰ <strong>Expected Response:</strong> Within a few business days</Text>
+            <Text style={{ fontSize: '15px', color: '#37474F', lineHeight: '1.7', margin: '0 0 16px' }}>
+              At this stage, we have decided to move forward with other candidates whose profiles more closely align with our current needs.
+            </Text>
+            {reason && (
+              <Section style={{ background: '#FEF2F2', borderRadius: '10px', padding: '16px 20px', margin: '16px 0', border: '1px solid #FECACA' }}>
+                <Text style={{ fontSize: '14px', color: '#991B1B', lineHeight: '1.6', margin: '0' }}><strong>Feedback:</strong> {reason}</Text>
               </Section>
             )}
             <Text style={{ fontSize: '15px', color: '#37474F', lineHeight: '1.7', margin: '0 0 16px' }}>
-              We will contact you within a few business days regarding the next steps.{hubSelection ? ` Our team is reviewing your profile for the ${hubSelection} Hub.` : ''}
-            </Text>
-            <Text style={{ fontSize: '13px', color: '#78909C', lineHeight: '1.5', margin: '0 0 16px' }}>
-              In the meantime, feel free to explore our platform and learn more about our teaching methodology.
+              This decision does not reflect on your abilities as an educator. We encourage you to continue developing your teaching practice, and you are welcome to reapply in the future.
             </Text>
             <Text style={{ fontSize: '15px', color: '#37474F', lineHeight: '1.7', margin: '24px 0 4px' }}>Warm regards,</Text>
             <Text style={{ fontSize: '14px', color: '#0047AB', fontWeight: '600', margin: '0 0 4px' }}>The EnglEuphoria Academic Committee</Text>
@@ -70,8 +67,11 @@ function ApplicationReceivedEmail({ name, hubSelection }: ApplicationReceivedPro
 }
 
 export const template: TemplateEntry = {
-  component: ApplicationReceivedEmail,
-  subject: 'Application Received - EnglEuphoria',
-  displayName: 'Application received',
-  previewData: { name: 'Sarah', hubSelection: 'Playground' },
+  component: PostInterviewRejection,
+  subject: 'Final Decision - EnglEuphoria Application',
+  displayName: 'Post-Interview Rejection',
+  previewData: {
+    name: 'Jane Doe',
+    reason: 'We are looking for candidates with more experience in phonics-based instruction.',
+  },
 }

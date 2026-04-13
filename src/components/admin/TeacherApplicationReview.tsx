@@ -285,8 +285,22 @@ The EnglEuphoria Hiring Team`,
 
       if (error) throw error;
 
-      // Send rejection notification (mock for now)
-      console.log('Rejection processed for:', getDisplayName(selectedApplication));
+      // Send rejection email
+      try {
+        await supabase.functions.invoke('send-transactional-email', {
+          body: {
+            templateName: 'application-rejected',
+            recipientEmail: selectedApplication.email,
+            idempotencyKey: `application-rejected-${selectedApplication.id}`,
+            templateData: {
+              name: selectedApplication.first_name || getDisplayName(selectedApplication)?.split(' ')[0],
+              reason: rejectionReason || undefined,
+            },
+          },
+        });
+      } catch (emailError) {
+        console.log('Rejection email could not be sent:', emailError);
+      }
 
       toast.success('Application Rejected', {
         description: `${getDisplayName(selectedApplication)} has been notified.`,

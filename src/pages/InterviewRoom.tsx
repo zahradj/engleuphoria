@@ -201,6 +201,23 @@ const InterviewRoom = () => {
 
       if (error) throw error;
 
+      // Send post-interview rejection email
+      try {
+        await supabase.functions.invoke('send-transactional-email', {
+          body: {
+            templateName: 'post-interview-rejection',
+            recipientEmail: interview.teacher_email,
+            idempotencyKey: `post-interview-rejection-${interview.application_id}`,
+            templateData: {
+              name: interview.teacher_name,
+              reason: notes || undefined,
+            },
+          },
+        });
+      } catch (emailError) {
+        console.log('Post-interview rejection email could not be sent:', emailError);
+      }
+
       toast.success('Application rejected.');
       navigate('/super-admin');
     } catch (error) {

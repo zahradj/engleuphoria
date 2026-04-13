@@ -3,11 +3,8 @@ import * as React from 'npm:react@18.3.1'
 
 import {
   Body,
-  Button,
   Container,
   Head,
-  Heading,
-  Hr,
   Html,
   Img,
   Preview,
@@ -16,8 +13,7 @@ import {
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
-const LOGO_URL = 'https://dcoxpyzoqjvmuuygvlme.supabase.co/storage/v1/object/public/email-assets/logo-black.png'
-const SITE_NAME = 'EnglEuphoria'
+const LOGO_WHITE_URL = 'https://dcoxpyzoqjvmuuygvlme.supabase.co/storage/v1/object/public/email-assets/logo-white.png'
 const DASHBOARD_URL = 'https://engleuphoria.lovable.app/teacher-dashboard'
 
 interface FinalWelcomeProps {
@@ -25,82 +21,64 @@ interface FinalWelcomeProps {
   hubType?: string
 }
 
-const FinalWelcomeEmail = ({ name, hubType }: FinalWelcomeProps) => (
-  <Html lang="en" dir="ltr">
-    <Head />
-    <Preview>Welcome to the Team! Your {SITE_NAME} Teacher Dashboard is Live.</Preview>
-    <Body style={main}>
-      <Container style={container}>
-        <Section style={headerBar} />
-        <Section style={logoSection}>
-          <Img src={LOGO_URL} width="180" height="50" alt={SITE_NAME} style={logo} />
-        </Section>
-        <Section style={heroSection}>
-          <Heading style={h1}>🌟 Welcome to the Team!</Heading>
-          <Text style={text}>
-            Congratulations{name ? `, ${name}` : ''}!
-          </Text>
-          <Text style={text}>
-            You officially passed the interview for the <strong>{hubType || 'General'} Hub</strong>. 
-            Your profile is now visible to students, and you are ready to start your first 30-minute session.
-          </Text>
-
-          <Section style={stepsBox}>
-            <Text style={stepTitle}>Your Next Steps:</Text>
-            <Text style={stepItem}>
-              <strong>1. Enter your Dashboard</strong> — Set up your profile and get familiar with your tools.
-            </Text>
-            <Text style={stepItem}>
-              <strong>2. Review your First Lesson</strong> — Open the Curriculum Vault to practice with Pip or Cyra.
-            </Text>
-            <Text style={stepItem}>
-              <strong>3. Sync your Calendar</strong> — Ensure your availability is up to date so students can book you.
-            </Text>
+function FinalWelcomeEmail({ name, hubType }: FinalWelcomeProps) {
+  return (
+    <Html lang="en">
+      <Head />
+      <Preview>Welcome to the Team! - EnglEuphoria</Preview>
+      <Body style={{ margin: '0', padding: '0', background: '#f4f5f7', fontFamily: "'Inter','Segoe UI',Arial,sans-serif" }}>
+        <Container style={{ maxWidth: '600px', margin: '0 auto', background: '#ffffff', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
+          {/* Navy Header */}
+          <Section style={{ background: '#0047AB', padding: '28px 32px', textAlign: 'center' as const }}>
+            <Img src={LOGO_WHITE_URL} width="160" height="44" alt="EnglEuphoria" style={{ margin: '0 auto', display: 'block' }} />
           </Section>
-
-          <Section style={buttonContainer}>
-            <Button style={button} href={DASHBOARD_URL}>
-              Open My Dashboard
-            </Button>
+          {/* Gold Seal */}
+          <Section style={{ background: '#FFF8E1', padding: '12px 32px', textAlign: 'center' as const, borderBottom: '2px solid #F9A825' }}>
+            <Text style={{ fontSize: '14px', fontWeight: '700', color: '#F57F17', letterSpacing: '2px', textTransform: 'uppercase' as const, margin: '0' }}>🎉 WELCOME TO THE TEAM</Text>
           </Section>
+          {/* Content */}
+          <Section style={{ padding: '32px' }}>
+            <Text style={{ fontSize: '18px', fontWeight: '700', color: '#0047AB', margin: '0 0 16px' }}>Congratulations, {name || 'Teacher'}! 🌟</Text>
+            <Text style={{ fontSize: '15px', color: '#37474F', lineHeight: '1.7', margin: '0 0 16px' }}>
+              You have successfully completed the teacher application process. We are thrilled to have you as part of the <strong>EnglEuphoria</strong> teaching team.
+            </Text>
+            <Text style={{ fontSize: '15px', color: '#37474F', lineHeight: '1.7', margin: '0 0 24px' }}>
+              Your profile is now live{hubType ? ` in the ${hubType} Hub` : ''}, and you can begin managing your dashboard. Students can now discover you and book sessions!
+            </Text>
+            {/* Next Steps */}
+            <Section style={{ background: '#F0FDF4', borderRadius: '10px', padding: '20px 24px', margin: '24px 0', border: '1px solid #BBF7D0' }}>
+              <Text style={{ fontSize: '16px', fontWeight: '700', color: '#166534', margin: '0 0 12px' }}>🚀 Your Next Steps</Text>
+              <Text style={{ fontSize: '14px', color: '#455A64', lineHeight: '1.6', margin: '0 0 6px' }}>✅ <strong>Step 1:</strong> Enter your Dashboard — set up your profile and get familiar with your tools</Text>
+              <Text style={{ fontSize: '14px', color: '#455A64', lineHeight: '1.6', margin: '0 0 6px' }}>📚 <strong>Step 2:</strong> Review your First Lesson — open the Curriculum Vault</Text>
+              <Text style={{ fontSize: '14px', color: '#455A64', lineHeight: '1.6', margin: '0' }}>📅 <strong>Step 3:</strong> Sync your Calendar — ensure your availability is up to date</Text>
+            </Section>
+            {/* CTA Button */}
+            <Section style={{ textAlign: 'center' as const, margin: '24px 0' }}>
+              <a href={DASHBOARD_URL} style={{ background: '#0047AB', color: '#ffffff', fontSize: '16px', fontWeight: '600', borderRadius: '8px', padding: '16px 36px', textDecoration: 'none', display: 'inline-block' }}>
+                Go to Dashboard
+              </a>
+            </Section>
+            <Text style={{ fontSize: '13px', color: '#78909C', lineHeight: '1.5', margin: '0 0 16px' }}>
+              We're thrilled to have you on board. If you need any help, use the Help button inside your dashboard.
+            </Text>
+            <Text style={{ fontSize: '15px', color: '#37474F', lineHeight: '1.7', margin: '24px 0 4px' }}>Warm regards,</Text>
+            <Text style={{ fontSize: '14px', color: '#0047AB', fontWeight: '600', margin: '0 0 4px' }}>The EnglEuphoria Academic Committee</Text>
+            <Text style={{ fontSize: '12px', color: '#78909C', fontStyle: 'italic', margin: '0' }}>Precision in Phonics. Excellence in Education.</Text>
+          </Section>
+          {/* Dark Footer */}
+          <Section style={{ background: '#0D1642', padding: '24px 32px', textAlign: 'center' as const }}>
+            <Img src={LOGO_WHITE_URL} width="100" height="28" alt="EnglEuphoria" style={{ margin: '0 auto 12px', display: 'block' }} />
+            <Text style={{ fontSize: '12px', color: '#9CA3AF', margin: '0 0 8px' }}>© 2026 EnglEuphoria. The Future of Learning.</Text>
+          </Section>
+        </Container>
+      </Body>
+    </Html>
+  )
+}
 
-          <Text style={textMuted}>
-            We're thrilled to have you on board. If you need any help, use the Help button inside your dashboard.
-          </Text>
-        </Section>
-        <Hr style={hr} />
-        <Section style={darkFooter}>
-          <Text style={footerText}>© 2026 {SITE_NAME}. The Future of Learning.</Text>
-        </Section>
-      </Container>
-    </Body>
-  </Html>
-)
-
-export const template = {
+export const template: TemplateEntry = {
   component: FinalWelcomeEmail,
-  subject: '🌟 Welcome to the Team! Your EnglEuphoria Teacher Dashboard is Live.',
+  subject: 'Welcome to the Team! - EnglEuphoria',
   displayName: 'Final welcome (teacher approved)',
-  previewData: {
-    name: 'Sarah',
-    hubType: 'Academy',
-  },
-} satisfies TemplateEntry
-
-const main = { backgroundColor: '#ffffff', fontFamily: "'Inter', 'Segoe UI', Arial, sans-serif" }
-const container = { padding: '0', maxWidth: '600px', margin: '0 auto' }
-const headerBar = { backgroundColor: '#4f46e5', height: '4px' }
-const logoSection = { padding: '30px 25px 10px', textAlign: 'center' as const }
-const logo = { margin: '0 auto' }
-const heroSection = { padding: '10px 25px 20px' }
-const h1 = { fontSize: '24px', fontWeight: '700' as const, color: '#4f46e5', margin: '0 0 16px', lineHeight: '1.3' }
-const text = { fontSize: '15px', color: '#1f2937', lineHeight: '1.6', margin: '0 0 16px' }
-const textMuted = { fontSize: '13px', color: '#6b7280', lineHeight: '1.5', margin: '0 0 20px' }
-const stepsBox = { backgroundColor: '#f0fdf4', borderRadius: '8px', padding: '16px 20px', margin: '0 0 20px', border: '1px solid #bbf7d0' }
-const stepTitle = { fontSize: '15px', fontWeight: '700' as const, color: '#166534', margin: '0 0 12px' }
-const stepItem = { fontSize: '14px', color: '#374151', margin: '0 0 8px', lineHeight: '1.5' }
-const buttonContainer = { textAlign: 'center' as const, margin: '8px 0 16px' }
-const button = { backgroundColor: '#4f46e5', color: '#ffffff', fontSize: '15px', fontWeight: '600' as const, borderRadius: '8px', padding: '14px 28px', textDecoration: 'none' }
-const hr = { borderColor: '#e5e7eb', margin: '20px 25px' }
-const darkFooter = { backgroundColor: '#111827', padding: '20px 25px', textAlign: 'center' as const, borderRadius: '0 0 8px 8px' }
-const footerText = { fontSize: '12px', color: '#9ca3af', margin: '0', fontWeight: '500' as const }
+  previewData: { name: 'Sarah', hubType: 'Academy' },
+}
