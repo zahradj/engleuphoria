@@ -267,8 +267,8 @@ export const HiringKanbanBoard: React.FC = () => {
             idempotencyKey: `interview-invite-${selectedApp.id}`,
             templateData: {
               name: selectedApp.first_name || getDisplayName(selectedApp).split(' ')[0],
-              hubType,
               meetingLink,
+              applicationId: selectedApp.id,
             },
           },
         });

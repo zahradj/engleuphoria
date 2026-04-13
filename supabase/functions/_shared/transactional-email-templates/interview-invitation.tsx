@@ -3,16 +3,14 @@ import * as React from 'npm:react@18.3.1'
 
 import {
   Body,
-  Button,
   Container,
   Head,
-  Heading,
-  Hr,
   Html,
   Img,
   Preview,
   Section,
   Text,
+  Hr,
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
@@ -24,7 +22,8 @@ interface InterviewInvitationProps {
   name?: string
   interviewDate?: string
   interviewTime?: string
-  interviewLink?: string
+  meetingLink?: string
+  applicationId?: string
   confirmUrl?: string
   reminderType?: string
   candidateTimezone?: string
@@ -34,38 +33,29 @@ const InterviewInvitationEmail = ({
   name,
   interviewDate,
   interviewTime,
-  interviewLink,
+  meetingLink,
+  applicationId,
   confirmUrl,
   reminderType,
   candidateTimezone,
 }: InterviewInvitationProps) => {
   const isReminder = !!reminderType
+  const interviewLink = meetingLink || (applicationId ? `${SITE_URL}/interview-room/${applicationId}` : '')
 
   return (
     <Html lang="en" dir="ltr">
-      <Head>
-        <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@400;500;600&display=swap');
-        `}</style>
-      </Head>
+      <Head />
       <Preview>
         {isReminder
           ? `${reminderType} — ${SITE_NAME} Interview`
-          : `Invitation to Interview: Joining the ${SITE_NAME} Pedagogical Team`}
+          : `Invitation to Interview & Demo Lesson - ${SITE_NAME}`}
       </Preview>
       <Body style={main}>
         <Container style={container}>
-          {/* Navy Header Bar */}
+          {/* Navy Header */}
           <Section style={navyHeader}>
             <Img src={LOGO_WHITE_URL} width="160" height="44" alt={SITE_NAME} style={headerLogo} />
           </Section>
-
-          {/* Gold Mastery Seal for new invitations */}
-          {!isReminder && (
-            <Section style={sealSection}>
-              <Text style={sealText}>📋 PEDAGOGICAL INTERVIEW</Text>
-            </Section>
-          )}
 
           {/* Reminder Badge */}
           {isReminder && (
@@ -83,24 +73,16 @@ const InterviewInvitationEmail = ({
             {!isReminder ? (
               <>
                 <Text style={bodyText}>
-                  Thank you for your application to <strong>Engleuphoria Academy</strong>.
+                  Congratulations on passing the initial review phase. We would like to invite you to an interview and a short demo lesson.
                 </Text>
                 <Text style={bodyText}>
-                  After a thorough review of your professional background and teaching philosophy,
-                  our team is impressed with your potential to contribute to our mission of systematic,
-                  <em>"Slowly, Slowly"</em> language acquisition. At Engleuphoria, we don't just teach;
-                  we use data and phonics-based science to transform how children perceive the English language.
-                </Text>
-                <Text style={bodyText}>
-                  We would like to invite you to a <strong>Virtual Pedagogical Interview</strong> to
-                  discuss your experience and provide you with a deeper look into our Professional Hub
-                  and the II Wizard ecosystem.
+                  Please use the link below to join our internal interview room at your scheduled time.
                 </Text>
               </>
             ) : (
               <Text style={bodyText}>
                 This is a friendly reminder about your upcoming interview with {SITE_NAME}.
-                Please ensure you're in a quiet environment with a stable internet connection.
+                Please ensure you are in a quiet environment with a stable internet connection.
               </Text>
             )}
 
@@ -108,9 +90,6 @@ const InterviewInvitationEmail = ({
             <Section style={detailsCard}>
               <Text style={detailsTitle}>📅 Your Interview Details</Text>
               <Hr style={detailsDivider} />
-              <Text style={detailRow}>
-                <strong>Role:</strong> ESL Pedagogical Specialist
-              </Text>
               {interviewDate && (
                 <Text style={detailRow}>
                   <strong>Date:</strong> {interviewDate}
@@ -124,69 +103,38 @@ const InterviewInvitationEmail = ({
               <Text style={detailRow}>
                 <strong>Duration:</strong> 30 minutes
               </Text>
-              <Text style={detailRow}>
-                <strong>Platform:</strong> Virtual Meeting
-              </Text>
             </Section>
 
             {/* Join Meeting Button */}
             {interviewLink && (
               <Section style={buttonContainer}>
-                <Button style={joinButton} href={interviewLink}>
-                  Click Here to Join Meeting
-                </Button>
-              </Section>
-            )}
-
-            {/* What to Expect Section */}
-            {!isReminder && (
-              <Section style={expectSection}>
-                <Text style={expectTitle}>🔍 What to Expect</Text>
-                <Text style={bodyText}>
-                  This 30-minute session will focus on:
-                </Text>
-                <Text style={bulletPoint}>
-                  <strong>Phonetic Precision:</strong> Your approach to teaching core English phonemes.
-                </Text>
-                <Text style={bulletPoint}>
-                  <strong>Tech-Integration:</strong> A brief walkthrough of how you will use our Professional Hub to track student mastery.
-                </Text>
-                <Text style={bulletPoint}>
-                  <strong>Engleuphoria Culture:</strong> How you implement the "Slowly, Slowly" method in high-energy classroom environments.
-                </Text>
+                <a href={interviewLink} style={joinButton}>
+                  Join Interview Room
+                </a>
               </Section>
             )}
 
             {/* Confirm Attendance Button */}
             {confirmUrl && (
               <Section style={buttonContainer}>
-                <Button style={confirmButton} href={confirmUrl}>
+                <a href={confirmUrl} style={confirmButton}>
                   ✅ Confirm My Attendance
-                </Button>
+                </a>
               </Section>
             )}
 
             <Text style={bodyText}>
-              We look forward to {isReminder ? 'speaking with you soon' : 'meeting you and potentially welcoming you to the Engleuphoria family'}.
+              We look forward to {isReminder ? 'speaking with you soon' : 'meeting you'}.
             </Text>
 
-            <Text style={signoff}>
-              Warm regards,
-            </Text>
-            <Text style={signoffTitle}>
-              <strong>The Engleuphoria Academic Committee</strong>
-            </Text>
-            <Text style={tagline}>
-              Precision in Phonics. Excellence in Education.
-            </Text>
+            <Text style={signoff}>Warm regards,</Text>
+            <Text style={signoffTitle}><strong>The EnglEuphoria Academic Committee</strong></Text>
           </Section>
 
           {/* Dark Footer */}
           <Section style={darkFooter}>
-            <Text style={footerText}>© 2026 {SITE_NAME}. The Future of Learning.</Text>
-            <Text style={footerSubtext}>
-              <em>"Progress is a marathon, not a sprint. We celebrate every sound, every word, and every step."</em>
-            </Text>
+            <Img src={LOGO_WHITE_URL} width="100" height="28" alt={SITE_NAME} style={{ margin: '0 auto 12px', display: 'block' }} />
+            <Text style={footerText}>© 2026 {SITE_NAME}. All rights reserved.</Text>
           </Section>
         </Container>
       </Body>
@@ -199,19 +147,18 @@ export const template = {
   subject: ({ name, reminderType }: Record<string, any>) =>
     reminderType
       ? `Reminder: ${SITE_NAME} Interview — ${name || 'Teacher'}`
-      : `Invitation to Interview: Joining the ${SITE_NAME} Pedagogical Team`,
+      : `Invitation to Interview & Demo Lesson - ${SITE_NAME}`,
   displayName: 'Interview invitation',
   previewData: {
     name: 'Sarah Johnson',
     interviewDate: 'Monday, April 14, 2026',
     interviewTime: '14:00',
-    interviewLink: 'https://meet.google.com/abc-defg-hij',
+    meetingLink: 'https://engleuphoria.lovable.app/interview-room/abc-123',
     confirmUrl: 'https://engleuphoria.lovable.app/confirm-interview?token=abc123',
     candidateTimezone: 'CET',
   },
 } satisfies TemplateEntry
 
-// Styles — Professional Flat 2.0 with Engleuphoria Navy
 const main = {
   backgroundColor: '#f4f5f7',
   fontFamily: "'Inter', 'Segoe UI', Arial, sans-serif",
@@ -225,28 +172,13 @@ const container = {
   boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
 }
 const navyHeader = {
-  backgroundColor: '#1A237E',
+  backgroundColor: '#0047AB',
   padding: '28px 32px',
   textAlign: 'center' as const,
 }
 const headerLogo = {
   margin: '0 auto',
   display: 'block',
-}
-const sealSection = {
-  backgroundColor: '#FFF8E1',
-  padding: '12px 32px',
-  textAlign: 'center' as const,
-  borderBottom: '2px solid #F9A825',
-}
-const sealText = {
-  fontSize: '14px',
-  fontWeight: '700' as const,
-  color: '#F57F17',
-  letterSpacing: '2px',
-  textTransform: 'uppercase' as const,
-  margin: '0',
-  fontFamily: "'Sora', 'Inter', sans-serif",
 }
 const reminderBadge = {
   backgroundColor: '#E3F2FD',
@@ -265,10 +197,9 @@ const contentSection = {
 }
 const greeting = {
   fontSize: '16px',
-  color: '#1A237E',
+  color: '#0047AB',
   fontWeight: '600' as const,
   margin: '0 0 20px',
-  fontFamily: "'Sora', 'Inter', sans-serif",
 }
 const bodyText = {
   fontSize: '15px',
@@ -286,9 +217,8 @@ const detailsCard = {
 const detailsTitle = {
   fontSize: '16px',
   fontWeight: '700' as const,
-  color: '#1A237E',
+  color: '#0047AB',
   margin: '0 0 8px',
-  fontFamily: "'Sora', 'Inter', sans-serif",
 }
 const detailsDivider = {
   borderColor: '#E0E0E0',
@@ -305,14 +235,14 @@ const buttonContainer = {
   margin: '24px 0',
 }
 const joinButton = {
-  backgroundColor: '#1A237E',
+  backgroundColor: '#0047AB',
   color: '#ffffff',
   fontSize: '15px',
   fontWeight: '600' as const,
   borderRadius: '8px',
   padding: '14px 32px',
   textDecoration: 'none',
-  fontFamily: "'Sora', 'Inter', sans-serif",
+  display: 'inline-block',
 }
 const confirmButton = {
   backgroundColor: '#2E7D32',
@@ -322,25 +252,7 @@ const confirmButton = {
   borderRadius: '8px',
   padding: '14px 32px',
   textDecoration: 'none',
-  fontFamily: "'Sora', 'Inter', sans-serif",
-}
-const expectSection = {
-  margin: '24px 0 16px',
-}
-const expectTitle = {
-  fontSize: '16px',
-  fontWeight: '700' as const,
-  color: '#1A237E',
-  margin: '0 0 12px',
-  fontFamily: "'Sora', 'Inter', sans-serif",
-}
-const bulletPoint = {
-  fontSize: '14px',
-  color: '#455A64',
-  lineHeight: '1.6',
-  margin: '0 0 10px',
-  paddingLeft: '12px',
-  borderLeft: '3px solid #1A237E',
+  display: 'inline-block',
 }
 const signoff = {
   fontSize: '15px',
@@ -349,13 +261,7 @@ const signoff = {
 }
 const signoffTitle = {
   fontSize: '14px',
-  color: '#1A237E',
-  margin: '0 0 4px',
-}
-const tagline = {
-  fontSize: '12px',
-  color: '#78909C',
-  fontStyle: 'italic' as const,
+  color: '#0047AB',
   margin: '0',
 }
 const darkFooter = {
@@ -366,12 +272,5 @@ const darkFooter = {
 const footerText = {
   fontSize: '12px',
   color: '#9CA3AF',
-  margin: '0 0 8px',
-  fontWeight: '500' as const,
-}
-const footerSubtext = {
-  fontSize: '11px',
-  color: '#6B7280',
   margin: '0',
-  lineHeight: '1.5',
 }

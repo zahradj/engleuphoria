@@ -147,6 +147,8 @@ export const TeacherApplicationsManagement = () => {
         templateName = 'interview-invitation';
         templateData.interviewDate = interviewDate ? format(interviewDate, 'EEEE, MMMM do, yyyy') : undefined;
         templateData.interviewTime = interviewTime;
+        templateData.meetingLink = `${window.location.origin}/interview-room/${application.id}`;
+        templateData.applicationId = application.id;
       }
 
       const { error } = await supabase.functions.invoke('send-transactional-email', {
