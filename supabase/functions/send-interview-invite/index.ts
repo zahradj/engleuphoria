@@ -29,10 +29,8 @@ Deno.serve(async (req) => {
     const callerClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     })
-    const { data: claimsData, error: claimsError } = await callerClient.auth.getClaims(
-      authHeader.replace('Bearer ', '')
-    )
-    if (claimsError || !claimsData?.claims?.sub) {
+    const { data: { user }, error: userError } = await callerClient.auth.getUser()
+    if (userError || !user) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -44,7 +42,7 @@ Deno.serve(async (req) => {
     const { data: roleData } = await adminClient
       .from('user_roles')
       .select('role')
-      .eq('user_id', claimsData.claims.sub)
+      .eq('user_id', user.id)
       .eq('role', 'admin')
       .maybeSingle()
 
@@ -89,9 +87,15 @@ Deno.serve(async (req) => {
     const app = (interview as any).teacher_applications
     const candidateName = `${app.first_name || ''} ${app.last_name || ''}`.trim() || 'Candidate'
 
-    // Use internal interview room as default
-    const internalLink = `${SITE_URL}/interview-room/${interview.application_id || interview.id}`
-    const meetingLink = interview.zoom_link || interview.meeting_link || internalLink
+    // Always construct a concrete meeting link — never undefined
+    const meetingLink = interview.zoom_link || interview.meeting_link || `${SITE_URL}/interview-room/${interview.application_id || interview.id}`
+
+    if (!meetingLink || !meetingLink.startsWith('http')) {
+      return new Response(JSON.stringify({ error: 'Could not generate a valid interview link. Email not sent.' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
     const scheduledDate = new Date(interview.scheduled_at)
 
     const interviewDate = scheduledDate.toLocaleDateString('en-US', {
@@ -118,7 +122,7 @@ Deno.serve(async (req) => {
           candidateName,
           interviewDate,
           interviewTime,
-          meetingLink: interview.zoom_link || interview.meeting_link || undefined,
+          meetingLink,
           applicationId: interview.application_id || interview.id,
           confirmUrl,
         },
