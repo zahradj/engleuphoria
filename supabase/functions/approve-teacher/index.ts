@@ -169,29 +169,48 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Send branded welcome email via the Lovable transactional email queue
-    const { error: emailError } = await adminClient.functions.invoke('send-transactional-email', {
-      body: {
-        templateName: 'final-welcome',
-        recipientEmail: email,
-        idempotencyKey: `teacher-welcome-${applicationId}-${Date.now()}`,
-        templateData: {
-          name: fullName,
-          setPasswordUrl,
+    // Send branded welcome email via direct HTTP call to avoid functions.invoke issues
+    let emailSuccess = false;
+    let emailErrorMsg = "";
+    try {
+      const emailRes = await fetch(`${supabaseUrl}/functions/v1/send-transactional-email`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${serviceRoleKey}`,
+          "apikey": serviceRoleKey,
         },
-      },
-    });
+        body: JSON.stringify({
+          templateName: "final-welcome",
+          recipientEmail: email,
+          idempotencyKey: `teacher-welcome-${applicationId}-${Date.now()}`,
+          templateData: {
+            name: fullName,
+            setPasswordUrl,
+          },
+        }),
+      });
+      const emailBody = await emailRes.text();
+      console.log(`Email response status: ${emailRes.status}, body: ${emailBody}`);
+      if (!emailRes.ok) {
+        emailErrorMsg = `HTTP ${emailRes.status}: ${emailBody}`;
+      } else {
+        emailSuccess = true;
+      }
+    } catch (fetchErr) {
+      console.error("Email fetch error:", fetchErr);
+      emailErrorMsg = fetchErr.message || "Unknown fetch error";
+    }
 
-    if (emailError) {
-      console.error("Email enqueue error:", emailError);
-      // Log failure but don't block — account was already created
+    if (!emailSuccess) {
+      console.error("Email enqueue failed:", emailErrorMsg);
       await adminClient.from("system_emails").insert({
         email_type: "teacher_welcome",
         recipient_email: email,
         recipient_name: fullName,
         subject: "Welcome to the EnglEuphoria Family! 🌟",
         delivery_status: "failed",
-        error_message: JSON.stringify(emailError),
+        error_message: emailErrorMsg,
         related_entity_id: applicationId,
         related_entity_type: "teacher_application",
       });
