@@ -13,7 +13,10 @@ import {
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
-const LOGO_URL = 'https://dcoxpyzoqjvmuuygvlme.supabase.co/storage/v1/object/public/email-assets/logo-black.png'
+const LOGO_WHITE_URL = 'https://dcoxpyzoqjvmuuygvlme.supabase.co/storage/v1/object/public/email-assets/logo-white.png'
+const LOGO_BLACK_URL = 'https://dcoxpyzoqjvmuuygvlme.supabase.co/storage/v1/object/public/email-assets/logo-black.png'
+
+const SITE_URL = 'https://engleuphoria.lovable.app'
 
 interface InterviewInvitationBrandedProps {
   candidateName?: string
@@ -21,24 +24,29 @@ interface InterviewInvitationBrandedProps {
   interviewTime?: string
   meetingLink?: string
   confirmUrl?: string
+  applicationId?: string
 }
 
 function InterviewInvitationBranded({
   candidateName = 'Candidate',
   interviewDate = 'TBD',
   interviewTime = 'TBD',
-  meetingLink = '#',
+  meetingLink,
   confirmUrl = '#',
+  applicationId = '',
 }: InterviewInvitationBrandedProps) {
+  // Default meeting link to internal interview room
+  const interviewLink = meetingLink || `${SITE_URL}/interview-room/${applicationId}`
+
   return (
     <Html lang="en">
       <Head />
       <Preview>Invitation to Interview: Joining the EnglEuphoria Pedagogical Team</Preview>
       <Body style={{ margin: '0', padding: '0', background: '#f4f5f7', fontFamily: "'Inter','Segoe UI',Arial,sans-serif" }}>
         <Container style={{ maxWidth: '600px', margin: '0 auto', background: '#ffffff', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
-          {/* Navy Header */}
+          {/* Navy Header — white logo on dark background */}
           <Section style={{ background: '#0047AB', padding: '28px 32px', textAlign: 'center' as const }}>
-            <Img src={LOGO_URL} width="160" height="44" alt="EnglEuphoria" style={{ filter: 'brightness(0) invert(1)', margin: '0 auto', display: 'block' }} />
+            <Img src={LOGO_WHITE_URL} width="160" height="44" alt="EnglEuphoria" style={{ margin: '0 auto', display: 'block' }} />
           </Section>
           {/* Seal */}
           <Section style={{ background: '#FFF8E1', padding: '12px 32px', textAlign: 'center' as const, borderBottom: '2px solid #F9A825' }}>
@@ -63,12 +71,12 @@ function InterviewInvitationBranded({
               <Text style={{ fontSize: '14px', color: '#455A64', lineHeight: '1.6', margin: '0 0 6px' }}><strong>Date:</strong> {interviewDate}</Text>
               <Text style={{ fontSize: '14px', color: '#455A64', lineHeight: '1.6', margin: '0 0 6px' }}><strong>Time:</strong> {interviewTime}</Text>
               <Text style={{ fontSize: '14px', color: '#455A64', lineHeight: '1.6', margin: '0 0 6px' }}><strong>Duration:</strong> 30 minutes</Text>
-              <Text style={{ fontSize: '14px', color: '#455A64', lineHeight: '1.6', margin: '0' }}><strong>Platform:</strong> Virtual Meeting</Text>
+              <Text style={{ fontSize: '14px', color: '#455A64', lineHeight: '1.6', margin: '0' }}><strong>Platform:</strong> EnglEuphoria Interview Room</Text>
             </Section>
-            {/* Join Button */}
+            {/* Join Button — points to internal interview room */}
             <Section style={{ textAlign: 'center' as const, margin: '24px 0' }}>
-              <a href={meetingLink} style={{ background: '#0047AB', color: '#ffffff', fontSize: '15px', fontWeight: '600', borderRadius: '8px', padding: '14px 32px', textDecoration: 'none', display: 'inline-block' }}>
-                Click Here to Join Meeting
+              <a href={interviewLink} style={{ background: '#0047AB', color: '#ffffff', fontSize: '15px', fontWeight: '600', borderRadius: '8px', padding: '14px 32px', textDecoration: 'none', display: 'inline-block' }}>
+                Enter Interview Room
               </a>
             </Section>
             {/* What to Expect */}
@@ -92,8 +100,9 @@ function InterviewInvitationBranded({
             <Text style={{ fontSize: '14px', color: '#0047AB', fontWeight: '600', margin: '0 0 4px' }}>The EnglEuphoria Academic Committee</Text>
             <Text style={{ fontSize: '12px', color: '#78909C', fontStyle: 'italic', margin: '0' }}>Precision in Phonics. Excellence in Education.</Text>
           </Section>
-          {/* Dark Footer */}
+          {/* Dark Footer — white logo on dark background */}
           <Section style={{ background: '#0D1642', padding: '24px 32px', textAlign: 'center' as const }}>
+            <Img src={LOGO_WHITE_URL} width="100" height="28" alt="EnglEuphoria" style={{ margin: '0 auto 12px', display: 'block' }} />
             <Text style={{ fontSize: '12px', color: '#9CA3AF', margin: '0 0 8px' }}>© 2026 EnglEuphoria. The Future of Learning.</Text>
             <Text style={{ fontSize: '11px', color: '#6B7280', margin: '0', lineHeight: '1.5', fontStyle: 'italic' }}>"Progress is a marathon, not a sprint."</Text>
           </Section>
@@ -111,7 +120,7 @@ export const template: TemplateEntry = {
     candidateName: 'Jane Doe',
     interviewDate: 'Monday, January 15, 2026',
     interviewTime: '14:00',
-    meetingLink: 'https://engleuphoria.lovable.app/interview-room/123',
+    applicationId: '123',
     confirmUrl: 'https://engleuphoria.lovable.app/confirm-interview?id=123',
   },
 }

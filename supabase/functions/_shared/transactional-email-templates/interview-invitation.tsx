@@ -16,7 +16,7 @@ import {
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
-const LOGO_URL = 'https://dcoxpyzoqjvmuuygvlme.supabase.co/storage/v1/object/public/email-assets/logo-black.png'
+const LOGO_WHITE_URL = 'https://dcoxpyzoqjvmuuygvlme.supabase.co/storage/v1/object/public/email-assets/logo-white.png'
 const SITE_NAME = 'EnglEuphoria'
 const SITE_URL = 'https://engleuphoria.lovable.app'
 
@@ -57,7 +57,7 @@ const InterviewInvitationEmail = ({
         <Container style={container}>
           {/* Navy Header Bar */}
           <Section style={navyHeader}>
-            <Img src={LOGO_URL} width="160" height="44" alt={SITE_NAME} style={headerLogo} />
+            <Img src={LOGO_WHITE_URL} width="160" height="44" alt={SITE_NAME} style={headerLogo} />
           </Section>
 
           {/* Gold Mastery Seal for new invitations */}
@@ -231,7 +231,7 @@ const navyHeader = {
 }
 const headerLogo = {
   margin: '0 auto',
-  filter: 'brightness(0) invert(1)',
+  display: 'block',
 }
 const sealSection = {
   backgroundColor: '#FFF8E1',
