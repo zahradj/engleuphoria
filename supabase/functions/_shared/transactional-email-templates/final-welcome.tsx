@@ -18,13 +18,17 @@ const DASHBOARD_URL = 'https://engleuphoria.lovable.app/teacher-dashboard'
 
 interface FinalWelcomeProps {
   name?: string
+  setPasswordUrl?: string
 }
 
-function FinalWelcomeEmail({ name }: FinalWelcomeProps) {
+function FinalWelcomeEmail({ name, setPasswordUrl }: FinalWelcomeProps) {
+  const ctaUrl = setPasswordUrl || DASHBOARD_URL
+  const ctaLabel = setPasswordUrl ? 'Set Up My Account' : 'Go to Dashboard'
+
   return (
     <Html lang="en">
       <Head />
-      <Preview>Welcome to the Team - EnglEuphoria</Preview>
+      <Preview>Welcome to the Teaching Team - EnglEuphoria</Preview>
       <Body style={{ margin: '0', padding: '0', background: '#f4f5f7', fontFamily: "'Inter','Segoe UI',Arial,sans-serif" }}>
         <Container style={{ maxWidth: '600px', margin: '0 auto', background: '#ffffff', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
           {/* Navy Header */}
@@ -35,17 +39,20 @@ function FinalWelcomeEmail({ name }: FinalWelcomeProps) {
           <Section style={{ padding: '32px' }}>
             <Text style={{ fontSize: '16px', fontWeight: '600', color: '#0047AB', margin: '0 0 20px' }}>Dear {name || 'Teacher'},</Text>
             <Text style={{ fontSize: '15px', color: '#37474F', lineHeight: '1.7', margin: '0 0 16px' }}>
-              Congratulations! You have successfully completed the teacher application process. We are thrilled to have you as part of the <strong>EnglEuphoria</strong> teaching team.
+              Congratulations! You have been officially approved to join the <strong>EnglEuphoria</strong> teaching team. We are thrilled to welcome you aboard.
             </Text>
             <Text style={{ fontSize: '15px', color: '#37474F', lineHeight: '1.7', margin: '0 0 24px' }}>
-              Your profile is now live and you can now access your teacher dashboard.
+              Please use the button below to create your password and set up your professional teacher profile.
             </Text>
             {/* CTA Button */}
             <Section style={{ textAlign: 'center' as const, margin: '24px 0' }}>
-              <a href={DASHBOARD_URL} style={{ background: '#0047AB', color: '#ffffff', fontSize: '15px', fontWeight: '600', borderRadius: '8px', padding: '14px 32px', textDecoration: 'none', display: 'inline-block' }}>
-                Go to Dashboard
+              <a href={ctaUrl} style={{ background: '#0047AB', color: '#ffffff', fontSize: '15px', fontWeight: '600', borderRadius: '8px', padding: '14px 32px', textDecoration: 'none', display: 'inline-block' }}>
+                {ctaLabel}
               </a>
             </Section>
+            <Text style={{ fontSize: '13px', color: '#9CA3AF', lineHeight: '1.6', margin: '16px 0 0', textAlign: 'center' as const }}>
+              If you did not expect this email, you can safely ignore it.
+            </Text>
             <Text style={{ fontSize: '15px', color: '#37474F', lineHeight: '1.7', margin: '24px 0 4px' }}>Warm regards,</Text>
             <Text style={{ fontSize: '14px', color: '#0047AB', fontWeight: '600', margin: '0' }}>The EnglEuphoria Academic Committee</Text>
           </Section>
@@ -62,7 +69,7 @@ function FinalWelcomeEmail({ name }: FinalWelcomeProps) {
 
 export const template: TemplateEntry = {
   component: FinalWelcomeEmail,
-  subject: 'Welcome to the Team - EnglEuphoria',
+  subject: 'Welcome to the EnglEuphoria Teaching Team!',
   displayName: 'Final welcome (teacher approved)',
-  previewData: { name: 'Sarah' },
+  previewData: { name: 'Sarah', setPasswordUrl: 'https://engleuphoria.lovable.app/set-password' },
 }
