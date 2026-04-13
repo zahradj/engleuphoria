@@ -49,4 +49,6 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'unit-mastery-report': unitMasteryReport,
   'profile-approved': profileApproved,
   'unit-completed': unitCompleted,
+  'teacher-welcome-approved': teacherWelcomeApproved,
+  'interview-invitation-branded': interviewInvitationBranded,
 }
