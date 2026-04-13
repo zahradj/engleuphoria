@@ -285,16 +285,20 @@ The EnglEuphoria Hiring Team`,
 
       if (error) throw error;
 
-      // Send rejection email
+      // Send rejection email — use post-interview template if they were already at interview stage
+      const wasInterviewed = ['interview_scheduled', 'interview_completed'].includes(selectedApplication.current_stage);
+      const templateName = wasInterviewed ? 'post-interview-rejection' : 'application-rejected';
+      const idempotencyKey = wasInterviewed
+        ? `post-interview-rejection-${selectedApplication.id}`
+        : `application-rejected-${selectedApplication.id}`;
       try {
         await supabase.functions.invoke('send-transactional-email', {
           body: {
-            templateName: 'application-rejected',
+            templateName,
             recipientEmail: selectedApplication.email,
-            idempotencyKey: `application-rejected-${selectedApplication.id}`,
+            idempotencyKey,
             templateData: {
               name: selectedApplication.first_name || getDisplayName(selectedApplication)?.split(' ')[0],
-              reason: rejectionReason || undefined,
             },
           },
         });
