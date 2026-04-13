@@ -192,15 +192,35 @@ export const TeacherApplicationsManagement = () => {
       const scheduledAt = new Date(selectedDate);
       scheduledAt.setHours(hours, minutes);
 
+      // Step 1: Create a demo classroom session first
+      const classroomRoomId = `demo-${application.id}-${Date.now()}`;
+      const { error: classroomError } = await supabase
+        .from('classroom_sessions')
+        .insert({
+          room_id: classroomRoomId,
+          teacher_id: '00000000-0000-0000-0000-000000000000',
+          session_status: 'waiting',
+          lesson_title: 'Demo Lesson — Teacher Interview',
+          session_context: { type: 'demo_interview', application_id: application.id },
+        });
+
+      if (classroomError) {
+        console.error('Classroom creation error:', classroomError);
+      }
+
+      // Step 2: Build the classroom link
+      const classroomLink = `${window.location.origin}/classroom/${classroomRoomId}`;
+
+      // Step 3: Create the interview record with the classroom link
       const { error: interviewError } = await supabase
         .from('teacher_interviews')
         .insert([{
           application_id: application.id,
           scheduled_at: scheduledAt.toISOString(),
-          duration: 20,
-          interview_type: 'video_call',
+          duration: 25,
+          interview_type: 'demo_lesson',
           status: 'scheduled',
-          zoom_link: `${window.location.origin}/interview-room/${application.id}`
+          zoom_link: classroomLink
         }]);
 
       if (interviewError) throw interviewError;

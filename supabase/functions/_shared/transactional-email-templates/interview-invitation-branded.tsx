@@ -10,10 +10,12 @@ import {
   Preview,
   Section,
   Text,
+  Hr,
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
 const LOGO_WHITE_URL = 'https://dcoxpyzoqjvmuuygvlme.supabase.co/storage/v1/object/public/email-assets/logo-white.png'
+const LOGO_DARK_URL = 'https://dcoxpyzoqjvmuuygvlme.supabase.co/storage/v1/object/public/email-assets/logo-black.png'
 const SITE_URL = 'https://engleuphoria.lovable.app'
 
 interface InterviewInvitationBrandedProps {
@@ -31,12 +33,12 @@ function InterviewInvitationBranded({
   meetingLink,
   applicationId = '',
 }: InterviewInvitationBrandedProps) {
-  const interviewLink = meetingLink || `${SITE_URL}/interview-room/${applicationId}`
+  const classroomLink = meetingLink || `${SITE_URL}/classroom/demo-${applicationId}`
 
   return (
     <Html lang="en">
       <Head />
-      <Preview>Invitation to Interview & Demo Lesson - EnglEuphoria</Preview>
+      <Preview>Your Interview & Demo Lesson — EnglEuphoria</Preview>
       <Body style={{ margin: '0', padding: '0', background: '#f4f5f7', fontFamily: "'Inter','Segoe UI',Arial,sans-serif" }}>
         <Container style={{ maxWidth: '600px', margin: '0 auto', background: '#ffffff', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
           {/* Navy Header */}
@@ -47,24 +49,39 @@ function InterviewInvitationBranded({
           <Section style={{ padding: '32px' }}>
             <Text style={{ fontSize: '16px', fontWeight: '600', color: '#0047AB', margin: '0 0 20px' }}>Dear {candidateName},</Text>
             <Text style={{ fontSize: '15px', color: '#37474F', lineHeight: '1.7', margin: '0 0 16px' }}>
-              Congratulations on passing the initial review phase. We would like to invite you to an interview and a short demo lesson.
+              Congratulations on moving to the next phase! We are pleased to invite you to an interview followed by a 15-minute demo lesson.
             </Text>
             <Text style={{ fontSize: '15px', color: '#37474F', lineHeight: '1.7', margin: '0 0 24px' }}>
-              Please use the link below to join our internal interview room at your scheduled time.
+              You will be teaching from our standard lesson slides, which are already loaded in the classroom. The session will include:
             </Text>
+
+            {/* Session Breakdown */}
+            <Section style={{ background: '#EBF5FF', borderRadius: '10px', padding: '16px 24px', margin: '0 0 24px', borderLeft: '4px solid #0047AB' }}>
+              <Text style={{ fontSize: '14px', color: '#0047AB', fontWeight: '700', margin: '0 0 8px' }}>Session Format</Text>
+              <Text style={{ fontSize: '14px', color: '#455A64', lineHeight: '1.8', margin: '0 0 4px' }}>• <strong>Stage 1:</strong> 10-minute face-to-face interview</Text>
+              <Text style={{ fontSize: '14px', color: '#455A64', lineHeight: '1.8', margin: '0' }}>• <strong>Stage 2:</strong> 15-minute demo lesson using our classroom tools</Text>
+            </Section>
+
             {/* Details Card */}
             <Section style={{ background: '#F5F5F5', borderRadius: '10px', padding: '20px 24px', margin: '0 0 24px', border: '1px solid #E0E0E0' }}>
               <Text style={{ fontSize: '14px', color: '#455A64', lineHeight: '1.6', margin: '0 0 6px' }}><strong>Date:</strong> {interviewDate}</Text>
               <Text style={{ fontSize: '14px', color: '#455A64', lineHeight: '1.6', margin: '0 0 6px' }}><strong>Time:</strong> {interviewTime}</Text>
-              <Text style={{ fontSize: '14px', color: '#455A64', lineHeight: '1.6', margin: '0' }}><strong>Duration:</strong> 30 minutes</Text>
+              <Text style={{ fontSize: '14px', color: '#455A64', lineHeight: '1.6', margin: '0' }}><strong>Duration:</strong> ~25 minutes</Text>
             </Section>
-            {/* Join Button */}
+
+            {/* Enter Classroom Button */}
             <Section style={{ textAlign: 'center' as const, margin: '24px 0' }}>
-              <a href={interviewLink} style={{ background: '#0047AB', color: '#ffffff', fontSize: '15px', fontWeight: '600', borderRadius: '8px', padding: '14px 32px', textDecoration: 'none', display: 'inline-block' }}>
-                Join Interview Room
+              <a href={classroomLink} style={{ background: '#0047AB', color: '#ffffff', fontSize: '15px', fontWeight: '600', borderRadius: '8px', padding: '14px 32px', textDecoration: 'none', display: 'inline-block' }}>
+                Enter Demo Classroom
               </a>
             </Section>
-            <Text style={{ fontSize: '15px', color: '#37474F', lineHeight: '1.7', margin: '24px 0 4px' }}>Warm regards,</Text>
+
+            <Text style={{ fontSize: '13px', color: '#78909C', lineHeight: '1.6', margin: '0 0 24px', textAlign: 'center' as const }}>
+              The classroom includes a whiteboard, lesson slides, and video — everything you need for the demo.
+            </Text>
+
+            <Text style={{ fontSize: '15px', color: '#37474F', lineHeight: '1.7', margin: '24px 0 4px' }}>We look forward to seeing you teach!</Text>
+            <Text style={{ fontSize: '15px', color: '#37474F', lineHeight: '1.7', margin: '0 0 4px' }}>Warm regards,</Text>
             <Text style={{ fontSize: '14px', color: '#0047AB', fontWeight: '600', margin: '0' }}>The EnglEuphoria Academic Committee</Text>
           </Section>
           {/* Dark Footer */}
@@ -80,12 +97,13 @@ function InterviewInvitationBranded({
 
 export const template: TemplateEntry = {
   component: InterviewInvitationBranded,
-  subject: 'Invitation to Interview & Demo Lesson - EnglEuphoria',
-  displayName: 'Interview Invitation (Branded)',
+  subject: 'Your Interview & Demo Lesson — EnglEuphoria',
+  displayName: 'Interview & Demo Lesson Invitation (Branded)',
   previewData: {
     candidateName: 'Jane Doe',
     interviewDate: 'Monday, January 15, 2026',
     interviewTime: '14:00',
+    meetingLink: 'https://engleuphoria.lovable.app/classroom/demo-123',
     applicationId: '123',
   },
 }

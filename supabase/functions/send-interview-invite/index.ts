@@ -88,7 +88,7 @@ Deno.serve(async (req) => {
     const candidateName = `${app.first_name || ''} ${app.last_name || ''}`.trim() || 'Candidate'
 
     // Always construct a concrete meeting link — never undefined
-    const meetingLink = interview.zoom_link || interview.meeting_link || `${SITE_URL}/interview-room/${interview.application_id || interview.id}`
+    const meetingLink = interview.zoom_link || interview.meeting_link || `${SITE_URL}/classroom/demo-${interview.application_id || interview.id}`
 
     if (!meetingLink || !meetingLink.startsWith('http')) {
       return new Response(JSON.stringify({ error: 'Could not generate a valid interview link. Email not sent.' }), {
