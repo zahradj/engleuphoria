@@ -5,8 +5,6 @@ import {
   Body,
   Container,
   Head,
-  Heading,
-  Hr,
   Html,
   Img,
   Preview,
@@ -15,71 +13,59 @@ import {
 } from 'npm:@react-email/components@0.0.22'
 import type { TemplateEntry } from './registry.ts'
 
-const LOGO_URL = 'https://dcoxpyzoqjvmuuygvlme.supabase.co/storage/v1/object/public/email-assets/logo-black.png'
-const SITE_NAME = 'EnglEuphoria'
+const LOGO_WHITE_URL = 'https://dcoxpyzoqjvmuuygvlme.supabase.co/storage/v1/object/public/email-assets/logo-white.png'
 
 interface ApplicationRejectedProps {
   name?: string
   reason?: string
 }
 
-const ApplicationRejectedEmail = ({ name, reason }: ApplicationRejectedProps) => (
-  <Html lang="en" dir="ltr">
-    <Head />
-    <Preview>Update on your {SITE_NAME} application</Preview>
-    <Body style={main}>
-      <Container style={container}>
-        <Section style={headerBar} />
-        <Section style={logoSection}>
-          <Img src={LOGO_URL} width="180" height="50" alt={SITE_NAME} style={logo} />
-        </Section>
-        <Section style={heroSection}>
-          <Heading style={h1}>Application Update</Heading>
-          <Text style={text}>
-            {name ? `Dear ${name},` : 'Dear Applicant,'}
-          </Text>
-          <Text style={text}>
-            Thank you for your interest in joining {SITE_NAME}. After careful review, we are unable to move forward with your application at this time.
-          </Text>
-          {reason && (
-            <Section style={detailsBox}>
-              <Text style={detailLine}><strong>Feedback:</strong> {reason}</Text>
-            </Section>
-          )}
-          <Text style={text}>
-            We encourage you to continue developing your teaching skills and welcome you to reapply in the future.
-          </Text>
-          <Text style={textMuted}>
-            If you have any questions, please don't hesitate to reach out to our support team.
-          </Text>
-        </Section>
-        <Hr style={hr} />
-        <Section style={darkFooter}>
-          <Text style={footerText}>© 2026 {SITE_NAME}. The Future of Learning.</Text>
-        </Section>
-      </Container>
-    </Body>
-  </Html>
-)
+function ApplicationRejectedEmail({ name, reason }: ApplicationRejectedProps) {
+  return (
+    <Html lang="en">
+      <Head />
+      <Preview>Update regarding your application - EnglEuphoria</Preview>
+      <Body style={{ margin: '0', padding: '0', background: '#f4f5f7', fontFamily: "'Inter','Segoe UI',Arial,sans-serif" }}>
+        <Container style={{ maxWidth: '600px', margin: '0 auto', background: '#ffffff', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }}>
+          {/* Navy Header */}
+          <Section style={{ background: '#0047AB', padding: '28px 32px', textAlign: 'center' as const }}>
+            <Img src={LOGO_WHITE_URL} width="160" height="44" alt="EnglEuphoria" style={{ margin: '0 auto', display: 'block' }} />
+          </Section>
+          {/* Content */}
+          <Section style={{ padding: '32px' }}>
+            <Text style={{ fontSize: '16px', fontWeight: '600', color: '#0047AB', margin: '0 0 20px' }}>Dear {name || 'Applicant'},</Text>
+            <Text style={{ fontSize: '15px', color: '#37474F', lineHeight: '1.7', margin: '0 0 16px' }}>
+              Thank you for your interest in joining <strong>EnglEuphoria</strong>. After careful review, we have decided not to move forward with your application at this time.
+            </Text>
+            {reason && (
+              <Section style={{ background: '#FEF2F2', borderRadius: '10px', padding: '16px 20px', margin: '16px 0', border: '1px solid #FECACA' }}>
+                <Text style={{ fontSize: '14px', color: '#991B1B', lineHeight: '1.6', margin: '0' }}><strong>Feedback:</strong> {reason}</Text>
+              </Section>
+            )}
+            <Text style={{ fontSize: '15px', color: '#37474F', lineHeight: '1.7', margin: '0 0 16px' }}>
+              We encourage you to continue developing your teaching skills and welcome you to reapply in the future. We wish you the best in your professional endeavors.
+            </Text>
+            <Text style={{ fontSize: '13px', color: '#78909C', lineHeight: '1.5', margin: '0 0 16px' }}>
+              If you have any questions, please don't hesitate to reach out to our support team.
+            </Text>
+            <Text style={{ fontSize: '15px', color: '#37474F', lineHeight: '1.7', margin: '24px 0 4px' }}>Warm regards,</Text>
+            <Text style={{ fontSize: '14px', color: '#0047AB', fontWeight: '600', margin: '0 0 4px' }}>The EnglEuphoria Academic Committee</Text>
+            <Text style={{ fontSize: '12px', color: '#78909C', fontStyle: 'italic', margin: '0' }}>Precision in Phonics. Excellence in Education.</Text>
+          </Section>
+          {/* Dark Footer */}
+          <Section style={{ background: '#0D1642', padding: '24px 32px', textAlign: 'center' as const }}>
+            <Img src={LOGO_WHITE_URL} width="100" height="28" alt="EnglEuphoria" style={{ margin: '0 auto 12px', display: 'block' }} />
+            <Text style={{ fontSize: '12px', color: '#9CA3AF', margin: '0 0 8px' }}>© 2026 EnglEuphoria. The Future of Learning.</Text>
+          </Section>
+        </Container>
+      </Body>
+    </Html>
+  )
+}
 
-export const template = {
+export const template: TemplateEntry = {
   component: ApplicationRejectedEmail,
-  subject: 'Update on your EnglEuphoria application',
+  subject: 'Update regarding your application - EnglEuphoria',
   displayName: 'Application rejected',
   previewData: { name: 'Sarah', reason: 'We are looking for candidates with more experience at this time.' },
-} satisfies TemplateEntry
-
-const main = { backgroundColor: '#ffffff', fontFamily: "'Inter', 'Segoe UI', Arial, sans-serif" }
-const container = { padding: '0', maxWidth: '600px', margin: '0 auto' }
-const headerBar = { backgroundColor: '#4f46e5', height: '4px' }
-const logoSection = { padding: '30px 25px 10px', textAlign: 'center' as const }
-const logo = { margin: '0 auto' }
-const heroSection = { padding: '10px 25px 20px' }
-const h1 = { fontSize: '24px', fontWeight: '700' as const, color: '#4f46e5', margin: '0 0 16px', lineHeight: '1.3' }
-const text = { fontSize: '15px', color: '#1f2937', lineHeight: '1.6', margin: '0 0 20px' }
-const textMuted = { fontSize: '13px', color: '#6b7280', lineHeight: '1.5', margin: '0 0 20px' }
-const detailsBox = { backgroundColor: '#fef2f2', borderRadius: '8px', padding: '16px 20px', margin: '0 0 20px', border: '1px solid #fecaca' }
-const detailLine = { fontSize: '14px', color: '#374151', margin: '0', lineHeight: '1.5' }
-const hr = { borderColor: '#e5e7eb', margin: '20px 25px' }
-const darkFooter = { backgroundColor: '#111827', padding: '20px 25px', textAlign: 'center' as const, borderRadius: '0 0 8px 8px' }
-const footerText = { fontSize: '12px', color: '#9ca3af', margin: '0', fontWeight: '500' as const }
+}
