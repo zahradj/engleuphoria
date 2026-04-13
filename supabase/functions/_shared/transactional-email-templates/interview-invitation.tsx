@@ -40,7 +40,7 @@ const InterviewInvitationEmail = ({
   candidateTimezone,
 }: InterviewInvitationProps) => {
   const isReminder = !!reminderType
-  const interviewLink = meetingLink || (applicationId ? `${SITE_URL}/interview-room/${applicationId}` : '')
+  const interviewLink = meetingLink || (applicationId ? `${SITE_URL}/classroom/demo-${applicationId}` : '')
 
   return (
     <Html lang="en" dir="ltr">
@@ -101,7 +101,7 @@ const InterviewInvitationEmail = ({
                 </Text>
               )}
               <Text style={detailRow}>
-                <strong>Duration:</strong> 30 minutes
+                <strong>Duration:</strong> ~25 minutes (Interview + Demo Lesson)
               </Text>
             </Section>
 
@@ -109,7 +109,7 @@ const InterviewInvitationEmail = ({
             {interviewLink && (
               <Section style={buttonContainer}>
                 <a href={interviewLink} style={joinButton}>
-                  Join Interview Room
+                  Enter Demo Classroom
                 </a>
               </Section>
             )}
@@ -153,7 +153,7 @@ export const template = {
     name: 'Sarah Johnson',
     interviewDate: 'Monday, April 14, 2026',
     interviewTime: '14:00',
-    meetingLink: 'https://engleuphoria.lovable.app/interview-room/abc-123',
+    meetingLink: 'https://engleuphoria.lovable.app/classroom/demo-abc-123',
     confirmUrl: 'https://engleuphoria.lovable.app/confirm-interview?token=abc123',
     candidateTimezone: 'CET',
   },

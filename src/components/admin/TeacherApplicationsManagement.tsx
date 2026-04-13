@@ -198,7 +198,7 @@ export const TeacherApplicationsManagement = () => {
         .from('classroom_sessions')
         .insert({
           room_id: classroomRoomId,
-          teacher_id: application.user_id || '00000000-0000-0000-0000-000000000000',
+          teacher_id: '00000000-0000-0000-0000-000000000000',
           session_status: 'waiting',
           lesson_title: 'Demo Lesson — Teacher Interview',
           session_context: { type: 'demo_interview', application_id: application.id },
