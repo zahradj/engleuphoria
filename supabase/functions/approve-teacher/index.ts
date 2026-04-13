@@ -29,10 +29,8 @@ Deno.serve(async (req) => {
     const callerClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
-    const { data: claimsData, error: claimsError } = await callerClient.auth.getClaims(
-      authHeader.replace("Bearer ", "")
-    );
-    if (claimsError || !claimsData?.claims?.sub) {
+    const { data: { user: callerUser }, error: userError } = await callerClient.auth.getUser();
+    if (userError || !callerUser) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -44,7 +42,7 @@ Deno.serve(async (req) => {
     const { data: roleData } = await adminClient
       .from("user_roles")
       .select("role")
-      .eq("user_id", claimsData.claims.sub)
+      .eq("user_id", callerUser.id)
       .eq("role", "admin")
       .maybeSingle();
 
@@ -174,7 +172,7 @@ Deno.serve(async (req) => {
     // Send branded welcome email via the Lovable transactional email queue
     const { error: emailError } = await adminClient.functions.invoke('send-transactional-email', {
       body: {
-        templateName: 'teacher-welcome-approved',
+        templateName: 'final-welcome',
         recipientEmail: email,
         idempotencyKey: `teacher-welcome-${applicationId}-${Date.now()}`,
         templateData: {
