@@ -236,6 +236,26 @@ export const HiringKanbanBoard: React.FC = () => {
       const ageGroup = selectedApp.preferred_age_groups?.[0] || 'adults';
       const hubType = ageGroup === 'kids' ? 'Playground' : ageGroup === 'teens' ? 'Academy' : 'Professional';
 
+      // Step 1: Create a demo classroom session first
+      const classroomRoomId = `demo-${selectedApp.id}-${Date.now()}`;
+      const { error: classroomError } = await supabase
+        .from('classroom_sessions')
+        .insert({
+          room_id: classroomRoomId,
+          teacher_id: adminId,
+          session_status: 'waiting',
+          lesson_title: 'Demo Lesson — Teacher Interview',
+          session_context: { type: 'demo_interview', application_id: selectedApp.id, hub_type: hubType },
+        });
+
+      if (classroomError) {
+        console.error('Classroom creation error:', classroomError);
+      }
+
+      // Step 2: Build the classroom link
+      const classroomLink = `${window.location.origin}/classroom/${classroomRoomId}`;
+
+      // Step 3: Create interview record with the classroom link
       const { data: interviewData, error: interviewError } = await supabase
         .from('interviews')
         .insert({
@@ -251,22 +271,23 @@ export const HiringKanbanBoard: React.FC = () => {
 
       if (interviewError) throw interviewError;
 
-      const interviewUrl = `${window.location.origin}/interview/${interviewData.room_token}`;
-      const meetingLink = emailTemplate.useInternalRoom ? interviewUrl : emailTemplate.meetingLink;
-
+      // Step 4: Update application stage
       await supabase
         .from('teacher_applications')
         .update({ current_stage: 'interview_scheduled', status: 'under_review' })
         .eq('id', selectedApp.id);
 
+      // Step 5: Send the email with the classroom link (not interview room)
+      const meetingLink = emailTemplate.useInternalRoom ? classroomLink : emailTemplate.meetingLink;
+
       try {
         await supabase.functions.invoke('send-transactional-email', {
           body: {
-            templateName: 'interview-invitation',
+            templateName: 'interview-invitation-branded',
             recipientEmail: selectedApp.email,
-            idempotencyKey: `interview-invite-${selectedApp.id}`,
+            idempotencyKey: `interview-invite-${selectedApp.id}-${Date.now()}`,
             templateData: {
-              name: selectedApp.first_name || getDisplayName(selectedApp).split(' ')[0],
+              candidateName: selectedApp.first_name || getDisplayName(selectedApp).split(' ')[0],
               meetingLink,
               applicationId: selectedApp.id,
             },
