@@ -27,6 +27,8 @@ import { template as lessonReminder } from './lesson-reminder.tsx'
 import { template as unitMasteryReport } from './unit-mastery-report.tsx'
 import { template as profileApproved } from './profile-approved.tsx'
 import { template as unitCompleted } from './unit-completed.tsx'
+import { template as teacherWelcomeApproved } from './teacher-welcome-approved.tsx'
+import { template as interviewInvitationBranded } from './interview-invitation-branded.tsx'
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'booking-confirmation': bookingConfirmation,
@@ -47,4 +49,6 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'unit-mastery-report': unitMasteryReport,
   'profile-approved': profileApproved,
   'unit-completed': unitCompleted,
+  'teacher-welcome-approved': teacherWelcomeApproved,
+  'interview-invitation-branded': interviewInvitationBranded,
 }
