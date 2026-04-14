@@ -38,6 +38,7 @@ export const AdminSidebar = ({ activeTab, onTabChange }: AdminSidebarProps) => {
     { id: "users", label: "User Manager", icon: Users },
     { id: "schedule", label: "Schedule", icon: Calendar },
     { id: "teachers", label: "Teachers", icon: GraduationCap },
+    { id: "profile-review", label: "Profile Review", icon: FileText },
     { id: "teacher-applications", label: "Applications", icon: FileText },
     { id: "interviews", label: "Interviews", icon: Video },
     { id: "students", label: "Students", icon: Users },
