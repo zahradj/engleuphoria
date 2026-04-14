@@ -44,7 +44,7 @@ export const ScheduleTab = ({ onScheduleClass, onStartScheduledClass }: Schedule
         // Fetch upcoming booked lessons
         const { data: lessons, error: lessonsError } = await supabase
           .from('teacher_availability')
-          .select('id, start_time, duration, student_name')
+          .select('id, start_time, duration, lesson_title')
           .eq('teacher_id', teacherId)
           .eq('is_booked', true)
           .gte('start_time', now)
