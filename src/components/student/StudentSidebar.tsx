@@ -69,10 +69,8 @@ export const StudentSidebar: React.FC<StudentSidebarProps> = ({
   const { studentLevel } = useStudentLevel();
   
   // Determine hub key for coloring
-  const hubKey = studentLevel === 'kids' ? 'playground' 
-    : studentLevel === 'teens' ? 'academy' 
-    : 'professional';
-  const hubColors = HUB_ICON_COLORS[hubKey];
+  const hubKey = studentLevel || 'playground';
+  const hubColors = HUB_ICON_COLORS[hubKey] || HUB_ICON_COLORS.playground;
 
   const handleEnterClassroom = () => {
     const studentId = `student-${Date.now()}`;
