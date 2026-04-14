@@ -365,22 +365,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setError(error.message);
         toast.error(error.message);
       } else if (data.user) {
-        // Send welcome email after successful signup
-        try {
-          const userName = (sanitizedUserData as any).full_name || sanitizedEmail.split('@')[0];
-          await supabase.functions.invoke('send-welcome-email', {
-            body: {
-              email: sanitizedEmail,
-              name: userName,
-              role: sanitizedUserData.role || 'student'
-            }
-          });
-          console.log('Welcome email sent successfully');
-        } catch (emailError) {
-          console.warn('Failed to send welcome email:', emailError);
-          // Don't fail signup if email fails
-        }
-
         // Notify admins about new registration
         try {
           const userNameForNotify = (sanitizedUserData as any).full_name || sanitizedEmail.split('@')[0];
