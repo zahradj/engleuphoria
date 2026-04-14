@@ -24,8 +24,10 @@ import { WeeklyGoalWidget } from '../WeeklyGoalWidget';
 import { RecommendedTeachers } from '../RecommendedTeachers';
 import { BookMyClassModal } from '../BookMyClassModal';
 import { CreditDisplay } from '../CreditDisplay';
+import { JoinLessonHero } from '../JoinLessonHero';
 import { usePackageValidation } from '@/hooks/usePackageValidation';
 import { useAuth } from '@/contexts/AuthContext';
+import { cn } from '@/lib/utils';
 
 interface HubDashboardProps {
   studentName?: string;
@@ -35,9 +37,9 @@ interface HubDashboardProps {
 
 type NavItem = 'dashboard' | 'courses' | 'certificates' | 'settings';
 
-// Executive color constants
-const NAVY = '#1A2B3C';
-const GOLD = '#C9A96E';
+// Success Hub color constants — Green & Teal
+const PRIMARY = '#1B5E20';
+const ACCENT = '#009688';
 
 export const HubDashboard: React.FC<HubDashboardProps> = ({
   studentName = 'Sarah',
@@ -72,12 +74,12 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
     streak: 12,
   };
 
-  // Executive palette classes
-  const bgClass = isDarkMode ? 'bg-gray-900' : 'bg-[#F8F7F4]';
-  const textClass = isDarkMode ? 'text-gray-50' : 'text-[#1A2B3C]';
-  const mutedClass = isDarkMode ? 'text-gray-400' : 'text-gray-500';
-  const borderClass = isDarkMode ? 'border-gray-700' : 'border-[#E8E4DD]';
-  const cardClass = isDarkMode ? 'bg-[#1A2B3C]/80 border-[#2A3D50]' : 'bg-white border-[#E8E4DD] hover:border-[#C9A96E]/40 transition-colors';
+  // Success Hub palette classes
+  const bgClass = isDarkMode ? 'bg-[#0D1A0F]' : 'bg-[#F5FAF5]';
+  const textClass = isDarkMode ? 'text-emerald-50' : 'text-[#1B5E20]';
+  const mutedClass = isDarkMode ? 'text-emerald-400' : 'text-gray-500';
+  const borderClass = isDarkMode ? 'border-emerald-900/50' : 'border-emerald-200/50';
+  const cardClass = isDarkMode ? 'bg-emerald-950/50 border-emerald-800/30' : 'bg-white border-emerald-200/50 hover:border-teal-400/40 transition-colors';
 
   if (isLoading) return <HubSkeleton />;
 
@@ -91,12 +93,12 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
             <div className="flex items-center gap-3">
               <div
                 className="w-8 h-8 rounded-lg flex items-center justify-center"
-                style={{ backgroundColor: NAVY }}
+                style={{ backgroundColor: PRIMARY }}
               >
-                <BookOpen className="w-4 h-4" style={{ color: GOLD }} />
+                <BookOpen className="w-4 h-4" style={{ color: ACCENT }} />
               </div>
               <span className={`text-xl font-semibold tracking-tight ${textClass}`}>
-                Executive Learning Hub
+                Success Hub
               </span>
             </div>
 
@@ -115,7 +117,7 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
                         ? 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'
                         : 'text-gray-500 hover:bg-gray-50 hover:text-[#1A2B3C]'
                   }`}
-                  style={activeNav === item.id ? { borderBottom: `2px solid ${GOLD}` } : undefined}
+                  style={activeNav === item.id ? { borderBottom: `2px solid ${ACCENT}` } : undefined}
                 >
                   {item.icon}
                   <span className="font-medium">{item.label}</span>
@@ -150,6 +152,11 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 md:px-8 py-8">
+        {/* JOIN LESSON HERO — primary CTA */}
+        <div className="mb-6">
+          <JoinLessonHero hubId="professional" isDark={isDarkMode} />
+        </div>
+
         {/* LIVE Session Banner */}
         {liveStatus.isLive && liveStatus.classroomUrl && (
           <div className="mb-6">
@@ -176,10 +183,10 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
               className="w-10 h-10 rounded-lg flex items-center justify-center"
               style={{ backgroundColor: isDarkMode ? '#2A3D50' : '#E8DFD0' }}
             >
-              <TrendingUp className="w-5 h-5" style={{ color: GOLD }} />
+              <TrendingUp className="w-5 h-5" style={{ color: ACCENT }} />
             </div>
             <div>
-              <p className="text-xs font-medium uppercase tracking-wider" style={{ color: GOLD }}>
+              <p className="text-xs font-medium uppercase tracking-wider" style={{ color: ACCENT }}>
                 Next Career Milestone
               </p>
               <p className={`font-semibold ${textClass}`}>Master Business Presentations</p>
@@ -187,10 +194,10 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
           </div>
           <div className="flex items-center gap-3">
             <div className="text-right">
-              <p className="text-sm font-bold" style={{ color: GOLD }}>68%</p>
+              <p className="text-sm font-bold" style={{ color: ACCENT }}>68%</p>
             </div>
             <div className={`w-24 h-2 rounded-full overflow-hidden ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}>
-              <div className="h-full w-[68%] rounded-full" style={{ backgroundColor: GOLD }} />
+              <div className="h-full w-[68%] rounded-full" style={{ backgroundColor: ACCENT }} />
             </div>
           </div>
         </motion.div>
@@ -217,10 +224,10 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
           transition={{ delay: 0.1 }}
           className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8"
         >
-          <StatCard icon={<CheckCircle className="w-5 h-5" style={{ color: GOLD }} />} label="Completed" value={stats.coursesCompleted} suffix="courses" isDarkMode={isDarkMode} />
-          <StatCard icon={<BookOpen className="w-5 h-5" style={{ color: GOLD }} />} label="In Progress" value={stats.coursesInProgress} suffix="courses" isDarkMode={isDarkMode} />
-          <StatCard icon={<Clock className="w-5 h-5" style={{ color: GOLD }} />} label="Total Hours" value={stats.hoursLearned} suffix="hrs" isDarkMode={isDarkMode} />
-          <StatCard icon={<TrendingUp className="w-5 h-5" style={{ color: GOLD }} />} label="Streak" value={stats.streak} suffix="days" isDarkMode={isDarkMode} />
+          <StatCard icon={<CheckCircle className="w-5 h-5" style={{ color: ACCENT }} />} label="Completed" value={stats.coursesCompleted} suffix="courses" isDarkMode={isDarkMode} />
+          <StatCard icon={<BookOpen className="w-5 h-5" style={{ color: ACCENT }} />} label="In Progress" value={stats.coursesInProgress} suffix="courses" isDarkMode={isDarkMode} />
+          <StatCard icon={<Clock className="w-5 h-5" style={{ color: ACCENT }} />} label="Total Hours" value={stats.hoursLearned} suffix="hrs" isDarkMode={isDarkMode} />
+          <StatCard icon={<TrendingUp className="w-5 h-5" style={{ color: ACCENT }} />} label="Streak" value={stats.streak} suffix="days" isDarkMode={isDarkMode} />
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -273,7 +280,7 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
             <Card className={cardClass}>
               <CardHeader>
                 <CardTitle className={`text-lg flex items-center gap-2 tracking-tight ${textClass}`}>
-                  <FileText className="w-5 h-5" style={{ color: GOLD }} />
+                  <FileText className="w-5 h-5" style={{ color: ACCENT }} />
                   Resources
                 </CardTitle>
                 <CardDescription className={mutedClass}>Downloadable materials</CardDescription>
@@ -293,7 +300,7 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
             <button
               onClick={() => setBookingOpen(true)}
               className="w-full py-3 px-5 rounded-xl font-semibold text-sm transition-all hover:brightness-105 active:scale-95 text-white shadow-md uppercase tracking-wider"
-              style={{ background: `linear-gradient(135deg, ${NAVY}, #2A3D50)` }}
+              style={{ background: `linear-gradient(135deg, ${PRIMARY}, #2A3D50)` }}
             >
               📅 Schedule Executive Briefing
             </button>
@@ -302,7 +309,7 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
             <Card className={cardClass}>
               <CardHeader>
                 <CardTitle className={`text-lg flex items-center gap-2 tracking-tight ${textClass}`}>
-                  <Calendar className="w-5 h-5" style={{ color: GOLD }} />
+                  <Calendar className="w-5 h-5" style={{ color: ACCENT }} />
                   Next Session
                 </CardTitle>
               </CardHeader>
@@ -316,7 +323,7 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
                   <p className={`text-sm mt-1 ${mutedClass}`}>Tomorrow at 6:00 PM</p>
                   <Button
                     className="mt-3 w-full text-white"
-                    style={{ backgroundColor: NAVY }}
+                    style={{ backgroundColor: PRIMARY }}
                   >
                     Join Executive Briefing
                   </Button>
