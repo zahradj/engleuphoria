@@ -61,6 +61,29 @@ const BookLesson = () => {
     try {
       setIsBooking(true);
 
+      // Check trial eligibility first
+      const { bookingValidationService } = await import('@/services/bookingValidationService');
+      const isTrialEligible = await bookingValidationService.isEligibleForTrial(user.id);
+
+      if (isTrialEligible) {
+        // Free trial booking — no package needed
+        await lessonService.createTrialLesson({
+          title: `Trial Lesson with ${slot.teacherName}`,
+          teacher_id: slot.teacherId,
+          student_id: user.id,
+          scheduled_at: slot.startTime.toISOString(),
+          duration: Number(slot.duration),
+        }, slot.id);
+
+        toast({
+          title: "🎉 Free Trial Lesson Booked!",
+          description: `Your free trial with ${slot.teacherName} is scheduled for ${slot.startTime.toLocaleString()}.`
+        });
+
+        await loadAvailableSlots();
+        return;
+      }
+
       // Get user's packages using the hook (need to fetch fresh data)
       const { lessonPricingService } = await import('@/services/lessonPricingService');
       const packages = await lessonPricingService.getStudentPackages(user.id);
