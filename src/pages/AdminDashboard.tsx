@@ -95,7 +95,6 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Scroll Header with Logo */}
       <ScrollHeader />
       {/* Mobile Sidebar Overlay */}
       {isMobileSidebarOpen && (

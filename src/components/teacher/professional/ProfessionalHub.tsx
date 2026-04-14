@@ -40,10 +40,10 @@ export const ProfessionalHub: React.FC<ProfessionalHubProps> = ({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F9FAFB] flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-7 h-7 animate-spin text-[#1A237E] mx-auto mb-3" />
-          <p className="text-sm text-[#9E9E9E]">Loading your hub...</p>
+          <Loader2 className="w-7 h-7 animate-spin text-primary mx-auto mb-3" />
+          <p className="text-sm text-muted-foreground">Loading your hub...</p>
         </div>
       </div>
     );
@@ -66,10 +66,10 @@ export const ProfessionalHub: React.FC<ProfessionalHubProps> = ({
           return (
             <div className="space-y-8">
               <div>
-                <h1 className="text-2xl font-semibold text-[#1A237E] font-inter tracking-tight">
+                <h1 className="text-2xl font-semibold text-foreground tracking-tight">
                   Reports
                 </h1>
-                <p className="text-sm text-[#9E9E9E] mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   Generate and send diagnostic reports to parents
                 </p>
               </div>
@@ -89,10 +89,10 @@ export const ProfessionalHub: React.FC<ProfessionalHubProps> = ({
           return (
             <div className="space-y-4">
               <div>
-                <h1 className="text-2xl font-semibold text-[#1A237E] font-inter tracking-tight">
+                <h1 className="text-2xl font-semibold text-foreground tracking-tight">
                   II Wizard — Lesson Architect
                 </h1>
-                <p className="text-sm text-[#9E9E9E] mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   One-click lesson generation for your next scheduled unit
                 </p>
               </div>
@@ -110,7 +110,7 @@ export const ProfessionalHub: React.FC<ProfessionalHubProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB]">
+    <div className="min-h-screen bg-background">
       <ScrollHeader />
 
       <ProfessionalNav
@@ -121,7 +121,6 @@ export const ProfessionalHub: React.FC<ProfessionalHubProps> = ({
         onLogout={handleLogout}
       />
 
-      {/* Onboarding modal */}
       {status === 'NEW' && (
         <ProfileOnboardingModal
           teacherId={teacherId}
@@ -130,7 +129,6 @@ export const ProfessionalHub: React.FC<ProfessionalHubProps> = ({
         />
       )}
 
-      {/* Welcome modal */}
       {status === 'APPROVED' && profile && !(profile as any).welcome_shown && (
         <WelcomeSuccessModal
           teacherId={teacherId}
@@ -141,7 +139,6 @@ export const ProfessionalHub: React.FC<ProfessionalHubProps> = ({
         />
       )}
 
-      {/* Main content */}
       <main className="container mx-auto max-w-7xl px-4 py-6">
         {renderContent()}
       </main>
