@@ -240,7 +240,7 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
 
           toast({
             title: "Account Created! 📧",
-            description: "Please check your inbox for a confirmation email and click the link to activate your account before logging in.",
+            description: "We sent one welcome email with your confirmation link. Please open it and activate your account before logging in.",
             duration: 8000,
           });
 

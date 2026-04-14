@@ -190,8 +190,9 @@ export const ThemedSignupForm: React.FC = () => {
         toast({ title: "Sign Up Failed", description: error.message || "Failed to create account.", variant: "destructive" });
       } else {
         toast({
-          title: "Account Created!",
-          description: `Welcome to ${config?.displayName || 'EnglEuphoria'}!`,
+          title: "Account Created! 📧",
+          description: "We sent one welcome email with your confirmation link. Please open it and activate your account before logging in.",
+          duration: 8000,
         });
 
         // Notify admin
