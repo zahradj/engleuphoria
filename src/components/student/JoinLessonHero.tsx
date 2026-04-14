@@ -121,7 +121,7 @@ export const JoinLessonHero: React.FC<JoinLessonHeroProps> = ({ hubId, isDark = 
         isStartingSoon && 'ring-2 ring-offset-2',
       )}
       style={{
-        ringColor: isDark ? theme.darkPrimary : theme.primary,
+        ['--tw-ring-color' as any]: isDark ? theme.darkPrimary : theme.primary,
       }}
     >
       <div className={cn(
