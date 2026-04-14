@@ -239,8 +239,9 @@ export const SimpleAuthForm: React.FC<SimpleAuthFormProps> = ({ mode, onModeChan
           }
 
           toast({
-            title: "Account Created!",
-            description: systemTag ? `You've been assigned to the ${systemTag} program.` : "Please check your email to verify."
+            title: "Account Created! 📧",
+            description: "Please check your inbox for a confirmation email and click the link to activate your account before logging in.",
+            duration: 8000,
           });
 
           supabase.functions.invoke('notify-admin-new-registration', {
