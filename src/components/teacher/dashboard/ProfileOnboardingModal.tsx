@@ -202,8 +202,11 @@ export const ProfileOnboardingModal: React.FC<ProfileOnboardingModalProps> = ({
     if (msg.includes('duplicate key') || error.code === '23505') {
       return 'Profile already exists. Attempting to update instead...';
     }
-    if (msg.includes('value too long') || msg.includes('check constraint')) {
+    if (msg.includes('value too long')) {
       return 'One of your fields exceeds the allowed length. Please shorten your bio or other text fields.';
+    }
+    if (msg.includes('check constraint')) {
+      return 'A database constraint was violated. The admin notification system may need updating. Please contact support or try again.';
     }
     
     return `Save failed: ${msg}`;
