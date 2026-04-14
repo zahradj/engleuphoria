@@ -353,7 +353,7 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
             )}
           </motion.div>
         </div>
-      </main>
+      </div>
 
       <BookMyClassModal isOpen={bookingOpen} onClose={() => setBookingOpen(false)} studentLevel="academy" />
     </div>

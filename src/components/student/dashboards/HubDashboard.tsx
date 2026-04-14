@@ -85,13 +85,16 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
   if (isLoading) return <HubSkeleton />;
 
   return (
-    <div className={`min-h-screen transition-colors ${bgClass}`}>
-      {/* Top Navigation */}
-      <header className={`border-b sticky top-0 z-50 ${borderClass} ${bgClass}`}>
-        <div className="max-w-7xl mx-auto px-4 md:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <HubLogo hubId="professional" size="sm" />
+    <div className="relative space-y-6">
+      {/* Top Navigation Bar */}
+      <header className={cn(
+        'flex items-center justify-between px-5 py-3 rounded-xl border',
+        isDarkMode
+          ? 'bg-emerald-950/60 backdrop-blur-xl border-emerald-700/30'
+          : 'bg-white/80 backdrop-blur-xl border-emerald-200/50 shadow-sm'
+      )}>
+        {/* Logo */}
+        <HubLogo hubId="professional" size="md" />
 
             {/* Navigation */}
             <nav className="hidden md:flex items-center gap-1">
@@ -130,19 +133,12 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
                 <p className={`font-medium ${textClass}`}>{studentName}</p>
                 <p className={`text-sm ${mutedClass}`}>{totalXp.toLocaleString()} XP</p>
               </div>
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center text-lg"
-                style={{ backgroundColor: isDarkMode ? '#2A3D50' : '#EDE9E0' }}
-              >
-                👩‍💼
-              </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 md:px-8 py-8">
+      <div>
         {/* JOIN LESSON HERO — primary CTA */}
         <div className="mb-6">
           <JoinLessonHero hubId="professional" isDark={isDarkMode} />
