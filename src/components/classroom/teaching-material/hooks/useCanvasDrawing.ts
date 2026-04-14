@@ -60,11 +60,17 @@ export function useCanvasDrawing({
         ctx.strokeStyle = color;
         ctx.lineWidth = 3;
       } else { // eraser
-        ctx.strokeStyle = '#ffffff';
+        ctx.globalCompositeOperation = 'destination-out';
+        ctx.strokeStyle = 'rgba(0,0,0,1)';
         ctx.lineWidth = 20;
       }
       
       ctx.stroke();
+      
+      // Reset composite operation after eraser
+      if (annotationTool === "eraser") {
+        ctx.globalCompositeOperation = 'source-over';
+      }
     }
   };
   
