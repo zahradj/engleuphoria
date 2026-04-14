@@ -141,6 +141,27 @@ const StudentDashboard = () => {
     }
   };
 
+  // Hub-aware background gradient
+  const getHubBackground = () => {
+    const levelToHub: Record<string, string> = {
+      playground: 'playground',
+      academy: 'academy',
+      professional: 'professional',
+    };
+    const hub = studentLevel ? levelToHub[studentLevel] : null;
+    
+    switch (hub) {
+      case 'playground':
+        return 'from-amber-50 via-orange-50/60 to-yellow-50/40 dark:from-[#1A1200] dark:via-[#1A0D00] dark:to-[#0D0A00]';
+      case 'academy':
+        return 'from-indigo-50 via-blue-50/60 to-purple-50/40 dark:from-[#0A0A1E] dark:via-[#0D0D2A] dark:to-[#0A0A1E]';
+      case 'professional':
+        return 'from-emerald-50 via-green-50/60 to-teal-50/40 dark:from-[#0D1A0F] dark:via-[#0D1A0F] dark:to-[#0A1A15]';
+      default:
+        return 'from-pink-50 via-purple-50 to-blue-50 dark:from-background dark:via-background dark:to-background';
+    }
+  };
+
   const renderActiveTab = () => {
     const tabComponents = {
       dashboard: () => <DashboardRouter systemId={systemId} studentName={studentName} />,
@@ -189,7 +210,7 @@ const StudentDashboard = () => {
     <ErrorBoundary>
       <SidebarProvider defaultOpen={true}>
         <ScrollHeader />
-        <div className="flex min-h-screen w-full bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
+        <div className={`flex min-h-screen w-full bg-gradient-to-br ${getHubBackground()} transition-colors duration-500`}>
           <StudentSidebar
             activeTab={activeTab} 
             setActiveTab={setActiveTab}
