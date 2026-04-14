@@ -355,6 +355,24 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
               </div>
             )}
 
+            {/* Trial banner */}
+            {!creditsLoading && trialAvailable && !booked && (
+              <div className={cn(
+                "mb-4 p-4 rounded-xl border flex items-start gap-3",
+                isDark
+                  ? "bg-emerald-500/10 border-emerald-500/20 backdrop-blur-sm"
+                  : "bg-emerald-50/80 border-emerald-200/50"
+              )}>
+                <Sparkles className="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" />
+                <div className="flex-1">
+                  <p className="font-semibold text-emerald-700">🎁 Your First Lesson is Free!</p>
+                  <p className="text-sm text-emerald-600/80 mt-1">
+                    Book your 30-minute trial lesson at no cost. Pick a time and start learning!
+                  </p>
+                </div>
+              </div>
+            )}
+
             <AnimatePresence mode="wait">
               {booked ? (
                 /* ✅ Success state with Euphoria Ring glow */
