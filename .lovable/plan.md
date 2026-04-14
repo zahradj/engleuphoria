@@ -1,44 +1,101 @@
 
 
-# Trial Lesson Visibility Fix
+# Cancellation/Rescheduling Policy + Full Brand Unification
 
-## Root Causes Found
+## Part 1: Cancellation & Rescheduling Policy (5-Day Rule)
 
-**1. `bookTrialLesson` in `useTeacherMatchmaker.ts` is broken:**
-- It only inserts into `class_bookings` with `status: 'pending'` (line 113)
-- It does NOT create a record in the `lessons` table at all
-- The dashboards query the `lessons` table via `get_student_upcoming_lessons` RPC, so these bookings are invisible
+### Current State
+The codebase already has `useCancelReschedule.ts` and `LessonManagementModal.tsx` but they use **wrong thresholds**: cancel = 6 hours, reschedule = 4 hours. The Reschedule button in `UpcomingClassesTab.tsx` is not wired to anything. Trial lessons have no exemption.
 
-**2. The existing test data is already past:**
-- The one lesson in the database (`fe68f2d9...`) has `scheduled_at: 2026-04-14 17:30 UTC` and `status: completed`
-- Current time is `2026-04-14 18:43 UTC` — the lesson is in the past
-- The RPC function filters `scheduled_at >= NOW()` and `status IN ('scheduled', 'confirmed')`, so it correctly excludes this
+### Changes
 
-**3. Two separate booking paths exist:**
-- `lessonService.createTrialLesson()` — does it right (creates `lessons` row with 'scheduled' + `class_bookings` row with 'confirmed')
-- `useTeacherMatchmaker.bookTrialLesson()` — does it wrong (only creates `class_bookings` with 'pending', no `lessons` row)
+**1. Update `src/hooks/useCancelReschedule.ts`**
+- Change `CANCEL_POLICY_HOURS` from 6 to 120 (5 days)
+- Change `RESCHEDULE_POLICY_HOURS` from 4 to 120 (5 days)
+- Add `isTrialLesson(lessonId)` check — if trial (price = 0), always allow cancel/reschedule
+- Update `getRefundInfo`: > 5 days = full refund, < 5 days = no refund (full charge)
+- After cancel/reschedule, re-open the teacher's availability slot (`teacher_availability.is_booked = false`)
 
-## Fix Plan
+**2. Update `src/components/student/LessonManagementModal.tsx`**
+- Update policy text from "6 hours" / "4 hours" to "5 days"
+- Add trial lesson bypass messaging: "Trial lessons can be freely cancelled or rescheduled"
+- Hub-color code the modal header (orange/blue/green based on lesson type)
 
-### 1. Fix `useTeacherMatchmaker.ts` — Use the correct booking path
-Replace the inline `class_bookings` insert with a call to `lessonService.createTrialLesson()`. This ensures:
-- A `lessons` record is created with status `'scheduled'`
-- A `class_bookings` record is created with status `'confirmed'`
-- A `room_id` and `room_link` are generated so the Join Classroom button works
-- Teacher notification email fires
+**3. Wire up `src/components/student/UpcomingClassesTab.tsx`**
+- Connect the existing "Reschedule" button to open `LessonManagementModal` in reschedule mode
+- Add a "Cancel" button next to it
+- Both open the modal with the correct mode
 
-### 2. Update `PlaygroundDashboard.tsx` — Also query `class_bookings` as fallback
-Add a secondary query for confirmed `class_bookings` so that even if the RPC returns nothing (e.g., lessons created through other paths), the dashboard still shows upcoming sessions.
+**4. Add "Manage Lesson" menu to `src/components/classroom/ClassroomConnection.tsx`**
+- Add a dropdown with "Reschedule" and "Cancel" options
+- Color-coded by hub (detect from lesson metadata or price)
+- Opens `LessonManagementModal`
 
-### 3. Update `ClassesSection.tsx` — Show real bookings instead of demo data
-Replace the hardcoded demo classes array with actual data from `class_bookings` or the `get_student_upcoming_lessons` RPC, so confirmed trial lessons appear as real glassmorphic cards.
+---
 
-## Technical Details
+## Part 2: Full Brand Unification Across All Pages
 
-**Files to modify:**
-- `src/hooks/useTeacherMatchmaker.ts` — replace `bookTrialLesson` to call `lessonService.createTrialLesson()`
-- `src/components/student/dashboards/PlaygroundDashboard.tsx` — add `class_bookings` fallback query
-- `src/components/dashboard/ClassesSection.tsx` — fetch real data instead of demo array
+### Problem
+The homepage and student dashboards have the new premium glassmorphic aesthetic, but the teacher dashboard, admin dashboard, content creator dashboard, profile pages, auth pages, and schedule pages still use plain unstyled defaults.
 
-**No database changes needed.** The RPC functions and table schema are correct. The bug is purely in the client-side booking logic.
+### Changes (applying consistent brand identity everywhere)
+
+**5. Teacher Dashboard — `ProfessionalNav.tsx` + `ProfessionalHub.tsx`**
+- Replace hardcoded `bg-white` / `#1A237E` with CSS variables and brand gradients
+- Add Logo component visibility in nav
+- Apply glassmorphic card styling to Command Center cards
+- Dark mode support (currently hardcoded to light)
+
+**6. Admin Dashboard — `AdminSidebar.tsx` + `AdminDashboard.tsx`**
+- Add branded gradient header in sidebar
+- Active tab: brand-blue glow effect instead of plain `variant="default"`
+- Logo already present — ensure it's visible and styled consistently
+
+**7. Content Creator Dashboard — `ContentCreatorDashboard.tsx`**
+- Add Logo to the header bar
+- Apply branded gradient to the stepper header
+- Glassmorphic card styling for step content areas
+
+**8. Auth Pages — `Login.tsx`, `SignUp.tsx`, `StudentSignUp.tsx`, `TeacherSignUp.tsx`**
+- Ensure all use `AuthPageLayout` with brand gradient backgrounds
+- Logo visible on all auth pages
+
+**9. Profile Page — `ProfilePage.tsx`**
+- Add brand header with Logo
+- Glassmorphic card styling
+- Hub-appropriate color accents
+
+**10. Schedule Pages — `StudentSchedule.tsx`, `TeacherSchedule.tsx`**
+- Brand header with Logo
+- Hub-colored lesson cards
+- Glassmorphic card treatment
+
+**11. Other Pages — `TeachWithUsPage.tsx`, `AboutPage.tsx`, `ForTeachersPage.tsx`**
+- Verify Logo is visible (TeachWithUs already uses logo images)
+- Consistent nav styling
+
+**12. Global CSS — `src/index.css`**
+- Add shared utility classes: `.brand-card` (glassmorphic), `.brand-header` (gradient), `.brand-sidebar-item` (active glow)
+- Ensure dark mode variants for all new classes
+
+### Technical Details
+
+**Files to modify (Part 1 — Policy):**
+- `src/hooks/useCancelReschedule.ts`
+- `src/components/student/LessonManagementModal.tsx`
+- `src/components/student/UpcomingClassesTab.tsx`
+- `src/components/classroom/ClassroomConnection.tsx`
+
+**Files to modify (Part 2 — Branding):**
+- `src/components/teacher/professional/ProfessionalNav.tsx`
+- `src/components/teacher/professional/ProfessionalHub.tsx`
+- `src/components/admin/AdminSidebar.tsx`
+- `src/pages/AdminDashboard.tsx`
+- `src/pages/ContentCreatorDashboard.tsx`
+- `src/pages/ProfilePage.tsx`
+- `src/pages/student/StudentSchedule.tsx`
+- `src/pages/teacher/TeacherSchedule.tsx`
+- `src/index.css`
+
+**No database changes needed.** The lessons table already has `status`, `cancellation_reason`, `reschedule_count`, and `reschedule_history` columns.
 
