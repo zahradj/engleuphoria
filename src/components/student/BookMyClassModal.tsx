@@ -40,7 +40,7 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { totalCredits, loading: creditsLoading } = usePackageValidation(user?.id || null);
+  const { totalCredits, trialAvailable, loading: creditsLoading } = usePackageValidation(user?.id || null);
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
 
@@ -50,7 +50,7 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
   const [booked, setBooked] = useState(false);
   const [meetingLink, setMeetingLink] = useState<string | null>(null);
 
-  const hasCredits = totalCredits > 0;
+  const hasCredits = totalCredits > 0 || trialAvailable;
 
   // Fetch available slots
   const fetchSlots = useCallback(async () => {
