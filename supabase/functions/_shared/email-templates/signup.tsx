@@ -9,10 +9,8 @@ import {
   Head,
   Heading,
   Html,
-  Img,
   Link,
   Preview,
-  Section,
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
@@ -23,8 +21,6 @@ interface SignupEmailProps {
   confirmationUrl: string
 }
 
-const LOGO_WHITE_URL = 'https://dcoxpyzoqjvmuuygvlme.supabase.co/storage/v1/object/public/email-assets/logo-white.png'
-
 export const SignupEmail = ({
   siteName,
   siteUrl,
@@ -33,54 +29,29 @@ export const SignupEmail = ({
 }: SignupEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>Welcome to {siteName} — confirm your email to start your English journey</Preview>
+    <Preview>Confirm your email for {siteName}</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Section style={headerSection}>
-          <Img src={LOGO_WHITE_URL} width="160" height="44" alt={siteName} style={logo} />
-        </Section>
-
-        <Section style={contentSection}>
-          <Heading style={h1}>Welcome to {siteName}! 🎉</Heading>
-
-          <Text style={text}>
-            We&apos;re thrilled to have you join{' '}
-            <Link href={siteUrl} style={link}>
-              <strong>{siteName}</strong>
-            </Link>
-            . Your language adventure starts today.
-          </Text>
-
-          <Text style={text}>
-            To activate your account for{' '}
-            <Link href={`mailto:${recipient}`} style={link}>
-              {recipient}
-            </Link>
-            , please confirm your email using the button below.
-          </Text>
-
-          <Section style={cardSection}>
-            <Text style={cardTitle}>🚀 What&apos;s next?</Text>
-            <Text style={cardText}>• Complete your learning profile</Text>
-            <Text style={cardText}>• Take a placement test to find your level</Text>
-            <Text style={cardText}>• Start your first interactive lesson</Text>
-            <Text style={cardText}>• Connect with amazing teachers</Text>
-          </Section>
-
-          <Section style={ctaSection}>
-            <Button style={button} href={confirmationUrl}>
-              Confirm My Email
-            </Button>
-          </Section>
-
-          <Text style={helperText}>
-            If the button doesn&apos;t work, copy and paste this link into your browser:
-          </Text>
-          <Text style={urlText}>{confirmationUrl}</Text>
-        </Section>
-
+        <Heading style={h1}>Confirm your email</Heading>
+        <Text style={text}>
+          Thanks for signing up for{' '}
+          <Link href={siteUrl} style={link}>
+            <strong>{siteName}</strong>
+          </Link>
+          !
+        </Text>
+        <Text style={text}>
+          Please confirm your email address (
+          <Link href={`mailto:${recipient}`} style={link}>
+            {recipient}
+          </Link>
+          ) by clicking the button below:
+        </Text>
+        <Button style={button} href={confirmationUrl}>
+          Verify Email
+        </Button>
         <Text style={footer}>
-          If you didn&apos;t create an account, you can safely ignore this email.
+          If you didn't create an account, you can safely ignore this email.
         </Text>
       </Container>
     </Body>
@@ -89,19 +60,27 @@ export const SignupEmail = ({
 
 export default SignupEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Inter, Arial, sans-serif' }
-const container = { padding: '0', maxWidth: '600px', margin: '0 auto' }
-const headerSection = { backgroundColor: '#0047AB', padding: '32px 24px', textAlign: 'center' as const }
-const logo = { margin: '0 auto', display: 'block' }
-const contentSection = { padding: '32px 24px' }
-const h1 = { fontSize: '24px', fontWeight: '700' as const, color: '#111827', margin: '0 0 16px' }
-const text = { fontSize: '15px', color: '#4b5563', lineHeight: '1.6', margin: '0 0 20px' }
-const link = { color: '#0047AB', textDecoration: 'underline' }
-const cardSection = { backgroundColor: '#eef4fc', padding: '20px', borderRadius: '8px', margin: '0 0 24px' }
-const cardTitle = { fontSize: '16px', fontWeight: '600' as const, color: '#0047AB', margin: '0 0 12px' }
-const cardText = { fontSize: '14px', color: '#4b5563', margin: '0 0 6px', lineHeight: '1.5' }
-const ctaSection = { textAlign: 'center' as const, margin: '0 0 24px' }
-const button = { backgroundColor: '#0047AB', color: '#ffffff', padding: '14px 32px', borderRadius: '8px', fontWeight: '600' as const, fontSize: '16px', textDecoration: 'none' }
-const helperText = { fontSize: '13px', color: '#6b7280', lineHeight: '1.6', margin: '0 0 8px' }
-const urlText = { fontSize: '12px', color: '#0047AB', lineHeight: '1.6', wordBreak: 'break-all' as const, margin: '0 0 24px' }
-const footer = { fontSize: '13px', color: '#9ca3af', textAlign: 'center' as const, margin: '0', padding: '0 24px 24px' }
+const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
+const container = { padding: '20px 25px' }
+const h1 = {
+  fontSize: '22px',
+  fontWeight: 'bold' as const,
+  color: '#000000',
+  margin: '0 0 20px',
+}
+const text = {
+  fontSize: '14px',
+  color: '#55575d',
+  lineHeight: '1.5',
+  margin: '0 0 25px',
+}
+const link = { color: 'inherit', textDecoration: 'underline' }
+const button = {
+  backgroundColor: '#000000',
+  color: '#ffffff',
+  fontSize: '14px',
+  borderRadius: '8px',
+  padding: '12px 20px',
+  textDecoration: 'none',
+}
+const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
