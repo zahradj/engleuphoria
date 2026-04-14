@@ -104,6 +104,57 @@ export const lessonService = {
     return result.lesson;
   },
 
+  // Create a free trial lesson (no package/credit required)
+  async createTrialLesson(
+    lessonData: CreateLessonData,
+    availabilitySlotId?: string
+  ): Promise<ScheduledLesson> {
+    // Mark the slot as booked
+    if (availabilitySlotId) {
+      await supabase
+        .from('teacher_availability')
+        .update({ is_booked: true })
+        .eq('id', availabilitySlotId);
+    }
+
+    // Create the lesson record
+    const { data: lesson, error } = await supabase
+      .from('lessons')
+      .insert({
+        title: lessonData.title,
+        teacher_id: lessonData.teacher_id,
+        student_id: lessonData.student_id,
+        scheduled_at: lessonData.scheduled_at,
+        duration: lessonData.duration,
+        status: 'scheduled',
+      })
+      .select('*')
+      .single();
+
+    if (error) throw error;
+
+    // Also create a class_bookings record
+    await supabase.from('class_bookings').insert({
+      student_id: lessonData.student_id,
+      teacher_id: lessonData.teacher_id,
+      scheduled_at: lessonData.scheduled_at,
+      duration: lessonData.duration,
+      booking_type: 'trial',
+      price_paid: 0,
+      status: 'confirmed',
+      lesson_id: lesson.id,
+    });
+
+    // Send teacher booking notification (non-blocking)
+    supabase.functions.invoke('notify-teacher-booking', {
+      body: { record: lesson }
+    }).then(({ error: notifErr }) => {
+      if (notifErr) console.error('Failed to send teacher notification:', notifErr);
+    });
+
+    return lesson;
+  },
+
   // Validate lesson access
   async canAccessLesson(roomId: string, userId: string): Promise<boolean> {
     const { data, error } = await supabase.rpc('can_access_lesson', {

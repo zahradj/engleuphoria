@@ -40,7 +40,7 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
   const { user } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { totalCredits, loading: creditsLoading } = usePackageValidation(user?.id || null);
+  const { totalCredits, trialAvailable, loading: creditsLoading } = usePackageValidation(user?.id || null);
   const { resolvedTheme } = useThemeMode();
   const isDark = resolvedTheme === 'dark';
 
@@ -50,7 +50,7 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
   const [booked, setBooked] = useState(false);
   const [meetingLink, setMeetingLink] = useState<string | null>(null);
 
-  const hasCredits = totalCredits > 0;
+  const hasCredits = totalCredits > 0 || trialAvailable;
 
   // Fetch available slots
   const fetchSlots = useCallback(async () => {
@@ -160,8 +160,13 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
         return;
       }
 
-      // Consume a credit
-      const { data: creditOk } = await supabase.rpc('consume_credit', { p_student_id: user.id });
+      // Consume a credit (skip for trial bookings)
+      let isTrial = false;
+      if (trialAvailable) {
+        isTrial = true;
+      } else {
+        const { data: creditOk } = await supabase.rpc('consume_credit', { p_student_id: user.id });
+      }
 
       // Insert booking record
       const { data: bookingData, error: bookingError } = await supabase
@@ -171,8 +176,8 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
           teacher_id: slot.teacherId,
           scheduled_at: slot.startTime.toISOString(),
           duration: slot.duration,
-          booking_type: 'standard',
-          price_paid: creditOk ? 0 : 0,
+          booking_type: isTrial ? 'trial' : 'standard',
+          price_paid: 0,
           status: 'confirmed',
         })
         .select('session_id, meeting_link')
@@ -303,7 +308,7 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
                       : "bg-red-500/30 text-white border-red-400/30"
                   )}>
                     <CreditCard className="w-3 h-3 mr-1" />
-                    {totalCredits} credit{totalCredits !== 1 ? 's' : ''} remaining
+                    {trialAvailable ? '🎁 Free Trial Available' : `${totalCredits} credit${totalCredits !== 1 ? 's' : ''} remaining`}
                   </Badge>
                 )}
                 <button
@@ -347,6 +352,24 @@ export const BookMyClassModal: React.FC<BookMyClassModalProps> = ({
                 >
                   Get Credits
                 </Button>
+              </div>
+            )}
+
+            {/* Trial banner */}
+            {!creditsLoading && trialAvailable && !booked && (
+              <div className={cn(
+                "mb-4 p-4 rounded-xl border flex items-start gap-3",
+                isDark
+                  ? "bg-emerald-500/10 border-emerald-500/20 backdrop-blur-sm"
+                  : "bg-emerald-50/80 border-emerald-200/50"
+              )}>
+                <Sparkles className="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" />
+                <div className="flex-1">
+                  <p className="font-semibold text-emerald-700">🎁 Your First Lesson is Free!</p>
+                  <p className="text-sm text-emerald-600/80 mt-1">
+                    Book your 30-minute trial lesson at no cost. Pick a time and start learning!
+                  </p>
+                </div>
               </div>
             )}
 

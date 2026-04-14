@@ -17,7 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 const BookLesson = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { hasActivePackages, totalCredits, loading } = usePackageValidation(user?.id || null);
+  const { hasActivePackages, totalCredits, trialAvailable, loading } = usePackageValidation(user?.id || null);
   const [showModal, setShowModal] = useState(false);
   const [availableSlots, setAvailableSlots] = useState<AvailableTimeSlot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
@@ -31,12 +31,12 @@ const BookLesson = () => {
 
   // Load available slots when user has packages
   useEffect(() => {
-    if (!loading && hasActivePackages) {
+    if (!loading && (hasActivePackages || trialAvailable)) {
       loadAvailableSlots();
-    } else if (!loading && !hasActivePackages) {
+    } else if (!loading && !hasActivePackages && !trialAvailable) {
       setShowModal(true);
     }
-  }, [loading, hasActivePackages]);
+  }, [loading, hasActivePackages, trialAvailable]);
 
   const loadAvailableSlots = async () => {
     try {
@@ -60,6 +60,29 @@ const BookLesson = () => {
 
     try {
       setIsBooking(true);
+
+      // Check trial eligibility first
+      const { bookingValidationService } = await import('@/services/bookingValidationService');
+      const isTrialEligible = await bookingValidationService.isEligibleForTrial(user.id);
+
+      if (isTrialEligible) {
+        // Free trial booking — no package needed
+        await lessonService.createTrialLesson({
+          title: `Trial Lesson with ${slot.teacherName}`,
+          teacher_id: slot.teacherId,
+          student_id: user.id,
+          scheduled_at: slot.startTime.toISOString(),
+          duration: Number(slot.duration),
+        }, slot.id);
+
+        toast({
+          title: "🎉 Free Trial Lesson Booked!",
+          description: `Your free trial with ${slot.teacherName} is scheduled for ${slot.startTime.toLocaleString()}.`
+        });
+
+        await loadAvailableSlots();
+        return;
+      }
 
       // Get user's packages using the hook (need to fetch fresh data)
       const { lessonPricingService } = await import('@/services/lessonPricingService');
