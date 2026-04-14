@@ -74,12 +74,12 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
     streak: 12,
   };
 
-  // Executive palette classes
-  const bgClass = isDarkMode ? 'bg-gray-900' : 'bg-[#F8F7F4]';
-  const textClass = isDarkMode ? 'text-gray-50' : 'text-[#1A2B3C]';
-  const mutedClass = isDarkMode ? 'text-gray-400' : 'text-gray-500';
-  const borderClass = isDarkMode ? 'border-gray-700' : 'border-[#E8E4DD]';
-  const cardClass = isDarkMode ? 'bg-[#1A2B3C]/80 border-[#2A3D50]' : 'bg-white border-[#E8E4DD] hover:border-[#C9A96E]/40 transition-colors';
+  // Success Hub palette classes
+  const bgClass = isDarkMode ? 'bg-[#0D1A0F]' : 'bg-[#F5FAF5]';
+  const textClass = isDarkMode ? 'text-emerald-50' : 'text-[#1B5E20]';
+  const mutedClass = isDarkMode ? 'text-emerald-400' : 'text-gray-500';
+  const borderClass = isDarkMode ? 'border-emerald-900/50' : 'border-emerald-200/50';
+  const cardClass = isDarkMode ? 'bg-emerald-950/50 border-emerald-800/30' : 'bg-white border-emerald-200/50 hover:border-teal-400/40 transition-colors';
 
   if (isLoading) return <HubSkeleton />;
 
@@ -98,7 +98,7 @@ export const HubDashboard: React.FC<HubDashboardProps> = ({
                 <BookOpen className="w-4 h-4" style={{ color: ACCENT }} />
               </div>
               <span className={`text-xl font-semibold tracking-tight ${textClass}`}>
-                Executive Learning Hub
+                Success Hub
               </span>
             </div>
 
