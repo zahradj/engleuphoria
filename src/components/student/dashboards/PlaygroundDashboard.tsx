@@ -4,6 +4,7 @@ import { KidsWorldMap, ThemeType } from '../kids/KidsWorldMap';
 import { usePlaygroundLessons } from '@/hooks/usePlaygroundLessons';
 import { useLiveClassroomStatus } from '@/hooks/useLiveClassroomStatus';
 import { useTimeOfDay } from '@/hooks/useTimeOfDay';
+import { useThemeMode } from '@/hooks/useThemeMode';
 import { LiveSessionBadge } from '@/components/shared/LiveSessionBadge';
 import { PlaygroundSkeleton } from '@/components/shared/DashboardSkeleton';
 import { PlaygroundSidebar } from '../kids/PlaygroundSidebar';
@@ -11,11 +12,11 @@ import { VirtualPetWidget } from '../kids/VirtualPetWidget';
 import { AILessonAgent } from '../AILessonAgent';
 import { WeeklyGoalWidget } from '../WeeklyGoalWidget';
 import { RecommendedTeachers } from '../RecommendedTeachers';
-import { PlaygroundTopBar } from '../kids/PlaygroundTopBar';
 import { EnterClassroomCTA } from '../kids/EnterClassroomCTA';
 import { AIPersonalizedLessonCard } from '../AIPersonalizedLessonCard';
 import { MaterialsGallery } from '../MaterialsGallery';
 import { BookMyClassModal } from '../BookMyClassModal';
+import { JoinLessonHero } from '../JoinLessonHero';
 import { Volume2, Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -41,6 +42,8 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
   const { user } = useAuth();
   const { lessons, loading, error, markLessonComplete, getTotalStars } = usePlaygroundLessons();
   const { isDaytime } = useTimeOfDay();
+  const { resolvedTheme } = useThemeMode();
+  const isDark = resolvedTheme === 'dark';
   const [activeTab, setActiveTab] = useState('home');
   const [bookingOpen, setBookingOpen] = useState(false);
   const [nextLessonRoomLink, setNextLessonRoomLink] = useState<string | null>(null);
@@ -72,15 +75,15 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
     return (
       <div className={cn(
         'flex items-center justify-center h-screen',
-        isDaytime ? 'bg-sky-50' : 'bg-[#1A1040]'
+        isDark ? 'bg-[#1A1200]' : 'bg-gradient-to-b from-amber-50 to-orange-50'
       )}>
         <div className={cn(
           'text-center p-8 rounded-3xl shadow-xl',
-          isDaytime ? 'bg-white/80 text-slate-800' : 'bg-indigo-900/60 text-indigo-100'
+          isDark ? 'bg-amber-950/60 text-amber-100' : 'bg-white/80 text-slate-800'
         )}>
           <p className="text-4xl mb-4">😢</p>
           <p className="text-xl font-semibold mb-2">Oops! Something went wrong</p>
-          <p className={isDaytime ? 'text-slate-500' : 'text-indigo-300'}>Please try refreshing the page</p>
+          <p className={isDark ? 'text-amber-300' : 'text-slate-500'}>Please try refreshing the page</p>
         </div>
       </div>
     );
@@ -90,15 +93,15 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
     return (
       <div className={cn(
         'flex items-center justify-center h-screen',
-        isDaytime ? 'bg-sky-50' : 'bg-[#1A1040]'
+        isDark ? 'bg-[#1A1200]' : 'bg-gradient-to-b from-amber-50 to-orange-50'
       )}>
         <div className={cn(
           'text-center p-8 rounded-3xl shadow-xl',
-          isDaytime ? 'bg-white/80 text-slate-800' : 'bg-indigo-900/60 text-indigo-100'
+          isDark ? 'bg-amber-950/60 text-amber-100' : 'bg-white/80 text-slate-800'
         )}>
           <p className="text-6xl mb-4">🎒</p>
           <p className="text-xl font-semibold mb-2">No lessons yet!</p>
-          <p className={isDaytime ? 'text-slate-500' : 'text-indigo-300'}>Your adventure will start soon...</p>
+          <p className={isDark ? 'text-amber-300' : 'text-slate-500'}>Your adventure will start soon...</p>
         </div>
       </div>
     );
@@ -108,41 +111,44 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
     <div
       className={cn(
         'min-h-screen p-4 transition-colors duration-700',
-        isDaytime
-          ? 'bg-gradient-to-b from-sky-100 to-blue-50'
-          : 'bg-gradient-to-b from-[#1A1040] to-[#0D0A2A]'
+        isDark
+          ? 'bg-gradient-to-b from-[#1A1200] to-[#0D0A00]'
+          : 'bg-gradient-to-b from-amber-50 to-orange-50/30'
       )}
       style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
     >
       <div className="flex flex-col gap-4 h-[calc(100vh-2rem)]">
-        {/* Top Bar */}
+        {/* Top Bar — Playground branded */}
         <div className={cn(
           'flex items-center justify-between px-5 py-3 rounded-3xl shadow-md border transition-colors duration-500',
-          isDaytime
-            ? 'bg-white/70 backdrop-blur border-sky-200/50'
-            : 'bg-indigo-950/70 backdrop-blur border-indigo-500/20'
+          isDark
+            ? 'bg-amber-950/70 backdrop-blur border-amber-600/20'
+            : 'bg-white/70 backdrop-blur border-orange-200/50'
         )}>
-          <p className={cn('text-lg font-semibold', isDaytime ? 'text-slate-800' : 'text-indigo-100')}>
-            Hi, {studentName}! 👋
-          </p>
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🌈</span>
+            <p className={cn('text-lg font-semibold', isDark ? 'text-amber-100' : 'text-orange-800')}>
+              Hi, {studentName}! 👋
+            </p>
+          </div>
           <div className="flex items-center gap-3">
             <motion.div
               className={cn(
                 'flex items-center gap-1.5 px-3 py-1.5 rounded-full',
-                isDaytime ? 'bg-orange-50 border border-orange-200' : 'bg-orange-900/30 border border-orange-500/30'
+                isDark ? 'bg-orange-900/30 border border-orange-500/30' : 'bg-orange-50 border border-orange-200'
               )}
               animate={{ scale: dailyStreak > 0 ? [1, 1.03, 1] : 1 }}
               transition={{ duration: 2, repeat: Infinity }}
             >
               <span className="text-orange-500 text-sm">🔥</span>
-              <span className={cn('text-sm font-bold', isDaytime ? 'text-orange-600' : 'text-orange-300')}>{dailyStreak}</span>
+              <span className={cn('text-sm font-bold', isDark ? 'text-orange-300' : 'text-orange-600')}>{dailyStreak}</span>
             </motion.div>
             <div className={cn(
               'flex items-center gap-1.5 px-3 py-1.5 rounded-full',
-              isDaytime ? 'bg-amber-50 border border-amber-200' : 'bg-amber-900/30 border border-amber-500/30'
+              isDark ? 'bg-amber-900/30 border border-amber-500/30' : 'bg-amber-50 border border-amber-200'
             )}>
               <Star className="w-4 h-4 text-amber-500 fill-amber-400" />
-              <span className={cn('text-sm font-bold', isDaytime ? 'text-amber-600' : 'text-amber-300')}>{totalStars}</span>
+              <span className={cn('text-sm font-bold', isDark ? 'text-amber-300' : 'text-amber-600')}>{totalStars}</span>
             </div>
           </div>
         </div>
@@ -156,7 +162,7 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
             {/* Map Area */}
             <div className={cn(
               'flex-1 rounded-3xl shadow-lg overflow-hidden transition-colors duration-500',
-              isDaytime ? 'bg-white/50' : 'bg-indigo-950/40'
+              isDark ? 'bg-amber-950/30' : 'bg-white/50'
             )}>
               <KidsWorldMap
                 studentName={studentName}
@@ -169,6 +175,9 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
 
             {/* Right Panel */}
             <div className="w-full lg:w-80 flex flex-col gap-3 overflow-y-auto">
+              {/* JOIN LESSON HERO — primary CTA */}
+              <JoinLessonHero hubId="playground" isDark={isDark} />
+
               {/* LIVE Session Badge */}
               {liveStatus.isLive && liveStatus.classroomUrl ? (
                 <LiveSessionBadge classroomUrl={liveStatus.classroomUrl} variant="banner" />
@@ -182,9 +191,9 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
                 whileTap={{ scale: 0.95 }}
                 className={cn(
                   'w-full flex items-center justify-center gap-2 py-3 px-4 rounded-3xl font-semibold text-sm shadow-md transition-colors duration-500',
-                  isDaytime
-                    ? 'bg-sky-500 hover:bg-sky-600 text-white'
-                    : 'bg-indigo-600 hover:bg-indigo-500 text-indigo-100 shadow-[0_0_16px_rgba(99,102,241,0.3)]'
+                  isDark
+                    ? 'bg-gradient-to-r from-amber-700 to-orange-700 text-amber-100 shadow-[0_0_16px_rgba(255,143,0,0.3)]'
+                    : 'bg-gradient-to-r from-orange-400 to-amber-400 text-white'
                 )}
               >
                 <Volume2 className="w-4 h-4" />
@@ -197,9 +206,9 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
                 onClick={() => setBookingOpen(true)}
                 className={cn(
                   'w-full py-3 px-4 rounded-3xl font-semibold text-sm shadow-md transition-colors duration-500',
-                  isDaytime
-                    ? 'bg-gradient-to-r from-pink-400 to-purple-400 text-white'
-                    : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-indigo-100'
+                  isDark
+                    ? 'bg-gradient-to-r from-amber-800 to-orange-800 text-amber-100'
+                    : 'bg-gradient-to-r from-orange-500 to-amber-500 text-white'
                 )}
               >
                 📅 Book a Class!
@@ -215,17 +224,17 @@ export const PlaygroundDashboard: React.FC<PlaygroundDashboardProps> = ({
           </div>
         </div>
 
-        {/* Star Meter — bottom progress */}
+        {/* Star Meter — Playground branded progress bar */}
         <div className={cn(
           'rounded-full h-3 overflow-hidden transition-colors duration-500',
-          isDaytime ? 'bg-amber-100' : 'bg-indigo-900/50'
+          isDark ? 'bg-amber-900/50' : 'bg-amber-100'
         )}>
           <motion.div
             className={cn(
               'h-full rounded-full',
-              isDaytime
-                ? 'bg-gradient-to-r from-amber-400 to-yellow-400'
-                : 'bg-gradient-to-r from-amber-500 to-orange-500 shadow-[0_0_12px_rgba(251,191,36,0.5)]'
+              isDark
+                ? 'bg-gradient-to-r from-amber-600 to-orange-600 shadow-[0_0_12px_rgba(255,143,0,0.5)]'
+                : 'bg-gradient-to-r from-amber-400 to-orange-400'
             )}
             initial={{ width: 0 }}
             animate={{ width: `${starPercent}%` }}

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { AcademySkeleton } from '@/components/shared/DashboardSkeleton';
 import { useLiveClassroomStatus } from '@/hooks/useLiveClassroomStatus';
+import { useThemeMode } from '@/hooks/useThemeMode';
 import { LiveSessionBadge } from '@/components/shared/LiveSessionBadge';
 import { 
   Home, BookOpen, Calendar, Trophy, User, 
@@ -24,6 +25,12 @@ import { WeeklyGoalWidget } from '../WeeklyGoalWidget';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RecommendedTeachers } from '../RecommendedTeachers';
 import { BookMyClassModal } from '../BookMyClassModal';
+import { JoinLessonHero } from '../JoinLessonHero';
+import { cn } from '@/lib/utils';
+
+// Academy Hub Colors
+const ACADEMY_PRIMARY = '#1A237E';
+const ACADEMY_ACCENT = '#4A148C';
 
 interface AcademyDashboardProps {
   studentName?: string;
@@ -49,6 +56,8 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
   const [bookingOpen, setBookingOpen] = useState(false);
   const { data: lessons = [], isLoading } = useCurriculumLessons('teen');
   const liveStatus = useLiveClassroomStatus('student');
+  const { resolvedTheme } = useThemeMode();
+  const isDark = resolvedTheme === 'dark';
 
   const tabs: { id: TabId; icon: React.ReactNode; label: string }[] = [
     { id: 'home', icon: <Home className="w-5 h-5" />, label: 'Home' },
@@ -59,9 +68,9 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
   ];
 
   const schedule = [
-    { day: 'Mon', time: '3:00 PM', subject: 'Grammar', color: 'bg-blue-50 text-blue-700' },
-    { day: 'Wed', time: '4:30 PM', subject: 'Speaking', color: 'bg-emerald-50 text-emerald-700' },
-    { day: 'Fri', time: '2:00 PM', subject: 'Reading', color: 'bg-amber-50 text-amber-700' },
+    { day: 'Mon', time: '3:00 PM', subject: 'Grammar', color: isDark ? 'bg-indigo-900/50 text-indigo-300' : 'bg-indigo-50 text-indigo-700' },
+    { day: 'Wed', time: '4:30 PM', subject: 'Speaking', color: isDark ? 'bg-purple-900/50 text-purple-300' : 'bg-purple-50 text-purple-700' },
+    { day: 'Fri', time: '2:00 PM', subject: 'Reading', color: isDark ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-50 text-blue-700' },
   ];
 
   const leaderboard = [
@@ -76,19 +85,26 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
 
   if (isLoading) return <AcademySkeleton />;
 
+  // Dynamic classes based on theme
+  const bgClass = isDark ? 'bg-[#0A0A1E]' : 'bg-[#FAFBFC]';
+  const sidebarBg = isDark ? 'bg-[#0D0D2A] border-indigo-900/50' : 'bg-white border-slate-200';
+  const textPrimary = isDark ? 'text-indigo-100' : 'text-[#1A237E]';
+  const textSecondary = isDark ? 'text-indigo-300' : 'text-slate-500';
+  const cardBg = isDark ? 'bg-indigo-950/50 border-indigo-800/30' : 'border-slate-200 shadow-sm bg-white';
+
   return (
-    <div className="min-h-screen flex bg-[#FAFBFC]" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
-      {/* Sidebar — clean navy */}
+    <div className={cn('min-h-screen flex transition-colors', bgClass)} style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
+      {/* Sidebar — Academy branded */}
       <motion.aside
         initial={{ x: -20, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
-        className="w-20 md:w-60 bg-white border-r border-slate-200 flex flex-col"
+        className={cn('w-20 md:w-60 border-r flex flex-col', sidebarBg)}
       >
         <div className="p-4 flex items-center justify-center md:justify-start gap-3">
-          <div className="w-10 h-10 rounded-lg bg-[#1A237E] flex items-center justify-center">
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: isDark ? '#3949AB' : ACADEMY_PRIMARY }}>
             <BookOpen className="w-5 h-5 text-white" />
           </div>
-          <span className="hidden md:block text-lg font-semibold text-[#1A237E]">
+          <span className={cn('hidden md:block text-lg font-semibold', textPrimary)}>
             Academy
           </span>
         </div>
@@ -98,11 +114,16 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-all ${
+              className={cn(
+                'w-full flex items-center gap-3 px-4 py-3 text-sm transition-all',
                 activeTab === tab.id
-                  ? 'bg-[#1A237E]/5 text-[#1A237E] border-r-2 border-[#1A237E] font-medium'
-                  : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
-              }`}
+                  ? isDark
+                    ? 'bg-indigo-800/30 text-indigo-200 border-r-2 border-indigo-400 font-medium'
+                    : 'bg-[#1A237E]/5 text-[#1A237E] border-r-2 border-[#1A237E] font-medium'
+                  : isDark
+                    ? 'text-indigo-400 hover:text-indigo-200 hover:bg-indigo-900/30'
+                    : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+              )}
             >
               {tab.icon}
               <span className="hidden md:block">{tab.label}</span>
@@ -113,6 +134,11 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
 
       {/* Main Content */}
       <main className="flex-1 p-6 overflow-y-auto">
+        {/* JOIN LESSON HERO — primary CTA */}
+        <div className="mb-6">
+          <JoinLessonHero hubId="academy" isDark={isDark} />
+        </div>
+
         {/* LIVE Session Banner */}
         {liveStatus.isLive && liveStatus.classroomUrl && (
           <div className="mb-4">
@@ -127,17 +153,20 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
           className="flex justify-between items-center mb-6"
         >
           <div>
-            <h1 className="text-2xl font-semibold text-[#1A237E]">
+            <h1 className={cn('text-2xl font-semibold', textPrimary)}>
               Welcome back, {studentName}
             </h1>
-            <p className="text-slate-500 text-sm mt-0.5">
+            <p className={cn('text-sm mt-0.5', textSecondary)}>
               Level {level} · {totalXp.toLocaleString()} XP
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-50 border border-orange-200">
+            <div className={cn(
+              'flex items-center gap-1.5 px-3 py-1.5 rounded-full',
+              isDark ? 'bg-orange-900/30 border border-orange-500/30' : 'bg-orange-50 border border-orange-200'
+            )}>
               <Flame className="w-4 h-4 text-orange-500" fill="currentColor" />
-              <span className="font-semibold text-sm text-orange-600">{currentStreak}</span>
+              <span className={cn('font-semibold text-sm', isDark ? 'text-orange-300' : 'text-orange-600')}>{currentStreak}</span>
             </div>
           </div>
         </motion.div>
@@ -157,9 +186,9 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
           <div className="lg:col-span-2 space-y-5">
             {/* Schedule */}
             <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }}>
-              <Card className="border border-slate-200 shadow-sm bg-white rounded-lg">
+              <Card className={cn('rounded-lg', cardBg)}>
                 <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-[#1A237E] text-base font-semibold">
+                  <CardTitle className={cn('flex items-center gap-2 text-base font-semibold', textPrimary)}>
                     <Calendar className="w-4 h-4" />
                     My Schedule
                   </CardTitle>
@@ -167,19 +196,22 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
                 <CardContent>
                   <div className="space-y-2">
                     {schedule.map((item, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
+                      <div key={index} className={cn(
+                        'flex items-center justify-between p-3 rounded-lg transition-colors',
+                        isDark ? 'bg-indigo-950/30 hover:bg-indigo-950/50' : 'bg-slate-50 hover:bg-slate-100'
+                      )}>
                         <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold ${item.color}`}>
+                          <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold', item.color)}>
                             {item.day}
                           </div>
                           <div>
-                            <p className="font-medium text-sm text-slate-800">{item.subject}</p>
-                            <p className="text-xs text-slate-400 flex items-center gap-1">
+                            <p className={cn('font-medium text-sm', isDark ? 'text-indigo-100' : 'text-slate-800')}>{item.subject}</p>
+                            <p className={cn('text-xs flex items-center gap-1', textSecondary)}>
                               <Clock className="w-3 h-3" />{item.time}
                             </p>
                           </div>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-slate-300" />
+                        <ChevronRight className={cn('w-4 h-4', isDark ? 'text-indigo-600' : 'text-slate-300')} />
                       </div>
                     ))}
                   </div>
@@ -189,14 +221,14 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
 
             {/* Continue Learning */}
             <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.15 }}>
-              <Card className="border border-[#1A237E]/10 shadow-sm bg-white rounded-lg overflow-hidden">
+              <Card className={cn('rounded-lg overflow-hidden border-l-4 border-l-indigo-600', isDark ? 'bg-indigo-950/50 border-indigo-800/30' : 'border-[#1A237E]/10 shadow-sm bg-white')}>
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1.5">
-                      <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Continue where you left off</p>
+                      <p className={cn('text-xs font-medium uppercase tracking-wider', textSecondary)}>Continue where you left off</p>
                       {currentLesson && (
                         <>
-                          <div className="flex items-center gap-2 text-xs text-slate-400">
+                          <div className={cn('flex items-center gap-2 text-xs', textSecondary)}>
                             {(currentLesson as any).unit && (
                               <span>Unit {(currentLesson as any).unit.unit_number}: {(currentLesson as any).unit.title}</span>
                             )}
@@ -204,18 +236,18 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
                               <span>· Lesson {currentLesson.sequence_order}</span>
                             )}
                           </div>
-                          <h3 className="text-lg font-semibold text-slate-800">
+                          <h3 className={cn('text-lg font-semibold', isDark ? 'text-white' : 'text-slate-800')}>
                             {currentLesson.title || 'Writing Workshop'}
                           </h3>
                         </>
                       )}
-                      {!currentLesson && <h3 className="text-lg font-semibold text-slate-800">No lessons available</h3>}
-                      <p className="text-sm text-slate-400">{currentLesson?.duration_minutes || 35} min</p>
-                      <div className="mt-2 h-1.5 w-48 bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full w-3/5 bg-[#4CAF50] rounded-full" />
+                      {!currentLesson && <h3 className={cn('text-lg font-semibold', isDark ? 'text-white' : 'text-slate-800')}>No lessons available</h3>}
+                      <p className={cn('text-sm', textSecondary)}>{currentLesson?.duration_minutes || 35} min</p>
+                      <div className={cn('mt-2 h-1.5 w-48 rounded-full overflow-hidden', isDark ? 'bg-indigo-900/50' : 'bg-slate-100')}>
+                        <div className="h-full w-3/5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full" />
                       </div>
                     </div>
-                    <Button className="bg-[#1A237E] hover:bg-[#1A237E]/90 text-white px-5 rounded-lg text-sm font-medium">
+                    <Button className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-5 rounded-lg text-sm font-medium">
                       Continue <ChevronRight className="w-4 h-4 ml-1" />
                     </Button>
                   </div>
@@ -239,7 +271,7 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
             {/* Book a Slot */}
             <Button
               onClick={() => setBookingOpen(true)}
-              className="w-full bg-[#1A237E] hover:bg-[#1A237E]/90 text-white rounded-lg font-medium py-2.5 text-sm"
+              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg font-medium py-2.5 text-sm"
             >
               Book a Slot with a Teacher
             </Button>
@@ -248,16 +280,16 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
             <SkillXPBars />
 
             {/* Leaderboard */}
-            <Card className="border border-slate-200 shadow-sm bg-white rounded-lg">
+            <Card className={cn('rounded-lg', cardBg)}>
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2 text-[#1A237E] text-base font-semibold">
+                  <CardTitle className={cn('flex items-center gap-2 text-base font-semibold', textPrimary)}>
                     <Trophy className="w-4 h-4 text-amber-500" />
                     Leaderboard
                   </CardTitle>
                 </div>
                 <Tabs value={leaderboardPeriod} onValueChange={(v) => setLeaderboardPeriod(v as any)} className="mt-2">
-                  <TabsList className="grid grid-cols-3 bg-slate-100">
+                  <TabsList className={cn('grid grid-cols-3', isDark ? 'bg-indigo-950/50' : 'bg-slate-100')}>
                     <TabsTrigger value="weekly" className="text-xs">Weekly</TabsTrigger>
                     <TabsTrigger value="monthly" className="text-xs">Monthly</TabsTrigger>
                     <TabsTrigger value="all" className="text-xs">All Time</TabsTrigger>
@@ -269,40 +301,41 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
                   {leaderboard.map((user) => (
                     <div
                       key={user.rank}
-                      className={`flex items-center gap-3 p-2.5 rounded-lg transition-all text-sm ${
+                      className={cn(
+                        'flex items-center gap-3 p-2.5 rounded-lg transition-all text-sm',
                         user.isYou
-                          ? 'bg-[#1A237E]/5 border border-[#1A237E]/15'
-                          : 'bg-slate-50'
-                      }`}
+                          ? isDark ? 'bg-indigo-800/30 border border-indigo-600/30' : 'bg-[#1A237E]/5 border border-[#1A237E]/15'
+                          : isDark ? 'bg-indigo-950/30' : 'bg-slate-50'
+                      )}
                     >
-                      <span className={`w-6 text-center font-bold text-xs ${
+                      <span className={cn('w-6 text-center font-bold text-xs',
                         user.rank === 1 ? 'text-amber-500' :
                         user.rank === 2 ? 'text-slate-400' :
                         user.rank === 3 ? 'text-amber-700' : 'text-slate-400'
-                      }`}>
+                      )}>
                         #{user.rank}
                       </span>
                       <Avatar className="w-7 h-7">
-                        <AvatarFallback className="bg-slate-100 text-slate-600 text-xs font-medium">
+                        <AvatarFallback className={cn('text-xs font-medium', isDark ? 'bg-indigo-900 text-indigo-300' : 'bg-slate-100 text-slate-600')}>
                           {user.avatar}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1">
-                        <p className="font-medium text-slate-700">
-                          {user.name} {user.isYou && <span className="text-[#1A237E] text-xs">(You)</span>}
+                        <p className={cn('font-medium', isDark ? 'text-indigo-200' : 'text-slate-700')}>
+                          {user.name} {user.isYou && <span className={cn('text-xs', textPrimary)}>(You)</span>}
                         </p>
                       </div>
                       {user.change !== 0 && (
-                        <div className={`flex items-center gap-0.5 text-xs ${user.change > 0 ? 'text-[#4CAF50]' : 'text-red-400'}`}>
+                        <div className={cn('flex items-center gap-0.5 text-xs', user.change > 0 ? 'text-emerald-400' : 'text-red-400')}>
                           {user.change > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                           {Math.abs(user.change)}
                         </div>
                       )}
-                      <span className="font-semibold text-[#1A237E] text-xs">{user.xp.toLocaleString()}</span>
+                      <span className={cn('font-semibold text-xs', textPrimary)}>{user.xp.toLocaleString()}</span>
                     </div>
                   ))}
                 </div>
-                <Button variant="outline" className="w-full mt-3 text-xs border-slate-200 text-slate-500 hover:text-[#1A237E]">
+                <Button variant="outline" className={cn('w-full mt-3 text-xs', isDark ? 'border-indigo-800 text-indigo-300 hover:bg-indigo-900/30' : 'border-slate-200 text-slate-500 hover:text-[#1A237E]')}>
                   <Users className="w-3.5 h-3.5 mr-1.5" />
                   Challenge a Friend
                 </Button>
@@ -325,7 +358,7 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
               <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.35 }}>
                 <Button
                   onClick={onLevelUp}
-                  className="w-full bg-[#4CAF50] hover:bg-[#43A047] text-white font-medium py-2.5 rounded-lg text-sm"
+                  className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-medium py-2.5 rounded-lg text-sm"
                 >
                   <Sparkles className="w-4 h-4 mr-1.5" />
                   Graduate to The Hub!
