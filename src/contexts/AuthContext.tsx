@@ -184,34 +184,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             if (!mounted) return;
             
             console.info('Auth state changed:', event, !!currentSession);
+            
+            // INITIAL_SESSION is handled by getSession() below — skip the listener
+            // to prevent double state updates that cause flickering
+            if (event === 'INITIAL_SESSION') {
+              return;
+            }
+            
             setSession(currentSession);
             
             if (currentSession?.user) {
-              // SIGNED_IN is handled entirely by the signIn() function which
-              // already does role resolution + redirect. The listener only needs
-              // to update user state for non-redirect events.
               if (event === 'SIGNED_IN') {
-                // signIn() already handles redirect — just update state if needed
+                // signIn() already handles redirect — skip if already done
                 if (sessionStorage.getItem('auth_redirect_done') || signInRedirectRef.current) {
-                  // User state already set by signIn(), nothing to do
-                  (async () => {
-                    if (!mounted) return;
-                    try {
-                      const dbUser = await fetchUserFromDatabase(currentSession.user.id);
-                      const finalUser = dbUser || await createFallbackUser(currentSession.user);
-                      if (mounted) setUser(finalUser);
-                    } catch (err) {
-                      console.error('Error fetching user on reload:', err);
-                      if (mounted) {
-                        const fallback = await createFallbackUser(currentSession.user);
-                        setUser(fallback);
-                      }
-                    }
-                  })();
                   return;
                 }
-                // If we get SIGNED_IN without signIn() handling it (e.g. email verification),
-                // auto-heal then update state
+                // SIGNED_IN without signIn() (e.g. email verification, magic link)
                 (async () => {
                   if (!mounted) return;
                   try {
@@ -231,33 +219,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     }
                   }
                 })();
-            } else if (event === 'INITIAL_SESSION') {
-                // Page refresh with existing session - update state + auto-heal
-                setTimeout(async () => {
-                  if (!mounted) return;
-                  
-                  try {
-                    // Auto-heal: ensure users and user_roles rows exist
-                    await autoHealUserRows(currentSession.user);
-                    
-                    const dbUser = await fetchUserFromDatabase(currentSession.user.id);
-                    if (mounted) {
-                      const finalUser = dbUser || await createFallbackUser(currentSession.user);
-                      setUser(finalUser);
-                    }
-                  } catch (error) {
-                    console.error('Error in INITIAL_SESSION user fetch:', error);
-                    if (mounted) {
-                      const fallbackUser = await createFallbackUser(currentSession.user);
-                      setUser(fallbackUser);
-                    }
-                  }
-                }, 0);
+              } else if (event === 'TOKEN_REFRESHED') {
+                // Silent refresh — don't re-fetch user, just update session
+                // This prevents unnecessary flickering on token refresh
               } else {
-                // For other events (TOKEN_REFRESHED, SIGNED_OUT, etc), update user in background
+                // Other events — update user in background
                 setTimeout(async () => {
                   if (!mounted) return;
-                  
                   try {
                     const dbUser = await fetchUserFromDatabase(currentSession.user.id);
                     if (mounted) {
