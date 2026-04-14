@@ -42,13 +42,13 @@ export const HubLogo: React.FC<HubLogoProps> = ({ hubId, size = 'md', className 
       {/* Logo icon with hub gradient background — matches homepage NavHeader pattern */}
       <div className={`relative ${s.box}`}>
         <div
-          className="absolute inset-0 rounded-xl opacity-90 blur-[1px]"
+          className="absolute inset-0 rounded-full opacity-90 blur-[1px]"
           style={{ background: gradientCss }}
         />
         <img
           src={logoSrc}
           alt="EnglEuphoria"
-          className={`relative ${s.img} object-contain rounded-xl`}
+          className={`relative ${s.img} object-contain rounded-full`}
         />
       </div>
 

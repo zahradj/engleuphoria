@@ -152,11 +152,11 @@ const StudentDashboard = () => {
     
     switch (hub) {
       case 'playground':
-        return 'from-amber-50 via-orange-50/60 to-yellow-50/40 dark:from-[#1A1200] dark:via-[#1A0D00] dark:to-[#0D0A00]';
+        return 'from-orange-50 via-amber-50/80 to-yellow-100/60 dark:from-[#1A1000] dark:via-[#1C0E02] dark:to-[#14100A]';
       case 'academy':
-        return 'from-indigo-50 via-blue-50/60 to-purple-50/40 dark:from-[#0A0A1E] dark:via-[#0D0D2A] dark:to-[#0A0A1E]';
+        return 'from-blue-50/80 via-indigo-50/60 to-purple-50/50 dark:from-[#080818] dark:via-[#0C0C24] dark:to-[#100A1E]';
       case 'professional':
-        return 'from-emerald-50 via-green-50/60 to-teal-50/40 dark:from-[#0D1A0F] dark:via-[#0D1A0F] dark:to-[#0A1A15]';
+        return 'from-emerald-50/70 via-green-50/50 to-teal-50/60 dark:from-[#081208] dark:via-[#0A140C] dark:to-[#081410]';
       default:
         return 'from-pink-50 via-purple-50 to-blue-50 dark:from-background dark:via-background dark:to-background';
     }
