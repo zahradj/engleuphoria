@@ -17,6 +17,8 @@ import {
   Globe,
   Mail,
   Filter,
+  CalendarDays,
+  Video,
 } from 'lucide-react';
 
 interface CommandCenterProps {
@@ -47,7 +49,6 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
         b => b.scheduled_at?.startsWith(today)
       );
 
-      // Fetch at-risk students (failed phonics checks)
       const { data: atRisk } = await supabase
         .from('mastery_milestone_results')
         .select('student_id, score, weakest_skill, completed_at')
@@ -56,7 +57,6 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
         .order('completed_at', { ascending: false })
         .limit(10);
 
-      // Fetch student profiles for display names
       const atRiskIds = [...new Set((atRisk || []).map(a => a.student_id))];
       const { data: profiles } = await supabase
         .from('student_profiles')
@@ -67,7 +67,6 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
         (profiles || []).map(p => [p.user_id, p.display_name])
       );
 
-      // Recent activity feed
       const { data: recentLessons } = await supabase
         .from('class_bookings')
         .select('id, student_id, scheduled_at, status, duration')
@@ -104,6 +103,42 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
     staleTime: 60_000,
   });
 
+  // Fetch upcoming lessons
+  const { data: upcomingLessons = [] } = useQuery({
+    queryKey: ['teacher-upcoming-lessons', teacherId],
+    queryFn: async () => {
+      const now = new Date().toISOString();
+      const { data: bookings } = await supabase
+        .from('class_bookings')
+        .select('id, student_id, scheduled_at, status, duration, booking_type, price_paid')
+        .eq('teacher_id', teacherId)
+        .in('status', ['scheduled', 'confirmed'])
+        .gte('scheduled_at', now)
+        .order('scheduled_at', { ascending: true })
+        .limit(5);
+
+      if (!bookings?.length) return [];
+
+      const studentIds = [...new Set(bookings.map(b => b.student_id))];
+      const { data: profiles } = await supabase
+        .from('student_profiles')
+        .select('user_id, display_name, student_level')
+        .in('user_id', studentIds);
+
+      const profileMap = Object.fromEntries(
+        (profiles || []).map(p => [p.user_id, { name: p.display_name, level: p.student_level }])
+      );
+
+      return bookings.map(b => ({
+        ...b,
+        studentName: profileMap[b.student_id]?.name || 'Student',
+        studentLevel: profileMap[b.student_id]?.level || 'academy',
+        isTrial: b.price_paid === 0 || b.booking_type === 'trial',
+      }));
+    },
+    staleTime: 30_000,
+  });
+
   // Fetch notification logs
   const { data: notificationLogs = [] } = useQuery({
     queryKey: ['notification-logs', logFilter],
@@ -119,10 +154,8 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
       }
 
       const { data } = await query;
-
       if (!data?.length) return [];
 
-      // Enrich with student names
       const studentIds = [...new Set(data.map((l: any) => l.student_id))];
       const { data: profiles } = await supabase
         .from('student_profiles')
@@ -144,21 +177,29 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
   const { totalStudents = 0, sessionsToday = 0, atRiskStudents = [], recentActivity = [] } =
     metrics || {};
 
+  const getHubColor = (level: string) => {
+    switch (level) {
+      case 'playground': return { bg: 'bg-orange-500/10', text: 'text-orange-600', border: 'border-orange-500/20' };
+      case 'professional': return { bg: 'bg-emerald-500/10', text: 'text-emerald-600', border: 'border-emerald-500/20' };
+      default: return { bg: 'bg-blue-500/10', text: 'text-blue-600', border: 'border-blue-500/20' };
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Welcome header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-[#1A237E] font-inter tracking-tight">
+          <h1 className="text-2xl font-semibold text-foreground font-inter tracking-tight">
             Command Center
           </h1>
-          <p className="text-sm text-[#9E9E9E] mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Good {new Date().getHours() < 12 ? 'morning' : 'afternoon'}, {teacherName}
           </p>
         </div>
         <Badge
           variant="outline"
-          className="border-[#4CAF50]/30 bg-[#4CAF50]/5 text-[#2E7D32] font-medium"
+          className="border-emerald-500/30 bg-emerald-500/5 text-emerald-600 font-medium"
         >
           <Activity className="h-3 w-3 mr-1.5" />
           Live
@@ -167,44 +208,82 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
 
       {/* Status cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatusCard
-          icon={<Users className="h-5 w-5" />}
-          label="Total Students"
-          value={totalStudents}
-          color="#1A237E"
-        />
-        <StatusCard
-          icon={<Clock className="h-5 w-5" />}
-          label="Sessions Today"
-          value={sessionsToday}
-          color="#1A237E"
-        />
-        <StatusCard
-          icon={<AlertTriangle className="h-5 w-5" />}
-          label="At-Risk Alerts"
-          value={atRiskStudents.length}
-          color={atRiskStudents.length > 0 ? '#EF5350' : '#9E9E9E'}
-        />
-        <StatusCard
-          icon={<TrendingUp className="h-5 w-5" />}
-          label="Units Completed"
-          value={recentActivity.length}
-          color="#2E7D32"
-        />
+        <StatusCard icon={<Users className="h-5 w-5" />} label="Total Students" value={totalStudents} variant="primary" />
+        <StatusCard icon={<Clock className="h-5 w-5" />} label="Sessions Today" value={sessionsToday} variant="primary" />
+        <StatusCard icon={<AlertTriangle className="h-5 w-5" />} label="At-Risk Alerts" value={atRiskStudents.length} variant={atRiskStudents.length > 0 ? 'danger' : 'muted'} />
+        <StatusCard icon={<TrendingUp className="h-5 w-5" />} label="Units Completed" value={recentActivity.length} variant="success" />
       </div>
+
+      {/* Upcoming Lessons Widget */}
+      <Card className="brand-card border border-border">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <CalendarDays className="h-4 w-4 text-primary" />
+            Upcoming Lessons
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {upcomingLessons.length === 0 ? (
+            <div className="flex items-center gap-3 py-6 justify-center text-muted-foreground">
+              <CalendarDays className="h-5 w-5" />
+              <p className="text-sm">No upcoming lessons scheduled</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {upcomingLessons.map((lesson: any) => {
+                const hub = getHubColor(lesson.studentLevel);
+                const dt = new Date(lesson.scheduled_at);
+                return (
+                  <div
+                    key={lesson.id}
+                    className={`flex items-center justify-between p-3 rounded-lg border ${hub.border} ${hub.bg} transition-colors`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`h-9 w-9 rounded-lg ${hub.bg} flex items-center justify-center`}>
+                        <Video className={`h-4 w-4 ${hub.text}`} />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-foreground">{lesson.studentName}</p>
+                          {lesson.isTrial && (
+                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-amber-400/50 bg-amber-400/10 text-amber-600">
+                              Trial
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {lesson.duration}min • {lesson.studentLevel}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className={`text-sm font-semibold ${hub.text}`}>
+                        {dt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* At-Risk Alerts */}
-        <Card className="border border-border bg-card shadow-sm">
+        <Card className="brand-card border border-border">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold text-[#1A237E] flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-[#EF5350]" />
+            <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-destructive" />
               II Wizard Alerts
             </CardTitle>
           </CardHeader>
           <CardContent>
             {atRiskStudents.length === 0 ? (
-              <div className="flex items-center gap-3 py-6 justify-center text-[#9E9E9E]">
+              <div className="flex items-center gap-3 py-6 justify-center text-muted-foreground">
                 <Zap className="h-5 w-5" />
                 <p className="text-sm">All students on track — no alerts</p>
               </div>
@@ -213,20 +292,17 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
                 {atRiskStudents.slice(0, 5).map((student: any, i: number) => (
                   <div
                     key={i}
-                    className="flex items-center justify-between p-3 rounded-lg border border-[#EF5350]/10 bg-[#EF5350]/3 cursor-pointer hover:bg-[#EF5350]/5 transition-colors"
+                    className="flex items-center justify-between p-3 rounded-lg border border-destructive/10 bg-destructive/5 cursor-pointer hover:bg-destructive/10 transition-colors"
                     onClick={() => onViewStudent?.(student.student_id)}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-full bg-[#EF5350]/10 flex items-center justify-center">
-                        <AlertTriangle className="h-4 w-4 text-[#EF5350]" />
+                      <div className="h-8 w-8 rounded-full bg-destructive/10 flex items-center justify-center">
+                        <AlertTriangle className="h-4 w-4 text-destructive" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-foreground">
-                          {student.studentName}
-                        </p>
+                        <p className="text-sm font-medium text-foreground">{student.studentName}</p>
                         <p className="text-xs text-muted-foreground">
-                          Failed • Weakest: {student.weakest_skill || 'N/A'} • Score:{' '}
-                          {Math.round(student.score)}%
+                          Failed • Weakest: {student.weakest_skill || 'N/A'} • Score: {Math.round(student.score)}%
                         </p>
                       </div>
                     </div>
@@ -239,45 +315,35 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
         </Card>
 
         {/* Recent Activity Feed */}
-        <Card className="border border-border bg-card shadow-sm">
+        <Card className="brand-card border border-border">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold text-[#1A237E] flex items-center gap-2">
-              <Globe className="h-4 w-4 text-[#2E7D32]" />
+            <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <Globe className="h-4 w-4 text-emerald-600" />
               Recent Activity
             </CardTitle>
           </CardHeader>
           <CardContent>
             {recentActivity.length === 0 ? (
-              <div className="flex items-center gap-3 py-6 justify-center text-[#9E9E9E]">
+              <div className="flex items-center gap-3 py-6 justify-center text-muted-foreground">
                 <BookOpen className="h-5 w-5" />
                 <p className="text-sm">No completed sessions yet</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {recentActivity.map((activity: any, i: number) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/30 transition-colors"
-                  >
+                  <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-muted/30 transition-colors">
                     <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-full bg-[#2E7D32]/10 flex items-center justify-center">
-                        <BookOpen className="h-4 w-4 text-[#2E7D32]" />
+                      <div className="h-8 w-8 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                        <BookOpen className="h-4 w-4 text-emerald-600" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-foreground">
-                          {activity.studentName}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {activity.duration}min session completed
-                        </p>
+                        <p className="text-sm font-medium text-foreground">{activity.studentName}</p>
+                        <p className="text-xs text-muted-foreground">{activity.duration}min session completed</p>
                       </div>
                     </div>
                     <span className="text-xs text-muted-foreground">
                       {activity.scheduled_at
-                        ? new Date(activity.scheduled_at).toLocaleDateString('en-GB', {
-                            day: 'numeric',
-                            month: 'short',
-                          })
+                        ? new Date(activity.scheduled_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
                         : '—'}
                     </span>
                   </div>
@@ -289,11 +355,11 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
       </div>
 
       {/* Notification Log */}
-      <Card className="border border-border bg-card shadow-sm">
+      <Card className="brand-card border border-border">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-semibold text-[#1A237E] flex items-center gap-2">
-              <Mail className="h-4 w-4 text-[#1A237E]" />
+            <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <Mail className="h-4 w-4 text-primary" />
               Notification Log
             </CardTitle>
             <div className="flex items-center gap-1.5">
@@ -304,10 +370,8 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
                   variant={logFilter === filter ? 'default' : 'ghost'}
                   size="sm"
                   className={`h-7 text-xs px-2.5 ${
-                    logFilter === filter
-                      ? filter === 'failed'
-                        ? 'bg-[#EF5350] hover:bg-[#EF5350]/90 text-white'
-                        : 'bg-[#1A237E] hover:bg-[#1A237E]/90 text-white'
+                    logFilter === filter && filter === 'failed'
+                      ? 'bg-destructive hover:bg-destructive/90 text-destructive-foreground'
                       : ''
                   }`}
                   onClick={() => setLogFilter(filter)}
@@ -320,7 +384,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
         </CardHeader>
         <CardContent>
           {notificationLogs.length === 0 ? (
-            <div className="flex items-center gap-3 py-6 justify-center text-[#9E9E9E]">
+            <div className="flex items-center gap-3 py-6 justify-center text-muted-foreground">
               <Mail className="h-5 w-5" />
               <p className="text-sm">No notification logs yet</p>
             </div>
@@ -339,12 +403,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
                 </thead>
                 <tbody>
                   {notificationLogs.map((log: any) => (
-                    <tr
-                      key={log.id}
-                      className={`border-b border-border/50 ${
-                        log.status === 'failed' ? 'bg-[#EF5350]/5' : ''
-                      }`}
-                    >
+                    <tr key={log.id} className={`border-b border-border/50 ${log.status === 'failed' ? 'bg-destructive/5' : ''}`}>
                       <td className="py-2.5 text-foreground font-medium">{log.studentName}</td>
                       <td className="py-2.5 text-muted-foreground">{log.template_name}</td>
                       <td className="py-2.5 text-muted-foreground text-xs">{log.recipient_email}</td>
@@ -353,9 +412,9 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
                           variant="outline"
                           className={`text-[10px] ${
                             log.status === 'sent'
-                              ? 'border-[#4CAF50]/30 bg-[#4CAF50]/5 text-[#2E7D32]'
+                              ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-600'
                               : log.status === 'failed'
-                              ? 'border-[#EF5350]/30 bg-[#EF5350]/5 text-[#EF5350]'
+                              ? 'border-destructive/30 bg-destructive/5 text-destructive'
                               : 'border-amber-500/30 bg-amber-500/5 text-amber-600'
                           }`}
                         >
@@ -364,17 +423,10 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({
                       </td>
                       <td className="py-2.5 text-muted-foreground text-xs">
                         {log.email_sent_at
-                          ? new Date(log.email_sent_at).toLocaleString('en-GB', {
-                              day: 'numeric',
-                              month: 'short',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })
+                          ? new Date(log.email_sent_at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
                           : '—'}
                       </td>
-                      <td className="py-2.5 text-[#EF5350] text-xs max-w-[200px] truncate">
-                        {log.error_message || '—'}
-                      </td>
+                      <td className="py-2.5 text-destructive text-xs max-w-[200px] truncate">{log.error_message || '—'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -392,25 +444,31 @@ const StatusCard = ({
   icon,
   label,
   value,
-  color,
+  variant,
 }: {
   icon: React.ReactNode;
   label: string;
   value: number;
-  color: string;
-}) => (
-  <Card className="border border-border bg-card shadow-sm">
-    <CardContent className="pt-5 pb-4 flex items-center gap-4">
-      <div
-        className="h-10 w-10 rounded-lg flex items-center justify-center"
-        style={{ backgroundColor: `${color}10`, color }}
-      >
-        {icon}
-      </div>
-      <div>
-        <p className="text-2xl font-bold text-foreground">{value}</p>
-        <p className="text-xs text-muted-foreground">{label}</p>
-      </div>
-    </CardContent>
-  </Card>
-);
+  variant: 'primary' | 'success' | 'danger' | 'muted';
+}) => {
+  const styles = {
+    primary: 'bg-primary/10 text-primary',
+    success: 'bg-emerald-500/10 text-emerald-600',
+    danger: 'bg-destructive/10 text-destructive',
+    muted: 'bg-muted text-muted-foreground',
+  };
+
+  return (
+    <Card className="brand-card border border-border">
+      <CardContent className="pt-5 pb-4 flex items-center gap-4">
+        <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${styles[variant]}`}>
+          {icon}
+        </div>
+        <div>
+          <p className="text-2xl font-bold text-foreground">{value}</p>
+          <p className="text-xs text-muted-foreground">{label}</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};

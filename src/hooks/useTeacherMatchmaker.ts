@@ -106,7 +106,7 @@ export function useTeacherMatchmaker() {
   const bookTrialLesson = async (teacherId: string) => {
     if (!user?.id) return;
 
-    await lessonService.createTrialLesson({
+    const lesson = await lessonService.createTrialLesson({
       title: 'Trial Lesson',
       teacher_id: teacherId,
       student_id: user.id,
@@ -114,6 +114,21 @@ export function useTeacherMatchmaker() {
       duration: 30,
       cost: 0,
     });
+
+    // Link lesson_id to teacher_availability slot if one exists
+    if (lesson?.id) {
+      const scheduledAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      await supabase
+        .from('teacher_availability')
+        .update({
+          is_booked: true,
+          student_id: user.id,
+          lesson_id: lesson.id,
+        } as any)
+        .eq('teacher_id', teacherId)
+        .lte('start_time', scheduledAt)
+        .gte('end_time', scheduledAt);
+    }
 
     setHasBookings(true);
   };
