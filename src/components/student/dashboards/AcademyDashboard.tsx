@@ -26,6 +26,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RecommendedTeachers } from '../RecommendedTeachers';
 import { BookMyClassModal } from '../BookMyClassModal';
 import { JoinLessonHero } from '../JoinLessonHero';
+import { HubLogo } from '../HubLogo';
 import { cn } from '@/lib/utils';
 
 // Academy Hub Colors
@@ -100,13 +101,8 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
         animate={{ x: 0, opacity: 1 }}
         className={cn('w-20 md:w-60 border-r flex flex-col', sidebarBg)}
       >
-        <div className="p-4 flex items-center justify-center md:justify-start gap-3">
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: isDark ? '#3949AB' : ACADEMY_PRIMARY }}>
-            <BookOpen className="w-5 h-5 text-white" />
-          </div>
-          <span className={cn('hidden md:block text-lg font-semibold', textPrimary)}>
-            Academy
-          </span>
+        <div className="p-4">
+          <HubLogo hubId="academy" size="sm" />
         </div>
 
         <nav className="flex-1 py-4">
