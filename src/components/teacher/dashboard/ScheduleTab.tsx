@@ -175,7 +175,7 @@ export const ScheduleTab = ({ onScheduleClass, onStartScheduledClass }: Schedule
                       <Users className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <p className="font-medium">{lesson.student_name || 'Student'}</p>
+                      <p className="font-medium">{lesson.lesson_title || 'Scheduled Lesson'}</p>
                       <p className="text-sm text-muted-foreground">
                         {format(startTime, 'EEE, MMM d')} at {format(startTime, 'h:mm a')}
                       </p>
@@ -185,7 +185,7 @@ export const ScheduleTab = ({ onScheduleClass, onStartScheduledClass }: Schedule
                   {isFuture(startTime) && (
                     <Button
                       size="sm"
-                      onClick={() => onStartScheduledClass(lesson.student_name || 'Class')}
+                      onClick={() => onStartScheduledClass(lesson.lesson_title || 'Class')}
                     >
                       Start Class
                     </Button>
