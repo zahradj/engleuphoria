@@ -16,7 +16,7 @@ interface BookedLesson {
   id: string;
   start_time: string;
   duration: number;
-  student_name: string;
+  lesson_title: string | null;
 }
 
 interface WeekStats {
@@ -44,7 +44,7 @@ export const ScheduleTab = ({ onScheduleClass, onStartScheduledClass }: Schedule
         // Fetch upcoming booked lessons
         const { data: lessons, error: lessonsError } = await supabase
           .from('teacher_availability')
-          .select('id, start_time, duration, student_name')
+          .select('id, start_time, duration, lesson_title')
           .eq('teacher_id', teacherId)
           .eq('is_booked', true)
           .gte('start_time', now)
@@ -175,7 +175,7 @@ export const ScheduleTab = ({ onScheduleClass, onStartScheduledClass }: Schedule
                       <Users className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <p className="font-medium">{lesson.student_name || 'Student'}</p>
+                      <p className="font-medium">{lesson.lesson_title || 'Scheduled Lesson'}</p>
                       <p className="text-sm text-muted-foreground">
                         {format(startTime, 'EEE, MMM d')} at {format(startTime, 'h:mm a')}
                       </p>
@@ -185,7 +185,7 @@ export const ScheduleTab = ({ onScheduleClass, onStartScheduledClass }: Schedule
                   {isFuture(startTime) && (
                     <Button
                       size="sm"
-                      onClick={() => onStartScheduledClass(lesson.student_name || 'Class')}
+                      onClick={() => onStartScheduledClass(lesson.lesson_title || 'Class')}
                     >
                       Start Class
                     </Button>
