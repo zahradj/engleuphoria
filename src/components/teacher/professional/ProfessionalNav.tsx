@@ -1,7 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,18 +9,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-  LayoutDashboard,
-  Users,
-  FileText,
-  Calendar,
-  BarChart3,
-  Sparkles,
-  LogOut,
-  ChevronDown,
-  User,
-  Settings,
-  HeartPulse,
-  DollarSign,
+  LayoutDashboard, Users, FileText, Calendar, BarChart3, Sparkles,
+  LogOut, ChevronDown, User, Settings, HeartPulse, DollarSign,
 } from 'lucide-react';
 import { Logo } from '@/components/Logo';
 
@@ -63,26 +52,18 @@ export const ProfessionalNav: React.FC<ProfessionalNavProps> = ({
   onLogout,
 }) => {
   const getInitials = (name: string) =>
-    name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+    name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
   return (
-    <nav className="sticky top-0 z-50 bg-white border-b border-[#E2E8F0] shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+    <nav className="sticky top-0 z-50 bg-card/80 backdrop-blur-xl border-b border-border/50 shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-14">
-          {/* Brand */}
           <Logo size="small" />
 
-          {/* Navigation Tabs */}
           <div className="hidden md:flex items-center gap-0.5">
             {navItems.map(item => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
-
               return (
                 <Button
                   key={item.id}
@@ -91,8 +72,8 @@ export const ProfessionalNav: React.FC<ProfessionalNavProps> = ({
                   onClick={() => onTabChange(item.id)}
                   className={`gap-1.5 text-xs font-medium rounded-lg px-3 h-9 transition-all ${
                     isActive
-                      ? 'bg-[#1A237E]/8 text-[#1A237E] font-semibold'
-                      : 'text-[#9E9E9E] hover:text-foreground hover:bg-muted/40'
+                      ? 'bg-primary/10 text-primary font-semibold shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5" />
@@ -102,13 +83,12 @@ export const ProfessionalNav: React.FC<ProfessionalNavProps> = ({
             })}
           </div>
 
-          {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="gap-2 px-2 h-9">
                 <Avatar className="w-7 h-7">
                   <AvatarImage src={profileImageUrl} alt={teacherName} />
-                  <AvatarFallback className="bg-[#1A237E]/10 text-[#1A237E] text-xs font-medium">
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
                     {getInitials(teacherName)}
                   </AvatarFallback>
                 </Avatar>

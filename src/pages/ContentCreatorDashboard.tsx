@@ -7,6 +7,7 @@ import LessonLibraryHub from '@/components/lesson-player/LessonLibraryHub';
 import { useAuth } from '@/contexts/AuthContext';
 import { LogOut, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Logo } from '@/components/Logo';
 
 const ContentCreatorDashboard: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<PipelineStep>(1);
@@ -50,12 +51,16 @@ const ContentCreatorDashboard: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <header className="h-14 border-b border-border bg-card flex items-center justify-between px-6 shrink-0">
-        <div className="flex items-center gap-3">
-          <h2 className="text-lg font-bold text-foreground tracking-tight">AI Content Studio</h2>
-          <span className="text-sm text-muted-foreground hidden sm:inline">
-            — Welcome, <strong className="text-foreground">{user?.user_metadata?.full_name || 'Content Creator'}</strong>
-          </span>
+      <header className="h-14 border-b border-border/50 bg-card/80 backdrop-blur-xl flex items-center justify-between px-6 shrink-0">
+        <div className="flex items-center gap-4">
+          <Logo size="small" />
+          <div className="hidden sm:block h-6 w-px bg-border/50" />
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-bold text-foreground tracking-tight">AI Content Studio</h2>
+            <span className="text-sm text-muted-foreground hidden sm:inline">
+              — Welcome, <strong className="text-foreground">{user?.user_metadata?.full_name || 'Content Creator'}</strong>
+            </span>
+          </div>
         </div>
         <Button variant="ghost" size="sm" onClick={() => signOut()}>
           <LogOut className="h-4 w-4 mr-2" />
@@ -63,7 +68,6 @@ const ContentCreatorDashboard: React.FC = () => {
         </Button>
       </header>
 
-      {/* Hide stepper on Step 2 (full-bleed editor) */}
       {currentStep !== 2 && (
         <ContentCreatorStepper currentStep={currentStep} onStepChange={setCurrentStep} progress={progress} />
       )}
